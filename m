@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88D98C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Feb 2022 22:17:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F8E2C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Feb 2022 23:50:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236993AbiBOWRM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Feb 2022 17:17:12 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:37704 "EHLO
+        id S244638AbiBOXuz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Feb 2022 18:50:55 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244549AbiBOWRL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 17:17:11 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E48352AC73;
-        Tue, 15 Feb 2022 14:16:59 -0800 (PST)
+        with ESMTP id S233263AbiBOXuy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 18:50:54 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 587BCC4E25
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 15:50:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 73D7D60B81;
-        Tue, 15 Feb 2022 22:16:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D03AEC340EB;
-        Tue, 15 Feb 2022 22:16:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E6D27615CB
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 23:50:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4135AC340EB;
+        Tue, 15 Feb 2022 23:50:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644963418;
-        bh=UniqfsgCb3F+Dbb8zGGA7iIIaDQl0TdQFxJzx72t/fY=;
+        s=korg; t=1644969041;
+        bh=aw7yEMZ51mV4WWlMN6f5T1Lql/GzvL/T5KPC6E9OVU4=;
         h=Date:To:From:Subject:From;
-        b=JzP4aPLSPG//hljAOWrYxe6+XvIZyx3qDFq09owT3iSpBLcSYWLRG7q8dm8kNFu4L
-         MNbJm1kJNnK6HAyCiMxInRQlnmhqgmlRvThNxrJGNKEyNzwHk8vlcw8TDmwjrhGQtd
-         bAae3tZ179Vm4oWdoCF2+GYbqqTEEKFff9n4UTmY=
-Date:   Tue, 15 Feb 2022 14:16:58 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, stable@vger.kernel.org,
-        osalvador@suse.de, mgorman@techsingularity.net,
-        jhubbard@nvidia.com, anshuman.khandual@arm.com, apopple@nvidia.com,
+        b=XdV5Q1o436D/9LBb3pctUyK/D9T+UZe13jNtB27cEmUr9UVT1Fc5nkO7m96Llum/F
+         /P9O6++H9WcFB/Busmlms7DRzN2ipKx0j0aOF2VNJDdItMA3YrtlowsyrI0kjT2CWo
+         qxtcYZCJI8zw63lsbYPJnke1DYGGUNItCALP9I/g=
+Date:   Tue, 15 Feb 2022 15:50:40 -0800
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        ryabinin.a.a@gmail.com, glider@google.com, elver@google.com,
+        dvyukov@google.com, catalin.marinas@arm.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch added to -mm tree
-Message-Id: <20220215221658.D03AEC340EB@smtp.kernel.org>
+Subject: [failures] kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch removed from -mm tree
+Message-Id: <20220215235041.4135AC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,140 +43,322 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pages_alloc.c: don't create ZONE_MOVABLE beyond the end of a node
-has been added to the -mm tree.  Its filename is
-     mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
+     Subject: kasan: test: support async (again) and asymm modes for HW_TAGS
+has been removed from the -mm tree.  Its filename was
+     kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/pages_alloc.c: don't create ZONE_MOVABLE beyond the end of a node
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: test: support async (again) and asymm modes for HW_TAGS
 
-ZONE_MOVABLE uses the remaining memory in each node.  Its starting pfn is
-also aligned to MAX_ORDER_NR_PAGES.  It is possible for the remaining
-memory in a node to be less than MAX_ORDER_NR_PAGES, meaning there is not
-enough room for ZONE_MOVABLE on that node.
+Async mode support has already been implemented in commit e80a76aa1a91
+("kasan, arm64: tests supports for HW_TAGS async mode") but then got
+accidentally broken in commit 99734b535d9b ("kasan: detect false-positives
+in tests").
 
-Unfortunately this condition is not checked for.  This leads to
-zone_movable_pfn[] getting set to a pfn greater than the last pfn in a
-node.
+Restore the changes removed by the latter patch and adapt them for asymm
+mode: add a sync_fault flag to kunit_kasan_expectation that only get set
+if the MTE fault was synchronous, and reenable MTE on such faults in
+tests.
 
-calculate_node_totalpages() then sets zone->present_pages to be greater
-than zone->spanned_pages which is invalid, as spanned_pages represents the
-maximum number of pages in a zone assuming no holes.
+Also rename kunit_kasan_expectation to kunit_kasan_status and move its
+definition to mm/kasan/kasan.h from include/linux/kasan.h, as this
+structure is only internally used by KASAN.
 
-Subsequently it is possible free_area_init_core() will observe a zone of
-size zero with present pages.  In this case it will skip setting up the
-zone, including the initialisation of free_lists[].
-
-However populated_zone() checks zone->present_pages to see if a zone has
-memory available.  This is used by iterators such as walk_zones_in_node().
-pagetypeinfo_showfree() uses this to walk the free_list of each zone in
-each node, which are assumed to be initialised due to the zone not being
-empty.  As free_area_init_core() never initialised the free_lists[] this
-results in the following kernel crash when trying to read
-/proc/pagetypeinfo:
-
-[   67.534914] BUG: kernel NULL pointer dereference, address: 0000000000000000
-[   67.535429] #PF: supervisor read access in kernel mode
-[   67.535789] #PF: error_code(0x0000) - not-present page
-[   67.536128] PGD 0 P4D 0
-[   67.536305] Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC NOPTI
-[   67.536696] CPU: 0 PID: 456 Comm: cat Not tainted 5.16.0 #461
-[   67.537096] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
-[   67.537638] RIP: 0010:pagetypeinfo_show+0x163/0x460
-[   67.537992] Code: 9e 82 e8 80 57 0e 00 49 8b 06 b9 01 00 00 00 4c 39 f0 75 16 e9 65 02 00 00 48 83 c1 01 48 81 f9 a0 86 01 00 0f 84 48 02 00 00 <48> 8b 00 4c 39 f0 75 e7 48 c7 c2 80 a2 e2 82 48 c7 c6 79 ef e3 82
-[   67.538259] RSP: 0018:ffffc90001c4bd10 EFLAGS: 00010003
-[   67.538259] RAX: 0000000000000000 RBX: ffff88801105f638 RCX: 0000000000000001
-[   67.538259] RDX: 0000000000000001 RSI: 000000000000068b RDI: ffff8880163dc68b
-[   67.538259] RBP: ffffc90001c4bd90 R08: 0000000000000001 R09: ffff8880163dc67e
-[   67.538259] R10: 656c6261766f6d6e R11: 6c6261766f6d6e55 R12: ffff88807ffb4a00
-[   67.538259] R13: ffff88807ffb49f8 R14: ffff88807ffb4580 R15: ffff88807ffb3000
-[   67.538259] FS:  00007f9c83eff5c0(0000) GS:ffff88807dc00000(0000) knlGS:0000000000000000
-[   67.538259] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   67.538259] CR2: 0000000000000000 CR3: 0000000013c8e000 CR4: 0000000000350ef0
-[   67.538259] Call Trace:
-[   67.538259]  <TASK>
-[   67.538259]  seq_read_iter+0x128/0x460
-[   67.538259]  ? aa_file_perm+0x1af/0x5f0
-[   67.538259]  proc_reg_read_iter+0x51/0x80
-[   67.538259]  ? lock_is_held_type+0xea/0x140
-[   67.538259]  new_sync_read+0x113/0x1a0
-[   67.538259]  vfs_read+0x136/0x1d0
-[   67.538259]  ksys_read+0x70/0xf0
-[   67.538259]  __x64_sys_read+0x1a/0x20
-[   67.538259]  do_syscall_64+0x3b/0xc0
-[   67.538259]  entry_SYSCALL_64_after_hwframe+0x44/0xae
-[   67.538259] RIP: 0033:0x7f9c83e23cce
-[   67.538259] Code: c0 e9 b6 fe ff ff 50 48 8d 3d 6e 13 0a 00 e8 c9 e3 01 00 66 0f 1f 84 00 00 00 00 00 64 8b 04 25 18 00 00 00 85 c0 75 14 0f 05 <48> 3d 00 f0 ff ff 77 5a c3 66 0f 1f 84 00 00 00 00 00 48 83 ec 28
-[   67.538259] RSP: 002b:00007fff116e1a08 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
-[   67.538259] RAX: ffffffffffffffda RBX: 0000000000020000 RCX: 00007f9c83e23cce
-[   67.538259] RDX: 0000000000020000 RSI: 00007f9c83a2c000 RDI: 0000000000000003
-[   67.538259] RBP: 00007f9c83a2c000 R08: 00007f9c83a2b010 R09: 0000000000000000
-[   67.538259] R10: 00007f9c83f2d7d0 R11: 0000000000000246 R12: 0000000000000000
-[   67.538259] R13: 0000000000000003 R14: 0000000000020000 R15: 0000000000020000
-[   67.538259]  </TASK>
-
-Fix this by checking that the aligned zone_movable_pfn[] does not exceed
-the end of the node, and if it does skip creating a movable zone on this
-node.
-
-Link: https://lkml.kernel.org/r/20220215025831.2113067-1-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Fixes: 2a1e274acf0b ("Create the ZONE_MOVABLE zone")
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/51ae4a56205a41953971113ab2c264c7e2e5d969.1644938763.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/linux/kasan.h |    5 -----
+ lib/test_kasan.c      |   39 ++++++++++++++++++++++-----------------
+ mm/kasan/hw_tags.c    |   18 +++++++++---------
+ mm/kasan/kasan.h      |   14 ++++++++++++--
+ mm/kasan/report.c     |   17 +++++++++--------
+ 5 files changed, 52 insertions(+), 41 deletions(-)
 
---- a/mm/page_alloc.c~mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node
-+++ a/mm/page_alloc.c
-@@ -7998,10 +7998,17 @@ restart:
+--- a/include/linux/kasan.h~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/include/linux/kasan.h
+@@ -18,11 +18,6 @@ struct task_struct;
+ #include <linux/linkage.h>
+ #include <asm/kasan.h>
  
- out2:
- 	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
--	for (nid = 0; nid < MAX_NUMNODES; nid++)
-+	for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+		unsigned long start_pfn, end_pfn;
-+
- 		zone_movable_pfn[nid] =
- 			roundup(zone_movable_pfn[nid], MAX_ORDER_NR_PAGES);
+-/* kasan_data struct is used in KUnit tests for KASAN expected failures */
+-struct kunit_kasan_expectation {
+-	bool report_found;
+-};
+-
+ #endif
  
-+		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
-+		if (zone_movable_pfn[nid] >= end_pfn)
-+			zone_movable_pfn[nid] = 0;
-+	}
+ typedef unsigned int __bitwise kasan_vmalloc_flags_t;
+--- a/lib/test_kasan.c~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/lib/test_kasan.c
+@@ -37,7 +37,7 @@ void *kasan_ptr_result;
+ int kasan_int_result;
+ 
+ static struct kunit_resource resource;
+-static struct kunit_kasan_expectation fail_data;
++static struct kunit_kasan_status test_status;
+ static bool multishot;
+ 
+ /*
+@@ -54,58 +54,63 @@ static int kasan_test_init(struct kunit
+ 	}
+ 
+ 	multishot = kasan_save_enable_multi_shot();
+-	fail_data.report_found = false;
++	test_status.report_found = false;
++	test_status.sync_fault = false;
+ 	kunit_add_named_resource(test, NULL, NULL, &resource,
+-					"kasan_data", &fail_data);
++					"kasan_status", &test_status);
+ 	return 0;
+ }
+ 
+ static void kasan_test_exit(struct kunit *test)
+ {
+ 	kasan_restore_multi_shot(multishot);
+-	KUNIT_EXPECT_FALSE(test, fail_data.report_found);
++	KUNIT_EXPECT_FALSE(test, test_status.report_found);
+ }
+ 
+ /**
+  * KUNIT_EXPECT_KASAN_FAIL() - check that the executed expression produces a
+  * KASAN report; causes a test failure otherwise. This relies on a KUnit
+- * resource named "kasan_data". Do not use this name for KUnit resources
++ * resource named "kasan_status". Do not use this name for KUnit resources
+  * outside of KASAN tests.
+  *
+- * For hardware tag-based KASAN in sync mode, when a tag fault happens, tag
++ * For hardware tag-based KASAN, when a synchronous tag fault happens, tag
+  * checking is auto-disabled. When this happens, this test handler reenables
+  * tag checking. As tag checking can be only disabled or enabled per CPU,
+  * this handler disables migration (preemption).
+  *
+- * Since the compiler doesn't see that the expression can change the fail_data
++ * Since the compiler doesn't see that the expression can change the test_status
+  * fields, it can reorder or optimize away the accesses to those fields.
+  * Use READ/WRITE_ONCE() for the accesses and compiler barriers around the
+  * expression to prevent that.
+  *
+- * In between KUNIT_EXPECT_KASAN_FAIL checks, fail_data.report_found is kept as
+- * false. This allows detecting KASAN reports that happen outside of the checks
+- * by asserting !fail_data.report_found at the start of KUNIT_EXPECT_KASAN_FAIL
+- * and in kasan_test_exit.
++ * In between KUNIT_EXPECT_KASAN_FAIL checks, test_status.report_found is kept
++ * as false. This allows detecting KASAN reports that happen outside of the
++ * checks by asserting !test_status.report_found at the start of
++ * KUNIT_EXPECT_KASAN_FAIL and in kasan_test_exit.
+  */
+ #define KUNIT_EXPECT_KASAN_FAIL(test, expression) do {			\
+ 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
+ 	    kasan_sync_fault_possible())				\
+ 		migrate_disable();					\
+-	KUNIT_EXPECT_FALSE(test, READ_ONCE(fail_data.report_found));	\
++	KUNIT_EXPECT_FALSE(test, READ_ONCE(test_status.report_found));	\
+ 	barrier();							\
+ 	expression;							\
+ 	barrier();							\
+-	if (!READ_ONCE(fail_data.report_found)) {			\
++	if (kasan_async_fault_possible())				\
++		kasan_force_async_fault();				\
++	if (!READ_ONCE(test_status.report_found)) {			\
+ 		KUNIT_FAIL(test, KUNIT_SUBTEST_INDENT "KASAN failure "	\
+ 				"expected in \"" #expression		\
+ 				 "\", but none occurred");		\
+ 	}								\
+-	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {				\
+-		if (READ_ONCE(fail_data.report_found))			\
+-			kasan_enable_tagging_sync();			\
++	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
++	    kasan_sync_fault_possible()) {				\
++		if (READ_ONCE(test_status.report_found) &&		\
++		    READ_ONCE(test_status.sync_fault))			\
++			kasan_enable_tagging();				\
+ 		migrate_enable();					\
+ 	}								\
+-	WRITE_ONCE(fail_data.report_found, false);			\
++	WRITE_ONCE(test_status.report_found, false);			\
+ } while (0)
+ 
+ #define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
+--- a/mm/kasan/hw_tags.c~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/mm/kasan/hw_tags.c
+@@ -172,12 +172,7 @@ void kasan_init_hw_tags_cpu(void)
+ 	 * Enable async or asymm modes only when explicitly requested
+ 	 * through the command line.
+ 	 */
+-	if (kasan_arg_mode == KASAN_ARG_MODE_ASYNC)
+-		hw_enable_tagging_async();
+-	else if (kasan_arg_mode == KASAN_ARG_MODE_ASYMM)
+-		hw_enable_tagging_asymm();
+-	else
+-		hw_enable_tagging_sync();
++	kasan_enable_tagging();
+ }
+ 
+ /* kasan_init_hw_tags() is called once on boot CPU. */
+@@ -343,11 +338,16 @@ void __kasan_poison_vmalloc(const void *
+ 
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+-void kasan_enable_tagging_sync(void)
++void kasan_enable_tagging(void)
+ {
+-	hw_enable_tagging_sync();
++	if (kasan_arg_mode == KASAN_ARG_MODE_ASYNC)
++		hw_enable_tagging_async();
++	else if (kasan_arg_mode == KASAN_ARG_MODE_ASYMM)
++		hw_enable_tagging_asymm();
++	else
++		hw_enable_tagging_sync();
+ }
+-EXPORT_SYMBOL_GPL(kasan_enable_tagging_sync);
++EXPORT_SYMBOL_GPL(kasan_enable_tagging);
+ 
+ void kasan_force_async_fault(void)
+ {
+--- a/mm/kasan/kasan.h~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/mm/kasan/kasan.h
+@@ -7,6 +7,16 @@
+ #include <linux/kfence.h>
+ #include <linux/stackdepot.h>
+ 
++#ifdef CONFIG_KASAN_KUNIT_TEST
 +
- out:
- 	/* restore the node_state */
- 	node_states[N_MEMORY] = saved_node_state;
++/* Used in KUnit-compatible KASAN tests. */
++struct kunit_kasan_status {
++	bool report_found;
++	bool sync_fault;
++};
++
++#endif
++
+ #ifdef CONFIG_KASAN_HW_TAGS
+ 
+ #include <linux/static_key.h>
+@@ -350,12 +360,12 @@ static inline const void *arch_kasan_set
+ 
+ #if defined(CONFIG_KASAN_HW_TAGS) && IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+-void kasan_enable_tagging_sync(void);
++void kasan_enable_tagging(void);
+ void kasan_force_async_fault(void);
+ 
+ #else /* CONFIG_KASAN_HW_TAGS || CONFIG_KASAN_KUNIT_TEST */
+ 
+-static inline void kasan_enable_tagging_sync(void) { }
++static inline void kasan_enable_tagging(void) { }
+ static inline void kasan_force_async_fault(void) { }
+ 
+ #endif /* CONFIG_KASAN_HW_TAGS || CONFIG_KASAN_KUNIT_TEST */
+--- a/mm/kasan/report.c~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/mm/kasan/report.c
+@@ -344,20 +344,21 @@ static bool report_enabled(void)
+ }
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+-static void kasan_update_kunit_status(struct kunit *cur_test)
++static void kasan_update_kunit_status(struct kunit *cur_test, bool sync)
+ {
+ 	struct kunit_resource *resource;
+-	struct kunit_kasan_expectation *kasan_data;
++	struct kunit_kasan_status *status;
+ 
+-	resource = kunit_find_named_resource(cur_test, "kasan_data");
++	resource = kunit_find_named_resource(cur_test, "kasan_status");
+ 
+ 	if (!resource) {
+ 		kunit_set_failure(cur_test);
+ 		return;
+ 	}
+ 
+-	kasan_data = (struct kunit_kasan_expectation *)resource->data;
+-	WRITE_ONCE(kasan_data->report_found, true);
++	status = (struct kunit_kasan_status *)resource->data;
++	WRITE_ONCE(status->report_found, true);
++	WRITE_ONCE(status->sync_fault, sync);
+ 	kunit_put_resource(resource);
+ }
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
+@@ -371,7 +372,7 @@ void kasan_report_invalid_free(void *obj
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+ 	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test);
++		kasan_update_kunit_status(current->kunit_test, true);
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
+ 
+ 	start_report(&flags);
+@@ -391,7 +392,7 @@ void kasan_report_async(void)
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+ 	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test);
++		kasan_update_kunit_status(current->kunit_test, false);
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
+ 
+ 	start_report(&flags);
+@@ -413,7 +414,7 @@ static void __kasan_report(unsigned long
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+ 	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test);
++		kasan_update_kunit_status(current->kunit_test, true);
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
+ 
+ 	disable_trace_on_warning();
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
-mm-remove-the-vma-check-in-migrate_vma_setup.patch
-mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
+kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
+kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
+kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+mm-clarify-__gfp_zerotags-comment.patch
+kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
+kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
+kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
+kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
+kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+kasan-clean-up-metadata-byte-definitions.patch
+kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
+kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+kasan-reorder-vmalloc-hooks.patch
+kasan-add-wrappers-for-vmalloc-hooks.patch
+kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
+kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
+kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
+kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
+kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
+kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
+kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+kasan-add-kasanvmalloc-command-line-flag.patch
+kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
+arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
+kasan-documentation-updates.patch
+kasan-improve-vmalloc-tests.patch
+kasan-improve-vmalloc-tests-fix-2.patch
 
