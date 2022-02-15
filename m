@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2E0FC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Feb 2022 21:03:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CCEDC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Feb 2022 21:05:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241580AbiBOVDu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Feb 2022 16:03:50 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:39596 "EHLO
+        id S234973AbiBOVFR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Feb 2022 16:05:17 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235440AbiBOVDs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 16:03:48 -0500
+        with ESMTP id S233073AbiBOVFQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 16:05:16 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F177027FFF
-        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 13:03:36 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C16829CB2
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 13:05:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A0BFBB81CFD
-        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 21:03:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2127EC340EB;
-        Tue, 15 Feb 2022 21:03:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8C42DB81CEF
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 21:05:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9DFBC340EB;
+        Tue, 15 Feb 2022 21:05:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644959014;
-        bh=sqrUU0Hp5GH2B+WT1jw047BWDODH5siAePoVIwLrpvc=;
+        s=korg; t=1644959102;
+        bh=tsQmI4xyE5H9Lo4GPE4RarbS9yzAAYZF+7r6R7i1pHI=;
         h=Date:To:From:Subject:From;
-        b=ctaSHLn1C/eYFkF4KUU4v8HYwmwBlrajqjwZ2Z5u8pnv4AycCms2tuIi9hcjggM2S
-         vKFXvjvMaRwUGbZP4roSi1BboXN1nQoMz/8KyshppqpMzgaDuaF0ipEyrvZ7wctG4V
-         x+nAbsHb3CE4I+HOnD15fh8+eQUJMP79b+jAeJuI=
-Date:   Tue, 15 Feb 2022 13:03:32 -0800
-To:     mm-commits@vger.kernel.org, peterz@infradead.org,
-        ndesaulniers@google.com, bot@kernelci.org, bigeasy@linutronix.de,
-        nathan@kernel.org, akpm@linux-foundation.org
+        b=hbzjgO/BNett/n/9I/G+jr2wi2Wz+cB+UphXqaBwh4gyhwYbv2SlOwqQ9qnTALSrk
+         QwNAQW/QUEv0kGcvkQO1VDVqOI5gF98xohVH0tao6vSjQXNpYf4o9xSc6e3epvBbhC
+         7SAkoxS7MEAfZI3BKyUjlyg777Putavx1ZcTmBms=
+Date:   Tue, 15 Feb 2022 13:05:01 -0800
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-mark-pagesets-as-__maybe_unused.patch added to -mm tree
-Message-Id: <20220215210334.2127EC340EB@smtp.kernel.org>
+Subject: + kasan-improve-vmalloc-tests-fix-2.patch added to -mm tree
+Message-Id: <20220215210501.D9DFBC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: mark pagesets as __maybe_unused
+     Subject: fix for "kasan: improve vmalloc tests"
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-mark-pagesets-as-__maybe_unused.patch
+     kasan-improve-vmalloc-tests-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-mark-pagesets-as-__maybe_unused.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-improve-vmalloc-tests-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-mark-pagesets-as-__maybe_unused.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-improve-vmalloc-tests-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,56 +63,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: mm/page_alloc: mark pagesets as __maybe_unused
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: fix for "kasan: improve vmalloc tests"
 
-Commit 9983a9d577db ("locking/local_lock: Make the empty local_lock_*()
-function a macro.") in the -tip tree converted the local_lock_*()
-functions into macros, which causes a warning with clang with
-CONFIG_PREEMPT_RT=n + CONFIG_DEBUG_LOCK_ALLOC=n:
+vmap_tags() and vm_map_ram_tags() pass invalid page array size to
+vm_map_ram() and vm_unmap_ram().  It's supposed to be 1, but it's 1 <<
+order == 2 currently.
 
-  mm/page_alloc.c:131:40: error: variable 'pagesets' is not needed and will not be emitted [-Werror,-Wunneeded-internal-declaration]
-  static DEFINE_PER_CPU(struct pagesets, pagesets) = {
-                                         ^
-  1 error generated.
+Remove order variable (it can only be 0 with the current code) and
+hardcode the number of pages in these tests.
 
-Prior to that change, clang was not able to tell that pagesets was unused
-in this configuration because it does not perform cross function analysis
-in the frontend.  After that change, it sees that the macros just do a
-typecheck on the lock member of pagesets, which is evaluated at compile
-time (so the variable is technically "used"), meaning the variable is not
-needed in the final assembly, as the warning states.
-
-Mark the variable as __maybe_unused to make it clear to clang that this is
-expected in this configuration so there is no more warning.
-
-Link: https://github.com/ClangBuiltLinux/linux/issues/1593
-Link: https://lkml.kernel.org/r/20220215184322.440969-1-nathan@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
-Reported-by: "kernelci.org bot" <bot@kernelci.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/865c91ba49b90623ab50c7526b79ccb955f544f0.1644950160.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_kasan.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-mark-pagesets-as-__maybe_unused
-+++ a/mm/page_alloc.c
-@@ -128,7 +128,7 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- struct pagesets {
- 	local_lock_t lock;
- };
--static DEFINE_PER_CPU(struct pagesets, pagesets) = {
-+static DEFINE_PER_CPU(struct pagesets, pagesets) __maybe_unused = {
- 	.lock = INIT_LOCAL_LOCK(lock),
- };
+--- a/lib/test_kasan.c~kasan-improve-vmalloc-tests-fix-2
++++ a/lib/test_kasan.c
+@@ -1140,7 +1140,6 @@ static void vmap_tags(struct kunit *test
+ {
+ 	char *p_ptr, *v_ptr;
+ 	struct page *p_page, *v_page;
+-	size_t order = 1;
  
+ 	/*
+ 	 * This test is specifically crafted for the software tag-based mode,
+@@ -1150,12 +1149,12 @@ static void vmap_tags(struct kunit *test
+ 
+ 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_VMALLOC);
+ 
+-	p_page = alloc_pages(GFP_KERNEL, order);
++	p_page = alloc_pages(GFP_KERNEL, 1);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_page);
+ 	p_ptr = page_address(p_page);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_ptr);
+ 
+-	v_ptr = vmap(&p_page, 1 << order, VM_MAP, PAGE_KERNEL);
++	v_ptr = vmap(&p_page, 1, VM_MAP, PAGE_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
+ 
+ 	/*
+@@ -1177,14 +1176,13 @@ static void vmap_tags(struct kunit *test
+ 	KUNIT_EXPECT_PTR_EQ(test, p_page, v_page);
+ 
+ 	vunmap(v_ptr);
+-	free_pages((unsigned long)p_ptr, order);
++	free_pages((unsigned long)p_ptr, 1);
+ }
+ 
+ static void vm_map_ram_tags(struct kunit *test)
+ {
+ 	char *p_ptr, *v_ptr;
+ 	struct page *page;
+-	size_t order = 1;
+ 
+ 	/*
+ 	 * This test is specifically crafted for the software tag-based mode,
+@@ -1192,12 +1190,12 @@ static void vm_map_ram_tags(struct kunit
+ 	 */
+ 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_SW_TAGS);
+ 
+-	page = alloc_pages(GFP_KERNEL, order);
++	page = alloc_pages(GFP_KERNEL, 1);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, page);
+ 	p_ptr = page_address(page);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_ptr);
+ 
+-	v_ptr = vm_map_ram(&page, 1 << order, -1);
++	v_ptr = vm_map_ram(&page, 1, -1);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
+ 
+ 	KUNIT_EXPECT_GE(test, (u8)get_tag(v_ptr), (u8)KASAN_TAG_MIN);
+@@ -1207,8 +1205,8 @@ static void vm_map_ram_tags(struct kunit
+ 	*p_ptr = 0;
+ 	*v_ptr = 0;
+ 
+-	vm_unmap_ram(v_ptr, 1 << order);
+-	free_pages((unsigned long)p_ptr, order);
++	vm_unmap_ram(v_ptr, 1);
++	free_pages((unsigned long)p_ptr, 1);
+ }
+ 
+ static void vmalloc_percpu(struct kunit *test)
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-page_alloc-mark-pagesets-as-__maybe_unused.patch
+kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
+kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
+kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+mm-clarify-__gfp_zerotags-comment.patch
+kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
+kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
+kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
+kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
+kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+kasan-clean-up-metadata-byte-definitions.patch
+kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
+kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+kasan-reorder-vmalloc-hooks.patch
+kasan-add-wrappers-for-vmalloc-hooks.patch
+kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
+kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
+kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
+kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
+kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
+kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
+kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+kasan-add-kasanvmalloc-command-line-flag.patch
+kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
+arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
+kasan-documentation-updates.patch
+kasan-improve-vmalloc-tests.patch
+kasan-improve-vmalloc-tests-fix-2.patch
 
