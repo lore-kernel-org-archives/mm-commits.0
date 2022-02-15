@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89224C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Feb 2022 22:12:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88D98C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Feb 2022 22:17:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243913AbiBOWM7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Feb 2022 17:12:59 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:55506 "EHLO
+        id S236993AbiBOWRM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Feb 2022 17:17:12 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:37704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244496AbiBOWM4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 17:12:56 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 565AC27CC4;
-        Tue, 15 Feb 2022 14:12:45 -0800 (PST)
+        with ESMTP id S244549AbiBOWRL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 17:17:11 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E48352AC73;
+        Tue, 15 Feb 2022 14:16:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0D012B81D11;
-        Tue, 15 Feb 2022 22:12:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC805C340F2;
-        Tue, 15 Feb 2022 22:12:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 73D7D60B81;
+        Tue, 15 Feb 2022 22:16:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D03AEC340EB;
+        Tue, 15 Feb 2022 22:16:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644963162;
-        bh=hvqosyp3+aZA6FHBGhwNZNWZ8KHIUcsC7gsZ33yZ/AE=;
+        s=korg; t=1644963418;
+        bh=UniqfsgCb3F+Dbb8zGGA7iIIaDQl0TdQFxJzx72t/fY=;
         h=Date:To:From:Subject:From;
-        b=d+ZoKgFi6F4YHE6Q6bqa0P9igXVXX2IdGqqTAcLaFqdBTUhaFNuvqXX2F5lPOvks/
-         So0KdUbHDiOiBU+C0J8nc/I5DqStMKp7u06QskCZAE+tNP917+qTSJ1JSEpAFEawg2
-         AQerggeHfcvg68c3+JjRH6iyT9H1vRrg6VycGOcc=
-Date:   Tue, 15 Feb 2022 14:12:42 -0800
-To:     mm-commits@vger.kernel.org, zealci@zte.com.cn,
-        yang.yang29@zte.com.cn, stable@vger.kernel.org,
-        songliubraving@fb.com, mike.kravetz@oracle.com,
-        kirill@shutemov.name, hughd@google.com, wang.yong12@zte.com.cn,
+        b=JzP4aPLSPG//hljAOWrYxe6+XvIZyx3qDFq09owT3iSpBLcSYWLRG7q8dm8kNFu4L
+         MNbJm1kJNnK6HAyCiMxInRQlnmhqgmlRvThNxrJGNKEyNzwHk8vlcw8TDmwjrhGQtd
+         bAae3tZ179Vm4oWdoCF2+GYbqqTEEKFff9n4UTmY=
+Date:   Tue, 15 Feb 2022 14:16:58 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, stable@vger.kernel.org,
+        osalvador@suse.de, mgorman@techsingularity.net,
+        jhubbard@nvidia.com, anshuman.khandual@arm.com, apopple@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fix-shmem-huge-page-failed-to-set-f_seal_write-attribute-problem.patch added to -mm tree
-Message-Id: <20220215221242.AC805C340F2@smtp.kernel.org>
+Subject: + mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch added to -mm tree
+Message-Id: <20220215221658.D03AEC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memfd: fix shmem huge page failed to set F_SEAL_WRITE attribute problem
+     Subject: mm/pages_alloc.c: don't create ZONE_MOVABLE beyond the end of a node
 has been added to the -mm tree.  Its filename is
-     fix-shmem-huge-page-failed-to-set-f_seal_write-attribute-problem.patch
+     mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fix-shmem-huge-page-failed-to-set-f_seal_write-attribute-problem.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fix-shmem-huge-page-failed-to-set-f_seal_write-attribute-problem.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,98 +64,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: wangyong <wang.yong12@zte.com.cn>
-Subject: memfd: fix shmem huge page failed to set F_SEAL_WRITE attribute problem
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/pages_alloc.c: don't create ZONE_MOVABLE beyond the end of a node
 
-After enabling tmpfs filesystem to support transparent hugepage with the
-following command:
+ZONE_MOVABLE uses the remaining memory in each node.  Its starting pfn is
+also aligned to MAX_ORDER_NR_PAGES.  It is possible for the remaining
+memory in a node to be less than MAX_ORDER_NR_PAGES, meaning there is not
+enough room for ZONE_MOVABLE on that node.
 
- echo always > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+Unfortunately this condition is not checked for.  This leads to
+zone_movable_pfn[] getting set to a pfn greater than the last pfn in a
+node.
 
-The docker program adds F_SEAL_WRITE through the following command which
-will prompt EBUSY.
+calculate_node_totalpages() then sets zone->present_pages to be greater
+than zone->spanned_pages which is invalid, as spanned_pages represents the
+maximum number of pages in a zone assuming no holes.
 
- fcntl(5, F_ADD_SEALS, F_SEAL_WRITE)=-1.
+Subsequently it is possible free_area_init_core() will observe a zone of
+size zero with present pages.  In this case it will skip setting up the
+zone, including the initialisation of free_lists[].
 
-It is found that in memfd_wait_for_pins function, the page_count of
-hugepage is 512 and page_mapcount is 0, which does not meet the
-conditions:
+However populated_zone() checks zone->present_pages to see if a zone has
+memory available.  This is used by iterators such as walk_zones_in_node().
+pagetypeinfo_showfree() uses this to walk the free_list of each zone in
+each node, which are assumed to be initialised due to the zone not being
+empty.  As free_area_init_core() never initialised the free_lists[] this
+results in the following kernel crash when trying to read
+/proc/pagetypeinfo:
 
- page_count(page) - page_mapcount(page) != 1.
+[   67.534914] BUG: kernel NULL pointer dereference, address: 0000000000000000
+[   67.535429] #PF: supervisor read access in kernel mode
+[   67.535789] #PF: error_code(0x0000) - not-present page
+[   67.536128] PGD 0 P4D 0
+[   67.536305] Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC NOPTI
+[   67.536696] CPU: 0 PID: 456 Comm: cat Not tainted 5.16.0 #461
+[   67.537096] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+[   67.537638] RIP: 0010:pagetypeinfo_show+0x163/0x460
+[   67.537992] Code: 9e 82 e8 80 57 0e 00 49 8b 06 b9 01 00 00 00 4c 39 f0 75 16 e9 65 02 00 00 48 83 c1 01 48 81 f9 a0 86 01 00 0f 84 48 02 00 00 <48> 8b 00 4c 39 f0 75 e7 48 c7 c2 80 a2 e2 82 48 c7 c6 79 ef e3 82
+[   67.538259] RSP: 0018:ffffc90001c4bd10 EFLAGS: 00010003
+[   67.538259] RAX: 0000000000000000 RBX: ffff88801105f638 RCX: 0000000000000001
+[   67.538259] RDX: 0000000000000001 RSI: 000000000000068b RDI: ffff8880163dc68b
+[   67.538259] RBP: ffffc90001c4bd90 R08: 0000000000000001 R09: ffff8880163dc67e
+[   67.538259] R10: 656c6261766f6d6e R11: 6c6261766f6d6e55 R12: ffff88807ffb4a00
+[   67.538259] R13: ffff88807ffb49f8 R14: ffff88807ffb4580 R15: ffff88807ffb3000
+[   67.538259] FS:  00007f9c83eff5c0(0000) GS:ffff88807dc00000(0000) knlGS:0000000000000000
+[   67.538259] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   67.538259] CR2: 0000000000000000 CR3: 0000000013c8e000 CR4: 0000000000350ef0
+[   67.538259] Call Trace:
+[   67.538259]  <TASK>
+[   67.538259]  seq_read_iter+0x128/0x460
+[   67.538259]  ? aa_file_perm+0x1af/0x5f0
+[   67.538259]  proc_reg_read_iter+0x51/0x80
+[   67.538259]  ? lock_is_held_type+0xea/0x140
+[   67.538259]  new_sync_read+0x113/0x1a0
+[   67.538259]  vfs_read+0x136/0x1d0
+[   67.538259]  ksys_read+0x70/0xf0
+[   67.538259]  __x64_sys_read+0x1a/0x20
+[   67.538259]  do_syscall_64+0x3b/0xc0
+[   67.538259]  entry_SYSCALL_64_after_hwframe+0x44/0xae
+[   67.538259] RIP: 0033:0x7f9c83e23cce
+[   67.538259] Code: c0 e9 b6 fe ff ff 50 48 8d 3d 6e 13 0a 00 e8 c9 e3 01 00 66 0f 1f 84 00 00 00 00 00 64 8b 04 25 18 00 00 00 85 c0 75 14 0f 05 <48> 3d 00 f0 ff ff 77 5a c3 66 0f 1f 84 00 00 00 00 00 48 83 ec 28
+[   67.538259] RSP: 002b:00007fff116e1a08 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+[   67.538259] RAX: ffffffffffffffda RBX: 0000000000020000 RCX: 00007f9c83e23cce
+[   67.538259] RDX: 0000000000020000 RSI: 00007f9c83a2c000 RDI: 0000000000000003
+[   67.538259] RBP: 00007f9c83a2c000 R08: 00007f9c83a2b010 R09: 0000000000000000
+[   67.538259] R10: 00007f9c83f2d7d0 R11: 0000000000000246 R12: 0000000000000000
+[   67.538259] R13: 0000000000000003 R14: 0000000000020000 R15: 0000000000020000
+[   67.538259]  </TASK>
 
-But the page is not busy at this time, therefore, the page_order of
-hugepage should be taken into account in the calculation.
+Fix this by checking that the aligned zone_movable_pfn[] does not exceed
+the end of the node, and if it does skip creating a movable zone on this
+node.
 
-Link: https://lkml.kernel.org/r/20220215073743.1769979-1-cgel.zte@gmail.com
-Signed-off-by: wangyong <wang.yong12@zte.com.cn>
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lkml.kernel.org/r/20220215025831.2113067-1-apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Fixes: 2a1e274acf0b ("Create the ZONE_MOVABLE zone")
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/memfd.c~fix-shmem-huge-page-failed-to-set-f_seal_write-attribute-problem
-+++ a/mm/memfd.c
-@@ -31,6 +31,7 @@
- static void memfd_tag_pins(struct xa_state *xas)
- {
- 	struct page *page;
-+	int count = 0;
- 	unsigned int tagged = 0;
+--- a/mm/page_alloc.c~mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node
++++ a/mm/page_alloc.c
+@@ -7998,10 +7998,17 @@ restart:
  
- 	lru_add_drain();
-@@ -39,8 +40,12 @@ static void memfd_tag_pins(struct xa_sta
- 	xas_for_each(xas, page, ULONG_MAX) {
- 		if (xa_is_value(page))
- 			continue;
+ out2:
+ 	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
+-	for (nid = 0; nid < MAX_NUMNODES; nid++)
++	for (nid = 0; nid < MAX_NUMNODES; nid++) {
++		unsigned long start_pfn, end_pfn;
 +
- 		page = find_subpage(page, xas->xa_index);
--		if (page_count(page) - page_mapcount(page) > 1)
-+		count = page_count(page);
-+		if (PageTransCompound(page))
-+			count -= (1 << compound_order(compound_head(page))) - 1;
-+		if (count - page_mapcount(page) > 1)
- 			xas_set_mark(xas, MEMFD_TAG_PINNED);
+ 		zone_movable_pfn[nid] =
+ 			roundup(zone_movable_pfn[nid], MAX_ORDER_NR_PAGES);
  
- 		if (++tagged % XA_CHECK_SCHED)
-@@ -67,11 +72,12 @@ static int memfd_wait_for_pins(struct ad
- {
- 	XA_STATE(xas, &mapping->i_pages, 0);
- 	struct page *page;
--	int error, scan;
-+	int error, scan, count;
- 
- 	memfd_tag_pins(&xas);
- 
- 	error = 0;
-+	count = 0;
- 	for (scan = 0; scan <= LAST_SCAN; scan++) {
- 		unsigned int tagged = 0;
- 
-@@ -89,8 +95,12 @@ static int memfd_wait_for_pins(struct ad
- 			bool clear = true;
- 			if (xa_is_value(page))
- 				continue;
++		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
++		if (zone_movable_pfn[nid] >= end_pfn)
++			zone_movable_pfn[nid] = 0;
++	}
 +
- 			page = find_subpage(page, xas.xa_index);
--			if (page_count(page) - page_mapcount(page) != 1) {
-+			count = page_count(page);
-+			if (PageTransCompound(page))
-+				count -= (1 << compound_order(compound_head(page))) - 1;
-+			if (count - page_mapcount(page) != 1) {
- 				/*
- 				 * On the last scan, we clean up all those tags
- 				 * we inserted; but make a note that we still
+ out:
+ 	/* restore the node_state */
+ 	node_states[N_MEMORY] = saved_node_state;
 _
 
-Patches currently in -mm which might be from wang.yong12@zte.com.cn are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-fix-shmem-huge-page-failed-to-set-f_seal_write-attribute-problem.patch
+mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
+mm-remove-the-vma-check-in-migrate_vma_setup.patch
+mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
 
