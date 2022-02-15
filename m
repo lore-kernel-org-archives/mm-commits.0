@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EB76C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F03A5C433EF
 	for <mm-commits@archiver.kernel.org>; Tue, 15 Feb 2022 21:35:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242772AbiBOVfb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Feb 2022 16:35:31 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:56656 "EHLO
+        id S234566AbiBOVfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Feb 2022 16:35:32 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:56670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234566AbiBOVf3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 16:35:29 -0500
+        with ESMTP id S242822AbiBOVfb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 16:35:31 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19F639AD87
-        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 13:35:19 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F33019AD87
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 13:35:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B289A618F8
-        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 21:35:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 061DCC340EC;
-        Tue, 15 Feb 2022 21:35:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E9506183B
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 21:35:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8486C340EB;
+        Tue, 15 Feb 2022 21:35:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644960918;
-        bh=5swR1KjhbPQa8H53qvgxZIViQvz1DAV8n0dlUEaqegA=;
+        s=korg; t=1644960920;
+        bh=r/V9XJ+RSEk9nZJI3ZHwPkl/cnsuyFhW96J9vJJq9os=;
         h=Date:To:From:Subject:From;
-        b=ME/pShpy/5MlKjQLiCBcDv8YGFVUrCMhnPv7MT6UmY7CXubt+Uj6GWGjcMng18S7b
-         z+sBqIG10FDcbdG1mg7UP4A+PRDbDqvDK5hWJUabF/UzIUZK2zLmuEuDDUkpeLODaK
-         aOA94MMEaCXUajl29bn30TfMK0Edvhu3ATJpXKAw=
-Date:   Tue, 15 Feb 2022 13:35:17 -0800
+        b=kHAvOUYKr33V81rNRxr8O8JIbruixyY9YFxhMRTCJuye1mViqWQ58TUJHuTsO21OQ
+         QaTS3jcu08G1K5f1LkGltF05i69zat9+wk0iEWf9eLDBHKySJB+wZHLHFag84kTrKV
+         VpfsSgrzxGYtWX1T9uL5beqkormQPTuH3pQaJQ3g=
+Date:   Tue, 15 Feb 2022 13:35:19 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@kernel.org,
         dave.hansen@linux.intel.com, brouer@redhat.com, aaron.lu@intel.com,
         mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-fetch-the-correct-pcp-buddy-during-bulk-free.patch added to -mm tree
-Message-Id: <20220215213518.061DCC340EC@smtp.kernel.org>
+Subject: + mm-page_alloc-track-range-of-active-pcp-lists-during-bulk-free.patch added to -mm tree
+Message-Id: <20220215213519.D8486C340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: fetch the correct pcp buddy during bulk free
+     Subject: mm/page_alloc: track range of active PCP lists during bulk free
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fetch-the-correct-pcp-buddy-during-bulk-free.patch
+     mm-page_alloc-track-range-of-active-pcp-lists-during-bulk-free.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fetch-the-correct-pcp-buddy-during-bulk-free.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-track-range-of-active-pcp-lists-during-bulk-free.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fetch-the-correct-pcp-buddy-during-bulk-free.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-track-range-of-active-pcp-lists-during-bulk-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,75 +64,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: fetch the correct pcp buddy during bulk free
+Subject: mm/page_alloc: track range of active PCP lists during bulk free
 
-Patch series "Follow-up on high-order PCP caching".
+free_pcppages_bulk() frees pages in a round-robin fashion.  Originally,
+this was dealing only with migratetypes but storing high-order pages means
+that there can be many more empty lists that are uselessly checked.  Track
+the minimum and maximum active pindex to reduce the search space.
 
-Commit 44042b449872 ("mm/page_alloc: allow high-order pages to be stored
-on the per-cpu lists") was primarily aimed at reducing the cost of SLUB
-cache refills of high-order pages in two ways.  Firstly, zone lock
-acquisitions was reduced and secondly, there were fewer buddy list
-modifications.  This is a follow-up series fixing some issues that became
-apparant after merging.
-
-Patch 1 is a functional fix.  It's harmless but inefficient.
-
-Patches 2-4 reduce the overhead of bulk freeing of PCP pages.  While the
-overhead is small, it's cumulative and noticable when truncating large
-files.  The changelog for patch 4 includes results of a microbench that
-deletes large sparse files with data in page cache.  Sparse files were
-used to eliminate filesystem overhead.
-
-Patch 5 addresses issues with high-order PCP pages being stored on PCP
-lists for too long.  Pages freed on a CPU potentially may not be quickly
-reused and in some cases this can increase cache miss rates.  Details are
-included in the changelog.
-
-
-This patch (of 5):
-
-free_pcppages_bulk() prefetches buddies about to be freed but the order
-must also be passed in as PCP lists store multiple orders.
-
-Link: https://lkml.kernel.org/r/20220215145111.27082-1-mgorman@techsingularity.net
-Link: https://lkml.kernel.org/r/20220215145111.27082-2-mgorman@techsingularity.net
-Fixes: 44042b449872 ("mm/page_alloc: allow high-order pages to be stored on the per-cpu lists")
+Link: https://lkml.kernel.org/r/20220215145111.27082-3-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Aaron Lu <aaron.lu@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fetch-the-correct-pcp-buddy-during-bulk-free
+--- a/mm/page_alloc.c~mm-page_alloc-track-range-of-active-pcp-lists-during-bulk-free
 +++ a/mm/page_alloc.c
-@@ -1432,10 +1432,10 @@ static bool bulkfree_pcp_prepare(struct
- }
- #endif /* CONFIG_DEBUG_VM */
- 
--static inline void prefetch_buddy(struct page *page)
-+static inline void prefetch_buddy(struct page *page, unsigned int order)
+@@ -1450,6 +1450,8 @@ static void free_pcppages_bulk(struct zo
+ 					struct per_cpu_pages *pcp)
  {
- 	unsigned long pfn = page_to_pfn(page);
--	unsigned long buddy_pfn = __find_buddy_pfn(pfn, 0);
-+	unsigned long buddy_pfn = __find_buddy_pfn(pfn, order);
- 	struct page *buddy = page + (buddy_pfn - pfn);
+ 	int pindex = 0;
++	int min_pindex = 0;
++	int max_pindex = NR_PCP_LISTS - 1;
+ 	int batch_free = 0;
+ 	int nr_freed = 0;
+ 	unsigned int order;
+@@ -1478,10 +1480,17 @@ static void free_pcppages_bulk(struct zo
+ 			if (++pindex == NR_PCP_LISTS)
+ 				pindex = 0;
+ 			list = &pcp->lists[pindex];
+-		} while (list_empty(list));
++			if (!list_empty(list))
++				break;
++
++			if (pindex == max_pindex)
++				max_pindex--;
++			if (pindex == min_pindex)
++				min_pindex++;
++		} while (1);
  
- 	prefetch(buddy);
-@@ -1512,7 +1512,7 @@ static void free_pcppages_bulk(struct zo
- 			 * prefetch buddy for the first pcp->batch nr of pages.
- 			 */
- 			if (prefetch_nr) {
--				prefetch_buddy(page);
-+				prefetch_buddy(page, order);
- 				prefetch_nr--;
- 			}
- 		} while (count > 0 && --batch_free && !list_empty(list));
+ 		/* This is the only non-empty list. Free them all. */
+-		if (batch_free == NR_PCP_LISTS)
++		if (batch_free >= max_pindex - min_pindex)
+ 			batch_free = count;
+ 
+ 		order = pindex_to_order(pindex);
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
