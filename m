@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9060C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Feb 2022 00:30:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA55EC4167B
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Feb 2022 00:30:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234692AbiBPAay (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Feb 2022 19:30:54 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53300 "EHLO
+        id S245106AbiBPAaz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Feb 2022 19:30:55 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245162AbiBPAar (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 19:30:47 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A747F70C7
-        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 16:30:35 -0800 (PST)
+        with ESMTP id S232433AbiBPAav (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 19:30:51 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0020F70E1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 16:30:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 53755B81C02
-        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 00:30:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2BFEC340EB;
-        Wed, 16 Feb 2022 00:30:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 657FCB81C02
+        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 00:30:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0816C340ED;
+        Wed, 16 Feb 2022 00:30:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644971433;
-        bh=5+7mD+J3k2zl51Mf0rBkcFnhuT77rYaamAIvo2DNomc=;
+        s=korg; t=1644971438;
+        bh=sMjDJpY08yU1vlRC9WYWnkmSRSzLzd7eELnuFZ+2xuE=;
         h=Date:To:From:Subject:From;
-        b=JtLWRa2Zn4gYg+FC7pcIkP3uit0NR7gxpYTvAGpQuxDah7SQDrLN5xpT+R5qdos6+
-         DqrUX0g8vazVLanrpL1G+ZJBNrMs22xSN9zsujscbP++6jax1wLwWT+Bhu5SSH9bHz
-         W3+EfOLs84zP9Zg4CcgbghwAH4KSngEhpsPeNq58=
-Date:   Tue, 15 Feb 2022 16:30:32 -0800
+        b=1PgllybcXNuBNIfQl4qySK/Cy8w09FIwloKZONrAYenVXMXfce6gWleBClZ6mkswT
+         Rww2WKQj6X1012RwHRdulKekNLHdRoIVakW8dnfqk4uRcuFMTBaYYv/VkHcOdxnQjr
+         nBxvdeyGdPyFF3NpSbXVxiq9Tuu7vHMPhcCF7BRE=
+Date:   Tue, 15 Feb 2022 16:30:37 -0800
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         vbabka@suse.cz, surenb@google.com, shakeelb@google.com,
         riel@surriel.com, mhocko@suse.com, kirill@shutemov.name,
-        hughd@google.com, hannes@cmpxchg.org, gthelen@google.com,
-        david@redhat.com, apopple@nvidia.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        hannes@cmpxchg.org, gthelen@google.com, david@redhat.com,
+        apopple@nvidia.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix.patch added to -mm tree
-Message-Id: <20220216003032.E2BFEC340EB@smtp.kernel.org>
+Subject: + mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch added to -mm tree
+Message-Id: <20220216003037.F0816C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix
+     Subject: mm/thp: collapse_file() do try_to_unmap(TTU_BATCH_FLUSH)
 has been added to the -mm tree.  Its filename is
-     mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix.patch
+     mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,15 +65,32 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/thp: collapse_file() do try_to_unmap(TTU_BATCH_FLUSH)
 
-implement mlock_lru() and mlock_new() as inlines, per Matthew
+collapse_file() is using unmap_mapping_pages(1) on each small page found
+mapped, unlike others (reclaim, migration, splitting, memory-failure) who
+use try_to_unmap().  There are four advantages to try_to_unmap(): first,
+its TTU_IGNORE_MLOCK option now avoids leaving mlocked page in pagevec;
+second, its vma lookup uses i_mmap_lock_read() not i_mmap_lock_write();
+third, it breaks out early if page is not mapped everywhere it might be;
+fourth, its TTU_BATCH_FLUSH option can be used, as in page reclaim, to
+save up all the TLB flushing until all of the pages have been unmapped.
 
+Wild guess: perhaps it was originally written to use try_to_unmap(), but
+hit the VM_BUG_ON_PAGE(page_mapped) after unmapping, because without
+TTU_SYNC it may skip page table locks; but unmap_mapping_pages() never
+skips them, so fixed the issue.  I did once hit that VM_BUG_ON_PAGE()
+since making this change: we could pass TTU_SYNC here, but I think just
+delete the check - the race is very rare, this is an ordinary small page
+so we don't need to be so paranoid about mapcount surprises, and the
+page_ref_freeze() just below already handles the case adequately.
+
+Link: https://lkml.kernel.org/r/c390e7b-7648-b3e9-9ae1-87c9b9e95ed4@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -87,47 +103,55 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/mlock.c~mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix
-+++ a/mm/mlock.c
-@@ -159,8 +159,15 @@ out:
-  */
- #define LRU_PAGE 0x1
- #define NEW_PAGE 0x2
--#define mlock_lru(page) ((struct page *)((unsigned long)page + LRU_PAGE))
--#define mlock_new(page) ((struct page *)((unsigned long)page + NEW_PAGE))
-+static inline struct page *mlock_lru(struct page *page)
-+{
-+	return (struct page *)((unsigned long)page + LRU_PAGE);
-+}
-+
-+static inline struct page *mlock_new(struct page *page)
-+{
-+	return (struct page *)((unsigned long)page + NEW_PAGE);
-+}
+--- a/mm/khugepaged.c~mm-thp-collapse_file-do-try_to_unmapttu_batch_flush
++++ a/mm/khugepaged.c
+@@ -1823,13 +1823,12 @@ static void collapse_file(struct mm_stru
+ 		}
  
- /*
-  * mlock_pagevec() is derived from pagevec_lru_move_fn():
+ 		if (page_mapped(page))
+-			unmap_mapping_pages(mapping, index, 1, false);
++			try_to_unmap(page, TTU_IGNORE_MLOCK | TTU_BATCH_FLUSH);
+ 
+ 		xas_lock_irq(&xas);
+ 		xas_set(&xas, index);
+ 
+ 		VM_BUG_ON_PAGE(page != xas_load(&xas), page);
+-		VM_BUG_ON_PAGE(page_mapped(page), page);
+ 
+ 		/*
+ 		 * The page is expected to have page_count() == 3:
+@@ -1893,6 +1892,13 @@ xa_locked:
+ 	xas_unlock_irq(&xas);
+ xa_unlocked:
+ 
++	/*
++	 * If collapse is successful, flush must be done now before copying.
++	 * If collapse is unsuccessful, does flush actually need to be done?
++	 * Do it anyway, to clear the state.
++	 */
++	try_to_unmap_flush();
++
+ 	if (result == SCAN_SUCCEED) {
+ 		struct page *page, *tmp;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-move-page-writeback-sysctls-to-is-own-file-checkpatch-fixes.patch
-mm-move-page-writeback-sysctls-to-is-own-file-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-numa-balancing-optimize-page-placement-for-memory-tiering-system-fix.patch
-numa-balancing-optimize-page-placement-for-memory-tiering-system-fix-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix.patch
-mm-dont-include-linux-memremaph-in-linux-mmh-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-linux-next-rejects.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-munlock-delete-page_mlock-and-all-its-works.patch
+mm-munlock-delete-foll_mlock-and-foll_populate.patch
+mm-munlock-delete-munlock_vma_pages_all-allow-oomreap.patch
+mm-munlock-rmap-call-mlock_vma_page-munlock_vma_page.patch
+mm-munlock-replace-clear_page_mlock-by-final-clearance.patch
+mm-munlock-maintain-page-mlock_count-while-unevictable.patch
+mm-munlock-mlock_pte_range-when-mlocking-or-munlocking.patch
+mm-migrate-__unmap_and_move-push-good-newpage-to-lru.patch
+mm-munlock-delete-smp_mb-from-__pagevec_lru_add_fn.patch
+mm-munlock-mlock_page-munlock_page-batch-by-pagevec.patch
+mm-munlock-page-migration-needs-mlock-pagevec-drained.patch
+mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
+mm-thp-shrink_page_list-avoid-splitting-vm_locked-thp.patch
 
