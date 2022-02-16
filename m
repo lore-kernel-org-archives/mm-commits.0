@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA55EC4167B
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Feb 2022 00:30:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2CFBC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Feb 2022 00:31:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245106AbiBPAaz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Feb 2022 19:30:55 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53424 "EHLO
+        id S245107AbiBPAbP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Feb 2022 19:31:15 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232433AbiBPAav (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 19:30:51 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0020F70E1
-        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 16:30:40 -0800 (PST)
+        with ESMTP id S244268AbiBPAay (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 19:30:54 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD44DF70E1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 16:30:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 657FCB81C02
-        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 00:30:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0816C340ED;
-        Wed, 16 Feb 2022 00:30:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6061CB81C01
+        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 00:30:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01BAAC340EB;
+        Wed, 16 Feb 2022 00:30:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644971438;
-        bh=sMjDJpY08yU1vlRC9WYWnkmSRSzLzd7eELnuFZ+2xuE=;
+        s=korg; t=1644971440;
+        bh=wvP+IBhZd6rNcM9mivIWfmycXq81Nu0sbIEXnEIbbRs=;
         h=Date:To:From:Subject:From;
-        b=1PgllybcXNuBNIfQl4qySK/Cy8w09FIwloKZONrAYenVXMXfce6gWleBClZ6mkswT
-         Rww2WKQj6X1012RwHRdulKekNLHdRoIVakW8dnfqk4uRcuFMTBaYYv/VkHcOdxnQjr
-         nBxvdeyGdPyFF3NpSbXVxiq9Tuu7vHMPhcCF7BRE=
-Date:   Tue, 15 Feb 2022 16:30:37 -0800
+        b=kUKOg1upBQrfpSCDYsF1oS3DdBzxYGdKWNffJP0YRxS6ui9sBP0pxeH4Ik9qRrowB
+         Vejuw9fz2ZnYuJJ01h+D+69+fTUNc5ULfmBHKXpCuISzKhJCdNVsp5UHXkVZFN+2CN
+         LTQcsMm2oB00wnDzpR6fPNb6W7N+U3+fwlzVFS4E=
+Date:   Tue, 15 Feb 2022 16:30:39 -0800
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         vbabka@suse.cz, surenb@google.com, shakeelb@google.com,
         riel@surriel.com, mhocko@suse.com, kirill@shutemov.name,
         hannes@cmpxchg.org, gthelen@google.com, david@redhat.com,
         apopple@nvidia.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch added to -mm tree
-Message-Id: <20220216003037.F0816C340ED@smtp.kernel.org>
+Subject: + mm-thp-shrink_page_list-avoid-splitting-vm_locked-thp.patch added to -mm tree
+Message-Id: <20220216003040.01BAAC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: collapse_file() do try_to_unmap(TTU_BATCH_FLUSH)
+     Subject: mm/thp: shrink_page_list() avoid splitting VM_LOCKED THP
 has been added to the -mm tree.  Its filename is
-     mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
+     mm-thp-shrink_page_list-avoid-splitting-vm_locked-thp.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-shrink_page_list-avoid-splitting-vm_locked-thp.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-shrink_page_list-avoid-splitting-vm_locked-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,27 +66,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/thp: collapse_file() do try_to_unmap(TTU_BATCH_FLUSH)
+Subject: mm/thp: shrink_page_list() avoid splitting VM_LOCKED THP
 
-collapse_file() is using unmap_mapping_pages(1) on each small page found
-mapped, unlike others (reclaim, migration, splitting, memory-failure) who
-use try_to_unmap().  There are four advantages to try_to_unmap(): first,
-its TTU_IGNORE_MLOCK option now avoids leaving mlocked page in pagevec;
-second, its vma lookup uses i_mmap_lock_read() not i_mmap_lock_write();
-third, it breaks out early if page is not mapped everywhere it might be;
-fourth, its TTU_BATCH_FLUSH option can be used, as in page reclaim, to
-save up all the TLB flushing until all of the pages have been unmapped.
+4.8 commit 7751b2da6be0 ("vmscan: split file huge pages before paging them
+out") inserted a split_huge_page_to_list() into shrink_page_list() without
+considering the mlock case: no problem if the page has already been marked
+as Mlocked (the !page_evictable check much higher up will have skipped all
+this), but it has always been the case that races or omissions in setting
+Mlocked can rely on page reclaim to detect this and correct it before
+actually reclaiming - and that remains so, but what a shame if a hugepage
+is needlessly split before discovering it.
 
-Wild guess: perhaps it was originally written to use try_to_unmap(), but
-hit the VM_BUG_ON_PAGE(page_mapped) after unmapping, because without
-TTU_SYNC it may skip page table locks; but unmap_mapping_pages() never
-skips them, so fixed the issue.  I did once hit that VM_BUG_ON_PAGE()
-since making this change: we could pass TTU_SYNC here, but I think just
-delete the check - the race is very rare, this is an ordinary small page
-so we don't need to be so paranoid about mapcount surprises, and the
-page_ref_freeze() just below already handles the case adequately.
+It is surprising that page_check_references() returns PAGEREF_RECLAIM when
+VM_LOCKED, but there was a good reason for that: try_to_unmap_one() is
+where the condition is detected and corrected; and until now it could not
+be done in page_referenced_one(), because that does not always have the
+page locked.  Now that mlock's requirement for page lock has gone, copy
+try_to_unmap_one()'s mlock restoration into page_referenced_one(), and let
+page_check_references() return PAGEREF_ACTIVATE in this case.
 
-Link: https://lkml.kernel.org/r/c390e7b-7648-b3e9-9ae1-87c9b9e95ed4@google.com
+But page_referenced_one() may find a pte mapping one part of a hugepage:
+what hold should a pte mapped in a VM_LOCKED area exert over the entire
+huge page?  That's debatable.  The approach taken here is to treat that
+pte mapping in page_referenced_one() as if not VM_LOCKED, and if no
+VM_LOCKED pmd mapping is found later in the walk, and lack of reference
+permits, then PAGEREF_RECLAIM take it to attempted splitting as before.
+
+Link: https://lkml.kernel.org/r/531d13ee-bc7d-329a-9748-5e272f699d78@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -103,40 +109,50 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/rmap.c   |    7 +++++--
+ mm/vmscan.c |    6 +++---
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/khugepaged.c~mm-thp-collapse_file-do-try_to_unmapttu_batch_flush
-+++ a/mm/khugepaged.c
-@@ -1823,13 +1823,12 @@ static void collapse_file(struct mm_stru
- 		}
+--- a/mm/rmap.c~mm-thp-shrink_page_list-avoid-splitting-vm_locked-thp
++++ a/mm/rmap.c
+@@ -814,7 +814,10 @@ static bool page_referenced_one(struct p
+ 	while (page_vma_mapped_walk(&pvmw)) {
+ 		address = pvmw.address;
  
- 		if (page_mapped(page))
--			unmap_mapping_pages(mapping, index, 1, false);
-+			try_to_unmap(page, TTU_IGNORE_MLOCK | TTU_BATCH_FLUSH);
+-		if (vma->vm_flags & VM_LOCKED) {
++		if ((vma->vm_flags & VM_LOCKED) &&
++		    (!PageTransCompound(page) || !pvmw.pte)) {
++			/* Restore the mlock which got missed */
++			mlock_vma_page(page, vma, !pvmw.pte);
+ 			page_vma_mapped_walk_done(&pvmw);
+ 			pra->vm_flags |= VM_LOCKED;
+ 			return false; /* To break the loop */
+@@ -853,7 +856,7 @@ static bool page_referenced_one(struct p
  
- 		xas_lock_irq(&xas);
- 		xas_set(&xas, index);
+ 	if (referenced) {
+ 		pra->referenced++;
+-		pra->vm_flags |= vma->vm_flags;
++		pra->vm_flags |= vma->vm_flags & ~VM_LOCKED;
+ 	}
  
- 		VM_BUG_ON_PAGE(page != xas_load(&xas), page);
--		VM_BUG_ON_PAGE(page_mapped(page), page);
+ 	if (!pra->mapcount)
+--- a/mm/vmscan.c~mm-thp-shrink_page_list-avoid-splitting-vm_locked-thp
++++ a/mm/vmscan.c
+@@ -1376,11 +1376,11 @@ static enum page_references page_check_r
+ 	referenced_page = TestClearPageReferenced(page);
  
+ 	/*
+-	 * Mlock lost the isolation race with us.  Let try_to_unmap()
+-	 * move the page to the unevictable list.
++	 * The supposedly reclaimable page was found to be in a VM_LOCKED vma.
++	 * Let the page, now marked Mlocked, be moved to the unevictable list.
+ 	 */
+ 	if (vm_flags & VM_LOCKED)
+-		return PAGEREF_RECLAIM;
++		return PAGEREF_ACTIVATE;
+ 
+ 	if (referenced_ptes) {
  		/*
- 		 * The page is expected to have page_count() == 3:
-@@ -1893,6 +1892,13 @@ xa_locked:
- 	xas_unlock_irq(&xas);
- xa_unlocked:
- 
-+	/*
-+	 * If collapse is successful, flush must be done now before copying.
-+	 * If collapse is unsuccessful, does flush actually need to be done?
-+	 * Do it anyway, to clear the state.
-+	 */
-+	try_to_unmap_flush();
-+
- 	if (result == SCAN_SUCCEED) {
- 		struct page *page, *tmp;
- 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
