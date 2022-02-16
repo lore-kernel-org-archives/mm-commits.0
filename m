@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2B66C4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE3EFC43217
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Feb 2022 00:30:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245102AbiBPAay (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Feb 2022 19:30:54 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53012 "EHLO
+        id S239961AbiBPAax (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Feb 2022 19:30:53 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234692AbiBPAaa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 19:30:30 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAB3DF70F8
-        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 16:30:18 -0800 (PST)
+        with ESMTP id S245130AbiBPAap (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Feb 2022 19:30:45 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22EF6F9FA1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Feb 2022 16:30:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4EF6AB81C01
-        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 00:30:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0582AC340EB;
-        Wed, 16 Feb 2022 00:30:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A3F8B615E1
+        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 00:30:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0317CC340EB;
+        Wed, 16 Feb 2022 00:30:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644971416;
-        bh=9qt+zbNbRwF/O/qgaFTG1yCvs0fpHtJ3ZXUBr+xagz8=;
+        s=korg; t=1644971423;
+        bh=rGGIVmgI2NR31URw0vVAF39XVInxdRRNeFotvlngxF4=;
         h=Date:To:From:Subject:From;
-        b=jgLC4xsSpG4DjVa00LAAmHroZumqcD3HaxAzL3LslqYnY5XjTpaqYdQlhw8N/6XRx
-         IUNrx/VTInAMIBcem0R+RbVHzaagpbm4HzV1+paESnQdlTzQMK0SFGej4u+hKr0EfB
-         d1oWMlQE8HrPwpQulYjpwgBAaHGnNp6MBOJ0g7RM=
-Date:   Tue, 15 Feb 2022 16:30:15 -0800
+        b=N2YOTmHJu0Qubaynr8LtopNJlMagxM5t76mkyhkBM2kzmHCkGf3GC997xR5s8dwP+
+         +rdt/kXiR3dsRuDseZPUZ3GqBKxlZZa1d1HwqM8HfNhakPXTPewIMiqsBPAja7GmDB
+         O6+jaoCVl/qcyC6cdWVDFlh8L9xMaIFzmuiiShjU=
+Date:   Tue, 15 Feb 2022 16:30:22 -0800
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         vbabka@suse.cz, surenb@google.com, shakeelb@google.com,
         riel@surriel.com, mhocko@suse.com, kirill@shutemov.name,
         hannes@cmpxchg.org, gthelen@google.com, david@redhat.com,
         apopple@nvidia.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-munlock-replace-clear_page_mlock-by-final-clearance.patch added to -mm tree
-Message-Id: <20220216003016.0582AC340EB@smtp.kernel.org>
+Subject: + mm-munlock-mlock_pte_range-when-mlocking-or-munlocking.patch added to -mm tree
+Message-Id: <20220216003023.0317CC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/munlock: replace clear_page_mlock() by final clearance
+     Subject: mm/munlock: mlock_pte_range() when mlocking or munlocking
 has been added to the -mm tree.  Its filename is
-     mm-munlock-replace-clear_page_mlock-by-final-clearance.patch
+     mm-munlock-mlock_pte_range-when-mlocking-or-munlocking.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-replace-clear_page_mlock-by-final-clearance.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-mlock_pte_range-when-mlocking-or-munlocking.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-replace-clear_page_mlock-by-final-clearance.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-mlock_pte_range-when-mlocking-or-munlocking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,37 +66,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/munlock: replace clear_page_mlock() by final clearance
+Subject: mm/munlock: mlock_pte_range() when mlocking or munlocking
 
-Placing munlock_vma_page() at the end of page_remove_rmap() shifts most of
-the munlocking to clear_page_mlock(), since PageMlocked is typically still
-set when mapcount has fallen to 0.  That is not what we want: we want
-/proc/vmstat's unevictable_pgs_cleared to remain as a useful check on the
-integrity of of the mlock/munlock protocol - small numbers are not
-surprising, but big numbers mean the protocol is not working.
+Fill in missing pieces: reimplementation of munlock_vma_pages_range(),
+required to lower the mlock_counts when munlocking without munmapping; and
+its complement, implementation of mlock_vma_pages_range(), required to
+raise the mlock_counts on pages already there when a range is mlocked.
 
-That could be easily fixed by placing munlock_vma_page() at the start of
-page_remove_rmap(); but later in the series we shall want to batch the
-munlocking, and that too would tend to leave PageMlocked still set at the
-point when it is checked.
+Combine them into just the one function mlock_vma_pages_range(), using
+walk_page_range() to run mlock_pte_range().  This approach fixes the "Very
+slow unlockall()" of unpopulated PROT_NONE areas, reported in
+https://lore.kernel.org/linux-mm/70885d37-62b7-748b-29df-9e94f3291736@gmail.com/
 
-So delete clear_page_mlock() now: leave it instead to release_pages() (and
-__page_cache_release()) to do this backstop clearing of Mlocked, when page
-refcount has fallen to 0.  If a pinned page occasionally gets counted as
-Mlocked and Unevictable until it is unpinned, that's okay.
+Munlock clears VM_LOCKED at the start, under exclusive mmap_lock; but if a
+racing truncate or holepunch (depending on i_mmap_rwsem) gets to the pte
+first, it will not try to munlock the page: leaving release_pages() to
+correct it when the last reference to the page is gone - that's okay, a
+page is not evictable anyway while it is held by an extra reference.
 
-A slightly regrettable side-effect of this change is that, since
-release_pages() and __page_cache_release() may be called at interrupt
-time, those places which update NR_MLOCK with interrupts enabled had
-better use mod_zone_page_state() than __mod_zone_page_state() (but holding
-the lruvec lock always has interrupts disabled).
+Mlock sets VM_LOCKED at the start, under exclusive mmap_lock; but if a
+racing remove_migration_pte() or try_to_unmap_one() (depending on
+i_mmap_rwsem) gets to the pte first, it will try to mlock the page, then
+mlock_pte_range() mlock it a second time.  This is harder to reproduce,
+but a more serious race because it could leave the page unevictable
+indefinitely though the area is munlocked afterwards.  Guard against it by
+setting the (inappropriate) VM_IO flag, and modifying mlock_vma_page() to
+decline such vmas.
 
-This change, forcing Mlocked off when refcount 0 instead of earlier when
-mapcount 0, is not fundamental: it can be reversed if performance or
-something else is found to suffer; but this is the easiest way to separate
-the stats - let's not complicate that without good reason.
-
-Link: https://lkml.kernel.org/r/ba15e6e-bdd5-7712-76b9-6278209e827a@google.com
+Link: https://lkml.kernel.org/r/d39f6e4d-aa4f-731a-68ee-e77cdbf1d7bb@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -113,173 +110,179 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   12 ------------
- mm/mlock.c    |   30 ------------------------------
- mm/rmap.c     |    9 ---------
- mm/swap.c     |   32 ++++++++++++++++++++++++--------
- 4 files changed, 24 insertions(+), 59 deletions(-)
+ mm/internal.h |    3 -
+ mm/mlock.c    |  111 ++++++++++++++++++++++++++++++++++++++----------
+ 2 files changed, 91 insertions(+), 23 deletions(-)
 
---- a/mm/internal.h~mm-munlock-replace-clear_page_mlock-by-final-clearance
+--- a/mm/internal.h~mm-munlock-mlock_pte_range-when-mlocking-or-munlocking
 +++ a/mm/internal.h
-@@ -425,17 +425,6 @@ static inline void munlock_vma_page(stru
- 		munlock_page(page);
- }
- 
--/*
-- * Clear the page's PageMlocked().  This can be useful in a situation where
-- * we want to unconditionally remove a page from the pagecache -- e.g.,
-- * on truncation or freeing.
-- *
-- * It is legal to call this function for any page, mlocked or not.
-- * If called for a page that is still mapped by mlocked vmas, all we do
-- * is revert to lazy LRU behaviour -- semantics are not broken.
-- */
--extern void clear_page_mlock(struct page *page);
--
- extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
- 
- /*
-@@ -509,7 +498,6 @@ static inline struct file *maybe_unlock_
- }
- #else /* !CONFIG_MMU */
- static inline void unmap_mapping_folio(struct folio *folio) { }
--static inline void clear_page_mlock(struct page *page) { }
+@@ -412,7 +412,8 @@ void mlock_page(struct page *page);
  static inline void mlock_vma_page(struct page *page,
- 			struct vm_area_struct *vma, bool compound) { }
- static inline void munlock_vma_page(struct page *page,
---- a/mm/mlock.c~mm-munlock-replace-clear_page_mlock-by-final-clearance
+ 			struct vm_area_struct *vma, bool compound)
+ {
+-	if (unlikely(vma->vm_flags & VM_LOCKED) &&
++	/* VM_IO check prevents migration from double-counting during mlock */
++	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_IO)) == VM_LOCKED) &&
+ 	    (compound || !PageTransCompound(page)))
+ 		mlock_page(page);
+ }
+--- a/mm/mlock.c~mm-munlock-mlock_pte_range-when-mlocking-or-munlocking
 +++ a/mm/mlock.c
-@@ -48,36 +48,6 @@ EXPORT_SYMBOL(can_do_mlock);
-  * PageUnevictable is set to indicate the unevictable state.
+@@ -14,6 +14,7 @@
+ #include <linux/swapops.h>
+ #include <linux/pagemap.h>
+ #include <linux/pagevec.h>
++#include <linux/pagewalk.h>
+ #include <linux/mempolicy.h>
+ #include <linux/syscalls.h>
+ #include <linux/sched.h>
+@@ -127,25 +128,91 @@ out:
+ 	unlock_page_memcg(page);
+ }
+ 
++static int mlock_pte_range(pmd_t *pmd, unsigned long addr,
++			   unsigned long end, struct mm_walk *walk)
++
++{
++	struct vm_area_struct *vma = walk->vma;
++	spinlock_t *ptl;
++	pte_t *start_pte, *pte;
++	struct page *page;
++
++	ptl = pmd_trans_huge_lock(pmd, vma);
++	if (ptl) {
++		if (!pmd_present(*pmd))
++			goto out;
++		if (is_huge_zero_pmd(*pmd))
++			goto out;
++		page = pmd_page(*pmd);
++		if (vma->vm_flags & VM_LOCKED)
++			mlock_page(page);
++		else
++			munlock_page(page);
++		goto out;
++	}
++
++	start_pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	for (pte = start_pte; addr != end; pte++, addr += PAGE_SIZE) {
++		if (!pte_present(*pte))
++			continue;
++		page = vm_normal_page(vma, addr, *pte);
++		if (!page)
++			continue;
++		if (PageTransCompound(page))
++			continue;
++		if (vma->vm_flags & VM_LOCKED)
++			mlock_page(page);
++		else
++			munlock_page(page);
++	}
++	pte_unmap(start_pte);
++out:
++	spin_unlock(ptl);
++	cond_resched();
++	return 0;
++}
++
+ /*
+- * munlock_vma_pages_range() - munlock all pages in the vma range.'
+- * @vma - vma containing range to be munlock()ed.
++ * mlock_vma_pages_range() - mlock any pages already in the range,
++ *                           or munlock all pages in the range.
++ * @vma - vma containing range to be mlock()ed or munlock()ed
+  * @start - start address in @vma of the range
+- * @end - end of range in @vma.
+- *
+- *  For mremap(), munmap() and exit().
++ * @end - end of range in @vma
++ * @newflags - the new set of flags for @vma.
+  *
+- * Called with @vma VM_LOCKED.
+- *
+- * Returns with VM_LOCKED cleared.  Callers must be prepared to
+- * deal with this.
++ * Called for mlock(), mlock2() and mlockall(), to set @vma VM_LOCKED;
++ * called for munlock() and munlockall(), to clear VM_LOCKED from @vma.
   */
+-static void munlock_vma_pages_range(struct vm_area_struct *vma,
+-				    unsigned long start, unsigned long end)
++static void mlock_vma_pages_range(struct vm_area_struct *vma,
++	unsigned long start, unsigned long end, vm_flags_t newflags)
+ {
+-	vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
++	static const struct mm_walk_ops mlock_walk_ops = {
++		.pmd_entry = mlock_pte_range,
++	};
  
--/*
-- *  LRU accounting for clear_page_mlock()
-- */
--void clear_page_mlock(struct page *page)
--{
--	int nr_pages;
--
--	if (!TestClearPageMlocked(page))
--		return;
--
--	nr_pages = thp_nr_pages(page);
--	mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
--	count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
--	/*
--	 * The previous TestClearPageMlocked() corresponds to the smp_mb()
--	 * in __pagevec_lru_add_fn().
--	 *
--	 * See __pagevec_lru_add_fn for more explanation.
--	 */
--	if (!isolate_lru_page(page)) {
--		putback_lru_page(page);
--	} else {
--		/*
--		 * We lost the race. the page already moved to evictable list.
--		 */
--		if (PageUnevictable(page))
--			count_vm_events(UNEVICTABLE_PGSTRANDED, nr_pages);
--	}
--}
--
- /**
-  * mlock_page - mlock a page
-  * @page: page to be mlocked, either a normal page or a THP head.
---- a/mm/rmap.c~mm-munlock-replace-clear_page_mlock-by-final-clearance
-+++ a/mm/rmap.c
-@@ -1317,9 +1317,6 @@ static void page_remove_file_rmap(struct
- 	 * pte lock(a spinlock) is held, which implies preemption disabled.
- 	 */
- 	__mod_lruvec_page_state(page, NR_FILE_MAPPED, -nr);
--
--	if (unlikely(PageMlocked(page)))
--		clear_page_mlock(page);
+-	/* Reimplementation to follow in later commit */
++	/*
++	 * There is a slight chance that concurrent page migration,
++	 * or page reclaim finding a page of this now-VM_LOCKED vma,
++	 * will call mlock_vma_page() and raise page's mlock_count:
++	 * double counting, leaving the page unevictable indefinitely.
++	 * Communicate this danger to mlock_vma_page() with VM_IO,
++	 * which is a VM_SPECIAL flag not allowed on VM_LOCKED vmas.
++	 * mmap_lock is held in write mode here, so this weird
++	 * combination should not be visible to other mmap_lock users;
++	 * but WRITE_ONCE so rmap walkers must see VM_IO if VM_LOCKED.
++	 */
++	if (newflags & VM_LOCKED)
++		newflags |= VM_IO;
++	WRITE_ONCE(vma->vm_flags, newflags);
++
++	lru_add_drain();
++	walk_page_range(vma->vm_mm, start, end, &mlock_walk_ops, NULL);
++	lru_add_drain();
++
++	if (newflags & VM_IO) {
++		newflags &= ~VM_IO;
++		WRITE_ONCE(vma->vm_flags, newflags);
++	}
  }
- 
- static void page_remove_anon_compound_rmap(struct page *page)
-@@ -1359,9 +1356,6 @@ static void page_remove_anon_compound_rm
- 		nr = thp_nr_pages(page);
- 	}
- 
--	if (unlikely(PageMlocked(page)))
--		clear_page_mlock(page);
--
- 	if (nr)
- 		__mod_lruvec_page_state(page, NR_ANON_MAPPED, -nr);
- }
-@@ -1400,9 +1394,6 @@ void page_remove_rmap(struct page *page,
- 	 */
- 	__dec_lruvec_page_state(page, NR_ANON_MAPPED);
- 
--	if (unlikely(PageMlocked(page)))
--		clear_page_mlock(page);
--
- 	if (PageTransCompound(page))
- 		deferred_split_huge_page(compound_head(page));
- 
---- a/mm/swap.c~mm-munlock-replace-clear_page_mlock-by-final-clearance
-+++ a/mm/swap.c
-@@ -74,8 +74,8 @@ static DEFINE_PER_CPU(struct lru_pvecs,
- };
  
  /*
-- * This path almost never happens for VM activity - pages are normally
-- * freed via pagevecs.  But it gets used by networking.
-+ * This path almost never happens for VM activity - pages are normally freed
-+ * via pagevecs.  But it gets used by networking - and for compound pages.
-  */
- static void __page_cache_release(struct page *page)
- {
-@@ -89,6 +89,14 @@ static void __page_cache_release(struct
- 		__clear_page_lru_flags(page);
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
- 	}
-+	/* See comment on PageMlocked in release_pages() */
-+	if (unlikely(PageMlocked(page))) {
-+		int nr_pages = thp_nr_pages(page);
-+
-+		__ClearPageMlocked(page);
-+		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
-+		count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
+@@ -164,10 +231,9 @@ static int mlock_fixup(struct vm_area_st
+ 	pgoff_t pgoff;
+ 	int nr_pages;
+ 	int ret = 0;
+-	int lock = !!(newflags & VM_LOCKED);
+-	vm_flags_t old_flags = vma->vm_flags;
++	vm_flags_t oldflags = vma->vm_flags;
+ 
+-	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
++	if (newflags == oldflags || (oldflags & VM_SPECIAL) ||
+ 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm) ||
+ 	    vma_is_dax(vma) || vma_is_secretmem(vma))
+ 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
+@@ -199,9 +265,9 @@ success:
+ 	 * Keep track of amount of locked VM.
+ 	 */
+ 	nr_pages = (end - start) >> PAGE_SHIFT;
+-	if (!lock)
++	if (!(newflags & VM_LOCKED))
+ 		nr_pages = -nr_pages;
+-	else if (old_flags & VM_LOCKED)
++	else if (oldflags & VM_LOCKED)
+ 		nr_pages = 0;
+ 	mm->locked_vm += nr_pages;
+ 
+@@ -211,11 +277,12 @@ success:
+ 	 * set VM_LOCKED, populate_vma_page_range will bring it back.
+ 	 */
+ 
+-	if (lock)
++	if ((newflags & VM_LOCKED) && (oldflags & VM_LOCKED)) {
++		/* No work to do, and mlocking twice would be wrong */
+ 		vma->vm_flags = newflags;
+-	else
+-		munlock_vma_pages_range(vma, start, end);
+-
++	} else {
++		mlock_vma_pages_range(vma, start, end, newflags);
 +	}
- 	__ClearPageWaiters(page);
- }
- 
-@@ -489,12 +497,8 @@ void lru_cache_add_inactive_or_unevictab
- 	unevictable = (vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) == VM_LOCKED;
- 	if (unlikely(unevictable) && !TestSetPageMlocked(page)) {
- 		int nr_pages = thp_nr_pages(page);
--		/*
--		 * We use the irq-unsafe __mod_zone_page_state because this
--		 * counter is not modified from interrupt context, and the pte
--		 * lock is held(spinlock), which implies preemption disabled.
--		 */
--		__mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
-+
-+		mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
- 		count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
- 	}
- 	lru_cache_add(page);
-@@ -969,6 +973,18 @@ void release_pages(struct page **pages,
- 			__clear_page_lru_flags(page);
- 		}
- 
-+		/*
-+		 * In rare cases, when truncation or holepunching raced with
-+		 * munlock after VM_LOCKED was cleared, Mlocked may still be
-+		 * found set here.  This does not indicate a problem, unless
-+		 * "unevictable_pgs_cleared" appears worryingly large.
-+		 */
-+		if (unlikely(PageMlocked(page))) {
-+			__ClearPageMlocked(page);
-+			dec_zone_page_state(page, NR_MLOCK);
-+			count_vm_event(UNEVICTABLE_PGCLEARED);
-+		}
-+
- 		__ClearPageWaiters(page);
- 
- 		list_add(&page->lru, &pages_to_free);
+ out:
+ 	*prev = vma;
+ 	return ret;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
