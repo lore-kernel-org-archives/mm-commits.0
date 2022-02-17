@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33AB3C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 02:49:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AC83C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 02:57:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231962AbiBQCtN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Feb 2022 21:49:13 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60464 "EHLO
+        id S230400AbiBQC5Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Feb 2022 21:57:16 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:50556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231934AbiBQCtM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Feb 2022 21:49:12 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC7AE2A82C1
-        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 18:48:58 -0800 (PST)
+        with ESMTP id S231345AbiBQC5P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Feb 2022 21:57:15 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1C1BB12F3;
+        Wed, 16 Feb 2022 18:57:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 650B5B820CC
-        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 02:48:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 135D2C004E1;
-        Thu, 17 Feb 2022 02:48:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8051CB820DC;
+        Thu, 17 Feb 2022 02:57:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 173DDC004E1;
+        Thu, 17 Feb 2022 02:56:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645066136;
-        bh=ysuczBsMf9uLAGxFUkLC9QvkY6CjpQd74alkgs3EWd0=;
+        s=korg; t=1645066619;
+        bh=ePhX2RruMr9W49uP2YRCaqDU5OcuHvPV81rxXcCZpwc=;
         h=Date:To:From:Subject:From;
-        b=wYm0TI8Hl8YCUpdVBG/wWrHUqzYvRQcTYALhLY+smPLZGOf5bGcadRkM9mqSN5kCp
-         R3qHBjNEiEVDaZ+K4OXKB7u8VHeiVKVTSSqNNhaiTPWh59XFt/EjrP5/ETWi6DRG7Y
-         +Yv0IzTpgDrMgdJQ412G8eW+T15RnPEo7MWYsgwM=
-Date:   Wed, 16 Feb 2022 18:48:55 -0800
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
-        mark.rutland@arm.com, glider@google.com, eugenis@google.com,
-        elver@google.com, dvyukov@google.com, andreyknvl@google.com,
+        b=1L0SX12tz1toejMzuSH5aCRun4IGA06vUxsIO+yYTj6YwMG/6tVbD60VVpU8BzJne
+         RsV8SJuCFD+ZSAPALOzX+PoVbfNvfOqBoQNGQRnqFriyrvqycXJ0srw/7QPg/i5I35
+         S2WlCMHPa2qw9qgAPJcoj5jRXM0F2jOR9ODQplA8=
+Date:   Wed, 16 Feb 2022 18:56:58 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        stable@vger.kernel.org, shy828301@gmail.com, kirill@shutemov.name,
+        jhubbard@nvidia.com, hughd@google.com, david@redhat.com,
+        apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch added to -mm tree
-Message-Id: <20220217024856.135D2C004E1@smtp.kernel.org>
+Subject: + mm-dont-skip-swap-entry-even-if-zap_details-specified.patch added to -mm tree
+Message-Id: <20220217025659.173DDC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix for "kasan, fork: reset pointer tags of vmapped stacks"
+     Subject: mm: don't skip swap entry even if zap_details specified
 has been added to the -mm tree.  Its filename is
-     kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+     mm-dont-skip-swap-entry-even-if-zap_details-specified.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-dont-skip-swap-entry-even-if-zap_details-specified.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-skip-swap-entry-even-if-zap_details-specified.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,100 +65,207 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: fix for "kasan, fork: reset pointer tags of vmapped stacks"
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: don't skip swap entry even if zap_details specified
 
-That patch didn't update the case when a stack is retrived from
-cached_stacks in alloc_thread_stack_node().  As cached_stacks stores
-vm_structs and not stack pointers themselves, the pointer tag needs to be
-reset there as well.
+Patch series "mm: Rework zap ptes on swap entries", v4.
 
-Link: https://lkml.kernel.org/r/f50c5f96ef896d7936192c888b0c0a7674e33184.1644943792.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Patch 1 should fix a long standing bug for zap_pte_range() on zap_details
+usage.  The risk is we could have some swap entries skipped while we should
+have zapped them.
+
+Migration entries are not the major concern because file backed memory always
+zap in the pattern that "first time without page lock, then re-zap with page
+lock" hence the 2nd zap will always make sure all migration entries are already
+recovered.
+
+However there can be issues with real swap entries got skipped errornoously.
+There's a reproducer provided in commit message of patch 1 for that.
+
+Patch 2-4 are cleanups that are based on patch 1.  After the whole patchset
+applied, we should have a very clean view of zap_pte_range().
+
+Only patch 1 needs to be backported to stable if necessary.
+
+
+This patch (of 4):
+
+The "details" pointer shouldn't be the token to decide whether we should
+skip swap entries.  For example, when the caller specified
+details->zap_mapping==NULL, it means the caller wants to zap all the pages
+(including COWed pages), then we need to look into swap entries because
+there can be private COWed pages that was swapped out.
+
+Skipping some swap entries when details is non-NULL may lead to wrongly
+leaving some of the swap entries while we should have zapped them.
+
+A reproducer of the problem:
+
+===8<===
+        #define _GNU_SOURCE         /* See feature_test_macros(7) */
+        #include <stdio.h>
+        #include <assert.h>
+        #include <unistd.h>
+        #include <sys/mman.h>
+        #include <sys/types.h>
+
+        int page_size;
+        int shmem_fd;
+        char *buffer;
+
+        void main(void)
+        {
+                int ret;
+                char val;
+
+                page_size = getpagesize();
+                shmem_fd = memfd_create("test", 0);
+                assert(shmem_fd >= 0);
+
+                ret = ftruncate(shmem_fd, page_size * 2);
+                assert(ret == 0);
+
+                buffer = mmap(NULL, page_size * 2, PROT_READ | PROT_WRITE,
+                                MAP_PRIVATE, shmem_fd, 0);
+                assert(buffer != MAP_FAILED);
+
+                /* Write private page, swap it out */
+                buffer[page_size] = 1;
+                madvise(buffer, page_size * 2, MADV_PAGEOUT);
+
+                /* This should drop private buffer[page_size] already */
+                ret = ftruncate(shmem_fd, page_size);
+                assert(ret == 0);
+                /* Recover the size */
+                ret = ftruncate(shmem_fd, page_size * 2);
+                assert(ret == 0);
+
+                /* Re-read the data, it should be all zero */
+                val = buffer[page_size];
+                if (val == 0)
+                        printf("Good\n");
+                else
+                        printf("BUG\n");
+        }
+===8<===
+
+We don't need to touch up the pmd path, because pmd never had a issue with
+swap entries.  For example, shmem pmd migration will always be split into
+pte level, and same to swapping on anonymous.
+
+Add another helper should_zap_cows() so that we can also check whether we
+should zap private mappings when there's no page pointer specified.
+
+This patch drops that trick, so we handle swap ptes coherently.  Meanwhile
+we should do the same check upon migration entry, hwpoison entry and
+genuine swap entries too.  To be explicit, we should still remember to
+keep the private entries if even_cows==false, and always zap them when
+even_cows==true.
+
+The issue seems to exist starting from the initial commit of git.
+
+Link: https://lkml.kernel.org/r/20220216094810.60572-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220216094810.60572-2-peterx@redhat.com
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/memory.c |   45 ++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 36 insertions(+), 9 deletions(-)
 
---- a/kernel/fork.c~kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix
-+++ a/kernel/fork.c
-@@ -226,15 +226,17 @@ static unsigned long *alloc_thread_stack
- 		if (!s)
- 			continue;
+--- a/mm/memory.c~mm-dont-skip-swap-entry-even-if-zap_details-specified
++++ a/mm/memory.c
+@@ -1313,6 +1313,17 @@ struct zap_details {
+ 	struct folio *single_folio;	/* Locked folio to be unmapped */
+ };
  
--		/* Mark stack accessible for KASAN. */
-+		/* Reset stack metadata. */
- 		kasan_unpoison_range(s->addr, THREAD_SIZE);
- 
-+		stack = kasan_reset_tag(s->addr);
++/* Whether we should zap all COWed (private) pages too */
++static inline bool should_zap_cows(struct zap_details *details)
++{
++	/* By default, zap all pages */
++	if (!details)
++		return true;
 +
- 		/* Clear stale pointers from reused stack. */
--		memset(s->addr, 0, THREAD_SIZE);
-+		memset(stack, 0, THREAD_SIZE);
++	/* Or, we zap COWed pages only if the caller wants to */
++	return !details->zap_mapping;
++}
++
+ /*
+  * We set details->zap_mapping when we want to unmap shared but keep private
+  * pages. Return true if skip zapping this page, false otherwise.
+@@ -1320,11 +1331,15 @@ struct zap_details {
+ static inline bool
+ zap_skip_check_mapping(struct zap_details *details, struct page *page)
+ {
+-	if (!details || !page)
++	/* If we can make a decision without *page.. */
++	if (should_zap_cows(details))
++		return false;
++
++	/* E.g. zero page */
++	if (!page)
+ 		return false;
  
- 		tsk->stack_vm_area = s;
--		tsk->stack = s->addr;
--		return s->addr;
-+		tsk->stack = stack;
-+		return stack;
- 	}
+-	return details->zap_mapping &&
+-		(details->zap_mapping != page_rmapping(page));
++	return details->zap_mapping != page_rmapping(page);
+ }
  
- 	/*
+ static unsigned long zap_pte_range(struct mmu_gather *tlb,
+@@ -1405,17 +1420,29 @@ again:
+ 			continue;
+ 		}
+ 
+-		/* If details->check_mapping, we leave swap entries. */
+-		if (unlikely(details))
+-			continue;
+-
+-		if (!non_swap_entry(entry))
++		if (!non_swap_entry(entry)) {
++			/*
++			 * If this is a genuine swap entry, then it must be an
++			 * private anon page.  If the caller wants to skip
++			 * COWed pages, ignore it.
++			 */
++			if (!should_zap_cows(details))
++				continue;
+ 			rss[MM_SWAPENTS]--;
+-		else if (is_migration_entry(entry)) {
++		} else if (is_migration_entry(entry)) {
+ 			struct page *page;
+ 
+ 			page = pfn_swap_entry_to_page(entry);
++			if (zap_skip_check_mapping(details, page))
++				continue;
+ 			rss[mm_counter(page)]--;
++		} else if (is_hwpoison_entry(entry)) {
++			/* If the caller wants to skip COWed pages, ignore it */
++			if (!should_zap_cows(details))
++				continue;
++		} else {
++			/* We should have covered all the swap entry types */
++			WARN_ON_ONCE(1);
+ 		}
+ 		if (unlikely(!free_swap_and_cache(entry)))
+ 			print_bad_pte(vma, addr, ptent, NULL);
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
-kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
-kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
-kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
-kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
-kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
-mm-clarify-__gfp_zerotags-comment.patch
-kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
-kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
-kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
-kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
-kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
-kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
-kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
-kasan-clean-up-metadata-byte-definitions.patch
-kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
-kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
-kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
-kasan-reorder-vmalloc-hooks.patch
-kasan-add-wrappers-for-vmalloc-hooks.patch
-kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
-kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
-kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
-kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
-kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
-kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
-kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
-kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
-kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
-kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
-kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
-kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
-kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
-kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
-kasan-clean-up-feature-flags-for-hw_tags-mode.patch
-kasan-add-kasanvmalloc-command-line-flag.patch
-kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
-arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
-kasan-documentation-updates.patch
-kasan-improve-vmalloc-tests.patch
-kasan-improve-vmalloc-tests-fix-2.patch
-kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
+mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch
+mm-dont-skip-swap-entry-even-if-zap_details-specified.patch
+mm-rename-zap_skip_check_mapping-to-should_zap_page.patch
+mm-change-zap_detailszap_mapping-into-even_cows.patch
+mm-rework-swap-handling-of-zap_pte_range.patch
 
