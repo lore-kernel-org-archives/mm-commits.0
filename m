@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFADBC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 01:29:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33AB3C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 02:49:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230429AbiBQB3d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Feb 2022 20:29:33 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45140 "EHLO
+        id S231962AbiBQCtN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Feb 2022 21:49:13 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229569AbiBQB3c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Feb 2022 20:29:32 -0500
+        with ESMTP id S231934AbiBQCtM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Feb 2022 21:49:12 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FFBBC3C03
-        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 17:29:18 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC7AE2A82C1
+        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 18:48:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1213EB81ABE
-        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 01:29:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C97DC004E1;
-        Thu, 17 Feb 2022 01:29:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 650B5B820CC
+        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 02:48:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 135D2C004E1;
+        Thu, 17 Feb 2022 02:48:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645061355;
-        bh=uHCALFMFdX6JzAtQdqYoy7JiufEeoEXgrfbSJlJO6lw=;
+        s=korg; t=1645066136;
+        bh=ysuczBsMf9uLAGxFUkLC9QvkY6CjpQd74alkgs3EWd0=;
         h=Date:To:From:Subject:From;
-        b=cHaG7IPLqQh3JkUYae5X+G7ugf+cZleFnynoRXXTdxwNfem+fo/Tc6w5EyOYvCmrL
-         r109cAuu8fDUPDcLOduaB5BTxIsHuKGxcA0rYN7OJ/oZPa5RNjdbH242WVC23txF89
-         tAD1I7Yu2m6Z0JhiJhuBTb4vae2WEh1/vF3dGv9w=
-Date:   Wed, 16 Feb 2022 17:29:15 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        usama.anjum@collabora.com, jpoimboe@redhat.com,
-        keescook@chromium.org, akpm@linux-foundation.org
+        b=wYm0TI8Hl8YCUpdVBG/wWrHUqzYvRQcTYALhLY+smPLZGOf5bGcadRkM9mqSN5kCp
+         R3qHBjNEiEVDaZ+K4OXKB7u8VHeiVKVTSSqNNhaiTPWh59XFt/EjrP5/ETWi6DRG7Y
+         +Yv0IzTpgDrMgdJQ412G8eW+T15RnPEo7MWYsgwM=
+Date:   Wed, 16 Feb 2022 18:48:55 -0800
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
+        mark.rutland@arm.com, glider@google.com, eugenis@google.com,
+        elver@google.com, dvyukov@google.com, andreyknvl@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] usercopy-check-valid-lifetime-via-stack-depth.patch removed from -mm tree
-Message-Id: <20220217012915.9C97DC004E1@smtp.kernel.org>
+Subject: + kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch added to -mm tree
+Message-Id: <20220217024856.135D2C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,101 +44,121 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usercopy: check valid lifetime via stack depth
-has been removed from the -mm tree.  Its filename was
-     usercopy-check-valid-lifetime-via-stack-depth.patch
+     Subject: fix for "kasan, fork: reset pointer tags of vmapped stacks"
+has been added to the -mm tree.  Its filename is
+     kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: usercopy: check valid lifetime via stack depth
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: fix for "kasan, fork: reset pointer tags of vmapped stacks"
 
-Under CONFIG_HARDENED_USERCOPY=y, when exact stack frame boundary checking
-is not available (i.e.  everything except x86 with FRAME_POINTER), check a
-stack object as being at least "current depth valid", in the sense that
-any object within the stack region but not between start-of-stack and
-current_stack_pointer should be considered unavailable (i.e.  its lifetime
-is from a call no longer present on the stack).
+That patch didn't update the case when a stack is retrived from
+cached_stacks in alloc_thread_stack_node().  As cached_stacks stores
+vm_structs and not stack pointers themselves, the pointer tag needs to be
+reset there as well.
 
-Additionally report usercopy bounds checking failures with an offset from
-current_stack_pointer, which may assist with diagnosing failures.
-
-The LKDTM USERCOPY_STACK_FRAME_TO and USERCOPY_STACK_FRAME_FROM tests
-(once slightly adjusted in a separate patch) will pass again with this
-fixed.
-
-Link: https://lkml.kernel.org/r/20220216201449.2087956-1-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: https://lkml.kernel.org/r/f50c5f96ef896d7936192c888b0c0a7674e33184.1644943792.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/usercopy.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ kernel/fork.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/usercopy.c~usercopy-check-valid-lifetime-via-stack-depth
-+++ a/mm/usercopy.c
-@@ -29,13 +29,20 @@
-  * Returns:
-  *	NOT_STACK: not at all on the stack
-  *	GOOD_FRAME: fully within a valid stack frame
-- *	GOOD_STACK: fully on the stack (when can't do frame-checking)
-+ *	GOOD_STACK: within the current stack (when can't frame-check exactly)
-  *	BAD_STACK: error condition (invalid stack position or bad stack frame)
-  */
- static noinline int check_stack_object(const void *obj, unsigned long len)
- {
- 	const void * const stack = task_stack_page(current);
- 	const void * const stackend = stack + THREAD_SIZE;
-+#ifndef CONFIG_STACK_GROWSUP
-+	const void * const high = stackend;
-+	const void * const low = (void *)current_stack_pointer;
-+#else
-+	const void * const high = (void *)current_stack_pointer;
-+	const void * const low = stack;
-+#endif
- 	int ret;
+--- a/kernel/fork.c~kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix
++++ a/kernel/fork.c
+@@ -226,15 +226,17 @@ static unsigned long *alloc_thread_stack
+ 		if (!s)
+ 			continue;
  
- 	/* Object is not on the stack at all. */
-@@ -55,6 +62,12 @@ static noinline int check_stack_object(c
- 	if (ret)
- 		return ret;
+-		/* Mark stack accessible for KASAN. */
++		/* Reset stack metadata. */
+ 		kasan_unpoison_range(s->addr, THREAD_SIZE);
  
-+	/*
-+	 * Reject: object not within current stack depth.
-+	 */
-+	if (obj < low || high < obj + len)
-+		return BAD_STACK;
++		stack = kasan_reset_tag(s->addr);
 +
- 	return GOOD_STACK;
- }
+ 		/* Clear stale pointers from reused stack. */
+-		memset(s->addr, 0, THREAD_SIZE);
++		memset(stack, 0, THREAD_SIZE);
  
-@@ -269,7 +282,13 @@ void __check_object_size(const void *ptr
- 		 */
- 		return;
- 	default:
--		usercopy_abort("process stack", NULL, to_user, 0, n);
-+		usercopy_abort("process stack", NULL, to_user,
-+#ifndef CONFIG_STACK_GROWSUP
-+				(void *)current_stack_pointer - ptr,
-+#else
-+				ptr - (void *)current_stack_pointer,
-+#endif
-+				n);
+ 		tsk->stack_vm_area = s;
+-		tsk->stack = s->addr;
+-		return s->addr;
++		tsk->stack = stack;
++		return stack;
  	}
  
- 	/* Check for bad heap object. */
+ 	/*
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-kconfigdebug-make-debug_info-selectable-from-a-choice.patch
-kconfigdebug-make-debug_info-selectable-from-a-choice-fix.patch
-exec-force-single-empty-string-when-argv-is-empty.patch
-exec-force-single-empty-string-when-argv-is-empty-fix.patch
-selftests-exec-test-for-empty-string-on-null-argv.patch
-selftests-kselftest-framework-provide-finished-helper.patch
+kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
+kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
+kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+mm-clarify-__gfp_zerotags-comment.patch
+kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
+kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
+kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
+kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
+kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+kasan-clean-up-metadata-byte-definitions.patch
+kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
+kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+kasan-reorder-vmalloc-hooks.patch
+kasan-add-wrappers-for-vmalloc-hooks.patch
+kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
+kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
+kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
+kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
+kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
+kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
+kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+kasan-add-kasanvmalloc-command-line-flag.patch
+kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
+arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
+kasan-documentation-updates.patch
+kasan-improve-vmalloc-tests.patch
+kasan-improve-vmalloc-tests-fix-2.patch
+kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
 
