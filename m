@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC44C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 03:03:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4297FC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 03:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232274AbiBQDDQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Feb 2022 22:03:16 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43738 "EHLO
+        id S232243AbiBQDJe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Feb 2022 22:09:34 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:38284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232278AbiBQDDO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Feb 2022 22:03:14 -0500
+        with ESMTP id S232363AbiBQDJd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Feb 2022 22:09:33 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D475415E6E7
-        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 19:03:00 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B733C158E9D
+        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 19:09:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 705B261CF7
-        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 03:03:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5C10C004E1;
-        Thu, 17 Feb 2022 03:02:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5296F61D27
+        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 03:09:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E45EC340E9;
+        Thu, 17 Feb 2022 03:09:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645066979;
-        bh=5MqYCKXO8pNEGJcTOIJBSuOg5Er7N8P4LyVDLtdaJHs=;
+        s=korg; t=1645067358;
+        bh=xYft1fLTKnbdRdyXmsQLsbHzrPVQ/Mkw/lE/72mherw=;
         h=Date:To:From:Subject:From;
-        b=0MX1ZEaB0EvbP+8eRs2O7P00Aldv+cG0ocVwjBczlQf9qDQXzRQnDybY1VD5q4dsF
-         3uGuLIvwDXO0T32nc7swhuOsOs8HFo6FwHN6eogxp65fQl/xU9EIyukrx8+9GVytcc
-         CNloCHCEUSH7tvUg+ReX+Qq0Iw/9FH+n8x6hCtb4=
-Date:   Wed, 16 Feb 2022 19:02:59 -0800
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=k84nnFLPGnyx+0s9WhR+jFg0Mj3355SdaW70wQF1uc898+A/iYidpEW5VvrjNC21O
+         7pkoZv+8WQGWenrUMkYhC2Lv/4Qa42mxJtZEFeHhYIhXsrdt8eersA+rYYhoiX74Xq
+         iogdheDUezzCg6+bKsdOFLKh0A43gUzKq9unihyA=
+Date:   Wed, 16 Feb 2022 19:09:18 -0800
+To:     mm-commits@vger.kernel.org, sujiaxun@uniontech.com,
+        sfr@canb.auug.org.au, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch added to -mm tree
-Message-Id: <20220217030259.C5C10C004E1@smtp.kernel.org>
+Subject: + mm-move-oom_kill-sysctls-to-their-own-file-fix.patch added to -mm tree
+Message-Id: <20220217030918.9E45EC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: remove unnecessary PageTransTail check
+     Subject: fix up for "mm: move oom_kill sysctls to their own file"
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
+     mm-move-oom_kill-sysctls-to-their-own-file-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-oom_kill-sysctls-to-their-own-file-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-oom_kill-sysctls-to-their-own-file-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,54 +62,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure.c: remove unnecessary PageTransTail check
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: fix up for "mm: move oom_kill sysctls to their own file"
 
-When we reach here, we're guaranteed to have non-compound page as thp is
-already splited.  Remove this unnecessary PageTransTail check.
-
-Link: https://lkml.kernel.org/r/20220216091431.39406-9-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20220216193202.28838626@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: sujiaxun <sujiaxun@uniontech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/oom_kill.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failurec-remove-unnecessary-pagetranstail-check
-+++ a/mm/memory-failure.c
-@@ -1838,7 +1838,7 @@ try_again:
- 	 * page_lock. We need wait writeback completion for this page or it
- 	 * may trigger vfs BUG while evict inode.
- 	 */
--	if (!PageTransTail(p) && !PageLRU(p) && !PageWriteback(p))
-+	if (!PageLRU(p) && !PageWriteback(p))
- 		goto identify_page_state;
+--- a/mm/oom_kill.c~mm-move-oom_kill-sysctls-to-their-own-file-fix
++++ a/mm/oom_kill.c
+@@ -80,7 +80,8 @@ static struct ctl_table vm_oom_kill_tabl
+ 		.maxlen		= sizeof(sysctl_oom_dump_tasks),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+-	}
++	},
++	{}
+ };
+ #endif
  
- 	/*
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
-filemap-remove-find_get_pages.patch
-mm-sparse-make-mminit_validate_memmodel_limits-static.patch
-mm-vmalloc-remove-unneeded-function-forward-declaration.patch
-mm-mmzoneh-remove-unused-macros.patch
-mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
-mm-memory-failurec-catch-unexpected-efault-from-vma_address.patch
-mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
-mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
-mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
-mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
-mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
-mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
-mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
-mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
-mm-memory_hotplug-clean-up-try_offline_node.patch
-mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
-mm-highmem-remove-unnecessary-done-label.patch
-mm-hmmc-remove-unneeded-local-variable-ret.patch
+kasan-improve-vmalloc-tests-fix.patch
+mm-move-oom_kill-sysctls-to-their-own-file-fix.patch
+mm-dont-include-linux-memremaph-in-linux-mmh-fix-2.patch
 
