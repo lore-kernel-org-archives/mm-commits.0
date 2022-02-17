@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B8E0C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 03:02:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00C63C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 03:02:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232272AbiBQDDH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Feb 2022 22:03:07 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43204 "EHLO
+        id S232276AbiBQDDK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Feb 2022 22:03:10 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232277AbiBQDDH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Feb 2022 22:03:07 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25775FCB58
-        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 19:02:52 -0800 (PST)
+        with ESMTP id S232274AbiBQDDK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Feb 2022 22:03:10 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F071FA22E
+        for <mm-commits@vger.kernel.org>; Wed, 16 Feb 2022 19:02:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7696761D06
-        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 03:02:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7B50C004E1;
-        Thu, 17 Feb 2022 03:02:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 308AFB81FCA
+        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 03:02:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C10A4C004E1;
+        Thu, 17 Feb 2022 03:02:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645066971;
-        bh=Tblw2/TqNjFNa9M/Z/kkdAkiijL4Ua9gaB0BWnapiA0=;
+        s=korg; t=1645066973;
+        bh=l38mM/unOe92RLTIB6EbSrzaWIcCg+fxtxNQTAkj+CU=;
         h=Date:To:From:Subject:From;
-        b=TCbQMIJ7F1tyNI/SV2t5H17u0/0MCe28Hv1cIspyYN3o7Zn8SVKeRA16kf02cvWFK
-         rAbcHAzeHEUp+d4CFtuU4b4JmOnWFFxSm4Kv68aoMVg2pJGLvM5vrqdxOHgO2QsWbs
-         5FnJgX6EdlPmL9OniArbTLtiDIkyfnZsz1lyUt6Q=
-Date:   Wed, 16 Feb 2022 19:02:51 -0800
+        b=E4TaQbCM/zNjo30GMAg4VU8/A5t4YBLnY5yaSHisHwl7mFoEQ5/mZKckSat7Ynys1
+         C7PtVzZqwNb88GPS9xHYmWnmlDU8FBR56CzM8pbOgCBJuxzJzEdzH+U68M40J/0Nj5
+         x31tNi9/o+8ZOFBENhLKzCJ2pgiphKB3/rOYUzII=
+Date:   Wed, 16 Feb 2022 19:02:53 -0800
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch added to -mm tree
-Message-Id: <20220217030251.C7B50C004E1@smtp.kernel.org>
+Subject: + mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch added to -mm tree
+Message-Id: <20220217030253.C10A4C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: fix race with changing page more robustly
+     Subject: mm/memory-failure.c: remove PageSlab check in hwpoison_filter_dev
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
+     mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,68 +63,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure.c: fix race with changing page more robustly
+Subject: mm/memory-failure.c: remove PageSlab check in hwpoison_filter_dev
 
-We're only intended to deal with the non-Compound page after we split thp
-in memory_failure.  However, the page could have changed compound pages
-due to race window.  If this happens, we could try again to hopefully
-handle the page next round.  Also remove unneeded orig_head.  It's always
-equal to the hpage.  So we can use hpage directly and remove this
-redundant one.
+Since commit 03e5ac2fc3bf ("mm: fix crash when using XFS on loopback"),
+page_mapping() can handle the Slab pages.  So remove this unnecessary
+PageSlab check and obsolete comment.
 
-Link: https://lkml.kernel.org/r/20220216091431.39406-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220216091431.39406-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ mm/memory-failure.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failurec-fix-race-with-changing-page-more-robustly
+--- a/mm/memory-failure.c~mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev
 +++ a/mm/memory-failure.c
-@@ -1686,7 +1686,6 @@ int memory_failure(unsigned long pfn, in
- {
- 	struct page *p;
- 	struct page *hpage;
--	struct page *orig_head;
- 	struct dev_pagemap *pgmap;
- 	int res = 0;
- 	unsigned long page_flags;
-@@ -1732,7 +1731,7 @@ try_again:
- 		goto unlock_mutex;
- 	}
+@@ -130,12 +130,6 @@ static int hwpoison_filter_dev(struct pa
+ 	    hwpoison_filter_dev_minor == ~0U)
+ 		return 0;
  
--	orig_head = hpage = compound_head(p);
-+	hpage = compound_head(p);
- 	num_poisoned_pages_inc();
- 
- 	/*
-@@ -1813,13 +1812,18 @@ try_again:
- 	lock_page(p);
- 
- 	/*
--	 * The page could have changed compound pages during the locking.
--	 * If this happens just bail out.
-+	 * We're only intended to deal with the non-Compound page here.
-+	 * However, the page could have changed compound pages due to
-+	 * race window. If this happens, we could try again to hopefully
-+	 * handle the page next round.
- 	 */
--	if (PageCompound(p) && compound_head(p) != orig_head) {
--		action_result(pfn, MF_MSG_DIFFERENT_COMPOUND, MF_IGNORED);
--		res = -EBUSY;
--		goto unlock_page;
-+	if (PageCompound(p)) {
-+		if (TestClearPageHWPoison(p))
-+			num_poisoned_pages_dec();
-+		unlock_page(p);
-+		put_page(p);
-+		flags &= ~MF_COUNT_INCREASED;
-+		goto try_again;
- 	}
- 
- 	/*
+-	/*
+-	 * page_mapping() does not accept slab pages.
+-	 */
+-	if (PageSlab(p))
+-		return -EINVAL;
+-
+ 	mapping = page_mapping(p);
+ 	if (mapping == NULL || mapping->host == NULL)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
