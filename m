@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A670AC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Feb 2022 01:03:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30279C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Feb 2022 02:48:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230478AbiBRBDw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Feb 2022 20:03:52 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:41642 "EHLO
+        id S231665AbiBRCsQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Feb 2022 21:48:16 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:57798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230435AbiBRBDv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Feb 2022 20:03:51 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0DF0285A88
-        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 17:03:35 -0800 (PST)
+        with ESMTP id S231656AbiBRCsP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Feb 2022 21:48:15 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E6B51DA7D
+        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 18:47:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6337961BF8
-        for <mm-commits@vger.kernel.org>; Fri, 18 Feb 2022 01:03:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3FCFC340E8;
-        Fri, 18 Feb 2022 01:03:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 10FB661D49
+        for <mm-commits@vger.kernel.org>; Fri, 18 Feb 2022 02:47:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53C95C340E8;
+        Fri, 18 Feb 2022 02:47:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645146214;
-        bh=dntty2OAEJxJRCiqOw8lblRdOzwUkkscosdlS3Js8to=;
+        s=korg; t=1645152478;
+        bh=tFO8y3+Ml3A8O4fsMSwRjxt0OY5+rXV6jztMEbeY2QI=;
         h=Date:To:From:Subject:From;
-        b=xDAFyne5CkYah0LND9egt/e/Rv3jJllgPMzRTVVMupyxzc0mRazeTIsFDZ0fXn2UD
-         JN7KeXI/TF4/u2iRTlLTEID7nqPTtKSGkXY3iaW8RgVElh64JrVTN+//EwAuTbdtSa
-         jLfUzEq23pGCgPoDjOtebKF+mPQjJV+Jh+etw2KE=
-Date:   Thu, 17 Feb 2022 17:03:34 -0800
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, mpe@ellerman.id.au,
-        jannh@google.com, aneesh.kumar@linux.ibm.com,
-        akpm@linux-foundation.org
+        b=rT3kagGFI3W2NaO9A3yiWWnqKCiF5WxLIE9JV1ZZhDEhj3y/O7w1ol/8v1uKYFK9r
+         xo7CPbVNh6SMpVGOzK6FmLjZaFMb580KbhnrNPFqRp5ggVfJuPXrIFEtzUu3graO9J
+         DozRwSt/M5iPhiRubYsTJTWqqwebjjB/J7dSJ43c=
+Date:   Thu, 17 Feb 2022 18:47:57 -0800
+To:     mm-commits@vger.kernel.org, zhanglianjie@uniontech.com,
+        yzaikin@google.com, mcgrof@kernel.org, keescook@chromium.org,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-vm-fix-map_fixed_noreplace-test-failure.patch added to -mm tree
-Message-Id: <20220218010334.B3FCFC340E8@smtp.kernel.org>
+Subject: [folded-merged] mm-move-page-writeback-sysctls-to-is-own-file-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20220218024758.53C95C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,199 +42,512 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/vm: fix map_fixed_noreplace test failure
-has been added to the -mm tree.  Its filename is
-     selftest-vm-fix-map_fixed_noreplace-test-failure.patch
+     Subject: mm-move-page-writeback-sysctls-to-is-own-file-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-move-page-writeback-sysctls-to-is-own-file-checkpatch-fixes.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftest-vm-fix-map_fixed_noreplace-test-failure.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-vm-fix-map_fixed_noreplace-test-failure.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-move-page-writeback-sysctls-to-is-own-file.patch
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: selftest/vm: fix map_fixed_noreplace test failure
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-move-page-writeback-sysctls-to-is-own-file-checkpatch-fixes
 
-On the latest RHEL the test fails due to executable mapped at 256MB address
+WARNING: please, no spaces at the start of a line
+#249: FILE: mm/page-writeback.c:2089:
++    {$
 
- # ./map_fixed_noreplace
-mmap() @ 0x10000000-0x10050000 p=0xffffffffffffffff result=File exists
-10000000-10010000 r-xp 00000000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
-10010000-10020000 r--p 00000000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
-10020000-10030000 rw-p 00010000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
-10029b90000-10029bc0000 rw-p 00000000 00:00 0                            [heap]
-7fffbb510000-7fffbb750000 r-xp 00000000 fd:04 24534                      /usr/lib64/libc.so.6
-7fffbb750000-7fffbb760000 r--p 00230000 fd:04 24534                      /usr/lib64/libc.so.6
-7fffbb760000-7fffbb770000 rw-p 00240000 fd:04 24534                      /usr/lib64/libc.so.6
-7fffbb780000-7fffbb7a0000 r--p 00000000 00:00 0                          [vvar]
-7fffbb7a0000-7fffbb7b0000 r-xp 00000000 00:00 0                          [vdso]
-7fffbb7b0000-7fffbb800000 r-xp 00000000 fd:04 24514                      /usr/lib64/ld64.so.2
-7fffbb800000-7fffbb810000 r--p 00040000 fd:04 24514                      /usr/lib64/ld64.so.2
-7fffbb810000-7fffbb820000 rw-p 00050000 fd:04 24514                      /usr/lib64/ld64.so.2
-7fffd93f0000-7fffd9420000 rw-p 00000000 00:00 0                          [stack]
-Error: couldn't map the space we need for the test
+ERROR: code indent should use tabs where possible
+#250: FILE: mm/page-writeback.c:2090:
++        .procname   = "dirty_background_ratio",$
 
-Fix this by finding a free address using mmap instead of hardcoding BASE_ADDRESS.
+WARNING: please, no spaces at the start of a line
+#250: FILE: mm/page-writeback.c:2090:
++        .procname   = "dirty_background_ratio",$
 
-Link: https://lkml.kernel.org/r/20220217083417.373823-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Jann Horn <jannh@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+ERROR: code indent should use tabs where possible
+#251: FILE: mm/page-writeback.c:2091:
++        .data       = &dirty_background_ratio,$
+
+WARNING: please, no spaces at the start of a line
+#251: FILE: mm/page-writeback.c:2091:
++        .data       = &dirty_background_ratio,$
+
+ERROR: code indent should use tabs where possible
+#252: FILE: mm/page-writeback.c:2092:
++        .maxlen     = sizeof(dirty_background_ratio),$
+
+WARNING: please, no spaces at the start of a line
+#252: FILE: mm/page-writeback.c:2092:
++        .maxlen     = sizeof(dirty_background_ratio),$
+
+ERROR: code indent should use tabs where possible
+#253: FILE: mm/page-writeback.c:2093:
++        .mode       = 0644,$
+
+WARNING: please, no spaces at the start of a line
+#253: FILE: mm/page-writeback.c:2093:
++        .mode       = 0644,$
+
+ERROR: code indent should use tabs where possible
+#254: FILE: mm/page-writeback.c:2094:
++        .proc_handler   = dirty_background_ratio_handler,$
+
+WARNING: please, no spaces at the start of a line
+#254: FILE: mm/page-writeback.c:2094:
++        .proc_handler   = dirty_background_ratio_handler,$
+
+ERROR: code indent should use tabs where possible
+#255: FILE: mm/page-writeback.c:2095:
++        .extra1     = SYSCTL_ZERO,$
+
+WARNING: please, no spaces at the start of a line
+#255: FILE: mm/page-writeback.c:2095:
++        .extra1     = SYSCTL_ZERO,$
+
+ERROR: code indent should use tabs where possible
+#256: FILE: mm/page-writeback.c:2096:
++        .extra2     = SYSCTL_ONE_HUNDRED,$
+
+WARNING: please, no spaces at the start of a line
+#256: FILE: mm/page-writeback.c:2096:
++        .extra2     = SYSCTL_ONE_HUNDRED,$
+
+WARNING: please, no spaces at the start of a line
+#257: FILE: mm/page-writeback.c:2097:
++    },$
+
+WARNING: please, no spaces at the start of a line
+#258: FILE: mm/page-writeback.c:2098:
++    {$
+
+ERROR: code indent should use tabs where possible
+#259: FILE: mm/page-writeback.c:2099:
++        .procname   = "dirty_background_bytes",$
+
+WARNING: please, no spaces at the start of a line
+#259: FILE: mm/page-writeback.c:2099:
++        .procname   = "dirty_background_bytes",$
+
+ERROR: code indent should use tabs where possible
+#260: FILE: mm/page-writeback.c:2100:
++        .data       = &dirty_background_bytes,$
+
+WARNING: please, no spaces at the start of a line
+#260: FILE: mm/page-writeback.c:2100:
++        .data       = &dirty_background_bytes,$
+
+ERROR: code indent should use tabs where possible
+#261: FILE: mm/page-writeback.c:2101:
++        .maxlen     = sizeof(dirty_background_bytes),$
+
+WARNING: please, no spaces at the start of a line
+#261: FILE: mm/page-writeback.c:2101:
++        .maxlen     = sizeof(dirty_background_bytes),$
+
+ERROR: code indent should use tabs where possible
+#262: FILE: mm/page-writeback.c:2102:
++        .mode       = 0644,$
+
+WARNING: please, no spaces at the start of a line
+#262: FILE: mm/page-writeback.c:2102:
++        .mode       = 0644,$
+
+ERROR: code indent should use tabs where possible
+#263: FILE: mm/page-writeback.c:2103:
++        .proc_handler   = dirty_background_bytes_handler,$
+
+WARNING: please, no spaces at the start of a line
+#263: FILE: mm/page-writeback.c:2103:
++        .proc_handler   = dirty_background_bytes_handler,$
+
+ERROR: code indent should use tabs where possible
+#264: FILE: mm/page-writeback.c:2104:
++        .extra1     = SYSCTL_LONG_ONE,$
+
+WARNING: please, no spaces at the start of a line
+#264: FILE: mm/page-writeback.c:2104:
++        .extra1     = SYSCTL_LONG_ONE,$
+
+WARNING: please, no spaces at the start of a line
+#265: FILE: mm/page-writeback.c:2105:
++    },$
+
+WARNING: please, no spaces at the start of a line
+#266: FILE: mm/page-writeback.c:2106:
++    {$
+
+ERROR: code indent should use tabs where possible
+#267: FILE: mm/page-writeback.c:2107:
++        .procname   = "dirty_ratio",$
+
+WARNING: please, no spaces at the start of a line
+#267: FILE: mm/page-writeback.c:2107:
++        .procname   = "dirty_ratio",$
+
+ERROR: code indent should use tabs where possible
+#268: FILE: mm/page-writeback.c:2108:
++        .data       = &vm_dirty_ratio,$
+
+WARNING: please, no spaces at the start of a line
+#268: FILE: mm/page-writeback.c:2108:
++        .data       = &vm_dirty_ratio,$
+
+ERROR: code indent should use tabs where possible
+#269: FILE: mm/page-writeback.c:2109:
++        .maxlen     = sizeof(vm_dirty_ratio),$
+
+WARNING: please, no spaces at the start of a line
+#269: FILE: mm/page-writeback.c:2109:
++        .maxlen     = sizeof(vm_dirty_ratio),$
+
+ERROR: code indent should use tabs where possible
+#270: FILE: mm/page-writeback.c:2110:
++        .mode       = 0644,$
+
+WARNING: please, no spaces at the start of a line
+#270: FILE: mm/page-writeback.c:2110:
++        .mode       = 0644,$
+
+ERROR: code indent should use tabs where possible
+#271: FILE: mm/page-writeback.c:2111:
++        .proc_handler   = dirty_ratio_handler,$
+
+WARNING: please, no spaces at the start of a line
+#271: FILE: mm/page-writeback.c:2111:
++        .proc_handler   = dirty_ratio_handler,$
+
+ERROR: code indent should use tabs where possible
+#272: FILE: mm/page-writeback.c:2112:
++        .extra1     = SYSCTL_ZERO,$
+
+WARNING: please, no spaces at the start of a line
+#272: FILE: mm/page-writeback.c:2112:
++        .extra1     = SYSCTL_ZERO,$
+
+ERROR: code indent should use tabs where possible
+#273: FILE: mm/page-writeback.c:2113:
++        .extra2     = SYSCTL_ONE_HUNDRED,$
+
+WARNING: please, no spaces at the start of a line
+#273: FILE: mm/page-writeback.c:2113:
++        .extra2     = SYSCTL_ONE_HUNDRED,$
+
+WARNING: please, no spaces at the start of a line
+#274: FILE: mm/page-writeback.c:2114:
++    },$
+
+WARNING: please, no spaces at the start of a line
+#275: FILE: mm/page-writeback.c:2115:
++    {$
+
+ERROR: code indent should use tabs where possible
+#276: FILE: mm/page-writeback.c:2116:
++        .procname   = "dirty_bytes",$
+
+WARNING: please, no spaces at the start of a line
+#276: FILE: mm/page-writeback.c:2116:
++        .procname   = "dirty_bytes",$
+
+ERROR: code indent should use tabs where possible
+#277: FILE: mm/page-writeback.c:2117:
++        .data       = &vm_dirty_bytes,$
+
+WARNING: please, no spaces at the start of a line
+#277: FILE: mm/page-writeback.c:2117:
++        .data       = &vm_dirty_bytes,$
+
+ERROR: code indent should use tabs where possible
+#278: FILE: mm/page-writeback.c:2118:
++        .maxlen     = sizeof(vm_dirty_bytes),$
+
+WARNING: please, no spaces at the start of a line
+#278: FILE: mm/page-writeback.c:2118:
++        .maxlen     = sizeof(vm_dirty_bytes),$
+
+ERROR: code indent should use tabs where possible
+#279: FILE: mm/page-writeback.c:2119:
++        .mode       = 0644,$
+
+WARNING: please, no spaces at the start of a line
+#279: FILE: mm/page-writeback.c:2119:
++        .mode       = 0644,$
+
+ERROR: code indent should use tabs where possible
+#280: FILE: mm/page-writeback.c:2120:
++        .proc_handler   = dirty_bytes_handler,$
+
+WARNING: please, no spaces at the start of a line
+#280: FILE: mm/page-writeback.c:2120:
++        .proc_handler   = dirty_bytes_handler,$
+
+ERROR: code indent should use tabs where possible
+#281: FILE: mm/page-writeback.c:2121:
++        .extra1     = (void *)&dirty_bytes_min,$
+
+WARNING: please, no spaces at the start of a line
+#281: FILE: mm/page-writeback.c:2121:
++        .extra1     = (void *)&dirty_bytes_min,$
+
+WARNING: please, no spaces at the start of a line
+#282: FILE: mm/page-writeback.c:2122:
++    },$
+
+WARNING: please, no spaces at the start of a line
+#283: FILE: mm/page-writeback.c:2123:
++    {$
+
+ERROR: code indent should use tabs where possible
+#284: FILE: mm/page-writeback.c:2124:
++        .procname   = "dirty_writeback_centisecs",$
+
+WARNING: please, no spaces at the start of a line
+#284: FILE: mm/page-writeback.c:2124:
++        .procname   = "dirty_writeback_centisecs",$
+
+ERROR: code indent should use tabs where possible
+#285: FILE: mm/page-writeback.c:2125:
++        .data       = &dirty_writeback_interval,$
+
+WARNING: please, no spaces at the start of a line
+#285: FILE: mm/page-writeback.c:2125:
++        .data       = &dirty_writeback_interval,$
+
+ERROR: code indent should use tabs where possible
+#286: FILE: mm/page-writeback.c:2126:
++        .maxlen     = sizeof(dirty_writeback_interval),$
+
+WARNING: please, no spaces at the start of a line
+#286: FILE: mm/page-writeback.c:2126:
++        .maxlen     = sizeof(dirty_writeback_interval),$
+
+ERROR: code indent should use tabs where possible
+#287: FILE: mm/page-writeback.c:2127:
++        .mode       = 0644,$
+
+WARNING: please, no spaces at the start of a line
+#287: FILE: mm/page-writeback.c:2127:
++        .mode       = 0644,$
+
+ERROR: code indent should use tabs where possible
+#288: FILE: mm/page-writeback.c:2128:
++        .proc_handler   = dirty_writeback_centisecs_handler,$
+
+WARNING: please, no spaces at the start of a line
+#288: FILE: mm/page-writeback.c:2128:
++        .proc_handler   = dirty_writeback_centisecs_handler,$
+
+WARNING: please, no spaces at the start of a line
+#289: FILE: mm/page-writeback.c:2129:
++    },$
+
+WARNING: please, no spaces at the start of a line
+#290: FILE: mm/page-writeback.c:2130:
++    {$
+
+ERROR: code indent should use tabs where possible
+#291: FILE: mm/page-writeback.c:2131:
++        .procname   = "dirty_expire_centisecs",$
+
+WARNING: please, no spaces at the start of a line
+#291: FILE: mm/page-writeback.c:2131:
++        .procname   = "dirty_expire_centisecs",$
+
+ERROR: code indent should use tabs where possible
+#292: FILE: mm/page-writeback.c:2132:
++        .data       = &dirty_expire_interval,$
+
+WARNING: please, no spaces at the start of a line
+#292: FILE: mm/page-writeback.c:2132:
++        .data       = &dirty_expire_interval,$
+
+ERROR: code indent should use tabs where possible
+#293: FILE: mm/page-writeback.c:2133:
++        .maxlen     = sizeof(dirty_expire_interval),$
+
+WARNING: please, no spaces at the start of a line
+#293: FILE: mm/page-writeback.c:2133:
++        .maxlen     = sizeof(dirty_expire_interval),$
+
+ERROR: code indent should use tabs where possible
+#294: FILE: mm/page-writeback.c:2134:
++        .mode       = 0644,$
+
+WARNING: please, no spaces at the start of a line
+#294: FILE: mm/page-writeback.c:2134:
++        .mode       = 0644,$
+
+ERROR: code indent should use tabs where possible
+#295: FILE: mm/page-writeback.c:2135:
++        .proc_handler   = proc_dointvec_minmax,$
+
+WARNING: please, no spaces at the start of a line
+#295: FILE: mm/page-writeback.c:2135:
++        .proc_handler   = proc_dointvec_minmax,$
+
+ERROR: code indent should use tabs where possible
+#296: FILE: mm/page-writeback.c:2136:
++        .extra1     = SYSCTL_ZERO,$
+
+WARNING: please, no spaces at the start of a line
+#296: FILE: mm/page-writeback.c:2136:
++        .extra1     = SYSCTL_ZERO,$
+
+WARNING: please, no spaces at the start of a line
+#297: FILE: mm/page-writeback.c:2137:
++    },$
+
+total: 37 errors, 49 warnings, 287 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/mm-move-page-writeback-sysctls-to-is-own-file.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: zhanglianjie <zhanglianjie@uniontech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/map_fixed_noreplace.c |   49 +++++++++----
- 1 file changed, 37 insertions(+), 12 deletions(-)
+ mm/page-writeback.c |   98 +++++++++++++++++++++---------------------
+ 1 file changed, 49 insertions(+), 49 deletions(-)
 
---- a/tools/testing/selftests/vm/map_fixed_noreplace.c~selftest-vm-fix-map_fixed_noreplace-test-failure
-+++ a/tools/testing/selftests/vm/map_fixed_noreplace.c
-@@ -17,9 +17,6 @@
- #define MAP_FIXED_NOREPLACE 0x100000
- #endif
+--- a/mm/page-writeback.c~mm-move-page-writeback-sysctls-to-is-own-file-checkpatch-fixes
++++ a/mm/page-writeback.c
+@@ -2086,55 +2086,55 @@ static int page_writeback_cpu_online(uns
  
--#define BASE_ADDRESS	(256ul * 1024 * 1024)
--
--
- static void dump_maps(void)
- {
- 	char cmd[32];
-@@ -28,18 +25,46 @@ static void dump_maps(void)
- 	system(cmd);
- }
- 
-+static unsigned long find_base_addr(unsigned long size)
-+{
-+	void *addr;
-+	unsigned long flags;
-+
-+	flags = MAP_PRIVATE | MAP_ANONYMOUS;
-+	addr = mmap(NULL, size, PROT_NONE, flags, -1, 0);
-+	if (addr == MAP_FAILED) {
-+		printf("Error: couldn't map the space we need for the test\n");
-+		return 0;
-+	}
-+
-+	if (munmap(addr, size) != 0) {
-+		printf("Error: couldn't map the space we need for the test\n");
-+		return 0;
-+	}
-+	return (unsigned long)addr;
-+}
-+
- int main(void)
- {
-+	unsigned long base_addr;
- 	unsigned long flags, addr, size, page_size;
- 	char *p;
- 
- 	page_size = sysconf(_SC_PAGE_SIZE);
- 
-+	//let's find a base addr that is free before we start the tests
-+	size = 5 * page_size;
-+	base_addr = find_base_addr(size);
-+	if (!base_addr) {
-+		printf("Error: couldn't map the space we need for the test\n");
-+		return 1;
-+	}
-+
- 	flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE;
- 
- 	// Check we can map all the areas we need below
- 	errno = 0;
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = 5 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 
-@@ -60,7 +85,7 @@ int main(void)
- 	printf("unmap() successful\n");
- 
- 	errno = 0;
--	addr = BASE_ADDRESS + page_size;
-+	addr = base_addr + page_size;
- 	size = 3 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -80,7 +105,7 @@ int main(void)
- 	 *     +4 |  free  | new
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = 5 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -101,7 +126,7 @@ int main(void)
- 	 *     +4 |  free  |
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS + (2 * page_size);
-+	addr = base_addr + (2 * page_size);
- 	size = page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -121,7 +146,7 @@ int main(void)
- 	 *     +4 |  free  | new
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS + (3 * page_size);
-+	addr = base_addr + (3 * page_size);
- 	size = 2 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -141,7 +166,7 @@ int main(void)
- 	 *     +4 |  free  |
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = 2 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -161,7 +186,7 @@ int main(void)
- 	 *     +4 |  free  |
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -181,7 +206,7 @@ int main(void)
- 	 *     +4 |  free  |  new
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS + (4 * page_size);
-+	addr = base_addr + (4 * page_size);
- 	size = page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -192,7 +217,7 @@ int main(void)
- 		return 1;
- 	}
- 
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = 5 * page_size;
- 	if (munmap((void *)addr, size) != 0) {
- 		dump_maps();
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table vm_page_writeback_sysctls[] = {
+-    {
+-        .procname   = "dirty_background_ratio",
+-        .data       = &dirty_background_ratio,
+-        .maxlen     = sizeof(dirty_background_ratio),
+-        .mode       = 0644,
+-        .proc_handler   = dirty_background_ratio_handler,
+-        .extra1     = SYSCTL_ZERO,
+-        .extra2     = SYSCTL_ONE_HUNDRED,
+-    },
+-    {
+-        .procname   = "dirty_background_bytes",
+-        .data       = &dirty_background_bytes,
+-        .maxlen     = sizeof(dirty_background_bytes),
+-        .mode       = 0644,
+-        .proc_handler   = dirty_background_bytes_handler,
+-        .extra1     = SYSCTL_LONG_ONE,
+-    },
+-    {
+-        .procname   = "dirty_ratio",
+-        .data       = &vm_dirty_ratio,
+-        .maxlen     = sizeof(vm_dirty_ratio),
+-        .mode       = 0644,
+-        .proc_handler   = dirty_ratio_handler,
+-        .extra1     = SYSCTL_ZERO,
+-        .extra2     = SYSCTL_ONE_HUNDRED,
+-    },
+-    {
+-        .procname   = "dirty_bytes",
+-        .data       = &vm_dirty_bytes,
+-        .maxlen     = sizeof(vm_dirty_bytes),
+-        .mode       = 0644,
+-        .proc_handler   = dirty_bytes_handler,
+-        .extra1     = (void *)&dirty_bytes_min,
+-    },
+-    {
+-        .procname   = "dirty_writeback_centisecs",
+-        .data       = &dirty_writeback_interval,
+-        .maxlen     = sizeof(dirty_writeback_interval),
+-        .mode       = 0644,
+-        .proc_handler   = dirty_writeback_centisecs_handler,
+-    },
+-    {
+-        .procname   = "dirty_expire_centisecs",
+-        .data       = &dirty_expire_interval,
+-        .maxlen     = sizeof(dirty_expire_interval),
+-        .mode       = 0644,
+-        .proc_handler   = proc_dointvec_minmax,
+-        .extra1     = SYSCTL_ZERO,
+-    },
++	{
++		.procname   = "dirty_background_ratio",
++		.data       = &dirty_background_ratio,
++		.maxlen     = sizeof(dirty_background_ratio),
++		.mode       = 0644,
++		.proc_handler   = dirty_background_ratio_handler,
++		.extra1     = SYSCTL_ZERO,
++		.extra2     = SYSCTL_ONE_HUNDRED,
++	},
++	{
++		.procname   = "dirty_background_bytes",
++		.data       = &dirty_background_bytes,
++		.maxlen     = sizeof(dirty_background_bytes),
++		.mode       = 0644,
++		.proc_handler   = dirty_background_bytes_handler,
++		.extra1     = SYSCTL_LONG_ONE,
++	},
++	{
++		.procname   = "dirty_ratio",
++		.data       = &vm_dirty_ratio,
++		.maxlen     = sizeof(vm_dirty_ratio),
++		.mode       = 0644,
++		.proc_handler   = dirty_ratio_handler,
++		.extra1     = SYSCTL_ZERO,
++		.extra2     = SYSCTL_ONE_HUNDRED,
++	},
++	{
++		.procname   = "dirty_bytes",
++		.data       = &vm_dirty_bytes,
++		.maxlen     = sizeof(vm_dirty_bytes),
++		.mode       = 0644,
++		.proc_handler   = dirty_bytes_handler,
++		.extra1     = (void *)&dirty_bytes_min,
++	},
++	{
++		.procname   = "dirty_writeback_centisecs",
++		.data       = &dirty_writeback_interval,
++		.maxlen     = sizeof(dirty_writeback_interval),
++		.mode       = 0644,
++		.proc_handler   = dirty_writeback_centisecs_handler,
++	},
++	{
++		.procname   = "dirty_expire_centisecs",
++		.data       = &dirty_expire_interval,
++		.maxlen     = sizeof(dirty_expire_interval),
++		.mode       = 0644,
++		.proc_handler   = proc_dointvec_minmax,
++		.extra1     = SYSCTL_ZERO,
++	},
+ #ifdef CONFIG_HIGHMEM
+ 	{
+ 		.procname	= "highmem_is_dirtyable",
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap.patch
-selftest-vm-add-utilh-and-and-move-helper-functions-there.patch
-selftest-vm-fix-map_fixed_noreplace-test-failure.patch
+remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-move-page-writeback-sysctls-to-is-own-file.patch
+mm-move-page-writeback-sysctls-to-is-own-file-fix.patch
+mm-munlock-mlock_page-munlock_page-batch-by-pagevec-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+numa-balancing-optimize-page-placement-for-memory-tiering-system-fix.patch
+numa-balancing-optimize-page-placement-for-memory-tiering-system-fix-fix.patch
+mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
+mm-dont-include-linux-memremaph-in-linux-mmh-fix.patch
+mm-dont-include-linux-memremaph-in-linux-mmh-fix-2-fix.patch
+proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
