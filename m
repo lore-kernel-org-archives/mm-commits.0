@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F247C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Feb 2022 00:36:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88FA1C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Feb 2022 00:59:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229676AbiBRAgz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Feb 2022 19:36:55 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:33656 "EHLO
+        id S231152AbiBRA7p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Feb 2022 19:59:45 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:45804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbiBRAgy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Feb 2022 19:36:54 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C281F2619
-        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 16:36:38 -0800 (PST)
+        with ESMTP id S230511AbiBRA7o (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Feb 2022 19:59:44 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F50DE09F
+        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 16:59:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4E674B819EE
-        for <mm-commits@vger.kernel.org>; Fri, 18 Feb 2022 00:36:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDA86C340E8;
-        Fri, 18 Feb 2022 00:36:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 951E761B40
+        for <mm-commits@vger.kernel.org>; Fri, 18 Feb 2022 00:59:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC717C340E8;
+        Fri, 18 Feb 2022 00:59:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645144596;
-        bh=VWLxW3Zdc3vZR7D63ziwoRte2POYS0S5cG1+ExdXxcY=;
+        s=korg; t=1645145953;
+        bh=V/zP4yTpdNjh9vqMN3/o0mZsYOjurLdoDxEQb+QdxTc=;
         h=Date:To:From:Subject:From;
-        b=JUpTI0Y73voZamMc2zxJNgYKWOkhfbJq0p7u6v7Pt1mC9n3NlULxqqbTzh1W7v+ly
-         sGQIWBaIY/OPvds8Yy6MO25SRolotPiQPsgvTb/OFzR2kjHHwIJ1UkQkbuU9aXTNtk
-         oItd30aXdoVX8vbMxicZH/oEAYeIZOT3ZqIAZQlo=
-Date:   Thu, 17 Feb 2022 16:36:35 -0800
-To:     mm-commits@vger.kernel.org, yaozhenguo1@gmail.com,
-        liuyuntao10@huawei.com, dan.carpenter@oracle.com,
-        baolin.wang@linux.alibaba.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        b=DxSs7LX/gMRnv3GRJx3bM2G9n11TAIgzmxVby+LzwWz/lFdLb8zKk9RA2b6mrsF1K
+         r877xibyhH7yoRK8Ejhaz7appxKnfk86BprbAbkxoq96tej/2/YxfnnEfMYOIm/5Dc
+         ESQBnGlRf+8piafJTDAcZhf+TRQXjCqtM8kybvD8=
+Date:   Thu, 17 Feb 2022 16:59:12 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-clean-up-potential-spectre-issue-warnings.patch added to -mm tree
-Message-Id: <20220218003635.EDA86C340E8@smtp.kernel.org>
+Subject: + selftest-vm-add-utilh-and-and-move-helper-functions-there.patch added to -mm tree
+Message-Id: <20220218005912.EC717C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: clean up potential spectre issue warnings
+     Subject: selftest/vm: add util.h and and move helper functions there
 has been added to the -mm tree.  Its filename is
-     hugetlb-clean-up-potential-spectre-issue-warnings.patch
+     selftest-vm-add-utilh-and-and-move-helper-functions-there.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-clean-up-potential-spectre-issue-warnings.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftest-vm-add-utilh-and-and-move-helper-functions-there.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-clean-up-potential-spectre-issue-warnings.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-vm-add-utilh-and-and-move-helper-functions-there.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,70 +62,204 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: clean up potential spectre issue warnings
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: selftest/vm: add util.h and and move helper functions there
 
-Recently introduced code allows numa nodes to be specified on the kernel
-command line for hugetlb allocations or CMA reservations.  The node values
-are user specified and used as indicies into arrays.  This generated the
-following smatch warnings:
+Avoid code duplication by adding util.h.  No functional change in this
+patch.
 
-mm/hugetlb.c:4170 hugepages_setup() warn: potential spectre issue 'default_hugepages_in_node' [w]
-mm/hugetlb.c:4172 hugepages_setup() warn: potential spectre issue 'parsed_hstate->max_huge_pages_node' [w]
-mm/hugetlb.c:6898 cmdline_parse_hugetlb_cma() warn: potential spectre issue 'hugetlb_cma_size_in_node' [w] (local cap)
-
-Clean up by using array_index_nospec to sanitize array indicies.
-
-Link: https://lkml.kernel.org/r/20220217234218.192885-1-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
-Cc: Liu Yuntao <liuyuntao10@huawei.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Link: https://lkml.kernel.org/r/20220217083537.374160-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/ksm_tests.c        |   38 ------------
+ tools/testing/selftests/vm/transhuge-stress.c |   42 +-------------
+ tools/testing/selftests/vm/util.h             |   48 ++++++++++++++++
+ 3 files changed, 52 insertions(+), 76 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-clean-up-potential-spectre-issue-warnings
-+++ a/mm/hugetlb.c
-@@ -31,6 +31,7 @@
- #include <linux/llist.h>
- #include <linux/cma.h>
- #include <linux/migrate.h>
-+#include <linux/nospec.h>
+--- a/tools/testing/selftests/vm/ksm_tests.c~selftest-vm-add-utilh-and-and-move-helper-functions-there
++++ a/tools/testing/selftests/vm/ksm_tests.c
+@@ -12,6 +12,7 @@
  
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-@@ -4161,7 +4162,7 @@ static int __init hugepages_setup(char *
- 			}
- 			if (tmp >= nr_online_nodes)
- 				goto invalid;
--			node = tmp;
-+			node = array_index_nospec(tmp, nr_online_nodes);
- 			p += count + 1;
- 			/* Parse hugepages */
- 			if (sscanf(p, "%lu%n", &tmp, &count) != 1)
-@@ -6889,9 +6890,9 @@ static int __init cmdline_parse_hugetlb_
- 			break;
+ #include "../kselftest.h"
+ #include "../../../../include/vdso/time64.h"
++#include "util.h"
  
- 		if (s[count] == ':') {
--			nid = tmp;
--			if (nid < 0 || nid >= MAX_NUMNODES)
-+			if (tmp < 0 || tmp >= MAX_NUMNODES)
- 				break;
-+			nid = array_index_nospec(tmp, MAX_NUMNODES);
+ #define KSM_SYSFS_PATH "/sys/kernel/mm/ksm/"
+ #define KSM_FP(s) (KSM_SYSFS_PATH s)
+@@ -22,15 +23,6 @@
+ #define KSM_MERGE_ACROSS_NODES_DEFAULT true
+ #define MB (1ul << 20)
  
- 			s += count + 1;
- 			tmp = memparse(s, &s);
+-#define PAGE_SHIFT 12
+-#define HPAGE_SHIFT 21
+-
+-#define PAGE_SIZE (1 << PAGE_SHIFT)
+-#define HPAGE_SIZE (1 << HPAGE_SHIFT)
+-
+-#define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
+-#define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
+-
+ struct ksm_sysfs {
+ 	unsigned long max_page_sharing;
+ 	unsigned long merge_across_nodes;
+@@ -456,34 +448,6 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-int64_t allocate_transhuge(void *ptr, int pagemap_fd)
+-{
+-	uint64_t ent[2];
+-
+-	/* drop pmd */
+-	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
+-				MAP_FIXED | MAP_ANONYMOUS |
+-				MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
+-		errx(2, "mmap transhuge");
+-
+-	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
+-		err(2, "MADV_HUGEPAGE");
+-
+-	/* allocate transparent huge page */
+-	*(volatile void **)ptr = ptr;
+-
+-	if (pread(pagemap_fd, ent, sizeof(ent),
+-			(uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
+-		err(2, "read pagemap");
+-
+-	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
+-	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
+-	    !(PAGEMAP_PFN(ent[0]) & ((1 << (HPAGE_SHIFT - PAGE_SHIFT)) - 1)))
+-		return PAGEMAP_PFN(ent[0]);
+-
+-	return -1;
+-}
+-
+ static int ksm_merge_hugepages_time(int mapping, int prot, int timeout, size_t map_size)
+ {
+ 	void *map_ptr, *map_ptr_orig;
+--- a/tools/testing/selftests/vm/transhuge-stress.c~selftest-vm-add-utilh-and-and-move-helper-functions-there
++++ a/tools/testing/selftests/vm/transhuge-stress.c
+@@ -16,44 +16,7 @@
+ #include <string.h>
+ #include <sys/mman.h>
+ 
+-#define PAGE_SHIFT 12
+-#define HPAGE_SHIFT 21
+-
+-#define PAGE_SIZE (1 << PAGE_SHIFT)
+-#define HPAGE_SIZE (1 << HPAGE_SHIFT)
+-
+-#define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
+-#define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
+-
+-int pagemap_fd;
+-
+-int64_t allocate_transhuge(void *ptr)
+-{
+-	uint64_t ent[2];
+-
+-	/* drop pmd */
+-	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
+-				MAP_FIXED | MAP_ANONYMOUS |
+-				MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
+-		errx(2, "mmap transhuge");
+-
+-	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
+-		err(2, "MADV_HUGEPAGE");
+-
+-	/* allocate transparent huge page */
+-	*(volatile void **)ptr = ptr;
+-
+-	if (pread(pagemap_fd, ent, sizeof(ent),
+-			(uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
+-		err(2, "read pagemap");
+-
+-	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
+-	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
+-	    !(PAGEMAP_PFN(ent[0]) & ((1 << (HPAGE_SHIFT - PAGE_SHIFT)) - 1)))
+-		return PAGEMAP_PFN(ent[0]);
+-
+-	return -1;
+-}
++#include "util.h"
+ 
+ int main(int argc, char **argv)
+ {
+@@ -63,6 +26,7 @@ int main(int argc, char **argv)
+ 	double s;
+ 	uint8_t *map;
+ 	size_t map_len;
++	int pagemap_fd;
+ 
+ 	ram = sysconf(_SC_PHYS_PAGES);
+ 	if (ram > SIZE_MAX / sysconf(_SC_PAGESIZE) / 4)
+@@ -109,7 +73,7 @@ int main(int argc, char **argv)
+ 		for (p = ptr; p < ptr + len; p += HPAGE_SIZE) {
+ 			int64_t pfn;
+ 
+-			pfn = allocate_transhuge(p);
++			pfn = allocate_transhuge(p, pagemap_fd);
+ 
+ 			if (pfn < 0) {
+ 				nr_failed++;
+--- /dev/null
++++ a/tools/testing/selftests/vm/util.h
+@@ -0,0 +1,48 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++#ifndef __KSELFTEST_VM_UTIL_H
++#define __KSELFTEST_VM_UTIL_H
++
++#include <stdint.h>
++#include <sys/mman.h>
++#include <err.h>
++
++#define PAGE_SHIFT	12
++#define HPAGE_SHIFT	21
++
++#define PAGE_SIZE (1 << PAGE_SHIFT)
++#define HPAGE_SIZE (1 << HPAGE_SHIFT)
++
++#define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
++#define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
++
++
++static inline int64_t allocate_transhuge(void *ptr, int pagemap_fd)
++{
++	uint64_t ent[2];
++
++	/* drop pmd */
++	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
++		 MAP_FIXED | MAP_ANONYMOUS |
++		 MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
++		errx(2, "mmap transhuge");
++
++	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	/* allocate transparent huge page */
++	*(volatile void **)ptr = ptr;
++
++	if (pread(pagemap_fd, ent, sizeof(ent),
++		  (uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
++		err(2, "read pagemap");
++
++	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
++	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
++	    !(PAGEMAP_PFN(ent[0]) & ((1 << (HPAGE_SHIFT - PAGE_SHIFT)) - 1)))
++		return PAGEMAP_PFN(ent[0]);
++
++	return -1;
++}
++
++#endif
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-selftests-vm-cleanup-hugetlb-file-after-mremap-test.patch
-mm-enable-madv_dontneed-for-hugetlb-mappings.patch
-selftests-vm-add-hugetlb-madvise-madv_dontneed-madv_remove-test.patch
-userfaultfd-selftests-enable-hugetlb-remap-and-remove-event-testing.patch
-hugetlb-clean-up-potential-spectre-issue-warnings.patch
+mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap.patch
+selftest-vm-add-utilh-and-and-move-helper-functions-there.patch
 
