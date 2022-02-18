@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4899C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Feb 2022 23:56:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F247C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Feb 2022 00:36:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229713AbiBQX4c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Feb 2022 18:56:32 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:48024 "EHLO
+        id S229676AbiBRAgz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Feb 2022 19:36:55 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:33656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229604AbiBQX4b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Feb 2022 18:56:31 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B682B4F454;
-        Thu, 17 Feb 2022 15:56:15 -0800 (PST)
+        with ESMTP id S229457AbiBRAgy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Feb 2022 19:36:54 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C281F2619
+        for <mm-commits@vger.kernel.org>; Thu, 17 Feb 2022 16:36:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B7DAF618A8;
-        Thu, 17 Feb 2022 23:31:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF0B8C340E8;
-        Thu, 17 Feb 2022 23:31:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4E674B819EE
+        for <mm-commits@vger.kernel.org>; Fri, 18 Feb 2022 00:36:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDA86C340E8;
+        Fri, 18 Feb 2022 00:36:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645140715;
-        bh=lf47BGb+JKl6dFFGQO4VleD1gnZ/FyzSy9ozkMQFRNw=;
+        s=korg; t=1645144596;
+        bh=VWLxW3Zdc3vZR7D63ziwoRte2POYS0S5cG1+ExdXxcY=;
         h=Date:To:From:Subject:From;
-        b=dzhHtiwvbJFec5KIkCkkMX8SHSbOQj2k6ALRF7lGDT3Uyfqfn+8iIijLTpaeedeXG
-         YGiBOwvcSDNuq0vPu2GgsTbhzE6vWfEgqz1gOkRHouL/IMwEG7SKupVU1DDQJYVAVe
-         IvYG9rK7LfthcY1SGeEKSVzsLd/xfDBwS8CHEOjU=
-Date:   Thu, 17 Feb 2022 15:31:54 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        rppt@linux.vnet.ibm.com, peterx@redhat.com,
-        axelrasmussen@google.com, aarcange@redhat.com, namit@vmware.com,
+        b=JUpTI0Y73voZamMc2zxJNgYKWOkhfbJq0p7u6v7Pt1mC9n3NlULxqqbTzh1W7v+ly
+         sGQIWBaIY/OPvds8Yy6MO25SRolotPiQPsgvTb/OFzR2kjHHwIJ1UkQkbuU9aXTNtk
+         oItd30aXdoVX8vbMxicZH/oEAYeIZOT3ZqIAZQlo=
+Date:   Thu, 17 Feb 2022 16:36:35 -0800
+To:     mm-commits@vger.kernel.org, yaozhenguo1@gmail.com,
+        liuyuntao10@huawei.com, dan.carpenter@oracle.com,
+        baolin.wang@linux.alibaba.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch added to -mm tree
-Message-Id: <20220217233154.EF0B8C340E8@smtp.kernel.org>
+Subject: + hugetlb-clean-up-potential-spectre-issue-warnings.patch added to -mm tree
+Message-Id: <20220218003635.EDA86C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: mark uffd_wp regardless of VM_WRITE flag
+     Subject: hugetlb: clean up potential spectre issue warnings
 has been added to the -mm tree.  Its filename is
-     userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
+     hugetlb-clean-up-potential-spectre-issue-warnings.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-clean-up-potential-spectre-issue-warnings.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-clean-up-potential-spectre-issue-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,68 +64,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: userfaultfd: mark uffd_wp regardless of VM_WRITE flag
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: clean up potential spectre issue warnings
 
-When a PTE is set by UFFD operations such as UFFDIO_COPY, the PTE is
-currently only marked as write-protected if the VMA has VM_WRITE flag set.
-This seems incorrect or at least would be unexpected by the users.
+Recently introduced code allows numa nodes to be specified on the kernel
+command line for hugetlb allocations or CMA reservations.  The node values
+are user specified and used as indicies into arrays.  This generated the
+following smatch warnings:
 
-Consider the following sequence of operations that are being performed on
-a certain page:
+mm/hugetlb.c:4170 hugepages_setup() warn: potential spectre issue 'default_hugepages_in_node' [w]
+mm/hugetlb.c:4172 hugepages_setup() warn: potential spectre issue 'parsed_hstate->max_huge_pages_node' [w]
+mm/hugetlb.c:6898 cmdline_parse_hugetlb_cma() warn: potential spectre issue 'hugetlb_cma_size_in_node' [w] (local cap)
 
-	mprotect(PROT_READ)
-	UFFDIO_COPY(UFFDIO_COPY_MODE_WP)
-	mprotect(PROT_READ|PROT_WRITE)
+Clean up by using array_index_nospec to sanitize array indicies.
 
-At this point the user would expect to still get UFFD notification when
-the page is accessed for write, but the user would not get one, since the
-PTE was not marked as UFFD_WP during UFFDIO_COPY.
-
-Fix it by always marking PTEs as UFFD_WP regardless on the
-write-permission in the VMA flags.
-
-Link: https://lkml.kernel.org/r/20220217211602.2769-1-namit@vmware.com
-Fixes: 292924b26024 ("userfaultfd: wp: apply _PAGE_UFFD_WP bit")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220217234218.192885-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
+Cc: Liu Yuntao <liuyuntao10@huawei.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag
-+++ a/mm/userfaultfd.c
-@@ -72,12 +72,15 @@ int mfill_atomic_install_pte(struct mm_s
- 	_dst_pte = pte_mkdirty(_dst_pte);
- 	if (page_in_cache && !vm_shared)
- 		writable = false;
--	if (writable) {
--		if (wp_copy)
--			_dst_pte = pte_mkuffd_wp(_dst_pte);
--		else
--			_dst_pte = pte_mkwrite(_dst_pte);
--	}
-+
-+	/*
-+	 * Always mark a PTE as write-protected when needed, regardless of
-+	 * VM_WRITE, which the user might change.
-+	 */
-+	if (wp_copy)
-+		_dst_pte = pte_mkuffd_wp(_dst_pte);
-+	else if (writable)
-+		_dst_pte = pte_mkwrite(_dst_pte);
+--- a/mm/hugetlb.c~hugetlb-clean-up-potential-spectre-issue-warnings
++++ a/mm/hugetlb.c
+@@ -31,6 +31,7 @@
+ #include <linux/llist.h>
+ #include <linux/cma.h>
+ #include <linux/migrate.h>
++#include <linux/nospec.h>
  
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
+ #include <asm/page.h>
+ #include <asm/pgalloc.h>
+@@ -4161,7 +4162,7 @@ static int __init hugepages_setup(char *
+ 			}
+ 			if (tmp >= nr_online_nodes)
+ 				goto invalid;
+-			node = tmp;
++			node = array_index_nospec(tmp, nr_online_nodes);
+ 			p += count + 1;
+ 			/* Parse hugepages */
+ 			if (sscanf(p, "%lu%n", &tmp, &count) != 1)
+@@ -6889,9 +6890,9 @@ static int __init cmdline_parse_hugetlb_
+ 			break;
  
+ 		if (s[count] == ':') {
+-			nid = tmp;
+-			if (nid < 0 || nid >= MAX_NUMNODES)
++			if (tmp < 0 || tmp >= MAX_NUMNODES)
+ 				break;
++			nid = array_index_nospec(tmp, MAX_NUMNODES);
+ 
+ 			s += count + 1;
+ 			tmp = memparse(s, &s);
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
+selftests-vm-cleanup-hugetlb-file-after-mremap-test.patch
+mm-enable-madv_dontneed-for-hugetlb-mappings.patch
+selftests-vm-add-hugetlb-madvise-madv_dontneed-madv_remove-test.patch
+userfaultfd-selftests-enable-hugetlb-remap-and-remove-event-testing.patch
+hugetlb-clean-up-potential-spectre-issue-warnings.patch
 
