@@ -2,115 +2,170 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6462C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 20 Feb 2022 04:19:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02856C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Feb 2022 19:26:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241475AbiBTETx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 19 Feb 2022 23:19:53 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53186 "EHLO
+        id S233049AbiBUT1E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 14:27:04 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:51866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229600AbiBTETx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 19 Feb 2022 23:19:53 -0500
-Received: from mail-yb1-xb32.google.com (mail-yb1-xb32.google.com [IPv6:2607:f8b0:4864:20::b32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94DC845511
-        for <mm-commits@vger.kernel.org>; Sat, 19 Feb 2022 20:19:32 -0800 (PST)
-Received: by mail-yb1-xb32.google.com with SMTP id j12so27402505ybh.8
-        for <mm-commits@vger.kernel.org>; Sat, 19 Feb 2022 20:19:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=NzStXy+ij/GXIXhymSk0ZBPsedXPziDUSZg1MI2RABk=;
-        b=3iGxiuXzrKO23p80sgNUTPUE9KnKJRmDdKNz9VVFfKSkjR98qB4QcBzi3nAl7eEP3R
-         jeIxzpnQlvdzRknMmU3pSIH/3wgyVo6+OraP99UxAdhnAqw1Qo2PI0jAGmscyYHee0ij
-         E1J29k42Sf2pZCWv6S//f6rd/KIHmMZk5l9pqtOc03GhxToNgTbbv1U8vW+djVJh7ATq
-         bphkJBoUurlM9uQb6V9LwCEL/qXgjAcLINdfTMPJ4pE3dhjYumhLN5wMR+X0ahOrbhdQ
-         M629rxYGJhk5Md9H3hjdyH0++rq9gKtr8i3FLZRynVjDg4lhfesjnPcNfmjDny71Cv8R
-         WX/A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=NzStXy+ij/GXIXhymSk0ZBPsedXPziDUSZg1MI2RABk=;
-        b=SxJayIeW8YxwC4kOBQnTSDAr3jtxdB8QsluGsGnWs6GW+9rDz94z/90TINBe73gXWf
-         OgE2L7pVBzDU91qB/oSdKiscrk8f61HV2eTBBwj2/OHvreEfV4wn6zlnLoUR1GuqktxR
-         7t7zBEQLpowhzkqVZeILA6c5EUwbACh8CPPhXyftnPeJPjzpTbeGHzCAEh3W18N0Rn++
-         t/2X2g6PiXoCeLE7pQGfz8AJVhAAJotI1EUwiFKRwG2KNUPZk9fpDBrmR6KbWFOULd8s
-         D7BpqN00vrlXKj1yrKProcLuorldON+EKkMrB9yiGDD+gBarP25QLPsejxTivI8kW6Zv
-         YNiA==
-X-Gm-Message-State: AOAM531mMp5GwCLKP+lVWq9JX7Imgr3E1tx8lIaH4cumynyi0CJ/Gciq
-        z07PQYCarF0MMu6yx9W3Q1xYtVA/OzSNMFryaoAHIw==
-X-Google-Smtp-Source: ABdhPJzr29VtsQl01a51tBi+2CQqQk7+R4hp8463imvFXkOarDFjZrl8LRcBnZ05/Y9+rbgHEa4Dl0sHRDqg0+kZqfg=
-X-Received: by 2002:a25:e004:0:b0:61d:967a:814e with SMTP id
- x4-20020a25e004000000b0061d967a814emr13334735ybg.261.1645330771835; Sat, 19
- Feb 2022 20:19:31 -0800 (PST)
-MIME-Version: 1.0
-References: <20220215220006.AC9C7C340EB@smtp.kernel.org>
-In-Reply-To: <20220215220006.AC9C7C340EB@smtp.kernel.org>
-From:   Muchun Song <songmuchun@bytedance.com>
-Date:   Sun, 20 Feb 2022 12:18:55 +0800
-Message-ID: <CAMZfGtXT_mVvZSgNWN+mBFqp01g84iYwOE0NFtLD8G2YW4C21w@mail.gmail.com>
-Subject: Re: + tools-vm-page_owner-filter-out-pid-and-timestamp.patch added to
- -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, Vlastimil Babka <vbabka@suse.cz>,
-        lmark@codeaurora.org, Joonsoo Kim <iamjoonsoo.kim@lge.com>,
-        georgi.djakov@linaro.org
-Content-Type: text/plain; charset="UTF-8"
+        with ESMTP id S232759AbiBUT1C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 14:27:02 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C9CC21E14
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 11:26:38 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9ED9F60AF9
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:26:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F20CAC340E9;
+        Mon, 21 Feb 2022 19:26:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1645471597;
+        bh=RBmpW4k7DEO7M5+hpAUoU6z93wE8XnHtkf5h6jSHKKM=;
+        h=Date:To:From:Subject:From;
+        b=Tstl143Jh5AfWaaoGLk9gCzZTZlgSpNCjf5hv2pQt2xM/oo8lxFXuftbuQgaKXf7U
+         RaugI3PNfobnWcXbXKZbu8EPYhPeA2ixkROWvyg6JzN1qTDNqd+2gEshs8DyHqOc66
+         0E1XZms0IDkr+dn9QkY6u6LcN+jZxag1gXkVuOnE=
+Date:   Mon, 21 Feb 2022 11:26:36 -0800
+To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
+        tglx@linutronix.de, shakeelb@google.com, peterz@infradead.org,
+        oliver.sang@intel.com, mkoutny@suse.com, mhocko@suse.com,
+        mhocko@kernel.org, longman@redhat.com, hannes@cmpxchg.org,
+        guro@fb.com, bigeasy@linutronix.de, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-memcg-disable-threshold-event-handlers-on-preempt_rt.patch added to -mm tree
+Message-Id: <20220221192636.F20CAC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Feb 16, 2022 at 6:00 AM Andrew Morton <akpm@linux-foundation.org> wrote:
->
->
-> The patch titled
->      Subject: tools/vm/page_owner: filter out pid and timestamp
-> has been added to the -mm tree.  Its filename is
->      tools-vm-page_owner-filter-out-pid-and-timestamp.patch
->
-> This patch should soon appear at
->     https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner-filter-out-pid-and-timestamp.patch
-> and later at
->     https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner-filter-out-pid-and-timestamp.patch
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
->
-> ------------------------------------------------------
-> From: Muchun Song <songmuchun@bytedance.com>
-> Subject: tools/vm/page_owner: filter out pid and timestamp
->
-> Commit 9cc7e96aa846 ("mm/page_owner: record timestamp and pid") introduces
-> timestamp and pid for page owner.  However, it is hard to aggregate the
-> stack since those are specific (especially timestamp).  Filter out those
-> information when aggregating.
->
-> Link: https://lkml.kernel.org/r/20220215134045.12004-1-songmuchun@bytedance.com
-> Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-> Cc: Liam Mark <lmark@codeaurora.org>
-> Cc: Georgi Djakov <georgi.djakov@linaro.org>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
 
-Hi Andrew,
+The patch titled
+     Subject: mm/memcg: disable threshold event handlers on PREEMPT_RT
+has been added to the -mm tree.  Its filename is
+     mm-memcg-disable-threshold-event-handlers-on-preempt_rt.patch
 
-I confirmed this patch could be dropped since this issue is fixed in
-Yinan's patch [1].  My patch is based on linux 5.17-rc4, so I didn't
-notice that it was already fixed in the next branch but not the Linus
-tree.  My bad.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-disable-threshold-event-handlers-on-preempt_rt.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-disable-threshold-event-handlers-on-preempt_rt.patch
 
-[1] https://lore.kernel.org/lkml/f0a8099b-3c60-3e34-078a-be3c1280ca61@gmail.com/T/
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Thanks.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm/memcg: disable threshold event handlers on PREEMPT_RT
+
+During the integration of PREEMPT_RT support, the code flow around
+memcg_check_events() resulted in `twisted code'.  Moving the code around
+and avoiding then would then lead to an additional local-irq-save section
+within memcg_check_events().  While looking better, it adds a
+local-irq-save section to code flow which is usually within an
+local-irq-off block on non-PREEMPT_RT configurations.
+
+The threshold event handler is a deprecated memcg v1 feature.  Instead of
+trying to get it to work under PREEMPT_RT just disable it.  There should
+be no users on PREEMPT_RT.  From that perspective it makes even less sense
+to get it to work under PREEMPT_RT while having zero users.
+
+Make memory.soft_limit_in_bytes and cgroup.event_control return
+-EOPNOTSUPP on PREEMPT_RT.  Make an empty memcg_check_events() and
+memcg_write_event_control() which return only -EOPNOTSUPP on PREEMPT_RT. 
+Document that the two knobs are disabled on PREEMPT_RT.
+
+Link: https://lkml.kernel.org/r/20220221182540.380526-3-bigeasy@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Suggested-by: Michal Koutný <mkoutny@suse.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: kernel test robot <oliver.sang@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Waiman Long <longman@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/admin-guide/cgroup-v1/memory.rst |    2 ++
+ mm/memcontrol.c                                |   14 ++++++++++++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
+
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~mm-memcg-disable-threshold-event-handlers-on-preempt_rt
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -64,6 +64,7 @@ Brief summary of control files.
+ 				     threads
+  cgroup.procs			     show list of processes
+  cgroup.event_control		     an interface for event_fd()
++				     This knob is not available on CONFIG_PREEMPT_RT systems.
+  memory.usage_in_bytes		     show current usage for memory
+ 				     (See 5.5 for details)
+  memory.memsw.usage_in_bytes	     show current usage for memory+Swap
+@@ -75,6 +76,7 @@ Brief summary of control files.
+  memory.max_usage_in_bytes	     show max memory usage recorded
+  memory.memsw.max_usage_in_bytes     show max memory+Swap usage recorded
+  memory.soft_limit_in_bytes	     set/show soft limit of memory usage
++				     This knob is not available on CONFIG_PREEMPT_RT systems.
+  memory.stat			     show various statistics
+  memory.use_hierarchy		     set/show hierarchical account enabled
+                                      This knob is deprecated and shouldn't be
+--- a/mm/memcontrol.c~mm-memcg-disable-threshold-event-handlers-on-preempt_rt
++++ a/mm/memcontrol.c
+@@ -858,6 +858,9 @@ static bool mem_cgroup_event_ratelimit(s
+  */
+ static void memcg_check_events(struct mem_cgroup *memcg, int nid)
+ {
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		return;
++
+ 	/* threshold event is triggered in finer grain than soft limit */
+ 	if (unlikely(mem_cgroup_event_ratelimit(memcg,
+ 						MEM_CGROUP_TARGET_THRESH))) {
+@@ -3731,8 +3734,12 @@ static ssize_t mem_cgroup_write(struct k
+ 		}
+ 		break;
+ 	case RES_SOFT_LIMIT:
+-		memcg->soft_limit = nr_pages;
+-		ret = 0;
++		if (IS_ENABLED(CONFIG_PREEMPT_RT)) {
++			ret = -EOPNOTSUPP;
++		} else {
++			memcg->soft_limit = nr_pages;
++			ret = 0;
++		}
+ 		break;
+ 	}
+ 	return ret ?: nbytes;
+@@ -4708,6 +4715,9 @@ static ssize_t memcg_write_event_control
+ 	char *endp;
+ 	int ret;
+ 
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		return -EOPNOTSUPP;
++
+ 	buf = strstrip(buf);
+ 
+ 	efd = simple_strtoul(buf, &endp, 10);
+_
+
+Patches currently in -mm which might be from bigeasy@linutronix.de are
+
+mm-memcg-disable-threshold-event-handlers-on-preempt_rt.patch
+mm-memcg-protect-per-cpu-counter-by-disabling-preemption-on-preempt_rt-where-needed.patch
+mm-memcg-protect-memcg_stock-with-a-local_lock_t.patch
+mm-memcg-disable-migration-instead-of-preemption-in-drain_all_stock.patch
+
