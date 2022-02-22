@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC285C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:13:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DE56C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:13:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236685AbiBVDOB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S239558AbiBVDOB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Feb 2022 22:14:01 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57446 "EHLO
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239558AbiBVDOA (ORCPT
+        with ESMTP id S239724AbiBVDOA (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 22:14:00 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6925EDE97
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:13:28 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A2F7DEC3
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:13:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1F02DB8184D
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:13:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0140C340E9;
-        Tue, 22 Feb 2022 03:13:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2F442B81850
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:13:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5140C340F0;
+        Tue, 22 Feb 2022 03:13:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645499605;
-        bh=4rb7uIOQpw7EeGyramV61NPx6UOHD3TASCQScfW6TmA=;
+        s=korg; t=1645499608;
+        bh=NhAgRvc/0nFQB7ONsKoXOX2AXzuaKpUn5T8aOE7spjA=;
         h=Date:To:From:Subject:From;
-        b=otgDv/J59PZDqMIe8zo1VOf0pF2SQPiWV4XxhKDaULHBcyCiBkudsAkbmXqh5vJkZ
-         wkfxuoQkHXOChnnsXH+YN0x3uvV6X7kI04957AHgigEsjx1HabyJus5rhgtPrWYEjv
-         9kRkfTAFc7xrEfKxq8G0LU9bomqSibq9aHP04ClY=
-Date:   Mon, 21 Feb 2022 19:13:25 -0800
-To:     mm-commits@vger.kernel.org, anshuman.khandual@arm.com,
+        b=nf7Ptu5P7kaw0LlCXMfGSLGJT6zYF3vx8H9xCg+eJkWR3zybWXQvJ1UAJnNqiOMfh
+         px+16qV82I05NJEkpDISTLTFhQrIWwwylPTVgxZYQZGLlYP+3Z1sdzJhzeKuce62ty
+         3qpxD7F7QsIKUWHJiQOMiMiMgitsfOqLmGouZcFs=
+Date:   Mon, 21 Feb 2022 19:13:27 -0800
+To:     mm-commits@vger.kernel.org, svens@linux.ibm.com, hca@linux.ibm.com,
+        gor@linux.ibm.com, anshuman.khandual@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-drop-arch_vm_get_page_pgprot.patch added to -mm tree
-Message-Id: <20220222031325.C0140C340E9@smtp.kernel.org>
+Subject: + s390-mm-enable-arch_has_vm_get_page_prot.patch added to -mm tree
+Message-Id: <20220222031327.D5140C340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: drop arch_vm_get_page_pgprot()
+     Subject: s390/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 has been added to the -mm tree.  Its filename is
-     mm-mmap-drop-arch_vm_get_page_pgprot.patch
+     s390-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-drop-arch_vm_get_page_pgprot.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/s390-mm-enable-arch_has_vm_get_page_prot.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-drop-arch_vm_get_page_pgprot.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/s390-mm-enable-arch_has_vm_get_page_prot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,59 +64,100 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/mmap: drop arch_vm_get_page_pgprot()
+Subject: s390/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 
-There are no platforms left which use arch_vm_get_page_prot().  Just drop
-arch_vm_get_page_prot() construct and simplify remaining code.
+This defines and exports a platform specific custom vm_get_page_prot() via
+subscribing ARCH_HAS_VM_GET_PAGE_PROT.  Subsequently all __SXXX and __PXXX
+macros can be dropped which are no longer needed.
 
-Link: https://lkml.kernel.org/r/1645425519-9034-14-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1645425519-9034-15-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Sven Schnelle <svens@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mman.h |    4 ----
- mm/mmap.c            |   10 +---------
- 2 files changed, 1 insertion(+), 13 deletions(-)
+ arch/s390/Kconfig               |    1 
+ arch/s390/include/asm/pgtable.h |   17 ---------------
+ arch/s390/mm/mmap.c             |   33 ++++++++++++++++++++++++++++++
+ 3 files changed, 34 insertions(+), 17 deletions(-)
 
---- a/include/linux/mman.h~mm-mmap-drop-arch_vm_get_page_pgprot
-+++ a/include/linux/mman.h
-@@ -93,10 +93,6 @@ static inline void vm_unacct_memory(long
- #define arch_calc_vm_flag_bits(flags) 0
- #endif
- 
--#ifndef arch_vm_get_page_prot
--#define arch_vm_get_page_prot(vm_flags) __pgprot(0)
--#endif
--
- #ifndef arch_validate_prot
- /*
-  * This is called from mprotect().  PROT_GROWSDOWN and PROT_GROWSUP have
---- a/mm/mmap.c~mm-mmap-drop-arch_vm_get_page_pgprot
-+++ a/mm/mmap.c
-@@ -102,7 +102,7 @@ static void unmap_region(struct mm_struc
-  *								w: (no) no
-  *								x: (yes) yes
+--- a/arch/s390/include/asm/pgtable.h~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/include/asm/pgtable.h
+@@ -422,23 +422,6 @@ static inline int is_module_addr(void *a
+  * implies read permission.
   */
--static inline pgprot_t __vm_get_page_prot(unsigned long vm_flags)
-+pgprot_t vm_get_page_prot(unsigned long vm_flags)
- {
- 	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
- 	case VM_NONE:
-@@ -141,14 +141,6 @@ static inline pgprot_t __vm_get_page_pro
- 		BUILD_BUG();
+          /*xwr*/
+-#define __P000	PAGE_NONE
+-#define __P001	PAGE_RO
+-#define __P010	PAGE_RO
+-#define __P011	PAGE_RO
+-#define __P100	PAGE_RX
+-#define __P101	PAGE_RX
+-#define __P110	PAGE_RX
+-#define __P111	PAGE_RX
+-
+-#define __S000	PAGE_NONE
+-#define __S001	PAGE_RO
+-#define __S010	PAGE_RW
+-#define __S011	PAGE_RW
+-#define __S100	PAGE_RX
+-#define __S101	PAGE_RX
+-#define __S110	PAGE_RWX
+-#define __S111	PAGE_RWX
+ 
+ /*
+  * Segment entry (large page) protection definitions.
+--- a/arch/s390/Kconfig~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/Kconfig
+@@ -78,6 +78,7 @@ config S390
+ 	select ARCH_HAS_SYSCALL_WRAPPER
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+ 	select ARCH_HAS_VDSO_DATA
++	select ARCH_HAS_VM_GET_PAGE_PROT
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_INLINE_READ_LOCK
+ 	select ARCH_INLINE_READ_LOCK_BH
+--- a/arch/s390/mm/mmap.c~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/mm/mmap.c
+@@ -188,3 +188,36 @@ void arch_pick_mmap_layout(struct mm_str
+ 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
  	}
  }
--
--pgprot_t vm_get_page_prot(unsigned long vm_flags)
--{
--	pgprot_t ret = __pgprot(pgprot_val(__vm_get_page_prot(vm_flags)) |
--			pgprot_val(arch_vm_get_page_prot(vm_flags)));
--
--	return ret;
--}
- EXPORT_SYMBOL(vm_get_page_prot);
- #endif	/* CONFIG_ARCH_HAS_VM_GET_PAGE_PROT */
- 
++
++pgprot_t vm_get_page_prot(unsigned long vm_flags)
++{
++	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
++	case VM_NONE:
++		return PAGE_NONE;
++	case VM_READ:
++	case VM_WRITE:
++	case VM_WRITE | VM_READ:
++		return PAGE_RO;
++	case VM_EXEC:
++	case VM_EXEC | VM_READ:
++	case VM_EXEC | VM_WRITE:
++	case VM_EXEC | VM_WRITE | VM_READ:
++		return PAGE_RX;
++	case VM_SHARED:
++		return PAGE_NONE;
++	case VM_SHARED | VM_READ:
++		return PAGE_RO;
++	case VM_SHARED | VM_WRITE:
++	case VM_SHARED | VM_WRITE | VM_READ:
++		return PAGE_RW;
++	case VM_SHARED | VM_EXEC:
++	case VM_SHARED | VM_EXEC | VM_READ:
++		return PAGE_RX;
++	case VM_SHARED | VM_EXEC | VM_WRITE:
++	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
++		return PAGE_RWX;
++	default:
++		BUILD_BUG();
++	}
++}
++EXPORT_SYMBOL(vm_get_page_prot);
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
