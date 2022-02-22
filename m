@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABDD2C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Feb 2022 19:26:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C138BC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 00:35:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233051AbiBUT1P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 14:27:15 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:51924 "EHLO
+        id S237843AbiBVAf7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 19:35:59 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:40800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233055AbiBUT1M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 14:27:12 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8148220C0
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 11:26:46 -0800 (PST)
+        with ESMTP id S231435AbiBVAf7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 19:35:59 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD63C255B6
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 16:35:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8204CB8175E
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:26:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06862C340E9;
-        Mon, 21 Feb 2022 19:26:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 647C9B810F5
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 00:35:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10AA6C340E9;
+        Tue, 22 Feb 2022 00:35:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645471604;
-        bh=7aLnDkENdZE3GqSMrCG3eHpzBFuhI+ePPiXlU99uWls=;
+        s=korg; t=1645490132;
+        bh=T7Cf0W5+pOkdoEA8Rw8kh1X4RMjmKrP1XV3fY5Q8bLo=;
         h=Date:To:From:Subject:From;
-        b=kbSIfvCcskRhvWXp9AzRlh74X1lHsST9zaRkmu2UfXrhhEBeOb4UxgbZ9AzeuiGDr
-         vIaYnUr/S/zyLd5yvwCIkDXmev/Yzdm4PrgcHPNbiRFYKGgF2+GZFstyK+5w2Tvc08
-         AarzXLV37W92EQ8OtKIvsF2tqMRTqWfpTgyVpkA8=
-Date:   Mon, 21 Feb 2022 11:26:43 -0800
-To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
-        tglx@linutronix.de, shakeelb@google.com, peterz@infradead.org,
-        oliver.sang@intel.com, mkoutny@suse.com, mhocko@suse.com,
-        mhocko@kernel.org, longman@redhat.com, hannes@cmpxchg.org,
-        guro@fb.com, bigeasy@linutronix.de, akpm@linux-foundation.org
+        b=ipYeHhsOAqs498SKQX4KCOFwihatNcyAKm8iB6WfDzWalseX3WhDkUqr6UJS//WEa
+         MNGdacs46semcTfrV8BgYx14G1jsvq+l0m/7V+/h62az/rMTBMlNtEdUFVpaLu3MgR
+         3sC9CPWDyBXLBkFq6bPHA9mDEMHDQpGxuN/cHxNk=
+Date:   Mon, 21 Feb 2022 16:35:31 -0800
+To:     mm-commits@vger.kernel.org, yzaikin@google.com,
+        siglesias@igalia.com, mcgrof@kernel.org, keescook@chromium.org,
+        feng.tang@intel.com, dyoung@redhat.com, gpiccoli@igalia.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-protect-memcg_stock-with-a-local_lock_t.patch added to -mm tree
-Message-Id: <20220221192644.06862C340E9@smtp.kernel.org>
+Subject: [to-be-updated] panic-allow-printing-extra-panic-information-on-kdump.patch removed from -mm tree
+Message-Id: <20220222003532.10AA6C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,279 +43,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: protect memcg_stock with a local_lock_t
-has been added to the -mm tree.  Its filename is
-     mm-memcg-protect-memcg_stock-with-a-local_lock_t.patch
+     Subject: panic: allow printing extra panic information on kdump
+has been removed from the -mm tree.  Its filename was
+     panic-allow-printing-extra-panic-information-on-kdump.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-protect-memcg_stock-with-a-local_lock_t.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-protect-memcg_stock-with-a-local_lock_t.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: mm/memcg: protect memcg_stock with a local_lock_t
+From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Subject: panic: allow printing extra panic information on kdump
 
-The members of the per-CPU structure memcg_stock_pcp are protected by
-disabling interrupts.  This is not working on PREEMPT_RT because it
-creates atomic context in which actions are performed which require
-preemptible context.  One example is obj_cgroup_release().
+Currently we have the "panic_print" parameter/sysctl to allow some extra
+information to be printed in a panic event.  On the other hand, the kdump
+mechanism allows to kexec a new kernel to collect a memory dump for the
+running kernel in case of panic.
 
-The IRQ-disable sections can be replaced with local_lock_t which preserves
-the explicit disabling of interrupts while keeps the code preemptible on
-PREEMPT_RT.
+Right now these options are incompatible: the user either sets the kdump
+or makes use of "panic_print".  The code path of "panic_print" isn't
+reached when kdump is configured.
 
-drain_obj_stock() drops a reference on obj_cgroup which leads to an
-invocat= ion of obj_cgroup_release() if it is the last object.  This in
-turn leads to recursive locking of the local_lock_t.  To avoid this,
-obj_cgroup_release() = is invoked outside of the locked section.
+There are situations though in which this would be interesting: for
+example, in systems that are very memory constrained, a handcrafted tiny
+kernel/initrd for kdump might be used in order to only collect the dmesg
+in kdump kernel.  Even more common, systems with no disk space for the
+full (compressed) memory dump might very well rely in this functionality
+too, dumping only the dmesg with the additional information provided by
+"panic_print".
 
-obj_cgroup_uncharge_pages() can be invoked with the local_lock_t acquired
-a= nd without it.  This will lead later to a recursion in refill_stock(). 
-To avoid the locking recursion provide obj_cgroup_uncharge_pages_locked()
-which uses the locked version of refill_stock().
+So, this is what the patch does: allows both functionality to co-exist; if
+"panic_print" is set and the system performs a kdump, the extra
+information is printed on dmesg before the kexec.  Some notes about the
+design choices here:
 
-- Replace disabling interrupts for memcg_stock with a local_lock_t.
+(a) We could have introduced a sysctl or an extra bit on "panic_print"
+    to allow enabling the co-existence of kdump and "panic_print", but
+    seems that would be over-engineering; we have 3 cases, let's check how
+    this patch change things:
 
-- Let drain_obj_stock() return the old struct obj_cgroup which is passed
-  to obj_cgroup_put() outside of the locked section.
+  - if the user have kdump set and not "panic_print", nothing changes;
+  - if the user have "panic_print" set and not kdump, nothing changes;
+  - if both are enabled, now we print the extra information before kdump,
+    which is exactly the goal of the patch (and should be the goal of the
+    user, since they enabled both options).
 
-- Provide obj_cgroup_uncharge_pages_locked() which uses the locked
-  version of refill_stock() to avoid recursive locking in
-  drain_obj_stock().
+(b) We assume that the code path won't return from __crash_kexec() so
+    we didn't guard against double execution of panic_print_sys_info().
 
-Link: https://lkml.kernel.org/r/20220209014709.GA26885@xsang-OptiPlex-9020
-Link: https://lkml.kernel.org/r/20220221182540.380526-6-bigeasy@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Waiman Long <longman@redhat.com>
+Link: https://lkml.kernel.org/r/20211109202848.610874-4-gpiccoli@igalia.com
+Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
+Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   55 ++++++++++++++++++++++++++++------------------
- 1 file changed, 34 insertions(+), 21 deletions(-)
+ kernel/panic.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcg-protect-memcg_stock-with-a-local_lock_t
-+++ a/mm/memcontrol.c
-@@ -2128,6 +2128,7 @@ void unlock_page_memcg(struct page *page
- }
- 
- struct memcg_stock_pcp {
-+	local_lock_t stock_lock;
- 	struct mem_cgroup *cached; /* this never be root cgroup */
- 	unsigned int nr_pages;
- 
-@@ -2143,18 +2144,21 @@ struct memcg_stock_pcp {
- 	unsigned long flags;
- #define FLUSHING_CACHED_CHARGE	0
- };
--static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock);
-+static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock) = {
-+	.stock_lock = INIT_LOCAL_LOCK(stock_lock),
-+};
- static DEFINE_MUTEX(percpu_charge_mutex);
- 
- #ifdef CONFIG_MEMCG_KMEM
--static void drain_obj_stock(struct memcg_stock_pcp *stock);
-+static struct obj_cgroup *drain_obj_stock(struct memcg_stock_pcp *stock);
- static bool obj_stock_flush_required(struct memcg_stock_pcp *stock,
- 				     struct mem_cgroup *root_memcg);
- static void memcg_account_kmem(struct mem_cgroup *memcg, int nr_pages);
- 
- #else
--static inline void drain_obj_stock(struct memcg_stock_pcp *stock)
-+static inline struct obj_cgroup *drain_obj_stock(struct memcg_stock_pcp *stock)
- {
-+	return NULL;
- }
- static bool obj_stock_flush_required(struct memcg_stock_pcp *stock,
- 				     struct mem_cgroup *root_memcg)
-@@ -2186,7 +2190,7 @@ static bool consume_stock(struct mem_cgr
- 	if (nr_pages > MEMCG_CHARGE_BATCH)
- 		return ret;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&memcg_stock.stock_lock, flags);
- 
- 	stock = this_cpu_ptr(&memcg_stock);
- 	if (memcg == stock->cached && stock->nr_pages >= nr_pages) {
-@@ -2194,7 +2198,7 @@ static bool consume_stock(struct mem_cgr
- 		ret = true;
- 	}
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
- 
- 	return ret;
- }
-@@ -2223,6 +2227,7 @@ static void drain_stock(struct memcg_sto
- static void drain_local_stock(struct work_struct *dummy)
- {
- 	struct memcg_stock_pcp *stock;
-+	struct obj_cgroup *old = NULL;
- 	unsigned long flags;
+--- a/kernel/panic.c~panic-allow-printing-extra-panic-information-on-kdump
++++ a/kernel/panic.c
+@@ -255,6 +255,13 @@ void panic(const char *fmt, ...)
+ 	kgdb_panic(buf);
  
  	/*
-@@ -2230,14 +2235,16 @@ static void drain_local_stock(struct wor
- 	 * drain_stock races is that we always operate on local CPU stock
- 	 * here with IRQ disabled
- 	 */
--	local_irq_save(flags);
-+	local_lock_irqsave(&memcg_stock.stock_lock, flags);
- 
- 	stock = this_cpu_ptr(&memcg_stock);
--	drain_obj_stock(stock);
-+	old = drain_obj_stock(stock);
- 	drain_stock(stock);
- 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
-+	if (old)
-+		obj_cgroup_put(old);
- }
- 
- /*
-@@ -2264,9 +2271,9 @@ static void refill_stock(struct mem_cgro
- {
- 	unsigned long flags;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&memcg_stock.stock_lock, flags);
- 	__refill_stock(memcg, nr_pages);
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
- }
- 
- /*
-@@ -3093,10 +3100,11 @@ void mod_objcg_state(struct obj_cgroup *
- 		     enum node_stat_item idx, int nr)
- {
- 	struct memcg_stock_pcp *stock;
-+	struct obj_cgroup *old = NULL;
- 	unsigned long flags;
- 	int *bytes;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&memcg_stock.stock_lock, flags);
- 	stock = this_cpu_ptr(&memcg_stock);
- 
- 	/*
-@@ -3105,7 +3113,7 @@ void mod_objcg_state(struct obj_cgroup *
- 	 * changes.
- 	 */
- 	if (stock->cached_objcg != objcg) {
--		drain_obj_stock(stock);
-+		old = drain_obj_stock(stock);
- 		obj_cgroup_get(objcg);
- 		stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
- 				? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
-@@ -3149,7 +3157,9 @@ void mod_objcg_state(struct obj_cgroup *
- 	if (nr)
- 		mod_objcg_mlstate(objcg, pgdat, idx, nr);
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
-+	if (old)
-+		obj_cgroup_put(old);
- }
- 
- static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
-@@ -3158,7 +3168,7 @@ static bool consume_obj_stock(struct obj
- 	unsigned long flags;
- 	bool ret = false;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&memcg_stock.stock_lock, flags);
- 
- 	stock = this_cpu_ptr(&memcg_stock);
- 	if (objcg == stock->cached_objcg && stock->nr_bytes >= nr_bytes) {
-@@ -3166,17 +3176,17 @@ static bool consume_obj_stock(struct obj
- 		ret = true;
- 	}
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
- 
- 	return ret;
- }
- 
--static void drain_obj_stock(struct memcg_stock_pcp *stock)
-+static struct obj_cgroup *drain_obj_stock(struct memcg_stock_pcp *stock)
- {
- 	struct obj_cgroup *old = stock->cached_objcg;
- 
- 	if (!old)
--		return;
-+		return NULL;
- 
- 	if (stock->nr_bytes) {
- 		unsigned int nr_pages = stock->nr_bytes >> PAGE_SHIFT;
-@@ -3226,8 +3236,8 @@ static void drain_obj_stock(struct memcg
- 		stock->cached_pgdat = NULL;
- 	}
- 
--	obj_cgroup_put(old);
- 	stock->cached_objcg = NULL;
-+	return old;
- }
- 
- static bool obj_stock_flush_required(struct memcg_stock_pcp *stock,
-@@ -3248,14 +3258,15 @@ static void refill_obj_stock(struct obj_
- 			     bool allow_uncharge)
- {
- 	struct memcg_stock_pcp *stock;
-+	struct obj_cgroup *old = NULL;
- 	unsigned long flags;
- 	unsigned int nr_pages = 0;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&memcg_stock.stock_lock, flags);
- 
- 	stock = this_cpu_ptr(&memcg_stock);
- 	if (stock->cached_objcg != objcg) { /* reset if necessary */
--		drain_obj_stock(stock);
-+		old = drain_obj_stock(stock);
- 		obj_cgroup_get(objcg);
- 		stock->cached_objcg = objcg;
- 		stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
-@@ -3269,7 +3280,9 @@ static void refill_obj_stock(struct obj_
- 		stock->nr_bytes &= (PAGE_SIZE - 1);
- 	}
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
-+	if (old)
-+		obj_cgroup_put(old);
- 
- 	if (nr_pages)
- 		obj_cgroup_uncharge_pages(objcg, nr_pages);
++	 * If we have a kdump kernel loaded, give a chance to panic_print
++	 * show some extra information on kernel log if it was set...
++	 */
++	if (kexec_crash_loaded())
++		panic_print_sys_info();
++
++	/*
+ 	 * If we have crashed and we have a crash kernel loaded let it handle
+ 	 * everything else.
+ 	 * If we want to run this after calling panic_notifiers, pass
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from gpiccoli@igalia.com are
 
-mm-memcg-disable-threshold-event-handlers-on-preempt_rt.patch
-mm-memcg-protect-per-cpu-counter-by-disabling-preemption-on-preempt_rt-where-needed.patch
-mm-memcg-protect-memcg_stock-with-a-local_lock_t.patch
-mm-memcg-disable-migration-instead-of-preemption-in-drain_all_stock.patch
+docs-sysctl-kernel-add-missing-bit-to-panic_print.patch
+panic-add-option-to-dump-all-cpus-backtraces-in-panic_print.patch
 
