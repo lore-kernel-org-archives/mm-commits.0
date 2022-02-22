@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FE8FC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:13:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B9E4C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:13:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239668AbiBVDOS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 22:14:18 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58016 "EHLO
+        id S229451AbiBVDOU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 22:14:20 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239752AbiBVDOQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 22:14:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2120DFAE
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:13:49 -0800 (PST)
+        with ESMTP id S239645AbiBVDOP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 22:14:15 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E3EBDFA3
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:13:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E62161539
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:13:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8E28C340E9;
-        Tue, 22 Feb 2022 03:13:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 79ADA61504
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:13:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAAE1C340E9;
+        Tue, 22 Feb 2022 03:13:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645499628;
-        bh=VQXQyPkXpGw2b4iwp6fASI23RG65vN9vTMGQjbNvs10=;
+        s=korg; t=1645499625;
+        bh=rHnyaE3A0o/yDvoOaMK9hOjZQATzRTOzgQ5BuKgHDqk=;
         h=Date:To:From:Subject:From;
-        b=li+DT3A9M6zYs7poj2QR+Uezrx0R8hhYPj52EmHj0CGKhQRkFtHl54QaYW+j2TU+U
-         JbmjPGA5pQ0pnHq9eDkJlIoiz4KiPhFsXAV8mWVbIqBQnk1juh7iuamsuhYtea+qyQ
-         luY53tL97YOpM7GkKPwSPh3s+uFAzQVPGUlPBNsE=
-Date:   Mon, 21 Feb 2022 19:13:48 -0800
-To:     mm-commits@vger.kernel.org, James.Bottomley@HansenPartnership.com,
+        b=RI8OmVHC0UUj3p3bTMKYBG1G4Ku4biElSdK7IqsGClZr1Wh8Bdn4lXplBSRHd58xL
+         axeL5jE2/3YDv+7ZjUYcTEzX1pcu6AHUDqNPXmQWrQNvEe04ca65OID9s6voOJTDFO
+         +y7HRaIjByMxR0TwmXImXMSnXdLevd8jYRV6K5+g=
+Date:   Mon, 21 Feb 2022 19:13:45 -0800
+To:     mm-commits@vger.kernel.org, guoren@kernel.org, chris@zankel.net,
         anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + parisc-mm-enable-arch_has_vm_get_page_prot.patch added to -mm tree
-Message-Id: <20220222031348.C8E28C340E9@smtp.kernel.org>
+Subject: + extensa-mm-enable-arch_has_vm_get_page_prot.patch added to -mm tree
+Message-Id: <20220222031345.CAAE1C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parisc/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+     Subject: extensa/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 has been added to the -mm tree.  Its filename is
-     parisc-mm-enable-arch_has_vm_get_page_prot.patch
+     extensa-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/parisc-mm-enable-arch_has_vm_get_page_prot.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/extensa-mm-enable-arch_has_vm_get_page_prot.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/parisc-mm-enable-arch_has_vm_get_page_prot.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/extensa-mm-enable-arch_has_vm_get_page_prot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,68 +63,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: parisc/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+Subject: extensa/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 
 This defines and exports a platform specific custom vm_get_page_prot() via
 subscribing ARCH_HAS_VM_GET_PAGE_PROT.  Subsequently all __SXXX and __PXXX
 macros can be dropped which are no longer needed.
 
-Link: https://lkml.kernel.org/r/1645425519-9034-22-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1645425519-9034-21-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Guo Ren <guoren@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/Kconfig               |    1 
- arch/parisc/include/asm/pgtable.h |   20 --------------
- arch/parisc/mm/init.c             |   40 ++++++++++++++++++++++++++++
- 3 files changed, 41 insertions(+), 20 deletions(-)
+ arch/xtensa/Kconfig               |    1 
+ arch/xtensa/include/asm/pgtable.h |   18 --------------
+ arch/xtensa/mm/init.c             |   35 ++++++++++++++++++++++++++++
+ 3 files changed, 36 insertions(+), 18 deletions(-)
 
---- a/arch/parisc/include/asm/pgtable.h~parisc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/parisc/include/asm/pgtable.h
-@@ -269,26 +269,6 @@ extern void __update_cache(pte_t pte);
-  * pages.
+--- a/arch/xtensa/include/asm/pgtable.h~extensa-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/xtensa/include/asm/pgtable.h
+@@ -200,24 +200,6 @@
+  * What follows is the closest we can get by reasonable means..
+  * See linux/mm/mmap.c for protection_map[] array that uses these definitions.
   */
+-#define __P000	PAGE_NONE		/* private --- */
+-#define __P001	PAGE_READONLY		/* private --r */
+-#define __P010	PAGE_COPY		/* private -w- */
+-#define __P011	PAGE_COPY		/* private -wr */
+-#define __P100	PAGE_READONLY_EXEC	/* private x-- */
+-#define __P101	PAGE_READONLY_EXEC	/* private x-r */
+-#define __P110	PAGE_COPY_EXEC		/* private xw- */
+-#define __P111	PAGE_COPY_EXEC		/* private xwr */
+-
+-#define __S000	PAGE_NONE		/* shared  --- */
+-#define __S001	PAGE_READONLY		/* shared  --r */
+-#define __S010	PAGE_SHARED		/* shared  -w- */
+-#define __S011	PAGE_SHARED		/* shared  -wr */
+-#define __S100	PAGE_READONLY_EXEC	/* shared  x-- */
+-#define __S101	PAGE_READONLY_EXEC	/* shared  x-r */
+-#define __S110	PAGE_SHARED_EXEC	/* shared  xw- */
+-#define __S111	PAGE_SHARED_EXEC	/* shared  xwr */
+-
+ #ifndef __ASSEMBLY__
  
--	 /*xwr*/
--#define __P000  PAGE_NONE
--#define __P001  PAGE_READONLY
--#define __P010  __P000 /* copy on write */
--#define __P011  __P001 /* copy on write */
--#define __P100  PAGE_EXECREAD
--#define __P101  PAGE_EXECREAD
--#define __P110  __P100 /* copy on write */
--#define __P111  __P101 /* copy on write */
--
--#define __S000  PAGE_NONE
--#define __S001  PAGE_READONLY
--#define __S010  PAGE_WRITEONLY
--#define __S011  PAGE_SHARED
--#define __S100  PAGE_EXECREAD
--#define __S101  PAGE_EXECREAD
--#define __S110  PAGE_RWX
--#define __S111  PAGE_RWX
--
--
- extern pgd_t swapper_pg_dir[]; /* declared in init_task.c */
- 
- /* initial page tables for 0-8MB for kernel */
---- a/arch/parisc/Kconfig~parisc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/parisc/Kconfig
-@@ -10,6 +10,7 @@ config PARISC
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_STRICT_KERNEL_RWX
- 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+ #define pte_ERROR(e) \
+--- a/arch/xtensa/Kconfig~extensa-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/xtensa/Kconfig
+@@ -9,6 +9,7 @@ config XTENSA
+ 	select ARCH_HAS_DMA_SET_UNCACHED if MMU
+ 	select ARCH_HAS_STRNCPY_FROM_USER if !KASAN
+ 	select ARCH_HAS_STRNLEN_USER
 +	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select ARCH_NO_SG_CHAIN
- 	select ARCH_SUPPORTS_HUGETLBFS if PA20
- 	select ARCH_SUPPORTS_MEMORY_FAILURE
---- a/arch/parisc/mm/init.c~parisc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/parisc/mm/init.c
-@@ -865,3 +865,43 @@ void flush_tlb_all(void)
- 	spin_unlock(&sid_lock);
+ 	select ARCH_USE_MEMTEST
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+--- a/arch/xtensa/mm/init.c~extensa-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/xtensa/mm/init.c
+@@ -216,3 +216,38 @@ static int __init parse_memmap_opt(char
+ 	return 0;
  }
- #endif
+ early_param("memmap", parse_memmap_opt);
 +
 +pgprot_t vm_get_page_prot(unsigned long vm_flags)
 +{
@@ -133,33 +132,28 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		return PAGE_NONE;
 +	case VM_READ:
 +		return PAGE_READONLY;
-+	/* copy on write */
 +	case VM_WRITE:
-+		return PAGE_NONE;
-+	/* copy on write */
 +	case VM_WRITE | VM_READ:
-+		return PAGE_READONLY;
++		return PAGE_COPY;
 +	case VM_EXEC:
 +	case VM_EXEC | VM_READ:
-+	/* copy on write */
++		return PAGE_READONLY_EXEC;
 +	case VM_EXEC | VM_WRITE:
-+	/* copy on write */
 +	case VM_EXEC | VM_WRITE | VM_READ:
-+		return PAGE_EXECREAD;
++		return PAGE_COPY_EXEC;
 +	case VM_SHARED:
 +		return PAGE_NONE;
 +	case VM_SHARED | VM_READ:
 +		return PAGE_READONLY;
 +	case VM_SHARED | VM_WRITE:
-+		return PAGE_WRITEONLY;
 +	case VM_SHARED | VM_WRITE | VM_READ:
 +		return PAGE_SHARED;
 +	case VM_SHARED | VM_EXEC:
 +	case VM_SHARED | VM_EXEC | VM_READ:
-+		return PAGE_EXECREAD;
++		return PAGE_READONLY_EXEC;
 +	case VM_SHARED | VM_EXEC | VM_WRITE:
 +	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
-+		return PAGE_RWX;
++		return PAGE_SHARED_EXEC;
 +	default:
 +		BUILD_BUG();
 +	}
