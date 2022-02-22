@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91910C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:13:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAC79C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:13:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233492AbiBVDNd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 22:13:33 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:55004 "EHLO
+        id S233640AbiBVDNl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 22:13:41 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:55820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239579AbiBVDN3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 22:13:29 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 060ED5FA0
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:13:05 -0800 (PST)
+        with ESMTP id S234712AbiBVDNf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 22:13:35 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98A9C5FA0
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:13:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 83526612C8
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:13:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC4EBC340E9;
-        Tue, 22 Feb 2022 03:13:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 48918B8184F
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:13:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C785AC340E9;
+        Tue, 22 Feb 2022 03:13:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645499584;
-        bh=d1Vc1DXSLGBNt0HNb2ALYmY4BJcz1vDKrjKlbNhFjOo=;
+        s=korg; t=1645499587;
+        bh=QXfIPzdUdkmnBW0jLALau2iTRnfharXWJyqGg2D/dU0=;
         h=Date:To:From:Subject:From;
-        b=eL+KrHqLPrwyTaou6q0tSxk/AaVGEv7PDn+04WvbvWGLk/88sdQBJGG3ZBUfVtxnf
-         wqWLJYsPK0tpCMhPxEUPJjVK4kmStH67UCiV+5bqCrN1Vj8JVTms8n3WSkAoJcThuu
-         8k/ITJqMSvunwkBGHgN46XDkawKqb/N8T7Mtie5g=
-Date:   Mon, 21 Feb 2022 19:13:03 -0800
-To:     mm-commits@vger.kernel.org, khalid.aziz@oracle.com,
-        davem@davemloft.net, anshuman.khandual@arm.com,
-        akpm@linux-foundation.org
+        b=1s9SMwlCpoRBFKX+CCxolEhKQcDgl56+ABmmUA8KFXHKS+C94DVTaHVEo89SUq5/k
+         Cj4Len2Im61E3SDEhQetfKrmyVq1ZPt0etMFZYeHR91TwHYqjd0coPU74ChlE/21nv
+         WQTM0ItXZDYMP0e6+tYMJuyirDq/e+f28rI60buA=
+Date:   Mon, 21 Feb 2022 19:13:07 -0800
+To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc-mm-enable-arch_has_vm_get_page_prot.patch added to -mm tree
-Message-Id: <20220222031303.DC4EBC340E9@smtp.kernel.org>
+Subject: + mips-mm-enable-arch_has_vm_get_page_prot.patch added to -mm tree
+Message-Id: <20220222031307.C785AC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+     Subject: mips/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 has been added to the -mm tree.  Its filename is
-     sparc-mm-enable-arch_has_vm_get_page_prot.patch
+     mips-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sparc-mm-enable-arch_has_vm_get_page_prot.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mips-mm-enable-arch_has_vm_get_page_prot.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sparc-mm-enable-arch_has_vm_get_page_prot.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mips-mm-enable-arch_has_vm_get_page_prot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,252 +63,138 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: sparc/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+Subject: mips/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 
 This defines and exports a platform specific custom vm_get_page_prot() via
 subscribing ARCH_HAS_VM_GET_PAGE_PROT.  Subsequently all __SXXX and __PXXX
-macros can be dropped which are no longer needed.  This also localizes the
-helper arch_vm_get_page_prot() as sparc_vm_get_page_prot() and moves near
-vm_get_page_prot().
+macros can be dropped which are no longer needed.
 
-Link: https://lkml.kernel.org/r/1645425519-9034-7-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1645425519-9034-8-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig                  |    2 
- arch/sparc/include/asm/mman.h       |    6 --
- arch/sparc/include/asm/pgtable_32.h |   19 -------
- arch/sparc/include/asm/pgtable_64.h |   19 -------
- arch/sparc/mm/init_32.c             |   35 +++++++++++++
- arch/sparc/mm/init_64.c             |   70 ++++++++++++++++++--------
- 6 files changed, 88 insertions(+), 63 deletions(-)
+ arch/mips/Kconfig               |    1 
+ arch/mips/include/asm/pgtable.h |   22 -----------
+ arch/mips/mm/cache.c            |   60 +++++++++++++++++-------------
+ 3 files changed, 36 insertions(+), 47 deletions(-)
 
---- a/arch/sparc/include/asm/mman.h~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/include/asm/mman.h
-@@ -46,12 +46,6 @@ static inline unsigned long sparc_calc_v
- 	}
- }
+--- a/arch/mips/include/asm/pgtable.h~mips-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/mips/include/asm/pgtable.h
+@@ -41,28 +41,6 @@ struct vm_area_struct;
+  * by reasonable means..
+  */
  
--#define arch_vm_get_page_prot(vm_flags) sparc_vm_get_page_prot(vm_flags)
--static inline pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
+-/*
+- * Dummy values to fill the table in mmap.c
+- * The real values will be generated at runtime
+- */
+-#define __P000 __pgprot(0)
+-#define __P001 __pgprot(0)
+-#define __P010 __pgprot(0)
+-#define __P011 __pgprot(0)
+-#define __P100 __pgprot(0)
+-#define __P101 __pgprot(0)
+-#define __P110 __pgprot(0)
+-#define __P111 __pgprot(0)
+-
+-#define __S000 __pgprot(0)
+-#define __S001 __pgprot(0)
+-#define __S010 __pgprot(0)
+-#define __S011 __pgprot(0)
+-#define __S100 __pgprot(0)
+-#define __S101 __pgprot(0)
+-#define __S110 __pgprot(0)
+-#define __S111 __pgprot(0)
+-
+ extern unsigned long _page_cachable_default;
+ extern void __update_cache(unsigned long address, pte_t pte);
+ 
+--- a/arch/mips/Kconfig~mips-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/mips/Kconfig
+@@ -13,6 +13,7 @@ config MIPS
+ 	select ARCH_HAS_STRNLEN_USER
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
++	select ARCH_HAS_VM_GET_PAGE_PROT
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_KEEP_MEMBLOCK
+ 	select ARCH_SUPPORTS_UPROBES
+--- a/arch/mips/mm/cache.c~mips-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/mips/mm/cache.c
+@@ -159,30 +159,6 @@ EXPORT_SYMBOL(_page_cachable_default);
+ 
+ #define PM(p)	__pgprot(_page_cachable_default | (p))
+ 
+-static inline void setup_protection_map(void)
 -{
--	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
+-	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[4]  = PM(_PAGE_PRESENT);
+-	protection_map[5]  = PM(_PAGE_PRESENT);
+-	protection_map[6]  = PM(_PAGE_PRESENT);
+-	protection_map[7]  = PM(_PAGE_PRESENT);
+-
+-	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
+-				_PAGE_NO_READ);
+-	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
+-	protection_map[12] = PM(_PAGE_PRESENT);
+-	protection_map[13] = PM(_PAGE_PRESENT);
+-	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+-	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
 -}
 -
- #define arch_validate_prot(prot, addr) sparc_validate_prot(prot, addr)
- static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
+-#undef PM
+-
+ void cpu_cache_init(void)
  {
---- a/arch/sparc/include/asm/pgtable_32.h~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -64,25 +64,6 @@ void paging_init(void);
+ 	if (cpu_has_3k_cache) {
+@@ -206,6 +182,40 @@ void cpu_cache_init(void)
  
- extern unsigned long ptr_in_current_pgd;
- 
--/*         xwr */
--#define __P000  PAGE_NONE
--#define __P001  PAGE_READONLY
--#define __P010  PAGE_COPY
--#define __P011  PAGE_COPY
--#define __P100  PAGE_READONLY
--#define __P101  PAGE_READONLY
--#define __P110  PAGE_COPY
--#define __P111  PAGE_COPY
--
--#define __S000	PAGE_NONE
--#define __S001	PAGE_READONLY
--#define __S010	PAGE_SHARED
--#define __S011	PAGE_SHARED
--#define __S100	PAGE_READONLY
--#define __S101	PAGE_READONLY
--#define __S110	PAGE_SHARED
--#define __S111	PAGE_SHARED
--
- /* First physical page can be anywhere, the following is needed so that
-  * va-->pa and vice versa conversions work properly without performance
-  * hit for all __pa()/__va() operations.
---- a/arch/sparc/include/asm/pgtable_64.h~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -187,25 +187,6 @@ bool kern_addr_valid(unsigned long addr)
- #define _PAGE_SZHUGE_4U	_PAGE_SZ4MB_4U
- #define _PAGE_SZHUGE_4V	_PAGE_SZ4MB_4V
- 
--/* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
--#define __P000	__pgprot(0)
--#define __P001	__pgprot(0)
--#define __P010	__pgprot(0)
--#define __P011	__pgprot(0)
--#define __P100	__pgprot(0)
--#define __P101	__pgprot(0)
--#define __P110	__pgprot(0)
--#define __P111	__pgprot(0)
--
--#define __S000	__pgprot(0)
--#define __S001	__pgprot(0)
--#define __S010	__pgprot(0)
--#define __S011	__pgprot(0)
--#define __S100	__pgprot(0)
--#define __S101	__pgprot(0)
--#define __S110	__pgprot(0)
--#define __S111	__pgprot(0)
--
- #ifndef __ASSEMBLY__
- 
- pte_t mk_pte_io(unsigned long, pgprot_t, int, unsigned long);
---- a/arch/sparc/Kconfig~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/Kconfig
-@@ -59,6 +59,7 @@ config SPARC32
- 	select HAVE_UID16
- 	select OLD_SIGACTION
- 	select ZONE_DMA
-+	select ARCH_HAS_VM_GET_PAGE_PROT
- 
- config SPARC64
- 	def_bool 64BIT
-@@ -84,6 +85,7 @@ config SPARC64
- 	select PERF_USE_VMALLOC
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_C_RECORDMCOUNT
-+	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
---- a/arch/sparc/mm/init_32.c~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/mm/init_32.c
-@@ -302,3 +302,38 @@ void sparc_flush_page_to_ram(struct page
- 		__flush_page_to_ram(vaddr);
- }
- EXPORT_SYMBOL(sparc_flush_page_to_ram);
-+
-+pgprot_t vm_get_page_prot(unsigned long vm_flags)
-+{
-+	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
-+	case VM_NONE:
-+		return PAGE_NONE;
-+	case VM_READ:
-+		return PAGE_READONLY;
-+	case VM_WRITE:
-+	case VM_WRITE | VM_READ:
-+		return PAGE_COPY;
-+	case VM_EXEC:
-+	case VM_EXEC | VM_READ:
-+		return PAGE_READONLY;
-+	case VM_EXEC | VM_WRITE:
-+	case VM_EXEC | VM_WRITE | VM_READ:
-+		return PAGE_COPY;
-+	case VM_SHARED:
-+		return PAGE_NONE;
-+	case VM_SHARED | VM_READ:
-+		return PAGE_READONLY;
-+	case VM_SHARED | VM_WRITE:
-+	case VM_SHARED | VM_WRITE | VM_READ:
-+		return PAGE_SHARED;
-+	case VM_SHARED | VM_EXEC:
-+	case VM_SHARED | VM_EXEC | VM_READ:
-+		return PAGE_READONLY;
-+	case VM_SHARED | VM_EXEC | VM_WRITE:
-+	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
-+		return PAGE_SHARED;
-+	default:
-+		BUILD_BUG();
-+	}
-+}
-+EXPORT_SYMBOL(vm_get_page_prot);
---- a/arch/sparc/mm/init_64.c~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/mm/init_64.c
-@@ -50,6 +50,7 @@
- #include <asm/cpudata.h>
- #include <asm/setup.h>
- #include <asm/irq.h>
-+#include <asm/mman.h>
- 
- #include "init_64.h"
- 
-@@ -2641,29 +2642,13 @@ static void prot_init_common(unsigned lo
- {
- 	PAGE_COPY = __pgprot(page_copy);
- 	PAGE_SHARED = __pgprot(page_shared);
--
--	protection_map[0x0] = __pgprot(page_none);
--	protection_map[0x1] = __pgprot(page_readonly & ~page_exec_bit);
--	protection_map[0x2] = __pgprot(page_copy & ~page_exec_bit);
--	protection_map[0x3] = __pgprot(page_copy & ~page_exec_bit);
--	protection_map[0x4] = __pgprot(page_readonly);
--	protection_map[0x5] = __pgprot(page_readonly);
--	protection_map[0x6] = __pgprot(page_copy);
--	protection_map[0x7] = __pgprot(page_copy);
--	protection_map[0x8] = __pgprot(page_none);
--	protection_map[0x9] = __pgprot(page_readonly & ~page_exec_bit);
--	protection_map[0xa] = __pgprot(page_shared & ~page_exec_bit);
--	protection_map[0xb] = __pgprot(page_shared & ~page_exec_bit);
--	protection_map[0xc] = __pgprot(page_readonly);
--	protection_map[0xd] = __pgprot(page_readonly);
--	protection_map[0xe] = __pgprot(page_shared);
--	protection_map[0xf] = __pgprot(page_shared);
- }
- 
-+static unsigned long page_none, page_shared, page_copy, page_readonly;
-+static unsigned long page_exec_bit;
-+
- static void __init sun4u_pgprot_init(void)
- {
--	unsigned long page_none, page_shared, page_copy, page_readonly;
--	unsigned long page_exec_bit;
- 	int i;
- 
- 	PAGE_KERNEL = __pgprot (_PAGE_PRESENT_4U | _PAGE_VALID |
-@@ -3183,3 +3168,50 @@ void copy_highpage(struct page *to, stru
+ 		octeon_cache_init();
  	}
- }
- EXPORT_SYMBOL(copy_highpage);
-+
-+static inline pgprot_t __vm_get_page_prot(unsigned long vm_flags)
++}
+ 
+-	setup_protection_map();
++pgprot_t vm_get_page_prot(unsigned long vm_flags)
 +{
 +	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
 +	case VM_NONE:
-+		return __pgprot(page_none);
++		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
 +	case VM_READ:
-+		return __pgprot(page_readonly & ~page_exec_bit);
++		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
 +	case VM_WRITE:
++		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
 +	case VM_WRITE | VM_READ:
-+		return __pgprot(page_copy & ~page_exec_bit);
++		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
 +	case VM_EXEC:
 +	case VM_EXEC | VM_READ:
-+		return __pgprot(page_readonly);
 +	case VM_EXEC | VM_WRITE:
 +	case VM_EXEC | VM_WRITE | VM_READ:
-+		return __pgprot(page_copy);
++		return PM(_PAGE_PRESENT);
 +	case VM_SHARED:
-+		return __pgprot(page_none);
++		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
 +	case VM_SHARED | VM_READ:
-+		return __pgprot(page_readonly & ~page_exec_bit);
++		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
 +	case VM_SHARED | VM_WRITE:
++		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE | _PAGE_NO_READ);
 +	case VM_SHARED | VM_WRITE | VM_READ:
-+		return __pgprot(page_shared & ~page_exec_bit);
++		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
 +	case VM_SHARED | VM_EXEC:
 +	case VM_SHARED | VM_EXEC | VM_READ:
-+		return __pgprot(page_readonly);
++		return PM(_PAGE_PRESENT);
 +	case VM_SHARED | VM_EXEC | VM_WRITE:
 +	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
-+		return __pgprot(page_shared);
++		return PM(_PAGE_PRESENT | _PAGE_WRITE);
 +	default:
 +		BUILD_BUG();
 +	}
-+}
-+
-+static pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
-+{
-+	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
-+}
-+
-+pgprot_t vm_get_page_prot(unsigned long vm_flags)
-+{
-+	return __pgprot(pgprot_val(__vm_get_page_prot(vm_flags)) |
-+	       pgprot_val(sparc_vm_get_page_prot(vm_flags)));
-+
-+}
+ }
 +EXPORT_SYMBOL(vm_get_page_prot);
 _
 
