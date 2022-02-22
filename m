@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C453DC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:12:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9824C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:13:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236669AbiBVDNW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 22:13:22 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:54482 "EHLO
+        id S238751AbiBVDNX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 22:13:23 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:54742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233492AbiBVDNT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 22:13:19 -0500
+        with ESMTP id S239715AbiBVDNW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 22:13:22 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3F9B5FA0
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:12:54 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F209B85D
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:12:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 78D3E61500
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:12:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C627DC340E9;
-        Tue, 22 Feb 2022 03:12:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E51B61525
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:12:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D868DC340E9;
+        Tue, 22 Feb 2022 03:12:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645499573;
-        bh=4NeJLoXl+5ETRZ3UDr2uXm9+V7ns8KBTna1JjuAGgBw=;
+        s=korg; t=1645499575;
+        bh=21QfLKoCTOcj+L+9p/iCjjbCHs5iwQWiU3KrXVUSeUM=;
         h=Date:To:From:Subject:From;
-        b=lb2Su1YBqHZ59BiNAsMGo8LBZfpetea7/kjMkst7/8vpUvVtASaRMdjHMsBGKlsmJ
-         A/vn2TCKifpm0/lxxqghQ4sLcEe1zKbxCfQudPhdvzYdowgBf6Pg3uC70I0f/iyhBw
-         IPWLEXaCowmQCgB1mfMUJFsLOmBBQ5YpfXUGGhwY=
-Date:   Mon, 21 Feb 2022 19:12:53 -0800
-To:     mm-commits@vger.kernel.org, hch@lst.de, anshuman.khandual@arm.com,
-        akpm@linux-foundation.org
+        b=sWvz1lRaz75VISHaPaujIKMl2uJsoqDB5QO/P4NFPgtZJkIVcCMiXKtLb8ppGnsah
+         MS2MuXRNrIPoGPOgdbbSR2N0jhOoDMB5lZKJ8Qdah5qmqF7OrP6HjWbQEYsv3rt+9n
+         R/EPYT5P+6LF8BoaZdJghJFGahQCLvCGHx38keKg=
+Date:   Mon, 21 Feb 2022 19:12:55 -0800
+To:     mm-commits@vger.kernel.org, hch@infradead.org,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-clarify-protection_map-indices.patch added to -mm tree
-Message-Id: <20220222031253.C627DC340E9@smtp.kernel.org>
+Subject: + mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch added to -mm tree
+Message-Id: <20220222031255.D868DC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: clarify protection_map[] indices
+     Subject: mm/mmap: add new config ARCH_HAS_VM_GET_PAGE_PROT
 has been added to the -mm tree.  Its filename is
-     mm-mmap-clarify-protection_map-indices.patch
+     mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-clarify-protection_map-indices.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-clarify-protection_map-indices.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,49 +63,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/mmap: clarify protection_map[] indices
+Subject: mm/mmap: add new config ARCH_HAS_VM_GET_PAGE_PROT
 
-protection_map[] maps vm_flags access combinations into page protection
-value as defined by the platform via __PXXX and __SXXX macros.  The array
-indices in protection_map[], represents vm_flags access combinations but
-it's not very intuitive to derive.  This makes it clear and explicit.
+Add a new config ARCH_HAS_VM_GET_PAGE_PROT, which when subscribed enables
+a given platform to define its own vm_get_page_prot().  This framework
+will help remove protection_map[] dependency going forward.
 
-Link: https://lkml.kernel.org/r/1645425519-9034-3-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1645425519-9034-4-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ mm/Kconfig |    3 +++
+ mm/mmap.c  |    2 ++
+ 2 files changed, 5 insertions(+)
 
---- a/mm/mmap.c~mm-mmap-clarify-protection_map-indices
-+++ a/mm/mmap.c
-@@ -102,8 +102,22 @@ static void unmap_region(struct mm_struc
-  *								x: (yes) yes
-  */
- pgprot_t protection_map[16] __ro_after_init = {
--	__P000, __P001, __P010, __P011, __P100, __P101, __P110, __P111,
--	__S000, __S001, __S010, __S011, __S100, __S101, __S110, __S111
-+	[VM_NONE]					= __P000,
-+	[VM_READ]					= __P001,
-+	[VM_WRITE]					= __P010,
-+	[VM_WRITE | VM_READ]				= __P011,
-+	[VM_EXEC]					= __P100,
-+	[VM_EXEC | VM_READ]				= __P101,
-+	[VM_EXEC | VM_WRITE]				= __P110,
-+	[VM_EXEC | VM_WRITE | VM_READ]			= __P111,
-+	[VM_SHARED]					= __S000,
-+	[VM_SHARED | VM_READ]				= __S001,
-+	[VM_SHARED | VM_WRITE]				= __S010,
-+	[VM_SHARED | VM_WRITE | VM_READ]		= __S011,
-+	[VM_SHARED | VM_EXEC]				= __S100,
-+	[VM_SHARED | VM_EXEC | VM_READ]			= __S101,
-+	[VM_SHARED | VM_EXEC | VM_WRITE]		= __S110,
-+	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= __S111
- };
+--- a/mm/Kconfig~mm-mmap-add-new-config-arch_has_vm_get_page_prot
++++ a/mm/Kconfig
+@@ -747,6 +747,9 @@ config ARCH_HAS_CACHE_LINE_SIZE
+ config ARCH_HAS_FILTER_PGPROT
+ 	bool
  
- #ifndef CONFIG_ARCH_HAS_FILTER_PGPROT
++config ARCH_HAS_VM_GET_PAGE_PROT
++	bool
++
+ config ARCH_HAS_PTE_DEVMAP
+ 	bool
+ 
+--- a/mm/mmap.c~mm-mmap-add-new-config-arch_has_vm_get_page_prot
++++ a/mm/mmap.c
+@@ -81,6 +81,7 @@ static void unmap_region(struct mm_struc
+ 		struct vm_area_struct *vma, struct vm_area_struct *prev,
+ 		unsigned long start, unsigned long end);
+ 
++#ifndef CONFIG_ARCH_HAS_VM_GET_PAGE_PROT
+ /* description of effects of mapping type and prot in current implementation.
+  * this is due to the limited x86 page protection hardware.  The expected
+  * behavior is in parens:
+@@ -136,6 +137,7 @@ pgprot_t vm_get_page_prot(unsigned long
+ 	return arch_filter_pgprot(ret);
+ }
+ EXPORT_SYMBOL(vm_get_page_prot);
++#endif	/* CONFIG_ARCH_HAS_VM_GET_PAGE_PROT */
+ 
+ static pgprot_t vm_pgprot_modify(pgprot_t oldprot, unsigned long vm_flags)
+ {
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
