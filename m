@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F4F5C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE661C433EF
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 03:13:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239579AbiBVDOC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 22:14:02 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57460 "EHLO
+        id S239630AbiBVDOD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 22:14:03 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239751AbiBVDOA (ORCPT
+        with ESMTP id S239760AbiBVDOA (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 22:14:00 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA5CCDEE2
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:13:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBFE1DF1E
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 19:13:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 77FC9612C8
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:13:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD14DC340E9;
-        Tue, 22 Feb 2022 03:13:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7615B612C8
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 03:13:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C48ABC340E9;
+        Tue, 22 Feb 2022 03:13:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645499610;
-        bh=UniHrbeUpW7OLF+lPOMTgkvSXDK0Fxfic79cUuqVwvg=;
+        s=korg; t=1645499613;
+        bh=H+HcsLvUFnMIXxzQPBd57FucLg2Okllv5DJlG1CqHUg=;
         h=Date:To:From:Subject:From;
-        b=Whie5BsLStsK8q4OKD0djsZlpWJHTjinZchePitIWde42tS6xtaXDXIij4xWuOIon
-         QAXPO7Ty3GF8/xBt3z8rF4GYhNLqPr6bL1NqyyMWpTw/OkC2wEvVripztGlz+6JbZS
-         QqC8+U6s94WlcEsXX6xtcf67eTRgzJV0k1Xhn1eE=
-Date:   Mon, 21 Feb 2022 19:13:30 -0800
-To:     mm-commits@vger.kernel.org, paul.walmsley@sifive.com,
-        palmer@dabbelt.com, anshuman.khandual@arm.com,
-        akpm@linux-foundation.org
+        b=v9fs4FNmvIjmkq1dXPiicF30CKRiKSnlN/ui5/ALiCeVw9/ApjjTmvm8dcHq9lhtr
+         SCe2rt52OXk55ze6norrztQRtvNTdW0c53+r2N4o3tSaHMan3VKHzBP9IfewxtXoIv
+         v60mAIIjPFt3dSnQ9IhwRR64TTVdOguVrENYR4UU=
+Date:   Mon, 21 Feb 2022 19:13:33 -0800
+To:     mm-commits@vger.kernel.org, rth@twiddle.net,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-mm-enable-arch_has_vm_get_page_prot.patch added to -mm tree
-Message-Id: <20220222031330.CD14DC340E9@smtp.kernel.org>
+Subject: + alpha-mm-enable-arch_has_vm_get_page_prot.patch added to -mm tree
+Message-Id: <20220222031333.C48ABC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+     Subject: alpha/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 has been added to the -mm tree.  Its filename is
-     riscv-mm-enable-arch_has_vm_get_page_prot.patch
+     alpha-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/riscv-mm-enable-arch_has_vm_get_page_prot.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/alpha-mm-enable-arch_has_vm_get_page_prot.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/riscv-mm-enable-arch_has_vm_get_page_prot.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/alpha-mm-enable-arch_has_vm_get_page_prot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,109 +63,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: riscv/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+Subject: alpha/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 
 This defines and exports a platform specific custom vm_get_page_prot() via
 subscribing ARCH_HAS_VM_GET_PAGE_PROT.  Subsequently all __SXXX and __PXXX
 macros can be dropped which are no longer needed.
 
-Link: https://lkml.kernel.org/r/1645425519-9034-16-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1645425519-9034-17-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig               |    1 
- arch/riscv/include/asm/pgtable.h |   16 -----------
- arch/riscv/mm/init.c             |   42 +++++++++++++++++++++++++++++
- 3 files changed, 43 insertions(+), 16 deletions(-)
+ arch/alpha/Kconfig               |    1 
+ arch/alpha/include/asm/pgtable.h |   17 -------------
+ arch/alpha/mm/init.c             |   37 +++++++++++++++++++++++++++++
+ 3 files changed, 38 insertions(+), 17 deletions(-)
 
---- a/arch/riscv/include/asm/pgtable.h~riscv-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -183,24 +183,8 @@ extern struct pt_alloc_ops pt_ops __init
- extern pgd_t swapper_pg_dir[];
+--- a/arch/alpha/include/asm/pgtable.h~alpha-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/alpha/include/asm/pgtable.h
+@@ -116,23 +116,6 @@ struct vm_area_struct;
+  * arch/alpha/mm/fault.c)
+  */
+ 	/* xwr */
+-#define __P000	_PAGE_P(_PAGE_FOE | _PAGE_FOW | _PAGE_FOR)
+-#define __P001	_PAGE_P(_PAGE_FOE | _PAGE_FOW)
+-#define __P010	_PAGE_P(_PAGE_FOE)
+-#define __P011	_PAGE_P(_PAGE_FOE)
+-#define __P100	_PAGE_P(_PAGE_FOW | _PAGE_FOR)
+-#define __P101	_PAGE_P(_PAGE_FOW)
+-#define __P110	_PAGE_P(0)
+-#define __P111	_PAGE_P(0)
+-
+-#define __S000	_PAGE_S(_PAGE_FOE | _PAGE_FOW | _PAGE_FOR)
+-#define __S001	_PAGE_S(_PAGE_FOE | _PAGE_FOW)
+-#define __S010	_PAGE_S(_PAGE_FOE)
+-#define __S011	_PAGE_S(_PAGE_FOE)
+-#define __S100	_PAGE_S(_PAGE_FOW | _PAGE_FOR)
+-#define __S101	_PAGE_S(_PAGE_FOW)
+-#define __S110	_PAGE_S(0)
+-#define __S111	_PAGE_S(0)
  
- /* MAP_PRIVATE permissions: xwr (copy-on-write) */
--#define __P000	PAGE_NONE
--#define __P001	PAGE_READ
--#define __P010	PAGE_COPY
--#define __P011	PAGE_COPY
--#define __P100	PAGE_EXEC
--#define __P101	PAGE_READ_EXEC
--#define __P110	PAGE_COPY_EXEC
--#define __P111	PAGE_COPY_READ_EXEC
- 
- /* MAP_SHARED permissions: xwr */
--#define __S000	PAGE_NONE
--#define __S001	PAGE_READ
--#define __S010	PAGE_SHARED
--#define __S011	PAGE_SHARED
--#define __S100	PAGE_EXEC
--#define __S101	PAGE_READ_EXEC
--#define __S110	PAGE_SHARED_EXEC
--#define __S111	PAGE_SHARED_EXEC
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline int pmd_present(pmd_t pmd)
---- a/arch/riscv/Kconfig~riscv-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/riscv/Kconfig
-@@ -31,6 +31,7 @@ config RISCV
- 	select ARCH_HAS_STRICT_MODULE_RWX if MMU && !XIP_KERNEL
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+ /*
+  * pgprot_noncached() is only for infiniband pci support, and a real
+--- a/arch/alpha/Kconfig~alpha-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/alpha/Kconfig
+@@ -2,6 +2,7 @@
+ config ALPHA
+ 	bool
+ 	default y
 +	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select ARCH_OPTIONAL_KERNEL_RWX if ARCH_HAS_STRICT_KERNEL_RWX
- 	select ARCH_OPTIONAL_KERNEL_RWX_DEFAULT
- 	select ARCH_STACKWALK
---- a/arch/riscv/mm/init.c~riscv-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/riscv/mm/init.c
-@@ -1050,3 +1050,45 @@ int __meminit vmemmap_populate(unsigned
- 	return vmemmap_populate_basepages(start, end, node, NULL);
+ 	select ARCH_32BIT_USTAT_F_TINODE
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+--- a/arch/alpha/mm/init.c~alpha-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/alpha/mm/init.c
+@@ -280,3 +280,40 @@ mem_init(void)
+ 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+ 	memblock_free_all();
  }
- #endif
 +
-+#ifdef CONFIG_MMU
 +pgprot_t vm_get_page_prot(unsigned long vm_flags)
 +{
 +	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
-+	/* MAP_PRIVATE permissions: xwr (copy-on-write) */
 +	case VM_NONE:
-+		return PAGE_NONE;
++		return _PAGE_P(_PAGE_FOE | _PAGE_FOW | _PAGE_FOR);
 +	case VM_READ:
-+		return PAGE_READ;
++		return _PAGE_P(_PAGE_FOE | _PAGE_FOW);
 +	case VM_WRITE:
 +	case VM_WRITE | VM_READ:
-+		return PAGE_COPY;
++		return _PAGE_P(_PAGE_FOE);
 +	case VM_EXEC:
-+		return PAGE_EXEC;
++		return _PAGE_P(_PAGE_FOW | _PAGE_FOR);
 +	case VM_EXEC | VM_READ:
-+		return PAGE_READ_EXEC;
++		return _PAGE_P(_PAGE_FOW);
 +	case VM_EXEC | VM_WRITE:
-+		return PAGE_COPY_EXEC;
 +	case VM_EXEC | VM_WRITE | VM_READ:
-+		return PAGE_COPY_READ_EXEC;
-+	/* MAP_SHARED permissions: xwr */
++		return _PAGE_P(0);
 +	case VM_SHARED:
-+		return PAGE_NONE;
++		return _PAGE_S(_PAGE_FOE | _PAGE_FOW | _PAGE_FOR);
 +	case VM_SHARED | VM_READ:
-+		return PAGE_READ;
++		return _PAGE_S(_PAGE_FOE | _PAGE_FOW);
 +	case VM_SHARED | VM_WRITE:
 +	case VM_SHARED | VM_WRITE | VM_READ:
-+		return PAGE_SHARED;
++		return _PAGE_S(_PAGE_FOE);
 +	case VM_SHARED | VM_EXEC:
-+		return PAGE_EXEC;
++		return _PAGE_S(_PAGE_FOW | _PAGE_FOR);
 +	case VM_SHARED | VM_EXEC | VM_READ:
-+		return PAGE_READ_EXEC;
++		return _PAGE_S(_PAGE_FOW);
 +	case VM_SHARED | VM_EXEC | VM_WRITE:
 +	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
-+		return PAGE_SHARED_EXEC;
++		return _PAGE_S(0);
 +	default:
 +		BUILD_BUG();
 +	}
 +}
 +EXPORT_SYMBOL(vm_get_page_prot);
-+#endif /* CONFIG_MMU */
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
