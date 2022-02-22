@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEF22C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 05:32:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCE57C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 05:33:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229580AbiBVFcY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Feb 2022 00:32:24 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:59318 "EHLO
+        id S229617AbiBVFd2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Feb 2022 00:33:28 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:35444 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229570AbiBVFbx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Feb 2022 00:31:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D7D7280
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 21:31:27 -0800 (PST)
+        with ESMTP id S229596AbiBVFdC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Feb 2022 00:33:02 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C0E29683A
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 21:32:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 56CAC615D8
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 05:03:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A56C3C340E8;
-        Tue, 22 Feb 2022 05:03:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 419B3B81873
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 04:57:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBA95C340E8;
+        Tue, 22 Feb 2022 04:57:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645506232;
-        bh=sok9lyhjnzwdCuMgu8iLA0xZjGgUPjSmF1HC1mlXz/0=;
+        s=korg; t=1645505834;
+        bh=RYNgx7p5rymliVS3djylp7OR7XMZjkfJxsifnm5tClE=;
         h=Date:To:From:Subject:From;
-        b=aeKtRvpIme6wUUCxymE0aqv4p7mWYvB+X0qYLOQiIZNmgnKdpqowfjTfU6g3d3Iwh
-         OZg6sLW9X3WRjo9T9k5eWSggA/RQyLn47h1IRJ7NLRve6zMR9/IN+QABdUtDjEPtt7
-         2TlLr3KelAsdyjVVlq7sLKeCRElu1qa7Tj5b3dOI=
-Date:   Mon, 21 Feb 2022 21:03:52 -0800
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, peterx@redhat.com,
-        jack@suse.cz, david@redhat.com, aarcange@redhat.com,
-        namit@vmware.com, akpm@linux-foundation.org
+        b=09o+F/LL6tVQeZJGF7bmYlpqTPueQ1qDf6r51uYxLeE3LaXfqM90vWTO1Hk+s+qU2
+         oCtOdVUTjAMD8WVZ/CmhlhjFSXRpIKmH4xnE1Q5siuG8iYdZd8l7uE9X3vlPbwOXfr
+         u4RaW96fRsIyF4FZbM6jUmV888o/0k8YLUAaNQaA=
+Date:   Mon, 21 Feb 2022 20:57:14 -0800
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-provide-unmasked-address-on-page-fault.patch added to -mm tree
-Message-Id: <20220222050352.A56C3C340E8@smtp.kernel.org>
+Subject: + mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch added to -mm tree
+Message-Id: <20220222045714.CBA95C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: provide unmasked address on page-fault
+     Subject: mm/memory-failure.c: remove obsolete comment in __soft_offline_page
 has been added to the -mm tree.  Its filename is
-     userfaultfd-provide-unmasked-address-on-page-fault.patch
+     mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-provide-unmasked-address-on-page-fault.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-provide-unmasked-address-on-page-fault.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,142 +62,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: userfaultfd: provide unmasked address on page-fault
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory-failure.c: remove obsolete comment in __soft_offline_page
 
-Userfaultfd is supposed to provide the full address (i.e., unmasked) of
-the faulting access back to userspace.  However, that is not the case for
-quite some time.
+Since commit add05cecef80 ("mm: soft-offline: don't free target page in
+successful page migration"), set_migratetype_isolate logic is removed. 
+Remove this obsolete comment.
 
-Even running "userfaultfd_demo" from the userfaultfd man page provides the
-wrong output (and contradicts the man page).  Notice that
-"UFFD_EVENT_PAGEFAULT event" shows the masked address (7fc5e30b3000) and
-not the first read address (0x7fc5e30b300f).
-
-	Address returned by mmap() = 0x7fc5e30b3000
-
-	fault_handler_thread():
-	    poll() returns: nready = 1; POLLIN = 1; POLLERR = 0
-	    UFFD_EVENT_PAGEFAULT event: flags = 0; address = 7fc5e30b3000
-		(uffdio_copy.copy returned 4096)
-	Read address 0x7fc5e30b300f in main(): A
-	Read address 0x7fc5e30b340f in main(): A
-	Read address 0x7fc5e30b380f in main(): A
-	Read address 0x7fc5e30b3c0f in main(): A
-
-The exact address is useful for various reasons and specifically for
-prefetching decisions.  If it is known that the memory is populated by
-certain objects whose size is not page-aligned, then based on the faulting
-address, the uffd-monitor can decide whether to prefetch and prefault the
-adjacent page.
-
-This bug has been for quite some time in the kernel: since commit
-1a29d85eb0f1 ("mm: use vmf->address instead of of vmf->virtual_address")
-vmf->virtual_address"), which dates back to 2016.  A concern has been
-raised that existing userspace application might rely on the old/wrong
-behavior in which the address is masked.  Therefore, it was suggested to
-provide the masked address unless the user explicitly asks for the exact
-address.
-
-Add a new userfaultfd feature UFFD_FEATURE_EXACT_ADDRESS to direct
-userfaultfd to provide the exact address.  Add a new "real_address" field
-to vmf to hold the unmasked address.  Provide the address to userspace
-accordingly.
-
-Link: https://lkml.kernel.org/r/20220218041003.3508-1-namit@vmware.com
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
+Link: https://lkml.kernel.org/r/20220218090118.1105-8-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |    5 ++++-
- include/linux/mm.h               |    3 ++-
- include/uapi/linux/userfaultfd.h |    8 +++++++-
- mm/memory.c                      |    1 +
- 4 files changed, 14 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/fs/userfaultfd.c~userfaultfd-provide-unmasked-address-on-page-fault
-+++ a/fs/userfaultfd.c
-@@ -198,6 +198,9 @@ static inline struct uffd_msg userfault_
- 	struct uffd_msg msg;
- 	msg_init(&msg);
- 	msg.event = UFFD_EVENT_PAGEFAULT;
-+
-+	if (!(features & UFFD_FEATURE_EXACT_ADDRESS))
-+		address &= PAGE_MASK;
- 	msg.arg.pagefault.address = address;
- 	/*
- 	 * These flags indicate why the userfault occurred:
-@@ -482,7 +485,7 @@ vm_fault_t handle_userfault(struct vm_fa
+--- a/mm/memory-failure.c~mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page
++++ a/mm/memory-failure.c
+@@ -2167,10 +2167,6 @@ static int __soft_offline_page(struct pa
+ 		ret = invalidate_inode_page(page);
+ 	unlock_page(page);
  
- 	init_waitqueue_func_entry(&uwq.wq, userfaultfd_wake_function);
- 	uwq.wq.private = current;
--	uwq.msg = userfault_msg(vmf->address, vmf->flags, reason,
-+	uwq.msg = userfault_msg(vmf->real_address, vmf->flags, reason,
- 			ctx->features);
- 	uwq.ctx = ctx;
- 	uwq.waken = false;
---- a/include/linux/mm.h~userfaultfd-provide-unmasked-address-on-page-fault
-+++ a/include/linux/mm.h
-@@ -472,7 +472,8 @@ struct vm_fault {
- 		struct vm_area_struct *vma;	/* Target VMA */
- 		gfp_t gfp_mask;			/* gfp mask to be used for allocations */
- 		pgoff_t pgoff;			/* Logical page offset based on vma */
--		unsigned long address;		/* Faulting virtual address */
-+		unsigned long address;		/* Faulting virtual address - masked */
-+		unsigned long real_address;	/* Faulting virtual address - unmaked */
- 	};
- 	enum fault_flag flags;		/* FAULT_FLAG_xxx flags
- 					 * XXX: should really be 'const' */
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-provide-unmasked-address-on-page-fault
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -32,7 +32,8 @@
- 			   UFFD_FEATURE_SIGBUS |		\
- 			   UFFD_FEATURE_THREAD_ID |		\
- 			   UFFD_FEATURE_MINOR_HUGETLBFS |	\
--			   UFFD_FEATURE_MINOR_SHMEM)
-+			   UFFD_FEATURE_MINOR_SHMEM |		\
-+			   UFFD_FEATURE_EXACT_ADDRESS)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -189,6 +190,10 @@ struct uffdio_api {
- 	 *
- 	 * UFFD_FEATURE_MINOR_SHMEM indicates the same support as
- 	 * UFFD_FEATURE_MINOR_HUGETLBFS, but for shmem-backed pages instead.
-+	 *
-+	 * UFFD_FEATURE_EXACT_ADDRESS indicates that the exact address of page
-+	 * faults would be provided and the offset within the page would not be
-+	 * masked.
- 	 */
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
-@@ -201,6 +206,7 @@ struct uffdio_api {
- #define UFFD_FEATURE_THREAD_ID			(1<<8)
- #define UFFD_FEATURE_MINOR_HUGETLBFS		(1<<9)
- #define UFFD_FEATURE_MINOR_SHMEM		(1<<10)
-+#define UFFD_FEATURE_EXACT_ADDRESS		(1<<11)
- 	__u64 features;
- 
- 	__u64 ioctls;
---- a/mm/memory.c~userfaultfd-provide-unmasked-address-on-page-fault
-+++ a/mm/memory.c
-@@ -4679,6 +4679,7 @@ static vm_fault_t __handle_mm_fault(stru
- 	struct vm_fault vmf = {
- 		.vma = vma,
- 		.address = address & PAGE_MASK,
-+		.real_address = address,
- 		.flags = flags,
- 		.pgoff = linear_page_index(vma, address),
- 		.gfp_mask = __get_fault_gfp_mask(vma),
+-	/*
+-	 * RED-PEN would be better to keep it isolated here, but we
+-	 * would need to fix isolation locking first.
+-	 */
+ 	if (ret) {
+ 		pr_info("soft_offline: %#lx: invalidated\n", pfn);
+ 		page_handle_poison(page, false, true);
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
-userfaultfd-provide-unmasked-address-on-page-fault.patch
+mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
+filemap-remove-find_get_pages.patch
+mm-use-helper-function-range_in_vma.patch
+mm-sparse-make-mminit_validate_memmodel_limits-static.patch
+mm-vmalloc-remove-unneeded-function-forward-declaration.patch
+mm-mmzoneh-remove-unused-macros.patch
+mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
+mm-memory-failurec-catch-unexpected-efault-from-vma_address.patch
+mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
+mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
+mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
+mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
+mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
+mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
+mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
+mm-ksm-use-helper-macro-__attr_rw.patch
+mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
+mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
+mm-memory_hotplug-clean-up-try_offline_node.patch
+mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
+mm-highmem-remove-unnecessary-done-label.patch
+mm-hmmc-remove-unneeded-local-variable-ret.patch
 
