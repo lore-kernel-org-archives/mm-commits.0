@@ -2,116 +2,91 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09536C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 04:22:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A138C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 05:27:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229512AbiBVEWZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 23:22:25 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:51656 "EHLO
+        id S229457AbiBVF1E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Feb 2022 00:27:04 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:41742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229559AbiBVEWY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 23:22:24 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C25B489310
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 20:15:15 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S229508AbiBVF0n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Feb 2022 00:26:43 -0500
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFD86145E35
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 21:26:18 -0800 (PST)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B7FC615B7
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 04:15:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B9B1C340E8;
-        Tue, 22 Feb 2022 04:15:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645503301;
-        bh=ceOZax/3EoSO7z9VVa1CXWAjvsalZctmwZ9eSY7XAuI=;
-        h=Date:To:From:Subject:From;
-        b=rAU3tP9hXIOSI9yGM6oQxKt6Ov9R2VwJE8mr1O32gZK3+AhDS/3WKHBgvUxrUVNf+
-         gbznqT8DJm8HIDQRBN2OoTuBwPItaVHgJdiM85KjCkG1Qrnb6R1y4quAIL066tu9XL
-         WMQpHYUk+NProfoirSVcSh0ju+/EL620A0ueDocI=
-Date:   Mon, 21 Feb 2022 20:15:01 -0800
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com, elver@google.com,
-        pcc@google.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-update-function-name-in-comments.patch added to -mm tree
-Message-Id: <20220222041501.9B9B1C340E8@smtp.kernel.org>
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 61DCC210F2;
+        Tue, 22 Feb 2022 05:26:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1645507577; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=vaxo7sdF6/v7pEDMLphMVKhtK/feeKeNlhIGIfy/LlI=;
+        b=fTUHCbDPJyJ9N4DT9kXVNYh2te+Od0HV2hCQmDeGolVsLd5bVEPs3cnFZ2nvBFRhgTEJul
+        yMeRxL1KJm6xrYzyZEFCuw9AEyJc4TS49o9q9zH6rP9YUuKJThUcxM3/NGeqF8X9bsT4Sy
+        uh0wM9vGBHFE9w+kEx/LIlqM6xn8yl8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1645507577;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=vaxo7sdF6/v7pEDMLphMVKhtK/feeKeNlhIGIfy/LlI=;
+        b=wBvHkP3y8GGHUuuO1Z1ydvuCD94LTKiXsNX+WkEgs9wvRw+dyszh0v9eSfb59ENOEmRSCk
+        RhItEC1dtZ6vS/Bw==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 4CE6213BB5;
+        Tue, 22 Feb 2022 05:26:17 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id 9c4lEvlzFGKJfQAAMHmgww
+        (envelope-from <osalvador@suse.de>); Tue, 22 Feb 2022 05:26:17 +0000
+MIME-Version: 1.0
+Date:   Tue, 22 Feb 2022 06:26:17 +0100
+From:   Oscar Salvador <osalvador@suse.de>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        raquini@redhat.com, mhocko@kernel.org, dennis@kernel.org,
+        david@redhat.com, dave.hansen@linux.intel.com, amakhalov@vmware.com
+Subject: Re: + arch-x86-mm-numa-do-not-initialize-nodes-twice.patch added to
+ -mm tree
+In-Reply-To: <20220222044907.E14EAC340E8@smtp.kernel.org>
+References: <20220222044907.E14EAC340E8@smtp.kernel.org>
+User-Agent: Roundcube Webmail
+Message-ID: <c3ce79948c9aadbe036e11447f06712d@suse.de>
+X-Sender: osalvador@suse.de
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On 2022-02-22 05:49, Andrew Morton wrote:
+> The patch titled
+>      Subject: arch/x86/mm/numa: Do not initialize nodes twice
+> has been added to the -mm tree.  Its filename is
+>      arch-x86-mm-numa-do-not-initialize-nodes-twice.patch
 
-The patch titled
-     Subject: kasan: update function name in comments
-has been added to the -mm tree.  Its filename is
-     kasan-update-function-name-in-comments.patch
+Hi Andrew,
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-update-function-name-in-comments.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-update-function-name-in-comments.patch
+A new v2, addressing some feedback from Michal, was already posted 
+yesterday [1].
+So you might want to drop this one and add that one instead.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Thanks
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+[1] 
+https://lore.kernel.org/linux-mm/20220221142649.3457-1-osalvador@suse.de/T/#u
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Peter Collingbourne <pcc@google.com>
-Subject: kasan: update function name in comments
-
-The function kasan_global_oob was renamed to kasan_global_oob_right, but
-the comments referring to it were not updated.  Do so.
-
-Link: https://linux-review.googlesource.com/id/I20faa90126937bbee77d9d44709556c3dd4b40be
-Link: https://lkml.kernel.org/r/20220219012433.890941-1-pcc@google.com
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/test_kasan.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
---- a/lib/test_kasan.c~kasan-update-function-name-in-comments
-+++ a/lib/test_kasan.c
-@@ -786,7 +786,7 @@ static void ksize_uaf(struct kunit *test
- static void kasan_stack_oob(struct kunit *test)
- {
- 	char stack_array[10];
--	/* See comment in kasan_global_oob. */
-+	/* See comment in kasan_global_oob_right. */
- 	char *volatile array = stack_array;
- 	char *p = &array[ARRAY_SIZE(stack_array) + OOB_TAG_OFF];
- 
-@@ -799,7 +799,7 @@ static void kasan_alloca_oob_left(struct
- {
- 	volatile int i = 10;
- 	char alloca_array[i];
--	/* See comment in kasan_global_oob. */
-+	/* See comment in kasan_global_oob_right. */
- 	char *volatile array = alloca_array;
- 	char *p = array - 1;
- 
-@@ -814,7 +814,7 @@ static void kasan_alloca_oob_right(struc
- {
- 	volatile int i = 10;
- 	char alloca_array[i];
--	/* See comment in kasan_global_oob. */
-+	/* See comment in kasan_global_oob_right. */
- 	char *volatile array = alloca_array;
- 	char *p = array + i;
- 
-_
-
-Patches currently in -mm which might be from pcc@google.com are
-
-kasan-update-function-name-in-comments.patch
-mm-mmzonec-use-try_cmpxchg-in-page_cpupid_xchg_last.patch
-
+-- 
+Oscar Salvador
+SUSE Labs
