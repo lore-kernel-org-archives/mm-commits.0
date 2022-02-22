@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDF35C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 04:21:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09536C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 04:22:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229449AbiBVEWL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 23:22:11 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:50702 "EHLO
+        id S229512AbiBVEWZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 23:22:25 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:51656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229476AbiBVEWK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 23:22:10 -0500
+        with ESMTP id S229559AbiBVEWY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 23:22:24 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 494B688B23
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 20:15:12 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C25B489310
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 20:15:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 69C60615B4
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 04:13:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDCCEC340E8;
-        Tue, 22 Feb 2022 04:13:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B7FC615B7
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 04:15:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B9B1C340E8;
+        Tue, 22 Feb 2022 04:15:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645503235;
-        bh=yfZKR2HFQTQuO0jGKuJmvuCYN0IdP15P2LjbTHhOQis=;
+        s=korg; t=1645503301;
+        bh=ceOZax/3EoSO7z9VVa1CXWAjvsalZctmwZ9eSY7XAuI=;
         h=Date:To:From:Subject:From;
-        b=jpO2Czt86Eod+I/ooej2hjyhJEIs1gnT8T9s2kMmfWRx3x5O7BuYhGbIiNejpTzR1
-         UHEv3nDsmrv5l5xI5U+2e0kdXGyZ0ute1K83sdg8Su4od/NRfbZfLNCZR6gIcnCB0h
-         R6SZPwFf4mghcvlR5QV8uh4H26ES9P/52rQJuXa4=
-Date:   Mon, 21 Feb 2022 20:13:55 -0800
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=rAU3tP9hXIOSI9yGM6oQxKt6Ov9R2VwJE8mr1O32gZK3+AhDS/3WKHBgvUxrUVNf+
+         gbznqT8DJm8HIDQRBN2OoTuBwPItaVHgJdiM85KjCkG1Qrnb6R1y4quAIL066tu9XL
+         WMQpHYUk+NProfoirSVcSh0ju+/EL620A0ueDocI=
+Date:   Mon, 21 Feb 2022 20:15:01 -0800
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com, elver@google.com,
+        pcc@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-helper-function-range_in_vma.patch added to -mm tree
-Message-Id: <20220222041355.BDCCEC340E8@smtp.kernel.org>
+Subject: + kasan-update-function-name-in-comments.patch added to -mm tree
+Message-Id: <20220222041501.9B9B1C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: use helper function range_in_vma()
+     Subject: kasan: update function name in comments
 has been added to the -mm tree.  Its filename is
-     mm-use-helper-function-range_in_vma.patch
+     kasan-update-function-name-in-comments.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-helper-function-range_in_vma.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-update-function-name-in-comments.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-helper-function-range_in_vma.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-update-function-name-in-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,55 +62,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory.c: use helper function range_in_vma()
+From: Peter Collingbourne <pcc@google.com>
+Subject: kasan: update function name in comments
 
-Use helper function range_in_vma() to check if address, address + size are
-within the vma range.  Minor readability improvement.
+The function kasan_global_oob was renamed to kasan_global_oob_right, but
+the comments referring to it were not updated.  Do so.
 
-Link: https://lkml.kernel.org/r/20220219021441.29173-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://linux-review.googlesource.com/id/I20faa90126937bbee77d9d44709556c3dd4b40be
+Link: https://lkml.kernel.org/r/20220219012433.890941-1-pcc@google.com
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_kasan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-use-helper-function-range_in_vma
-+++ a/mm/memory.c
-@@ -1715,7 +1715,7 @@ static void zap_page_range_single(struct
- void zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
- 		unsigned long size)
+--- a/lib/test_kasan.c~kasan-update-function-name-in-comments
++++ a/lib/test_kasan.c
+@@ -786,7 +786,7 @@ static void ksize_uaf(struct kunit *test
+ static void kasan_stack_oob(struct kunit *test)
  {
--	if (address < vma->vm_start || address + size > vma->vm_end ||
-+	if (!range_in_vma(vma, address, address + size) ||
- 	    		!(vma->vm_flags & VM_PFNMAP))
- 		return;
+ 	char stack_array[10];
+-	/* See comment in kasan_global_oob. */
++	/* See comment in kasan_global_oob_right. */
+ 	char *volatile array = stack_array;
+ 	char *p = &array[ARRAY_SIZE(stack_array) + OOB_TAG_OFF];
+ 
+@@ -799,7 +799,7 @@ static void kasan_alloca_oob_left(struct
+ {
+ 	volatile int i = 10;
+ 	char alloca_array[i];
+-	/* See comment in kasan_global_oob. */
++	/* See comment in kasan_global_oob_right. */
+ 	char *volatile array = alloca_array;
+ 	char *p = array - 1;
+ 
+@@ -814,7 +814,7 @@ static void kasan_alloca_oob_right(struc
+ {
+ 	volatile int i = 10;
+ 	char alloca_array[i];
+-	/* See comment in kasan_global_oob. */
++	/* See comment in kasan_global_oob_right. */
+ 	char *volatile array = alloca_array;
+ 	char *p = array + i;
  
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from pcc@google.com are
 
-mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
-filemap-remove-find_get_pages.patch
-mm-use-helper-function-range_in_vma.patch
-mm-sparse-make-mminit_validate_memmodel_limits-static.patch
-mm-vmalloc-remove-unneeded-function-forward-declaration.patch
-mm-mmzoneh-remove-unused-macros.patch
-mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
-mm-memory-failurec-catch-unexpected-efault-from-vma_address.patch
-mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
-mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
-mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
-mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
-mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
-mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
-mm-ksm-use-helper-macro-__attr_rw.patch
-mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
-mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
-mm-memory_hotplug-clean-up-try_offline_node.patch
-mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
-mm-highmem-remove-unnecessary-done-label.patch
-mm-hmmc-remove-unneeded-local-variable-ret.patch
+kasan-update-function-name-in-comments.patch
+mm-mmzonec-use-try_cmpxchg-in-page_cpupid_xchg_last.patch
 
