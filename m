@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59E05C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 04:03:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAC27C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 04:03:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231252AbiBVEDb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 23:03:31 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:36420 "EHLO
+        id S231185AbiBVEDc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 23:03:32 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:36650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231185AbiBVEDW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 23:03:22 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1971A5A58A
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 20:02:51 -0800 (PST)
+        with ESMTP id S230077AbiBVED1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 23:03:27 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD0AE5B3FC
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 20:02:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A976F615A9
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 04:02:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02EFDC340E8;
-        Tue, 22 Feb 2022 04:02:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 531B5B817F8
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 04:02:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08B21C340E8;
+        Tue, 22 Feb 2022 04:02:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645502570;
-        bh=kdULclCj0Wvt9j1P0wnFUPkQ4/0mS6BjPO3yPEGJlw4=;
+        s=korg; t=1645502573;
+        bh=BtQ1eQnEyYcBPA4IMIlIwGuTrk+KRdoc+9Q1jNkPLZU=;
         h=Date:To:From:Subject:From;
-        b=fhEFE2/ndRhjnHwo8pnndhmShvXTFJNxGadLVkP9BH2bsNAJKXazbvAi0dGiN9w5M
-         yFQK6PWY8rIG2lUtWSPfXn1+RVURl8Oc78pAL5TnNR6ixzzaAlzguwTcFfNvuZhCVz
-         HUetAqn+Whsw7bgcdimYFcYHjjH90pcB4DLziWkc=
-Date:   Mon, 21 Feb 2022 20:02:49 -0800
+        b=WMYFdchqy3g7zzWQJZCHvgSiSICFqTdKbaQOwSrhzkLWm/4RzxD6qPCcDvL3bD2oo
+         zIYofFYjlGwxdu0YDkNNKQySNgqgn9dqt1ssjH0pGdL/FP9Sg4RJI9Or+qvGL8GPql
+         gzunD074OfZuVkOuI18aed+6D45b0l6kNnkZvB9U=
+Date:   Mon, 21 Feb 2022 20:02:52 -0800
 To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
         philipp.reisner@linbit.com, paolo.valente@linaro.org,
         miklos@szeredi.hu, lars.ellenberg@linbit.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
         djwong@kernel.org, chao@kernel.org, axboe@kernel.dk,
         Anna.Schumaker@Netapp.com, neilb@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfs-remove-reliance-on-bdi-congestion.patch added to -mm tree
-Message-Id: <20220222040250.02EFDC340E8@smtp.kernel.org>
+Subject: + ceph-remove-reliance-on-bdi-congestion.patch added to -mm tree
+Message-Id: <20220222040253.08B21C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nfs: remove reliance on bdi congestion
+     Subject: ceph: remove reliance on bdi congestion
 has been added to the -mm tree.  Its filename is
-     nfs-remove-reliance-on-bdi-congestion.patch
+     ceph-remove-reliance-on-bdi-congestion.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nfs-remove-reliance-on-bdi-congestion.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ceph-remove-reliance-on-bdi-congestion.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nfs-remove-reliance-on-bdi-congestion.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ceph-remove-reliance-on-bdi-congestion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,12 +68,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: NeilBrown <neilb@suse.de>
-Subject: nfs: remove reliance on bdi congestion
+Subject: ceph: remove reliance on bdi congestion
 
 The bdi congestion tracking in not widely used and will be removed.
 
-NFS is one of a small number of filesystems that uses it, setting just the
-async (write) congestion flag at what it determines are appropriate times.
+CEPHfs is one of a small number of filesystems that uses it, setting just
+the async (write) congestion flags at what it determines are appropriate
+times.
 
 The only remaining effect of the async flag is to cause (some)
 WB_SYNC_NONE writes to be skipped.
@@ -88,7 +89,7 @@ now return PAGE_ACTIVATE instead of PAGE_KEEP, so SetPageActive() will be
 called on the page which (I think) wil further delay the next attempt at
 writeout.  This might be a good thing.
 
-Link: https://lkml.kernel.org/r/164549983738.9187.3972219847989393182.stgit@noble.brown
+Link: https://lkml.kernel.org/r/164549983739.9187.14895675781408171186.stgit@noble.brown
 Signed-off-by: NeilBrown <neilb@suse.de>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
 Cc: Chao Yu <chao@kernel.org>
@@ -108,71 +109,97 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c            |   14 +++++++++++---
- include/linux/nfs_fs_sb.h |    1 +
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ fs/ceph/addr.c  |   22 +++++++++++++---------
+ fs/ceph/super.c |    1 +
+ fs/ceph/super.h |    1 +
+ 3 files changed, 15 insertions(+), 9 deletions(-)
 
---- a/fs/nfs/write.c~nfs-remove-reliance-on-bdi-congestion
-+++ a/fs/nfs/write.c
-@@ -417,7 +417,7 @@ static void nfs_set_page_writeback(struc
+--- a/fs/ceph/addr.c~ceph-remove-reliance-on-bdi-congestion
++++ a/fs/ceph/addr.c
+@@ -563,7 +563,7 @@ static int writepage_nounlock(struct pag
  
- 	if (atomic_long_inc_return(&nfss->writeback) >
- 			NFS_CONGESTION_ON_THRESH)
+ 	if (atomic_long_inc_return(&fsc->writeback_count) >
+ 	    CONGESTION_ON_THRESH(fsc->mount_options->congestion_kb))
 -		set_bdi_congested(inode_to_bdi(inode), BLK_RW_ASYNC);
-+		nfss->write_congested = 1;
- }
++		fsc->write_congested = true;
  
- static void nfs_end_page_writeback(struct nfs_page *req)
-@@ -433,7 +433,7 @@ static void nfs_end_page_writeback(struc
+ 	req = ceph_osdc_new_request(osdc, &ci->i_layout, ceph_vino(inode), page_off, &len, 0, 1,
+ 				    CEPH_OSD_OP_WRITE, CEPH_OSD_FLAG_WRITE, snapc,
+@@ -623,7 +623,7 @@ static int writepage_nounlock(struct pag
  
- 	end_page_writeback(req->wb_page);
- 	if (atomic_long_dec_return(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH)
+ 	if (atomic_long_dec_return(&fsc->writeback_count) <
+ 	    CONGESTION_OFF_THRESH(fsc->mount_options->congestion_kb))
 -		clear_bdi_congested(inode_to_bdi(inode), BLK_RW_ASYNC);
-+		nfss->write_congested = 0;
- }
++		fsc->write_congested = false;
  
- /*
-@@ -672,6 +672,10 @@ static int nfs_writepage_locked(struct p
- 	struct inode *inode = page_file_mapping(page)->host;
- 	int err;
+ 	return err;
+ }
+@@ -635,6 +635,10 @@ static int ceph_writepage(struct page *p
+ 	BUG_ON(!inode);
+ 	ihold(inode);
  
 +	if (wbc->sync_mode == WB_SYNC_NONE &&
-+	    NFS_SERVER(inode)->write_congested)
++	    ceph_inode_to_client(inode)->write_congested)
 +		return AOP_WRITEPAGE_ACTIVATE;
 +
- 	nfs_inc_stats(inode, NFSIOS_VFSWRITEPAGE);
- 	nfs_pageio_init_write(&pgio, inode, 0,
- 				false, &nfs_async_write_completion_ops);
-@@ -719,6 +723,10 @@ int nfs_writepages(struct address_space
- 	int priority = 0;
- 	int err;
+ 	wait_on_page_fscache(page);
+ 
+ 	err = writepage_nounlock(page, wbc);
+@@ -707,8 +711,7 @@ static void writepages_finish(struct cep
+ 			if (atomic_long_dec_return(&fsc->writeback_count) <
+ 			     CONGESTION_OFF_THRESH(
+ 					fsc->mount_options->congestion_kb))
+-				clear_bdi_congested(inode_to_bdi(inode),
+-						    BLK_RW_ASYNC);
++				fsc->write_congested = false;
+ 
+ 			ceph_put_snap_context(detach_page_private(page));
+ 			end_page_writeback(page);
+@@ -760,6 +763,10 @@ static int ceph_writepages_start(struct
+ 	bool done = false;
+ 	bool caching = ceph_is_cache_enabled(inode);
  
 +	if (wbc->sync_mode == WB_SYNC_NONE &&
-+	    NFS_SERVER(inode)->write_congested)
++	    fsc->write_congested)
 +		return 0;
 +
- 	nfs_inc_stats(inode, NFSIOS_VFSWRITEPAGES);
+ 	dout("writepages_start %p (mode=%s)\n", inode,
+ 	     wbc->sync_mode == WB_SYNC_NONE ? "NONE" :
+ 	     (wbc->sync_mode == WB_SYNC_ALL ? "ALL" : "HOLD"));
+@@ -954,11 +961,8 @@ get_more_pages:
  
- 	if (!(mntflags & NFS_MOUNT_WRITE_EAGER) || wbc->for_kupdate ||
-@@ -1893,7 +1901,7 @@ static void nfs_commit_release_pages(str
- 	}
- 	nfss = NFS_SERVER(data->inode);
- 	if (atomic_long_read(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH)
--		clear_bdi_congested(inode_to_bdi(data->inode), BLK_RW_ASYNC);
-+		nfss->write_congested = 0;
+ 			if (atomic_long_inc_return(&fsc->writeback_count) >
+ 			    CONGESTION_ON_THRESH(
+-				    fsc->mount_options->congestion_kb)) {
+-				set_bdi_congested(inode_to_bdi(inode),
+-						  BLK_RW_ASYNC);
+-			}
+-
++				    fsc->mount_options->congestion_kb))
++				fsc->write_congested = true;
  
- 	nfs_init_cinfo(&cinfo, data->inode, data->dreq);
- 	nfs_commit_end(cinfo.mds);
---- a/include/linux/nfs_fs_sb.h~nfs-remove-reliance-on-bdi-congestion
-+++ a/include/linux/nfs_fs_sb.h
-@@ -138,6 +138,7 @@ struct nfs_server {
- 	struct nlm_host		*nlm_host;	/* NLM client handle */
- 	struct nfs_iostats __percpu *io_stats;	/* I/O statistics */
- 	atomic_long_t		writeback;	/* number of writeback pages */
-+	unsigned int		write_congested;/* flag set when writeback gets too high */
- 	unsigned int		flags;		/* various flags */
+ 			pages[locked_pages++] = page;
+ 			pvec.pages[i] = NULL;
+--- a/fs/ceph/super.c~ceph-remove-reliance-on-bdi-congestion
++++ a/fs/ceph/super.c
+@@ -802,6 +802,7 @@ static struct ceph_fs_client *create_fs_
+ 	fsc->have_copy_from2 = true;
  
- /* The following are for internal use only. Also see uapi/linux/nfs_mount.h */
+ 	atomic_long_set(&fsc->writeback_count, 0);
++	fsc->write_congested = false;
+ 
+ 	err = -ENOMEM;
+ 	/*
+--- a/fs/ceph/super.h~ceph-remove-reliance-on-bdi-congestion
++++ a/fs/ceph/super.h
+@@ -121,6 +121,7 @@ struct ceph_fs_client {
+ 	struct ceph_mds_client *mdsc;
+ 
+ 	atomic_long_t writeback_count;
++	bool write_congested;
+ 
+ 	struct workqueue_struct *inode_wq;
+ 	struct workqueue_struct *cap_wq;
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
