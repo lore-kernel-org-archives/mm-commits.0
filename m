@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F91C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 02:10:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E22C7C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 02:26:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230184AbiBVCKj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 21:10:39 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:50782 "EHLO
+        id S232227AbiBVC1H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 21:27:07 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:51858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230081AbiBVCKi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 21:10:38 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0AFA24BE1
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 18:10:14 -0800 (PST)
+        with ESMTP id S229447AbiBVC1H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 21:27:07 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFA3C24580
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 18:26:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 65C85614C1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 02:10:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9397C340E9;
-        Tue, 22 Feb 2022 02:10:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A5D3614E9
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 02:26:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D22A1C340E9;
+        Tue, 22 Feb 2022 02:26:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645495813;
-        bh=U1SpuKj77Wkk4u0qukLCCmQnlwU9T9Rqe4EMeIkh9H0=;
+        s=korg; t=1645496801;
+        bh=1zvUCoNG4ubBTEjI8kAUdrjZbltMnluwrXZTuU96qLo=;
         h=Date:To:From:Subject:From;
-        b=tH08bC6QKmgJYmXV91340xn5it6Tp8ZIqaUSCS6jK9JmoeYIFY3N4JpNO9SKex3Ap
-         1heNHd4QIt4uzYbI4QxS6fR6ILm7HeBQrAbVdkwBrQr8JQ41s3dRi0lwUHSqHsAowK
-         ut3uPVw729Oy8+arjbe+1i0j0nrVnL2o6abMAm5A=
-Date:   Mon, 21 Feb 2022 18:10:13 -0800
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=sFE+shJYZ7mhv7+OMc929ukGsIJoPnL/f1WWqWNxT74Xrz4VyjH2ldcDFD8KkRLvS
+         H6VtKyijo2Ime5RxE1k6N+HuaVVDtt3FYdJYMnnNHksKUJwlSbaeSvXd3CbAQOg6+k
+         uiIiaxT47KPkZDPa8zFvXuKLb2Gb0pQk51QjdNBw=
+Date:   Mon, 21 Feb 2022 18:26:41 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@kernel.org,
+        dave.hansen@linux.intel.com, brouer@redhat.com, aaron.lu@intel.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-use-helper-macro-__attr_rw.patch added to -mm tree
-Message-Id: <20220222021013.A9397C340E9@smtp.kernel.org>
+Subject: + mm-page_alloc-do-not-prefetch-buddies-during-bulk-free.patch added to -mm tree
+Message-Id: <20220222022641.D22A1C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm: use helper macro __ATTR_RW
+     Subject: mm/page_alloc: do not prefetch buddies during bulk free
 has been added to the -mm tree.  Its filename is
-     mm-ksm-use-helper-macro-__attr_rw.patch
+     mm-page_alloc-do-not-prefetch-buddies-during-bulk-free.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-use-helper-macro-__attr_rw.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-prefetch-buddies-during-bulk-free.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-use-helper-macro-__attr_rw.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-prefetch-buddies-during-bulk-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,55 +63,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/ksm: use helper macro __ATTR_RW
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: do not prefetch buddies during bulk free
 
-Use helper macro __ATTR_RW to define KSM_ATTR to make code more clear. 
-Minor readability improvement.
+free_pcppages_bulk() has taken two passes through the pcp lists since
+commit 0a5f4e5b4562 ("mm/free_pcppages_bulk: do not hold lock when picking
+pages to free") due to deferring the cost of selecting PCP lists until the
+zone lock is held.
 
-Link: https://lkml.kernel.org/r/20220221115809.26381-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+As the list processing now takes place under the zone lock, it's less
+clear that this will always benefit for two reasons.
+
+1. There is a guaranteed cost to calculating the buddy which definitely
+   has to be calculated again. However, as the zone lock is held and
+   there is no deferring of buddy merging, there is no guarantee that the
+   prefetch will have completed when the second buddy calculation takes
+   place and buddies are being merged.  With or without the prefetch, there
+   may be further stalls depending on how many pages get merged. In other
+   words, a stall due to merging is inevitable and at best only one stall
+   might be avoided at the cost of calculating the buddy location twice.
+
+2. As the zone lock is held, prefetch_nr makes less sense as once
+   prefetch_nr expires, the cache lines of interest have already been
+   merged.
+
+The main concern is that there is a definite cost to calculating the buddy
+location early for the prefetch and it is a "maybe win" depending on
+whether the CPU prefetch logic and memory is fast enough.  Remove the
+prefetch logic on the basis that reduced instructions in a path is always
+a saving where as the prefetch might save one memory stall depending on
+the CPU and memory.
+
+In most cases, this has marginal benefit as the calculations are a small
+part of the overall freeing of pages.  However, it was detectable on at
+least one machine.
+
+                              5.17.0-rc3             5.17.0-rc3
+                    mm-highpcplimit-v2r1     mm-noprefetch-v1r1
+Min       elapsed      630.00 (   0.00%)      610.00 (   3.17%)
+Amean     elapsed      639.00 (   0.00%)      623.00 *   2.50%*
+Max       elapsed      660.00 (   0.00%)      660.00 (   0.00%)
+
+Link: https://lkml.kernel.org/r/20220221094119.15282-2-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Suggested-by: Aaron Lu <aaron.lu@intel.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/page_alloc.c |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-use-helper-macro-__attr_rw
-+++ a/mm/ksm.c
-@@ -2819,8 +2819,7 @@ static void wait_while_offlining(void)
- #define KSM_ATTR_RO(_name) \
- 	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
- #define KSM_ATTR(_name) \
--	static struct kobj_attribute _name##_attr = \
--		__ATTR(_name, 0644, _name##_show, _name##_store)
-+	static struct kobj_attribute _name##_attr = __ATTR_RW(_name)
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-prefetch-buddies-during-bulk-free
++++ a/mm/page_alloc.c
+@@ -1432,15 +1432,6 @@ static bool bulkfree_pcp_prepare(struct
+ }
+ #endif /* CONFIG_DEBUG_VM */
  
- static ssize_t sleep_millisecs_show(struct kobject *kobj,
- 				    struct kobj_attribute *attr, char *buf)
+-static inline void prefetch_buddy(struct page *page, unsigned int order)
+-{
+-	unsigned long pfn = page_to_pfn(page);
+-	unsigned long buddy_pfn = __find_buddy_pfn(pfn, order);
+-	struct page *buddy = page + (buddy_pfn - pfn);
+-
+-	prefetch(buddy);
+-}
+-
+ /*
+  * Frees a number of pages from the PCP lists
+  * Assumes all pages on list are in same zone.
+@@ -1453,7 +1444,6 @@ static void free_pcppages_bulk(struct zo
+ 	int min_pindex = 0;
+ 	int max_pindex = NR_PCP_LISTS - 1;
+ 	unsigned int order;
+-	int prefetch_nr = READ_ONCE(pcp->batch);
+ 	bool isolated_pageblocks;
+ 	struct page *page;
+ 
+@@ -1508,20 +1498,6 @@ static void free_pcppages_bulk(struct zo
+ 			if (bulkfree_pcp_prepare(page))
+ 				continue;
+ 
+-			/*
+-			 * We are going to put the page back to the global
+-			 * pool, prefetch its buddy to speed up later access
+-			 * under zone->lock. It is believed the overhead of
+-			 * an additional test and calculating buddy_pfn here
+-			 * can be offset by reduced memory latency later. To
+-			 * avoid excessive prefetching due to large count, only
+-			 * prefetch buddy for the first pcp->batch nr of pages.
+-			 */
+-			if (prefetch_nr) {
+-				prefetch_buddy(page, order);
+-				prefetch_nr--;
+-			}
+-
+ 			/* MIGRATE_ISOLATE page should not go to pcplists */
+ 			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
+ 			/* Pageblock could have been isolated meanwhile */
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
-filemap-remove-find_get_pages.patch
-mm-sparse-make-mminit_validate_memmodel_limits-static.patch
-mm-vmalloc-remove-unneeded-function-forward-declaration.patch
-mm-mmzoneh-remove-unused-macros.patch
-mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
-mm-memory-failurec-catch-unexpected-efault-from-vma_address.patch
-mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
-mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
-mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
-mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
-mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
-mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
-mm-ksm-use-helper-macro-__attr_rw.patch
-mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
-mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
-mm-memory_hotplug-clean-up-try_offline_node.patch
-mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
-mm-highmem-remove-unnecessary-done-label.patch
-mm-hmmc-remove-unneeded-local-variable-ret.patch
+mm-page_alloc-fetch-the-correct-pcp-buddy-during-bulk-free.patch
+mm-page_alloc-track-range-of-active-pcp-lists-during-bulk-free.patch
+mm-page_alloc-simplify-how-many-pages-are-selected-per-pcp-list-during-bulk-free.patch
+mm-page_alloc-drain-the-requested-list-first-during-bulk-free.patch
+mm-page_alloc-free-pages-in-a-single-pass-during-bulk-free.patch
+mm-page_alloc-limit-number-of-high-order-pages-on-pcp-during-bulk-free.patch
+mm-page_alloc-do-not-prefetch-buddies-during-bulk-free.patch
 
