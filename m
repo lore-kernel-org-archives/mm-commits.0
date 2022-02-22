@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4F7FC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 02:45:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59A76C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 02:46:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232676AbiBVCpz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 21:45:55 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58486 "EHLO
+        id S232502AbiBVCrP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 21:47:15 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231297AbiBVCpv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 21:45:51 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D19275F97
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 18:45:26 -0800 (PST)
+        with ESMTP id S231297AbiBVCrO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 21:47:14 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCBF722BDE
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 18:46:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7860EB81849
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 02:45:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12DDCC340E9;
-        Tue, 22 Feb 2022 02:45:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4D7D86128E
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 02:46:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2B23C340E9;
+        Tue, 22 Feb 2022 02:46:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645497924;
-        bh=aTjYrghekGj0DOXLJeqlFlDu1yQa/aopid5LO5qWc7g=;
+        s=korg; t=1645498009;
+        bh=FvI4Z/X7cHIKTe7e0FMqhkafCSsIksvLarGIxa3isU8=;
         h=Date:To:From:Subject:From;
-        b=ssMXBK1101CuaLYbDE5oJi6Ai4cdqjmB2kc/2F5X/9BB4azGVTIXkcSHwRj4WlB0U
-         snc5bkBWPKihYf9SwdYBd5vdfvu+1L27S/3I3KAtNzKKauJUkY7E7K387thY9LbMpn
-         jn7pS//NNt85kDeVe+Nj3SbCyPQseXRSqOr/cZ20=
-Date:   Mon, 21 Feb 2022 18:45:23 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
-        zhongjiang-ali@linux.alibaba.com, weixugc@google.com,
-        shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
-        rdunlap@infradead.org, peterz@infradead.org, osalvador@suse.de,
-        mhocko@suse.com, mgorman@techsingularity.net, hannes@cmpxchg.org,
-        feng.tang@intel.com, dave.hansen@linux.intel.com,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=Em9eVvxxDFqF5V6BoVNED5+fQ8+nsH9DvPmiqwnYAuaz17ZKlF5CjMnEcyk4Qs+JN
+         deEUioAanJ7MS4SY9B4hslPDc7w+AGhpeu4bHnk7B6Q1h2GWmUHBWetML51gn/zHlQ
+         9946ozJ4+cpOv4PPlGtrFNb48wIdoB+MpnBY15yA=
+Date:   Mon, 21 Feb 2022 18:46:49 -0800
+To:     mm-commits@vger.kernel.org, glider@google.com, elver@google.com,
+        dvyukov@google.com, tangmeng@uniontech.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memory-tiering-skip-to-scan-fast-memory.patch added to -mm tree
-Message-Id: <20220222024524.12DDCC340E9@smtp.kernel.org>
+Subject: + mm-kfence-remove-unnecessary-config_kfence-option.patch added to -mm tree
+Message-Id: <20220222024649.A2B23C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory tiering: skip to scan fast memory
+     Subject: mm/kfence: remove unnecessary CONFIG_KFENCE option
 has been added to the -mm tree.  Its filename is
-     memory-tiering-skip-to-scan-fast-memory.patch
+     mm-kfence-remove-unnecessary-config_kfence-option.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memory-tiering-skip-to-scan-fast-memory.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-kfence-remove-unnecessary-config_kfence-option.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memory-tiering-skip-to-scan-fast-memory.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kfence-remove-unnecessary-config_kfence-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,136 +63,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: memory tiering: skip to scan fast memory
+From: tangmeng <tangmeng@uniontech.com>
+Subject: mm/kfence: remove unnecessary CONFIG_KFENCE option
 
-If the NUMA balancing isn't used to optimize the page placement among
-sockets but only among memory types, the hot pages in the fast memory node
-couldn't be migrated (promoted) to anywhere.  So it's unnecessary to scan
-the pages in the fast memory node via changing their PTE/PMD mapping to be
-PROT_NONE.  So that the page faults could be avoided too.
+In mm/Makefile has:
+obj-$(CONFIG_KFENCE) += kfence/
 
-In the test, if only the memory tiering NUMA balancing mode is enabled,
-the number of the NUMA balancing hint faults for the DRAM node is reduced
-to almost 0 with the patch.  While the benchmark score doesn't change
-visibly.
+So that we don't need 'obj-$(CONFIG_KFENCE) :=' in mm/kfence/Makefile,
+delete it from mm/kfence/Makefile.
 
-Link: https://lkml.kernel.org/r/20220221084529.1052339-4-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Dave Hansen <dave.hansen@linux.intel.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20220221065525.21344-1-tangmeng@uniontech.com
+Signed-off-by: tangmeng <tangmeng@uniontech.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   30 +++++++++++++++++++++---------
- mm/mprotect.c    |   13 ++++++++++++-
- 2 files changed, 33 insertions(+), 10 deletions(-)
+ mm/kfence/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~memory-tiering-skip-to-scan-fast-memory
-+++ a/mm/huge_memory.c
-@@ -34,6 +34,7 @@
- #include <linux/oom.h>
- #include <linux/numa.h>
- #include <linux/page_owner.h>
-+#include <linux/sched/sysctl.h>
+--- a/mm/kfence/Makefile~mm-kfence-remove-unnecessary-config_kfence-option
++++ a/mm/kfence/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
  
- #include <asm/tlb.h>
- #include <asm/pgalloc.h>
-@@ -1741,17 +1742,28 @@ int change_huge_pmd(struct vm_area_struc
- 	}
- #endif
+-obj-$(CONFIG_KFENCE) := core.o report.o
++obj-y := core.o report.o
  
--	/*
--	 * Avoid trapping faults against the zero page. The read-only
--	 * data is likely to be read-cached on the local CPU and
--	 * local/remote hits to the zero page are not interesting.
--	 */
--	if (prot_numa && is_huge_zero_pmd(*pmd))
--		goto unlock;
-+	if (prot_numa) {
-+		struct page *page;
-+		/*
-+		 * Avoid trapping faults against the zero page. The read-only
-+		 * data is likely to be read-cached on the local CPU and
-+		 * local/remote hits to the zero page are not interesting.
-+		 */
-+		if (is_huge_zero_pmd(*pmd))
-+			goto unlock;
- 
--	if (prot_numa && pmd_protnone(*pmd))
--		goto unlock;
-+		if (pmd_protnone(*pmd))
-+			goto unlock;
- 
-+		page = pmd_page(*pmd);
-+		/*
-+		 * Skip scanning top tier node if normal numa
-+		 * balancing is disabled
-+		 */
-+		if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_NORMAL) &&
-+		    node_is_toptier(page_to_nid(page)))
-+			goto unlock;
-+	}
- 	/*
- 	 * In case prot_numa, we are under mmap_read_lock(mm). It's critical
- 	 * to not clear pmd intermittently to avoid race with MADV_DONTNEED
---- a/mm/mprotect.c~memory-tiering-skip-to-scan-fast-memory
-+++ a/mm/mprotect.c
-@@ -29,6 +29,7 @@
- #include <linux/uaccess.h>
- #include <linux/mm_inline.h>
- #include <linux/pgtable.h>
-+#include <linux/sched/sysctl.h>
- #include <asm/cacheflush.h>
- #include <asm/mmu_context.h>
- #include <asm/tlbflush.h>
-@@ -83,6 +84,7 @@ static unsigned long change_pte_range(st
- 			 */
- 			if (prot_numa) {
- 				struct page *page;
-+				int nid;
- 
- 				/* Avoid TLB flush if possible */
- 				if (pte_protnone(oldpte))
-@@ -109,7 +111,16 @@ static unsigned long change_pte_range(st
- 				 * Don't mess with PTEs if page is already on the node
- 				 * a single-threaded process is running on.
- 				 */
--				if (target_node == page_to_nid(page))
-+				nid = page_to_nid(page);
-+				if (target_node == nid)
-+					continue;
-+
-+				/*
-+				 * Skip scanning top tier node if normal numa
-+				 * balancing is disabled
-+				 */
-+				if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_NORMAL) &&
-+				    node_is_toptier(nid))
- 					continue;
- 			}
- 
+ CFLAGS_kfence_test.o := -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
+ obj-$(CONFIG_KFENCE_KUNIT_TEST) += kfence_test.o
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from tangmeng@uniontech.com are
 
-mmmigrate-fix-establishing-demotion-target.patch
-numa-balancing-add-page-promotion-counter.patch
-numa-balancing-optimize-page-placement-for-memory-tiering-system.patch
-memory-tiering-skip-to-scan-fast-memory.patch
+mm-kfence-remove-unnecessary-config_kfence-option.patch
 
