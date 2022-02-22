@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAC27C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 04:03:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 944FAC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Feb 2022 04:03:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231185AbiBVEDc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Feb 2022 23:03:32 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:36650 "EHLO
+        id S231163AbiBVEDo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Feb 2022 23:03:44 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:36788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230077AbiBVED1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 23:03:27 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD0AE5B3FC
-        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 20:02:55 -0800 (PST)
+        with ESMTP id S231186AbiBVED3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Feb 2022 23:03:29 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEB2D5B8B3
+        for <mm-commits@vger.kernel.org>; Mon, 21 Feb 2022 20:02:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 531B5B817F8
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 04:02:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08B21C340E8;
-        Tue, 22 Feb 2022 04:02:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6E89EB81859
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 04:02:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04F1BC340E8;
+        Tue, 22 Feb 2022 04:02:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645502573;
-        bh=BtQ1eQnEyYcBPA4IMIlIwGuTrk+KRdoc+9Q1jNkPLZU=;
+        s=korg; t=1645502576;
+        bh=APu+QKBUEtDgcoVNG5MBw5r6MiqhXbO25lBQlSRNPtA=;
         h=Date:To:From:Subject:From;
-        b=WMYFdchqy3g7zzWQJZCHvgSiSICFqTdKbaQOwSrhzkLWm/4RzxD6qPCcDvL3bD2oo
-         zIYofFYjlGwxdu0YDkNNKQySNgqgn9dqt1ssjH0pGdL/FP9Sg4RJI9Or+qvGL8GPql
-         gzunD074OfZuVkOuI18aed+6D45b0l6kNnkZvB9U=
-Date:   Mon, 21 Feb 2022 20:02:52 -0800
+        b=uCm4GSLeF2yqfBc8fSILY/nKwimNfhF/oYjw2rvbC7cC2GOs3/N6fZCAWbLAKlupW
+         i9iUkYRwXo09vq3fVX59Zl3sycaRihhFylEMpjuyNxIOD+/5AkUB4aYie4/u5baOZd
+         ZEzQgNUtx767qL2VdYtq62vsvDU8gHqpiFZ+uUKM=
+Date:   Mon, 21 Feb 2022 20:02:55 -0800
 To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
         philipp.reisner@linbit.com, paolo.valente@linaro.org,
         miklos@szeredi.hu, lars.ellenberg@linbit.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
         djwong@kernel.org, chao@kernel.org, axboe@kernel.dk,
         Anna.Schumaker@Netapp.com, neilb@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ceph-remove-reliance-on-bdi-congestion.patch added to -mm tree
-Message-Id: <20220222040253.08B21C340E8@smtp.kernel.org>
+Subject: + remove-inode_congested.patch added to -mm tree
+Message-Id: <20220222040256.04F1BC340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ceph: remove reliance on bdi congestion
+     Subject: remove inode_congested()
 has been added to the -mm tree.  Its filename is
-     ceph-remove-reliance-on-bdi-congestion.patch
+     remove-inode_congested.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ceph-remove-reliance-on-bdi-congestion.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/remove-inode_congested.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ceph-remove-reliance-on-bdi-congestion.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/remove-inode_congested.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,28 +68,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: NeilBrown <neilb@suse.de>
-Subject: ceph: remove reliance on bdi congestion
+Subject: remove inode_congested()
 
-The bdi congestion tracking in not widely used and will be removed.
+inode_congested() reports if the backing-device for the inode is
+congested.  No bdi reports congestion any more, so this always returns
+'false'.
 
-CEPHfs is one of a small number of filesystems that uses it, setting just
-the async (write) congestion flags at what it determines are appropriate
-times.
+So remove inode_congested() and related functions, and remove the call
+sites, assuming that inode_congested() always returns 'false'.
 
-The only remaining effect of the async flag is to cause (some)
-WB_SYNC_NONE writes to be skipped.
-
-So instead of setting the flag, set an internal flag and change:
- - .writepages to do nothing if WB_SYNC_NONE and the flag is set
- - .writepage to return AOP_WRITEPAGE_ACTIVATE if WB_SYNC_NONE
-    and the flag is set.
-
-The writepages change causes a behavioural change in that pageout() can
-now return PAGE_ACTIVATE instead of PAGE_KEEP, so SetPageActive() will be
-called on the page which (I think) wil further delay the next attempt at
-writeout.  This might be a good thing.
-
-Link: https://lkml.kernel.org/r/164549983739.9187.14895675781408171186.stgit@noble.brown
+Link: https://lkml.kernel.org/r/164549983741.9187.2174285592262191311.stgit@noble.brown
 Signed-off-by: NeilBrown <neilb@suse.de>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
 Cc: Chao Yu <chao@kernel.org>
@@ -109,97 +97,168 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ceph/addr.c  |   22 +++++++++++++---------
- fs/ceph/super.c |    1 +
- fs/ceph/super.h |    1 +
- 3 files changed, 15 insertions(+), 9 deletions(-)
+ fs/fs-writeback.c           |   37 ----------------------------------
+ include/linux/backing-dev.h |   22 --------------------
+ mm/fadvise.c                |    5 +---
+ mm/readahead.c              |    6 -----
+ mm/vmscan.c                 |   17 ---------------
+ 5 files changed, 3 insertions(+), 84 deletions(-)
 
---- a/fs/ceph/addr.c~ceph-remove-reliance-on-bdi-congestion
-+++ a/fs/ceph/addr.c
-@@ -563,7 +563,7 @@ static int writepage_nounlock(struct pag
+--- a/fs/fs-writeback.c~remove-inode_congested
++++ a/fs/fs-writeback.c
+@@ -894,43 +894,6 @@ void wbc_account_cgroup_owner(struct wri
+ EXPORT_SYMBOL_GPL(wbc_account_cgroup_owner);
  
- 	if (atomic_long_inc_return(&fsc->writeback_count) >
- 	    CONGESTION_ON_THRESH(fsc->mount_options->congestion_kb))
--		set_bdi_congested(inode_to_bdi(inode), BLK_RW_ASYNC);
-+		fsc->write_congested = true;
- 
- 	req = ceph_osdc_new_request(osdc, &ci->i_layout, ceph_vino(inode), page_off, &len, 0, 1,
- 				    CEPH_OSD_OP_WRITE, CEPH_OSD_FLAG_WRITE, snapc,
-@@ -623,7 +623,7 @@ static int writepage_nounlock(struct pag
- 
- 	if (atomic_long_dec_return(&fsc->writeback_count) <
- 	    CONGESTION_OFF_THRESH(fsc->mount_options->congestion_kb))
--		clear_bdi_congested(inode_to_bdi(inode), BLK_RW_ASYNC);
-+		fsc->write_congested = false;
- 
- 	return err;
- }
-@@ -635,6 +635,10 @@ static int ceph_writepage(struct page *p
- 	BUG_ON(!inode);
- 	ihold(inode);
- 
-+	if (wbc->sync_mode == WB_SYNC_NONE &&
-+	    ceph_inode_to_client(inode)->write_congested)
-+		return AOP_WRITEPAGE_ACTIVATE;
-+
- 	wait_on_page_fscache(page);
- 
- 	err = writepage_nounlock(page, wbc);
-@@ -707,8 +711,7 @@ static void writepages_finish(struct cep
- 			if (atomic_long_dec_return(&fsc->writeback_count) <
- 			     CONGESTION_OFF_THRESH(
- 					fsc->mount_options->congestion_kb))
--				clear_bdi_congested(inode_to_bdi(inode),
--						    BLK_RW_ASYNC);
-+				fsc->write_congested = false;
- 
- 			ceph_put_snap_context(detach_page_private(page));
- 			end_page_writeback(page);
-@@ -760,6 +763,10 @@ static int ceph_writepages_start(struct
- 	bool done = false;
- 	bool caching = ceph_is_cache_enabled(inode);
- 
-+	if (wbc->sync_mode == WB_SYNC_NONE &&
-+	    fsc->write_congested)
-+		return 0;
-+
- 	dout("writepages_start %p (mode=%s)\n", inode,
- 	     wbc->sync_mode == WB_SYNC_NONE ? "NONE" :
- 	     (wbc->sync_mode == WB_SYNC_ALL ? "ALL" : "HOLD"));
-@@ -954,11 +961,8 @@ get_more_pages:
- 
- 			if (atomic_long_inc_return(&fsc->writeback_count) >
- 			    CONGESTION_ON_THRESH(
--				    fsc->mount_options->congestion_kb)) {
--				set_bdi_congested(inode_to_bdi(inode),
--						  BLK_RW_ASYNC);
--			}
+ /**
+- * inode_congested - test whether an inode is congested
+- * @inode: inode to test for congestion (may be NULL)
+- * @cong_bits: mask of WB_[a]sync_congested bits to test
+- *
+- * Tests whether @inode is congested.  @cong_bits is the mask of congestion
+- * bits to test and the return value is the mask of set bits.
+- *
+- * If cgroup writeback is enabled for @inode, the congestion state is
+- * determined by whether the cgwb (cgroup bdi_writeback) for the blkcg
+- * associated with @inode is congested; otherwise, the root wb's congestion
+- * state is used.
+- *
+- * @inode is allowed to be NULL as this function is often called on
+- * mapping->host which is NULL for the swapper space.
+- */
+-int inode_congested(struct inode *inode, int cong_bits)
+-{
+-	/*
+-	 * Once set, ->i_wb never becomes NULL while the inode is alive.
+-	 * Start transaction iff ->i_wb is visible.
+-	 */
+-	if (inode && inode_to_wb_is_valid(inode)) {
+-		struct bdi_writeback *wb;
+-		struct wb_lock_cookie lock_cookie = {};
+-		bool congested;
 -
-+				    fsc->mount_options->congestion_kb))
-+				fsc->write_congested = true;
+-		wb = unlocked_inode_to_wb_begin(inode, &lock_cookie);
+-		congested = wb_congested(wb, cong_bits);
+-		unlocked_inode_to_wb_end(inode, &lock_cookie);
+-		return congested;
+-	}
+-
+-	return wb_congested(&inode_to_bdi(inode)->wb, cong_bits);
+-}
+-EXPORT_SYMBOL_GPL(inode_congested);
+-
+-/**
+  * wb_split_bdi_pages - split nr_pages to write according to bandwidth
+  * @wb: target bdi_writeback to split @nr_pages to
+  * @nr_pages: number of pages to write for the whole bdi
+--- a/include/linux/backing-dev.h~remove-inode_congested
++++ a/include/linux/backing-dev.h
+@@ -162,7 +162,6 @@ struct bdi_writeback *wb_get_create(stru
+ 				    gfp_t gfp);
+ void wb_memcg_offline(struct mem_cgroup *memcg);
+ void wb_blkcg_offline(struct blkcg *blkcg);
+-int inode_congested(struct inode *inode, int cong_bits);
  
- 			pages[locked_pages++] = page;
- 			pvec.pages[i] = NULL;
---- a/fs/ceph/super.c~ceph-remove-reliance-on-bdi-congestion
-+++ a/fs/ceph/super.c
-@@ -802,6 +802,7 @@ static struct ceph_fs_client *create_fs_
- 	fsc->have_copy_from2 = true;
+ /**
+  * inode_cgwb_enabled - test whether cgroup writeback is enabled on an inode
+@@ -390,29 +389,8 @@ static inline void wb_blkcg_offline(stru
+ {
+ }
  
- 	atomic_long_set(&fsc->writeback_count, 0);
-+	fsc->write_congested = false;
+-static inline int inode_congested(struct inode *inode, int cong_bits)
+-{
+-	return wb_congested(&inode_to_bdi(inode)->wb, cong_bits);
+-}
+-
+ #endif	/* CONFIG_CGROUP_WRITEBACK */
  
- 	err = -ENOMEM;
- 	/*
---- a/fs/ceph/super.h~ceph-remove-reliance-on-bdi-congestion
-+++ a/fs/ceph/super.h
-@@ -121,6 +121,7 @@ struct ceph_fs_client {
- 	struct ceph_mds_client *mdsc;
+-static inline int inode_read_congested(struct inode *inode)
+-{
+-	return inode_congested(inode, 1 << WB_sync_congested);
+-}
+-
+-static inline int inode_write_congested(struct inode *inode)
+-{
+-	return inode_congested(inode, 1 << WB_async_congested);
+-}
+-
+-static inline int inode_rw_congested(struct inode *inode)
+-{
+-	return inode_congested(inode, (1 << WB_sync_congested) |
+-				      (1 << WB_async_congested));
+-}
+-
+ static inline int bdi_congested(struct backing_dev_info *bdi, int cong_bits)
+ {
+ 	return wb_congested(&bdi->wb, cong_bits);
+--- a/mm/fadvise.c~remove-inode_congested
++++ a/mm/fadvise.c
+@@ -109,9 +109,8 @@ int generic_fadvise(struct file *file, l
+ 	case POSIX_FADV_NOREUSE:
+ 		break;
+ 	case POSIX_FADV_DONTNEED:
+-		if (!inode_write_congested(mapping->host))
+-			__filemap_fdatawrite_range(mapping, offset, endbyte,
+-						   WB_SYNC_NONE);
++		__filemap_fdatawrite_range(mapping, offset, endbyte,
++					   WB_SYNC_NONE);
  
- 	atomic_long_t writeback_count;
-+	bool write_congested;
+ 		/*
+ 		 * First and last FULL page! Partial pages are deliberately
+--- a/mm/readahead.c~remove-inode_congested
++++ a/mm/readahead.c
+@@ -709,12 +709,6 @@ void page_cache_async_ra(struct readahea
  
- 	struct workqueue_struct *inode_wq;
- 	struct workqueue_struct *cap_wq;
+ 	folio_clear_readahead(folio);
+ 
+-	/*
+-	 * Defer asynchronous read-ahead on IO congestion.
+-	 */
+-	if (inode_read_congested(ractl->mapping->host))
+-		return;
+-
+ 	if (blk_cgroup_congested())
+ 		return;
+ 
+--- a/mm/vmscan.c~remove-inode_congested
++++ a/mm/vmscan.c
+@@ -989,17 +989,6 @@ static inline int is_page_cache_freeable
+ 	return page_count(page) - page_has_private(page) == 1 + page_cache_pins;
+ }
+ 
+-static int may_write_to_inode(struct inode *inode)
+-{
+-	if (current->flags & PF_SWAPWRITE)
+-		return 1;
+-	if (!inode_write_congested(inode))
+-		return 1;
+-	if (inode_to_bdi(inode) == current->backing_dev_info)
+-		return 1;
+-	return 0;
+-}
+-
+ /*
+  * We detected a synchronous write error writing a page out.  Probably
+  * -ENOSPC.  We need to propagate that into the address_space for a subsequent
+@@ -1201,8 +1190,6 @@ static pageout_t pageout(struct page *pa
+ 	}
+ 	if (mapping->a_ops->writepage == NULL)
+ 		return PAGE_ACTIVATE;
+-	if (!may_write_to_inode(mapping->host))
+-		return PAGE_KEEP;
+ 
+ 	if (clear_page_dirty_for_io(page)) {
+ 		int res;
+@@ -1578,9 +1565,7 @@ retry:
+ 		 * end of the LRU a second time.
+ 		 */
+ 		mapping = page_mapping(page);
+-		if (((dirty || writeback) && mapping &&
+-		     inode_write_congested(mapping->host)) ||
+-		    (writeback && PageReclaim(page)))
++		if (writeback && PageReclaim(page))
+ 			stat->nr_congested++;
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
