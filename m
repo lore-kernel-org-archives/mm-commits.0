@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10D2AC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Feb 2022 03:54:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97282C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Feb 2022 03:56:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236858AbiBWDzC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Feb 2022 22:55:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52570 "EHLO
+        id S235580AbiBWD4o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Feb 2022 22:56:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231979AbiBWDzC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Feb 2022 22:55:02 -0500
+        with ESMTP id S231979AbiBWD4n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Feb 2022 22:56:43 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 637C66663E
-        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 19:54:35 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB29966ADD
+        for <mm-commits@vger.kernel.org>; Tue, 22 Feb 2022 19:56:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F39BF61794
-        for <mm-commits@vger.kernel.org>; Wed, 23 Feb 2022 03:54:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53CF0C340E7;
-        Wed, 23 Feb 2022 03:54:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 77411616B0
+        for <mm-commits@vger.kernel.org>; Wed, 23 Feb 2022 03:56:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBB5FC340E7;
+        Wed, 23 Feb 2022 03:56:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645588474;
-        bh=71sqnQGBmPxeydas5pQGQfgtt8rgaeZ+Fsh1+4wXZ0Y=;
+        s=korg; t=1645588575;
+        bh=3tfhgVB+cl5AAxz5WhAzlu1DORXqU2lHAZTKxEqleZM=;
         h=Date:To:From:Subject:From;
-        b=NMxJn1Ein2WoDkkiePgactpTZ+/j65mcH+elzG3VO0WsrM1A5xFc3RPwCaiJ8UXcA
-         dMtLKmge9nLOcyC2lAJ/07zRDby2vZSV5JbrkkgWBxWTYiMv6PvVYpEe0ljN4q0h2U
-         oqEEsMMC2MK8yEugo6Yv9TxyW25mbTWfBd4Oih5k=
-Date:   Tue, 22 Feb 2022 19:54:33 -0800
-To:     mm-commits@vger.kernel.org, xu.xin16@zte.com.cn,
-        edumazet@google.com, ebiederm@xmission.com,
-        deng.changcheng@zte.com.cn, davem@davemloft.net,
-        bsingharora@gmail.com, cgel.zte@gmail.com,
-        akpm@linux-foundation.org
+        b=Df40CAZNbKDVStzOjeF6qS3Y+QNXPFqhfIWX3LNx7lh68K19GkyyZHHa/ptMEPBfy
+         3XgbP1t/O/1WPIgk4S5Geqk1TfkrYseRjuLpdQASaRsCcDcww1v/wel10FS1xj37rL
+         xnELsmJsMtC4t8aFf10U3GWI0L5JgovNzOG4amrk=
+Date:   Tue, 22 Feb 2022 19:56:15 -0800
+To:     mm-commits@vger.kernel.org, lkp@intel.com, elver@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] kernel-make-taskstats-available-via-genetlink-per-namespace.patch removed from -mm tree
-Message-Id: <20220223035434.53CF0C340E7@smtp.kernel.org>
+Subject: + kasan-improve-vmalloc-tests-fix-3.patch added to -mm tree
+Message-Id: <20220223035615.CBB5FC340E7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,63 +41,108 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/taskstats.c: make taskstats available via genetlink per namespace
-has been removed from the -mm tree.  Its filename was
-     kernel-make-taskstats-available-via-genetlink-per-namespace.patch
+     Subject: another fix for "kasan: improve vmalloc tests"
+has been added to the -mm tree.  Its filename is
+     kasan-improve-vmalloc-tests-fix-3.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-improve-vmalloc-tests-fix-3.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-improve-vmalloc-tests-fix-3.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: xu xin <cgel.zte@gmail.com>
-Subject: kernel/taskstats.c: make taskstats available via genetlink per namespace
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: another fix for "kasan: improve vmalloc tests"
 
-Currently, the application getdelays cannot get taskstats in a net
-namespace.  The returned error is just like the following:
+set_memory_rw/ro() are not exported to be used in modules and thus
+cannot be used in KUnit-compatible KASAN tests.
 
--sh-4.4# ps -ef | tail -5
-root       186     2  0 09:23 ?        00:00:00 [kworker/2:1H]
-root       187     2  0 09:23 ?        00:00:00 [kworker/0:2-eve]
-root       190   183  0 09:23 ?        00:00:00 -sh
-root       198   190  0 09:25 ?        00:00:00 ps -ef
-root       199   190  0 09:25 ?        00:00:00 tail -5
--sh-4.4#
--sh-4.4# ./getdelays -d -p 186 -v
-print delayacct stats ON
-debug on
-Error getting family id, errno 0
+Do the checks that rely on these functions only when the tests are
+built-in.
 
-As more and more applications are deployed in containers like Docker, it
-is necessary to support getdelays to be used in net namespace.  Taskstats
-is safe for use per namespace as genetlink checks the capability of
-namespace message by netlink_ns_capable().
-
-Make taskstats available via genetlink per namespace.
-
-Link: https://lkml.kernel.org/r/20220221032202.1925507-1-xu.xin16@zte.com.cn
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Reported-by: Changcheng Deng <deng.changcheng@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
+Link: https://lkml.kernel.org/r/019ac41602e0c4a7dfe96dc8158a95097c2b2ebd.1645554036.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/test_kasan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/kernel/taskstats.c~kernel-make-taskstats-available-via-genetlink-per-namespace
-+++ a/kernel/taskstats.c
-@@ -664,6 +664,7 @@ static struct genl_family family __ro_af
- 	.module		= THIS_MODULE,
- 	.ops		= taskstats_ops,
- 	.n_ops		= ARRAY_SIZE(taskstats_ops),
-+	.netnsok	= true,
- };
+--- a/lib/test_kasan.c~kasan-improve-vmalloc-tests-fix-3
++++ a/lib/test_kasan.c
+@@ -1079,11 +1079,13 @@ static void vmalloc_helpers_tags(struct
+ 	KUNIT_ASSERT_TRUE(test, is_vmalloc_addr(ptr));
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, vmalloc_to_page(ptr));
  
- /* Needed early in initialization */
++#if !IS_MODULE(CONFIG_KASAN_KUNIT_TEST)
+ 	/* Make sure vmalloc'ed memory permissions can be changed. */
+ 	rv = set_memory_ro((unsigned long)ptr, 1);
+ 	KUNIT_ASSERT_GE(test, rv, 0);
+ 	rv = set_memory_rw((unsigned long)ptr, 1);
+ 	KUNIT_ASSERT_GE(test, rv, 0);
++#endif
+ 
+ 	vfree(ptr);
+ }
 _
 
-Patches currently in -mm which might be from cgel.zte@gmail.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
+kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
+kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
+kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+mm-clarify-__gfp_zerotags-comment.patch
+kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
+kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
+kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
+kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
+kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+kasan-clean-up-metadata-byte-definitions.patch
+kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
+kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+kasan-reorder-vmalloc-hooks.patch
+kasan-add-wrappers-for-vmalloc-hooks.patch
+kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
+kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
+kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
+kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
+kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
+kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
+kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+kasan-add-kasanvmalloc-command-line-flag.patch
+kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
+arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
+kasan-documentation-updates.patch
+kasan-improve-vmalloc-tests.patch
+kasan-improve-vmalloc-tests-fix-2.patch
+kasan-improve-vmalloc-tests-fix-3.patch
+kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
 
