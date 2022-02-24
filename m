@@ -2,41 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B38DEC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Feb 2022 04:23:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96FBBC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Feb 2022 04:28:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229751AbiBXEX5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Feb 2022 23:23:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48336 "EHLO
+        id S229642AbiBXE2u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Feb 2022 23:28:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229710AbiBXEXx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Feb 2022 23:23:53 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E32AC199E1B
-        for <mm-commits@vger.kernel.org>; Wed, 23 Feb 2022 20:23:23 -0800 (PST)
+        with ESMTP id S229475AbiBXE2r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Feb 2022 23:28:47 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99C2919D77F
+        for <mm-commits@vger.kernel.org>; Wed, 23 Feb 2022 20:28:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 90419B823C8
-        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 04:23:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15384C340E9;
-        Thu, 24 Feb 2022 04:23:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2578F6176A
+        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 04:28:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 792CDC340E9;
+        Thu, 24 Feb 2022 04:28:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645676601;
-        bh=WuehnGKIR7+pGULXAMlskI+y5nSiuCWKY1Wjzm1t/N8=;
+        s=korg; t=1645676897;
+        bh=H3yKNCvrJ5sFmoGnkZDFNvypsN1K7kNA7gLVx2kWR+g=;
         h=Date:To:From:Subject:From;
-        b=oLfYN14DuVQscMkfZK/h9lzjIXHpkC+IS29AWLkb1PyirP8Wq7aP5xMvFCQa7rEag
-         oVYGlyZVsc3CUy1sz/rQM6HiVvv3CClyf3NOO+mF+re+2DYZngVInMdr/tcAzNcnXY
-         9/Q05kMwDkwSsnebJUSJeYYstJYcispK++tSli5c=
-Date:   Wed, 23 Feb 2022 20:23:20 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.l.verma@intel.com, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, jgg@ziepe.ca, jane.chu@oracle.com,
-        hch@lst.de, dan.j.williams@intel.com, corbet@lwn.net,
-        joao.m.martins@oracle.com, akpm@linux-foundation.org
+        b=Vzaj8GTY+bA0YHg8rzBD7Nc9IqeBjK9AkmHrGRdis5FDksmJHYU+M3ntllOGFsWqI
+         XgMRXWuelYd1tktW9Tgmb8SklsGnzx/TRoaXGtZ3W4eY6BGeZJlGH9wSFIKK5bUr8Z
+         YX9/3LY3LrfpvJkXhkV2oanW5PFrkOZSpBksDlN0=
+Date:   Wed, 23 Feb 2022 20:28:16 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sumit.semwal@linaro.org, sashal@kernel.org, pcc@google.com,
+        mhocko@suse.com, legion@kernel.org,
+        kirill.shutemov@linux.intel.com, keescook@chromium.org,
+        hannes@cmpxchg.org, gorcunov@gmail.com, ebiederm@xmission.com,
+        david@redhat.com, dave@stgolabs.net, dave.hansen@intel.com,
+        chris.hyser@oracle.com, ccross@google.com, caoxiaofeng@yulong.com,
+        brauner@kernel.org, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch added to -mm tree
-Message-Id: <20220224042321.15384C340E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch removed from -mm tree
+Message-Id: <20220224042817.792CDC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,103 +47,269 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: reuse tail struct pages for compound devmaps
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
+     Subject: mm: fix use-after-free when anon vma name is used after vma is freed
+has been removed from the -mm tree.  Its filename was
+     mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/page_alloc: reuse tail struct pages for compound devmaps
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: fix use-after-free when anon vma name is used after vma is freed
 
-Currently memmap_init_zone_device() ends up initializing 32768 pages when
-it only needs to initialize 128 given tail page reuse.  That number is
-worse with 1GB compound pages, 262144 instead of 128.  Update
-memmap_init_zone_device() to skip redundant initialization, detailed
-below.
+When adjacent vmas are being merged it can result in the vma that was
+originally passed to madvise_update_vma being destroyed.  In the current
+implementation, the name parameter passed to madvise_update_vma points
+directly to vma->anon_name->name and it is used after the call to
+vma_merge.  In the cases when vma_merge merges the original vma and
+destroys it, this will result in use-after-free bug as shown below:
 
-When a pgmap @vmemmap_shift is set, all pages are mapped at a given huge
-page alignment and use compound pages to describe them as opposed to a
-struct per 4K.
+madvise_vma_behavior << passes vma->anon_name->name as name param
+  madvise_update_vma(name)
+    vma_merge
+      __vma_adjust
+        vm_area_free <-- frees the vma
+    replace_vma_anon_name(name) <-- UAF
 
-With @vmemmap_shift > 0 and when struct pages are stored in ram (!altmap)
-most tail pages are reused.  Consequently, the amount of unique struct
-pages is a lot smaller that the total amount of struct pages being mapped.
+Fix this by raising the name refcount and stabilizing it. Introduce
+vma_anon_name_{get/put} API for this purpose.
 
-The altmap path is left alone since it does not support memory savings
-based on compound pages devmap.
-
-Link: https://lkml.kernel.org/r/20220223194807.12070-6-joao.m.martins@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+Link: https://lkml.kernel.org/r/20220211013032.623763-1-surenb@google.com
+Fixes: 9a10064f5625 ("mm: add a field to store names for private anonymous memory")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: syzbot+aa7b3d4b35f9dc46a366@syzkaller.appspotmail.com
+Cc: Colin Cross <ccross@google.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Alexey Gladkov <legion@kernel.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Chris Hyser <chris.hyser@oracle.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Xiaofeng Cao <caoxiaofeng@yulong.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ include/linux/mm_inline.h |   13 ++++++
+ mm/madvise.c              |   67 ++++++++++++++++++++++++++----------
+ 2 files changed, 63 insertions(+), 17 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps
-+++ a/mm/page_alloc.c
-@@ -6622,6 +6622,20 @@ static void __ref __init_zone_device_pag
- 	}
- }
+--- a/include/linux/mm_inline.h~mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed
++++ a/include/linux/mm_inline.h
+@@ -145,6 +145,11 @@ static __always_inline void del_page_fro
+  */
+ extern const char *vma_anon_name(struct vm_area_struct *vma);
  
-+/*
-+ * With compound page geometry and when struct pages are stored in ram most
-+ * tail pages are reused. Consequently, the amount of unique struct pages to
-+ * initialize is a lot smaller that the total amount of struct pages being
-+ * mapped. This is a paired / mild layering violation with explicit knowledge
-+ * of how the sparse_vmemmap internals handle compound pages in the lack
-+ * of an altmap. See vmemmap_populate_compound_pages().
-+ */
-+static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
-+					      unsigned long nr_pages)
++/* mmap_lock should be read-locked */
++extern struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma);
++
++extern void vma_anon_name_put(struct anon_vma_name *anon_name);
++
+ /*
+  * mmap_lock should be read-locked for orig_vma->vm_mm.
+  * mmap_lock should be write-locked for new_vma->vm_mm or new_vma should be
+@@ -176,6 +181,14 @@ static inline const char *vma_anon_name(
+ {
+ 	return NULL;
+ }
++
++static inline
++struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma)
 +{
-+	return !altmap ? 2 * (PAGE_SIZE/sizeof(struct page)) : nr_pages;
++	return NULL;
 +}
 +
- static void __ref memmap_init_compound(struct page *head,
- 				       unsigned long head_pfn,
- 				       unsigned long zone_idx, int nid,
-@@ -6686,7 +6700,7 @@ void __ref memmap_init_zone_device(struc
- 			continue;
++static inline void vma_anon_name_put(struct anon_vma_name *anon_name) {}
+ static inline void dup_vma_anon_name(struct vm_area_struct *orig_vma,
+ 			      struct vm_area_struct *new_vma) {}
+ static inline void free_vma_anon_name(struct vm_area_struct *vma) {}
+--- a/mm/madvise.c~mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed
++++ a/mm/madvise.c
+@@ -70,6 +70,9 @@ static struct anon_vma_name *anon_vma_na
+ 	struct anon_vma_name *anon_name;
+ 	size_t count;
  
- 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
--				     pfns_per_compound);
-+				     compound_nr_pages(altmap, pfns_per_compound));
++	if (!name)
++		return NULL;
++
+ 	/* Add 1 for NUL terminator at the end of the anon_name->name */
+ 	count = strlen(name) + 1;
+ 	anon_name = kmalloc(struct_size(anon_name, name, count), GFP_KERNEL);
+@@ -103,6 +106,23 @@ const char *vma_anon_name(struct vm_area
+ 	return vma->anon_name->name;
+ }
+ 
++struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma)
++{
++	if (!has_vma_anon_name(vma))
++		return NULL;
++
++	mmap_assert_locked(vma->vm_mm);
++
++	kref_get(&vma->anon_name->kref);
++	return vma->anon_name;
++}
++
++void vma_anon_name_put(struct anon_vma_name *anon_name)
++{
++	if (anon_name)
++		kref_put(&anon_name->kref, vma_anon_name_free);
++}
++
+ void dup_vma_anon_name(struct vm_area_struct *orig_vma,
+ 		       struct vm_area_struct *new_vma)
+ {
+@@ -126,33 +146,34 @@ void free_vma_anon_name(struct vm_area_s
+ }
+ 
+ /* mmap_lock should be write-locked */
+-static int replace_vma_anon_name(struct vm_area_struct *vma, const char *name)
++static int replace_vma_anon_name(struct vm_area_struct *vma,
++				 struct anon_vma_name *anon_name)
+ {
+-	const char *anon_name;
++	const char *orig_name;
+ 
+-	if (!name) {
++	if (!anon_name) {
+ 		free_vma_anon_name(vma);
+ 		return 0;
  	}
  
- 	pr_info("%s initialised %lu pages in %ums\n", __func__,
+-	anon_name = vma_anon_name(vma);
+-	if (anon_name) {
++	orig_name = vma_anon_name(vma);
++	if (orig_name) {
+ 		/* Same name, nothing to do here */
+-		if (!strcmp(name, anon_name))
++		if (!strcmp(anon_name->name, orig_name))
+ 			return 0;
+ 
+ 		free_vma_anon_name(vma);
+ 	}
+-	vma->anon_name = anon_vma_name_alloc(name);
+-	if (!vma->anon_name)
+-		return -ENOMEM;
++	kref_get(&anon_name->kref);
++	vma->anon_name = anon_name;
+ 
+ 	return 0;
+ }
+ #else /* CONFIG_ANON_VMA_NAME */
+-static int replace_vma_anon_name(struct vm_area_struct *vma, const char *name)
++static int replace_vma_anon_name(struct vm_area_struct *vma,
++				 struct anon_vma_name *anon_name)
+ {
+-	if (name)
++	if (anon_name)
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -161,12 +182,15 @@ static int replace_vma_anon_name(struct
+ /*
+  * Update the vm_flags on region of a vma, splitting it or merging it as
+  * necessary.  Must be called with mmap_sem held for writing;
++ * Caller should ensure anon_name stability by raising its refcount even when
++ * anon_name belongs to a valid vma because this function might free that vma.
+  */
+ static int madvise_update_vma(struct vm_area_struct *vma,
+ 			      struct vm_area_struct **prev, unsigned long start,
+ 			      unsigned long end, unsigned long new_flags,
+-			      const char *name)
++			      struct anon_vma_name *anon_name)
+ {
++	const char *name = anon_name ? anon_name->name : NULL;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int error;
+ 	pgoff_t pgoff;
+@@ -209,7 +233,7 @@ success:
+ 	 */
+ 	vma->vm_flags = new_flags;
+ 	if (!vma->vm_file) {
+-		error = replace_vma_anon_name(vma, name);
++		error = replace_vma_anon_name(vma, anon_name);
+ 		if (error)
+ 			return error;
+ 	}
+@@ -976,6 +1000,7 @@ static int madvise_vma_behavior(struct v
+ {
+ 	int error;
+ 	unsigned long new_flags = vma->vm_flags;
++	struct anon_vma_name *anon_name;
+ 
+ 	switch (behavior) {
+ 	case MADV_REMOVE:
+@@ -1040,8 +1065,10 @@ static int madvise_vma_behavior(struct v
+ 		break;
+ 	}
+ 
++	anon_name = vma_anon_name_get(vma);
+ 	error = madvise_update_vma(vma, prev, start, end, new_flags,
+-				   vma_anon_name(vma));
++				   anon_name);
++	vma_anon_name_put(anon_name);
+ 
+ out:
+ 	/*
+@@ -1225,7 +1252,7 @@ int madvise_walk_vmas(struct mm_struct *
+ static int madvise_vma_anon_name(struct vm_area_struct *vma,
+ 				 struct vm_area_struct **prev,
+ 				 unsigned long start, unsigned long end,
+-				 unsigned long name)
++				 unsigned long anon_name)
+ {
+ 	int error;
+ 
+@@ -1234,7 +1261,7 @@ static int madvise_vma_anon_name(struct
+ 		return -EBADF;
+ 
+ 	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
+-				   (const char *)name);
++				   (struct anon_vma_name *)anon_name);
+ 
+ 	/*
+ 	 * madvise() returns EAGAIN if kernel resources, such as
+@@ -1248,8 +1275,10 @@ static int madvise_vma_anon_name(struct
+ int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long len_in, const char *name)
+ {
++	struct anon_vma_name *anon_name;
+ 	unsigned long end;
+ 	unsigned long len;
++	int ret;
+ 
+ 	if (start & ~PAGE_MASK)
+ 		return -EINVAL;
+@@ -1266,8 +1295,12 @@ int madvise_set_anon_name(struct mm_stru
+ 	if (end == start)
+ 		return 0;
+ 
+-	return madvise_walk_vmas(mm, start, end, (unsigned long)name,
++	anon_name = anon_vma_name_alloc(name);
++	ret = madvise_walk_vmas(mm, start, end, (unsigned long)anon_name,
+ 				 madvise_vma_anon_name);
++	vma_anon_name_put(anon_name);
++
++	return ret;
+ }
+ #endif /* CONFIG_ANON_VMA_NAME */
+ /*
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch
-mm-sparse-vmemmap-refactor-core-of-vmemmap_populate_basepages-to-helper.patch
-mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm.patch
-mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch
-mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
+mm-fix-use-after-free-bug-when-mm-mmap-is-reused-after-being-freed.patch
+mm-count-time-in-drain_all_pages-during-direct-reclaim-as-memory-pressure.patch
+mm-refactor-vm_area_struct-anon_vma_name-usage-code.patch
+mm-prevent-vm_area_struct-anon_name-refcount-saturation.patch
 
