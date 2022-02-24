@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E1AC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Feb 2022 04:16:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C021CC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Feb 2022 04:23:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229627AbiBXEQ6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Feb 2022 23:16:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32886 "EHLO
+        id S229901AbiBXEXm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Feb 2022 23:23:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbiBXEQ6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Feb 2022 23:16:58 -0500
+        with ESMTP id S229437AbiBXEXl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Feb 2022 23:23:41 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C39E723BF28
-        for <mm-commits@vger.kernel.org>; Wed, 23 Feb 2022 20:16:28 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 314BA199E08
+        for <mm-commits@vger.kernel.org>; Wed, 23 Feb 2022 20:23:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 72005B8235F
-        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 04:16:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0980BC340E9;
-        Thu, 24 Feb 2022 04:16:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BBE58B823C6
+        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 04:23:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55303C340E9;
+        Thu, 24 Feb 2022 04:23:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645676186;
-        bh=Ek38hl5i3/Ah5pCUgKclcs4P92IXq9WiubzYrwXZakg=;
+        s=korg; t=1645676589;
+        bh=QZPMqrSExw8ypvtA9MpHfmBBdmf3Uf8+e60h14MtD4s=;
         h=Date:To:From:Subject:From;
-        b=10lBX/buLLh/JsiLg5z2BuLrAka9zf6Qo0h8rCIb1YBLQdnYBnCs8/vlRozH3ZtAw
-         13Mn7t3wMGIVgzQNgsx9IkugX1W03nIPFJPR2DGkLxneoiH5nE0TCJYbR+C82zmik7
-         DslI6QIxC/AXMUfpk2iZJ4TQFLAtSj24LTyo1A4M=
-Date:   Wed, 23 Feb 2022 20:16:25 -0800
-To:     mm-commits@vger.kernel.org, timmurray@google.com,
-        shakeelb@google.com, pmladek@suse.com, peterz@infradead.org,
-        minchan@kernel.org, mhocko@suse.com, hannes@cmpxchg.org,
-        guro@fb.com, surenb@google.com, akpm@linux-foundation.org
+        b=eqEOuZtiyWMg9lOQzcabq+TeXH6HO2rhH/4K+qfJYuWCT/8ddhEn9nbnJkWqelErB
+         eOd8F/YEECfPj3m/gnrFPRGgLm7g4GXfkVgWdaECIQE7dj1LZ6VOD0MlEsbzC8EUex
+         AvJa4tfUUhEBb5obLvojWDN8Zrd1/+wIfZG/GW0U=
+Date:   Wed, 23 Feb 2022 20:23:08 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vishal.l.verma@intel.com, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, jgg@ziepe.ca, jane.chu@oracle.com,
+        hch@lst.de, dan.j.williams@intel.com, corbet@lwn.net,
+        joao.m.martins@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-count-time-in-drain_all_pages-during-direct-reclaim-as-memory-pressure.patch added to -mm tree
-Message-Id: <20220224041626.0980BC340E9@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch added to -mm tree
+Message-Id: <20220224042309.55303C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: count time in drain_all_pages during direct reclaim as memory pressure
+     Subject: mm/sparse-vmemmap: add a pgmap argument to section activation
 has been added to the -mm tree.  Its filename is
-     mm-count-time-in-drain_all_pages-during-direct-reclaim-as-memory-pressure.patch
+     mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-count-time-in-drain_all_pages-during-direct-reclaim-as-memory-pressure.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-count-time-in-drain_all_pages-during-direct-reclaim-as-memory-pressure.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,109 +65,279 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: count time in drain_all_pages during direct reclaim as memory pressure
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/sparse-vmemmap: add a pgmap argument to section activation
 
-When page allocation in direct reclaim path fails, the system will make
-one attempt to shrink per-cpu page lists and free pages from high alloc
-reserves.  Draining per-cpu pages into buddy allocator can be a very slow
-operation because it's done using workqueues and the task in direct
-reclaim waits for all of them to finish before proceeding.  Currently this
-time is not accounted as psi memory stall.
+Patch series "sparse-vmemmap: memory savings for compound devmaps (device-dax)", v6.
 
-While testing mobile devices under extreme memory pressure, when
-allocations are failing during direct reclaim, we notices that psi events
-which would be expected in such conditions were not triggered.  After
-profiling these cases it was determined that the reason for missing psi
-events was that a big chunk of time spent in direct reclaim is not
-accounted as memory stall, therefore psi would not reach the levels at
-which an event is generated.  Further investigation revealed that the bulk
-of that unaccounted time was spent inside drain_all_pages call.
+This series, minimizes 'struct page' overhead by pursuing a similar
+approach as Muchun Song series "Free some vmemmap pages of hugetlb page"
+(now merged since v5.14), but applied to devmap with @vmemmap_shift
+(device-dax).  
 
-A typical captured case when drain_all_pages path gets activated:
+The vmemmap dedpulication original idea (already used in HugeTLB) is to
+reuse/deduplicate tail page vmemmap areas, particular the area which only
+describes tail pages.  So a vmemmap page describes 64 struct pages, and
+the first page for a given ZONE_DEVICE vmemmap would contain the head page
+and 63 tail pages.  The second vmemmap page would contain only tail pages,
+and that's what gets reused across the rest of the subsection/section. 
+The bigger the page size, the bigger the savings (2M hpage -> save 6
+vmemmap pages; 1G hpage -> save 4094 vmemmap pages).  
 
-__alloc_pages_slowpath  took 44.644.613ns
-    __perform_reclaim   took    751.668ns (1.7%)
-    drain_all_pages     took 43.887.167ns (98.3%)
+This is done for PMEM /specifically only/ on device-dax configured
+namespaces, not fsdax.  In other words, a devmap with a @vmemmap_shift.
 
-PSI in this case records the time spent in __perform_reclaim but ignores
-drain_all_pages, IOW it misses 98.3% of the time spent in
-__alloc_pages_slowpath.
+In terms of savings, per 1Tb of memory, the struct page cost would go down
+with compound devmap:
 
-Annotate __alloc_pages_direct_reclaim in its entirety so that delays from
-handling page allocation failure in the direct reclaim path are accounted
-as memory stall.
+* with 2M pages we lose 4G instead of 16G (0.39% instead of 1.5% of
+  total memory)
 
-Link: https://lkml.kernel.org/r/20220223194812.1299646-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Tim Murray <timmurray@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+* with 1G pages we lose 40MB instead of 16G (0.0014% instead of 1.5% of
+  total memory)
+
+The series is mostly summed up by patch 4, and to summarize what the
+series does:
+
+Patches 1 - 3: Minor cleanups in preparation for patch 4.  Move the very
+nice docs of hugetlb_vmemmap.c into a Documentation/vm/ entry.
+
+Patch 4: Patch 4 is the one that takes care of the struct page savings
+(also referred to here as tail-page/vmemmap deduplication).  Much like
+Muchun series, we reuse the second PTE tail page vmemmap areas across a
+given @vmemmap_shift On important difference though, is that contrary to
+the hugetlbfs series, there's no vmemmap for the area because we are
+late-populating it as opposed to remapping a system-ram range.  IOW no
+freeing of pages of already initialized vmemmap like the case for
+hugetlbfs, which greatly simplifies the logic (besides not being
+arch-specific).  altmap case unchanged and still goes via the
+vmemmap_populate().  Also adjust the newly added docs to the device-dax
+case.
+
+[Note that, device-dax is still a little behind HugeTLB in terms of
+savings.  I have an additional simple patch that reuses the head vmemmap
+page too, as a follow-up.  That will double the savings and namespaces
+initialization.]
+
+Patch 5: Initialize fewer struct pages depending on the page size with
+DRAM backed struct pages -- because fewer pages are unique and most tail
+pages (with bigger vmemmap_shift).
+
+    NVDIMM namespace bootstrap improves from ~268-358 ms to
+    ~80-110/<1ms on 128G NVDIMMs with 2M and 1G respectivally.  And struct
+    page needed capacity will be 3.8x / 1071x smaller for 2M and 1G
+    respectivelly.  Tested on x86 with 1Tb+ of pmem,
+
+
+This patch (of 5):
+
+In support of using compound pages for devmap mappings, plumb the pgmap
+down to the vmemmap_populate implementation.  Note that while altmap is
+retrievable from pgmap the memory hotplug code passes altmap without
+pgmap[*], so both need to be independently plumbed.
+
+So in addition to @altmap, pass @pgmap to sparse section populate
+functions namely:
+
+	sparse_add_section
+	  section_activate
+	    populate_section_memmap
+   	      __populate_section_memmap
+
+Passing @pgmap allows __populate_section_memmap() to both fetch the
+vmemmap_shift in which memmap metadata is created for and also to let
+sparse-vmemmap fetch pgmap ranges to co-relate to a given section and pick
+whether to just reuse tail pages from past onlined sections.
+
+While at it, fix the kdoc for @altmap for sparse_add_section().
+
+[*] https://lore.kernel.org/linux-mm/20210319092635.6214-1-osalvador@suse.de/
+
+Link: https://lkml.kernel.org/r/20220223194807.12070-1-joao.m.martins@oracle.com
+Link: https://lkml.kernel.org/r/20220223194807.12070-2-joao.m.martins@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/memory_hotplug.h |    5 ++++-
+ include/linux/mm.h             |    3 ++-
+ mm/memory_hotplug.c            |    3 ++-
+ mm/sparse-vmemmap.c            |    3 ++-
+ mm/sparse.c                    |   26 ++++++++++++++++----------
+ 5 files changed, 26 insertions(+), 14 deletions(-)
 
---- a/mm/page_alloc.c~mm-count-time-in-drain_all_pages-during-direct-reclaim-as-memory-pressure
-+++ a/mm/page_alloc.c
-@@ -4610,13 +4610,12 @@ __perform_reclaim(gfp_t gfp_mask, unsign
- 					const struct alloc_context *ac)
- {
- 	unsigned int noreclaim_flag;
--	unsigned long pflags, progress;
-+	unsigned long progress;
+--- a/include/linux/memory_hotplug.h~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
++++ a/include/linux/memory_hotplug.h
+@@ -15,6 +15,7 @@ struct memory_block;
+ struct memory_group;
+ struct resource;
+ struct vmem_altmap;
++struct dev_pagemap;
  
- 	cond_resched();
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ struct page *pfn_to_online_page(unsigned long pfn);
+@@ -66,6 +67,7 @@ typedef int __bitwise mhp_t;
+ struct mhp_params {
+ 	struct vmem_altmap *altmap;
+ 	pgprot_t pgprot;
++	struct dev_pagemap *pgmap;
+ };
  
- 	/* We now go into synchronous reclaim */
- 	cpuset_memory_pressure_bump();
--	psi_memstall_enter(&pflags);
- 	fs_reclaim_acquire(gfp_mask);
- 	noreclaim_flag = memalloc_noreclaim_save();
+ bool mhp_range_allowed(u64 start, u64 size, bool need_mapping);
+@@ -339,7 +341,8 @@ extern void remove_pfn_range_from_zone(s
+ 				       unsigned long nr_pages);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+ extern int sparse_add_section(int nid, unsigned long pfn,
+-		unsigned long nr_pages, struct vmem_altmap *altmap);
++		unsigned long nr_pages, struct vmem_altmap *altmap,
++		struct dev_pagemap *pgmap);
+ extern void sparse_remove_section(struct mem_section *ms,
+ 		unsigned long pfn, unsigned long nr_pages,
+ 		unsigned long map_offset, struct vmem_altmap *altmap);
+--- a/include/linux/mm.h~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
++++ a/include/linux/mm.h
+@@ -3158,7 +3158,8 @@ int vmemmap_remap_alloc(unsigned long st
  
-@@ -4625,7 +4624,6 @@ __perform_reclaim(gfp_t gfp_mask, unsign
- 
- 	memalloc_noreclaim_restore(noreclaim_flag);
- 	fs_reclaim_release(gfp_mask);
--	psi_memstall_leave(&pflags);
- 
- 	cond_resched();
- 
-@@ -4639,11 +4637,13 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 		unsigned long *did_some_progress)
- {
- 	struct page *page = NULL;
-+	unsigned long pflags;
- 	bool drained = false;
- 
-+	psi_memstall_enter(&pflags);
- 	*did_some_progress = __perform_reclaim(gfp_mask, order, ac);
- 	if (unlikely(!(*did_some_progress)))
--		return NULL;
-+		goto out;
- 
- retry:
- 	page = get_page_from_freelist(gfp_mask, order, alloc_flags, ac);
-@@ -4659,6 +4659,8 @@ retry:
- 		drained = true;
- 		goto retry;
- 	}
-+out:
-+	psi_memstall_leave(&pflags);
- 
- 	return page;
+ void *sparse_buffer_alloc(unsigned long size);
+ struct page * __populate_section_memmap(unsigned long pfn,
+-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap);
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
++		struct dev_pagemap *pgmap);
+ pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+ pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+--- a/mm/memory_hotplug.c~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
++++ a/mm/memory_hotplug.c
+@@ -334,7 +334,8 @@ int __ref __add_pages(int nid, unsigned
+ 		/* Select all remaining pages up to the next section boundary */
+ 		cur_nr_pages = min(end_pfn - pfn,
+ 				   SECTION_ALIGN_UP(pfn + 1) - pfn);
+-		err = sparse_add_section(nid, pfn, cur_nr_pages, altmap);
++		err = sparse_add_section(nid, pfn, cur_nr_pages, altmap,
++					 params->pgmap);
+ 		if (err)
+ 			break;
+ 		cond_resched();
+--- a/mm/sparse.c~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
++++ a/mm/sparse.c
+@@ -427,7 +427,8 @@ static unsigned long __init section_map_
  }
+ 
+ struct page __init *__populate_section_memmap(unsigned long pfn,
+-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
++		struct dev_pagemap *pgmap)
+ {
+ 	unsigned long size = section_map_size();
+ 	struct page *map = sparse_buffer_alloc(size);
+@@ -524,7 +525,7 @@ static void __init sparse_init_nid(int n
+ 			break;
+ 
+ 		map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
+-				nid, NULL);
++				nid, NULL, NULL);
+ 		if (!map) {
+ 			pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
+ 			       __func__, nid);
+@@ -629,9 +630,10 @@ void offline_mem_sections(unsigned long
+ 
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ static struct page * __meminit populate_section_memmap(unsigned long pfn,
+-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
++		struct dev_pagemap *pgmap)
+ {
+-	return __populate_section_memmap(pfn, nr_pages, nid, altmap);
++	return __populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
+ }
+ 
+ static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
+@@ -700,7 +702,8 @@ static int fill_subsection_map(unsigned
+ }
+ #else
+ struct page * __meminit populate_section_memmap(unsigned long pfn,
+-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
++		struct dev_pagemap *pgmap)
+ {
+ 	return kvmalloc_node(array_size(sizeof(struct page),
+ 					PAGES_PER_SECTION), GFP_KERNEL, nid);
+@@ -823,7 +826,8 @@ static void section_deactivate(unsigned
+ }
+ 
+ static struct page * __meminit section_activate(int nid, unsigned long pfn,
+-		unsigned long nr_pages, struct vmem_altmap *altmap)
++		unsigned long nr_pages, struct vmem_altmap *altmap,
++		struct dev_pagemap *pgmap)
+ {
+ 	struct mem_section *ms = __pfn_to_section(pfn);
+ 	struct mem_section_usage *usage = NULL;
+@@ -855,7 +859,7 @@ static struct page * __meminit section_a
+ 	if (nr_pages < PAGES_PER_SECTION && early_section(ms))
+ 		return pfn_to_page(pfn);
+ 
+-	memmap = populate_section_memmap(pfn, nr_pages, nid, altmap);
++	memmap = populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
+ 	if (!memmap) {
+ 		section_deactivate(pfn, nr_pages, altmap);
+ 		return ERR_PTR(-ENOMEM);
+@@ -869,7 +873,8 @@ static struct page * __meminit section_a
+  * @nid: The node to add section on
+  * @start_pfn: start pfn of the memory range
+  * @nr_pages: number of pfns to add in the section
+- * @altmap: device page map
++ * @altmap: alternate pfns to allocate the memmap backing store
++ * @pgmap: alternate compound page geometry for devmap mappings
+  *
+  * This is only intended for hotplug.
+  *
+@@ -883,7 +888,8 @@ static struct page * __meminit section_a
+  * * -ENOMEM	- Out of memory.
+  */
+ int __meminit sparse_add_section(int nid, unsigned long start_pfn,
+-		unsigned long nr_pages, struct vmem_altmap *altmap)
++		unsigned long nr_pages, struct vmem_altmap *altmap,
++		struct dev_pagemap *pgmap)
+ {
+ 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
+ 	struct mem_section *ms;
+@@ -894,7 +900,7 @@ int __meminit sparse_add_section(int nid
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	memmap = section_activate(nid, start_pfn, nr_pages, altmap);
++	memmap = section_activate(nid, start_pfn, nr_pages, altmap, pgmap);
+ 	if (IS_ERR(memmap))
+ 		return PTR_ERR(memmap);
+ 
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
++++ a/mm/sparse-vmemmap.c
+@@ -603,7 +603,8 @@ int __meminit vmemmap_populate_basepages
+ }
+ 
+ struct page * __meminit __populate_section_memmap(unsigned long pfn,
+-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
++		struct dev_pagemap *pgmap)
+ {
+ 	unsigned long start = (unsigned long) pfn_to_page(pfn);
+ 	unsigned long end = start + nr_pages * sizeof(struct page);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch
-mm-fix-use-after-free-bug-when-mm-mmap-is-reused-after-being-freed.patch
-mm-count-time-in-drain_all_pages-during-direct-reclaim-as-memory-pressure.patch
+mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch
+mm-sparse-vmemmap-refactor-core-of-vmemmap_populate_basepages-to-helper.patch
+mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm.patch
+mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch
+mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
 
