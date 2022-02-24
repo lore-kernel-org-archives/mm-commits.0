@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BAE1C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Feb 2022 04:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2B71C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Feb 2022 04:23:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229437AbiBXEXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Feb 2022 23:23:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47804 "EHLO
+        id S229944AbiBXEXu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Feb 2022 23:23:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229928AbiBXEXp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Feb 2022 23:23:45 -0500
+        with ESMTP id S229928AbiBXEXt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Feb 2022 23:23:49 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 446C2199E0B
-        for <mm-commits@vger.kernel.org>; Wed, 23 Feb 2022 20:23:16 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C4F4199E07
+        for <mm-commits@vger.kernel.org>; Wed, 23 Feb 2022 20:23:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C30CC61745
-        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 04:23:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24958C340E9;
-        Thu, 24 Feb 2022 04:23:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BBE3C6171B
+        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 04:23:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CA1EC340E9;
+        Thu, 24 Feb 2022 04:23:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645676595;
-        bh=hSEkUvr2EM2hbIMqIOt7KK9Sh9IZx2Vdaisq7sIVMZ4=;
+        s=korg; t=1645676598;
+        bh=ZZ+0ONsRrjPKEF6/rJVZ1gyQh1QWu/b13sc3vjrdcHk=;
         h=Date:To:From:Subject:From;
-        b=VEPyUmu4iAq0G6RD7ny+Wd+6we2NRzkQQQ8iPHyzfClTA0tN7JLnMi5WiOz7tcfdo
-         QzokOx0TPZ5wxryaJX3e2KiZuEIoJsErGSUksU3fFtsk47fcOGCHPIWN+o/bEkYS8v
-         uYQKB74jB84/sFFoJbYFTw1cQG5pqLwpWkcFAV0c=
-Date:   Wed, 23 Feb 2022 20:23:14 -0800
+        b=ELygIBHJR7WIGVKQQUA8NsoiaSYlLl+b4rK7Bs9MOksYA4DmQTzJ1QWsY6lKeB14k
+         GCYjp+nD2zkGryQJFe0ej9Ju1PPHRQfckPU2B1bzUdd7LsBx3oR3ruNvGVFXGyuK8r
+         cRR8PBpbtZiAjvZKFaxIztsidZ3qrRx1LWikLsVc=
+Date:   Wed, 23 Feb 2022 20:23:17 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.l.verma@intel.com, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, jgg@ziepe.ca, jane.chu@oracle.com,
         hch@lst.de, dan.j.williams@intel.com, corbet@lwn.net,
         joao.m.martins@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm.patch added to -mm tree
-Message-Id: <20220224042315.24958C340E9@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch added to -mm tree
+Message-Id: <20220224042318.1CA1EC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb_vmemmap: move comment block to Documentation/vm
+     Subject: mm/sparse-vmemmap: improve memory savings for compound devmaps
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm.patch
+     mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,394 +66,335 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/hugetlb_vmemmap: move comment block to Documentation/vm
+Subject: mm/sparse-vmemmap: improve memory savings for compound devmaps
 
-In preparation for device-dax for using hugetlbfs compound page tail
-deduplication technique, move the comment block explanation into a common
-place in Documentation/vm.
+A compound devmap is a dev_pagemap with @vmemmap_shift > 0 and it means
+that pages are mapped at a given huge page alignment and utilize uses
+compound pages as opposed to order-0 pages.
 
-Link: https://lkml.kernel.org/r/20220223194807.12070-4-joao.m.martins@oracle.com
+Take advantage of the fact that most tail pages look the same (except the
+first two) to minimize struct page overhead.  Allocate a separate page for
+the vmemmap area which contains the head page and separate for the next 64
+pages.  The rest of the subsections then reuse this tail vmemmap page to
+initialize the rest of the tail pages.
+
+Sections are arch-dependent (e.g.  on x86 it's 64M, 128M or 512M) and when
+initializing compound devmap with big enough @vmemmap_shift (e.g.  1G PUD)
+it may cross multiple sections.  The vmemmap code needs to consult @pgmap
+so that multiple sections that all map the same tail data can refer back
+to the first copy of that data for a given gigantic page.
+
+On compound devmaps with 2M align, this mechanism lets 6 pages be saved
+out of the 8 necessary PFNs necessary to set the subsection's 512 struct
+pages being mapped.  On a 1G compound devmap it saves 4094 pages.
+
+Altmap isn't supported yet, given various restrictions in altmap pfn
+allocator, thus fallback to the already in use vmemmap_populate().  It is
+worth noting that altmap for devmap mappings was there to relieve the
+pressure of inordinate amounts of memmap space to map terabytes of pmem. 
+With compound pages the motivation for altmaps for pmem gets reduced.
+
+Link: https://lkml.kernel.org/r/20220223194807.12070-5-joao.m.martins@oracle.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/index.rst         |    1 
- Documentation/vm/vmemmap_dedup.rst |  175 +++++++++++++++++++++++++++
- mm/hugetlb_vmemmap.c               |  164 -------------------------
- 3 files changed, 178 insertions(+), 162 deletions(-)
+ Documentation/vm/vmemmap_dedup.rst |   56 ++++++++++
+ include/linux/mm.h                 |    2 
+ mm/memremap.c                      |    1 
+ mm/sparse-vmemmap.c                |  141 +++++++++++++++++++++++++--
+ 4 files changed, 188 insertions(+), 12 deletions(-)
 
---- a/Documentation/vm/index.rst~mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm
-+++ a/Documentation/vm/index.rst
-@@ -37,5 +37,6 @@ algorithms.  If you are looking for advi
-    transhuge
-    unevictable-lru
-    vmalloced-kernel-stacks
-+   vmemmap_dedup
-    z3fold
-    zsmalloc
---- /dev/null
+--- a/Documentation/vm/vmemmap_dedup.rst~mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps
 +++ a/Documentation/vm/vmemmap_dedup.rst
-@@ -0,0 +1,175 @@
-+.. SPDX-License-Identifier: GPL-2.0
+@@ -2,9 +2,12 @@
+ 
+ .. _vmemmap_dedup:
+ 
+-==================================
+-Free some vmemmap pages of HugeTLB
+-==================================
++=========================================
++A vmemmap diet for HugeTLB and Device DAX
++=========================================
 +
-+.. _vmemmap_dedup:
++HugeTLB
++=======
+ 
+ The struct page structures (page structs) are used to describe a physical
+ page frame. By default, there is a one-to-one mapping from a page frame to
+@@ -173,3 +176,50 @@ tail vmemmap pages are mapped to the hea
+ more than one struct page struct with PG_head (e.g. 8 per 2 MB HugeTLB page)
+ associated with each HugeTLB page. The compound_head() can handle this
+ correctly (more details refer to the comment above compound_head()).
 +
-+==================================
-+Free some vmemmap pages of HugeTLB
-+==================================
++Device DAX
++==========
 +
-+The struct page structures (page structs) are used to describe a physical
-+page frame. By default, there is a one-to-one mapping from a page frame to
-+it's corresponding page struct.
++The device-dax interface uses the same tail deduplication technique explained
++in the previous chapter, except when used with the vmemmap in
++the device (altmap).
 +
-+HugeTLB pages consist of multiple base page size pages and is supported by
-+many architectures. See hugetlbpage.rst in the Documentation directory for
-+more details. On the x86-64 architecture, HugeTLB pages of size 2MB and 1GB
-+are currently supported. Since the base page size on x86 is 4KB, a 2MB
-+HugeTLB page consists of 512 base pages and a 1GB HugeTLB page consists of
-+4096 base pages. For each base page, there is a corresponding page struct.
++The following page sizes are supported in DAX: PAGE_SIZE (4K on x86_64),
++PMD_SIZE (2M on x86_64) and PUD_SIZE (1G on x86_64).
 +
-+Within the HugeTLB subsystem, only the first 4 page structs are used to
-+contain unique information about a HugeTLB page. __NR_USED_SUBPAGE provides
-+this upper limit. The only 'useful' information in the remaining page structs
-+is the compound_head field, and this field is the same for all tail pages.
++The differences with HugeTLB are relatively minor.
 +
-+By removing redundant page structs for HugeTLB pages, memory can be returned
-+to the buddy allocator for other uses.
++It only use 3 page structs for storing all information as opposed
++to 4 on HugeTLB pages.
 +
-+Different architectures support different HugeTLB pages. For example, the
-+following table is the HugeTLB page size supported by x86 and arm64
-+architectures. Because arm64 supports 4k, 16k, and 64k base pages and
-+supports contiguous entries, so it supports many kinds of sizes of HugeTLB
-+page.
++There's no remapping of vmemmap given that device-dax memory is not part of
++System RAM ranges initialized at boot. Thus the tail page deduplication
++happens at a later stage when we populate the sections. HugeTLB reuses the
++the head vmemmap page representing, whereas device-dax reuses the tail
++vmemmap page. This results in only half of the savings compared to HugeTLB.
 +
-++--------------+-----------+-----------------------------------------------+
-+| Architecture | Page Size |                HugeTLB Page Size              |
-++--------------+-----------+-----------+-----------+-----------+-----------+
-+|    x86-64    |    4KB    |    2MB    |    1GB    |           |           |
-++--------------+-----------+-----------+-----------+-----------+-----------+
-+|              |    4KB    |   64KB    |    2MB    |    32MB   |    1GB    |
-+|              +-----------+-----------+-----------+-----------+-----------+
-+|    arm64     |   16KB    |    2MB    |   32MB    |     1GB   |           |
-+|              +-----------+-----------+-----------+-----------+-----------+
-+|              |   64KB    |    2MB    |  512MB    |    16GB   |           |
-++--------------+-----------+-----------+-----------+-----------+-----------+
++Deduplicated tail pages are not mapped read-only.
 +
-+When the system boot up, every HugeTLB page has more than one struct page
-+structs which size is (unit: pages):
++Here's how things look like on device-dax after the sections are populated:
 +
-+   struct_size = HugeTLB_Size / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
-+
-+Where HugeTLB_Size is the size of the HugeTLB page. We know that the size
-+of the HugeTLB page is always n times PAGE_SIZE. So we can get the following
-+relationship.
-+
-+   HugeTLB_Size = n * PAGE_SIZE
-+
-+Then,
-+
-+   struct_size = n * PAGE_SIZE / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
-+               = n * sizeof(struct page) / PAGE_SIZE
-+
-+We can use huge mapping at the pud/pmd level for the HugeTLB page.
-+
-+For the HugeTLB page of the pmd level mapping, then
-+
-+   struct_size = n * sizeof(struct page) / PAGE_SIZE
-+               = PAGE_SIZE / sizeof(pte_t) * sizeof(struct page) / PAGE_SIZE
-+               = sizeof(struct page) / sizeof(pte_t)
-+               = 64 / 8
-+               = 8 (pages)
-+
-+Where n is how many pte entries which one page can contains. So the value of
-+n is (PAGE_SIZE / sizeof(pte_t)).
-+
-+This optimization only supports 64-bit system, so the value of sizeof(pte_t)
-+is 8. And this optimization also applicable only when the size of struct page
-+is a power of two. In most cases, the size of struct page is 64 bytes (e.g.
-+x86-64 and arm64). So if we use pmd level mapping for a HugeTLB page, the
-+size of struct page structs of it is 8 page frames which size depends on the
-+size of the base page.
-+
-+For the HugeTLB page of the pud level mapping, then
-+
-+   struct_size = PAGE_SIZE / sizeof(pmd_t) * struct_size(pmd)
-+               = PAGE_SIZE / 8 * 8 (pages)
-+               = PAGE_SIZE (pages)
-+
-+Where the struct_size(pmd) is the size of the struct page structs of a
-+HugeTLB page of the pmd level mapping.
-+
-+E.g.: A 2MB HugeTLB page on x86_64 consists in 8 page frames while 1GB
-+HugeTLB page consists in 4096.
-+
-+Next, we take the pmd level mapping of the HugeTLB page as an example to
-+show the internal implementation of this optimization. There are 8 pages
-+struct page structs associated with a HugeTLB page which is pmd mapped.
-+
-+Here is how things look before optimization.
-+
-+    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
 + +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
 + |           |                     |     0     | -------------> |     0     |
 + |           |                     +-----------+                +-----------+
 + |           |                     |     1     | -------------> |     1     |
 + |           |                     +-----------+                +-----------+
-+ |           |                     |     2     | -------------> |     2     |
-+ |           |                     +-----------+                +-----------+
-+ |           |                     |     3     | -------------> |     3     |
-+ |           |                     +-----------+                +-----------+
-+ |           |                     |     4     | -------------> |     4     |
-+ |    PMD    |                     +-----------+                +-----------+
-+ |   level   |                     |     5     | -------------> |     5     |
-+ |  mapping  |                     +-----------+                +-----------+
-+ |           |                     |     6     | -------------> |     6     |
-+ |           |                     +-----------+                +-----------+
-+ |           |                     |     7     | -------------> |     7     |
-+ |           |                     +-----------+                +-----------+
-+ |           |
-+ |           |
-+ |           |
-+ +-----------+
-+
-+The value of page->compound_head is the same for all tail pages. The first
-+page of page structs (page 0) associated with the HugeTLB page contains the 4
-+page structs necessary to describe the HugeTLB. The only use of the remaining
-+pages of page structs (page 1 to page 7) is to point to page->compound_head.
-+Therefore, we can remap pages 1 to 7 to page 0. Only 1 page of page structs
-+will be used for each HugeTLB page. This will allow us to free the remaining
-+7 pages to the buddy allocator.
-+
-+Here is how things look after remapping.
-+
-+    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
-+ +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-+ |           |                     |     0     | -------------> |     0     |
-+ |           |                     +-----------+                +-----------+
-+ |           |                     |     1     | ---------------^ ^ ^ ^ ^ ^ ^
-+ |           |                     +-----------+                  | | | | | |
-+ |           |                     |     2     | -----------------+ | | | | |
-+ |           |                     +-----------+                    | | | | |
-+ |           |                     |     3     | -------------------+ | | | |
-+ |           |                     +-----------+                      | | | |
-+ |           |                     |     4     | ---------------------+ | | |
-+ |    PMD    |                     +-----------+                        | | |
-+ |   level   |                     |     5     | -----------------------+ | |
-+ |  mapping  |                     +-----------+                          | |
-+ |           |                     |     6     | -------------------------+ |
-+ |           |                     +-----------+                            |
-+ |           |                     |     7     | ---------------------------+
++ |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
++ |           |                     +-----------+                   | | | | |
++ |           |                     |     3     | ------------------+ | | | |
++ |           |                     +-----------+                     | | | |
++ |           |                     |     4     | --------------------+ | | |
++ |    PMD    |                     +-----------+                       | | |
++ |   level   |                     |     5     | ----------------------+ | |
++ |  mapping  |                     +-----------+                         | |
++ |           |                     |     6     | ------------------------+ |
++ |           |                     +-----------+                           |
++ |           |                     |     7     | --------------------------+
 + |           |                     +-----------+
 + |           |
 + |           |
 + |           |
 + +-----------+
-+
-+When a HugeTLB is freed to the buddy system, we should allocate 7 pages for
-+vmemmap pages and restore the previous mapping relationship.
-+
-+For the HugeTLB page of the pud level mapping. It is similar to the former.
-+We also can use this approach to free (PAGE_SIZE - 1) vmemmap pages.
-+
-+Apart from the HugeTLB page of the pmd/pud level mapping, some architectures
-+(e.g. aarch64) provides a contiguous bit in the translation table entries
-+that hints to the MMU to indicate that it is one of a contiguous set of
-+entries that can be cached in a single TLB entry.
-+
-+The contiguous bit is used to increase the mapping size at the pmd and pte
-+(last) level. So this type of HugeTLB page can be optimized only when its
-+size of the struct page structs is greater than 1 page.
-+
-+Notice: The head vmemmap page is not freed to the buddy allocator and all
-+tail vmemmap pages are mapped to the head vmemmap page frame. So we can see
-+more than one struct page struct with PG_head (e.g. 8 per 2 MB HugeTLB page)
-+associated with each HugeTLB page. The compound_head() can handle this
-+correctly (more details refer to the comment above compound_head()).
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm
-+++ a/mm/hugetlb_vmemmap.c
-@@ -5,169 +5,9 @@
-  * Copyright (c) 2020, Bytedance. All rights reserved.
-  *
-  *     Author: Muchun Song <songmuchun@bytedance.com>
-- *
-- * The struct page structures (page structs) are used to describe a physical
-- * page frame. By default, there is a one-to-one mapping from a page frame to
-- * it's corresponding page struct.
-- *
-- * HugeTLB pages consist of multiple base page size pages and is supported by
-- * many architectures. See hugetlbpage.rst in the Documentation directory for
-- * more details. On the x86-64 architecture, HugeTLB pages of size 2MB and 1GB
-- * are currently supported. Since the base page size on x86 is 4KB, a 2MB
-- * HugeTLB page consists of 512 base pages and a 1GB HugeTLB page consists of
-- * 4096 base pages. For each base page, there is a corresponding page struct.
-- *
-- * Within the HugeTLB subsystem, only the first 4 page structs are used to
-- * contain unique information about a HugeTLB page. __NR_USED_SUBPAGE provides
-- * this upper limit. The only 'useful' information in the remaining page structs
-- * is the compound_head field, and this field is the same for all tail pages.
-- *
-- * By removing redundant page structs for HugeTLB pages, memory can be returned
-- * to the buddy allocator for other uses.
-- *
-- * Different architectures support different HugeTLB pages. For example, the
-- * following table is the HugeTLB page size supported by x86 and arm64
-- * architectures. Because arm64 supports 4k, 16k, and 64k base pages and
-- * supports contiguous entries, so it supports many kinds of sizes of HugeTLB
-- * page.
-- *
-- * +--------------+-----------+-----------------------------------------------+
-- * | Architecture | Page Size |                HugeTLB Page Size              |
-- * +--------------+-----------+-----------+-----------+-----------+-----------+
-- * |    x86-64    |    4KB    |    2MB    |    1GB    |           |           |
-- * +--------------+-----------+-----------+-----------+-----------+-----------+
-- * |              |    4KB    |   64KB    |    2MB    |    32MB   |    1GB    |
-- * |              +-----------+-----------+-----------+-----------+-----------+
-- * |    arm64     |   16KB    |    2MB    |   32MB    |     1GB   |           |
-- * |              +-----------+-----------+-----------+-----------+-----------+
-- * |              |   64KB    |    2MB    |  512MB    |    16GB   |           |
-- * +--------------+-----------+-----------+-----------+-----------+-----------+
-- *
-- * When the system boot up, every HugeTLB page has more than one struct page
-- * structs which size is (unit: pages):
-- *
-- *    struct_size = HugeTLB_Size / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
-- *
-- * Where HugeTLB_Size is the size of the HugeTLB page. We know that the size
-- * of the HugeTLB page is always n times PAGE_SIZE. So we can get the following
-- * relationship.
-- *
-- *    HugeTLB_Size = n * PAGE_SIZE
-- *
-- * Then,
-- *
-- *    struct_size = n * PAGE_SIZE / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
-- *                = n * sizeof(struct page) / PAGE_SIZE
-- *
-- * We can use huge mapping at the pud/pmd level for the HugeTLB page.
-- *
-- * For the HugeTLB page of the pmd level mapping, then
-- *
-- *    struct_size = n * sizeof(struct page) / PAGE_SIZE
-- *                = PAGE_SIZE / sizeof(pte_t) * sizeof(struct page) / PAGE_SIZE
-- *                = sizeof(struct page) / sizeof(pte_t)
-- *                = 64 / 8
-- *                = 8 (pages)
-- *
-- * Where n is how many pte entries which one page can contains. So the value of
-- * n is (PAGE_SIZE / sizeof(pte_t)).
-- *
-- * This optimization only supports 64-bit system, so the value of sizeof(pte_t)
-- * is 8. And this optimization also applicable only when the size of struct page
-- * is a power of two. In most cases, the size of struct page is 64 bytes (e.g.
-- * x86-64 and arm64). So if we use pmd level mapping for a HugeTLB page, the
-- * size of struct page structs of it is 8 page frames which size depends on the
-- * size of the base page.
-- *
-- * For the HugeTLB page of the pud level mapping, then
-- *
-- *    struct_size = PAGE_SIZE / sizeof(pmd_t) * struct_size(pmd)
-- *                = PAGE_SIZE / 8 * 8 (pages)
-- *                = PAGE_SIZE (pages)
-- *
-- * Where the struct_size(pmd) is the size of the struct page structs of a
-- * HugeTLB page of the pmd level mapping.
-- *
-- * E.g.: A 2MB HugeTLB page on x86_64 consists in 8 page frames while 1GB
-- * HugeTLB page consists in 4096.
-- *
-- * Next, we take the pmd level mapping of the HugeTLB page as an example to
-- * show the internal implementation of this optimization. There are 8 pages
-- * struct page structs associated with a HugeTLB page which is pmd mapped.
-- *
-- * Here is how things look before optimization.
-- *
-- *    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
-- * +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- * |           |                     |     0     | -------------> |     0     |
-- * |           |                     +-----------+                +-----------+
-- * |           |                     |     1     | -------------> |     1     |
-- * |           |                     +-----------+                +-----------+
-- * |           |                     |     2     | -------------> |     2     |
-- * |           |                     +-----------+                +-----------+
-- * |           |                     |     3     | -------------> |     3     |
-- * |           |                     +-----------+                +-----------+
-- * |           |                     |     4     | -------------> |     4     |
-- * |    PMD    |                     +-----------+                +-----------+
-- * |   level   |                     |     5     | -------------> |     5     |
-- * |  mapping  |                     +-----------+                +-----------+
-- * |           |                     |     6     | -------------> |     6     |
-- * |           |                     +-----------+                +-----------+
-- * |           |                     |     7     | -------------> |     7     |
-- * |           |                     +-----------+                +-----------+
-- * |           |
-- * |           |
-- * |           |
-- * +-----------+
-- *
-- * The value of page->compound_head is the same for all tail pages. The first
-- * page of page structs (page 0) associated with the HugeTLB page contains the 4
-- * page structs necessary to describe the HugeTLB. The only use of the remaining
-- * pages of page structs (page 1 to page 7) is to point to page->compound_head.
-- * Therefore, we can remap pages 2 to 7 to page 1. Only 2 pages of page structs
-- * will be used for each HugeTLB page. This will allow us to free the remaining
-- * 6 pages to the buddy allocator.
-- *
-- * Here is how things look after remapping.
-- *
-- *    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
-- * +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- * |           |                     |     0     | -------------> |     0     |
-- * |           |                     +-----------+                +-----------+
-- * |           |                     |     1     | -------------> |     1     |
-- * |           |                     +-----------+                +-----------+
-- * |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- * |           |                     +-----------+                   | | | | |
-- * |           |                     |     3     | ------------------+ | | | |
-- * |           |                     +-----------+                     | | | |
-- * |           |                     |     4     | --------------------+ | | |
-- * |    PMD    |                     +-----------+                       | | |
-- * |   level   |                     |     5     | ----------------------+ | |
-- * |  mapping  |                     +-----------+                         | |
-- * |           |                     |     6     | ------------------------+ |
-- * |           |                     +-----------+                           |
-- * |           |                     |     7     | --------------------------+
-- * |           |                     +-----------+
-- * |           |
-- * |           |
-- * |           |
-- * +-----------+
-- *
-- * When a HugeTLB is freed to the buddy system, we should allocate 6 pages for
-- * vmemmap pages and restore the previous mapping relationship.
-- *
-- * For the HugeTLB page of the pud level mapping. It is similar to the former.
-- * We also can use this approach to free (PAGE_SIZE - 2) vmemmap pages.
-- *
-- * Apart from the HugeTLB page of the pmd/pud level mapping, some architectures
-- * (e.g. aarch64) provides a contiguous bit in the translation table entries
-- * that hints to the MMU to indicate that it is one of a contiguous set of
-- * entries that can be cached in a single TLB entry.
-- *
-- * The contiguous bit is used to increase the mapping size at the pmd and pte
-- * (last) level. So this type of HugeTLB page can be optimized only when its
-- * size of the struct page structs is greater than 2 pages.
-+ * See Documentation/vm/vmemmap_dedup.rst
-  */
-+
- #define pr_fmt(fmt)	"HugeTLB: " fmt
+--- a/include/linux/mm.h~mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps
++++ a/include/linux/mm.h
+@@ -3165,7 +3165,7 @@ p4d_t *vmemmap_p4d_populate(pgd_t *pgd,
+ pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+ pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
+ pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-			    struct vmem_altmap *altmap);
++			    struct vmem_altmap *altmap, struct page *block);
+ void *vmemmap_alloc_block(unsigned long size, int node);
+ struct vmem_altmap;
+ void *vmemmap_alloc_block_buf(unsigned long size, int node,
+--- a/mm/memremap.c~mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps
++++ a/mm/memremap.c
+@@ -320,6 +320,7 @@ void *memremap_pages(struct dev_pagemap
+ {
+ 	struct mhp_params params = {
+ 		.altmap = pgmap_altmap(pgmap),
++		.pgmap = pgmap,
+ 		.pgprot = PAGE_KERNEL,
+ 	};
+ 	const int nr_range = pgmap->nr_range;
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps
++++ a/mm/sparse-vmemmap.c
+@@ -495,16 +495,31 @@ void __meminit vmemmap_verify(pte_t *pte
+ }
  
- #include "hugetlb_vmemmap.h"
+ pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-				       struct vmem_altmap *altmap)
++				       struct vmem_altmap *altmap,
++				       struct page *reuse)
+ {
+ 	pte_t *pte = pte_offset_kernel(pmd, addr);
+ 	if (pte_none(*pte)) {
+ 		pte_t entry;
+ 		void *p;
+ 
+-		p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
+-		if (!p)
+-			return NULL;
++		if (!reuse) {
++			p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
++			if (!p)
++				return NULL;
++		} else {
++			/*
++			 * When a PTE/PMD entry is freed from the init_mm
++			 * there's a a free_pages() call to this page allocated
++			 * above. Thus this get_page() is paired with the
++			 * put_page_testzero() on the freeing path.
++			 * This can only called by certain ZONE_DEVICE path,
++			 * and through vmemmap_populate_compound_pages() when
++			 * slab is available.
++			 */
++			get_page(reuse);
++			p = page_to_virt(reuse);
++		}
+ 		entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
+ 		set_pte_at(&init_mm, addr, pte, entry);
+ 	}
+@@ -571,7 +586,8 @@ pgd_t * __meminit vmemmap_pgd_populate(u
+ }
+ 
+ static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
+-					      struct vmem_altmap *altmap)
++					      struct vmem_altmap *altmap,
++					      struct page *reuse)
+ {
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -591,7 +607,7 @@ static pte_t * __meminit vmemmap_populat
+ 	pmd = vmemmap_pmd_populate(pud, addr, node);
+ 	if (!pmd)
+ 		return NULL;
+-	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
++	pte = vmemmap_pte_populate(pmd, addr, node, altmap, reuse);
+ 	if (!pte)
+ 		return NULL;
+ 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+@@ -606,9 +622,111 @@ int __meminit vmemmap_populate_basepages
+ 	pte_t *pte;
+ 
+ 	for (; addr < end; addr += PAGE_SIZE) {
+-		pte = vmemmap_populate_address(addr, node, altmap);
++		pte = vmemmap_populate_address(addr, node, altmap, NULL);
++		if (!pte)
++			return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static int __meminit vmemmap_populate_range(unsigned long start,
++					    unsigned long end,
++					    int node, struct page *page)
++{
++	unsigned long addr = start;
++	pte_t *pte;
++
++	for (; addr < end; addr += PAGE_SIZE) {
++		pte = vmemmap_populate_address(addr, node, NULL, page);
++		if (!pte)
++			return -ENOMEM;
++	}
++
++	return 0;
++}
++
++/*
++ * For compound pages bigger than section size (e.g. x86 1G compound
++ * pages with 2M subsection size) fill the rest of sections as tail
++ * pages.
++ *
++ * Note that memremap_pages() resets @nr_range value and will increment
++ * it after each range successful onlining. Thus the value or @nr_range
++ * at section memmap populate corresponds to the in-progress range
++ * being onlined here.
++ */
++static bool __meminit reuse_compound_section(unsigned long start_pfn,
++					     struct dev_pagemap *pgmap)
++{
++	unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
++	unsigned long offset = start_pfn -
++		PHYS_PFN(pgmap->ranges[pgmap->nr_range].start);
++
++	return !IS_ALIGNED(offset, nr_pages) && nr_pages > PAGES_PER_SUBSECTION;
++}
++
++static pte_t * __meminit compound_section_tail_page(unsigned long addr)
++{
++	pte_t *pte;
++
++	addr -= PAGE_SIZE;
++
++	/*
++	 * Assuming sections are populated sequentially, the previous section's
++	 * page data can be reused.
++	 */
++	pte = pte_offset_kernel(pmd_off_k(addr), addr);
++	if (!pte)
++		return NULL;
++
++	return pte;
++}
++
++static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
++						     unsigned long start,
++						     unsigned long end, int node,
++						     struct dev_pagemap *pgmap)
++{
++	unsigned long size, addr;
++	pte_t *pte;
++	int rc;
++
++	if (reuse_compound_section(start_pfn, pgmap)) {
++		pte = compound_section_tail_page(start);
+ 		if (!pte)
+ 			return -ENOMEM;
++
++		/*
++		 * Reuse the page that was populated in the prior iteration
++		 * with just tail struct pages.
++		 */
++		return vmemmap_populate_range(start, end, node, pte_page(*pte));
++	}
++
++	size = min(end - start, pgmap_vmemmap_nr(pgmap) * sizeof(struct page));
++	for (addr = start; addr < end; addr += size) {
++		unsigned long next = addr, last = addr + size;
++
++		/* Populate the head page vmemmap page */
++		pte = vmemmap_populate_address(addr, node, NULL, NULL);
++		if (!pte)
++			return -ENOMEM;
++
++		/* Populate the tail pages vmemmap page */
++		next = addr + PAGE_SIZE;
++		pte = vmemmap_populate_address(next, node, NULL, NULL);
++		if (!pte)
++			return -ENOMEM;
++
++		/*
++		 * Reuse the previous page for the rest of tail pages
++		 * See layout diagram in Documentation/vm/vmemmap_dedup.rst
++		 */
++		next += PAGE_SIZE;
++		rc = vmemmap_populate_range(next, last, node, pte_page(*pte));
++		if (rc)
++			return -ENOMEM;
+ 	}
+ 
+ 	return 0;
+@@ -620,12 +738,19 @@ struct page * __meminit __populate_secti
+ {
+ 	unsigned long start = (unsigned long) pfn_to_page(pfn);
+ 	unsigned long end = start + nr_pages * sizeof(struct page);
++	int r;
+ 
+ 	if (WARN_ON_ONCE(!IS_ALIGNED(pfn, PAGES_PER_SUBSECTION) ||
+ 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
+ 		return NULL;
+ 
+-	if (vmemmap_populate(start, end, nid, altmap))
++	if (is_power_of_2(sizeof(struct page)) &&
++	    pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
++		r = vmemmap_populate_compound_pages(pfn, start, end, nid, pgmap);
++	else
++		r = vmemmap_populate(start, end, nid, altmap);
++
++	if (r < 0)
+ 		return NULL;
+ 
+ 	return pfn_to_page(pfn);
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
