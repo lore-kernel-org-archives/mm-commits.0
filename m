@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27485C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Feb 2022 07:10:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 556C9C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Feb 2022 07:11:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238015AbiBYHLB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Feb 2022 02:11:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53558 "EHLO
+        id S237383AbiBYHMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Feb 2022 02:12:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238016AbiBYHKy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Feb 2022 02:10:54 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 778C91E2FC3
-        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 23:10:21 -0800 (PST)
+        with ESMTP id S235033AbiBYHMH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Feb 2022 02:12:07 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC19E17E32
+        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 23:11:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 349E0B82A97
-        for <mm-commits@vger.kernel.org>; Fri, 25 Feb 2022 07:10:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6761C340E7;
-        Fri, 25 Feb 2022 07:10:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A96D61AE0
+        for <mm-commits@vger.kernel.org>; Fri, 25 Feb 2022 07:11:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C35CEC340E7;
+        Fri, 25 Feb 2022 07:11:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645773018;
-        bh=S/hRT/RkJkWl5bp2hWIG6Sn0UGIBAVP2XbLBJpJFmhk=;
+        s=korg; t=1645773093;
+        bh=AJP6MctUXatumfQhKoD3L/rslGKrk6bbJhPNIY/RkCA=;
         h=Date:To:From:Subject:From;
-        b=Snp5yYzhg4Cg/zbX4eBT2lDQCaEvKb0IqnGws8hBPqsHlf9cr8L5qNkp7uA7ZaKFy
-         uT9Ac0ZfBbGu3E8UhoHX8k/XXRAx29XeFqiSORR7tnmn/Vpiz75GYrf7YZKPBThBHA
-         /G/SYNPyuHqc83vFmBSG58kKrgBsau80iVVYaxhM=
-Date:   Thu, 24 Feb 2022 23:10:18 -0800
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=Atbp1LRU2ljP1gQFXx/E0n4sDYeA+fJ+2kz1i4ZOGiCpSvE/rdhxBOuB1W3OTDn78
+         1pAZmVrmAGQugW0JHbx1ygcgt4dex+hu+Brw5OEhXepXq7QztQclZEMi2n8vO5TZjf
+         1naMftTOY/0EcDBFrEOxT3rd9wKjfaj9FPOvQVEM=
+Date:   Thu, 24 Feb 2022 23:11:33 -0800
+To:     mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch added to -mm tree
-Message-Id: <20220225071018.C6761C340E7@smtp.kernel.org>
+Subject: + mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch added to -mm tree
+Message-Id: <20220225071133.C35CEC340E7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: use helper macro min and max in unmap_mapping_range_tree()
+     Subject: mm/oom_kill: remove unneeded is_memcg_oom check
 has been added to the -mm tree.  Its filename is
-     mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
+     mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,36 +63,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory.c: use helper macro min and max in unmap_mapping_range_tree()
+Subject: mm/oom_kill: remove unneeded is_memcg_oom check
 
-Use helper macro min and max to help simplify the code logic.  Minor
-readability improvement.
+oom_cpuset_eligible() is always called when !is_memcg_oom().  Remove this
+unnecessary check.
 
-Link: https://lkml.kernel.org/r/20220224121134.35068-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220224115933.20154-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/oom_kill.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/memory.c~mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree
-+++ a/mm/memory.c
-@@ -3350,12 +3350,8 @@ static inline void unmap_mapping_range_t
- 	vma_interval_tree_foreach(vma, root, first_index, last_index) {
- 		vba = vma->vm_pgoff;
- 		vea = vba + vma_pages(vma) - 1;
--		zba = first_index;
--		if (zba < vba)
--			zba = vba;
--		zea = last_index;
--		if (zea > vea)
--			zea = vea;
-+		zba = max(first_index, vba);
-+		zea = min(last_index, vea);
+--- a/mm/oom_kill.c~mm-oom_kill-remove-unneeded-is_memcg_oom-check
++++ a/mm/oom_kill.c
+@@ -93,9 +93,6 @@ static bool oom_cpuset_eligible(struct t
+ 	bool ret = false;
+ 	const nodemask_t *mask = oc->nodemask;
  
- 		unmap_mapping_range_vma(vma,
- 			((zba - vba) << PAGE_SHIFT) + vma->vm_start,
+-	if (is_memcg_oom(oc))
+-		return true;
+-
+ 	rcu_read_lock();
+ 	for_each_thread(start, tsk) {
+ 		if (mask) {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -114,6 +111,7 @@ mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
 mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
 mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
 mm-hugetlb-use-helper-macro-__attr_rw.patch
+mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
 mm-ksm-use-helper-macro-__attr_rw.patch
 mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
 mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
