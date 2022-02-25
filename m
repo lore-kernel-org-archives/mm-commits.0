@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 556C9C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Feb 2022 07:11:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1E2FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Feb 2022 07:13:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237383AbiBYHMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Feb 2022 02:12:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54158 "EHLO
+        id S238026AbiBYHNt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Feb 2022 02:13:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235033AbiBYHMH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Feb 2022 02:12:07 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC19E17E32
-        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 23:11:34 -0800 (PST)
+        with ESMTP id S235033AbiBYHNt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Feb 2022 02:13:49 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84BF91F6BD0
+        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 23:13:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A96D61AE0
-        for <mm-commits@vger.kernel.org>; Fri, 25 Feb 2022 07:11:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C35CEC340E7;
-        Fri, 25 Feb 2022 07:11:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 33DF9B82A46
+        for <mm-commits@vger.kernel.org>; Fri, 25 Feb 2022 07:13:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6AFCC340E7;
+        Fri, 25 Feb 2022 07:13:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645773093;
-        bh=AJP6MctUXatumfQhKoD3L/rslGKrk6bbJhPNIY/RkCA=;
+        s=korg; t=1645773194;
+        bh=FBbF+j77Gul3nyLWl1Z/wp8RmTZYDyS83J7mGxu8lI0=;
         h=Date:To:From:Subject:From;
-        b=Atbp1LRU2ljP1gQFXx/E0n4sDYeA+fJ+2kz1i4ZOGiCpSvE/rdhxBOuB1W3OTDn78
-         1pAZmVrmAGQugW0JHbx1ygcgt4dex+hu+Brw5OEhXepXq7QztQclZEMi2n8vO5TZjf
-         1naMftTOY/0EcDBFrEOxT3rd9wKjfaj9FPOvQVEM=
-Date:   Thu, 24 Feb 2022 23:11:33 -0800
-To:     mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.com,
+        b=1NAr7E/kq2J3Be9KVPZV83GA222/2PG8LQh7qFBV84Gds8GXgDgy4jrwDfJJzx0Cj
+         cluNXl6gNaY4d/L8gEhIdLehpWa5oQx/LfjQL4Oico6DaYodq2VWJ2aqfSmxP0TaJR
+         5ts4M1KYsXriAtAOYv08TrnAijEbxWJ6VlGjKwCg=
+Date:   Thu, 24 Feb 2022 23:13:14 -0800
+To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch added to -mm tree
-Message-Id: <20220225071133.C35CEC340E7@smtp.kernel.org>
+Subject: + mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch added to -mm tree
+Message-Id: <20220225071314.C6AFCC340E7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill: remove unneeded is_memcg_oom check
+     Subject: mm/writeback: minor clean up for highmem_dirtyable_memory
 has been added to the -mm tree.  Its filename is
-     mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
+     mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,39 +63,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/oom_kill: remove unneeded is_memcg_oom check
+Subject: mm/writeback: minor clean up for highmem_dirtyable_memory
 
-oom_cpuset_eligible() is always called when !is_memcg_oom().  Remove this
-unnecessary check.
+Since commit a804552b9a15 ("mm/page-writeback.c: fix dirty_balance_reserve
+subtraction from dirtyable memory"), local variable x can not be negative.
+And it can not overflow when it is the total number of dirtyable highmem
+pages.  Thus remove the unneeded comment and overflow check.
 
-Link: https://lkml.kernel.org/r/20220224115933.20154-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220224115416.46089-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/page-writeback.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-remove-unneeded-is_memcg_oom-check
-+++ a/mm/oom_kill.c
-@@ -93,9 +93,6 @@ static bool oom_cpuset_eligible(struct t
- 	bool ret = false;
- 	const nodemask_t *mask = oc->nodemask;
+--- a/mm/page-writeback.c~mm-writeback-minor-clean-up-for-highmem_dirtyable_memory
++++ a/mm/page-writeback.c
+@@ -324,18 +324,6 @@ static unsigned long highmem_dirtyable_m
+ 	}
  
--	if (is_memcg_oom(oc))
--		return true;
+ 	/*
+-	 * Unreclaimable memory (kernel memory or anonymous memory
+-	 * without swap) can bring down the dirtyable pages below
+-	 * the zone's dirty balance reserve and the above calculation
+-	 * will underflow.  However we still want to add in nodes
+-	 * which are below threshold (negative values) to get a more
+-	 * accurate calculation but make sure that the total never
+-	 * underflows.
+-	 */
+-	if ((long)x < 0)
+-		x = 0;
 -
- 	rcu_read_lock();
- 	for_each_thread(start, tsk) {
- 		if (mask) {
+-	/*
+ 	 * Make sure that the number of highmem pages is never larger
+ 	 * than the number of the total dirtyable memory. This can only
+ 	 * occur in very strange VM situations but we want to make sure
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
 filemap-remove-find_get_pages.patch
+mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
 mm-use-helper-function-range_in_vma.patch
 mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
 mm-sparse-make-mminit_validate_memmodel_limits-static.patch
