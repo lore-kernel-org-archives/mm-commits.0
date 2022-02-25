@@ -2,95 +2,92 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2493FC43217
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Feb 2022 18:22:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBBC4C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Feb 2022 02:11:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232859AbiBXSXI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Feb 2022 13:23:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48428 "EHLO
+        id S236706AbiBYCML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Feb 2022 21:12:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37226 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232838AbiBXSXG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Feb 2022 13:23:06 -0500
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAFF54D9F6;
-        Thu, 24 Feb 2022 10:22:35 -0800 (PST)
-Received: from fraeml709-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4K4Ljg23Z6z67xMd;
-        Fri, 25 Feb 2022 02:17:43 +0800 (CST)
-Received: from lhreml724-chm.china.huawei.com (10.201.108.75) by
- fraeml709-chm.china.huawei.com (10.206.15.37) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Thu, 24 Feb 2022 19:22:34 +0100
-Received: from [10.47.86.126] (10.47.86.126) by lhreml724-chm.china.huawei.com
- (10.201.108.75) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.21; Thu, 24 Feb
- 2022 18:22:32 +0000
-Message-ID: <f98235e3-0ddf-2765-971f-4d1e185b9010@huawei.com>
-Date:   Thu, 24 Feb 2022 18:22:31 +0000
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.5.1
+        with ESMTP id S235994AbiBYCMJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Feb 2022 21:12:09 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 114BD17E0C;
+        Thu, 24 Feb 2022 18:11:35 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 65E496152D;
+        Fri, 25 Feb 2022 02:11:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFA73C340E9;
+        Fri, 25 Feb 2022 02:11:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1645755093;
+        bh=7/NWWWGZmubchTDBTFX0t3ZLHY9P4rfU+SUXOhgm+mY=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=HuHGcWubRB7o+glyFi2f73c1Kf0GYq25E0WCTibEINXlKL1ctV/45hWjBRjq3picC
+         nVgSsezU6NhaBlwDxE8dgaRV5mPS1nLuhIlbG/bKbcuXB51dsEX/vH60txc9CUMDIc
+         GaCEneign/ch/gcpjK83pKU3B8z3XxbV5bhztRPF1ThxQVvCROj2CYGkFqwFdLOpCV
+         R2+0sf/q7cRGdnQyM2JNkC3rJ4GvQRCsoq8yA90EwuNA04aIgFntuMgEQ9Z3b0KaJF
+         JoXD0v71k1SGwH+5ZvDj5Q5xUV1386M9EQLcJZ73ugkTZHSRSrCSLJ9Tbg2dH1EhEO
+         1kAyMY7ZrQjcA==
+Date:   Fri, 25 Feb 2022 02:11:28 +0000
+From:   Mark Brown <broonie@kernel.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
+        Matthew Wilcox <willy@infradead.org>
 Subject: Re: mmotm 2022-02-23-21-20 uploaded
- [drivers/scsi/hisi_sas/hisi_sas_main.ko]
-To:     Randy Dunlap <rdunlap@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        <broonie@kernel.org>, <mhocko@suse.cz>, <sfr@canb.auug.org.au>,
-        <linux-next@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-        <linux-mm@kvack.org>, <linux-kernel@vger.kernel.org>,
-        <mm-commits@vger.kernel.org>, <linux-scsi@vger.kernel.org>,
-        "Martin K . Petersen" <martin.petersen@oracle.com>
+Message-ID: <Yhg60P06ksKTjddP@sirena.org.uk>
 References: <20220224052137.BFB10C340E9@smtp.kernel.org>
- <52f0922c-143a-8a40-b1e1-23d562ca6f80@infradead.org>
-From:   John Garry <john.garry@huawei.com>
-In-Reply-To: <52f0922c-143a-8a40-b1e1-23d562ca6f80@infradead.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.47.86.126]
-X-ClientProxiedBy: lhreml752-chm.china.huawei.com (10.201.108.202) To
- lhreml724-chm.china.huawei.com (10.201.108.75)
-X-CFilter-Loop: Reflected
+ <20220223212416.c957b713f5f8823f9b8e0a8d@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="lUvLP3GXLpu2Xwy5"
+Content-Disposition: inline
+In-Reply-To: <20220223212416.c957b713f5f8823f9b8e0a8d@linux-foundation.org>
+X-Cookie: I smell a wumpus.
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 24/02/2022 18:04, Randy Dunlap wrote:
-> 
-> 
-> On 2/23/22 21:21, Andrew Morton wrote:
->> The mm-of-the-moment snapshot 2022-02-23-21-20 has been uploaded to
->>
->>     https://www.ozlabs.org/~akpm/mmotm/
->>
->> mmotm-readme.txt says
->>
->> README for mm-of-the-moment:
->>
->> https://www.ozlabs.org/~akpm/mmotm/
->>
->> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
->> more than once a week.
->>
->> You will need quilt to apply these patches to the latest Linus release (5.x
->> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
->> https://ozlabs.org/~akpm/mmotm/series
-> 
-> on  i386:
-> 
-> ERROR: modpost: "sas_execute_ata_cmd" [drivers/scsi/hisi_sas/hisi_sas_main.ko] undefined!
-> 
-> CONFIG_SCSI_SAS_ATTRS=y
-> CONFIG_SCSI_SAS_LIBSAS=y
-> # CONFIG_SCSI_SAS_ATA is not set
-> CONFIG_SCSI_SAS_HOST_SMP=y
-> 
-> 
 
+--lUvLP3GXLpu2Xwy5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Randy,
+On Wed, Feb 23, 2022 at 09:24:16PM -0800, Andrew Morton wrote:
+> On Wed, 23 Feb 2022 21:21:36 -0800 Andrew Morton <akpm@linux-foundation.o=
+rg> wrote:
+>=20
+> > The mm-of-the-moment snapshot 2022-02-23-21-20 has been uploaded to
+> >=20
+> >    https://www.ozlabs.org/~akpm/mmotm/
+> >=20
+>=20
+> Below is how I resolved the fallout from jamming today's linux-next
+> back on top of the MM queue.
 
-I think that this has already been fixed on Martin's mkp-scsi 5.18 
-staging branch - can you compare?
+Thanks, this was enormously helpful (there's a bunch of embarrassing
+merge fixups in the tree today, but they're all driver error with me fat
+fingering the scripts).
 
-Thanks,
-John
+--lUvLP3GXLpu2Xwy5
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmIYOs8ACgkQJNaLcl1U
+h9CmgQf9FsPQwYEVn1aJ75UG8xJW7002CfpJTz23mA0EtEfQh8LbimuVns3H2IGu
+2kib7VN9CqpI7srhitHuw3pI4E3oobYWtTTUhMZqEMOcLg9zIcDiCV4bY6ack4D/
+8R0TR5eLjyypgC1L8xEikFNXUbAvQfVwgrtrU/XauXC85DsIPjGtj+gUFXlxt4tV
+Ip05B6zd8BbPGpiZLo4Kb45mXyHQrSQ4TZrqE5FOz3J7baSYp8rAdmgilXXFSNOR
+FKDawuaznrj/unpGrRrkRQB2dbCoiVqEvDS4wiyhL+sq/1AvheKqkuoCKeu9tZBj
+OZt2qR8i2pvP52YtMnpvLSe2rPAaXw==
+=dNB1
+-----END PGP SIGNATURE-----
+
+--lUvLP3GXLpu2Xwy5--
