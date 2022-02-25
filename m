@@ -2,92 +2,123 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBBC4C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Feb 2022 02:11:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16C6CC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Feb 2022 02:31:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236706AbiBYCML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Feb 2022 21:12:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37226 "EHLO
+        id S236747AbiBYCcH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Feb 2022 21:32:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235994AbiBYCMJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Feb 2022 21:12:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 114BD17E0C;
-        Thu, 24 Feb 2022 18:11:35 -0800 (PST)
+        with ESMTP id S231263AbiBYCcE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Feb 2022 21:32:04 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DEDE2DC9
+        for <mm-commits@vger.kernel.org>; Thu, 24 Feb 2022 18:31:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 65E496152D;
-        Fri, 25 Feb 2022 02:11:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFA73C340E9;
-        Fri, 25 Feb 2022 02:11:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645755093;
-        bh=7/NWWWGZmubchTDBTFX0t3ZLHY9P4rfU+SUXOhgm+mY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=HuHGcWubRB7o+glyFi2f73c1Kf0GYq25E0WCTibEINXlKL1ctV/45hWjBRjq3picC
-         nVgSsezU6NhaBlwDxE8dgaRV5mPS1nLuhIlbG/bKbcuXB51dsEX/vH60txc9CUMDIc
-         GaCEneign/ch/gcpjK83pKU3B8z3XxbV5bhztRPF1ThxQVvCROj2CYGkFqwFdLOpCV
-         R2+0sf/q7cRGdnQyM2JNkC3rJ4GvQRCsoq8yA90EwuNA04aIgFntuMgEQ9Z3b0KaJF
-         JoXD0v71k1SGwH+5ZvDj5Q5xUV1386M9EQLcJZ73ugkTZHSRSrCSLJ9Tbg2dH1EhEO
-         1kAyMY7ZrQjcA==
-Date:   Fri, 25 Feb 2022 02:11:28 +0000
-From:   Mark Brown <broonie@kernel.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
-        Matthew Wilcox <willy@infradead.org>
-Subject: Re: mmotm 2022-02-23-21-20 uploaded
-Message-ID: <Yhg60P06ksKTjddP@sirena.org.uk>
-References: <20220224052137.BFB10C340E9@smtp.kernel.org>
- <20220223212416.c957b713f5f8823f9b8e0a8d@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="lUvLP3GXLpu2Xwy5"
-Content-Disposition: inline
-In-Reply-To: <20220223212416.c957b713f5f8823f9b8e0a8d@linux-foundation.org>
-X-Cookie: I smell a wumpus.
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BC30F61591
+        for <mm-commits@vger.kernel.org>; Fri, 25 Feb 2022 02:31:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DDCEC340EB;
+        Fri, 25 Feb 2022 02:31:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1645756291;
+        bh=uXAsTddlNLcxWEuMsgTsAALK50TvuzsGvZyAONAF2Dk=;
+        h=Date:To:From:Subject:From;
+        b=aS5WW2vG55gPB0Lg/mH+5Y7zTPeqLzOGr8CezQ5Y0DgUWBLnwmzh0OIGesEuJL9nA
+         laqp3M5y0UG8dScfAvDM2VSOh67fsFU8LT7+Q/uLNTM+E95vXDk6fwOOiEe9XGMOlM
+         jhxCIb30ohcNi09pgkU42JnbHP0GOROIHBD7P4Ro=
+Date:   Thu, 24 Feb 2022 18:31:30 -0800
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
+        richard.weiyang@gmail.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-memcg-set-memcg-after-css-verified-and-got-reference.patch added to -mm tree
+Message-Id: <20220225023131.1DDCEC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
---lUvLP3GXLpu2Xwy5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The patch titled
+     Subject: mm/memcg: set memcg after css verified and got reference
+has been added to the -mm tree.  Its filename is
+     mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
 
-On Wed, Feb 23, 2022 at 09:24:16PM -0800, Andrew Morton wrote:
-> On Wed, 23 Feb 2022 21:21:36 -0800 Andrew Morton <akpm@linux-foundation.o=
-rg> wrote:
->=20
-> > The mm-of-the-moment snapshot 2022-02-23-21-20 has been uploaded to
-> >=20
-> >    https://www.ozlabs.org/~akpm/mmotm/
-> >=20
->=20
-> Below is how I resolved the fallout from jamming today's linux-next
-> back on top of the MM queue.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
 
-Thanks, this was enormously helpful (there's a bunch of embarrassing
-merge fixups in the tree today, but they're all driver error with me fat
-fingering the scripts).
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---lUvLP3GXLpu2Xwy5
-Content-Type: application/pgp-signature; name="signature.asc"
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
------BEGIN PGP SIGNATURE-----
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmIYOs8ACgkQJNaLcl1U
-h9CmgQf9FsPQwYEVn1aJ75UG8xJW7002CfpJTz23mA0EtEfQh8LbimuVns3H2IGu
-2kib7VN9CqpI7srhitHuw3pI4E3oobYWtTTUhMZqEMOcLg9zIcDiCV4bY6ack4D/
-8R0TR5eLjyypgC1L8xEikFNXUbAvQfVwgrtrU/XauXC85DsIPjGtj+gUFXlxt4tV
-Ip05B6zd8BbPGpiZLo4Kb45mXyHQrSQ4TZrqE5FOz3J7baSYp8rAdmgilXXFSNOR
-FKDawuaznrj/unpGrRrkRQB2dbCoiVqEvDS4wiyhL+sq/1AvheKqkuoCKeu9tZBj
-OZt2qR8i2pvP52YtMnpvLSe2rPAaXw==
-=dNB1
------END PGP SIGNATURE-----
+------------------------------------------------------
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/memcg: set memcg after css verified and got reference
 
---lUvLP3GXLpu2Xwy5--
+Patch series "mm/memcg: some cleanup for mem_cgroup_iter()".
+
+
+This patch (of 3):
+
+Instead of resetting memcg when css is either not verified or has no
+reference, we can set it after these are processed.
+
+No functional change, just simplified the code a little.
+
+Link: https://lkml.kernel.org/r/20220225003437.12620-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memcontrol.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+--- a/mm/memcontrol.c~mm-memcg-set-memcg-after-css-verified-and-got-reference
++++ a/mm/memcontrol.c
+@@ -1089,15 +1089,10 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		 * is provided by the caller, so we know it's alive
+ 		 * and kicking, and don't take an extra reference.
+ 		 */
+-		memcg = mem_cgroup_from_css(css);
+-
+-		if (css == &root->css)
+-			break;
+-
+-		if (css_tryget(css))
++		if (css == &root->css || css_tryget(css)) {
++			memcg = mem_cgroup_from_css(css);
+ 			break;
+-
+-		memcg = NULL;
++		}
+ 	}
+ 
+ 	if (reclaim) {
+_
+
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
+
+mm-memcg-mem_cgroup_per_node-is-already-set-to-0-on-allocation.patch
+mm-memcg-retrieve-parent-memcg-from-cssparent.patch
+mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
+mm-memcg-set-pos-to-prev-unconditionally.patch
+mm-memcg-move-generation-assignment-and-comparison-together.patch
+mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+mm-page_alloc-add-penalty-to-local_node.patch
+memcg-do-not-tweak-node-in-alloc_mem_cgroup_per_node_info.patch
+
