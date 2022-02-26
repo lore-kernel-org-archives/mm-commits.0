@@ -2,45 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA277C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Feb 2022 00:32:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBC80C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Feb 2022 01:29:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234569AbiBZAcn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Feb 2022 19:32:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39046 "EHLO
+        id S230141AbiBZBaU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Feb 2022 20:30:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229484AbiBZAcn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Feb 2022 19:32:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4BC6517D7
-        for <mm-commits@vger.kernel.org>; Fri, 25 Feb 2022 16:32:09 -0800 (PST)
+        with ESMTP id S229536AbiBZBaQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Feb 2022 20:30:16 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2C141DB3E8;
+        Fri, 25 Feb 2022 17:29:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8FA64B833BF
-        for <mm-commits@vger.kernel.org>; Sat, 26 Feb 2022 00:32:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 287F5C340E7;
-        Sat, 26 Feb 2022 00:32:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7C874B833C4;
+        Sat, 26 Feb 2022 01:29:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 147F8C340E7;
+        Sat, 26 Feb 2022 01:29:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645835527;
-        bh=UXgIpYYsVku5dYLLu2vJZg0MTlYM6KfjG85cI55cmYI=;
+        s=korg; t=1645838980;
+        bh=6zoPMjPhk8gkXk/MAKx8H4tUlW/Qvc5x7PmQA3QWYFo=;
         h=Date:To:From:Subject:From;
-        b=CuZuSsGa8UweEdMw/gc+bEbWfzAppmNoIALLwefDISotPxW7pskynWUxfB2pTfnkb
-         SsVBLEAvkEkcM93XxMgVekPbQl0jrqebm3aKJo3lk/d+GbRHWaLOanh3S9d2RCJUeO
-         zs5ZZX+4qOP5Z+SsrfrGtFHH+rPWDN8TdOBKf6dY=
-Date:   Fri, 25 Feb 2022 16:32:06 -0800
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        shy828301@gmail.com, ponnuvel.palaniyappan@canonical.com,
-        minchan@kernel.org, matthew.ruffell@canonical.com,
-        linmiaohe@huawei.com, jay.vosburgh@canonical.com,
-        ioanna-maria.alifieraki@canonical.com, halves@canonical.com,
-        gerald.yang@canonical.com, gavin.guo@canonical.com,
-        dongdong.tao@canonical.com, dan.streetman@canonical.com,
-        daniel.hill@canonical.com, mfo@canonical.com,
+        b=rnTw/LyRLNAAtoSrGrXvMD3vxA1A8JGK58VXE5yuJsxyQd5zxSKPQ8bTMbo8H/H7N
+         u6IbEZBoMzaCIbayRZE1Vf7rI/ERYyC9eXsIlh100eCgaJNfeMe9GQgTTHwcOfUtvi
+         pi+Rxrp0Nyh3ZwnnY2T0ejulJ1wPV2MzJtPB9XwU=
+Date:   Fri, 25 Feb 2022 17:29:39 -0800
+To:     mm-commits@vger.kernel.org, zealci@zte.com.cn,
+        yang.yang29@zte.com.cn, stable@vger.kernel.org, rogerq@kernel.org,
+        ran.xiaokai@zte.com.cn, naoya.horiguchi@nec.com,
+        minchan@kernel.org, mhocko@kernel.org, jiang.xuexin@zte.com.cn,
+        hughd@google.com, hannes@cmpxchg.org, guo.ziliang@zte.com.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch added to -mm tree
-Message-Id: <20220226003207.287F5C340E7@smtp.kernel.org>
+Subject: + mm-swap-get-rid-of-deadloop-in-swapin-readahead.patch added to -mm tree
+Message-Id: <20220226012940.147F8C340E7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
+     Subject: mm: swap: get rid of deadloop in swapin readahead
 has been added to the -mm tree.  Its filename is
-     mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
+     mm-swap-get-rid-of-deadloop-in-swapin-readahead.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-swap-get-rid-of-deadloop-in-swapin-readahead.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-get-rid-of-deadloop-in-swapin-readahead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,68 +66,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mauricio Faria de Oliveira <mfo@canonical.com>
-Subject: mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
+From: Guo Ziliang <guo.ziliang@zte.com.cn>
+Subject: mm: swap: get rid of deadloop in swapin readahead
 
-v4: - fixed Fixes: tag to first support, after tests on v4.5;
-      updated commit message/reproducer section with results.
-    - tested on v5.17-rc3 and v4.5.
-    - shorten comment line; remove inner braces in the check.
-      (Thanks: Christoph Hellwig <hch@infradead.org>)
-    - clarify comment about __remove_mapping()
-      (Thanks: Yu Zhao <yuzhao@google.com>)
+In our testing, a deadloop task was found.  Through sysrq printing, same
+stack was found every time, as follows:
 
-Link: https://lkml.kernel.org/r/20220209202659.183418-1-mfo@canonical.com
-Fixes: 854e9ed09ded ("mm: support madvise(MADV_FREE)")
-Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dan Hill <daniel.hill@canonical.com>
-Cc: Dan Streetman <dan.streetman@canonical.com>
-Cc: Dongdong Tao <dongdong.tao@canonical.com>
-Cc: Gavin Guo <gavin.guo@canonical.com>
-Cc: Gerald Yang <gerald.yang@canonical.com>
-Cc: Heitor Alves de Siqueira <halves@canonical.com>
-Cc: Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>
-Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
-Cc: Matthew Ruffell <matthew.ruffell@canonical.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+__swap_duplicate+0x58/0x1a0
+swapcache_prepare+0x24/0x30
+__read_swap_cache_async+0xac/0x220
+read_swap_cache_async+0x58/0xa0
+swapin_readahead+0x24c/0x628
+do_swap_page+0x374/0x8a0
+__handle_mm_fault+0x598/0xd60
+handle_mm_fault+0x114/0x200
+do_page_fault+0x148/0x4d0
+do_translation_fault+0xb0/0xd4
+do_mem_abort+0x50/0xb0
+
+The reason for the deadloop is that swapcache_prepare() always returns
+EEXIST, indicating that SWAP_HAS_CACHE has not been cleared, so that it
+cannot jump out of the loop.  We suspect that the task that clears the
+SWAP_HAS_CACHE flag never gets a chance to run.  We try to lower the
+priority of the task stuck in a deadloop so that the task that clears the
+SWAP_HAS_CACHE flag will run.  The results show that the system returns to
+normal after the priority is lowered.
+
+In our testing, multiple real-time tasks are bound to the same core, and
+the task in the deadloop is the highest priority task of the core, so the
+deadloop task cannot be preempted.
+
+Although cond_resched() is used by __read_swap_cache_async, it is an empty
+function in the preemptive system and cannot achieve the purpose of
+releasing the CPU.  A high-priority task cannot release the CPU unless
+preempted by a higher-priority task.  But when this task is already the
+highest priority task on this core, other tasks will not be able to be
+scheduled.  So we think we should replace cond_resched() with
+schedule_timeout_uninterruptible(1), schedule_timeout_interruptible will
+call set_current_state first to set the task state, so the task will be
+removed from the running queue, so as to achieve the purpose of giving up
+the CPU and prevent it from running in kernel mode for too long.
+
+(akpm: ugly hack becomes uglier.  But it fixes the issue in a
+backportable-to-stable fashion while we hopefully work on something
+better)
+
+Link: https://lkml.kernel.org/r/20220221111749.1928222-1-cgel.zte@gmail.com
+Signed-off-by: Guo Ziliang <guo.ziliang@zte.com.cn>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Reviewed-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Reviewed-by: Jiang Xuexin <jiang.xuexin@zte.com.cn>
+Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ponnuvel Palaniyappan <ponnuvel.palaniyappan@canonical.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roger Quadros <rogerq@kernel.org>
+Cc: Ziliang Guo <guo.ziliang@zte.com.cn>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
-+++ a/mm/rmap.c
-@@ -1614,16 +1614,16 @@ static bool try_to_unmap_one(struct page
- 				map_count = page_mapcount(page);
+--- a/mm/swap_state.c~mm-swap-get-rid-of-deadloop-in-swapin-readahead
++++ a/mm/swap_state.c
+@@ -478,7 +478,7 @@ struct page *__read_swap_cache_async(swp
+ 		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
+ 		 * in swap_map, but not yet added its page to swap cache.
+ 		 */
+-		cond_resched();
++		schedule_timeout_uninterruptible(1);
+ 	}
  
- 				/*
--				 * Order reads for page refcount and dirty flag;
--				 * see __remove_mapping().
-+				 * Order reads for page refcount and dirty flag
-+				 * (see comments in __remove_mapping()).
- 				 */
- 				smp_rmb();
- 
- 				/*
--				 * The only page refs must be from the isolation
--				 * plus one or more rmap's (dropped by discard:).
-+				 * The only page refs must be one from isolation
-+				 * plus the rmap(s) (dropped by discard:).
- 				 */
--				if ((ref_count == 1 + map_count) &&
-+				if (ref_count == 1 + map_count &&
- 				    !PageDirty(page)) {
- 					/* Invalidate as we cleared the pte */
- 					mmu_notifier_invalidate_range(mm,
+ 	/*
 _
 
-Patches currently in -mm which might be from mfo@canonical.com are
+Patches currently in -mm which might be from guo.ziliang@zte.com.cn are
 
-mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read.patch
-mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
+mm-swap-get-rid-of-deadloop-in-swapin-readahead.patch
 
