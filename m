@@ -2,212 +2,121 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38CF1C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Feb 2022 03:11:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEB64C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Feb 2022 03:11:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229565AbiBZDLo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Feb 2022 22:11:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60458 "EHLO
+        id S229571AbiBZDLn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Feb 2022 22:11:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbiBZDLn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Feb 2022 22:11:43 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 988392671E2
-        for <mm-commits@vger.kernel.org>; Fri, 25 Feb 2022 19:11:10 -0800 (PST)
+        with ESMTP id S229565AbiBZDLm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Feb 2022 22:11:42 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31C022671DD
+        for <mm-commits@vger.kernel.org>; Fri, 25 Feb 2022 19:11:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F86861E30
-        for <mm-commits@vger.kernel.org>; Sat, 26 Feb 2022 03:11:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 863D5C340E7;
-        Sat, 26 Feb 2022 03:11:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DD964B832D3
+        for <mm-commits@vger.kernel.org>; Sat, 26 Feb 2022 03:11:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7583FC340EF;
+        Sat, 26 Feb 2022 03:11:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1645845069;
-        bh=BguF5wN58fZvbj6eFGEYZh37Exf1NNjtUjhA/8z8YCk=;
+        s=korg; t=1645845066;
+        bh=vfJjeD6UaeMWHVng8jjExvaUWg885puAEYUfr8nUkAw=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=UwB47Z5y+qBKb76lQiuRGZ1bILUz4UfgLqdSsJWP0UG42pemuweMx3UM8nUGIJ3Pw
-         xmPiVAqLbLibsNlgllOXcsQe776Lzk3M5B9GznbjppV5oT9Uf6IweNjcEtvTdWyzgO
-         CDD1fOFD7fxN+h3edTfZRKvruPkjPPj/34kSpKgg=
-Date:   Fri, 25 Feb 2022 19:11:08 -0800
-To:     shuah@kernel.org, mpe@ellerman.id.au, jannh@google.com,
-        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org,
+        b=EJII1OXapn7RuHvP6jdzLMqnTq9Uyh+fZ4x+upCZqM/t0IZ1BskkZKcTOLeDCTJQt
+         uLnVVxkIVmz1T9DYBZtdUjXahnxdkjEYSeRb5VJ33BnMI7TFFB/4l7R26wIbl2uP7V
+         94DMbhuYtZrJMnUC+M7LyxpdespMYcbwutmJgdrw=
+Date:   Fri, 25 Feb 2022 19:11:05 -0800
+To:     willy@infradead.org, timmurray@google.com, shy828301@gmail.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, rientjes@google.com,
+        riel@surriel.com, oleg@redhat.com, minchan@kernel.org,
+        mhocko@suse.com, luto@kernel.org, kirill@shutemov.name,
+        jengelh@inai.de, jannh@google.com, hch@infradead.org,
+        hannes@cmpxchg.org, fweimer@redhat.com, david@redhat.com,
+        christian.brauner@ubuntu.com, brauner@kernel.org,
+        aarcange@redhat.com, surenb@google.com, akpm@linux-foundation.org,
         patches@lists.linux.dev, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220225191021.f71538a3f43dc448110e88b6@linux-foundation.org>
-Subject: [patch 06/12] selftest/vm: fix map_fixed_noreplace test failure
-Message-Id: <20220226031109.863D5C340E7@smtp.kernel.org>
+Subject: [patch 05/12] mm: fix use-after-free bug when mm->mmap is reused after being freed
+Message-Id: <20220226031106.7583FC340EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: selftest/vm: fix map_fixed_noreplace test failure
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: fix use-after-free bug when mm->mmap is reused after being freed
 
-On the latest RHEL the test fails due to executable mapped at 256MB address
+oom reaping (__oom_reap_task_mm) relies on a 2 way synchronization with
+exit_mmap.  First it relies on the mmap_lock to exclude from unlock
+path[1], page tables tear down (free_pgtables) and vma destruction. 
+This alone is not sufficient because mm->mmap is never reset.  For
+historical reasons[2] the lock is taken there is also MMF_OOM_SKIP set
+for oom victims before.
 
- # ./map_fixed_noreplace
-mmap() @ 0x10000000-0x10050000 p=0xffffffffffffffff result=File exists
-10000000-10010000 r-xp 00000000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
-10010000-10020000 r--p 00000000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
-10020000-10030000 rw-p 00010000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
-10029b90000-10029bc0000 rw-p 00000000 00:00 0                            [heap]
-7fffbb510000-7fffbb750000 r-xp 00000000 fd:04 24534                      /usr/lib64/libc.so.6
-7fffbb750000-7fffbb760000 r--p 00230000 fd:04 24534                      /usr/lib64/libc.so.6
-7fffbb760000-7fffbb770000 rw-p 00240000 fd:04 24534                      /usr/lib64/libc.so.6
-7fffbb780000-7fffbb7a0000 r--p 00000000 00:00 0                          [vvar]
-7fffbb7a0000-7fffbb7b0000 r-xp 00000000 00:00 0                          [vdso]
-7fffbb7b0000-7fffbb800000 r-xp 00000000 fd:04 24514                      /usr/lib64/ld64.so.2
-7fffbb800000-7fffbb810000 r--p 00040000 fd:04 24514                      /usr/lib64/ld64.so.2
-7fffbb810000-7fffbb820000 rw-p 00050000 fd:04 24514                      /usr/lib64/ld64.so.2
-7fffd93f0000-7fffd9420000 rw-p 00000000 00:00 0                          [stack]
-Error: couldn't map the space we need for the test
+The oom reaper only ever looks at oom victims so the whole scheme works
+properly but process_mrelease can opearate on any task (with fatal
+signals pending) which doesn't really imply oom victims.  That means
+that the MMF_OOM_SKIP part of the synchronization doesn't work and it
+can see a task after the whole address space has been demolished and
+traverse an already released mm->mmap list.  This leads to use after
+free as properly caught up by KASAN report.
 
-Fix this by finding a free address using mmap instead of hardcoding BASE_ADDRESS.
+Fix the issue by reseting mm->mmap so that MMF_OOM_SKIP synchronization
+is not needed anymore.  The MMF_OOM_SKIP is not removed from exit_mmap
+yet but it acts mostly as an optimization now.
 
-Link: https://lkml.kernel.org/r/20220217083417.373823-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+[1] 27ae357fa82b ("mm, oom: fix concurrent munlock and oom reaper unmap, v3")
+[2] 212925802454 ("mm: oom: let oom_reap_task and exit_mmap run concurrently")
+
+[mhocko@suse.com: changelog rewrite]
+Link: https://lore.kernel.org/all/00000000000072ef2c05d7f81950@google.com/
+Link: https://lkml.kernel.org/r/20220215201922.1908156-1-surenb@google.com
+Fixes: 64591e8605d6 ("mm: protect free_pgtables with mmap_lock write lock in exit_mmap")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: syzbot+2ccf63a4bd07cf39cab0@syzkaller.appspotmail.com
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Jan Engelhardt <jengelh@inai.de>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/map_fixed_noreplace.c |   49 +++++++++----
- 1 file changed, 37 insertions(+), 12 deletions(-)
+ mm/mmap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/vm/map_fixed_noreplace.c~selftest-vm-fix-map_fixed_noreplace-test-failure
-+++ a/tools/testing/selftests/vm/map_fixed_noreplace.c
-@@ -17,9 +17,6 @@
- #define MAP_FIXED_NOREPLACE 0x100000
- #endif
- 
--#define BASE_ADDRESS	(256ul * 1024 * 1024)
--
--
- static void dump_maps(void)
- {
- 	char cmd[32];
-@@ -28,18 +25,46 @@ static void dump_maps(void)
- 	system(cmd);
- }
- 
-+static unsigned long find_base_addr(unsigned long size)
-+{
-+	void *addr;
-+	unsigned long flags;
-+
-+	flags = MAP_PRIVATE | MAP_ANONYMOUS;
-+	addr = mmap(NULL, size, PROT_NONE, flags, -1, 0);
-+	if (addr == MAP_FAILED) {
-+		printf("Error: couldn't map the space we need for the test\n");
-+		return 0;
-+	}
-+
-+	if (munmap(addr, size) != 0) {
-+		printf("Error: couldn't map the space we need for the test\n");
-+		return 0;
-+	}
-+	return (unsigned long)addr;
-+}
-+
- int main(void)
- {
-+	unsigned long base_addr;
- 	unsigned long flags, addr, size, page_size;
- 	char *p;
- 
- 	page_size = sysconf(_SC_PAGE_SIZE);
- 
-+	//let's find a base addr that is free before we start the tests
-+	size = 5 * page_size;
-+	base_addr = find_base_addr(size);
-+	if (!base_addr) {
-+		printf("Error: couldn't map the space we need for the test\n");
-+		return 1;
-+	}
-+
- 	flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE;
- 
- 	// Check we can map all the areas we need below
- 	errno = 0;
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = 5 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 
-@@ -60,7 +85,7 @@ int main(void)
- 	printf("unmap() successful\n");
- 
- 	errno = 0;
--	addr = BASE_ADDRESS + page_size;
-+	addr = base_addr + page_size;
- 	size = 3 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -80,7 +105,7 @@ int main(void)
- 	 *     +4 |  free  | new
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = 5 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -101,7 +126,7 @@ int main(void)
- 	 *     +4 |  free  |
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS + (2 * page_size);
-+	addr = base_addr + (2 * page_size);
- 	size = page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -121,7 +146,7 @@ int main(void)
- 	 *     +4 |  free  | new
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS + (3 * page_size);
-+	addr = base_addr + (3 * page_size);
- 	size = 2 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -141,7 +166,7 @@ int main(void)
- 	 *     +4 |  free  |
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = 2 * page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -161,7 +186,7 @@ int main(void)
- 	 *     +4 |  free  |
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -181,7 +206,7 @@ int main(void)
- 	 *     +4 |  free  |  new
- 	 */
- 	errno = 0;
--	addr = BASE_ADDRESS + (4 * page_size);
-+	addr = base_addr + (4 * page_size);
- 	size = page_size;
- 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
- 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
-@@ -192,7 +217,7 @@ int main(void)
- 		return 1;
+--- a/mm/mmap.c~mm-fix-use-after-free-bug-when-mm-mmap-is-reused-after-being-freed
++++ a/mm/mmap.c
+@@ -3186,6 +3186,7 @@ void exit_mmap(struct mm_struct *mm)
+ 		vma = remove_vma(vma);
+ 		cond_resched();
  	}
- 
--	addr = BASE_ADDRESS;
-+	addr = base_addr;
- 	size = 5 * page_size;
- 	if (munmap((void *)addr, size) != 0) {
- 		dump_maps();
++	mm->mmap = NULL;
+ 	mmap_write_unlock(mm);
+ 	vm_unacct_memory(nr_accounted);
+ }
 _
