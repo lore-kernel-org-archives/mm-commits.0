@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC474C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3828C433F5
 	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 02:58:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232683AbiB1C6n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Feb 2022 21:58:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39618 "EHLO
+        id S232701AbiB1C6p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Feb 2022 21:58:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232676AbiB1C6m (ORCPT
+        with ESMTP id S232626AbiB1C6m (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 27 Feb 2022 21:58:42 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3ED462FFEB;
-        Sun, 27 Feb 2022 18:58:04 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24B1C2DAA3
+        for <mm-commits@vger.kernel.org>; Sun, 27 Feb 2022 18:58:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CEDF460EBE;
-        Mon, 28 Feb 2022 02:58:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33758C340EE;
-        Mon, 28 Feb 2022 02:58:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B65C860EB5
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 02:58:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B9C6C340F2;
+        Mon, 28 Feb 2022 02:58:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646017083;
-        bh=dDs+/HnIDqvEgUDn6SE2lSIx/SIGmct2Y7WPI22tCps=;
+        s=korg; t=1646017082;
+        bh=MyzcTS+bB+vghT84ZHIb2hNdZsdnMsLx+upaq5aNxSo=;
         h=Date:To:From:Subject:From;
-        b=XfcLXJSORpsgZdU+4HudnSpZULa1VEYtz6ennt+lFiRntJ5xl7uELjU1E/TQIpcw5
-         ukQlgA5U8SBZMQ3v03JLOGEDPZV654T8guLQG7C9xwc1U4U6bbtOLv/fVczve/CFfu
-         VaL3sdF2X+wUy2+T2PcVD107Pmhn/XCpgdDym/BA=
-Date:   Sun, 27 Feb 2022 18:58:02 -0800
-To:     mm-commits@vger.kernel.org, wmessmer@microsoft.com,
-        viro@zeniv.linux.org.uk, stable@vger.kernel.org,
-        rdunlap@infradead.org, ebiederm@xmission.com, jannh@google.com,
-        akpm@linux-foundation.org
+        b=oEUZRdQeyF4jiT3nEBPLoW9zcFwI7rGvRUW9oujheNLPuEPG/coyWvdgaHXJvpnAm
+         JEVSYSsZvFaKadOTualwp42lcqmc+ApJE+V39PuwKWc5cGS/GOB9paJxjhsBLujFKN
+         RzfDGJYkGB6jq9HRIGmCBBAysI4VVcenFu5LPGms=
+Date:   Sun, 27 Feb 2022 18:58:01 -0800
+To:     mm-commits@vger.kernel.org, yangyingliang@huawei.com,
+        willy@infradead.org, viro@zeniv.linux.org.uk, shuah@kernel.org,
+        mtk.manpages@gmail.com, ebiederm@xmission.com, dalias@libc.org,
+        brauner@kernel.org, ariadne@dereferenced.org,
+        keescook@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] coredump-also-dump-first-pages-of-non-executable-elf-libraries.patch removed from -mm tree
-Message-Id: <20220228025803.33758C340EE@smtp.kernel.org>
+Subject: [merged] selftests-exec-test-for-empty-string-on-null-argv.patch removed from -mm tree
+Message-Id: <20220228025802.1B9C6C340F2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,121 +44,132 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: also dump first pages of non-executable ELF libraries
+     Subject: selftests/exec: test for empty string on NULL argv
 has been removed from the -mm tree.  Its filename was
-     coredump-also-dump-first-pages-of-non-executable-elf-libraries.patch
+     selftests-exec-test-for-empty-string-on-null-argv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: coredump: also dump first pages of non-executable ELF libraries
+From: Kees Cook <keescook@chromium.org>
+Subject: selftests/exec: test for empty string on NULL argv
 
-When I rewrote the VMA dumping logic for coredumps, I changed it to
-recognize ELF library mappings based on the file being executable instead
-of the mapping having an ELF header.  But turns out, distros ship many ELF
-libraries as non-executable, so the heuristic goes wrong...
+Test for the NULL argv argument producing a single empty string on exec.
 
-Restore the old behavior where FILTER(ELF_HEADERS) dumps the first page of
-any offset-0 readable mapping that starts with the ELF magic.
-
-This fix is technically layer-breaking a bit, because it checks for
-something ELF-specific in fs/coredump.c; but since we probably want to
-share this between standard ELF and FDPIC ELF anyway, I guess it's fine? 
-And this also keeps the change small for backporting.
-
-Link: https://lkml.kernel.org/r/20220126025739.2014888-1-jannh@google.com
-Fixes: 429a22e776a2 ("coredump: rework elf/elf_fdpic vma_dump_size() into common helper")
-Signed-off-by: Jann Horn <jannh@google.com>
-Reported-by: Bill Messmer <wmessmer@microsoft.com>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220201011637.2457646-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Yang Yingliang <yangyingliang@huawei.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Ariadne Conill <ariadne@dereferenced.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   39 ++++++++++++++++++++++++++++++++++-----
- 1 file changed, 34 insertions(+), 5 deletions(-)
+ tools/testing/selftests/exec/Makefile    |    1 
+ tools/testing/selftests/exec/null-argv.c |   78 +++++++++++++++++++++
+ 2 files changed, 79 insertions(+)
 
---- a/fs/coredump.c~coredump-also-dump-first-pages-of-non-executable-elf-libraries
-+++ a/fs/coredump.c
-@@ -42,6 +42,7 @@
- #include <linux/path.h>
- #include <linux/timekeeping.h>
- #include <linux/sysctl.h>
-+#include <linux/elf.h>
+--- a/tools/testing/selftests/exec/Makefile~selftests-exec-test-for-empty-string-on-null-argv
++++ a/tools/testing/selftests/exec/Makefile
+@@ -10,6 +10,7 @@ TEST_GEN_FILES := execveat.symlink execv
+ TEST_FILES := Makefile
  
- #include <linux/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -980,6 +981,8 @@ static bool always_dump_vma(struct vm_ar
- 	return false;
- }
+ TEST_GEN_PROGS += recursion-depth
++TEST_GEN_PROGS += null-argv
  
-+#define DUMP_SIZE_MAYBE_ELFHDR_PLACEHOLDER 1
+ EXTRA_CLEAN := $(OUTPUT)/subdir.moved $(OUTPUT)/execveat.moved $(OUTPUT)/xxxxx*	\
+ 	       $(OUTPUT)/S_I*.test
+--- /dev/null
++++ a/tools/testing/selftests/exec/null-argv.c
+@@ -0,0 +1,78 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Test that empty argvs are swapped out for a single empty string. */
++#include <stdio.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/wait.h>
 +
- /*
-  * Decide how much of @vma's contents should be included in a core dump.
-  */
-@@ -1039,9 +1042,20 @@ static unsigned long vma_dump_size(struc
- 	 * dump the first page to aid in determining what was mapped here.
- 	 */
- 	if (FILTER(ELF_HEADERS) &&
--	    vma->vm_pgoff == 0 && (vma->vm_flags & VM_READ) &&
--	    (READ_ONCE(file_inode(vma->vm_file)->i_mode) & 0111) != 0)
--		return PAGE_SIZE;
-+	    vma->vm_pgoff == 0 && (vma->vm_flags & VM_READ)) {
-+		if ((READ_ONCE(file_inode(vma->vm_file)->i_mode) & 0111) != 0)
-+			return PAGE_SIZE;
++#include "../kselftest.h"
 +
-+		/*
-+		 * ELF libraries aren't always executable.
-+		 * We'll want to check whether the mapping starts with the ELF
-+		 * magic, but not now - we're holding the mmap lock,
-+		 * so copy_from_user() doesn't work here.
-+		 * Use a placeholder instead, and fix it up later in
-+		 * dump_vma_snapshot().
-+		 */
-+		return DUMP_SIZE_MAYBE_ELFHDR_PLACEHOLDER;
++#define FORK(exec)				\
++do {						\
++	pid = fork();				\
++	if (pid == 0) {				\
++		/* Child */			\
++		exec; /* Some kind of exec */	\
++		perror("# " #exec);		\
++		return 1;			\
++	}					\
++	check_result(pid, #exec);		\
++} while (0)
++
++void check_result(pid_t pid, const char *msg)
++{
++	int wstatus;
++
++	if (pid == (pid_t)-1) {
++		perror("# fork");
++		ksft_test_result_fail("fork failed: %s\n", msg);
++		return;
 +	}
- 
- #undef	FILTER
- 
-@@ -1116,8 +1130,6 @@ int dump_vma_snapshot(struct coredump_pa
- 		m->end = vma->vm_end;
- 		m->flags = vma->vm_flags;
- 		m->dump_size = vma_dump_size(vma, cprm->mm_flags);
--
--		vma_data_size += m->dump_size;
- 	}
- 
- 	mmap_write_unlock(mm);
-@@ -1127,6 +1139,23 @@ int dump_vma_snapshot(struct coredump_pa
- 		return -EFAULT;
- 	}
- 
-+	for (i = 0; i < *vma_count; i++) {
-+		struct core_vma_metadata *m = (*vma_meta) + i;
++	if (waitpid(pid, &wstatus, 0) < 0) {
++		perror("# waitpid");
++		ksft_test_result_fail("waitpid failed: %s\n", msg);
++		return;
++	}
++	if (!WIFEXITED(wstatus)) {
++		ksft_test_result_fail("child did not exit: %s\n", msg);
++		return;
++	}
++	if (WEXITSTATUS(wstatus) != 0) {
++		ksft_test_result_fail("non-zero exit: %s\n", msg);
++		return;
++	}
++	ksft_test_result_pass("%s\n", msg);
++}
 +
-+		if (m->dump_size == DUMP_SIZE_MAYBE_ELFHDR_PLACEHOLDER) {
-+			char elfmag[SELFMAG];
++int main(int argc, char *argv[], char *envp[])
++{
++	pid_t pid;
++	static char * const args[] = { NULL };
++	static char * const str[] = { "", NULL };
 +
-+			if (copy_from_user(elfmag, (void __user *)m->start, SELFMAG) ||
-+					memcmp(elfmag, ELFMAG, SELFMAG) != 0) {
-+				m->dump_size = 0;
-+			} else {
-+				m->dump_size = PAGE_SIZE;
-+			}
-+		}
-+
-+		vma_data_size += m->dump_size;
++	/* argc counting checks */
++	if (argc < 1) {
++		fprintf(stderr, "# FAIL: saw argc == 0 (old kernel?)\n");
++		return 1;
++	}
++	if (argc != 1) {
++		fprintf(stderr, "# FAIL: unknown argc (%d)\n", argc);
++		return 1;
++	}
++	if (argv[0][0] == '\0') {
++		/* Good, we found a NULL terminated string at argv[0]! */
++		return 0;
 +	}
 +
- 	*vma_data_size_ptr = vma_data_size;
- 	return 0;
- }
++	/* Test runner. */
++	ksft_print_header();
++	ksft_set_plan(5);
++
++	FORK(execve(argv[0], str, NULL));
++	FORK(execve(argv[0], NULL, NULL));
++	FORK(execve(argv[0], NULL, envp));
++	FORK(execve(argv[0], args, NULL));
++	FORK(execve(argv[0], args, envp));
++
++	ksft_exit(ksft_cnt.ksft_pass == ksft_plan);
++}
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
+kconfigdebug-make-debug_info-selectable-from-a-choice.patch
+kconfigdebug-make-debug_info-selectable-from-a-choice-fix.patch
+selftests-kselftest-framework-provide-finished-helper.patch
 
