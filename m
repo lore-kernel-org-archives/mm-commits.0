@@ -2,203 +2,71 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C41CDC433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 18:59:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD8A9C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 19:08:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230518AbiB1TAZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 14:00:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46976 "EHLO
+        id S229582AbiB1TJa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 14:09:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231387AbiB1TAJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 14:00:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 839BF76E0A
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 10:59:29 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S229848AbiB1TJa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 14:09:30 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 322D23B288
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 11:08:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1646075329;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=bROWJeQrprNwnP0M1M0WojtlEIgcUpLS3QKz1kK1Pm4=;
+        b=f02IgxYR84FLM/sVjBMpLRJB80u+oUlfoDqFLd7acQEE4XzO1yQmuPRuqUAxlb2jc2pmNJ
+        yf7UvVaIlbeVeCX0K1+OJxLDvOYwWNLxy0rLjYa+50SEJDVT8blsonqge0m0EAHLLXUiF2
+        Y2AsxWqpJJxp8XoGzE6/RZ92Z8yqULM=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-609-qWgkcNG6M46rS6CWpzJELQ-1; Mon, 28 Feb 2022 14:08:48 -0500
+X-MC-Unique: qWgkcNG6M46rS6CWpzJELQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 091C1B81625
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 18:59:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 948DFC340F1;
-        Mon, 28 Feb 2022 18:59:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646074766;
-        bh=E/G2Gcl4sNh/BVsb0phLuCHCi3YwMKCx8IJy2ckwhrU=;
-        h=Date:To:From:Subject:From;
-        b=19jh1jZaReXWWoYZ1ul4Ve+Riw7rKAn7aQr6iqjz8+TSAulPZjzJr+vOvmr2F0k79
-         yHabrBQGLHR7kDQoQrm40vX0mEKdPntQ3293e2MGZ2qlWmVa9RZZHr57Ts34ADsH1x
-         POb+fThFKs0TCCEGnpQLRSo9u6JQtlXL4q8uAAD0=
-Date:   Mon, 28 Feb 2022 10:59:26 -0800
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        willy@infradead.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
-        tytso@mit.edu, trond.myklebust@hammerspace.com,
-        shy828301@gmail.com, shakeelb@google.com, roman.gushchin@linux.dev,
-        richard.weiyang@gmail.com, mhocko@kernel.org,
-        kari.argillander@gmail.com, jaegeuk@kernel.org, hannes@cmpxchg.org,
-        fam.zheng@bytedance.com, duanxiongchun@bytedance.com,
-        david@fromorbit.com, chao@kernel.org, Anna.Schumaker@Netapp.com,
-        alexs@kernel.org, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-rename-memcg_cache_id-to-memcg_kmem_id.patch added to -mm tree
-Message-Id: <20220228185926.948DFC340F1@smtp.kernel.org>
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0D05D1091DA2;
+        Mon, 28 Feb 2022 19:08:47 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.37.0])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 9C07D196F1;
+        Mon, 28 Feb 2022 19:08:45 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <20220228184317.5759BC340F1@smtp.kernel.org>
+References: <20220228184317.5759BC340F1@smtp.kernel.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     dhowells@redhat.com, mm-commits@vger.kernel.org,
+        willy@infradead.org, mike.kravetz@oracle.com, kirill@shutemov.name,
+        hch@infradead.org
+Subject: Re: + mm-export-pageheadhuge-fix.patch added to -mm tree
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <2515941.1646075324.1@warthog.procyon.org.uk>
+Date:   Mon, 28 Feb 2022 19:08:44 +0000
+Message-ID: <2515942.1646075324@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-The patch titled
-     Subject: mm: memcontrol: rename memcg_cache_id to memcg_kmem_id
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-rename-memcg_cache_id-to-memcg_kmem_id.patch
+> -EXPORT_SYMBOL(PageHeadHuge);
+> +EXPORT_SYMBOL_GPL(PageHeadHuge);
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-rename-memcg_cache_id-to-memcg_kmem_id.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-rename-memcg_cache_id-to-memcg_kmem_id.patch
+Does this mean that we're moving towards forbidding use of the pagecache in
+non-GPL drivers?  'Standard' bits of the folio API use this function
+implicitly.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: rename memcg_cache_id to memcg_kmem_id
-
-The memcg_cache_id() introduced by commit 2633d7a02823 ("slab/slub:
-consider a memcg parameter in kmem_create_cache") is used to index in the
-kmem_cache->memcg_params->memcg_caches array.  Since
-kmem_cache->memcg_params.memcg_caches has been removed by commit
-9855609bde03 ("mm: memcg/slab: use a single set of kmem_caches for all
-accounted allocations").  So the name does not need to reflect cache
-related.  Just rename it to memcg_kmem_id.  And it can reflect kmem
-related.
-
-Link: https://lkml.kernel.org/r/20220228122126.37293-17-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kari Argillander <kari.argillander@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/memcontrol.h |    4 ++--
- mm/list_lru.c              |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
-
---- a/include/linux/memcontrol.h~mm-memcontrol-rename-memcg_cache_id-to-memcg_kmem_id
-+++ a/include/linux/memcontrol.h
-@@ -1708,7 +1708,7 @@ static inline void memcg_kmem_uncharge_p
-  * A helper for accessing memcg's kmem_id, used for getting
-  * corresponding LRU lists.
-  */
--static inline int memcg_cache_id(struct mem_cgroup *memcg)
-+static inline int memcg_kmem_id(struct mem_cgroup *memcg)
- {
- 	return memcg ? memcg->kmemcg_id : -1;
- }
-@@ -1746,7 +1746,7 @@ static inline bool memcg_kmem_enabled(vo
- 	return false;
- }
- 
--static inline int memcg_cache_id(struct mem_cgroup *memcg)
-+static inline int memcg_kmem_id(struct mem_cgroup *memcg)
- {
- 	return -1;
- }
---- a/mm/list_lru.c~mm-memcontrol-rename-memcg_cache_id-to-memcg_kmem_id
-+++ a/mm/list_lru.c
-@@ -75,7 +75,7 @@ list_lru_from_kmem(struct list_lru *lru,
- 	if (!memcg)
- 		goto out;
- 
--	l = list_lru_from_memcg_idx(lru, nid, memcg_cache_id(memcg));
-+	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
- out:
- 	if (memcg_ptr)
- 		*memcg_ptr = memcg;
-@@ -182,7 +182,7 @@ unsigned long list_lru_count_one(struct
- 	long count;
- 
- 	rcu_read_lock();
--	l = list_lru_from_memcg_idx(lru, nid, memcg_cache_id(memcg));
-+	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
- 	count = l ? READ_ONCE(l->nr_items) : 0;
- 	rcu_read_unlock();
- 
-@@ -273,7 +273,7 @@ list_lru_walk_one(struct list_lru *lru,
- 	unsigned long ret;
- 
- 	spin_lock(&nlru->lock);
--	ret = __list_lru_walk_one(lru, nid, memcg_cache_id(memcg), isolate,
-+	ret = __list_lru_walk_one(lru, nid, memcg_kmem_id(memcg), isolate,
- 				  cb_arg, nr_to_walk);
- 	spin_unlock(&nlru->lock);
- 	return ret;
-@@ -289,7 +289,7 @@ list_lru_walk_one_irq(struct list_lru *l
- 	unsigned long ret;
- 
- 	spin_lock_irq(&nlru->lock);
--	ret = __list_lru_walk_one(lru, nid, memcg_cache_id(memcg), isolate,
-+	ret = __list_lru_walk_one(lru, nid, memcg_kmem_id(memcg), isolate,
- 				  cb_arg, nr_to_walk);
- 	spin_unlock_irq(&nlru->lock);
- 	return ret;
-_
-
-Patches currently in -mm which might be from songmuchun@bytedance.com are
-
-mm-list_lru-transpose-the-array-of-per-node-per-memcg-lru-lists.patch
-mm-introduce-kmem_cache_alloc_lru.patch
-fs-introduce-alloc_inode_sb-to-allocate-filesystems-specific-inode.patch
-fs-allocate-inode-by-using-alloc_inode_sb.patch
-f2fs-allocate-inode-by-using-alloc_inode_sb.patch
-nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
-mm-dcache-use-kmem_cache_alloc_lru-to-allocate-dentry.patch
-xarray-use-kmem_cache_alloc_lru-to-allocate-xa_node.patch
-mm-memcontrol-move-memcg_online_kmem-to-mem_cgroup_css_online.patch
-mm-list_lru-allocate-list_lru_one-only-when-needed.patch
-mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus.patch
-mm-list_lru-replace-linear-array-with-xarray.patch
-mm-memcontrol-reuse-memory-cgroup-id-for-kmem-id.patch
-mm-memcontrol-fix-cannot-alloc-the-maximum-memcg-id.patch
-mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg.patch
-mm-memcontrol-rename-memcg_cache_id-to-memcg_kmem_id.patch
-mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd.patch
-mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page.patch
-mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
-mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte.patch
-mm-shmem-fix-missing-cache-flush-in-shmem_mfill_atomic_pte.patch
-mm-userfaultfd-fix-missing-cache-flush-in-mcopy_atomic_pte-and-__mcopy_atomic.patch
-mm-replace-multiple-dcache-flush-with-flush_dcache_folio.patch
-mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
-mm-hugetlb-replace-hugetlb_free_vmemmap_enabled-with-a-static_key.patch
-mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
-selftests-vm-add-a-hugetlb-test-case.patch
-mm-sparsemem-move-vmemmap-related-to-hugetlb-to-config_hugetlb_page_free_vmemmap.patch
+David
 
