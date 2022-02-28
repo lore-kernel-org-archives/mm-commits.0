@@ -2,46 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9A85C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 20:25:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F3B4C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 20:31:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229447AbiB1U02 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 15:26:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39720 "EHLO
+        id S229535AbiB1Uc1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 15:32:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229566AbiB1U02 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 15:26:28 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 339C357B08
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 12:25:48 -0800 (PST)
+        with ESMTP id S229538AbiB1Uc0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 15:32:26 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEC2D10A
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 12:31:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DD59FB8163F
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 20:25:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76EBFC340F1;
-        Mon, 28 Feb 2022 20:25:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7CA95B81651
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 20:31:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 200A0C340F1;
+        Mon, 28 Feb 2022 20:31:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646079945;
-        bh=hftyCxuKoLq7aHcx8cRKfdLfMy1sFZyF6w+AFl9TE8Q=;
+        s=korg; t=1646080304;
+        bh=jTlLet7gqteWIAhRupQKIad1aIi52jvuqvqkRbcJHt8=;
         h=Date:To:From:Subject:From;
-        b=sAU+QodXvtkzKoMnCqpXJiC406gamB8yV5Jl/bOdcQI/+w0nFxFERapqeYQKhxjw9
-         XWO8QXx12gakQBGfOdWMSb9aii5EKxPk79dxmHnavdybEiXaJzzkWCLtFBLCqa8UEA
-         rIaMDvsfkSOKzdiu2GGsghCb9AcUZ1jVthYlqx1w=
-Date:   Mon, 28 Feb 2022 12:25:44 -0800
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        willy@infradead.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
-        tytso@mit.edu, trond.myklebust@hammerspace.com,
-        shy828301@gmail.com, shakeelb@google.com, roman.gushchin@linux.dev,
-        richard.weiyang@gmail.com, mhocko@kernel.org,
-        kari.argillander@gmail.com, jaegeuk@kernel.org, hannes@cmpxchg.org,
-        fam.zheng@bytedance.com, duanxiongchun@bytedance.com,
-        david@fromorbit.com, chao@kernel.org, Anna.Schumaker@Netapp.com,
-        alexs@kernel.org, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
+        b=rYdgiYV+EiHW7iSQ0gum0QDeyOQ3s+rS2FWbsrbCDkTSulmZMIbh/U+BDe/cxOzA9
+         zhC+Nkl9vGgna8Rs3e+Z8JysxwIcbSfkVx5u+akLZAxsBeK9KDO10ddXjAV93Py0O1
+         pfL+eE3+tlJoxtzu5BpHd5Xd+BfxFJNem9E6WmqA=
+Date:   Mon, 28 Feb 2022 12:31:43 -0800
+To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
+        xiyuyang19@fudan.edu.cn, willy@infradead.org,
+        viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
+        kirill.shutemov@linux.intel.com, jack@suse.cz, hughd@google.com,
+        hch@infradead.org, duanxiongchun@bytedance.com,
+        dan.j.williams@intel.com, apopple@nvidia.com,
+        songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch removed from -mm tree
-Message-Id: <20220228202545.76EBFC340F1@smtp.kernel.org>
+Subject: + mm-rmap-fix-cache-flush-on-thp-pages.patch added to -mm tree
+Message-Id: <20220228203144.200A0C340F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,215 +46,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nfs42: use a specific kmem_cache to allocate nfs4_xattr_entry
-has been removed from the -mm tree.  Its filename was
-     nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
+     Subject: mm: rmap: fix cache flush on THP pages
+has been added to the -mm tree.  Its filename is
+     mm-rmap-fix-cache-flush-on-thp-pages.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-cache-flush-on-thp-pages.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-cache-flush-on-thp-pages.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: nfs42: use a specific kmem_cache to allocate nfs4_xattr_entry
+Subject: mm: rmap: fix cache flush on THP pages
 
-If we want to add the allocated objects to its list_lru, we should use
-kmem_cache_alloc_lru() to allocate objects.  So intruduce
-nfs4_xattr_entry_cachep which is used to allocate nfs4_xattr_entry.
+Patch series "Fix some bugs related to ramp and dax", v3.
 
-Link: https://lkml.kernel.org/r/20220228122126.37293-7-songmuchun@bytedance.com
+Patches 1-2 fix a cache flush bug, because subsequent patches depend on
+those on those changes, they are placed in this series.  Patches 3-4 are
+preparation for fixing a dax bug in patch 5.  Patch 6 is code cleanup
+since the previous patch remove the usage of follow_invalidate_pte().
+
+
+This patch (of 6):
+
+The flush_cache_page() only remove a PAGE_SIZE sized range from the cache.
+However, it does not cover the full pages in a THP except a head page. 
+Replace it with flush_cache_range() to fix this issue.  At least, no
+problems were found due to this.  Maybe because the architectures that
+have virtual indexed caches is less.
+
+Link: https://lkml.kernel.org/r/20220228063536.24911-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220228063536.24911-2-songmuchun@bytedance.com
+Fixes: f27176cfc363 ("mm: convert page_mkclean_one() to use page_vma_mapped_walk()")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kari Argillander <kari.argillander@gmail.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Yang Shi <shy828301@gmail.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs42xattr.c |   95 ++++++++++++++++++++----------------------
- 1 file changed, 47 insertions(+), 48 deletions(-)
+ mm/rmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/nfs/nfs42xattr.c~nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry
-+++ a/fs/nfs/nfs42xattr.c
-@@ -81,7 +81,7 @@ struct nfs4_xattr_entry {
- 	struct hlist_node hnode;
- 	struct list_head lru;
- 	struct list_head dispose;
--	char *xattr_name;
-+	const char *xattr_name;
- 	void *xattr_value;
- 	size_t xattr_size;
- 	struct nfs4_xattr_bucket *bucket;
-@@ -98,6 +98,7 @@ static struct list_lru nfs4_xattr_entry_
- static struct list_lru nfs4_xattr_large_entry_lru;
+--- a/mm/rmap.c~mm-rmap-fix-cache-flush-on-thp-pages
++++ a/mm/rmap.c
+@@ -968,7 +968,8 @@ static bool page_mkclean_one(struct foli
+ 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
+ 				continue;
  
- static struct kmem_cache *nfs4_xattr_cache_cachep;
-+static struct kmem_cache *nfs4_xattr_entry_cachep;
- 
- /*
-  * Hashing helper functions.
-@@ -177,49 +178,27 @@ nfs4_xattr_alloc_entry(const char *name,
- {
- 	struct nfs4_xattr_entry *entry;
- 	void *valp;
--	char *namep;
--	size_t alloclen, slen;
--	char *buf;
--	uint32_t flags;
-+	const char *namep;
-+	uint32_t flags = len > PAGE_SIZE ? NFS4_XATTR_ENTRY_EXTVAL : 0;
-+	gfp_t gfp = GFP_KERNEL_ACCOUNT | GFP_NOFS;
-+	struct list_lru *lru;
- 
- 	BUILD_BUG_ON(sizeof(struct nfs4_xattr_entry) +
- 	    XATTR_NAME_MAX + 1 > PAGE_SIZE);
- 
--	alloclen = sizeof(struct nfs4_xattr_entry);
--	if (name != NULL) {
--		slen = strlen(name) + 1;
--		alloclen += slen;
--	} else
--		slen = 0;
--
--	if (alloclen + len <= PAGE_SIZE) {
--		alloclen += len;
--		flags = 0;
--	} else {
--		flags = NFS4_XATTR_ENTRY_EXTVAL;
--	}
--
--	buf = kmalloc(alloclen, GFP_KERNEL_ACCOUNT | GFP_NOFS);
--	if (buf == NULL)
-+	lru = flags & NFS4_XATTR_ENTRY_EXTVAL ? &nfs4_xattr_large_entry_lru :
-+	      &nfs4_xattr_entry_lru;
-+	entry = kmem_cache_alloc_lru(nfs4_xattr_entry_cachep, lru, gfp);
-+	if (!entry)
- 		return NULL;
--	entry = (struct nfs4_xattr_entry *)buf;
--
--	if (name != NULL) {
--		namep = buf + sizeof(struct nfs4_xattr_entry);
--		memcpy(namep, name, slen);
--	} else {
--		namep = NULL;
--	}
--
--
--	if (flags & NFS4_XATTR_ENTRY_EXTVAL) {
--		valp = kvmalloc(len, GFP_KERNEL_ACCOUNT | GFP_NOFS);
--		if (valp == NULL) {
--			kfree(buf);
--			return NULL;
--		}
--	} else if (len != 0) {
--		valp = buf + sizeof(struct nfs4_xattr_entry) + slen;
-+	namep = kstrdup_const(name, gfp);
-+	if (!namep && name)
-+		goto free_buf;
-+
-+	if (len != 0) {
-+		valp = kvmalloc(len, gfp);
-+		if (!valp)
-+			goto free_name;
- 	} else
- 		valp = NULL;
- 
-@@ -232,23 +211,23 @@ nfs4_xattr_alloc_entry(const char *name,
- 
- 	entry->flags = flags;
- 	entry->xattr_value = valp;
--	kref_init(&entry->ref);
- 	entry->xattr_name = namep;
- 	entry->xattr_size = len;
--	entry->bucket = NULL;
--	INIT_LIST_HEAD(&entry->lru);
--	INIT_LIST_HEAD(&entry->dispose);
--	INIT_HLIST_NODE(&entry->hnode);
- 
- 	return entry;
-+free_name:
-+	kfree_const(namep);
-+free_buf:
-+	kmem_cache_free(nfs4_xattr_entry_cachep, entry);
-+	return NULL;
- }
- 
- static void
- nfs4_xattr_free_entry(struct nfs4_xattr_entry *entry)
- {
--	if (entry->flags & NFS4_XATTR_ENTRY_EXTVAL)
--		kvfree(entry->xattr_value);
--	kfree(entry);
-+	kvfree(entry->xattr_value);
-+	kfree_const(entry->xattr_name);
-+	kmem_cache_free(nfs4_xattr_entry_cachep, entry);
- }
- 
- static void
-@@ -289,7 +268,7 @@ nfs4_xattr_alloc_cache(void)
- {
- 	struct nfs4_xattr_cache *cache;
- 
--	cache = kmem_cache_alloc(nfs4_xattr_cache_cachep,
-+	cache = kmem_cache_alloc_lru(nfs4_xattr_cache_cachep, &nfs4_xattr_cache_lru,
- 	    GFP_KERNEL_ACCOUNT | GFP_NOFS);
- 	if (cache == NULL)
- 		return NULL;
-@@ -992,6 +971,17 @@ static void nfs4_xattr_cache_init_once(v
- 	INIT_LIST_HEAD(&cache->dispose);
- }
- 
-+static void nfs4_xattr_entry_init_once(void *p)
-+{
-+	struct nfs4_xattr_entry *entry = p;
-+
-+	kref_init(&entry->ref);
-+	entry->bucket = NULL;
-+	INIT_LIST_HEAD(&entry->lru);
-+	INIT_LIST_HEAD(&entry->dispose);
-+	INIT_HLIST_NODE(&entry->hnode);
-+}
-+
- int __init nfs4_xattr_cache_init(void)
- {
- 	int ret = 0;
-@@ -1003,6 +993,13 @@ int __init nfs4_xattr_cache_init(void)
- 	if (nfs4_xattr_cache_cachep == NULL)
- 		return -ENOMEM;
- 
-+	nfs4_xattr_entry_cachep = kmem_cache_create("nfs4_xattr_entry",
-+			sizeof(struct nfs4_xattr_entry), 0,
-+			(SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD | SLAB_ACCOUNT),
-+			nfs4_xattr_entry_init_once);
-+	if (!nfs4_xattr_entry_cachep)
-+		goto out5;
-+
- 	ret = list_lru_init_memcg(&nfs4_xattr_large_entry_lru,
- 	    &nfs4_xattr_large_entry_shrinker);
- 	if (ret)
-@@ -1040,6 +1037,8 @@ out2:
- out3:
- 	list_lru_destroy(&nfs4_xattr_large_entry_lru);
- out4:
-+	kmem_cache_destroy(nfs4_xattr_entry_cachep);
-+out5:
- 	kmem_cache_destroy(nfs4_xattr_cache_cachep);
- 
- 	return ret;
+-			flush_cache_page(vma, address, folio_pfn(folio));
++			flush_cache_range(vma, address,
++					  address + HPAGE_PMD_SIZE);
+ 			entry = pmdp_invalidate(vma, address, pmd);
+ 			entry = pmd_wrprotect(entry);
+ 			entry = pmd_mkclean(entry);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
