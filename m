@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0917BC433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 19:49:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDC1FC433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 19:49:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229842AbiB1TuV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 14:50:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44398 "EHLO
+        id S229567AbiB1Tu3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 14:50:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229677AbiB1Tty (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 14:49:54 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B120EF0B7
+        with ESMTP id S229635AbiB1Ttl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 14:49:41 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AE06E61DE
         for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 11:48:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 8E55CCE1857
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 19:48:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2F1CC340F1;
-        Mon, 28 Feb 2022 19:48:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 404C4615B8
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 19:48:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91315C340F3;
+        Mon, 28 Feb 2022 19:48:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646077686;
-        bh=fWaiC9B1Ww4FPn+Cluz75pDfaegH/hVvlpW4Nl5EDOs=;
+        s=korg; t=1646077688;
+        bh=MfulYSPRr/yZnmnTjv5zX/JSr0ydDZH4Oz5S73Yrd+E=;
         h=Date:To:From:Subject:From;
-        b=2GKhP6oUQruIrULOeW1/5FAGW+EtDLGRNb7p+sGj2JoN50h6ma6bR/aI4kimbgVeD
-         8wai5pzCNgCcS/9MjZ215WjaHS3RHW5KXGpcrgDbQQHFk1bAQqHGfPoqfrNag436aX
-         ymMMg2+NXG6J/2eVkPcJWNa77MUYEfzyViDxjvdE=
-Date:   Mon, 28 Feb 2022 11:48:06 -0800
+        b=WexqVZzm4t4mtXpSbb5cD4X9k661DSkFzhTnbBZncL+1DN3dQAJhAlIC5HcPUP9jy
+         cj/gdtl+zH2t61c1jY29DFHMCbdDzoGDV3fM2tjDblE98ACoH7SoFwdymscUmPPVQl
+         WaDWZMpzkU4AcI187uHZYVgIjuBYw6khu0kxkMbI=
+Date:   Mon, 28 Feb 2022 11:48:07 -0800
 To:     mm-commits@vger.kernel.org, xhao@linux.alibaba.com,
         skhan@linuxfoundation.org, rientjes@google.com,
         gregkh@linuxfoundation.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-document-damon-sysfs-interface.patch added to -mm tree
-Message-Id: <20220228194806.C2F1CC340F1@smtp.kernel.org>
+Subject: + docs-abi-testing-add-damon-sysfs-interface-abi-document.patch added to -mm tree
+Message-Id: <20220228194808.91315C340F3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document DAMON sysfs interface
+     Subject: Docs/ABI/testing: add DAMON sysfs interface ABI document
 has been added to the -mm tree.  Its filename is
-     docs-admin-guide-mm-damon-usage-document-damon-sysfs-interface.patch
+     docs-abi-testing-add-damon-sysfs-interface-abi-document.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/docs-admin-guide-mm-damon-usage-document-damon-sysfs-interface.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-abi-testing-add-damon-sysfs-interface-abi-document.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/docs-admin-guide-mm-damon-usage-document-damon-sysfs-interface.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-abi-testing-add-damon-sysfs-interface-abi-document.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,12 +65,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document DAMON sysfs interface
+Subject: Docs/ABI/testing: add DAMON sysfs interface ABI document
 
-This commit adds detailed usage of DAMON sysfs interface in the
-admin-guide document for DAMON.
+This commit adds DAMON sysfs interface ABI document under
+Documentation/ABI/testing.
 
-Link: https://lkml.kernel.org/r/20220228081314.5770-13-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220228081314.5770-14-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -80,388 +80,297 @@ Cc: Xin Hao <xhao@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |  350 ++++++++++++++++-
- 1 file changed, 344 insertions(+), 6 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |  274 ++++++++++++++
+ MAINTAINERS                                     |    1 
+ 2 files changed, 275 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-damon-sysfs-interface
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -4,7 +4,7 @@
- Detailed Usages
- ===============
- 
--DAMON provides below three interfaces for different users.
-+DAMON provides below interfaces for different users.
- 
- - *DAMON user space tool.*
-   `This <https://github.com/awslabs/damo>`_ is for privileged people such as
-@@ -14,17 +14,21 @@ DAMON provides below three interfaces fo
-   virtual and physical address spaces monitoring.  For more detail, please
-   refer to its `usage document
-   <https://github.com/awslabs/damo/blob/next/USAGE.md>`_.
--- *debugfs interface.*
--  :ref:`This <debugfs_interface>` is for privileged user space programmers who
-+- *sysfs interface.*
-+  :ref:`This <sysfs_interface>` is for privileged user space programmers who
-   want more optimized use of DAMON.  Using this, users can use DAMON’s major
--  features by reading from and writing to special debugfs files.  Therefore,
--  you can write and use your personalized DAMON debugfs wrapper programs that
--  reads/writes the debugfs files instead of you.  The `DAMON user space tool
-+  features by reading from and writing to special sysfs files.  Therefore,
-+  you can write and use your personalized DAMON sysfs wrapper programs that
-+  reads/writes the sysfs files instead of you.  The `DAMON user space tool
-   <https://github.com/awslabs/damo>`_ is one example of such programs.  It
-   supports both virtual and physical address spaces monitoring.  Note that this
-   interface provides only simple :ref:`statistics <damos_stats>` for the
-   monitoring results.  For detailed monitoring results, DAMON provides a
-   :ref:`tracepoint <tracepoint>`.
-+- *debugfs interface.*
-+  :ref:`This <debugfs_interface>` is almost identical to :ref:`sysfs interface
-+  <sysfs_interface>`.  This will be removed after next LTS kernel is released,
-+  so users should move to the :ref:`sysfs interface <sysfs_interface>`.
- - *Kernel Space Programming Interface.*
-   :doc:`This </vm/damon/api>` is for kernel space programmers.  Using this,
-   users can utilize every feature of DAMON most flexibly and efficiently by
-@@ -32,6 +36,340 @@ DAMON provides below three interfaces fo
-   DAMON for various address spaces.  For detail, please refer to the interface
-   :doc:`document </vm/damon/api>`.
- 
-+.. _sysfs_interface:
-+
-+sysfs Interface
-+===============
-+
-+DAMON sysfs interface is built when ``CONFIG_DAMON_SYSFS`` is defined.  It
-+creates multiple directories and files under its sysfs directory,
-+``<sysfs>/kernel/mm/damon/``.  You can control DAMON by writing to and reading
-+from the files under the directory.
-+
-+For a short example, users can monitor the virtual address space of a given
-+workload as below. ::
-+
-+    # cd /sys/kernel/mm/damon/admin/
-+    # echo 1 > kdamonds/nr && echo 1 > kdamonds/0/contexts/nr
-+    # echo vaddr > kdamonds/0/contexts/0/operations
-+    # echo 1 > kdamonds/0/contexts/0/targets/nr
-+    # echo $(pidof <workload>) > kdamonds/0/contexts/0/targets/0/pid
-+    # echo on > kdamonds/0/state
-+
-+Files Hierarchy
-+---------------
-+
-+The files hierarchy of DAMON sysfs interface is shown below.  In the below
-+figure, parents-children relations are represented with indentations, each
-+directory is having ``/`` suffix, and files in each directory are separated by
-+comma (","). ::
-+
-+    /sys/kernel/mm/damon/admin
-+    │ kdamonds/nr_kdamonds
-+    │ │ 0/state,pid
-+    │ │ │ contexts/nr_contexts
-+    │ │ │ │ 0/operations
-+    │ │ │ │ │ monitoring_attrs/
-+    │ │ │ │ │ │ intervals/sample_us,aggr_us,update_us
-+    │ │ │ │ │ │ nr_regions/min,max
-+    │ │ │ │ │ targets/nr_targets
-+    │ │ │ │ │ │ 0/pid_target
-+    │ │ │ │ │ │ │ regions/nr_regions
-+    │ │ │ │ │ │ │ │ 0/start,end
-+    │ │ │ │ │ │ │ │ ...
-+    │ │ │ │ │ │ ...
-+    │ │ │ │ │ schemes/nr_schemes
-+    │ │ │ │ │ │ 0/action
-+    │ │ │ │ │ │ │ access_pattern/
-+    │ │ │ │ │ │ │ │ sz/min,max
-+    │ │ │ │ │ │ │ │ nr_accesses/min,max
-+    │ │ │ │ │ │ │ │ age/min,max
-+    │ │ │ │ │ │ │ quotas/ms,bytes,reset_interval_ms
-+    │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
-+    │ │ │ │ │ │ │ watermarks/metric,interval_us,high,mid,low
-+    │ │ │ │ │ │ │ stats/nr_tried,sz_tried,nr_applied,sz_applied,qt_exceeds
-+    │ │ │ │ │ │ ...
-+    │ │ │ │ ...
-+    │ │ ...
-+
-+Root
-+----
-+
-+The root of the DAMON sysfs interface is ``<sysfs>/kernel/mm/damon/``, and it
-+has one directory named ``admin``.  The directory contains the files for
-+privileged user space programs' control of DAMON.  User space tools or deamons
-+having the root permission could use this directory.
-+
-+kdamonds/
-+---------
-+
-+The monitoring-related information including request specifications and results
-+are called DAMON context.  DAMON executes each context with a kernel thread
-+called kdamond, and multiple kdamonds could run in parallel.
-+
-+Under the ``admin`` directory, one directory, ``kdamonds``, which has files for
-+controlling the kdamonds exist.  In the beginning, this directory has only one
-+file, ``nr_kdamonds``.  Writing a number (``N``) to the file creates the number
-+of child directories named ``0`` to ``N-1``.  Each directory represents each
-+kdamond.
-+
-+kdamonds/<N>/
-+-------------
-+
-+In each kdamond directory, two files (``state`` and ``pid``) and one directory
-+(``contexts``) exist.
-+
-+Reading ``state`` returns ``on`` if the kdamond is currently running, or
-+``off`` if it is not running.  Writing ``on`` or ``off`` makes the kdamond be
-+in the state.  Writing ``update_schemes_stats`` to ``state`` file updates the
-+contents of stats files for each DAMON-based operation scheme of the kdamond.
-+For details of the stats, please refer to :ref:`stats section
-+<sysfs_schemes_stats>`.
-+
-+If the state is ``on``, reading ``pid`` shows the pid of the kdamond thread.
-+
-+``contexts`` directory contains files for controlling the monitoring contexts
-+that this kdamond will execute.
-+
-+kdamonds/<N>/contexts/
-+----------------------
-+
-+In the beginning, this directory has only one file, ``nr_contexts``.  Writing a
-+number (``N``) to the file creates the number of child directories named as
-+``0`` to ``N-1``.  Each directory represents each monitoring context.  At the
-+moment, only one context per kdamond is supported, so only ``0`` or ``1`` can
-+be written to the file.
-+
-+contexts/<N>/
-+-------------
-+
-+In each context directory, one file (``operations``) and three directories
-+(``monitoring_attrs``, ``targets``, and ``schemes``) exist.
-+
-+DAMON supports multiple types of monitoring operations, including those for
-+virtual address space and the physical address space.  You can set and get what
-+type of monitoring operations DAMON will use for the context by writing one of
-+below keywords to, and reading from the file.
-+
-+ - vaddr: Monitor virtual address spaces of specific processes
-+ - paddr: Monitor the physical address space of the system
-+
-+contexts/<N>/monitoring_attrs/
-+------------------------------
-+
-+Files for specifying attributes of the monitoring including required quality
-+and efficiency of the monitoring are in ``monitoring_attrs`` directory.
-+Specifically, two directories, ``intervals`` and ``nr_regions`` exist in this
-+directory.
-+
-+Under ``intervals`` directory, three files for DAMON's sampling interval
-+(``sample_us``), aggregation interval (``aggr_us``), and update interval
-+(``update_us``) exist.  You can set and get the values in micro-seconds by
-+writing to and reading from the files.
-+
-+Under ``nr_regions`` directory, two files for the lower-bound and upper-bound
-+of DAMON's monitoring regions (``min`` and ``max``, respectively), which
-+controls the monitoring overhead, exist.  You can set and get the values by
-+writing to and rading from the files.
-+
-+For more details about the intervals and monitoring regions range, please refer
-+to the Design document (:doc:`/vm/damon/design`).
-+
-+contexts/<N>/targets/
-+---------------------
-+
-+In the beginning, this directory has only one file, ``nr_targets``.  Writing a
-+number (``N``) to the file creates the number of child directories named ``0``
-+to ``N-1``.  Each directory represents each monitoring target.
-+
-+targets/<N>/
-+------------
-+
-+In each target directory, one file (``pid_target``) and one directory
-+(``regions``) exist.
-+
-+If you wrote ``vaddr`` to the ``contexts/<N>/operations``, each target should
-+be a process.  You can specify the process to DAMON by writing the pid of the
-+process to the ``pid_target`` file.
-+
-+targets/<N>/regions
-+-------------------
-+
-+When ``vaddr`` monitoring operations set is being used (``vaddr`` is written to
-+the ``contexts/<N>/operations`` file), DAMON automatically sets and updates the
-+monitoring target regions so that entire memory mappings of target processes
-+can be covered.  However, users could want to set the initial monitoring region
-+to specific address ranges.
-+
-+In contrast, DAMON do not automatically sets and updates the monitoring target
-+regions when ``paddr`` monitoring operations set is being used (``paddr`` is
-+written to the ``contexts/<N>/operations``).  Therefore, users should set the
-+monitoring target regions by themselves in the case.
-+
-+For such cases, users can explicitly set the initial monitoring target regions
-+as they want, by writing proper values to the files under this directory.
-+
-+In the beginning, this directory has only one file, ``nr_regions``.  Writing a
-+number (``N``) to the file creates the number of child directories named ``0``
-+to ``N-1``.  Each directory represents each initial monitoring target region.
-+
-+regions/<N>/
-+------------
-+
-+In each region directory, you will find two files (``start`` and ``end``).  You
-+can set and get the start and end addresses of the initial monitoring target
-+region by writing to and reading from the files, respectively.
-+
-+contexts/<N>/schemes/
-+---------------------
-+
-+For usual DAMON-based data access aware memory management optimizations, users
-+would normally want the system to apply a memory management action to a memory
-+region of a specific access pattern.  DAMON receives such formalized operation
-+schemes from the user and applies those to the target memory regions.  Users
-+can get and set the schemes by reading from and writing to files under this
-+directory.
-+
-+In the beginning, this directory has only one file, ``nr_schemes``.  Writing a
-+number (``N``) to the file creates the number of child directories named ``0``
-+to ``N-1``.  Each directory represents each DAMON-based operation scheme.
-+
-+schemes/<N>/
-+------------
-+
-+In each scheme directory, four directories (``access_pattern``, ``quotas``,
-+``watermarks``, and ``stats``) and one file (``action``) exist.
-+
-+The ``action`` file is for setting and getting what action you want to apply to
-+memory regions having specific access pattern of the interest.  The keywords
-+that can be written to and read from the file and their meaning are as below.
-+
-+ - ``willneed``: Call ``madvise()`` for the region with ``MADV_WILLNEED``
-+ - ``cold``: Call ``madvise()`` for the region with ``MADV_COLD``
-+ - ``pageout``: Call ``madvise()`` for the region with ``MADV_PAGEOUT``
-+ - ``hugepage``: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``
-+ - ``nohugepage``: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
-+ - ``stat``: Do nothing but count the statistics
-+
-+schemes/<N>/access_pattern/
-+---------------------------
-+
-+The target access pattern of each DAMON-based operation scheme is constructed
-+with three ranges including the size of the region in bytes, number of
-+monitored accesses per aggregate interval, and number of aggregated intervals
-+for the age of the region.
-+
-+Under the ``access_pattern`` directory, three directories (``sz``,
-+``nr_accesses``, and ``age``) each having two files (``min`` and ``max``)
-+exist.  You can set and get the access pattern for the given scheme by writing
-+to and reading from the ``min`` and ``max`` files under ``sz``,
-+``nr_accesses``, and ``age`` directories, respectively.
-+
-+schemes/<N>/quotas/
-+-------------------
-+
-+Optimal ``target access pattern`` for each ``action`` is workload dependent, so
-+not easy to find.  Worse yet, setting a scheme of some action too aggressive
-+can cause severe overhead.  To avoid such overhead, users can limit time and
-+size quota for each scheme.  In detail, users can ask DAMON to try to use only
-+up to specific time (``time quota``) for applying the action, and to apply the
-+action to only up to specific amount (``size quota``) of memory regions having
-+the target access pattern within a given time interval (``reset interval``).
-+
-+When the quota limit is expected to be exceeded, DAMON prioritizes found memory
-+regions of the ``target access pattern`` based on their size, access frequency,
-+and age.  For personalized prioritization, users can set the weights for the
-+three properties.
-+
-+Under ``quotas`` directory, three files (``ms``, ``bytes``,
-+``reset_interval_ms``) and one directory (``weights``) having three files
-+(``sz_permil``, ``nr_accesses_permil``, and ``age_permil``) in it exist.
-+
-+You can set the ``time quota`` in milliseconds, ``size quota`` in bytes, and
-+``reset interval`` in milliseconds by writing the values to the three files,
-+respectively.  You can also set the prioritization weights for size, access
-+frequency, and age in per-thousand unit by writing the values to the three
-+files under the ``weights`` directory.
-+
-+schemes/<N>/watermarks/
-+-----------------------
-+
-+To allow easy activation and deactivation of each scheme based on system
-+status, DAMON provides a feature called watermarks.  The feature receives five
-+values called ``metric``, ``interval``, ``high``, ``mid``, and ``low``.  The
-+``metric`` is the system metric such as free memory ratio that can be measured.
-+If the metric value of the system is higher than the value in ``high`` or lower
-+than ``low`` at the memoent, the scheme is deactivated.  If the value is lower
-+than ``mid``, the scheme is activated.
-+
-+Under the watermarks directory, five files (``metric``, ``interval_us``,
-+``high``, ``mid``, and ``low``) for setting each value exist.  You can set and
-+get the five values by writing to the files, respectively.
-+
-+Keywords and meanings of those that can be written to the ``metric`` file are
-+as below.
-+
-+ - none: Ignore the watermarks
-+ - free_mem_rate: System's free memory rate (per thousand)
-+
-+The ``interval`` should written in microseconds unit.
-+
-+.. _sysfs_schemes_stats:
-+
-+schemes/<N>/stats/
-+------------------
-+
-+DAMON counts the total number and bytes of regions that each scheme is tried to
-+be applied, the two numbers for the regions that each scheme is successfully
-+applied, and the total number of the quota limit exceeds.  This statistics can
-+be used for online analysis or tuning of the schemes.
-+
-+The statistics can be retrieved by reading the files under ``stats`` directory
-+(``nr_tried``, ``sz_tried``, ``nr_applied``, ``sz_applied``, and
-+``qt_exceeds``), respectively.  The files are not updated in real time, so you
-+should ask DAMON sysfs interface to updte the content of the files for the
-+stats by writing a special keyword, ``update_schemes_stats`` to the relevant
-+``kdamonds/<N>/state`` file.
-+
-+Example
-+~~~~~~~
-+
-+Below commands applies a scheme saying "If a memory region of size in [4KiB,
-+8KiB] is showing accesses per aggregate interval in [0, 5] for aggregate
-+interval in [10, 20], page out the region.  For the paging out, use only up to
-+10ms per second, and also don't page out more than 1GiB per second.  Under the
-+limitation, page out memory regions having longer age first.  Also, check the
-+free memory rate of the system every 5 seconds, start the monitoring and paging
-+out when the free memory rate becomes lower than 50%, but stop it if the free
-+memory rate becomes larger than 60%, or lower than 30%". ::
-+
-+    # cd <sysfs>/kernel/mm/damon/admin
-+    # # populate directories
-+    # echo 1 > kdamonds/nr_kdamonds; echo 1 > kdamonds/0/contexts/nr_contexts;
-+    # echo 1 > kdamonds/0/contexts/0/schemes/nr_schemes
-+    # cd kdamonds/0/contexts/0/schemes/0
-+    # # set the basic access pattern and the action
-+    # echo 4096 > access_patterns/sz/min
-+    # echo 8192 > access_patterns/sz/max
-+    # echo 0 > access_patterns/nr_accesses/min
-+    # echo 5 > access_patterns/nr_accesses/max
-+    # echo 10 > access_patterns/age/min
-+    # echo 20 > access_patterns/age/max
-+    # echo pageout > action
-+    # # set quotas
-+    # echo 10 > quotas/ms
-+    # echo $((1024*1024*1024)) > quotas/bytes
-+    # echo 1000 > quotas/reset_interval_ms
-+    # # set watermark
-+    # echo free_mem_rate > watermarks/metric
-+    # echo 5000000 > watermarks/interval_us
-+    # echo 600 > watermarks/high
-+    # echo 500 > watermarks/mid
-+    # echo 300 > watermarks/low
-+
-+Please note that it's highly recommended to use user space tools like `damo
-+<https://github.com/awslabs/damo>`_ rather than manually reading and writing
-+the files as above.  Above is only for an example.
- 
- .. _debugfs_interface:
- 
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -0,0 +1,274 @@
++what:		/sys/kernel/mm/damon/
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Interface for Data Access MONitoring (DAMON).  Contains files
++		for controlling DAMON.  For more details on DAMON itself,
++		please refer to Documentation/admin-guide/mm/damon/index.rst.
++
++What:		/sys/kernel/mm/damon/admin/
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Interface for privileged users of DAMON.  Contains files for
++		controlling DAMON that aimed to be used by privileged users.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/nr_kdamonds
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a number 'N' to this file creates the number of
++		directories for controlling each DAMON worker thread (kdamond)
++		named '0' to 'N-1' under the kdamonds/ directory.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/state
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing 'on' or 'off' to this file makes the kdamond starts or
++		stops, respectively.  Reading the file returns the keywords
++		based on the current status.  Writing 'update_schemes_stats' to
++		the file updates contents of schemes stats files of the
++		kdamond.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/pid
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Reading this file returns the pid of the kdamond if it is
++		running.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/nr_contexts
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a number 'N' to this file creates the number of
++		directories for controlling each DAMON context named '0' to
++		'N-1' under the contexts/ directory.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/operations
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a keyword for a monitoring operations set ('vaddr' for
++		virtual address spaces monitoring, and 'paddr' for the physical
++		address space monitoring) to this file makes the context to use
++		the operations set.  Reading the file returns the keyword for
++		the operations set the context is set to use.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/sample_us
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the sampling interval of the
++		DAMON context in microseconds as the value.  Reading this file
++		returns the value.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/aggr_us
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the aggregation interval of
++		the DAMON context in microseconds as the value.  Reading this
++		file returns the value.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/update_us
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the update interval of the
++		DAMON context in microseconds as the value.  Reading this file
++		returns the value.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/min
++
++WDate:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the minimum number of
++		monitoring regions of the DAMON context as the value.  Reading
++		this file returns the value.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/max
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the maximum number of
++		monitoring regions of the DAMON context as the value.  Reading
++		this file returns the value.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/nr_targets
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a number 'N' to this file creates the number of
++		directories for controlling each DAMON target of the context
++		named '0' to 'N-1' under the contexts/ directory.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/pid_target
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the pid of
++		the target process if the context is for virtual address spaces
++		monitoring, respectively.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/nr_regions
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a number 'N' to this file creates the number of
++		directories for setting each DAMON target memory region of the
++		context named '0' to 'N-1' under the regions/ directory.  In
++		case of the virtual address space monitoring, DAMON
++		automatically sets the target memory region based on the target
++		processes' mappings.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/<R>/start
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the start
++		address of the monitoring region.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/<R>/end
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the end
++		address of the monitoring region.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/nr_schemes
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a number 'N' to this file creates the number of
++		directories for controlling each DAMON-based operation scheme
++		of the context named '0' to 'N-1' under the schemes/ directory.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/action
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the action
++		of the scheme.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/sz/min
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the mimimum
++		size of the scheme's target regions in bytes.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/sz/max
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the maximum
++		size of the scheme's target regions in bytes.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/nr_accesses/min
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the manimum
++		'nr_accesses' of the scheme's target regions.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/nr_accesses/max
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the maximum
++		'nr_accesses' of the scheme's target regions.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/age/min
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the minimum
++		'age' of the scheme's target regions.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/age/max
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the maximum
++		'age' of the scheme's target regions.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/ms
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the time
++		quota of the scheme in milliseconds.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/bytes
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the size
++		quota of the scheme in bytes.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/reset_interval_ms
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the quotas
++		charge reset interval of the scheme in milliseconds.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/sz_permil
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the
++		under-quota limit regions prioritization weight for 'size' in
++		permil.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/nr_accesses_permil
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the
++		under-quota limit regions prioritization weight for
++		'nr_accesses' in permil.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/age_permil
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the
++		under-quota limit regions prioritization weight for 'age' in
++		permil.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/metric
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the metric
++		of the watermarks for the scheme.  The writable/readable
++		keywords for this file are 'none' for disabling the watermarks
++		feature, or 'free_mem_rate' for the system's global free memory
++		rate in permil.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/interval_us
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the metric
++		check interval of the watermarks for the scheme in
++		microseconds.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/high
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the high
++		watermark of the scheme in permil.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/mid
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the mid
++		watermark of the scheme in permil.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/low
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the low
++		watermark of the scheme in permil.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_tried
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Reading this file returns the number of regions that the action
++		of the scheme has tried to be applied.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/sz_tried
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Reading this file returns the total size of regions that the
++		action of the scheme has tried to be applied in bytes.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_applied
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Reading this file returns the number of regions that the action
++		of the scheme has successfully applied.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/sz_applied
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Reading this file returns the total size of regions that the
++		action of the scheme has successfully applied in bytes.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/qt_exceeds
++Date:		Mar 2022
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Reading this file returns the number of the exceed events of
++		the scheme's quotas.
+--- a/MAINTAINERS~docs-abi-testing-add-damon-sysfs-interface-abi-document
++++ a/MAINTAINERS
+@@ -5317,6 +5317,7 @@ DATA ACCESS MONITOR
+ M:	SeongJae Park <sj@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++F:	Documentation/ABI/testing/sysfs-kernel-mm-damon
+ F:	Documentation/admin-guide/mm/damon/
+ F:	Documentation/vm/damon/
+ F:	include/linux/damon.h
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
