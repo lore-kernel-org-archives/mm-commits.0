@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90D59C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 00:48:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B95CBC433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 00:48:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231800AbiB1At2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 27 Feb 2022 19:49:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50386 "EHLO
+        id S232099AbiB1Atd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 27 Feb 2022 19:49:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231849AbiB1At1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 27 Feb 2022 19:49:27 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7CEA3DDCC
-        for <mm-commits@vger.kernel.org>; Sun, 27 Feb 2022 16:48:49 -0800 (PST)
+        with ESMTP id S232056AbiB1Ata (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 27 Feb 2022 19:49:30 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 950433DA7B
+        for <mm-commits@vger.kernel.org>; Sun, 27 Feb 2022 16:48:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 59EC96120D
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 00:48:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB8CCC340E9;
-        Mon, 28 Feb 2022 00:48:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 39701B80D6A
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 00:48:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEDDDC340EE;
+        Mon, 28 Feb 2022 00:48:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646009328;
-        bh=fag5/px5ZDYZW8sD0H2N3DUPN8fMqs9hPscZ5HP9GYU=;
+        s=korg; t=1646009324;
+        bh=uMpbgpaNScOyTLgKXPt5MKFINOl1sXbvwqmixTeAPQU=;
         h=Date:To:From:Subject:From;
-        b=fr5OhQNEJc5V9nA4lJouR475p/R+/FYCrcfyTiN895zb6wb097Y4JO/ASJPWbChb9
-         72pvYMbIViT0S9nOWYOdEq6fAkMujWJTVTc5g20hJlqf8dfcdF5UhwAPf7rmYx87yS
-         /fbO5hnXFys+aMCY4pFVpMz+feR2bkCveZkWCM18=
-Date:   Sun, 27 Feb 2022 16:48:48 -0800
-To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
-        rientjes@google.com, penberg@kernel.org, iamjoonsoo.kim@lge.com,
-        cl@linux.com, vbabka@suse.cz, akpm@linux-foundation.org
+        b=YE2Ov+ML0YmGD/Yx3tEzsOKTJ5MTuFV641yRWhr2PnrIaQ14J+JWH/wjPhjOT74yv
+         GCWySxbtBCESks2ryfFs3Q6WRZyCVIt2Fe4VNx22smDS5eA32DWBCa0R34NhxLto7U
+         88kV0VsV/f2CDawsASxAMbNeJxSDJHtLXTxVF3b0=
+Date:   Sun, 27 Feb 2022 16:48:44 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, mpe@ellerman.id.au,
+        jannh@google.com, aneesh.kumar@linux.ibm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] maintainers-slab-add-roman-as-reviewer-git-tree.patch removed from -mm tree
-Message-Id: <20220228004848.AB8CCC340E9@smtp.kernel.org>
+Subject: [merged] selftest-vm-fix-map_fixed_noreplace-test-failure.patch removed from -mm tree
+Message-Id: <20220228004844.BEDDDC340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,51 +42,182 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS, SLAB: add Roman as reviewer, git tree
+     Subject: selftest/vm: fix map_fixed_noreplace test failure
 has been removed from the -mm tree.  Its filename was
-     maintainers-slab-add-roman-as-reviewer-git-tree.patch
+     selftest-vm-fix-map_fixed_noreplace-test-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: MAINTAINERS, SLAB: add Roman as reviewer, git tree
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: selftest/vm: fix map_fixed_noreplace test failure
 
-The slab code has an overlap with kmem accounting, where Roman has done a
-lot of work recently and it would be useful to make sure he's CC'd on
-patches that potentially affect it.  Thus add him as a reviewer for the
-SLAB subsystem.
+On the latest RHEL the test fails due to executable mapped at 256MB address
 
-Also while at it, add the link to slab git tree.
+ # ./map_fixed_noreplace
+mmap() @ 0x10000000-0x10050000 p=0xffffffffffffffff result=File exists
+10000000-10010000 r-xp 00000000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
+10010000-10020000 r--p 00000000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
+10020000-10030000 rw-p 00010000 fd:04 34905657                           /root/rpmbuild/BUILD/kernel-5.14.0-56.el9/linux-5.14.0-56.el9.ppc64le/tools/testing/selftests/vm/map_fixed_noreplace
+10029b90000-10029bc0000 rw-p 00000000 00:00 0                            [heap]
+7fffbb510000-7fffbb750000 r-xp 00000000 fd:04 24534                      /usr/lib64/libc.so.6
+7fffbb750000-7fffbb760000 r--p 00230000 fd:04 24534                      /usr/lib64/libc.so.6
+7fffbb760000-7fffbb770000 rw-p 00240000 fd:04 24534                      /usr/lib64/libc.so.6
+7fffbb780000-7fffbb7a0000 r--p 00000000 00:00 0                          [vvar]
+7fffbb7a0000-7fffbb7b0000 r-xp 00000000 00:00 0                          [vdso]
+7fffbb7b0000-7fffbb800000 r-xp 00000000 fd:04 24514                      /usr/lib64/ld64.so.2
+7fffbb800000-7fffbb810000 r--p 00040000 fd:04 24514                      /usr/lib64/ld64.so.2
+7fffbb810000-7fffbb820000 rw-p 00050000 fd:04 24514                      /usr/lib64/ld64.so.2
+7fffd93f0000-7fffd9420000 rw-p 00000000 00:00 0                          [stack]
+Error: couldn't map the space we need for the test
 
-Link: https://lkml.kernel.org/r/20220222103104.13241-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Fix this by finding a free address using mmap instead of hardcoding BASE_ADDRESS.
+
+Link: https://lkml.kernel.org/r/20220217083417.373823-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Jann Horn <jannh@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/vm/map_fixed_noreplace.c |   49 +++++++++----
+ 1 file changed, 37 insertions(+), 12 deletions(-)
 
---- a/MAINTAINERS~maintainers-slab-add-roman-as-reviewer-git-tree
-+++ a/MAINTAINERS
-@@ -17762,8 +17762,10 @@ M:	David Rientjes <rientjes@google.com>
- M:	Joonsoo Kim <iamjoonsoo.kim@lge.com>
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Vlastimil Babka <vbabka@suse.cz>
-+R:	Roman Gushchin <roman.gushchin@linux.dev>
- L:	linux-mm@kvack.org
- S:	Maintained
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/vbabka/slab.git
- F:	include/linux/sl?b*.h
- F:	mm/sl?b*
+--- a/tools/testing/selftests/vm/map_fixed_noreplace.c~selftest-vm-fix-map_fixed_noreplace-test-failure
++++ a/tools/testing/selftests/vm/map_fixed_noreplace.c
+@@ -17,9 +17,6 @@
+ #define MAP_FIXED_NOREPLACE 0x100000
+ #endif
  
+-#define BASE_ADDRESS	(256ul * 1024 * 1024)
+-
+-
+ static void dump_maps(void)
+ {
+ 	char cmd[32];
+@@ -28,18 +25,46 @@ static void dump_maps(void)
+ 	system(cmd);
+ }
+ 
++static unsigned long find_base_addr(unsigned long size)
++{
++	void *addr;
++	unsigned long flags;
++
++	flags = MAP_PRIVATE | MAP_ANONYMOUS;
++	addr = mmap(NULL, size, PROT_NONE, flags, -1, 0);
++	if (addr == MAP_FAILED) {
++		printf("Error: couldn't map the space we need for the test\n");
++		return 0;
++	}
++
++	if (munmap(addr, size) != 0) {
++		printf("Error: couldn't map the space we need for the test\n");
++		return 0;
++	}
++	return (unsigned long)addr;
++}
++
+ int main(void)
+ {
++	unsigned long base_addr;
+ 	unsigned long flags, addr, size, page_size;
+ 	char *p;
+ 
+ 	page_size = sysconf(_SC_PAGE_SIZE);
+ 
++	//let's find a base addr that is free before we start the tests
++	size = 5 * page_size;
++	base_addr = find_base_addr(size);
++	if (!base_addr) {
++		printf("Error: couldn't map the space we need for the test\n");
++		return 1;
++	}
++
+ 	flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE;
+ 
+ 	// Check we can map all the areas we need below
+ 	errno = 0;
+-	addr = BASE_ADDRESS;
++	addr = base_addr;
+ 	size = 5 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+ 
+@@ -60,7 +85,7 @@ int main(void)
+ 	printf("unmap() successful\n");
+ 
+ 	errno = 0;
+-	addr = BASE_ADDRESS + page_size;
++	addr = base_addr + page_size;
+ 	size = 3 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+ 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+@@ -80,7 +105,7 @@ int main(void)
+ 	 *     +4 |  free  | new
+ 	 */
+ 	errno = 0;
+-	addr = BASE_ADDRESS;
++	addr = base_addr;
+ 	size = 5 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+ 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+@@ -101,7 +126,7 @@ int main(void)
+ 	 *     +4 |  free  |
+ 	 */
+ 	errno = 0;
+-	addr = BASE_ADDRESS + (2 * page_size);
++	addr = base_addr + (2 * page_size);
+ 	size = page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+ 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+@@ -121,7 +146,7 @@ int main(void)
+ 	 *     +4 |  free  | new
+ 	 */
+ 	errno = 0;
+-	addr = BASE_ADDRESS + (3 * page_size);
++	addr = base_addr + (3 * page_size);
+ 	size = 2 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+ 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+@@ -141,7 +166,7 @@ int main(void)
+ 	 *     +4 |  free  |
+ 	 */
+ 	errno = 0;
+-	addr = BASE_ADDRESS;
++	addr = base_addr;
+ 	size = 2 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+ 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+@@ -161,7 +186,7 @@ int main(void)
+ 	 *     +4 |  free  |
+ 	 */
+ 	errno = 0;
+-	addr = BASE_ADDRESS;
++	addr = base_addr;
+ 	size = page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+ 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+@@ -181,7 +206,7 @@ int main(void)
+ 	 *     +4 |  free  |  new
+ 	 */
+ 	errno = 0;
+-	addr = BASE_ADDRESS + (4 * page_size);
++	addr = base_addr + (4 * page_size);
+ 	size = page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+ 	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+@@ -192,7 +217,7 @@ int main(void)
+ 		return 1;
+ 	}
+ 
+-	addr = BASE_ADDRESS;
++	addr = base_addr;
+ 	size = 5 * page_size;
+ 	if (munmap((void *)addr, size) != 0) {
+ 		dump_maps();
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
 
