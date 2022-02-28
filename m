@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D77DBC433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 20:31:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB9B8C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 20:31:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229536AbiB1Uc2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 15:32:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58298 "EHLO
+        id S229562AbiB1Uce (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 15:32:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229559AbiB1Uc0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 15:32:26 -0500
+        with ESMTP id S229590AbiB1Ucd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 15:32:33 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A36B9FDA
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 12:31:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1AE021B6
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 12:31:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B627660DCC
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 20:31:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18A57C340F1;
-        Mon, 28 Feb 2022 20:31:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B69860DB6
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 20:31:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A432C340F1;
+        Mon, 28 Feb 2022 20:31:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646080306;
-        bh=ae6wZGwNi6vj5PXWCrT7WNXuBadmM54TBpRglHoExIg=;
+        s=korg; t=1646080310;
+        bh=VKTCDow5yN72rIAk+Aomu1ivuic/1cr0h8t6luJcdhs=;
         h=Date:To:From:Subject:From;
-        b=QN7fb51dVRshzMu8rFtcYiPAzvX01HpMNS0v0yuRWbYFML9mr0Rga6XM2oA9m3ZKw
-         pCkTlgmfjARhDOZ3+X6xPy8lrAHbXbmCQ7MVW0InxZePcEkoiVQGO3KnHHeDrqVt3L
-         jVs/4easOWPdcRDgr+wiQGFdgZVhpN+m4i9mF4I4=
-Date:   Mon, 28 Feb 2022 12:31:45 -0800
+        b=0hPKpMTclccC+/nRaHXfhUbZ/eIP/IdV4mn+qF7mCVk0CU5++BJDBD+RDVL9+4BLU
+         TcJ9uF8TdtaLTiXZ7eW/OtQhOXAvSffYuloPw3FBTcunG5pQ5BudfN2zJmqFWQOxSK
+         tfVZe5rbTS7qgirV4wnrOwf81eRuSUWQkrhGXakU=
+Date:   Mon, 28 Feb 2022 12:31:49 -0800
 To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         xiyuyang19@fudan.edu.cn, willy@infradead.org,
         viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         dan.j.williams@intel.com, apopple@nvidia.com,
         songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-fix-cache-flush-on-pmd-mapped-pages.patch added to -mm tree
-Message-Id: <20220228203146.18A57C340F1@smtp.kernel.org>
+Subject: + mm-pvmw-add-support-for-walking-devmap-pages.patch added to -mm tree
+Message-Id: <20220228203150.9A432C340F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix cache flush on PMD-mapped pages
+     Subject: mm: pvmw: add support for walking devmap pages
 has been added to the -mm tree.  Its filename is
-     dax-fix-cache-flush-on-pmd-mapped-pages.patch
+     mm-pvmw-add-support-for-walking-devmap-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/dax-fix-cache-flush-on-pmd-mapped-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-pvmw-add-support-for-walking-devmap-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-cache-flush-on-pmd-mapped-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pvmw-add-support-for-walking-devmap-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,14 +68,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: dax: fix cache flush on PMD-mapped pages
+Subject: mm: pvmw: add support for walking devmap pages
 
-The flush_cache_page() only remove a PAGE_SIZE sized range from the cache.
-However, it does not cover the full pages in a THP except a head page. 
-Replace it with flush_cache_range() to fix this issue.
+The devmap pages can not use page_vma_mapped_walk() to check if a huge
+devmap page is mapped into a vma.  Add support for walking huge devmap
+pages so that DAX can use it in the next patch.
 
-Link: https://lkml.kernel.org/r/20220228063536.24911-3-songmuchun@bytedance.com
-Fixes: f729c8c9b24f ("dax: wrprotect pmd_t in dax_mapping_entry_mkclean")
+Link: https://lkml.kernel.org/r/20220228063536.24911-5-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -93,21 +92,24 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_vma_mapped.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/dax.c~dax-fix-cache-flush-on-pmd-mapped-pages
-+++ a/fs/dax.c
-@@ -845,7 +845,8 @@ static void dax_entry_mkclean(struct add
- 			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
- 				goto unlock_pmd;
+--- a/mm/page_vma_mapped.c~mm-pvmw-add-support-for-walking-devmap-pages
++++ a/mm/page_vma_mapped.c
+@@ -210,10 +210,10 @@ restart:
+ 		 */
+ 		pmde = READ_ONCE(*pvmw->pmd);
  
--			flush_cache_page(vma, address, pfn);
-+			flush_cache_range(vma, address,
-+					  address + HPAGE_PMD_SIZE);
- 			pmd = pmdp_invalidate(vma, address, pmdp);
- 			pmd = pmd_wrprotect(pmd);
- 			pmd = pmd_mkclean(pmd);
+-		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
++		if (pmd_leaf(pmde) || is_pmd_migration_entry(pmde)) {
+ 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+ 			pmde = *pvmw->pmd;
+-			if (likely(pmd_trans_huge(pmde))) {
++			if (likely(pmd_leaf(pmde))) {
+ 				if (pvmw->flags & PVMW_MIGRATION)
+ 					return not_found(pvmw);
+ 				if (!check_pmd(pmd_pfn(pmde), pvmw))
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
