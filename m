@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA08FC433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 18:59:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2773DC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 18:59:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229703AbiB1S7m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 13:59:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44556 "EHLO
+        id S229926AbiB1S7o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 13:59:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229497AbiB1S7l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 13:59:41 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36D965B3C0
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 10:59:02 -0800 (PST)
+        with ESMTP id S229497AbiB1S7n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 13:59:43 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39711606EA
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 10:59:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C14A361568
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 18:59:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 145AAC340F2;
-        Mon, 28 Feb 2022 18:59:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BB9486156C
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 18:59:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18CE8C340F1;
+        Mon, 28 Feb 2022 18:59:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646074741;
-        bh=IehA/Whze9ukbnxfmFy+d7nfcGnvXRUjO3co8lWXKZg=;
+        s=korg; t=1646074743;
+        bh=zV4dnvVKopBoHrBqNErKCB5oHXI/2YOmtOUeSCgIJxQ=;
         h=Date:To:From:Subject:From;
-        b=MB4hpNjjtiVxE1P4VhfrBl8fWAHzXCXHZ5EIz4D0fIyKCZe1qq35wUDSVKvf7f0ul
-         XTccwj7iWq6q9PDhhVDJWuCjtDjTnIFRYMVKtTNE0+yP6JI0ZQ2NQQidSMjLi/LlHs
-         63KQFge99rmUUWXaA2WgKiXaltKTyifzoHgAbWLs=
-Date:   Mon, 28 Feb 2022 10:59:00 -0800
+        b=IqD7bbOGQWuhKEQTC47Hr2X3giAii5fcvl20L7jAvD0WbXsBPO5hbBjpO8+0mBV9G
+         FcvZb5uTWEVnL/LqVgDB8SO9MghBpuP3hUhF8i3y4GxWOhYSC5kKh9dulDy4wNw55g
+         l0KVNhchncKfAALEK/PsM8VP5+9O6u0H7T8kdeoo=
+Date:   Mon, 28 Feb 2022 10:59:02 -0800
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
         tytso@mit.edu, trond.myklebust@hammerspace.com,
@@ -40,8 +40,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         alexs@kernel.org, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + f2fs-allocate-inode-by-using-alloc_inode_sb.patch added to -mm tree
-Message-Id: <20220228185901.145AAC340F2@smtp.kernel.org>
+Subject: + nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch added to -mm tree
+Message-Id: <20220228185903.18CE8C340F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: f2fs: allocate inode by using alloc_inode_sb()
+     Subject: nfs42: use a specific kmem_cache to allocate nfs4_xattr_entry
 has been added to the -mm tree.  Its filename is
-     f2fs-allocate-inode-by-using-alloc_inode_sb.patch
+     nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/f2fs-allocate-inode-by-using-alloc_inode_sb.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/f2fs-allocate-inode-by-using-alloc_inode_sb.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,14 +71,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: f2fs: allocate inode by using alloc_inode_sb()
+Subject: nfs42: use a specific kmem_cache to allocate nfs4_xattr_entry
 
-The inode allocation is supposed to use alloc_inode_sb(), so convert
-kmem_cache_alloc() to alloc_inode_sb().
+If we want to add the allocated objects to its list_lru, we should use
+kmem_cache_alloc_lru() to allocate objects.  So intruduce
+nfs4_xattr_entry_cachep which is used to allocate nfs4_xattr_entry.
 
-Link: https://lkml.kernel.org/r/20220228122126.37293-6-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220228122126.37293-7-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
 Cc: Chao Yu <chao@kernel.org>
@@ -90,6 +90,7 @@ Cc: Kari Argillander <kari.argillander@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
@@ -101,26 +102,176 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/super.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/nfs/nfs42xattr.c |   95 ++++++++++++++++++++----------------------
+ 1 file changed, 47 insertions(+), 48 deletions(-)
 
---- a/fs/f2fs/super.c~f2fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/f2fs/super.c
-@@ -1345,8 +1345,12 @@ static struct inode *f2fs_alloc_inode(st
+--- a/fs/nfs/nfs42xattr.c~nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry
++++ a/fs/nfs/nfs42xattr.c
+@@ -81,7 +81,7 @@ struct nfs4_xattr_entry {
+ 	struct hlist_node hnode;
+ 	struct list_head lru;
+ 	struct list_head dispose;
+-	char *xattr_name;
++	const char *xattr_name;
+ 	void *xattr_value;
+ 	size_t xattr_size;
+ 	struct nfs4_xattr_bucket *bucket;
+@@ -98,6 +98,7 @@ static struct list_lru nfs4_xattr_entry_
+ static struct list_lru nfs4_xattr_large_entry_lru;
+ 
+ static struct kmem_cache *nfs4_xattr_cache_cachep;
++static struct kmem_cache *nfs4_xattr_entry_cachep;
+ 
+ /*
+  * Hashing helper functions.
+@@ -177,49 +178,27 @@ nfs4_xattr_alloc_entry(const char *name,
  {
- 	struct f2fs_inode_info *fi;
+ 	struct nfs4_xattr_entry *entry;
+ 	void *valp;
+-	char *namep;
+-	size_t alloclen, slen;
+-	char *buf;
+-	uint32_t flags;
++	const char *namep;
++	uint32_t flags = len > PAGE_SIZE ? NFS4_XATTR_ENTRY_EXTVAL : 0;
++	gfp_t gfp = GFP_KERNEL_ACCOUNT | GFP_NOFS;
++	struct list_lru *lru;
  
--	fi = f2fs_kmem_cache_alloc(f2fs_inode_cachep,
--				GFP_F2FS_ZERO, false, F2FS_SB(sb));
-+	if (time_to_inject(F2FS_SB(sb), FAULT_SLAB_ALLOC)) {
-+		f2fs_show_injection_info(F2FS_SB(sb), FAULT_SLAB_ALLOC);
-+		return NULL;
-+	}
-+
-+	fi = alloc_inode_sb(sb, f2fs_inode_cachep, GFP_F2FS_ZERO);
- 	if (!fi)
+ 	BUILD_BUG_ON(sizeof(struct nfs4_xattr_entry) +
+ 	    XATTR_NAME_MAX + 1 > PAGE_SIZE);
+ 
+-	alloclen = sizeof(struct nfs4_xattr_entry);
+-	if (name != NULL) {
+-		slen = strlen(name) + 1;
+-		alloclen += slen;
+-	} else
+-		slen = 0;
+-
+-	if (alloclen + len <= PAGE_SIZE) {
+-		alloclen += len;
+-		flags = 0;
+-	} else {
+-		flags = NFS4_XATTR_ENTRY_EXTVAL;
+-	}
+-
+-	buf = kmalloc(alloclen, GFP_KERNEL_ACCOUNT | GFP_NOFS);
+-	if (buf == NULL)
++	lru = flags & NFS4_XATTR_ENTRY_EXTVAL ? &nfs4_xattr_large_entry_lru :
++	      &nfs4_xattr_entry_lru;
++	entry = kmem_cache_alloc_lru(nfs4_xattr_entry_cachep, lru, gfp);
++	if (!entry)
  		return NULL;
+-	entry = (struct nfs4_xattr_entry *)buf;
+-
+-	if (name != NULL) {
+-		namep = buf + sizeof(struct nfs4_xattr_entry);
+-		memcpy(namep, name, slen);
+-	} else {
+-		namep = NULL;
+-	}
+-
+-
+-	if (flags & NFS4_XATTR_ENTRY_EXTVAL) {
+-		valp = kvmalloc(len, GFP_KERNEL_ACCOUNT | GFP_NOFS);
+-		if (valp == NULL) {
+-			kfree(buf);
+-			return NULL;
+-		}
+-	} else if (len != 0) {
+-		valp = buf + sizeof(struct nfs4_xattr_entry) + slen;
++	namep = kstrdup_const(name, gfp);
++	if (!namep && name)
++		goto free_buf;
++
++	if (len != 0) {
++		valp = kvmalloc(len, gfp);
++		if (!valp)
++			goto free_name;
+ 	} else
+ 		valp = NULL;
  
+@@ -232,23 +211,23 @@ nfs4_xattr_alloc_entry(const char *name,
+ 
+ 	entry->flags = flags;
+ 	entry->xattr_value = valp;
+-	kref_init(&entry->ref);
+ 	entry->xattr_name = namep;
+ 	entry->xattr_size = len;
+-	entry->bucket = NULL;
+-	INIT_LIST_HEAD(&entry->lru);
+-	INIT_LIST_HEAD(&entry->dispose);
+-	INIT_HLIST_NODE(&entry->hnode);
+ 
+ 	return entry;
++free_name:
++	kfree_const(namep);
++free_buf:
++	kmem_cache_free(nfs4_xattr_entry_cachep, entry);
++	return NULL;
+ }
+ 
+ static void
+ nfs4_xattr_free_entry(struct nfs4_xattr_entry *entry)
+ {
+-	if (entry->flags & NFS4_XATTR_ENTRY_EXTVAL)
+-		kvfree(entry->xattr_value);
+-	kfree(entry);
++	kvfree(entry->xattr_value);
++	kfree_const(entry->xattr_name);
++	kmem_cache_free(nfs4_xattr_entry_cachep, entry);
+ }
+ 
+ static void
+@@ -289,7 +268,7 @@ nfs4_xattr_alloc_cache(void)
+ {
+ 	struct nfs4_xattr_cache *cache;
+ 
+-	cache = kmem_cache_alloc(nfs4_xattr_cache_cachep,
++	cache = kmem_cache_alloc_lru(nfs4_xattr_cache_cachep, &nfs4_xattr_cache_lru,
+ 	    GFP_KERNEL_ACCOUNT | GFP_NOFS);
+ 	if (cache == NULL)
+ 		return NULL;
+@@ -992,6 +971,17 @@ static void nfs4_xattr_cache_init_once(v
+ 	INIT_LIST_HEAD(&cache->dispose);
+ }
+ 
++static void nfs4_xattr_entry_init_once(void *p)
++{
++	struct nfs4_xattr_entry *entry = p;
++
++	kref_init(&entry->ref);
++	entry->bucket = NULL;
++	INIT_LIST_HEAD(&entry->lru);
++	INIT_LIST_HEAD(&entry->dispose);
++	INIT_HLIST_NODE(&entry->hnode);
++}
++
+ int __init nfs4_xattr_cache_init(void)
+ {
+ 	int ret = 0;
+@@ -1003,6 +993,13 @@ int __init nfs4_xattr_cache_init(void)
+ 	if (nfs4_xattr_cache_cachep == NULL)
+ 		return -ENOMEM;
+ 
++	nfs4_xattr_entry_cachep = kmem_cache_create("nfs4_xattr_entry",
++			sizeof(struct nfs4_xattr_entry), 0,
++			(SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD | SLAB_ACCOUNT),
++			nfs4_xattr_entry_init_once);
++	if (!nfs4_xattr_entry_cachep)
++		goto out5;
++
+ 	ret = list_lru_init_memcg(&nfs4_xattr_large_entry_lru,
+ 	    &nfs4_xattr_large_entry_shrinker);
+ 	if (ret)
+@@ -1040,6 +1037,8 @@ out2:
+ out3:
+ 	list_lru_destroy(&nfs4_xattr_large_entry_lru);
+ out4:
++	kmem_cache_destroy(nfs4_xattr_entry_cachep);
++out5:
+ 	kmem_cache_destroy(nfs4_xattr_cache_cachep);
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
