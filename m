@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F3B4C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D77DBC433FE
 	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 20:31:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229535AbiB1Uc1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 15:32:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58280 "EHLO
+        id S229536AbiB1Uc2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 15:32:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229538AbiB1Uc0 (ORCPT
+        with ESMTP id S229559AbiB1Uc0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 15:32:26 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEC2D10A
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 12:31:46 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A36B9FDA
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 12:31:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7CA95B81651
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 20:31:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 200A0C340F1;
-        Mon, 28 Feb 2022 20:31:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B627660DCC
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 20:31:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18A57C340F1;
+        Mon, 28 Feb 2022 20:31:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646080304;
-        bh=jTlLet7gqteWIAhRupQKIad1aIi52jvuqvqkRbcJHt8=;
+        s=korg; t=1646080306;
+        bh=ae6wZGwNi6vj5PXWCrT7WNXuBadmM54TBpRglHoExIg=;
         h=Date:To:From:Subject:From;
-        b=rYdgiYV+EiHW7iSQ0gum0QDeyOQ3s+rS2FWbsrbCDkTSulmZMIbh/U+BDe/cxOzA9
-         zhC+Nkl9vGgna8Rs3e+Z8JysxwIcbSfkVx5u+akLZAxsBeK9KDO10ddXjAV93Py0O1
-         pfL+eE3+tlJoxtzu5BpHd5Xd+BfxFJNem9E6WmqA=
-Date:   Mon, 28 Feb 2022 12:31:43 -0800
+        b=QN7fb51dVRshzMu8rFtcYiPAzvX01HpMNS0v0yuRWbYFML9mr0Rga6XM2oA9m3ZKw
+         pCkTlgmfjARhDOZ3+X6xPy8lrAHbXbmCQ7MVW0InxZePcEkoiVQGO3KnHHeDrqVt3L
+         jVs/4easOWPdcRDgr+wiQGFdgZVhpN+m4i9mF4I4=
+Date:   Mon, 28 Feb 2022 12:31:45 -0800
 To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         xiyuyang19@fudan.edu.cn, willy@infradead.org,
         viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         dan.j.williams@intel.com, apopple@nvidia.com,
         songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-fix-cache-flush-on-thp-pages.patch added to -mm tree
-Message-Id: <20220228203144.200A0C340F1@smtp.kernel.org>
+Subject: + dax-fix-cache-flush-on-pmd-mapped-pages.patch added to -mm tree
+Message-Id: <20220228203146.18A57C340F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rmap: fix cache flush on THP pages
+     Subject: dax: fix cache flush on PMD-mapped pages
 has been added to the -mm tree.  Its filename is
-     mm-rmap-fix-cache-flush-on-thp-pages.patch
+     dax-fix-cache-flush-on-pmd-mapped-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-cache-flush-on-thp-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/dax-fix-cache-flush-on-pmd-mapped-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-cache-flush-on-thp-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-cache-flush-on-pmd-mapped-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,60 +68,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: rmap: fix cache flush on THP pages
-
-Patch series "Fix some bugs related to ramp and dax", v3.
-
-Patches 1-2 fix a cache flush bug, because subsequent patches depend on
-those on those changes, they are placed in this series.  Patches 3-4 are
-preparation for fixing a dax bug in patch 5.  Patch 6 is code cleanup
-since the previous patch remove the usage of follow_invalidate_pte().
-
-
-This patch (of 6):
+Subject: dax: fix cache flush on PMD-mapped pages
 
 The flush_cache_page() only remove a PAGE_SIZE sized range from the cache.
 However, it does not cover the full pages in a THP except a head page. 
-Replace it with flush_cache_range() to fix this issue.  At least, no
-problems were found due to this.  Maybe because the architectures that
-have virtual indexed caches is less.
+Replace it with flush_cache_range() to fix this issue.
 
-Link: https://lkml.kernel.org/r/20220228063536.24911-1-songmuchun@bytedance.com
-Link: https://lkml.kernel.org/r/20220228063536.24911-2-songmuchun@bytedance.com
-Fixes: f27176cfc363 ("mm: convert page_mkclean_one() to use page_vma_mapped_walk()")
+Link: https://lkml.kernel.org/r/20220228063536.24911-3-songmuchun@bytedance.com
+Fixes: f729c8c9b24f ("dax: wrprotect pmd_t in dax_mapping_entry_mkclean")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 ++-
+ fs/dax.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-rmap-fix-cache-flush-on-thp-pages
-+++ a/mm/rmap.c
-@@ -968,7 +968,8 @@ static bool page_mkclean_one(struct foli
- 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
- 				continue;
+--- a/fs/dax.c~dax-fix-cache-flush-on-pmd-mapped-pages
++++ a/fs/dax.c
+@@ -845,7 +845,8 @@ static void dax_entry_mkclean(struct add
+ 			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
+ 				goto unlock_pmd;
  
--			flush_cache_page(vma, address, folio_pfn(folio));
+-			flush_cache_page(vma, address, pfn);
 +			flush_cache_range(vma, address,
 +					  address + HPAGE_PMD_SIZE);
- 			entry = pmdp_invalidate(vma, address, pmd);
- 			entry = pmd_wrprotect(entry);
- 			entry = pmd_mkclean(entry);
+ 			pmd = pmdp_invalidate(vma, address, pmdp);
+ 			pmd = pmd_wrprotect(pmd);
+ 			pmd = pmd_mkclean(pmd);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
