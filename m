@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21A4EC433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 18:44:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 627BCC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 18:50:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240573AbiB1SpG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 13:45:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44502 "EHLO
+        id S234608AbiB1Sup (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 13:50:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48522 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240454AbiB1So5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 13:44:57 -0500
+        with ESMTP id S232060AbiB1Suo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 13:50:44 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 276813D4B1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 10:43:20 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A01764BFC2
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 10:50:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D7F97B810DB
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 18:43:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5759BC340F1;
-        Mon, 28 Feb 2022 18:43:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5569CB81626
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 18:50:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF7D1C340F1;
+        Mon, 28 Feb 2022 18:50:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646073797;
-        bh=KXNA/GwOswvlMdo/q+scHqbhZCjd4Q7jxEA+5kf5xtw=;
+        s=korg; t=1646074203;
+        bh=6AjRqMHMnAwKheQIonsuQwREPJE5olu0oSBX25bMDEM=;
         h=Date:To:From:Subject:From;
-        b=Qr1E7CZyTCM+aSGrrJ+xXq4z7/lbAwoNN+bjhcdjOTg3elkr3UH2Sl2MeWBZ1KPkv
-         k8fiB6j4qBBDSAFUi6uMcMEaCe1vaGNOYwYzooqxSCiHoDNbs9yXvKkZC7nnG0D7Ee
-         2esE+3gxFqrcQUqFT7f1nVHQ4SQOeThn8h0j1zgQ=
-Date:   Mon, 28 Feb 2022 10:43:16 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        mike.kravetz@oracle.com, kirill@shutemov.name, hch@infradead.org,
-        dhowells@redhat.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=y+Klc3ra8eTM+wEF06lYy3ixBJg53TEx6vwKlSm0Bac7YVp8iGLRZy+2/elLWCkUB
+         lBIXwCkcz3b0o4cEqddu2RF4haeqdrLS0snHLG3JRhyAsXl2iWlZL6pD2u5NDdvEs5
+         udo9NbGZEqV5LG04ISMxnvG7PduPhI9kgv9uEjlg=
+Date:   Mon, 28 Feb 2022 10:50:02 -0800
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        pmladek@suse.com, feng.tang@intel.com, bhe@redhat.com,
+        gpiccoli@igalia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-export-pageheadhuge-fix.patch added to -mm tree
-Message-Id: <20220228184317.5759BC340F1@smtp.kernel.org>
+Subject: + panic-move-panic_print-before-kmsg-dumpers.patch added to -mm tree
+Message-Id: <20220228185002.EF7D1C340F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-export-pageheadhuge-fix
+     Subject: panic: move panic_print before kmsg dumpers
 has been added to the -mm tree.  Its filename is
-     mm-export-pageheadhuge-fix.patch
+     panic-move-panic_print-before-kmsg-dumpers.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-export-pageheadhuge-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/panic-move-panic_print-before-kmsg-dumpers.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-export-pageheadhuge-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/panic-move-panic_print-before-kmsg-dumpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,51 +63,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-export-pageheadhuge-fix
+From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Subject: panic: move panic_print before kmsg dumpers
 
-s/EXPORT_SYMBOL/EXPORT_SYMBOL_GPL/, per Christoph
+The panic_print setting allows users to collect more information in a
+panic event, like memory stats, tasks, CPUs backtraces, etc.
+This is an interesting debug mechanism, but currently the print event
+happens *after* kmsg_dump(), meaning that pstore, for example, cannot
+collect a dmesg with the panic_print extra information.
 
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+This patch changes that in 2 steps:
+
+(a) The panic_print setting allows to replay the existing kernel log
+    buffer to the console (bit 5), besides the extra information dump. 
+    This functionality makes sense only at the end of the panic()
+    function.  So, we hereby allow to distinguish the two situations by a
+    new boolean parameter in the function panic_print_sys_info().
+
+(b) With the above change, we can safely call panic_print_sys_info()
+    before kmsg_dump(), allowing to dump the extra information when using
+    pstore or other kmsg dumpers.
+
+The additional messages from panic_print could overwrite the oldest
+messages when the buffer is full.  The only reasonable solution is to use
+a large enough log buffer, hence we added an advice into the kernel
+parameters documentation about that.
+
+Link: https://lkml.kernel.org/r/20220214141308.841525-1-gpiccoli@igalia.com
+Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/kernel-parameters.txt |    4 ++++
+ kernel/panic.c                                  |   13 +++++++++----
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~mm-export-pageheadhuge-fix
-+++ a/mm/hugetlb.c
-@@ -1855,7 +1855,7 @@ int PageHeadHuge(struct page *page_head)
+--- a/Documentation/admin-guide/kernel-parameters.txt~panic-move-panic_print-before-kmsg-dumpers
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3727,6 +3727,10 @@
+ 			bit 4: print ftrace buffer
+ 			bit 5: print all printk messages in buffer
+ 			bit 6: print all CPUs backtrace (if available in the arch)
++			*Be aware* that this option may print a _lot_ of lines,
++			so there are risks of losing older messages in the log.
++			Use this option carefully, maybe worth to setup a
++			bigger log buffer with "log_buf_len" along with this.
  
- 	return page_head[1].compound_dtor == HUGETLB_PAGE_DTOR;
+ 	panic_on_taint=	Bitmask for conditionally calling panic() in add_taint()
+ 			Format: <hex>[,nousertaint]
+--- a/kernel/panic.c~panic-move-panic_print-before-kmsg-dumpers
++++ a/kernel/panic.c
+@@ -148,10 +148,13 @@ void nmi_panic(struct pt_regs *regs, con
  }
--EXPORT_SYMBOL(PageHeadHuge);
-+EXPORT_SYMBOL_GPL(PageHeadHuge);
+ EXPORT_SYMBOL(nmi_panic);
  
- /*
-  * Find and lock address space (mapping) in write mode.
+-static void panic_print_sys_info(void)
++static void panic_print_sys_info(bool console_flush)
+ {
+-	if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
+-		console_flush_on_panic(CONSOLE_REPLAY_ALL);
++	if (console_flush) {
++		if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
++			console_flush_on_panic(CONSOLE_REPLAY_ALL);
++		return;
++	}
+ 
+ 	if (panic_print & PANIC_PRINT_ALL_CPU_BT)
+ 		trigger_all_cpu_backtrace();
+@@ -286,6 +289,8 @@ void panic(const char *fmt, ...)
+ 	 */
+ 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
+ 
++	panic_print_sys_info(false);
++
+ 	kmsg_dump(KMSG_DUMP_PANIC);
+ 
+ 	/*
+@@ -316,7 +321,7 @@ void panic(const char *fmt, ...)
+ 	debug_locks_off();
+ 	console_flush_on_panic(CONSOLE_FLUSH_PENDING);
+ 
+-	panic_print_sys_info();
++	panic_print_sys_info(true);
+ 
+ 	if (!panic_blink)
+ 		panic_blink = no_blink;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gpiccoli@igalia.com are
 
-remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-x86-mm-enable-arch_has_vm_get_page_prot-fix.patch
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
-mm-export-pageheadhuge-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-linux-next-rejects.patch
-drivers-gpu-drm-dp-drm_dpc-fix-build.patch
-arch-x86-kernel-resourcec-needs-spinlockh.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+docs-sysctl-kernel-add-missing-bit-to-panic_print.patch
+panic-add-option-to-dump-all-cpus-backtraces-in-panic_print.patch
+panic-move-panic_print-before-kmsg-dumpers.patch
 
