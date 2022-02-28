@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3349C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 20:31:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92D0FC433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 20:31:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229538AbiB1Uce (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 15:32:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58486 "EHLO
+        id S229566AbiB1Ucf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 15:32:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229559AbiB1Ucb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 15:32:31 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1CE8C18
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 12:31:50 -0800 (PST)
+        with ESMTP id S229549AbiB1Ucd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 15:32:33 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DF5364E2
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 12:31:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 730ACB81652
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 20:31:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18AA2C340F1;
-        Mon, 28 Feb 2022 20:31:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 37B1660DCC
+        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 20:31:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90EAFC340F1;
+        Mon, 28 Feb 2022 20:31:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646080308;
-        bh=xa0dQXUxtEieU3fItgwCysH/czwdffM0Wd+plHOVW2A=;
+        s=korg; t=1646080312;
+        bh=Tebi7TEOa4X7l7MmnhcV/vB8mRLlmUL+G8ogI0lvY2Q=;
         h=Date:To:From:Subject:From;
-        b=1/lRr/7FFnn/8HFcPwPM9tHglI+9ECv1OQ5V96M8DbbeXUKffvvIoiZtBa+ocdNtw
-         4VeLGMHYLaz4QmCYIUfdd9BvM89yQq1Nv0imhpJsDdk6H3y/xQYaQHHylmfPBDKPBy
-         JSHb3OaAqCLKbPIlmDZsboUq+hMHP2gL0ytvoPCE=
-Date:   Mon, 28 Feb 2022 12:31:47 -0800
+        b=OP9Ea9xR+KI5NpUKYcJTgyHK0wQAH0MtWCiXxxIehjNOJH34yauyaOuVl/9BeqDml
+         6/Gj/ihyvBdbmN+EU52LvtJ7XQ/VW5CrviHtN1Vzg3sADp/88EgR/odgy4RagTav2b
+         7bzHZSdnrwP/XoSsYOjZny/+lG2buBavSBsjd0e4=
+Date:   Mon, 28 Feb 2022 12:31:51 -0800
 To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         xiyuyang19@fudan.edu.cn, willy@infradead.org,
         viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         dan.j.williams@intel.com, apopple@nvidia.com,
         songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch added to -mm tree
-Message-Id: <20220228203148.18AA2C340F1@smtp.kernel.org>
+Subject: + dax-fix-missing-writeprotect-the-pte-entry.patch added to -mm tree
+Message-Id: <20220228203152.90EAFC340F1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rmap: introduce pfn_mkclean_range() to cleans PTEs
+     Subject: dax: fix missing writeprotect the pte entry
 has been added to the -mm tree.  Its filename is
-     mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
+     dax-fix-missing-writeprotect-the-pte-entry.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/dax-fix-missing-writeprotect-the-pte-entry.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-missing-writeprotect-the-pte-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,16 +68,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: rmap: introduce pfn_mkclean_range() to cleans PTEs
+Subject: dax: fix missing writeprotect the pte entry
 
-The page_mkclean_one() is supposed to be used with the pfn that has a
-associated struct page, but not all the pfns (e.g.  DAX) have a struct
-page.  Introduce a new function pfn_mkclean_range() to cleans the PTEs
-(including PMDs) mapped with range of pfns which has no struct page
-associated with them.  This helper will be used by DAX device in the next
-patch to make pfns clean.
+Currently dax_mapping_entry_mkclean() fails to clean and write protect the
+pte entry within a DAX PMD entry during an *sync operation.  This can
+result in data loss in the following sequence:
 
-Link: https://lkml.kernel.org/r/20220228063536.24911-4-songmuchun@bytedance.com
+  1) process A mmap write to DAX PMD, dirtying PMD radix tree entry and
+     making the pmd entry dirty and writeable.
+  2) process B mmap with the @offset (e.g. 4K) and @length (e.g. 4K)
+     write to the same file, dirtying PMD radix tree entry (already
+     done in 1)) and making the pte entry dirty and writeable.
+  3) fsync, flushing out PMD data and cleaning the radix tree entry. We
+     currently fail to mark the pte entry as clean and write protected
+     since the vma of process B is not covered in dax_entry_mkclean().
+  4) process B writes to the pte. These don't cause any page faults since
+     the pte entry is dirty and writeable. The radix tree entry remains
+     clean.
+  5) fsync, which fails to flush the dirty PMD data because the radix tree
+     entry was clean.
+  6) crash - dirty data that should have been fsync'd as part of 5) could
+     still have been in the processor cache, and is lost.
+
+Just to use pfn_mkclean_range() to clean the pfns to fix this issue.
+
+Link: https://lkml.kernel.org/r/20220228063536.24911-6-songmuchun@bytedance.com
+Fixes: 4b4bb46d00b3 ("dax: clear dirty entry tags on cache flush")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -95,189 +111,121 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 +
- mm/internal.h        |   26 ++++++++++------
- mm/rmap.c            |   65 ++++++++++++++++++++++++++++++++++-------
- 3 files changed, 74 insertions(+), 20 deletions(-)
+ fs/dax.c |   83 ++++-------------------------------------------------
+ 1 file changed, 7 insertions(+), 76 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes
-+++ a/include/linux/rmap.h
-@@ -263,6 +263,9 @@ unsigned long page_address_in_vma(struct
-  */
- int folio_mkclean(struct folio *);
+--- a/fs/dax.c~dax-fix-missing-writeprotect-the-pte-entry
++++ a/fs/dax.c
+@@ -24,6 +24,7 @@
+ #include <linux/sizes.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/iomap.h>
++#include <linux/rmap.h>
+ #include <asm/pgalloc.h>
  
-+int pfn_mkclean_range(unsigned long pfn, unsigned long nr_pages, pgoff_t pgoff,
-+		      struct vm_area_struct *vma);
-+
- void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked);
- 
- /*
---- a/mm/internal.h~mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes
-+++ a/mm/internal.h
-@@ -448,26 +448,22 @@ void mlock_page_drain(int cpu);
- extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
- 
- /*
-- * At what user virtual address is page expected in vma?
-- * Returns -EFAULT if all of the page is outside the range of vma.
-- * If page is a compound head, the entire compound page is considered.
-+ * * Return the start of user virtual address at the specific offset within
-+ * a vma.
-  */
- static inline unsigned long
--vma_address(struct page *page, struct vm_area_struct *vma)
-+vma_pgoff_address(pgoff_t pgoff, unsigned long nr_pages,
-+		  struct vm_area_struct *vma)
- {
--	pgoff_t pgoff;
- 	unsigned long address;
- 
--	VM_BUG_ON_PAGE(PageKsm(page), page);	/* KSM page->index unusable */
--	pgoff = page_to_pgoff(page);
- 	if (pgoff >= vma->vm_pgoff) {
- 		address = vma->vm_start +
- 			((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
- 		/* Check for address beyond vma (or wrapped through 0?) */
- 		if (address < vma->vm_start || address >= vma->vm_end)
- 			address = -EFAULT;
--	} else if (PageHead(page) &&
--		   pgoff + compound_nr(page) - 1 >= vma->vm_pgoff) {
-+	} else if (pgoff + nr_pages - 1 >= vma->vm_pgoff) {
- 		/* Test above avoids possibility of wrap to 0 on 32-bit */
- 		address = vma->vm_start;
- 	} else {
-@@ -477,6 +473,18 @@ vma_address(struct page *page, struct vm
+ #define CREATE_TRACE_POINTS
+@@ -789,87 +790,17 @@ static void *dax_insert_entry(struct xa_
+ 	return entry;
  }
  
- /*
-+ * Return the start of user virtual address of a page within a vma.
-+ * Returns -EFAULT if all of the page is outside the range of vma.
-+ * If page is a compound head, the entire compound page is considered.
-+ */
-+static inline unsigned long
-+vma_address(struct page *page, struct vm_area_struct *vma)
-+{
-+	VM_BUG_ON_PAGE(PageKsm(page), page);	/* KSM page->index unusable */
-+	return vma_pgoff_address(page_to_pgoff(page), compound_nr(page), vma);
-+}
-+
-+/*
-  * Then at what user virtual address will none of the range be found in vma?
-  * Assumes that vma_address() already returned a good starting address.
-  */
---- a/mm/rmap.c~mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes
-+++ a/mm/rmap.c
-@@ -927,12 +927,12 @@ int folio_referenced(struct folio *folio
- 	return pra.referenced;
- }
- 
--static bool page_mkclean_one(struct folio *folio, struct vm_area_struct *vma,
--			    unsigned long address, void *arg)
-+static int page_vma_mkclean_one(struct page_vma_mapped_walk *pvmw)
+-static inline
+-unsigned long pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
+-{
+-	unsigned long address;
+-
+-	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+-	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
+-	return address;
+-}
+-
+ /* Walk all mappings of a given index of a file and writeprotect them */
+-static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
+-		unsigned long pfn)
++static void dax_entry_mkclean(struct address_space *mapping, unsigned long pfn,
++			      unsigned long npfn, pgoff_t start)
  {
--	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, address, PVMW_SYNC);
-+	int cleaned = 0;
-+	struct vm_area_struct *vma = pvmw->vma;
- 	struct mmu_notifier_range range;
--	int *cleaned = arg;
-+	unsigned long address = pvmw->address;
+ 	struct vm_area_struct *vma;
+-	pte_t pte, *ptep = NULL;
+-	pmd_t *pmdp = NULL;
+-	spinlock_t *ptl;
++	pgoff_t end = start + npfn - 1;
  
- 	/*
- 	 * We have to assume the worse case ie pmd for invalidation. Note that
-@@ -940,16 +940,16 @@ static bool page_mkclean_one(struct foli
- 	 */
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_PAGE,
- 				0, vma, vma->vm_mm, address,
--				vma_address_end(&pvmw));
-+				vma_address_end(pvmw));
- 	mmu_notifier_invalidate_range_start(&range);
- 
--	while (page_vma_mapped_walk(&pvmw)) {
-+	while (page_vma_mapped_walk(pvmw)) {
- 		int ret = 0;
- 
--		address = pvmw.address;
--		if (pvmw.pte) {
-+		address = pvmw->address;
-+		if (pvmw->pte) {
- 			pte_t entry;
--			pte_t *pte = pvmw.pte;
-+			pte_t *pte = pvmw->pte;
- 
- 			if (!pte_dirty(*pte) && !pte_write(*pte))
- 				continue;
-@@ -962,7 +962,7 @@ static bool page_mkclean_one(struct foli
- 			ret = 1;
- 		} else {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--			pmd_t *pmd = pvmw.pmd;
-+			pmd_t *pmd = pvmw->pmd;
- 			pmd_t entry;
- 
- 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
-@@ -989,11 +989,22 @@ static bool page_mkclean_one(struct foli
- 		 * See Documentation/vm/mmu_notifier.rst
- 		 */
- 		if (ret)
--			(*cleaned)++;
-+			cleaned++;
+ 	i_mmap_lock_read(mapping);
+-	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
+-		struct mmu_notifier_range range;
+-		unsigned long address;
+-
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, start, end) {
++		pfn_mkclean_range(pfn, npfn, start, vma);
+ 		cond_resched();
+-
+-		if (!(vma->vm_flags & VM_SHARED))
+-			continue;
+-
+-		address = pgoff_address(index, vma);
+-
+-		/*
+-		 * follow_invalidate_pte() will use the range to call
+-		 * mmu_notifier_invalidate_range_start() on our behalf before
+-		 * taking any lock.
+-		 */
+-		if (follow_invalidate_pte(vma->vm_mm, address, &range, &ptep,
+-					  &pmdp, &ptl))
+-			continue;
+-
+-		/*
+-		 * No need to call mmu_notifier_invalidate_range() as we are
+-		 * downgrading page table protection not changing it to point
+-		 * to a new page.
+-		 *
+-		 * See Documentation/vm/mmu_notifier.rst
+-		 */
+-		if (pmdp) {
+-#ifdef CONFIG_FS_DAX_PMD
+-			pmd_t pmd;
+-
+-			if (pfn != pmd_pfn(*pmdp))
+-				goto unlock_pmd;
+-			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
+-				goto unlock_pmd;
+-
+-			flush_cache_range(vma, address,
+-					  address + HPAGE_PMD_SIZE);
+-			pmd = pmdp_invalidate(vma, address, pmdp);
+-			pmd = pmd_wrprotect(pmd);
+-			pmd = pmd_mkclean(pmd);
+-			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+-unlock_pmd:
+-#endif
+-			spin_unlock(ptl);
+-		} else {
+-			if (pfn != pte_pfn(*ptep))
+-				goto unlock_pte;
+-			if (!pte_dirty(*ptep) && !pte_write(*ptep))
+-				goto unlock_pte;
+-
+-			flush_cache_page(vma, address, pfn);
+-			pte = ptep_clear_flush(vma, address, ptep);
+-			pte = pte_wrprotect(pte);
+-			pte = pte_mkclean(pte);
+-			set_pte_at(vma->vm_mm, address, ptep, pte);
+-unlock_pte:
+-			pte_unmap_unlock(ptep, ptl);
+-		}
+-
+-		mmu_notifier_invalidate_range_end(&range);
  	}
- 
- 	mmu_notifier_invalidate_range_end(&range);
- 
-+	return cleaned;
-+}
-+
-+static bool page_mkclean_one(struct folio *folio, struct vm_area_struct *vma,
-+			     unsigned long address, void *arg)
-+{
-+	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, address, PVMW_SYNC);
-+	int *cleaned = arg;
-+
-+	*cleaned += page_vma_mkclean_one(&pvmw);
-+
- 	return true;
+ 	i_mmap_unlock_read(mapping);
  }
+@@ -937,7 +868,7 @@ static int dax_writeback_one(struct xa_s
+ 	count = 1UL << dax_entry_order(entry);
+ 	index = xas->xa_index & ~(count - 1);
  
-@@ -1031,6 +1042,38 @@ int folio_mkclean(struct folio *folio)
- EXPORT_SYMBOL_GPL(folio_mkclean);
- 
- /**
-+ * pfn_mkclean_range - Cleans the PTEs (including PMDs) mapped with range of
-+ *                     [@pfn, @pfn + @nr_pages) at the specific offset (@pgoff)
-+ *                     within the @vma of shared mappings. And since clean PTEs
-+ *                     should also be readonly, write protects them too.
-+ * @pfn: start pfn.
-+ * @nr_pages: number of physically contiguous pages srarting with @pfn.
-+ * @pgoff: page offset that the @pfn mapped with.
-+ * @vma: vma that @pfn mapped within.
-+ *
-+ * Returns the number of cleaned PTEs (including PMDs).
-+ */
-+int pfn_mkclean_range(unsigned long pfn, unsigned long nr_pages, pgoff_t pgoff,
-+		      struct vm_area_struct *vma)
-+{
-+	struct page_vma_mapped_walk pvmw = {
-+		.pfn		= pfn,
-+		.nr_pages	= nr_pages,
-+		.pgoff		= pgoff,
-+		.vma		= vma,
-+		.flags		= PVMW_SYNC,
-+	};
-+
-+	if (invalid_mkclean_vma(vma, NULL))
-+		return 0;
-+
-+	pvmw.address = vma_pgoff_address(pgoff, nr_pages, vma);
-+	VM_BUG_ON_VMA(pvmw.address == -EFAULT, vma);
-+
-+	return page_vma_mkclean_one(&pvmw);
-+}
-+
-+/**
-  * page_move_anon_rmap - move a page to our anon_vma
-  * @page:	the page to move to our anon_vma
-  * @vma:	the vma the page belongs to
+-	dax_entry_mkclean(mapping, index, pfn);
++	dax_entry_mkclean(mapping, pfn, count, index);
+ 	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
+ 	/*
+ 	 * After we have flushed the cache, we can clear the dirty tag. There
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
