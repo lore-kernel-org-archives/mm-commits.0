@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A22E6C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Mar 2022 18:12:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2F13C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Mar 2022 18:12:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230075AbiCASNK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Mar 2022 13:13:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36234 "EHLO
+        id S234975AbiCASNO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Mar 2022 13:13:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236862AbiCASNJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2022 13:13:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C01E665158
-        for <mm-commits@vger.kernel.org>; Tue,  1 Mar 2022 10:12:26 -0800 (PST)
+        with ESMTP id S236855AbiCASNL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2022 13:13:11 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0A2B6514C
+        for <mm-commits@vger.kernel.org>; Tue,  1 Mar 2022 10:12:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AFFD61423
-        for <mm-commits@vger.kernel.org>; Tue,  1 Mar 2022 18:12:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5C00C340F0;
-        Tue,  1 Mar 2022 18:12:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EF053B81BF2
+        for <mm-commits@vger.kernel.org>; Tue,  1 Mar 2022 18:12:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DEB8C340EE;
+        Tue,  1 Mar 2022 18:12:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646158345;
-        bh=/tJMfYoP7cm/h1i2a3RjBaZjaMR5kWr61RH/AADopv4=;
+        s=korg; t=1646158347;
+        bh=mkSeu8saSGZWuHAeaXWmcIg3hb52ymdWIzp36lH6mGI=;
         h=Date:To:From:Subject:From;
-        b=07hI0cdSSujjwCvlafFIeYCH0y7BSOJk6f163OseNe6rKvKokwku+IXec8TGs4TAP
-         AZJULVZ+FiUQg3GgHIgxOEJ/bHj2UYte/7ATXfpJMlXbp8QX10vN9N6kRizuV6j70a
-         36ovIBoeQB8T3fWk8iVoNNK6c/pzgn/i0doESOek=
-Date:   Tue, 01 Mar 2022 10:12:24 -0800
+        b=UtnGGq9CzJ/QCHTtNTH81TvtRuqgvfKKM63/vOGvN9uYyLCcAhZlyUeWijY0fFma9
+         N09OxAufMQt9a6hAYyXi9fVfHXf0wmtFroj6zMkkGMr7tMgszvwTT4al56mgMGjCQb
+         BnufF6m7dFWrrXzZSMsOY+F/QXZ/MCsLvlI2AASw=
+Date:   Tue, 01 Mar 2022 10:12:26 -0800
 To:     mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de,
         lizefan.x@bytedance.com, hannes@cmpxchg.org, bigeasy@linutronix.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-use-irqsave-in-cgroup_rstat_flush_locked.patch added to -mm tree
-Message-Id: <20220301181225.A5C00C340F0@smtp.kernel.org>
+Subject: + mm-workingset-replace-irq-off-check-with-a-lockdep-assert.patch added to -mm tree
+Message-Id: <20220301181227.8DEB8C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: use irqsave in cgroup_rstat_flush_locked().
+     Subject: mm: workingset: replace IRQ-off check with a lockdep assert.
 has been added to the -mm tree.  Its filename is
-     cgroup-use-irqsave-in-cgroup_rstat_flush_locked.patch
+     mm-workingset-replace-irq-off-check-with-a-lockdep-assert.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/cgroup-use-irqsave-in-cgroup_rstat_flush_locked.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-replace-irq-off-check-with-a-lockdep-assert.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/cgroup-use-irqsave-in-cgroup_rstat_flush_locked.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-replace-irq-off-check-with-a-lockdep-assert.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,55 +64,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: cgroup: use irqsave in cgroup_rstat_flush_locked().
+Subject: mm: workingset: replace IRQ-off check with a lockdep assert.
 
-All callers of cgroup_rstat_flush_locked() acquire cgroup_rstat_lock
-either with spin_lock_irq() or spin_lock_irqsave(). 
-cgroup_rstat_flush_locked() itself acquires cgroup_rstat_cpu_lock which is
-a raw_spin_lock.  This lock is also acquired in cgroup_rstat_updated() in
-IRQ context and therefore requires _irqsave() locking suffix in
-cgroup_rstat_flush_locked().
+Commit 68d48e6a2df57 ("mm: workingset: add vmstat counter for shadow
+nodes") introduced an IRQ-off check to ensure that a lock is held which
+also disabled interrupts.  This does not work the same way on PREEMPT_RT
+because none of the locks, that are held, disable interrupts.
 
-Since there is no difference between spin_lock_t and raw_spin_lock_t on
-!RT lockdep does not complain here.  On RT lockdep complains because the
-interrupts were not disabled here and a deadlock is possible.
+Replace this check with a lockdep assert which ensures that the lock is
+held.
 
-Acquire the raw_spin_lock_t with disabled interrupts.
-
-Link: https://lkml.kernel.org/r/20220301122143.1521823-2-bigeasy@linutronix.de
+Link: https://lkml.kernel.org/r/20220301122143.1521823-3-bigeasy@linutronix.de
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/rstat.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/workingset.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/kernel/cgroup/rstat.c~cgroup-use-irqsave-in-cgroup_rstat_flush_locked
-+++ a/kernel/cgroup/rstat.c
-@@ -153,8 +153,9 @@ static void cgroup_rstat_flush_locked(st
- 		raw_spinlock_t *cpu_lock = per_cpu_ptr(&cgroup_rstat_cpu_lock,
- 						       cpu);
- 		struct cgroup *pos = NULL;
-+		unsigned long flags;
+--- a/mm/workingset.c~mm-workingset-replace-irq-off-check-with-a-lockdep-assert
++++ a/mm/workingset.c
+@@ -433,6 +433,8 @@ static struct list_lru shadow_nodes;
  
--		raw_spin_lock(cpu_lock);
-+		raw_spin_lock_irqsave(cpu_lock, flags);
- 		while ((pos = cgroup_rstat_cpu_pop_updated(pos, cgrp, cpu))) {
- 			struct cgroup_subsys_state *css;
+ void workingset_update_node(struct xa_node *node)
+ {
++	struct address_space *mapping;
++
+ 	/*
+ 	 * Track non-empty nodes that contain only shadow entries;
+ 	 * unlink those that contain pages or are being freed.
+@@ -441,7 +443,8 @@ void workingset_update_node(struct xa_no
+ 	 * already where they should be. The list_empty() test is safe
+ 	 * as node->private_list is protected by the i_pages lock.
+ 	 */
+-	VM_WARN_ON_ONCE(!irqs_disabled());  /* For __inc_lruvec_page_state */
++	mapping = container_of(node->array, struct address_space, i_pages);
++	lockdep_assert_held(&mapping->i_pages.xa_lock);
  
-@@ -166,7 +167,7 @@ static void cgroup_rstat_flush_locked(st
- 				css->ss->css_rstat_flush(css, cpu);
- 			rcu_read_unlock();
- 		}
--		raw_spin_unlock(cpu_lock);
-+		raw_spin_unlock_irqrestore(cpu_lock, flags);
- 
- 		/* if @may_sleep, play nice and yield if necessary */
- 		if (may_sleep && (need_resched() ||
+ 	if (node->count && node->count == node->nr_values) {
+ 		if (list_empty(&node->private_list)) {
 _
 
 Patches currently in -mm which might be from bigeasy@linutronix.de are
