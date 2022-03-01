@@ -2,92 +2,85 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B536C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Feb 2022 23:51:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88CA1C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Mar 2022 00:46:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230102AbiB1Xv6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Feb 2022 18:51:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36324 "EHLO
+        id S229533AbiCAArH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Feb 2022 19:47:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230062AbiB1Xv6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 18:51:58 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C311412CC39
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 15:51:18 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2FC68B816BC
-        for <mm-commits@vger.kernel.org>; Mon, 28 Feb 2022 23:51:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A76F8C340EE;
-        Mon, 28 Feb 2022 23:51:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646092275;
-        bh=yoqZbjH/gJEW5BmDK6h53Sv0HwBR9nWjxvBQ/VKeyE0=;
-        h=Date:To:From:Subject:From;
-        b=KFu12mC1F7wK+VigIu3eRCkFbSpgUWtci24BkMGmcPq2h/r1X36yY2EbxwhKGGhE/
-         kR6yyfbufm9mofINDDoiVXVEYxNbqRGpZS09Tu1criqx8J5RxlkjJPledaZts9r75n
-         +pKGEq3BFe9+OVlO++mhnLSkIC5xozgSm3I8OtDY=
-Date:   Mon, 28 Feb 2022 15:51:14 -0800
-To:     mm-commits@vger.kernel.org, v.narang@samsung.com,
-        lukas.bulwahn@gmail.com, joe@perches.com, dwaipayanray1@gmail.com,
-        maninder1.s@samsung.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] scripts-checkpatchpl-remove-_deferred-and-_deferred_once-false-warning.patch removed from -mm tree
-Message-Id: <20220228235115.A76F8C340EE@smtp.kernel.org>
+        with ESMTP id S231651AbiCAArH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Feb 2022 19:47:07 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 329601CFDA;
+        Mon, 28 Feb 2022 16:46:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:From:References:To:Subject:MIME-Version:Date:Message-ID:Sender:
+        Reply-To:Cc:Content-ID:Content-Description;
+        bh=6kLooZJqwGGXeVVaSJP06IJVzbhf/g8lxAgwKUZTKkQ=; b=OibTSq6yzv7ONGW8VvnYgQrrEv
+        5KZXpoYlNennpum1jNu3fUeCUaZ2uwA/+/EN6S3kvydscWR3ai3JyrE0HPVnxvL+eGn7YwpvXsSnK
+        1kuvYe+9VOZ95TkqbuzuYkt6yAW62u4M5e6g+B1J3Vki69gIekQVJEsSQbVcMYDdubwggu2gty4pj
+        igK7cLFtxs4QDUrIoboG6GrFtKtvd4YR9y1x9B9/W06Cj2QDNrfWMAHbrID3RrI97sRxyL2x44AMJ
+        of9dpt7+ltreM13WOu7kWxDDmRsi/vufxKYAtItg5XvSCk+eJCXgNiNa2aG6+1UgFUHjsxn1M3B/h
+        X0sVMgHw==;
+Received: from [2601:1c0:6280:3f0::aa0b]
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nOqeh-0094bj-Vo; Tue, 01 Mar 2022 00:46:20 +0000
+Message-ID: <1e91ecfb-0432-8c0c-e537-49954313abff@infradead.org>
+Date:   Mon, 28 Feb 2022 16:46:13 -0800
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.6.1
+Subject: Re: mmotm 2022-02-28-14-45 uploaded
+ (drivers/tty/serial/sunplus-uart.c:)
+Content-Language: en-US
+To:     Andrew Morton <akpm@linux-foundation.org>, broonie@kernel.org,
+        mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
+        linux-serial@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hammer Hsieh <hammerh0314@gmail.com>
+References: <20220228224600.44415C340EE@smtp.kernel.org>
+From:   Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <20220228224600.44415C340EE@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: scripts/checkpatch.pl: remove _deferred and _deferred_once false warning
-has been removed from the -mm tree.  Its filename was
-     scripts-checkpatchpl-remove-_deferred-and-_deferred_once-false-warning.patch
 
-This patch was dropped because it was nacked
+On 2/28/22 14:45, Andrew Morton wrote:
+> The mm-of-the-moment snapshot 2022-02-28-14-45 has been uploaded to
+> 
+>    https://www.ozlabs.org/~akpm/mmotm/
+> 
+> mmotm-readme.txt says
+> 
+> README for mm-of-the-moment:
+> 
+> https://www.ozlabs.org/~akpm/mmotm/
+> 
+> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> more than once a week.
+> 
+> You will need quilt to apply these patches to the latest Linus release (5.x
+> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> https://ozlabs.org/~akpm/mmotm/series
 
-------------------------------------------------------
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: scripts/checkpatch.pl: remove _deferred and _deferred_once false warning
+on x86_64 or i386:
 
-With commit 98e35f5894cf ("printk: git rid of [sched_delayed] message for
-printk_deferred") printk_deferred and printk_deferred_once requires
-LOGLEVEL in argument, but checkpatch.pl was not fixed and still reports it
-as warning:
+when CONFIG_SERIAL_SUNPLUS_CONSOLE is not set:
 
-WARNING: Possible unnecessary KERN_ALERT
-printk_deferred(KERN_ALERT "checking deferred\n");
+../drivers/tty/serial/sunplus-uart.c:574:12: error: ‘sunplus_uart_console’ undeclared here (not in a function); did you mean ‘sunplus_uart_ops’?
+  .cons  = &sunplus_uart_console,
+            ^~~~~~~~~~~~~~~~~~~~
 
-Link: https://lkml.kernel.org/r/20220228073708.1610603-1-maninder1.s@samsung.com
-Co-developed-by: Vaneet Narang <v.narang@samsung.com>
-Signed-off-by: Vaneet Narang <v.narang@samsung.com>
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~scripts-checkpatchpl-remove-_deferred-and-_deferred_once-false-warning
-+++ a/scripts/checkpatch.pl
-@@ -6312,7 +6312,7 @@ sub process {
- 		}
- 
- # check for logging functions with KERN_<LEVEL>
--		if ($line !~ /printk(?:_ratelimited|_once)?\s*\(/ &&
-+		if ($line !~ /printk(?:_ratelimited|_once|_deferred|_deferred_once)?\s*\(/ &&
- 		    $line =~ /\b$logFunctions\s*\(.*\b(KERN_[A-Z]+)\b/) {
- 			my $level = $1;
- 			if (WARN("UNNECESSARY_KERN_LEVEL",
-_
-
-Patches currently in -mm which might be from maninder1.s@samsung.com are
-
-kallsyms-print-module-name-in-%ps-s-case-when-kallsyms-is-disabled.patch
-kallsyms-enhance-%ps-s-b-printing-when-kallsysms-is-disabled.patch
-
+-- 
+~Randy
