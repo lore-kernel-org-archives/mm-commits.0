@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BF86C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A7B3C4332F
 	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245372AbiCBVhX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S245360AbiCBVhX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 2 Mar 2022 16:37:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45362 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245357AbiCBVhT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:37:19 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94F3F5640A
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:34 -0800 (PST)
+        with ESMTP id S245370AbiCBVhS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:37:18 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73A53C7E73
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4A576B8225F
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7372C004E1;
-        Wed,  2 Mar 2022 21:36:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 125C9618E1
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63C5BC004E1;
+        Wed,  2 Mar 2022 21:36:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646256992;
-        bh=H1paoopbfLoBD20bvzVl8tmaySkC/BwAf8zSDyHQIMI=;
+        s=korg; t=1646256989;
+        bh=RV6ZuNSR2uxxc1FCVnucj6XJIq4lTsjtzMAorcLL0yY=;
         h=Date:To:From:Subject:From;
-        b=SkwCb8qHxeJ4isG934p84uNUQWXc87WelshMJFRz/YRFdzDFD5X6GchRqEIi/pMY7
-         GcK4CRhsfbVFI0L64gopStzAgwSJukq6DOLHU3zJMDp7ggG1A++7ezsY9l+Q0hasYt
-         STfaX8LGoEQnaL/fBFCr+gWy/0U5SNSw504Np764=
-Date:   Wed, 02 Mar 2022 13:36:31 -0800
+        b=G1XdvhhJW5UGCmY8GyYVLr4iKI7l4W1uGikwwdQeN+4hauoAh74VsEtNUWAbIACs4
+         g5cq9vOcJsv3HSLHrUCdlYPG9rsMteCyWs6eRYV1xV/f/xo+niH5S4CPADcDWufJ+7
+         KpmsEWhXZiieI31GEOl0+SM6KD5k5Fc+FJpBcmF4=
+Date:   Wed, 02 Mar 2022 13:36:28 -0800
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-add-comment-about-uaccess-regions-to-kasan_report.patch added to -mm tree
-Message-Id: <20220302213631.E7372C004E1@smtp.kernel.org>
+Subject: + kasan-rename-kasan_access_info-to-kasan_report_info.patch added to -mm tree
+Message-Id: <20220302213629.63C5BC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add comment about UACCESS regions to kasan_report
+     Subject: kasan: rename kasan_access_info to kasan_report_info
 has been added to the -mm tree.  Its filename is
-     kasan-add-comment-about-uaccess-regions-to-kasan_report.patch
+     kasan-rename-kasan_access_info-to-kasan_report_info.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-comment-about-uaccess-regions-to-kasan_report.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-rename-kasan_access_info-to-kasan_report_info.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-comment-about-uaccess-regions-to-kasan_report.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-rename-kasan_access_info-to-kasan_report_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,12 +64,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: add comment about UACCESS regions to kasan_report
+Subject: kasan: rename kasan_access_info to kasan_report_info
 
-Add a comment explaining why kasan_report() is the only reporting function
-that uses user_access_save/restore().
+Rename kasan_access_info to kasan_report_info, as the latter name better
+reflects the struct's purpose.
 
-Link: https://lkml.kernel.org/r/1201ca3c2be42c7bd077c53d2e46f4a51dd1476a.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/158a4219a5d356901d017352558c989533a0782c.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -78,23 +78,110 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/kasan/kasan.h          |    4 ++--
+ mm/kasan/report.c         |    8 ++++----
+ mm/kasan/report_generic.c |    6 +++---
+ mm/kasan/report_tags.c    |    2 +-
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/kasan/report.c~kasan-add-comment-about-uaccess-regions-to-kasan_report
+--- a/mm/kasan/kasan.h~kasan-rename-kasan_access_info-to-kasan_report_info
++++ a/mm/kasan/kasan.h
+@@ -132,7 +132,7 @@ enum kasan_report_type {
+ 	KASAN_REPORT_INVALID_FREE,
+ };
+ 
+-struct kasan_access_info {
++struct kasan_report_info {
+ 	enum kasan_report_type type;
+ 	void *access_addr;
+ 	void *first_bad_addr;
+@@ -276,7 +276,7 @@ static inline void kasan_print_tags(u8 a
+ #endif
+ 
+ void *kasan_find_first_bad_addr(void *addr, size_t size);
+-const char *kasan_get_bug_type(struct kasan_access_info *info);
++const char *kasan_get_bug_type(struct kasan_report_info *info);
+ void kasan_metadata_fetch_row(char *buffer, void *row);
+ 
+ #if defined(CONFIG_KASAN_STACK)
+--- a/mm/kasan/report.c~kasan-rename-kasan_access_info-to-kasan_report_info
 +++ a/mm/kasan/report.c
-@@ -430,6 +430,11 @@ void kasan_report_invalid_free(void *ptr
- 	end_report(&flags, ptr);
+@@ -84,7 +84,7 @@ static int __init kasan_set_multi_shot(c
+ }
+ __setup("kasan_multi_shot", kasan_set_multi_shot);
+ 
+-static void print_error_description(struct kasan_access_info *info)
++static void print_error_description(struct kasan_report_info *info)
+ {
+ 	if (info->type == KASAN_REPORT_INVALID_FREE) {
+ 		pr_err("BUG: KASAN: double-free or invalid-free in %pS\n",
+@@ -392,7 +392,7 @@ static bool report_enabled(void)
+ 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
  }
  
-+/*
-+ * kasan_report() is the only reporting function that uses
-+ * user_access_save/restore(): kasan_report_invalid_free() cannot be called
-+ * from a UACCESS region, and kasan_report_async() is not used on x86.
-+ */
- bool kasan_report(unsigned long addr, size_t size, bool is_write,
- 			unsigned long ip)
+-static void print_report(struct kasan_access_info *info)
++static void print_report(struct kasan_report_info *info)
  {
+ 	void *tagged_addr = info->access_addr;
+ 	void *untagged_addr = kasan_reset_tag(tagged_addr);
+@@ -414,7 +414,7 @@ static void print_report(struct kasan_ac
+ void kasan_report_invalid_free(void *ptr, unsigned long ip)
+ {
+ 	unsigned long flags;
+-	struct kasan_access_info info;
++	struct kasan_report_info info;
+ 
+ 	start_report(&flags, true);
+ 
+@@ -437,7 +437,7 @@ bool kasan_report(unsigned long addr, si
+ 	void *ptr = (void *)addr;
+ 	unsigned long ua_flags = user_access_save();
+ 	unsigned long irq_flags;
+-	struct kasan_access_info info;
++	struct kasan_report_info info;
+ 
+ 	if (unlikely(!report_enabled())) {
+ 		ret = false;
+--- a/mm/kasan/report_generic.c~kasan-rename-kasan_access_info-to-kasan_report_info
++++ a/mm/kasan/report_generic.c
+@@ -43,7 +43,7 @@ void *kasan_find_first_bad_addr(void *ad
+ 	return p;
+ }
+ 
+-static const char *get_shadow_bug_type(struct kasan_access_info *info)
++static const char *get_shadow_bug_type(struct kasan_report_info *info)
+ {
+ 	const char *bug_type = "unknown-crash";
+ 	u8 *shadow_addr;
+@@ -95,7 +95,7 @@ static const char *get_shadow_bug_type(s
+ 	return bug_type;
+ }
+ 
+-static const char *get_wild_bug_type(struct kasan_access_info *info)
++static const char *get_wild_bug_type(struct kasan_report_info *info)
+ {
+ 	const char *bug_type = "unknown-crash";
+ 
+@@ -109,7 +109,7 @@ static const char *get_wild_bug_type(str
+ 	return bug_type;
+ }
+ 
+-const char *kasan_get_bug_type(struct kasan_access_info *info)
++const char *kasan_get_bug_type(struct kasan_report_info *info)
+ {
+ 	/*
+ 	 * If access_size is a negative number, then it has reason to be
+--- a/mm/kasan/report_tags.c~kasan-rename-kasan_access_info-to-kasan_report_info
++++ a/mm/kasan/report_tags.c
+@@ -7,7 +7,7 @@
+ #include "kasan.h"
+ #include "../slab.h"
+ 
+-const char *kasan_get_bug_type(struct kasan_access_info *info)
++const char *kasan_get_bug_type(struct kasan_report_info *info)
+ {
+ #ifdef CONFIG_KASAN_TAGS_IDENTIFY
+ 	struct kasan_alloc_meta *alloc_meta;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
