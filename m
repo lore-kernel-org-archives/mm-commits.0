@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91F52C4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAA00C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245343AbiCBVgz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Mar 2022 16:36:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44980 "EHLO
+        id S245366AbiCBVhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Mar 2022 16:37:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245350AbiCBVgz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:36:55 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5E12C7D7F
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:10 -0800 (PST)
+        with ESMTP id S245347AbiCBVg5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:36:57 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E438C7C3C
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5408B619D0
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7115C004E1;
-        Wed,  2 Mar 2022 21:36:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2BC8A619D2
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E49FC004E1;
+        Wed,  2 Mar 2022 21:36:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646256969;
-        bh=J99QHiqVUgX37Gwvjoz+EpzjhUeBcBvwesP45HQwH6Y=;
+        s=korg; t=1646256971;
+        bh=F/MEt/YXbvAjjhNy2q8DbW7a7jizb/7kPpPwd8dFsjg=;
         h=Date:To:From:Subject:From;
-        b=d5jQY/mt9Tudi2OkHu3o/a9NBItTatVVQJNnz2/B+hTFrrlfmdYVE/Ha1NGQgN4sM
-         oCQLy58A9gxazCyBZQdc5fQVDCo3BB5vTp9tk2hKhnmtMGqNlf+lmjnqJei6wUx1I9
-         Sb+mKB+9nJGcgHfy7FDTvMUVhRA++uF4i9plf5cA=
-Date:   Wed, 02 Mar 2022 13:36:09 -0800
+        b=x2gVo9FZx9GZFnrRvjOwaBq4qdSFcVEcK6oP1HDtLqklb47QKEviYzviwR3d86Cxa
+         y5QY6s+Z515Wjw2D3R5JHIDO+oaYjylj5cswoPyNqhDfwDvGzg8tKZFKfJ9QgDAtdY
+         LQd52ZcYHo01tLf+0RCAB0OpBKtC2aCeAZQVg5dA=
+Date:   Wed, 02 Mar 2022 13:36:10 -0800
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-simplify-kasan_update_kunit_status-and-call-sites.patch added to -mm tree
-Message-Id: <20220302213609.A7115C004E1@smtp.kernel.org>
+Subject: + kasan-check-config_kasan_kunit_test-instead-of-config_kunit.patch added to -mm tree
+Message-Id: <20220302213611.7E49FC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: simplify kasan_update_kunit_status() and call sites
+     Subject: kasan: check CONFIG_KASAN_KUNIT_TEST instead of CONFIG_KUNIT
 has been added to the -mm tree.  Its filename is
-     kasan-simplify-kasan_update_kunit_status-and-call-sites.patch
+     kasan-check-config_kasan_kunit_test-instead-of-config_kunit.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-simplify-kasan_update_kunit_status-and-call-sites.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-check-config_kasan_kunit_test-instead-of-config_kunit.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-simplify-kasan_update_kunit_status-and-call-sites.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-check-config_kasan_kunit_test-instead-of-config_kunit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,17 +64,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: simplify kasan_update_kunit_status() and call sites
+Subject: kasan: check CONFIG_KASAN_KUNIT_TEST instead of CONFIG_KUNIT
 
-- Rename kasan_update_kunit_status() to update_kunit_status()
-  (the function is static).
+Check the more specific CONFIG_KASAN_KUNIT_TEST config option when
+defining things related to KUnit-compatible KASAN tests instead of
+CONFIG_KUNIT.
 
-- Move the IS_ENABLED(CONFIG_KUNIT) to the function's
-  definition instead of duplicating it at call sites.
+Also put the kunit_kasan_status definition next to the definitons of other
+KASAN-related structs.
 
-- Obtain and check current->kunit_test within the function.
-
-Link: https://lkml.kernel.org/r/dac26d811ae31856c3d7666de0b108a3735d962d.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/223592d38d2a601a160a3b2b3d5a9f9090350e62.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -83,83 +82,55 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ mm/kasan/kasan.h  |   18 ++++++++----------
+ mm/kasan/report.c |    2 +-
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
---- a/mm/kasan/report.c~kasan-simplify-kasan_update_kunit_status-and-call-sites
-+++ a/mm/kasan/report.c
-@@ -357,24 +357,31 @@ static bool report_enabled(void)
- }
+--- a/mm/kasan/kasan.h~kasan-check-config_kasan_kunit_test-instead-of-config_kunit
++++ a/mm/kasan/kasan.h
+@@ -7,16 +7,6 @@
+ #include <linux/kfence.h>
+ #include <linux/stackdepot.h>
  
- #if IS_ENABLED(CONFIG_KUNIT)
--static void kasan_update_kunit_status(struct kunit *cur_test, bool sync)
-+static void update_kunit_status(bool sync)
- {
-+	struct kunit *test;
- 	struct kunit_resource *resource;
- 	struct kunit_kasan_status *status;
+-#if IS_ENABLED(CONFIG_KUNIT)
+-
+-/* Used in KUnit-compatible KASAN tests. */
+-struct kunit_kasan_status {
+-	bool report_found;
+-	bool sync_fault;
+-};
+-
+-#endif
+-
+ #ifdef CONFIG_KASAN_HW_TAGS
  
--	resource = kunit_find_named_resource(cur_test, "kasan_status");
-+	test = current->kunit_test;
-+	if (!test)
-+		return;
+ #include <linux/static_key.h>
+@@ -224,6 +214,14 @@ struct kasan_free_meta {
+ #endif
+ };
  
-+	resource = kunit_find_named_resource(test, "kasan_status");
- 	if (!resource) {
--		kunit_set_failure(cur_test);
-+		kunit_set_failure(test);
- 		return;
- 	}
- 
- 	status = (struct kunit_kasan_status *)resource->data;
- 	WRITE_ONCE(status->report_found, true);
- 	WRITE_ONCE(status->sync_fault, sync);
-+
- 	kunit_put_resource(resource);
- }
--#endif /* IS_ENABLED(CONFIG_KUNIT) */
-+#else
-+static void update_kunit_status(bool sync) { }
++#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
++/* Used in KUnit-compatible KASAN tests. */
++struct kunit_kasan_status {
++	bool report_found;
++	bool sync_fault;
++};
 +#endif
++
+ struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
+ 						const void *object);
+ #ifdef CONFIG_KASAN_GENERIC
+--- a/mm/kasan/report.c~kasan-check-config_kasan_kunit_test-instead-of-config_kunit
++++ a/mm/kasan/report.c
+@@ -356,7 +356,7 @@ static bool report_enabled(void)
+ 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
+ }
  
- void kasan_report_invalid_free(void *object, unsigned long ip)
+-#if IS_ENABLED(CONFIG_KUNIT)
++#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ static void update_kunit_status(bool sync)
  {
-@@ -383,10 +390,7 @@ void kasan_report_invalid_free(void *obj
- 
- 	object = kasan_reset_tag(object);
- 
--#if IS_ENABLED(CONFIG_KUNIT)
--	if (current->kunit_test)
--		kasan_update_kunit_status(current->kunit_test, true);
--#endif /* IS_ENABLED(CONFIG_KUNIT) */
-+	update_kunit_status(true);
- 
- 	start_report(&flags);
- 	pr_err("BUG: KASAN: double-free or invalid-free in %pS\n", (void *)ip);
-@@ -402,10 +406,7 @@ void kasan_report_async(void)
- {
- 	unsigned long flags;
- 
--#if IS_ENABLED(CONFIG_KUNIT)
--	if (current->kunit_test)
--		kasan_update_kunit_status(current->kunit_test, false);
--#endif /* IS_ENABLED(CONFIG_KUNIT) */
-+	update_kunit_status(false);
- 
- 	start_report(&flags);
- 	pr_err("BUG: KASAN: invalid-access\n");
-@@ -424,10 +425,7 @@ static void __kasan_report(unsigned long
- 	void *untagged_addr;
- 	unsigned long flags;
- 
--#if IS_ENABLED(CONFIG_KUNIT)
--	if (current->kunit_test)
--		kasan_update_kunit_status(current->kunit_test, true);
--#endif /* IS_ENABLED(CONFIG_KUNIT) */
-+	update_kunit_status(true);
- 
- 	disable_trace_on_warning();
- 
+ 	struct kunit *test;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
