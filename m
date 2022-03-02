@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91E7EC433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:57:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F6C0C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:58:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245443AbiCBV6O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Mar 2022 16:58:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38456 "EHLO
+        id S235108AbiCBV7Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Mar 2022 16:59:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245442AbiCBV6M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:58:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3843CDEF0
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:57:27 -0800 (PST)
+        with ESMTP id S235068AbiCBV7Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:59:16 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 762B6C3373
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:58:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C812C61A0F
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:57:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19E9AC004E1;
-        Wed,  2 Mar 2022 21:57:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 265BAB821BD
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:58:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8E5DC004E1;
+        Wed,  2 Mar 2022 21:58:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646258246;
-        bh=iKzQGC4hLr8HSLSPrCx8IkdafB5c+2Cl/Ss5WcQ3i0c=;
+        s=korg; t=1646258308;
+        bh=M/yF+n7LOku/1K8kefGSeGPyjVPSJWkjroSM1us+cFc=;
         h=Date:To:From:Subject:From;
-        b=bxodX5HimvK0U7ez3T0959CbBdOLNNPXgNeNuCIbtVEOOHZDfOYY6f5eqCjbp7MOb
-         W1Q1Ra4ehlUK9fLBhZIRFt2NM5P+sYOLqrohgTSAS+BcuXuI18lhEPwUuE7ajCi8hq
-         TXEUhHVmGaX7APy4lxyxxGlC24YAqTX87JV3fZNQ=
-Date:   Wed, 02 Mar 2022 13:57:25 -0800
+        b=oCdRNaA8QEF2K8O3doEvAtQJ2CPpKFu8h8xTdRV9t1r8OaFSlntPGpecpRwj6hZpf
+         r8BRVfQ0vcL/lJ888nIbVDqt9q75MZEmZRdeFPTv0z6KYe98eN2q/pPip56PTgKWlD
+         0/3LCcn8cvCgeD54aTpK7LzHIBswq1XP7vprHPyg=
+Date:   Wed, 02 Mar 2022 13:58:28 -0800
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
         mark.rutland@arm.com, glider@google.com, eugenis@google.com,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch added to -mm tree
-Message-Id: <20220302215726.19E9AC004E1@smtp.kernel.org>
+Subject: + kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix.patch added to -mm tree
+Message-Id: <20220302215828.D8E5DC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix for "kasan, vmalloc: only tag normal vmalloc allocations"
+     Subject: kasan, scs: support tagged vmalloc mappings
 has been added to the -mm tree.  Its filename is
-     kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
+     kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,13 +66,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: fix for "kasan, vmalloc: only tag normal vmalloc allocations"
+Subject: kasan, scs: support tagged vmalloc mappings
 
-Pass KASAN_VMALLOC_PROT_NORMAL to kasan_unpoison_vmalloc() in the custom
-KASAN instrumentation for Shadow Call Stack, as Shadow Call Stack mappings
-are not executable and thus can be poisoned.
+Fix up the custom KASAN instrumentation for Shadow Call Stack to support
+vmalloc() mappings and pointers being tagged.
 
-Link: https://lkml.kernel.org/r/9230ca3d3e40ffca041c133a524191fd71969a8d.1646233925.git.andreyknvl@google.com
+- Use the tagged pointer returned by kasan_unpoison_vmalloc() in
+  __scs_alloc() when calling memset() to avoid false-positives.
+
+- Do not return a tagged Shadow Call Stack pointer from __scs_alloc(),
+  as this might lead to conflicts with the instrumentation.
+
+Link: https://lkml.kernel.org/r/2f6605e3a358cf64d73a05710cb3da356886ad29.1646233925.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -87,30 +92,35 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/scs.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/scs.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/kernel/scs.c~kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix
+--- a/kernel/scs.c~kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix
 +++ a/kernel/scs.c
-@@ -32,7 +32,8 @@ static void *__scs_alloc(int node)
+@@ -32,16 +32,19 @@ static void *__scs_alloc(int node)
  	for (i = 0; i < NR_CACHED_SCS; i++) {
  		s = this_cpu_xchg(scs_cache[i], NULL);
  		if (s) {
--			kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_NONE);
-+			kasan_unpoison_vmalloc(s, SCS_SIZE,
-+					       KASAN_VMALLOC_PROT_NORMAL);
+-			kasan_unpoison_vmalloc(s, SCS_SIZE,
+-					       KASAN_VMALLOC_PROT_NORMAL);
++			s = kasan_unpoison_vmalloc(s, SCS_SIZE,
++						   KASAN_VMALLOC_PROT_NORMAL);
  			memset(s, 0, SCS_SIZE);
- 			return s;
+-			return s;
++			goto out;
  		}
-@@ -78,7 +79,7 @@ void scs_free(void *s)
- 		if (this_cpu_cmpxchg(scs_cache[i], 0, s) == NULL)
- 			return;
+ 	}
  
--	kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_NONE);
-+	kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_PROT_NORMAL);
- 	vfree_atomic(s);
+-	return __vmalloc_node_range(SCS_SIZE, 1, VMALLOC_START, VMALLOC_END,
++	s = __vmalloc_node_range(SCS_SIZE, 1, VMALLOC_START, VMALLOC_END,
+ 				    GFP_SCS, PAGE_KERNEL, 0, node,
+ 				    __builtin_return_address(0));
++
++out:
++	return kasan_reset_tag(s);
  }
  
+ void *scs_alloc(int node)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
@@ -148,6 +158,7 @@ kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
 kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
 kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
 kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix.patch
 kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
 kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
 kasan-clean-up-feature-flags-for-hw_tags-mode.patch
