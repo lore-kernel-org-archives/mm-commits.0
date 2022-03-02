@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CFD4C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:35:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1AEEC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245324AbiCBVgl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Mar 2022 16:36:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44702 "EHLO
+        id S245337AbiCBVgp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Mar 2022 16:36:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245343AbiCBVgl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:36:41 -0500
+        with ESMTP id S238407AbiCBVgo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:36:44 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C2ECC7E62
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:35:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 912455EBE8
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F09DD619B9
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:35:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48386C004E1;
-        Wed,  2 Mar 2022 21:35:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2C1A6619CB
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F85BC004E1;
+        Wed,  2 Mar 2022 21:35:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646256956;
-        bh=+pa1yVD7dqPZmTjQdu3Lm4nIqIv6jHU46ug5zMomIKI=;
+        s=korg; t=1646256959;
+        bh=OuQlpq46S21ujckTHkTzJHWb42zigghrFeVqQ2OObTY=;
         h=Date:To:From:Subject:From;
-        b=rZes/Y9J57hYTAHgChGJAMDn3j8AA8GG0fFqBpSI6HKwUIvlQcjszbr2fDtEIxWgI
-         O6VB0VWJYAwiM6cvoJDg/W882AHZ6P/2H6HaswQTHy+URXXvLRTz30M89lsvmTtPGT
-         XvZ4PDUmKc2zSvTvSoPFhI6v0PiAGt4+HfZ8mCOA=
-Date:   Wed, 02 Mar 2022 13:35:55 -0800
+        b=H1i1WWxsj//mUIiQVORsstJE4lacWDDqNDU8eDgkK7NMFaUbDFz34CymyelXn58h5
+         tjYT+U2j0AlQgzmEiKJ0r3GWvaHoUNdHp0zxRM4cvfNzFVFAitAdX4d6NDB+/c4Xm3
+         5hYUlhevRnfGSV2fyhaXKLYphwo98PZh5HsY77Xw=
+Date:   Wed, 02 Mar 2022 13:35:57 -0800
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-drop-addr-check-from-describe_object_addr.patch added to -mm tree
-Message-Id: <20220302213556.48386C004E1@smtp.kernel.org>
+Subject: + kasan-more-line-breaks-in-reports.patch added to -mm tree
+Message-Id: <20220302213559.7F85BC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: drop addr check from describe_object_addr
+     Subject: kasan: more line breaks in reports
 has been added to the -mm tree.  Its filename is
-     kasan-drop-addr-check-from-describe_object_addr.patch
+     kasan-more-line-breaks-in-reports.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-drop-addr-check-from-describe_object_addr.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-more-line-breaks-in-reports.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-drop-addr-check-from-describe_object_addr.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-more-line-breaks-in-reports.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,44 +64,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: drop addr check from describe_object_addr
+Subject: kasan: more line breaks in reports
 
-Patch series "kasan: report clean-ups and improvements".
+Add a line break after each part that describes the buggy address. 
+Improves readability of reports.
 
-A number of clean-up patches for KASAN reporting code.  Most are
-non-functional and only improve readability.
-
-
-This patch (of 22):
-
-describe_object_addr() used to be called with NULL addr in the early days
-of KASAN.  This no longer happens, so drop the check.
-
-Link: https://lkml.kernel.org/r/cover.1646237226.git.andreyknvl@google.com
-Link: https://lkml.kernel.org/r/761f8e5a6ee040d665934d916a90afe9f322f745.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/8682c4558e533cd0f99bdb964ce2fe741f2a9212.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/kasan/report.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/report.c~kasan-drop-addr-check-from-describe_object_addr
+--- a/mm/kasan/report.c~kasan-more-line-breaks-in-reports
 +++ a/mm/kasan/report.c
-@@ -162,9 +162,6 @@ static void describe_object_addr(struct
- 	       " which belongs to the cache %s of size %d\n",
- 		object, cache->name, cache->object_size);
+@@ -250,11 +250,13 @@ static void print_address_description(vo
+ 		void *object = nearest_obj(cache, slab,	addr);
  
--	if (!addr)
--		return;
--
- 	if (access_addr < object_addr) {
- 		rel_type = "to the left";
- 		rel_bytes = object_addr - access_addr;
+ 		describe_object(cache, object, addr, tag);
++		pr_err("\n");
+ 	}
+ 
+ 	if (kernel_or_module_addr(addr) && !init_task_stack_addr(addr)) {
+ 		pr_err("The buggy address belongs to the variable:\n");
+ 		pr_err(" %pS\n", addr);
++		pr_err("\n");
+ 	}
+ 
+ 	if (is_vmalloc_addr(addr)) {
+@@ -265,6 +267,7 @@ static void print_address_description(vo
+ 			       " [%px, %px) created by:\n"
+ 			       " %pS\n",
+ 			       va->addr, va->addr + va->size, va->caller);
++			pr_err("\n");
+ 
+ 			page = vmalloc_to_page(page);
+ 		}
+@@ -273,9 +276,11 @@ static void print_address_description(vo
+ 	if (page) {
+ 		pr_err("The buggy address belongs to the physical page:\n");
+ 		dump_page(page, "kasan: bad access detected");
++		pr_err("\n");
+ 	}
+ 
+ 	kasan_print_address_stack_frame(addr);
++	pr_err("\n");
+ }
+ 
+ static bool meta_row_is_guilty(const void *row, const void *addr)
+@@ -382,7 +387,6 @@ void kasan_report_invalid_free(void *obj
+ 	kasan_print_tags(tag, object);
+ 	pr_err("\n");
+ 	print_address_description(object, tag);
+-	pr_err("\n");
+ 	print_memory_metadata(object);
+ 	end_report(&flags, (unsigned long)object);
+ }
+@@ -443,7 +447,6 @@ static void __kasan_report(unsigned long
+ 
+ 	if (addr_has_metadata(untagged_addr)) {
+ 		print_address_description(untagged_addr, get_tag(tagged_addr));
+-		pr_err("\n");
+ 		print_memory_metadata(info.first_bad_addr);
+ 	} else {
+ 		dump_stack_lvl(KERN_ERR);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
