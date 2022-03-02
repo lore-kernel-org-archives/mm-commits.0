@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D551C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 23:52:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4E40C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Mar 2022 00:01:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229698AbiCBXxT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Mar 2022 18:53:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52722 "EHLO
+        id S229908AbiCCACa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Mar 2022 19:02:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229735AbiCBXxS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 18:53:18 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FC84A41B4
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 15:52:33 -0800 (PST)
+        with ESMTP id S229932AbiCCACa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 19:02:30 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5524F240BE
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 16:01:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0DACAB8228B
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 23:27:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98192C004E1;
-        Wed,  2 Mar 2022 23:27:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2887761B2D
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 23:23:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 719F3C340E9;
+        Wed,  2 Mar 2022 23:23:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646263644;
-        bh=lKzeu9o264Wcq2fQDIq+exJtAZDn6Guw74g5AMdy+nQ=;
+        s=korg; t=1646263424;
+        bh=7BvGMd+vyn7ReDLJsRcBCKLb7eHbwc/i0aBklqraj30=;
         h=Date:To:From:Subject:From;
-        b=l+atkKNZyfE5UBV6iaxESLR2IOpICALbqcpDmJGI0FFhv5TRWjDXSaFNcU4mZQ/o6
-         ZJhdXIgzi+ZCM31j+3kYrzDzX9Fu5EuuOkcE1PSG4KYI3mOYzpE3Ze6LV7mGUofLaG
-         ++ge4649/8AeqRudeT4rbveE1CdF4IA0zoGJ3D14=
-Date:   Wed, 02 Mar 2022 15:27:23 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        william.kucharski@oracle.com, songmuchun@bytedance.com,
-        shy828301@gmail.com, peterx@redhat.com, hughd@google.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=ieXsKp63b8BWCnFoFXDsSPj6H3lYc2RycTAG2rC44Qv9Xx/bRRFGt43axUz7PsvhZ
+         L7ycGjXdj1vpDyRAkw2ls3dI5OXEpIpssmDKaEwy0iFNCVcYD6E6LT/SngEFWY1wun
+         dFIdaT46VlXJO9P/dzIBDuMa0yGftnXajBFlGgsI=
+Date:   Wed, 02 Mar 2022 15:23:43 -0800
+To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
+        xiyuyang19@fudan.edu.cn, willy@infradead.org,
+        viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
+        kirill.shutemov@linux.intel.com, jack@suse.cz, hughd@google.com,
+        hch@infradead.org, duanxiongchun@bytedance.com,
+        dan.j.williams@intel.com, apopple@nvidia.com,
+        songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-make-is_transparent_hugepage-static.patch added to -mm tree
-Message-Id: <20220302232724.98192C004E1@smtp.kernel.org>
+Subject: + dax-fix-missing-writeprotect-the-pte-entry.patch added to -mm tree
+Message-Id: <20220302232344.719F3C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory: make is_transparent_hugepage() static
+     Subject: dax: fix missing writeprotect the pte entry
 has been added to the -mm tree.  Its filename is
-     mm-huge_memory-make-is_transparent_hugepage-static.patch
+     dax-fix-missing-writeprotect-the-pte-entry.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-make-is_transparent_hugepage-static.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/dax-fix-missing-writeprotect-the-pte-entry.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-make-is_transparent_hugepage-static.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-missing-writeprotect-the-pte-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,112 +67,200 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory: make is_transparent_hugepage() static
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: dax: fix missing writeprotect the pte entry
 
-It's only used inside the huge_memory.c now. Don't export it and make
-it static. We can thus reduce the size of huge_memory.o a bit.
+Currently dax_mapping_entry_mkclean() fails to clean and write protect the
+pte entry within a DAX PMD entry during an *sync operation.  This can
+result in data loss in the following sequence:
 
-Without this patch:
-   text	   data	    bss	    dec	    hex	filename
-  32319	   2965	      4	  35288	   89d8	mm/huge_memory.o
+  1) process A mmap write to DAX PMD, dirtying PMD radix tree entry and
+     making the pmd entry dirty and writeable.
+  2) process B mmap with the @offset (e.g. 4K) and @length (e.g. 4K)
+     write to the same file, dirtying PMD radix tree entry (already
+     done in 1)) and making the pte entry dirty and writeable.
+  3) fsync, flushing out PMD data and cleaning the radix tree entry. We
+     currently fail to mark the pte entry as clean and write protected
+     since the vma of process B is not covered in dax_entry_mkclean().
+  4) process B writes to the pte. These don't cause any page faults since
+     the pte entry is dirty and writeable. The radix tree entry remains
+     clean.
+  5) fsync, which fails to flush the dirty PMD data because the radix tree
+     entry was clean.
+  6) crash - dirty data that should have been fsync'd as part of 5) could
+     still have been in the processor cache, and is lost.
 
-With this patch:
-   text	   data	    bss	    dec	    hex	filename
-  32042	   2957	      4	  35003	   88bb	mm/huge_memory.o
+Just to use pfn_mkclean_range() to clean the pfns to fix this issue.
 
-Link: https://lkml.kernel.org/r/20220302082145.12028-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
+Link: https://lkml.kernel.org/r/20220302082718.32268-6-songmuchun@bytedance.com
+Fixes: 4b4bb46d00b3 ("dax: clear dirty entry tags on cache flush")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    6 ------
- mm/huge_memory.c        |    3 +--
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ fs/dax.c |   83 ++++-------------------------------------------------
+ 1 file changed, 7 insertions(+), 76 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-make-is_transparent_hugepage-static
-+++ a/include/linux/huge_mm.h
-@@ -183,7 +183,6 @@ unsigned long thp_get_unmapped_area(stru
+--- a/fs/dax.c~dax-fix-missing-writeprotect-the-pte-entry
++++ a/fs/dax.c
+@@ -24,6 +24,7 @@
+ #include <linux/sizes.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/iomap.h>
++#include <linux/rmap.h>
+ #include <asm/pgalloc.h>
  
- void prep_transhuge_page(struct page *page);
- void free_transhuge_page(struct page *page);
--bool is_transparent_hugepage(struct page *page);
+ #define CREATE_TRACE_POINTS
+@@ -789,87 +790,17 @@ static void *dax_insert_entry(struct xa_
+ 	return entry;
+ }
  
- bool can_split_folio(struct folio *folio, int *pextra_pins);
- int split_huge_page_to_list(struct page *page, struct list_head *list);
-@@ -341,11 +340,6 @@ static inline bool transhuge_vma_enabled
- 
- static inline void prep_transhuge_page(struct page *page) {}
- 
--static inline bool is_transparent_hugepage(struct page *page)
+-static inline
+-unsigned long pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
 -{
--	return false;
+-	unsigned long address;
+-
+-	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+-	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
+-	return address;
 -}
 -
- #define transparent_hugepage_flags 0UL
- 
- #define thp_get_unmapped_area	NULL
---- a/mm/huge_memory.c~mm-huge_memory-make-is_transparent_hugepage-static
-+++ a/mm/huge_memory.c
-@@ -533,7 +533,7 @@ void prep_transhuge_page(struct page *pa
- 	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
- }
- 
--bool is_transparent_hugepage(struct page *page)
-+static inline bool is_transparent_hugepage(struct page *page)
+ /* Walk all mappings of a given index of a file and writeprotect them */
+-static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
+-		unsigned long pfn)
++static void dax_entry_mkclean(struct address_space *mapping, unsigned long pfn,
++			      unsigned long npfn, pgoff_t start)
  {
- 	if (!PageCompound(page))
- 		return false;
-@@ -542,7 +542,6 @@ bool is_transparent_hugepage(struct page
- 	return is_huge_zero_page(page) ||
- 	       page[1].compound_dtor == TRANSHUGE_PAGE_DTOR;
- }
--EXPORT_SYMBOL_GPL(is_transparent_hugepage);
+ 	struct vm_area_struct *vma;
+-	pte_t pte, *ptep = NULL;
+-	pmd_t *pmdp = NULL;
+-	spinlock_t *ptl;
++	pgoff_t end = start + npfn - 1;
  
- static unsigned long __thp_get_unmapped_area(struct file *filp,
- 		unsigned long addr, unsigned long len,
+ 	i_mmap_lock_read(mapping);
+-	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
+-		struct mmu_notifier_range range;
+-		unsigned long address;
+-
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, start, end) {
++		pfn_mkclean_range(pfn, npfn, start, vma);
+ 		cond_resched();
+-
+-		if (!(vma->vm_flags & VM_SHARED))
+-			continue;
+-
+-		address = pgoff_address(index, vma);
+-
+-		/*
+-		 * follow_invalidate_pte() will use the range to call
+-		 * mmu_notifier_invalidate_range_start() on our behalf before
+-		 * taking any lock.
+-		 */
+-		if (follow_invalidate_pte(vma->vm_mm, address, &range, &ptep,
+-					  &pmdp, &ptl))
+-			continue;
+-
+-		/*
+-		 * No need to call mmu_notifier_invalidate_range() as we are
+-		 * downgrading page table protection not changing it to point
+-		 * to a new page.
+-		 *
+-		 * See Documentation/vm/mmu_notifier.rst
+-		 */
+-		if (pmdp) {
+-#ifdef CONFIG_FS_DAX_PMD
+-			pmd_t pmd;
+-
+-			if (pfn != pmd_pfn(*pmdp))
+-				goto unlock_pmd;
+-			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
+-				goto unlock_pmd;
+-
+-			flush_cache_range(vma, address,
+-					  address + HPAGE_PMD_SIZE);
+-			pmd = pmdp_invalidate(vma, address, pmdp);
+-			pmd = pmd_wrprotect(pmd);
+-			pmd = pmd_mkclean(pmd);
+-			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+-unlock_pmd:
+-#endif
+-			spin_unlock(ptl);
+-		} else {
+-			if (pfn != pte_pfn(*ptep))
+-				goto unlock_pte;
+-			if (!pte_dirty(*ptep) && !pte_write(*ptep))
+-				goto unlock_pte;
+-
+-			flush_cache_page(vma, address, pfn);
+-			pte = ptep_clear_flush(vma, address, ptep);
+-			pte = pte_wrprotect(pte);
+-			pte = pte_mkclean(pte);
+-			set_pte_at(vma->vm_mm, address, ptep, pte);
+-unlock_pte:
+-			pte_unmap_unlock(ptep, ptl);
+-		}
+-
+-		mmu_notifier_invalidate_range_end(&range);
+ 	}
+ 	i_mmap_unlock_read(mapping);
+ }
+@@ -937,7 +868,7 @@ static int dax_writeback_one(struct xa_s
+ 	count = 1UL << dax_entry_order(entry);
+ 	index = xas->xa_index & ~(count - 1);
+ 
+-	dax_entry_mkclean(mapping, index, pfn);
++	dax_entry_mkclean(mapping, pfn, count, index);
+ 	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
+ 	/*
+ 	 * After we have flushed the cache, we can clear the dirty tag. There
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
-filemap-remove-find_get_pages.patch
-mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
-mm-use-helper-function-range_in_vma.patch
-mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
-mm-sparse-make-mminit_validate_memmodel_limits-static.patch
-mm-vmalloc-remove-unneeded-function-forward-declaration.patch
-mm-mmzoneh-remove-unused-macros.patch
-mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
-mm-memory-failurec-catch-unexpected-efault-from-vma_address.patch
-mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
-mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
-mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
-mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
-mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
-mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
-mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
-mm-memory-failurec-fix-wrong-user-reference-report.patch
-mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch
-mm-memory-failurec-fix-potential-vm_bug_on_page-in-split_huge_page_to_list.patch
-mm-hugetlb-use-helper-macro-__attr_rw.patch
-mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
-mm-ksm-use-helper-macro-__attr_rw.patch
-mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
-mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
-mm-memory_hotplug-clean-up-try_offline_node.patch
-mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
-mm-highmem-remove-unnecessary-done-label.patch
-mm-hmmc-remove-unneeded-local-variable-ret.patch
-kernel-ksysfsc-use-helper-macro-__attr_rw.patch
-kernel-resource-fix-kfree-of-bootmem-memory-again.patch
-mm-huge_memory-make-is_transparent_hugepage-static.patch
+mm-list_lru-transpose-the-array-of-per-node-per-memcg-lru-lists.patch
+mm-introduce-kmem_cache_alloc_lru.patch
+fs-introduce-alloc_inode_sb-to-allocate-filesystems-specific-inode.patch
+fs-allocate-inode-by-using-alloc_inode_sb.patch
+f2fs-allocate-inode-by-using-alloc_inode_sb.patch
+mm-dcache-use-kmem_cache_alloc_lru-to-allocate-dentry.patch
+xarray-use-kmem_cache_alloc_lru-to-allocate-xa_node.patch
+mm-memcontrol-move-memcg_online_kmem-to-mem_cgroup_css_online.patch
+mm-list_lru-allocate-list_lru_one-only-when-needed.patch
+mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus.patch
+mm-list_lru-replace-linear-array-with-xarray.patch
+mm-memcontrol-reuse-memory-cgroup-id-for-kmem-id.patch
+mm-memcontrol-fix-cannot-alloc-the-maximum-memcg-id.patch
+mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg.patch
+mm-memcontrol-rename-memcg_cache_id-to-memcg_kmem_id.patch
+mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd.patch
+mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page.patch
+mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
+mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte.patch
+mm-shmem-fix-missing-cache-flush-in-shmem_mfill_atomic_pte.patch
+mm-userfaultfd-fix-missing-cache-flush-in-mcopy_atomic_pte-and-__mcopy_atomic.patch
+mm-replace-multiple-dcache-flush-with-flush_dcache_folio.patch
+mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
+mm-hugetlb-replace-hugetlb_free_vmemmap_enabled-with-a-static_key.patch
+mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
+selftests-vm-add-a-hugetlb-test-case.patch
+mm-sparsemem-move-vmemmap-related-to-hugetlb-to-config_hugetlb_page_free_vmemmap.patch
+mm-rmap-fix-cache-flush-on-thp-pages.patch
+dax-fix-cache-flush-on-pmd-mapped-pages.patch
+mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
+mm-pvmw-add-support-for-walking-devmap-pages.patch
+dax-fix-missing-writeprotect-the-pte-entry.patch
+mm-remove-range-parameter-from-follow_invalidate_pte.patch
 
