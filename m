@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 222DEC433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91E7EC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:57:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245364AbiCBVha (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Mar 2022 16:37:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45432 "EHLO
+        id S245443AbiCBV6O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Mar 2022 16:58:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232908AbiCBVh0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:37:26 -0500
+        with ESMTP id S245442AbiCBV6M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:58:12 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0CA3C7EA9
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3843CDEF0
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:57:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3E14D619D3
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 928DEC340F8;
-        Wed,  2 Mar 2022 21:36:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C812C61A0F
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:57:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19E9AC004E1;
+        Wed,  2 Mar 2022 21:57:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646256999;
-        bh=0urRdV6jCDUMvjNxXMDrOP4PobYfs68N1Z8je8AWuNg=;
+        s=korg; t=1646258246;
+        bh=iKzQGC4hLr8HSLSPrCx8IkdafB5c+2Cl/Ss5WcQ3i0c=;
         h=Date:To:From:Subject:From;
-        b=iwJr520GX5NSvFIpgdMTBMDiQ+Z6UYZunWzo3Fab80GXU1qIWTpicIc6K2WrKeMhj
-         iMPN813axbfbxcd2AModrtcakVr26G3JkRW7vv7M0ZagA21n0QCODe/ULzT01IX4y3
-         QC/Ann1j1o0FcFpNUjltesxw5Z8kqSWuroj8tVg4=
-Date:   Wed, 02 Mar 2022 13:36:39 -0800
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
+        b=bxodX5HimvK0U7ez3T0959CbBdOLNNPXgNeNuCIbtVEOOHZDfOYY6f5eqCjbp7MOb
+         W1Q1Ra4ehlUK9fLBhZIRFt2NM5P+sYOLqrohgTSAS+BcuXuI18lhEPwUuE7ajCi8hq
+         TXEUhHVmGaX7APy4lxyxxGlC24YAqTX87JV3fZNQ=
+Date:   Wed, 02 Mar 2022 13:57:25 -0800
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
+        mark.rutland@arm.com, glider@google.com, eugenis@google.com,
+        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-disable-lockdep-when-printing-reports.patch added to -mm tree
-Message-Id: <20220302213639.928DEC340F8@smtp.kernel.org>
+Subject: + kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch added to -mm tree
+Message-Id: <20220302215726.19E9AC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: disable LOCKDEP when printing reports
+     Subject: fix for "kasan, vmalloc: only tag normal vmalloc allocations"
 has been added to the -mm tree.  Its filename is
-     kasan-disable-lockdep-when-printing-reports.patch
+     kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-disable-lockdep-when-printing-reports.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-disable-lockdep-when-printing-reports.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,59 +66,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: disable LOCKDEP when printing reports
+Subject: fix for "kasan, vmalloc: only tag normal vmalloc allocations"
 
-If LOCKDEP detects a bug while KASAN is printing a report and if
-panic_on_warn is set, KASAN will not be able to finish.  Disable LOCKDEP
-while KASAN is printing a report.
+Pass KASAN_VMALLOC_PROT_NORMAL to kasan_unpoison_vmalloc() in the custom
+KASAN instrumentation for Shadow Call Stack, as Shadow Call Stack mappings
+are not executable and thus can be poisoned.
 
-See https://bugzilla.kernel.org/show_bug.cgi?id=202115 for an example
-of the issue.
-
-Link: https://lkml.kernel.org/r/c48a2a3288200b07e1788b77365c2f02784cfeb4.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/9230ca3d3e40ffca041c133a524191fd71969a8d.1646233925.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ kernel/scs.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/report.c~kasan-disable-lockdep-when-printing-reports
-+++ a/mm/kasan/report.c
-@@ -13,6 +13,7 @@
- #include <linux/ftrace.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/lockdep.h>
- #include <linux/mm.h>
- #include <linux/printk.h>
- #include <linux/sched.h>
-@@ -148,6 +149,8 @@ static void start_report(unsigned long *
- 	disable_trace_on_warning();
- 	/* Update status of the currently running KASAN test. */
- 	update_kunit_status(sync);
-+	/* Do not allow LOCKDEP mangling KASAN reports. */
-+	lockdep_off();
- 	/* Make sure we don't end up in loop. */
- 	kasan_disable_current();
- 	spin_lock_irqsave(&report_lock, *flags);
-@@ -160,12 +163,13 @@ static void end_report(unsigned long *fl
- 		trace_error_report_end(ERROR_DETECTOR_KASAN,
- 				       (unsigned long)addr);
- 	pr_err("==================================================================\n");
--	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
- 	spin_unlock_irqrestore(&report_lock, *flags);
- 	if (panic_on_warn && !test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
- 		panic("panic_on_warn set ...\n");
- 	if (kasan_arg_fault == KASAN_ARG_FAULT_PANIC)
- 		panic("kasan.fault=panic set ...\n");
-+	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
-+	lockdep_on();
- 	kasan_enable_current();
+--- a/kernel/scs.c~kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix
++++ a/kernel/scs.c
+@@ -32,7 +32,8 @@ static void *__scs_alloc(int node)
+ 	for (i = 0; i < NR_CACHED_SCS; i++) {
+ 		s = this_cpu_xchg(scs_cache[i], NULL);
+ 		if (s) {
+-			kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_NONE);
++			kasan_unpoison_vmalloc(s, SCS_SIZE,
++					       KASAN_VMALLOC_PROT_NORMAL);
+ 			memset(s, 0, SCS_SIZE);
+ 			return s;
+ 		}
+@@ -78,7 +79,7 @@ void scs_free(void *s)
+ 		if (this_cpu_cmpxchg(scs_cache[i], 0, s) == NULL)
+ 			return;
+ 
+-	kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_NONE);
++	kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_PROT_NORMAL);
+ 	vfree_atomic(s);
  }
  
 _
@@ -155,6 +147,7 @@ kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
 kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
 kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
 kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
 kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
 kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
 kasan-clean-up-feature-flags-for-hw_tags-mode.patch
