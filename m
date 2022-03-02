@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C42E1C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38005C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241479AbiCBVhF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Mar 2022 16:37:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45142 "EHLO
+        id S245347AbiCBVhG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Mar 2022 16:37:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245363AbiCBVhD (ORCPT
+        with ESMTP id S245364AbiCBVhD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:37:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB26FC7E4B
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:14 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 806D2C7E58
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A3C7619D6
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BAE5C004E1;
-        Wed,  2 Mar 2022 21:36:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CF0C619D0
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B429C004E1;
+        Wed,  2 Mar 2022 21:36:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646256973;
-        bh=Dtor6MJPpMxZjpCy4mtnxlT7xMUn3U6FdbbS92SLXVQ=;
+        s=korg; t=1646256975;
+        bh=5mCCWqjygsyDSg5gvHQdg224qWq8qBj+6PsksQTG20Y=;
         h=Date:To:From:Subject:From;
-        b=0hOW6/eZCQOfIrOskLhEF88cHfXvHI+TB4OIS+u20XSR8HNYd1F4ANLhfKHqcOc5D
-         oxt1N7IX2vgB1CNP4hE6uFjap78kMIK+z7NlucbHV6hiISHgp2AmqYu9JZ8frH2zKY
-         ce4nBEGNqV/UAW21LB6M8oIKGz5DalBlUfbFMfjo=
-Date:   Wed, 02 Mar 2022 13:36:12 -0800
+        b=1Ese+uqU9z1IshLI6hgemDj0lJgw9XXyQK7zAh5xdFO2/8Tnfqj0Lcv5jDMAARINF
+         GUORDaXNkDfngs2al3e45DQdLxIBbE3zn0FE4zcZzl+DbGEeuKX5bv+hqeIoahbyYD
+         3YdShh0RoYUY8rqxzu78QVkNjQjjHjVJOrUE/Q5E=
+Date:   Wed, 02 Mar 2022 13:36:14 -0800
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-move-update_kunit_status-to-start_report.patch added to -mm tree
-Message-Id: <20220302213613.8BAE5C004E1@smtp.kernel.org>
+Subject: + kasan-move-disable_trace_on_warning-to-start_report.patch added to -mm tree
+Message-Id: <20220302213615.6B429C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: move update_kunit_status to start_report
+     Subject: kasan: move disable_trace_on_warning to start_report
 has been added to the -mm tree.  Its filename is
-     kasan-move-update_kunit_status-to-start_report.patch
+     kasan-move-disable_trace_on_warning-to-start_report.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-move-update_kunit_status-to-start_report.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-move-disable_trace_on_warning-to-start_report.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-move-update_kunit_status-to-start_report.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-move-disable_trace_on_warning-to-start_report.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,147 +64,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: move update_kunit_status to start_report
+Subject: kasan: move disable_trace_on_warning to start_report
 
-Instead of duplicating calls to update_kunit_status() in every error
-report routine, call it once in start_report().  Pass the sync flag as an
-additional argument to start_report().
+Move the disable_trace_on_warning() call, which enables the
+/proc/sys/kernel/traceoff_on_warning interface for KASAN bugs, to
+start_report(), so that it functions for all types of KASAN reports.
 
-Link: https://lkml.kernel.org/r/cae5c845a0b6f3c867014e53737cdac56b11edc7.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/7c066c5de26234ad2cebdd931adfe437f8a95d58.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   75 +++++++++++++++++++-------------------------
- 1 file changed, 34 insertions(+), 41 deletions(-)
+ mm/kasan/report.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/report.c~kasan-move-update_kunit_status-to-start_report
+--- a/mm/kasan/report.c~kasan-move-disable_trace_on_warning-to-start_report
 +++ a/mm/kasan/report.c
-@@ -98,13 +98,40 @@ static void print_error_description(stru
- 			info->access_addr, current->comm, task_pid_nr(current));
- }
+@@ -129,6 +129,8 @@ static DEFINE_SPINLOCK(report_lock);
  
-+#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
-+static void update_kunit_status(bool sync)
-+{
-+	struct kunit *test;
-+	struct kunit_resource *resource;
-+	struct kunit_kasan_status *status;
-+
-+	test = current->kunit_test;
-+	if (!test)
-+		return;
-+
-+	resource = kunit_find_named_resource(test, "kasan_status");
-+	if (!resource) {
-+		kunit_set_failure(test);
-+		return;
-+	}
-+
-+	status = (struct kunit_kasan_status *)resource->data;
-+	WRITE_ONCE(status->report_found, true);
-+	WRITE_ONCE(status->sync_fault, sync);
-+
-+	kunit_put_resource(resource);
-+}
-+#else
-+static void update_kunit_status(bool sync) { }
-+#endif
-+
- static DEFINE_SPINLOCK(report_lock);
- 
--static void start_report(unsigned long *flags)
-+static void start_report(unsigned long *flags, bool sync)
+ static void start_report(unsigned long *flags, bool sync)
  {
--	/*
--	 * Make sure we don't end up in loop.
--	 */
-+	/* Update status of the currently running KASAN test. */
-+	update_kunit_status(sync);
-+	/* Make sure we don't end up in loop. */
- 	kasan_disable_current();
- 	spin_lock_irqsave(&report_lock, *flags);
- 	pr_err("==================================================================\n");
-@@ -356,33 +383,6 @@ static bool report_enabled(void)
- 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
- }
- 
--#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
--static void update_kunit_status(bool sync)
--{
--	struct kunit *test;
--	struct kunit_resource *resource;
--	struct kunit_kasan_status *status;
--
--	test = current->kunit_test;
--	if (!test)
--		return;
--
--	resource = kunit_find_named_resource(test, "kasan_status");
--	if (!resource) {
--		kunit_set_failure(test);
--		return;
--	}
--
--	status = (struct kunit_kasan_status *)resource->data;
--	WRITE_ONCE(status->report_found, true);
--	WRITE_ONCE(status->sync_fault, sync);
--
--	kunit_put_resource(resource);
--}
--#else
--static void update_kunit_status(bool sync) { }
--#endif
--
- void kasan_report_invalid_free(void *object, unsigned long ip)
- {
- 	unsigned long flags;
-@@ -390,9 +390,7 @@ void kasan_report_invalid_free(void *obj
- 
- 	object = kasan_reset_tag(object);
- 
--	update_kunit_status(true);
--
--	start_report(&flags);
-+	start_report(&flags, true);
- 	pr_err("BUG: KASAN: double-free or invalid-free in %pS\n", (void *)ip);
- 	kasan_print_tags(tag, object);
- 	pr_err("\n");
-@@ -406,9 +404,7 @@ void kasan_report_async(void)
- {
- 	unsigned long flags;
- 
--	update_kunit_status(false);
--
--	start_report(&flags);
-+	start_report(&flags, false);
- 	pr_err("BUG: KASAN: invalid-access\n");
- 	pr_err("Asynchronous mode enabled: no access details available\n");
- 	pr_err("\n");
-@@ -425,9 +421,8 @@ static void __kasan_report(unsigned long
++	/* Respect the /proc/sys/kernel/traceoff_on_warning interface. */
++	disable_trace_on_warning();
+ 	/* Update status of the currently running KASAN test. */
+ 	update_kunit_status(sync);
+ 	/* Make sure we don't end up in loop. */
+@@ -421,7 +423,6 @@ static void __kasan_report(unsigned long
  	void *untagged_addr;
  	unsigned long flags;
  
--	update_kunit_status(true);
--
- 	disable_trace_on_warning();
-+	start_report(&flags, true);
+-	disable_trace_on_warning();
+ 	start_report(&flags, true);
  
  	tagged_addr = (void *)addr;
- 	untagged_addr = kasan_reset_tag(tagged_addr);
-@@ -442,8 +437,6 @@ static void __kasan_report(unsigned long
- 	info.is_write = is_write;
- 	info.ip = ip;
- 
--	start_report(&flags);
--
- 	print_error_description(&info);
- 	if (addr_has_metadata(untagged_addr))
- 		kasan_print_tags(get_tag(tagged_addr), info.first_bad_addr);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
