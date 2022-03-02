@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E63F0C433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 222DEC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235527AbiCBVh3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Mar 2022 16:37:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45430 "EHLO
+        id S245364AbiCBVha (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Mar 2022 16:37:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245363AbiCBVhZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:37:25 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E94CDC7E86
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:39 -0800 (PST)
+        with ESMTP id S232908AbiCBVh0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:37:26 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0CA3C7EA9
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8EE36B8225B
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51B9AC004E1;
-        Wed,  2 Mar 2022 21:36:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3E14D619D3
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 928DEC340F8;
+        Wed,  2 Mar 2022 21:36:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646256997;
-        bh=8VROO7Lm6a0qAL91kuYSztNR3hbfarQqk7GUs44h2j8=;
+        s=korg; t=1646256999;
+        bh=0urRdV6jCDUMvjNxXMDrOP4PobYfs68N1Z8je8AWuNg=;
         h=Date:To:From:Subject:From;
-        b=BKRqOzh/fRVtkRL6PCgOAeLQ/5teUdOOoOdE5UMvucPkQrwe9svtXA/90DdW2jZhl
-         Cyk+GmY2oUo/zR1mxOaPH3f576cjbHK6YBgL03jwtp0+91+u3FLdnwQ483Kim2qOCw
-         Iu5L97DH+OujwnppJ8fC61GekguRKJj7GQ6X2UI0=
-Date:   Wed, 02 Mar 2022 13:36:36 -0800
+        b=iwJr520GX5NSvFIpgdMTBMDiQ+Z6UYZunWzo3Fab80GXU1qIWTpicIc6K2WrKeMhj
+         iMPN813axbfbxcd2AModrtcakVr26G3JkRW7vv7M0ZagA21n0QCODe/ULzT01IX4y3
+         QC/Ann1j1o0FcFpNUjltesxw5Z8kqSWuroj8tVg4=
+Date:   Wed, 02 Mar 2022 13:36:39 -0800
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-move-and-hide-kasan_save_enable-restore_multi_shot.patch added to -mm tree
-Message-Id: <20220302213637.51B9AC004E1@smtp.kernel.org>
+Subject: + kasan-disable-lockdep-when-printing-reports.patch added to -mm tree
+Message-Id: <20220302213639.928DEC340F8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: move and hide kasan_save_enable/restore_multi_shot
+     Subject: kasan: disable LOCKDEP when printing reports
 has been added to the -mm tree.  Its filename is
-     kasan-move-and-hide-kasan_save_enable-restore_multi_shot.patch
+     kasan-disable-lockdep-when-printing-reports.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-move-and-hide-kasan_save_enable-restore_multi_shot.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-disable-lockdep-when-printing-reports.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-move-and-hide-kasan_save_enable-restore_multi_shot.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-disable-lockdep-when-printing-reports.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,17 +64,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: move and hide kasan_save_enable/restore_multi_shot
+Subject: kasan: disable LOCKDEP when printing reports
 
-- Move kasan_save_enable/restore_multi_shot() declarations to
-  mm/kasan/kasan.h, as there is no need for them to be visible outside
-  of KASAN implementation.
+If LOCKDEP detects a bug while KASAN is printing a report and if
+panic_on_warn is set, KASAN will not be able to finish.  Disable LOCKDEP
+while KASAN is printing a report.
 
-- Only define and export these functions when KASAN tests are enabled.
+See https://bugzilla.kernel.org/show_bug.cgi?id=202115 for an example
+of the issue.
 
-- Move their definitions closer to other test-related code in report.c.
-
-Link: https://lkml.kernel.org/r/6ba637333b78447f027d775f2d55ab1a40f63c99.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/c48a2a3288200b07e1788b77365c2f02784cfeb4.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -83,86 +82,43 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    4 ----
- mm/kasan/kasan.h      |    7 +++++++
- mm/kasan/report.c     |   30 +++++++++++++++++-------------
- 3 files changed, 24 insertions(+), 17 deletions(-)
+ mm/kasan/report.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/include/linux/kasan.h~kasan-move-and-hide-kasan_save_enable-restore_multi_shot
-+++ a/include/linux/kasan.h
-@@ -267,10 +267,6 @@ static __always_inline bool kasan_check_
- 	return true;
- }
- 
--
--bool kasan_save_enable_multi_shot(void);
--void kasan_restore_multi_shot(bool enabled);
--
- #else /* CONFIG_KASAN */
- 
- static inline slab_flags_t kasan_never_merge(void)
---- a/mm/kasan/kasan.h~kasan-move-and-hide-kasan_save_enable-restore_multi_shot
-+++ a/mm/kasan/kasan.h
-@@ -492,6 +492,13 @@ static inline bool kasan_arch_is_ready(v
- #error kasan_arch_is_ready only works in KASAN generic outline mode!
- #endif
- 
-+#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
-+
-+bool kasan_save_enable_multi_shot(void);
-+void kasan_restore_multi_shot(bool enabled);
-+
-+#endif
-+
- /*
-  * Exported functions for interfaces called from assembly or from generated
-  * code. Declarations here to avoid warning about missing declarations.
---- a/mm/kasan/report.c~kasan-move-and-hide-kasan_save_enable-restore_multi_shot
+--- a/mm/kasan/report.c~kasan-disable-lockdep-when-printing-reports
 +++ a/mm/kasan/report.c
-@@ -64,19 +64,6 @@ static int __init early_kasan_fault(char
+@@ -13,6 +13,7 @@
+ #include <linux/ftrace.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
++#include <linux/lockdep.h>
+ #include <linux/mm.h>
+ #include <linux/printk.h>
+ #include <linux/sched.h>
+@@ -148,6 +149,8 @@ static void start_report(unsigned long *
+ 	disable_trace_on_warning();
+ 	/* Update status of the currently running KASAN test. */
+ 	update_kunit_status(sync);
++	/* Do not allow LOCKDEP mangling KASAN reports. */
++	lockdep_off();
+ 	/* Make sure we don't end up in loop. */
+ 	kasan_disable_current();
+ 	spin_lock_irqsave(&report_lock, *flags);
+@@ -160,12 +163,13 @@ static void end_report(unsigned long *fl
+ 		trace_error_report_end(ERROR_DETECTOR_KASAN,
+ 				       (unsigned long)addr);
+ 	pr_err("==================================================================\n");
+-	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ 	spin_unlock_irqrestore(&report_lock, *flags);
+ 	if (panic_on_warn && !test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
+ 		panic("panic_on_warn set ...\n");
+ 	if (kasan_arg_fault == KASAN_ARG_FAULT_PANIC)
+ 		panic("kasan.fault=panic set ...\n");
++	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
++	lockdep_on();
+ 	kasan_enable_current();
  }
- early_param("kasan.fault", early_kasan_fault);
  
--bool kasan_save_enable_multi_shot(void)
--{
--	return test_and_set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
--}
--EXPORT_SYMBOL_GPL(kasan_save_enable_multi_shot);
--
--void kasan_restore_multi_shot(bool enabled)
--{
--	if (!enabled)
--		clear_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
--}
--EXPORT_SYMBOL_GPL(kasan_restore_multi_shot);
--
- static int __init kasan_set_multi_shot(char *str)
- {
- 	set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-@@ -109,6 +96,23 @@ static bool report_enabled(void)
- 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
- }
- 
-+#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST) || IS_ENABLED(CONFIG_KASAN_MODULE_TEST)
-+
-+bool kasan_save_enable_multi_shot(void)
-+{
-+	return test_and_set_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-+}
-+EXPORT_SYMBOL_GPL(kasan_save_enable_multi_shot);
-+
-+void kasan_restore_multi_shot(bool enabled)
-+{
-+	if (!enabled)
-+		clear_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags);
-+}
-+EXPORT_SYMBOL_GPL(kasan_restore_multi_shot);
-+
-+#endif
-+
- #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
- static void update_kunit_status(bool sync)
- {
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
