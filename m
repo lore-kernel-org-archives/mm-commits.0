@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFB5AC43217
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA4EFC433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Mar 2022 21:36:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245355AbiCBVhU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Mar 2022 16:37:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45348 "EHLO
+        id S245141AbiCBVhT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Mar 2022 16:37:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245362AbiCBVhS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:37:18 -0500
+        with ESMTP id S245355AbiCBVhH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Mar 2022 16:37:07 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A16CC7E5F
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:28 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19B2EC6210
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 13:36:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 38E4D619B9
-        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F7FAC004E1;
-        Wed,  2 Mar 2022 21:36:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B585619D2
+        for <mm-commits@vger.kernel.org>; Wed,  2 Mar 2022 21:36:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF1FAC340EF;
+        Wed,  2 Mar 2022 21:36:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646256987;
-        bh=gnJEun+xLL/cCKV3BcCJIjif2hSQLcXaqmlnnnBjpxg=;
+        s=korg; t=1646256982;
+        bh=wkHdwBoly5290WSQ5fgA0/otU9C6RotuYUFaugXjqDo=;
         h=Date:To:From:Subject:From;
-        b=AXa3zSB7GMspQQZPPWMZizrNcB+MUXOFrIcKkZ8DMrv8gh89QvTQ7TT3HhAxKvkvP
-         j0NpfZrZcfA+eTjVMq0qIWftC1vzYIRWVcr0vua9NkEs2a9TJmFrF8Kkwl+uVTMqke
-         /g88b6aZoGqzyJjKpMj9fzYG5XugDDWPsP3/lpbo=
-Date:   Wed, 02 Mar 2022 13:36:26 -0800
+        b=nUNxaS8lQJXIOoqT1OseIJ04c3qqw5k7sMCX5l65SXwI3mVkCMD7pJLWkj9qe90uX
+         2K4nSwBmImN9JtuiNE4n9MuZlIJrKOGabo77bwlmGFu1Pv2+Jp53jYh2hcuNXfY5pI
+         WLV2UFEzBzv4DyEWllPXR0gE6aKmyXCTuUFPhooA=
+Date:   Wed, 02 Mar 2022 13:36:21 -0800
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-move-and-simplify-kasan_report_async.patch added to -mm tree
-Message-Id: <20220302213627.8F7FAC004E1@smtp.kernel.org>
+Subject: + kasan-restructure-kasan_report.patch added to -mm tree
+Message-Id: <20220302213621.DF1FAC340EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: move and simplify kasan_report_async
+     Subject: kasan: restructure kasan_report
 has been added to the -mm tree.  Its filename is
-     kasan-move-and-simplify-kasan_report_async.patch
+     kasan-restructure-kasan_report.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-move-and-simplify-kasan_report_async.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-restructure-kasan_report.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-move-and-simplify-kasan_report_async.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-restructure-kasan_report.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,12 +64,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: move and simplify kasan_report_async
+Subject: kasan: restructure kasan_report
 
-Place kasan_report_async() next to the other main reporting routines. 
-Also simplify printed information.
+Restructure kasan_report() to make reviewing the subsequent patches
+easier.
 
-Link: https://lkml.kernel.org/r/52d942ef3ffd29bdfa225bbe8e327bc5bda7ab09.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/ca28042889858b8cc4724d3d4378387f90d7a59d.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -78,53 +78,36 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/kasan/report.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/report.c~kasan-move-and-simplify-kasan_report_async
+--- a/mm/kasan/report.c~kasan-restructure-kasan_report
 +++ a/mm/kasan/report.c
-@@ -392,20 +392,6 @@ static bool report_enabled(void)
- 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
- }
- 
--#ifdef CONFIG_KASAN_HW_TAGS
--void kasan_report_async(void)
--{
--	unsigned long flags;
--
--	start_report(&flags, false);
--	pr_err("BUG: KASAN: invalid-access\n");
--	pr_err("Asynchronous mode enabled: no access details available\n");
--	pr_err("\n");
--	dump_stack_lvl(KERN_ERR);
--	end_report(&flags, NULL);
--}
--#endif /* CONFIG_KASAN_HW_TAGS */
--
- static void print_report(struct kasan_access_info *info)
+@@ -457,15 +457,18 @@ static void __kasan_report(void *addr, s
+ bool kasan_report(unsigned long addr, size_t size, bool is_write,
+ 			unsigned long ip)
  {
- 	void *tagged_addr = info->access_addr;
-@@ -477,6 +463,20 @@ out:
+-	unsigned long flags = user_access_save();
+-	bool ret = false;
++	unsigned long ua_flags = user_access_save();
++	bool ret = true;
+ 
+-	if (likely(report_enabled())) {
+-		__kasan_report((void *)addr, size, is_write, ip);
+-		ret = true;
++	if (unlikely(!report_enabled())) {
++		ret = false;
++		goto out;
+ 	}
+ 
+-	user_access_restore(flags);
++	__kasan_report((void *)addr, size, is_write, ip);
++
++out:
++	user_access_restore(ua_flags);
+ 
  	return ret;
  }
- 
-+#ifdef CONFIG_KASAN_HW_TAGS
-+void kasan_report_async(void)
-+{
-+	unsigned long flags;
-+
-+	start_report(&flags, false);
-+	pr_err("BUG: KASAN: invalid-access\n");
-+	pr_err("Asynchronous fault: no details available\n");
-+	pr_err("\n");
-+	dump_stack_lvl(KERN_ERR);
-+	end_report(&flags, NULL);
-+}
-+#endif /* CONFIG_KASAN_HW_TAGS */
-+
- #ifdef CONFIG_KASAN_INLINE
- /*
-  * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
