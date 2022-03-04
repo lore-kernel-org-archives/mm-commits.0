@@ -2,95 +2,87 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4862C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 01:55:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 557A2C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 03:02:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232802AbiCDB4c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Mar 2022 20:56:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55746 "EHLO
+        id S237798AbiCDDDZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Mar 2022 22:03:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232793AbiCDB4b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Mar 2022 20:56:31 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 600D313D553
-        for <mm-commits@vger.kernel.org>; Thu,  3 Mar 2022 17:55:45 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S232147AbiCDDDY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Mar 2022 22:03:24 -0500
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9749213DEE
+        for <mm-commits@vger.kernel.org>; Thu,  3 Mar 2022 19:02:36 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 085F961797
-        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 01:55:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FC2DC004E1;
-        Fri,  4 Mar 2022 01:55:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646358944;
-        bh=05n+CYLqno0jlg23y0YuJR857KFUQLZ7PiDuoW6bgJc=;
-        h=Date:To:From:Subject:From;
-        b=2qHDyekuWwJa+HVo2J+PUEleE/2VRYzg8poxWNQDfSniCqku4FHH4mlWS9Z/NmkT+
-         yl3CgGLmtz2glOIDsPJSn7M1SrV4ZMlsELJmCoTrhqDMHwFjRlDuqwv+M/VZCrXu4t
-         Xu/pS4QClSLYzeWShnJ4SIrVcuEl7tat3Pe6XfSo=
-Date:   Thu, 03 Mar 2022 17:55:43 -0800
-To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch added to -mm tree
-Message-Id: <20220304015544.5FC2DC004E1@smtp.kernel.org>
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4K8t210Z7Pz4xcq;
+        Fri,  4 Mar 2022 14:02:33 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1646362954;
+        bh=+vizi3YjoyiyA0bWqtUJ4LkFh5jhFWN+aYEmaZaI2Cs=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=qFnazkUVOkjqrMOIr0Tj99dLmAhkbfvNRedPGdpy6ao8HEWgPo3e31C/ah19L0N/C
+         GlVvjQwDmxooGaG6RqYRfIorXtvZG3AtQXDHq+ltxyPJUaZXKxMU1OkIKGvw0wNsqc
+         XeP2eoTnfCASnYGzRoNpV86Hro8rsAsNMJIROwVnc5fWkNP8wmQmRHjhbPcGE/dciy
+         bwvAcjN0XrKKS9G5TCat4KoiH9WOCCre+38tpRnVIx9SW+bG+A0VYjkLEfFhk/K3F5
+         quvMThh/HtrcdDqxAADOED+SwSIJ1I1Blh1/SSUjLYxOEhZEWKgUI7LStkUekFqBBp
+         0zrkSX4VtOT4g==
+Date:   Fri, 4 Mar 2022 14:02:31 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, rppt@linux.vnet.ibm.com,
+        peterx@redhat.com, namit@vmware.com, jack@suse.cz,
+        david@redhat.com, aarcange@redhat.com
+Subject: Re: +
+ userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch added to
+ -mm tree
+Message-ID: <20220304140231.4e8723d8@canb.auug.org.au>
+In-Reply-To: <20220304015358.54ED3C004E1@smtp.kernel.org>
+References: <20220304015358.54ED3C004E1@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/P4AoiyABmm.KNWtycAnF1VA";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+--Sig_/P4AoiyABmm.KNWtycAnF1VA
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The patch titled
-     Subject: mm/damon/sysfs: remove repeat container_of() in damon_sysfs_kdamond_release()
-has been added to the -mm tree.  Its filename is
-     mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch
+Hi Andrew,
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch
+On Thu, 03 Mar 2022 17:53:57 -0800 Andrew Morton <akpm@linux-foundation.org=
+> wrote:
+>
+> The patch titled
+>      Subject: userfaultfd-provide-unmasked-address-on-page-fault-v3-fix
+> has been added to the -mm tree.  Its filename is
+>      userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Added to linux-next today.
+--=20
+Cheers,
+Stephen Rothwell
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--Sig_/P4AoiyABmm.KNWtycAnF1VA
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+-----BEGIN PGP SIGNATURE-----
 
-------------------------------------------------------
-From: Xin Hao <xhao@linux.alibaba.com>
-Subject: mm/damon/sysfs: remove repeat container_of() in damon_sysfs_kdamond_release()
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmIhgUcACgkQAVBC80lX
+0GyJTwf/ZSQgJjg0nNJ7sPEq6im7UVBqwdBYVaPJjfbTHcdZsCLTaV1ycagDOkvq
+B2IYSuVMXw6TpEZOjfrym2Xwjtqyqpk6eTQ8aK7VSRSySAwOXMNBuulo/cnXpqjo
+A1DuuVLFkP0Ux74eJ6cyjjoyJeuNpv/b4fNc8donh0ufMQDpHxFsaRFW066ryo/3
+/cNyOJ7ZKrVj3VnTDcL4aqEBC6wDbG5g0A/XAOt8oBKxudUjKnWiRfU4vgTnngLZ
+Q1nJzPuQPI+Gq5JGwB6qOFd3R7jRcijNxH00K4yRF28y2l9Mc8d0PwmNfvbhs9Vw
+i8cN3J8LeFCaNHE/d/yUt+9KjN70DA==
+=uq/9
+-----END PGP SIGNATURE-----
 
-In damon_sysfs_kdamond_release(), we have use container_of() to get
-"kdamond" pointer, so there no need to get it once again.
-
-Link: https://lkml.kernel.org/r/20220303075314.22502-1-xhao@linux.alibaba.com
-Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/damon/sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release
-+++ a/mm/damon/sysfs.c
-@@ -2345,7 +2345,7 @@ static void damon_sysfs_kdamond_release(
- 
- 	if (kdamond->damon_ctx)
- 		damon_destroy_ctx(kdamond->damon_ctx);
--	kfree(container_of(kobj, struct damon_sysfs_kdamond, kobj));
-+	kfree(kdamond);
- }
- 
- static struct kobj_attribute damon_sysfs_kdamond_state_attr =
-_
-
-Patches currently in -mm which might be from xhao@linux.alibaba.com are
-
-mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch
-
+--Sig_/P4AoiyABmm.KNWtycAnF1VA--
