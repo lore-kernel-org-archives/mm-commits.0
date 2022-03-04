@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56128C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 04:04:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B56ADC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 04:07:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229965AbiCDEFA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Mar 2022 23:05:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50336 "EHLO
+        id S235684AbiCDEIj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Mar 2022 23:08:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237867AbiCDEE6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Mar 2022 23:04:58 -0500
+        with ESMTP id S231585AbiCDEIj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Mar 2022 23:08:39 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34EC47A98A
-        for <mm-commits@vger.kernel.org>; Thu,  3 Mar 2022 20:04:11 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CB32522E1
+        for <mm-commits@vger.kernel.org>; Thu,  3 Mar 2022 20:07:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E093EB82751
-        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 04:04:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AA85C340E9;
-        Fri,  4 Mar 2022 04:04:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CC142B826EC
+        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 04:07:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B1AAC340E9;
+        Fri,  4 Mar 2022 04:07:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646366648;
-        bh=ZzDAu+tbIB7/0OcBmE829NbpfQn4ZDB1VXTaIkXrFQQ=;
+        s=korg; t=1646366869;
+        bh=7uVEgT3F1qRjkrU0ds4f6eIJWFPrSa8k4KZ1BIPkE64=;
         h=Date:To:From:Subject:From;
-        b=dylDSJN0R4mu0rN8yDTKmy829Q2d4nQu7CHDDVvXxMUt4nKs+kygpIpgW5YLAktVj
-         6UJRXPZ0AHqU6m0kT3kLh2oCtPP1jZ4jCyAONWRejQcRbUjS1b5hVMOGTlG0CxPEkh
-         7FEJ5CQDWa4OxKOSHZSbwn9CAprGn/j0TzzpSuDY=
-Date:   Thu, 03 Mar 2022 20:04:07 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, shy828301@gmail.com,
-        rcampbell@nvidia.com, kirill.shutemov@linux.intel.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=1kLbw+rqaeGcbwc0eSIWUHL/dmFlJxkHB2KPi9oNO575Inf8dMl936nthBrKgtkRB
+         iB2c2fQnVt50wCStaCJq85/SUQxiJcssD2uSe6NXnbjOVS6w7xDQ7bZu3QZ+Y5KMBR
+         /B8PGicTrMwm90p2L6JTXozV8hcBT3I2rAT++BT8=
+Date:   Thu, 03 Mar 2022 20:07:48 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, hughd@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd.patch added to -mm tree
-Message-Id: <20220304040408.7AA85C340E9@smtp.kernel.org>
+Subject: + mm-_install_special_mapping-apply-vm_locked_clear_mask.patch added to -mm tree
+Message-Id: <20220304040749.8B1AAC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: refix __split_huge_pmd_locked() for migration PMD
+     Subject: mm: _install_special_mapping() apply VM_LOCKED_CLEAR_MASK
 has been added to the -mm tree.  Its filename is
-     mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd.patch
+     mm-_install_special_mapping-apply-vm_locked_clear_mask.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-_install_special_mapping-apply-vm_locked_clear_mask.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-_install_special_mapping-apply-vm_locked_clear_mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,55 +63,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/thp: refix __split_huge_pmd_locked() for migration PMD
+Subject: mm: _install_special_mapping() apply VM_LOCKED_CLEAR_MASK
 
-Migration entries do not contribute to a page's reference count: move
-__split_huge_pmd_locked()'s page_ref_add() into pmd_migration's else block
-(along with the page_count() check - a page is quite likely to to have
-reference count frozen to 0 when a migration entry is found).
+_install_special_mapping() adds the VM_SPECIAL bit VM_DONTEXPAND (and
+never attempts to update locked_vm), so it ought to be consistent with
+mmap_region() and mlock_fixup(), making sure not to add VM_LOCKED or
+VM_LOCKONFAULT.  I doubt that this fixes any problem in practice: just do
+it for consistency.
 
-This will fix a very rare anonymous memory leak, after a split_huge_pmd()
-raced with an anon split_huge_page() or an anon THP migrate_pages(): since
-the wrongly raised refcount stopped the page (perhaps small, perhaps huge,
-depending on when the race hit) from ever being freed.  At first I thought
-there were worse risks, from prematurely unfreezing a frozen page: but now
-think that would only affect page cache pages, which do not come this way
-(except for anonymous pages in swap cache, perhaps).
-
-Link: https://lkml.kernel.org/r/84792468-f512-e48f-378c-e34c3641e97@google.com
-Fixes: ec0abae6dcdf ("mm/thp: fix __split_huge_pmd_locked() for migration PMD")
+Link: https://lkml.kernel.org/r/a85315a9-21d1-6133-c5fc-c89863dfb25b@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mmap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/huge_memory.c~mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd
-+++ a/mm/huge_memory.c
-@@ -2055,9 +2055,9 @@ static void __split_huge_pmd_locked(stru
- 		young = pmd_young(old_pmd);
- 		soft_dirty = pmd_soft_dirty(old_pmd);
- 		uffd_wp = pmd_uffd_wp(old_pmd);
-+		VM_BUG_ON_PAGE(!page_count(page), page);
-+		page_ref_add(page, HPAGE_PMD_NR - 1);
- 	}
--	VM_BUG_ON_PAGE(!page_count(page), page);
--	page_ref_add(page, HPAGE_PMD_NR - 1);
+--- a/mm/mmap.c~mm-_install_special_mapping-apply-vm_locked_clear_mask
++++ a/mm/mmap.c
+@@ -3448,6 +3448,7 @@ static struct vm_area_struct *__install_
+ 	vma->vm_end = addr + len;
  
- 	/*
- 	 * Withdraw the table only after we mark the pmd entry invalid.
+ 	vma->vm_flags = vm_flags | mm->def_flags | VM_DONTEXPAND | VM_SOFTDIRTY;
++	vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
+ 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 
+ 	vma->vm_ops = ops;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
 memfd-fix-f_seal_write-after-shmem-huge-page-allocated.patch
 tmpfs-support-for-file-creation-time-fix.patch
+mm-_install_special_mapping-apply-vm_locked_clear_mask.patch
 mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd.patch
-mm-thp-fix-nr_file_mapped-accounting-in-page__file_rmap.patch
 mm-thp-clearpagedoublemap-in-first-page_add_file_rmap.patch
+mm-thp-fix-nr_file_mapped-accounting-in-page__file_rmap.patch
 
