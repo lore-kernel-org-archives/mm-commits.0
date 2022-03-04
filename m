@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D990BC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 00:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B348CC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 01:54:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236663AbiCDAqj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Mar 2022 19:46:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45896 "EHLO
+        id S232743AbiCDByp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Mar 2022 20:54:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234680AbiCDAqc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Mar 2022 19:46:32 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D04924926C
-        for <mm-commits@vger.kernel.org>; Thu,  3 Mar 2022 16:45:45 -0800 (PST)
+        with ESMTP id S231808AbiCDByp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Mar 2022 20:54:45 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDDCC16A59F
+        for <mm-commits@vger.kernel.org>; Thu,  3 Mar 2022 17:53:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 545B0617C1
-        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 00:45:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB3C9C34106;
-        Fri,  4 Mar 2022 00:45:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 74D98B826F4
+        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 01:53:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F88DC004E1;
+        Fri,  4 Mar 2022 01:53:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646354744;
-        bh=j9pkoUreHNOuCdM57R3gxBib5mVj+U71IixKzZSJuLs=;
+        s=korg; t=1646358836;
+        bh=Vuk2VEJo1e0r+xIn0K60Z9juNG4sqlHWVv2JtiM+O5Y=;
         h=Date:To:From:Subject:From;
-        b=Wl1R6AAcMZfCBJnO2b63xwslewgdXwZgP8ITIAtXZPaF2UdEZYvqzv8DTbZvccPXH
-         l3jUKc8Ao1wTfTfXjkGzeDhaUCmp6iLlGpCEZcZ8cS3/V95yO5A3IZ5YYqdVOBu/Sp
-         GnQ541dYWL+R4YD2X5PtsdXiPLKsOS3Fa/n6foN4=
-Date:   Thu, 03 Mar 2022 16:45:44 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.l.verma@intel.com, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, jgg@ziepe.ca, jane.chu@oracle.com,
-        hch@lst.de, dan.j.williams@intel.com, corbet@lwn.net,
-        joao.m.martins@oracle.com, akpm@linux-foundation.org
+        b=J3sgIDJIc39SOksNzoZYyNbe/lPRMnY2W6esIjiVyDHBE0C7tuStufznrecpG+gER
+         /K/cd406ByppGxFHELOYFXIWaNuZ+lvt3SgFNk+uLQ1VBrmbSx9uBjGEbOTUT8iu59
+         1RT35A2LTSR+TuFnIHFQMCAFiXlOBDCO6DEJSIaE=
+Date:   Thu, 03 Mar 2022 17:53:55 -0800
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        rppt@linux.vnet.ibm.com, peterx@redhat.com, jack@suse.cz,
+        david@redhat.com, aarcange@redhat.com, namit@vmware.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch added to -mm tree
-Message-Id: <20220304004544.AB3C9C34106@smtp.kernel.org>
+Subject: + userfaultfd-provide-unmasked-address-on-page-fault-v3.patch added to -mm tree
+Message-Id: <20220304015356.2F88DC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: reuse tail struct pages for compound devmaps
+     Subject: userfaultfd: provide unmasked address on page-fault
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
+     userfaultfd-provide-unmasked-address-on-page-fault-v3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-provide-unmasked-address-on-page-fault-v3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-provide-unmasked-address-on-page-fault-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,83 +64,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/page_alloc: reuse tail struct pages for compound devmaps
+From: Nadav Amit <namit@vmware.com>
+Subject: userfaultfd: provide unmasked address on page-fault
 
-Currently memmap_init_zone_device() ends up initializing 32768 pages when
-it only needs to initialize 128 given tail page reuse.  That number is
-worse with 1GB compound pages, 262144 instead of 128.  Update
-memmap_init_zone_device() to skip redundant initialization, detailed
-below.
+initialize real_address on all code paths, per Jan
 
-When a pgmap @vmemmap_shift is set, all pages are mapped at a given huge
-page alignment and use compound pages to describe them as opposed to a
-struct per 4K.
-
-With @vmemmap_shift > 0 and when struct pages are stored in ram (!altmap)
-most tail pages are reused.  Consequently, the amount of unique struct
-pages is a lot smaller than the total amount of struct pages being mapped.
-
-The altmap path is left alone since it does not support memory savings
-based on compound pages devmap.
-
-Link: https://lkml.kernel.org/r/20220303213252.28593-6-joao.m.martins@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+Link: https://lkml.kernel.org/r/20220226022655.350562-1-namit@vmware.com
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ mm/hugetlb.c  |    6 ++++--
+ mm/swapfile.c |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps
-+++ a/mm/page_alloc.c
-@@ -6577,6 +6577,21 @@ static void __ref __init_zone_device_pag
- 	}
- }
+--- a/mm/hugetlb.c~userfaultfd-provide-unmasked-address-on-page-fault-v3
++++ a/mm/hugetlb.c
+@@ -5341,6 +5341,7 @@ static inline vm_fault_t hugetlb_handle_
+ 						  pgoff_t idx,
+ 						  unsigned int flags,
+ 						  unsigned long haddr,
++						  unsigned long addr,
+ 						  unsigned long reason)
+ {
+ 	vm_fault_t ret;
+@@ -5348,6 +5349,7 @@ static inline vm_fault_t hugetlb_handle_
+ 	struct vm_fault vmf = {
+ 		.vma = vma,
+ 		.address = haddr,
++		.real_address = addr,
+ 		.flags = flags,
  
-+/*
-+ * With compound page geometry and when struct pages are stored in ram most
-+ * tail pages are reused. Consequently, the amount of unique struct pages to
-+ * initialize is a lot smaller that the total amount of struct pages being
-+ * mapped. This is a paired / mild layering violation with explicit knowledge
-+ * of how the sparse_vmemmap internals handle compound pages in the lack
-+ * of an altmap. See vmemmap_populate_compound_pages().
-+ */
-+static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
-+					      unsigned long nr_pages)
-+{
-+	return is_power_of_2(sizeof(struct page)) &&
-+		!altmap ? 2 * (PAGE_SIZE/sizeof(struct page)) : nr_pages;
-+}
-+
- static void __ref memmap_init_compound(struct page *head,
- 				       unsigned long head_pfn,
- 				       unsigned long zone_idx, int nid,
-@@ -6641,7 +6656,7 @@ void __ref memmap_init_zone_device(struc
- 			continue;
+ 		/*
+@@ -5416,7 +5418,7 @@ retry:
+ 		/* Check for page in userfault range */
+ 		if (userfaultfd_missing(vma)) {
+ 			ret = hugetlb_handle_userfault(vma, mapping, idx,
+-						       flags, haddr,
++						       flags, haddr, address,
+ 						       VM_UFFD_MISSING);
+ 			goto out;
+ 		}
+@@ -5480,7 +5482,7 @@ retry:
+ 			unlock_page(page);
+ 			put_page(page);
+ 			ret = hugetlb_handle_userfault(vma, mapping, idx,
+-						       flags, haddr,
++						       flags, haddr, address,
+ 						       VM_UFFD_MINOR);
+ 			goto out;
+ 		}
+--- a/mm/swapfile.c~userfaultfd-provide-unmasked-address-on-page-fault-v3
++++ a/mm/swapfile.c
+@@ -1951,6 +1951,7 @@ static int unuse_pte_range(struct vm_are
+ 			struct vm_fault vmf = {
+ 				.vma = vma,
+ 				.address = addr,
++				.real_address = addr,
+ 				.pmd = pmd,
+ 			};
  
- 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
--				     pfns_per_compound);
-+				     compound_nr_pages(altmap, pfns_per_compound));
- 	}
- 
- 	pr_info("%s initialised %lu pages in %ums\n", __func__,
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from namit@vmware.com are
 
-mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch
-mm-sparse-vmemmap-refactor-core-of-vmemmap_populate_basepages-to-helper.patch
-mm-hugetlb_vmemmap-move-comment-block-to-documentation-vm.patch
-mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch
-mm-page_alloc-reuse-tail-struct-pages-for-compound-devmaps.patch
+userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
+userfaultfd-provide-unmasked-address-on-page-fault.patch
+userfaultfd-provide-unmasked-address-on-page-fault-v3.patch
 
