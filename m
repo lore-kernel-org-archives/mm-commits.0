@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BA95C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 23:50:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C91CC433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 23:53:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229981AbiCDXv1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Mar 2022 18:51:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42958 "EHLO
+        id S230038AbiCDXyo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Mar 2022 18:54:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229717AbiCDXv0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2022 18:51:26 -0500
+        with ESMTP id S229445AbiCDXyn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2022 18:54:43 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48A471520DD
-        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 15:50:38 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36AA51E2FED;
+        Fri,  4 Mar 2022 15:53:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D964DB82C75
-        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 23:50:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A1A8C340E9;
-        Fri,  4 Mar 2022 23:50:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 98C70B82C75;
+        Fri,  4 Mar 2022 23:53:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5043FC340E9;
+        Fri,  4 Mar 2022 23:53:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646437835;
-        bh=oyn4fT1+y5QASjFOCdHm4kPe5CgQTqUBucItJvok+Ps=;
+        s=korg; t=1646438030;
+        bh=dlxNltCGxYkiCNG9Z7OiUhRYJzwO3keptp1KXilohZc=;
         h=Date:To:From:Subject:From;
-        b=m/Vm5TlPwIQHJlMJ7UhsesQHC8RX+y36ScpReQ7u1P968pYhNZD5STCAQqtluy3Qn
-         5c7SrFr97xH8ng5A4u0bN2udOIzHgHAW+mofFHIu28yiAWp2qU/2o5k0DjNgUWvunD
-         C4vzHrun7iCOQGplCWLvd3zKv0R2d4Ihug1UfKCs=
-Date:   Fri, 04 Mar 2022 15:50:34 -0800
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        b=NPl7EpC5AvHZWgbcXXGjL+EXWXLR6dWthxN/A5+KAYY1PikCf6MXP00v2uIBZOpl1
+         iNLlE5je0pcRjlgE6BXLM/v6q5Zbb2dre4eOk4K/zY2VwVTo7U1mzOcaW0d+FNAf63
+         ItSGBYlch3EKRbLH8H13PAZ4WcJgZY76fRJJbENg=
+Date:   Fri, 04 Mar 2022 15:53:49 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@suse.com,
+        ivan@cloudflare.com, hannes@cmpxchg.org, fhofmann@cloudflare.com,
+        dqminh@cloudflare.com, shakeelb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Message-Id: <20220304235035.7A1A8C340E9@smtp.kernel.org>
+Subject: + memcg-sync-flush-only-if-periodic-flush-is-delayed.patch added to -mm tree
+Message-Id: <20220304235350.5043FC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,111 +44,155 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: memcg: sync flush only if periodic flush is delayed
+has been added to the -mm tree.  Its filename is
+     memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: sync flush only if periodic flush is delayed
 
+Daniel Dao has reported [1] a regression on workloads that may trigger a
+lot of refaults (anon and file).  The underlying issue is that flushing
+rstat is expensive.  Although rstat flush are batched with (nr_cpus *
+MEMCG_BATCH) stat updates, it seems like there are workloads which
+genuinely do stat updates larger than batch value within short amount of
+time.  Since the rstat flush can happen in the performance critical
+codepaths like page faults, such workload can suffer greatly.
+
+This patch fixes this regression by making the rstat flushing conditional
+in the performance critical codepaths.  More specifically, the kernel
+relies on the async periodic rstat flusher to flush the stats and only if
+the periodic flusher is delayed by more than twice the amount of its
+normal time window then the kernel allows rstat flushing from the
+performance critical codepaths.
+
+Now the question: what are the side-effects of this change?  The worst
+that can happen is the refault codepath will see 4sec old lruvec stats and
+may cause false (or missed) activations of the refaulted page which may
+under-or-overestimate the workingset size.  Though that is not very
+concerning as the kernel can already miss or do false activations.
+
+There are two more codepaths whose flushing behavior is not changed by
+this patch and we may need to come to them in future.  One is the
+writeback stats used by dirty throttling and second is the deactivation
+heuristic in the reclaim.  For now keeping an eye on them and if there is
+report of regression due to these codepaths, we will reevaluate then.
+
+Link: https://lore.kernel.org/all/CA+wXwBSyO87ZX5PVwdHm-=dBjZYECGmfnydUicUyrQqndgX2MQ@mail.gmail.com [1]
+Link: https://lkml.kernel.org/r/20220304184040.1304781-1-shakeelb@google.com
+Fixes: 1f828223b799 ("memcg: flush lruvec stats in the refault")
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reported-by: Daniel Dao <dqminh@cloudflare.com>
+Tested-by: Ivan Babrou <ivan@cloudflare.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Frank Hofmann <fhofmann@cloudflare.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/dcb/dcbnl.c  |    8 --------
- net/dsa/dsa2.c   |    4 ----
- net/smc/af_smc.c |    6 ------
- 3 files changed, 18 deletions(-)
+ include/linux/memcontrol.h |    5 +++++
+ mm/memcontrol.c            |   12 +++++++++++-
+ mm/workingset.c            |    2 +-
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
---- a/net/dcb/dcbnl.c~linux-next-git-rejects
-+++ a/net/dcb/dcbnl.c
-@@ -2077,11 +2077,7 @@ static void dcbnl_flush_dev(struct net_d
- {
- 	struct dcb_app_type *itr, *tmp;
- 
--<<<<<<< HEAD
--	spin_lock_bh(&dcb_lock);
--=======
- 	spin_lock(&dcb_lock);
-->>>>>>> linux-next/akpm-base
- 
- 	list_for_each_entry_safe(itr, tmp, &dcb_app_list, list) {
- 		if (itr->ifindex == dev->ifindex) {
-@@ -2090,11 +2086,7 @@ static void dcbnl_flush_dev(struct net_d
- 		}
- 	}
- 
--<<<<<<< HEAD
--	spin_unlock_bh(&dcb_lock);
--=======
- 	spin_unlock(&dcb_lock);
-->>>>>>> linux-next/akpm-base
+--- a/include/linux/memcontrol.h~memcg-sync-flush-only-if-periodic-flush-is-delayed
++++ a/include/linux/memcontrol.h
+@@ -999,6 +999,7 @@ static inline unsigned long lruvec_page_
  }
  
- static int dcbnl_netdevice_event(struct notifier_block *nb,
---- a/net/dsa/dsa2.c~linux-next-git-rejects
-+++ a/net/dsa/dsa2.c
-@@ -1294,11 +1294,7 @@ int dsa_tree_change_tag_proto(struct dsa
- 	info.tag_ops = tag_ops;
- 	err = dsa_tree_notify(dst, DSA_NOTIFIER_TAG_PROTO, &info);
- 	if (err)
--<<<<<<< HEAD
--		goto out_unwind_tagger;
--=======
- 		goto out_unlock;
-->>>>>>> linux-next/akpm-base
+ void mem_cgroup_flush_stats(void);
++void mem_cgroup_flush_stats_delayed(void);
  
- 	err = dsa_tree_bind_tag_proto(dst, tag_ops);
- 	if (err)
---- a/net/smc/af_smc.c~linux-next-git-rejects
-+++ a/net/smc/af_smc.c
-@@ -3294,25 +3294,19 @@ static int __init smc_init(void)
- 	if (rc) {
- 		pr_err("%s: tcp_ulp_register fails with %d\n", __func__, rc);
- 		goto out_ib;
--<<<<<<< HEAD
--=======
- 	}
+ void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			      int val);
+@@ -1442,6 +1443,10 @@ static inline void mem_cgroup_flush_stat
+ {
+ }
  
- 	rc = smc_sysctl_init();
- 	if (rc) {
- 		pr_err("%s: sysctl_init fails with %d\n", __func__, rc);
- 		goto out_ulp;
-->>>>>>> linux-next/akpm-base
- 	}
++static inline void mem_cgroup_flush_stats_delayed(void)
++{
++}
++
+ static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
+ 					    enum node_stat_item idx, int val)
+ {
+--- a/mm/memcontrol.c~memcg-sync-flush-only-if-periodic-flush-is-delayed
++++ a/mm/memcontrol.c
+@@ -628,6 +628,9 @@ static DECLARE_DEFERRABLE_WORK(stats_flu
+ static DEFINE_SPINLOCK(stats_flush_lock);
+ static DEFINE_PER_CPU(unsigned int, stats_updates);
+ static atomic_t stats_flush_threshold = ATOMIC_INIT(0);
++static u64 flush_next_time;
++
++#define FLUSH_TIME (2UL*HZ)
  
- 	static_branch_enable(&tcp_have_smc);
- 	return 0;
+ static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val)
+ {
+@@ -649,6 +652,7 @@ static void __mem_cgroup_flush_stats(voi
+ 	if (!spin_trylock_irqsave(&stats_flush_lock, flag))
+ 		return;
  
--<<<<<<< HEAD
--=======
- out_ulp:
- 	tcp_unregister_ulp(&smc_ulp_ops);
-->>>>>>> linux-next/akpm-base
- out_ib:
- 	smc_ib_unregister_client();
- out_sock:
++	flush_next_time = jiffies_64 + 2*FLUSH_TIME;
+ 	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
+ 	atomic_set(&stats_flush_threshold, 0);
+ 	spin_unlock_irqrestore(&stats_flush_lock, flag);
+@@ -660,10 +664,16 @@ void mem_cgroup_flush_stats(void)
+ 		__mem_cgroup_flush_stats();
+ }
+ 
++void mem_cgroup_flush_stats_delayed(void)
++{
++	if (rstat_flush_time && time_after64(jiffies_64, flush_next_time))
++		mem_cgroup_flush_stats();
++}
++
+ static void flush_memcg_stats_dwork(struct work_struct *w)
+ {
+ 	__mem_cgroup_flush_stats();
+-	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, 2UL*HZ);
++	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+ }
+ 
+ /**
+--- a/mm/workingset.c~memcg-sync-flush-only-if-periodic-flush-is-delayed
++++ a/mm/workingset.c
+@@ -354,7 +354,7 @@ void workingset_refault(struct folio *fo
+ 
+ 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats_delayed();
+ 	/*
+ 	 * Compare the distance to the existing workingset size. We
+ 	 * don't activate pages that couldn't stay resident even if
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-list_lru-replace-linear-array-with-xarray-fix.patch
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
-mm-export-pageheadhuge-fix.patch
-userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-linux-next-rejects.patch
-arch-x86-kernel-resourcec-needs-spinlockh.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
+memcg-replace-in_interrupt-with-in_task.patch
+memcg-refactor-mem_cgroup_oom.patch
+memcg-unify-force-charging-conditions.patch
+selftests-memcg-test-high-limit-for-single-entry-allocation.patch
+memcg-synchronously-enforce-memoryhigh-for-large-overcharges.patch
 
