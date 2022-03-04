@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17C2AC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 01:54:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4862C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 01:55:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231808AbiCDByu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Mar 2022 20:54:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51928 "EHLO
+        id S232802AbiCDB4c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Mar 2022 20:56:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232812AbiCDBys (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Mar 2022 20:54:48 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C2D617BC48
-        for <mm-commits@vger.kernel.org>; Thu,  3 Mar 2022 17:54:01 -0800 (PST)
+        with ESMTP id S232793AbiCDB4b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Mar 2022 20:56:31 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 600D313D553
+        for <mm-commits@vger.kernel.org>; Thu,  3 Mar 2022 17:55:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9F6C6B82729
-        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 01:53:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54ED3C004E1;
-        Fri,  4 Mar 2022 01:53:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 085F961797
+        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 01:55:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FC2DC004E1;
+        Fri,  4 Mar 2022 01:55:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646358838;
-        bh=Y8oDHEl/DJ33kLkULwrOBqGJaFYK/K68xQ66/tnl+qA=;
+        s=korg; t=1646358944;
+        bh=05n+CYLqno0jlg23y0YuJR857KFUQLZ7PiDuoW6bgJc=;
         h=Date:To:From:Subject:From;
-        b=J/Cv+56HhhVlus3nc6VOFfO9qizfU+Y/CjyFU/1Xn7pmdKaK3o+tX9lSMKUFEW7Ko
-         3XXkskIaeqc0BlwHCCZ3khW+kHyvLXcBjC3QUsb+rSOUnHTxXhdkbueQfetxtoag8f
-         3tnHw0zSjkIvPAfZHQWni/H5iLmULJDrnLps7AYk=
-Date:   Thu, 03 Mar 2022 17:53:57 -0800
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        rppt@linux.vnet.ibm.com, peterx@redhat.com, namit@vmware.com,
-        jack@suse.cz, david@redhat.com, aarcange@redhat.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=2qHDyekuWwJa+HVo2J+PUEleE/2VRYzg8poxWNQDfSniCqku4FHH4mlWS9Z/NmkT+
+         yl3CgGLmtz2glOIDsPJSn7M1SrV4ZMlsELJmCoTrhqDMHwFjRlDuqwv+M/VZCrXu4t
+         Xu/pS4QClSLYzeWShnJ4SIrVcuEl7tat3Pe6XfSo=
+Date:   Thu, 03 Mar 2022 17:55:43 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org, xhao@linux.alibaba.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch added to -mm tree
-Message-Id: <20220304015358.54ED3C004E1@smtp.kernel.org>
+Subject: + mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch added to -mm tree
+Message-Id: <20220304015544.5FC2DC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-provide-unmasked-address-on-page-fault-v3-fix
+     Subject: mm/damon/sysfs: remove repeat container_of() in damon_sysfs_kdamond_release()
 has been added to the -mm tree.  Its filename is
-     userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
+     mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,55 +62,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: userfaultfd-provide-unmasked-address-on-page-fault-v3-fix
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/damon/sysfs: remove repeat container_of() in damon_sysfs_kdamond_release()
 
-fix typo in comment, per Jan
+In damon_sysfs_kdamond_release(), we have use container_of() to get
+"kdamond" pointer, so there no need to get it once again.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20220303075314.22502-1-xhao@linux.alibaba.com
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
+ mm/damon/sysfs.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~userfaultfd-provide-unmasked-address-on-page-fault-v3-fix
-+++ a/include/linux/mm.h
-@@ -479,7 +479,7 @@ struct vm_fault {
- 		gfp_t gfp_mask;			/* gfp mask to be used for allocations */
- 		pgoff_t pgoff;			/* Logical page offset based on vma */
- 		unsigned long address;		/* Faulting virtual address - masked */
--		unsigned long real_address;	/* Faulting virtual address - unmaked */
-+		unsigned long real_address;	/* Faulting virtual address - unmasked */
- 	};
- 	enum fault_flag flags;		/* FAULT_FLAG_xxx flags
- 					 * XXX: should really be 'const' */
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release
++++ a/mm/damon/sysfs.c
+@@ -2345,7 +2345,7 @@ static void damon_sysfs_kdamond_release(
+ 
+ 	if (kdamond->damon_ctx)
+ 		damon_destroy_ctx(kdamond->damon_ctx);
+-	kfree(container_of(kobj, struct damon_sysfs_kdamond, kobj));
++	kfree(kdamond);
+ }
+ 
+ static struct kobj_attribute damon_sysfs_kdamond_state_attr =
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
-remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-list_lru-replace-linear-array-with-xarray-fix.patch
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
-mm-export-pageheadhuge-fix.patch
-userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-arch-x86-kernel-resourcec-needs-spinlockh.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-damon-sysfs-remove-repeat-container_of-in-damon_sysfs_kdamond_release.patch
 
