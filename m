@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C91CC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Mar 2022 23:53:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00330C433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Mar 2022 00:26:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230038AbiCDXyo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Mar 2022 18:54:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49994 "EHLO
+        id S229605AbiCEA10 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Mar 2022 19:27:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229445AbiCDXyn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2022 18:54:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36AA51E2FED;
-        Fri,  4 Mar 2022 15:53:53 -0800 (PST)
+        with ESMTP id S230224AbiCEA1V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2022 19:27:21 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C44A27D9B9
+        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 16:26:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 98C70B82C75;
-        Fri,  4 Mar 2022 23:53:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5043FC340E9;
-        Fri,  4 Mar 2022 23:53:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B907C61F4B
+        for <mm-commits@vger.kernel.org>; Sat,  5 Mar 2022 00:26:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1317BC340F0;
+        Sat,  5 Mar 2022 00:26:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646438030;
-        bh=dlxNltCGxYkiCNG9Z7OiUhRYJzwO3keptp1KXilohZc=;
+        s=korg; t=1646439992;
+        bh=iHG7ObVjQQjqUNHvFRPFrTdXsVQNknlGRyb1gCwBfXU=;
         h=Date:To:From:Subject:From;
-        b=NPl7EpC5AvHZWgbcXXGjL+EXWXLR6dWthxN/A5+KAYY1PikCf6MXP00v2uIBZOpl1
-         iNLlE5je0pcRjlgE6BXLM/v6q5Zbb2dre4eOk4K/zY2VwVTo7U1mzOcaW0d+FNAf63
-         ItSGBYlch3EKRbLH8H13PAZ4WcJgZY76fRJJbENg=
-Date:   Fri, 04 Mar 2022 15:53:49 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@suse.com,
-        ivan@cloudflare.com, hannes@cmpxchg.org, fhofmann@cloudflare.com,
-        dqminh@cloudflare.com, shakeelb@google.com,
+        b=PM5JXFNTKZlC/XddvrpfrIUiasiIqHPgmHF6P7UwfgM0lgjiH1Eap91F0qnA9+XWn
+         Gib062SesyYtCYZcPzJyDAR/nzxU7Xz7anbO9z5JuRhCv0jxZ8E+8eAY3aiSKa9Lmf
+         CBYXkhos+PiUz7+dzSiy/8NsNf5BQ7N+k4NIozm0=
+Date:   Fri, 04 Mar 2022 16:26:31 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
+        nadav.amit@gmail.com, mike.kravetz@oracle.com, mhocko@suse.com,
+        dgilbert@redhat.com, david@redhat.com, hannes@cmpxchg.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-sync-flush-only-if-periodic-flush-is-delayed.patch added to -mm tree
-Message-Id: <20220304235350.5043FC340E9@smtp.kernel.org>
+Subject: + mm-madvise-madv_dontneed_locked.patch added to -mm tree
+Message-Id: <20220305002632.1317BC340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: sync flush only if periodic flush is delayed
+     Subject: mm: madvise: MADV_DONTNEED_LOCKED
 has been added to the -mm tree.  Its filename is
-     memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
+     mm-madvise-madv_dontneed_locked.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-madv_dontneed_locked.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-madv_dontneed_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,134 +64,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: sync flush only if periodic flush is delayed
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: madvise: MADV_DONTNEED_LOCKED
 
-Daniel Dao has reported [1] a regression on workloads that may trigger a
-lot of refaults (anon and file).  The underlying issue is that flushing
-rstat is expensive.  Although rstat flush are batched with (nr_cpus *
-MEMCG_BATCH) stat updates, it seems like there are workloads which
-genuinely do stat updates larger than batch value within short amount of
-time.  Since the rstat flush can happen in the performance critical
-codepaths like page faults, such workload can suffer greatly.
+MADV_DONTNEED historically rejects mlocked ranges, but with MLOCK_ONFAULT
+and MCL_ONFAULT allowing to mlock without populating, there are valid use
+cases for depopulating locked ranges as well.
 
-This patch fixes this regression by making the rstat flushing conditional
-in the performance critical codepaths.  More specifically, the kernel
-relies on the async periodic rstat flusher to flush the stats and only if
-the periodic flusher is delayed by more than twice the amount of its
-normal time window then the kernel allows rstat flushing from the
-performance critical codepaths.
+Users mlock memory to protect secrets.  There are allocators for secure
+buffers that want in-use memory generally mlocked, but cleared and
+invalidated memory to give up the physical pages.  This could be done with
+explicit munlock -> mlock calls on free -> alloc of course, but that adds
+two unnecessary syscalls, heavy mmap_sem write locks, vma splits and
+re-merges - only to get rid of the backing pages.
 
-Now the question: what are the side-effects of this change?  The worst
-that can happen is the refault codepath will see 4sec old lruvec stats and
-may cause false (or missed) activations of the refaulted page which may
-under-or-overestimate the workingset size.  Though that is not very
-concerning as the kernel can already miss or do false activations.
+Users also mlockall(MCL_ONFAULT) to suppress sustained paging, but are
+okay with on-demand initial population.  It seems valid to selectively
+free some memory during the lifetime of such a process, without having to
+mess with its overall policy.
 
-There are two more codepaths whose flushing behavior is not changed by
-this patch and we may need to come to them in future.  One is the
-writeback stats used by dirty throttling and second is the deactivation
-heuristic in the reclaim.  For now keeping an eye on them and if there is
-report of regression due to these codepaths, we will reevaluate then.
+Why add a separate flag? Isn't this a pretty niche usecase?
 
-Link: https://lore.kernel.org/all/CA+wXwBSyO87ZX5PVwdHm-=dBjZYECGmfnydUicUyrQqndgX2MQ@mail.gmail.com [1]
-Link: https://lkml.kernel.org/r/20220304184040.1304781-1-shakeelb@google.com
-Fixes: 1f828223b799 ("memcg: flush lruvec stats in the refault")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reported-by: Daniel Dao <dqminh@cloudflare.com>
-Tested-by: Ivan Babrou <ivan@cloudflare.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Frank Hofmann <fhofmann@cloudflare.com>
-Cc: <stable@vger.kernel.org>
+- MADV_DONTNEED has been bailing on locked vmas forever. It's at least
+  conceivable that someone, somewhere is relying on mlock to protect
+  data from perhaps broader invalidation calls. Changing this behavior
+  now could lead to quiet data corruption.
+
+- It also clarifies expectations around MADV_FREE and maybe
+  MADV_REMOVE. It avoids the situation where one quietly behaves
+  different than the others. MADV_FREE_LOCKED can be added later.
+
+- The combination of mlock() and madvise() in the first place is
+  probably niche. But where it happens, I'd say that dropping pages
+  from a locked region once they don't contain secrets or won't page
+  anymore is much saner than relying on mlock to protect memory from
+  speculative or errant invalidation calls. It's just that we can't
+  change the default behavior because of the two previous points.
+
+Given that, an explicit new flag seems to make the most sense.
+
+Link: https://lkml.kernel.org/r/20220304171912.305060-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dr. David Alan Gilbert <dgilbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 +++++
- mm/memcontrol.c            |   12 +++++++++++-
- mm/workingset.c            |    2 +-
- 3 files changed, 17 insertions(+), 2 deletions(-)
+ include/uapi/asm-generic/mman-common.h |    2 +
+ mm/madvise.c                           |   24 +++++++++++++----------
+ 2 files changed, 16 insertions(+), 10 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-sync-flush-only-if-periodic-flush-is-delayed
-+++ a/include/linux/memcontrol.h
-@@ -999,6 +999,7 @@ static inline unsigned long lruvec_page_
- }
+--- a/include/uapi/asm-generic/mman-common.h~mm-madvise-madv_dontneed_locked
++++ a/include/uapi/asm-generic/mman-common.h
+@@ -75,6 +75,8 @@
+ #define MADV_POPULATE_READ	22	/* populate (prefault) page tables readable */
+ #define MADV_POPULATE_WRITE	23	/* populate (prefault) page tables writable */
  
- void mem_cgroup_flush_stats(void);
-+void mem_cgroup_flush_stats_delayed(void);
- 
- void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
- 			      int val);
-@@ -1442,6 +1443,10 @@ static inline void mem_cgroup_flush_stat
- {
- }
- 
-+static inline void mem_cgroup_flush_stats_delayed(void)
-+{
-+}
++#define MADV_DONTNEED_LOCKED	24	/* like DONTNEED, but drop locked pages too */
 +
- static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
- 					    enum node_stat_item idx, int val)
- {
---- a/mm/memcontrol.c~memcg-sync-flush-only-if-periodic-flush-is-delayed
-+++ a/mm/memcontrol.c
-@@ -628,6 +628,9 @@ static DECLARE_DEFERRABLE_WORK(stats_flu
- static DEFINE_SPINLOCK(stats_flush_lock);
- static DEFINE_PER_CPU(unsigned int, stats_updates);
- static atomic_t stats_flush_threshold = ATOMIC_INIT(0);
-+static u64 flush_next_time;
-+
-+#define FLUSH_TIME (2UL*HZ)
+ /* compatibility flags */
+ #define MAP_FILE	0
  
- static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val)
- {
-@@ -649,6 +652,7 @@ static void __mem_cgroup_flush_stats(voi
- 	if (!spin_trylock_irqsave(&stats_flush_lock, flag))
- 		return;
- 
-+	flush_next_time = jiffies_64 + 2*FLUSH_TIME;
- 	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
- 	atomic_set(&stats_flush_threshold, 0);
- 	spin_unlock_irqrestore(&stats_flush_lock, flag);
-@@ -660,10 +664,16 @@ void mem_cgroup_flush_stats(void)
- 		__mem_cgroup_flush_stats();
+--- a/mm/madvise.c~mm-madvise-madv_dontneed_locked
++++ a/mm/madvise.c
+@@ -52,6 +52,7 @@ static int madvise_need_mmap_write(int b
+ 	case MADV_REMOVE:
+ 	case MADV_WILLNEED:
+ 	case MADV_DONTNEED:
++	case MADV_DONTNEED_LOCKED:
+ 	case MADV_COLD:
+ 	case MADV_PAGEOUT:
+ 	case MADV_FREE:
+@@ -502,14 +503,9 @@ static void madvise_cold_page_range(stru
+ 	tlb_end_vma(tlb, vma);
  }
  
-+void mem_cgroup_flush_stats_delayed(void)
-+{
-+	if (rstat_flush_time && time_after64(jiffies_64, flush_next_time))
-+		mem_cgroup_flush_stats();
-+}
-+
- static void flush_memcg_stats_dwork(struct work_struct *w)
+-static inline bool can_madv_lru_non_huge_vma(struct vm_area_struct *vma)
+-{
+-	return !(vma->vm_flags & (VM_LOCKED|VM_PFNMAP));
+-}
+-
+ static inline bool can_madv_lru_vma(struct vm_area_struct *vma)
  {
- 	__mem_cgroup_flush_stats();
--	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, 2UL*HZ);
-+	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+-	return can_madv_lru_non_huge_vma(vma) && !is_vm_hugetlb_page(vma);
++	return !(vma->vm_flags & (VM_LOCKED|VM_PFNMAP|VM_HUGETLB));
  }
  
- /**
---- a/mm/workingset.c~memcg-sync-flush-only-if-periodic-flush-is-delayed
-+++ a/mm/workingset.c
-@@ -354,7 +354,7 @@ void workingset_refault(struct folio *fo
+ static long madvise_cold(struct vm_area_struct *vma,
+@@ -787,10 +783,16 @@ static bool madvise_dontneed_free_valid_
+ 					    unsigned long *end,
+ 					    int behavior)
+ {
+-	if (!is_vm_hugetlb_page(vma))
+-		return can_madv_lru_non_huge_vma(vma);
++	if (!is_vm_hugetlb_page(vma)) {
++		unsigned int forbidden = VM_PFNMAP;
++
++		if (behavior != MADV_DONTNEED_LOCKED)
++			forbidden |= VM_LOCKED;
++
++		return !(vma->vm_flags & forbidden);
++	}
  
- 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
+-	if (behavior != MADV_DONTNEED)
++	if (behavior != MADV_DONTNEED && behavior != MADV_DONTNEED_LOCKED)
+ 		return false;
+ 	if (start & ~huge_page_mask(hstate_vma(vma)))
+ 		return false;
+@@ -854,7 +856,7 @@ static long madvise_dontneed_free(struct
+ 		VM_WARN_ON(start >= end);
+ 	}
  
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats_delayed();
- 	/*
- 	 * Compare the distance to the existing workingset size. We
- 	 * don't activate pages that couldn't stay resident even if
+-	if (behavior == MADV_DONTNEED)
++	if (behavior == MADV_DONTNEED || behavior == MADV_DONTNEED_LOCKED)
+ 		return madvise_dontneed_single_vma(vma, start, end);
+ 	else if (behavior == MADV_FREE)
+ 		return madvise_free_single_vma(vma, start, end);
+@@ -993,6 +995,7 @@ static int madvise_vma_behavior(struct v
+ 		return madvise_pageout(vma, prev, start, end);
+ 	case MADV_FREE:
+ 	case MADV_DONTNEED:
++	case MADV_DONTNEED_LOCKED:
+ 		return madvise_dontneed_free(vma, prev, start, end, behavior);
+ 	case MADV_POPULATE_READ:
+ 	case MADV_POPULATE_WRITE:
+@@ -1123,6 +1126,7 @@ madvise_behavior_valid(int behavior)
+ 	case MADV_REMOVE:
+ 	case MADV_WILLNEED:
+ 	case MADV_DONTNEED:
++	case MADV_DONTNEED_LOCKED:
+ 	case MADV_FREE:
+ 	case MADV_COLD:
+ 	case MADV_PAGEOUT:
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
-memcg-replace-in_interrupt-with-in_task.patch
-memcg-refactor-mem_cgroup_oom.patch
-memcg-unify-force-charging-conditions.patch
-selftests-memcg-test-high-limit-for-single-entry-allocation.patch
-memcg-synchronously-enforce-memoryhigh-for-large-overcharges.patch
+mm-memcg-opencode-the-inner-part-of-obj_cgroup_uncharge_pages-in-drain_obj_stock.patch
+mm-page_io-fix-psi-memory-pressure-error-on-cold-swapins.patch
+mm-madvise-madv_dontneed_locked.patch
 
