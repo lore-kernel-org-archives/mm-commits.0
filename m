@@ -2,108 +2,152 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07D9DC433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  5 Mar 2022 04:28:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCF3EC433FE
+	for <mm-commits@archiver.kernel.org>; Sat,  5 Mar 2022 04:28:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230499AbiCEE3P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Mar 2022 23:29:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43194 "EHLO
+        id S230527AbiCEE3n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Mar 2022 23:29:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230187AbiCEE3O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2022 23:29:14 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FC253ED33
-        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 20:28:26 -0800 (PST)
+        with ESMTP id S230187AbiCEE3m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2022 23:29:42 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A16E33ED33
+        for <mm-commits@vger.kernel.org>; Fri,  4 Mar 2022 20:28:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BC8B2B80D7D
-        for <mm-commits@vger.kernel.org>; Sat,  5 Mar 2022 04:28:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16E70C004E1;
-        Sat,  5 Mar 2022 04:28:23 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 2AD3ECE2DD1
+        for <mm-commits@vger.kernel.org>; Sat,  5 Mar 2022 04:28:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B6D7C004E1;
+        Sat,  5 Mar 2022 04:28:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646454503;
-        bh=JTkwSc0vpalOWHSBkyxtEKlj7jWpNhkQ9Jwfl5PY1AI=;
-        h=Date:From:To:Cc:Subject:From;
-        b=Gn6OCfVUPGyS4oAx96YxsTtj+cNxNEEvzwe2uyqoVHF3L3BVddAn3ohBmG5hiNmaZ
-         EAkx5dd0/ykasBO7YcRrvNLnXZka365AO8g2ybtBjS6894zyCWMdNjrBZSLGLQwNxT
-         uUUOhZ/aehFmPpH19XVgnH3xu79uV6tSGJrvNsLE=
-Date:   Fri, 4 Mar 2022 20:28:22 -0800
+        s=korg; t=1646454529;
+        bh=+1M1FNpf4BCFBCZ00q/IPpN1EKOhQcaQrHbJzYpIvhQ=;
+        h=Date:To:From:In-Reply-To:Subject:From;
+        b=OQ8VOrDCE7/BQ/UacFtLhUt5HtgiGBy+CK+TncIOCcLh/Gpx5er7fxnIKGa2/xBHp
+         acS6XeQJifi8Uu/7aPtCQ5bBFq3aKbFrSHAuoSU9MidKPJMe8Xjs0xrrbeZdoYcQFT
+         f0SnGh10H49VpoiVQFY6cYAeh4ds9O8j0Bmk16Rw=
+Date:   Fri, 04 Mar 2022 20:28:48 -0800
+To:     yosryahmed@google.com, songmuchun@bytedance.com,
+        skhan@linuxfoundation.org, almasrymina@google.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        patches@lists.linux.dev
-Subject: incoming
-Message-Id: <20220304202822.d47f8084928321c83070d7d7@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20220304202822.d47f8084928321c83070d7d7@linux-foundation.org>
+Subject: [patch 1/8] selftests/vm: cleanup hugetlb file after mremap test
+Message-Id: <20220305042849.6B6D7C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-8 patches, based on 07ebd38a0da24d2534da57b4841346379db9f354.
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: selftests/vm: cleanup hugetlb file after mremap test
 
-Subsystems affected by this patch series:
+The hugepage-mremap test will create a file in a hugetlb filesystem.  In a
+default 'run_vmtests' run, the file will contain all the hugetlb pages. 
+After the test, the file remains and there are no free hugetlb pages for
+subsequent tests.  This causes those hugetlb tests to fail.
 
-  mm/hugetlb
-  mm/pagemap
-  memfd
-  selftests
-  mm/userfaultfd
-  kconfig
+Change hugepage-mremap to take the name of the hugetlb file as an
+argument.  Unlink the file within the test, and just to be sure remove the
+file in the run_vmtests script.
 
-Subsystem: mm/hugetlb
+Link: https://lkml.kernel.org/r/20220201033459.156944-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mina Almasry <almasrymina@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    Mike Kravetz <mike.kravetz@oracle.com>:
-      selftests/vm: cleanup hugetlb file after mremap test
+ tools/testing/selftests/vm/hugepage-mremap.c |   26 ++++++++++++-----
+ tools/testing/selftests/vm/run_vmtests.sh    |    3 +
+ 2 files changed, 21 insertions(+), 8 deletions(-)
 
-Subsystem: mm/pagemap
-
-    Suren Baghdasaryan <surenb@google.com>:
-      mm: refactor vm_area_struct::anon_vma_name usage code
-      mm: prevent vm_area_struct::anon_name refcount saturation
-      mm: fix use-after-free when anon vma name is used after vma is freed
-
-Subsystem: memfd
-
-    Hugh Dickins <hughd@google.com>:
-      memfd: fix F_SEAL_WRITE after shmem huge page allocated
-
-Subsystem: selftests
-
-    Chengming Zhou <zhouchengming@bytedance.com>:
-      kselftest/vm: fix tests build with old libc
-
-Subsystem: mm/userfaultfd
-
-    Yun Zhou <yun.zhou@windriver.com>:
-      proc: fix documentation and description of pagemap
-
-Subsystem: kconfig
-
-    Qian Cai <quic_qiancai@quicinc.com>:
-      configs/debug: set CONFIG_DEBUG_INFO=y properly
-
- Documentation/admin-guide/mm/pagemap.rst     |    2 
- fs/proc/task_mmu.c                           |    9 +-
- fs/userfaultfd.c                             |    6 -
- include/linux/mm.h                           |    7 +
- include/linux/mm_inline.h                    |  105 ++++++++++++++++++---------
- include/linux/mm_types.h                     |    5 +
- kernel/configs/debug.config                  |    2 
- kernel/fork.c                                |    4 -
- kernel/sys.c                                 |   19 +++-
- mm/madvise.c                                 |   98 +++++++++----------------
- mm/memfd.c                                   |   40 +++++++---
- mm/mempolicy.c                               |    2 
- mm/mlock.c                                   |    2 
- mm/mmap.c                                    |   12 +--
- mm/mprotect.c                                |    2 
- tools/testing/selftests/vm/hugepage-mremap.c |   26 ++++--
- tools/testing/selftests/vm/run_vmtests.sh    |    3 
- tools/testing/selftests/vm/userfaultfd.c     |    1 
- 18 files changed, 201 insertions(+), 144 deletions(-)
-
+--- a/tools/testing/selftests/vm/hugepage-mremap.c~selftests-vm-cleanup-hugetlb-file-after-mremap-test
++++ a/tools/testing/selftests/vm/hugepage-mremap.c
+@@ -3,9 +3,10 @@
+  * hugepage-mremap:
+  *
+  * Example of remapping huge page memory in a user application using the
+- * mremap system call.  Code assumes a hugetlbfs filesystem is mounted
+- * at './huge'.  The amount of memory used by this test is decided by a command
+- * line argument in MBs. If missing, the default amount is 10MB.
++ * mremap system call.  The path to a file in a hugetlbfs filesystem must
++ * be passed as the last argument to this test.  The amount of memory used
++ * by this test in MBs can optionally be passed as an argument.  If no memory
++ * amount is passed, the default amount is 10MB.
+  *
+  * To make sure the test triggers pmd sharing and goes through the 'unshare'
+  * path in the mremap code use 1GB (1024) or more.
+@@ -25,7 +26,6 @@
+ #define DEFAULT_LENGTH_MB 10UL
+ #define MB_TO_BYTES(x) (x * 1024 * 1024)
+ 
+-#define FILE_NAME "huge/hugepagefile"
+ #define PROTECTION (PROT_READ | PROT_WRITE | PROT_EXEC)
+ #define FLAGS (MAP_SHARED | MAP_ANONYMOUS)
+ 
+@@ -107,17 +107,26 @@ static void register_region_with_uffd(ch
+ 
+ int main(int argc, char *argv[])
+ {
++	size_t length;
++
++	if (argc != 2 && argc != 3) {
++		printf("Usage: %s [length_in_MB] <hugetlb_file>\n", argv[0]);
++		exit(1);
++	}
++
+ 	/* Read memory length as the first arg if valid, otherwise fallback to
+-	 * the default length. Any additional args are ignored.
++	 * the default length.
+ 	 */
+-	size_t length = argc > 1 ? (size_t)atoi(argv[1]) : 0UL;
++	if (argc == 3)
++		length = argc > 2 ? (size_t)atoi(argv[1]) : 0UL;
+ 
+ 	length = length > 0 ? length : DEFAULT_LENGTH_MB;
+ 	length = MB_TO_BYTES(length);
+ 
+ 	int ret = 0;
+ 
+-	int fd = open(FILE_NAME, O_CREAT | O_RDWR, 0755);
++	/* last arg is the hugetlb file name */
++	int fd = open(argv[argc-1], O_CREAT | O_RDWR, 0755);
+ 
+ 	if (fd < 0) {
+ 		perror("Open failed");
+@@ -169,5 +178,8 @@ int main(int argc, char *argv[])
+ 
+ 	munmap(addr, length);
+ 
++	close(fd);
++	unlink(argv[argc-1]);
++
+ 	return ret;
+ }
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-cleanup-hugetlb-file-after-mremap-test
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -111,13 +111,14 @@ fi
+ echo "-----------------------"
+ echo "running hugepage-mremap"
+ echo "-----------------------"
+-./hugepage-mremap 256
++./hugepage-mremap $mnt/huge_mremap
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+ else
+ 	echo "[PASS]"
+ fi
++rm -f $mnt/huge_mremap
+ 
+ echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
+ echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
+_
