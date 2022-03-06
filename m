@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78BB0C433EF
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:40:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67F5CC433EF
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:44:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbiCFXlK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 18:41:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40184 "EHLO
+        id S234478AbiCFXpO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 18:45:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233025AbiCFXlK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:41:10 -0500
+        with ESMTP id S233054AbiCFXpN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:45:13 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1F0C396A1
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:40:16 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 890D23FBFE
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:44:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 50CD66101F
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:40:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A80BCC340EC;
-        Sun,  6 Mar 2022 23:40:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 22008610A1
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:44:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F6F2C340EC;
+        Sun,  6 Mar 2022 23:44:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646610015;
-        bh=tLvQy1MiaW6RGs84UbjD1qAFQCjruUNGXSDptsVASbU=;
+        s=korg; t=1646610259;
+        bh=ASdWsBAY97aPJ5m7eaaDmNsbcEi5F/WP2uMBBUW4TGk=;
         h=Date:To:From:Subject:From;
-        b=g843GLf6tDaETBS9/eH6nOSFIxqZ05mGJ1RqMbS/P5b58LwX/zYJv4TZd63YpCmwd
-         QZ85TewE9OiNCUiLn78Ej7Rb2YaKD3Guzfq4zByMigYGpeQgHqpny9Zax4Uy2Q62CL
-         GCL86FU4TUdqzuhKP7UTRQYwuB0Y+treCvnOUwuA=
-Date:   Sun, 06 Mar 2022 15:40:15 -0800
+        b=dKEdS6TTxwK3LsdxRalxL8ZAtjFHTk3zKlI393yCkgDKUFiaD079roE/TIe74PRxe
+         lFUw8iDJHrfdPd3HtCWO1XqsJC4uHtTBLIpg/HUEheLDLOlNfpRALe9jzWZKeS+OQf
+         FEcQJK4mkffG/mvSiQ+FI+vu785PXgUWkzrrLNLc=
+Date:   Sun, 06 Mar 2022 15:44:18 -0800
 To:     mm-commits@vger.kernel.org, glider@google.com, elver@google.com,
         dvyukov@google.com, dtcccc@linux.alibaba.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kfence-alloc-kfence_pool-after-system-startup.patch added to -mm tree
-Message-Id: <20220306234015.A80BCC340EC@smtp.kernel.org>
+Subject: + kfence-allow-re-enabling-kfence-after-system-startup.patch added to -mm tree
+Message-Id: <20220306234419.6F6F2C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: alloc kfence_pool after system startup
+     Subject: kfence: allow re-enabling KFENCE after system startup
 has been added to the -mm tree.  Its filename is
-     kfence-alloc-kfence_pool-after-system-startup.patch
+     kfence-allow-re-enabling-kfence-after-system-startup.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-alloc-kfence_pool-after-system-startup.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-allow-re-enabling-kfence-after-system-startup.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-alloc-kfence_pool-after-system-startup.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-allow-re-enabling-kfence-after-system-startup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,202 +64,91 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tianchen Ding <dtcccc@linux.alibaba.com>
-Subject: kfence: alloc kfence_pool after system startup
+Subject: kfence: allow re-enabling KFENCE after system startup
 
-Allow enabling KFENCE after system startup by allocating its pool via the
-page allocator.  This provides the flexibility to enable KFENCE even if it
-wasn't enabled at boot time.
+Patch series "provide the flexibility to enable KFENCE", v2.
 
-Link: https://lkml.kernel.org/r/20220305144858.17040-3-dtcccc@linux.alibaba.com
+
+This patch (of 2):
+
+If once KFENCE is disabled by:
+echo 0 > /sys/module/kfence/parameters/sample_interval
+KFENCE could never be re-enabled until next rebooting.
+
+Allow re-enabling it by writing a positive num to sample_interval.
+
+Link: https://lkml.kernel.org/r/20220305144858.17040-1-dtcccc@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20220305144858.17040-2-dtcccc@linux.alibaba.com
 Signed-off-by: Tianchen Ding <dtcccc@linux.alibaba.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   99 +++++++++++++++++++++++++++++++++++----------
- 1 file changed, 78 insertions(+), 21 deletions(-)
+ mm/kfence/core.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
---- a/mm/kfence/core.c~kfence-alloc-kfence_pool-after-system-startup
+--- a/mm/kfence/core.c~kfence-allow-re-enabling-kfence-after-system-startup
 +++ a/mm/kfence/core.c
-@@ -96,7 +96,7 @@ static unsigned long kfence_skip_covered
- module_param_named(skip_covered_thresh, kfence_skip_covered_thresh, ulong, 0644);
+@@ -38,14 +38,17 @@
+ #define KFENCE_WARN_ON(cond)                                                   \
+ 	({                                                                     \
+ 		const bool __cond = WARN_ON(cond);                             \
+-		if (unlikely(__cond))                                          \
++		if (unlikely(__cond)) {                                        \
+ 			WRITE_ONCE(kfence_enabled, false);                     \
++			disabled_by_warn = true;                               \
++		}                                                              \
+ 		__cond;                                                        \
+ 	})
  
- /* The pool of pages used for guard pages and objects. */
--char *__kfence_pool __ro_after_init;
-+char *__kfence_pool __read_mostly;
- EXPORT_SYMBOL(__kfence_pool); /* Export for test modules. */
+ /* === Data ================================================================= */
  
- /*
-@@ -537,17 +537,19 @@ static void rcu_guarded_free(struct rcu_
- 	kfence_guarded_free((void *)meta->addr, meta, false);
- }
+ static bool kfence_enabled __read_mostly;
++static bool disabled_by_warn __read_mostly;
  
--static bool __init kfence_init_pool(void)
-+/*
-+ * Initialization of the KFENCE pool after its allocation.
-+ * Returns 0 on success; otherwise returns the address up to
-+ * which partial initialization succeeded.
-+ */
-+static unsigned long kfence_init_pool(void)
+ unsigned long kfence_sample_interval __read_mostly = CONFIG_KFENCE_SAMPLE_INTERVAL;
+ EXPORT_SYMBOL_GPL(kfence_sample_interval); /* Export for test modules. */
+@@ -55,6 +58,7 @@ EXPORT_SYMBOL_GPL(kfence_sample_interval
+ #endif
+ #define MODULE_PARAM_PREFIX "kfence."
+ 
++static int kfence_enable_late(void);
+ static int param_set_sample_interval(const char *val, const struct kernel_param *kp)
  {
- 	unsigned long addr = (unsigned long)__kfence_pool;
- 	struct page *pages;
- 	int i;
+ 	unsigned long num;
+@@ -65,10 +69,11 @@ static int param_set_sample_interval(con
  
--	if (!__kfence_pool)
--		return false;
--
- 	if (!arch_kfence_init_pool())
--		goto err;
-+		return addr;
+ 	if (!num) /* Using 0 to indicate KFENCE is disabled. */
+ 		WRITE_ONCE(kfence_enabled, false);
+-	else if (!READ_ONCE(kfence_enabled) && system_state != SYSTEM_BOOTING)
+-		return -EINVAL; /* Cannot (re-)enable KFENCE on-the-fly. */
  
- 	pages = virt_to_page(addr);
- 
-@@ -565,7 +567,7 @@ static bool __init kfence_init_pool(void
- 
- 		/* Verify we do not have a compound head page. */
- 		if (WARN_ON(compound_head(&pages[i]) != &pages[i]))
--			goto err;
-+			return addr;
- 
- 		__SetPageSlab(&pages[i]);
- 	}
-@@ -578,7 +580,7 @@ static bool __init kfence_init_pool(void
- 	 */
- 	for (i = 0; i < 2; i++) {
- 		if (unlikely(!kfence_protect(addr)))
--			goto err;
-+			return addr;
- 
- 		addr += PAGE_SIZE;
- 	}
-@@ -595,7 +597,7 @@ static bool __init kfence_init_pool(void
- 
- 		/* Protect the right redzone. */
- 		if (unlikely(!kfence_protect(addr + PAGE_SIZE)))
--			goto err;
-+			return addr;
- 
- 		addr += 2 * PAGE_SIZE;
- 	}
-@@ -608,9 +610,21 @@ static bool __init kfence_init_pool(void
- 	 */
- 	kmemleak_free(__kfence_pool);
- 
--	return true;
-+	return 0;
-+}
+ 	*((unsigned long *)kp->arg) = num;
 +
-+static bool __init kfence_init_pool_early(void)
++	if (num && !READ_ONCE(kfence_enabled) && system_state != SYSTEM_BOOTING)
++		return disabled_by_warn ? -EINVAL : kfence_enable_late();
+ 	return 0;
+ }
+ 
+@@ -787,6 +792,16 @@ void __init kfence_init(void)
+ 		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
+ }
+ 
++static int kfence_enable_late(void)
 +{
-+	unsigned long addr;
-+
 +	if (!__kfence_pool)
-+		return false;
++		return -EINVAL;
 +
-+	addr = kfence_init_pool();
-+
-+	if (!addr)
-+		return true;
- 
--err:
- 	/*
- 	 * Only release unprotected pages, and do not try to go back and change
- 	 * page attributes due to risk of failing to do so as well. If changing
-@@ -623,6 +637,22 @@ err:
- 	return false;
- }
- 
-+static bool kfence_init_pool_late(void)
-+{
-+	unsigned long addr, free_pages;
-+
-+	addr = kfence_init_pool();
-+
-+	if (!addr)
-+		return true;
-+
-+	/* Same as above. */
-+	free_pages = (KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool)) / PAGE_SIZE;
-+	free_contig_range(page_to_pfn(virt_to_page(addr)), free_pages);
-+	__kfence_pool = NULL;
-+	return false;
-+}
-+
- /* === DebugFS Interface ==================================================== */
- 
- static int stats_show(struct seq_file *seq, void *v)
-@@ -771,31 +801,58 @@ void __init kfence_alloc_pool(void)
- 		pr_err("failed to allocate pool\n");
- }
- 
-+static void kfence_init_enable(void)
-+{
-+	if (!IS_ENABLED(CONFIG_KFENCE_STATIC_KEYS))
-+		static_branch_enable(&kfence_allocation_key);
 +	WRITE_ONCE(kfence_enabled, true);
 +	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
-+	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
-+		CONFIG_KFENCE_NUM_OBJECTS, (void *)__kfence_pool,
-+		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
-+}
-+
- void __init kfence_init(void)
- {
-+	stack_hash_seed = (u32)random_get_entropy();
-+
- 	/* Setting kfence_sample_interval to 0 on boot disables KFENCE. */
- 	if (!kfence_sample_interval)
- 		return;
- 
--	stack_hash_seed = (u32)random_get_entropy();
--	if (!kfence_init_pool()) {
-+	if (!kfence_init_pool_early()) {
- 		pr_err("%s failed\n", __func__);
- 		return;
- 	}
- 
--	if (!IS_ENABLED(CONFIG_KFENCE_STATIC_KEYS))
--		static_branch_enable(&kfence_allocation_key);
--	WRITE_ONCE(kfence_enabled, true);
--	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
--	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
--		CONFIG_KFENCE_NUM_OBJECTS, (void *)__kfence_pool,
--		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
-+	kfence_init_enable();
-+}
-+
-+static int kfence_init_late(void)
-+{
-+	const unsigned long nr_pages = KFENCE_POOL_SIZE / PAGE_SIZE;
-+	struct page *pages;
-+
-+	pages = alloc_contig_pages(nr_pages, GFP_KERNEL, first_online_node, NULL);
-+
-+	if (!pages)
-+		return -ENOMEM;
-+
-+	__kfence_pool = page_to_virt(pages);
-+
-+	if (!kfence_init_pool_late()) {
-+		pr_err("%s failed\n", __func__);
-+		return -EBUSY;
-+	}
-+
-+	kfence_init_enable();
 +	return 0;
- }
- 
- static int kfence_enable_late(void)
++}
++
+ void kfence_shutdown_cache(struct kmem_cache *s)
  {
- 	if (!__kfence_pool)
--		return -EINVAL;
-+		return kfence_init_late();
- 
- 	WRITE_ONCE(kfence_enabled, true);
- 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
+ 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from dtcccc@linux.alibaba.com are
