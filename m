@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5BF7C433F5
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:14:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 537D7C433EF
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:28:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231717AbiCFXP2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 18:15:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47486 "EHLO
+        id S234431AbiCFX2z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 18:28:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230331AbiCFXP1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:15:27 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D86E1EAD9
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:14:34 -0800 (PST)
+        with ESMTP id S230331AbiCFX2z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:28:55 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C486B5FAF
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:28:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E450B60F99
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:14:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41969C340EF;
-        Sun,  6 Mar 2022 23:14:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CE18EB80F93
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:27:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C59EC340EC;
+        Sun,  6 Mar 2022 23:27:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646608473;
-        bh=Y0Ud6DHBkjildEYHEFVj72PEbD+/KiB1qsLd+2TTZrc=;
+        s=korg; t=1646609278;
+        bh=N++zWnk33uhTr8HjC5HZfxp6+gnz7ZDBwl9gj5I3FNw=;
         h=Date:To:From:Subject:From;
-        b=btJsNei7gH72TgVYFnDTYKu8Em8DT9ZjNPw8oBFYtLTgtAcAvmDgPnepEQECfhRO3
-         iUWAESWxdhJDyouB/tsvQNNqw9YbAlEa+vsZE7yvytPF+r5jLIHyIeC6Oz5yxgLKWD
-         S34z4dD8+aj59pqfB5RbW/fvHmlkmJH7ONIWQurw=
-Date:   Sun, 06 Mar 2022 15:14:32 -0800
-To:     mm-commits@vger.kernel.org, yury.norov@gmail.com,
-        tiantao6@hisilicon.com, mike.travis@hpe.com,
-        linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org,
-        andriy.shevchenko@linux.intel.com, rdunlap@infradead.org,
-        akpm@linux-foundation.org
+        b=NnU6vqC9wbEcy6qWUSrizYBgFeXWgaqo0NA84kLGH1VuK8tgyfDq/CMFSlfONmwnR
+         leFUr88//QaoWQpIat12G20TtBOt6EXKPv46OoZ4+nmdEAykIgHHfB9rUXkuxH7+PJ
+         JZF2uYktUsRFyAAbukIygf5aTivwVTsuWFxd9gqA=
+Date:   Sun, 06 Mar 2022 15:27:57 -0800
+To:     mm-commits@vger.kernel.org, zhangyinan2019@email.szu.edu.cn,
+        weizhenliang@huawei.com, sfr@canb.auug.org.au, seanga2@gmail.com,
+        hanshenghong2019@email.szu.edu.cn, caoyixuan2019@email.szu.edu.cn,
+        yejiajian2018@email.szu.edu.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-bitmap-fix-many-kernel-doc-warnings.patch added to -mm tree
-Message-Id: <20220306231433.41969C340EF@smtp.kernel.org>
+Subject: + tools-vm-page_owner_sort-fix-three-trivival-places.patch added to -mm tree
+Message-Id: <20220306232758.6C59EC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: fix many kernel-doc warnings
+     Subject: tools/vm/page_owner_sort: fix three trivival places
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-fix-many-kernel-doc-warnings.patch
+     tools-vm-page_owner_sort-fix-three-trivival-places.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-fix-many-kernel-doc-warnings.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sort-fix-three-trivival-places.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-fix-many-kernel-doc-warnings.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sort-fix-three-trivival-places.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,115 +64,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: bitmap: fix many kernel-doc warnings
+From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Subject: tools/vm/page_owner_sort: fix three trivival places
 
-Fix kernel-doc warings in lib/bitmap.c:
+The following adjustments are made:
 
-../lib/bitmap.c:498: warning: Function parameter or member 'buf' not described in 'bitmap_print_to_buf'
-../lib/bitmap.c:498: warning: Function parameter or member 'maskp' not described in 'bitmap_print_to_buf'
-../lib/bitmap.c:498: warning: Function parameter or member 'nmaskbits' not described in 'bitmap_print_to_buf'
-../lib/bitmap.c:498: warning: Function parameter or member 'off' not described in 'bitmap_print_to_buf'
-../lib/bitmap.c:498: warning: Function parameter or member 'count' not described in 'bitmap_print_to_buf'
-../lib/bitmap.c:561: warning: contents before sections
-../lib/bitmap.c:606: warning: Function parameter or member 'buf' not described in 'bitmap_print_list_to_buf'
-../lib/bitmap.c:606: warning: Function parameter or member 'maskp' not described in 'bitmap_print_list_to_buf'
-../lib/bitmap.c:606: warning: Function parameter or member 'nmaskbits' not described in 'bitmap_print_list_to_buf'
-../lib/bitmap.c:606: warning: Function parameter or member 'off' not described in 'bitmap_print_list_to_buf'
-../lib/bitmap.c:606: warning: Function parameter or member 'count' not described in 'bitmap_print_list_to_buf'
-../lib/bitmap.c:819: warning: missing initial short description on line:
- * bitmap_parselist_user()
+1. Instead of using another array to cull the blocks after sorting,
+   reuse the old array.  So there is no need to malloc a new array.
 
-This still leaves 15 warnings for function return values not described,
-similar to this one:
-bitmap.c:890: warning: No description found for return value of 'bitmap_parse'
+2. When enabling '-f' option to filter out the blocks which have been
+   released, only add those have not been released in the list, rather
+   than add all of blocks in the list and then do the filtering when
+   printing the result.
 
-Link: https://lkml.kernel.org/r/20220306065823.5153-1-rdunlap@infradead.org
-Fixes: 1fae562983ca ("cpumask: introduce cpumap_print_list/bitmask_to_buf to support large bitmask and list")
-Fixes: 4b060420a596 ("bitmap, irq: add smp_affinity_list interface to /proc/irq")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Yury Norov <yury.norov@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Tian Tao <tiantao6@hisilicon.com>
-Cc: Mike Travis <mike.travis@hpe.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+3. When enabling '-c' option to cull the blocks by comparing
+   stacktrace, print the stacetrace rather than the total block.
+
+Link: https://lkml.kernel.org/r/20220306030640.43054-1-yejiajian2018@email.szu.edu.cn
+Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Cc: <hanshenghong2019@email.szu.edu.cn>
+Cc: Sean Anderson <seanga2@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Cc: <zhangyinan2019@email.szu.edu.cn>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |   24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+ tools/vm/page_owner_sort.c |   37 +++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
---- a/lib/bitmap.c~lib-bitmap-fix-many-kernel-doc-warnings
-+++ a/lib/bitmap.c
-@@ -492,6 +492,11 @@ EXPORT_SYMBOL(bitmap_print_to_pagebuf);
-  * @list: indicates whether the bitmap must be list
-  *      true:  print in decimal list format
-  *      false: print in hexadecimal bitmask format
-+ * @buf: buffer into which string is placed
-+ * @maskp: pointer to bitmap to convert
-+ * @nmaskbits: size of bitmap, in bits
-+ * @off: in the string from which we are copying, We copy to @buf
-+ * @count: the maximum number of bytes to print
-  */
- static int bitmap_print_to_buf(bool list, char *buf, const unsigned long *maskp,
- 		int nmaskbits, loff_t off, size_t count)
-@@ -512,6 +517,11 @@ static int bitmap_print_to_buf(bool list
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-fix-three-trivival-places
++++ a/tools/vm/page_owner_sort.c
+@@ -42,6 +42,8 @@ static regex_t free_ts_nsec_pattern;
+ static struct block_list *list;
+ static int list_size;
+ static int max_size;
++static int cull_st;
++static int filter;
  
- /**
-  * bitmap_print_bitmask_to_buf  - convert bitmap to hex bitmask format ASCII string
-+ * @buf: buffer into which string is placed
-+ * @maskp: pointer to bitmap to convert
-+ * @nmaskbits: size of bitmap, in bits
-+ * @off: in the string from which we are copying, We copy to @buf
-+ * @count: the maximum number of bytes to print
-  *
-  * The bitmap_print_to_pagebuf() is used indirectly via its cpumap wrapper
-  * cpumap_print_to_pagebuf() or directly by drivers to export hexadecimal
-@@ -553,12 +563,6 @@ static int bitmap_print_to_buf(bool list
-  * move to use bin_attribute. In result, we have to pass the corresponding
-  * parameters such as off, count from bin_attribute show entry to this API.
-  *
-- * @buf: buffer into which string is placed
-- * @maskp: pointer to bitmap to convert
-- * @nmaskbits: size of bitmap, in bits
-- * @off: in the string from which we are copying, We copy to @buf
-- * @count: the maximum number of bytes to print
-- *
-  * The role of cpumap_print_bitmask_to_buf() and cpumap_print_list_to_buf()
-  * is similar with cpumap_print_to_pagebuf(),  the difference is that
-  * bitmap_print_to_pagebuf() mainly serves sysfs attribute with the assumption
-@@ -597,6 +601,11 @@ EXPORT_SYMBOL(bitmap_print_bitmask_to_bu
+ int read_block(char *buf, int buf_size, FILE *fin)
+ {
+@@ -245,6 +247,9 @@ static void add_list(char *buf, int len)
+ 		exit(1);
+ 	}
  
- /**
-  * bitmap_print_list_to_buf  - convert bitmap to decimal list format ASCII string
-+ * @buf: buffer into which string is placed
-+ * @maskp: pointer to bitmap to convert
-+ * @nmaskbits: size of bitmap, in bits
-+ * @off: in the string from which we are copying, We copy to @buf
-+ * @count: the maximum number of bytes to print
-  *
-  * Everything is same with the above bitmap_print_bitmask_to_buf() except
-  * the print format.
-@@ -807,7 +816,8 @@ EXPORT_SYMBOL(bitmap_parselist);
++	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
++	if (filter == 1 && list[list_size].free_ts_nsec != 0)
++		return;
+ 	list[list_size].txt = malloc(len+1);
+ 	if (!list[list_size].txt) {
+ 		printf("Out of memory\n");
+@@ -257,10 +262,11 @@ static void add_list(char *buf, int len)
+ 	memcpy(list[list_size].txt, buf, len);
+ 	list[list_size].txt[len] = 0;
+ 	list[list_size].stacktrace = strchr(list[list_size].txt, '\n') ?: "";
++	if (*list[list_size].stacktrace == '\n')
++		list[list_size].stacktrace++;
+ 	list[list_size].pid = get_pid(buf);
+ 	list[list_size].tgid = get_tgid(buf);
+ 	list[list_size].ts_nsec = get_ts_nsec(buf);
+-	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
+ 	list_size++;
+ 	if (list_size % 1000 == 0) {
+ 		printf("loaded %d\r", list_size);
+@@ -288,12 +294,9 @@ static void usage(void)
+ int main(int argc, char **argv)
+ {
+ 	int (*cmp)(const void *, const void *) = compare_num;
+-	int cull_st = 0;
+-	int filter = 0;
+ 	FILE *fin, *fout;
+ 	char *buf;
+ 	int ret, i, count;
+-	struct block_list *list2;
+ 	struct stat st;
+ 	int opt;
  
+@@ -376,11 +379,7 @@ int main(int argc, char **argv)
+ 	else
+ 		qsort(list, list_size, sizeof(list[0]), compare_txt);
  
- /**
-- * bitmap_parselist_user()
-+ * bitmap_parselist_user() - convert user buffer's list format ASCII
-+ * string to bitmap
-  *
-  * @ubuf: pointer to user buffer containing string.
-  * @ulen: buffer size in bytes.  If string is smaller than this
+-	list2 = malloc(sizeof(*list) * list_size);
+-	if (!list2) {
+-		printf("Out of memory\n");
+-		exit(1);
+-	}
++
+ 
+ 	printf("culling\n");
+ 
+@@ -388,21 +387,23 @@ int main(int argc, char **argv)
+ 
+ 	for (i = count = 0; i < list_size; i++) {
+ 		if (count == 0 ||
+-		    strcmp(*(&list2[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
+-			list2[count++] = list[i];
++		    strcmp(*(&list[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
++			list[count++] = list[i];
+ 		} else {
+-			list2[count-1].num += list[i].num;
+-			list2[count-1].page_num += list[i].page_num;
++			list[count-1].num += list[i].num;
++			list[count-1].page_num += list[i].page_num;
+ 		}
+ 	}
+ 
+-	qsort(list2, count, sizeof(list[0]), cmp);
++	qsort(list, count, sizeof(list[0]), cmp);
+ 
+ 	for (i = 0; i < count; i++) {
+-		if (filter == 1 && list2[i].free_ts_nsec != 0)
+-			continue;
+-		fprintf(fout, "%d times, %d pages:\n%s\n",
+-				list2[i].num, list2[i].page_num, list2[i].txt);
++		if (cull_st == 0)
++			fprintf(fout, "%d times, %d pages:\n%s\n",
++					list[i].num, list[i].page_num, list[i].txt);
++		else
++			fprintf(fout, "%d times, %d pages:\n%s\n",
++					list[i].num, list[i].page_num, list[i].stacktrace);
+ 	}
+ 	regfree(&order_pattern);
+ 	regfree(&pid_pattern);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
 
-mm-memcontrol-return-1-from-cgroupmemory-__setup-handler.patch
-mm-mmap-return-1-from-stack_guard_gap-__setup-handler.patch
-mm-usercopy-return-1-from-hardened_usercopy-__setup-handler.patch
-lib-bitmap-fix-many-kernel-doc-warnings.patch
-inith-improve-__setup-and-early_param-documentation.patch
-init-mainc-return-1-from-handled-__setup-functions.patch
-docs-sysctl-kernel-add-missing-bit-to-panic_print-fix.patch
+tools-vm-page_owner_sortc-fix-comments.patch
+tools-vm-page_owner_sortc-add-a-security-check.patch
+tools-vm-page_owner_sortc-support-sorting-by-tgid-and-update-documentation.patch
+tools-vm-page_owner_sort-fix-three-trivival-places.patch
+tools-vm-page_owner_sort-support-for-sorting-by-task-command-name.patch
 
