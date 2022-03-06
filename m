@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BD52C433EF
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 22:08:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17EA0C433FE
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 22:08:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234315AbiCFWJr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 17:09:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46782 "EHLO
+        id S234316AbiCFWJs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 17:09:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229812AbiCFWJp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 17:09:45 -0500
+        with ESMTP id S234309AbiCFWJr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 17:09:47 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25BAF22BD9
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 14:08:52 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEFBE22BEC
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 14:08:54 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AB60F6100F
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 22:08:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FB3AC340EF;
-        Sun,  6 Mar 2022 22:08:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E72B6100F
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 22:08:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CB3AC340EF;
+        Sun,  6 Mar 2022 22:08:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646604531;
-        bh=R4wrw/uyDr26F/MIUCDKqAZdJ/owzdzI9XYbgbzNE7s=;
+        s=korg; t=1646604533;
+        bh=PrOfeI1b6o8s6TKk/WGcihWbb4e+DdRLcQLSoxOpehg=;
         h=Date:To:From:Subject:From;
-        b=1wUJV+8PiEmHlNdyQ+wdvV7o4FlTRz6aL83vja+ebQkcUvC6CCuqJkew0DfFy7wil
-         l0CqW5ibJysSZziIDkK3HJxrBW7rk8qt1bJWZxJjvsUwZMO1oJPb8vv2F6yT9Udk58
-         H9afhfWaJH+gdYESkO3K4cc9BenlEFCCpMN7O8sQ=
-Date:   Sun, 06 Mar 2022 14:08:50 -0800
+        b=hmVlcukqEGjSn0u+Wd2n34TNyoXZFWD3x5IVpTN2YKI9Dg0e6f/2akiGhT+QJkqQ/
+         gCFsKdOWVi+FY8JFDhu+5vTFDJJy2ghgJ/qMvFPIeLO/uhJTmUBZUzejOgRpjqikZ/
+         DrwnFJgNWx4nrFjRDAvV9Fz7kI0n82Kq7qcJn+bo=
+Date:   Sun, 06 Mar 2022 14:08:52 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         sumit.semwal@linaro.org, sashal@kernel.org, pcc@google.com,
         mhocko@suse.com, legion@kernel.org,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         chris.hyser@oracle.com, ccross@google.com, caoxiaofeng@yulong.com,
         brauner@kernel.org, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-refactor-vm_area_struct-anon_vma_name-usage-code.patch removed from -mm tree
-Message-Id: <20220306220851.0FB3AC340EF@smtp.kernel.org>
+Subject: [merged] mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch removed from -mm tree
+Message-Id: <20220306220853.9CB3AC340EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,617 +47,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: refactor vm_area_struct::anon_vma_name usage code
+     Subject: mm: fix use-after-free when anon vma name is used after vma is freed
 has been removed from the -mm tree.  Its filename was
-     mm-refactor-vm_area_struct-anon_vma_name-usage-code.patch
+     mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: refactor vm_area_struct::anon_vma_name usage code
+Subject: mm: fix use-after-free when anon vma name is used after vma is freed
 
-Avoid mixing strings and their anon_vma_name referenced pointers by using
-struct anon_vma_name whenever possible.  This simplifies the code and
-allows easier sharing of anon_vma_name structures when they represent the
-same name.
+When adjacent vmas are being merged it can result in the vma that was
+originally passed to madvise_update_vma being destroyed.  In the current
+implementation, the name parameter passed to madvise_update_vma points
+directly to vma->anon_name and it is used after the call to vma_merge.  In
+the cases when vma_merge merges the original vma and destroys it, this
+might result in UAF.  For that the original vma would have to hold the
+anon_vma_name with the last reference.  The following vma would need to
+contain a different anon_vma_name object with the same string.  Such
+scenario is shown below:
 
-[surenb@google.com: fix comment]
-  Link: https://lkml.kernel.org/r/20220223153613.835563-1-surenb@google.com
-  Link: https://lkml.kernel.org/r/20220224231834.1481408-1-surenb@google.com
-Link: https://lkml.kernel.org/r/20220223153613.835563-1-surenb@google.com
+madvise_vma_behavior(vma)
+  madvise_update_vma(vma, ..., anon_name == vma->anon_name)
+    vma_merge(vma)
+      __vma_adjust(vma) <-- merges vma with adjacent one
+        vm_area_free(vma) <-- frees the original vma
+    replace_vma_anon_name(anon_name) <-- UAF of vma->anon_name
+
+Fix this by raising the name refcount and stabilizing it.
+
+Link: https://lkml.kernel.org/r/20220224231834.1481408-3-surenb@google.com
+Link: https://lkml.kernel.org/r/20220223153613.835563-3-surenb@google.com
+Fixes: 9a10064f5625 ("mm: add a field to store names for private anonymous memory")
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Suggested-by: Michal Hocko <mhocko@suse.com>
+Reported-by: syzbot+aa7b3d4b35f9dc46a366@syzkaller.appspotmail.com
 Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alexey Gladkov <legion@kernel.org>
+Cc: Chris Hyser <chris.hyser@oracle.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: Colin Cross <ccross@google.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Alexey Gladkov <legion@kernel.org>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Chris Hyser <chris.hyser@oracle.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Peter Collingbourne <pcc@google.com>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xiaofeng Cao <caoxiaofeng@yulong.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c        |    6 +-
- fs/userfaultfd.c          |    6 +-
- include/linux/mm.h        |    7 +-
- include/linux/mm_inline.h |   87 ++++++++++++++++++++++++------------
- include/linux/mm_types.h  |    5 +-
- kernel/fork.c             |    4 -
- kernel/sys.c              |   19 ++++---
- mm/madvise.c              |   87 ++++++++++++------------------------
- mm/mempolicy.c            |    2 
- mm/mlock.c                |    2 
- mm/mmap.c                 |   12 ++--
- mm/mprotect.c             |    2 
- 12 files changed, 125 insertions(+), 114 deletions(-)
+ mm/madvise.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/fs/proc/task_mmu.c
-@@ -309,7 +309,7 @@ show_map_vma(struct seq_file *m, struct
- 
- 	name = arch_vma_name(vma);
- 	if (!name) {
--		const char *anon_name;
-+		struct anon_vma_name *anon_name;
- 
- 		if (!mm) {
- 			name = "[vdso]";
-@@ -327,10 +327,10 @@ show_map_vma(struct seq_file *m, struct
- 			goto done;
- 		}
- 
--		anon_name = vma_anon_name(vma);
-+		anon_name = anon_vma_name(vma);
- 		if (anon_name) {
- 			seq_pad(m, ' ');
--			seq_printf(m, "[anon:%s]", anon_name);
-+			seq_printf(m, "[anon:%s]", anon_name->name);
- 		}
- 	}
- 
---- a/fs/userfaultfd.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/fs/userfaultfd.c
-@@ -878,7 +878,7 @@ static int userfaultfd_release(struct in
- 				 new_flags, vma->anon_vma,
- 				 vma->vm_file, vma->vm_pgoff,
- 				 vma_policy(vma),
--				 NULL_VM_UFFD_CTX, vma_anon_name(vma));
-+				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
- 		if (prev)
- 			vma = prev;
- 		else
-@@ -1438,7 +1438,7 @@ static int userfaultfd_register(struct u
- 				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
- 				 vma_policy(vma),
- 				 ((struct vm_userfaultfd_ctx){ ctx }),
--				 vma_anon_name(vma));
-+				 anon_vma_name(vma));
- 		if (prev) {
- 			vma = prev;
- 			goto next;
-@@ -1615,7 +1615,7 @@ static int userfaultfd_unregister(struct
- 		prev = vma_merge(mm, prev, start, vma_end, new_flags,
- 				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
- 				 vma_policy(vma),
--				 NULL_VM_UFFD_CTX, vma_anon_name(vma));
-+				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
- 		if (prev) {
- 			vma = prev;
- 			goto next;
---- a/include/linux/mm.h~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/include/linux/mm.h
-@@ -2626,7 +2626,7 @@ static inline int vma_adjust(struct vm_a
- extern struct vm_area_struct *vma_merge(struct mm_struct *,
- 	struct vm_area_struct *prev, unsigned long addr, unsigned long end,
- 	unsigned long vm_flags, struct anon_vma *, struct file *, pgoff_t,
--	struct mempolicy *, struct vm_userfaultfd_ctx, const char *);
-+	struct mempolicy *, struct vm_userfaultfd_ctx, struct anon_vma_name *);
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
- extern int __split_vma(struct mm_struct *, struct vm_area_struct *,
- 	unsigned long addr, int new_below);
-@@ -3372,11 +3372,12 @@ static inline int seal_check_future_writ
- 
- #ifdef CONFIG_ANON_VMA_NAME
- int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
--			  unsigned long len_in, const char *name);
-+			  unsigned long len_in,
-+			  struct anon_vma_name *anon_name);
- #else
- static inline int
- madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
--		      unsigned long len_in, const char *name) {
-+		      unsigned long len_in, struct anon_vma_name *anon_name) {
- 	return 0;
- }
- #endif
---- a/include/linux/mm_inline.h~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/include/linux/mm_inline.h
-@@ -140,50 +140,81 @@ static __always_inline void del_page_fro
- 
- #ifdef CONFIG_ANON_VMA_NAME
- /*
-- * mmap_lock should be read-locked when calling vma_anon_name() and while using
-- * the returned pointer.
-+ * mmap_lock should be read-locked when calling anon_vma_name(). Caller should
-+ * either keep holding the lock while using the returned pointer or it should
-+ * raise anon_vma_name refcount before releasing the lock.
-  */
--extern const char *vma_anon_name(struct vm_area_struct *vma);
-+extern struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma);
-+extern struct anon_vma_name *anon_vma_name_alloc(const char *name);
-+extern void anon_vma_name_free(struct kref *kref);
- 
--/*
-- * mmap_lock should be read-locked for orig_vma->vm_mm.
-- * mmap_lock should be write-locked for new_vma->vm_mm or new_vma should be
-- * isolated.
-- */
--extern void dup_vma_anon_name(struct vm_area_struct *orig_vma,
--			      struct vm_area_struct *new_vma);
-+/* mmap_lock should be read-locked */
-+static inline void anon_vma_name_get(struct anon_vma_name *anon_name)
-+{
-+	if (anon_name)
-+		kref_get(&anon_name->kref);
-+}
- 
--/*
-- * mmap_lock should be write-locked or vma should have been isolated under
-- * write-locked mmap_lock protection.
-- */
--extern void free_vma_anon_name(struct vm_area_struct *vma);
-+static inline void anon_vma_name_put(struct anon_vma_name *anon_name)
-+{
-+	if (anon_name)
-+		kref_put(&anon_name->kref, anon_vma_name_free);
-+}
- 
--/* mmap_lock should be read-locked */
--static inline bool is_same_vma_anon_name(struct vm_area_struct *vma,
--					 const char *name)
-+static inline void dup_anon_vma_name(struct vm_area_struct *orig_vma,
-+				     struct vm_area_struct *new_vma)
-+{
-+	struct anon_vma_name *anon_name = anon_vma_name(orig_vma);
-+
-+	if (anon_name) {
-+		anon_vma_name_get(anon_name);
-+		new_vma->anon_name = anon_name;
-+	}
-+}
-+
-+static inline void free_anon_vma_name(struct vm_area_struct *vma)
- {
--	const char *vma_name = vma_anon_name(vma);
-+	/*
-+	 * Not using anon_vma_name because it generates a warning if mmap_lock
-+	 * is not held, which might be the case here.
-+	 */
-+	if (!vma->vm_file)
-+		anon_vma_name_put(vma->anon_name);
-+}
- 
--	/* either both NULL, or pointers to same string */
--	if (vma_name == name)
-+static inline bool anon_vma_name_eq(struct anon_vma_name *anon_name1,
-+				    struct anon_vma_name *anon_name2)
-+{
-+	if (anon_name1 == anon_name2)
- 		return true;
- 
--	return name && vma_name && !strcmp(name, vma_name);
-+	return anon_name1 && anon_name2 &&
-+		!strcmp(anon_name1->name, anon_name2->name);
- }
-+
- #else /* CONFIG_ANON_VMA_NAME */
--static inline const char *vma_anon_name(struct vm_area_struct *vma)
-+static inline struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
-+{
-+	return NULL;
-+}
-+
-+static inline struct anon_vma_name *anon_vma_name_alloc(const char *name)
- {
- 	return NULL;
- }
--static inline void dup_vma_anon_name(struct vm_area_struct *orig_vma,
--			      struct vm_area_struct *new_vma) {}
--static inline void free_vma_anon_name(struct vm_area_struct *vma) {}
--static inline bool is_same_vma_anon_name(struct vm_area_struct *vma,
--					 const char *name)
-+
-+static inline void anon_vma_name_get(struct anon_vma_name *anon_name) {}
-+static inline void anon_vma_name_put(struct anon_vma_name *anon_name) {}
-+static inline void dup_anon_vma_name(struct vm_area_struct *orig_vma,
-+				     struct vm_area_struct *new_vma) {}
-+static inline void free_anon_vma_name(struct vm_area_struct *vma) {}
-+
-+static inline bool anon_vma_name_eq(struct anon_vma_name *anon_name1,
-+				    struct anon_vma_name *anon_name2)
- {
- 	return true;
- }
-+
- #endif  /* CONFIG_ANON_VMA_NAME */
- 
- static inline void init_tlb_flush_pending(struct mm_struct *mm)
---- a/include/linux/mm_types.h~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/include/linux/mm_types.h
-@@ -416,7 +416,10 @@ struct vm_area_struct {
- 			struct rb_node rb;
- 			unsigned long rb_subtree_last;
- 		} shared;
--		/* Serialized by mmap_sem. */
-+		/*
-+		 * Serialized by mmap_sem. Never use directly because it is
-+		 * valid only when vm_file is NULL. Use anon_vma_name instead.
-+		 */
- 		struct anon_vma_name *anon_name;
- 	};
- 
---- a/kernel/fork.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/kernel/fork.c
-@@ -366,14 +366,14 @@ struct vm_area_struct *vm_area_dup(struc
- 		*new = data_race(*orig);
- 		INIT_LIST_HEAD(&new->anon_vma_chain);
- 		new->vm_next = new->vm_prev = NULL;
--		dup_vma_anon_name(orig, new);
-+		dup_anon_vma_name(orig, new);
- 	}
- 	return new;
- }
- 
- void vm_area_free(struct vm_area_struct *vma)
- {
--	free_vma_anon_name(vma);
-+	free_anon_vma_name(vma);
- 	kmem_cache_free(vm_area_cachep, vma);
- }
- 
---- a/kernel/sys.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/kernel/sys.c
-@@ -7,6 +7,7 @@
- 
- #include <linux/export.h>
- #include <linux/mm.h>
-+#include <linux/mm_inline.h>
- #include <linux/utsname.h>
- #include <linux/mman.h>
- #include <linux/reboot.h>
-@@ -2286,15 +2287,16 @@ static int prctl_set_vma(unsigned long o
- {
- 	struct mm_struct *mm = current->mm;
- 	const char __user *uname;
--	char *name, *pch;
-+	struct anon_vma_name *anon_name = NULL;
- 	int error;
- 
- 	switch (opt) {
- 	case PR_SET_VMA_ANON_NAME:
- 		uname = (const char __user *)arg;
- 		if (uname) {
--			name = strndup_user(uname, ANON_VMA_NAME_MAX_LEN);
-+			char *name, *pch;
- 
-+			name = strndup_user(uname, ANON_VMA_NAME_MAX_LEN);
- 			if (IS_ERR(name))
- 				return PTR_ERR(name);
- 
-@@ -2304,15 +2306,18 @@ static int prctl_set_vma(unsigned long o
- 					return -EINVAL;
- 				}
- 			}
--		} else {
--			/* Reset the name */
--			name = NULL;
-+			/* anon_vma has its own copy */
-+			anon_name = anon_vma_name_alloc(name);
-+			kfree(name);
-+			if (!anon_name)
-+				return -ENOMEM;
-+
- 		}
- 
- 		mmap_write_lock(mm);
--		error = madvise_set_anon_name(mm, addr, size, name);
-+		error = madvise_set_anon_name(mm, addr, size, anon_name);
- 		mmap_write_unlock(mm);
--		kfree(name);
-+		anon_vma_name_put(anon_name);
- 		break;
- 	default:
- 		error = -EINVAL;
---- a/mm/madvise.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
+--- a/mm/madvise.c~mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed
 +++ a/mm/madvise.c
-@@ -65,7 +65,7 @@ static int madvise_need_mmap_write(int b
- }
- 
- #ifdef CONFIG_ANON_VMA_NAME
--static struct anon_vma_name *anon_vma_name_alloc(const char *name)
-+struct anon_vma_name *anon_vma_name_alloc(const char *name)
- {
- 	struct anon_vma_name *anon_name;
- 	size_t count;
-@@ -81,78 +81,49 @@ static struct anon_vma_name *anon_vma_na
- 	return anon_name;
- }
- 
--static void vma_anon_name_free(struct kref *kref)
-+void anon_vma_name_free(struct kref *kref)
- {
- 	struct anon_vma_name *anon_name =
- 			container_of(kref, struct anon_vma_name, kref);
- 	kfree(anon_name);
- }
- 
--static inline bool has_vma_anon_name(struct vm_area_struct *vma)
-+struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
- {
--	return !vma->vm_file && vma->anon_name;
--}
--
--const char *vma_anon_name(struct vm_area_struct *vma)
--{
--	if (!has_vma_anon_name(vma))
--		return NULL;
--
- 	mmap_assert_locked(vma->vm_mm);
- 
--	return vma->anon_name->name;
--}
--
--void dup_vma_anon_name(struct vm_area_struct *orig_vma,
--		       struct vm_area_struct *new_vma)
--{
--	if (!has_vma_anon_name(orig_vma))
--		return;
--
--	kref_get(&orig_vma->anon_name->kref);
--	new_vma->anon_name = orig_vma->anon_name;
--}
--
--void free_vma_anon_name(struct vm_area_struct *vma)
--{
--	struct anon_vma_name *anon_name;
--
--	if (!has_vma_anon_name(vma))
--		return;
-+	if (vma->vm_file)
-+		return NULL;
- 
--	anon_name = vma->anon_name;
--	vma->anon_name = NULL;
--	kref_put(&anon_name->kref, vma_anon_name_free);
-+	return vma->anon_name;
- }
- 
- /* mmap_lock should be write-locked */
--static int replace_vma_anon_name(struct vm_area_struct *vma, const char *name)
-+static int replace_anon_vma_name(struct vm_area_struct *vma,
-+				 struct anon_vma_name *anon_name)
- {
--	const char *anon_name;
-+	struct anon_vma_name *orig_name = anon_vma_name(vma);
- 
--	if (!name) {
--		free_vma_anon_name(vma);
-+	if (!anon_name) {
-+		vma->anon_name = NULL;
-+		anon_vma_name_put(orig_name);
- 		return 0;
- 	}
- 
--	anon_name = vma_anon_name(vma);
--	if (anon_name) {
--		/* Same name, nothing to do here */
--		if (!strcmp(name, anon_name))
--			return 0;
-+	if (anon_vma_name_eq(orig_name, anon_name))
-+		return 0;
- 
--		free_vma_anon_name(vma);
--	}
--	vma->anon_name = anon_vma_name_alloc(name);
--	if (!vma->anon_name)
--		return -ENOMEM;
-+	anon_vma_name_get(anon_name);
-+	vma->anon_name = anon_name;
-+	anon_vma_name_put(orig_name);
- 
- 	return 0;
- }
- #else /* CONFIG_ANON_VMA_NAME */
--static int replace_vma_anon_name(struct vm_area_struct *vma, const char *name)
-+static int replace_anon_vma_name(struct vm_area_struct *vma,
-+				 struct anon_vma_name *anon_name)
- {
--	if (name)
-+	if (anon_name)
- 		return -EINVAL;
- 
- 	return 0;
-@@ -165,13 +136,13 @@ static int replace_vma_anon_name(struct
+@@ -131,6 +131,8 @@ static int replace_anon_vma_name(struct
+ /*
+  * Update the vm_flags on region of a vma, splitting it or merging it as
+  * necessary.  Must be called with mmap_sem held for writing;
++ * Caller should ensure anon_name stability by raising its refcount even when
++ * anon_name belongs to a valid vma because this function might free that vma.
+  */
  static int madvise_update_vma(struct vm_area_struct *vma,
  			      struct vm_area_struct **prev, unsigned long start,
- 			      unsigned long end, unsigned long new_flags,
--			      const char *name)
-+			      struct anon_vma_name *anon_name)
+@@ -945,6 +947,7 @@ static int madvise_vma_behavior(struct v
+ 				unsigned long behavior)
  {
- 	struct mm_struct *mm = vma->vm_mm;
  	int error;
- 	pgoff_t pgoff;
++	struct anon_vma_name *anon_name;
+ 	unsigned long new_flags = vma->vm_flags;
  
--	if (new_flags == vma->vm_flags && is_same_vma_anon_name(vma, name)) {
-+	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name)) {
- 		*prev = vma;
- 		return 0;
- 	}
-@@ -179,7 +150,7 @@ static int madvise_update_vma(struct vm_
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*prev = vma_merge(mm, *prev, start, end, new_flags, vma->anon_vma,
- 			  vma->vm_file, pgoff, vma_policy(vma),
--			  vma->vm_userfaultfd_ctx, name);
-+			  vma->vm_userfaultfd_ctx, anon_name);
- 	if (*prev) {
- 		vma = *prev;
- 		goto success;
-@@ -209,7 +180,7 @@ success:
- 	 */
- 	vma->vm_flags = new_flags;
- 	if (!vma->vm_file) {
--		error = replace_vma_anon_name(vma, name);
-+		error = replace_anon_vma_name(vma, anon_name);
- 		if (error)
- 			return error;
- 	}
-@@ -1041,7 +1012,7 @@ static int madvise_vma_behavior(struct v
+ 	switch (behavior) {
+@@ -1010,8 +1013,11 @@ static int madvise_vma_behavior(struct v
+ 		break;
  	}
  
++	anon_name = anon_vma_name(vma);
++	anon_vma_name_get(anon_name);
  	error = madvise_update_vma(vma, prev, start, end, new_flags,
--				   vma_anon_name(vma));
-+				   anon_vma_name(vma));
+-				   anon_vma_name(vma));
++				   anon_name);
++	anon_vma_name_put(anon_name);
  
  out:
  	/*
-@@ -1225,7 +1196,7 @@ int madvise_walk_vmas(struct mm_struct *
- static int madvise_vma_anon_name(struct vm_area_struct *vma,
- 				 struct vm_area_struct **prev,
- 				 unsigned long start, unsigned long end,
--				 unsigned long name)
-+				 unsigned long anon_name)
- {
- 	int error;
- 
-@@ -1234,7 +1205,7 @@ static int madvise_vma_anon_name(struct
- 		return -EBADF;
- 
- 	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
--				   (const char *)name);
-+				   (struct anon_vma_name *)anon_name);
- 
- 	/*
- 	 * madvise() returns EAGAIN if kernel resources, such as
-@@ -1246,7 +1217,7 @@ static int madvise_vma_anon_name(struct
- }
- 
- int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
--			  unsigned long len_in, const char *name)
-+			  unsigned long len_in, struct anon_vma_name *anon_name)
- {
- 	unsigned long end;
- 	unsigned long len;
-@@ -1266,7 +1237,7 @@ int madvise_set_anon_name(struct mm_stru
- 	if (end == start)
- 		return 0;
- 
--	return madvise_walk_vmas(mm, start, end, (unsigned long)name,
-+	return madvise_walk_vmas(mm, start, end, (unsigned long)anon_name,
- 				 madvise_vma_anon_name);
- }
- #endif /* CONFIG_ANON_VMA_NAME */
---- a/mm/mempolicy.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/mm/mempolicy.c
-@@ -814,7 +814,7 @@ static int mbind_range(struct mm_struct
- 		prev = vma_merge(mm, prev, vmstart, vmend, vma->vm_flags,
- 				 vma->anon_vma, vma->vm_file, pgoff,
- 				 new_pol, vma->vm_userfaultfd_ctx,
--				 vma_anon_name(vma));
-+				 anon_vma_name(vma));
- 		if (prev) {
- 			vma = prev;
- 			next = vma->vm_next;
---- a/mm/mlock.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/mm/mlock.c
-@@ -512,7 +512,7 @@ static int mlock_fixup(struct vm_area_st
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*prev = vma_merge(mm, *prev, start, end, newflags, vma->anon_vma,
- 			  vma->vm_file, pgoff, vma_policy(vma),
--			  vma->vm_userfaultfd_ctx, vma_anon_name(vma));
-+			  vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 	if (*prev) {
- 		vma = *prev;
- 		goto success;
---- a/mm/mmap.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/mm/mmap.c
-@@ -1031,7 +1031,7 @@ again:
- static inline int is_mergeable_vma(struct vm_area_struct *vma,
- 				struct file *file, unsigned long vm_flags,
- 				struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
--				const char *anon_name)
-+				struct anon_vma_name *anon_name)
- {
- 	/*
- 	 * VM_SOFTDIRTY should not prevent from VMA merging, if we
-@@ -1049,7 +1049,7 @@ static inline int is_mergeable_vma(struc
- 		return 0;
- 	if (!is_mergeable_vm_userfaultfd_ctx(vma, vm_userfaultfd_ctx))
- 		return 0;
--	if (!is_same_vma_anon_name(vma, anon_name))
-+	if (!anon_vma_name_eq(anon_vma_name(vma), anon_name))
- 		return 0;
- 	return 1;
- }
-@@ -1084,7 +1084,7 @@ can_vma_merge_before(struct vm_area_stru
- 		     struct anon_vma *anon_vma, struct file *file,
- 		     pgoff_t vm_pgoff,
- 		     struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
--		     const char *anon_name)
-+		     struct anon_vma_name *anon_name)
- {
- 	if (is_mergeable_vma(vma, file, vm_flags, vm_userfaultfd_ctx, anon_name) &&
- 	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
-@@ -1106,7 +1106,7 @@ can_vma_merge_after(struct vm_area_struc
- 		    struct anon_vma *anon_vma, struct file *file,
- 		    pgoff_t vm_pgoff,
- 		    struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
--		    const char *anon_name)
-+		    struct anon_vma_name *anon_name)
- {
- 	if (is_mergeable_vma(vma, file, vm_flags, vm_userfaultfd_ctx, anon_name) &&
- 	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
-@@ -1167,7 +1167,7 @@ struct vm_area_struct *vma_merge(struct
- 			struct anon_vma *anon_vma, struct file *file,
- 			pgoff_t pgoff, struct mempolicy *policy,
- 			struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
--			const char *anon_name)
-+			struct anon_vma_name *anon_name)
- {
- 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
- 	struct vm_area_struct *area, *next;
-@@ -3256,7 +3256,7 @@ struct vm_area_struct *copy_vma(struct v
- 		return NULL;	/* should never get here */
- 	new_vma = vma_merge(mm, prev, addr, addr + len, vma->vm_flags,
- 			    vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			    vma->vm_userfaultfd_ctx, vma_anon_name(vma));
-+			    vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 	if (new_vma) {
- 		/*
- 		 * Source vma may have been merged into new_vma
---- a/mm/mprotect.c~mm-refactor-vm_area_struct-anon_vma_name-usage-code
-+++ a/mm/mprotect.c
-@@ -464,7 +464,7 @@ mprotect_fixup(struct vm_area_struct *vm
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*pprev = vma_merge(mm, *pprev, start, end, newflags,
- 			   vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			   vma->vm_userfaultfd_ctx, vma_anon_name(vma));
-+			   vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 	if (*pprev) {
- 		vma = *pprev;
- 		VM_WARN_ON((vma->vm_flags ^ newflags) & ~VM_SOFTDIRTY);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
