@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C78AC433FE
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:51:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A02BC433F5
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:54:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234537AbiCFXwR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 18:52:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34890 "EHLO
+        id S231562AbiCFXzC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 18:55:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234545AbiCFXwP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:52:15 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC18346B21
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:51:21 -0800 (PST)
+        with ESMTP id S229483AbiCFXzB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:55:01 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 220854B1D7
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:54:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 74164B80F9A
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:51:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 206F0C340EF;
-        Sun,  6 Mar 2022 23:51:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AE25561073
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:54:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18491C340EC;
+        Sun,  6 Mar 2022 23:54:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646610679;
-        bh=fTdbdyhbF3w3mncUUBtskrGkyq5MCle8Vw9rCsbCoTY=;
+        s=korg; t=1646610847;
+        bh=LtXsE/yOtH4MQeGH95eFP1I+L9d44kXWHKrqCNg6ka0=;
         h=Date:To:From:Subject:From;
-        b=EQk3O4SQwVlmhRPdSsv0+UE17peep6fXbovi2AQVtSDsjvFV9cVEz1Fr4k9HYFLX6
-         N1YW59bbLgvSHBnvbQfj1n8lShN1EApamxY1E7+DjoknGcaMXNxS7xcPpVZWY0JMNl
-         D1sL/kFE/MV1XzG+cCrTef9tTW5yY35pDshUglHk=
-Date:   Sun, 06 Mar 2022 15:51:18 -0800
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        shy828301@gmail.com, npiggin@gmail.com, mhocko@suse.com,
-        david@redhat.com, hughd@google.com, akpm@linux-foundation.org
+        b=0ZhkJbTfCF3o7Bm7Cu5KRCV+4DCcjVSZvslMU21axWLJ371KdPC57irksguEvo1Lk
+         bCJd2zlKNcfDZg/YZIzG7upQPNgfAcfQmXPW0v0epo22+lUytF2rrK+dV+9hpaf9xu
+         IYgVvP2chABi9AP4UANW2EGSh/XjK1ZYpnyUrzsM=
+Date:   Sun, 06 Mar 2022 15:54:06 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, neilb@suse.de,
+        jack@suse.de, djwong@kernel.org, david@fromorbit.com,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-delete-__clearpagewaiters.patch added to -mm tree
-Message-Id: <20220306235119.206F0C340EF@smtp.kernel.org>
+Subject: + mm-fs-delete-pf_swapwrite.patch added to -mm tree
+Message-Id: <20220306235407.18491C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: delete __ClearPageWaiters()
+     Subject: mm/fs: delete PF_SWAPWRITE
 has been added to the -mm tree.  Its filename is
-     mm-delete-__clearpagewaiters.patch
+     mm-fs-delete-pf_swapwrite.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-delete-__clearpagewaiters.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fs-delete-pf_swapwrite.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-delete-__clearpagewaiters.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fs-delete-pf_swapwrite.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,124 +64,149 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: delete __ClearPageWaiters()
+Subject: mm/fs: delete PF_SWAPWRITE
 
-The PG_waiters bit is not included in PAGE_FLAGS_CHECK_AT_FREE, and
-vmscan.c's free_unref_page_list() callers rely on that not to generate
-bad_page() alerts.  So __page_cache_release(), put_pages_list() and
-release_pages() (and presumably copy-and-pasted free_zone_device_page())
-are redundant and misleading to make a special point of clearing it (as
-the "__" implies, it could only safely be used on the freeing path).
+PF_SWAPWRITE has been redundant since v3.2 commit ee72886d8ed5 ("mm:
+vmscan: do not writeback filesystem pages in direct reclaim").
 
-Delete __ClearPageWaiters().  Remark on this in one of the "possible"
-comments in folio_wake_bit(), and delete the superfluous comments.
+Coincidentally, NeilBrown's current patch "remove inode_congested()"
+deletes may_write_to_inode(), which appeared to be the one function which
+took notice of PF_SWAPWRITE.  But if you study the old logic, and the
+conditions under which may_write_to_inode() was called, you discover that
+flag and function have been pointless for a decade.
 
-Link: https://lkml.kernel.org/r/3eafa969-5b1a-accf-88fe-318784c791a@google.com
+Link: https://lkml.kernel.org/r/75e80e7-742d-e3bd-531-614db8961e4@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Tested-by: Yu Zhao <yuzhao@google.com>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Jan Kara <jack@suse.de>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- mm/filemap.c               |   23 ++++++++---------------
- mm/memremap.c              |    2 --
- mm/swap.c                  |    4 ----
- 4 files changed, 9 insertions(+), 22 deletions(-)
+ fs/fs-writeback.c         |    3 ---
+ fs/xfs/libxfs/xfs_btree.c |    2 +-
+ include/linux/sched.h     |    1 -
+ mm/migrate.c              |    7 -------
+ mm/vmscan.c               |    8 ++------
+ 5 files changed, 3 insertions(+), 18 deletions(-)
 
---- a/include/linux/page-flags.h~mm-delete-__clearpagewaiters
-+++ a/include/linux/page-flags.h
-@@ -412,7 +412,7 @@ static inline int TestClearPage##uname(s
- 	TESTSETFLAG_FALSE(uname, lname) TESTCLEARFLAG_FALSE(uname, lname)
+--- a/fs/fs-writeback.c~mm-fs-delete-pf_swapwrite
++++ a/fs/fs-writeback.c
+@@ -2197,7 +2197,6 @@ void wb_workfn(struct work_struct *work)
+ 	long pages_written;
  
- __PAGEFLAG(Locked, locked, PF_NO_TAIL)
--PAGEFLAG(Waiters, waiters, PF_ONLY_HEAD) __CLEARPAGEFLAG(Waiters, waiters, PF_ONLY_HEAD)
-+PAGEFLAG(Waiters, waiters, PF_ONLY_HEAD)
- PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
- PAGEFLAG(Referenced, referenced, PF_HEAD)
- 	TESTCLEARFLAG(Referenced, referenced, PF_HEAD)
---- a/mm/filemap.c~mm-delete-__clearpagewaiters
-+++ a/mm/filemap.c
-@@ -1174,24 +1174,17 @@ static void folio_wake_bit(struct folio
- 	}
+ 	set_worker_desc("flush-%s", bdi_dev_name(wb->bdi));
+-	current->flags |= PF_SWAPWRITE;
  
- 	/*
--	 * It is possible for other pages to have collided on the waitqueue
--	 * hash, so in that case check for a page match. That prevents a long-
--	 * term waiter
-+	 * It's possible to miss clearing waiters here, when we woke our page
-+	 * waiters, but the hashed waitqueue has waiters for other pages on it.
-+	 * That's okay, it's a rare case. The next waker will clear it.
- 	 *
--	 * It is still possible to miss a case here, when we woke page waiters
--	 * and removed them from the waitqueue, but there are still other
--	 * page waiters.
-+	 * Note that, depending on the page pool (buddy, hugetlb, ZONE_DEVICE,
-+	 * other), the flag may be cleared in the course of freeing the page;
-+	 * but that is not required for correctness.
+ 	if (likely(!current_is_workqueue_rescuer() ||
+ 		   !test_bit(WB_registered, &wb->state))) {
+@@ -2226,8 +2225,6 @@ void wb_workfn(struct work_struct *work)
+ 		wb_wakeup(wb);
+ 	else if (wb_has_dirty_io(wb) && dirty_writeback_interval)
+ 		wb_wakeup_delayed(wb);
+-
+-	current->flags &= ~PF_SWAPWRITE;
+ }
+ 
+ /*
+--- a/fs/xfs/libxfs/xfs_btree.c~mm-fs-delete-pf_swapwrite
++++ a/fs/xfs/libxfs/xfs_btree.c
+@@ -2818,7 +2818,7 @@ xfs_btree_split_worker(
+ 	 * in any way.
  	 */
--	if (!waitqueue_active(q) || !key.page_match) {
-+	if (!waitqueue_active(q) || !key.page_match)
- 		folio_clear_waiters(folio);
--		/*
--		 * It's possible to miss clearing Waiters here, when we woke
--		 * our page waiters, but the hashed waitqueue has waiters for
--		 * other pages on it.
--		 *
--		 * That's okay, it's a rare case. The next waker will clear it.
--		 */
--	}
-+
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
+ 	if (args->kswapd)
+-		new_pflags |= PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
++		new_pflags |= PF_MEMALLOC | PF_KSWAPD;
  
---- a/mm/memremap.c~mm-delete-__clearpagewaiters
-+++ a/mm/memremap.c
-@@ -495,8 +495,6 @@ void free_devmap_managed_page(struct pag
- 		return;
+ 	current_set_flags_nested(&pflags, new_pflags);
+ 	xfs_trans_set_context(args->cur->bc_tp);
+--- a/include/linux/sched.h~mm-fs-delete-pf_swapwrite
++++ a/include/linux/sched.h
+@@ -1689,7 +1689,6 @@ extern struct pid *cad_pid;
+ 						 * I am cleaning dirty pages from some other bdi. */
+ #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
+-#define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
+ #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
+ #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
+ #define PF_MEMALLOC_PIN		0x10000000	/* Allocation context constrained to zones which allow long term pinning. */
+--- a/mm/migrate.c~mm-fs-delete-pf_swapwrite
++++ a/mm/migrate.c
+@@ -1351,7 +1351,6 @@ int migrate_pages(struct list_head *from
+ 	bool is_thp = false;
+ 	struct page *page;
+ 	struct page *page2;
+-	int swapwrite = current->flags & PF_SWAPWRITE;
+ 	int rc, nr_subpages;
+ 	LIST_HEAD(ret_pages);
+ 	LIST_HEAD(thp_split_pages);
+@@ -1360,9 +1359,6 @@ int migrate_pages(struct list_head *from
+ 
+ 	trace_mm_migrate_pages_start(mode, reason);
+ 
+-	if (!swapwrite)
+-		current->flags |= PF_SWAPWRITE;
+-
+ thp_subpage_migration:
+ 	for (pass = 0; pass < 10 && (retry || thp_retry); pass++) {
+ 		retry = 0;
+@@ -1517,9 +1513,6 @@ out:
+ 	trace_mm_migrate_pages(nr_succeeded, nr_failed_pages, nr_thp_succeeded,
+ 			       nr_thp_failed, nr_thp_split, mode, reason);
+ 
+-	if (!swapwrite)
+-		current->flags &= ~PF_SWAPWRITE;
+-
+ 	if (ret_succeeded)
+ 		*ret_succeeded = nr_succeeded;
+ 
+--- a/mm/vmscan.c~mm-fs-delete-pf_swapwrite
++++ a/mm/vmscan.c
+@@ -4457,7 +4457,7 @@ static int kswapd(void *p)
+ 	 * us from recursively trying to free more memory as we're
+ 	 * trying to free the first piece of memory in the first place).
+ 	 */
+-	tsk->flags |= PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
++	tsk->flags |= PF_MEMALLOC | PF_KSWAPD;
+ 	set_freezable();
+ 
+ 	WRITE_ONCE(pgdat->kswapd_order, 0);
+@@ -4508,7 +4508,7 @@ kswapd_try_sleep:
+ 			goto kswapd_try_sleep;
  	}
  
--	__ClearPageWaiters(page);
--
- 	mem_cgroup_uncharge(page_folio(page));
+-	tsk->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD);
++	tsk->flags &= ~(PF_MEMALLOC | PF_KSWAPD);
  
+ 	return 0;
+ }
+@@ -4749,11 +4749,8 @@ static int __node_reclaim(struct pglist_
+ 	fs_reclaim_acquire(sc.gfp_mask);
  	/*
---- a/mm/swap.c~mm-delete-__clearpagewaiters
-+++ a/mm/swap.c
-@@ -89,7 +89,6 @@ static void __page_cache_release(struct
- 		__clear_page_lru_flags(page);
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
- 	}
--	__ClearPageWaiters(page);
- }
+ 	 * We need to be able to allocate from the reserves for RECLAIM_UNMAP
+-	 * and we also need to be able to write out pages for RECLAIM_WRITE
+-	 * and RECLAIM_UNMAP.
+ 	 */
+ 	noreclaim_flag = memalloc_noreclaim_save();
+-	p->flags |= PF_SWAPWRITE;
+ 	set_task_reclaim_state(p, &sc.reclaim_state);
  
- static void __put_single_page(struct page *page)
-@@ -152,7 +151,6 @@ void put_pages_list(struct list_head *pa
- 			continue;
- 		}
- 		/* Cannot be PageLRU because it's passed to us using the lru */
--		__ClearPageWaiters(page);
+ 	if (node_pagecache_reclaimable(pgdat) > pgdat->min_unmapped_pages) {
+@@ -4767,7 +4764,6 @@ static int __node_reclaim(struct pglist_
  	}
  
- 	free_unref_page_list(pages);
-@@ -969,8 +967,6 @@ void release_pages(struct page **pages,
- 			__clear_page_lru_flags(page);
- 		}
- 
--		__ClearPageWaiters(page);
--
- 		list_add(&page->lru, &pages_to_free);
- 	}
- 	if (lruvec)
+ 	set_task_reclaim_state(p, NULL);
+-	current->flags &= ~PF_SWAPWRITE;
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 	fs_reclaim_release(sc.gfp_mask);
+ 	psi_memstall_leave(&pflags);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
+mm-fs-delete-pf_swapwrite.patch
 mm-delete-__clearpagewaiters.patch
 tmpfs-support-for-file-creation-time-fix.patch
 mm-_install_special_mapping-apply-vm_locked_clear_mask.patch
