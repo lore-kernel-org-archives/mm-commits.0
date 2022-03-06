@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46680C433FE
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 22:08:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13D27C433EF
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 22:08:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229643AbiCFWJ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 17:09:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45394 "EHLO
+        id S233586AbiCFWJo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 17:09:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234190AbiCFWJ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 17:09:27 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D8A522BD8
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 14:08:34 -0800 (PST)
+        with ESMTP id S229812AbiCFWJn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 17:09:43 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0218722BD6
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 14:08:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 22CE360EC5
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 22:08:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A5C2C340EC;
-        Sun,  6 Mar 2022 22:08:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 771B560F4A
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 22:08:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6E37C340EC;
+        Sun,  6 Mar 2022 22:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646604513;
-        bh=HBS4lk+CFx6++1azC6wFB6gKe/yf+WIBilBY0j1bLQs=;
+        s=korg; t=1646604529;
+        bh=EhqSpVIG3v2u6EigKWIorIVqmF5qEBdNajHHE/DMmr4=;
         h=Date:To:From:Subject:From;
-        b=SDJElmD7XrVblU18xK8LSdD5cVOKLp8rt/pQnLTMfldal0l26dq1vJY5SqQlk8Mnp
-         KmPmFXV9rvf8TqSE+gT8Azp55qfcg7irDV0+f0368Ub3pFsvxjwZ2x7sgR0F15RVVr
-         InSDNzf5TCDUsdKRI22rgumTn520Xy/brIGy/2oo=
-Date:   Sun, 06 Mar 2022 14:08:32 -0800
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        b=BNhBx2nqq9iUw9qZl3BJikx3/9ybH96DXHj761IF1M3owaKFp0aSY/S3fyUduSvqU
+         HR52A5v7bLGmaji7DakLn8JwTvf4OKZm+sgDkIOiD+47Qv6S2iI00yNitIq7uzeVhd
+         XCUR1u1be+h1hEn3OmYf3+bJSwU7JcAJuPnkdBBk=
+Date:   Sun, 06 Mar 2022 14:08:49 -0800
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        songmuchun@bytedance.com, skhan@linuxfoundation.org,
+        almasrymina@google.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Message-Id: <20220306220833.6A5C2C340EC@smtp.kernel.org>
+Subject: [merged] selftests-vm-cleanup-hugetlb-file-after-mremap-test.patch removed from -mm tree
+Message-Id: <20220306220849.C6E37C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,129 +43,126 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: selftests/vm: cleanup hugetlb file after mremap test
+has been removed from the -mm tree.  Its filename was
+     selftests-vm-cleanup-hugetlb-file-after-mremap-test.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: selftests/vm: cleanup hugetlb file after mremap test
 
+The hugepage-mremap test will create a file in a hugetlb filesystem.  In a
+default 'run_vmtests' run, the file will contain all the hugetlb pages. 
+After the test, the file remains and there are no free hugetlb pages for
+subsequent tests.  This causes those hugetlb tests to fail.
+
+Change hugepage-mremap to take the name of the hugetlb file as an
+argument.  Unlink the file within the test, and just to be sure remove the
+file in the run_vmtests script.
+
+Link: https://lkml.kernel.org/r/20220201033459.156944-1-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mina Almasry <almasrymina@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/ftrace.c |    5 -----
- arch/s390/kernel/mcount.S |    9 ---------
- fs/btrfs/extent_io.c      |    4 ----
- fs/btrfs/transaction.h    |    4 ----
- 4 files changed, 22 deletions(-)
+ tools/testing/selftests/vm/hugepage-mremap.c |   26 ++++++++++++-----
+ tools/testing/selftests/vm/run_vmtests.sh    |    3 +
+ 2 files changed, 21 insertions(+), 8 deletions(-)
 
---- a/arch/s390/kernel/ftrace.c~linux-next-git-rejects
-+++ a/arch/s390/kernel/ftrace.c
-@@ -223,13 +223,8 @@ int ftrace_make_call(struct dyn_ftrace *
- 	if (IS_ERR(trampoline))
- 		return PTR_ERR(trampoline);
- 	s390_kernel_write(&trampoline->interceptor, &addr, sizeof(addr));
--<<<<<<< HEAD
--	brcl_enable((void *)rec->ip);
--	return 0;
--=======
- 	/* Expect brcl 0x0,... */
- 	return ftrace_patch_branch_mask((void *)rec->ip, 0xc004, true);
-->>>>>>> linux-next/akpm-base
- }
+--- a/tools/testing/selftests/vm/hugepage-mremap.c~selftests-vm-cleanup-hugetlb-file-after-mremap-test
++++ a/tools/testing/selftests/vm/hugepage-mremap.c
+@@ -3,9 +3,10 @@
+  * hugepage-mremap:
+  *
+  * Example of remapping huge page memory in a user application using the
+- * mremap system call.  Code assumes a hugetlbfs filesystem is mounted
+- * at './huge'.  The amount of memory used by this test is decided by a command
+- * line argument in MBs. If missing, the default amount is 10MB.
++ * mremap system call.  The path to a file in a hugetlbfs filesystem must
++ * be passed as the last argument to this test.  The amount of memory used
++ * by this test in MBs can optionally be passed as an argument.  If no memory
++ * amount is passed, the default amount is 10MB.
+  *
+  * To make sure the test triggers pmd sharing and goes through the 'unshare'
+  * path in the mremap code use 1GB (1024) or more.
+@@ -25,7 +26,6 @@
+ #define DEFAULT_LENGTH_MB 10UL
+ #define MB_TO_BYTES(x) (x * 1024 * 1024)
  
- int ftrace_update_ftrace_func(ftrace_func_t func)
---- a/arch/s390/kernel/mcount.S~linux-next-git-rejects
-+++ a/arch/s390/kernel/mcount.S
-@@ -26,12 +26,7 @@ ENDPROC(ftrace_stub)
- #define STACK_PTREGS_PSW	(STACK_PTREGS + __PT_PSW)
- #define STACK_PTREGS_ORIG_GPR2	(STACK_PTREGS + __PT_ORIG_GPR2)
- #define STACK_PTREGS_FLAGS	(STACK_PTREGS + __PT_FLAGS)
--<<<<<<< HEAD
--#ifdef __PACK_STACK
--/* allocate just enough for r14, r15 and backchain */
--=======
- /* packed stack: allocate just enough for r14, r15 and backchain */
-->>>>>>> linux-next/akpm-base
- #define TRACED_FUNC_FRAME_SIZE	24
+-#define FILE_NAME "huge/hugepagefile"
+ #define PROTECTION (PROT_READ | PROT_WRITE | PROT_EXEC)
+ #define FLAGS (MAP_SHARED | MAP_ANONYMOUS)
  
- 	.macro	ftrace_regs_entry, allregs=0
-@@ -63,10 +58,6 @@ ENDPROC(ftrace_stub)
+@@ -107,17 +107,26 @@ static void register_region_with_uffd(ch
  
- 	.if \allregs == 1
- 	stg	%r14,(STACK_PTREGS_PSW)(%r15)
--<<<<<<< HEAD
--	stosm	(STACK_PTREGS_PSW)(%r15),0
--=======
-->>>>>>> linux-next/akpm-base
- #ifdef CONFIG_HAVE_MARCH_Z10_FEATURES
- 	mvghi	STACK_PTREGS_FLAGS(%r15),_PIF_FTRACE_FULL_REGS
- #else
---- a/fs/btrfs/extent_io.c~linux-next-git-rejects
-+++ a/fs/btrfs/extent_io.c
-@@ -6888,11 +6888,7 @@ static void assert_eb_page_uptodate(cons
- 	 * would have !PageUptodate && !PageError, as we clear PageError before
- 	 * reading.
+ int main(int argc, char *argv[])
+ {
++	size_t length;
++
++	if (argc != 2 && argc != 3) {
++		printf("Usage: %s [length_in_MB] <hugetlb_file>\n", argv[0]);
++		exit(1);
++	}
++
+ 	/* Read memory length as the first arg if valid, otherwise fallback to
+-	 * the default length. Any additional args are ignored.
++	 * the default length.
  	 */
--<<<<<<< HEAD
--	if (fs_info->sectorsize < PAGE_SIZE) {
--=======
- 	if (fs_info->nodesize < PAGE_SIZE) {
-->>>>>>> linux-next/akpm-base
- 		bool uptodate, error;
+-	size_t length = argc > 1 ? (size_t)atoi(argv[1]) : 0UL;
++	if (argc == 3)
++		length = argc > 2 ? (size_t)atoi(argv[1]) : 0UL;
  
- 		uptodate = btrfs_subpage_test_uptodate(fs_info, page,
---- a/fs/btrfs/transaction.h~linux-next-git-rejects
-+++ a/fs/btrfs/transaction.h
-@@ -217,11 +217,7 @@ int btrfs_wait_for_commit(struct btrfs_f
- void btrfs_add_dead_root(struct btrfs_root *root);
- int btrfs_defrag_root(struct btrfs_root *root);
- void btrfs_maybe_wake_unfinished_drop(struct btrfs_fs_info *fs_info);
--<<<<<<< HEAD
--int btrfs_clean_one_deleted_snapshot(struct btrfs_root *root);
--=======
- int btrfs_clean_one_deleted_snapshot(struct btrfs_fs_info *fs_info);
-->>>>>>> linux-next/akpm-base
- int btrfs_commit_transaction(struct btrfs_trans_handle *trans);
- void btrfs_commit_transaction_async(struct btrfs_trans_handle *trans);
- int btrfs_end_transaction_throttle(struct btrfs_trans_handle *trans);
+ 	length = length > 0 ? length : DEFAULT_LENGTH_MB;
+ 	length = MB_TO_BYTES(length);
+ 
+ 	int ret = 0;
+ 
+-	int fd = open(FILE_NAME, O_CREAT | O_RDWR, 0755);
++	/* last arg is the hugetlb file name */
++	int fd = open(argv[argc-1], O_CREAT | O_RDWR, 0755);
+ 
+ 	if (fd < 0) {
+ 		perror("Open failed");
+@@ -169,5 +178,8 @@ int main(int argc, char *argv[])
+ 
+ 	munmap(addr, length);
+ 
++	close(fd);
++	unlink(argv[argc-1]);
++
+ 	return ret;
+ }
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-cleanup-hugetlb-file-after-mremap-test
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -111,13 +111,14 @@ fi
+ echo "-----------------------"
+ echo "running hugepage-mremap"
+ echo "-----------------------"
+-./hugepage-mremap 256
++./hugepage-mremap $mnt/huge_mremap
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+ else
+ 	echo "[PASS]"
+ fi
++rm -f $mnt/huge_mremap
+ 
+ echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
+ echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-list_lru-replace-linear-array-with-xarray-fix.patch
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
-mm-export-pageheadhuge-fix.patch
-userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-linux-next-rejects.patch
-arch-x86-kernel-resourcec-needs-spinlockh.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+hugetlb-clean-up-potential-spectre-issue-warnings.patch
+hugetlb-clean-up-potential-spectre-issue-warnings-v2.patch
+mm-enable-madv_dontneed-for-hugetlb-mappings.patch
+selftests-vm-add-hugetlb-madvise-madv_dontneed-madv_remove-test.patch
+userfaultfd-selftests-enable-hugetlb-remap-and-remove-event-testing.patch
 
