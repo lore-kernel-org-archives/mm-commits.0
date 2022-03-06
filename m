@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A02BC433F5
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:54:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BF3AC433EF
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:55:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231562AbiCFXzC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 18:55:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42646 "EHLO
+        id S231580AbiCFX4Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 18:56:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229483AbiCFXzB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:55:01 -0500
+        with ESMTP id S229483AbiCFX4P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:56:15 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 220854B1D7
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:54:08 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93C7958E7A
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:55:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AE25561073
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:54:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18491C340EC;
-        Sun,  6 Mar 2022 23:54:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 30A59610A3
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:55:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BE91C340EF;
+        Sun,  6 Mar 2022 23:55:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646610847;
-        bh=LtXsE/yOtH4MQeGH95eFP1I+L9d44kXWHKrqCNg6ka0=;
+        s=korg; t=1646610921;
+        bh=CXwNo0FE8AWRu+jTqeYK+ZPuJ8Lbu137g1qOedFF0AA=;
         h=Date:To:From:Subject:From;
-        b=0ZhkJbTfCF3o7Bm7Cu5KRCV+4DCcjVSZvslMU21axWLJ371KdPC57irksguEvo1Lk
-         bCJd2zlKNcfDZg/YZIzG7upQPNgfAcfQmXPW0v0epo22+lUytF2rrK+dV+9hpaf9xu
-         IYgVvP2chABi9AP4UANW2EGSh/XjK1ZYpnyUrzsM=
-Date:   Sun, 06 Mar 2022 15:54:06 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, neilb@suse.de,
-        jack@suse.de, djwong@kernel.org, david@fromorbit.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=Da9EP7okIUQMabvUOrRlin/3LY+wfI7sAIKo1MBHjghweBUAnqX0XPrZ3wMRxqX80
+         SDsoJebrm68Wy51ptRo9tz2dU6QwSYY2nemJLYp8qvrru4F3WpLaucEBzQGfkIzF2R
+         wHV+MTwyDU6NrXo5EXeea3UFNDWIMFlfp0ja86gs=
+Date:   Sun, 06 Mar 2022 15:55:20 -0800
+To:     mm-commits@vger.kernel.org, hughd@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fs-delete-pf_swapwrite.patch added to -mm tree
-Message-Id: <20220306235407.18491C340EC@smtp.kernel.org>
+Subject: + shmem-mapping_set_exiting-to-help-mapped-resilience.patch added to -mm tree
+Message-Id: <20220306235521.8BE91C340EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/fs: delete PF_SWAPWRITE
+     Subject: shmem: mapping_set_exiting() to help mapped resilience
 has been added to the -mm tree.  Its filename is
-     mm-fs-delete-pf_swapwrite.patch
+     shmem-mapping_set_exiting-to-help-mapped-resilience.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fs-delete-pf_swapwrite.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/shmem-mapping_set_exiting-to-help-mapped-resilience.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fs-delete-pf_swapwrite.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/shmem-mapping_set_exiting-to-help-mapped-resilience.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,144 +63,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/fs: delete PF_SWAPWRITE
+Subject: shmem: mapping_set_exiting() to help mapped resilience
 
-PF_SWAPWRITE has been redundant since v3.2 commit ee72886d8ed5 ("mm:
-vmscan: do not writeback filesystem pages in direct reclaim").
+When I added page_mapped() resilience in __delete_from_page_cache() for
+the mapping_exiting() case, I missed that mapping_set_exiting() is done in
+truncate_inode_pages_final(), which is not actually called for shmem. 
+(Today, it is folio_mapped() resilience in filemap_unaccount_folio().)
 
-Coincidentally, NeilBrown's current patch "remove inode_congested()"
-deletes may_write_to_inode(), which appeared to be the one function which
-took notice of PF_SWAPWRITE.  But if you study the old logic, and the
-conditions under which may_write_to_inode() was called, you discover that
-flag and function have been pointless for a decade.
+So the fixup to avoid a memory leak in this case never worked on shmem:
+add a mapping_set_exiting() in shmem_evict_inode() at last.  But this is
+hardly a candidate for stable, since it's only useful if "Bad page".
 
-Link: https://lkml.kernel.org/r/75e80e7-742d-e3bd-531-614db8961e4@google.com
+Link: https://lkml.kernel.org/r/beefffda-6326-e36d-2d41-ed15b51af872@google.com
+Fixes: 06b241f32c71 ("mm: __delete_from_page_cache show Bad page if mapped")
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Jan Kara <jack@suse.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c         |    3 ---
- fs/xfs/libxfs/xfs_btree.c |    2 +-
- include/linux/sched.h     |    1 -
- mm/migrate.c              |    7 -------
- mm/vmscan.c               |    8 ++------
- 5 files changed, 3 insertions(+), 18 deletions(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/fs-writeback.c~mm-fs-delete-pf_swapwrite
-+++ a/fs/fs-writeback.c
-@@ -2197,7 +2197,6 @@ void wb_workfn(struct work_struct *work)
- 	long pages_written;
- 
- 	set_worker_desc("flush-%s", bdi_dev_name(wb->bdi));
--	current->flags |= PF_SWAPWRITE;
- 
- 	if (likely(!current_is_workqueue_rescuer() ||
- 		   !test_bit(WB_registered, &wb->state))) {
-@@ -2226,8 +2225,6 @@ void wb_workfn(struct work_struct *work)
- 		wb_wakeup(wb);
- 	else if (wb_has_dirty_io(wb) && dirty_writeback_interval)
- 		wb_wakeup_delayed(wb);
--
--	current->flags &= ~PF_SWAPWRITE;
- }
- 
- /*
---- a/fs/xfs/libxfs/xfs_btree.c~mm-fs-delete-pf_swapwrite
-+++ a/fs/xfs/libxfs/xfs_btree.c
-@@ -2818,7 +2818,7 @@ xfs_btree_split_worker(
- 	 * in any way.
- 	 */
- 	if (args->kswapd)
--		new_pflags |= PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
-+		new_pflags |= PF_MEMALLOC | PF_KSWAPD;
- 
- 	current_set_flags_nested(&pflags, new_pflags);
- 	xfs_trans_set_context(args->cur->bc_tp);
---- a/include/linux/sched.h~mm-fs-delete-pf_swapwrite
-+++ a/include/linux/sched.h
-@@ -1689,7 +1689,6 @@ extern struct pid *cad_pid;
- 						 * I am cleaning dirty pages from some other bdi. */
- #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
- #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
--#define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
- #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
- #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
- #define PF_MEMALLOC_PIN		0x10000000	/* Allocation context constrained to zones which allow long term pinning. */
---- a/mm/migrate.c~mm-fs-delete-pf_swapwrite
-+++ a/mm/migrate.c
-@@ -1351,7 +1351,6 @@ int migrate_pages(struct list_head *from
- 	bool is_thp = false;
- 	struct page *page;
- 	struct page *page2;
--	int swapwrite = current->flags & PF_SWAPWRITE;
- 	int rc, nr_subpages;
- 	LIST_HEAD(ret_pages);
- 	LIST_HEAD(thp_split_pages);
-@@ -1360,9 +1359,6 @@ int migrate_pages(struct list_head *from
- 
- 	trace_mm_migrate_pages_start(mode, reason);
- 
--	if (!swapwrite)
--		current->flags |= PF_SWAPWRITE;
--
- thp_subpage_migration:
- 	for (pass = 0; pass < 10 && (retry || thp_retry); pass++) {
- 		retry = 0;
-@@ -1517,9 +1513,6 @@ out:
- 	trace_mm_migrate_pages(nr_succeeded, nr_failed_pages, nr_thp_succeeded,
- 			       nr_thp_failed, nr_thp_split, mode, reason);
- 
--	if (!swapwrite)
--		current->flags &= ~PF_SWAPWRITE;
--
- 	if (ret_succeeded)
- 		*ret_succeeded = nr_succeeded;
- 
---- a/mm/vmscan.c~mm-fs-delete-pf_swapwrite
-+++ a/mm/vmscan.c
-@@ -4457,7 +4457,7 @@ static int kswapd(void *p)
- 	 * us from recursively trying to free more memory as we're
- 	 * trying to free the first piece of memory in the first place).
- 	 */
--	tsk->flags |= PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
-+	tsk->flags |= PF_MEMALLOC | PF_KSWAPD;
- 	set_freezable();
- 
- 	WRITE_ONCE(pgdat->kswapd_order, 0);
-@@ -4508,7 +4508,7 @@ kswapd_try_sleep:
- 			goto kswapd_try_sleep;
- 	}
- 
--	tsk->flags &= ~(PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD);
-+	tsk->flags &= ~(PF_MEMALLOC | PF_KSWAPD);
- 
- 	return 0;
- }
-@@ -4749,11 +4749,8 @@ static int __node_reclaim(struct pglist_
- 	fs_reclaim_acquire(sc.gfp_mask);
- 	/*
- 	 * We need to be able to allocate from the reserves for RECLAIM_UNMAP
--	 * and we also need to be able to write out pages for RECLAIM_WRITE
--	 * and RECLAIM_UNMAP.
- 	 */
- 	noreclaim_flag = memalloc_noreclaim_save();
--	p->flags |= PF_SWAPWRITE;
- 	set_task_reclaim_state(p, &sc.reclaim_state);
- 
- 	if (node_pagecache_reclaimable(pgdat) > pgdat->min_unmapped_pages) {
-@@ -4767,7 +4764,6 @@ static int __node_reclaim(struct pglist_
- 	}
- 
- 	set_task_reclaim_state(p, NULL);
--	current->flags &= ~PF_SWAPWRITE;
- 	memalloc_noreclaim_restore(noreclaim_flag);
- 	fs_reclaim_release(sc.gfp_mask);
- 	psi_memstall_leave(&pflags);
+--- a/mm/shmem.c~shmem-mapping_set_exiting-to-help-mapped-resilience
++++ a/mm/shmem.c
+@@ -1129,6 +1129,7 @@ static void shmem_evict_inode(struct ino
+ 	if (shmem_mapping(inode->i_mapping)) {
+ 		shmem_unacct_size(info->flags, inode->i_size);
+ 		inode->i_size = 0;
++		mapping_set_exiting(inode->i_mapping);
+ 		shmem_truncate_range(inode, 0, (loff_t)-1);
+ 		if (!list_empty(&info->shrinklist)) {
+ 			spin_lock(&sbinfo->shrinklist_lock);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -209,6 +100,7 @@ Patches currently in -mm which might be from hughd@google.com are
 mm-fs-delete-pf_swapwrite.patch
 mm-delete-__clearpagewaiters.patch
 tmpfs-support-for-file-creation-time-fix.patch
+shmem-mapping_set_exiting-to-help-mapped-resilience.patch
 mm-_install_special_mapping-apply-vm_locked_clear_mask.patch
 mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd.patch
 mm-thp-clearpagedoublemap-in-first-page_add_file_rmap.patch
