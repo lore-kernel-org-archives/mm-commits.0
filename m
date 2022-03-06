@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 537D7C433EF
-	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:28:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 809E6C433F5
+	for <mm-commits@archiver.kernel.org>; Sun,  6 Mar 2022 23:35:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234431AbiCFX2z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 18:28:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43994 "EHLO
+        id S230331AbiCFXgA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 18:36:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230331AbiCFX2z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:28:55 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C486B5FAF
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:28:01 -0800 (PST)
+        with ESMTP id S234440AbiCFXgA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 18:36:00 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A9BF21801
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 15:35:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CE18EB80F93
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:27:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C59EC340EC;
-        Sun,  6 Mar 2022 23:27:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7BAF6B80EC4
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 23:35:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DA9CC340EC;
+        Sun,  6 Mar 2022 23:35:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646609278;
-        bh=N++zWnk33uhTr8HjC5HZfxp6+gnz7ZDBwl9gj5I3FNw=;
+        s=korg; t=1646609704;
+        bh=Dw3bibUW84NPWXY8zrfv5iTGbpv0fOsoHSi4fdFAEz4=;
         h=Date:To:From:Subject:From;
-        b=NnU6vqC9wbEcy6qWUSrizYBgFeXWgaqo0NA84kLGH1VuK8tgyfDq/CMFSlfONmwnR
-         leFUr88//QaoWQpIat12G20TtBOt6EXKPv46OoZ4+nmdEAykIgHHfB9rUXkuxH7+PJ
-         JZF2uYktUsRFyAAbukIygf5aTivwVTsuWFxd9gqA=
-Date:   Sun, 06 Mar 2022 15:27:57 -0800
-To:     mm-commits@vger.kernel.org, zhangyinan2019@email.szu.edu.cn,
-        weizhenliang@huawei.com, sfr@canb.auug.org.au, seanga2@gmail.com,
-        hanshenghong2019@email.szu.edu.cn, caoyixuan2019@email.szu.edu.cn,
-        yejiajian2018@email.szu.edu.cn, akpm@linux-foundation.org
+        b=MXVlwfDwmtA8s3kJBHDauU5+U/z149DCJpR5MMcffmQm3OR2KggPfbK71qaPmQbrx
+         xNDEjuXCnIc+CahnJvb+XIwJ36fd2mrnCIyeEwmyImeBalqKafWq31f24RMmCGY8J8
+         0/4OWFQNIJ2TcRfpyyXb5uetlXpXytkkY8liqiu8=
+Date:   Sun, 06 Mar 2022 15:35:03 -0800
+To:     mm-commits@vger.kernel.org, weixugc@google.com, vbabka@suse.cz,
+        shakeelb@google.com, rientjes@google.com, mhocko@kernel.org,
+        mgorman@techsingularity.net, hughd@google.com, gthelen@google.com,
+        edumazet@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-vm-page_owner_sort-fix-three-trivival-places.patch added to -mm tree
-Message-Id: <20220306232758.6C59EC340EC@smtp.kernel.org>
+Subject: + mm-page_alloc-call-check_new_pages-while-zone-spinlock-is-not-held.patch added to -mm tree
+Message-Id: <20220306233504.1DA9CC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page_owner_sort: fix three trivival places
+     Subject: mm/page_alloc: call check_new_pages() while zone spinlock is not held
 has been added to the -mm tree.  Its filename is
-     tools-vm-page_owner_sort-fix-three-trivival-places.patch
+     mm-page_alloc-call-check_new_pages-while-zone-spinlock-is-not-held.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sort-fix-three-trivival-places.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-call-check_new_pages-while-zone-spinlock-is-not-held.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sort-fix-three-trivival-places.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-call-check_new_pages-while-zone-spinlock-is-not-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,136 +64,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Subject: tools/vm/page_owner_sort: fix three trivival places
+From: Eric Dumazet <edumazet@google.com>
+Subject: mm/page_alloc: call check_new_pages() while zone spinlock is not held
 
-The following adjustments are made:
+For high order pages not using pcp, rmqueue() is currently calling the
+costly check_new_pages() while zone spinlock is held, and hard irqs
+masked.
 
-1. Instead of using another array to cull the blocks after sorting,
-   reuse the old array.  So there is no need to malloc a new array.
+This is not needed, we can release the spinlock sooner to reduce zone
+spinlock contention.
 
-2. When enabling '-f' option to filter out the blocks which have been
-   released, only add those have not been released in the list, rather
-   than add all of blocks in the list and then do the filtering when
-   printing the result.
+Note that after this patch, we call __mod_zone_freepage_state() before
+deciding to leak the page because it is in bad state.
 
-3. When enabling '-c' option to cull the blocks by comparing
-   stacktrace, print the stacetrace rather than the total block.
-
-Link: https://lkml.kernel.org/r/20220306030640.43054-1-yejiajian2018@email.szu.edu.cn
-Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Cc: <hanshenghong2019@email.szu.edu.cn>
-Cc: Sean Anderson <seanga2@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
-Cc: <zhangyinan2019@email.szu.edu.cn>
-Cc: Zhenliang Wei <weizhenliang@huawei.com>
+Link: https://lkml.kernel.org/r/20220304170215.1868106-1-eric.dumazet@gmail.com
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |   37 +++++++++++++++++------------------
- 1 file changed, 19 insertions(+), 18 deletions(-)
+ mm/page_alloc.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-fix-three-trivival-places
-+++ a/tools/vm/page_owner_sort.c
-@@ -42,6 +42,8 @@ static regex_t free_ts_nsec_pattern;
- static struct block_list *list;
- static int list_size;
- static int max_size;
-+static int cull_st;
-+static int filter;
+--- a/mm/page_alloc.c~mm-page_alloc-call-check_new_pages-while-zone-spinlock-is-not-held
++++ a/mm/page_alloc.c
+@@ -3668,10 +3668,10 @@ struct page *rmqueue(struct zone *prefer
+ 	 * allocate greater than order-1 page units with __GFP_NOFAIL.
+ 	 */
+ 	WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
+-	spin_lock_irqsave(&zone->lock, flags);
  
- int read_block(char *buf, int buf_size, FILE *fin)
- {
-@@ -245,6 +247,9 @@ static void add_list(char *buf, int len)
- 		exit(1);
- 	}
- 
-+	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
-+	if (filter == 1 && list[list_size].free_ts_nsec != 0)
-+		return;
- 	list[list_size].txt = malloc(len+1);
- 	if (!list[list_size].txt) {
- 		printf("Out of memory\n");
-@@ -257,10 +262,11 @@ static void add_list(char *buf, int len)
- 	memcpy(list[list_size].txt, buf, len);
- 	list[list_size].txt[len] = 0;
- 	list[list_size].stacktrace = strchr(list[list_size].txt, '\n') ?: "";
-+	if (*list[list_size].stacktrace == '\n')
-+		list[list_size].stacktrace++;
- 	list[list_size].pid = get_pid(buf);
- 	list[list_size].tgid = get_tgid(buf);
- 	list[list_size].ts_nsec = get_ts_nsec(buf);
--	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
- 	list_size++;
- 	if (list_size % 1000 == 0) {
- 		printf("loaded %d\r", list_size);
-@@ -288,12 +294,9 @@ static void usage(void)
- int main(int argc, char **argv)
- {
- 	int (*cmp)(const void *, const void *) = compare_num;
--	int cull_st = 0;
--	int filter = 0;
- 	FILE *fin, *fout;
- 	char *buf;
- 	int ret, i, count;
--	struct block_list *list2;
- 	struct stat st;
- 	int opt;
- 
-@@ -376,11 +379,7 @@ int main(int argc, char **argv)
- 	else
- 		qsort(list, list_size, sizeof(list[0]), compare_txt);
- 
--	list2 = malloc(sizeof(*list) * list_size);
--	if (!list2) {
--		printf("Out of memory\n");
--		exit(1);
--	}
-+
- 
- 	printf("culling\n");
- 
-@@ -388,21 +387,23 @@ int main(int argc, char **argv)
- 
- 	for (i = count = 0; i < list_size; i++) {
- 		if (count == 0 ||
--		    strcmp(*(&list2[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
--			list2[count++] = list[i];
-+		    strcmp(*(&list[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
-+			list[count++] = list[i];
- 		} else {
--			list2[count-1].num += list[i].num;
--			list2[count-1].page_num += list[i].page_num;
-+			list[count-1].num += list[i].num;
-+			list[count-1].page_num += list[i].page_num;
+ 	do {
+ 		page = NULL;
++		spin_lock_irqsave(&zone->lock, flags);
+ 		/*
+ 		 * order-0 request can reach here when the pcplist is skipped
+ 		 * due to non-CMA allocation context. HIGHATOMIC area is
+@@ -3683,15 +3683,15 @@ struct page *rmqueue(struct zone *prefer
+ 			if (page)
+ 				trace_mm_page_alloc_zone_locked(page, order, migratetype);
  		}
- 	}
+-		if (!page)
++		if (!page) {
+ 			page = __rmqueue(zone, order, migratetype, alloc_flags);
+-	} while (page && check_new_pages(page, order));
+-	if (!page)
+-		goto failed;
+-
+-	__mod_zone_freepage_state(zone, -(1 << order),
+-				  get_pcppage_migratetype(page));
+-	spin_unlock_irqrestore(&zone->lock, flags);
++			if (!page)
++				goto failed;
++		}
++		__mod_zone_freepage_state(zone, -(1 << order),
++					  get_pcppage_migratetype(page));
++		spin_unlock_irqrestore(&zone->lock, flags);
++	} while (check_new_pages(page, order));
  
--	qsort(list2, count, sizeof(list[0]), cmp);
-+	qsort(list, count, sizeof(list[0]), cmp);
- 
- 	for (i = 0; i < count; i++) {
--		if (filter == 1 && list2[i].free_ts_nsec != 0)
--			continue;
--		fprintf(fout, "%d times, %d pages:\n%s\n",
--				list2[i].num, list2[i].page_num, list2[i].txt);
-+		if (cull_st == 0)
-+			fprintf(fout, "%d times, %d pages:\n%s\n",
-+					list[i].num, list[i].page_num, list[i].txt);
-+		else
-+			fprintf(fout, "%d times, %d pages:\n%s\n",
-+					list[i].num, list[i].page_num, list[i].stacktrace);
- 	}
- 	regfree(&order_pattern);
- 	regfree(&pid_pattern);
+ 	__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+ 	zone_statistics(preferred_zone, zone, 1);
 _
 
-Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
+Patches currently in -mm which might be from edumazet@google.com are
 
-tools-vm-page_owner_sortc-fix-comments.patch
-tools-vm-page_owner_sortc-add-a-security-check.patch
-tools-vm-page_owner_sortc-support-sorting-by-tgid-and-update-documentation.patch
-tools-vm-page_owner_sort-fix-three-trivival-places.patch
-tools-vm-page_owner_sort-support-for-sorting-by-task-command-name.patch
+mm-page_alloc-call-check_new_pages-while-zone-spinlock-is-not-held.patch
 
