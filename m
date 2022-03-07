@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D50FC433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 02:45:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD219C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 03:40:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234847AbiCGCp7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 21:45:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57316 "EHLO
+        id S233301AbiCGDli (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 22:41:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233993AbiCGCp6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 21:45:58 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E3BB38A1;
-        Sun,  6 Mar 2022 18:45:05 -0800 (PST)
+        with ESMTP id S233064AbiCGDlh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 22:41:37 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF0CA4DF5A;
+        Sun,  6 Mar 2022 19:40:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 091C961182;
-        Mon,  7 Mar 2022 02:45:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EA2AC340EC;
-        Mon,  7 Mar 2022 02:45:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5546B611E6;
+        Mon,  7 Mar 2022 03:40:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A64CEC340F3;
+        Mon,  7 Mar 2022 03:40:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646621104;
-        bh=9JE9sScbU739M1C27rs4TvJvSOx8//vHeqXnXuyjKIg=;
+        s=korg; t=1646624442;
+        bh=dlxNltCGxYkiCNG9Z7OiUhRYJzwO3keptp1KXilohZc=;
         h=Date:To:From:Subject:From;
-        b=PQALnWPPRmnFo2RSk0zUN+08A/znGbC3Te2xjK2YmT9hC3GEWWSnUuvKGmKmnf/v/
-         5ahMK0TXuM6hgqgk5dyum3CepAD6GfeuksZbnSt67MYeO0wTCrCGt0ZAAb6kg8cIkB
-         Umj3wQmP6GpWnJcB4H3SW0+nXPtP2ltGKGfMOX7w=
-Date:   Sun, 06 Mar 2022 18:45:03 -0800
+        b=NmYcp4j5egrC4eZSKLzwZCaP8HqY7TGkJJj92PDX0iujzIC5h8wsFhmDwDfhocdeN
+         EIMNXX27L5oRJhvAlzOk6e1MQMcVBnMMDcT2z6fTcYM0qugTEEYMN8AkDSHmZkxE4/
+         3uysC1Ny6dj2IS+7sQLA2PCh+/VcBiJzr1NIYVA0=
+Date:   Sun, 06 Mar 2022 19:40:41 -0800
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
         roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@suse.com,
         ivan@cloudflare.com, hannes@cmpxchg.org, fhofmann@cloudflare.com,
         dqminh@cloudflare.com, shakeelb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] memcg-sync-flush-only-if-periodic-flush-is-delayed.patch removed from -mm tree
-Message-Id: <20220307024504.5EA2AC340EC@smtp.kernel.org>
+Subject: + memcg-sync-flush-only-if-periodic-flush-is-delayed.patch added to -mm tree
+Message-Id: <20220307034042.A64CEC340F3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,10 +45,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: memcg: sync flush only if periodic flush is delayed
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeelb@google.com>
@@ -175,6 +189,7 @@ _
 
 Patches currently in -mm which might be from shakeelb@google.com are
 
+memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
 memcg-replace-in_interrupt-with-in_task.patch
 memcg-refactor-mem_cgroup_oom.patch
 memcg-unify-force-charging-conditions.patch
