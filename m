@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FB82C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 01:43:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31192C433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 01:43:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233364AbiCGBn4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 20:43:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53668 "EHLO
+        id S232995AbiCGBn5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 20:43:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232995AbiCGBnz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 20:43:55 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 948A62AE0B
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 17:43:02 -0800 (PST)
+        with ESMTP id S233543AbiCGBn4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 20:43:56 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3604C2B196
+        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 17:43:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 317DB6113B
-        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 01:43:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83E47C340F4;
-        Mon,  7 Mar 2022 01:43:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E4B4AB80EFB
+        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 01:43:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9762CC340EC;
+        Mon,  7 Mar 2022 01:43:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646617381;
-        bh=Vjwp4GfAmEYVPiIi+DqqT0nU6izipQV3MI/ad4qlJy8=;
+        s=korg; t=1646617380;
+        bh=3ZN8Vi7PdnNh39MWTSoyRSkb35g9FD3NGDbdYV+iBbY=;
         h=Date:To:From:Subject:From;
-        b=NSg8l+aXiGSOpVR1HtgHmmzS3ZiqTHCDQMVXWJkkLCIm6o/B5WarZtPrNQClTJMkY
-         piixfCrVGk1KtqkJCJzkFUHTjSCC64h1WxgPwEkzhUsSTNpY0okWEttMIuuXLGAQJL
-         La0oP72u+mSJfJ5GFUSbSKDpm8cUegy3JhNnYtTQ=
-Date:   Sun, 06 Mar 2022 17:43:00 -0800
+        b=Fx8JOsZBU1Znyy+t2yWo3d7DIEHLQk7XLni6/HilkFJ8mpogJZBeljAKMu7AoK6r6
+         yPsONQB+GOnOXt/3W+PFgTAXgP92BKV4nhhzyMC5rkE6AdYsh5P0cAhFIz9QUz41XT
+         nUekaUx7N2Yjx4/8V9Vb2tRX+9EPeIKCNw1WhvB0=
+Date:   Sun, 06 Mar 2022 17:42:59 -0800
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory-failurec-fix-potential-vm_bug_on_page-in-split_huge_page_to_list.patch removed from -mm tree
-Message-Id: <20220307014301.83E47C340F4@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch removed from -mm tree
+Message-Id: <20220307014300.9762CC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,54 +41,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: fix potential VM_BUG_ON_PAGE in split_huge_page_to_list
+     Subject: mm/memory-failure.c: avoid calling invalidate_inode_page() with unexpected pages
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failurec-fix-potential-vm_bug_on_page-in-split_huge_page_to_list.patch
+     mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure.c: fix potential VM_BUG_ON_PAGE in split_huge_page_to_list
+Subject: mm/memory-failure.c: avoid calling invalidate_inode_page() with unexpected pages
 
-The huge zero page could reach here and if we ever try to split it, the
-VM_BUG_ON_PAGE will be triggered in split_huge_page_to_list().  Also the
-non-lru compound movable pages could be taken for transhuge pages.  Skip
-these pages by checking PageLRU because huge zero page isn't lru page as
-non-lru compound movable pages.
+Since commit 042c4f32323b ("mm/truncate: Inline invalidate_complete_page()
+into its one caller"), invalidate_inode_page() can invalidate the pages in
+the swap cache because the check of page->mapping != mapping is removed. 
+But invalidate_inode_page() is not expected to deal with the pages in swap
+cache.  Also non-lru movable page can reach here too.  They're not page
+cache pages.  Skip these pages by checking PageSwapCache and PageLRU.
 
-Link: https://lkml.kernel.org/r/20220228140245.24552-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220228140245.24552-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failurec-fix-potential-vm_bug_on_page-in-split_huge_page_to_list
+--- a/mm/memory-failure.c~mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages
 +++ a/mm/memory-failure.c
-@@ -1787,6 +1787,20 @@ try_again:
+@@ -2179,7 +2179,7 @@ static int __soft_offline_page(struct pa
+ 		return 0;
+ 	}
  
- 	if (PageTransHuge(hpage)) {
+-	if (!PageHuge(page))
++	if (!PageHuge(page) && PageLRU(page) && !PageSwapCache(page))
  		/*
-+		 * The non-lru compound movable pages could be taken for
-+		 * transhuge pages. Also huge zero page could reach here
-+		 * and if we ever try to split it, the VM_BUG_ON_PAGE will
-+		 * be triggered in split_huge_page_to_list(). Skip these
-+		 * pages by checking PageLRU because huge zero page isn't
-+		 * lru page as non-lru compound movable pages.
-+		 */
-+		if (!PageLRU(hpage)) {
-+			put_page(p);
-+			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
-+			res = -EBUSY;
-+			goto unlock_mutex;
-+		}
-+		/*
- 		 * The flag must be set after the refcount is bumped
- 		 * otherwise it may race with THP split.
- 		 * And the flag can't be set in get_hwpoison_page() since
+ 		 * Try to invalidate first. This should work for
+ 		 * non dirty unmapped page cache pages.
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -110,6 +99,7 @@ mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
 mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
 mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
 mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
+mm-memory-failurec-fix-potential-vm_bug_on_page-in-split_huge_page_to_list.patch
 mm-hugetlb-use-helper-macro-__attr_rw.patch
 mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
 mm-ksm-use-helper-macro-__attr_rw.patch
