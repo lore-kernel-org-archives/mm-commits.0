@@ -2,40 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7AC5C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 23:32:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7896C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 23:45:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232786AbiCGXdN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Mar 2022 18:33:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46494 "EHLO
+        id S241914AbiCGXqH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Mar 2022 18:46:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234760AbiCGXdM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2022 18:33:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D5A712A9F
-        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 15:32:17 -0800 (PST)
+        with ESMTP id S234760AbiCGXqG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2022 18:46:06 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3835A2A2
+        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 15:45:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ABB8A6124A
-        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 23:32:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10BBEC340E9;
-        Mon,  7 Mar 2022 23:32:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F2A4D61186
+        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 23:45:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EFF3C340E9;
+        Mon,  7 Mar 2022 23:45:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646695936;
-        bh=w4sOf0JMk/IcDO2qZNSmo5hh+qkMLXWk6NurejXaTtA=;
+        s=korg; t=1646696709;
+        bh=WVxIYl78Hpytks9F9N5GfEpgdhIth9RK221+f4HiDPw=;
         h=Date:To:From:Subject:From;
-        b=LGaWbF5tXAwOyn42rf+woavfOaoShInSJ6zEqnMJKDirSsPD29f51g/61ATwfoR0w
-         aC6tORcl1htzDbUDOQz7KdzTkN8LeH9Pk4vx4TpC1oCV7QkBIZuw3lIJbr+Gj3qTOb
-         txMv2sUOrZ4GkREoWNKiw5Bjj1NxLCTpBNIUY9bA=
-Date:   Mon, 07 Mar 2022 15:32:15 -0800
-To:     mm-commits@vger.kernel.org, trix@redhat.com,
-        ndesaulniers@google.com, natechancellor@gmail.com,
-        bsingharora@gmail.com, lukas.bulwahn@gmail.com,
-        akpm@linux-foundation.org
+        b=18PaYQJSOxnUA4lKtzRYbMavkmjO6iOmnrMeJeDSnoW1sQ/iEJ73hn2NGqvIu+aXk
+         dRYre7GiLZtMByr4KbG5KHvoFhYUZFGSeS/Rzezvbpa+1WV+idxx9vM8Ejj9rfIkjJ
+         xbhhFqzfNbd62478BAWL94w0PBOMWaRSscTlDdFM=
+Date:   Mon, 07 Mar 2022 15:45:08 -0800
+To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
+        willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
+        shakeelb@google.com, rppt@linux.ibm.com, roman.gushchin@linux.dev,
+        rientjes@google.com, riel@surriel.com, peterx@redhat.com,
+        oleg@redhat.com, nadav.amit@gmail.com, mike.kravetz@oracle.com,
+        mhocko@kernel.org, kirill.shutemov@linux.intel.com,
+        jhubbard@nvidia.com, jgg@nvidia.com, jannh@google.com,
+        jack@suse.cz, hughd@google.com, hch@lst.de, ddutile@redhat.com,
+        aarcange@redhat.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + taskstats-remove-unneeded-dead-assignment.patch added to -mm tree
-Message-Id: <20220307233216.10BBEC340E9@smtp.kernel.org>
+Subject: + mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch added to -mm tree
+Message-Id: <20220307234509.4EFF3C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: taskstats: remove unneeded dead assignment
+     Subject: mm/huge_memory: remove stale locking logic from __split_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     taskstats-remove-unneeded-dead-assignment.patch
+     mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/taskstats-remove-unneeded-dead-assignment.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/taskstats-remove-unneeded-dead-assignment.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,54 +69,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: taskstats: remove unneeded dead assignment
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/huge_memory: remove stale locking logic from __split_huge_pmd()
 
-make clang-analyzer on x86_64 defconfig caught my attention with:
+Let's remove the stale logic that was required for reuse_swap_page().
 
-  kernel/taskstats.c:120:2: warning: Value stored to 'rc' is never read \
-  [clang-analyzer-deadcode.DeadStores]
-          rc = 0;
-          ^
-
-Commit d94a041519f3 ("taskstats: free skb, avoid returns in
-send_cpu_listeners") made send_cpu_listeners() not return a value and
-hence, the rc variable remained only to be used within the loop where
-it is always assigned before read and it does not need any other
-initialisation.
-
-So, simply remove this unneeded dead initializing assignment.
-
-As compilers will detect this unneeded assignment and optimize this anyway,
-the resulting object code is identical before and after this change.
-
-No functional change. No change to object code.
-
-Link: https://lkml.kernel.org/r/20220307093942.21310-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Tom Rix <trix@redhat.com>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
+Link: https://lkml.kernel.org/r/20220131162940.210846-10-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Don Dutile <ddutile@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Liang Zhang <zhangliang5@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/huge_memory.c |   32 +-------------------------------
+ 1 file changed, 1 insertion(+), 31 deletions(-)
 
---- a/kernel/taskstats.c~taskstats-remove-unneeded-dead-assignment
-+++ a/kernel/taskstats.c
-@@ -117,7 +117,6 @@ static void send_cpu_listeners(struct sk
+--- a/mm/huge_memory.c~mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd
++++ a/mm/huge_memory.c
+@@ -2133,8 +2133,6 @@ void __split_huge_pmd(struct vm_area_str
+ {
+ 	spinlock_t *ptl;
+ 	struct mmu_notifier_range range;
+-	bool do_unlock_folio = false;
+-	pmd_t _pmd;
  
- 	genlmsg_end(skb, reply);
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+ 				address & HPAGE_PMD_MASK,
+@@ -2153,42 +2151,14 @@ void __split_huge_pmd(struct vm_area_str
+ 			goto out;
+ 	}
  
--	rc = 0;
- 	down_read(&listeners->sem);
- 	list_for_each_entry(s, &listeners->list, list) {
- 		skb_next = NULL;
+-repeat:
+ 	if (pmd_trans_huge(*pmd)) {
+-		if (!folio) {
++		if (!folio)
+ 			folio = page_folio(pmd_page(*pmd));
+-			/*
+-			 * An anonymous page must be locked, to ensure that a
+-			 * concurrent reuse_swap_page() sees stable mapcount;
+-			 * but reuse_swap_page() is not used on shmem or file,
+-			 * and page lock must not be taken when zap_pmd_range()
+-			 * calls __split_huge_pmd() while i_mmap_lock is held.
+-			 */
+-			if (folio_test_anon(folio)) {
+-				if (unlikely(!folio_trylock(folio))) {
+-					folio_get(folio);
+-					_pmd = *pmd;
+-					spin_unlock(ptl);
+-					folio_lock(folio);
+-					spin_lock(ptl);
+-					if (unlikely(!pmd_same(*pmd, _pmd))) {
+-						folio_unlock(folio);
+-						folio_put(folio);
+-						folio = NULL;
+-						goto repeat;
+-					}
+-					folio_put(folio);
+-				}
+-				do_unlock_folio = true;
+-			}
+-		}
+ 	} else if (!(pmd_devmap(*pmd) || is_pmd_migration_entry(*pmd)))
+ 		goto out;
+ 	__split_huge_pmd_locked(vma, pmd, range.start, freeze);
+ out:
+ 	spin_unlock(ptl);
+-	if (do_unlock_folio)
+-		folio_unlock(folio);
+ 	/*
+ 	 * No need to double call mmu_notifier->invalidate_range() callback.
+ 	 * They are 3 cases to consider inside __split_huge_pmd_locked():
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-taskstats-remove-unneeded-dead-assignment.patch
+cma-factor-out-minimum-alignment-requirement.patch
+mm-enforce-pageblock_order-max_order.patch
+drivers-base-memory-add-memory-block-to-memory-group-after-registration-succeeded.patch
+drivers-base-node-consolidate-node-device-subsystem-initialization-in-node_dev_init.patch
+drivers-base-node-rename-link_mem_sections-to-register_memory_block_under_node.patch
+drivers-base-memory-determine-and-store-zone-for-single-zone-memory-blocks.patch
+drivers-base-memory-clarify-adding-and-removing-of-memory-blocks.patch
+proc-vmcore-fix-possible-deadlock-on-concurrent-mmap-and-read.patch
+mm-optimize-do_wp_page-for-exclusive-pages-in-the-swapcache.patch
+mm-optimize-do_wp_page-for-fresh-pages-in-local-lru-pagevecs.patch
+mm-slightly-clarify-ksm-logic-in-do_swap_page.patch
+mm-streamline-cow-logic-in-do_swap_page.patch
+mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch
+mm-khugepaged-remove-reuse_swap_page-usage.patch
+mm-swapfile-remove-stale-reuse_swap_page.patch
+mm-huge_memory-remove-stale-page_trans_huge_mapcount.patch
+mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 
