@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F957C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 02:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D50FC433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 02:45:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234682AbiCGCMm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 6 Mar 2022 21:12:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53332 "EHLO
+        id S234847AbiCGCp7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 6 Mar 2022 21:45:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232565AbiCGCMk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 21:12:40 -0500
+        with ESMTP id S233993AbiCGCp6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 6 Mar 2022 21:45:58 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36496E0E7
-        for <mm-commits@vger.kernel.org>; Sun,  6 Mar 2022 18:11:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E3BB38A1;
+        Sun,  6 Mar 2022 18:45:05 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A019661122
-        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 02:11:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04313C340F4;
-        Mon,  7 Mar 2022 02:11:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 091C961182;
+        Mon,  7 Mar 2022 02:45:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EA2AC340EC;
+        Mon,  7 Mar 2022 02:45:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646619106;
-        bh=rEwbwcfzOfxASim5A3YUNr0D5pWXVtnlAo+pL6ZrvOo=;
+        s=korg; t=1646621104;
+        bh=9JE9sScbU739M1C27rs4TvJvSOx8//vHeqXnXuyjKIg=;
         h=Date:To:From:Subject:From;
-        b=Aet7nyMrZfIxKTWKrq7aof0XxRnsnppe7YeXkWGbREPEvUtaLYpmTnNx4i380FGjH
-         KO3siKmjjbCqNi9XgVES1tkLFuurp6a9nKmyk7toV+mb4F44vFsVr27mNbtE0MIDtG
-         1lw4wtBVxi8jmUWLP+fVNPb32EmjvDbP+8HypIo8=
-Date:   Sun, 06 Mar 2022 18:11:45 -0800
-To:     mm-commits@vger.kernel.org, glider@google.com, elver@google.com,
-        dvyukov@google.com, dtcccc@linux.alibaba.com,
+        b=PQALnWPPRmnFo2RSk0zUN+08A/znGbC3Te2xjK2YmT9hC3GEWWSnUuvKGmKmnf/v/
+         5ahMK0TXuM6hgqgk5dyum3CepAD6GfeuksZbnSt67MYeO0wTCrCGt0ZAAb6kg8cIkB
+         Umj3wQmP6GpWnJcB4H3SW0+nXPtP2ltGKGfMOX7w=
+Date:   Sun, 06 Mar 2022 18:45:03 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@suse.com,
+        ivan@cloudflare.com, hannes@cmpxchg.org, fhofmann@cloudflare.com,
+        dqminh@cloudflare.com, shakeelb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kfence-alloc-kfence_pool-after-system-startup.patch removed from -mm tree
-Message-Id: <20220307021146.04313C340F4@smtp.kernel.org>
+Subject: [failures] memcg-sync-flush-only-if-periodic-flush-is-delayed.patch removed from -mm tree
+Message-Id: <20220307024504.5EA2AC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,212 +44,140 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: alloc kfence_pool after system startup
+     Subject: memcg: sync flush only if periodic flush is delayed
 has been removed from the -mm tree.  Its filename was
-     kfence-alloc-kfence_pool-after-system-startup.patch
+     memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Tianchen Ding <dtcccc@linux.alibaba.com>
-Subject: kfence: alloc kfence_pool after system startup
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: sync flush only if periodic flush is delayed
 
-Allow enabling KFENCE after system startup by allocating its pool via the
-page allocator.  This provides the flexibility to enable KFENCE even if it
-wasn't enabled at boot time.
+Daniel Dao has reported [1] a regression on workloads that may trigger a
+lot of refaults (anon and file).  The underlying issue is that flushing
+rstat is expensive.  Although rstat flush are batched with (nr_cpus *
+MEMCG_BATCH) stat updates, it seems like there are workloads which
+genuinely do stat updates larger than batch value within short amount of
+time.  Since the rstat flush can happen in the performance critical
+codepaths like page faults, such workload can suffer greatly.
 
-Link: https://lkml.kernel.org/r/20220305144858.17040-3-dtcccc@linux.alibaba.com
-Signed-off-by: Tianchen Ding <dtcccc@linux.alibaba.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
+This patch fixes this regression by making the rstat flushing conditional
+in the performance critical codepaths.  More specifically, the kernel
+relies on the async periodic rstat flusher to flush the stats and only if
+the periodic flusher is delayed by more than twice the amount of its
+normal time window then the kernel allows rstat flushing from the
+performance critical codepaths.
+
+Now the question: what are the side-effects of this change?  The worst
+that can happen is the refault codepath will see 4sec old lruvec stats and
+may cause false (or missed) activations of the refaulted page which may
+under-or-overestimate the workingset size.  Though that is not very
+concerning as the kernel can already miss or do false activations.
+
+There are two more codepaths whose flushing behavior is not changed by
+this patch and we may need to come to them in future.  One is the
+writeback stats used by dirty throttling and second is the deactivation
+heuristic in the reclaim.  For now keeping an eye on them and if there is
+report of regression due to these codepaths, we will reevaluate then.
+
+Link: https://lore.kernel.org/all/CA+wXwBSyO87ZX5PVwdHm-=dBjZYECGmfnydUicUyrQqndgX2MQ@mail.gmail.com [1]
+Link: https://lkml.kernel.org/r/20220304184040.1304781-1-shakeelb@google.com
+Fixes: 1f828223b799 ("memcg: flush lruvec stats in the refault")
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reported-by: Daniel Dao <dqminh@cloudflare.com>
+Tested-by: Ivan Babrou <ivan@cloudflare.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Frank Hofmann <fhofmann@cloudflare.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   99 +++++++++++++++++++++++++++++++++++----------
- 1 file changed, 78 insertions(+), 21 deletions(-)
+ include/linux/memcontrol.h |    5 +++++
+ mm/memcontrol.c            |   12 +++++++++++-
+ mm/workingset.c            |    2 +-
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
---- a/mm/kfence/core.c~kfence-alloc-kfence_pool-after-system-startup
-+++ a/mm/kfence/core.c
-@@ -96,7 +96,7 @@ static unsigned long kfence_skip_covered
- module_param_named(skip_covered_thresh, kfence_skip_covered_thresh, ulong, 0644);
- 
- /* The pool of pages used for guard pages and objects. */
--char *__kfence_pool __ro_after_init;
-+char *__kfence_pool __read_mostly;
- EXPORT_SYMBOL(__kfence_pool); /* Export for test modules. */
- 
- /*
-@@ -537,17 +537,19 @@ static void rcu_guarded_free(struct rcu_
- 	kfence_guarded_free((void *)meta->addr, meta, false);
+--- a/include/linux/memcontrol.h~memcg-sync-flush-only-if-periodic-flush-is-delayed
++++ a/include/linux/memcontrol.h
+@@ -999,6 +999,7 @@ static inline unsigned long lruvec_page_
  }
  
--static bool __init kfence_init_pool(void)
-+/*
-+ * Initialization of the KFENCE pool after its allocation.
-+ * Returns 0 on success; otherwise returns the address up to
-+ * which partial initialization succeeded.
-+ */
-+static unsigned long kfence_init_pool(void)
+ void mem_cgroup_flush_stats(void);
++void mem_cgroup_flush_stats_delayed(void);
+ 
+ void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			      int val);
+@@ -1442,6 +1443,10 @@ static inline void mem_cgroup_flush_stat
  {
- 	unsigned long addr = (unsigned long)__kfence_pool;
- 	struct page *pages;
- 	int i;
+ }
  
--	if (!__kfence_pool)
--		return false;
--
- 	if (!arch_kfence_init_pool())
--		goto err;
-+		return addr;
- 
- 	pages = virt_to_page(addr);
- 
-@@ -565,7 +567,7 @@ static bool __init kfence_init_pool(void
- 
- 		/* Verify we do not have a compound head page. */
- 		if (WARN_ON(compound_head(&pages[i]) != &pages[i]))
--			goto err;
-+			return addr;
- 
- 		__SetPageSlab(&pages[i]);
- 	}
-@@ -578,7 +580,7 @@ static bool __init kfence_init_pool(void
- 	 */
- 	for (i = 0; i < 2; i++) {
- 		if (unlikely(!kfence_protect(addr)))
--			goto err;
-+			return addr;
- 
- 		addr += PAGE_SIZE;
- 	}
-@@ -595,7 +597,7 @@ static bool __init kfence_init_pool(void
- 
- 		/* Protect the right redzone. */
- 		if (unlikely(!kfence_protect(addr + PAGE_SIZE)))
--			goto err;
-+			return addr;
- 
- 		addr += 2 * PAGE_SIZE;
- 	}
-@@ -608,9 +610,21 @@ static bool __init kfence_init_pool(void
- 	 */
- 	kmemleak_free(__kfence_pool);
- 
--	return true;
-+	return 0;
++static inline void mem_cgroup_flush_stats_delayed(void)
++{
 +}
 +
-+static bool __init kfence_init_pool_early(void)
-+{
-+	unsigned long addr;
+ static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
+ 					    enum node_stat_item idx, int val)
+ {
+--- a/mm/memcontrol.c~memcg-sync-flush-only-if-periodic-flush-is-delayed
++++ a/mm/memcontrol.c
+@@ -628,6 +628,9 @@ static DECLARE_DEFERRABLE_WORK(stats_flu
+ static DEFINE_SPINLOCK(stats_flush_lock);
+ static DEFINE_PER_CPU(unsigned int, stats_updates);
+ static atomic_t stats_flush_threshold = ATOMIC_INIT(0);
++static u64 flush_next_time;
 +
-+	if (!__kfence_pool)
-+		return false;
-+
-+	addr = kfence_init_pool();
-+
-+	if (!addr)
-+		return true;
++#define FLUSH_TIME (2UL*HZ)
  
--err:
+ static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val)
+ {
+@@ -649,6 +652,7 @@ static void __mem_cgroup_flush_stats(voi
+ 	if (!spin_trylock_irqsave(&stats_flush_lock, flag))
+ 		return;
+ 
++	flush_next_time = jiffies_64 + 2*FLUSH_TIME;
+ 	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
+ 	atomic_set(&stats_flush_threshold, 0);
+ 	spin_unlock_irqrestore(&stats_flush_lock, flag);
+@@ -660,10 +664,16 @@ void mem_cgroup_flush_stats(void)
+ 		__mem_cgroup_flush_stats();
+ }
+ 
++void mem_cgroup_flush_stats_delayed(void)
++{
++	if (rstat_flush_time && time_after64(jiffies_64, flush_next_time))
++		mem_cgroup_flush_stats();
++}
++
+ static void flush_memcg_stats_dwork(struct work_struct *w)
+ {
+ 	__mem_cgroup_flush_stats();
+-	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, 2UL*HZ);
++	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+ }
+ 
+ /**
+--- a/mm/workingset.c~memcg-sync-flush-only-if-periodic-flush-is-delayed
++++ a/mm/workingset.c
+@@ -354,7 +354,7 @@ void workingset_refault(struct folio *fo
+ 
+ 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats_delayed();
  	/*
- 	 * Only release unprotected pages, and do not try to go back and change
- 	 * page attributes due to risk of failing to do so as well. If changing
-@@ -623,6 +637,22 @@ err:
- 	return false;
- }
- 
-+static bool kfence_init_pool_late(void)
-+{
-+	unsigned long addr, free_pages;
-+
-+	addr = kfence_init_pool();
-+
-+	if (!addr)
-+		return true;
-+
-+	/* Same as above. */
-+	free_pages = (KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool)) / PAGE_SIZE;
-+	free_contig_range(page_to_pfn(virt_to_page(addr)), free_pages);
-+	__kfence_pool = NULL;
-+	return false;
-+}
-+
- /* === DebugFS Interface ==================================================== */
- 
- static int stats_show(struct seq_file *seq, void *v)
-@@ -771,31 +801,58 @@ void __init kfence_alloc_pool(void)
- 		pr_err("failed to allocate pool\n");
- }
- 
-+static void kfence_init_enable(void)
-+{
-+	if (!IS_ENABLED(CONFIG_KFENCE_STATIC_KEYS))
-+		static_branch_enable(&kfence_allocation_key);
-+	WRITE_ONCE(kfence_enabled, true);
-+	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
-+	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
-+		CONFIG_KFENCE_NUM_OBJECTS, (void *)__kfence_pool,
-+		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
-+}
-+
- void __init kfence_init(void)
- {
-+	stack_hash_seed = (u32)random_get_entropy();
-+
- 	/* Setting kfence_sample_interval to 0 on boot disables KFENCE. */
- 	if (!kfence_sample_interval)
- 		return;
- 
--	stack_hash_seed = (u32)random_get_entropy();
--	if (!kfence_init_pool()) {
-+	if (!kfence_init_pool_early()) {
- 		pr_err("%s failed\n", __func__);
- 		return;
- 	}
- 
--	if (!IS_ENABLED(CONFIG_KFENCE_STATIC_KEYS))
--		static_branch_enable(&kfence_allocation_key);
--	WRITE_ONCE(kfence_enabled, true);
--	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
--	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
--		CONFIG_KFENCE_NUM_OBJECTS, (void *)__kfence_pool,
--		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
-+	kfence_init_enable();
-+}
-+
-+static int kfence_init_late(void)
-+{
-+	const unsigned long nr_pages = KFENCE_POOL_SIZE / PAGE_SIZE;
-+	struct page *pages;
-+
-+	pages = alloc_contig_pages(nr_pages, GFP_KERNEL, first_online_node, NULL);
-+
-+	if (!pages)
-+		return -ENOMEM;
-+
-+	__kfence_pool = page_to_virt(pages);
-+
-+	if (!kfence_init_pool_late()) {
-+		pr_err("%s failed\n", __func__);
-+		return -EBUSY;
-+	}
-+
-+	kfence_init_enable();
-+	return 0;
- }
- 
- static int kfence_enable_late(void)
- {
- 	if (!__kfence_pool)
--		return -EINVAL;
-+		return kfence_init_late();
- 
- 	WRITE_ONCE(kfence_enabled, true);
- 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
+ 	 * Compare the distance to the existing workingset size. We
+ 	 * don't activate pages that couldn't stay resident even if
 _
 
-Patches currently in -mm which might be from dtcccc@linux.alibaba.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
+memcg-replace-in_interrupt-with-in_task.patch
+memcg-refactor-mem_cgroup_oom.patch
+memcg-unify-force-charging-conditions.patch
+selftests-memcg-test-high-limit-for-single-entry-allocation.patch
+memcg-synchronously-enforce-memoryhigh-for-large-overcharges.patch
 
