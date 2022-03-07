@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C508EC433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 23:51:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E09EBC433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Mar 2022 23:52:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343975AbiCGXwd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Mar 2022 18:52:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41996 "EHLO
+        id S245151AbiCGXxd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Mar 2022 18:53:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343971AbiCGXwb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2022 18:52:31 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7354B1157;
-        Mon,  7 Mar 2022 15:51:36 -0800 (PST)
+        with ESMTP id S239676AbiCGXxc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2022 18:53:32 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 276F8B7C0
+        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 15:52:36 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 31494B815E0;
-        Mon,  7 Mar 2022 23:51:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB360C340E9;
-        Mon,  7 Mar 2022 23:51:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B4CD761269
+        for <mm-commits@vger.kernel.org>; Mon,  7 Mar 2022 23:52:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 134E1C340E9;
+        Mon,  7 Mar 2022 23:52:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646697094;
-        bh=5ryg3PFkiN13jEr7rve6+l1jk/A0hzpMWkKVptaAd6s=;
+        s=korg; t=1646697155;
+        bh=QICKmP8dfgUZEUD6mCi/JFvkIhG/mxSXajVx+SuuwpY=;
         h=Date:To:From:Subject:From;
-        b=ZvZvTMZTfllmiJfPD9FFSbvCn8vo9mfleI3HddgTcf4b5QX0xcnBzBa9vZzez3QOG
-         3bTqgtqYqaRGuYvJCOD0ywSdmU/5av2pCx0x5yHDVLo83OJnVdNgMjDh0SRAIuG9T8
-         StoGdQ/LCcl8AXTKwzDlPcCZKdbZXZQpsDV1nz4s=
-Date:   Mon, 07 Mar 2022 15:51:33 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        mike.kravetz@oracle.com, akpm@linux-foundation.org
+        b=eAWYH7cIVkLWFDsDt7LWkmK1YgqPn3XfYtg2OWFJSzgbE7lYmANVZrtM9gOl28lVH
+         iXhcWEi4Ye5lMeYHuvgvxy3r2M2jN42MBvn62dggR5wz6nGG7EGIEhh4V8f09S67Nv
+         qfJk3NYDMqqrJBRJsxBaf71kc8dEDAruCg6NXTvg=
+Date:   Mon, 07 Mar 2022 15:52:34 -0800
+To:     mm-commits@vger.kernel.org, trix@redhat.com,
+        ndesaulniers@google.com, natechancellor@gmail.com,
+        lukas.bulwahn@gmail.com, bsingharora@gmail.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-do-not-demote-poisoned-hugetlb-pages.patch added to -mm tree
-Message-Id: <20220307235133.DB360C340E9@smtp.kernel.org>
+Subject: + taskstats-remove-unneeded-dead-assignment-fix.patch added to -mm tree
+Message-Id: <20220307235235.134E1C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: do not demote poisoned hugetlb pages
+     Subject: taskstats-remove-unneeded-dead-assignment-fix
 has been added to the -mm tree.  Its filename is
-     hugetlb-do-not-demote-poisoned-hugetlb-pages.patch
+     taskstats-remove-unneeded-dead-assignment-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-do-not-demote-poisoned-hugetlb-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/taskstats-remove-unneeded-dead-assignment-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-do-not-demote-poisoned-hugetlb-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/taskstats-remove-unneeded-dead-assignment-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,77 +64,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: do not demote poisoned hugetlb pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: taskstats-remove-unneeded-dead-assignment-fix
 
-It is possible for poisoned hugetlb pages to reside on the free lists. 
-The huge page allocation routines which dequeue entries from the free
-lists make a point of avoiding poisoned pages.  There is no such check and
-avoidance in the demote code path.
+reduce scope of `rc'
 
-If a hugetlb page on the is on a free list, poison will only be set in the
-head page rather then the page with the actual error.  If such a page is
-demoted, then the poison flag may follow the wrong page.  A page without
-error could have poison set, and a page with poison could not have the
-flag set.
-
-Check for poison before attempting to demote a hugetlb page.  Also, return
--EBUSY to the caller if only poisoned pages are on the free list.
-
-Link: https://lkml.kernel.org/r/20220307215707.50916-1-mike.kravetz@oracle.com
-Fixes: 8531fc6f52f5 ("hugetlb: add hugetlb demote page support")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Tom Rix <trix@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ kernel/taskstats.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-do-not-demote-poisoned-hugetlb-pages
-+++ a/mm/hugetlb.c
-@@ -3469,7 +3469,6 @@ static int demote_pool_huge_page(struct
- {
- 	int nr_nodes, node;
- 	struct page *page;
--	int rc = 0;
+--- a/kernel/taskstats.c~taskstats-remove-unneeded-dead-assignment-fix
++++ a/kernel/taskstats.c
+@@ -113,12 +113,14 @@ static void send_cpu_listeners(struct sk
+ 	struct listener *s, *tmp;
+ 	struct sk_buff *skb_next, *skb_cur = skb;
+ 	void *reply = genlmsg_data(genlhdr);
+-	int rc, delcount = 0;
++	int delcount = 0;
  
- 	lockdep_assert_held(&hugetlb_lock);
+ 	genlmsg_end(skb, reply);
  
-@@ -3480,15 +3479,19 @@ static int demote_pool_huge_page(struct
- 	}
- 
- 	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
--		if (!list_empty(&h->hugepage_freelists[node])) {
--			page = list_entry(h->hugepage_freelists[node].next,
--					struct page, lru);
--			rc = demote_free_huge_page(h, page);
--			break;
-+		list_for_each_entry(page, &h->hugepage_freelists[node], lru) {
-+			if (PageHWPoison(page))
-+				continue;
+ 	down_read(&listeners->sem);
+ 	list_for_each_entry(s, &listeners->list, list) {
++		int rc;
 +
-+			return demote_free_huge_page(h, page);
- 		}
- 	}
- 
--	return rc;
-+	/*
-+	 * Only way to get here is if all pages on free lists are poisoned.
-+	 * Return -EBUSY so that caller will not retry.
-+	 */
-+	return -EBUSY;
- }
- 
- #define HSTATE_ATTR_RO(_name) \
+ 		skb_next = NULL;
+ 		if (!list_is_last(&s->list, &listeners->list)) {
+ 			skb_next = skb_clone(skb_cur, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-do-not-demote-poisoned-hugetlb-pages.patch
-hugetlb-clean-up-potential-spectre-issue-warnings.patch
-hugetlb-clean-up-potential-spectre-issue-warnings-v2.patch
-mm-enable-madv_dontneed-for-hugetlb-mappings.patch
-selftests-vm-add-hugetlb-madvise-madv_dontneed-madv_remove-test.patch
-userfaultfd-selftests-enable-hugetlb-remap-and-remove-event-testing.patch
+memcg-sync-flush-only-if-periodic-flush-is-delayed-fix.patch
+remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-list_lru-replace-linear-array-with-xarray-fix.patch
+mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
+mm-export-pageheadhuge-fix.patch
+userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
+proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
+taskstats-remove-unneeded-dead-assignment-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+arch-x86-kernel-resourcec-needs-spinlockh.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+kasan-improve-vmalloc-tests-fix-3-fix.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
