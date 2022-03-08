@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55AE6C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Mar 2022 17:53:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA3D3C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Mar 2022 17:54:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348791AbiCHRyc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Mar 2022 12:54:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50430 "EHLO
+        id S1349320AbiCHRy7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Mar 2022 12:54:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349305AbiCHRyc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Mar 2022 12:54:32 -0500
+        with ESMTP id S1349307AbiCHRy6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Mar 2022 12:54:58 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFE964130B
-        for <mm-commits@vger.kernel.org>; Tue,  8 Mar 2022 09:53:33 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 773D9522CC
+        for <mm-commits@vger.kernel.org>; Tue,  8 Mar 2022 09:54:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 83EBAB81BDA
-        for <mm-commits@vger.kernel.org>; Tue,  8 Mar 2022 17:53:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D26CC340F6;
-        Tue,  8 Mar 2022 17:53:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 20FFAB81B0B
+        for <mm-commits@vger.kernel.org>; Tue,  8 Mar 2022 17:54:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A632BC340F4;
+        Tue,  8 Mar 2022 17:53:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646762011;
-        bh=I9/E/1eozJK2dWoDwsNLFgoGLZuj8ROjHi9GwXo91aE=;
+        s=korg; t=1646762038;
+        bh=QmRv10CHDlsUKZJVAfKfcAlZjUQGKYe1/x0GAF5WQfA=;
         h=Date:To:From:Subject:From;
-        b=CUXAknPGxeu9cRhKdbw9NI6YgoXE5OjlPvAywhfnG/csBdhPJlkcXZc6VWDh3IH2Q
-         6zThKIn7VKybvvWmQ3FoX+S1N6ulbn/WsHFV9urvmyn5RIcumq8ZPq2/ZA4lF5+M5H
-         mqMtCmXrBHs/cFe3Ru0Vksw9CyABVoOvLjZd/ErM=
-Date:   Tue, 08 Mar 2022 09:53:30 -0800
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=yYPR4+DU7GCi2DyP27DCFF1K7IAvCpE21Wqd6zcGBN0Y9XkjE8sBZdBFxhEpWZirA
+         E91+gfrcK5XNWr/rwQojNtwyMrb/atUvYb0n/Gv+Cquo+hRnkfhLeMQrPm77TD+XFK
+         QLB1DKOs6shSz+DxrWdJpraGy4+j624edjn9jxek=
+Date:   Tue, 08 Mar 2022 09:53:57 -0800
+To:     mm-commits@vger.kernel.org, weizhenliang@huawei.com,
+        skhan@linuxfoundation.org, rdunlap@infradead.org,
+        georgi.djakov@linaro.org, corbet@lwn.net,
+        caoyixuan2019@email.szu.edu.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Message-Id: <20220308175331.2D26CC340F6@smtp.kernel.org>
+Subject: [merged] documentation-vm-page_ownerrst-fix-commends.patch removed from -mm tree
+Message-Id: <20220308175358.A632BC340F4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,78 +43,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: Documentation/vm/page_owner.rst: fix comments
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     documentation-vm-page_ownerrst-fix-commends.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Subject: Documentation/vm/page_owner.rst: fix comments
 
+There are some comments that need to be fixed.
+
+Thanks for Shuah Khan's constructive suggestions.  The comments have been
+fixed as follows.
+
+a. So, if you'd like to use it, you need
+to add "page_owner=on" into your boot cmdline.
+
+Here, "into" has been replaced with "to".
+
+b. ...page owner is disabled in runtime due to no
+enabling, boot option, runtime overhead is marginal.
+
+Here, "no" has been replaced with "not".
+
+Link: https://lkml.kernel.org/r/20220223134104.2663-1-caoyixuan2019@email.szu.edu.cn
+Signed-off-by: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
+Cc: Georgi Djakov <georgi.djakov@linaro.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/virtio_blk.c |   10 ----------
- drivers/virtio/Kconfig     |    4 ----
- 2 files changed, 14 deletions(-)
+ Documentation/vm/page_owner.rst |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/block/virtio_blk.c~linux-next-git-rejects
-+++ a/drivers/block/virtio_blk.c
-@@ -69,16 +69,6 @@ struct virtio_blk {
- 	/* Process context for config space updates */
- 	struct work_struct config_work;
+--- a/Documentation/vm/page_owner.rst~documentation-vm-page_ownerrst-fix-commends
++++ a/Documentation/vm/page_owner.rst
+@@ -26,9 +26,9 @@ fragmentation statistics can be obtained
+ each page. It is already implemented and activated if page owner is
+ enabled. Other usages are more than welcome.
  
--<<<<<<< HEAD
--	/*
--	 * Tracks references from block_device_operations open/release and
--	 * virtio_driver probe/remove so this object can be freed once no
--	 * longer in use.
--	 */
--	refcount_t refs;
--
--=======
-->>>>>>> linux-next/akpm-base
- 	/* Ida index - used to track minor number allocations. */
- 	int index;
- 
---- a/drivers/virtio/Kconfig~linux-next-git-rejects
-+++ a/drivers/virtio/Kconfig
-@@ -105,11 +105,7 @@ config VIRTIO_BALLOON
- 
- config VIRTIO_MEM
- 	tristate "Virtio mem driver"
--<<<<<<< HEAD
--	depends on X86_64
--=======
- 	depends on X86_64 || ARM64
-->>>>>>> linux-next/akpm-base
- 	depends on VIRTIO
- 	depends on MEMORY_HOTPLUG
- 	depends on MEMORY_HOTREMOVE
+-page owner is disabled in default. So, if you'd like to use it, you need
+-to add "page_owner=on" into your boot cmdline. If the kernel is built
+-with page owner and page owner is disabled in runtime due to no enabling
++page owner is disabled by default. So, if you'd like to use it, you need
++to add "page_owner=on" to your boot cmdline. If the kernel is built
++with page owner and page owner is disabled in runtime due to not enabling
+ boot option, runtime overhead is marginal. If disabled in runtime, it
+ doesn't require memory to store owner information, so there is no runtime
+ memory overhead. And, page owner inserts just two unlikely branches into
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from caoyixuan2019@email.szu.edu.cn are
 
-memcg-sync-flush-only-if-periodic-flush-is-delayed-fix.patch
-remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-list_lru-replace-linear-array-with-xarray-fix.patch
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
-mm-export-pageheadhuge-fix.patch
-userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-taskstats-remove-unneeded-dead-assignment-fix.patch
-linux-next-rejects.patch
-arch-x86-kernel-resourcec-needs-spinlockh.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+tools-vm-page_owner_sortc-delete-invalid-duplicate-code.patch
+mm-page_ownerc-record-tgid.patch
+tools-vm-page_owner_sortc-fix-the-instructions-for-use.patch
 
