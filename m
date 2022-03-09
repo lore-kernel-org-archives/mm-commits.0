@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9990C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Mar 2022 21:27:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B33BC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Mar 2022 21:31:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231955AbiCIV2W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Mar 2022 16:28:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51278 "EHLO
+        id S233441AbiCIVcF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Mar 2022 16:32:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234510AbiCIV2W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2022 16:28:22 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEBC553711
-        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 13:27:22 -0800 (PST)
+        with ESMTP id S231182AbiCIVcE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2022 16:32:04 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA85A11C7F7
+        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 13:31:04 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4C7AD61AEC
-        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 21:27:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F8B3C340EC;
-        Wed,  9 Mar 2022 21:27:21 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id F0BD0CE1F06
+        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 21:31:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 541E7C340E8;
+        Wed,  9 Mar 2022 21:31:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646861241;
-        bh=wL8hPfJz5GozdwuUiP8H8T3gITmPC8pGSxZv7Rt7j5Y=;
+        s=korg; t=1646861461;
+        bh=6pF9fe6GcaykVJ+xumAvyK0AxqeVPIOF+VAoeGB70vc=;
         h=Date:To:From:Subject:From;
-        b=2kIT7aDUvx2rxVzgFlcNoVxvteauSXuLxMu5ETqaAiDBn7c4XWnhZQhdA25ZzrP6u
-         en9aS2AHZaJH4FxUWIo0tWOo7p+yi9eW1ERUUefVmpra1w2Btv6DM3u0tNdXrJSftq
-         v4bQ/o+w6VosxwiwhGxUeSf4ueAYGOt/YuUZXtt4=
-Date:   Wed, 09 Mar 2022 13:27:20 -0800
-To:     mm-commits@vger.kernel.org, weizhenliang@huawei.com,
-        sfr@canb.auug.org.au, seanga2@gmail.com,
-        yejiajian2018@email.szu.edu.cn, akpm@linux-foundation.org
+        b=gX3DqwxSXd93bgy9rOaEmWWxRw+AE0p9sw/uWdXi1m4FBl8FoDCYP+KOGY8El+uGz
+         AeMCKjRlVCWEDIq4nOBnu8qxDKqXi7ctsPun8RfAETRHBY+yvlMl5jCRMVnV44v+An
+         kMUxHHiuYGRqdhl06GN380eavpSG21XhIa8rTHp8=
+Date:   Wed, 09 Mar 2022 13:31:00 -0800
+To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com,
+        naoya.horiguchi@nec.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch added to -mm tree
-Message-Id: <20220309212721.9F8B3C340EC@smtp.kernel.org>
+Subject: + mm-hwpoison-set-pagehwpoison-after-taking-page-lock-in-memory_failure_hugetlb.patch added to -mm tree
+Message-Id: <20220309213101.541E7C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page_owner_sort.c: support for selecting by PID, TGID or task command name
+     Subject: mm/hwpoison: set PageHWPoison after taking page lock in memory_failure_hugetlb()
 has been added to the -mm tree.  Its filename is
-     tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
+     mm-hwpoison-set-pagehwpoison-after-taking-page-lock-in-memory_failure_hugetlb.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-set-pagehwpoison-after-taking-page-lock-in-memory_failure_hugetlb.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-set-pagehwpoison-after-taking-page-lock-in-memory_failure_hugetlb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,285 +63,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Subject: tools/vm/page_owner_sort.c: support for selecting by PID, TGID or task command name
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: set PageHWPoison after taking page lock in memory_failure_hugetlb()
 
-When viewing page owner information, we may also need to select the blocks
-by PID, TGID or task command name, which helps to get more accurate page
-allocation information as needed.
+There is a race condition between memory_failure_hugetlb() and hugetlb
+free/demotion, which causes setting PageHWPoison flag on the wrong page
+(which was a hugetlb when memory_failrue() was called, but was removed or
+demoted when memory_failure_hugetlb() is called).  This results in killing
+wrong processes.  So set PageHWPoison flag with holding page lock,
 
-Therefore, following adjustments are made:
-
-1. Add three new options, including --pid, --tgid and --name, to support
-the selection of information blocks by a specific pid, tgid and task
-command name. In addtion, multiple options are allowed to be used at the
-same time.
-
-	./page_owner_sort [input] [output] --pid <PID>
-	./page_owner_sort [input] [output] --tgid <TGID>
-	./page_owner_sort [input] [output] --name <TASK_COMMAND_NAME>
-
-Assuming a scenario when a multi-threaded program, ./demo (PID = 5280),
-is running, and ./demo creates a child process (PID = 5281).
-
-	$ps
-	PID   TTY        TIME   CMD
-	5215  pts/0    00:00:00  bash
-	5280  pts/0    00:00:00  ./demo
-	5281  pts/0    00:00:00  ./demo
-	5282  pts/0    00:00:00  ps
-
-It would be better to filter out the records with tgid=5280 and the
-task name "demo" when debugging the parent process, and the specific
-usage is
-
-	./page_owner_sort [input] [output] --tgid 5280 --name demo
-
-2. Add explanations of three new options, including --pid, --tgid
-and --name, to the document.
-
-This work is coauthored by
-	Shenghong Han <hanshenghong2019@email.szu.edu.cn>,
-	Yixuan Cao <caoyixuan2019@email.szu.edu.cn>,
-	Yinan Zhang <zhangyinan2019@email.szu.edu.cn>,
-	Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>,
-	Yuhong Feng <yuhongf@szu.edu.cn>.
-
-Link: https://lkml.kernel.org/r/1646835223-7584-1-git-send-email-yejiajian2018@email.szu.edu.cn
-Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Cc: Sean Anderson <seanga2@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Zhenliang Wei <weizhenliang@huawei.com>
+Link: https://lkml.kernel.org/r/20220309091449.2753904-1-naoya.horiguchi@linux.dev
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_owner.rst |    6 +
- tools/vm/page_owner_sort.c      |  118 +++++++++++++++++++++++-------
- 2 files changed, 98 insertions(+), 26 deletions(-)
+ mm/memory-failure.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
---- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name
-+++ a/Documentation/vm/page_owner.rst
-@@ -129,3 +129,9 @@ Usage
+--- a/mm/memory-failure.c~mm-hwpoison-set-pagehwpoison-after-taking-page-lock-in-memory_failure_hugetlb
++++ a/mm/memory-failure.c
+@@ -1496,24 +1496,11 @@ static int memory_failure_hugetlb(unsign
+ 	int res;
+ 	unsigned long page_flags;
  
- 	Filter:
- 		-f		Filter out the information of blocks whose memory has been released.
-+
-+	Select:
-+		--pid <PID>			Select by pid.
-+		--tgid <TGID>		Select by tgid.
-+		--name <command>	Select by task command name.
-+
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name
-+++ a/tools/vm/page_owner_sort.c
-@@ -21,6 +21,12 @@
- #include <regex.h>
- #include <errno.h>
- #include <linux/types.h>
-+#include <getopt.h>
-+
-+#define bool int
-+#define true 1
-+#define false 0
-+#define TASK_COMM_LEN 16
- 
- struct block_list {
- 	char *txt;
-@@ -34,7 +40,18 @@ struct block_list {
- 	pid_t pid;
- 	pid_t tgid;
- };
+-	if (TestSetPageHWPoison(head)) {
+-		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+-		       pfn);
+-		res = -EHWPOISON;
+-		if (flags & MF_ACTION_REQUIRED)
+-			res = kill_accessing_process(current, page_to_pfn(head), flags);
+-		return res;
+-	}
 -
-+enum FILTER_BIT {
-+	FILTER_UNRELEASE = 1<<1,
-+	FILTER_PID = 1<<2,
-+	FILTER_TGID = 1<<3,
-+	FILTER_TASK_COMM_NAME = 1<<4
-+};
-+struct filter_condition {
-+	pid_t tgid;
-+	pid_t pid;
-+	char comm[TASK_COMM_LEN];
-+};
-+static struct filter_condition fc;
- static regex_t order_pattern;
- static regex_t pid_pattern;
- static regex_t tgid_pattern;
-@@ -154,7 +171,6 @@ static void check_regcomp(regex_t *patte
- }
+-	num_poisoned_pages_inc();
+-
+ 	if (!(flags & MF_COUNT_INCREASED)) {
+ 		res = get_hwpoison_page(p, flags);
+ 		if (!res) {
+ 			lock_page(head);
+ 			if (hwpoison_filter(p)) {
+-				if (TestClearPageHWPoison(head))
+-					num_poisoned_pages_dec();
+ 				unlock_page(head);
+ 				return -EOPNOTSUPP;
+ 			}
+@@ -1535,13 +1522,16 @@ static int memory_failure_hugetlb(unsign
+ 	page_flags = head->flags;
  
- # define FIELD_BUFF 25
--# define TASK_COMM_LEN 16
- 
- static int get_page_num(char *buf)
- {
-@@ -259,11 +275,30 @@ static char *get_comm(char *buf)
- 	return comm_str;
- }
- 
-+static bool is_need(char *buf)
-+{
-+		if ((filter & FILTER_UNRELEASE) != 0 && get_free_ts_nsec(buf) != 0)
-+			return false;
-+		if ((filter & FILTER_PID) != 0 && get_pid(buf) != fc.pid)
-+			return false;
-+		if ((filter & FILTER_TGID) != 0 && get_tgid(buf) != fc.tgid)
-+			return false;
-+
-+		char *comm = get_comm(buf);
-+
-+		if ((filter & FILTER_TASK_COMM_NAME) != 0  &&
-+		strncmp(comm, fc.comm, TASK_COMM_LEN) != 0) {
-+			free(comm);
-+			return false;
-+		}
-+		return true;
-+}
-+
- static void add_list(char *buf, int len)
- {
- 	if (list_size != 0 &&
--	    len == list[list_size-1].len &&
--	    memcmp(buf, list[list_size-1].txt, len) == 0) {
-+		len == list[list_size-1].len &&
-+		memcmp(buf, list[list_size-1].txt, len) == 0) {
- 		list[list_size-1].num++;
- 		list[list_size-1].page_num += get_page_num(buf);
- 		return;
-@@ -272,28 +307,27 @@ static void add_list(char *buf, int len)
- 		printf("max_size too small??\n");
- 		exit(1);
+ 	if (hwpoison_filter(p)) {
+-		if (TestClearPageHWPoison(head))
+-			num_poisoned_pages_dec();
+ 		put_page(p);
+ 		res = -EOPNOTSUPP;
+ 		goto out;
  	}
--
--	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
--	if (filter == 1 && list[list_size].free_ts_nsec != 0)
-+	if (!is_need(buf))
- 		return;
-+	list[list_size].pid = get_pid(buf);
-+	list[list_size].tgid = get_tgid(buf);
-+	list[list_size].comm = get_comm(buf);
- 	list[list_size].txt = malloc(len+1);
- 	if (!list[list_size].txt) {
- 		printf("Out of memory\n");
- 		exit(1);
- 	}
--
-+	memcpy(list[list_size].txt, buf, len);
-+	list[list_size].txt[len] = 0;
- 	list[list_size].len = len;
- 	list[list_size].num = 1;
- 	list[list_size].page_num = get_page_num(buf);
--	memcpy(list[list_size].txt, buf, len);
--	list[list_size].txt[len] = 0;
+ 
++	if (TestSetPageHWPoison(head))
++		goto already_hwpoisoned;
 +
- 	list[list_size].stacktrace = strchr(list[list_size].txt, '\n') ?: "";
- 	if (*list[list_size].stacktrace == '\n')
- 		list[list_size].stacktrace++;
--	list[list_size].pid = get_pid(buf);
--	list[list_size].tgid = get_tgid(buf);
--	list[list_size].comm = get_comm(buf);
- 	list[list_size].ts_nsec = get_ts_nsec(buf);
-+	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
- 	list_size++;
- 	if (list_size % 1000 == 0) {
- 		printf("loaded %d\r", list_size);
-@@ -306,16 +340,19 @@ static void add_list(char *buf, int len)
- static void usage(void)
- {
- 	printf("Usage: ./page_owner_sort [OPTIONS] <input> <output>\n"
--		"-m	Sort by total memory.\n"
--		"-s	Sort by the stack trace.\n"
--		"-t	Sort by times (default).\n"
--		"-p	Sort by pid.\n"
--		"-P	Sort by tgid.\n"
--		"-n	Sort by task command name.\n"
--		"-a	Sort by memory allocate time.\n"
--		"-r	Sort by memory release time.\n"
--		"-c	Cull by comparing stacktrace instead of total block.\n"
--		"-f	Filter out the information of blocks whose memory has been released.\n"
-+		"-m\t\tSort by total memory.\n"
-+		"-s\t\tSort by the stack trace.\n"
-+		"-t\t\tSort by times (default).\n"
-+		"-p\t\tSort by pid.\n"
-+		"-P\t\tSort by tgid.\n"
-+		"-n\t\tSort by task command name.\n"
-+		"-a\t\tSort by memory allocate time.\n"
-+		"-r\t\tSort by memory release time.\n"
-+		"-c\t\tCull by comparing stacktrace instead of total block.\n"
-+		"-f\t\tFilter out the information of blocks whose memory has been released.\n"
-+		"--pid <PID>\tSelect by pid. This selects the information of blocks whose process ID number equals to <PID>.\n"
-+		"--tgid <TGID>\tSelect by tgid. This selects the information of blocks whose Thread Group ID number equals to <TGID>.\n"
-+		"--name <command>\n\t\tSelect by command name. This selects the information of blocks whose command name identical to <command>.\n"
- 	);
++	num_poisoned_pages_inc();
++
+ 	/*
+ 	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
+ 	 * simply disable it. In order to make it work properly, we need
+@@ -1567,6 +1557,13 @@ static int memory_failure_hugetlb(unsign
+ out:
+ 	unlock_page(head);
+ 	return res;
++already_hwpoisoned:
++	unlock_page(head);
++	pr_err("Memory failure: %#lx: already hardware poisoned\n", pfn);
++	res = -EHWPOISON;
++	if (flags & MF_ACTION_REQUIRED)
++		res = kill_accessing_process(current, page_to_pfn(head), flags);
++	return res;
  }
  
-@@ -323,12 +360,18 @@ int main(int argc, char **argv)
- {
- 	int (*cmp)(const void *, const void *) = compare_num;
- 	FILE *fin, *fout;
--	char *buf;
-+	char *buf, *endptr;
- 	int ret, i, count;
- 	struct stat st;
- 	int opt;
-+	struct option longopts[] = {
-+		{ "pid", required_argument, NULL, 1 },
-+		{ "tgid", required_argument, NULL, 2 },
-+		{ "name", required_argument, NULL, 3 },
-+		{ 0, 0, 0, 0},
-+	};
- 
--	while ((opt = getopt(argc, argv, "acfmnprstP")) != -1)
-+	while ((opt = getopt_long(argc, argv, "acfmnprstP", longopts, NULL)) != -1)
- 		switch (opt) {
- 		case 'a':
- 			cmp = compare_ts;
-@@ -337,7 +380,7 @@ int main(int argc, char **argv)
- 			cull_st = 1;
- 			break;
- 		case 'f':
--			filter = 1;
-+			filter = filter | FILTER_UNRELEASE;
- 			break;
- 		case 'm':
- 			cmp = compare_page_num;
-@@ -360,6 +403,29 @@ int main(int argc, char **argv)
- 		case 'n':
- 			cmp = compare_comm;
- 			break;
-+		case 1:
-+			filter = filter | FILTER_PID;
-+			errno = 0;
-+			fc.pid = strtol(optarg, &endptr, 10);
-+			if (errno != 0 || endptr == optarg || *endptr != '\0') {
-+				printf("wrong/invalid pid in from the command line:%s\n", optarg);
-+				exit(1);
-+			}
-+			break;
-+		case 2:
-+			filter = filter | FILTER_TGID;
-+			errno = 0;
-+			fc.tgid = strtol(optarg, &endptr, 10);
-+			if (errno != 0 || endptr == optarg || *endptr != '\0') {
-+				printf("wrong/invalid tgid in from the command line:%s\n", optarg);
-+				exit(1);
-+			}
-+			break;
-+		case 3:
-+			filter = filter | FILTER_TASK_COMM_NAME;
-+			strncpy(fc.comm, optarg, TASK_COMM_LEN);
-+			fc.comm[TASK_COMM_LEN-1] = '\0';
-+			break;
- 		default:
- 			usage();
- 			exit(1);
+ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
 _
 
-Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-tools-vm-page_owner_sortc-fix-comments.patch
-tools-vm-page_owner_sortc-add-a-security-check.patch
-tools-vm-page_owner_sortc-support-sorting-by-tgid-and-update-documentation.patch
-tools-vm-page_owner_sort-fix-three-trivival-places.patch
-tools-vm-page_owner_sort-support-for-sorting-by-task-command-name.patch
-tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
+mm-hwpoison-remove-obsolete-comment.patch
+mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
+mm-hwpoison-set-pagehwpoison-after-taking-page-lock-in-memory_failure_hugetlb.patch
 
