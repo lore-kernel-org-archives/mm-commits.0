@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BB95C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Mar 2022 22:07:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0071BC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Mar 2022 22:28:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234234AbiCIWI2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Mar 2022 17:08:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60772 "EHLO
+        id S238642AbiCIW3W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Mar 2022 17:29:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233630AbiCIWI1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2022 17:08:27 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B8464B1FD
-        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 14:07:27 -0800 (PST)
+        with ESMTP id S234651AbiCIW3V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2022 17:29:21 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96F8311985A
+        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 14:28:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B20B61B79
-        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 22:07:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F37BEC340E8;
-        Wed,  9 Mar 2022 22:07:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E456461C06
+        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 22:28:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43999C340E8;
+        Wed,  9 Mar 2022 22:28:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646863646;
-        bh=92nlfGAInyCDRsd1P/fgBVS+3UfyxOB4uaQDF82pPlU=;
+        s=korg; t=1646864901;
+        bh=iHnF8CkAPjFimDxu8XssBmhOwkmcT42MGzQI/TVk1rI=;
         h=Date:To:From:Subject:From;
-        b=Zy1rzDdu1u4aChhE2Ewq/JUoFaK7/VGxow5K3BUBw/EnPA6cFo/5R93LDcNnl1HQb
-         Xz4WrRYni3SQUgIG8OdEOfSLrQVcIregY1K3rIMo9E7bJ1OrEsOGp3Pl64tBXGDyml
-         ANiytLPw1MeeH3qa7c+XPTH50gsksVBLJR4OGGug=
-Date:   Wed, 09 Mar 2022 14:07:25 -0800
-To:     mm-commits@vger.kernel.org, mtosatti@redhat.com,
-        joaodias@google.com, cgoldswo@codeaurora.org, minchan@kernel.org,
-        akpm@linux-foundation.org
+        b=Cjk4ALV71ub5+JWKqyB7aESu5W1Hr8l5LNQCDhMR1H2XJR+Ldq1vJ7gxC0FFdkrwM
+         Lz2vYMyMeTeQ+2RnVS5w26iJLjqjPskbc86Xv0gySk5e32gx9bimNoP/u+9ZaCYZ6L
+         D4KtD3dxppalj/E7EGLXqrUrj4OLW2Yjj+i6QI+4=
+Date:   Wed, 09 Mar 2022 14:28:20 -0800
+To:     mm-commits@vger.kernel.org, gor@linux.ibm.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fs-fix-lru_cache_disabled-race-in-bh_lru.patch added to -mm tree
-Message-Id: <20220309220725.F37BEC340E8@smtp.kernel.org>
+Subject: + kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch added to -mm tree
+Message-Id: <20220309222821.43999C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fs: fix lru_cache_disabled race in bh_lru
+     Subject: fix for "kasan, vmalloc: only tag normal vmalloc allocations"
 has been added to the -mm tree.  Its filename is
-     mm-fs-fix-lru_cache_disabled-race-in-bh_lru.patch
+     kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fs-fix-lru_cache_disabled-race-in-bh_lru.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fs-fix-lru_cache_disabled-race-in-bh_lru.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,65 +62,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fs: fix lru_cache_disabled race in bh_lru
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: fix for "kasan, vmalloc: only tag normal vmalloc allocations"
 
-Check lru_cache_disabled under bh_lru_lock.  Otherwise, it could introduce
-race below and it fails to migrate pages containing buffer_head.
+"kasan, vmalloc: only tag normal vmalloc allocations" unintentionally
+disabled poisoning of executable memory for the Generic mode.  Fix it.
 
-   CPU 0					CPU 1
-
-bh_lru_install
-                                       lru_cache_disable
-  lru_cache_disabled = false
-                                       atomic_inc(&lru_disable_count);
-				       invalidate_bh_lrus_cpu of CPU 0
-				       bh_lru_lock
-				       __invalidate_bh_lrus
-				       bh_lru_unlock
-  bh_lru_lock
-  install the bh
-  bh_lru_unlock
-
-Link: https://lkml.kernel.org/r/20220308180709.2017638-1-minchan@kernel.org
-Fixes: 8cc621d2f45d ("mm: fs: invalidate BH LRU during page migration")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Chris Goldsworthy <cgoldswo@codeaurora.org>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: John Dias <joaodias@google.com>
+Link: https://lkml.kernel.org/r/de4587d6a719232e83c760113e46ed2d4d8da61e.1646757322.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/kasan/shadow.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/buffer.c~mm-fs-fix-lru_cache_disabled-race-in-bh_lru
-+++ a/fs/buffer.c
-@@ -1235,16 +1235,18 @@ static void bh_lru_install(struct buffer
- 	int i;
+--- a/mm/kasan/shadow.c~kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3
++++ a/mm/kasan/shadow.c
+@@ -489,10 +489,11 @@ void *__kasan_unpoison_vmalloc(const voi
+ 		return (void *)start;
  
- 	check_irqs_on();
-+	bh_lru_lock();
-+
  	/*
- 	 * the refcount of buffer_head in bh_lru prevents dropping the
- 	 * attached page(i.e., try_to_free_buffers) so it could cause
- 	 * failing page migration.
- 	 * Skip putting upcoming bh into bh_lru until migration is done.
+-	 * Don't tag executable memory.
++	 * Don't tag executable memory with the tag-based mode.
+ 	 * The kernel doesn't tolerate having the PC register tagged.
  	 */
--	if (lru_cache_disabled())
-+	if (lru_cache_disabled()) {
-+		bh_lru_unlock();
- 		return;
--
--	bh_lru_lock();
-+	}
+-	if (!(flags & KASAN_VMALLOC_PROT_NORMAL))
++	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) &&
++	    !(flags & KASAN_VMALLOC_PROT_NORMAL))
+ 		return (void *)start;
  
- 	b = this_cpu_ptr(&bh_lrus);
- 	for (i = 0; i < BH_LRU_SIZE; i++) {
+ 	start = set_tag(start, kasan_random_tag());
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-fs-fix-lru_cache_disabled-race-in-bh_lru.patch
+kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
+kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+mm-clarify-__gfp_zerotags-comment.patch
+kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
+kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
+kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
+kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
+kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+kasan-clean-up-metadata-byte-definitions.patch
+kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
+kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+kasan-reorder-vmalloc-hooks.patch
+kasan-add-wrappers-for-vmalloc-hooks.patch
+kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
+kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
+kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
+kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
+kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
+kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch
+kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
+kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+kasan-add-kasanvmalloc-command-line-flag.patch
+kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
+arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
+kasan-documentation-updates.patch
+kasan-improve-vmalloc-tests.patch
+kasan-improve-vmalloc-tests-fix-2.patch
+kasan-improve-vmalloc-tests-fix-3.patch
+kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
+kasan-print-virtual-mapping-info-in-reports.patch
+kasan-drop-addr-check-from-describe_object_addr.patch
+kasan-more-line-breaks-in-reports.patch
+kasan-rearrange-stack-frame-info-in-reports.patch
+kasan-improve-stack-frame-info-in-reports.patch
+kasan-print-basic-stack-frame-info-for-sw_tags.patch
+kasan-simplify-async-check-in-end_report.patch
+kasan-simplify-kasan_update_kunit_status-and-call-sites.patch
+kasan-check-config_kasan_kunit_test-instead-of-config_kunit.patch
+kasan-move-update_kunit_status-to-start_report.patch
+kasan-move-disable_trace_on_warning-to-start_report.patch
+kasan-split-out-print_report-from-__kasan_report.patch
+kasan-simplify-kasan_find_first_bad_addr-call-sites.patch
+kasan-restructure-kasan_report.patch
+kasan-merge-__kasan_report-into-kasan_report.patch
+kasan-call-print_report-from-kasan_report_invalid_free.patch
+kasan-move-and-simplify-kasan_report_async.patch
+kasan-rename-kasan_access_info-to-kasan_report_info.patch
+kasan-add-comment-about-uaccess-regions-to-kasan_report.patch
+kasan-respect-kasan_bit_reported-in-all-reporting-routines.patch
+kasan-reorder-reporting-functions.patch
+kasan-move-and-hide-kasan_save_enable-restore_multi_shot.patch
+kasan-disable-lockdep-when-printing-reports.patch
 
