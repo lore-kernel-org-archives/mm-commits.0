@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02222C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Mar 2022 21:26:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9990C433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Mar 2022 21:27:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229514AbiCIV11 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Mar 2022 16:27:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51026 "EHLO
+        id S231955AbiCIV2W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Mar 2022 16:28:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234910AbiCIV10 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2022 16:27:26 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A2C253711
-        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 13:26:27 -0800 (PST)
+        with ESMTP id S234510AbiCIV2W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2022 16:28:22 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEBC553711
+        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 13:27:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AC6E61AFE
-        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 21:26:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBFF0C340E8;
-        Wed,  9 Mar 2022 21:26:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4C7AD61AEC
+        for <mm-commits@vger.kernel.org>; Wed,  9 Mar 2022 21:27:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F8B3C340EC;
+        Wed,  9 Mar 2022 21:27:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646861186;
-        bh=sOkouGrGHWIOOOw9P8Yzd9RWhppCUaQbIRCHSKZW7Fs=;
+        s=korg; t=1646861241;
+        bh=wL8hPfJz5GozdwuUiP8H8T3gITmPC8pGSxZv7Rt7j5Y=;
         h=Date:To:From:Subject:From;
-        b=CgG2GrP5JLAy6qBbECtQs6JU/WOSLUnq8fUviZAuNk8yBZdWruDNmrShgyaiHGnM4
-         2xfSCV9HUnw5s+0IMYxrmsGu4OWDRiQhvYssmxXd8Xwo6tNRupsYfUp9dRgQS3ufSL
-         yTb0246TiKd3bzkwy9H2f9eyLwRlZ6a6cQm42Ppg=
-Date:   Wed, 09 Mar 2022 13:26:25 -0800
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@suse.com,
-        hannes@cmpxchg.org, longman@redhat.com, akpm@linux-foundation.org
+        b=2kIT7aDUvx2rxVzgFlcNoVxvteauSXuLxMu5ETqaAiDBn7c4XWnhZQhdA25ZzrP6u
+         en9aS2AHZaJH4FxUWIo0tWOo7p+yi9eW1ERUUefVmpra1w2Btv6DM3u0tNdXrJSftq
+         v4bQ/o+w6VosxwiwhGxUeSf4ueAYGOt/YuUZXtt4=
+Date:   Wed, 09 Mar 2022 13:27:20 -0800
+To:     mm-commits@vger.kernel.org, weizhenliang@huawei.com,
+        sfr@canb.auug.org.au, seanga2@gmail.com,
+        yejiajian2018@email.szu.edu.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-optimize-memcg_reparent_list_lru_node.patch added to -mm tree
-Message-Id: <20220309212625.EBFF0C340E8@smtp.kernel.org>
+Subject: + tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch added to -mm tree
+Message-Id: <20220309212721.9F8B3C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/list_lru: optimize memcg_reparent_list_lru_node()
+     Subject: tools/vm/page_owner_sort.c: support for selecting by PID, TGID or task command name
 has been added to the -mm tree.  Its filename is
-     mm-list_lru-optimize-memcg_reparent_list_lru_node.patch
+     tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-list_lru-optimize-memcg_reparent_list_lru_node.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-list_lru-optimize-memcg_reparent_list_lru_node.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,63 +63,285 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/list_lru: optimize memcg_reparent_list_lru_node()
+From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Subject: tools/vm/page_owner_sort.c: support for selecting by PID, TGID or task command name
 
-Since commit 2c80cd57c743 ("mm/list_lru.c: fix list_lru_count_node() to be
-race free"), we are tracking the total number of lru entries in a
-list_lru_node in its nr_items field.  In the case of
-memcg_reparent_list_lru_node(), there is nothing to be done if nr_items is
-0.  We don't even need to take the nlru->lock as no new lru entry could be
-added by a racing list_lru_add() to the draining src_idx memcg at this
-point.
+When viewing page owner information, we may also need to select the blocks
+by PID, TGID or task command name, which helps to get more accurate page
+allocation information as needed.
 
-On systems that serve a lot of containers, it is possible that there can
-be thousands of list_lru's present due to the fact that each container may
-mount its own container specific filesystems.  As a typical container uses
-only a few cpus, it is likely that only the list_lru_node that contains
-those cpus will be utilized while the rests may be empty.  In other words,
-there can be a lot of list_lru_node with 0 nr_items.  By skipping a
-lock/unlock operation and loading a cacheline from memcg_lrus, a sizeable
-number of cpu cycles can be saved.  That can be substantial if we are
-talking about thousands of list_lru_node's with 0 nr_items.
+Therefore, following adjustments are made:
 
-Link: https://lkml.kernel.org/r/20220309144000.1470138-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeelb@google.com>
+1. Add three new options, including --pid, --tgid and --name, to support
+the selection of information blocks by a specific pid, tgid and task
+command name. In addtion, multiple options are allowed to be used at the
+same time.
+
+	./page_owner_sort [input] [output] --pid <PID>
+	./page_owner_sort [input] [output] --tgid <TGID>
+	./page_owner_sort [input] [output] --name <TASK_COMMAND_NAME>
+
+Assuming a scenario when a multi-threaded program, ./demo (PID = 5280),
+is running, and ./demo creates a child process (PID = 5281).
+
+	$ps
+	PID   TTY        TIME   CMD
+	5215  pts/0    00:00:00  bash
+	5280  pts/0    00:00:00  ./demo
+	5281  pts/0    00:00:00  ./demo
+	5282  pts/0    00:00:00  ps
+
+It would be better to filter out the records with tgid=5280 and the
+task name "demo" when debugging the parent process, and the specific
+usage is
+
+	./page_owner_sort [input] [output] --tgid 5280 --name demo
+
+2. Add explanations of three new options, including --pid, --tgid
+and --name, to the document.
+
+This work is coauthored by
+	Shenghong Han <hanshenghong2019@email.szu.edu.cn>,
+	Yixuan Cao <caoyixuan2019@email.szu.edu.cn>,
+	Yinan Zhang <zhangyinan2019@email.szu.edu.cn>,
+	Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>,
+	Yuhong Feng <yuhongf@szu.edu.cn>.
+
+Link: https://lkml.kernel.org/r/1646835223-7584-1-git-send-email-yejiajian2018@email.szu.edu.cn
+Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Cc: Sean Anderson <seanga2@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/vm/page_owner.rst |    6 +
+ tools/vm/page_owner_sort.c      |  118 +++++++++++++++++++++++-------
+ 2 files changed, 98 insertions(+), 26 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-optimize-memcg_reparent_list_lru_node
-+++ a/mm/list_lru.c
-@@ -519,6 +519,12 @@ static void memcg_drain_list_lru_node(st
- 	struct list_lru_one *src, *dst;
+--- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name
++++ a/Documentation/vm/page_owner.rst
+@@ -129,3 +129,9 @@ Usage
  
- 	/*
-+	 * If there is no lru entry in this nlru, we can skip it immediately.
-+	 */
-+	if (!READ_ONCE(nlru->nr_items))
-+		return;
+ 	Filter:
+ 		-f		Filter out the information of blocks whose memory has been released.
 +
-+	/*
- 	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
- 	 * we have to use IRQ-safe primitives here to avoid deadlock.
- 	 */
++	Select:
++		--pid <PID>			Select by pid.
++		--tgid <TGID>		Select by tgid.
++		--name <command>	Select by task command name.
++
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name
++++ a/tools/vm/page_owner_sort.c
+@@ -21,6 +21,12 @@
+ #include <regex.h>
+ #include <errno.h>
+ #include <linux/types.h>
++#include <getopt.h>
++
++#define bool int
++#define true 1
++#define false 0
++#define TASK_COMM_LEN 16
+ 
+ struct block_list {
+ 	char *txt;
+@@ -34,7 +40,18 @@ struct block_list {
+ 	pid_t pid;
+ 	pid_t tgid;
+ };
+-
++enum FILTER_BIT {
++	FILTER_UNRELEASE = 1<<1,
++	FILTER_PID = 1<<2,
++	FILTER_TGID = 1<<3,
++	FILTER_TASK_COMM_NAME = 1<<4
++};
++struct filter_condition {
++	pid_t tgid;
++	pid_t pid;
++	char comm[TASK_COMM_LEN];
++};
++static struct filter_condition fc;
+ static regex_t order_pattern;
+ static regex_t pid_pattern;
+ static regex_t tgid_pattern;
+@@ -154,7 +171,6 @@ static void check_regcomp(regex_t *patte
+ }
+ 
+ # define FIELD_BUFF 25
+-# define TASK_COMM_LEN 16
+ 
+ static int get_page_num(char *buf)
+ {
+@@ -259,11 +275,30 @@ static char *get_comm(char *buf)
+ 	return comm_str;
+ }
+ 
++static bool is_need(char *buf)
++{
++		if ((filter & FILTER_UNRELEASE) != 0 && get_free_ts_nsec(buf) != 0)
++			return false;
++		if ((filter & FILTER_PID) != 0 && get_pid(buf) != fc.pid)
++			return false;
++		if ((filter & FILTER_TGID) != 0 && get_tgid(buf) != fc.tgid)
++			return false;
++
++		char *comm = get_comm(buf);
++
++		if ((filter & FILTER_TASK_COMM_NAME) != 0  &&
++		strncmp(comm, fc.comm, TASK_COMM_LEN) != 0) {
++			free(comm);
++			return false;
++		}
++		return true;
++}
++
+ static void add_list(char *buf, int len)
+ {
+ 	if (list_size != 0 &&
+-	    len == list[list_size-1].len &&
+-	    memcmp(buf, list[list_size-1].txt, len) == 0) {
++		len == list[list_size-1].len &&
++		memcmp(buf, list[list_size-1].txt, len) == 0) {
+ 		list[list_size-1].num++;
+ 		list[list_size-1].page_num += get_page_num(buf);
+ 		return;
+@@ -272,28 +307,27 @@ static void add_list(char *buf, int len)
+ 		printf("max_size too small??\n");
+ 		exit(1);
+ 	}
+-
+-	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
+-	if (filter == 1 && list[list_size].free_ts_nsec != 0)
++	if (!is_need(buf))
+ 		return;
++	list[list_size].pid = get_pid(buf);
++	list[list_size].tgid = get_tgid(buf);
++	list[list_size].comm = get_comm(buf);
+ 	list[list_size].txt = malloc(len+1);
+ 	if (!list[list_size].txt) {
+ 		printf("Out of memory\n");
+ 		exit(1);
+ 	}
+-
++	memcpy(list[list_size].txt, buf, len);
++	list[list_size].txt[len] = 0;
+ 	list[list_size].len = len;
+ 	list[list_size].num = 1;
+ 	list[list_size].page_num = get_page_num(buf);
+-	memcpy(list[list_size].txt, buf, len);
+-	list[list_size].txt[len] = 0;
++
+ 	list[list_size].stacktrace = strchr(list[list_size].txt, '\n') ?: "";
+ 	if (*list[list_size].stacktrace == '\n')
+ 		list[list_size].stacktrace++;
+-	list[list_size].pid = get_pid(buf);
+-	list[list_size].tgid = get_tgid(buf);
+-	list[list_size].comm = get_comm(buf);
+ 	list[list_size].ts_nsec = get_ts_nsec(buf);
++	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
+ 	list_size++;
+ 	if (list_size % 1000 == 0) {
+ 		printf("loaded %d\r", list_size);
+@@ -306,16 +340,19 @@ static void add_list(char *buf, int len)
+ static void usage(void)
+ {
+ 	printf("Usage: ./page_owner_sort [OPTIONS] <input> <output>\n"
+-		"-m	Sort by total memory.\n"
+-		"-s	Sort by the stack trace.\n"
+-		"-t	Sort by times (default).\n"
+-		"-p	Sort by pid.\n"
+-		"-P	Sort by tgid.\n"
+-		"-n	Sort by task command name.\n"
+-		"-a	Sort by memory allocate time.\n"
+-		"-r	Sort by memory release time.\n"
+-		"-c	Cull by comparing stacktrace instead of total block.\n"
+-		"-f	Filter out the information of blocks whose memory has been released.\n"
++		"-m\t\tSort by total memory.\n"
++		"-s\t\tSort by the stack trace.\n"
++		"-t\t\tSort by times (default).\n"
++		"-p\t\tSort by pid.\n"
++		"-P\t\tSort by tgid.\n"
++		"-n\t\tSort by task command name.\n"
++		"-a\t\tSort by memory allocate time.\n"
++		"-r\t\tSort by memory release time.\n"
++		"-c\t\tCull by comparing stacktrace instead of total block.\n"
++		"-f\t\tFilter out the information of blocks whose memory has been released.\n"
++		"--pid <PID>\tSelect by pid. This selects the information of blocks whose process ID number equals to <PID>.\n"
++		"--tgid <TGID>\tSelect by tgid. This selects the information of blocks whose Thread Group ID number equals to <TGID>.\n"
++		"--name <command>\n\t\tSelect by command name. This selects the information of blocks whose command name identical to <command>.\n"
+ 	);
+ }
+ 
+@@ -323,12 +360,18 @@ int main(int argc, char **argv)
+ {
+ 	int (*cmp)(const void *, const void *) = compare_num;
+ 	FILE *fin, *fout;
+-	char *buf;
++	char *buf, *endptr;
+ 	int ret, i, count;
+ 	struct stat st;
+ 	int opt;
++	struct option longopts[] = {
++		{ "pid", required_argument, NULL, 1 },
++		{ "tgid", required_argument, NULL, 2 },
++		{ "name", required_argument, NULL, 3 },
++		{ 0, 0, 0, 0},
++	};
+ 
+-	while ((opt = getopt(argc, argv, "acfmnprstP")) != -1)
++	while ((opt = getopt_long(argc, argv, "acfmnprstP", longopts, NULL)) != -1)
+ 		switch (opt) {
+ 		case 'a':
+ 			cmp = compare_ts;
+@@ -337,7 +380,7 @@ int main(int argc, char **argv)
+ 			cull_st = 1;
+ 			break;
+ 		case 'f':
+-			filter = 1;
++			filter = filter | FILTER_UNRELEASE;
+ 			break;
+ 		case 'm':
+ 			cmp = compare_page_num;
+@@ -360,6 +403,29 @@ int main(int argc, char **argv)
+ 		case 'n':
+ 			cmp = compare_comm;
+ 			break;
++		case 1:
++			filter = filter | FILTER_PID;
++			errno = 0;
++			fc.pid = strtol(optarg, &endptr, 10);
++			if (errno != 0 || endptr == optarg || *endptr != '\0') {
++				printf("wrong/invalid pid in from the command line:%s\n", optarg);
++				exit(1);
++			}
++			break;
++		case 2:
++			filter = filter | FILTER_TGID;
++			errno = 0;
++			fc.tgid = strtol(optarg, &endptr, 10);
++			if (errno != 0 || endptr == optarg || *endptr != '\0') {
++				printf("wrong/invalid tgid in from the command line:%s\n", optarg);
++				exit(1);
++			}
++			break;
++		case 3:
++			filter = filter | FILTER_TASK_COMM_NAME;
++			strncpy(fc.comm, optarg, TASK_COMM_LEN);
++			fc.comm[TASK_COMM_LEN-1] = '\0';
++			break;
+ 		default:
+ 			usage();
+ 			exit(1);
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
 
-mm-list_lru-optimize-memcg_reparent_list_lru_node.patch
-lib-vsprintf-avoid-redundant-work-with-0-size.patch
-mm-page_owner-use-scnprintf-to-avoid-excessive-buffer-overrun-check.patch
-mm-page_owner-print-memcg-information.patch
-mm-page_owner-record-task-command-name.patch
-ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree.patch
+tools-vm-page_owner_sortc-fix-comments.patch
+tools-vm-page_owner_sortc-add-a-security-check.patch
+tools-vm-page_owner_sortc-support-sorting-by-tgid-and-update-documentation.patch
+tools-vm-page_owner_sort-fix-three-trivival-places.patch
+tools-vm-page_owner_sort-support-for-sorting-by-task-command-name.patch
+tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
 
