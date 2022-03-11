@@ -2,102 +2,112 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C14F6C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Mar 2022 17:16:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D55C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Mar 2022 01:19:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240963AbiCJRRA convert rfc822-to-8bit (ORCPT
-        <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Mar 2022 12:17:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45318 "EHLO
+        id S1345308AbiCKBUv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Mar 2022 20:20:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233282AbiCJRQ7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2022 12:16:59 -0500
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.17.10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B84C184B69;
-        Thu, 10 Mar 2022 09:15:58 -0800 (PST)
-Received: from mail-wm1-f42.google.com ([209.85.128.42]) by
- mrelayeu.kundenserver.de (mreue106 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1MVubb-1ncZTj3dn3-00RsYH; Thu, 10 Mar 2022 18:10:50 +0100
-Received: by mail-wm1-f42.google.com with SMTP id p184-20020a1c29c1000000b0037f76d8b484so3795999wmp.5;
-        Thu, 10 Mar 2022 09:10:50 -0800 (PST)
-X-Gm-Message-State: AOAM533Pva/6bc6aKl5NsMGMPWfBgB9p++ShzNiUPxMEGAXBCb4lmMad
-        N8GKHnFe8nFPkZPHSy72vli44q0P5iV4TltTq94=
-X-Google-Smtp-Source: ABdhPJxY8hGm9BEQKWwA3R6ukJGTZsnEU2TjUOjQUHCfOHpxv80mjDHnXeVwtelmj78dbQthb1oQ3YX63RkYL8slNoM=
-X-Received: by 2002:a1c:f20b:0:b0:389:c99a:4360 with SMTP id
- s11-20020a1cf20b000000b00389c99a4360mr10282657wmc.174.1646932250447; Thu, 10
- Mar 2022 09:10:50 -0800 (PST)
-MIME-Version: 1.0
-References: <20220310072924.0EF1EC340EC@smtp.kernel.org> <c0eb0b0f-1fdb-b653-fbf9-4b1bd7c26efa@infradead.org>
-In-Reply-To: <c0eb0b0f-1fdb-b653-fbf9-4b1bd7c26efa@infradead.org>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Thu, 10 Mar 2022 18:10:34 +0100
-X-Gmail-Original-Message-ID: <CAK8P3a23aduadfJsSEFdXB3a0B_krC9LLEfa-erSsSXcqzVqtw@mail.gmail.com>
-Message-ID: <CAK8P3a23aduadfJsSEFdXB3a0B_krC9LLEfa-erSsSXcqzVqtw@mail.gmail.com>
-Subject: Re: mmotm 2022-03-09-23-28 uploaded (drivers/perf/marvell_cn10k_ddr_pmu.c)
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>, Michal Hocko <mhocko@suse.cz>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        mm-commits@vger.kernel.org,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        Will Deacon <will@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-X-Provags-ID: V03:K1:M7v+Mq5EbLAcuH2nYt7VJxsI46M2PrCK7TQVAAoFnYFrbqEGMRu
- VogCi2EPJhfb9Swue5MgWnXjXk7ihfznZWshF5Ddt7LO9ZgIAitWKoTadRjOZBRXBsUJlYl
- leTGBxjRHR02d8ztcrmvo1IzNcWYtsvKYq8s6MUL+1gBPPsyOFrQ4ih0+yAIa4fRrLtEWNn
- nfoHGkcGiSHdlejkPronA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:flGkjSRsxfY=:JlmSqKh0OmsabBCaaJbMQo
- x7qE2+WsS7ewagHtXZDTMHju5uJ11Y9aoMNLn513CqCMDsoAQN7KTOaRGqBvpekPu0SOt8xEC
- H8jKQgieXTm7IKRRpiYFb+RPtcQBuAmRDa64oB+KdOjeYJHG12A8Q4NJ8qrdyzM5FOL9ak0fu
- +xmBZs6ph+FYdDIfQci8j8EVfNhtKJGI80HjwPoaWbCRyH6NLMzjnKi+rFwsKBUd/LLCn6PA7
- WhDAJPiCsZsCM7JHOpHN/kal7tsgzZ7tQ5fbfDdvQ91+Dibj6RmTsZoKgpF44+7t8xg9iba6j
- IdJjna8PgIaQnIbpyrZbv+5RAifMVd+4D8lmbxUIiGUtE1bxwUbfDQcoe/VOfPZCH7T8jkepF
- fQGQCtDMcQ5pswnia3UAPWL65V4NZFz769WMBJvGGYA0VPKUbL7IlY2+H5g05sT3EZ/klZU6P
- vFk+8w4MDG5EnAP6W2bk77Se/EDJZV+Y6J9qMrgpAAnqNKnK6VCfoI3jWUnG2ssedgcbAXXER
- hGu/AbEVeAklVcO+w2RFqMZJs8sut7NqlDN/lVERiAbdsufir4pDjV6HgdO7S33Klhr36Qejf
- bFdvw4UO9TiDzSDZN/U9KH9kNijFEhMCGpTZCTdSIfbu/Cv3bc4kvWr2TG6HEETMyzzZ4Aa2N
- T3ITkQ5Cbbwi30c6kJUPkcZExpQrf4fNzWl4vgYHPc9fBP0ixypucZVI58Kt6Ft3WGrg=
+        with ESMTP id S1345304AbiCKBUu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2022 20:20:50 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB88EE237A
+        for <mm-commits@vger.kernel.org>; Thu, 10 Mar 2022 17:19:46 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8F30DB8299F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Mar 2022 01:19:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F764C340E8;
+        Fri, 11 Mar 2022 01:19:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1646961584;
+        bh=UxgFErMZxboGFqAXHVItc1gq6Nwna4slDaL+L07jBDU=;
+        h=Date:To:From:Subject:From;
+        b=1WM/rQRfoIwWBqwMwAMHhT7/oVZch6JRlKSsDk/209/6JTsbOcW+RvcE6i5yPXcmF
+         JGAcZPJDlb/X9gmBGUQ8cg981nYRMXm0bgIIq1wuOJ+/QVnzWLHAHxyudzrKT6xYxe
+         crcGBOx9/pfP3x/EIZ9yDSJvbenlnY92ld4ykQ7M=
+Date:   Thu, 10 Mar 2022 17:19:43 -0800
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Message-Id: <20220311011944.1F764C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Mar 10, 2022 at 5:34 PM Randy Dunlap <rdunlap@infradead.org> wrote:
-> On 3/9/22 23:29, Andrew Morton wrote:
-> > The mm-of-the-moment snapshot 2022-03-09-23-28 has been uploaded to
-> >
-> >    https://www.ozlabs.org/~akpm/mmotm/
-> >
-> > mmotm-readme.txt says
-> >
-> > README for mm-of-the-moment:
-> >
-> > https://www.ozlabs.org/~akpm/mmotm/
-> >
-> > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> > more than once a week.
-> >
-> > You will need quilt to apply these patches to the latest Linus release (5.x
-> > or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> > https://ozlabs.org/~akpm/mmotm/series
->
-> on x86_64:
->
-> ../drivers/perf/marvell_cn10k_ddr_pmu.c:723:21: error: ‘cn10k_ddr_pmu_of_match’ undeclared here (not in a function); did you mean ‘cn10k_ddr_pmu_driver’?
->    .of_match_table = cn10k_ddr_pmu_of_match,
->                      ^~~~~~~~~~~~~~~~~~~~~~
->
-> Full randconfig file is attached.
->
 
-I suppose this is caused by having two different fixes applied, one that removes
-the of_match_ptr(), and one that adds an #ifdef. Either one would be correct,
-but the combination is not.
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-       Arnd
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/staging/gdm724x/gdm_lte.c |    4 ----
+ 1 file changed, 4 deletions(-)
+
+--- a/drivers/staging/gdm724x/gdm_lte.c~linux-next-git-rejects
++++ a/drivers/staging/gdm724x/gdm_lte.c
+@@ -79,11 +79,7 @@ static int gdm_lte_rx(struct sk_buff *sk
+ 	int ret, len;
+ 
+ 	len = skb->len + ETH_HLEN;
+-<<<<<<< HEAD
+-	ret = netif_rx_ni(skb);
+-=======
+ 	ret = netif_rx(skb);
+->>>>>>> linux-next/akpm-base
+ 	if (ret == NET_RX_DROP) {
+ 		nic->stats.rx_dropped++;
+ 	} else {
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+memcg-sync-flush-only-if-periodic-flush-is-delayed-fix.patch
+remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-list_lru-replace-linear-array-with-xarray-fix.patch
+mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
+mm-export-pageheadhuge-fix.patch
+userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
+proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
+taskstats-remove-unneeded-dead-assignment-fix.patch
+linux-next-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+kasan-improve-vmalloc-tests-fix-3-fix.patch
+mm-slightly-clarify-ksm-logic-in-do_swap_page-fix.patch
+mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
+
