@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7843C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Mar 2022 02:42:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E00D8C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Mar 2022 03:02:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242345AbiCKCnJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Mar 2022 21:43:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51134 "EHLO
+        id S234969AbiCKDDs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Mar 2022 22:03:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240820AbiCKCnJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2022 21:43:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E217E192CA2;
-        Thu, 10 Mar 2022 18:42:05 -0800 (PST)
+        with ESMTP id S1345901AbiCKDDq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2022 22:03:46 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4477EB561D
+        for <mm-commits@vger.kernel.org>; Thu, 10 Mar 2022 19:02:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9AEC7B827DB;
-        Fri, 11 Mar 2022 02:42:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22CCEC340E8;
-        Fri, 11 Mar 2022 02:42:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B35E6127C
+        for <mm-commits@vger.kernel.org>; Fri, 11 Mar 2022 03:02:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99DCFC340EB;
+        Fri, 11 Mar 2022 03:02:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1646966523;
-        bh=JZWo3aB0MBpKqz+4vU4lOoEqjlr9eckidtvJYAyTVw4=;
+        s=korg; t=1646967757;
+        bh=pd/+OSuqCF3biaya2IVpDcEf8o/spxImvBRxRzGUIYQ=;
         h=Date:To:From:Subject:From;
-        b=RvlOHSQ//FQFBOiTi3fLVi9vXPIJbCU7PzOvdi2kKKIyYONme0BmySHh053pO3soF
-         XVVpFqS/dbtOVaxKQeKMOfwTlP5jz6yUEJNUOuNCK51PkrjXDwpMjqzhQf4UNKHbSR
-         pWhwYrZ0eIqUfoUmBZlA/ZKaLTY/60nq6D5C1B7U=
-Date:   Thu, 10 Mar 2022 18:42:02 -0800
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        stable@vger.kernel.org, huntbag@linux.vnet.ibm.com,
-        dave.hansen@linux.intel.com, baolin.wang@linux.alibaba.com,
-        osalvador@suse.de, akpm@linux-foundation.org
+        b=dEQjbc7PmTyIq83nHlYoHHPulJ/Ut/aCM9DJ8TvZ16rYmZmTGdGFlGURi1zLKzrq8
+         hiBpb7O0IhlA2fHib9P5B17NovCYvIZ6bHgHBPtf/YnNmfWWiXRwS61KLwcE20I1MW
+         DwssjgXr1T7abFk0k9BSqkh0FZVu4fkfegT7hWTs=
+Date:   Thu, 10 Mar 2022 19:02:36 -0800
+To:     mm-commits@vger.kernel.org, weixugc@google.com, vbabka@suse.cz,
+        shakeelb@google.com, rientjes@google.com, mhocko@kernel.org,
+        hughd@google.com, gthelen@google.com, edumazet@google.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch added to -mm tree
-Message-Id: <20220311024203.22CCEC340E8@smtp.kernel.org>
+Subject: + mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations.patch added to -mm tree
+Message-Id: <20220311030237.99DCFC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: only re-generate demotion targets when a numa node changes its N_CPU state
+     Subject: mm/page_alloc: check high-order pages for corruption during PCP operations
 has been added to the -mm tree.  Its filename is
-     mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch
+     mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,178 +64,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm: only re-generate demotion targets when a numa node changes its N_CPU state
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: check high-order pages for corruption during PCP operations
 
-Abhishek reported that after patch [1], hotplug operations are taking
-~double the expected time.  [2]
+Eric Dumazet pointed out that commit 44042b449872 ("mm/page_alloc: allow
+high-order pages to be stored on the per-cpu lists") only checks the head
+page during PCP refill and allocation operations.  This was an oversight
+and all pages should be checked.  This will incur a small performance
+penalty but it's necessary for correctness.
 
-The reason behind is that the CPU callbacks that migrate_on_reclaim_init()
-sets always call set_migration_target_nodes() whenever a CPU is brought
-up/down.  But we only care about numa nodes going from having cpus to
-become cpuless, and vice versa, as that influences the demotion_target
-order.
-
-We do already have two CPU callbacks (vmstat_cpu_online() and
-vmstat_cpu_dead()) that check exactly that, so get rid of the CPU
-callbacks in migrate_on_reclaim_init() and only call
-set_migration_target_nodes() from vmstat_cpu_{dead,online}() whenever a
-numa node change its N_CPU state.
-
-[1] https://lore.kernel.org/linux-mm/20210721063926.3024591-2-ying.huang@intel.com/
-[2] https://lore.kernel.org/linux-mm/eb438ddd-2919-73d4-bd9f-b7eecdd9577a@linux.vnet.ibm.com/
-
-Link: https://lkml.kernel.org/r/20220310120749.23077-1-osalvador@suse.de
-Fixes: 884a6e5d1f93b ("mm/migrate: update node demotion order on hotplug events")
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reported-by: Abhishek Goel <huntbag@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Abhishek Goel <huntbag@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220310092456.GJ15701@techsingularity.net
+Fixes: 44042b449872 ("mm/page_alloc: allow high-order pages to be stored on the per-cpu lists")
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    8 +++++++
- mm/migrate.c            |   41 ++++----------------------------------
- mm/vmstat.c             |   13 +++++++++++-
- 3 files changed, 25 insertions(+), 37 deletions(-)
+ mm/page_alloc.c |   46 +++++++++++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
---- a/include/linux/migrate.h~mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state
-+++ a/include/linux/migrate.h
-@@ -48,7 +48,15 @@ int folio_migrate_mapping(struct address
- 		struct folio *newfolio, struct folio *folio, int extra_count);
- 
- extern bool numa_demotion_enabled;
-+extern void migrate_on_reclaim_init(void);
-+#ifdef CONFIG_HOTPLUG_CPU
-+extern void set_migration_target_nodes(void);
- #else
-+static inline void set_migration_target_nodes(void) {}
-+#endif
-+#else
-+
-+static inline void set_migration_target_nodes(void) {}
- 
- static inline void putback_movable_pages(struct list_head *l) {}
- static inline int migrate_pages(struct list_head *l, new_page_t new,
---- a/mm/migrate.c~mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state
-+++ a/mm/migrate.c
-@@ -3211,7 +3211,7 @@ again:
- /*
-  * For callers that do not hold get_online_mems() already.
-  */
--static void set_migration_target_nodes(void)
-+void set_migration_target_nodes(void)
- {
- 	get_online_mems();
- 	__set_migration_target_nodes();
-@@ -3275,51 +3275,20 @@ static int __meminit migrate_on_reclaim_
- 	return notifier_from_errno(0);
+--- a/mm/page_alloc.c~mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations
++++ a/mm/page_alloc.c
+@@ -2291,23 +2291,36 @@ static inline int check_new_page(struct
+ 	return 1;
  }
  
--/*
-- * React to hotplug events that might affect the migration targets
-- * like events that online or offline NUMA nodes.
-- *
-- * The ordering is also currently dependent on which nodes have
-- * CPUs.  That means we need CPU on/offline notification too.
-- */
--static int migration_online_cpu(unsigned int cpu)
--{
--	set_migration_target_nodes();
--	return 0;
--}
--
--static int migration_offline_cpu(unsigned int cpu)
-+void __init migrate_on_reclaim_init(void)
- {
--	set_migration_target_nodes();
--	return 0;
--}
--
--static int __init migrate_on_reclaim_init(void)
--{
--	int ret;
--
- 	node_demotion = kmalloc_array(nr_node_ids,
- 				      sizeof(struct demotion_nodes),
- 				      GFP_KERNEL);
- 	WARN_ON(!node_demotion);
- 
--	ret = cpuhp_setup_state_nocalls(CPUHP_MM_DEMOTION_DEAD, "mm/demotion:offline",
--					NULL, migration_offline_cpu);
- 	/*
--	 * In the unlikely case that this fails, the automatic
--	 * migration targets may become suboptimal for nodes
--	 * where N_CPU changes.  With such a small impact in a
--	 * rare case, do not bother trying to do anything special.
-+	 * At this point, all numa nodes with memory/CPus have their state
-+	 * properly set, so we can build the demotion order now.
- 	 */
--	WARN_ON(ret < 0);
--	ret = cpuhp_setup_state(CPUHP_AP_MM_DEMOTION_ONLINE, "mm/demotion:online",
--				migration_online_cpu, NULL);
--	WARN_ON(ret < 0);
--
-+	set_migration_target_nodes();
- 	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
--	return 0;
- }
--late_initcall(migrate_on_reclaim_init);
- #endif /* CONFIG_HOTPLUG_CPU */
- 
- bool numa_demotion_enabled = false;
---- a/mm/vmstat.c~mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state
-+++ a/mm/vmstat.c
-@@ -28,6 +28,7 @@
- #include <linux/mm_inline.h>
- #include <linux/page_ext.h>
- #include <linux/page_owner.h>
-+#include <linux/migrate.h>
- 
- #include "internal.h"
- 
-@@ -2049,7 +2050,12 @@ static void __init init_cpu_node_state(v
- static int vmstat_cpu_online(unsigned int cpu)
- {
- 	refresh_zone_stat_thresholds();
--	node_set_state(cpu_to_node(cpu), N_CPU);
++static bool check_new_pages(struct page *page, unsigned int order)
++{
++	int i;
++	for (i = 0; i < (1 << order); i++) {
++		struct page *p = page + i;
 +
-+	if (!node_state(cpu_to_node(cpu), N_CPU)) {
-+		node_set_state(cpu_to_node(cpu), N_CPU);
-+		set_migration_target_nodes();
++		if (unlikely(check_new_page(p)))
++			return true;
 +	}
 +
- 	return 0;
- }
- 
-@@ -2072,6 +2078,8 @@ static int vmstat_cpu_dead(unsigned int
- 		return 0;
- 
- 	node_clear_state(node, N_CPU);
-+	set_migration_target_nodes();
++	return false;
++}
 +
- 	return 0;
+ #ifdef CONFIG_DEBUG_VM
+ /*
+  * With DEBUG_VM enabled, order-0 pages are checked for expected state when
+  * being allocated from pcp lists. With debug_pagealloc also enabled, they are
+  * also checked when pcp lists are refilled from the free lists.
+  */
+-static inline bool check_pcp_refill(struct page *page)
++static inline bool check_pcp_refill(struct page *page, unsigned int order)
+ {
+ 	if (debug_pagealloc_enabled_static())
+-		return check_new_page(page);
++		return check_new_pages(page, order);
+ 	else
+ 		return false;
  }
  
-@@ -2103,6 +2111,9 @@ void __init init_mm_internals(void)
+-static inline bool check_new_pcp(struct page *page)
++static inline bool check_new_pcp(struct page *page, unsigned int order)
+ {
+-	return check_new_page(page);
++	return check_new_pages(page, order);
+ }
+ #else
+ /*
+@@ -2315,32 +2328,19 @@ static inline bool check_new_pcp(struct
+  * when pcp lists are being refilled from the free lists. With debug_pagealloc
+  * enabled, they are also checked when being allocated from the pcp lists.
+  */
+-static inline bool check_pcp_refill(struct page *page)
++static inline bool check_pcp_refill(struct page *page, unsigned int order)
+ {
+-	return check_new_page(page);
++	return check_new_pages(page, order);
+ }
+-static inline bool check_new_pcp(struct page *page)
++static inline bool check_new_pcp(struct page *page, unsigned int order)
+ {
+ 	if (debug_pagealloc_enabled_static())
+-		return check_new_page(page);
++		return check_new_pages(page, order);
+ 	else
+ 		return false;
+ }
+ #endif /* CONFIG_DEBUG_VM */
  
- 	start_shepherd_timer();
- #endif
-+#if defined(CONFIG_MIGRATION) && defined(CONFIG_HOTPLUG_CPU)
-+	migrate_on_reclaim_init();
-+#endif
- #ifdef CONFIG_PROC_FS
- 	proc_create_seq("buddyinfo", 0444, NULL, &fragmentation_op);
- 	proc_create_seq("pagetypeinfo", 0400, NULL, &pagetypeinfo_op);
+-static bool check_new_pages(struct page *page, unsigned int order)
+-{
+-	int i;
+-	for (i = 0; i < (1 << order); i++) {
+-		struct page *p = page + i;
+-
+-		if (unlikely(check_new_page(p)))
+-			return true;
+-	}
+-
+-	return false;
+-}
+-
+ inline void post_alloc_hook(struct page *page, unsigned int order,
+ 				gfp_t gfp_flags)
+ {
+@@ -2982,7 +2982,7 @@ static int rmqueue_bulk(struct zone *zon
+ 		if (unlikely(page == NULL))
+ 			break;
+ 
+-		if (unlikely(check_pcp_refill(page)))
++		if (unlikely(check_pcp_refill(page, order)))
+ 			continue;
+ 
+ 		/*
+@@ -3600,7 +3600,7 @@ struct page *__rmqueue_pcplist(struct zo
+ 		page = list_first_entry(list, struct page, lru);
+ 		list_del(&page->lru);
+ 		pcp->count -= 1 << order;
+-	} while (check_new_pcp(page));
++	} while (check_new_pcp(page, order));
+ 
+ 	return page;
+ }
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-arch-x86-mm-numa-do-not-initialize-nodes-twice.patch
-arch-x86-mm-numa-do-not-initialize-nodes-twice-v2.patch
-mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch
+mm-page_alloc-fetch-the-correct-pcp-buddy-during-bulk-free.patch
+mm-page_alloc-track-range-of-active-pcp-lists-during-bulk-free.patch
+mm-page_alloc-simplify-how-many-pages-are-selected-per-pcp-list-during-bulk-free.patch
+mm-page_alloc-drain-the-requested-list-first-during-bulk-free.patch
+mm-page_alloc-free-pages-in-a-single-pass-during-bulk-free.patch
+mm-page_alloc-limit-number-of-high-order-pages-on-pcp-during-bulk-free.patch
+mm-page_alloc-do-not-prefetch-buddies-during-bulk-free.patch
+mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations.patch
 
