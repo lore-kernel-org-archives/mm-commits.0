@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F858C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:39:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDDECC433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:41:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231307AbiCLUkJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Mar 2022 15:40:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49858 "EHLO
+        id S232629AbiCLUmg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Mar 2022 15:42:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232299AbiCLUkI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:40:08 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C19837A8E
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:39:01 -0800 (PST)
+        with ESMTP id S232299AbiCLUmf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:42:35 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9451737A1F
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:41:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5E13CB80B03
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:39:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1816EC340EB;
-        Sat, 12 Mar 2022 20:38:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F714611D2
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:41:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F965C340EE;
+        Sat, 12 Mar 2022 20:41:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647117539;
-        bh=PAXKfoX+j9yoMwlopvYKsQyCt9pF4SJAkRRKefcMbZY=;
+        s=korg; t=1647117688;
+        bh=FvzFp1/yup8mtstS4445ROyD5h5qGpp0E769jSnLYPw=;
         h=Date:To:From:Subject:From;
-        b=ykbCDAvhOM6Y3OZAHXuQ/6fBBUKocQIZbzKtolyTCWECthbYqmqSuhk8/y1DjCeSm
-         0hD7GZNbpZMrHGPM/ejrs/SQ5QAT3tHUzNBUv0uiLM0mBd06T/N4x/99KDFXXWaPWk
-         SUX8kbziS59+7XJdHzJDb+fM3UX34wAjpZsGflKU=
-Date:   Sat, 12 Mar 2022 12:38:58 -0800
-To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
-        shy828301@gmail.com, naoya.horiguchi@nec.com,
-        mike.kravetz@oracle.com, bp@alien8.de, linmiaohe@huawei.com,
+        b=lXsWaEBDOBH0JkQ8pJ+58Z9z47OMi8mtiZkQQzsrclkmDcWVfrrcXaX0Xscq8dYCW
+         BT5pNFjmcJwqe3/TkTmRdRwasheYw9MtUtxhpvF0gVv9MedC1d/b/jnJXQ9BnzGd9h
+         lsdLWLDpNohJG2RXPEytYGgnYBZ/D1NyXetBUaww=
+Date:   Sat, 12 Mar 2022 12:41:27 -0800
+To:     mm-commits@vger.kernel.org, hughd@google.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failurec-make-non-lru-movable-pages-unhandlable.patch added to -mm tree
-Message-Id: <20220312203859.1816EC340EB@smtp.kernel.org>
+Subject: + mm-shmem-use-helper-macro-__attr_rw.patch added to -mm tree
+Message-Id: <20220312204128.7F965C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: make non-LRU movable pages unhandlable
+     Subject: mm: shmem: use helper macro __ATTR_RW
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-make-non-lru-movable-pages-unhandlable.patch
+     mm-shmem-use-helper-macro-__attr_rw.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-make-non-lru-movable-pages-unhandlable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-use-helper-macro-__attr_rw.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-make-non-lru-movable-pages-unhandlable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-use-helper-macro-__attr_rw.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,91 +63,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure.c: make non-LRU movable pages unhandlable
+Subject: mm: shmem: use helper macro __ATTR_RW
 
-We can not really handle non-LRU movable pages in memory failure. 
-Typically they are balloon, zsmalloc, etc.  Assuming we run into a base
-(4K) non-LRU movable page, we could reach as far as identify_page_state(),
-it should not fall into any category except me_unknown.
+Use helper macro __ATTR_RW to define shmem_enabled_attr to make code more
+clear.  Minor readability improvement.
 
-For the non-LRU compound movable pages, they could be taken for transhuge
-pages but it's unexpected to split non-LRU movable pages using
-split_huge_page_to_list in memory_failure.  So we could just simply make
-non-LRU movable pages unhandlable to avoid these possible nasty cases.
-
-Link: https://lkml.kernel.org/r/20220312074613.4798-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220312082252.55586-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Suggested-by: Yang Shi <shy828301@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ mm/shmem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failurec-make-non-lru-movable-pages-unhandlable
-+++ a/mm/memory-failure.c
-@@ -1176,12 +1176,18 @@ void ClearPageHWPoisonTakenOff(struct pa
-  * does not return true for hugetlb or device memory pages, so it's assumed
-  * to be called only in the context where we never have such pages.
-  */
--static inline bool HWPoisonHandlable(struct page *page)
-+static inline bool HWPoisonHandlable(struct page *page, unsigned long flags)
- {
--	return PageLRU(page) || __PageMovable(page) || is_free_buddy_page(page);
-+	bool movable = false;
-+
-+	/* Soft offline could mirgate non-LRU movable pages */
-+	if ((flags & MF_SOFT_OFFLINE) && __PageMovable(page))
-+		movable = true;
-+
-+	return movable || PageLRU(page) || is_free_buddy_page(page);
+--- a/mm/shmem.c~mm-shmem-use-helper-macro-__attr_rw
++++ a/mm/shmem.c
+@@ -3965,8 +3965,7 @@ static ssize_t shmem_enabled_store(struc
+ 	return count;
  }
  
--static int __get_hwpoison_page(struct page *page)
-+static int __get_hwpoison_page(struct page *page, unsigned long flags)
- {
- 	struct page *head = compound_head(page);
- 	int ret = 0;
-@@ -1196,7 +1202,7 @@ static int __get_hwpoison_page(struct pa
- 	 * for any unsupported type of page in order to reduce the risk of
- 	 * unexpected races caused by taking a page refcount.
- 	 */
--	if (!HWPoisonHandlable(head))
-+	if (!HWPoisonHandlable(head, flags))
- 		return -EBUSY;
+-struct kobj_attribute shmem_enabled_attr =
+-	__ATTR(shmem_enabled, 0644, shmem_enabled_show, shmem_enabled_store);
++struct kobj_attribute shmem_enabled_attr = __ATTR_RW(shmem_enabled);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_SYSFS */
  
- 	if (get_page_unless_zero(head)) {
-@@ -1221,7 +1227,7 @@ static int get_any_page(struct page *p,
- 
- try_again:
- 	if (!count_increased) {
--		ret = __get_hwpoison_page(p);
-+		ret = __get_hwpoison_page(p, flags);
- 		if (!ret) {
- 			if (page_count(p)) {
- 				/* We raced with an allocation, retry. */
-@@ -1249,7 +1255,7 @@ try_again:
- 		}
- 	}
- 
--	if (PageHuge(p) || HWPoisonHandlable(p)) {
-+	if (PageHuge(p) || HWPoisonHandlable(p, flags)) {
- 		ret = 1;
- 	} else {
- 		/*
-@@ -2302,7 +2308,7 @@ int soft_offline_page(unsigned long pfn,
- 
- retry:
- 	get_online_mems();
--	ret = get_hwpoison_page(page, flags);
-+	ret = get_hwpoison_page(page, flags | MF_SOFT_OFFLINE);
- 	put_online_mems();
- 
- 	if (ret > 0) {
+ #else /* !CONFIG_SHMEM */
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -157,6 +96,7 @@ Patches currently in -mm which might be from linmiaohe@huawei.com are
 mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
 filemap-remove-find_get_pages.patch
 mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
+mm-shmem-use-helper-macro-__attr_rw.patch
 mm-use-helper-function-range_in_vma.patch
 mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
 mm-mmap-remove-obsolete-comment-in-ksys_mmap_pgoff.patch
