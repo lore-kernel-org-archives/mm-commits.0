@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 574AFC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:52:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60FE6C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:54:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232274AbiCLUx7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Mar 2022 15:53:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36294 "EHLO
+        id S232667AbiCLUzV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Mar 2022 15:55:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231169AbiCLUx5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:53:57 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F009613CF0
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:52:49 -0800 (PST)
+        with ESMTP id S231488AbiCLUzV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:55:21 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF8711BAF33
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:54:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E2CECB80462
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:52:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93BEEC340EB;
-        Sat, 12 Mar 2022 20:52:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 756FAB80B03
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:54:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A667C340EB;
+        Sat, 12 Mar 2022 20:54:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647118366;
-        bh=LvCL5TYOo+bxk5oISkn1bb5BNlC/VrHIGw2J3erX2XY=;
+        s=korg; t=1647118452;
+        bh=51CzFj4pWemND+41+p3Gos35PPtU+RT5Ciau1bvNYgc=;
         h=Date:To:From:Subject:From;
-        b=llLWxd5OKnekKWLDsxdNTMd0Wv5+bkKK1Lln4q5tNH6ZQdTTOYiYSg413yqnugnxq
-         knq6JYcsKt6NXJZBm3qL1IAvb9qsBJfT7GLhljR2xr6mMB0UyastBUcGyhOVnxn8nf
-         rYQmAgZkpHANfoXo4SQm5v/VDa2tzTCnoFvdmcCg=
-Date:   Sat, 12 Mar 2022 12:52:45 -0800
-To:     mm-commits@vger.kernel.org, zhaochongxi2019@email.szu.edu.cn,
-        zhangyinan2019@email.szu.edu.cn, yuhongf@szu.edu.cn,
-        sfr@canb.auug.org.au, seanga2@gmail.com,
-        hanshenghong2019@email.szu.edu.cn, caoyixuan2019@email.szu.edu.cn,
-        yejiajian2018@email.szu.edu.cn, akpm@linux-foundation.org
+        b=CuP2j+K9nYfpA23zI5z679DG4j07yiLm0xqGXBCImPQHRxHsR9k1QnaN9znm/t+0A
+         BEK4h6DyOliT561zYFHRFpYdsbKbf/XFE4GUlF3C0mWhjoSJr/aLsO3kA0zpJ2F9fZ
+         Ctzy1GtKmcpvF176BgLhjxv0fPVZbKL5woIeXcGk=
+Date:   Sat, 12 Mar 2022 12:54:11 -0800
+To:     mm-commits@vger.kernel.org, andreyknvl@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-vm-page_owner_sortc-support-for-user-defined-culling-rules.patch added to -mm tree
-Message-Id: <20220312205246.93BEEC340EB@smtp.kernel.org>
+Subject: + kasan-print-basic-stack-frame-info-for-sw_tags-fix.patch added to -mm tree
+Message-Id: <20220312205412.1A667C340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page_owner_sort.c: support for user-defined culling rules
+     Subject: fix for "kasan: print basic stack frame info for SW_TAGS"
 has been added to the -mm tree.  Its filename is
-     tools-vm-page_owner_sortc-support-for-user-defined-culling-rules.patch
+     kasan-print-basic-stack-frame-info-for-sw_tags-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sortc-support-for-user-defined-culling-rules.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-print-basic-stack-frame-info-for-sw_tags-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sortc-support-for-user-defined-culling-rules.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-print-basic-stack-frame-info-for-sw_tags-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,411 +62,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Subject: tools/vm/page_owner_sort.c: support for user-defined culling rules
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: fix for "kasan: print basic stack frame info for SW_TAGS"
 
-When viewing page owner information, we may want to cull blocks of
-information with our own rules.  So it is important to enhance culling
-function to provide the support for customizing culling rules.  Therefore,
-following adjustments are made:
+Using object_is_on_stack() requires linux/sched/task_stack.h.
 
-1. Add --cull option to support the culling of blocks of information
-with user-defined culling rules.
-
-	./page_owner_sort <input> <output> --cull=<rules>
-	./page_owner_sort <input> <output> --cull <rules>
-
-<rules> is a single argument in the form of a comma-separated list to
-specify individual culling rules, by the sequence of keys k1,k2, .... 
-Mixed use of abbreviated and complete-form of keys is allowed.
-
-For reference, please see the document(Documentation/vm/page_owner.rst).
-
-Now, assuming two blocks in the input file are as follows:
-
-	Page allocated via order 0, mask xxxx, pid 1, tgid 1 (task_name_demo)
-	PFN xxxx
-	 prep_new_page+0xd0/0xf8
-	 get_page_from_freelist+0x4a0/0x1290
-	 __alloc_pages+0x168/0x340
-	 alloc_pages+0xb0/0x158
-
-	Page allocated via order 0, mask xxxx, pid 32, tgid 32 (task_name_demo)
-	PFN xxxx
-	 prep_new_page+0xd0/0xf8
-	 get_page_from_freelist+0x4a0/0x1290
-	 __alloc_pages+0x168/0x340
-	 alloc_pages+0xb0/0x158
-
-If we want to cull the blocks by stacktrace and task command name, we can
-use this command:
-
-	./page_owner_sort <input> <output> --cull=stacktrace,name
-
-The output would be like:
-
-	2 times, 2 pages, task_comm_name: task_name_demo
-	 prep_new_page+0xd0/0xf8
-	 get_page_from_freelist+0x4a0/0x1290
-	 __alloc_pages+0x168/0x340
-	 alloc_pages+0xb0/0x158
-
-As we can see, these two blocks are culled successfully, for they share
-the same pid and task command name.
-
-However, if we want to cull the blocks by pid, stacktrace and task command
-name, we can this command:
-
-	./page_owner_sort <input> <output> --cull=stacktrace,name,pid
-
-The output would be like:
-
-	1 times, 1 pages, PID 1, task_comm_name: task_name_demo
-	 prep_new_page+0xd0/0xf8
-	 get_page_from_freelist+0x4a0/0x1290
-	 __alloc_pages+0x168/0x340
-	 alloc_pages+0xb0/0x158
-
-	1 times, 1 pages, PID 32, task_comm_name: task_name_demo
-	 prep_new_page+0xd0/0xf8
-	 get_page_from_freelist+0x4a0/0x1290
-	 __alloc_pages+0x168/0x340
-	 alloc_pages+0xb0/0x158
-
-As we can see, these two blocks are failed to cull, for their PIDs are
-different.
-
-2. Add explanations of --cull options to the document.
-
-This work is coauthored by
-	Yixuan Cao
-	Shenghong Han
-	Yinan Zhang
-	Chongxi Zhao
-	Yuhong Feng
-
-Link: https://lkml.kernel.org/r/20220312145834.624-1-yejiajian2018@email.szu.edu.cn
-Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
-Cc: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
-Cc: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
-Cc: Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>
-Cc: Yuhong Feng <yuhongf@szu.edu.cn>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Sean Anderson <seanga2@gmail.com>			
+Link: https://lkml.kernel.org/r/d7598f11a34ed96e508f7640fa038662ed2305ec.1647099922.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_owner.rst |   31 ++++++
- tools/vm/page_owner_sort.c      |  150 +++++++++++++++++++++++++-----
- 2 files changed, 159 insertions(+), 22 deletions(-)
+ mm/kasan/report_sw_tags.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sortc-support-for-user-defined-culling-rules
-+++ a/Documentation/vm/page_owner.rst
-@@ -126,12 +126,41 @@ Usage
- 
- 	Cull:
- 		-c		Cull by comparing stacktrace instead of total block.
-+		--cull <rules>
-+				Specify culling rules.Culling syntax is key[,key[,...]].Choose a
-+				multi-letter key from the **STANDARD FORMAT SPECIFIERS** section.
-+
-+
-+		<rules> is a single argument in the form of a comma-separated list,
-+		which offers a way to specify individual culling rules.  The recognized
-+		keywords are described in the **STANDARD FORMAT SPECIFIERS** section below.
-+		<rules> can be specified by the sequence of keys k1,k2, ..., as described in
-+		the STANDARD SORT KEYS section below. Mixed use of abbreviated and
-+		complete-form of keys is allowed.
-+
-+
-+		Examples:
-+				./page_owner_sort <input> <output> --cull=stacktrace
-+				./page_owner_sort <input> <output> --cull=st,pid,name
-+				./page_owner_sort <input> <output> --cull=n,f
- 
- 	Filter:
- 		-f		Filter out the information of blocks whose memory has been released.
- 
- 	Select:
--		--pid <PID>			Select by pid.
-+		--pid <PID>		Select by pid.
- 		--tgid <TGID>		Select by tgid.
- 		--name <command>	Select by task command name.
- 
-+STANDARD FORMAT SPECIFIERS
-+==========================
-+
-+	KEY		LONG		DESCRIPTION
-+	p		pid		process ID
-+	tg		tgid		thread group ID
-+	n		name		task command name
-+	f		free		whether the page has been released or not
-+	st		stacktrace	stace trace of the page allocation
-+
-+
-+
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-support-for-user-defined-culling-rules
-+++ a/tools/vm/page_owner_sort.c
-@@ -44,7 +44,14 @@ enum FILTER_BIT {
- 	FILTER_UNRELEASE = 1<<1,
- 	FILTER_PID = 1<<2,
- 	FILTER_TGID = 1<<3,
--	FILTER_TASK_COMM_NAME = 1<<4
-+	FILTER_COMM = 1<<4
-+};
-+enum CULL_BIT {
-+	CULL_UNRELEASE = 1<<1,
-+	CULL_PID = 1<<2,
-+	CULL_TGID = 1<<3,
-+	CULL_COMM = 1<<4,
-+	CULL_STACKTRACE = 1<<5
- };
- struct filter_condition {
- 	pid_t tgid;
-@@ -61,7 +68,7 @@ static regex_t free_ts_nsec_pattern;
- static struct block_list *list;
- static int list_size;
- static int max_size;
--static int cull_st;
-+static int cull;
- static int filter;
- 
- int read_block(char *buf, int buf_size, FILE *fin)
-@@ -142,6 +149,36 @@ static int compare_free_ts(const void *p
- 	return l1->free_ts_nsec < l2->free_ts_nsec ? -1 : 1;
- }
- 
-+
-+static int compare_release(const void *p1, const void *p2)
-+{
-+	const struct block_list *l1 = p1, *l2 = p2;
-+
-+	if (!l1->free_ts_nsec && !l2->free_ts_nsec)
-+		return 0;
-+	if (l1->free_ts_nsec && l2->free_ts_nsec)
-+		return 0;
-+	return l1->free_ts_nsec ? 1 : -1;
-+}
-+
-+
-+static int compare_cull_condition(const void *p1, const void *p2)
-+{
-+	if (cull == 0)
-+		return compare_txt(p1, p2);
-+	if ((cull & CULL_STACKTRACE) && compare_stacktrace(p1, p2))
-+		return compare_stacktrace(p1, p2);
-+	if ((cull & CULL_PID) && compare_pid(p1, p2))
-+		return compare_pid(p1, p2);
-+	if ((cull & CULL_TGID) && compare_tgid(p1, p2))
-+		return compare_tgid(p1, p2);
-+	if ((cull & CULL_COMM) && compare_comm(p1, p2))
-+		return compare_comm(p1, p2);
-+	if ((cull & CULL_UNRELEASE) && compare_release(p1, p2))
-+		return compare_release(p1, p2);
-+	return 0;
-+}
-+
- static int search_pattern(regex_t *pattern, char *pattern_str, char *buf)
- {
- 	int err, val_len;
-@@ -170,6 +207,38 @@ static void check_regcomp(regex_t *patte
- 	}
- }
- 
-+static char **explode(char sep, const char *str, int *size)
-+{
-+	int count = 0, len = strlen(str);
-+	int lastindex = -1, j = 0;
-+
-+	for (int i = 0; i < len; i++)
-+		if (str[i] == sep)
-+			count++;
-+	char **ret = calloc(++count, sizeof(char *));
-+
-+	for (int i = 0; i < len; i++) {
-+		if (str[i] == sep) {
-+			ret[j] = calloc(i - lastindex, sizeof(char));
-+			memcpy(ret[j++], str + lastindex + 1, i - lastindex - 1);
-+			lastindex = i;
-+		}
-+	}
-+	if (lastindex <= len - 1) {
-+		ret[j] = calloc(len - lastindex, sizeof(char));
-+		memcpy(ret[j++], str + lastindex + 1, strlen(str) - 1 - lastindex);
-+	}
-+	*size = j;
-+	return ret;
-+}
-+
-+static void free_explode(char **arr, int size)
-+{
-+	for (int i = 0; i < size; i++)
-+		free(arr[i]);
-+	free(arr);
-+}
-+
- # define FIELD_BUFF 25
- 
- static int get_page_num(char *buf)
-@@ -277,16 +346,16 @@ static char *get_comm(char *buf)
- 
- static bool is_need(char *buf)
- {
--		if ((filter & FILTER_UNRELEASE) != 0 && get_free_ts_nsec(buf) != 0)
-+		if ((filter & FILTER_UNRELEASE) && get_free_ts_nsec(buf) != 0)
- 			return false;
--		if ((filter & FILTER_PID) != 0 && get_pid(buf) != fc.pid)
-+		if ((filter & FILTER_PID) && get_pid(buf) != fc.pid)
- 			return false;
--		if ((filter & FILTER_TGID) != 0 && get_tgid(buf) != fc.tgid)
-+		if ((filter & FILTER_TGID) && get_tgid(buf) != fc.tgid)
- 			return false;
- 
- 		char *comm = get_comm(buf);
- 
--		if ((filter & FILTER_TASK_COMM_NAME) != 0  &&
-+		if ((filter & FILTER_COMM) &&
- 		strncmp(comm, fc.comm, TASK_COMM_LEN) != 0) {
- 			free(comm);
- 			return false;
-@@ -335,6 +404,30 @@ static void add_list(char *buf, int len)
- 	}
- }
- 
-+static bool parse_cull_args(const char *arg_str)
-+{
-+	int size = 0;
-+	char **args = explode(',', arg_str, &size);
-+
-+	for (int i = 0; i < size; ++i)
-+		if (!strcmp(args[i], "pid") || !strcmp(args[i], "p"))
-+			cull |= CULL_PID;
-+		else if (!strcmp(args[i], "tgid") || !strcmp(args[i], "tg"))
-+			cull |= CULL_TGID;
-+		else if (!strcmp(args[i], "name") || !strcmp(args[i], "n"))
-+			cull |= CULL_COMM;
-+		else if (!strcmp(args[i], "stacktrace") || !strcmp(args[i], "st"))
-+			cull |= CULL_STACKTRACE;
-+		else if (!strcmp(args[i], "free") || !strcmp(args[i], "f"))
-+			cull |= CULL_UNRELEASE;
-+		else {
-+			free_explode(args, size);
-+			return false;
-+		}
-+	free_explode(args, size);
-+	return true;
-+}
-+
- #define BUF_SIZE	(128 * 1024)
- 
- static void usage(void)
-@@ -353,6 +446,7 @@ static void usage(void)
- 		"--pid <PID>\tSelect by pid. This selects the information of blocks whose process ID number equals to <PID>.\n"
- 		"--tgid <TGID>\tSelect by tgid. This selects the information of blocks whose Thread Group ID number equals to <TGID>.\n"
- 		"--name <command>\n\t\tSelect by command name. This selects the information of blocks whose command name identical to <command>.\n"
-+		"--cull <rules>\tCull by user-defined rules. <rules> is a single argument in the form of a comma-separated list with some common fields predefined\n"
- 	);
- }
- 
-@@ -368,6 +462,7 @@ int main(int argc, char **argv)
- 		{ "pid", required_argument, NULL, 1 },
- 		{ "tgid", required_argument, NULL, 2 },
- 		{ "name", required_argument, NULL, 3 },
-+		{ "cull",  required_argument, NULL, 4 },
- 		{ 0, 0, 0, 0},
- 	};
- 
-@@ -377,7 +472,7 @@ int main(int argc, char **argv)
- 			cmp = compare_ts;
- 			break;
- 		case 'c':
--			cull_st = 1;
-+			cull = cull | CULL_STACKTRACE;
- 			break;
- 		case 'f':
- 			filter = filter | FILTER_UNRELEASE;
-@@ -422,10 +517,17 @@ int main(int argc, char **argv)
- 			}
- 			break;
- 		case 3:
--			filter = filter | FILTER_TASK_COMM_NAME;
-+			filter = filter | FILTER_COMM;
- 			strncpy(fc.comm, optarg, TASK_COMM_LEN);
- 			fc.comm[TASK_COMM_LEN-1] = '\0';
- 			break;
-+		case 4:
-+			if (!parse_cull_args(optarg)) {
-+				printf("wrong argument after --cull in from the command line:%s\n",
-+						optarg);
-+				exit(1);
-+			}
-+			break;
- 		default:
- 			usage();
- 			exit(1);
-@@ -472,20 +574,13 @@ int main(int argc, char **argv)
- 
- 	printf("sorting ....\n");
- 
--	if (cull_st == 1)
--		qsort(list, list_size, sizeof(list[0]), compare_stacktrace);
--	else
--		qsort(list, list_size, sizeof(list[0]), compare_txt);
--
--
-+	qsort(list, list_size, sizeof(list[0]), compare_cull_condition);
- 
- 	printf("culling\n");
- 
--	long offset = cull_st ? &list[0].stacktrace - &list[0].txt : 0;
--
- 	for (i = count = 0; i < list_size; i++) {
- 		if (count == 0 ||
--		    strcmp(*(&list[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
-+		    compare_cull_condition((void *)(&list[count-1]), (void *)(&list[i])) != 0) {
- 			list[count++] = list[i];
- 		} else {
- 			list[count-1].num += list[i].num;
-@@ -496,12 +591,25 @@ int main(int argc, char **argv)
- 	qsort(list, count, sizeof(list[0]), cmp);
- 
- 	for (i = 0; i < count; i++) {
--		if (cull_st == 0)
-+		if (cull == 0)
- 			fprintf(fout, "%d times, %d pages:\n%s\n",
- 					list[i].num, list[i].page_num, list[i].txt);
--		else
--			fprintf(fout, "%d times, %d pages:\n%s\n",
--					list[i].num, list[i].page_num, list[i].stacktrace);
-+		else {
-+			fprintf(fout, "%d times, %d pages",
-+					list[i].num, list[i].page_num);
-+			if (cull & CULL_PID || filter & FILTER_PID)
-+				fprintf(fout, ", PID %d", list[i].pid);
-+			if (cull & CULL_TGID || filter & FILTER_TGID)
-+				fprintf(fout, ", TGID %d", list[i].pid);
-+			if (cull & CULL_COMM || filter & FILTER_COMM)
-+				fprintf(fout, ", task_comm_name: %s", list[i].comm);
-+			if (cull & CULL_UNRELEASE)
-+				fprintf(fout, " (%s)",
-+						list[i].free_ts_nsec ? "UNRELEASED" : "RELEASED");
-+			if (cull & CULL_STACKTRACE)
-+				fprintf(fout, ":\n%s", list[i].stacktrace);
-+			fprintf(fout, "\n");
-+		}
- 	}
- 	regfree(&order_pattern);
- 	regfree(&pid_pattern);
+--- a/mm/kasan/report_sw_tags.c~kasan-print-basic-stack-frame-info-for-sw_tags-fix
++++ a/mm/kasan/report_sw_tags.c
+@@ -16,6 +16,7 @@
+ #include <linux/mm.h>
+ #include <linux/printk.h>
+ #include <linux/sched.h>
++#include <linux/sched/task_stack.h>
+ #include <linux/slab.h>
+ #include <linux/stackdepot.h>
+ #include <linux/stacktrace.h>
 _
 
-Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-tools-vm-page_owner_sortc-fix-comments.patch
-tools-vm-page_owner_sortc-add-a-security-check.patch
-tools-vm-page_owner_sortc-support-sorting-by-tgid-and-update-documentation.patch
-tools-vm-page_owner_sort-fix-three-trivival-places.patch
-tools-vm-page_owner_sort-support-for-sorting-by-task-command-name.patch
-tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
-tools-vm-page_owner_sortc-support-for-user-defined-culling-rules.patch
+kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
+kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+mm-clarify-__gfp_zerotags-comment.patch
+kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
+kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
+kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
+kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
+kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+kasan-clean-up-metadata-byte-definitions.patch
+kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
+kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+kasan-reorder-vmalloc-hooks.patch
+kasan-add-wrappers-for-vmalloc-hooks.patch
+kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
+kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
+kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
+kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
+kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
+kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
+kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch
+kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
+kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+kasan-add-kasanvmalloc-command-line-flag.patch
+kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
+arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
+kasan-documentation-updates.patch
+kasan-improve-vmalloc-tests.patch
+kasan-improve-vmalloc-tests-fix-2.patch
+kasan-improve-vmalloc-tests-fix-3.patch
+kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
+kasan-print-virtual-mapping-info-in-reports.patch
+kasan-drop-addr-check-from-describe_object_addr.patch
+kasan-more-line-breaks-in-reports.patch
+kasan-rearrange-stack-frame-info-in-reports.patch
+kasan-improve-stack-frame-info-in-reports.patch
+kasan-print-basic-stack-frame-info-for-sw_tags.patch
+kasan-print-basic-stack-frame-info-for-sw_tags-fix.patch
+kasan-simplify-async-check-in-end_report.patch
+kasan-simplify-kasan_update_kunit_status-and-call-sites.patch
+kasan-check-config_kasan_kunit_test-instead-of-config_kunit.patch
+kasan-move-update_kunit_status-to-start_report.patch
+kasan-move-disable_trace_on_warning-to-start_report.patch
+kasan-split-out-print_report-from-__kasan_report.patch
+kasan-simplify-kasan_find_first_bad_addr-call-sites.patch
+kasan-restructure-kasan_report.patch
+kasan-merge-__kasan_report-into-kasan_report.patch
+kasan-call-print_report-from-kasan_report_invalid_free.patch
+kasan-move-and-simplify-kasan_report_async.patch
+kasan-rename-kasan_access_info-to-kasan_report_info.patch
+kasan-add-comment-about-uaccess-regions-to-kasan_report.patch
+kasan-respect-kasan_bit_reported-in-all-reporting-routines.patch
+kasan-reorder-reporting-functions.patch
+kasan-move-and-hide-kasan_save_enable-restore_multi_shot.patch
+kasan-disable-lockdep-when-printing-reports.patch
 
