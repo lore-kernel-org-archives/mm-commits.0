@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDDECC433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:41:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CD69C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232629AbiCLUmg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Mar 2022 15:42:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59144 "EHLO
+        id S232184AbiCLUog (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Mar 2022 15:44:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232299AbiCLUmf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:42:35 -0500
+        with ESMTP id S232299AbiCLUof (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:44:35 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9451737A1F
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:41:29 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D856F56742
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:43:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F714611D2
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:41:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F965C340EE;
-        Sat, 12 Mar 2022 20:41:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 73721611DE
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:43:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAB18C340EE;
+        Sat, 12 Mar 2022 20:43:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647117688;
-        bh=FvzFp1/yup8mtstS4445ROyD5h5qGpp0E769jSnLYPw=;
+        s=korg; t=1647117807;
+        bh=3XNQD6ah+ObSxklZgfu62RwGEG5+oHWlZmc/SauJv7k=;
         h=Date:To:From:Subject:From;
-        b=lXsWaEBDOBH0JkQ8pJ+58Z9z47OMi8mtiZkQQzsrclkmDcWVfrrcXaX0Xscq8dYCW
-         BT5pNFjmcJwqe3/TkTmRdRwasheYw9MtUtxhpvF0gVv9MedC1d/b/jnJXQ9BnzGd9h
-         lsdLWLDpNohJG2RXPEytYGgnYBZ/D1NyXetBUaww=
-Date:   Sat, 12 Mar 2022 12:41:27 -0800
-To:     mm-commits@vger.kernel.org, hughd@google.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=fhTxjqWtX7HAB7IoF9Hcm+XoybUWLO/OByemJUH+0HxGu4BIiZ1k1D48AuOmTVnpU
+         ReRAYnOVJEQtMoQui1jL1zdlMm+C+P5MwmoC6AlkxxbMlr62NFWrytPi1aQ0Tp11sr
+         23F40MPtwkC5yK1Y36n6rMFnp8wlV5wnx74v1arQ=
+Date:   Sat, 12 Mar 2022 12:43:27 -0800
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-use-helper-macro-__attr_rw.patch added to -mm tree
-Message-Id: <20220312204128.7F965C340EE@smtp.kernel.org>
+Subject: + mm-mremap-use-vma_lookup-instead-of-find_vma.patch added to -mm tree
+Message-Id: <20220312204327.CAB18C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shmem: use helper macro __ATTR_RW
+     Subject: mm/mremap:: use vma_lookup() instead of find_vma()
 has been added to the -mm tree.  Its filename is
-     mm-shmem-use-helper-macro-__attr_rw.patch
+     mm-mremap-use-vma_lookup-instead-of-find_vma.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-use-helper-macro-__attr_rw.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-use-vma_lookup-instead-of-find_vma.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-use-helper-macro-__attr_rw.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-use-vma_lookup-instead-of-find_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,32 +63,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: shmem: use helper macro __ATTR_RW
+Subject: mm/mremap:: use vma_lookup() instead of find_vma()
 
-Use helper macro __ATTR_RW to define shmem_enabled_attr to make code more
-clear.  Minor readability improvement.
+Using vma_lookup() verifies the address is contained in the found vma. 
+This results in easier to read code.
 
-Link: https://lkml.kernel.org/r/20220312082252.55586-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220312083118.48284-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mremap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-use-helper-macro-__attr_rw
-+++ a/mm/shmem.c
-@@ -3965,8 +3965,7 @@ static ssize_t shmem_enabled_store(struc
- 	return count;
- }
+--- a/mm/mremap.c~mm-mremap-use-vma_lookup-instead-of-find_vma
++++ a/mm/mremap.c
+@@ -942,8 +942,8 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
  
--struct kobj_attribute shmem_enabled_attr =
--	__ATTR(shmem_enabled, 0644, shmem_enabled_show, shmem_enabled_store);
-+struct kobj_attribute shmem_enabled_attr = __ATTR_RW(shmem_enabled);
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_SYSFS */
- 
- #else /* !CONFIG_SHMEM */
+ 	if (mmap_write_lock_killable(current->mm))
+ 		return -EINTR;
+-	vma = find_vma(mm, addr);
+-	if (!vma || vma->vm_start > addr) {
++	vma = vma_lookup(mm, addr);
++	if (!vma) {
+ 		ret = EFAULT;
+ 		goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -100,6 +101,7 @@ mm-shmem-use-helper-macro-__attr_rw.patch
 mm-use-helper-function-range_in_vma.patch
 mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
 mm-mmap-remove-obsolete-comment-in-ksys_mmap_pgoff.patch
+mm-mremap-use-vma_lookup-instead-of-find_vma.patch
 mm-sparse-make-mminit_validate_memmodel_limits-static.patch
 mm-vmalloc-remove-unneeded-function-forward-declaration.patch
 mm-mmzoneh-remove-unused-macros.patch
