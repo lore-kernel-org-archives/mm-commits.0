@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63545C433FE
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:34:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6EB8C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:38:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229846AbiCLUfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Mar 2022 15:35:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35222 "EHLO
+        id S232237AbiCLUkD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Mar 2022 15:40:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232631AbiCLUfb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:35:31 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22BB71DEA9A
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:34:25 -0800 (PST)
+        with ESMTP id S231307AbiCLUkC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:40:02 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 318EB37A1F
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:38:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C9CEDB8074D
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:34:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80021C340EB;
-        Sat, 12 Mar 2022 20:34:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AD239611A4
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:38:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC6EAC340EB;
+        Sat, 12 Mar 2022 20:38:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647117262;
-        bh=8GBa3n6qdxFRAEzlBiNjML49c4iXy7Crxjhh8GIOlCo=;
+        s=korg; t=1647117535;
+        bh=z+Y/zVNMubLZGaAxxwdj220Mxb5QFg8VAPDHpis0tTs=;
         h=Date:To:From:Subject:From;
-        b=PSCTLa7qVfNIRnt2qH1yH8Xt8aKxvFk4gmN3w1uYHSc4WHKavGZ3aQqIYAJaIPnu8
-         JtETsIC2OXguO9jdFYHXwog1KS79KKIhbxN9kGo9VZbQAasw30Mr2jIh/3paX8M2ku
-         +eetgxLbudsOJQYSTjKgU5ocnU9NujamnGXwHY/M=
-Date:   Sat, 12 Mar 2022 12:34:21 -0800
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
-        richard.weiyang@gmail.com, akpm@linux-foundation.org
+        b=UAZG3c8g8Ai0iICTo4v2BPJCzDAO1DKaOamrKlTsM5aaDYwAgXIR84Zpk0Jv+6maz
+         aLkoSEXPaYIRiwVVUJZUeghIL623tvKq0RtbKVKlywuxbNNj3NgfFoG3JeF9i+hIi8
+         J5+iI3PfKkQ2JOgqOZBiFLo6KBdhuR7IQRKWsKGU=
+Date:   Sat, 12 Mar 2022 12:38:54 -0800
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+        shy828301@gmail.com, naoya.horiguchi@nec.com,
+        mike.kravetz@oracle.com, bp@alien8.de, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-add-next_mz-back-to-soft-limit-tree-if-not-reclaimed-yet.patch added to -mm tree
-Message-Id: <20220312203422.80021C340EB@smtp.kernel.org>
+Subject: + mm-memory-failurec-fix-race-with-changing-page-compound-again.patch added to -mm tree
+Message-Id: <20220312203854.EC6EAC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: add next_mz back to soft limit tree if not reclaimed yet
+     Subject: mm/memory-failure.c: fix race with changing page compound again
 has been added to the -mm tree.  Its filename is
-     mm-memcg-add-next_mz-back-to-soft-limit-tree-if-not-reclaimed-yet.patch
+     mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-add-next_mz-back-to-soft-limit-tree-if-not-reclaimed-yet.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-add-next_mz-back-to-soft-limit-tree-if-not-reclaimed-yet.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,69 +64,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memcg: add next_mz back to soft limit tree if not reclaimed yet
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory-failure.c: fix race with changing page compound again
 
-When memory reclaim failed for a maximum number of attempts and we bail
-out of the reclaim loop, we forgot to put the target mem_cgroup chosen for
-next reclaim back to the soft limit tree.  This prevented pages in the
-mem_cgroup from being reclaimed in the future even though the mem_cgroup
-exceeded its soft limit.
+Patch series "A few fixup patches for memory failure", v2.
 
-Let's say there are two mem_cgroup and both of them exceed the soft limit,
-while the first one is more active then the second.  Since we add a
-mem_cgroup to soft limit tree every 1024 event, the second one just get a
-rare chance to be put on soft limit tree even it exceeds the limit.
+This series contains a few patches to fix the race with changing page
+compound page, make non-LRU movable pages unhandlable and so on.  More
+details can be found in the respective changelogs.
 
-As time goes on, the first mem_cgroup was kept close to its soft limit due
-to reclaim activities, while the memory usage of the second mem_cgroup
-keeps growing over the soft limit for a long time due to its relatively
-rare occurrence.
 
-This patch adds next_mz back to prevent this scenario.
+There is a race window where we got the compound_head, the hugetlb page
+could be freed to buddy, or even changed to another compound page just
+before we try to get hwpoison page.  Think about the below race window:
 
-Link: https://lkml.kernel.org/r/20220312071623.19050-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeelb@google.com>
+  CPU 1					  CPU 2
+  memory_failure_hugetlb
+  struct page *head = compound_head(p);
+					  hugetlb page might be freed to
+					  buddy, or even changed to another
+					  compound page.
+
+  get_hwpoison_page -- page is not what we want now...
+
+If this race happens, just bail out.  Also MF_MSG_DIFFERENT_PAGE_SIZE is
+introduced to record this event.
+
+Link: https://lkml.kernel.org/r/20220312074613.4798-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220312074613.4798-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/mm.h      |    1 +
+ include/ras/ras_event.h |    1 +
+ mm/memory-failure.c     |   12 ++++++++++++
+ 3 files changed, 14 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcg-add-next_mz-back-to-soft-limit-tree-if-not-reclaimed-yet
-+++ a/mm/memcontrol.c
-@@ -3453,8 +3453,13 @@ unsigned long mem_cgroup_soft_limit_recl
- 			loop > MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS))
- 			break;
- 	} while (!nr_reclaimed);
--	if (next_mz)
-+	if (next_mz) {
-+		spin_lock_irq(&mctz->lock);
-+		excess = soft_limit_excess(next_mz->memcg);
-+		__mem_cgroup_insert_exceeded(next_mz, mctz, excess);
-+		spin_unlock_irq(&mctz->lock);
- 		css_put(&next_mz->memcg->css);
-+	}
- 	return nr_reclaimed;
- }
+--- a/include/linux/mm.h~mm-memory-failurec-fix-race-with-changing-page-compound-again
++++ a/include/linux/mm.h
+@@ -3239,6 +3239,7 @@ enum mf_action_page_type {
+ 	MF_MSG_BUDDY,
+ 	MF_MSG_DAX,
+ 	MF_MSG_UNSPLIT_THP,
++	MF_MSG_DIFFERENT_PAGE_SIZE,
+ 	MF_MSG_UNKNOWN,
+ };
  
+--- a/include/ras/ras_event.h~mm-memory-failurec-fix-race-with-changing-page-compound-again
++++ a/include/ras/ras_event.h
+@@ -374,6 +374,7 @@ TRACE_EVENT(aer_event,
+ 	EM ( MF_MSG_BUDDY, "free buddy page" )				\
+ 	EM ( MF_MSG_DAX, "dax page" )					\
+ 	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
++	EM ( MF_MSG_DIFFERENT_PAGE_SIZE, "different page size" )	\
+ 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
+ 
+ /*
+--- a/mm/memory-failure.c~mm-memory-failurec-fix-race-with-changing-page-compound-again
++++ a/mm/memory-failure.c
+@@ -732,6 +732,7 @@ static const char * const action_page_ty
+ 	[MF_MSG_BUDDY]			= "free buddy page",
+ 	[MF_MSG_DAX]			= "dax page",
+ 	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
++	[MF_MSG_DIFFERENT_PAGE_SIZE]	= "different page size",
+ 	[MF_MSG_UNKNOWN]		= "unknown page",
+ };
+ 
+@@ -1532,6 +1533,17 @@ static int memory_failure_hugetlb(unsign
+ 	}
+ 
+ 	lock_page(head);
++
++	/**
++	 * The page could have changed compound pages due to race window.
++	 * If this happens just bail out.
++	 */
++	if (!PageHuge(p) || compound_head(p) != head) {
++		action_result(pfn, MF_MSG_DIFFERENT_PAGE_SIZE, MF_IGNORED);
++		res = -EBUSY;
++		goto out;
++	}
++
+ 	page_flags = head->flags;
+ 
+ 	if (hwpoison_filter(p)) {
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-memcg-mem_cgroup_per_node-is-already-set-to-0-on-allocation.patch
-mm-memcg-retrieve-parent-memcg-from-cssparent.patch
-mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
-mm-memcg-set-pos-to-prev-unconditionally.patch
-mm-memcg-move-generation-assignment-and-comparison-together.patch
-mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node.patch
-mm-memcg-__mem_cgroup_remove_exceeded-could-handle-a-on-tree-mz-properly.patch
-mm-memcg-add-next_mz-back-to-soft-limit-tree-if-not-reclaimed-yet.patch
-mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
-mm-page_alloc-add-penalty-to-local_node.patch
-memcg-do-not-tweak-node-in-alloc_mem_cgroup_per_node_info.patch
+mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
+filemap-remove-find_get_pages.patch
+mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
+mm-use-helper-function-range_in_vma.patch
+mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
+mm-mmap-remove-obsolete-comment-in-ksys_mmap_pgoff.patch
+mm-sparse-make-mminit_validate_memmodel_limits-static.patch
+mm-vmalloc-remove-unneeded-function-forward-declaration.patch
+mm-mmzoneh-remove-unused-macros.patch
+mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
+mm-memory-failurec-catch-unexpected-efault-from-vma_address.patch
+mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
+mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
+mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
+mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
+mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
+mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
+mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
+mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
+mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch
+mm-memory-failurec-make-non-lru-movable-pages-unhandlable.patch
+mm-mlock-fix-potential-imbalanced-rlimit-ucounts-adjustment.patch
+mm-hugetlb-use-helper-macro-__attr_rw.patch
+mm-remove-unneeded-local-variable-follflags-v2.patch
+mm-mempolicy-fix-potential-mpol_new-leak-in-shared_policy_replace.patch
+mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
+mm-ksm-use-helper-macro-__attr_rw.patch
+mm-madvise-use-vma_lookup-instead-of-find_vma.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
+mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
+mm-memory_hotplug-clean-up-try_offline_node.patch
+mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
+mm-highmem-remove-unnecessary-done-label.patch
+mm-hmmc-remove-unneeded-local-variable-ret.patch
+kernel-ksysfsc-use-helper-macro-__attr_rw.patch
+kernel-resource-fix-kfree-of-bootmem-memory-again.patch
+mm-huge_memory-make-is_transparent_hugepage-static.patch
 
