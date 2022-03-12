@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4519BC433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 00:43:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD30C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 00:44:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229778AbiCLAo2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Mar 2022 19:44:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39040 "EHLO
+        id S229669AbiCLAqA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Mar 2022 19:46:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229669AbiCLAo1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Mar 2022 19:44:27 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDC8413F16
-        for <mm-commits@vger.kernel.org>; Fri, 11 Mar 2022 16:43:22 -0800 (PST)
+        with ESMTP id S229637AbiCLAp7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Mar 2022 19:45:59 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 699111C6ECD
+        for <mm-commits@vger.kernel.org>; Fri, 11 Mar 2022 16:44:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 596486159F
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 00:43:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A919CC340E9;
-        Sat, 12 Mar 2022 00:43:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 053A5B82462
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 00:44:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2F27C340E9;
+        Sat, 12 Mar 2022 00:44:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647045801;
-        bh=Y52acj5vHX0G9X6eJLCCh03aWvUrHv1SvHk41n0VCSc=;
+        s=korg; t=1647045892;
+        bh=GnfLXWvs9jj/9ksoH4xUGrFZ0km8+ngToBT6cOjelcM=;
         h=Date:To:From:Subject:From;
-        b=YWsmr+X+vcNyM+0Lex9xe1WPDMTWrqEo7Z8niGYBVbiCwD7Q9408rwbTsAQCthO4N
-         Ch808DqwTA1dd8ASg+bsNvrzDAbaEtSXktrLVozPDItPd84tSri2njh3bUryGE8G68
-         8RMtxbDU7gDynxIHjWu+d6TsNLmgkLUSOKs85gEk=
-Date:   Fri, 11 Mar 2022 16:43:21 -0800
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, mingo@redhat.com,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
+        b=e0kVrWC6RV1nJX6fWgFCNOVnMufM1u++eOzdObeRHXLFvUiOnVZEdi8SWgGtTZe6l
+         JaEQFBlRH4XEdKEYHhyxdGb0/oe/ItbsxIHjP6UoFYbQG+rNQ9LD9mbGym8p3nVVwX
+         1q3b/RCcKO+E1eFsuMZQJc0+Vz3dbIL7Qoo6ZBx8=
+Date:   Fri, 11 Mar 2022 16:44:51 -0800
+To:     mm-commits@vger.kernel.org, anshuman.khandual@arm.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-cleanup-the-compaction-trace-events.patch added to -mm tree
-Message-Id: <20220312004321.A919CC340E9@smtp.kernel.org>
+Subject: + mm-remove-unneeded-local-variable-follflags-v2.patch added to -mm tree
+Message-Id: <20220312004452.B2F27C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: cleanup the compaction trace events
+     Subject: mm: remove unneeded local variable follflags
 has been added to the -mm tree.  Its filename is
-     mm-compaction-cleanup-the-compaction-trace-events.patch
+     mm-remove-unneeded-local-variable-follflags-v2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-cleanup-the-compaction-trace-events.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-unneeded-local-variable-follflags-v2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-cleanup-the-compaction-trace-events.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-unneeded-local-variable-follflags-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,137 +62,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: compaction: cleanup the compaction trace events
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm: remove unneeded local variable follflags
 
-As Steven suggested [1], we should access the pointers from the trace
-event to avoid dereferencing them to the tracepoint function when the
-tracepoint is disabled.
+We can pass FOLL_GET | FOLL_DUMP to follow_page directly to simplify the
+code a bit in add_page_for_migration and split_huge_pages_pid.
 
-[1] https://lkml.org/lkml/2021/11/3/409
-
-Link: https://lkml.kernel.org/r/4cd393b4d57f8f01ed72c001509b28e3a3b1a8c1.1646985115.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+Link: https://lkml.kernel.org/r/20220311072002.35575-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |   26 +++++++++++++-------------
- mm/compaction.c                   |    9 +++------
- 2 files changed, 16 insertions(+), 19 deletions(-)
+ mm/huge_memory.c |    4 +---
+ mm/migrate.c     |    4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
---- a/include/trace/events/compaction.h~mm-compaction-cleanup-the-compaction-trace-events
-+++ a/include/trace/events/compaction.h
-@@ -67,10 +67,10 @@ DEFINE_EVENT(mm_compaction_isolate_templ
- #ifdef CONFIG_COMPACTION
- TRACE_EVENT(mm_compaction_migratepages,
+--- a/mm/huge_memory.c~mm-remove-unneeded-local-variable-follflags-v2
++++ a/mm/huge_memory.c
+@@ -2953,7 +2953,6 @@ static int split_huge_pages_pid(int pid,
+ 	 */
+ 	for (addr = vaddr_start; addr < vaddr_end; addr += PAGE_SIZE) {
+ 		struct vm_area_struct *vma = find_vma(mm, addr);
+-		unsigned int follflags;
+ 		struct page *page;
  
--	TP_PROTO(unsigned long nr_all,
-+	TP_PROTO(struct compact_control *cc,
- 		unsigned int nr_succeeded),
+ 		if (!vma || addr < vma->vm_start)
+@@ -2966,8 +2965,7 @@ static int split_huge_pages_pid(int pid,
+ 		}
  
--	TP_ARGS(nr_all, nr_succeeded),
-+	TP_ARGS(cc, nr_succeeded),
+ 		/* FOLL_DUMP to ignore special (like zero) pages */
+-		follflags = FOLL_GET | FOLL_DUMP;
+-		page = follow_page(vma, addr, follflags);
++		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
  
- 	TP_STRUCT__entry(
- 		__field(unsigned long, nr_migrated)
-@@ -79,7 +79,7 @@ TRACE_EVENT(mm_compaction_migratepages,
+ 		if (IS_ERR(page))
+ 			continue;
+--- a/mm/migrate.c~mm-remove-unneeded-local-variable-follflags-v2
++++ a/mm/migrate.c
+@@ -1604,7 +1604,6 @@ static int add_page_for_migration(struct
+ {
+ 	struct vm_area_struct *vma;
+ 	struct page *page;
+-	unsigned int follflags;
+ 	int err;
  
- 	TP_fast_assign(
- 		__entry->nr_migrated = nr_succeeded;
--		__entry->nr_failed = nr_all - nr_succeeded;
-+		__entry->nr_failed = cc->nr_migratepages - nr_succeeded;
- 	),
+ 	mmap_read_lock(mm);
+@@ -1614,8 +1613,7 @@ static int add_page_for_migration(struct
+ 		goto out;
  
- 	TP_printk("nr_migrated=%lu nr_failed=%lu",
-@@ -88,10 +88,10 @@ TRACE_EVENT(mm_compaction_migratepages,
- );
+ 	/* FOLL_DUMP to ignore special (like zero) pages */
+-	follflags = FOLL_GET | FOLL_DUMP;
+-	page = follow_page(vma, addr, follflags);
++	page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
  
- TRACE_EVENT(mm_compaction_begin,
--	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
--		unsigned long free_pfn, unsigned long zone_end, bool sync),
-+	TP_PROTO(struct compact_control *cc, unsigned long zone_start,
-+		unsigned long zone_end, bool sync),
- 
--	TP_ARGS(zone_start, migrate_pfn, free_pfn, zone_end, sync),
-+	TP_ARGS(cc, zone_start, zone_end, sync),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, zone_start)
-@@ -103,8 +103,8 @@ TRACE_EVENT(mm_compaction_begin,
- 
- 	TP_fast_assign(
- 		__entry->zone_start = zone_start;
--		__entry->migrate_pfn = migrate_pfn;
--		__entry->free_pfn = free_pfn;
-+		__entry->migrate_pfn = cc->migrate_pfn;
-+		__entry->free_pfn = cc->free_pfn;
- 		__entry->zone_end = zone_end;
- 		__entry->sync = sync;
- 	),
-@@ -118,11 +118,11 @@ TRACE_EVENT(mm_compaction_begin,
- );
- 
- TRACE_EVENT(mm_compaction_end,
--	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
--		unsigned long free_pfn, unsigned long zone_end, bool sync,
-+	TP_PROTO(struct compact_control *cc, unsigned long zone_start,
-+		unsigned long zone_end, bool sync,
- 		int status),
- 
--	TP_ARGS(zone_start, migrate_pfn, free_pfn, zone_end, sync, status),
-+	TP_ARGS(cc, zone_start, zone_end, sync, status),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, zone_start)
-@@ -135,8 +135,8 @@ TRACE_EVENT(mm_compaction_end,
- 
- 	TP_fast_assign(
- 		__entry->zone_start = zone_start;
--		__entry->migrate_pfn = migrate_pfn;
--		__entry->free_pfn = free_pfn;
-+		__entry->migrate_pfn = cc->migrate_pfn;
-+		__entry->free_pfn = cc->free_pfn;
- 		__entry->zone_end = zone_end;
- 		__entry->sync = sync;
- 		__entry->status = status;
---- a/mm/compaction.c~mm-compaction-cleanup-the-compaction-trace-events
-+++ a/mm/compaction.c
-@@ -2387,8 +2387,7 @@ compact_zone(struct compact_control *cc,
- 	update_cached = !sync &&
- 		cc->zone->compact_cached_migrate_pfn[0] == cc->zone->compact_cached_migrate_pfn[1];
- 
--	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
--				cc->free_pfn, end_pfn, sync);
-+	trace_mm_compaction_begin(cc, start_pfn, end_pfn, sync);
- 
- 	/* lru_add_drain_all could be expensive with involving other CPUs */
- 	lru_add_drain();
-@@ -2438,8 +2437,7 @@ compact_zone(struct compact_control *cc,
- 				compaction_free, (unsigned long)cc, cc->mode,
- 				MR_COMPACTION, &nr_succeeded);
- 
--		trace_mm_compaction_migratepages(cc->nr_migratepages,
--						 nr_succeeded);
-+		trace_mm_compaction_migratepages(cc, nr_succeeded);
- 
- 		/* All pages were either migrated or will be released */
- 		cc->nr_migratepages = 0;
-@@ -2515,8 +2513,7 @@ out:
- 	count_compact_events(COMPACTMIGRATE_SCANNED, cc->total_migrate_scanned);
- 	count_compact_events(COMPACTFREE_SCANNED, cc->total_free_scanned);
- 
--	trace_mm_compaction_end(start_pfn, cc->migrate_pfn,
--				cc->free_pfn, end_pfn, sync, ret);
-+	trace_mm_compaction_end(cc, start_pfn, end_pfn, sync, ret);
- 
- 	return ret;
- }
+ 	err = PTR_ERR(page);
+ 	if (IS_ERR(page))
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-compaction-cleanup-the-compaction-trace-events.patch
-mm-damon-remove-redundant-page-validation.patch
+mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
+filemap-remove-find_get_pages.patch
+mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
+mm-use-helper-function-range_in_vma.patch
+mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
+mm-mmap-remove-obsolete-comment-in-ksys_mmap_pgoff.patch
+mm-sparse-make-mminit_validate_memmodel_limits-static.patch
+mm-vmalloc-remove-unneeded-function-forward-declaration.patch
+mm-mmzoneh-remove-unused-macros.patch
+mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
+mm-memory-failurec-catch-unexpected-efault-from-vma_address.patch
+mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
+mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
+mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
+mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
+mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
+mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
+mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
+mm-mlock-fix-potential-imbalanced-rlimit-ucounts-adjustment.patch
+mm-hugetlb-use-helper-macro-__attr_rw.patch
+mm-remove-unneeded-local-variable-follflags-v2.patch
+mm-mempolicy-fix-potential-mpol_new-leak-in-shared_policy_replace.patch
+mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
+mm-ksm-use-helper-macro-__attr_rw.patch
+mm-madvise-use-vma_lookup-instead-of-find_vma.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
+mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
+mm-memory_hotplug-clean-up-try_offline_node.patch
+mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
+mm-highmem-remove-unnecessary-done-label.patch
+mm-hmmc-remove-unneeded-local-variable-ret.patch
+kernel-ksysfsc-use-helper-macro-__attr_rw.patch
+kernel-resource-fix-kfree-of-bootmem-memory-again.patch
+mm-huge_memory-make-is_transparent_hugepage-static.patch
 
