@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B5CC433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 00:46:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22BC6C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:34:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229900AbiCLArv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Mar 2022 19:47:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51406 "EHLO
+        id S232016AbiCLUf2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Mar 2022 15:35:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229891AbiCLArt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Mar 2022 19:47:49 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDDE127ED8A;
-        Fri, 11 Mar 2022 16:46:44 -0800 (PST)
+        with ESMTP id S229846AbiCLUf2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:35:28 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A9EC1DDFF7
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:34:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 862A6B80E97;
-        Sat, 12 Mar 2022 00:46:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40408C340E9;
-        Sat, 12 Mar 2022 00:46:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 40BF8B80184
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:34:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA721C340EB;
+        Sat, 12 Mar 2022 20:34:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647046002;
-        bh=uk7EeWrbjIc8MIB1xzo/DOo2tXWPrFMwx6EmzSwnHLw=;
+        s=korg; t=1647117259;
+        bh=udMBRGbb8FMfxy5genV6KGol3LYgiTHwN27q7g0IZYM=;
         h=Date:To:From:Subject:From;
-        b=yXqVIE4gjSsN6neyH/mA3s9JxbkZdenltqqJsb65AjsUVEs4gqhLRrp6wtLFPILLq
-         KgEHHQmcRe+IotgjeLxVnHLNLXNJnvRjXHXnUQVK+iOrVkYQoUtsQj98c7mghbIw0i
-         +kryFqpI8/2wPGJc1AJ3rX6w48bhFJBiEseB/8KA=
-Date:   Fri, 11 Mar 2022 16:46:41 -0800
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
-        oleg@redhat.com, Liam.Howlett@oracle.com, hughd@google.com,
-        akpm@linux-foundation.org
+        b=13pdAEebYybg5KK1ECEXxHcfBSS/2hJ7hqKn/JAYjof0oHPTcC1s6WkqHpspNik1l
+         qVErWyGbaPRqxiTh5hqKG9XoKoUl1UG5WUqmcsryXc8OGc40GaOOHHHB+z7h5uNVLh
+         bBuBlIf5mIs1/8FTbo5DDgt3ceaGjI4MeytVrIZo=
+Date:   Sat, 12 Mar 2022 12:34:18 -0800
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
+        richard.weiyang@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-mbind_range-set_policy-after-vma_merge.patch added to -mm tree
-Message-Id: <20220312004642.40408C340E9@smtp.kernel.org>
+Subject: + mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node.patch added to -mm tree
+Message-Id: <20220312203418.EA721C340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: mbind_range() set_policy() after vma_merge()
+     Subject: mm/memcg: mz already removed from rb_tree in mem_cgroup_largest_soft_limit_node()
 has been added to the -mm tree.  Its filename is
-     mempolicy-mbind_range-set_policy-after-vma_merge.patch
+     mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mempolicy-mbind_range-set_policy-after-vma_merge.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-mbind_range-set_policy-after-vma_merge.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,94 +63,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: mbind_range() set_policy() after vma_merge()
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/memcg: mz already removed from rb_tree in mem_cgroup_largest_soft_limit_node()
 
-v2.6.34 commit 9d8cebd4bcd7 ("mm: fix mbind vma merge problem") introduced
-vma_merge() to mbind_range(); but unlike madvise, mlock and mprotect, it
-put a "continue" to next vma where its precedents go to update flags on
-current vma before advancing: that left vma with the wrong setting in the
-infamous vma_merge() case 8.
+When mz is not NULL, mem_cgroup_largest_soft_limit_node() has removed it
+from rb_tree.
 
-v3.10 commit 1444f92c8498 ("mm: merging memory blocks resets mempolicy")
-tried to fix that in vma_adjust(), without fully understanding the issue.
+Not necessary to call __mem_cgroup_remove_exceeded() again.
 
-v3.11 commit 3964acd0dbec ("mm: mempolicy: fix mbind_range() &&
-vma_adjust() interaction") reverted that, and went about the fix in the
-right way, but chose to optimize out an unnecessary mpol_dup() with a
-prior mpol_equal() test.  But on tmpfs, that also pessimized out the vital
-call to its ->set_policy(), leaving the new mbind unenforced.
-
-The user visible effect was that the pages got allocated on the local
-node (happened to be 0), after the mbind() caller had specifically
-asked for them to be allocated on node 1.  There was not any page
-migration involved in the case reported: the pages simply got allocated
-on the wrong node.
-
-Just delete that optimization now (though it could be made conditional on
-vma not having a set_policy).  Also remove the "next" variable: it turned
-out to be blameless, but also pointless.
-
-Link: https://lkml.kernel.org/r/319e4db9-64ae-4bca-92f0-ade85d342ff@google.com
-Fixes: 3964acd0dbec ("mm: mempolicy: fix mbind_range() && vma_adjust() interaction")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220312071623.19050-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/mempolicy.c~mempolicy-mbind_range-set_policy-after-vma_merge
-+++ a/mm/mempolicy.c
-@@ -786,7 +786,6 @@ static int vma_replace_policy(struct vm_
- static int mbind_range(struct mm_struct *mm, unsigned long start,
- 		       unsigned long end, struct mempolicy *new_pol)
- {
--	struct vm_area_struct *next;
- 	struct vm_area_struct *prev;
- 	struct vm_area_struct *vma;
- 	int err = 0;
-@@ -801,8 +800,7 @@ static int mbind_range(struct mm_struct
- 	if (start > vma->vm_start)
- 		prev = vma;
+--- a/mm/memcontrol.c~mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node
++++ a/mm/memcontrol.c
+@@ -3418,7 +3418,6 @@ unsigned long mem_cgroup_soft_limit_recl
+ 		nr_reclaimed += reclaimed;
+ 		*total_scanned += nr_scanned;
+ 		spin_lock_irq(&mctz->lock);
+-		__mem_cgroup_remove_exceeded(mz, mctz);
  
--	for (; vma && vma->vm_start < end; prev = vma, vma = next) {
--		next = vma->vm_next;
-+	for (; vma && vma->vm_start < end; prev = vma, vma = vma->vm_next) {
- 		vmstart = max(start, vma->vm_start);
- 		vmend   = min(end, vma->vm_end);
- 
-@@ -817,10 +815,6 @@ static int mbind_range(struct mm_struct
- 				 anon_vma_name(vma));
- 		if (prev) {
- 			vma = prev;
--			next = vma->vm_next;
--			if (mpol_equal(vma_policy(vma), new_pol))
--				continue;
--			/* vma_merge() joined vma && vma->next, case 8 */
- 			goto replace;
- 		}
- 		if (vma->vm_start != vmstart) {
+ 		/*
+ 		 * If we failed to reclaim anything from this memory cgroup
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-fs-delete-pf_swapwrite.patch
-mm-__isolate_lru_page_prepare-in-isolate_migratepages_block.patch
-tmpfs-support-for-file-creation-time-fix.patch
-shmem-mapping_set_exiting-to-help-mapped-resilience.patch
-tmpfs-do-not-allocate-pages-on-read.patch
-mm-_install_special_mapping-apply-vm_locked_clear_mask.patch
-mempolicy-mbind_range-set_policy-after-vma_merge.patch
-mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd.patch
-mm-thp-clearpagedoublemap-in-first-page_add_file_rmap.patch
-mm-delete-__clearpagewaiters.patch
-mm-filemap_unaccount_folio-large-skip-mapcount-fixup.patch
-mm-thp-fix-nr_file_mapped-accounting-in-page__file_rmap.patch
-mm-warn-on-deleting-redirtied-only-if-accounted.patch
-mm-unmap_mapping_range_tree-with-i_mmap_rwsem-shared.patch
+mm-memcg-mem_cgroup_per_node-is-already-set-to-0-on-allocation.patch
+mm-memcg-retrieve-parent-memcg-from-cssparent.patch
+mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
+mm-memcg-set-pos-to-prev-unconditionally.patch
+mm-memcg-move-generation-assignment-and-comparison-together.patch
+mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node.patch
+mm-memcg-__mem_cgroup_remove_exceeded-could-handle-a-on-tree-mz-properly.patch
+mm-memcg-add-next_mz-back-to-soft-limit-tree-if-not-reclaimed-yet.patch
+mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+mm-page_alloc-add-penalty-to-local_node.patch
+memcg-do-not-tweak-node-in-alloc_mem_cgroup_per_node_info.patch
 
