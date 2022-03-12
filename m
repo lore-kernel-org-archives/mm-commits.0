@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6EB8C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:38:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEBA7C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Mar 2022 20:39:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232237AbiCLUkD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Mar 2022 15:40:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49390 "EHLO
+        id S232153AbiCLUkF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Mar 2022 15:40:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231307AbiCLUkC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:40:02 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 318EB37A1F
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:38:56 -0800 (PST)
+        with ESMTP id S231307AbiCLUkE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 15:40:04 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8463E37A1F
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 12:38:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AD239611A4
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:38:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC6EAC340EB;
-        Sat, 12 Mar 2022 20:38:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D90AB611A4
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 20:38:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 409BFC340EB;
+        Sat, 12 Mar 2022 20:38:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647117535;
-        bh=z+Y/zVNMubLZGaAxxwdj220Mxb5QFg8VAPDHpis0tTs=;
+        s=korg; t=1647117537;
+        bh=6o83e1ua8DQCvh4Xi1FcHBD1hLg+O9I6CQ7yeWP63F4=;
         h=Date:To:From:Subject:From;
-        b=UAZG3c8g8Ai0iICTo4v2BPJCzDAO1DKaOamrKlTsM5aaDYwAgXIR84Zpk0Jv+6maz
-         aLkoSEXPaYIRiwVVUJZUeghIL623tvKq0RtbKVKlywuxbNNj3NgfFoG3JeF9i+hIi8
-         J5+iI3PfKkQ2JOgqOZBiFLo6KBdhuR7IQRKWsKGU=
-Date:   Sat, 12 Mar 2022 12:38:54 -0800
+        b=nvyIjm/eyt3gxZacgaeKHfQFkWEkiX2L3aihJM5+2Bc5StW3bVNZdoh87DFz7YMPy
+         XZZNgHMUkKaIgeZdUfIL8Op/u0hD5YUeKD/bGo/ywvQW6tbJ2kPPAAh+qdzy184Pwb
+         F8cpugPNS0/PlUe2XOQbBH0OVl+0j0c1atMZLQTM=
+Date:   Sat, 12 Mar 2022 12:38:56 -0800
 To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
         shy828301@gmail.com, naoya.horiguchi@nec.com,
         mike.kravetz@oracle.com, bp@alien8.de, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failurec-fix-race-with-changing-page-compound-again.patch added to -mm tree
-Message-Id: <20220312203854.EC6EAC340EB@smtp.kernel.org>
+Subject: + mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch added to -mm tree
+Message-Id: <20220312203857.409BFC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: fix race with changing page compound again
+     Subject: mm/memory-failure.c: avoid calling invalidate_inode_page() with unexpected pages
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
+     mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,95 +65,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure.c: fix race with changing page compound again
+Subject: mm/memory-failure.c: avoid calling invalidate_inode_page() with unexpected pages
 
-Patch series "A few fixup patches for memory failure", v2.
+Since commit 042c4f32323b ("mm/truncate: Inline invalidate_complete_page()
+into its one caller"), invalidate_inode_page() can invalidate the pages in
+the swap cache because the check of page->mapping != mapping is removed. 
+But invalidate_inode_page() is not expected to deal with the pages in swap
+cache.  Also non-lru movable page can reach here too.  They're not page
+cache pages.  Skip these pages by checking PageSwapCache and PageLRU.
 
-This series contains a few patches to fix the race with changing page
-compound page, make non-LRU movable pages unhandlable and so on.  More
-details can be found in the respective changelogs.
-
-
-There is a race window where we got the compound_head, the hugetlb page
-could be freed to buddy, or even changed to another compound page just
-before we try to get hwpoison page.  Think about the below race window:
-
-  CPU 1					  CPU 2
-  memory_failure_hugetlb
-  struct page *head = compound_head(p);
-					  hugetlb page might be freed to
-					  buddy, or even changed to another
-					  compound page.
-
-  get_hwpoison_page -- page is not what we want now...
-
-If this race happens, just bail out.  Also MF_MSG_DIFFERENT_PAGE_SIZE is
-introduced to record this event.
-
-Link: https://lkml.kernel.org/r/20220312074613.4798-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220312074613.4798-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220312074613.4798-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    1 +
- include/ras/ras_event.h |    1 +
- mm/memory-failure.c     |   12 ++++++++++++
- 3 files changed, 14 insertions(+)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-memory-failurec-fix-race-with-changing-page-compound-again
-+++ a/include/linux/mm.h
-@@ -3239,6 +3239,7 @@ enum mf_action_page_type {
- 	MF_MSG_BUDDY,
- 	MF_MSG_DAX,
- 	MF_MSG_UNSPLIT_THP,
-+	MF_MSG_DIFFERENT_PAGE_SIZE,
- 	MF_MSG_UNKNOWN,
- };
- 
---- a/include/ras/ras_event.h~mm-memory-failurec-fix-race-with-changing-page-compound-again
-+++ a/include/ras/ras_event.h
-@@ -374,6 +374,7 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_BUDDY, "free buddy page" )				\
- 	EM ( MF_MSG_DAX, "dax page" )					\
- 	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
-+	EM ( MF_MSG_DIFFERENT_PAGE_SIZE, "different page size" )	\
- 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
- 
- /*
---- a/mm/memory-failure.c~mm-memory-failurec-fix-race-with-changing-page-compound-again
+--- a/mm/memory-failure.c~mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages
 +++ a/mm/memory-failure.c
-@@ -732,6 +732,7 @@ static const char * const action_page_ty
- 	[MF_MSG_BUDDY]			= "free buddy page",
- 	[MF_MSG_DAX]			= "dax page",
- 	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
-+	[MF_MSG_DIFFERENT_PAGE_SIZE]	= "different page size",
- 	[MF_MSG_UNKNOWN]		= "unknown page",
- };
- 
-@@ -1532,6 +1533,17 @@ static int memory_failure_hugetlb(unsign
+@@ -2184,7 +2184,7 @@ static int __soft_offline_page(struct pa
+ 		return 0;
  	}
  
- 	lock_page(head);
-+
-+	/**
-+	 * The page could have changed compound pages due to race window.
-+	 * If this happens just bail out.
-+	 */
-+	if (!PageHuge(p) || compound_head(p) != head) {
-+		action_result(pfn, MF_MSG_DIFFERENT_PAGE_SIZE, MF_IGNORED);
-+		res = -EBUSY;
-+		goto out;
-+	}
-+
- 	page_flags = head->flags;
- 
- 	if (hwpoison_filter(p)) {
+-	if (!PageHuge(page))
++	if (!PageHuge(page) && PageLRU(page) && !PageSwapCache(page))
+ 		/*
+ 		 * Try to invalidate first. This should work for
+ 		 * non dirty unmapped page cache pages.
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
