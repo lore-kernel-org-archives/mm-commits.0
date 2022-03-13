@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F273EC433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Mar 2022 02:24:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9B20C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Mar 2022 02:25:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233397AbiCMCZq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Mar 2022 21:25:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37716 "EHLO
+        id S233400AbiCMC0V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Mar 2022 21:26:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231222AbiCMCZq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 21:25:46 -0500
+        with ESMTP id S231222AbiCMC0V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Mar 2022 21:26:21 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97FA67093D
-        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 18:24:39 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE66A73057
+        for <mm-commits@vger.kernel.org>; Sat, 12 Mar 2022 18:25:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2379A60E03
-        for <mm-commits@vger.kernel.org>; Sun, 13 Mar 2022 02:24:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63DB1C340EB;
-        Sun, 13 Mar 2022 02:24:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3B3F960E1F
+        for <mm-commits@vger.kernel.org>; Sun, 13 Mar 2022 02:25:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E387C340EB;
+        Sun, 13 Mar 2022 02:25:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647138278;
-        bh=SITfDXFdu5GVPXujQkoIQDTCppsaqsx4cxLiPsmCDz8=;
+        s=korg; t=1647138313;
+        bh=xH+MZK/ZZ/n9F0GGClnBNU1MK8HAwwHSQlm+nSV2VGI=;
         h=Date:To:From:Subject:From;
-        b=e4PoCW2dsFnjU+faDjRdxQ2pKn66TUlqqPudM9D+4UryVFPve/uXG/mSnUgX4ch9i
-         GgsRZ+IMxp3mgWCz2ZaqGzhQTHJcfi8hszZY+ka6cj/hiKixGio7tNk1olastZOgdH
-         eZ6CQX1Anl/uWmxpT2VaJrEFLK3Wr6kXs+pKfuYY=
-Date:   Sat, 12 Mar 2022 18:24:37 -0800
+        b=XLU9u3GCSNglVe//+32J3Am1PSlLdn1B2E1CV+J0u4S2C37c8EzisKSgw8oLee6CQ
+         //fuc/AQWw7rUbmPb3cr2xn9jjDGh120mVLxo+xQ+aXDih8jcmPpvfo1flZKcnBUH8
+         nv/pGHvlgEugB2JilAfrtCey2sNx0DfptzeO0nuk=
+Date:   Sat, 12 Mar 2022 18:25:12 -0800
 To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + a.patch added to -mm tree
-Message-Id: <20220313022438.63DB1C340EB@smtp.kernel.org>
+Subject: [withdrawn] a.patch removed from -mm tree
+Message-Id: <20220313022513.8E387C340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,24 +42,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: a
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      a.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/a.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/a.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -102,5 +88,4 @@ mm-slightly-clarify-ksm-logic-in-do_swap_page-fix.patch
 mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
 mutex-subsystem-synchro-test-module-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-a.patch
 
