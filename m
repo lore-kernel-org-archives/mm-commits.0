@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00813C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Mar 2022 21:02:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 350E6C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Mar 2022 21:06:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245201AbiCNVDg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Mar 2022 17:03:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43472 "EHLO
+        id S234775AbiCNVHb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Mar 2022 17:07:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52226 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234775AbiCNVDg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2022 17:03:36 -0400
+        with ESMTP id S242035AbiCNVHa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2022 17:07:30 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 612663D1FE
-        for <mm-commits@vger.kernel.org>; Mon, 14 Mar 2022 14:02:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D40D3DA61
+        for <mm-commits@vger.kernel.org>; Mon, 14 Mar 2022 14:06:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F193F612DA
-        for <mm-commits@vger.kernel.org>; Mon, 14 Mar 2022 21:02:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53366C340E9;
-        Mon, 14 Mar 2022 21:02:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E5462612FD
+        for <mm-commits@vger.kernel.org>; Mon, 14 Mar 2022 21:06:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39880C340E9;
+        Mon, 14 Mar 2022 21:06:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647291743;
-        bh=AfEfwBoVYiXUMocAmEMR6eyeon0RZ40Vy9N0fS8Sbqs=;
+        s=korg; t=1647291979;
+        bh=kv0z4J8sR1VerMJonbku/HXqhaK1fRarwRBfScm5h1U=;
         h=Date:To:From:Subject:From;
-        b=Fg4R6TytDzc3RRnhsdQpCSOviiDHYm3818oahoeE//QFzmyD1gSOdKJig2xbqFvpF
-         ZP41j4T034hInxlltkZKUhHvaV/pMijPQpw7j4Q0Cob3B4+cQ26mPOhk3EYZOY7Y/0
-         +UllXrAQi0pdMh9QBhTMk6ZG9UqgzrEbEbT5YLf4=
-Date:   Mon, 14 Mar 2022 14:02:22 -0700
-To:     mm-commits@vger.kernel.org, huntbag@linux.vnet.ibm.com,
-        dave.hansen@linux.intel.com, baolin.wang@linux.alibaba.com,
-        osalvador@suse.de, akpm@linux-foundation.org
+        b=uHgzw6edwcqe4P9auDVApqAL9KiRshUw81YUo7V7oVwX7v5s0BjFx4WJUgWxyBpsd
+         lwc1K0LYIxmYJOVh+jIfIeXlL7RFmfhae42G31shtWoEHanX9/o76JpWhBHP1bwnoS
+         Gf5Hn/Hsa65x0+ZQNDVxE0zRG2gWGNrz8YGs5M7w=
+Date:   Mon, 14 Mar 2022 14:06:18 -0700
+To:     mm-commits@vger.kernel.org, tj@kernel.org, pmladek@suse.com,
+        laoar.shao@gmail.com, ebiederm@xmission.com, david@redhat.com,
+        caihuoqing@baidu.com, linux@rasmusvillemoes.dk,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3.patch added to -mm tree
-Message-Id: <20220314210223.53366C340E9@smtp.kernel.org>
+Subject: + linux-kthreadh-remove-unused-macros.patch added to -mm tree
+Message-Id: <20220314210619.39880C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3
+     Subject: linux/kthread.h: remove unused macros
 has been added to the -mm tree.  Its filename is
-     mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3.patch
+     linux-kthreadh-remove-unused-macros.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-kthreadh-remove-unused-macros.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-kthreadh-remove-unused-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,50 +64,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: linux/kthread.h: remove unused macros
 
-add feedback from Huang Ying
+Ever since these macros were introduced in commit b56c0d8937e6 ("kthread:
+implement kthread_worker"), there has been precisely one user (commit
+4d115420707a, "NVMe: Async IO queue deletion"), and that user went away in
+2016 with db3cbfff5bcc ("NVMe: IO queue deletion re-write").
 
-Link: https://lkml.kernel.org/r/20220314150945.12694-1-osalvador@suse.de
-Fixes: 884a6e5d1f93b ("mm/migrate: update node demotion order on hotplug events")
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reported-by: Abhishek Goel <huntbag@linux.vnet.ibm.com>
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Apart from being unused, these macros are also awkward to use (which may
+contribute to them not being used): Having a way to statically (or
+on-stack) allocating the storage for the struct kthread_worker itself
+doesn't help much, since obviously one needs to have some code for
+actually _spawning_ the worker thread, which must have error checking. 
+And these days we have the kthread_create_worker() interface which both
+allocates the struct kthread_worker and spawns the kthread.
+
+Link: https://lkml.kernel.org/r/20220314145343.494694-1-linux@rasmusvillemoes.dk
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Cai Huoqing <caihuoqing@baidu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/kthread.h |   22 ----------------------
+ 1 file changed, 22 deletions(-)
 
---- a/mm/migrate.c~mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3
-+++ a/mm/migrate.c
-@@ -3280,12 +3280,16 @@ void __init migrate_on_reclaim_init(void
- 				      GFP_KERNEL);
- 	WARN_ON(!node_demotion);
+--- a/include/linux/kthread.h~linux-kthreadh-remove-unused-macros
++++ a/include/linux/kthread.h
+@@ -141,12 +141,6 @@ struct kthread_delayed_work {
+ 	struct timer_list timer;
+ };
  
-+	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
- 	/*
- 	 * At this point, all numa nodes with memory/CPus have their state
- 	 * properly set, so we can build the demotion order now.
-+	 * Let us hold the cpu_hotplug lock just, as we could possibily have
-+	 * CPU hotplug events during boot.
- 	 */
-+	cpus_read_lock();
- 	set_migration_target_nodes();
--	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
-+	cpus_read_unlock();
- }
- #endif /* CONFIG_HOTPLUG_CPU */
+-#define KTHREAD_WORKER_INIT(worker)	{				\
+-	.lock = __RAW_SPIN_LOCK_UNLOCKED((worker).lock),		\
+-	.work_list = LIST_HEAD_INIT((worker).work_list),		\
+-	.delayed_work_list = LIST_HEAD_INIT((worker).delayed_work_list),\
+-	}
+-
+ #define KTHREAD_WORK_INIT(work, fn)	{				\
+ 	.node = LIST_HEAD_INIT((work).node),				\
+ 	.func = (fn),							\
+@@ -158,9 +152,6 @@ struct kthread_delayed_work {
+ 				     TIMER_IRQSAFE),			\
+ 	}
+ 
+-#define DEFINE_KTHREAD_WORKER(worker)					\
+-	struct kthread_worker worker = KTHREAD_WORKER_INIT(worker)
+-
+ #define DEFINE_KTHREAD_WORK(work, fn)					\
+ 	struct kthread_work work = KTHREAD_WORK_INIT(work, fn)
+ 
+@@ -168,19 +159,6 @@ struct kthread_delayed_work {
+ 	struct kthread_delayed_work dwork =				\
+ 		KTHREAD_DELAYED_WORK_INIT(dwork, fn)
+ 
+-/*
+- * kthread_worker.lock needs its own lockdep class key when defined on
+- * stack with lockdep enabled.  Use the following macros in such cases.
+- */
+-#ifdef CONFIG_LOCKDEP
+-# define KTHREAD_WORKER_INIT_ONSTACK(worker)				\
+-	({ kthread_init_worker(&worker); worker; })
+-# define DEFINE_KTHREAD_WORKER_ONSTACK(worker)				\
+-	struct kthread_worker worker = KTHREAD_WORKER_INIT_ONSTACK(worker)
+-#else
+-# define DEFINE_KTHREAD_WORKER_ONSTACK(worker) DEFINE_KTHREAD_WORKER(worker)
+-#endif
+-
+ extern void __kthread_init_worker(struct kthread_worker *worker,
+ 			const char *name, struct lock_class_key *key);
  
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-arch-x86-mm-numa-do-not-initialize-nodes-twice.patch
-arch-x86-mm-numa-do-not-initialize-nodes-twice-v2.patch
-mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch
-mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3.patch
+linux-kthreadh-remove-unused-macros.patch
+include-drop-pointless-__compiler_offsetof-indirection.patch
 
