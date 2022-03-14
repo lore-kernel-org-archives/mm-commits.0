@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 350E6C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Mar 2022 21:06:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59C2DC433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Mar 2022 21:17:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234775AbiCNVHb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Mar 2022 17:07:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52226 "EHLO
+        id S242276AbiCNVSe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Mar 2022 17:18:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242035AbiCNVHa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2022 17:07:30 -0400
+        with ESMTP id S233514AbiCNVSe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2022 17:18:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D40D3DA61
-        for <mm-commits@vger.kernel.org>; Mon, 14 Mar 2022 14:06:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3D0B3DDD6
+        for <mm-commits@vger.kernel.org>; Mon, 14 Mar 2022 14:17:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E5462612FD
-        for <mm-commits@vger.kernel.org>; Mon, 14 Mar 2022 21:06:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39880C340E9;
-        Mon, 14 Mar 2022 21:06:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 800536130C
+        for <mm-commits@vger.kernel.org>; Mon, 14 Mar 2022 21:17:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAB8DC340E9;
+        Mon, 14 Mar 2022 21:17:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647291979;
-        bh=kv0z4J8sR1VerMJonbku/HXqhaK1fRarwRBfScm5h1U=;
+        s=korg; t=1647292641;
+        bh=DR6WAca1LPCCuqKjqO77LAYmpUzgHd3/FhaKQ9g2+AI=;
         h=Date:To:From:Subject:From;
-        b=uHgzw6edwcqe4P9auDVApqAL9KiRshUw81YUo7V7oVwX7v5s0BjFx4WJUgWxyBpsd
-         lwc1K0LYIxmYJOVh+jIfIeXlL7RFmfhae42G31shtWoEHanX9/o76JpWhBHP1bwnoS
-         Gf5Hn/Hsa65x0+ZQNDVxE0zRG2gWGNrz8YGs5M7w=
-Date:   Mon, 14 Mar 2022 14:06:18 -0700
-To:     mm-commits@vger.kernel.org, tj@kernel.org, pmladek@suse.com,
-        laoar.shao@gmail.com, ebiederm@xmission.com, david@redhat.com,
-        caihuoqing@baidu.com, linux@rasmusvillemoes.dk,
-        akpm@linux-foundation.org
+        b=v8bNHtNLV2b4ta8/fiKKitYVJ4578i+P/KCcvSeJifDRk7lezTOP9lsYMpVPVOiit
+         1LOuam+nnpqP94CBn59WqKXLq9OGKQgn8910norSSKn32od3jloM26AqVVWM/9AgR+
+         pXUZZ/uMbBAEy5aX771obgXU++sxxFfzi2U0hyPY=
+Date:   Mon, 14 Mar 2022 14:17:21 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
+        richard.weiyang@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + linux-kthreadh-remove-unused-macros.patch added to -mm tree
-Message-Id: <20220314210619.39880C340E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node.patch removed from -mm tree
+Message-Id: <20220314211721.CAB8DC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,106 +42,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/kthread.h: remove unused macros
-has been added to the -mm tree.  Its filename is
-     linux-kthreadh-remove-unused-macros.patch
+     Subject: mm/memcg: mz already removed from rb_tree in mem_cgroup_largest_soft_limit_node()
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-kthreadh-remove-unused-macros.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-kthreadh-remove-unused-macros.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: linux/kthread.h: remove unused macros
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/memcg: mz already removed from rb_tree in mem_cgroup_largest_soft_limit_node()
 
-Ever since these macros were introduced in commit b56c0d8937e6 ("kthread:
-implement kthread_worker"), there has been precisely one user (commit
-4d115420707a, "NVMe: Async IO queue deletion"), and that user went away in
-2016 with db3cbfff5bcc ("NVMe: IO queue deletion re-write").
+When mz is not NULL, mem_cgroup_largest_soft_limit_node() has removed it
+from rb_tree.
 
-Apart from being unused, these macros are also awkward to use (which may
-contribute to them not being used): Having a way to statically (or
-on-stack) allocating the storage for the struct kthread_worker itself
-doesn't help much, since obviously one needs to have some code for
-actually _spawning_ the worker thread, which must have error checking. 
-And these days we have the kthread_create_worker() interface which both
-allocates the struct kthread_worker and spawns the kthread.
+Not necessary to call __mem_cgroup_remove_exceeded() again.
 
-Link: https://lkml.kernel.org/r/20220314145343.494694-1-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Cai Huoqing <caihuoqing@baidu.com>
+Link: https://lkml.kernel.org/r/20220312071623.19050-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kthread.h |   22 ----------------------
- 1 file changed, 22 deletions(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/kthread.h~linux-kthreadh-remove-unused-macros
-+++ a/include/linux/kthread.h
-@@ -141,12 +141,6 @@ struct kthread_delayed_work {
- 	struct timer_list timer;
- };
+--- a/mm/memcontrol.c~mm-memcg-mz-already-removed-from-rb_tree-in-mem_cgroup_largest_soft_limit_node
++++ a/mm/memcontrol.c
+@@ -3418,7 +3418,6 @@ unsigned long mem_cgroup_soft_limit_recl
+ 		nr_reclaimed += reclaimed;
+ 		*total_scanned += nr_scanned;
+ 		spin_lock_irq(&mctz->lock);
+-		__mem_cgroup_remove_exceeded(mz, mctz);
  
--#define KTHREAD_WORKER_INIT(worker)	{				\
--	.lock = __RAW_SPIN_LOCK_UNLOCKED((worker).lock),		\
--	.work_list = LIST_HEAD_INIT((worker).work_list),		\
--	.delayed_work_list = LIST_HEAD_INIT((worker).delayed_work_list),\
--	}
--
- #define KTHREAD_WORK_INIT(work, fn)	{				\
- 	.node = LIST_HEAD_INIT((work).node),				\
- 	.func = (fn),							\
-@@ -158,9 +152,6 @@ struct kthread_delayed_work {
- 				     TIMER_IRQSAFE),			\
- 	}
- 
--#define DEFINE_KTHREAD_WORKER(worker)					\
--	struct kthread_worker worker = KTHREAD_WORKER_INIT(worker)
--
- #define DEFINE_KTHREAD_WORK(work, fn)					\
- 	struct kthread_work work = KTHREAD_WORK_INIT(work, fn)
- 
-@@ -168,19 +159,6 @@ struct kthread_delayed_work {
- 	struct kthread_delayed_work dwork =				\
- 		KTHREAD_DELAYED_WORK_INIT(dwork, fn)
- 
--/*
-- * kthread_worker.lock needs its own lockdep class key when defined on
-- * stack with lockdep enabled.  Use the following macros in such cases.
-- */
--#ifdef CONFIG_LOCKDEP
--# define KTHREAD_WORKER_INIT_ONSTACK(worker)				\
--	({ kthread_init_worker(&worker); worker; })
--# define DEFINE_KTHREAD_WORKER_ONSTACK(worker)				\
--	struct kthread_worker worker = KTHREAD_WORKER_INIT_ONSTACK(worker)
--#else
--# define DEFINE_KTHREAD_WORKER_ONSTACK(worker) DEFINE_KTHREAD_WORKER(worker)
--#endif
--
- extern void __kthread_init_worker(struct kthread_worker *worker,
- 			const char *name, struct lock_class_key *key);
- 
+ 		/*
+ 		 * If we failed to reclaim anything from this memory cgroup
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-linux-kthreadh-remove-unused-macros.patch
-include-drop-pointless-__compiler_offsetof-indirection.patch
+mm-memcg-mem_cgroup_per_node-is-already-set-to-0-on-allocation.patch
+mm-memcg-retrieve-parent-memcg-from-cssparent.patch
+mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
+mm-memcg-set-pos-to-prev-unconditionally.patch
+mm-memcg-move-generation-assignment-and-comparison-together.patch
+mm-memcg-__mem_cgroup_remove_exceeded-could-handle-a-on-tree-mz-properly.patch
+mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+mm-page_alloc-add-penalty-to-local_node.patch
+memcg-do-not-tweak-node-in-alloc_mem_cgroup_per_node_info.patch
 
