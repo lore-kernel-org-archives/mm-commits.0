@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7557C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 15 Mar 2022 22:30:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30BF3C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 15 Mar 2022 22:45:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232568AbiCOWbR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Mar 2022 18:31:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49716 "EHLO
+        id S242472AbiCOWqd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 15 Mar 2022 18:46:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237247AbiCOWbQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2022 18:31:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C7DF49F8B
-        for <mm-commits@vger.kernel.org>; Tue, 15 Mar 2022 15:30:02 -0700 (PDT)
+        with ESMTP id S1352301AbiCOWq3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2022 18:46:29 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8072813E09
+        for <mm-commits@vger.kernel.org>; Tue, 15 Mar 2022 15:45:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B51F661365
-        for <mm-commits@vger.kernel.org>; Tue, 15 Mar 2022 22:30:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10093C340E8;
-        Tue, 15 Mar 2022 22:30:01 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id D8862CE1C49
+        for <mm-commits@vger.kernel.org>; Tue, 15 Mar 2022 22:45:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA62DC340E8;
+        Tue, 15 Mar 2022 22:45:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647383401;
-        bh=z+BAP/7PcdxYnWKGTHInKHfGKLvNCzRJ70CJkb6Q+90=;
+        s=korg; t=1647384313;
+        bh=bXccgGsmZzemKHwymqKrkYFGUnAEzJdYqsw3S7w/rRw=;
         h=Date:To:From:Subject:From;
-        b=JRDsMv/y0sIAQd68NNeyU99RbSqYBtbKgPVRHdl72Bo6BdW5qMIBp7mYQ8tOIIPaz
-         7/sLNhXV24Nqz/XxUKVsDBR6xf9cKpsf6aFdFDTD0oPBzqu6RjSsVqeBlpwRJL8UPV
-         j7tGh9r783uvUb1+KxVKKM5Sc6TFCUJacGxZ5Yeg=
-Date:   Tue, 15 Mar 2022 15:30:00 -0700
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        b=BxC3R3KHc4jQyKnCv9+Tdoy89tU/qbSjOSe5DDNL+j24lOZDNXIMHmx0wlWu7p8KD
+         2R50Tru48lqYu0mMAvkr9anoUgGo8s074sHNYesjKQkwvYP00njE6JaeaiWzU1dreb
+         YgaS1zzVTuZy9pYbN4FQR/3s/LLagxgA0BERGBoQ=
+Date:   Tue, 15 Mar 2022 15:45:12 -0700
+To:     mm-commits@vger.kernel.org, zhaochongxi2019@email.szu.edu.cn,
+        zhangyinan2019@email.szu.edu.cn, yuhongf@szu.edu.cn,
+        weizhenliang@huawei.com, sfr@canb.auug.org.au, seanga2@gmail.com,
+        liuyongqiang13@huawei.com, hanshenghong2019@email.szu.edu.cn,
+        caoyixuan2019@email.szu.edu.cn, yejiajian2018@email.szu.edu.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Message-Id: <20220315223001.10093C340E8@smtp.kernel.org>
+Subject: + tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr.patch added to -mm tree
+Message-Id: <20220315224512.EA62DC340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,189 +45,199 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: tools/vm/page_owner_sort.c: use fprintf() to send error messages to stderr
+has been added to the -mm tree.  Its filename is
+     tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
+From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Subject: tools/vm/page_owner_sort.c: use fprintf() to send error messages to stderr
 
+Error messages should be send to stderr using fprintf() instead of
+printf().
+
+This work is coauthored by
+	Shenghong Han
+	Yixuan Cao
+	Yinan Zhang
+	Chongxi Zhao
+	Yuhong Feng
+	Yongqiang Liu
+
+Link: https://lkml.kernel.org/r/20220315163902.1567-1-yejiajian2018@email.szu.edu.cn
+Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Cc: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
+Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Cc: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Cc: Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>
+Cc: Yuhong Feng <yuhongf@szu.edu.cn>
+Cc: Yongqiang Liu <liuyongqiang13@huawei.com>
+Cc: Sean Anderson <seanga2@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/intel/iavf/iavf_virtchnl.c |   16 --------------
- drivers/net/ethernet/intel/ice/ice.h            |    3 --
- drivers/net/ethernet/intel/ice/ice_main.c       |   14 ------------
- drivers/net/phy/meson-gxl.c                     |   10 --------
- drivers/staging/gdm724x/gdm_lte.c               |    4 ---
- net/bluetooth/hci_sync.c                        |    7 ------
- net/dsa/dsa2.c                                  |    3 --
- 7 files changed, 1 insertion(+), 56 deletions(-)
+ tools/vm/page_owner_sort.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
---- a/drivers/net/ethernet/intel/iavf/iavf_virtchnl.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/intel/iavf/iavf_virtchnl.c
-@@ -1845,22 +1845,6 @@ static void iavf_netdev_features_vlan_st
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr
++++ a/tools/vm/page_owner_sort.c
+@@ -186,7 +186,7 @@ static int search_pattern(regex_t *patte
+ 
+ 	err = regexec(pattern, buf, 2, pmatch, REG_NOTBOL);
+ 	if (err != 0 || pmatch[1].rm_so == -1) {
+-		printf("no matching pattern in %s\n", buf);
++		fprintf(stderr, "no matching pattern in %s\n", buf);
+ 		return -1;
+ 	}
+ 	val_len = pmatch[1].rm_eo - pmatch[1].rm_so;
+@@ -202,7 +202,7 @@ static void check_regcomp(regex_t *patte
+ 
+ 	err = regcomp(pattern, regex, REG_EXTENDED | REG_NEWLINE);
+ 	if (err != 0 || pattern->re_nsub != 1) {
+-		printf("Invalid pattern %s code %d\n", regex, err);
++		fprintf(stderr, "Invalid pattern %s code %d\n", regex, err);
+ 		exit(1);
+ 	}
  }
- 
- /**
-- * iavf_netdev_features_vlan_strip_set - update vlan strip status
-- * @netdev: ptr to netdev being adjusted
-- * @enable: enable or disable vlan strip
-- *
-- * Helper function to change vlan strip status in netdev->features.
-- */
--static void iavf_netdev_features_vlan_strip_set(struct net_device *netdev,
--						const bool enable)
--{
--	if (enable)
--		netdev->features |= NETIF_F_HW_VLAN_CTAG_RX;
--	else
--		netdev->features &= ~NETIF_F_HW_VLAN_CTAG_RX;
--}
--
--/**
-  * iavf_virtchnl_completion
-  * @adapter: adapter structure
-  * @v_opcode: opcode sent by PF
---- a/drivers/net/ethernet/intel/ice/ice.h~linux-next-git-rejects
-+++ a/drivers/net/ethernet/intel/ice/ice.h
-@@ -488,10 +488,7 @@ enum ice_pf_flags {
- 	ICE_FLAG_LINK_LENIENT_MODE_ENA,
- 	ICE_FLAG_PLUG_AUX_DEV,
- 	ICE_FLAG_MTU_CHANGED,
--<<<<<<< HEAD
--=======
- 	ICE_FLAG_GNSS,			/* GNSS successfully initialized */
-->>>>>>> linux-next/akpm-base
- 	ICE_PF_FLAGS_NBITS		/* must be last */
- };
- 
---- a/drivers/net/ethernet/intel/ice/ice_main.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -2265,22 +2265,10 @@ static void ice_service_task(struct work
- 		return;
+@@ -251,7 +251,7 @@ static int get_page_num(char *buf)
+ 	errno = 0;
+ 	order_val = strtol(order_str, &endptr, 10);
+ 	if (order_val > 64 || errno != 0 || endptr == order_str || *endptr != '\0') {
+-		printf("wrong order in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong order in follow buf:\n%s\n", buf);
+ 		return 0;
  	}
  
--	if (test_bit(ICE_FLAG_PLUG_AUX_DEV, pf->flags)) {
-+	if (test_bit(ICE_FLAG_PLUG_AUX_DEV, pf->flags))
- 		/* Plug aux device per request */
- 		ice_plug_aux_dev(pf);
+@@ -268,7 +268,7 @@ static pid_t get_pid(char *buf)
+ 	errno = 0;
+ 	pid = strtol(pid_str, &endptr, 10);
+ 	if (errno != 0 || endptr == pid_str || *endptr != '\0') {
+-		printf("wrong/invalid pid in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong/invalid pid in follow buf:\n%s\n", buf);
+ 		return -1;
+ 	}
  
--<<<<<<< HEAD
--		/* Mark plugging as done but check whether unplug was
--		 * requested during ice_plug_aux_dev() call
--		 * (e.g. from ice_clear_rdma_cap()) and if so then
--		 * plug aux device.
--		 */
--		if (!test_and_clear_bit(ICE_FLAG_PLUG_AUX_DEV, pf->flags))
--			ice_unplug_aux_dev(pf);
--	}
--
--=======
-->>>>>>> linux-next/akpm-base
- 	if (test_and_clear_bit(ICE_FLAG_MTU_CHANGED, pf->flags)) {
- 		struct iidc_event *event;
+@@ -286,7 +286,7 @@ static pid_t get_tgid(char *buf)
+ 	errno = 0;
+ 	tgid = strtol(tgid_str, &endptr, 10);
+ 	if (errno != 0 || endptr == tgid_str || *endptr != '\0') {
+-		printf("wrong/invalid tgid in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong/invalid tgid in follow buf:\n%s\n", buf);
+ 		return -1;
+ 	}
  
---- a/drivers/net/phy/meson-gxl.c~linux-next-git-rejects
-+++ a/drivers/net/phy/meson-gxl.c
-@@ -243,17 +243,7 @@ static irqreturn_t meson_gxl_handle_inte
- 	    irq_status == INTSRC_ENERGY_DETECT)
- 		return IRQ_HANDLED;
+@@ -304,7 +304,7 @@ static __u64 get_ts_nsec(char *buf)
+ 	errno = 0;
+ 	ts_nsec = strtoull(ts_nsec_str, &endptr, 10);
+ 	if (errno != 0 || endptr == ts_nsec_str || *endptr != '\0') {
+-		printf("wrong ts_nsec in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong ts_nsec in follow buf:\n%s\n", buf);
+ 		return -1;
+ 	}
  
--<<<<<<< HEAD
--	/* Give PHY some time before MAC starts sending data. This works
--	 * around an issue where network doesn't come up properly.
--	 */
--	if (!(irq_status & INTSRC_LINK_DOWN))
--		phy_queue_state_machine(phydev, msecs_to_jiffies(100));
--	else
--		phy_trigger_machine(phydev);
--=======
- 	phy_trigger_machine(phydev);
-->>>>>>> linux-next/akpm-base
+@@ -321,7 +321,7 @@ static __u64 get_free_ts_nsec(char *buf)
+ 	errno = 0;
+ 	free_ts_nsec = strtoull(free_ts_nsec_str, &endptr, 10);
+ 	if (errno != 0 || endptr == free_ts_nsec_str || *endptr != '\0') {
+-		printf("wrong free_ts_nsec in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong free_ts_nsec in follow buf:\n%s\n", buf);
+ 		return -1;
+ 	}
  
- 	return IRQ_HANDLED;
- }
---- a/drivers/staging/gdm724x/gdm_lte.c~linux-next-git-rejects
-+++ a/drivers/staging/gdm724x/gdm_lte.c
-@@ -79,11 +79,7 @@ static int gdm_lte_rx(struct sk_buff *sk
- 	int ret, len;
+@@ -337,7 +337,7 @@ static char *get_comm(char *buf)
+ 	search_pattern(&comm_pattern, comm_str, buf);
+ 	errno = 0;
+ 	if (errno != 0) {
+-		printf("wrong comm in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong comm in follow buf:\n%s\n", buf);
+ 		return NULL;
+ 	}
  
- 	len = skb->len + ETH_HLEN;
--<<<<<<< HEAD
--	ret = netif_rx_ni(skb);
--=======
- 	ret = netif_rx(skb);
-->>>>>>> linux-next/akpm-base
- 	if (ret == NET_RX_DROP) {
- 		nic->stats.rx_dropped++;
- 	} else {
---- a/net/bluetooth/hci_sync.c~linux-next-git-rejects
-+++ a/net/bluetooth/hci_sync.c
-@@ -290,17 +290,10 @@ static void hci_cmd_sync_work(struct wor
- 		if (entry)
- 			list_del(&entry->list);
- 		mutex_unlock(&hdev->cmd_sync_work_lock);
--<<<<<<< HEAD
- 
- 		if (!entry)
+@@ -373,7 +373,7 @@ static void add_list(char *buf, int len)
+ 		return;
+ 	}
+ 	if (list_size == max_size) {
+-		printf("max_size too small??\n");
++		fprintf(stderr, "max_size too small??\n");
+ 		exit(1);
+ 	}
+ 	if (!is_need(buf))
+@@ -383,7 +383,7 @@ static void add_list(char *buf, int len)
+ 	list[list_size].comm = get_comm(buf);
+ 	list[list_size].txt = malloc(len+1);
+ 	if (!list[list_size].txt) {
+-		printf("Out of memory\n");
++		fprintf(stderr, "Out of memory\n");
+ 		exit(1);
+ 	}
+ 	memcpy(list[list_size].txt, buf, len);
+@@ -503,7 +503,8 @@ int main(int argc, char **argv)
+ 			errno = 0;
+ 			fc.pid = strtol(optarg, &endptr, 10);
+ 			if (errno != 0 || endptr == optarg || *endptr != '\0') {
+-				printf("wrong/invalid pid in from the command line:%s\n", optarg);
++				fprintf(stderr, "wrong/invalid pid in from the command line:%s\n",
++						optarg);
+ 				exit(1);
+ 			}
  			break;
- 
--=======
--
--		if (!entry)
--			break;
--
-->>>>>>> linux-next/akpm-base
- 		bt_dev_dbg(hdev, "entry %p", entry);
- 
- 		if (entry->func) {
---- a/net/dsa/dsa2.c~linux-next-git-rejects
-+++ a/net/dsa/dsa2.c
-@@ -1062,14 +1062,11 @@ static int dsa_tree_setup_master(struct
- 			err = dsa_master_setup(master, dp);
- 			if (err)
- 				break;
--<<<<<<< HEAD
--=======
- 
- 			/* Replay master state event */
- 			dsa_tree_master_admin_state_change(dst, master, admin_up);
- 			dsa_tree_master_oper_state_change(dst, master,
- 							  netif_oper_up(master));
-->>>>>>> linux-next/akpm-base
- 		}
+@@ -512,7 +513,8 @@ int main(int argc, char **argv)
+ 			errno = 0;
+ 			fc.tgid = strtol(optarg, &endptr, 10);
+ 			if (errno != 0 || endptr == optarg || *endptr != '\0') {
+-				printf("wrong/invalid tgid in from the command line:%s\n", optarg);
++				fprintf(stderr, "wrong/invalid tgid in from the command line:%s\n",
++						optarg);
+ 				exit(1);
+ 			}
+ 			break;
+@@ -523,7 +525,7 @@ int main(int argc, char **argv)
+ 			break;
+ 		case 4:
+ 			if (!parse_cull_args(optarg)) {
+-				printf("wrong argument after --cull in from the command line:%s\n",
++				fprintf(stderr, "wrong argument after --cull option:%s\n",
+ 						optarg);
+ 				exit(1);
+ 			}
+@@ -558,7 +560,7 @@ int main(int argc, char **argv)
+ 	list = malloc(max_size * sizeof(*list));
+ 	buf = malloc(BUF_SIZE);
+ 	if (!list || !buf) {
+-		printf("Out of memory\n");
++		fprintf(stderr, "Out of memory\n");
+ 		exit(1);
  	}
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
 
-memcg-sync-flush-only-if-periodic-flush-is-delayed-fix.patch
-remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-list_lru-replace-linear-array-with-xarray-fix.patch
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
-mm-memory-failurec-fix-race-with-changing-page-compound-again-fix.patch
-mm-export-pageheadhuge-fix.patch
-userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-linux-typesh-remove-unnecessary-__bitwise__-fix.patch
-taskstats-remove-unneeded-dead-assignment-fix.patch
-linux-next-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mm-slightly-clarify-ksm-logic-in-do_swap_page-fix.patch
-mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+tools-vm-page_owner_sortc-fix-comments.patch
+tools-vm-page_owner_sortc-add-a-security-check.patch
+tools-vm-page_owner_sortc-support-sorting-by-tgid-and-update-documentation.patch
+tools-vm-page_owner_sort-fix-three-trivival-places.patch
+tools-vm-page_owner_sort-support-for-sorting-by-task-command-name.patch
+tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name.patch
+tools-vm-page_owner_sortc-support-for-user-defined-culling-rules.patch
+tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr.patch
+tools-vm-page_owner_sortc-support-for-multi-value-selection-in-single-argument.patch
 
