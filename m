@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D328FC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Mar 2022 00:06:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB61AC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Mar 2022 18:59:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238771AbiCPAHg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Mar 2022 20:07:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39698 "EHLO
+        id S243157AbiCPTBF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Mar 2022 15:01:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244582AbiCPAHf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2022 20:07:35 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0E635DE4B
-        for <mm-commits@vger.kernel.org>; Tue, 15 Mar 2022 17:06:22 -0700 (PDT)
+        with ESMTP id S238706AbiCPTBF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2022 15:01:05 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACAA4635B
+        for <mm-commits@vger.kernel.org>; Wed, 16 Mar 2022 11:59:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 883A9B819AA
-        for <mm-commits@vger.kernel.org>; Wed, 16 Mar 2022 00:06:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21B89C340E8;
-        Wed, 16 Mar 2022 00:06:20 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id D085BCE20CB
+        for <mm-commits@vger.kernel.org>; Wed, 16 Mar 2022 18:59:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05D4FC340E9;
+        Wed, 16 Mar 2022 18:59:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647389180;
-        bh=gxEAcH2MJzUl/TFSpbMbDg0fY2m+wETaLCFRUioH5SE=;
+        s=korg; t=1647457186;
+        bh=FRX1RkXdZQuZbHKuxq/V/GrMwgLVhPgXGuPp+PgJGD0=;
         h=Date:To:From:Subject:From;
-        b=HyrdpoGFH7T6UFBADPFOanGPUe6VPo9Nzkkb+h+yKtRfEpyH7Yok8v2AuNrDEk2wr
-         YGfmg2+Ck1PA2FpJulJLTj40UzDnesA9dhsZGmh0K/IZD0Wik/DgEim0IZhZs3+I3F
-         /rA1lAKNZekOBHQaFAUteQGmuiHk+yuQqqhrP0Po=
-Date:   Tue, 15 Mar 2022 17:06:19 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        osalvador@suse.de, akpm@linux-foundation.org
+        b=2MKAKA4XIyNd26cmOjwBh0SdRJZIFzkuTwrpg6QRB4BKAU7HGG7Teyub4XxNVG0ge
+         dO/ZnzIQ9GX538mc/9OCvPOEcaiHfkgg4RaEUW4RMrii5hYixnq7t13XAymmlgIYyL
+         1DiuCZJkEvA+qUjtdqaov1iGBiJKlVDtyGHSaR3Q=
+Date:   Wed, 16 Mar 2022 11:59:45 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org, shuah@kernel.org,
+        krisman@collabora.com, usama.anjum@collabora.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-fix.patch added to -mm tree
-Message-Id: <20220316000620.21B89C340E8@smtp.kernel.org>
+Subject: [to-be-updated] selftests-vm-add-test-for-soft-dirty-pte-bit.patch removed from -mm tree
+Message-Id: <20220316185946.05D4FC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,67 +42,311 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-fix
-has been added to the -mm tree.  Its filename is
-     mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-fix.patch
+     Subject: selftests: vm: add test for Soft-Dirty PTE bit
+has been removed from the -mm tree.  Its filename was
+     selftests-vm-add-test-for-soft-dirty-pte-bit.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-fix
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: vm: add test for Soft-Dirty PTE bit
 
-remove CPUHP_MM_DEMOTION_DEAD and CPUHP_AP_MM_DEMOTION_ONLINE definitions, per Huang Ying
+This introduces three tests:
+1) Sanity check soft dirty basic semantics: allocate area, clean, dirty,
+check if the SD bit flipped.
+2) Check VMA reuse: validate the VM_SOFTDIRTY usage
+3) Check soft-dirty on huge pages
 
-Link: https://lkml.kernel.org/r/YjBPKmIpPNoJU/67@localhost.localdomain
-Cc: "Huang, Ying" <ying.huang@intel.com>
+This was motivated by Will Deacon's fix commit 912efa17e512 ("mm: proc:
+Invalidate TLB after clearing soft-dirty page state").  I was tracking the
+same issue that he fixed, and this test would have caught it.
+
+Link: https://lkml.kernel.org/r/20220224212335.3045905-1-usama.anjum@collabora.com
+Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuhotplug.h |    4 ----
- 1 file changed, 4 deletions(-)
+ tools/testing/selftests/vm/.gitignore   |    1 
+ tools/testing/selftests/vm/Makefile     |    1 
+ tools/testing/selftests/vm/config       |    2 
+ tools/testing/selftests/vm/soft-dirty.c |  238 ++++++++++++++++++++++
+ 4 files changed, 242 insertions(+)
 
---- a/include/linux/cpuhotplug.h~mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-fix
-+++ a/include/linux/cpuhotplug.h
-@@ -72,8 +72,6 @@ enum cpuhp_state {
- 	CPUHP_SLUB_DEAD,
- 	CPUHP_DEBUG_OBJ_DEAD,
- 	CPUHP_MM_WRITEBACK_DEAD,
--	/* Must be after CPUHP_MM_VMSTAT_DEAD */
--	CPUHP_MM_DEMOTION_DEAD,
- 	CPUHP_MM_VMSTAT_DEAD,
- 	CPUHP_SOFTIRQ_DEAD,
- 	CPUHP_NET_MVNETA_DEAD,
-@@ -244,8 +242,6 @@ enum cpuhp_state {
- 	CPUHP_AP_BASE_CACHEINFO_ONLINE,
- 	CPUHP_AP_ONLINE_DYN,
- 	CPUHP_AP_ONLINE_DYN_END		= CPUHP_AP_ONLINE_DYN + 30,
--	/* Must be after CPUHP_AP_ONLINE_DYN for node_states[N_CPU] update */
--	CPUHP_AP_MM_DEMOTION_ONLINE,
- 	CPUHP_AP_X86_HPET_ONLINE,
- 	CPUHP_AP_X86_KVM_CLK_ONLINE,
- 	CPUHP_AP_ACTIVE,
+--- a/tools/testing/selftests/vm/config~selftests-vm-add-test-for-soft-dirty-pte-bit
++++ a/tools/testing/selftests/vm/config
+@@ -4,3 +4,5 @@ CONFIG_TEST_VMALLOC=m
+ CONFIG_DEVICE_PRIVATE=y
+ CONFIG_TEST_HMM=m
+ CONFIG_GUP_TEST=y
++CONFIG_TRANSPARENT_HUGEPAGE=y
++CONFIG_MEM_SOFT_DIRTY=y
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-test-for-soft-dirty-pte-bit
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -29,5 +29,6 @@ write_to_hugetlbfs
+ hmm-tests
+ memfd_secret
+ local_config.*
++soft-dirty
+ split_huge_page_test
+ ksm_tests
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-test-for-soft-dirty-pte-bit
++++ a/tools/testing/selftests/vm/Makefile
+@@ -49,6 +49,7 @@ TEST_GEN_FILES += on-fault-limit
+ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
++TEST_GEN_FILES += soft-dirty
+ TEST_GEN_FILES += split_huge_page_test
+ TEST_GEN_FILES += ksm_tests
+ 
+--- /dev/null
++++ a/tools/testing/selftests/vm/soft-dirty.c
+@@ -0,0 +1,238 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <stdio.h>
++#include <string.h>
++#include <stdbool.h>
++#include <fcntl.h>
++#include <stdint.h>
++#include <malloc.h>
++#include <sys/mman.h>
++#include "../kselftest.h"
++
++#define PAGEMAP_PATH		"/proc/self/pagemap"
++#define CLEAR_REFS_PATH		"/proc/self/clear_refs"
++#define SMAP_PATH		"/proc/self/smaps"
++#define PMD_SIZE_PATH		"/sys/kernel/mm/transparent_hugepage/hpage_pmd_size"
++#define MAX_LINE_LENGTH		512
++#define TEST_ITERATIONS		10000
++#define PAGE_NUM_TO_TEST	2
++
++int clear_refs;
++int pagemap;
++
++int pagesize;
++int mmap_size;	/* Size of test region */
++
++static void clear_all_refs(void)
++{
++	const char *ctrl = "4";
++
++	if (write(clear_refs, ctrl, strlen(ctrl)) != strlen(ctrl))
++		ksft_exit_fail_msg("%s: failed to clear references\n", __func__);
++}
++
++static void touch_page(char *map, int n)
++{
++	map[(pagesize * n) + 1]++;
++}
++
++static int check_page(char *start, int page_num, int clear)
++{
++	unsigned long pfn = (unsigned long)start / pagesize;
++	uint64_t entry;
++	int ret;
++
++	ret = pread(pagemap, &entry, sizeof(entry), (pfn + page_num) * sizeof(entry));
++	if (ret != sizeof(entry))
++		ksft_exit_fail_msg("reading pagemap failed\n");
++	if (clear)
++		clear_all_refs();
++
++	return ((entry >> 55) & 1);
++}
++
++static void test_simple(void)
++{
++	int i;
++	char *map;
++
++	map = aligned_alloc(pagesize, mmap_size);
++	if (!map)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	clear_all_refs();
++
++	for (i = 0 ; i < TEST_ITERATIONS; i++) {
++		if (check_page(map, PAGE_NUM_TO_TEST, 1) == 1) {
++			ksft_print_msg("dirty bit was 1, but should be 0 (i=%d)\n", i);
++			break;
++		}
++
++		touch_page(map, 2);
++
++		if (check_page(map, PAGE_NUM_TO_TEST, 1) == 0) {
++			ksft_print_msg("dirty bit was 0, but should be 1 (i=%d)\n", i);
++			break;
++		}
++
++	}
++	free(map);
++
++	ksft_test_result(i == TEST_ITERATIONS, "Test %s\n", __func__);
++}
++
++static void test_vma_reuse(void)
++{
++	char *map, *map2;
++
++	map = (char *) 0x900000000000;
++	map = mmap(map, mmap_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
++	if (map == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed");
++
++	clear_all_refs();
++	touch_page(map, PAGE_NUM_TO_TEST);
++
++	munmap(map, mmap_size);
++	map2 = mmap(map, mmap_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
++	if (map2 == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed");
++
++	ksft_test_result(map == map2, "Test %s reused memory location\n", __func__);
++
++	ksft_test_result(check_page(map, PAGE_NUM_TO_TEST, 1) != 0,
++			 "Test %s dirty bit of previous page\n", __func__);
++
++	munmap(map2, mmap_size);
++}
++
++/*
++ * read_pmd_pagesize(), check_for_pattern() and check_huge() adapted
++ * from 'tools/testing/selftest/vm/split_huge_page_test.c'
++ */
++static uint64_t read_pmd_pagesize(void)
++{
++	int fd;
++	char buf[20];
++	ssize_t num_read;
++
++	fd = open(PMD_SIZE_PATH, O_RDONLY);
++	if (fd == -1)
++		ksft_exit_fail_msg("Open hpage_pmd_size failed\n");
++
++	num_read = read(fd, buf, 19);
++	if (num_read < 1) {
++		close(fd);
++		ksft_exit_fail_msg("Read hpage_pmd_size failed\n");
++	}
++	buf[num_read] = '\0';
++	close(fd);
++
++	return strtoul(buf, NULL, 10);
++}
++
++static bool check_for_pattern(FILE *fp, const char *pattern, char *buf)
++{
++	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
++		if (!strncmp(buf, pattern, strlen(pattern)))
++			return true;
++	}
++	return false;
++}
++
++static uint64_t check_huge(void *addr)
++{
++	uint64_t thp = 0;
++	int ret;
++	FILE *fp;
++	char buffer[MAX_LINE_LENGTH];
++	char addr_pattern[MAX_LINE_LENGTH];
++
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
++		       (unsigned long) addr);
++	if (ret >= MAX_LINE_LENGTH)
++		ksft_print_msg("%s: Pattern is too long\n", __func__);
++
++	fp = fopen(SMAP_PATH, "r");
++	if (!fp)
++		ksft_print_msg("%s: Failed to open file %s\n", __func__, SMAP_PATH);
++
++	if (!check_for_pattern(fp, addr_pattern, buffer))
++		goto err_out;
++
++	/*
++	 * Fetch the AnonHugePages: in the same block and check the number of
++	 * hugepages.
++	 */
++	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
++		goto err_out;
++
++	if (sscanf(buffer, "AnonHugePages:%10ld kB", &thp) != 1)
++		ksft_print_msg("Reading smap error\n");
++
++err_out:
++	fclose(fp);
++
++	return thp;
++}
++
++static void test_hugepage(void)
++{
++	char *map;
++	int i, ret;
++	size_t hpage_len = read_pmd_pagesize();
++
++	map = memalign(hpage_len, hpage_len);
++	if (!map)
++		ksft_exit_fail_msg("memalign failed\n");
++
++	ret = madvise(map, hpage_len, MADV_HUGEPAGE);
++	if (ret)
++		ksft_exit_fail_msg("madvise failed %d\n", ret);
++
++	for (i = 0; i < hpage_len; i++)
++		map[i] = (char)i;
++
++	ksft_test_result(check_huge(map), "Test %s huge page allocation\n", __func__);
++
++	clear_all_refs();
++	for (i = 0 ; i < TEST_ITERATIONS ; i++) {
++		if (check_page(map, PAGE_NUM_TO_TEST, 1) == 1) {
++			ksft_print_msg("dirty bit was 1, but should be 0 (i=%d)\n", i);
++			break;
++		}
++
++		touch_page(map, PAGE_NUM_TO_TEST);
++
++		if (check_page(map, PAGE_NUM_TO_TEST, 1) == 0) {
++			ksft_print_msg("dirty bit was 0, but should be 1 (i=%d)\n", i);
++			break;
++		}
++	}
++
++	ksft_test_result(i == TEST_ITERATIONS, "Test %s dirty bit\n", __func__);
++
++	munmap(map, mmap_size);
++}
++
++int main(int argc, char **argv)
++{
++	ksft_print_header();
++	ksft_set_plan(5);
++
++	pagemap = open(PAGEMAP_PATH, O_RDONLY);
++	if (pagemap < 0)
++		ksft_exit_fail_msg("Failed to open %s\n", PAGEMAP_PATH);
++
++	clear_refs = open(CLEAR_REFS_PATH, O_WRONLY);
++	if (clear_refs < 0)
++		ksft_exit_fail_msg("Failed to open %s\n", CLEAR_REFS_PATH);
++
++	pagesize = getpagesize();
++	mmap_size = 10 * pagesize;
++
++	test_simple();
++	test_vma_reuse();
++	test_hugepage();
++
++	return ksft_exit_pass();
++}
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-arch-x86-mm-numa-do-not-initialize-nodes-twice.patch
-arch-x86-mm-numa-do-not-initialize-nodes-twice-v2.patch
-mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch
-mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3.patch
-mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-fix.patch
+selftests-vm-remove-dependecy-from-internal-kernel-macros.patch
 
