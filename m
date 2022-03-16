@@ -2,78 +2,108 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8358C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Mar 2022 23:15:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 279B9C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Mar 2022 23:15:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236646AbiCPXQY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Mar 2022 19:16:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53830 "EHLO
+        id S236818AbiCPXQa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Mar 2022 19:16:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230361AbiCPXQY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2022 19:16:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A3D325F0
-        for <mm-commits@vger.kernel.org>; Wed, 16 Mar 2022 16:15:08 -0700 (PDT)
+        with ESMTP id S236786AbiCPXQ1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2022 19:16:27 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC66625F0;
+        Wed, 16 Mar 2022 16:15:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 963B46165F
-        for <mm-commits@vger.kernel.org>; Wed, 16 Mar 2022 23:15:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB2A8C340F0;
-        Wed, 16 Mar 2022 23:15:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 61D95B81C4D;
+        Wed, 16 Mar 2022 23:15:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02CBFC340EC;
+        Wed, 16 Mar 2022 23:15:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647472507;
-        bh=GcbgBfbmdsgKzXYTotfD37FdjeSjVzjYMevfGpeN48U=;
+        s=korg; t=1647472510;
+        bh=I3KlzWWISu6bKc3RthGyJbP6gMdZJBgq9UqJ9Av16mM=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=UcxSdmHklPhA0lec5rKi8nepTAqNQalUOLmo21EJ1Z7EsJaiK+1JJ3ECBHpPOx3DS
-         yKO+uEilLu/DQWXeH7NqbNoB3/ke/jA8H7RToPyV4OVEES+WYWGKnmBEKypZdeUrIC
-         j8HpIDMVDDVXrwwuuyhLKeCYZQ46bCJWY07rRYN4=
-Date:   Wed, 16 Mar 2022 16:15:06 -0700
-To:     keescook@chromium.org, daniel.thompson@linaro.org,
-        quic_qiancai@quicinc.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=rQWetDYlla979RjnU6/jYv2CDSyz2S9rUL1zYPf4AUoCtXjz8fkya/CzLMJlIiqsp
+         a3jhMwFJWROEIKerIT086VvPlsgXODRdlSrNlso4Sq/o1hIhZYle/YTgryHyFr2OdE
+         AghCBBb+THzaIcERiw8tYCo09XU8GK/jEmcGrZj0=
+Date:   Wed, 16 Mar 2022 16:15:09 -0700
+To:     stable@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, jlbec@evilplan.org, ghe@suse.com,
+        gechangwei@live.cn, joseph.qi@linux.alibaba.com,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220316161433.5c2e137a69eaee50d2249a27@linux-foundation.org>
-Subject: [patch 2/4] configs/debug: restore DEBUG_INFO=y for overriding
-Message-Id: <20220316231506.EB2A8C340F0@smtp.kernel.org>
+Subject: [patch 3/4] ocfs2: fix crash when initialize filecheck kobj fails
+Message-Id: <20220316231510.02CBFC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Qian Cai <quic_qiancai@quicinc.com>
-Subject: configs/debug: restore DEBUG_INFO=y for overriding
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: fix crash when initialize filecheck kobj fails
 
-Previously, I failed to realize that Kees' patch [1] has not been merged
-into the mainline yet, and dropped DEBUG_INFO=y too eagerly from the
-mainline.  As the results, "make debug.config" won't be able to flip
-DEBUG_INFO=n from the existing .config.  This should close the gaps of a
-few weeks before Kees' patch is there, and work regardless of their
-merging status anyway.
+Once s_root is set, genric_shutdown_super() will be called if fill_super()
+fails.  That means, we will call ocfs2_dismount_volume() twice in such
+case, which can lead to kernel crash.  Fix this issue by initializing
+filecheck kobj before setting s_root.
 
-[1] https://lore.kernel.org/all/20220125075126.891825-1-keescook@chromium.org/
-
-Link: https://lkml.kernel.org/r/20220308153524.8618-1-quic_qiancai@quicinc.com
-Signed-off-by: Qian Cai <quic_qiancai@quicinc.com>
-Reported-by: Daniel Thompson <daniel.thompson@linaro.org>
-Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Kees Cook <keescook@chromium.org>
+Link: https://lkml.kernel.org/r/20220310081930.86305-1-joseph.qi@linux.alibaba.com
+Fixes: 5f483c4abb50 ("ocfs2: add kobject for online file check")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/configs/debug.config |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/super.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/kernel/configs/debug.config~configs-debug-restore-debug_info=y-for-overriding
-+++ a/kernel/configs/debug.config
-@@ -16,6 +16,7 @@ CONFIG_SYMBOLIC_ERRNAME=y
- #
- # Compile-time checks and compiler options
- #
-+CONFIG_DEBUG_INFO=y
- CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
- CONFIG_DEBUG_SECTION_MISMATCH=y
- CONFIG_FRAME_WARN=2048
+--- a/fs/ocfs2/super.c~ocfs2-fix-crash-when-initialize-filecheck-kobj-fails
++++ a/fs/ocfs2/super.c
+@@ -1105,17 +1105,6 @@ static int ocfs2_fill_super(struct super
+ 		goto read_super_error;
+ 	}
+ 
+-	root = d_make_root(inode);
+-	if (!root) {
+-		status = -ENOMEM;
+-		mlog_errno(status);
+-		goto read_super_error;
+-	}
+-
+-	sb->s_root = root;
+-
+-	ocfs2_complete_mount_recovery(osb);
+-
+ 	osb->osb_dev_kset = kset_create_and_add(sb->s_id, NULL,
+ 						&ocfs2_kset->kobj);
+ 	if (!osb->osb_dev_kset) {
+@@ -1133,6 +1122,17 @@ static int ocfs2_fill_super(struct super
+ 		goto read_super_error;
+ 	}
+ 
++	root = d_make_root(inode);
++	if (!root) {
++		status = -ENOMEM;
++		mlog_errno(status);
++		goto read_super_error;
++	}
++
++	sb->s_root = root;
++
++	ocfs2_complete_mount_recovery(osb);
++
+ 	if (ocfs2_mount_local(osb))
+ 		snprintf(nodestr, sizeof(nodestr), "local");
+ 	else
 _
