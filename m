@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D60C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Mar 2022 22:56:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DE23C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Mar 2022 22:56:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230012AbiCQW5i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Mar 2022 18:57:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38574 "EHLO
+        id S230022AbiCQW5o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Mar 2022 18:57:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229772AbiCQW5h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2022 18:57:37 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 246CD2AB884;
-        Thu, 17 Mar 2022 15:56:20 -0700 (PDT)
+        with ESMTP id S229990AbiCQW5j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2022 18:57:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BD832B4A71
+        for <mm-commits@vger.kernel.org>; Thu, 17 Mar 2022 15:56:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B3A04B8205E;
-        Thu, 17 Mar 2022 22:56:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 417E7C340E9;
-        Thu, 17 Mar 2022 22:56:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1125560C02
+        for <mm-commits@vger.kernel.org>; Thu, 17 Mar 2022 22:56:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6593AC340EC;
+        Thu, 17 Mar 2022 22:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647557777;
-        bh=/VJB/d/3Z6TvE59Uq2N7YwI67p3DC5nPAdndbLHX+LI=;
+        s=korg; t=1647557780;
+        bh=Iy/TJ/xVaS3InHeXEhUWjsEQ7PYcXsmN5dO38Sv1HrI=;
         h=Date:To:From:Subject:From;
-        b=Q1NPoNB5KXb+hAZPA4zP3pvhZ6ar4km8KgGgdFrPIIpIntGR9wK/F0wznyDuiZ1To
-         4YSp9wOehxUf4HIu0BoYAypGKjf3k8Arim1yfaAswhk5a97o4yIHIM3M2Qg69R3Y53
-         MLkuWfPRtX9c/L4HG/3mNEJt+rto4OiQ8losfcPo=
-Date:   Thu, 17 Mar 2022 15:56:16 -0700
-To:     mm-commits@vger.kernel.org, zealci@zte.com.cn,
-        yang.yang29@zte.com.cn, stable@vger.kernel.org, rogerq@kernel.org,
-        ran.xiaokai@zte.com.cn, naoya.horiguchi@nec.com,
-        minchan@kernel.org, mhocko@kernel.org, jiang.xuexin@zte.com.cn,
-        hughd@google.com, hannes@cmpxchg.org, guo.ziliang@zte.com.cn,
+        b=aIuOkkEv0ClKLTHBvAjtdKuh7EADxz9HUYxL3YfHsxE2cdX3HD72otL65dZNgxx60
+         eH08LsLLgUG63iSuHY5Oi84JGD5FRiJ1l3hQ95iJxbgWLOR9n4ZKch65aQjvdg+Y98
+         WjDjGuONsbN9asqo2SxV+UYVXdeCmlHoW4vkXO98=
+Date:   Thu, 17 Mar 2022 15:56:19 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        ndesaulniers@google.com, nathan@kernel.org, yosryahmed@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-swap-get-rid-of-deadloop-in-swapin-readahead.patch removed from -mm tree
-Message-Id: <20220317225617.417E7C340E9@smtp.kernel.org>
+Subject: [merged] selftests-vm-fix-clang-build-error-multiple-output-files.patch removed from -mm tree
+Message-Id: <20220317225620.6593AC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,91 +42,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap: get rid of deadloop in swapin readahead
+     Subject: selftests: vm: fix clang build error multiple output files
 has been removed from the -mm tree.  Its filename was
-     mm-swap-get-rid-of-deadloop-in-swapin-readahead.patch
+     selftests-vm-fix-clang-build-error-multiple-output-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Guo Ziliang <guo.ziliang@zte.com.cn>
-Subject: mm: swap: get rid of deadloop in swapin readahead
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: selftests: vm: fix clang build error multiple output files
 
-In our testing, a deadloop task was found.  Through sysrq printing, same
-stack was found every time, as follows:
+When building the vm selftests using clang, some errors are seen due to
+having headers in the compilation command:
 
-__swap_duplicate+0x58/0x1a0
-swapcache_prepare+0x24/0x30
-__read_swap_cache_async+0xac/0x220
-read_swap_cache_async+0x58/0xa0
-swapin_readahead+0x24c/0x628
-do_swap_page+0x374/0x8a0
-__handle_mm_fault+0x598/0xd60
-handle_mm_fault+0x114/0x200
-do_page_fault+0x148/0x4d0
-do_translation_fault+0xb0/0xd4
-do_mem_abort+0x50/0xb0
+clang -Wall -I ../../../../usr/include  -no-pie    gup_test.c ../../../../mm/gup_test.h -lrt -lpthread -o .../tools/testing/selftests/vm/gup_test
+clang: error: cannot specify -o when generating multiple output files
+make[1]: *** [../lib.mk:146: .../tools/testing/selftests/vm/gup_test] Error 1
 
-The reason for the deadloop is that swapcache_prepare() always returns
-EEXIST, indicating that SWAP_HAS_CACHE has not been cleared, so that it
-cannot jump out of the loop.  We suspect that the task that clears the
-SWAP_HAS_CACHE flag never gets a chance to run.  We try to lower the
-priority of the task stuck in a deadloop so that the task that clears the
-SWAP_HAS_CACHE flag will run.  The results show that the system returns to
-normal after the priority is lowered.
+Rework to add the header files to LOCAL_HDRS before including ../lib.mk,
+since the dependency is evaluated in '$(OUTPUT)/%:%.c $(LOCAL_HDRS)' in
+file lib.mk.
 
-In our testing, multiple real-time tasks are bound to the same core, and
-the task in the deadloop is the highest priority task of the core, so the
-deadloop task cannot be preempted.
-
-Although cond_resched() is used by __read_swap_cache_async, it is an empty
-function in the preemptive system and cannot achieve the purpose of
-releasing the CPU.  A high-priority task cannot release the CPU unless
-preempted by a higher-priority task.  But when this task is already the
-highest priority task on this core, other tasks will not be able to be
-scheduled.  So we think we should replace cond_resched() with
-schedule_timeout_uninterruptible(1), schedule_timeout_interruptible will
-call set_current_state first to set the task state, so the task will be
-removed from the running queue, so as to achieve the purpose of giving up
-the CPU and prevent it from running in kernel mode for too long.
-
-(akpm: ugly hack becomes uglier.  But it fixes the issue in a
-backportable-to-stable fashion while we hopefully work on something
-better)
-
-Link: https://lkml.kernel.org/r/20220221111749.1928222-1-cgel.zte@gmail.com
-Signed-off-by: Guo Ziliang <guo.ziliang@zte.com.cn>
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Reviewed-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Reviewed-by: Jiang Xuexin <jiang.xuexin@zte.com.cn>
-Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roger Quadros <rogerq@kernel.org>
-Cc: Ziliang Guo <guo.ziliang@zte.com.cn>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220304000645.1888133-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/Makefile |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-get-rid-of-deadloop-in-swapin-readahead
-+++ a/mm/swap_state.c
-@@ -478,7 +478,7 @@ struct page *__read_swap_cache_async(swp
- 		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
- 		 * in swap_map, but not yet added its page to swap cache.
- 		 */
--		cond_resched();
-+		schedule_timeout_uninterruptible(1);
- 	}
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-fix-clang-build-error-multiple-output-files
++++ a/tools/testing/selftests/vm/Makefile
+@@ -1,6 +1,8 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Makefile for vm selftests
  
- 	/*
++LOCAL_HDRS += $(selfdir)/vm/local_config.h $(top_srcdir)/mm/gup_test.h
++
+ include local_config.mk
+ 
+ uname_M := $(shell uname -m 2>/dev/null || echo not)
+@@ -140,10 +142,6 @@ endif
+ 
+ $(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
+ 
+-$(OUTPUT)/gup_test: ../../../../mm/gup_test.h
+-
+-$(OUTPUT)/hmm-tests: local_config.h
+-
+ # HMM_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
+ $(OUTPUT)/hmm-tests: LDLIBS += $(HMM_EXTRA_LIBS)
+ 
 _
 
-Patches currently in -mm which might be from guo.ziliang@zte.com.cn are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
+memcg-add-per-memcg-total-kernel-memory-stat.patch
 
