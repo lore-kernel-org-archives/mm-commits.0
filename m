@@ -2,105 +2,134 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A975C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 17 Mar 2022 06:19:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD75FC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 17 Mar 2022 13:43:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229663AbiCQGUp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 17 Mar 2022 02:20:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35260 "EHLO
+        id S234339AbiCQNot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 17 Mar 2022 09:44:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229668AbiCQGUL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2022 02:20:11 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D998C120D8E;
-        Wed, 16 Mar 2022 23:09:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
-        :In-Reply-To:From:References:To:Subject:MIME-Version:Date:Message-ID:Sender:
-        Reply-To:Cc:Content-ID:Content-Description;
-        bh=VyFqe0+9Q5DJGBQKh8EVe9afKqvNdtEGhYtwaUik3yk=; b=VBLeR91KB/5LrCFBGInhWgpub6
-        B5MSRoF5KBeEmupeGG8n0Zjls45v8J+WqoZkJ8vbta2GyU12Rrl1j01iiqusuvKgOwKGB7+o4QtJn
-        FHnLO31jpAVc3obGn6a5a7JaPjXHuFTDNkWAKSo17G/SrU9rSOBaI8Mvx/WptWlBf60+H2rhU6rny
-        RiCMzNGC2HiDrIbi1O0L9HZTgbfQbHOXeW+kYwp+cOgn/PnRj7vhuSAuJp6KEZgsLog6PEVd4VmvU
-        bw4DyRg/h4SnnVOexz2WL2uMoPlemVVTaFzusrdAUZ/JnOSgo2YrDfHjEjwXJ2oSpjIfIeXzYDQtH
-        QAiQ6YxQ==;
-Received: from [2601:1c0:6280:3f0::aa0b]
-        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nUhdb-001mAe-NM; Thu, 17 Mar 2022 04:21:24 +0000
-Message-ID: <0f622499-36e1-ea43-ddc3-a8b3bb08d34b@infradead.org>
-Date:   Wed, 16 Mar 2022 21:21:16 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: mmotm 2022-03-16-17-42 uploaded (uml sub-x86_64, sched/fair, RCU)
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>, broonie@kernel.org,
+        with ESMTP id S234662AbiCQNos (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2022 09:44:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79D36D5EBF;
+        Thu, 17 Mar 2022 06:43:25 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C48761763;
+        Thu, 17 Mar 2022 13:43:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF95BC340E9;
+        Thu, 17 Mar 2022 13:43:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1647524604;
+        bh=ZGwhFr4HMMiHVx6F/dnRpUBbs08BVQzkS3x8lW+YnKw=;
+        h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
+        b=NzwiKeaJ+eZMgsLnO3UZb4GnQOeUQzt6QXy9qaN94dGXjNCEZ/QTeoNu+OKWCd+jy
+         fLRW8X7E61VI8jSfzuj8K/68zk1XJYUkyEKuONcd0bBXM6hsyzxYnTKKi5GPnYIh03
+         6vvEGiY+fLioIBr7P7LBIlcJUx71thHGUAMr24CNAwNX6TOk8aMCl76G57rwHB1Ksf
+         IDigUZKfFtWKRRT4LGeSXhny//SJQu2Jhk1BVDY1vr3iotmdd/dgdC0CFPZe1RWyt9
+         NGOxBSegOf8pKGcm7rrDw/sQMZdGoypJepNf8brGjD28HvLtom+amC1+5R+bIaRmuS
+         MYJnWNh5FdcFg==
+Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
+        id 715905C0341; Thu, 17 Mar 2022 06:43:24 -0700 (PDT)
+Date:   Thu, 17 Mar 2022 06:43:24 -0700
+From:   "Paul E. McKenney" <paulmck@kernel.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>, broonie@kernel.org,
         mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
         linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
-        linux-um <linux-um@lists.infradead.org>, paulmck@kernel.org,
+        linux-um <linux-um@lists.infradead.org>,
         Richard Weinberger <richard@nod.at>,
         Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: mmotm 2022-03-16-17-42 uploaded (uml sub-x86_64, sched/fair, RCU)
+Message-ID: <20220317134324.GN4285@paulmck-ThinkPad-P17-Gen-1>
 References: <20220317004304.95F89C340E9@smtp.kernel.org>
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20220317004304.95F89C340E9@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+ <0f622499-36e1-ea43-ddc3-a8b3bb08d34b@infradead.org>
+ <20220316213011.8cac447e692283a4b5d97f3d@linux-foundation.org>
+ <917e9ce0-c8cf-61b2-d1ba-ebf25bbd979d@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <917e9ce0-c8cf-61b2-d1ba-ebf25bbd979d@infradead.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-
-
-On 3/16/22 17:43, Andrew Morton wrote:
-> The mm-of-the-moment snapshot 2022-03-16-17-42 has been uploaded to
+On Wed, Mar 16, 2022 at 09:52:44PM -0700, Randy Dunlap wrote:
 > 
->    https://www.ozlabs.org/~akpm/mmotm/
 > 
-> mmotm-readme.txt says
+> On 3/16/22 21:30, Andrew Morton wrote:
+> > On Wed, 16 Mar 2022 21:21:16 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
+> > 
+> >>
+> >>
+> >> On 3/16/22 17:43, Andrew Morton wrote:
+> >>> The mm-of-the-moment snapshot 2022-03-16-17-42 has been uploaded to
+> >>>
+> >>>    https://www.ozlabs.org/~akpm/mmotm/
+> >>>
+> >>> mmotm-readme.txt says
+> >>>
+> >>> README for mm-of-the-moment:
+> >>>
+> >>> https://www.ozlabs.org/~akpm/mmotm/
+> >>>
+> >>> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> >>> more than once a week.
+> >>>
+> >>> You will need quilt to apply these patches to the latest Linus release (5.x
+> >>> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> >>> https://ozlabs.org/~akpm/mmotm/series
+> >>
+> >>
+> >> UML for x86_64, defconfig:
+> >>
+> >> In file included from ./arch/x86/include/generated/asm/rwonce.h:1:0,
+> >>                  from ../include/linux/compiler.h:248,
+> >>                  from ../include/linux/kernel.h:20,
+> >>                  from ../include/linux/cpumask.h:10,
+> >>                  from ../include/linux/energy_model.h:4,
+> >>                  from ../kernel/sched/fair.c:23:
+> >> ../include/linux/psi.h: In function ‘cgroup_move_task’:
+> >> ../include/linux/rcupdate.h:414:36: error: dereferencing pointer to incomplete type ‘struct css_set’
+> >>  #define RCU_INITIALIZER(v) (typeof(*(v)) __force __rcu *)(v)
+> >>                                     ^~~~
+> > 
+> > Works For Me.  I tried `make x86_64_defconfig' and `make i386_defconfig' too.
+> > 
+> > Can you please share that .config, or debug a bit?
 > 
-> README for mm-of-the-moment:
+> $ make ARCH=um SUBARCH=x86_64 defconfig
 > 
-> https://www.ozlabs.org/~akpm/mmotm/
 > 
-> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> more than once a week.
 > 
-> You will need quilt to apply these patches to the latest Linus release (5.x
-> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> https://ozlabs.org/~akpm/mmotm/series
+> This fixes the build error for me when CONFIG_PSI=n.
 
+Looks better than my approach of converting cgroup_move_task() to be
+a macro.  ;-)
 
-UML for x86_64, defconfig:
+							Thanx, Paul
 
-In file included from ./arch/x86/include/generated/asm/rwonce.h:1:0,
-                 from ../include/linux/compiler.h:248,
-                 from ../include/linux/kernel.h:20,
-                 from ../include/linux/cpumask.h:10,
-                 from ../include/linux/energy_model.h:4,
-                 from ../kernel/sched/fair.c:23:
-../include/linux/psi.h: In function ‘cgroup_move_task’:
-../include/linux/rcupdate.h:414:36: error: dereferencing pointer to incomplete type ‘struct css_set’
- #define RCU_INITIALIZER(v) (typeof(*(v)) __force __rcu *)(v)
-                                    ^~~~
-../include/asm-generic/rwonce.h:55:33: note: in definition of macro ‘__WRITE_ONCE’
-  *(volatile typeof(x) *)&(x) = (val);    \
-                                 ^~~
-../include/asm-generic/barrier.h:190:2: note: in expansion of macro ‘WRITE_ONCE’
-  WRITE_ONCE(*p, v);      \
-  ^~~~~~~~~~
-../include/linux/rcupdate.h:455:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-../include/linux/rcupdate.h:455:25: note: in expansion of macro ‘RCU_INITIALIZER’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-                         ^~~~~~~~~~~~~~~
-../include/linux/psi.h:58:2: note: in expansion of macro ‘rcu_assign_pointer’
-  rcu_assign_pointer(p->cgroups, to);
-  ^~~~~~~~~~~~~~~~~~
-
-
-
--- 
-~Randy
+> ---
+>  include/linux/psi.h |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> --- mmotm-2022-0316-1742.orig/include/linux/psi.h
+> +++ mmotm-2022-0316-1742/include/linux/psi.h
+> @@ -53,6 +53,9 @@ static inline int psi_cgroup_alloc(struc
+>  static inline void psi_cgroup_free(struct cgroup *cgrp)
+>  {
+>  }
+> +
+> +#include <linux/cgroup-defs.h>
+> +
+>  static inline void cgroup_move_task(struct task_struct *p, struct css_set *to)
+>  {
+>  	rcu_assign_pointer(p->cgroups, to);
+> 
+> -- 
+> ~Randy
