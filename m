@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27ADCC433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Mar 2022 21:05:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C1F1C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Mar 2022 21:16:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229472AbiCUVGe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Mar 2022 17:06:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59952 "EHLO
+        id S230096AbiCUVRo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Mar 2022 17:17:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229632AbiCUVGd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2022 17:06:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF964326D5
-        for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2022 14:05:07 -0700 (PDT)
+        with ESMTP id S229592AbiCUVRo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2022 17:17:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4600D2A5A87
+        for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2022 14:16:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 38F2861248
-        for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2022 21:05:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F8B8C340E8;
-        Mon, 21 Mar 2022 21:05:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8028261225
+        for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2022 21:16:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C59E9C340E8;
+        Mon, 21 Mar 2022 21:16:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647896706;
-        bh=kL3bynOSYGzyKK5bpaiMMOGySh+7eWaGvRzm3IzDAXo=;
+        s=korg; t=1647897371;
+        bh=MpwDPc6DBVOwzgAwm6dRhj2c5sFuvNRWfx290X1kLxI=;
         h=Date:To:From:Subject:From;
-        b=leGlC6wcb1JWVyj7nH1K6bZ8hNlR1AaWnMvuUkU5IJ+FlzJm+uwHJ+fBsex4SEExQ
-         B/m5kg9NKmiuie+QDiH1OjUQxchGJLucnrgZ43iVZrwYv45m3tGcQeHlqTtW2ohlNx
-         KdAJzf3DYWHpUqTAe+QXRD6MJ7MfNf2GZ7KB0ENE=
-Date:   Mon, 21 Mar 2022 14:05:06 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
-        richard.weiyang@gmail.com, akpm@linux-foundation.org
+        b=Bkx6axEQVEJrcxjRWYIEynLQABjjeGXSnR+PThcD5gCpgTptPH1RqiprHsi01uDD5
+         ep1T9tM9Wl1ainFDkhqij78jMdSo2yf3h1QjT8aB4iFaRxN1g4ojyWz0l7vlsU8Auc
+         ao4+zIzOk6HK9XUJjW7PtwEn3wjU+mhCAiUostqk=
+Date:   Mon, 21 Mar 2022 14:16:11 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
+        urezki@gmail.com, npiggin@gmail.com, dingtianhong@huawei.com,
+        catalin.marinas@arm.com, anshuman.khandual@arm.com,
+        aklimov@redhat.com, yury.norov@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-memcg-move-generation-assignment-and-comparison-together.patch removed from -mm tree
-Message-Id: <20220321210506.8F8B8C340E8@smtp.kernel.org>
+Subject: [to-be-updated] vmap-dont-allow-invalid-pages.patch removed from -mm tree
+Message-Id: <20220321211611.C59E9C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,68 +43,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: move generation assignment and comparison together
+     Subject: mm/vmalloc.c: vmap(): don't allow invalid pages
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-move-generation-assignment-and-comparison-together.patch
+     vmap-dont-allow-invalid-pages.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memcg: move generation assignment and comparison together
+From: Yury Norov <yury.norov@gmail.com>
+Subject: mm/vmalloc.c: vmap(): don't allow invalid pages
 
-For each round-trip, we assign generation on first invocation and compare
-it on subsequent invocations.
+vmap() takes struct page *pages as one of arguments, and user may provide
+an invalid pointer which would lead to data abort at address translation
+later.
 
-Let's move them together to make it more self-explaining.  Also this
-reduces a check on prev.
+Currently, kernel checks the pages against NULL.  In my case, however, the
+address was not NULL, and was big enough so that the hardware generated
+Address Size Abort on arm64.
 
-Link: https://lkml.kernel.org/r/20220225003437.12620-4-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Interestingly, this abort happens even if copy_from_kernel_nofault() is
+used, which is quite inconvenient for debugging purposes.
+
+This patch adds a pfn_valid() check into vmap() path, so that invalid
+mapping will not be created.
+
+Link: https://lkml.kernel.org/r/20220119012109.551931-1-yury.norov@gmail.com
+Signed-off-by: Yury Norov <yury.norov@gmail.com>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Ding Tianhong <dingtianhong@huawei.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Alexey Klimov <aklimov@redhat.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcg-move-generation-assignment-and-comparison-together
-+++ a/mm/memcontrol.c
-@@ -1006,7 +1006,14 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		mz = root->nodeinfo[reclaim->pgdat->node_id];
- 		iter = &mz->iter;
- 
--		if (prev && reclaim->generation != iter->generation)
-+		/*
-+		 * On first invocation, assign iter->generation to
-+		 * reclaim->generation.
-+		 * On subsequent invocations, make sure no one else jump in.
-+		 */
-+		if (!prev)
-+			reclaim->generation = iter->generation;
-+		else if (reclaim->generation != iter->generation)
- 			goto out_unlock;
- 
- 		while (1) {
-@@ -1066,8 +1073,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 
- 		if (!memcg)
- 			iter->generation++;
--		else if (!prev)
--			reclaim->generation = iter->generation;
- 	}
- 
- out_unlock:
+--- a/mm/vmalloc.c~vmap-dont-allow-invalid-pages
++++ a/mm/vmalloc.c
+@@ -478,6 +478,8 @@ static int vmap_pages_pte_range(pmd_t *p
+ 			return -EBUSY;
+ 		if (WARN_ON(!page))
+ 			return -ENOMEM;
++		if (WARN_ON(!pfn_valid(page_to_pfn(page))))
++			return -EINVAL;
+ 		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
+ 		(*nr)++;
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from yury.norov@gmail.com are
 
-mm-memcg-mem_cgroup_per_node-is-already-set-to-0-on-allocation.patch
-mm-memcg-retrieve-parent-memcg-from-cssparent.patch
-mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
-mm-page_alloc-add-penalty-to-local_node.patch
-memcg-do-not-tweak-node-in-alloc_mem_cgroup_per_node_info.patch
 
