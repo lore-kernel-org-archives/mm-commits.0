@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C1F1C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Mar 2022 21:16:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88C21C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Mar 2022 23:05:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230096AbiCUVRo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Mar 2022 17:17:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59410 "EHLO
+        id S232201AbiCUXHV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Mar 2022 19:07:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51894 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229592AbiCUVRo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2022 17:17:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4600D2A5A87
-        for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2022 14:16:13 -0700 (PDT)
+        with ESMTP id S231654AbiCUXHM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2022 19:07:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53C053C04D3
+        for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2022 15:54:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8028261225
-        for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2022 21:16:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C59E9C340E8;
-        Mon, 21 Mar 2022 21:16:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 83F6AB819FF
+        for <mm-commits@vger.kernel.org>; Mon, 21 Mar 2022 21:33:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15A38C340E8;
+        Mon, 21 Mar 2022 21:33:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647897371;
-        bh=MpwDPc6DBVOwzgAwm6dRhj2c5sFuvNRWfx290X1kLxI=;
+        s=korg; t=1647898424;
+        bh=y3AMms6KB45jiYh0vnVm4zlThTPNAiE6toJz8V3Cmw0=;
         h=Date:To:From:Subject:From;
-        b=Bkx6axEQVEJrcxjRWYIEynLQABjjeGXSnR+PThcD5gCpgTptPH1RqiprHsi01uDD5
-         ep1T9tM9Wl1ainFDkhqij78jMdSo2yf3h1QjT8aB4iFaRxN1g4ojyWz0l7vlsU8Auc
-         ao4+zIzOk6HK9XUJjW7PtwEn3wjU+mhCAiUostqk=
-Date:   Mon, 21 Mar 2022 14:16:11 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
-        urezki@gmail.com, npiggin@gmail.com, dingtianhong@huawei.com,
-        catalin.marinas@arm.com, anshuman.khandual@arm.com,
-        aklimov@redhat.com, yury.norov@gmail.com, akpm@linux-foundation.org
+        b=m2BWBjfWMzNIOYFHQ0P3Hu30+0FZhx+9vY0J9iF+NW5ji/5NSSqtLX8tTo1/E7aBt
+         tK4JOkZV9dxEefGhHu5O9rws8YOvT4RymPGZvdiqTzMmZp+blbSELu/SAIWzWQ5aCu
+         pHtm3ea0deYTvzAupTBZbtIWfrsDHElPU/rJLyUw=
+Date:   Mon, 21 Mar 2022 14:33:43 -0700
+To:     mm-commits@vger.kernel.org, mgorman@suse.de,
+        kosaki.motohiro@jp.fujitsu.com, akpm@linux-foundation.org,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] vmap-dont-allow-invalid-pages.patch removed from -mm tree
-Message-Id: <20220321211611.C59E9C340E8@smtp.kernel.org>
+Subject: [to-be-updated] mm-mempolicy-fix-potential-mpol_new-leak-in-shared_policy_replace.patch removed from -mm tree
+Message-Id: <20220321213344.15A38C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,60 +42,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: vmap(): don't allow invalid pages
+     Subject: mm/mempolicy: fix potential mpol_new leak in shared_policy_replace
 has been removed from the -mm tree.  Its filename was
-     vmap-dont-allow-invalid-pages.patch
+     mm-mempolicy-fix-potential-mpol_new-leak-in-shared_policy_replace.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: mm/vmalloc.c: vmap(): don't allow invalid pages
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mempolicy: fix potential mpol_new leak in shared_policy_replace
 
-vmap() takes struct page *pages as one of arguments, and user may provide
-an invalid pointer which would lead to data abort at address translation
-later.
+If mpol_new is allocated but not used in restart loop, mpol_new will be
+freed via mpol_put before returning to the caller.  But refcnt is not
+initialized yet, so mpol_put could not do the right things and might leak
+the unused mpol_new.
 
-Currently, kernel checks the pages against NULL.  In my case, however, the
-address was not NULL, and was big enough so that the hardware generated
-Address Size Abort on arm64.
-
-Interestingly, this abort happens even if copy_from_kernel_nofault() is
-used, which is quite inconvenient for debugging purposes.
-
-This patch adds a pfn_valid() check into vmap() path, so that invalid
-mapping will not be created.
-
-Link: https://lkml.kernel.org/r/20220119012109.551931-1-yury.norov@gmail.com
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Ding Tianhong <dingtianhong@huawei.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Alexey Klimov <aklimov@redhat.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20220311093624.39546-1-linmiaohe@huawei.com
+Fixes: 42288fe366c4 ("mm: mempolicy: Convert shared_policy mutex to spinlock")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/mempolicy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~vmap-dont-allow-invalid-pages
-+++ a/mm/vmalloc.c
-@@ -478,6 +478,8 @@ static int vmap_pages_pte_range(pmd_t *p
- 			return -EBUSY;
- 		if (WARN_ON(!page))
- 			return -ENOMEM;
-+		if (WARN_ON(!pfn_valid(page_to_pfn(page))))
-+			return -EINVAL;
- 		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
- 		(*nr)++;
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
+--- a/mm/mempolicy.c~mm-mempolicy-fix-potential-mpol_new-leak-in-shared_policy_replace
++++ a/mm/mempolicy.c
+@@ -2733,6 +2733,7 @@ alloc_new:
+ 	mpol_new = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 	if (!mpol_new)
+ 		goto err_out;
++	refcount_set(&mpol_new->refcnt, 1);
+ 	goto restart;
+ }
+ 
 _
 
-Patches currently in -mm which might be from yury.norov@gmail.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
+filemap-remove-find_get_pages.patch
+mm-writeback-minor-clean-up-for-highmem_dirtyable_memory.patch
+mm-shmem-use-helper-macro-__attr_rw.patch
+mm-use-helper-function-range_in_vma.patch
+mm-use-helper-macro-min-and-max-in-unmap_mapping_range_tree.patch
+mm-mmap-remove-obsolete-comment-in-ksys_mmap_pgoff.patch
+mm-mremap-use-vma_lookup-instead-of-find_vma.patch
+mm-sparse-make-mminit_validate_memmodel_limits-static.patch
+mm-vmalloc-remove-unneeded-function-forward-declaration.patch
+mm-mmzoneh-remove-unused-macros.patch
+mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
+mm-memory-failurec-catch-unexpected-efault-from-vma_address.patch
+mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
+mm-memory-failurec-fix-race-with-changing-page-more-robustly.patch
+mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
+mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
+mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
+mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
+mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
+mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
+mm-memory-failurec-avoid-calling-invalidate_inode_page-with-unexpected-pages.patch
+mm-memory-failurec-make-non-lru-movable-pages-unhandlable.patch
+mm-mlock-fix-potential-imbalanced-rlimit-ucounts-adjustment.patch
+mm-hugetlb-use-helper-macro-__attr_rw.patch
+mm-remove-unneeded-local-variable-follflags-v2.patch
+mm-oom_kill-remove-unneeded-is_memcg_oom-check.patch
+mm-ksm-use-helper-macro-__attr_rw.patch
+mm-madvise-use-vma_lookup-instead-of-find_vma.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
+mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
+mm-memory_hotplug-clean-up-try_offline_node.patch
+mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
+mm-highmem-remove-unnecessary-done-label.patch
+mm-hmmc-remove-unneeded-local-variable-ret.patch
 
