@@ -2,222 +2,172 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBB48C4321E
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:44:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD340C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:44:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236317AbiCVVps (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:45:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54888 "EHLO
+        id S236247AbiCVVpt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:45:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236455AbiCVVp1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:45:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5283F5F8E5
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:45 -0700 (PDT)
+        with ESMTP id S236310AbiCVVpc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:45:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1A145F4CE
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:44:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E2519B81D77
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0B96C340EC;
-        Tue, 22 Mar 2022 21:43:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 84C13B81DB8
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:44:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E00CC340EC;
+        Tue, 22 Mar 2022 21:44:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985422;
-        bh=BjpmI5D87g7Z+XJBfZmngKJHs0dzuJgyOI0NRbyHgrI=;
+        s=korg; t=1647985441;
+        bh=0KQ7zTA0G7TDqiIMvbVyZ5xBbQEyvkssveWNFsODP7g=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=NA6Fcr6HNRh7AY555+tV9Zr9eFFMtLt5I/q8LFe163c1+Avfu7CKA+mzgxLhxTa6N
-         eC+RZCZjTFrjrpiA+x6CpVcJwmL68yu2OoWPPKQXPYOzMAslo4XehA/FegN0c5GbZC
-         7YLNDSc7EFMyWUO4jz2KGt4G640P5Y8hQIvG378o=
-Date:   Tue, 22 Mar 2022 14:43:42 -0700
-To:     vbabka@suse.cz, mhocko@kernel.org, dave.hansen@linux.intel.com,
-        brouer@redhat.com, aaron.lu@intel.com, mgorman@techsingularity.net,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=xRZKeCtEppkmuuflegs32owXrMaOfwAjLtro/WubjcyzUhmxYnkG8cFnLcXXprlMS
+         jqDTOjq9QIV13dtr0tyICuwkHZB7BzfMtD4JBPLBU6k9sTGxyM61AFGIDrypSc4W1v
+         M84q8r6Vr4CMiMWqiTOlXZPqlJVgvzTR6qlTLvQQ=
+Date:   Tue, 22 Mar 2022 14:44:00 -0700
+To:     weixugc@google.com, vbabka@suse.cz, shakeelb@google.com,
+        rientjes@google.com, mhocko@kernel.org, hughd@google.com,
+        gthelen@google.com, edumazet@google.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 102/227] mm/page_alloc: free pages in a single pass during bulk free
-Message-Id: <20220322214342.A0B96C340EC@smtp.kernel.org>
+Subject: [patch 108/227] mm/page_alloc: check high-order pages for corruption during PCP operations
+Message-Id: <20220322214401.3E00CC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: free pages in a single pass during bulk free
+Subject: mm/page_alloc: check high-order pages for corruption during PCP operations
 
-free_pcppages_bulk() has taken two passes through the pcp lists since
-commit 0a5f4e5b4562 ("mm/free_pcppages_bulk: do not hold lock when picking
-pages to free") due to deferring the cost of selecting PCP lists until the
-zone lock is held.  Now that list selection is simplier, the main cost
-during selection is bulkfree_pcp_prepare() which in the normal case is a
-simple check and prefetching.  As the list manipulations have cost in
-itself, go back to freeing pages in a single pass.
+Eric Dumazet pointed out that commit 44042b449872 ("mm/page_alloc: allow
+high-order pages to be stored on the per-cpu lists") only checks the head
+page during PCP refill and allocation operations.  This was an oversight
+and all pages should be checked.  This will incur a small performance
+penalty but it's necessary for correctness.
 
-The series up to this point was evaulated using a trunc microbenchmark
-that is truncating sparse files stored in page cache (mmtests config
-config-io-trunc).  Sparse files were used to limit filesystem interaction.
-The results versus a revert of storing high-order pages in the PCP lists
-is
-
-1-socket Skylake
-                              5.17.0-rc3             5.17.0-rc3             5.17.0-rc3
-                                 vanilla      mm-reverthighpcp-v1     mm-highpcpopt-v2
-Min       elapsed      540.00 (   0.00%)      530.00 (   1.85%)      530.00 (   1.85%)
-Amean     elapsed      543.00 (   0.00%)      530.00 *   2.39%*      530.00 *   2.39%*
-Stddev    elapsed        4.83 (   0.00%)        0.00 ( 100.00%)        0.00 ( 100.00%)
-CoeffVar  elapsed        0.89 (   0.00%)        0.00 ( 100.00%)        0.00 ( 100.00%)
-Max       elapsed      550.00 (   0.00%)      530.00 (   3.64%)      530.00 (   3.64%)
-BAmean-50 elapsed      540.00 (   0.00%)      530.00 (   1.85%)      530.00 (   1.85%)
-BAmean-95 elapsed      542.22 (   0.00%)      530.00 (   2.25%)      530.00 (   2.25%)
-BAmean-99 elapsed      542.22 (   0.00%)      530.00 (   2.25%)      530.00 (   2.25%)
-
-2-socket CascadeLake
-                              5.17.0-rc3             5.17.0-rc3             5.17.0-rc3
-                                 vanilla    mm-reverthighpcp-v1       mm-highpcpopt-v2
-Min       elapsed      510.00 (   0.00%)      500.00 (   1.96%)      500.00 (   1.96%)
-Amean     elapsed      529.00 (   0.00%)      521.00 (   1.51%)      510.00 *   3.59%*
-Stddev    elapsed       16.63 (   0.00%)       12.87 (  22.64%)       11.55 (  30.58%)
-CoeffVar  elapsed        3.14 (   0.00%)        2.47 (  21.46%)        2.26 (  27.99%)
-Max       elapsed      550.00 (   0.00%)      540.00 (   1.82%)      530.00 (   3.64%)
-BAmean-50 elapsed      516.00 (   0.00%)      512.00 (   0.78%)      500.00 (   3.10%)
-BAmean-95 elapsed      526.67 (   0.00%)      518.89 (   1.48%)      507.78 (   3.59%)
-BAmean-99 elapsed      526.67 (   0.00%)      518.89 (   1.48%)      507.78 (   3.59%)
-
-The original motivation for multi-passes was will-it-scale page_fault1
-using $nr_cpu processes.
-
-2-socket CascadeLake (40 cores, 80 CPUs HT enabled)
-                                                    5.17.0-rc3                 5.17.0-rc3
-                                                       vanilla           mm-highpcpopt-v2
-Hmean     page_fault1-processes-2        2694662.26 (   0.00%)      2695780.35 (   0.04%)
-Hmean     page_fault1-processes-5        6425819.34 (   0.00%)      6435544.57 *   0.15%*
-Hmean     page_fault1-processes-8        9642169.10 (   0.00%)      9658962.39 (   0.17%)
-Hmean     page_fault1-processes-12      12167502.10 (   0.00%)     12190163.79 (   0.19%)
-Hmean     page_fault1-processes-21      15636859.03 (   0.00%)     15612447.26 (  -0.16%)
-Hmean     page_fault1-processes-30      25157348.61 (   0.00%)     25169456.65 (   0.05%)
-Hmean     page_fault1-processes-48      27694013.85 (   0.00%)     27671111.46 (  -0.08%)
-Hmean     page_fault1-processes-79      25928742.64 (   0.00%)     25934202.02 (   0.02%) <--
-Hmean     page_fault1-processes-110     25730869.75 (   0.00%)     25671880.65 *  -0.23%*
-Hmean     page_fault1-processes-141     25626992.42 (   0.00%)     25629551.61 (   0.01%)
-Hmean     page_fault1-processes-172     25611651.35 (   0.00%)     25614927.99 (   0.01%)
-Hmean     page_fault1-processes-203     25577298.75 (   0.00%)     25583445.59 (   0.02%)
-Hmean     page_fault1-processes-234     25580686.07 (   0.00%)     25608240.71 (   0.11%)
-Hmean     page_fault1-processes-265     25570215.47 (   0.00%)     25568647.58 (  -0.01%)
-Hmean     page_fault1-processes-296     25549488.62 (   0.00%)     25543935.00 (  -0.02%)
-Hmean     page_fault1-processes-320     25555149.05 (   0.00%)     25575696.74 (   0.08%)
-
-The differences are mostly within the noise and the difference close to
-$nr_cpus is negligible.
-
-Link: https://lkml.kernel.org/r/20220217002227.5739-6-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20220310092456.GJ15701@techsingularity.net
+Fixes: 44042b449872 ("mm/page_alloc: allow high-order pages to be stored on the per-cpu lists")
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Aaron Lu <aaron.lu@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Reported-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   56 +++++++++++++++++-----------------------------
- 1 file changed, 21 insertions(+), 35 deletions(-)
+ mm/page_alloc.c |   46 +++++++++++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-free-pages-in-a-single-pass-during-bulk-free
+--- a/mm/page_alloc.c~mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations
 +++ a/mm/page_alloc.c
-@@ -1452,8 +1452,7 @@ static void free_pcppages_bulk(struct zo
- 	unsigned int order;
- 	int prefetch_nr = READ_ONCE(pcp->batch);
- 	bool isolated_pageblocks;
--	struct page *page, *tmp;
--	LIST_HEAD(head);
-+	struct page *page;
- 
- 	/*
- 	 * Ensure proper count is passed which otherwise would stuck in the
-@@ -1464,6 +1463,13 @@ static void free_pcppages_bulk(struct zo
- 	/* Ensure requested pindex is drained first. */
- 	pindex = pindex - 1;
- 
-+	/*
-+	 * local_lock_irq held so equivalent to spin_lock_irqsave for
-+	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
-+	 */
-+	spin_lock(&zone->lock);
-+	isolated_pageblocks = has_isolate_pageblock(zone);
-+
- 	while (count > 0) {
- 		struct list_head *list;
- 		int nr_pages;
-@@ -1486,7 +1492,11 @@ static void free_pcppages_bulk(struct zo
- 		nr_pages = 1 << order;
- 		BUILD_BUG_ON(MAX_ORDER >= (1<<NR_PCP_ORDER_WIDTH));
- 		do {
-+			int mt;
-+
- 			page = list_last_entry(list, struct page, lru);
-+			mt = get_pcppage_migratetype(page);
-+
- 			/* must delete to avoid corrupting pcp list */
- 			list_del(&page->lru);
- 			count -= nr_pages;
-@@ -1495,12 +1505,6 @@ static void free_pcppages_bulk(struct zo
- 			if (bulkfree_pcp_prepare(page))
- 				continue;
- 
--			/* Encode order with the migratetype */
--			page->index <<= NR_PCP_ORDER_WIDTH;
--			page->index |= order;
--
--			list_add_tail(&page->lru, &head);
--
- 			/*
- 			 * We are going to put the page back to the global
- 			 * pool, prefetch its buddy to speed up later access
-@@ -1514,36 +1518,18 @@ static void free_pcppages_bulk(struct zo
- 				prefetch_buddy(page, order);
- 				prefetch_nr--;
- 			}
--		} while (count > 0 && !list_empty(list));
--	}
- 
--	/*
--	 * local_lock_irq held so equivalent to spin_lock_irqsave for
--	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
--	 */
--	spin_lock(&zone->lock);
--	isolated_pageblocks = has_isolate_pageblock(zone);
-+			/* MIGRATE_ISOLATE page should not go to pcplists */
-+			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
-+			/* Pageblock could have been isolated meanwhile */
-+			if (unlikely(isolated_pageblocks))
-+				mt = get_pageblock_migratetype(page);
- 
--	/*
--	 * Use safe version since after __free_one_page(),
--	 * page->lru.next will not point to original list.
--	 */
--	list_for_each_entry_safe(page, tmp, &head, lru) {
--		int mt = get_pcppage_migratetype(page);
--
--		/* mt has been encoded with the order (see above) */
--		order = mt & NR_PCP_ORDER_MASK;
--		mt >>= NR_PCP_ORDER_WIDTH;
--
--		/* MIGRATE_ISOLATE page should not go to pcplists */
--		VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
--		/* Pageblock could have been isolated meanwhile */
--		if (unlikely(isolated_pageblocks))
--			mt = get_pageblock_migratetype(page);
--
--		__free_one_page(page, page_to_pfn(page), zone, order, mt, FPI_NONE);
--		trace_mm_page_pcpu_drain(page, order, mt);
-+			__free_one_page(page, page_to_pfn(page), zone, order, mt, FPI_NONE);
-+			trace_mm_page_pcpu_drain(page, order, mt);
-+		} while (count > 0 && !list_empty(list));
- 	}
-+
- 	spin_unlock(&zone->lock);
+@@ -2291,23 +2291,36 @@ static inline int check_new_page(struct
+ 	return 1;
  }
  
++static bool check_new_pages(struct page *page, unsigned int order)
++{
++	int i;
++	for (i = 0; i < (1 << order); i++) {
++		struct page *p = page + i;
++
++		if (unlikely(check_new_page(p)))
++			return true;
++	}
++
++	return false;
++}
++
+ #ifdef CONFIG_DEBUG_VM
+ /*
+  * With DEBUG_VM enabled, order-0 pages are checked for expected state when
+  * being allocated from pcp lists. With debug_pagealloc also enabled, they are
+  * also checked when pcp lists are refilled from the free lists.
+  */
+-static inline bool check_pcp_refill(struct page *page)
++static inline bool check_pcp_refill(struct page *page, unsigned int order)
+ {
+ 	if (debug_pagealloc_enabled_static())
+-		return check_new_page(page);
++		return check_new_pages(page, order);
+ 	else
+ 		return false;
+ }
+ 
+-static inline bool check_new_pcp(struct page *page)
++static inline bool check_new_pcp(struct page *page, unsigned int order)
+ {
+-	return check_new_page(page);
++	return check_new_pages(page, order);
+ }
+ #else
+ /*
+@@ -2315,32 +2328,19 @@ static inline bool check_new_pcp(struct
+  * when pcp lists are being refilled from the free lists. With debug_pagealloc
+  * enabled, they are also checked when being allocated from the pcp lists.
+  */
+-static inline bool check_pcp_refill(struct page *page)
++static inline bool check_pcp_refill(struct page *page, unsigned int order)
+ {
+-	return check_new_page(page);
++	return check_new_pages(page, order);
+ }
+-static inline bool check_new_pcp(struct page *page)
++static inline bool check_new_pcp(struct page *page, unsigned int order)
+ {
+ 	if (debug_pagealloc_enabled_static())
+-		return check_new_page(page);
++		return check_new_pages(page, order);
+ 	else
+ 		return false;
+ }
+ #endif /* CONFIG_DEBUG_VM */
+ 
+-static bool check_new_pages(struct page *page, unsigned int order)
+-{
+-	int i;
+-	for (i = 0; i < (1 << order); i++) {
+-		struct page *p = page + i;
+-
+-		if (unlikely(check_new_page(p)))
+-			return true;
+-	}
+-
+-	return false;
+-}
+-
+ inline void post_alloc_hook(struct page *page, unsigned int order,
+ 				gfp_t gfp_flags)
+ {
+@@ -2982,7 +2982,7 @@ static int rmqueue_bulk(struct zone *zon
+ 		if (unlikely(page == NULL))
+ 			break;
+ 
+-		if (unlikely(check_pcp_refill(page)))
++		if (unlikely(check_pcp_refill(page, order)))
+ 			continue;
+ 
+ 		/*
+@@ -3600,7 +3600,7 @@ struct page *__rmqueue_pcplist(struct zo
+ 		page = list_first_entry(list, struct page, lru);
+ 		list_del(&page->lru);
+ 		pcp->count -= 1 << order;
+-	} while (check_new_pcp(page));
++	} while (check_new_pcp(page, order));
+ 
+ 	return page;
+ }
 _
