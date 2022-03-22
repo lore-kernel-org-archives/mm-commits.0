@@ -2,74 +2,100 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84DADC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:43:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85B7DC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:43:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236183AbiCVVoi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:44:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51226 "EHLO
+        id S236213AbiCVVoj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:44:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236215AbiCVVoe (ORCPT
+        with ESMTP id S236139AbiCVVoe (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:44:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77EFC1133
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:04 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7792910E6
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B1EC60A14
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61053C340F2;
-        Tue, 22 Mar 2022 21:43:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id ACB57B81D9E
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 675CAC340EC;
+        Tue, 22 Mar 2022 21:43:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985383;
-        bh=xOP4VsLcA/A6DThG+5c6QHsNCq7VcSxGTkMgyqZJ33Q=;
+        s=korg; t=1647985380;
+        bh=wZjjPIHrZl/Gm3NIx0w7E2TeqahXjahiA5sz15thP9w=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=gRWk7wOp07OmBgxLZEXng+qBoCDeBf4+F6cG9CkWZ6o2Q+wt55EDTudRO4ULwFVbL
-         UNoDDrczYoPQGcIlznv7urCMmGH0NVRVxEye+gU941C7L9lyGEhxM1ROZA3tUhI1cH
-         Tsbozdvs5ofP6QtPTkw1JAGkkoxXKv0za/fEzoJs=
-Date:   Tue, 22 Mar 2022 14:43:02 -0700
-To:     urezki@gmail.com, lpf.vector@gmail.com, libang.linuxer@gmail.com,
+        b=nn9+6RD0jLm8REiUbTs3y9OUYUdrQyDOq7HKBvuhazT4ZcD0lTefti243YG2gxrxn
+         nRaYi/5AZtlnI+03ggHCA+dEuBN0IWBOCEwnFvRgNz/HOHx78b80IXDAFCo393MUEf
+         /DSrtAd8EEMZmidEWlTPRSF8ZNkQ6UkWEVxrT2p0=
+Date:   Tue, 22 Mar 2022 14:42:59 -0700
+To:     abaci@linux.alibaba.com, jiapeng.chong@linux.alibaba.com,
         akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 089/227] mm/vmalloc: fix comments about vmap_area struct
-Message-Id: <20220322214303.61053C340F2@smtp.kernel.org>
+Subject: [patch 088/227] mm/vmalloc.c: fix "unused function" warning
+Message-Id: <20220322214300.675CAC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Bang Li <libang.linuxer@gmail.com>
-Subject: mm/vmalloc: fix comments about vmap_area struct
+From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Subject: mm/vmalloc.c: fix "unused function" warning
 
-The vmap_area_root should be in the "busy" tree and the
-free_vmap_area_root should be in the "free" tree.
+compute_subtree_max_size() is unused, when building with
+DEBUG_AUGMENT_PROPAGATE_CHECK=y.
 
-Link: https://lkml.kernel.org/r/20220305011510.33596-1-libang.linuxer@gmail.com
-Fixes: 688fcbfc06e4 ("mm/vmalloc: modify struct vmap_area to reduce its size")
-Signed-off-by: Bang Li <libang.linuxer@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Pengfei Li <lpf.vector@gmail.com>
+mm/vmalloc.c:785:1: warning: unused function 'compute_subtree_max_size'
+[-Wunused-function].
+
+Link: https://lkml.kernel.org/r/20220129034652.75359-1-jiapeng.chong@linux.alibaba.com
+Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-fix-comments-about-vmap_area-struct
-+++ a/include/linux/vmalloc.h
-@@ -80,8 +80,8 @@ struct vmap_area {
- 	/*
- 	 * The following two variables can be packed, because
- 	 * a vmap_area object can be either:
--	 *    1) in "free" tree (root is vmap_area_root)
--	 *    2) or "busy" tree (root is free_vmap_area_root)
-+	 *    1) in "free" tree (root is free_vmap_area_root)
-+	 *    2) or "busy" tree (root is vmap_area_root)
- 	 */
- 	union {
- 		unsigned long subtree_max_size; /* in "free" tree */
+--- a/mm/vmalloc.c~mm-vmallocc-fix-unused-function-warning
++++ a/mm/vmalloc.c
+@@ -775,17 +775,6 @@ get_subtree_max_size(struct rb_node *nod
+ 	return va ? va->subtree_max_size : 0;
+ }
+ 
+-/*
+- * Gets called when remove the node and rotate.
+- */
+-static __always_inline unsigned long
+-compute_subtree_max_size(struct vmap_area *va)
+-{
+-	return max3(va_size(va),
+-		get_subtree_max_size(va->rb_node.rb_left),
+-		get_subtree_max_size(va->rb_node.rb_right));
+-}
+-
+ RB_DECLARE_CALLBACKS_MAX(static, free_vmap_area_rb_augment_cb,
+ 	struct vmap_area, rb_node, unsigned long, subtree_max_size, va_size)
+ 
+@@ -973,6 +962,17 @@ unlink_va(struct vmap_area *va, struct r
+ }
+ 
+ #if DEBUG_AUGMENT_PROPAGATE_CHECK
++/*
++ * Gets called when remove the node and rotate.
++ */
++static __always_inline unsigned long
++compute_subtree_max_size(struct vmap_area *va)
++{
++	return max3(va_size(va),
++		get_subtree_max_size(va->rb_node.rb_left),
++		get_subtree_max_size(va->rb_node.rb_right));
++}
++
+ static void
+ augment_tree_propagate_check(void)
+ {
 _
