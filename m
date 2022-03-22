@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FB2BC43217
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:45:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3284FC433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:45:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236337AbiCVVq1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:46:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56974 "EHLO
+        id S236364AbiCVVq2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:46:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236369AbiCVVqS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:46:18 -0400
+        with ESMTP id S236383AbiCVVqW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:46:22 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 314A05FF09
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:44:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 423405F8C1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:44:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D8804B81DAD
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:44:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87E5CC340EC;
-        Tue, 22 Mar 2022 21:44:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DD526B81DB9
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:44:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79723C340EE;
+        Tue, 22 Mar 2022 21:44:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985485;
-        bh=xkrxMmxe6pG21FSJF2rhuxx4y2yhqicxMLIqE2ZKoBE=;
+        s=korg; t=1647985491;
+        bh=zCEyjdx5mHzAsw8Q2UZPFRSoRBqMsxXVKNHia3WkJyw=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=rB3psBfOiPS3FnNak3XUxZ8Sx/pbZJonkV5mmXdkFvPuDN5kft/JrWytK14FMpdEn
-         in/TWE11XTuDSOljQ7j/xXBnGnOP90Ma4Pq9D2bvPu8NttYKHb2Cxfcc583+DaKqOr
-         Q7XeLQNbaxlR3M6XRyngY8ujzkaPAcV/x3KjtG9M=
-Date:   Tue, 22 Mar 2022 14:44:44 -0700
+        b=GCY75yYEe/eZ1v1mAWx6vqle7Po4M6FgQuNM4h3RwC4rj21re+bA9HAhyRnlbxtS5
+         CjeqRHaw5CkOt0j8EsZmZNUnSX5vSjcsQYypVM9iJBeGNhgknCbhg+CbvOC/VVO3yt
+         3tfNl+hR89ffpYN26TVoADCZOpkiRctcD0Wpg7ug=
+Date:   Tue, 22 Mar 2022 14:44:50 -0700
 To:     tony.luck@intel.com, shy828301@gmail.com, naoya.horiguchi@nec.com,
         mike.kravetz@oracle.com, bp@alien8.de, linmiaohe@huawei.com,
         akpm@linux-foundation.org, patches@lists.linux.dev,
@@ -36,102 +36,98 @@ To:     tony.luck@intel.com, shy828301@gmail.com, naoya.horiguchi@nec.com,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 123/227] mm/memory-failure.c: fix race with changing page compound again
-Message-Id: <20220322214445.87E5CC340EC@smtp.kernel.org>
+Subject: [patch 125/227] mm/memory-failure.c: make non-LRU movable pages unhandlable
+Message-Id: <20220322214451.79723C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure.c: fix race with changing page compound again
+Subject: mm/memory-failure.c: make non-LRU movable pages unhandlable
 
-Patch series "A few fixup patches for memory failure", v2.
+We can not really handle non-LRU movable pages in memory failure. 
+Typically they are balloon, zsmalloc, etc.  Assuming we run into a base
+(4K) non-LRU movable page, we could reach as far as identify_page_state(),
+it should not fall into any category except me_unknown.
 
-This series contains a few patches to fix the race with changing page
-compound page, make non-LRU movable pages unhandlable and so on.  More
-details can be found in the respective changelogs.
+For the non-LRU compound movable pages, they could be taken for transhuge
+pages but it's unexpected to split non-LRU movable pages using
+split_huge_page_to_list in memory_failure.  So we could just simply make
+non-LRU movable pages unhandlable to avoid these possible nasty cases.
 
-
-There is a race window where we got the compound_head, the hugetlb page
-could be freed to buddy, or even changed to another compound page just
-before we try to get hwpoison page.  Think about the below race window:
-
-  CPU 1					  CPU 2
-  memory_failure_hugetlb
-  struct page *head = compound_head(p);
-					  hugetlb page might be freed to
-					  buddy, or even changed to another
-					  compound page.
-
-  get_hwpoison_page -- page is not what we want now...
-
-If this race happens, just bail out.  Also MF_MSG_DIFFERENT_PAGE_SIZE is
-introduced to record this event.
-
-[akpm@linux-foundation.org: s@/**@/*@, per Naoya Horiguchi]
-Link: https://lkml.kernel.org/r/20220312074613.4798-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220312074613.4798-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220312074613.4798-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Suggested-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
 Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Tony Luck <tony.luck@intel.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    1 +
- include/ras/ras_event.h |    1 +
- mm/memory-failure.c     |   12 ++++++++++++
- 3 files changed, 14 insertions(+)
+ mm/memory-failure.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
---- a/include/linux/mm.h~mm-memory-failurec-fix-race-with-changing-page-compound-again
-+++ a/include/linux/mm.h
-@@ -3239,6 +3239,7 @@ enum mf_action_page_type {
- 	MF_MSG_BUDDY,
- 	MF_MSG_DAX,
- 	MF_MSG_UNSPLIT_THP,
-+	MF_MSG_DIFFERENT_PAGE_SIZE,
- 	MF_MSG_UNKNOWN,
- };
- 
---- a/include/ras/ras_event.h~mm-memory-failurec-fix-race-with-changing-page-compound-again
-+++ a/include/ras/ras_event.h
-@@ -374,6 +374,7 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_BUDDY, "free buddy page" )				\
- 	EM ( MF_MSG_DAX, "dax page" )					\
- 	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
-+	EM ( MF_MSG_DIFFERENT_PAGE_SIZE, "different page size" )	\
- 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
- 
- /*
---- a/mm/memory-failure.c~mm-memory-failurec-fix-race-with-changing-page-compound-again
+--- a/mm/memory-failure.c~mm-memory-failurec-make-non-lru-movable-pages-unhandlable
 +++ a/mm/memory-failure.c
-@@ -732,6 +732,7 @@ static const char * const action_page_ty
- 	[MF_MSG_BUDDY]			= "free buddy page",
- 	[MF_MSG_DAX]			= "dax page",
- 	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
-+	[MF_MSG_DIFFERENT_PAGE_SIZE]	= "different page size",
- 	[MF_MSG_UNKNOWN]		= "unknown page",
- };
+@@ -1176,12 +1176,18 @@ void ClearPageHWPoisonTakenOff(struct pa
+  * does not return true for hugetlb or device memory pages, so it's assumed
+  * to be called only in the context where we never have such pages.
+  */
+-static inline bool HWPoisonHandlable(struct page *page)
++static inline bool HWPoisonHandlable(struct page *page, unsigned long flags)
+ {
+-	return PageLRU(page) || __PageMovable(page) || is_free_buddy_page(page);
++	bool movable = false;
++
++	/* Soft offline could mirgate non-LRU movable pages */
++	if ((flags & MF_SOFT_OFFLINE) && __PageMovable(page))
++		movable = true;
++
++	return movable || PageLRU(page) || is_free_buddy_page(page);
+ }
  
-@@ -1532,6 +1533,17 @@ static int memory_failure_hugetlb(unsign
+-static int __get_hwpoison_page(struct page *page)
++static int __get_hwpoison_page(struct page *page, unsigned long flags)
+ {
+ 	struct page *head = compound_head(page);
+ 	int ret = 0;
+@@ -1196,7 +1202,7 @@ static int __get_hwpoison_page(struct pa
+ 	 * for any unsupported type of page in order to reduce the risk of
+ 	 * unexpected races caused by taking a page refcount.
+ 	 */
+-	if (!HWPoisonHandlable(head))
++	if (!HWPoisonHandlable(head, flags))
+ 		return -EBUSY;
+ 
+ 	if (get_page_unless_zero(head)) {
+@@ -1221,7 +1227,7 @@ static int get_any_page(struct page *p,
+ 
+ try_again:
+ 	if (!count_increased) {
+-		ret = __get_hwpoison_page(p);
++		ret = __get_hwpoison_page(p, flags);
+ 		if (!ret) {
+ 			if (page_count(p)) {
+ 				/* We raced with an allocation, retry. */
+@@ -1249,7 +1255,7 @@ try_again:
+ 		}
  	}
  
- 	lock_page(head);
-+
-+	/*
-+	 * The page could have changed compound pages due to race window.
-+	 * If this happens just bail out.
-+	 */
-+	if (!PageHuge(p) || compound_head(p) != head) {
-+		action_result(pfn, MF_MSG_DIFFERENT_PAGE_SIZE, MF_IGNORED);
-+		res = -EBUSY;
-+		goto out;
-+	}
-+
- 	page_flags = head->flags;
+-	if (PageHuge(p) || HWPoisonHandlable(p)) {
++	if (PageHuge(p) || HWPoisonHandlable(p, flags)) {
+ 		ret = 1;
+ 	} else {
+ 		/*
+@@ -2302,7 +2308,7 @@ int soft_offline_page(unsigned long pfn,
  
- 	if (hwpoison_filter(p)) {
+ retry:
+ 	get_online_mems();
+-	ret = get_hwpoison_page(page, flags);
++	ret = get_hwpoison_page(page, flags | MF_SOFT_OFFLINE);
+ 	put_online_mems();
+ 
+ 	if (ret > 0) {
 _
