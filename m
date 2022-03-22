@@ -2,116 +2,103 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96330C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:42:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87EAAC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:42:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236090AbiCVVno (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236104AbiCVVno (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Mar 2022 17:43:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50498 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236107AbiCVVnf (ORCPT
+        with ESMTP id S236119AbiCVVnf (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:43:35 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93E7E5F267
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:41:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A5505F279
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:41:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 45200B81DB1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:41:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBF46C340F2;
-        Tue, 22 Mar 2022 21:41:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 52EB9B81D9E
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:41:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91DEC340F3;
+        Tue, 22 Mar 2022 21:41:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985311;
-        bh=9VpQhWU+v6rIebMhpj+1pe+IbKQ0Me39rlEhhcxuX5U=;
+        s=korg; t=1647985314;
+        bh=paGbHyEWO4fjAlnjjA8dly23PY250zM57eYN+jleBqs=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=bYG1f6ZhH7QkZ9uuSR3upcqXx2Gm+r7YZKc7VGfmRTLTGPAdXfOzRgzfeL3fAtHQQ
-         h2Ui0atfVkAL+Ha3UMLAM2nXVfxxAMNkbWxWr4kB+M53zozg5uitaiLgnAGPJEODO/
-         DBopNoFVHgQKFFFl6I4fX8MWb8cCnj18EGzbDF1s=
-Date:   Tue, 22 Mar 2022 14:41:50 -0700
-To:     wangkefeng.wang@huawei.com, stefan.kristiansson@saunalahti.fi,
-        rppt@linux.ibm.com, rmk+kernel@armlinux.org.uk,
-        nickhu@andestech.com, jonas@southpole.se, green.hu@gmail.com,
-        deanbo422@gmail.com, david@redhat.com, dave.hansen@linux.intel.com,
-        christophe.leroy@c-s.fr, bcain@codeaurora.org, shorne@gmail.com,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=sTZ2XgW4E9TKeEU6uYhAm0Ve4/UkkL2ZUGcA15UbqNUh+VviIoeoC6FQ2QRmqyVi5
+         B42gRgT3VVfdvxgw3aupwrFAdoiNzbA5/5Gbtd677lp7tTpPYhbc/lJud052hFLAHH
+         h4+OhxykYkGhqeTt+ID2bQHRDyaEoKZUc15BcR24=
+Date:   Tue, 22 Mar 2022 14:41:53 -0700
+To:     ziy@nvidia.com, rientjes@google.com, peterx@redhat.com,
+        mike.kravetz@oracle.com, lars.persson@axis.com,
+        kirill.shutemov@linux.intel.com, fam.zheng@bytedance.com,
+        duanxiongchun@bytedance.com, axelrasmussen@google.com,
+        songmuchun@bytedance.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 065/227] mm: remove mmu_gathers storage from remaining architectures
-Message-Id: <20220322214150.DBF46C340F2@smtp.kernel.org>
+Subject: [patch 066/227] mm: thp: fix wrong cache flush in remove_migration_pmd()
+Message-Id: <20220322214153.E91DEC340F3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Stafford Horne <shorne@gmail.com>
-Subject: mm: remove mmu_gathers storage from remaining architectures
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: thp: fix wrong cache flush in remove_migration_pmd()
 
-Originally the mmu_gathers were removed in commit 1c3951769621 ("mm: now
-that all old mmu_gather code is gone, remove the storage").  However, the
-openrisc and hexagon architecture were merged around the same time and
-mmu_gathers was not removed.
+Patch series "Fix some cache flush bugs", v5.
 
-This patch removes them from openrisc, hexagon and nds32:
+This series focuses on fixing cache maintenance.
 
-Noticed while cleaning this warning:
 
-    arch/openrisc/mm/init.c:41:1: warning: symbol 'mmu_gathers' was not declared. Should it be static?
+This patch (of 7):
 
-Link: https://lkml.kernel.org/r/20220205141956.3315419-1-shorne@gmail.com
-Signed-off-by: Stafford Horne <shorne@gmail.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+The flush_cache_range() is supposed to be justified only if the page is
+already placed in process page table, and that is done right after
+flush_cache_range().  So using this interface is wrong.  And there is no
+need to invalite cache since it was non-present before in
+remove_migration_pmd().  So just to remove it.
+
+Link: https://lkml.kernel.org/r/20220210123058.79206-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220210123058.79206-2-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lars Persson <lars.persson@axis.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Fam Zheng <fam.zheng@bytedance.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/mm/init.c  |    2 --
- arch/nds32/mm/init.c    |    1 -
- arch/openrisc/mm/init.c |    2 --
- 3 files changed, 5 deletions(-)
+ mm/huge_memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/hexagon/mm/init.c~mm-remove-mmu_gathers-storage-from-remaining-architectures
-+++ a/arch/hexagon/mm/init.c
-@@ -29,8 +29,6 @@ int max_kernel_seg = 0x303;
- /*  indicate pfn's of high memory  */
- unsigned long highstart_pfn, highend_pfn;
+--- a/mm/huge_memory.c~mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd
++++ a/mm/huge_memory.c
+@@ -3197,7 +3197,6 @@ void remove_migration_pmd(struct page_vm
+ 	if (pmd_swp_uffd_wp(*pvmw->pmd))
+ 		pmde = pmd_wrprotect(pmd_mkuffd_wp(pmde));
  
--DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
--
- /* Default cache attribute for newly created page tables */
- unsigned long _dflt_cache_att = CACHEDEF;
- 
---- a/arch/nds32/mm/init.c~mm-remove-mmu_gathers-storage-from-remaining-architectures
-+++ a/arch/nds32/mm/init.c
-@@ -18,7 +18,6 @@
- #include <asm/tlb.h>
- #include <asm/page.h>
- 
--DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
- DEFINE_SPINLOCK(anon_alias_lock);
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
- 
---- a/arch/openrisc/mm/init.c~mm-remove-mmu_gathers-storage-from-remaining-architectures
-+++ a/arch/openrisc/mm/init.c
-@@ -38,8 +38,6 @@
- 
- int mem_init_done;
- 
--DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
--
- static void __init zone_sizes_init(void)
- {
- 	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
+-	flush_cache_range(vma, mmun_start, mmun_start + HPAGE_PMD_SIZE);
+ 	if (PageAnon(new))
+ 		page_add_anon_rmap(new, vma, mmun_start, true);
+ 	else
+@@ -3205,6 +3204,8 @@ void remove_migration_pmd(struct page_vm
+ 	set_pmd_at(mm, mmun_start, pvmw->pmd, pmde);
+ 	if ((vma->vm_flags & VM_LOCKED) && !PageDoubleMap(new))
+ 		mlock_vma_page(new);
++
++	/* No need to invalidate - it was non-present before */
+ 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
+ }
+ #endif
 _
