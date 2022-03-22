@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A06E4C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:39:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB88BC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:39:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235792AbiCVVka (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:40:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41976 "EHLO
+        id S230342AbiCVVkm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:40:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230342AbiCVVk1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:40:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B32DD1E7
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:38:59 -0700 (PDT)
+        with ESMTP id S235845AbiCVVkl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:40:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91C1524BE0
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:39:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 517E86174D
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:38:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5995C340EC;
-        Tue, 22 Mar 2022 21:38:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 350E5B81DAF
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:39:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2AFBC340EC;
+        Tue, 22 Mar 2022 21:39:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985138;
-        bh=a7U0suWjCQ7jownKTM659RuFNhFpv69sAQUyL0Jj2vY=;
+        s=korg; t=1647985145;
+        bh=GNv9WK5AmSRiwsLgkxT4RsDluuLKljhoxAG1uC8YS+s=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=pgfXrItMGjY4jIfxuBb6wDIJA7YstLg9pPlD0W9AxPfOUF2JkdsF8O5/sX0MsrNy3
-         iiiH4Ub06Q4/wkVPI09DtgQTPNqIcLMx2vwQLHHYObuhKSS27UrSHL+R9oHv/GvA/3
-         +WGh1Q1PQZmpGzq21lYOz+NsFvxHdkeDAuLMqe4E=
-Date:   Tue, 22 Mar 2022 14:38:58 -0700
+        b=Ux7WJpJcxPEgnxeqRmITFM1lARMv7K4xmg9v5FXKK/cp7fQ6x2GCHpkfOzpDxUgqU
+         NECgfxw8EF+s0mHaUfLSjKASHbufb92O41uRU9tDHoQBN+o13qWCE9og978rq1myAp
+         BVqSJfgRtuin52pCsewczOowyZiYprpB8FDc5/d0=
+Date:   Tue, 22 Mar 2022 14:39:04 -0700
 To:     trond.myklebust@hammerspace.com, philipp.reisner@linbit.com,
         paolo.valente@linaro.org, miklos@szeredi.hu,
         lars.ellenberg@linbit.com, konishi.ryusuke@gmail.com,
@@ -40,39 +40,36 @@ To:     trond.myklebust@hammerspace.com, philipp.reisner@linbit.com,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 009/227] fuse: remove reliance on bdi congestion
-Message-Id: <20220322213858.A5995C340EC@smtp.kernel.org>
+Subject: [patch 011/227] ceph: remove reliance on bdi congestion
+Message-Id: <20220322213904.E2AFBC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: NeilBrown <neilb@suse.de>
-Subject: fuse: remove reliance on bdi congestion
+Subject: ceph: remove reliance on bdi congestion
 
 The bdi congestion tracking in not widely used and will be removed.
 
-Fuse is one of a small number of filesystems that uses it, setting both
-the sync (read) and async (write) congestion flags at what it determines
-are appropriate times.
+CEPHfs is one of a small number of filesystems that uses it, setting just
+the async (write) congestion flags at what it determines are appropriate
+times.
 
-The only remaining effect of the sync flag is to cause read-ahead to be
-skipped.  The only remaining effect of the async flag is to cause (some)
+The only remaining effect of the async flag is to cause (some)
 WB_SYNC_NONE writes to be skipped.
 
-So instead of setting the flags, change:
- - .readahead to stop when it has submitted all non-async pages
-    for read.
- - .writepages to do nothing if WB_SYNC_NONE and the flag would be set
+So instead of setting the flag, set an internal flag and change:
+ - .writepages to do nothing if WB_SYNC_NONE and the flag is set
  - .writepage to return AOP_WRITEPAGE_ACTIVATE if WB_SYNC_NONE
-    and the flag would be set.
+    and the flag is set.
 
 The writepages change causes a behavioural change in that pageout() can
 now return PAGE_ACTIVATE instead of PAGE_KEEP, so SetPageActive() will be
-called on the page which (I think) will further delay the next attempt at
+called on the page which (I think) wil further delay the next attempt at
 writeout.  This might be a good thing.
 
-Link: https://lkml.kernel.org/r/164549983737.9187.2627117501000365074.stgit@noble.brown
+Link: https://lkml.kernel.org/r/164549983739.9187.14895675781408171186.stgit@noble.brown
 Signed-off-by: NeilBrown <neilb@suse.de>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
 Cc: Chao Yu <chao@kernel.org>
@@ -92,113 +89,95 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/control.c |   17 -----------------
- fs/fuse/dev.c     |    8 --------
- fs/fuse/file.c    |   17 +++++++++++++++++
- 3 files changed, 17 insertions(+), 25 deletions(-)
+ fs/ceph/addr.c  |   22 +++++++++++++---------
+ fs/ceph/super.c |    1 +
+ fs/ceph/super.h |    1 +
+ 3 files changed, 15 insertions(+), 9 deletions(-)
 
---- a/fs/fuse/control.c~fuse-remove-reliance-on-bdi-congestion
-+++ a/fs/fuse/control.c
-@@ -164,7 +164,6 @@ static ssize_t fuse_conn_congestion_thre
- {
- 	unsigned val;
- 	struct fuse_conn *fc;
--	struct fuse_mount *fm;
- 	ssize_t ret;
+--- a/fs/ceph/addr.c~ceph-remove-reliance-on-bdi-congestion
++++ a/fs/ceph/addr.c
+@@ -563,7 +563,7 @@ static int writepage_nounlock(struct pag
  
- 	ret = fuse_conn_limit_write(file, buf, count, ppos, &val,
-@@ -178,22 +177,6 @@ static ssize_t fuse_conn_congestion_thre
- 	down_read(&fc->killsb);
- 	spin_lock(&fc->bg_lock);
- 	fc->congestion_threshold = val;
--
--	/*
--	 * Get any fuse_mount belonging to this fuse_conn; s_bdi is
--	 * shared between all of them
--	 */
--
--	if (!list_empty(&fc->mounts)) {
--		fm = list_first_entry(&fc->mounts, struct fuse_mount, fc_entry);
--		if (fc->num_background < fc->congestion_threshold) {
--			clear_bdi_congested(fm->sb->s_bdi, BLK_RW_SYNC);
--			clear_bdi_congested(fm->sb->s_bdi, BLK_RW_ASYNC);
--		} else {
--			set_bdi_congested(fm->sb->s_bdi, BLK_RW_SYNC);
--			set_bdi_congested(fm->sb->s_bdi, BLK_RW_ASYNC);
--		}
--	}
- 	spin_unlock(&fc->bg_lock);
- 	up_read(&fc->killsb);
- 	fuse_conn_put(fc);
---- a/fs/fuse/dev.c~fuse-remove-reliance-on-bdi-congestion
-+++ a/fs/fuse/dev.c
-@@ -315,10 +315,6 @@ void fuse_request_end(struct fuse_req *r
- 				wake_up(&fc->blocked_waitq);
- 		}
+ 	if (atomic_long_inc_return(&fsc->writeback_count) >
+ 	    CONGESTION_ON_THRESH(fsc->mount_options->congestion_kb))
+-		set_bdi_congested(inode_to_bdi(inode), BLK_RW_ASYNC);
++		fsc->write_congested = true;
  
--		if (fc->num_background == fc->congestion_threshold && fm->sb) {
--			clear_bdi_congested(fm->sb->s_bdi, BLK_RW_SYNC);
--			clear_bdi_congested(fm->sb->s_bdi, BLK_RW_ASYNC);
--		}
- 		fc->num_background--;
- 		fc->active_background--;
- 		flush_bg_queue(fc);
-@@ -540,10 +536,6 @@ static bool fuse_request_queue_backgroun
- 		fc->num_background++;
- 		if (fc->num_background == fc->max_background)
- 			fc->blocked = 1;
--		if (fc->num_background == fc->congestion_threshold && fm->sb) {
--			set_bdi_congested(fm->sb->s_bdi, BLK_RW_SYNC);
--			set_bdi_congested(fm->sb->s_bdi, BLK_RW_ASYNC);
--		}
- 		list_add_tail(&req->list, &fc->bg_queue);
- 		flush_bg_queue(fc);
- 		queued = true;
---- a/fs/fuse/file.c~fuse-remove-reliance-on-bdi-congestion
-+++ a/fs/fuse/file.c
-@@ -966,6 +966,14 @@ static void fuse_readahead(struct readah
- 		struct fuse_io_args *ia;
- 		struct fuse_args_pages *ap;
+ 	req = ceph_osdc_new_request(osdc, &ci->i_layout, ceph_vino(inode), page_off, &len, 0, 1,
+ 				    CEPH_OSD_OP_WRITE, CEPH_OSD_FLAG_WRITE, snapc,
+@@ -623,7 +623,7 @@ static int writepage_nounlock(struct pag
  
-+		if (fc->num_background >= fc->congestion_threshold &&
-+		    rac->ra->async_size >= readahead_count(rac))
-+			/*
-+			 * Congested and only async pages left, so skip the
-+			 * rest.
-+			 */
-+			break;
-+
- 		nr_pages = readahead_count(rac) - nr_pages;
- 		if (nr_pages > max_pages)
- 			nr_pages = max_pages;
-@@ -1959,6 +1967,7 @@ err:
+ 	if (atomic_long_dec_return(&fsc->writeback_count) <
+ 	    CONGESTION_OFF_THRESH(fsc->mount_options->congestion_kb))
+-		clear_bdi_congested(inode_to_bdi(inode), BLK_RW_ASYNC);
++		fsc->write_congested = false;
  
- static int fuse_writepage(struct page *page, struct writeback_control *wbc)
- {
-+	struct fuse_conn *fc = get_fuse_conn(page->mapping->host);
- 	int err;
- 
- 	if (fuse_page_is_writeback(page->mapping->host, page->index)) {
-@@ -1974,6 +1983,10 @@ static int fuse_writepage(struct page *p
- 		return 0;
- 	}
+ 	return err;
+ }
+@@ -635,6 +635,10 @@ static int ceph_writepage(struct page *p
+ 	BUG_ON(!inode);
+ 	ihold(inode);
  
 +	if (wbc->sync_mode == WB_SYNC_NONE &&
-+	    fc->num_background >= fc->congestion_threshold)
++	    ceph_inode_to_client(inode)->write_congested)
 +		return AOP_WRITEPAGE_ACTIVATE;
 +
- 	err = fuse_writepage_locked(page);
- 	unlock_page(page);
+ 	wait_on_page_fscache(page);
  
-@@ -2227,6 +2240,10 @@ static int fuse_writepages(struct addres
- 	if (fuse_is_bad(inode))
- 		goto out;
+ 	err = writepage_nounlock(page, wbc);
+@@ -707,8 +711,7 @@ static void writepages_finish(struct cep
+ 			if (atomic_long_dec_return(&fsc->writeback_count) <
+ 			     CONGESTION_OFF_THRESH(
+ 					fsc->mount_options->congestion_kb))
+-				clear_bdi_congested(inode_to_bdi(inode),
+-						    BLK_RW_ASYNC);
++				fsc->write_congested = false;
+ 
+ 			ceph_put_snap_context(detach_page_private(page));
+ 			end_page_writeback(page);
+@@ -760,6 +763,10 @@ static int ceph_writepages_start(struct
+ 	bool done = false;
+ 	bool caching = ceph_is_cache_enabled(inode);
  
 +	if (wbc->sync_mode == WB_SYNC_NONE &&
-+	    fc->num_background >= fc->congestion_threshold)
++	    fsc->write_congested)
 +		return 0;
 +
- 	data.inode = inode;
- 	data.wpa = NULL;
- 	data.ff = NULL;
+ 	dout("writepages_start %p (mode=%s)\n", inode,
+ 	     wbc->sync_mode == WB_SYNC_NONE ? "NONE" :
+ 	     (wbc->sync_mode == WB_SYNC_ALL ? "ALL" : "HOLD"));
+@@ -954,11 +961,8 @@ get_more_pages:
+ 
+ 			if (atomic_long_inc_return(&fsc->writeback_count) >
+ 			    CONGESTION_ON_THRESH(
+-				    fsc->mount_options->congestion_kb)) {
+-				set_bdi_congested(inode_to_bdi(inode),
+-						  BLK_RW_ASYNC);
+-			}
+-
++				    fsc->mount_options->congestion_kb))
++				fsc->write_congested = true;
+ 
+ 			pages[locked_pages++] = page;
+ 			pvec.pages[i] = NULL;
+--- a/fs/ceph/super.c~ceph-remove-reliance-on-bdi-congestion
++++ a/fs/ceph/super.c
+@@ -802,6 +802,7 @@ static struct ceph_fs_client *create_fs_
+ 	fsc->have_copy_from2 = true;
+ 
+ 	atomic_long_set(&fsc->writeback_count, 0);
++	fsc->write_congested = false;
+ 
+ 	err = -ENOMEM;
+ 	/*
+--- a/fs/ceph/super.h~ceph-remove-reliance-on-bdi-congestion
++++ a/fs/ceph/super.h
+@@ -121,6 +121,7 @@ struct ceph_fs_client {
+ 	struct ceph_mds_client *mdsc;
+ 
+ 	atomic_long_t writeback_count;
++	bool write_congested;
+ 
+ 	struct workqueue_struct *inode_wq;
+ 	struct workqueue_struct *cap_wq;
 _
