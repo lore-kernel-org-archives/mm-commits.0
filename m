@@ -2,117 +2,72 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54AF3C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:46:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4422C43217
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:46:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236435AbiCVVrf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236509AbiCVVrf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Mar 2022 17:47:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34352 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230347AbiCVVr3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:47:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0647F5F8C1;
-        Tue, 22 Mar 2022 14:46:01 -0700 (PDT)
+        with ESMTP id S236532AbiCVVrd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:47:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CE015F8F0
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:46:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 99B86615B1;
-        Tue, 22 Mar 2022 21:46:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED3C8C340EE;
-        Tue, 22 Mar 2022 21:45:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2EED3B81DB9
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:46:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2866C340EC;
+        Tue, 22 Mar 2022 21:46:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985560;
-        bh=vksHlh41Yl8TntR4WEXfMzLzqp4dQjqNQcVeZWBmRXI=;
+        s=korg; t=1647985563;
+        bh=L/2shDOh3xnUyMXVRhAr6pEdFIeqol9RjJVq2cMCBtQ=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=kBzVph6uHpG5u7ts3Lowr6XsitPhMfna0Tw9PvqqB5J8umZ/w7LKMaAQE46N5cw4B
-         c5P5IW7TtpPd1ltOob5kQcKROBkO5AI0+IYlZp4a/dOP1qXhfc35exp4VTrDxJJy7g
-         unis9W2tc8uU0g3+xvOPHfGIglVgVM8VdrGpwscc=
-Date:   Tue, 22 Mar 2022 14:45:59 -0700
-To:     vbabka@suse.cz, stable@vger.kernel.org, oleg@redhat.com,
-        Liam.Howlett@oracle.com, hughd@google.com,
+        b=H0wzKb6jnOn1VRyAvw5n7VEQMVNrILzbRdZ5D8tTlPj4gw0y/9+JnjAuAu95gTE2Z
+         wYqu5lwJBnCs7BCJnKaJmyS48xHflWTauGkX7h7El85is5UCy58HArWy7GxBatQ9uW
+         6/XSblcr7BZuoXlGitx1rzZq1YM3WsW2o2IGcJ6k=
+Date:   Tue, 22 Mar 2022 14:46:02 -0700
+To:     rientjes@google.com, mhocko@suse.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 147/227] mempolicy: mbind_range() set_policy() after vma_merge()
-Message-Id: <20220322214559.ED3C8C340EE@smtp.kernel.org>
+Subject: [patch 148/227] mm/oom_kill: remove unneeded is_memcg_oom check
+Message-Id: <20220322214602.E2866C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: mbind_range() set_policy() after vma_merge()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/oom_kill: remove unneeded is_memcg_oom check
 
-v2.6.34 commit 9d8cebd4bcd7 ("mm: fix mbind vma merge problem") introduced
-vma_merge() to mbind_range(); but unlike madvise, mlock and mprotect, it
-put a "continue" to next vma where its precedents go to update flags on
-current vma before advancing: that left vma with the wrong setting in the
-infamous vma_merge() case 8.
+oom_cpuset_eligible() is always called when !is_memcg_oom().  Remove this
+unnecessary check.
 
-v3.10 commit 1444f92c8498 ("mm: merging memory blocks resets mempolicy")
-tried to fix that in vma_adjust(), without fully understanding the issue.
-
-v3.11 commit 3964acd0dbec ("mm: mempolicy: fix mbind_range() &&
-vma_adjust() interaction") reverted that, and went about the fix in the
-right way, but chose to optimize out an unnecessary mpol_dup() with a
-prior mpol_equal() test.  But on tmpfs, that also pessimized out the vital
-call to its ->set_policy(), leaving the new mbind unenforced.
-
-The user visible effect was that the pages got allocated on the local
-node (happened to be 0), after the mbind() caller had specifically
-asked for them to be allocated on node 1.  There was not any page
-migration involved in the case reported: the pages simply got allocated
-on the wrong node.
-
-Just delete that optimization now (though it could be made conditional on
-vma not having a set_policy).  Also remove the "next" variable: it turned
-out to be blameless, but also pointless.
-
-Link: https://lkml.kernel.org/r/319e4db9-64ae-4bca-92f0-ade85d342ff@google.com
-Fixes: 3964acd0dbec ("mm: mempolicy: fix mbind_range() && vma_adjust() interaction")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220224115933.20154-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/oom_kill.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/mempolicy.c~mempolicy-mbind_range-set_policy-after-vma_merge
-+++ a/mm/mempolicy.c
-@@ -786,7 +786,6 @@ static int vma_replace_policy(struct vm_
- static int mbind_range(struct mm_struct *mm, unsigned long start,
- 		       unsigned long end, struct mempolicy *new_pol)
- {
--	struct vm_area_struct *next;
- 	struct vm_area_struct *prev;
- 	struct vm_area_struct *vma;
- 	int err = 0;
-@@ -801,8 +800,7 @@ static int mbind_range(struct mm_struct
- 	if (start > vma->vm_start)
- 		prev = vma;
+--- a/mm/oom_kill.c~mm-oom_kill-remove-unneeded-is_memcg_oom-check
++++ a/mm/oom_kill.c
+@@ -93,9 +93,6 @@ static bool oom_cpuset_eligible(struct t
+ 	bool ret = false;
+ 	const nodemask_t *mask = oc->nodemask;
  
--	for (; vma && vma->vm_start < end; prev = vma, vma = next) {
--		next = vma->vm_next;
-+	for (; vma && vma->vm_start < end; prev = vma, vma = vma->vm_next) {
- 		vmstart = max(start, vma->vm_start);
- 		vmend   = min(end, vma->vm_end);
- 
-@@ -817,10 +815,6 @@ static int mbind_range(struct mm_struct
- 				 anon_vma_name(vma));
- 		if (prev) {
- 			vma = prev;
--			next = vma->vm_next;
--			if (mpol_equal(vma_policy(vma), new_pol))
--				continue;
--			/* vma_merge() joined vma && vma->next, case 8 */
- 			goto replace;
- 		}
- 		if (vma->vm_start != vmstart) {
+-	if (is_memcg_oom(oc))
+-		return true;
+-
+ 	rcu_read_lock();
+ 	for_each_thread(start, tsk) {
+ 		if (mask) {
 _
