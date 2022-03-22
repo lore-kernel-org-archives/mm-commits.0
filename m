@@ -2,149 +2,181 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 007CAC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:43:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BF10C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:43:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236139AbiCVVoj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:44:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50886 "EHLO
+        id S236221AbiCVVok (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:44:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236119AbiCVVo1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:44:27 -0400
+        with ESMTP id S236308AbiCVVog (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:44:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85DEC5F8C0
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:42:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71246C73
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1E2B86100A
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:42:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7163FC340EC;
-        Tue, 22 Mar 2022 21:42:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 10954611B2
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CF5AC340F5;
+        Tue, 22 Mar 2022 21:43:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985371;
-        bh=h6WthA8eonFvZJuDoYxVkuXubbra0E50IcOP3ZyBbDE=;
+        s=korg; t=1647985386;
+        bh=svYSNXXQduEdRBmFgUxBEObKmpC7v7mW7bTnEIqX8Pc=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=iZtrXFsL+zBH9Azf5lPQfCXnacUPG8FjA0EoySJLtO9huHWgwQ0czGaJYjEDkC7/o
-         Kyqt+AKQVYGu9coebG0ZlbBTeUnRU0+Cb6xA8ESTmTUMWGQujDLJEvst0aFB4ta7w0
-         oU6qd30BXmBiFrmljeYsH93IGPUP39pQNCl29/Lc=
-Date:   Tue, 22 Mar 2022 14:42:50 -0700
-To:     willy@infradead.org, vvs@virtuozzo.com, uladzislau.rezki@sony.com,
-        oleksiy.avramchenko@sonymobile.com, npiggin@gmail.com, hch@lst.de,
-        urezki@gmail.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=uq5qanz3UW9Gbmj4XyQmC74nNrxZ6dFTcx7lpfalmXpTOZd7O7/0LhbxTUnsXsKSl
+         OE/g4dr9IeVAXVepISyssI8rjedkR+RK5MDguPDW8IEOhXYDnwQYkftbnHB4tlmd37
+         DR/2C/lutil5/f1UcXd+CYhWMpFU3Dpc5/QQ9tvo=
+Date:   Tue, 22 Mar 2022 14:43:05 -0700
+To:     vbabka@suse.cz, rppt@linux.ibm.com, rppt@kernel.org,
+        osalvador@suse.de, mgorman@techsingularity.net, david@redhat.com,
+        ziy@nvidia.com, akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 085/227] mm/vmalloc: Move draining areas out of caller context
-Message-Id: <20220322214251.7163FC340EC@smtp.kernel.org>
+Subject: [patch 090/227] mm: page_alloc: avoid merging non-fallbackable pageblocks with others
+Message-Id: <20220322214306.6CF5AC340F5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: Move draining areas out of caller context
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: page_alloc: avoid merging non-fallbackable pageblocks with others
 
-A caller initiates the drain procces from its context once the
-drain threshold is reached or passed. There are at least two
-drawbacks of doing so:
+This is done in addition to MIGRATE_ISOLATE pageblock merge avoidance.  It
+prepares for the upcoming removal of the MAX_ORDER-1 alignment requirement
+for CMA and alloc_contig_range().
 
-a) a caller can be a high-prio or RT task. In that case it can
-   stuck in doing the actual drain of all lazily freed areas.
-   This is not optimal because such tasks usually are latency
-   sensitive where the control should be returned back as soon
-   as possible in order to drive such workloads in time. See
-   96e2db456135 ("mm/vmalloc: rework the drain logic")
+MIGRATE_HIGHATOMIC should not merge with other migratetypes like
+MIGRATE_ISOLATE and MIGRARTE_CMA[1], so this commit prevents that too.
 
-b) It is not safe to call vfree() during holding a spinlock due
-   to the vmap_purge_lock mutex. The was a report about this from
-   Zeal Robot <zealci@zte.com.cn> here:
-   https://lore.kernel.org/all/20211222081026.484058-1-chi.minghao@zte.com.cn
+Remove MIGRATE_CMA and MIGRATE_ISOLATE from fallbacks list, since they
+are never used.
 
-Moving the drain to the separate work context addresses those
-issues.
+[1] https://lore.kernel.org/linux-mm/20211130100853.GP3366@techsingularity.net/
 
-v1->v2:
-   - Added prefix "_work" to the drain worker function.
-v2->v3:
-   - Remove the drain_vmap_work_in_progress. Extra queuing
-     is expectable under heavy load but it can be disregarded
-     because a work will bail out if nothing to be done.
-
-Link: https://lkml.kernel.org/r/20220131144058.35608-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Uladzislau Rezki <uladzislau.rezki@sony.com>
-Cc: Vasily Averin <vvs@virtuozzo.com>
+Link: https://lkml.kernel.org/r/20220124175957.1261961-1-zi.yan@sent.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ include/linux/mmzone.h |   11 +++++++++
+ mm/page_alloc.c        |   46 ++++++++++++++++++---------------------
+ 2 files changed, 33 insertions(+), 24 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-move-draining-areas-out-of-caller-context
-+++ a/mm/vmalloc.c
-@@ -791,6 +791,8 @@ RB_DECLARE_CALLBACKS_MAX(static, free_vm
- 
- static void purge_vmap_area_lazy(void);
- static BLOCKING_NOTIFIER_HEAD(vmap_notify_list);
-+static void drain_vmap_area_work(struct work_struct *work);
-+static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
- 
- static atomic_long_t nr_vmalloc_pages;
- 
-@@ -1718,18 +1720,6 @@ static bool __purge_vmap_area_lazy(unsig
+--- a/include/linux/mmzone.h~mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others
++++ a/include/linux/mmzone.h
+@@ -83,6 +83,17 @@ static inline bool is_migrate_movable(in
+ 	return is_migrate_cma(mt) || mt == MIGRATE_MOVABLE;
  }
  
- /*
-- * Kick off a purge of the outstanding lazy areas. Don't bother if somebody
-- * is already purging.
-- */
--static void try_purge_vmap_area_lazy(void)
--{
--	if (mutex_trylock(&vmap_purge_lock)) {
--		__purge_vmap_area_lazy(ULONG_MAX, 0);
--		mutex_unlock(&vmap_purge_lock);
--	}
--}
--
--/*
-  * Kick off a purge of the outstanding lazy areas.
-  */
- static void purge_vmap_area_lazy(void)
-@@ -1740,6 +1730,20 @@ static void purge_vmap_area_lazy(void)
- 	mutex_unlock(&vmap_purge_lock);
- }
- 
-+static void drain_vmap_area_work(struct work_struct *work)
++/*
++ * Check whether a migratetype can be merged with another migratetype.
++ *
++ * It is only mergeable when it can fall back to other migratetypes for
++ * allocation. See fallbacks[MIGRATE_TYPES][3] in page_alloc.c.
++ */
++static inline bool migratetype_is_mergeable(int mt)
 +{
-+	unsigned long nr_lazy;
-+
-+	do {
-+		mutex_lock(&vmap_purge_lock);
-+		__purge_vmap_area_lazy(ULONG_MAX, 0);
-+		mutex_unlock(&vmap_purge_lock);
-+
-+		/* Recheck if further work is required. */
-+		nr_lazy = atomic_long_read(&vmap_lazy_nr);
-+	} while (nr_lazy > lazy_max_pages());
++	return mt < MIGRATE_PCPTYPES;
 +}
 +
- /*
-  * Free a vmap area, caller ensuring that the area has been unmapped
-  * and flush_cache_vunmap had been called for the correct range
-@@ -1766,7 +1770,7 @@ static void free_vmap_area_noflush(struc
+ #define for_each_migratetype_order(order, type) \
+ 	for (order = 0; order < MAX_ORDER; order++) \
+ 		for (type = 0; type < MIGRATE_TYPES; type++)
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others
++++ a/mm/page_alloc.c
+@@ -1117,25 +1117,24 @@ continue_merging:
+ 	}
+ 	if (order < MAX_ORDER - 1) {
+ 		/* If we are here, it means order is >= pageblock_order.
+-		 * We want to prevent merge between freepages on isolate
+-		 * pageblock and normal pageblock. Without this, pageblock
+-		 * isolation could cause incorrect freepage or CMA accounting.
++		 * We want to prevent merge between freepages on pageblock
++		 * without fallbacks and normal pageblock. Without this,
++		 * pageblock isolation could cause incorrect freepage or CMA
++		 * accounting or HIGHATOMIC accounting.
+ 		 *
+ 		 * We don't want to hit this code for the more frequent
+ 		 * low-order merging.
+ 		 */
+-		if (unlikely(has_isolate_pageblock(zone))) {
+-			int buddy_mt;
++		int buddy_mt;
  
- 	/* After this point, we may free va at any time */
- 	if (unlikely(nr_lazy > lazy_max_pages()))
--		try_purge_vmap_area_lazy();
-+		schedule_work(&drain_vmap_work);
- }
- 
+-			buddy_pfn = __find_buddy_pfn(pfn, order);
+-			buddy = page + (buddy_pfn - pfn);
+-			buddy_mt = get_pageblock_migratetype(buddy);
+-
+-			if (migratetype != buddy_mt
+-					&& (is_migrate_isolate(migratetype) ||
+-						is_migrate_isolate(buddy_mt)))
+-				goto done_merging;
+-		}
++		buddy_pfn = __find_buddy_pfn(pfn, order);
++		buddy = page + (buddy_pfn - pfn);
++		buddy_mt = get_pageblock_migratetype(buddy);
++
++		if (migratetype != buddy_mt
++				&& (!migratetype_is_mergeable(migratetype) ||
++					!migratetype_is_mergeable(buddy_mt)))
++			goto done_merging;
+ 		max_order = order + 1;
+ 		goto continue_merging;
+ 	}
+@@ -2479,17 +2478,13 @@ struct page *__rmqueue_smallest(struct z
  /*
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
++ *
++ * The other migratetypes do not have fallbacks.
+  */
+ static int fallbacks[MIGRATE_TYPES][3] = {
+ 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_TYPES },
+ 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_TYPES },
+ 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_TYPES },
+-#ifdef CONFIG_CMA
+-	[MIGRATE_CMA]         = { MIGRATE_TYPES }, /* Never used */
+-#endif
+-#ifdef CONFIG_MEMORY_ISOLATION
+-	[MIGRATE_ISOLATE]     = { MIGRATE_TYPES }, /* Never used */
+-#endif
+ };
+ 
+ #ifdef CONFIG_CMA
+@@ -2795,8 +2790,8 @@ static void reserve_highatomic_pageblock
+ 
+ 	/* Yoink! */
+ 	mt = get_pageblock_migratetype(page);
+-	if (!is_migrate_highatomic(mt) && !is_migrate_isolate(mt)
+-	    && !is_migrate_cma(mt)) {
++	/* Only reserve normal pageblocks (i.e., they can merge with others) */
++	if (migratetype_is_mergeable(mt)) {
+ 		zone->nr_reserved_highatomic += pageblock_nr_pages;
+ 		set_pageblock_migratetype(page, MIGRATE_HIGHATOMIC);
+ 		move_freepages_block(zone, page, MIGRATE_HIGHATOMIC, NULL);
+@@ -3545,8 +3540,11 @@ int __isolate_free_page(struct page *pag
+ 		struct page *endpage = page + (1 << order) - 1;
+ 		for (; page < endpage; page += pageblock_nr_pages) {
+ 			int mt = get_pageblock_migratetype(page);
+-			if (!is_migrate_isolate(mt) && !is_migrate_cma(mt)
+-			    && !is_migrate_highatomic(mt))
++			/*
++			 * Only change normal pageblocks (i.e., they can merge
++			 * with others)
++			 */
++			if (migratetype_is_mergeable(mt))
+ 				set_pageblock_migratetype(page,
+ 							  MIGRATE_MOVABLE);
+ 		}
 _
