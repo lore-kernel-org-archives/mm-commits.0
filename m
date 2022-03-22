@@ -2,139 +2,98 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C84CC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:42:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA6F2C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:43:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236152AbiCVVoF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:44:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50770 "EHLO
+        id S236275AbiCVVo0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:44:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236131AbiCVVnz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:43:55 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 814DC5F4C2
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:42:27 -0700 (PDT)
+        with ESMTP id S236171AbiCVVoD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:44:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 731435F4D4
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:42:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 38C6DB81DB1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:42:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E25CFC340F4;
-        Tue, 22 Mar 2022 21:42:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 25D47B81DB1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:42:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8AADC340EE;
+        Tue, 22 Mar 2022 21:42:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985345;
-        bh=F1QTr47N+B/kQaHUt9g/8MjSLEV7cYIWjwYDApu4qdY=;
+        s=korg; t=1647985347;
+        bh=+jM+T2Xr+b7Pjmhh1FKJbinEX4Z6x00Ku09S6Q0DdpA=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=uGkVjBGn6A8ANywWERVebEM+nEUBUQYcVeFJIPxtKErCAk6iUGco5Oa7FmvQnsFOv
-         27kysIx2MNMgiem1f8mQnbnj8DG5sE5pRoS+xH2d6/2CtIOcvh10x0Y1OkwLVdEP+V
-         RPIi5Zd5xRmUYyWpWxszjzpX3kMn3mPEFXQWq8Qg=
-Date:   Tue, 22 Mar 2022 14:42:24 -0700
-To:     willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
-        kirill@shutemov.name, jhubbard@nvidia.com, hughd@google.com,
-        david@redhat.com, apopple@nvidia.com, aarcange@redhat.com,
-        peterx@redhat.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=x+Z1IgL+D9OaavxQCvteIOAmxOihuq7OzFRE4Nm4EVLlFaNkdvAH+dTk/3Qg8nrCe
+         2up1LRVApKC5hdASVWFqz/m+6az/iBtBtEYSCTfZlUUE4bEG3e+KjfaRZn8K0TmV5u
+         uFpgDf47Fkvs1/uyqxHw5U/QprCVoHRSe/sN6YHs=
+Date:   Tue, 22 Mar 2022 14:42:27 -0700
+To:     i.zhbanov@omprussia.ru, hughd@google.com, rdunlap@infradead.org,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 076/227] mm: rework swap handling of zap_pte_range
-Message-Id: <20220322214224.E25CFC340F4@smtp.kernel.org>
+Subject: [patch 077/227] mm/mmap: return 1 from stack_guard_gap __setup() handler
+Message-Id: <20220322214227.D8AADC340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: rework swap handling of zap_pte_range
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/mmap: return 1 from stack_guard_gap __setup() handler
 
-Clean the code up by merging the device private/exclusive swap entry
-handling with the rest, then we merge the pte clear operation too.
+__setup() handlers should return 1 if the command line option is handled
+and 0 if not (or maybe never return 0; it just pollutes init's
+environment).  This prevents:
 
-struct* page is defined in multiple places in the function, move it upward.
+  Unknown kernel command line parameters \
+  "BOOT_IMAGE=/boot/bzImage-517rc5 stack_guard_gap=100", will be \
+  passed to user space.
 
-free_swap_and_cache() is only useful for !non_swap_entry() case, put it
-into the condition.
+  Run /sbin/init as init process
+   with arguments:
+     /sbin/init
+   with environment:
+     HOME=/
+     TERM=linux
+     BOOT_IMAGE=/boot/bzImage-517rc5
+     stack_guard_gap=100
 
-No functional change intended.
+Return 1 to indicate that the boot option has been handled.
 
-Link: https://lkml.kernel.org/r/20220216094810.60572-5-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
+Note that there is no warning message if someone enters:
+	stack_guard_gap=anything_invalid
+and 'val' and stack_guard_gap are both set to 0 due to the use of
+simple_strtoul(). This could be improved by using kstrtoxxx() and
+checking for an error.
+
+It appears that having stack_guard_gap == 0 is valid (if unexpected) since
+using "stack_guard_gap=0" on the kernel command line does that.
+
+Link: https://lkml.kernel.org/r/20220222005817.11087-1-rdunlap@infradead.org
+Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
+Fixes: 1be7107fbe18e ("mm: larger stack guard gap, between vmas")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Igor Zhbanov <i.zhbanov@omprussia.ru>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-rework-swap-handling-of-zap_pte_range
-+++ a/mm/memory.c
-@@ -1361,6 +1361,8 @@ again:
- 	arch_enter_lazy_mmu_mode();
- 	do {
- 		pte_t ptent = *pte;
-+		struct page *page;
-+
- 		if (pte_none(ptent))
- 			continue;
+--- a/mm/mmap.c~mm-mmap-return-1-from-stack_guard_gap-__setup-handler
++++ a/mm/mmap.c
+@@ -2557,7 +2557,7 @@ static int __init cmdline_parse_stack_gu
+ 	if (!*endptr)
+ 		stack_guard_gap = val << PAGE_SHIFT;
  
-@@ -1368,8 +1370,6 @@ again:
- 			break;
- 
- 		if (pte_present(ptent)) {
--			struct page *page;
--
- 			page = vm_normal_page(vma, addr, ptent);
- 			if (unlikely(!should_zap_page(details, page)))
- 				continue;
-@@ -1403,28 +1403,21 @@ again:
- 		entry = pte_to_swp_entry(ptent);
- 		if (is_device_private_entry(entry) ||
- 		    is_device_exclusive_entry(entry)) {
--			struct page *page = pfn_swap_entry_to_page(entry);
--
-+			page = pfn_swap_entry_to_page(entry);
- 			if (unlikely(!should_zap_page(details, page)))
- 				continue;
--			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
- 			rss[mm_counter(page)]--;
--
- 			if (is_device_private_entry(entry))
- 				page_remove_rmap(page, false);
--
- 			put_page(page);
--			continue;
--		}
--
--		if (!non_swap_entry(entry)) {
-+		} else if (!non_swap_entry(entry)) {
- 			/* Genuine swap entry, hence a private anon page */
- 			if (!should_zap_cows(details))
- 				continue;
- 			rss[MM_SWAPENTS]--;
-+			if (unlikely(!free_swap_and_cache(entry)))
-+				print_bad_pte(vma, addr, ptent, NULL);
- 		} else if (is_migration_entry(entry)) {
--			struct page *page;
--
- 			page = pfn_swap_entry_to_page(entry);
- 			if (!should_zap_page(details, page))
- 				continue;
-@@ -1436,8 +1429,6 @@ again:
- 			/* We should have covered all the swap entry types */
- 			WARN_ON_ONCE(1);
- 		}
--		if (unlikely(!free_swap_and_cache(entry)))
--			print_bad_pte(vma, addr, ptent, NULL);
- 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	return 0;
++	return 1;
+ }
+ __setup("stack_guard_gap=", cmdline_parse_stack_guard_gap);
  
 _
