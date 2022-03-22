@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C22C4167D
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:41:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAB09C43217
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:41:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236034AbiCVVnL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236044AbiCVVnL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Mar 2022 17:43:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50158 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236308AbiCVVnB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:43:01 -0400
+        with ESMTP id S236383AbiCVVnF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:43:05 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80FDC5EBE5
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:41:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA8E35EBE9
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:41:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1C6236104C
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:41:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A250C340EC;
-        Tue, 22 Mar 2022 21:41:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 44E4061179
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:41:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90FF6C340EC;
+        Tue, 22 Mar 2022 21:41:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985292;
-        bh=ilvcIuf6uKvI4zi0SpRf5kzXybDRnj5OhDN9qxRlO14=;
+        s=korg; t=1647985295;
+        bh=CpEDdkiTdOKrDeK8LGm+Eoj1/yCpSJX3PCy3yXJxufA=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=V/aR8zAfJVtlfGnVqBmgKbSbpAtxVoeAR7Vjvlfv0mEujtFtRo5Yt2/TONlYBVxDr
-         e5t3W3qu9uIcN9hGhLgo7dGjJ09TIW2H0i1THaAZs5MqRflm8T2RzR1hyVtezbwBOS
-         UvCTDPErP+M5TFRoTeYaMGBgfv+wWWTh4/LaGRuY=
-Date:   Tue, 22 Mar 2022 14:41:31 -0700
+        b=lodacTqqxDt8Su6/1gc99hLNFRgwKIwP2ea1/gr+SvAK4YKzPb8tx7fjGXo2Qv5Mg
+         evfLhJZMVel1zL0l6XBeYFN4m9vtgTG++2m/Tn6ntP7f048MsozaRfs4b1FVu+SnlD
+         3U2m6SPLpm8XbATFUyhe3Ic6Gc5Z/vgPufQXvwXM=
+Date:   Tue, 22 Mar 2022 14:41:35 -0700
 To:     zhengqi.arch@bytedance.com, willy@infradead.org,
         vdavydov.dev@gmail.com, vbabka@suse.cz, tytso@mit.edu,
         trond.myklebust@hammerspace.com, shy828301@gmail.com,
@@ -43,21 +43,21 @@ To:     zhengqi.arch@bytedance.com, willy@infradead.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 059/227] mm: memcontrol: fix cannot alloc the maximum memcg ID
-Message-Id: <20220322214132.6A250C340EC@smtp.kernel.org>
+Subject: [patch 060/227] mm: list_lru: rename list_lru_per_memcg to list_lru_memcg
+Message-Id: <20220322214135.90FF6C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix cannot alloc the maximum memcg ID
+Subject: mm: list_lru: rename list_lru_per_memcg to list_lru_memcg
 
-The idr_alloc() does not include @max ID.  So in the current
-implementation, the maximum memcg ID is 65534 instead of 65535.  It seems
-a bug.  So fix this.
+The name of list_lru_memcg was occupied before and became free since last
+commit.  Rename list_lru_per_memcg to list_lru_memcg since the name is
+brief.
 
-Link: https://lkml.kernel.org/r/20220228122126.37293-15-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220228122126.37293-16-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
@@ -82,19 +82,97 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/list_lru.h |    2 +-
+ mm/list_lru.c            |   18 +++++++++---------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-cannot-alloc-the-maximum-memcg-id
-+++ a/mm/memcontrol.c
-@@ -5088,8 +5088,7 @@ static struct mem_cgroup *mem_cgroup_all
- 		return ERR_PTR(error);
+--- a/include/linux/list_lru.h~mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg
++++ a/include/linux/list_lru.h
+@@ -32,7 +32,7 @@ struct list_lru_one {
+ 	long			nr_items;
+ };
  
- 	memcg->id.id = idr_alloc(&mem_cgroup_idr, NULL,
--				 1, MEM_CGROUP_ID_MAX,
--				 GFP_KERNEL);
-+				 1, MEM_CGROUP_ID_MAX + 1, GFP_KERNEL);
- 	if (memcg->id.id < 0) {
- 		error = memcg->id.id;
- 		goto fail;
+-struct list_lru_per_memcg {
++struct list_lru_memcg {
+ 	struct rcu_head		rcu;
+ 	/* array of per cgroup per node lists, indexed by node id */
+ 	struct list_lru_one	node[];
+--- a/mm/list_lru.c~mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg
++++ a/mm/list_lru.c
+@@ -53,7 +53,7 @@ static inline struct list_lru_one *
+ list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
+ {
+ 	if (list_lru_memcg_aware(lru) && idx >= 0) {
+-		struct list_lru_per_memcg *mlru = xa_load(&lru->xa, idx);
++		struct list_lru_memcg *mlru = xa_load(&lru->xa, idx);
+ 
+ 		return mlru ? &mlru->node[nid] : NULL;
+ 	}
+@@ -306,7 +306,7 @@ unsigned long list_lru_walk_node(struct
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+ 	if (*nr_to_walk > 0 && list_lru_memcg_aware(lru)) {
+-		struct list_lru_per_memcg *mlru;
++		struct list_lru_memcg *mlru;
+ 		unsigned long index;
+ 
+ 		xa_for_each(&lru->xa, index, mlru) {
+@@ -335,10 +335,10 @@ static void init_one_lru(struct list_lru
+ }
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+-static struct list_lru_per_memcg *memcg_init_list_lru_one(gfp_t gfp)
++static struct list_lru_memcg *memcg_init_list_lru_one(gfp_t gfp)
+ {
+ 	int nid;
+-	struct list_lru_per_memcg *mlru;
++	struct list_lru_memcg *mlru;
+ 
+ 	mlru = kmalloc(struct_size(mlru, node, nr_node_ids), gfp);
+ 	if (!mlru)
+@@ -352,7 +352,7 @@ static struct list_lru_per_memcg *memcg_
+ 
+ static void memcg_list_lru_free(struct list_lru *lru, int src_idx)
+ {
+-	struct list_lru_per_memcg *mlru = xa_erase_irq(&lru->xa, src_idx);
++	struct list_lru_memcg *mlru = xa_erase_irq(&lru->xa, src_idx);
+ 
+ 	/*
+ 	 * The __list_lru_walk_one() can walk the list of this node.
+@@ -374,7 +374,7 @@ static inline void memcg_init_list_lru(s
+ static void memcg_destroy_list_lru(struct list_lru *lru)
+ {
+ 	XA_STATE(xas, &lru->xa, 0);
+-	struct list_lru_per_memcg *mlru;
++	struct list_lru_memcg *mlru;
+ 
+ 	if (!list_lru_memcg_aware(lru))
+ 		return;
+@@ -475,7 +475,7 @@ int memcg_list_lru_alloc(struct mem_cgro
+ 	int i;
+ 	unsigned long flags;
+ 	struct list_lru_memcg_table {
+-		struct list_lru_per_memcg *mlru;
++		struct list_lru_memcg *mlru;
+ 		struct mem_cgroup *memcg;
+ 	} *table;
+ 	XA_STATE(xas, &lru->xa, 0);
+@@ -491,7 +491,7 @@ int memcg_list_lru_alloc(struct mem_cgro
+ 	/*
+ 	 * Because the list_lru can be reparented to the parent cgroup's
+ 	 * list_lru, we should make sure that this cgroup and all its
+-	 * ancestors have allocated list_lru_per_memcg.
++	 * ancestors have allocated list_lru_memcg.
+ 	 */
+ 	for (i = 0; memcg; memcg = parent_mem_cgroup(memcg), i++) {
+ 		if (memcg_list_lru_allocated(memcg, lru))
+@@ -510,7 +510,7 @@ int memcg_list_lru_alloc(struct mem_cgro
+ 	xas_lock_irqsave(&xas, flags);
+ 	while (i--) {
+ 		int index = READ_ONCE(table[i].memcg->kmemcg_id);
+-		struct list_lru_per_memcg *mlru = table[i].mlru;
++		struct list_lru_memcg *mlru = table[i].mlru;
+ 
+ 		xas_set(&xas, index);
+ retry:
 _
