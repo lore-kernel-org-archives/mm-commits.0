@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3057C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:14:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9F42C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:14:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229759AbiCVTPi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 15:15:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38492 "EHLO
+        id S229839AbiCVTPl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 15:15:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbiCVTPh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:15:37 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEC23B87D
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:14:09 -0700 (PDT)
+        with ESMTP id S229523AbiCVTPi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:15:38 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8835CBF6F
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:14:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 34476CE1E85
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:14:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CB8BC340EC;
-        Tue, 22 Mar 2022 19:14:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 319B9B81D59
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:14:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3379C340F0;
+        Tue, 22 Mar 2022 19:14:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647976446;
-        bh=1h7hFmLcaBZrjqX1DzKwYgVN4X07J+hzHrGsZEd+HR0=;
+        s=korg; t=1647976447;
+        bh=v303HEFxJr2MniwaRskUGpmhDfsuJ5m66rSwxBqCS8Q=;
         h=Date:To:From:Subject:From;
-        b=uTGQTmsD0T13e6bNwzuod2iTWlTSWDmRlSk/CT8c3TBY9ykC3LRkE8r3hNh6KQ904
-         k9FSPdicPeEAFICBN41HYbs13ZbVK0k8/SQhXp5S4wZmkfsenu0qPK0IXhxhXWEe9Q
-         UfYaN14xnC9lkpZbItKBBy43CS+V1yc6OHbpai0M=
-Date:   Tue, 22 Mar 2022 12:14:05 -0700
+        b=bSNN9t9By94neApJIqA9SQPCfcIVn8vkm8ucJleK15+HWuHTf4pHqNUUbaucrevCm
+         EJP3o06EKA/TYiN7I+MrPfWAq7XW7XUhftzss1Q7MOCyY/aETU5qPkQwbWLnQeHDlB
+         h7biY47w1tTqn+T6haAD7eA+fA3eq0sHTyIm3BjY=
+Date:   Tue, 22 Mar 2022 12:14:07 -0700
 To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        rppt@linux.vnet.ibm.com, peterx@redhat.com, jack@suse.cz,
-        david@redhat.com, aarcange@redhat.com, namit@vmware.com,
-        akpm@linux-foundation.org
+        rppt@linux.vnet.ibm.com, peterx@redhat.com, namit@vmware.com,
+        jack@suse.cz, david@redhat.com, aarcange@redhat.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] userfaultfd-provide-unmasked-address-on-page-fault-v3.patch removed from -mm tree
-Message-Id: <20220322191406.8CB8BC340EC@smtp.kernel.org>
+Subject: [folded-merged] userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch removed from -mm tree
+Message-Id: <20220322191407.B3379C340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,83 +43,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: provide unmasked address on page-fault
+     Subject: userfaultfd-provide-unmasked-address-on-page-fault-v3-fix
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-provide-unmasked-address-on-page-fault-v3.patch
+     userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
 
 This patch was dropped because it was folded into userfaultfd-provide-unmasked-address-on-page-fault.patch
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: userfaultfd: provide unmasked address on page-fault
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: userfaultfd-provide-unmasked-address-on-page-fault-v3-fix
 
-initialize real_address on all code paths, per Jan
+fix typo in comment, per Jan
 
-Link: https://lkml.kernel.org/r/20220226022655.350562-1-namit@vmware.com
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c  |    6 ++++--
- mm/swapfile.c |    1 +
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~userfaultfd-provide-unmasked-address-on-page-fault-v3
-+++ a/mm/hugetlb.c
-@@ -5344,6 +5344,7 @@ static inline vm_fault_t hugetlb_handle_
- 						  pgoff_t idx,
- 						  unsigned int flags,
- 						  unsigned long haddr,
-+						  unsigned long addr,
- 						  unsigned long reason)
- {
- 	vm_fault_t ret;
-@@ -5351,6 +5352,7 @@ static inline vm_fault_t hugetlb_handle_
- 	struct vm_fault vmf = {
- 		.vma = vma,
- 		.address = haddr,
-+		.real_address = addr,
- 		.flags = flags,
- 
- 		/*
-@@ -5419,7 +5421,7 @@ retry:
- 		/* Check for page in userfault range */
- 		if (userfaultfd_missing(vma)) {
- 			ret = hugetlb_handle_userfault(vma, mapping, idx,
--						       flags, haddr,
-+						       flags, haddr, address,
- 						       VM_UFFD_MISSING);
- 			goto out;
- 		}
-@@ -5483,7 +5485,7 @@ retry:
- 			unlock_page(page);
- 			put_page(page);
- 			ret = hugetlb_handle_userfault(vma, mapping, idx,
--						       flags, haddr,
-+						       flags, haddr, address,
- 						       VM_UFFD_MINOR);
- 			goto out;
- 		}
---- a/mm/swapfile.c~userfaultfd-provide-unmasked-address-on-page-fault-v3
-+++ a/mm/swapfile.c
-@@ -1951,6 +1951,7 @@ static int unuse_pte_range(struct vm_are
- 			struct vm_fault vmf = {
- 				.vma = vma,
- 				.address = addr,
-+				.real_address = addr,
- 				.pmd = pmd,
- 			};
- 
+--- a/include/linux/mm.h~userfaultfd-provide-unmasked-address-on-page-fault-v3-fix
++++ a/include/linux/mm.h
+@@ -479,7 +479,7 @@ struct vm_fault {
+ 		gfp_t gfp_mask;			/* gfp mask to be used for allocations */
+ 		pgoff_t pgoff;			/* Logical page offset based on vma */
+ 		unsigned long address;		/* Faulting virtual address - masked */
+-		unsigned long real_address;	/* Faulting virtual address - unmaked */
++		unsigned long real_address;	/* Faulting virtual address - unmasked */
+ 	};
+ 	enum fault_flag flags;		/* FAULT_FLAG_xxx flags
+ 					 * XXX: should really be 'const' */
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 userfaultfd-provide-unmasked-address-on-page-fault.patch
-userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
+mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
+memcg-sync-flush-only-if-periodic-flush-is-delayed-fix.patch
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
+linux-typesh-remove-unnecessary-__bitwise__-fix.patch
+taskstats-remove-unneeded-dead-assignment-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+kasan-improve-vmalloc-tests-fix-3-fix.patch
+mm-slightly-clarify-ksm-logic-in-do_swap_page-fix.patch
+mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
