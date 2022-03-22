@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37823C43217
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:44:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09359C4321E
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:44:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236322AbiCVVp2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:45:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53010 "EHLO
+        id S236198AbiCVVp3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:45:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236257AbiCVVpA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:45:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADC8915A18
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:31 -0700 (PDT)
+        with ESMTP id S236376AbiCVVpG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:45:06 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 444F75F8C2
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4AE4761179
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D78CC340EE;
-        Tue, 22 Mar 2022 21:43:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D942FB81D9E
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98B0DC340F3;
+        Tue, 22 Mar 2022 21:43:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985410;
-        bh=MvlE/YdWISrTBlm8HEn6KO4CRbuwRXLBW8jijui9aFI=;
+        s=korg; t=1647985413;
+        bh=6rFJhdM8DpdUmiWloX+OzeAm5fksq9BQ8wrsG4qfAa8=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=DGpPWhMES2JMpX2swDCOx9utDKzljS3ZJ5ZWXAvyrGKZYpzz+4e9lfJoDMg6QDTe0
-         qOBHj5cVN7Nd4hioRvQ9zP2TpNxSHKgfo6CfkYOjIsq1jTcCkQNRJV3p4FjEEhyg1V
-         HEjkPa6slnz33/z6mrmGvAZmMtunYb7ljDvEXPH0=
-Date:   Tue, 22 Mar 2022 14:43:30 -0700
+        b=jWC7TeGPiqTuOVK4FvS7uYiFQn+RRjUWSjjmwX83IlZBrdfcs9usbJ3sOxSapLi3B
+         4u0Tuw855LHK3sHcP22fJJ6t5MlqWPn+vt9nQmJoysibiIMtQ4FLhLP6zctzB2tRbB
+         wKYP8cUq7TmzqRBOqf1PiFtw+eJXTGtkk7gWRH7s=
+Date:   Tue, 22 Mar 2022 14:43:33 -0700
 To:     vbabka@suse.cz, mhocko@kernel.org, dave.hansen@linux.intel.com,
         brouer@redhat.com, aaron.lu@intel.com, mgorman@techsingularity.net,
         akpm@linux-foundation.org, patches@lists.linux.dev,
@@ -36,82 +36,68 @@ To:     vbabka@suse.cz, mhocko@kernel.org, dave.hansen@linux.intel.com,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 098/227] mm/page_alloc: fetch the correct pcp buddy during bulk free
-Message-Id: <20220322214330.9D78CC340EE@smtp.kernel.org>
+Subject: [patch 099/227] mm/page_alloc: track range of active PCP lists during bulk free
+Message-Id: <20220322214333.98B0DC340F3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: fetch the correct pcp buddy during bulk free
+Subject: mm/page_alloc: track range of active PCP lists during bulk free
 
-Patch series "Follow-up on high-order PCP caching", v2.
+free_pcppages_bulk() frees pages in a round-robin fashion.  Originally,
+this was dealing only with migratetypes but storing high-order pages means
+that there can be many more empty lists that are uselessly checked.  Track
+the minimum and maximum active pindex to reduce the search space.
 
-Commit 44042b449872 ("mm/page_alloc: allow high-order pages to be stored
-on the per-cpu lists") was primarily aimed at reducing the cost of SLUB
-cache refills of high-order pages in two ways.  Firstly, zone lock
-acquisitions was reduced and secondly, there were fewer buddy list
-modifications.  This is a follow-up series fixing some issues that became
-apparant after merging.
-
-Patch 1 is a functional fix. It's harmless but inefficient.
-
-Patches 2-5 reduce the overhead of bulk freeing of PCP pages.  While the
-overhead is small, it's cumulative and noticable when truncating large
-files.  The changelog for patch 4 includes results of a microbench that
-deletes large sparse files with data in page cache.  Sparse files were
-used to eliminate filesystem overhead.
-
-Patch 6 addresses issues with high-order PCP pages being stored on PCP
-lists for too long.  Pages freed on a CPU potentially may not be quickly
-reused and in some cases this can increase cache miss rates.  Details are
-included in the changelog.
-
-
-This patch (of 6):
-
-free_pcppages_bulk() prefetches buddies about to be freed but the order
-must also be passed in as PCP lists store multiple orders.
-
-Link: https://lkml.kernel.org/r/20220217002227.5739-1-mgorman@techsingularity.net
-Link: https://lkml.kernel.org/r/20220217002227.5739-2-mgorman@techsingularity.net
-Fixes: 44042b449872 ("mm/page_alloc: allow high-order pages to be stored on the per-cpu lists")
+Link: https://lkml.kernel.org/r/20220217002227.5739-3-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Aaron Lu <aaron.lu@intel.com>
 Tested-by: Aaron Lu <aaron.lu@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fetch-the-correct-pcp-buddy-during-bulk-free
+--- a/mm/page_alloc.c~mm-page_alloc-track-range-of-active-pcp-lists-during-bulk-free
 +++ a/mm/page_alloc.c
-@@ -1429,10 +1429,10 @@ static bool bulkfree_pcp_prepare(struct
- }
- #endif /* CONFIG_DEBUG_VM */
- 
--static inline void prefetch_buddy(struct page *page)
-+static inline void prefetch_buddy(struct page *page, unsigned int order)
+@@ -1447,6 +1447,8 @@ static void free_pcppages_bulk(struct zo
+ 					struct per_cpu_pages *pcp)
  {
- 	unsigned long pfn = page_to_pfn(page);
--	unsigned long buddy_pfn = __find_buddy_pfn(pfn, 0);
-+	unsigned long buddy_pfn = __find_buddy_pfn(pfn, order);
- 	struct page *buddy = page + (buddy_pfn - pfn);
+ 	int pindex = 0;
++	int min_pindex = 0;
++	int max_pindex = NR_PCP_LISTS - 1;
+ 	int batch_free = 0;
+ 	int nr_freed = 0;
+ 	unsigned int order;
+@@ -1472,13 +1474,20 @@ static void free_pcppages_bulk(struct zo
+ 		 */
+ 		do {
+ 			batch_free++;
+-			if (++pindex == NR_PCP_LISTS)
+-				pindex = 0;
++			if (++pindex > max_pindex)
++				pindex = min_pindex;
+ 			list = &pcp->lists[pindex];
+-		} while (list_empty(list));
++			if (!list_empty(list))
++				break;
++
++			if (pindex == max_pindex)
++				max_pindex--;
++			if (pindex == min_pindex)
++				min_pindex++;
++		} while (1);
  
- 	prefetch(buddy);
-@@ -1509,7 +1509,7 @@ static void free_pcppages_bulk(struct zo
- 			 * prefetch buddy for the first pcp->batch nr of pages.
- 			 */
- 			if (prefetch_nr) {
--				prefetch_buddy(page);
-+				prefetch_buddy(page, order);
- 				prefetch_nr--;
- 			}
- 		} while (count > 0 && --batch_free && !list_empty(list));
+ 		/* This is the only non-empty list. Free them all. */
+-		if (batch_free == NR_PCP_LISTS)
++		if (batch_free >= max_pindex - min_pindex)
+ 			batch_free = count;
+ 
+ 		order = pindex_to_order(pindex);
 _
