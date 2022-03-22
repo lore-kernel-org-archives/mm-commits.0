@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3405C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:10:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90464C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:11:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231312AbiCVTLk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 15:11:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58276 "EHLO
+        id S231302AbiCVTMn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 15:12:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231269AbiCVTLj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:11:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93B6664733
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:10:11 -0700 (PDT)
+        with ESMTP id S230112AbiCVTMn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:12:43 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9715E8F9B3
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:11:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3E0EFB81D5F
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:10:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C89B1C340EC;
-        Tue, 22 Mar 2022 19:10:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5671AB81D39
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:11:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF7B6C340EC;
+        Tue, 22 Mar 2022 19:11:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647976208;
-        bh=rljAaHI1wH+1mIC8afqVH6Ylf3wLL9f0yHaifNmeaRM=;
+        s=korg; t=1647976272;
+        bh=rZK0IZ5UtK9dGEiZgpI9PXmN0B3PfsL5YWCa9QzDAII=;
         h=Date:To:From:Subject:From;
-        b=ielVaZJ86lywCSXkiGCmOAnZb4Y4LVgsC+s3bqOY2bFEsSMrBncjmG1Htli/2ACT0
-         KeX9zcFx4QqTemulCj4Dni6tTQ/9iLPXFVbpPlLMn4ExMg1U3o/OES21H3brtB7tke
-         EYATQp33otg1h5clODyzCUC9mfCUktr8ifb53vmk=
-Date:   Tue, 22 Mar 2022 12:10:08 -0700
-To:     mm-commits@vger.kernel.org, jhubbard@nvidia.com, peterx@redhat.com,
+        b=zwZAsTYPO+Zzg8cwBYJtE1ZJdcDAqKAQA/MEp2Yw+vNRDQWpUijn7HiIblaiDSmFb
+         NPExUq97W21BOUA8p14AdH4xN6NR9/tv/el5pnRyS9kyRLQlQGgAyBq3KUTr+i3KDL
+         BV4xONZfZvbKPgSdlSVxap2esvTUEasjmJKBGUmo=
+Date:   Tue, 22 Mar 2022 12:11:12 -0700
+To:     mm-commits@vger.kernel.org, mhocko@suse.com, osalvador@suse.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-dont-skip-swap-entry-even-if-zap_details-specified-v5.patch removed from -mm tree
-Message-Id: <20220322191008.C89B1C340EC@smtp.kernel.org>
+Subject: [folded-merged] arch-x86-mm-numa-do-not-initialize-nodes-twice-v2.patch removed from -mm tree
+Message-Id: <20220322191112.CF7B6C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,67 +41,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-dont-skip-swap-entry-even-if-zap_details-specified-v5
+     Subject: arch-x86-mm-numa-do-not-initialize-nodes-twice-v2
 has been removed from the -mm tree.  Its filename was
-     mm-dont-skip-swap-entry-even-if-zap_details-specified-v5.patch
+     arch-x86-mm-numa-do-not-initialize-nodes-twice-v2.patch
 
-This patch was dropped because it was folded into mm-dont-skip-swap-entry-even-if-zap_details-specified.patch
+This patch was dropped because it was folded into arch-x86-mm-numa-do-not-initialize-nodes-twice.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm-dont-skip-swap-entry-even-if-zap_details-specified-v5
+From: Oscar Salvador <osalvador@suse.de>
+Subject: arch-x86-mm-numa-do-not-initialize-nodes-twice-v2
 
-comment tweaks
+add comments
 
-Link: https://lkml.kernel.org/r/20220217060746.71256-2-peterx@redhat.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Link: https://lkml.kernel.org/r/20220221142649.3457-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ arch/x86/mm/numa.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/mm/memory.c~mm-dont-skip-swap-entry-even-if-zap_details-specified-v5
-+++ a/mm/memory.c
-@@ -1335,7 +1335,7 @@ zap_skip_check_mapping(struct zap_detail
- 	if (should_zap_cows(details))
- 		return false;
+--- a/arch/x86/mm/numa.c~arch-x86-mm-numa-do-not-initialize-nodes-twice-v2
++++ a/arch/x86/mm/numa.c
+@@ -755,6 +755,15 @@ void __init init_gi_nodes(void)
+ {
+ 	int nid;
  
--	/* E.g. zero page */
-+	/* E.g. the caller passes NULL for the case of a zero page */
- 	if (!page)
- 		return false;
++	/*
++	 * Exclude this node from
++	 * bringup_nonboot_cpus
++	 *  cpu_up
++	 *   __try_online_node
++	 *    register_one_node
++	 * because node_subsys is not initialized yet.
++	 * TODO remove dependency on node_online
++	 */
+ 	for_each_node_state(nid, N_GENERIC_INITIATOR)
+ 		if (!node_online(nid))
+ 			node_set_online(nid);
+@@ -787,6 +796,15 @@ void __init init_cpu_to_node(void)
+ 		if (node == NUMA_NO_NODE)
+ 			continue;
  
-@@ -1421,11 +1421,7 @@ again:
- 		}
++		/*
++		 * Exclude this node from
++		 * bringup_nonboot_cpus
++		 *  cpu_up
++		 *   __try_online_node
++		 *    register_one_node
++		 * because node_subsys is not initialized yet.
++		 * TODO remove dependency on node_online
++		 */
+ 		if (!node_online(node))
+ 			node_set_online(node);
  
- 		if (!non_swap_entry(entry)) {
--			/*
--			 * If this is a genuine swap entry, then it must be an
--			 * private anon page.  If the caller wants to skip
--			 * COWed pages, ignore it.
--			 */
-+			/* Genuine swap entry, hence a private anon page */
- 			if (!should_zap_cows(details))
- 				continue;
- 			rss[MM_SWAPENTS]--;
-@@ -1437,7 +1433,6 @@ again:
- 				continue;
- 			rss[mm_counter(page)]--;
- 		} else if (is_hwpoison_entry(entry)) {
--			/* If the caller wants to skip COWed pages, ignore it */
- 			if (!should_zap_cows(details))
- 				continue;
- 		} else {
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch
-mm-dont-skip-swap-entry-even-if-zap_details-specified.patch
-mm-rename-zap_skip_check_mapping-to-should_zap_page.patch
-mm-change-zap_detailszap_mapping-into-even_cows.patch
-mm-rework-swap-handling-of-zap_pte_range.patch
+arch-x86-mm-numa-do-not-initialize-nodes-twice.patch
+mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch
+mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state-v3.patch
 
