@@ -2,181 +2,82 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BF10C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:43:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA0F6C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:43:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236221AbiCVVok (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:44:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51224 "EHLO
+        id S236119AbiCVVox (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:44:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236308AbiCVVog (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:44:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71246C73
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:07 -0700 (PDT)
+        with ESMTP id S236243AbiCVVol (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:44:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E4ED12771
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 10954611B2
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CF5AC340F5;
-        Tue, 22 Mar 2022 21:43:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AA80CB81DAD
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62FC5C340EC;
+        Tue, 22 Mar 2022 21:43:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985386;
-        bh=svYSNXXQduEdRBmFgUxBEObKmpC7v7mW7bTnEIqX8Pc=;
+        s=korg; t=1647985389;
+        bh=2fw4V34BMaBWwfa8lGQogtWOuNUo51fHy2VVhad5FVo=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=uq5qanz3UW9Gbmj4XyQmC74nNrxZ6dFTcx7lpfalmXpTOZd7O7/0LhbxTUnsXsKSl
-         OE/g4dr9IeVAXVepISyssI8rjedkR+RK5MDguPDW8IEOhXYDnwQYkftbnHB4tlmd37
-         DR/2C/lutil5/f1UcXd+CYhWMpFU3Dpc5/QQ9tvo=
-Date:   Tue, 22 Mar 2022 14:43:05 -0700
-To:     vbabka@suse.cz, rppt@linux.ibm.com, rppt@kernel.org,
-        osalvador@suse.de, mgorman@techsingularity.net, david@redhat.com,
-        ziy@nvidia.com, akpm@linux-foundation.org, patches@lists.linux.dev,
+        b=D7QK0v64JEml4OOpBVivrX3z4qSiP2SDe5UdQuX3UlhEiMIHfQPkkgU4uAJB8jteg
+         sZ4NAuP5Um3Dm43Lb3SkTtv57rTWTycCqbYmn8JFKuny/gNuIXoRX/ep8FiUsc/plw
+         gYt3rdYhPPhssQf7sBV2MS9moa43MVB9DbfnMhpk=
+Date:   Tue, 22 Mar 2022 14:43:08 -0700
+To:     peterz@infradead.org, mgorman@suse.de, andreyknvl@gmail.com,
+        pcc@google.com, akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 090/227] mm: page_alloc: avoid merging non-fallbackable pageblocks with others
-Message-Id: <20220322214306.6CF5AC340F5@smtp.kernel.org>
+Subject: [patch 091/227] mm/mmzone.c: use try_cmpxchg() in page_cpupid_xchg_last()
+Message-Id: <20220322214309.62FC5C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm: page_alloc: avoid merging non-fallbackable pageblocks with others
+From: Peter Collingbourne <pcc@google.com>
+Subject: mm/mmzone.c: use try_cmpxchg() in page_cpupid_xchg_last()
 
-This is done in addition to MIGRATE_ISOLATE pageblock merge avoidance.  It
-prepares for the upcoming removal of the MAX_ORDER-1 alignment requirement
-for CMA and alloc_contig_range().
+This will let us avoid an additional read from page->flags when retrying
+the compare-exchange on some architectures.
 
-MIGRATE_HIGHATOMIC should not merge with other migratetypes like
-MIGRATE_ISOLATE and MIGRARTE_CMA[1], so this commit prevents that too.
-
-Remove MIGRATE_CMA and MIGRATE_ISOLATE from fallbacks list, since they
-are never used.
-
-[1] https://lore.kernel.org/linux-mm/20211130100853.GP3366@techsingularity.net/
-
-Link: https://lkml.kernel.org/r/20220124175957.1261961-1-zi.yan@sent.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20220120011200.1322836-1-pcc@google.com
+Link: https://linux-review.googlesource.com/id/I2e1f5b5b080ac9c4e0eb7f98768dba6fd7821693
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   11 +++++++++
- mm/page_alloc.c        |   46 ++++++++++++++++++---------------------
- 2 files changed, 33 insertions(+), 24 deletions(-)
+ mm/mmzone.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others
-+++ a/include/linux/mmzone.h
-@@ -83,6 +83,17 @@ static inline bool is_migrate_movable(in
- 	return is_migrate_cma(mt) || mt == MIGRATE_MOVABLE;
+--- a/mm/mmzone.c~mm-mmzonec-use-try_cmpxchg-in-page_cpupid_xchg_last
++++ a/mm/mmzone.c
+@@ -89,13 +89,14 @@ int page_cpupid_xchg_last(struct page *p
+ 	unsigned long old_flags, flags;
+ 	int last_cpupid;
+ 
++	old_flags = READ_ONCE(page->flags);
+ 	do {
+-		old_flags = flags = page->flags;
+-		last_cpupid = page_cpupid_last(page);
++		flags = old_flags;
++		last_cpupid = (flags >> LAST_CPUPID_PGSHIFT) & LAST_CPUPID_MASK;
+ 
+ 		flags &= ~(LAST_CPUPID_MASK << LAST_CPUPID_PGSHIFT);
+ 		flags |= (cpupid & LAST_CPUPID_MASK) << LAST_CPUPID_PGSHIFT;
+-	} while (unlikely(cmpxchg(&page->flags, old_flags, flags) != old_flags));
++	} while (unlikely(!try_cmpxchg(&page->flags, &old_flags, flags)));
+ 
+ 	return last_cpupid;
  }
- 
-+/*
-+ * Check whether a migratetype can be merged with another migratetype.
-+ *
-+ * It is only mergeable when it can fall back to other migratetypes for
-+ * allocation. See fallbacks[MIGRATE_TYPES][3] in page_alloc.c.
-+ */
-+static inline bool migratetype_is_mergeable(int mt)
-+{
-+	return mt < MIGRATE_PCPTYPES;
-+}
-+
- #define for_each_migratetype_order(order, type) \
- 	for (order = 0; order < MAX_ORDER; order++) \
- 		for (type = 0; type < MIGRATE_TYPES; type++)
---- a/mm/page_alloc.c~mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others
-+++ a/mm/page_alloc.c
-@@ -1117,25 +1117,24 @@ continue_merging:
- 	}
- 	if (order < MAX_ORDER - 1) {
- 		/* If we are here, it means order is >= pageblock_order.
--		 * We want to prevent merge between freepages on isolate
--		 * pageblock and normal pageblock. Without this, pageblock
--		 * isolation could cause incorrect freepage or CMA accounting.
-+		 * We want to prevent merge between freepages on pageblock
-+		 * without fallbacks and normal pageblock. Without this,
-+		 * pageblock isolation could cause incorrect freepage or CMA
-+		 * accounting or HIGHATOMIC accounting.
- 		 *
- 		 * We don't want to hit this code for the more frequent
- 		 * low-order merging.
- 		 */
--		if (unlikely(has_isolate_pageblock(zone))) {
--			int buddy_mt;
-+		int buddy_mt;
- 
--			buddy_pfn = __find_buddy_pfn(pfn, order);
--			buddy = page + (buddy_pfn - pfn);
--			buddy_mt = get_pageblock_migratetype(buddy);
--
--			if (migratetype != buddy_mt
--					&& (is_migrate_isolate(migratetype) ||
--						is_migrate_isolate(buddy_mt)))
--				goto done_merging;
--		}
-+		buddy_pfn = __find_buddy_pfn(pfn, order);
-+		buddy = page + (buddy_pfn - pfn);
-+		buddy_mt = get_pageblock_migratetype(buddy);
-+
-+		if (migratetype != buddy_mt
-+				&& (!migratetype_is_mergeable(migratetype) ||
-+					!migratetype_is_mergeable(buddy_mt)))
-+			goto done_merging;
- 		max_order = order + 1;
- 		goto continue_merging;
- 	}
-@@ -2479,17 +2478,13 @@ struct page *__rmqueue_smallest(struct z
- /*
-  * This array describes the order lists are fallen back to when
-  * the free lists for the desirable migrate type are depleted
-+ *
-+ * The other migratetypes do not have fallbacks.
-  */
- static int fallbacks[MIGRATE_TYPES][3] = {
- 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_TYPES },
- 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_TYPES },
- 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_TYPES },
--#ifdef CONFIG_CMA
--	[MIGRATE_CMA]         = { MIGRATE_TYPES }, /* Never used */
--#endif
--#ifdef CONFIG_MEMORY_ISOLATION
--	[MIGRATE_ISOLATE]     = { MIGRATE_TYPES }, /* Never used */
--#endif
- };
- 
- #ifdef CONFIG_CMA
-@@ -2795,8 +2790,8 @@ static void reserve_highatomic_pageblock
- 
- 	/* Yoink! */
- 	mt = get_pageblock_migratetype(page);
--	if (!is_migrate_highatomic(mt) && !is_migrate_isolate(mt)
--	    && !is_migrate_cma(mt)) {
-+	/* Only reserve normal pageblocks (i.e., they can merge with others) */
-+	if (migratetype_is_mergeable(mt)) {
- 		zone->nr_reserved_highatomic += pageblock_nr_pages;
- 		set_pageblock_migratetype(page, MIGRATE_HIGHATOMIC);
- 		move_freepages_block(zone, page, MIGRATE_HIGHATOMIC, NULL);
-@@ -3545,8 +3540,11 @@ int __isolate_free_page(struct page *pag
- 		struct page *endpage = page + (1 << order) - 1;
- 		for (; page < endpage; page += pageblock_nr_pages) {
- 			int mt = get_pageblock_migratetype(page);
--			if (!is_migrate_isolate(mt) && !is_migrate_cma(mt)
--			    && !is_migrate_highatomic(mt))
-+			/*
-+			 * Only change normal pageblocks (i.e., they can merge
-+			 * with others)
-+			 */
-+			if (migratetype_is_mergeable(mt))
- 				set_pageblock_migratetype(page,
- 							  MIGRATE_MOVABLE);
- 		}
 _
