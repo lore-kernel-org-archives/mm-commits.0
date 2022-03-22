@@ -2,94 +2,197 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BAC2C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:49:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BBF2C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:49:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236777AbiCVVu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236743AbiCVVu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Mar 2022 17:50:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38884 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236896AbiCVVuT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:50:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D5D02C64C
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:48:37 -0700 (PDT)
+        with ESMTP id S236841AbiCVVuZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:50:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED8DE2DD71
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:48:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 54274B81D59
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:48:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1030EC340EE;
-        Tue, 22 Mar 2022 21:48:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8ACAF6149C
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:48:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5CEBC340EC;
+        Tue, 22 Mar 2022 21:48:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985715;
-        bh=ayXBwIwhumzWY9c4wWb4oEyiB3je2vpZD8X2Qsn4eDI=;
+        s=korg; t=1647985730;
+        bh=LgGIcu5sZLkQjeeebEvOWxn84gg2PYy3JGDCogtNaww=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=Ykfsv2pm5JNWiwv/Cn4GWP6rJ9QDfTiQiDSceCXBjbWnBaHlWVO3swiGy/hy6y27U
-         RzcRTFcpnFskXNkMg4F52q/mFjy7p2uSQET0WL91oNG1frCekVEhirDffHFmu50w6c
-         QZM6LhDwstf1s1BfqmnQ2AS05vovZyVH+j67ORdE=
-Date:   Tue, 22 Mar 2022 14:48:34 -0700
-To:     sj@kernel.org, akpm@linux-foundation.org, patches@lists.linux.dev,
+        b=M8y7oWejqdkmyZZF71TECrjMnk/5yPTufUEPuCqmPWFwarszoIqSWwtaPUW9R8z1W
+         10kRzOJOf1ISkjEOyxMcrh+Q9vRr42hdaOhttqmtTE05LRAy8UDeLXB9O1Q1PJ/mLQ
+         FJ0rDvmkYmifgFMGK6sGYF/qDu0f/Df7yXW1numw=
+Date:   Tue, 22 Mar 2022 14:48:49 -0700
+To:     xhao@linux.alibaba.com, rientjes@google.com, sj@kernel.org,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 198/227] Docs/admin-guide/mm/damon/usage: update for changed initail_regions file input
-Message-Id: <20220322214835.1030EC340EE@smtp.kernel.org>
+Subject: [patch 203/227] mm/damon: let monitoring operations can be registered and selected
+Message-Id: <20220322214849.E5CEBC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for changed initail_regions file input
+Subject: mm/damon: let monitoring operations can be registered and selected
 
-A previous commit made init_regions debugfs file to use target index
-instead of target id for specifying the target of the init regions.  This
-commit updates the usage document to reflect the change.
+In-kernel DAMON user code like DAMON debugfs interface should set 'struct
+damon_operations' of its 'struct damon_ctx' on its own.  Therefore, the
+client code should depend on all supporting monitoring operations
+implementations that it could use.  For example, DAMON debugfs interface
+depends on both vaddr and paddr, while some of the users are not always
+interested in both.
 
-Link: https://lkml.kernel.org/r/20211230100723.2238-3-sj@kernel.org
+To minimize such unnecessary dependencies, this commit makes the
+monitoring operations can be registered by implementing code and then
+dynamically selected by the user code without build-time dependency.
+
+Link: https://lkml.kernel.org/r/20220215184603.1479-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Xin Hao <xhao@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   24 +++++++++--------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ include/linux/damon.h |   18 ++++++++++
+ mm/damon/core.c       |   66 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 84 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-changed-initail_regions-file-input
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -108,19 +108,23 @@ In such cases, users can explicitly set
- as they want, by writing proper values to the ``init_regions`` file.  Each line
- of the input should represent one region in below form.::
+--- a/include/linux/damon.h~mm-damon-let-monitoring-operations-can-be-registered-and-selected
++++ a/include/linux/damon.h
+@@ -253,11 +253,24 @@ struct damos {
+ 	struct list_head list;
+ };
  
--    <target id> <start address> <end address>
-+    <target idx> <start address> <end address>
++/**
++ * enum damon_ops_id - Identifier for each monitoring operations implementation
++ *
++ * @DAMON_OPS_VADDR:	Monitoring operations for virtual address spaces
++ * @DAMON_OPS_PADDR:	Monitoring operations for the physical address space
++ */
++enum damon_ops_id {
++	DAMON_OPS_VADDR,
++	DAMON_OPS_PADDR,
++	NR_DAMON_OPS,
++};
++
+ struct damon_ctx;
  
--The ``target id`` should already in ``target_ids`` file, and the regions should
--be passed in address order.  For example, below commands will set a couple of
--address ranges, ``1-100`` and ``100-200`` as the initial monitoring target
--region of process 42, and another couple of address ranges, ``20-40`` and
--``50-100`` as that of process 4242.::
-+The ``target idx`` should be the index of the target in ``target_ids`` file,
-+starting from ``0``, and the regions should be passed in address order.  For
-+example, below commands will set a couple of address ranges, ``1-100`` and
-+``100-200`` as the initial monitoring target region of pid 42, which is the
-+first one (index ``0``) in ``target_ids``, and another couple of address
-+ranges, ``20-40`` and ``50-100`` as that of pid 4242, which is the second one
-+(index ``1``) in ``target_ids``.::
+ /**
+  * struct damon_operations - Monitoring operations for given use cases.
+  *
++ * @id:				Identifier of this operations set.
+  * @init:			Initialize operations-related data structures.
+  * @update:			Update operations-related data structures.
+  * @prepare_access_checks:	Prepare next access check of target regions.
+@@ -277,6 +290,8 @@ struct damon_ctx;
+  * &damon_ctx.sample_interval.  Finally, @reset_aggregated is called after each
+  * &damon_ctx.aggr_interval.
+  *
++ * Each &struct damon_operations instance having valid @id can be registered
++ * via damon_register_ops() and selected by damon_select_ops() later.
+  * @init should initialize operations-related data structures.  For example,
+  * this could be used to construct proper monitoring target regions and link
+  * those to @damon_ctx.adaptive_targets.
+@@ -301,6 +316,7 @@ struct damon_ctx;
+  * @cleanup is called from @kdamond just before its termination.
+  */
+ struct damon_operations {
++	enum damon_ops_id id;
+ 	void (*init)(struct damon_ctx *context);
+ 	void (*update)(struct damon_ctx *context);
+ 	void (*prepare_access_checks)(struct damon_ctx *context);
+@@ -489,6 +505,8 @@ int damon_set_attrs(struct damon_ctx *ct
+ int damon_set_schemes(struct damon_ctx *ctx,
+ 			struct damos **schemes, ssize_t nr_schemes);
+ int damon_nr_running_ctxs(void);
++int damon_register_ops(struct damon_operations *ops);
++int damon_select_ops(struct damon_ctx *ctx, enum damon_ops_id id);
  
-     # cd <debugfs>/damon
--    # echo "42   1       100
--            42   100     200
--            4242 20      40
--            4242 50      100" > init_regions
-+    # cat target_ids
-+    42 4242
-+    # echo "0   1       100
-+            0   100     200
-+            1   20      40
-+            1   50      100" > init_regions
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs);
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
+--- a/mm/damon/core.c~mm-damon-let-monitoring-operations-can-be-registered-and-selected
++++ a/mm/damon/core.c
+@@ -25,6 +25,72 @@
+ static DEFINE_MUTEX(damon_lock);
+ static int nr_running_ctxs;
  
- Note that this sets the initial monitoring target regions only.  In case of
- virtual memory monitoring, DAMON will automatically updates the boundary of the
++static DEFINE_MUTEX(damon_ops_lock);
++static struct damon_operations damon_registered_ops[NR_DAMON_OPS];
++
++/* Should be called under damon_ops_lock with id smaller than NR_DAMON_OPS */
++static bool damon_registered_ops_id(enum damon_ops_id id)
++{
++	struct damon_operations empty_ops = {};
++
++	if (!memcmp(&empty_ops, &damon_registered_ops[id], sizeof(empty_ops)))
++		return false;
++	return true;
++}
++
++/**
++ * damon_register_ops() - Register a monitoring operations set to DAMON.
++ * @ops:	monitoring operations set to register.
++ *
++ * This function registers a monitoring operations set of valid &struct
++ * damon_operations->id so that others can find and use them later.
++ *
++ * Return: 0 on success, negative error code otherwise.
++ */
++int damon_register_ops(struct damon_operations *ops)
++{
++	int err = 0;
++
++	if (ops->id >= NR_DAMON_OPS)
++		return -EINVAL;
++	mutex_lock(&damon_ops_lock);
++	/* Fail for already registered ops */
++	if (damon_registered_ops_id(ops->id)) {
++		err = -EINVAL;
++		goto out;
++	}
++	damon_registered_ops[ops->id] = *ops;
++out:
++	mutex_unlock(&damon_ops_lock);
++	return err;
++}
++
++/**
++ * damon_select_ops() - Select a monitoring operations to use with the context.
++ * @ctx:	monitoring context to use the operations.
++ * @id:		id of the registered monitoring operations to select.
++ *
++ * This function finds registered monitoring operations set of @id and make
++ * @ctx to use it.
++ *
++ * Return: 0 on success, negative error code otherwise.
++ */
++int damon_select_ops(struct damon_ctx *ctx, enum damon_ops_id id)
++{
++	int err = 0;
++
++	if (id >= NR_DAMON_OPS)
++		return -EINVAL;
++
++	mutex_lock(&damon_ops_lock);
++	if (!damon_registered_ops_id(id))
++		err = -EINVAL;
++	else
++		ctx->ops = damon_registered_ops[id];
++	mutex_unlock(&damon_ops_lock);
++	return err;
++}
++
+ /*
+  * Construct a damon_region struct
+  *
 _
