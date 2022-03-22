@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0585C4167B
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:44:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBB48C4321E
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:44:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236260AbiCVVpt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:45:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54898 "EHLO
+        id S236317AbiCVVps (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:45:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236466AbiCVVp1 (ORCPT
+        with ESMTP id S236455AbiCVVp1 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:45:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9D3E13E11
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:49 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5283F5F8E5
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 84E286149F
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D21E5C340F2;
-        Tue, 22 Mar 2022 21:43:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E2519B81D77
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0B96C340EC;
+        Tue, 22 Mar 2022 21:43:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985428;
-        bh=yE+foT6ycZIEk/yhItCMeIRV6Fxl6kJtyoQy1cLNBEk=;
+        s=korg; t=1647985422;
+        bh=BjpmI5D87g7Z+XJBfZmngKJHs0dzuJgyOI0NRbyHgrI=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=ffogBE1QK8ATvyueuaFksTTTwu4dRNHj4FJejOEvNp6ApwYgykUo99Pvt6dTvQGBA
-         viiYylbFAgnPBQucj5tvdxjmH9RsijQDHxQOjlSS0h/UY6RVGSjPhBGDnLMmfTUgaS
-         aP7RVk2XtqnLcDGRFNTeAB3OpoyG7kubpDO4ssOY=
-Date:   Tue, 22 Mar 2022 14:43:48 -0700
+        b=NA6Fcr6HNRh7AY555+tV9Zr9eFFMtLt5I/q8LFe163c1+Avfu7CKA+mzgxLhxTa6N
+         eC+RZCZjTFrjrpiA+x6CpVcJwmL68yu2OoWPPKQXPYOzMAslo4XehA/FegN0c5GbZC
+         7YLNDSc7EFMyWUO4jz2KGt4G640P5Y8hQIvG378o=
+Date:   Tue, 22 Mar 2022 14:43:42 -0700
 To:     vbabka@suse.cz, mhocko@kernel.org, dave.hansen@linux.intel.com,
         brouer@redhat.com, aaron.lu@intel.com, mgorman@techsingularity.net,
         akpm@linux-foundation.org, patches@lists.linux.dev,
@@ -36,113 +36,188 @@ To:     vbabka@suse.cz, mhocko@kernel.org, dave.hansen@linux.intel.com,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 104/227] mm/page_alloc: do not prefetch buddies during bulk free
-Message-Id: <20220322214348.D21E5C340F2@smtp.kernel.org>
+Subject: [patch 102/227] mm/page_alloc: free pages in a single pass during bulk free
+Message-Id: <20220322214342.A0B96C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: do not prefetch buddies during bulk free
+Subject: mm/page_alloc: free pages in a single pass during bulk free
 
 free_pcppages_bulk() has taken two passes through the pcp lists since
 commit 0a5f4e5b4562 ("mm/free_pcppages_bulk: do not hold lock when picking
 pages to free") due to deferring the cost of selecting PCP lists until the
-zone lock is held.
+zone lock is held.  Now that list selection is simplier, the main cost
+during selection is bulkfree_pcp_prepare() which in the normal case is a
+simple check and prefetching.  As the list manipulations have cost in
+itself, go back to freeing pages in a single pass.
 
-As the list processing now takes place under the zone lock, it's less
-clear that this will always benefit for two reasons.
+The series up to this point was evaulated using a trunc microbenchmark
+that is truncating sparse files stored in page cache (mmtests config
+config-io-trunc).  Sparse files were used to limit filesystem interaction.
+The results versus a revert of storing high-order pages in the PCP lists
+is
 
-1. There is a guaranteed cost to calculating the buddy which definitely
-   has to be calculated again. However, as the zone lock is held and
-   there is no deferring of buddy merging, there is no guarantee that the
-   prefetch will have completed when the second buddy calculation takes
-   place and buddies are being merged.  With or without the prefetch, there
-   may be further stalls depending on how many pages get merged. In other
-   words, a stall due to merging is inevitable and at best only one stall
-   might be avoided at the cost of calculating the buddy location twice.
+1-socket Skylake
+                              5.17.0-rc3             5.17.0-rc3             5.17.0-rc3
+                                 vanilla      mm-reverthighpcp-v1     mm-highpcpopt-v2
+Min       elapsed      540.00 (   0.00%)      530.00 (   1.85%)      530.00 (   1.85%)
+Amean     elapsed      543.00 (   0.00%)      530.00 *   2.39%*      530.00 *   2.39%*
+Stddev    elapsed        4.83 (   0.00%)        0.00 ( 100.00%)        0.00 ( 100.00%)
+CoeffVar  elapsed        0.89 (   0.00%)        0.00 ( 100.00%)        0.00 ( 100.00%)
+Max       elapsed      550.00 (   0.00%)      530.00 (   3.64%)      530.00 (   3.64%)
+BAmean-50 elapsed      540.00 (   0.00%)      530.00 (   1.85%)      530.00 (   1.85%)
+BAmean-95 elapsed      542.22 (   0.00%)      530.00 (   2.25%)      530.00 (   2.25%)
+BAmean-99 elapsed      542.22 (   0.00%)      530.00 (   2.25%)      530.00 (   2.25%)
 
-2. As the zone lock is held, prefetch_nr makes less sense as once
-   prefetch_nr expires, the cache lines of interest have already been
-   merged.
+2-socket CascadeLake
+                              5.17.0-rc3             5.17.0-rc3             5.17.0-rc3
+                                 vanilla    mm-reverthighpcp-v1       mm-highpcpopt-v2
+Min       elapsed      510.00 (   0.00%)      500.00 (   1.96%)      500.00 (   1.96%)
+Amean     elapsed      529.00 (   0.00%)      521.00 (   1.51%)      510.00 *   3.59%*
+Stddev    elapsed       16.63 (   0.00%)       12.87 (  22.64%)       11.55 (  30.58%)
+CoeffVar  elapsed        3.14 (   0.00%)        2.47 (  21.46%)        2.26 (  27.99%)
+Max       elapsed      550.00 (   0.00%)      540.00 (   1.82%)      530.00 (   3.64%)
+BAmean-50 elapsed      516.00 (   0.00%)      512.00 (   0.78%)      500.00 (   3.10%)
+BAmean-95 elapsed      526.67 (   0.00%)      518.89 (   1.48%)      507.78 (   3.59%)
+BAmean-99 elapsed      526.67 (   0.00%)      518.89 (   1.48%)      507.78 (   3.59%)
 
-The main concern is that there is a definite cost to calculating the buddy
-location early for the prefetch and it is a "maybe win" depending on
-whether the CPU prefetch logic and memory is fast enough.  Remove the
-prefetch logic on the basis that reduced instructions in a path is always
-a saving where as the prefetch might save one memory stall depending on
-the CPU and memory.
+The original motivation for multi-passes was will-it-scale page_fault1
+using $nr_cpu processes.
 
-In most cases, this has marginal benefit as the calculations are a small
-part of the overall freeing of pages.  However, it was detectable on at
-least one machine.
+2-socket CascadeLake (40 cores, 80 CPUs HT enabled)
+                                                    5.17.0-rc3                 5.17.0-rc3
+                                                       vanilla           mm-highpcpopt-v2
+Hmean     page_fault1-processes-2        2694662.26 (   0.00%)      2695780.35 (   0.04%)
+Hmean     page_fault1-processes-5        6425819.34 (   0.00%)      6435544.57 *   0.15%*
+Hmean     page_fault1-processes-8        9642169.10 (   0.00%)      9658962.39 (   0.17%)
+Hmean     page_fault1-processes-12      12167502.10 (   0.00%)     12190163.79 (   0.19%)
+Hmean     page_fault1-processes-21      15636859.03 (   0.00%)     15612447.26 (  -0.16%)
+Hmean     page_fault1-processes-30      25157348.61 (   0.00%)     25169456.65 (   0.05%)
+Hmean     page_fault1-processes-48      27694013.85 (   0.00%)     27671111.46 (  -0.08%)
+Hmean     page_fault1-processes-79      25928742.64 (   0.00%)     25934202.02 (   0.02%) <--
+Hmean     page_fault1-processes-110     25730869.75 (   0.00%)     25671880.65 *  -0.23%*
+Hmean     page_fault1-processes-141     25626992.42 (   0.00%)     25629551.61 (   0.01%)
+Hmean     page_fault1-processes-172     25611651.35 (   0.00%)     25614927.99 (   0.01%)
+Hmean     page_fault1-processes-203     25577298.75 (   0.00%)     25583445.59 (   0.02%)
+Hmean     page_fault1-processes-234     25580686.07 (   0.00%)     25608240.71 (   0.11%)
+Hmean     page_fault1-processes-265     25570215.47 (   0.00%)     25568647.58 (  -0.01%)
+Hmean     page_fault1-processes-296     25549488.62 (   0.00%)     25543935.00 (  -0.02%)
+Hmean     page_fault1-processes-320     25555149.05 (   0.00%)     25575696.74 (   0.08%)
 
-                              5.17.0-rc3             5.17.0-rc3
-                    mm-highpcplimit-v2r1     mm-noprefetch-v1r1
-Min       elapsed      630.00 (   0.00%)      610.00 (   3.17%)
-Amean     elapsed      639.00 (   0.00%)      623.00 *   2.50%*
-Max       elapsed      660.00 (   0.00%)      660.00 (   0.00%)
+The differences are mostly within the noise and the difference close to
+$nr_cpus is negligible.
 
-Link: https://lkml.kernel.org/r/20220221094119.15282-2-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20220217002227.5739-6-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Suggested-by: Aaron Lu <aaron.lu@intel.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+Tested-by: Aaron Lu <aaron.lu@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ mm/page_alloc.c |   56 +++++++++++++++++-----------------------------
+ 1 file changed, 21 insertions(+), 35 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-do-not-prefetch-buddies-during-bulk-free
+--- a/mm/page_alloc.c~mm-page_alloc-free-pages-in-a-single-pass-during-bulk-free
 +++ a/mm/page_alloc.c
-@@ -1429,15 +1429,6 @@ static bool bulkfree_pcp_prepare(struct
- }
- #endif /* CONFIG_DEBUG_VM */
- 
--static inline void prefetch_buddy(struct page *page, unsigned int order)
--{
--	unsigned long pfn = page_to_pfn(page);
--	unsigned long buddy_pfn = __find_buddy_pfn(pfn, order);
--	struct page *buddy = page + (buddy_pfn - pfn);
--
--	prefetch(buddy);
--}
--
- /*
-  * Frees a number of pages from the PCP lists
-  * Assumes all pages on list are in same zone.
-@@ -1450,7 +1441,6 @@ static void free_pcppages_bulk(struct zo
- 	int min_pindex = 0;
- 	int max_pindex = NR_PCP_LISTS - 1;
+@@ -1452,8 +1452,7 @@ static void free_pcppages_bulk(struct zo
  	unsigned int order;
--	int prefetch_nr = READ_ONCE(pcp->batch);
+ 	int prefetch_nr = READ_ONCE(pcp->batch);
  	bool isolated_pageblocks;
- 	struct page *page;
+-	struct page *page, *tmp;
+-	LIST_HEAD(head);
++	struct page *page;
  
-@@ -1505,20 +1495,6 @@ static void free_pcppages_bulk(struct zo
+ 	/*
+ 	 * Ensure proper count is passed which otherwise would stuck in the
+@@ -1464,6 +1463,13 @@ static void free_pcppages_bulk(struct zo
+ 	/* Ensure requested pindex is drained first. */
+ 	pindex = pindex - 1;
+ 
++	/*
++	 * local_lock_irq held so equivalent to spin_lock_irqsave for
++	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
++	 */
++	spin_lock(&zone->lock);
++	isolated_pageblocks = has_isolate_pageblock(zone);
++
+ 	while (count > 0) {
+ 		struct list_head *list;
+ 		int nr_pages;
+@@ -1486,7 +1492,11 @@ static void free_pcppages_bulk(struct zo
+ 		nr_pages = 1 << order;
+ 		BUILD_BUG_ON(MAX_ORDER >= (1<<NR_PCP_ORDER_WIDTH));
+ 		do {
++			int mt;
++
+ 			page = list_last_entry(list, struct page, lru);
++			mt = get_pcppage_migratetype(page);
++
+ 			/* must delete to avoid corrupting pcp list */
+ 			list_del(&page->lru);
+ 			count -= nr_pages;
+@@ -1495,12 +1505,6 @@ static void free_pcppages_bulk(struct zo
  			if (bulkfree_pcp_prepare(page))
  				continue;
  
--			/*
--			 * We are going to put the page back to the global
--			 * pool, prefetch its buddy to speed up later access
--			 * under zone->lock. It is believed the overhead of
--			 * an additional test and calculating buddy_pfn here
--			 * can be offset by reduced memory latency later. To
--			 * avoid excessive prefetching due to large count, only
--			 * prefetch buddy for the first pcp->batch nr of pages.
--			 */
--			if (prefetch_nr) {
--				prefetch_buddy(page, order);
--				prefetch_nr--;
--			}
+-			/* Encode order with the migratetype */
+-			page->index <<= NR_PCP_ORDER_WIDTH;
+-			page->index |= order;
 -
- 			/* MIGRATE_ISOLATE page should not go to pcplists */
- 			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
- 			/* Pageblock could have been isolated meanwhile */
+-			list_add_tail(&page->lru, &head);
+-
+ 			/*
+ 			 * We are going to put the page back to the global
+ 			 * pool, prefetch its buddy to speed up later access
+@@ -1514,36 +1518,18 @@ static void free_pcppages_bulk(struct zo
+ 				prefetch_buddy(page, order);
+ 				prefetch_nr--;
+ 			}
+-		} while (count > 0 && !list_empty(list));
+-	}
+ 
+-	/*
+-	 * local_lock_irq held so equivalent to spin_lock_irqsave for
+-	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
+-	 */
+-	spin_lock(&zone->lock);
+-	isolated_pageblocks = has_isolate_pageblock(zone);
++			/* MIGRATE_ISOLATE page should not go to pcplists */
++			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
++			/* Pageblock could have been isolated meanwhile */
++			if (unlikely(isolated_pageblocks))
++				mt = get_pageblock_migratetype(page);
+ 
+-	/*
+-	 * Use safe version since after __free_one_page(),
+-	 * page->lru.next will not point to original list.
+-	 */
+-	list_for_each_entry_safe(page, tmp, &head, lru) {
+-		int mt = get_pcppage_migratetype(page);
+-
+-		/* mt has been encoded with the order (see above) */
+-		order = mt & NR_PCP_ORDER_MASK;
+-		mt >>= NR_PCP_ORDER_WIDTH;
+-
+-		/* MIGRATE_ISOLATE page should not go to pcplists */
+-		VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
+-		/* Pageblock could have been isolated meanwhile */
+-		if (unlikely(isolated_pageblocks))
+-			mt = get_pageblock_migratetype(page);
+-
+-		__free_one_page(page, page_to_pfn(page), zone, order, mt, FPI_NONE);
+-		trace_mm_page_pcpu_drain(page, order, mt);
++			__free_one_page(page, page_to_pfn(page), zone, order, mt, FPI_NONE);
++			trace_mm_page_pcpu_drain(page, order, mt);
++		} while (count > 0 && !list_empty(list));
+ 	}
++
+ 	spin_unlock(&zone->lock);
+ }
+ 
 _
