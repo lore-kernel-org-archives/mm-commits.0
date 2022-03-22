@@ -2,77 +2,197 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD46C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDFB4C43217
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:48:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236727AbiCVVuB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:50:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36518 "EHLO
+        id S236764AbiCVVuD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:50:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236764AbiCVVuA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:50:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F344C2DC
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:48:31 -0700 (PDT)
+        with ESMTP id S236828AbiCVVuB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:50:01 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BA4FB86D
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:48:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 98BFAB81DC3
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:48:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 257E0C340EC;
-        Tue, 22 Mar 2022 21:48:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B55AA61662
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:48:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 246F9C340EE;
+        Tue, 22 Mar 2022 21:48:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985709;
-        bh=uRITHZf8d6O7W32n304m1vz3dms6bCgyqp7pO2fMBr8=;
+        s=korg; t=1647985712;
+        bh=YtnK+S/OTeMSsh+8K3Gcc2G+gfbVMLvD25dI6o8ex0g=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=mDavlmCmh1Fq0DkQpofy2B+33lTcPhonwJgxzWAVXLWvjZG7FVhtuLfpZB1RKW982
-         3IFKBkMhZgw21ltkQLiNn4ya3A1xAl6SrUki1fAzhZp0s0WfXgNJ7yoa0+g/q/6OE4
-         2azALnnQtNam1lQ1jWrD1epj2T1sEyBnQ02C2mEc=
-Date:   Tue, 22 Mar 2022 14:48:28 -0700
-To:     songmuchun@bytedance.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
+        b=DL/lZVFkE5G8x8jC6cuNAnJGKHB97K37hLxWQjJF/mhhDKaoxmrtIZjP7kz+h42HC
+         BgTqNIGf5vgakJSs7lboTnsSlMidRzRo4U7eiaBhkXNvQwcloxFBI/LO8KYbqhHEYW
+         tkNfItor/stZmefDoiXS6AdBkiW7F3RzN0ctxwjA=
+Date:   Tue, 22 Mar 2022 14:48:31 -0700
+To:     sj@kernel.org, akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 196/227] mm/hmm.c: remove unneeded local variable ret
-Message-Id: <20220322214829.257E0C340EC@smtp.kernel.org>
+Subject: [patch 197/227] mm/damon/dbgfs/init_regions: use target index instead of target id
+Message-Id: <20220322214832.246F9C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hmm.c: remove unneeded local variable ret
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/dbgfs/init_regions: use target index instead of target id
 
-The local variable ret is always 0. Remove it to make code more tight.
+Patch series "Remove the type-unclear target id concept".
 
-Link: https://lkml.kernel.org/r/20220125124833.39718-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+DAMON asks each monitoring target ('struct damon_target') to have one
+'unsigned long' integer called 'id', which should be unique among the
+targets of same monitoring context.  Meaning of it is, however, totally up
+to the monitoring primitives that registered to the monitoring context. 
+For example, the virtual address spaces monitoring primitives treats the
+id as a 'struct pid' pointer.
+
+This makes the code flexible but ugly, not well-documented, and
+type-unsafe[1].  Also, identification of each target can be done via its
+index.  For the reason, this patchset removes the concept and uses clear
+type definition.
+
+[1] https://lore.kernel.org/linux-mm/20211013154535.4aaeaaf9d0182922e405dd1e@linux-foundation.org/
+
+
+This patch (of 4):
+
+Target id is a 'unsigned long' data, which can be interpreted differently
+by each monitoring primitives.  For example, it means 'struct pid *' for
+the virtual address spaces monitoring, while it means nothing but an
+integer to be displayed to debugfs interface users for the physical
+address space monitoring.  It's flexible but makes code ugly and
+type-unsafe[1].
+
+To be prepared for eventual removal of the concept, this commit removes a
+use case of the concept in 'init_regions' debugfs file handling.  In
+detail, this commit replaces use of the id with the index of each target
+in the context's targets list.
+
+[1] https://lore.kernel.org/linux-mm/20211013154535.4aaeaaf9d0182922e405dd1e@linux-foundation.org/
+
+Link: https://lkml.kernel.org/r/20211230100723.2238-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211230100723.2238-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/damon/dbgfs-test.h |   20 ++++++++++----------
+ mm/damon/dbgfs.c      |   25 ++++++++++++-------------
+ 2 files changed, 22 insertions(+), 23 deletions(-)
 
---- a/mm/hmm.c~mm-hmmc-remove-unneeded-local-variable-ret
-+++ a/mm/hmm.c
-@@ -417,7 +417,6 @@ static int hmm_vma_walk_pud(pud_t *pudp,
- 	struct hmm_range *range = hmm_vma_walk->range;
- 	unsigned long addr = start;
- 	pud_t pud;
--	int ret = 0;
- 	spinlock_t *ptl = pud_trans_huge_lock(pudp, walk->vma);
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id
++++ a/mm/damon/dbgfs.c
+@@ -440,18 +440,20 @@ static ssize_t sprint_init_regions(struc
+ {
+ 	struct damon_target *t;
+ 	struct damon_region *r;
++	int target_idx = 0;
+ 	int written = 0;
+ 	int rc;
  
- 	if (!ptl)
-@@ -466,7 +465,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
- 
- out_unlock:
- 	spin_unlock(ptl);
--	return ret;
-+	return 0;
+ 	damon_for_each_target(t, c) {
+ 		damon_for_each_region(r, t) {
+ 			rc = scnprintf(&buf[written], len - written,
+-					"%lu %lu %lu\n",
+-					t->id, r->ar.start, r->ar.end);
++					"%d %lu %lu\n",
++					target_idx, r->ar.start, r->ar.end);
+ 			if (!rc)
+ 				return -ENOMEM;
+ 			written += rc;
+ 		}
++		target_idx++;
+ 	}
+ 	return written;
  }
- #else
- #define hmm_vma_walk_pud	NULL
+@@ -485,22 +487,19 @@ out:
+ 	return len;
+ }
+ 
+-static int add_init_region(struct damon_ctx *c,
+-			 unsigned long target_id, struct damon_addr_range *ar)
++static int add_init_region(struct damon_ctx *c, int target_idx,
++		struct damon_addr_range *ar)
+ {
+ 	struct damon_target *t;
+ 	struct damon_region *r, *prev;
+-	unsigned long id;
++	unsigned long idx = 0;
+ 	int rc = -EINVAL;
+ 
+ 	if (ar->start >= ar->end)
+ 		return -EINVAL;
+ 
+ 	damon_for_each_target(t, c) {
+-		id = t->id;
+-		if (targetid_is_pid(c))
+-			id = (unsigned long)pid_vnr((struct pid *)id);
+-		if (id == target_id) {
++		if (idx++ == target_idx) {
+ 			r = damon_new_region(ar->start, ar->end);
+ 			if (!r)
+ 				return -ENOMEM;
+@@ -523,7 +522,7 @@ static int set_init_regions(struct damon
+ 	struct damon_target *t;
+ 	struct damon_region *r, *next;
+ 	int pos = 0, parsed, ret;
+-	unsigned long target_id;
++	int target_idx;
+ 	struct damon_addr_range ar;
+ 	int err;
+ 
+@@ -533,11 +532,11 @@ static int set_init_regions(struct damon
+ 	}
+ 
+ 	while (pos < len) {
+-		ret = sscanf(&str[pos], "%lu %lu %lu%n",
+-				&target_id, &ar.start, &ar.end, &parsed);
++		ret = sscanf(&str[pos], "%d %lu %lu%n",
++				&target_idx, &ar.start, &ar.end, &parsed);
+ 		if (ret != 3)
+ 			break;
+-		err = add_init_region(c, target_id, &ar);
++		err = add_init_region(c, target_idx, &ar);
+ 		if (err)
+ 			goto fail;
+ 		pos += parsed;
+--- a/mm/damon/dbgfs-test.h~mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id
++++ a/mm/damon/dbgfs-test.h
+@@ -113,19 +113,19 @@ static void damon_dbgfs_test_set_init_re
+ {
+ 	struct damon_ctx *ctx = damon_new_ctx();
+ 	unsigned long ids[] = {1, 2, 3};
+-	/* Each line represents one region in ``<target id> <start> <end>`` */
+-	char * const valid_inputs[] = {"2 10 20\n 2   20 30\n2 35 45",
+-		"2 10 20\n",
+-		"2 10 20\n1 39 59\n1 70 134\n  2  20 25\n",
++	/* Each line represents one region in ``<target idx> <start> <end>`` */
++	char * const valid_inputs[] = {"1 10 20\n 1   20 30\n1 35 45",
++		"1 10 20\n",
++		"1 10 20\n0 39 59\n0 70 134\n  1  20 25\n",
+ 		""};
+ 	/* Reading the file again will show sorted, clean output */
+-	char * const valid_expects[] = {"2 10 20\n2 20 30\n2 35 45\n",
+-		"2 10 20\n",
+-		"1 39 59\n1 70 134\n2 10 20\n2 20 25\n",
++	char * const valid_expects[] = {"1 10 20\n1 20 30\n1 35 45\n",
++		"1 10 20\n",
++		"0 39 59\n0 70 134\n1 10 20\n1 20 25\n",
+ 		""};
+-	char * const invalid_inputs[] = {"4 10 20\n",	/* target not exists */
+-		"2 10 20\n 2 14 26\n",		/* regions overlap */
+-		"1 10 20\n2 30 40\n 1 5 8"};	/* not sorted by address */
++	char * const invalid_inputs[] = {"3 10 20\n",	/* target not exists */
++		"1 10 20\n 1 14 26\n",		/* regions overlap */
++		"0 10 20\n1 30 40\n 0 5 8"};	/* not sorted by address */
+ 	char *input, *expect;
+ 	int i, rc;
+ 	char buf[256];
 _
