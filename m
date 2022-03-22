@@ -2,346 +2,130 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B3DAC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:45:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DAD1C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:46:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235289AbiCVVrZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:47:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33424 "EHLO
+        id S236518AbiCVVr0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:47:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236486AbiCVVrL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:47:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ED755F8DB
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:45:43 -0700 (PDT)
+        with ESMTP id S236532AbiCVVrQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:47:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D80F5F8F4
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:45:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A12266119A
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:45:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFBAAC340EE;
-        Tue, 22 Mar 2022 21:45:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AD9A2615B1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:45:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 101B4C340EE;
+        Tue, 22 Mar 2022 21:45:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985542;
-        bh=SYqAIWdzQCET7gkLPY8nAnHNdVgCb4scExLimb1I8DM=;
+        s=korg; t=1647985548;
+        bh=nuD6SuBfmNlTRsYolyl+S0xAQThzwrc+qWwimrO1VD8=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=EjZr6vcL+/ZZSGYZdQT5choOW4azawRhAR324F5cSWGup8XwI/66ibLzGXtHmRoZv
-         6NF2LllKKcxD+LOD+oXLNK6isii4DkHBdEQ8Kv3x2E2NEqCxjQcqbYvTXoTAKO9M8Z
-         /4Dpnh8juCRnDlKnqDqQAiUV+qrfI+bkgZtELQtY=
-Date:   Tue, 22 Mar 2022 14:45:41 -0700
-To:     rientjes@google.com, alexs@kernel.org, alexander.duyck@gmail.com,
-        hughd@google.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=bAcNaAD2Xq1jBAA3MzY1BWeJLg9DDwuyaUdjcWXRiDIUkifXWHzS+h5qAm6J7rAwS
+         taQusEnhZR9NsqkOUBdeEZ9YKGCXSNL8VlOXPZKyCgOTugrnSqAYT/XnSrD0W9QE5R
+         9roQtvhpItOoFLa07bzoUz+PVUC0tgPOdZkF281w=
+Date:   Tue, 22 Mar 2022 14:45:47 -0700
+To:     willy@infradead.org, tglx@linutronix.de, paulmck@kernel.org,
+        nsaenzju@redhat.com, minchan@kernel.org,
+        mgorman@techsingularity.net, juri.lelli@redhat.com,
+        bigeasy@linutronix.de, mtosatti@redhat.com,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 141/227] mm: __isolate_lru_page_prepare() in isolate_migratepages_block()
-Message-Id: <20220322214541.EFBAAC340EE@smtp.kernel.org>
+Subject: [patch 143/227] mm: lru_cache_disable: replace work queue synchronization with synchronize_rcu
+Message-Id: <20220322214548.101B4C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: __isolate_lru_page_prepare() in isolate_migratepages_block()
+From: Marcelo Tosatti <mtosatti@redhat.com>
+Subject: mm: lru_cache_disable: replace work queue synchronization with synchronize_rcu
 
-__isolate_lru_page_prepare() conflates two unrelated functions, with the
-flags to one disjoint from the flags to the other; and hides some of the
-important checks outside of isolate_migratepages_block(), where the
-sequence is better to be visible.  It comes from the days of lumpy
-reclaim, before compaction, when the combination made more sense.
+On systems that run FIFO:1 applications that busy loop, any SCHED_OTHER
+task that attempts to execute on such a CPU (such as work threads) will
+not be scheduled, which leads to system hangs.
 
-Move what's needed by mm/compaction.c isolate_migratepages_block() inline
-there, and what's needed by mm/vmscan.c isolate_lru_pages() inline there.
+Commit d479960e44f27e0e5 ("mm: disable LRU pagevec during the migration
+temporarily") relies on queueing work items on all online CPUs to ensure
+visibility of lru_disable_count.
 
-Shorten "isolate_mode" to "mode", so the sequence of conditions is easier
-to read.  Declare a "mapping" variable, to save one call to page_mapping()
-(but not another: calling again after page is locked is necessary). 
-Simplify isolate_lru_pages() with a "move_to" list pointer.
+To fix this, replace the usage of work items with synchronize_rcu,
+which provides the same guarantees.
 
-Link: https://lkml.kernel.org/r/879d62a8-91cc-d3c6-fb3b-69768236df68@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Alex Shi <alexs@kernel.org>
-Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Readers of lru_disable_count are protected by either disabling
+preemption or rcu_read_lock:
+
+preempt_disable, local_irq_disable  [bh_lru_lock()]
+rcu_read_lock                       [rt_spin_lock CONFIG_PREEMPT_RT]
+preempt_disable                     [local_lock !CONFIG_PREEMPT_RT]
+
+Since v5.1 kernel, synchronize_rcu() is guaranteed to wait on
+preempt_disable() regions of code.  So any CPU which sees
+lru_disable_count = 0 will have exited the critical section when
+synchronize_rcu() returns.
+
+Link: https://lkml.kernel.org/r/Yin7hDxdt0s/x+fp@fuller.cnet
+Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
+Reviewed-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Paul E. McKenney <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/compaction.c      |   51 +++++++++++++++++---
- mm/vmscan.c          |  101 +++++++----------------------------------
- 3 files changed, 62 insertions(+), 91 deletions(-)
+ mm/swap.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
---- a/include/linux/swap.h~mm-__isolate_lru_page_prepare-in-isolate_migratepages_block
-+++ a/include/linux/swap.h
-@@ -387,7 +387,6 @@ extern void lru_cache_add_inactive_or_un
- extern unsigned long zone_reclaimable_pages(struct zone *zone);
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
--extern bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode);
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 						  unsigned long nr_pages,
- 						  gfp_t gfp_mask,
---- a/mm/compaction.c~mm-__isolate_lru_page_prepare-in-isolate_migratepages_block
-+++ a/mm/compaction.c
-@@ -785,7 +785,7 @@ static bool too_many_isolated(pg_data_t
-  * @cc:		Compaction control structure.
-  * @low_pfn:	The first PFN to isolate
-  * @end_pfn:	The one-past-the-last PFN to isolate, within same pageblock
-- * @isolate_mode: Isolation mode to be used.
-+ * @mode:	Isolation mode to be used.
-  *
-  * Isolate all pages that can be migrated from the range specified by
-  * [low_pfn, end_pfn). The range is expected to be within same pageblock.
-@@ -798,7 +798,7 @@ static bool too_many_isolated(pg_data_t
-  */
- static int
- isolate_migratepages_block(struct compact_control *cc, unsigned long low_pfn,
--			unsigned long end_pfn, isolate_mode_t isolate_mode)
-+			unsigned long end_pfn, isolate_mode_t mode)
+--- a/mm/swap.c~mm-lru_cache_disable-replace-work-queue-synchronization-with-synchronize_rcu
++++ a/mm/swap.c
+@@ -831,8 +831,7 @@ inline void __lru_add_drain_all(bool for
+ 	for_each_online_cpu(cpu) {
+ 		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
+ 
+-		if (force_all_cpus ||
+-		    pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
++		if (pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
+ 		    data_race(pagevec_count(&per_cpu(lru_rotate.pvec, cpu))) ||
+ 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
+ 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
+@@ -876,15 +875,21 @@ atomic_t lru_disable_count = ATOMIC_INIT
+ void lru_cache_disable(void)
  {
- 	pg_data_t *pgdat = cc->zone->zone_pgdat;
- 	unsigned long nr_scanned = 0, nr_isolated = 0;
-@@ -806,6 +806,7 @@ isolate_migratepages_block(struct compac
- 	unsigned long flags = 0;
- 	struct lruvec *locked = NULL;
- 	struct page *page = NULL, *valid_page = NULL;
-+	struct address_space *mapping;
- 	unsigned long start_pfn = low_pfn;
- 	bool skip_on_failure = false;
- 	unsigned long next_skip_pfn = 0;
-@@ -990,7 +991,7 @@ isolate_migratepages_block(struct compac
- 					locked = NULL;
- 				}
- 
--				if (!isolate_movable_page(page, isolate_mode))
-+				if (!isolate_movable_page(page, mode))
- 					goto isolate_success;
- 			}
- 
-@@ -1002,15 +1003,15 @@ isolate_migratepages_block(struct compac
- 		 * so avoid taking lru_lock and isolating it unnecessarily in an
- 		 * admittedly racy check.
- 		 */
--		if (!page_mapping(page) &&
--		    page_count(page) > page_mapcount(page))
-+		mapping = page_mapping(page);
-+		if (!mapping && page_count(page) > page_mapcount(page))
- 			goto isolate_fail;
- 
- 		/*
- 		 * Only allow to migrate anonymous pages in GFP_NOFS context
- 		 * because those do not depend on fs locks.
- 		 */
--		if (!(cc->gfp_mask & __GFP_FS) && page_mapping(page))
-+		if (!(cc->gfp_mask & __GFP_FS) && mapping)
- 			goto isolate_fail;
- 
- 		/*
-@@ -1021,9 +1022,45 @@ isolate_migratepages_block(struct compac
- 		if (unlikely(!get_page_unless_zero(page)))
- 			goto isolate_fail;
- 
--		if (!__isolate_lru_page_prepare(page, isolate_mode))
-+		/* Only take pages on LRU: a check now makes later tests safe */
-+		if (!PageLRU(page))
- 			goto isolate_fail_put;
- 
-+		/* Compaction might skip unevictable pages but CMA takes them */
-+		if (!(mode & ISOLATE_UNEVICTABLE) && PageUnevictable(page))
-+			goto isolate_fail_put;
-+
-+		/*
-+		 * To minimise LRU disruption, the caller can indicate with
-+		 * ISOLATE_ASYNC_MIGRATE that it only wants to isolate pages
-+		 * it will be able to migrate without blocking - clean pages
-+		 * for the most part.  PageWriteback would require blocking.
-+		 */
-+		if ((mode & ISOLATE_ASYNC_MIGRATE) && PageWriteback(page))
-+			goto isolate_fail_put;
-+
-+		if ((mode & ISOLATE_ASYNC_MIGRATE) && PageDirty(page)) {
-+			bool migrate_dirty;
-+
-+			/*
-+			 * Only pages without mappings or that have a
-+			 * ->migratepage callback are possible to migrate
-+			 * without blocking. However, we can be racing with
-+			 * truncation so it's necessary to lock the page
-+			 * to stabilise the mapping as truncation holds
-+			 * the page lock until after the page is removed
-+			 * from the page cache.
-+			 */
-+			if (!trylock_page(page))
-+				goto isolate_fail_put;
-+
-+			mapping = page_mapping(page);
-+			migrate_dirty = !mapping || mapping->a_ops->migratepage;
-+			unlock_page(page);
-+			if (!migrate_dirty)
-+				goto isolate_fail_put;
-+		}
-+
- 		/* Try isolate the page */
- 		if (!TestClearPageLRU(page))
- 			goto isolate_fail_put;
---- a/mm/vmscan.c~mm-__isolate_lru_page_prepare-in-isolate_migratepages_block
-+++ a/mm/vmscan.c
-@@ -1999,69 +1999,6 @@ unsigned int reclaim_clean_pages_from_li
- }
- 
- /*
-- * Attempt to remove the specified page from its LRU.  Only take this page
-- * if it is of the appropriate PageActive status.  Pages which are being
-- * freed elsewhere are also ignored.
-- *
-- * page:	page to consider
-- * mode:	one of the LRU isolation modes defined above
-- *
-- * returns true on success, false on failure.
-- */
--bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
--{
--	/* Only take pages on the LRU. */
--	if (!PageLRU(page))
--		return false;
--
--	/* Compaction should not handle unevictable pages but CMA can do so */
--	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
--		return false;
--
--	/*
--	 * To minimise LRU disruption, the caller can indicate that it only
--	 * wants to isolate pages it will be able to operate on without
--	 * blocking - clean pages for the most part.
--	 *
--	 * ISOLATE_ASYNC_MIGRATE is used to indicate that it only wants to pages
--	 * that it is possible to migrate without blocking
--	 */
--	if (mode & ISOLATE_ASYNC_MIGRATE) {
--		/* All the caller can do on PageWriteback is block */
--		if (PageWriteback(page))
--			return false;
--
--		if (PageDirty(page)) {
--			struct address_space *mapping;
--			bool migrate_dirty;
--
--			/*
--			 * Only pages without mappings or that have a
--			 * ->migratepage callback are possible to migrate
--			 * without blocking. However, we can be racing with
--			 * truncation so it's necessary to lock the page
--			 * to stabilise the mapping as truncation holds
--			 * the page lock until after the page is removed
--			 * from the page cache.
--			 */
--			if (!trylock_page(page))
--				return false;
--
--			mapping = page_mapping(page);
--			migrate_dirty = !mapping || mapping->a_ops->migratepage;
--			unlock_page(page);
--			if (!migrate_dirty)
--				return false;
--		}
--	}
--
--	if ((mode & ISOLATE_UNMAPPED) && page_mapped(page))
--		return false;
--
--	return true;
--}
--
--/*
-  * Update LRU sizes after isolating pages. The LRU size updates must
-  * be complete before mem_cgroup_update_lru_size due to a sanity check.
-  */
-@@ -2112,11 +2049,11 @@ static unsigned long isolate_lru_pages(u
- 	unsigned long skipped = 0;
- 	unsigned long scan, total_scan, nr_pages;
- 	LIST_HEAD(pages_skipped);
--	isolate_mode_t mode = (sc->may_unmap ? 0 : ISOLATE_UNMAPPED);
- 
- 	total_scan = 0;
- 	scan = 0;
- 	while (scan < nr_to_scan && !list_empty(src)) {
-+		struct list_head *move_to = src;
- 		struct page *page;
- 
- 		page = lru_to_page(src);
-@@ -2126,9 +2063,9 @@ static unsigned long isolate_lru_pages(u
- 		total_scan += nr_pages;
- 
- 		if (page_zonenum(page) > sc->reclaim_idx) {
--			list_move(&page->lru, &pages_skipped);
- 			nr_skipped[page_zonenum(page)] += nr_pages;
--			continue;
-+			move_to = &pages_skipped;
-+			goto move;
- 		}
- 
- 		/*
-@@ -2136,37 +2073,34 @@ static unsigned long isolate_lru_pages(u
- 		 * return with no isolated pages if the LRU mostly contains
- 		 * ineligible pages.  This causes the VM to not reclaim any
- 		 * pages, triggering a premature OOM.
--		 *
--		 * Account all tail pages of THP.  This would not cause
--		 * premature OOM since __isolate_lru_page() returns -EBUSY
--		 * only when the page is being freed somewhere else.
-+		 * Account all tail pages of THP.
- 		 */
- 		scan += nr_pages;
--		if (!__isolate_lru_page_prepare(page, mode)) {
--			/* It is being freed elsewhere */
--			list_move(&page->lru, src);
--			continue;
--		}
-+
-+		if (!PageLRU(page))
-+			goto move;
-+		if (!sc->may_unmap && page_mapped(page))
-+			goto move;
-+
- 		/*
- 		 * Be careful not to clear PageLRU until after we're
- 		 * sure the page is not being freed elsewhere -- the
- 		 * page release code relies on it.
- 		 */
--		if (unlikely(!get_page_unless_zero(page))) {
--			list_move(&page->lru, src);
--			continue;
--		}
-+		if (unlikely(!get_page_unless_zero(page)))
-+			goto move;
- 
- 		if (!TestClearPageLRU(page)) {
- 			/* Another thread is already isolating this page */
- 			put_page(page);
--			list_move(&page->lru, src);
--			continue;
-+			goto move;
- 		}
- 
- 		nr_taken += nr_pages;
- 		nr_zone_taken[page_zonenum(page)] += nr_pages;
--		list_move(&page->lru, dst);
-+		move_to = dst;
-+move:
-+		list_move(&page->lru, move_to);
- 	}
- 
+ 	atomic_inc(&lru_disable_count);
+-#ifdef CONFIG_SMP
  	/*
-@@ -2190,7 +2124,8 @@ static unsigned long isolate_lru_pages(u
- 	}
- 	*nr_scanned = total_scan;
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan,
--				    total_scan, skipped, nr_taken, mode, lru);
-+				    total_scan, skipped, nr_taken,
-+				    sc->may_unmap ? 0 : ISOLATE_UNMAPPED, lru);
- 	update_lru_sizes(lruvec, lru, nr_zone_taken);
- 	return nr_taken;
- }
+-	 * lru_add_drain_all in the force mode will schedule draining on
+-	 * all online CPUs so any calls of lru_cache_disabled wrapped by
+-	 * local_lock or preemption disabled would be ordered by that.
+-	 * The atomic operation doesn't need to have stronger ordering
+-	 * requirements because that is enforced by the scheduling
+-	 * guarantees.
++	 * Readers of lru_disable_count are protected by either disabling
++	 * preemption or rcu_read_lock:
++	 *
++	 * preempt_disable, local_irq_disable  [bh_lru_lock()]
++	 * rcu_read_lock		       [rt_spin_lock CONFIG_PREEMPT_RT]
++	 * preempt_disable		       [local_lock !CONFIG_PREEMPT_RT]
++	 *
++	 * Since v5.1 kernel, synchronize_rcu() is guaranteed to wait on
++	 * preempt_disable() regions of code. So any CPU which sees
++	 * lru_disable_count = 0 will have exited the critical
++	 * section when synchronize_rcu() returns.
+ 	 */
++	synchronize_rcu();
++#ifdef CONFIG_SMP
+ 	__lru_add_drain_all(true);
+ #else
+ 	lru_add_and_bh_lrus_drain();
 _
