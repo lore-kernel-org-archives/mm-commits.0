@@ -2,130 +2,89 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DAD1C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80B59C43219
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:46:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236518AbiCVVr0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230359AbiCVVr0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Mar 2022 17:47:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33824 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236532AbiCVVrQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:47:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D80F5F8F4
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:45:49 -0700 (PDT)
+        with ESMTP id S236575AbiCVVrV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:47:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0D655F8C1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:45:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AD9A2615B1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:45:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 101B4C340EE;
-        Tue, 22 Mar 2022 21:45:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 574B0B81DAF
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:45:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E6EAC340F2;
+        Tue, 22 Mar 2022 21:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985548;
-        bh=nuD6SuBfmNlTRsYolyl+S0xAQThzwrc+qWwimrO1VD8=;
+        s=korg; t=1647985551;
+        bh=5y73nK+IfYhE2dzuCLdG3voFW/Zf/4PV3Up3kcCaWYI=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=bAcNaAD2Xq1jBAA3MzY1BWeJLg9DDwuyaUdjcWXRiDIUkifXWHzS+h5qAm6J7rAwS
-         taQusEnhZR9NsqkOUBdeEZ9YKGCXSNL8VlOXPZKyCgOTugrnSqAYT/XnSrD0W9QE5R
-         9roQtvhpItOoFLa07bzoUz+PVUC0tgPOdZkF281w=
-Date:   Tue, 22 Mar 2022 14:45:47 -0700
-To:     willy@infradead.org, tglx@linutronix.de, paulmck@kernel.org,
-        nsaenzju@redhat.com, minchan@kernel.org,
-        mgorman@techsingularity.net, juri.lelli@redhat.com,
-        bigeasy@linutronix.de, mtosatti@redhat.com,
+        b=sjtkuscVntASDfgT3zmiaNhOOI6kH82m0qm0MTFbnF2tmYxduAtM419gkhGLEi5JB
+         NXfq3dZkh2PAY1+SfTIufW58Lpgn5RlbGbSWaNBMsg6hGCxcY2BYnvXZTvOWbumwxR
+         HoHjrdtu3koKT0HSbslAl2ytwOO8dusRMgdw7ihA=
+Date:   Tue, 22 Mar 2022 14:45:50 -0700
+To:     tj@kernel.org, tglx@linutronix.de, lizefan.x@bytedance.com,
+        hannes@cmpxchg.org, bigeasy@linutronix.de,
         akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 143/227] mm: lru_cache_disable: replace work queue synchronization with synchronize_rcu
-Message-Id: <20220322214548.101B4C340EE@smtp.kernel.org>
+Subject: [patch 144/227] mm: workingset: replace IRQ-off check with a lockdep assert.
+Message-Id: <20220322214551.0E6EAC340F2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Marcelo Tosatti <mtosatti@redhat.com>
-Subject: mm: lru_cache_disable: replace work queue synchronization with synchronize_rcu
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm: workingset: replace IRQ-off check with a lockdep assert.
 
-On systems that run FIFO:1 applications that busy loop, any SCHED_OTHER
-task that attempts to execute on such a CPU (such as work threads) will
-not be scheduled, which leads to system hangs.
+Commit 68d48e6a2df57 ("mm: workingset: add vmstat counter for shadow
+nodes") introduced an IRQ-off check to ensure that a lock is held which
+also disabled interrupts.  This does not work the same way on PREEMPT_RT
+because none of the locks, that are held, disable interrupts.
 
-Commit d479960e44f27e0e5 ("mm: disable LRU pagevec during the migration
-temporarily") relies on queueing work items on all online CPUs to ensure
-visibility of lru_disable_count.
+Replace this check with a lockdep assert which ensures that the lock is
+held.
 
-To fix this, replace the usage of work items with synchronize_rcu,
-which provides the same guarantees.
-
-Readers of lru_disable_count are protected by either disabling
-preemption or rcu_read_lock:
-
-preempt_disable, local_irq_disable  [bh_lru_lock()]
-rcu_read_lock                       [rt_spin_lock CONFIG_PREEMPT_RT]
-preempt_disable                     [local_lock !CONFIG_PREEMPT_RT]
-
-Since v5.1 kernel, synchronize_rcu() is guaranteed to wait on
-preempt_disable() regions of code.  So any CPU which sees
-lru_disable_count = 0 will have exited the critical section when
-synchronize_rcu() returns.
-
-Link: https://lkml.kernel.org/r/Yin7hDxdt0s/x+fp@fuller.cnet
-Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
-Reviewed-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Juri Lelli <juri.lelli@redhat.com>
+Link: https://lkml.kernel.org/r/20220301122143.1521823-3-bigeasy@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Paul E. McKenney <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ mm/workingset.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/swap.c~mm-lru_cache_disable-replace-work-queue-synchronization-with-synchronize_rcu
-+++ a/mm/swap.c
-@@ -831,8 +831,7 @@ inline void __lru_add_drain_all(bool for
- 	for_each_online_cpu(cpu) {
- 		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
+--- a/mm/workingset.c~mm-workingset-replace-irq-off-check-with-a-lockdep-assert
++++ a/mm/workingset.c
+@@ -433,6 +433,8 @@ struct list_lru shadow_nodes;
  
--		if (force_all_cpus ||
--		    pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
-+		if (pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
- 		    data_race(pagevec_count(&per_cpu(lru_rotate.pvec, cpu))) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
-@@ -876,15 +875,21 @@ atomic_t lru_disable_count = ATOMIC_INIT
- void lru_cache_disable(void)
+ void workingset_update_node(struct xa_node *node)
  {
- 	atomic_inc(&lru_disable_count);
--#ifdef CONFIG_SMP
++	struct address_space *mapping;
++
  	/*
--	 * lru_add_drain_all in the force mode will schedule draining on
--	 * all online CPUs so any calls of lru_cache_disabled wrapped by
--	 * local_lock or preemption disabled would be ordered by that.
--	 * The atomic operation doesn't need to have stronger ordering
--	 * requirements because that is enforced by the scheduling
--	 * guarantees.
-+	 * Readers of lru_disable_count are protected by either disabling
-+	 * preemption or rcu_read_lock:
-+	 *
-+	 * preempt_disable, local_irq_disable  [bh_lru_lock()]
-+	 * rcu_read_lock		       [rt_spin_lock CONFIG_PREEMPT_RT]
-+	 * preempt_disable		       [local_lock !CONFIG_PREEMPT_RT]
-+	 *
-+	 * Since v5.1 kernel, synchronize_rcu() is guaranteed to wait on
-+	 * preempt_disable() regions of code. So any CPU which sees
-+	 * lru_disable_count = 0 will have exited the critical
-+	 * section when synchronize_rcu() returns.
+ 	 * Track non-empty nodes that contain only shadow entries;
+ 	 * unlink those that contain pages or are being freed.
+@@ -441,7 +443,8 @@ void workingset_update_node(struct xa_no
+ 	 * already where they should be. The list_empty() test is safe
+ 	 * as node->private_list is protected by the i_pages lock.
  	 */
-+	synchronize_rcu();
-+#ifdef CONFIG_SMP
- 	__lru_add_drain_all(true);
- #else
- 	lru_add_and_bh_lrus_drain();
+-	VM_WARN_ON_ONCE(!irqs_disabled());  /* For __inc_lruvec_page_state */
++	mapping = container_of(node->array, struct address_space, i_pages);
++	lockdep_assert_held(&mapping->i_pages.xa_lock);
+ 
+ 	if (node->count && node->count == node->nr_values) {
+ 		if (list_empty(&node->private_list)) {
 _
