@@ -2,82 +2,119 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE5FC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:40:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EFFCC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:40:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232917AbiCVVls (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:41:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44992 "EHLO
+        id S230382AbiCVVlt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:41:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235914AbiCVVlL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:41:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F18E5EBEC
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:39:33 -0700 (PDT)
+        with ESMTP id S235878AbiCVVlM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:41:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29BF0B849
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:39:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E075B61741
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:39:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4678EC340EC;
-        Tue, 22 Mar 2022 21:39:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D0A9EB81D9E
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:39:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F366C340EE;
+        Tue, 22 Mar 2022 21:39:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985172;
-        bh=6k287UQLQFkel2wGvwxTb471aMwsHRQGu+R6HZZy33U=;
+        s=korg; t=1647985178;
+        bh=P45jF2cSIC0S4zMQop2TdiAZmryr8wUTW/pvsxyxx14=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=N9r8hMac9Rm9vw8tl1BkW4XBLtrMwjqV+mqGkeRigQQlM6kwNmby0mFzRX9D0jrN4
-         1ZxvNNGXah6BaLfFRon1rZ+yIi+JwWxd8MpgG7f1MfYfBV8lJSwKRrIOW2FutD3JXr
-         G4U7bK+oIjRL72Jdegh+XBJzIMohqGoHMS21MMqc=
-Date:   Tue, 22 Mar 2022 14:39:31 -0700
-To:     hannes@cmpxchg.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=afSn/VEm87CU/uVGxSVbSgBFWMT8Cg7UA4fd0cN8gnk4KlQrVrlJebFugoAG/sAqV
+         djvh1lfjfF0+yUDURP0NIalVVQ28XBIFhK2GuF3RkxDNEBlOVHqlJQPjzJPkFPnbJ1
+         WadhmwsLqFT135E8eAZDb2o/bbEv78MbnVFqp1GU=
+Date:   Tue, 22 Mar 2022 14:39:37 -0700
+To:     willy@infradead.org, lukas.bulwahn@gmail.com,
+        kirill.shutemov@linux.intel.com, jhubbard@nvidia.com, jgg@ziepe.ca,
+        jgg@nvidia.com, jack@suse.cz, imbrenda@linux.ibm.com, hch@lst.de,
+        david@redhat.com, alex.williamson@redhat.com, aarcange@redhat.com,
+        peterx@redhat.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 020/227] mm/writeback: minor clean up for highmem_dirtyable_memory
-Message-Id: <20220322213932.4678EC340EC@smtp.kernel.org>
+Subject: [patch 022/227] mm: fix invalid page pointer returned with FOLL_PIN gups
+Message-Id: <20220322213938.6F366C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/writeback: minor clean up for highmem_dirtyable_memory
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: fix invalid page pointer returned with FOLL_PIN gups
 
-Since commit a804552b9a15 ("mm/page-writeback.c: fix dirty_balance_reserve
-subtraction from dirtyable memory"), local variable x can not be negative.
-And it can not overflow when it is the total number of dirtyable highmem
-pages.  Thus remove the unneeded comment and overflow check.
+Patch series "mm/gup: some cleanups", v5.
 
-Link: https://lkml.kernel.org/r/20220224115416.46089-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+
+This patch (of 5):
+
+Alex reported invalid page pointer returned with pin_user_pages_remote()
+from vfio after upstream commit 4b6c33b32296 ("vfio/type1: Prepare for
+batched pinning with struct vfio_batch").
+
+It turns out that it's not the fault of the vfio commit; however after
+vfio switches to a full page buffer to store the page pointers it starts
+to expose the problem easier.
+
+The problem is for VM_PFNMAP vmas we should normally fail with an -EFAULT
+then vfio will carry on to handle the MMIO regions.  However when the bug
+triggered, follow_page_mask() returned -EEXIST for such a page, which will
+jump over the current page, leaving that entry in **pages untouched. 
+However the caller is not aware of it, hence the caller will reference the
+page as usual even if the pointer data can be anything.
+
+We had that -EEXIST logic since commit 1027e4436b6a ("mm: make GUP handle
+pfn mapping unless FOLL_GET is requested") which seems very reasonable. 
+It could be that when we reworked GUP with FOLL_PIN we could have
+overlooked that special path in commit 3faa52c03f44 ("mm/gup: track
+FOLL_PIN pages"), even if that commit rightfully touched up
+follow_devmap_pud() on checking FOLL_PIN when it needs to return an
+-EEXIST.
+
+Attaching the Fixes to the FOLL_PIN rework commit, as it happened later than
+1027e4436b6a.
+
+[jhubbard@nvidia.com: added some tags, removed a reference to an out of tree module.]
+Link: https://lkml.kernel.org/r/20220207062213.235127-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20220204020010.68930-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20220204020010.68930-2-jhubbard@nvidia.com
+Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Reported-by: Alex Williamson <alex.williamson@redhat.com>
+Debugged-by: Alex Williamson <alex.williamson@redhat.com>
+Tested-by: Alex Williamson <alex.williamson@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page-writeback.c~mm-writeback-minor-clean-up-for-highmem_dirtyable_memory
-+++ a/mm/page-writeback.c
-@@ -324,18 +324,6 @@ static unsigned long highmem_dirtyable_m
- 	}
+--- a/mm/gup.c~mm-fix-invalid-page-pointer-returned-with-foll_pin-gups
++++ a/mm/gup.c
+@@ -465,7 +465,7 @@ static int follow_pfn_pte(struct vm_area
+ 		pte_t *pte, unsigned int flags)
+ {
+ 	/* No page to get reference */
+-	if (flags & FOLL_GET)
++	if (flags & (FOLL_GET | FOLL_PIN))
+ 		return -EFAULT;
  
- 	/*
--	 * Unreclaimable memory (kernel memory or anonymous memory
--	 * without swap) can bring down the dirtyable pages below
--	 * the zone's dirty balance reserve and the above calculation
--	 * will underflow.  However we still want to add in nodes
--	 * which are below threshold (negative values) to get a more
--	 * accurate calculation but make sure that the total never
--	 * underflows.
--	 */
--	if ((long)x < 0)
--		x = 0;
--
--	/*
- 	 * Make sure that the number of highmem pages is never larger
- 	 * than the number of the total dirtyable memory. This can only
- 	 * occur in very strange VM situations but we want to make sure
+ 	if (flags & FOLL_TOUCH) {
 _
