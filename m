@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87EAAC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:42:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDD6AC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:42:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236104AbiCVVno (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:43:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50500 "EHLO
+        id S236075AbiCVVnq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:43:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236119AbiCVVnf (ORCPT
+        with ESMTP id S236124AbiCVVnf (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:43:35 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A5505F279
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:41:56 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16DC05F27F
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:41:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 52EB9B81D9E
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:41:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91DEC340F3;
-        Tue, 22 Mar 2022 21:41:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A7BAC6101E
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:41:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D905C340EC;
+        Tue, 22 Mar 2022 21:41:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985314;
-        bh=paGbHyEWO4fjAlnjjA8dly23PY250zM57eYN+jleBqs=;
+        s=korg; t=1647985317;
+        bh=tvkOCvNvu86WaZ7JJiDd5vDGRJ4/ZlmTN54lTdhKS5g=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=sTZ2XgW4E9TKeEU6uYhAm0Ve4/UkkL2ZUGcA15UbqNUh+VviIoeoC6FQ2QRmqyVi5
-         B42gRgT3VVfdvxgw3aupwrFAdoiNzbA5/5Gbtd677lp7tTpPYhbc/lJud052hFLAHH
-         h4+OhxykYkGhqeTt+ID2bQHRDyaEoKZUc15BcR24=
-Date:   Tue, 22 Mar 2022 14:41:53 -0700
+        b=0lYBmuN9qqJ/SfjJeLRfxlYUpYI75Ko2Iarel0UBf6JAP05S+6lXtdkgONuDyGr38
+         EVU06pRUEq+0iP1ye1jgGp8UNz7m1vPh31xyPKN4ybUF7u3Rb8w9tsvP410HJV+uK0
+         tsY1gOHp82fp5SQ8pg2gqr5bEBzcXKjgffA2I1tw=
+Date:   Tue, 22 Mar 2022 14:41:56 -0700
 To:     ziy@nvidia.com, rientjes@google.com, peterx@redhat.com,
         mike.kravetz@oracle.com, lars.persson@axis.com,
         kirill.shutemov@linux.intel.com, fam.zheng@bytedance.com,
@@ -39,66 +39,67 @@ To:     ziy@nvidia.com, rientjes@google.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 066/227] mm: thp: fix wrong cache flush in remove_migration_pmd()
-Message-Id: <20220322214153.E91DEC340F3@smtp.kernel.org>
+Subject: [patch 067/227] mm: fix missing cache flush for all tail pages of compound page
+Message-Id: <20220322214157.0D905C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: thp: fix wrong cache flush in remove_migration_pmd()
+Subject: mm: fix missing cache flush for all tail pages of compound page
 
-Patch series "Fix some cache flush bugs", v5.
+The D-cache maintenance inside move_to_new_page() only consider one page,
+there is still D-cache maintenance issue for tail pages of compound page
+(e.g.  THP or HugeTLB).
 
-This series focuses on fixing cache maintenance.
+THP migration is only enabled on x86_64, ARM64 and powerpc, while powerpc
+and arm64 need to maintain the consistency between I-Cache and D-Cache,
+which depends on flush_dcache_page() to maintain the consistency between
+I-Cache and D-Cache.
 
+But there is no issues on arm64 and powerpc since they already considers
+the compound page cache flushing in their icache flush function.  HugeTLB
+migration is enabled on arm, arm64, mips, parisc, powerpc, riscv, s390 and
+sh, while arm has handled the compound page cache flush in
+flush_dcache_page(), but most others do not.
 
-This patch (of 7):
+In theory, the issue exists on many architectures.  Fix this by not using
+flush_dcache_folio() since it is not backportable.
 
-The flush_cache_range() is supposed to be justified only if the page is
-already placed in process page table, and that is done right after
-flush_cache_range().  So using this interface is wrong.  And there is no
-need to invalite cache since it was non-present before in
-remove_migration_pmd().  So just to remove it.
-
-Link: https://lkml.kernel.org/r/20220210123058.79206-1-songmuchun@bytedance.com
-Link: https://lkml.kernel.org/r/20220210123058.79206-2-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220210123058.79206-3-songmuchun@bytedance.com
+Fixes: 290408d4a250 ("hugetlb: hugepage migration core")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Fam Zheng <fam.zheng@bytedance.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lars Persson <lars.persson@axis.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/migrate.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd
-+++ a/mm/huge_memory.c
-@@ -3197,7 +3197,6 @@ void remove_migration_pmd(struct page_vm
- 	if (pmd_swp_uffd_wp(*pvmw->pmd))
- 		pmde = pmd_wrprotect(pmd_mkuffd_wp(pmde));
+--- a/mm/migrate.c~mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page
++++ a/mm/migrate.c
+@@ -916,9 +916,12 @@ static int move_to_new_page(struct page
+ 		if (!PageMappingFlags(page))
+ 			page->mapping = NULL;
  
--	flush_cache_range(vma, mmun_start, mmun_start + HPAGE_PMD_SIZE);
- 	if (PageAnon(new))
- 		page_add_anon_rmap(new, vma, mmun_start, true);
- 	else
-@@ -3205,6 +3204,8 @@ void remove_migration_pmd(struct page_vm
- 	set_pmd_at(mm, mmun_start, pvmw->pmd, pmde);
- 	if ((vma->vm_flags & VM_LOCKED) && !PageDoubleMap(new))
- 		mlock_vma_page(new);
-+
-+	/* No need to invalidate - it was non-present before */
- 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
- }
- #endif
+-		if (likely(!is_zone_device_page(newpage)))
+-			flush_dcache_page(newpage);
++		if (likely(!is_zone_device_page(newpage))) {
++			int i, nr = compound_nr(newpage);
+ 
++			for (i = 0; i < nr; i++)
++				flush_dcache_page(newpage + i);
++		}
+ 	}
+ out:
+ 	return rc;
 _
