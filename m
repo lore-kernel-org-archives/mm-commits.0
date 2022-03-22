@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C447C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:13:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3057C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:14:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229693AbiCVTPH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 15:15:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36596 "EHLO
+        id S229759AbiCVTPi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 15:15:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbiCVTPH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:15:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D54EEB87D
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:13:39 -0700 (PDT)
+        with ESMTP id S229523AbiCVTPh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:15:37 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEC23B87D
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:14:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7032E61655
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:13:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6FAAC340EC;
-        Tue, 22 Mar 2022 19:13:38 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 34476CE1E85
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:14:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CB8BC340EC;
+        Tue, 22 Mar 2022 19:14:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647976418;
-        bh=TwEuBa+Cg8ufRQbIJU01I4O4rK8ovsoDAu2g1CA5UxA=;
+        s=korg; t=1647976446;
+        bh=1h7hFmLcaBZrjqX1DzKwYgVN4X07J+hzHrGsZEd+HR0=;
         h=Date:To:From:Subject:From;
-        b=C4cK1nBTYrsbKCakYxbjkqzgMCDFPMAz347UFvrxMzge6uEg/xCk0O/86Ysf3Sme3
-         /UzvQxJmxNi0U+kCPuIjiwkEOCxO/PB8XYmCr6vZOUWdC7b5hbU/Ei9E6MA1s1iOgj
-         ji2hyK8Ef4L4YPsjhMkGNY7Y89o7M6BVXyNT2tZY=
-Date:   Tue, 22 Mar 2022 12:13:38 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        mike.kravetz@oracle.com, kirill@shutemov.name, hch@infradead.org,
-        dhowells@redhat.com, akpm@linux-foundation.org,
+        b=uTGQTmsD0T13e6bNwzuod2iTWlTSWDmRlSk/CT8c3TBY9ykC3LRkE8r3hNh6KQ904
+         k9FSPdicPeEAFICBN41HYbs13ZbVK0k8/SQhXp5S4wZmkfsenu0qPK0IXhxhXWEe9Q
+         UfYaN14xnC9lkpZbItKBBy43CS+V1yc6OHbpai0M=
+Date:   Tue, 22 Mar 2022 12:14:05 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        rppt@linux.vnet.ibm.com, peterx@redhat.com, jack@suse.cz,
+        david@redhat.com, aarcange@redhat.com, namit@vmware.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-export-pageheadhuge-fix.patch removed from -mm tree
-Message-Id: <20220322191338.C6FAAC340EC@smtp.kernel.org>
+Subject: [folded-merged] userfaultfd-provide-unmasked-address-on-page-fault-v3.patch removed from -mm tree
+Message-Id: <20220322191406.8CB8BC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,61 +43,83 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-export-pageheadhuge-fix
+     Subject: userfaultfd: provide unmasked address on page-fault
 has been removed from the -mm tree.  Its filename was
-     mm-export-pageheadhuge-fix.patch
+     userfaultfd-provide-unmasked-address-on-page-fault-v3.patch
 
-This patch was dropped because it was folded into mm-export-pageheadhuge.patch
+This patch was dropped because it was folded into userfaultfd-provide-unmasked-address-on-page-fault.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-export-pageheadhuge-fix
+From: Nadav Amit <namit@vmware.com>
+Subject: userfaultfd: provide unmasked address on page-fault
 
-s/EXPORT_SYMBOL/EXPORT_SYMBOL_GPL/, per Christoph
+initialize real_address on all code paths, per Jan
 
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20220226022655.350562-1-namit@vmware.com
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c  |    6 ++++--
+ mm/swapfile.c |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-export-pageheadhuge-fix
+--- a/mm/hugetlb.c~userfaultfd-provide-unmasked-address-on-page-fault-v3
 +++ a/mm/hugetlb.c
-@@ -1855,7 +1855,7 @@ int PageHeadHuge(struct page *page_head)
+@@ -5344,6 +5344,7 @@ static inline vm_fault_t hugetlb_handle_
+ 						  pgoff_t idx,
+ 						  unsigned int flags,
+ 						  unsigned long haddr,
++						  unsigned long addr,
+ 						  unsigned long reason)
+ {
+ 	vm_fault_t ret;
+@@ -5351,6 +5352,7 @@ static inline vm_fault_t hugetlb_handle_
+ 	struct vm_fault vmf = {
+ 		.vma = vma,
+ 		.address = haddr,
++		.real_address = addr,
+ 		.flags = flags,
  
- 	return page_head[1].compound_dtor == HUGETLB_PAGE_DTOR;
- }
--EXPORT_SYMBOL(PageHeadHuge);
-+EXPORT_SYMBOL_GPL(PageHeadHuge);
+ 		/*
+@@ -5419,7 +5421,7 @@ retry:
+ 		/* Check for page in userfault range */
+ 		if (userfaultfd_missing(vma)) {
+ 			ret = hugetlb_handle_userfault(vma, mapping, idx,
+-						       flags, haddr,
++						       flags, haddr, address,
+ 						       VM_UFFD_MISSING);
+ 			goto out;
+ 		}
+@@ -5483,7 +5485,7 @@ retry:
+ 			unlock_page(page);
+ 			put_page(page);
+ 			ret = hugetlb_handle_userfault(vma, mapping, idx,
+-						       flags, haddr,
++						       flags, haddr, address,
+ 						       VM_UFFD_MINOR);
+ 			goto out;
+ 		}
+--- a/mm/swapfile.c~userfaultfd-provide-unmasked-address-on-page-fault-v3
++++ a/mm/swapfile.c
+@@ -1951,6 +1951,7 @@ static int unuse_pte_range(struct vm_are
+ 			struct vm_fault vmf = {
+ 				.vma = vma,
+ 				.address = addr,
++				.real_address = addr,
+ 				.pmd = pmd,
+ 			};
  
- /*
-  * Find and lock address space (mapping) in write mode.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from namit@vmware.com are
 
-mm-export-pageheadhuge.patch
-userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-memcg-sync-flush-only-if-periodic-flush-is-delayed-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-linux-typesh-remove-unnecessary-__bitwise__-fix.patch
-taskstats-remove-unneeded-dead-assignment-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mm-slightly-clarify-ksm-logic-in-do_swap_page-fix.patch
-mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+userfaultfd-provide-unmasked-address-on-page-fault.patch
+userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
 
