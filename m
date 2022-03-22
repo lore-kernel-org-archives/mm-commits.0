@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAB09C43217
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:41:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BAC3C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:41:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236044AbiCVVnL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236005AbiCVVnL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Mar 2022 17:43:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50184 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236383AbiCVVnF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:43:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA8E35EBE9
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:41:36 -0700 (PDT)
+        with ESMTP id S236207AbiCVVm6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:42:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F2325EBE5
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:41:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 44E4061179
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:41:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90FF6C340EC;
-        Tue, 22 Mar 2022 21:41:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ED34D61179
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:41:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 431F9C340EC;
+        Tue, 22 Mar 2022 21:41:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985295;
-        bh=CpEDdkiTdOKrDeK8LGm+Eoj1/yCpSJX3PCy3yXJxufA=;
+        s=korg; t=1647985289;
+        bh=Q8K3zCzmlXsZoH+fkhRGs2h/kdfXjuXuiDO9aNZLWSQ=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=lodacTqqxDt8Su6/1gc99hLNFRgwKIwP2ea1/gr+SvAK4YKzPb8tx7fjGXo2Qv5Mg
-         evfLhJZMVel1zL0l6XBeYFN4m9vtgTG++2m/Tn6ntP7f048MsozaRfs4b1FVu+SnlD
-         3U2m6SPLpm8XbATFUyhe3Ic6Gc5Z/vgPufQXvwXM=
-Date:   Tue, 22 Mar 2022 14:41:35 -0700
+        b=Cxup5RnnUU81jFJJzQQVdnBWZUoy+u9tI/1W70ikMUO+89XWGyXMNaL7G7+gaYcBe
+         FcZIXKeuwf0Y7NT1c76gD5fU9qhOLc92F5xozpze/6pGmZW/qALGJguA9in6NGWAJY
+         dLNcTJK5i5XeKnon3S6MQfcO6Wr8aHn/UgBVvytg=
+Date:   Tue, 22 Mar 2022 14:41:28 -0700
 To:     zhengqi.arch@bytedance.com, willy@infradead.org,
         vdavydov.dev@gmail.com, vbabka@suse.cz, tytso@mit.edu,
         trond.myklebust@hammerspace.com, shy828301@gmail.com,
@@ -43,21 +43,22 @@ To:     zhengqi.arch@bytedance.com, willy@infradead.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 060/227] mm: list_lru: rename list_lru_per_memcg to list_lru_memcg
-Message-Id: <20220322214135.90FF6C340EC@smtp.kernel.org>
+Subject: [patch 058/227] mm: memcontrol: reuse memory cgroup ID for kmem ID
+Message-Id: <20220322214129.431F9C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: list_lru: rename list_lru_per_memcg to list_lru_memcg
+Subject: mm: memcontrol: reuse memory cgroup ID for kmem ID
 
-The name of list_lru_memcg was occupied before and became free since last
-commit.  Rename list_lru_per_memcg to list_lru_memcg since the name is
-brief.
+There are two idrs being used by memory cgroup, one is for kmem ID,
+another is for memory cgroup ID.  The maximum ID of both is 64Ki.  Both of
+them can limit the total number of memory cgroups.  Actually, we can reuse
+memory cgroup ID for kmem ID to simplify the code.
 
-Link: https://lkml.kernel.org/r/20220228122126.37293-16-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220228122126.37293-14-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
@@ -82,97 +83,96 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |    2 +-
- mm/list_lru.c            |   18 +++++++++---------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ mm/memcontrol.c |   39 +++------------------------------------
+ 1 file changed, 3 insertions(+), 36 deletions(-)
 
---- a/include/linux/list_lru.h~mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg
-+++ a/include/linux/list_lru.h
-@@ -32,7 +32,7 @@ struct list_lru_one {
- 	long			nr_items;
- };
- 
--struct list_lru_per_memcg {
-+struct list_lru_memcg {
- 	struct rcu_head		rcu;
- 	/* array of per cgroup per node lists, indexed by node id */
- 	struct list_lru_one	node[];
---- a/mm/list_lru.c~mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg
-+++ a/mm/list_lru.c
-@@ -53,7 +53,7 @@ static inline struct list_lru_one *
- list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
- {
- 	if (list_lru_memcg_aware(lru) && idx >= 0) {
--		struct list_lru_per_memcg *mlru = xa_load(&lru->xa, idx);
-+		struct list_lru_memcg *mlru = xa_load(&lru->xa, idx);
- 
- 		return mlru ? &mlru->node[nid] : NULL;
- 	}
-@@ -306,7 +306,7 @@ unsigned long list_lru_walk_node(struct
- 
- #ifdef CONFIG_MEMCG_KMEM
- 	if (*nr_to_walk > 0 && list_lru_memcg_aware(lru)) {
--		struct list_lru_per_memcg *mlru;
-+		struct list_lru_memcg *mlru;
- 		unsigned long index;
- 
- 		xa_for_each(&lru->xa, index, mlru) {
-@@ -335,10 +335,10 @@ static void init_one_lru(struct list_lru
+--- a/mm/memcontrol.c~mm-memcontrol-reuse-memory-cgroup-id-for-kmem-id
++++ a/mm/memcontrol.c
+@@ -348,23 +348,6 @@ static void memcg_reparent_objcgs(struct
  }
  
- #ifdef CONFIG_MEMCG_KMEM
--static struct list_lru_per_memcg *memcg_init_list_lru_one(gfp_t gfp)
-+static struct list_lru_memcg *memcg_init_list_lru_one(gfp_t gfp)
+ /*
+- * This will be used as a shrinker list's index.
+- * The main reason for not using cgroup id for this:
+- *  this works better in sparse environments, where we have a lot of memcgs,
+- *  but only a few kmem-limited.
+- */
+-static DEFINE_IDA(memcg_cache_ida);
+-
+-/*
+- * MAX_SIZE should be as large as the number of cgrp_ids. Ideally, we could get
+- * this constant directly from cgroup, but it is understandable that this is
+- * better kept as an internal representation in cgroup.c. In any case, the
+- * cgrp_id space is not getting any smaller, and we don't have to necessarily
+- * increase ours as well if it increases.
+- */
+-#define MEMCG_CACHES_MAX_SIZE MEM_CGROUP_ID_MAX
+-
+-/*
+  * A lot of the calls to the cache allocation functions are expected to be
+  * inlined by the compiler. Since the calls to memcg_slab_pre_alloc_hook() are
+  * conditional to this static branch, we'll have to allow modules that does
+@@ -3597,7 +3580,6 @@ static u64 mem_cgroup_read_u64(struct cg
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
  {
- 	int nid;
--	struct list_lru_per_memcg *mlru;
-+	struct list_lru_memcg *mlru;
+ 	struct obj_cgroup *objcg;
+-	int memcg_id;
  
- 	mlru = kmalloc(struct_size(mlru, node, nr_node_ids), gfp);
- 	if (!mlru)
-@@ -352,7 +352,7 @@ static struct list_lru_per_memcg *memcg_
+ 	if (cgroup_memory_nokmem)
+ 		return 0;
+@@ -3605,22 +3587,16 @@ static int memcg_online_kmem(struct mem_
+ 	if (unlikely(mem_cgroup_is_root(memcg)))
+ 		return 0;
  
- static void memcg_list_lru_free(struct list_lru *lru, int src_idx)
+-	memcg_id = ida_alloc_max(&memcg_cache_ida, MEMCG_CACHES_MAX_SIZE - 1,
+-				 GFP_KERNEL);
+-	if (memcg_id < 0)
+-		return memcg_id;
+-
+ 	objcg = obj_cgroup_alloc();
+-	if (!objcg) {
+-		ida_free(&memcg_cache_ida, memcg_id);
++	if (!objcg)
+ 		return -ENOMEM;
+-	}
++
+ 	objcg->memcg = memcg;
+ 	rcu_assign_pointer(memcg->objcg, objcg);
+ 
+ 	static_branch_enable(&memcg_kmem_enabled_key);
+ 
+-	memcg->kmemcg_id = memcg_id;
++	memcg->kmemcg_id = memcg->id.id;
+ 
+ 	return 0;
+ }
+@@ -3628,7 +3604,6 @@ static int memcg_online_kmem(struct mem_
+ static void memcg_offline_kmem(struct mem_cgroup *memcg)
  {
--	struct list_lru_per_memcg *mlru = xa_erase_irq(&lru->xa, src_idx);
-+	struct list_lru_memcg *mlru = xa_erase_irq(&lru->xa, src_idx);
+ 	struct mem_cgroup *parent;
+-	int kmemcg_id;
  
- 	/*
- 	 * The __list_lru_walk_one() can walk the list of this node.
-@@ -374,7 +374,7 @@ static inline void memcg_init_list_lru(s
- static void memcg_destroy_list_lru(struct list_lru *lru)
- {
- 	XA_STATE(xas, &lru->xa, 0);
--	struct list_lru_per_memcg *mlru;
-+	struct list_lru_memcg *mlru;
- 
- 	if (!list_lru_memcg_aware(lru))
+ 	if (cgroup_memory_nokmem)
  		return;
-@@ -475,7 +475,7 @@ int memcg_list_lru_alloc(struct mem_cgro
- 	int i;
- 	unsigned long flags;
- 	struct list_lru_memcg_table {
--		struct list_lru_per_memcg *mlru;
-+		struct list_lru_memcg *mlru;
- 		struct mem_cgroup *memcg;
- 	} *table;
- 	XA_STATE(xas, &lru->xa, 0);
-@@ -491,7 +491,7 @@ int memcg_list_lru_alloc(struct mem_cgro
- 	/*
- 	 * Because the list_lru can be reparented to the parent cgroup's
- 	 * list_lru, we should make sure that this cgroup and all its
--	 * ancestors have allocated list_lru_per_memcg.
-+	 * ancestors have allocated list_lru_memcg.
- 	 */
- 	for (i = 0; memcg; memcg = parent_mem_cgroup(memcg), i++) {
- 		if (memcg_list_lru_allocated(memcg, lru))
-@@ -510,7 +510,7 @@ int memcg_list_lru_alloc(struct mem_cgro
- 	xas_lock_irqsave(&xas, flags);
- 	while (i--) {
- 		int index = READ_ONCE(table[i].memcg->kmemcg_id);
--		struct list_lru_per_memcg *mlru = table[i].mlru;
-+		struct list_lru_memcg *mlru = table[i].mlru;
+@@ -3643,20 +3618,12 @@ static void memcg_offline_kmem(struct me
+ 	memcg_reparent_objcgs(memcg, parent);
  
- 		xas_set(&xas, index);
- retry:
+ 	/*
+-	 * memcg_reparent_list_lrus() can change memcg->kmemcg_id.
+-	 * Cache it to local @kmemcg_id.
+-	 */
+-	kmemcg_id = memcg->kmemcg_id;
+-
+-	/*
+ 	 * After we have finished memcg_reparent_objcgs(), all list_lrus
+ 	 * corresponding to this cgroup are guaranteed to remain empty.
+ 	 * The ordering is imposed by list_lru_node->lock taken by
+ 	 * memcg_reparent_list_lrus().
+ 	 */
+ 	memcg_reparent_list_lrus(memcg, parent);
+-
+-	ida_free(&memcg_cache_ida, kmemcg_id);
+ }
+ #else
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
 _
