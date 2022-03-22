@@ -2,100 +2,149 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85B7DC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 007CAC4332F
 	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:43:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236213AbiCVVoj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236139AbiCVVoj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Mar 2022 17:44:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51222 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236139AbiCVVoe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:44:34 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7792910E6
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:43:02 -0700 (PDT)
+        with ESMTP id S236119AbiCVVo1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:44:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85DEC5F8C0
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:42:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id ACB57B81D9E
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:43:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 675CAC340EC;
-        Tue, 22 Mar 2022 21:43:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1E2B86100A
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:42:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7163FC340EC;
+        Tue, 22 Mar 2022 21:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985380;
-        bh=wZjjPIHrZl/Gm3NIx0w7E2TeqahXjahiA5sz15thP9w=;
+        s=korg; t=1647985371;
+        bh=h6WthA8eonFvZJuDoYxVkuXubbra0E50IcOP3ZyBbDE=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=nn9+6RD0jLm8REiUbTs3y9OUYUdrQyDOq7HKBvuhazT4ZcD0lTefti243YG2gxrxn
-         nRaYi/5AZtlnI+03ggHCA+dEuBN0IWBOCEwnFvRgNz/HOHx78b80IXDAFCo393MUEf
-         /DSrtAd8EEMZmidEWlTPRSF8ZNkQ6UkWEVxrT2p0=
-Date:   Tue, 22 Mar 2022 14:42:59 -0700
-To:     abaci@linux.alibaba.com, jiapeng.chong@linux.alibaba.com,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=iZtrXFsL+zBH9Azf5lPQfCXnacUPG8FjA0EoySJLtO9huHWgwQ0czGaJYjEDkC7/o
+         Kyqt+AKQVYGu9coebG0ZlbBTeUnRU0+Cb6xA8ESTmTUMWGQujDLJEvst0aFB4ta7w0
+         oU6qd30BXmBiFrmljeYsH93IGPUP39pQNCl29/Lc=
+Date:   Tue, 22 Mar 2022 14:42:50 -0700
+To:     willy@infradead.org, vvs@virtuozzo.com, uladzislau.rezki@sony.com,
+        oleksiy.avramchenko@sonymobile.com, npiggin@gmail.com, hch@lst.de,
+        urezki@gmail.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 088/227] mm/vmalloc.c: fix "unused function" warning
-Message-Id: <20220322214300.675CAC340EC@smtp.kernel.org>
+Subject: [patch 085/227] mm/vmalloc: Move draining areas out of caller context
+Message-Id: <20220322214251.7163FC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Subject: mm/vmalloc.c: fix "unused function" warning
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc: Move draining areas out of caller context
 
-compute_subtree_max_size() is unused, when building with
-DEBUG_AUGMENT_PROPAGATE_CHECK=y.
+A caller initiates the drain procces from its context once the
+drain threshold is reached or passed. There are at least two
+drawbacks of doing so:
 
-mm/vmalloc.c:785:1: warning: unused function 'compute_subtree_max_size'
-[-Wunused-function].
+a) a caller can be a high-prio or RT task. In that case it can
+   stuck in doing the actual drain of all lazily freed areas.
+   This is not optimal because such tasks usually are latency
+   sensitive where the control should be returned back as soon
+   as possible in order to drive such workloads in time. See
+   96e2db456135 ("mm/vmalloc: rework the drain logic")
 
-Link: https://lkml.kernel.org/r/20220129034652.75359-1-jiapeng.chong@linux.alibaba.com
-Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+b) It is not safe to call vfree() during holding a spinlock due
+   to the vmap_purge_lock mutex. The was a report about this from
+   Zeal Robot <zealci@zte.com.cn> here:
+   https://lore.kernel.org/all/20211222081026.484058-1-chi.minghao@zte.com.cn
+
+Moving the drain to the separate work context addresses those
+issues.
+
+v1->v2:
+   - Added prefix "_work" to the drain worker function.
+v2->v3:
+   - Remove the drain_vmap_work_in_progress. Extra queuing
+     is expectable under heavy load but it can be disregarded
+     because a work will bail out if nothing to be done.
+
+Link: https://lkml.kernel.org/r/20220131144058.35608-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
+Cc: Uladzislau Rezki <uladzislau.rezki@sony.com>
+Cc: Vasily Averin <vvs@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/vmalloc.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmallocc-fix-unused-function-warning
+--- a/mm/vmalloc.c~mm-vmalloc-move-draining-areas-out-of-caller-context
 +++ a/mm/vmalloc.c
-@@ -775,17 +775,6 @@ get_subtree_max_size(struct rb_node *nod
- 	return va ? va->subtree_max_size : 0;
+@@ -791,6 +791,8 @@ RB_DECLARE_CALLBACKS_MAX(static, free_vm
+ 
+ static void purge_vmap_area_lazy(void);
+ static BLOCKING_NOTIFIER_HEAD(vmap_notify_list);
++static void drain_vmap_area_work(struct work_struct *work);
++static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
+ 
+ static atomic_long_t nr_vmalloc_pages;
+ 
+@@ -1718,18 +1720,6 @@ static bool __purge_vmap_area_lazy(unsig
  }
  
--/*
-- * Gets called when remove the node and rotate.
+ /*
+- * Kick off a purge of the outstanding lazy areas. Don't bother if somebody
+- * is already purging.
 - */
--static __always_inline unsigned long
--compute_subtree_max_size(struct vmap_area *va)
+-static void try_purge_vmap_area_lazy(void)
 -{
--	return max3(va_size(va),
--		get_subtree_max_size(va->rb_node.rb_left),
--		get_subtree_max_size(va->rb_node.rb_right));
+-	if (mutex_trylock(&vmap_purge_lock)) {
+-		__purge_vmap_area_lazy(ULONG_MAX, 0);
+-		mutex_unlock(&vmap_purge_lock);
+-	}
 -}
 -
- RB_DECLARE_CALLBACKS_MAX(static, free_vmap_area_rb_augment_cb,
- 	struct vmap_area, rb_node, unsigned long, subtree_max_size, va_size)
- 
-@@ -973,6 +962,17 @@ unlink_va(struct vmap_area *va, struct r
+-/*
+  * Kick off a purge of the outstanding lazy areas.
+  */
+ static void purge_vmap_area_lazy(void)
+@@ -1740,6 +1730,20 @@ static void purge_vmap_area_lazy(void)
+ 	mutex_unlock(&vmap_purge_lock);
  }
  
- #if DEBUG_AUGMENT_PROPAGATE_CHECK
-+/*
-+ * Gets called when remove the node and rotate.
-+ */
-+static __always_inline unsigned long
-+compute_subtree_max_size(struct vmap_area *va)
++static void drain_vmap_area_work(struct work_struct *work)
 +{
-+	return max3(va_size(va),
-+		get_subtree_max_size(va->rb_node.rb_left),
-+		get_subtree_max_size(va->rb_node.rb_right));
++	unsigned long nr_lazy;
++
++	do {
++		mutex_lock(&vmap_purge_lock);
++		__purge_vmap_area_lazy(ULONG_MAX, 0);
++		mutex_unlock(&vmap_purge_lock);
++
++		/* Recheck if further work is required. */
++		nr_lazy = atomic_long_read(&vmap_lazy_nr);
++	} while (nr_lazy > lazy_max_pages());
 +}
 +
- static void
- augment_tree_propagate_check(void)
- {
+ /*
+  * Free a vmap area, caller ensuring that the area has been unmapped
+  * and flush_cache_vunmap had been called for the correct range
+@@ -1766,7 +1770,7 @@ static void free_vmap_area_noflush(struc
+ 
+ 	/* After this point, we may free va at any time */
+ 	if (unlikely(nr_lazy > lazy_max_pages()))
+-		try_purge_vmap_area_lazy();
++		schedule_work(&drain_vmap_work);
+ }
+ 
+ /*
 _
