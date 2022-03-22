@@ -2,697 +2,93 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A418C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:49:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BFB8C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:49:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234154AbiCVVu1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:50:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38898 "EHLO
+        id S236791AbiCVVu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:50:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236903AbiCVVuT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:50:19 -0400
+        with ESMTP id S236743AbiCVVuZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:50:25 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E25462DA8D
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:48:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C8E52DD4F
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:48:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6F8AFB81DB7
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:48:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC28DC340EC;
-        Tue, 22 Mar 2022 21:48:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2AC3BB81DC3
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:48:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD6A9C340EC;
+        Tue, 22 Mar 2022 21:48:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985721;
-        bh=W4SPC9RR1WKwf5/t0r6r/k1cPTEomNJjoAcGOK7Tg7Y=;
+        s=korg; t=1647985724;
+        bh=mUuROq10ahLPR03SHPG1MdCOWBxv+599rSB3EdvybYM=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=PzEBD5ULKtyouhA5xnortKDDzidM7ENo/ahbIeCZ3mroOIqLRylbBVFbFgONRa26M
-         iR6rnMWgHKAfldK7BWfeA3GF2AcpLAiEiDlAs1BaipEVgmG1vXuKI1c+UDC6MB7o/a
-         2lx/tT+n6Kqe5hYNhui7Vofp3zZ0ZMpHQqrf5BGQ=
-Date:   Tue, 22 Mar 2022 14:48:40 -0700
-To:     sj@kernel.org, akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=lKyB3klfkRYBZsMx+kfzEWYz1fAOXkpTXebbCnMOSwo8Jx9TH/dONH3VWnAkXwPe+
+         R2zuCsNhgJOSLNpFeSb2eXQlbVbb6d/2+kD2+C7W6+N19YiPRzVJ/oHyXjRAHYFv0B
+         J3ChoBMbZU4J04CKaH+UFZ303yfDkgAYeuqdsuJQ=
+Date:   Tue, 22 Mar 2022 14:48:43 -0700
+To:     sj@kernel.org, rientjes@google.com, linmiaohe@huawei.com,
+        jrdr.linux@gmail.com, dan.carpenter@oracle.com,
+        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 200/227] mm/damon: remove the target id concept
-Message-Id: <20220322214840.DC28DC340EC@smtp.kernel.org>
+Subject: [patch 201/227] mm/damon: remove redundant page validation
+Message-Id: <20220322214843.DD6A9C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: remove the target id concept
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm/damon: remove redundant page validation
 
-DAMON asks each monitoring target ('struct damon_target') to have one
-'unsigned long' integer called 'id', which should be unique among the
-targets of same monitoring context.  Meaning of it is, however, totally up
-to the monitoring primitives that registered to the monitoring context. 
-For example, the virtual address spaces monitoring primitives treats the
-id as a 'struct pid' pointer.
+It will never get a NULL page by pte_page() as discussed in thread [1],
+thus remove the redundant page validation to fix below Smatch static
+checker warning.
 
-This makes the code flexible, but ugly, not well-documented, and
-type-unsafe[1].  Also, identification of each target can be done via its
-index.  For the reason, this commit removes the concept and uses clear
-type definition.  For now, only 'struct pid' pointer is used for the
-virtual address spaces monitoring.  If DAMON is extended in future so that
-we need to put another identifier field in the struct, we will use a union
-for such primitives-dependent fields and document which primitives are
-using which type.
+    mm/damon/vaddr.c:405 damon_hugetlb_mkold()
+    warn: 'page' can't be NULL.
 
-[1] https://lore.kernel.org/linux-mm/20211013154535.4aaeaaf9d0182922e405dd1e@linux-foundation.org/
+[1] https://lore.kernel.org/linux-mm/20220106091200.GA14564@kili/
 
-Link: https://lkml.kernel.org/r/20211230100723.2238-5-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/6d32f7d201b8970d53f51b6c5717d472aed2987c.1642386715.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   11 +-
- mm/damon/core-test.h  |   18 ++--
- mm/damon/core.c       |    4 -
- mm/damon/dbgfs-test.h |   63 +++++-----------
- mm/damon/dbgfs.c      |  152 +++++++++++++++++++++++-----------------
- mm/damon/reclaim.c    |    3 
- mm/damon/vaddr-test.h |    6 -
- mm/damon/vaddr.c      |    4 -
- 8 files changed, 133 insertions(+), 128 deletions(-)
+ mm/damon/vaddr.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-remove-the-target-id-concept
-+++ a/include/linux/damon.h
-@@ -60,19 +60,18 @@ struct damon_region {
- 
- /**
-  * struct damon_target - Represents a monitoring target.
-- * @id:			Unique identifier for this target.
-+ * @pid:		The PID of the virtual address space to monitor.
-  * @nr_regions:		Number of monitoring target regions of this target.
-  * @regions_list:	Head of the monitoring target regions of this target.
-  * @list:		List head for siblings.
-  *
-  * Each monitoring context could have multiple targets.  For example, a context
-  * for virtual memory address spaces could have multiple target processes.  The
-- * @id of each target should be unique among the targets of the context.  For
-- * example, in the virtual address monitoring context, it could be a pidfd or
-- * an address of an mm_struct.
-+ * @pid should be set for appropriate address space monitoring primitives
-+ * including the virtual address spaces monitoring primitives.
-  */
- struct damon_target {
--	unsigned long id;
-+	struct pid *pid;
- 	unsigned int nr_regions;
- 	struct list_head regions_list;
- 	struct list_head list;
-@@ -475,7 +474,7 @@ struct damos *damon_new_scheme(
- void damon_add_scheme(struct damon_ctx *ctx, struct damos *s);
- void damon_destroy_scheme(struct damos *s);
- 
--struct damon_target *damon_new_target(unsigned long id);
-+struct damon_target *damon_new_target(void);
- void damon_add_target(struct damon_ctx *ctx, struct damon_target *t);
- bool damon_targets_empty(struct damon_ctx *ctx);
- void damon_free_target(struct damon_target *t);
---- a/mm/damon/core.c~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/core.c
-@@ -144,7 +144,7 @@ void damon_destroy_scheme(struct damos *
-  *
-  * Returns the pointer to the new struct if success, or NULL otherwise
-  */
--struct damon_target *damon_new_target(unsigned long id)
-+struct damon_target *damon_new_target(void)
- {
- 	struct damon_target *t;
- 
-@@ -152,7 +152,7 @@ struct damon_target *damon_new_target(un
- 	if (!t)
- 		return NULL;
- 
--	t->id = id;
-+	t->pid = NULL;
- 	t->nr_regions = 0;
- 	INIT_LIST_HEAD(&t->regions_list);
- 
---- a/mm/damon/core-test.h~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/core-test.h
-@@ -24,7 +24,7 @@ static void damon_test_regions(struct ku
- 	KUNIT_EXPECT_EQ(test, 2ul, r->ar.end);
- 	KUNIT_EXPECT_EQ(test, 0u, r->nr_accesses);
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	KUNIT_EXPECT_EQ(test, 0u, damon_nr_regions(t));
- 
- 	damon_add_region(r, t);
-@@ -52,8 +52,7 @@ static void damon_test_target(struct kun
- 	struct damon_ctx *c = damon_new_ctx();
- 	struct damon_target *t;
- 
--	t = damon_new_target(42);
--	KUNIT_EXPECT_EQ(test, 42ul, t->id);
-+	t = damon_new_target();
- 	KUNIT_EXPECT_EQ(test, 0u, nr_damon_targets(c));
- 
- 	damon_add_target(c, t);
-@@ -78,7 +77,6 @@ static void damon_test_target(struct kun
- static void damon_test_aggregate(struct kunit *test)
- {
- 	struct damon_ctx *ctx = damon_new_ctx();
--	unsigned long target_ids[] = {1, 2, 3};
- 	unsigned long saddr[][3] = {{10, 20, 30}, {5, 42, 49}, {13, 33, 55} };
- 	unsigned long eaddr[][3] = {{15, 27, 40}, {31, 45, 55}, {23, 44, 66} };
- 	unsigned long accesses[][3] = {{42, 95, 84}, {10, 20, 30}, {0, 1, 2} };
-@@ -87,7 +85,7 @@ static void damon_test_aggregate(struct
- 	int it, ir;
- 
- 	for (it = 0; it < 3; it++) {
--		t = damon_new_target(target_ids[it]);
-+		t = damon_new_target();
- 		damon_add_target(ctx, t);
- 	}
- 
-@@ -125,7 +123,7 @@ static void damon_test_split_at(struct k
- 	struct damon_target *t;
- 	struct damon_region *r;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	r = damon_new_region(0, 100);
- 	damon_add_region(r, t);
- 	damon_split_region_at(c, t, r, 25);
-@@ -146,7 +144,7 @@ static void damon_test_merge_two(struct
- 	struct damon_region *r, *r2, *r3;
- 	int i;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	r = damon_new_region(0, 100);
- 	r->nr_accesses = 10;
- 	damon_add_region(r, t);
-@@ -194,7 +192,7 @@ static void damon_test_merge_regions_of(
- 	unsigned long eaddrs[] = {112, 130, 156, 170, 230};
- 	int i;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	for (i = 0; i < ARRAY_SIZE(sa); i++) {
- 		r = damon_new_region(sa[i], ea[i]);
- 		r->nr_accesses = nrs[i];
-@@ -218,14 +216,14 @@ static void damon_test_split_regions_of(
- 	struct damon_target *t;
- 	struct damon_region *r;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	r = damon_new_region(0, 22);
- 	damon_add_region(r, t);
- 	damon_split_regions_of(c, t, 2);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
- 	damon_free_target(t);
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	r = damon_new_region(0, 220);
- 	damon_add_region(r, t);
- 	damon_split_regions_of(c, t, 4);
---- a/mm/damon/dbgfs.c~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/dbgfs.c
-@@ -275,7 +275,7 @@ out:
- 	return ret;
- }
- 
--static inline bool targetid_is_pid(const struct damon_ctx *ctx)
-+static inline bool target_has_pid(const struct damon_ctx *ctx)
- {
- 	return ctx->primitive.target_valid == damon_va_target_valid;
- }
-@@ -283,17 +283,19 @@ static inline bool targetid_is_pid(const
- static ssize_t sprint_target_ids(struct damon_ctx *ctx, char *buf, ssize_t len)
- {
- 	struct damon_target *t;
--	unsigned long id;
-+	int id;
- 	int written = 0;
- 	int rc;
- 
- 	damon_for_each_target(t, ctx) {
--		id = t->id;
--		if (targetid_is_pid(ctx))
-+		if (target_has_pid(ctx))
- 			/* Show pid numbers to debugfs users */
--			id = (unsigned long)pid_vnr((struct pid *)id);
-+			id = pid_vnr(t->pid);
-+		else
-+			/* Show 42 for physical address space, just for fun */
-+			id = 42;
- 
--		rc = scnprintf(&buf[written], len - written, "%lu ", id);
-+		rc = scnprintf(&buf[written], len - written, "%d ", id);
- 		if (!rc)
- 			return -ENOMEM;
- 		written += rc;
-@@ -321,75 +323,114 @@ static ssize_t dbgfs_target_ids_read(str
- }
- 
- /*
-- * Converts a string into an array of unsigned long integers
-+ * Converts a string into an integers array
-  *
-- * Returns an array of unsigned long integers if the conversion success, or
-- * NULL otherwise.
-+ * Returns an array of integers array if the conversion success, or NULL
-+ * otherwise.
-  */
--static unsigned long *str_to_target_ids(const char *str, ssize_t len,
--					ssize_t *nr_ids)
-+static int *str_to_ints(const char *str, ssize_t len, ssize_t *nr_ints)
- {
--	unsigned long *ids;
--	const int max_nr_ids = 32;
--	unsigned long id;
-+	int *array;
-+	const int max_nr_ints = 32;
-+	int nr;
- 	int pos = 0, parsed, ret;
- 
--	*nr_ids = 0;
--	ids = kmalloc_array(max_nr_ids, sizeof(id), GFP_KERNEL);
--	if (!ids)
-+	*nr_ints = 0;
-+	array = kmalloc_array(max_nr_ints, sizeof(*array), GFP_KERNEL);
-+	if (!array)
- 		return NULL;
--	while (*nr_ids < max_nr_ids && pos < len) {
--		ret = sscanf(&str[pos], "%lu%n", &id, &parsed);
-+	while (*nr_ints < max_nr_ints && pos < len) {
-+		ret = sscanf(&str[pos], "%d%n", &nr, &parsed);
- 		pos += parsed;
- 		if (ret != 1)
- 			break;
--		ids[*nr_ids] = id;
--		*nr_ids += 1;
-+		array[*nr_ints] = nr;
-+		*nr_ints += 1;
- 	}
- 
--	return ids;
-+	return array;
- }
- 
--static void dbgfs_put_pids(unsigned long *ids, int nr_ids)
-+static void dbgfs_put_pids(struct pid **pids, int nr_pids)
- {
- 	int i;
- 
--	for (i = 0; i < nr_ids; i++)
--		put_pid((struct pid *)ids[i]);
-+	for (i = 0; i < nr_pids; i++)
-+		put_pid(pids[i]);
-+}
-+
-+/*
-+ * Converts a string into an struct pid pointers array
-+ *
-+ * Returns an array of struct pid pointers if the conversion success, or NULL
-+ * otherwise.
-+ */
-+static struct pid **str_to_pids(const char *str, ssize_t len, ssize_t *nr_pids)
-+{
-+	int *ints;
-+	ssize_t nr_ints;
-+	struct pid **pids;
-+
-+	*nr_pids = 0;
-+
-+	ints = str_to_ints(str, len, &nr_ints);
-+	if (!ints)
-+		return NULL;
-+
-+	pids = kmalloc_array(nr_ints, sizeof(*pids), GFP_KERNEL);
-+	if (!pids)
-+		goto out;
-+
-+	for (; *nr_pids < nr_ints; (*nr_pids)++) {
-+		pids[*nr_pids] = find_get_pid(ints[*nr_pids]);
-+		if (!pids[*nr_pids]) {
-+			dbgfs_put_pids(pids, *nr_pids);
-+			kfree(ints);
-+			kfree(pids);
-+			return NULL;
-+		}
-+	}
-+
-+out:
-+	kfree(ints);
-+	return pids;
- }
- 
- /*
-  * dbgfs_set_targets() - Set monitoring targets.
-  * @ctx:	monitoring context
-- * @ids:	array of target ids
-- * @nr_ids:	number of entries in @ids
-+ * @nr_targets:	number of targets
-+ * @pids:	array of target pids (size is same to @nr_targets)
-  *
-- * This function should not be called while the kdamond is running.
-+ * This function should not be called while the kdamond is running.  @pids is
-+ * ignored if the context is not configured to have pid in each target.  On
-+ * failure, reference counts of all pids in @pids are decremented.
-  *
-  * Return: 0 on success, negative error code otherwise.
-  */
--static int dbgfs_set_targets(struct damon_ctx *ctx,
--		      unsigned long *ids, ssize_t nr_ids)
-+static int dbgfs_set_targets(struct damon_ctx *ctx, ssize_t nr_targets,
-+		struct pid **pids)
- {
- 	ssize_t i;
- 	struct damon_target *t, *next;
- 
- 	damon_for_each_target_safe(t, next, ctx) {
--		if (targetid_is_pid(ctx))
--			put_pid((struct pid *)t->id);
-+		if (target_has_pid(ctx))
-+			put_pid(t->pid);
- 		damon_destroy_target(t);
- 	}
- 
--	for (i = 0; i < nr_ids; i++) {
--		t = damon_new_target(ids[i]);
-+	for (i = 0; i < nr_targets; i++) {
-+		t = damon_new_target();
- 		if (!t) {
--			/* The caller should do cleanup of the ids itself */
- 			damon_for_each_target_safe(t, next, ctx)
- 				damon_destroy_target(t);
--			if (targetid_is_pid(ctx))
--				dbgfs_put_pids(ids, nr_ids);
-+			if (target_has_pid(ctx))
-+				dbgfs_put_pids(pids, nr_targets);
- 			return -ENOMEM;
- 		}
-+		if (target_has_pid(ctx))
-+			t->pid = pids[i];
- 		damon_add_target(ctx, t);
- 	}
- 
-@@ -402,10 +443,9 @@ static ssize_t dbgfs_target_ids_write(st
- 	struct damon_ctx *ctx = file->private_data;
- 	bool id_is_pid = true;
- 	char *kbuf;
--	unsigned long *targets;
-+	struct pid **target_pids = NULL;
- 	ssize_t nr_targets;
- 	ssize_t ret;
--	int i;
- 
- 	kbuf = user_input_str(buf, count, ppos);
- 	if (IS_ERR(kbuf))
-@@ -413,38 +453,27 @@ static ssize_t dbgfs_target_ids_write(st
- 
- 	if (!strncmp(kbuf, "paddr\n", count)) {
- 		id_is_pid = false;
--		/* target id is meaningless here, but we set it just for fun */
--		scnprintf(kbuf, count, "42    ");
--	}
--
--	targets = str_to_target_ids(kbuf, count, &nr_targets);
--	if (!targets) {
--		ret = -ENOMEM;
--		goto out;
-+		nr_targets = 1;
- 	}
- 
- 	if (id_is_pid) {
--		for (i = 0; i < nr_targets; i++) {
--			targets[i] = (unsigned long)find_get_pid(
--					(int)targets[i]);
--			if (!targets[i]) {
--				dbgfs_put_pids(targets, i);
--				ret = -EINVAL;
--				goto free_targets_out;
--			}
-+		target_pids = str_to_pids(kbuf, count, &nr_targets);
-+		if (!target_pids) {
-+			ret = -ENOMEM;
-+			goto out;
- 		}
- 	}
- 
- 	mutex_lock(&ctx->kdamond_lock);
- 	if (ctx->kdamond) {
- 		if (id_is_pid)
--			dbgfs_put_pids(targets, nr_targets);
-+			dbgfs_put_pids(target_pids, nr_targets);
- 		ret = -EBUSY;
- 		goto unlock_out;
- 	}
- 
- 	/* remove previously set targets */
--	dbgfs_set_targets(ctx, NULL, 0);
-+	dbgfs_set_targets(ctx, 0, NULL);
- 
- 	/* Configure the context for the address space type */
- 	if (id_is_pid)
-@@ -452,14 +481,13 @@ static ssize_t dbgfs_target_ids_write(st
- 	else
- 		damon_pa_set_primitives(ctx);
- 
--	ret = dbgfs_set_targets(ctx, targets, nr_targets);
-+	ret = dbgfs_set_targets(ctx, nr_targets, target_pids);
- 	if (!ret)
- 		ret = count;
- 
- unlock_out:
- 	mutex_unlock(&ctx->kdamond_lock);
--free_targets_out:
--	kfree(targets);
-+	kfree(target_pids);
- out:
- 	kfree(kbuf);
- 	return ret;
-@@ -688,12 +716,12 @@ static void dbgfs_before_terminate(struc
- {
- 	struct damon_target *t, *next;
- 
--	if (!targetid_is_pid(ctx))
-+	if (!target_has_pid(ctx))
- 		return;
- 
- 	mutex_lock(&ctx->kdamond_lock);
- 	damon_for_each_target_safe(t, next, ctx) {
--		put_pid((struct pid *)t->id);
-+		put_pid(t->pid);
- 		damon_destroy_target(t);
- 	}
- 	mutex_unlock(&ctx->kdamond_lock);
---- a/mm/damon/dbgfs-test.h~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/dbgfs-test.h
-@@ -12,66 +12,58 @@
- 
- #include <kunit/test.h>
- 
--static void damon_dbgfs_test_str_to_target_ids(struct kunit *test)
-+static void damon_dbgfs_test_str_to_ints(struct kunit *test)
- {
- 	char *question;
--	unsigned long *answers;
--	unsigned long expected[] = {12, 35, 46};
-+	int *answers;
-+	int expected[] = {12, 35, 46};
- 	ssize_t nr_integers = 0, i;
- 
- 	question = "123";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)1, nr_integers);
--	KUNIT_EXPECT_EQ(test, 123ul, answers[0]);
-+	KUNIT_EXPECT_EQ(test, 123, answers[0]);
- 	kfree(answers);
- 
- 	question = "123abc";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)1, nr_integers);
--	KUNIT_EXPECT_EQ(test, 123ul, answers[0]);
-+	KUNIT_EXPECT_EQ(test, 123, answers[0]);
- 	kfree(answers);
- 
- 	question = "a123";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
- 	kfree(answers);
- 
- 	question = "12 35";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)2, nr_integers);
- 	for (i = 0; i < nr_integers; i++)
- 		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
- 	kfree(answers);
- 
- 	question = "12 35 46";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)3, nr_integers);
- 	for (i = 0; i < nr_integers; i++)
- 		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
- 	kfree(answers);
- 
- 	question = "12 35 abc 46";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)2, nr_integers);
- 	for (i = 0; i < 2; i++)
- 		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
- 	kfree(answers);
- 
- 	question = "";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
- 	kfree(answers);
- 
- 	question = "\n";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
- 	kfree(answers);
- }
-@@ -79,30 +71,20 @@ static void damon_dbgfs_test_str_to_targ
- static void damon_dbgfs_test_set_targets(struct kunit *test)
- {
- 	struct damon_ctx *ctx = dbgfs_new_ctx();
--	unsigned long ids[] = {1, 2, 3};
- 	char buf[64];
- 
--	/* Make DAMON consider target id as plain number */
--	ctx->primitive.target_valid = NULL;
--	ctx->primitive.cleanup = NULL;
-+	/* Make DAMON consider target has no pid */
-+	ctx->primitive = (struct damon_primitive){};
- 
--	dbgfs_set_targets(ctx, ids, 3);
--	sprint_target_ids(ctx, buf, 64);
--	KUNIT_EXPECT_STREQ(test, (char *)buf, "1 2 3\n");
--
--	dbgfs_set_targets(ctx, NULL, 0);
-+	dbgfs_set_targets(ctx, 0, NULL);
- 	sprint_target_ids(ctx, buf, 64);
- 	KUNIT_EXPECT_STREQ(test, (char *)buf, "\n");
- 
--	dbgfs_set_targets(ctx, (unsigned long []){1, 2}, 2);
--	sprint_target_ids(ctx, buf, 64);
--	KUNIT_EXPECT_STREQ(test, (char *)buf, "1 2\n");
--
--	dbgfs_set_targets(ctx, (unsigned long []){2}, 1);
-+	dbgfs_set_targets(ctx, 1, NULL);
- 	sprint_target_ids(ctx, buf, 64);
--	KUNIT_EXPECT_STREQ(test, (char *)buf, "2\n");
-+	KUNIT_EXPECT_STREQ(test, (char *)buf, "42\n");
- 
--	dbgfs_set_targets(ctx, NULL, 0);
-+	dbgfs_set_targets(ctx, 0, NULL);
- 	sprint_target_ids(ctx, buf, 64);
- 	KUNIT_EXPECT_STREQ(test, (char *)buf, "\n");
- 
-@@ -112,7 +94,6 @@ static void damon_dbgfs_test_set_targets
- static void damon_dbgfs_test_set_init_regions(struct kunit *test)
- {
- 	struct damon_ctx *ctx = damon_new_ctx();
--	unsigned long ids[] = {1, 2, 3};
- 	/* Each line represents one region in ``<target idx> <start> <end>`` */
- 	char * const valid_inputs[] = {"1 10 20\n 1   20 30\n1 35 45",
- 		"1 10 20\n",
-@@ -130,7 +111,7 @@ static void damon_dbgfs_test_set_init_re
- 	int i, rc;
- 	char buf[256];
- 
--	dbgfs_set_targets(ctx, ids, 3);
-+	dbgfs_set_targets(ctx, 3, NULL);
- 
- 	/* Put valid inputs and check the results */
- 	for (i = 0; i < ARRAY_SIZE(valid_inputs); i++) {
-@@ -158,12 +139,12 @@ static void damon_dbgfs_test_set_init_re
- 		KUNIT_EXPECT_STREQ(test, (char *)buf, "");
- 	}
- 
--	dbgfs_set_targets(ctx, NULL, 0);
-+	dbgfs_set_targets(ctx, 0, NULL);
- 	damon_destroy_ctx(ctx);
- }
- 
- static struct kunit_case damon_test_cases[] = {
--	KUNIT_CASE(damon_dbgfs_test_str_to_target_ids),
-+	KUNIT_CASE(damon_dbgfs_test_str_to_ints),
- 	KUNIT_CASE(damon_dbgfs_test_set_targets),
- 	KUNIT_CASE(damon_dbgfs_test_set_init_regions),
- 	{},
---- a/mm/damon/reclaim.c~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/reclaim.c
-@@ -387,8 +387,7 @@ static int __init damon_reclaim_init(voi
- 	damon_pa_set_primitives(ctx);
- 	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
- 
--	/* 4242 means nothing but fun */
--	target = damon_new_target(4242);
-+	target = damon_new_target();
- 	if (!target) {
- 		damon_destroy_ctx(ctx);
- 		return -ENOMEM;
---- a/mm/damon/vaddr.c~mm-damon-remove-the-target-id-concept
+--- a/mm/damon/vaddr.c~mm-damon-remove-redundant-page-validation
 +++ a/mm/damon/vaddr.c
-@@ -23,12 +23,12 @@
- #endif
+@@ -402,9 +402,6 @@ static void damon_hugetlb_mkold(pte_t *p
+ 	pte_t entry = huge_ptep_get(pte);
+ 	struct page *page = pte_page(entry);
  
- /*
-- * 't->id' should be the pointer to the relevant 'struct pid' having reference
-+ * 't->pid' should be the pointer to the relevant 'struct pid' having reference
-  * count.  Caller must put the returned task, unless it is NULL.
-  */
- static inline struct task_struct *damon_get_task_struct(struct damon_target *t)
- {
--	return get_pid_task((struct pid *)t->id, PIDTYPE_PID);
-+	return get_pid_task(t->pid, PIDTYPE_PID);
- }
+-	if (!page)
+-		return;
+-
+ 	get_page(page);
  
- /*
---- a/mm/damon/vaddr-test.h~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/vaddr-test.h
-@@ -139,7 +139,7 @@ static void damon_do_test_apply_three_re
- 	struct damon_region *r;
- 	int i;
+ 	if (pte_young(entry)) {
+@@ -564,9 +561,6 @@ static int damon_young_hugetlb_entry(pte
+ 		goto out;
  
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	for (i = 0; i < nr_regions / 2; i++) {
- 		r = damon_new_region(regions[i * 2], regions[i * 2 + 1]);
- 		damon_add_region(r, t);
-@@ -251,7 +251,7 @@ static void damon_test_apply_three_regio
- static void damon_test_split_evenly_fail(struct kunit *test,
- 		unsigned long start, unsigned long end, unsigned int nr_pieces)
- {
--	struct damon_target *t = damon_new_target(42);
-+	struct damon_target *t = damon_new_target();
- 	struct damon_region *r = damon_new_region(start, end);
+ 	page = pte_page(entry);
+-	if (!page)
+-		goto out;
+-
+ 	get_page(page);
  
- 	damon_add_region(r, t);
-@@ -270,7 +270,7 @@ static void damon_test_split_evenly_fail
- static void damon_test_split_evenly_succ(struct kunit *test,
- 	unsigned long start, unsigned long end, unsigned int nr_pieces)
- {
--	struct damon_target *t = damon_new_target(42);
-+	struct damon_target *t = damon_new_target();
- 	struct damon_region *r = damon_new_region(start, end);
- 	unsigned long expected_width = (end - start) / nr_pieces;
- 	unsigned long i = 0;
+ 	if (pte_young(entry) || !page_is_idle(page) ||
 _
