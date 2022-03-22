@@ -2,119 +2,121 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EFFCC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:40:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C8DC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:40:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230382AbiCVVlt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230371AbiCVVlt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 22 Mar 2022 17:41:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45088 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235878AbiCVVlM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:41:12 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29BF0B849
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:39:41 -0700 (PDT)
+        with ESMTP id S235978AbiCVVlN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:41:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BD401E7
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:39:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D0A9EB81D9E
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:39:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F366C340EE;
-        Tue, 22 Mar 2022 21:39:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2793E61748
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:39:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80D93C340EC;
+        Tue, 22 Mar 2022 21:39:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985178;
-        bh=P45jF2cSIC0S4zMQop2TdiAZmryr8wUTW/pvsxyxx14=;
+        s=korg; t=1647985184;
+        bh=TgP8gVZ3VEv74o04VvHLA+1bQwsdNlpj/ml52mWc2tI=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=afSn/VEm87CU/uVGxSVbSgBFWMT8Cg7UA4fd0cN8gnk4KlQrVrlJebFugoAG/sAqV
-         djvh1lfjfF0+yUDURP0NIalVVQ28XBIFhK2GuF3RkxDNEBlOVHqlJQPjzJPkFPnbJ1
-         WadhmwsLqFT135E8eAZDb2o/bbEv78MbnVFqp1GU=
-Date:   Tue, 22 Mar 2022 14:39:37 -0700
-To:     willy@infradead.org, lukas.bulwahn@gmail.com,
-        kirill.shutemov@linux.intel.com, jhubbard@nvidia.com, jgg@ziepe.ca,
-        jgg@nvidia.com, jack@suse.cz, imbrenda@linux.ibm.com, hch@lst.de,
-        david@redhat.com, alex.williamson@redhat.com, aarcange@redhat.com,
-        peterx@redhat.com, akpm@linux-foundation.org,
+        b=meMmPqS8ZxVcQqfWHGJI9RrAR/Fl1zFkRy054SyBoQSBsYyO9FTk5AwoXMt26wmY3
+         Fhj0Ah+PQth+Eg22nE/hmkVzTJUX6iIGhz+/ws4hopSQCjdai7CRTPJ4USvbG3NP9F
+         EudObRaMUqlV2A4Sa5dRkAxthfovGM7eu983RT1M=
+Date:   Tue, 22 Mar 2022 14:39:43 -0700
+To:     willy@infradead.org, peterx@redhat.com, lukas.bulwahn@gmail.com,
+        kirill.shutemov@linux.intel.com, jgg@ziepe.ca, jgg@nvidia.com,
+        jack@suse.cz, imbrenda@linux.ibm.com, hch@lst.de, david@redhat.com,
+        alex.williamson@redhat.com, aarcange@redhat.com,
+        jhubbard@nvidia.com, akpm@linux-foundation.org,
         patches@lists.linux.dev, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 022/227] mm: fix invalid page pointer returned with FOLL_PIN gups
-Message-Id: <20220322213938.6F366C340EE@smtp.kernel.org>
+Subject: [patch 024/227] mm/gup: remove unused pin_user_pages_locked()
+Message-Id: <20220322213944.80D93C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: fix invalid page pointer returned with FOLL_PIN gups
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: remove unused pin_user_pages_locked()
 
-Patch series "mm/gup: some cleanups", v5.
+This routine was used for a short while, but then the calling code was
+refactored and the only caller was removed.
 
-
-This patch (of 5):
-
-Alex reported invalid page pointer returned with pin_user_pages_remote()
-from vfio after upstream commit 4b6c33b32296 ("vfio/type1: Prepare for
-batched pinning with struct vfio_batch").
-
-It turns out that it's not the fault of the vfio commit; however after
-vfio switches to a full page buffer to store the page pointers it starts
-to expose the problem easier.
-
-The problem is for VM_PFNMAP vmas we should normally fail with an -EFAULT
-then vfio will carry on to handle the MMIO regions.  However when the bug
-triggered, follow_page_mask() returned -EEXIST for such a page, which will
-jump over the current page, leaving that entry in **pages untouched. 
-However the caller is not aware of it, hence the caller will reference the
-page as usual even if the pointer data can be anything.
-
-We had that -EEXIST logic since commit 1027e4436b6a ("mm: make GUP handle
-pfn mapping unless FOLL_GET is requested") which seems very reasonable. 
-It could be that when we reworked GUP with FOLL_PIN we could have
-overlooked that special path in commit 3faa52c03f44 ("mm/gup: track
-FOLL_PIN pages"), even if that commit rightfully touched up
-follow_devmap_pud() on checking FOLL_PIN when it needs to return an
--EEXIST.
-
-Attaching the Fixes to the FOLL_PIN rework commit, as it happened later than
-1027e4436b6a.
-
-[jhubbard@nvidia.com: added some tags, removed a reference to an out of tree module.]
-Link: https://lkml.kernel.org/r/20220207062213.235127-1-jhubbard@nvidia.com
-Link: https://lkml.kernel.org/r/20220204020010.68930-1-jhubbard@nvidia.com
-Link: https://lkml.kernel.org/r/20220204020010.68930-2-jhubbard@nvidia.com
-Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
-Signed-off-by: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20220204020010.68930-4-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Reported-by: Alex Williamson <alex.williamson@redhat.com>
-Debugged-by: Alex Williamson <alex.williamson@redhat.com>
-Tested-by: Alex Williamson <alex.williamson@redhat.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |    2 --
+ mm/gup.c           |   29 -----------------------------
+ 2 files changed, 31 deletions(-)
 
---- a/mm/gup.c~mm-fix-invalid-page-pointer-returned-with-foll_pin-gups
+--- a/include/linux/mm.h~mm-gup-remove-unused-pin_user_pages_locked
++++ a/include/linux/mm.h
+@@ -1918,8 +1918,6 @@ long pin_user_pages(unsigned long start,
+ 		    struct vm_area_struct **vmas);
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+ 		    unsigned int gup_flags, struct page **pages, int *locked);
+-long pin_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-		    unsigned int gup_flags, struct page **pages, int *locked);
+ long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+ 		    struct page **pages, unsigned int gup_flags);
+ long pin_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+--- a/mm/gup.c~mm-gup-remove-unused-pin_user_pages_locked
 +++ a/mm/gup.c
-@@ -465,7 +465,7 @@ static int follow_pfn_pte(struct vm_area
- 		pte_t *pte, unsigned int flags)
- {
- 	/* No page to get reference */
--	if (flags & FOLL_GET)
-+	if (flags & (FOLL_GET | FOLL_PIN))
- 		return -EFAULT;
- 
- 	if (flags & FOLL_TOUCH) {
+@@ -3127,32 +3127,3 @@ long pin_user_pages_unlocked(unsigned lo
+ 	return get_user_pages_unlocked(start, nr_pages, pages, gup_flags);
+ }
+ EXPORT_SYMBOL(pin_user_pages_unlocked);
+-
+-/*
+- * pin_user_pages_locked() is the FOLL_PIN variant of get_user_pages_locked().
+- * Behavior is the same, except that this one sets FOLL_PIN and rejects
+- * FOLL_GET.
+- */
+-long pin_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-			   unsigned int gup_flags, struct page **pages,
+-			   int *locked)
+-{
+-	/*
+-	 * FIXME: Current FOLL_LONGTERM behavior is incompatible with
+-	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
+-	 * vmas.  As there are no users of this flag in this call we simply
+-	 * disallow this option for now.
+-	 */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_LONGTERM))
+-		return -EINVAL;
+-
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
+-		return -EINVAL;
+-
+-	gup_flags |= FOLL_PIN;
+-	return __get_user_pages_locked(current->mm, start, nr_pages,
+-				       pages, NULL, locked,
+-				       gup_flags | FOLL_TOUCH);
+-}
+-EXPORT_SYMBOL(pin_user_pages_locked);
 _
