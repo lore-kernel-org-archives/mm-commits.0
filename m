@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93CCDC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FAC0C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:12:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229476AbiCVTNR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 15:13:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34116 "EHLO
+        id S229475AbiCVTNi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 15:13:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbiCVTNQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:13:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4D0A8F9B3
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:11:48 -0700 (PDT)
+        with ESMTP id S229459AbiCVTNi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:13:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE5EB8F9B3
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:12:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6BCA0B81D5F
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:11:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C01DC340EC;
-        Tue, 22 Mar 2022 19:11:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6947B61655
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:12:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C35D5C340EC;
+        Tue, 22 Mar 2022 19:12:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647976306;
-        bh=oBE6BkuOjC+gsVX8y8WzWJh75KZbpOBqf6XFDmy/pyE=;
+        s=korg; t=1647976329;
+        bh=hEy2qQZCAqrxRa7+7gUzKLLm1M69fIUxzCMm6cdiMyo=;
         h=Date:To:From:Subject:From;
-        b=PgmiC3aD+WKprtcRDe/qlrdDWgy4fbhGeADXNtwbX9qfbxtGGBtpzLx92dpkIGaqU
-         40TN4Hb1i+KpRZig65uv7XZw8mSoLGjHisZQ6IGYW9J1yts//XtBpkz/ahZS9rgZ3W
-         QeHC8/icFdxRXGAtIxU8G7bVgxT/KCkaUXFNpqtY=
-Date:   Tue, 22 Mar 2022 12:11:45 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=o8tv9BzcIze8VPxd7WRuGmwuBHLrcs5M4XKCjMQgNDLj50NVA5334N+QTXgr6u+Bq
+         SjtsRFsXC5L5fDIWgkPieO6En4gMp0oxve3EXdOg7oCl2oRt1OmPkB6m9yb4a8/xC0
+         oNSpi4fCHlPSuwZvwb/k2QdNNj+o+0VphufWo9Hg=
+Date:   Tue, 22 Mar 2022 12:12:09 -0700
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+        shy828301@gmail.com, naoya.horiguchi@nec.com,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com, bp@alien8.de,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch removed from -mm tree
-Message-Id: <20220322191146.2C01DC340EC@smtp.kernel.org>
+Subject: [folded-merged] mm-memory-failurec-fix-race-with-changing-page-compound-again-fix.patch removed from -mm tree
+Message-Id: <20220322191209.C35D5C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,44 +43,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix
+     Subject: mm-memory-failurec-fix-race-with-changing-page-compound-again-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
+     mm-memory-failurec-fix-race-with-changing-page-compound-again-fix.patch
 
-This patch was dropped because it was folded into mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
+This patch was dropped because it was folded into mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix
+Subject: mm-memory-failurec-fix-race-with-changing-page-compound-again-fix
 
-export is_free_buddy_page() to modules
+s@/**@/*@, per Naoya Horiguchi
 
-ERROR: modpost: "is_free_buddy_page" [mm/hwpoison-inject.ko] undefined!
-
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix
-+++ a/mm/page_alloc.c
-@@ -9408,6 +9408,7 @@ bool is_free_buddy_page(struct page *pag
+--- a/mm/memory-failure.c~mm-memory-failurec-fix-race-with-changing-page-compound-again-fix
++++ a/mm/memory-failure.c
+@@ -1534,7 +1534,7 @@ static int memory_failure_hugetlb(unsign
  
- 	return order < MAX_ORDER;
- }
-+EXPORT_SYMBOL(is_free_buddy_page);
+ 	lock_page(head);
  
- #ifdef CONFIG_MEMORY_FAILURE
- /*
+-	/**
++	/*
+ 	 * The page could have changed compound pages due to race window.
+ 	 * If this happens just bail out.
+ 	 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page.patch
-mm-memory-failurec-fix-race-with-changing-page-compound-again-fix.patch
+mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
 mm-export-pageheadhuge-fix.patch
 userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
 mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
