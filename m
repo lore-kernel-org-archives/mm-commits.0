@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCB1AC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:04:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2333FC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 19:08:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230287AbiCVTF3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 15:05:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40518 "EHLO
+        id S230383AbiCVTJs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 15:09:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229846AbiCVTF2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:05:28 -0400
+        with ESMTP id S231302AbiCVTJp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 15:09:45 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D66A6DE85
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:04:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FB3312AE7
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 12:08:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 89F78B81D5F
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:03:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 407D0C340F0;
-        Tue, 22 Mar 2022 19:03:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BF5E9B81D65
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:08:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7386DC340EC;
+        Tue, 22 Mar 2022 19:08:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647975838;
-        bh=eIIuCZRYnTvSmZ2rggyDPxzjOB5sYYRyf+PCGqED8WU=;
+        s=korg; t=1647976092;
+        bh=Mlj1pSKZqsOZyA5gHdipDOu/s9HIjpjSSG8Dt9Uj2dQ=;
         h=Date:To:From:Subject:From;
-        b=An0YBZ+017Ks4i19NFYh2AhOyawjN8njM/CPWEYeaL7LeDKx3Eu/rUtEEVslcdbcH
-         kfDweXON5JpX9vcFEq6J+goTRtcA6x4lEke76BE4wNWq/8gg2I0kTXMsNzvCToeQKd
-         7rc313Mt48ts9YzBzj2G8+i0lEnqxwB3y0PaFW18=
-Date:   Tue, 22 Mar 2022 12:03:57 -0700
-To:     mm-commits@vger.kernel.org, neilb@suse.de,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=gaRkyRUvwyRHkLM62DHr6hHW1WsG2nzO15XFx902Izpv90fGdtzlUmOg1Xf5SJft2
+         9O2wYV1TFj156aPWM001hDW5nPRN593cLl6MBW7tzh9Yng19ym4RqPKdejZBwymqgB
+         EBI+v3tyd94BxfCI4MU0VlfDSntOJbuPnpJhT6pc=
+Date:   Tue, 22 Mar 2022 12:08:11 -0700
+To:     mm-commits@vger.kernel.org, xavier.roche@algolia.com,
+        jdelvare@suse.de, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch removed from -mm tree
-Message-Id: <20220322190358.407D0C340F0@smtp.kernel.org>
+Subject: [folded-merged] tmpfs-support-for-file-creation-time-fix.patch removed from -mm tree
+Message-Id: <20220322190812.7386DC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,64 +41,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: remove-bdi_congested-and-wb_congested-and-related-functions-fix
+     Subject: tmpfs: three tweaks to creation time patch
 has been removed from the -mm tree.  Its filename was
-     remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
+     tmpfs-support-for-file-creation-time-fix.patch
 
-This patch was dropped because it was folded into remove-bdi_congested-and-wb_congested-and-related-functions.patch
+This patch was dropped because it was folded into tmpfs-support-for-file-creation-time.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: remove-bdi_congested-and-wb_congested-and-related-functions-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: three tweaks to creation time patch
 
-fix build
+Thank you to Xavier Roche for his tmpfs file creation time patch.  Please
+apply these 3 tweaks on top (and fold in when sending to Linus):
 
-fs/nilfs2/segbuf.c: In function 'nilfs_segbuf_submit_bio':
-fs/nilfs2/segbuf.c:344:13: error: unused variable 'err' [-Werror=unused-variable]
-  344 |         int err;
+1. Move vfs_inode back to being last element of shmem_inode_info.
+2. Remove unnecessary parentheses from condition in shmem_getattr().
+3. Using shmem_getattr() on other file types than regular requires that
+   shmem_is_huge() check type, to stop incorrect HPAGE_PMD_SIZE blksize.
 
-Cc: NeilBrown <neilb@suse.de>
+Link: https://lkml.kernel.org/r/b954973a-b8d1-cab8-63bd-6ea8063de3@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Xavier Roche <xavier.roche@algolia.com>
+Cc: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segbuf.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/shmem_fs.h |    2 +-
+ mm/shmem.c               |    7 +++----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
---- a/fs/nilfs2/segbuf.c~remove-bdi_congested-and-wb_congested-and-related-functions-fix
-+++ a/fs/nilfs2/segbuf.c
-@@ -341,7 +341,6 @@ static int nilfs_segbuf_submit_bio(struc
- 				   int mode_flags)
- {
- 	struct bio *bio = wi->bio;
--	int err;
+--- a/include/linux/shmem_fs.h~tmpfs-support-for-file-creation-time-fix
++++ a/include/linux/shmem_fs.h
+@@ -24,8 +24,8 @@ struct shmem_inode_info {
+ 	struct shared_policy	policy;		/* NUMA memory alloc policy */
+ 	struct simple_xattrs	xattrs;		/* list of xattrs */
+ 	atomic_t		stop_eviction;	/* hold when working on inode */
+-	struct inode		vfs_inode;
+ 	struct timespec64	i_crtime;	/* file creation time */
++	struct inode		vfs_inode;
+ };
  
- 	bio->bi_end_io = nilfs_end_bio_write;
- 	bio->bi_private = segbuf;
+ struct shmem_sb_info {
+--- a/mm/shmem.c~tmpfs-support-for-file-creation-time-fix
++++ a/mm/shmem.c
+@@ -476,6 +476,8 @@ bool shmem_is_huge(struct vm_area_struct
+ {
+ 	loff_t i_size;
+ 
++	if (!S_ISREG(inode->i_mode))
++		return false;
+ 	if (shmem_huge == SHMEM_HUGE_DENY)
+ 		return false;
+ 	if (vma && ((vma->vm_flags & VM_NOHUGEPAGE) ||
+@@ -1061,7 +1063,7 @@ static int shmem_getattr(struct user_nam
+ 	if (shmem_is_huge(NULL, inode, 0))
+ 		stat->blksize = HPAGE_PMD_SIZE;
+ 
+-	if ((request_mask & STATX_BTIME)) {
++	if (request_mask & STATX_BTIME) {
+ 		stat->result_mask |= STATX_BTIME;
+ 		stat->btime.tv_sec = info->i_crtime.tv_sec;
+ 		stat->btime.tv_nsec = info->i_crtime.tv_nsec;
+@@ -1860,9 +1862,6 @@ repeat:
+ 		return 0;
+ 	}
+ 
+-	/* Never use a huge page for shmem_symlink() */
+-	if (S_ISLNK(inode->i_mode))
+-		goto alloc_nohuge;
+ 	if (!shmem_is_huge(vma, inode, index))
+ 		goto alloc_nohuge;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-remove-bdi_congested-and-wb_congested-and-related-functions.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-list_lru-replace-linear-array-with-xarray-fix.patch
-mm-hwpoison-inject-support-injecting-hwpoison-to-free-page-fix.patch
-mm-memory-failurec-fix-race-with-changing-page-compound-again-fix.patch
-mm-export-pageheadhuge-fix.patch
-userfaultfd-provide-unmasked-address-on-page-fault-v3-fix.patch
-mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
-mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
-memcg-sync-flush-only-if-periodic-flush-is-delayed-fix.patch
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-linux-typesh-remove-unnecessary-__bitwise__-fix.patch
-taskstats-remove-unneeded-dead-assignment-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mm-slightly-clarify-ksm-logic-in-do_swap_page-fix.patch
-mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+tmpfs-support-for-file-creation-time.patch
+shmem-mapping_set_exiting-to-help-mapped-resilience.patch
+tmpfs-do-not-allocate-pages-on-read.patch
+mm-_install_special_mapping-apply-vm_locked_clear_mask.patch
+mm-fs-delete-pf_swapwrite.patch
+mm-__isolate_lru_page_prepare-in-isolate_migratepages_block.patch
+mempolicy-mbind_range-set_policy-after-vma_merge.patch
+mm-thp-refix-__split_huge_pmd_locked-for-migration-pmd.patch
+mm-thp-clearpagedoublemap-in-first-page_add_file_rmap.patch
+mm-delete-__clearpagewaiters.patch
+mm-filemap_unaccount_folio-large-skip-mapcount-fixup.patch
+mm-thp-fix-nr_file_mapped-accounting-in-page__file_rmap.patch
+mm-warn-on-deleting-redirtied-only-if-accounted.patch
+mm-unmap_mapping_range_tree-with-i_mmap_rwsem-shared.patch
 
