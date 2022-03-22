@@ -2,172 +2,117 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39899C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:46:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54AF3C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:46:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236454AbiCVVre (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:47:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34300 "EHLO
+        id S236435AbiCVVrf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:47:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236509AbiCVVr0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:47:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 022115F8DB
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:45:58 -0700 (PDT)
+        with ESMTP id S230347AbiCVVr3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:47:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0647F5F8C1;
+        Tue, 22 Mar 2022 14:46:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 91EC66100A
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:45:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E507AC340EC;
-        Tue, 22 Mar 2022 21:45:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 99B86615B1;
+        Tue, 22 Mar 2022 21:46:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED3C8C340EE;
+        Tue, 22 Mar 2022 21:45:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985557;
-        bh=Zz3C5jyZcF3r7n9TLJbiOQTwALX+wG89V4HOV0ON8Ww=;
+        s=korg; t=1647985560;
+        bh=vksHlh41Yl8TntR4WEXfMzLzqp4dQjqNQcVeZWBmRXI=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=oK+TTQ1IsDbLedzlt9cvWJikwYu5U4B2pHTxa3GCkiDgq2BJ6p2iwBEaW8oPN8yRz
-         AuptZEiwDTtti9/N8kYes9XIp4wieRqJf+o09k5liBBpEcWFmSvQLwZO6RfcdHGqQD
-         E/JTBdYBPLmgBfu6IqySJwVGjhgplAgK6qpMO7r8=
-Date:   Tue, 22 Mar 2022 14:45:56 -0700
-To:     rostedt@goodmis.org, mingo@redhat.com,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=kBzVph6uHpG5u7ts3Lowr6XsitPhMfna0Tw9PvqqB5J8umZ/w7LKMaAQE46N5cw4B
+         c5P5IW7TtpPd1ltOob5kQcKROBkO5AI0+IYlZp4a/dOP1qXhfc35exp4VTrDxJJy7g
+         unis9W2tc8uU0g3+xvOPHfGIglVgVM8VdrGpwscc=
+Date:   Tue, 22 Mar 2022 14:45:59 -0700
+To:     vbabka@suse.cz, stable@vger.kernel.org, oleg@redhat.com,
+        Liam.Howlett@oracle.com, hughd@google.com,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 146/227] mm: compaction: cleanup the compaction trace events
-Message-Id: <20220322214556.E507AC340EC@smtp.kernel.org>
+Subject: [patch 147/227] mempolicy: mbind_range() set_policy() after vma_merge()
+Message-Id: <20220322214559.ED3C8C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: compaction: cleanup the compaction trace events
+From: Hugh Dickins <hughd@google.com>
+Subject: mempolicy: mbind_range() set_policy() after vma_merge()
 
-As Steven suggested [1], we should access the pointers from the trace
-event to avoid dereferencing them to the tracepoint function when the
-tracepoint is disabled.
+v2.6.34 commit 9d8cebd4bcd7 ("mm: fix mbind vma merge problem") introduced
+vma_merge() to mbind_range(); but unlike madvise, mlock and mprotect, it
+put a "continue" to next vma where its precedents go to update flags on
+current vma before advancing: that left vma with the wrong setting in the
+infamous vma_merge() case 8.
 
-[1] https://lkml.org/lkml/2021/11/3/409
+v3.10 commit 1444f92c8498 ("mm: merging memory blocks resets mempolicy")
+tried to fix that in vma_adjust(), without fully understanding the issue.
 
-Link: https://lkml.kernel.org/r/4cd393b4d57f8f01ed72c001509b28e3a3b1a8c1.1646985115.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+v3.11 commit 3964acd0dbec ("mm: mempolicy: fix mbind_range() &&
+vma_adjust() interaction") reverted that, and went about the fix in the
+right way, but chose to optimize out an unnecessary mpol_dup() with a
+prior mpol_equal() test.  But on tmpfs, that also pessimized out the vital
+call to its ->set_policy(), leaving the new mbind unenforced.
+
+The user visible effect was that the pages got allocated on the local
+node (happened to be 0), after the mbind() caller had specifically
+asked for them to be allocated on node 1.  There was not any page
+migration involved in the case reported: the pages simply got allocated
+on the wrong node.
+
+Just delete that optimization now (though it could be made conditional on
+vma not having a set_policy).  Also remove the "next" variable: it turned
+out to be blameless, but also pointless.
+
+Link: https://lkml.kernel.org/r/319e4db9-64ae-4bca-92f0-ade85d342ff@google.com
+Fixes: 3964acd0dbec ("mm: mempolicy: fix mbind_range() && vma_adjust() interaction")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |   26 +++++++++++++-------------
- mm/compaction.c                   |    9 +++------
- 2 files changed, 16 insertions(+), 19 deletions(-)
+ mm/mempolicy.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/include/trace/events/compaction.h~mm-compaction-cleanup-the-compaction-trace-events
-+++ a/include/trace/events/compaction.h
-@@ -67,10 +67,10 @@ DEFINE_EVENT(mm_compaction_isolate_templ
- #ifdef CONFIG_COMPACTION
- TRACE_EVENT(mm_compaction_migratepages,
+--- a/mm/mempolicy.c~mempolicy-mbind_range-set_policy-after-vma_merge
++++ a/mm/mempolicy.c
+@@ -786,7 +786,6 @@ static int vma_replace_policy(struct vm_
+ static int mbind_range(struct mm_struct *mm, unsigned long start,
+ 		       unsigned long end, struct mempolicy *new_pol)
+ {
+-	struct vm_area_struct *next;
+ 	struct vm_area_struct *prev;
+ 	struct vm_area_struct *vma;
+ 	int err = 0;
+@@ -801,8 +800,7 @@ static int mbind_range(struct mm_struct
+ 	if (start > vma->vm_start)
+ 		prev = vma;
  
--	TP_PROTO(unsigned long nr_all,
-+	TP_PROTO(struct compact_control *cc,
- 		unsigned int nr_succeeded),
+-	for (; vma && vma->vm_start < end; prev = vma, vma = next) {
+-		next = vma->vm_next;
++	for (; vma && vma->vm_start < end; prev = vma, vma = vma->vm_next) {
+ 		vmstart = max(start, vma->vm_start);
+ 		vmend   = min(end, vma->vm_end);
  
--	TP_ARGS(nr_all, nr_succeeded),
-+	TP_ARGS(cc, nr_succeeded),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, nr_migrated)
-@@ -79,7 +79,7 @@ TRACE_EVENT(mm_compaction_migratepages,
- 
- 	TP_fast_assign(
- 		__entry->nr_migrated = nr_succeeded;
--		__entry->nr_failed = nr_all - nr_succeeded;
-+		__entry->nr_failed = cc->nr_migratepages - nr_succeeded;
- 	),
- 
- 	TP_printk("nr_migrated=%lu nr_failed=%lu",
-@@ -88,10 +88,10 @@ TRACE_EVENT(mm_compaction_migratepages,
- );
- 
- TRACE_EVENT(mm_compaction_begin,
--	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
--		unsigned long free_pfn, unsigned long zone_end, bool sync),
-+	TP_PROTO(struct compact_control *cc, unsigned long zone_start,
-+		unsigned long zone_end, bool sync),
- 
--	TP_ARGS(zone_start, migrate_pfn, free_pfn, zone_end, sync),
-+	TP_ARGS(cc, zone_start, zone_end, sync),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, zone_start)
-@@ -103,8 +103,8 @@ TRACE_EVENT(mm_compaction_begin,
- 
- 	TP_fast_assign(
- 		__entry->zone_start = zone_start;
--		__entry->migrate_pfn = migrate_pfn;
--		__entry->free_pfn = free_pfn;
-+		__entry->migrate_pfn = cc->migrate_pfn;
-+		__entry->free_pfn = cc->free_pfn;
- 		__entry->zone_end = zone_end;
- 		__entry->sync = sync;
- 	),
-@@ -118,11 +118,11 @@ TRACE_EVENT(mm_compaction_begin,
- );
- 
- TRACE_EVENT(mm_compaction_end,
--	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
--		unsigned long free_pfn, unsigned long zone_end, bool sync,
-+	TP_PROTO(struct compact_control *cc, unsigned long zone_start,
-+		unsigned long zone_end, bool sync,
- 		int status),
- 
--	TP_ARGS(zone_start, migrate_pfn, free_pfn, zone_end, sync, status),
-+	TP_ARGS(cc, zone_start, zone_end, sync, status),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, zone_start)
-@@ -135,8 +135,8 @@ TRACE_EVENT(mm_compaction_end,
- 
- 	TP_fast_assign(
- 		__entry->zone_start = zone_start;
--		__entry->migrate_pfn = migrate_pfn;
--		__entry->free_pfn = free_pfn;
-+		__entry->migrate_pfn = cc->migrate_pfn;
-+		__entry->free_pfn = cc->free_pfn;
- 		__entry->zone_end = zone_end;
- 		__entry->sync = sync;
- 		__entry->status = status;
---- a/mm/compaction.c~mm-compaction-cleanup-the-compaction-trace-events
-+++ a/mm/compaction.c
-@@ -2387,8 +2387,7 @@ compact_zone(struct compact_control *cc,
- 	update_cached = !sync &&
- 		cc->zone->compact_cached_migrate_pfn[0] == cc->zone->compact_cached_migrate_pfn[1];
- 
--	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
--				cc->free_pfn, end_pfn, sync);
-+	trace_mm_compaction_begin(cc, start_pfn, end_pfn, sync);
- 
- 	/* lru_add_drain_all could be expensive with involving other CPUs */
- 	lru_add_drain();
-@@ -2438,8 +2437,7 @@ compact_zone(struct compact_control *cc,
- 				compaction_free, (unsigned long)cc, cc->mode,
- 				MR_COMPACTION, &nr_succeeded);
- 
--		trace_mm_compaction_migratepages(cc->nr_migratepages,
--						 nr_succeeded);
-+		trace_mm_compaction_migratepages(cc, nr_succeeded);
- 
- 		/* All pages were either migrated or will be released */
- 		cc->nr_migratepages = 0;
-@@ -2515,8 +2513,7 @@ out:
- 	count_compact_events(COMPACTMIGRATE_SCANNED, cc->total_migrate_scanned);
- 	count_compact_events(COMPACTFREE_SCANNED, cc->total_free_scanned);
- 
--	trace_mm_compaction_end(start_pfn, cc->migrate_pfn,
--				cc->free_pfn, end_pfn, sync, ret);
-+	trace_mm_compaction_end(cc, start_pfn, end_pfn, sync, ret);
- 
- 	return ret;
- }
+@@ -817,10 +815,6 @@ static int mbind_range(struct mm_struct
+ 				 anon_vma_name(vma));
+ 		if (prev) {
+ 			vma = prev;
+-			next = vma->vm_next;
+-			if (mpol_equal(vma_policy(vma), new_pol))
+-				continue;
+-			/* vma_merge() joined vma && vma->next, case 8 */
+ 			goto replace;
+ 		}
+ 		if (vma->vm_start != vmstart) {
 _
