@@ -2,92 +2,122 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 117E5C4321E
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:48:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F4A9C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:48:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236671AbiCVVtu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:49:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36118 "EHLO
+        id S231522AbiCVVtt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 17:49:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236754AbiCVVt2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:49:28 -0400
+        with ESMTP id S236671AbiCVVtU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:49:20 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD461DF39
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:47:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A76A65FF35
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:47:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5AE9CB81DB7
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:47:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F77BC340F5;
-        Tue, 22 Mar 2022 21:47:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4FC56B81DAF
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:47:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C9DCC340EC;
+        Tue, 22 Mar 2022 21:47:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985676;
-        bh=DXWMWCtNqcjsmwVePQKE6A5+0n6p7w3U86+C8RQt9xA=;
+        s=korg; t=1647985670;
+        bh=CBQauugBlttK82R1G0LQ5qfgK60FXc1ArnvAVJh/Nlo=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=q0IGxVA6vcDdJWR2L0f3dFsHSfX7Hvo8bjNjdTPNDQau3QGOJm9W5K5I8fHAYpfie
-         diQaShq61vT023NC2P8bbU2hAXOl19HKxqufL9rsIFDltnt1cQK6Cx7G3hswh70xN4
-         YUVTQyTmbZwB/S4qazYx/Pw8b1Z9u//NPdQPfiLQ=
-Date:   Tue, 22 Mar 2022 14:47:55 -0700
-To:     willy@infradead.org, mgorman@techsingularity.net, david@redhat.com,
-        vbabka@suse.cz, akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=wUnE7ZW4psb92RHZU7k9l7oXy0IGNqBDq3gX+PX37JhWmKqnrE6//obsRVWr6FMwf
+         Rz2c4JWgewz86wC1cBaWxxlS9gXRUW64s1np/c1d22ooG3DLZNEC91JSu6oJKo9Pzn
+         M8wwQDKyIOB+1ob/xiiAgA8HozEAWGslPYBPrG40=
+Date:   Tue, 22 Mar 2022 14:47:49 -0700
+To:     David.Laight@ACULAB.COM, anshuman.khandual@arm.com,
+        christophe.leroy@csgroup.eu, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 185/227] mm/early_ioremap: declare early_memremap_pgprot_adjust()
-Message-Id: <20220322214756.0F77BC340F5@smtp.kernel.org>
+Subject: [patch 183/227] mm: uninline copy_overflow()
+Message-Id: <20220322214750.0C9DCC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/early_ioremap: declare early_memremap_pgprot_adjust()
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm: uninline copy_overflow()
 
-The mm/ directory can almost fully be built with W=1, which would help in
-local development.  One remaining issue is missing prototype for
-early_memremap_pgprot_adjust().
+While building a small config with CONFIG_CC_OPTIMISE_FOR_SIZE, I ended up
+with more than 50 times the following function in vmlinux because GCC
+doesn't honor the 'inline' keyword:
 
-Thus add a declaration for this function.  Use mm/internal.h instead of
-asm/early_ioremap.h to avoid missing type definitions and unnecessary
-exposure.
+	c00243bc <copy_overflow>:
+	c00243bc:	94 21 ff f0 	stwu    r1,-16(r1)
+	c00243c0:	7c 85 23 78 	mr      r5,r4
+	c00243c4:	7c 64 1b 78 	mr      r4,r3
+	c00243c8:	3c 60 c0 62 	lis     r3,-16286
+	c00243cc:	7c 08 02 a6 	mflr    r0
+	c00243d0:	38 63 5e e5 	addi    r3,r3,24293
+	c00243d4:	90 01 00 14 	stw     r0,20(r1)
+	c00243d8:	4b ff 82 45 	bl      c001c61c <__warn_printk>
+	c00243dc:	0f e0 00 00 	twui    r0,0
+	c00243e0:	80 01 00 14 	lwz     r0,20(r1)
+	c00243e4:	38 21 00 10 	addi    r1,r1,16
+	c00243e8:	7c 08 03 a6 	mtlr    r0
+	c00243ec:	4e 80 00 20 	blr
 
-Link: https://lkml.kernel.org/r/20220314165724.16071-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+With -Winline, GCC tells:
+
+	/include/linux/thread_info.h:212:20: warning: inlining failed in call to 'copy_overflow': call is unlikely and code size would grow [-Winline]
+
+copy_overflow() is a non conditional warning called by
+check_copy_size() on an error path.
+
+check_copy_size() have to remain inlined in order to benefit
+from constant folding, but copy_overflow() is not worth inlining.
+
+Uninline the warning when CONFIG_BUG is selected.
+
+When CONFIG_BUG is not selected, WARN() does nothing so skip it.
+
+This reduces the size of vmlinux by almost 4kbytes.
+
+Link: https://lkml.kernel.org/r/e1723b9cfa924bcefcd41f69d0025b38e4c9364e.1644819985.git.christophe.leroy@csgroup.eu
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/early_ioremap.c |    1 +
- mm/internal.h      |    6 ++++++
- 2 files changed, 7 insertions(+)
+ include/linux/thread_info.h |    5 ++++-
+ mm/maccess.c                |    6 ++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/early_ioremap.c~mm-early_ioremap-declare-early_memremap_pgprot_adjust
-+++ a/mm/early_ioremap.c
-@@ -17,6 +17,7 @@
- #include <linux/vmalloc.h>
- #include <asm/fixmap.h>
- #include <asm/early_ioremap.h>
-+#include "internal.h"
+--- a/include/linux/thread_info.h~mm-uninline-copy_overflow
++++ a/include/linux/thread_info.h
+@@ -209,9 +209,12 @@ __bad_copy_from(void);
+ extern void __compiletime_error("copy destination size is too small")
+ __bad_copy_to(void);
  
- #ifdef CONFIG_MMU
- static int early_ioremap_debug __initdata;
---- a/mm/internal.h~mm-early_ioremap-declare-early_memremap_pgprot_adjust
-+++ a/mm/internal.h
-@@ -155,6 +155,12 @@ extern unsigned long highest_memmap_pfn;
- #define MAX_RECLAIM_RETRIES 16
- 
- /*
-+ * in mm/early_ioremap.c
-+ */
-+pgprot_t __init early_memremap_pgprot_adjust(resource_size_t phys_addr,
-+					unsigned long size, pgprot_t prot);
++void __copy_overflow(int size, unsigned long count);
 +
-+/*
-  * in mm/vmscan.c:
-  */
- extern int isolate_lru_page(struct page *page);
+ static inline void copy_overflow(int size, unsigned long count)
+ {
+-	WARN(1, "Buffer overflow detected (%d < %lu)!\n", size, count);
++	if (IS_ENABLED(CONFIG_BUG))
++		__copy_overflow(size, count);
+ }
+ 
+ static __always_inline __must_check bool
+--- a/mm/maccess.c~mm-uninline-copy_overflow
++++ a/mm/maccess.c
+@@ -335,3 +335,9 @@ long strnlen_user_nofault(const void __u
+ 
+ 	return ret;
+ }
++
++void __copy_overflow(int size, unsigned long count)
++{
++	WARN(1, "Buffer overflow detected (%d < %lu)!\n", size, count);
++}
++EXPORT_SYMBOL(__copy_overflow);
 _
