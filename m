@@ -2,352 +2,83 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDD37C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 21:50:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DC04C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Mar 2022 22:13:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236934AbiCVVvw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 17:51:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42690 "EHLO
+        id S229572AbiCVWO7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 18:14:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236978AbiCVVvj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 17:51:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2E596579F
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 14:49:59 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 42ED861662
-        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 21:49:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99224C340EE;
-        Tue, 22 Mar 2022 21:49:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1647985798;
-        bh=bQqOYlZD+42SAaMW44eQLy21UU5942AlHX38ItcKB3U=;
-        h=Date:To:From:In-Reply-To:Subject:From;
-        b=WvznL9GjmdwXwaf3YvL4Bqo1eNUn7RY2smZazRtDSFmD0yAcb32O7YQtjAyDUQmV9
-         eyHyYoTdYwR8EXTAugCDyI+3pFvXaRJlwa8GM0l/6oP7D72ly0BIicEOieu8u4ugLT
-         8E2MuFgEAJYga704aSVe5JrjGsby90sDvvX/YGFQ=
-Date:   Tue, 22 Mar 2022 14:49:58 -0700
-To:     xhao@linux.alibaba.com, skhan@linuxfoundation.org,
-        rientjes@google.com, gregkh@linuxfoundation.org, corbet@lwn.net,
-        sj@kernel.org, akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
-Subject: [patch 226/227] Docs/ABI/testing: add DAMON sysfs interface ABI document
-Message-Id: <20220322214958.99224C340EE@smtp.kernel.org>
+        with ESMTP id S229532AbiCVWO6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 18:14:58 -0400
+Received: from mail-lf1-x131.google.com (mail-lf1-x131.google.com [IPv6:2a00:1450:4864:20::131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A061127B10
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 15:13:29 -0700 (PDT)
+Received: by mail-lf1-x131.google.com with SMTP id l20so32042733lfg.12
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 15:13:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=/JqUw7N0pQiYUGggfB1gLbjw37OlSObKornAcIsuE/w=;
+        b=Pew1K7y3CpT1ghIeP6zNXgjqkgvlgq8GZ1eq5rwdB0TuKxLXxor0+ZVnKofKj/65cq
+         oPtdFrkuNCC3crgTsACxwEy5zACBzm/eMnJg9RR8mpjJEzWJ3Ga1YUdGzrlkeM8D/fX7
+         Fig4PvN6JpjdY+i/+N2spp17GKwsylL5WTl0Y=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/JqUw7N0pQiYUGggfB1gLbjw37OlSObKornAcIsuE/w=;
+        b=CJY524Mj9/90c46FNuZXUDOSyMGqXSt9L9J3nXgcZqys4QZZzAAJa6u93r7gTvIwfh
+         c7dGv4Gv2mF2/u3tjCebOZa0F5YDjwSBMCRXAxV183fVFox4xIQPPYLSCoRkaBEmPh34
+         E9d79/GBQwCs48gxCHycqweQ1ghHjm3xM++JFpsoGl2yPdNMFhTzD62ozfyCEbR/1DdJ
+         NXFcFYW4oSTjHe76WcBWEkZVGL/X7lmDqGIcnxGi2sKeQSbJCVZNInq9gqdjx6SpSnuv
+         pFx+kq94O4ftnpLvB5dJ3OLXy4zQlz9T06TTHUQHzILy4RdIkW0V4JWIlUwMZmd3u2zv
+         OaUA==
+X-Gm-Message-State: AOAM530msX/NGrtpgpKRZjFZRld7l89OhHqIYOCfApgl/pFeBdvGmkej
+        nAzdOAGmD6Kcv3s2ZZNe6JuQFLC2qnZpgpx5/Pk=
+X-Google-Smtp-Source: ABdhPJxcCIdKKZi4emmPs8oGBi0omg2hi81rgfCxwFgS+Ew5R4PPihATir84+tjQq9jBpq8QQ96oPw==
+X-Received: by 2002:a05:6512:2243:b0:448:6830:ee82 with SMTP id i3-20020a056512224300b004486830ee82mr19082061lfu.262.1647987207665;
+        Tue, 22 Mar 2022 15:13:27 -0700 (PDT)
+Received: from mail-lf1-f54.google.com (mail-lf1-f54.google.com. [209.85.167.54])
+        by smtp.gmail.com with ESMTPSA id bj15-20020a2eaa8f000000b00246233c02a5sm2586653ljb.44.2022.03.22.15.13.26
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 22 Mar 2022 15:13:26 -0700 (PDT)
+Received: by mail-lf1-f54.google.com with SMTP id bt26so32118548lfb.3
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 15:13:26 -0700 (PDT)
+X-Received: by 2002:a19:e048:0:b0:448:2caa:7ed2 with SMTP id
+ g8-20020a19e048000000b004482caa7ed2mr20018350lfj.449.1647987206418; Tue, 22
+ Mar 2022 15:13:26 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org> <20220322213840.3117DC340F4@smtp.kernel.org>
+In-Reply-To: <20220322213840.3117DC340F4@smtp.kernel.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Tue, 22 Mar 2022 15:13:10 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjn_YUDEhaSdNdU2nBJowDT3enKYR1w+HiAy_srvJN1nw@mail.gmail.com>
+Message-ID: <CAHk-=wjn_YUDEhaSdNdU2nBJowDT3enKYR1w+HiAy_srvJN1nw@mail.gmail.com>
+Subject: Re: [patch 003/227] ntfs: add sanity check on allocation size
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Anton Altaparmakov <anton@tuxera.com>, mudongliangabcd@gmail.com,
+        patches@lists.linux.dev, Linux-MM <linux-mm@kvack.org>,
+        mm-commits@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/testing: add DAMON sysfs interface ABI document
+On Tue, Mar 22, 2022 at 2:38 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> From: Dongliang Mu <mudongliangabcd@gmail.com>
+> Subject: ntfs: add sanity check on allocation size
+>
+> ntfs_read_inode_mount invokes ntfs_malloc_nofs with zero allocation size.
+> It triggers one BUG in the __ntfs_malloc function.
 
-This commit adds DAMON sysfs interface ABI document under
-Documentation/ABI/testing.
+Hmm. A more serious issue seems to be that cast to (u32).
 
-Link: https://lkml.kernel.org/r/20220228081314.5770-14-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Xin Hao <xhao@linux.alibaba.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+ntfs_attr_size(a) returns a 's64', so it just randomly truncates a
+possibly bad value..
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |  274 ++++++++++++++
- MAINTAINERS                                     |    1 
- 2 files changed, 275 insertions(+)
-
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -0,0 +1,274 @@
-+what:		/sys/kernel/mm/damon/
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Interface for Data Access MONitoring (DAMON).  Contains files
-+		for controlling DAMON.  For more details on DAMON itself,
-+		please refer to Documentation/admin-guide/mm/damon/index.rst.
-+
-+What:		/sys/kernel/mm/damon/admin/
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Interface for privileged users of DAMON.  Contains files for
-+		controlling DAMON that aimed to be used by privileged users.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/nr_kdamonds
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for controlling each DAMON worker thread (kdamond)
-+		named '0' to 'N-1' under the kdamonds/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/state
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing 'on' or 'off' to this file makes the kdamond starts or
-+		stops, respectively.  Reading the file returns the keywords
-+		based on the current status.  Writing 'update_schemes_stats' to
-+		the file updates contents of schemes stats files of the
-+		kdamond.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/pid
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the pid of the kdamond if it is
-+		running.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/nr_contexts
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for controlling each DAMON context named '0' to
-+		'N-1' under the contexts/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/operations
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a keyword for a monitoring operations set ('vaddr' for
-+		virtual address spaces monitoring, and 'paddr' for the physical
-+		address space monitoring) to this file makes the context to use
-+		the operations set.  Reading the file returns the keyword for
-+		the operations set the context is set to use.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/sample_us
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the sampling interval of the
-+		DAMON context in microseconds as the value.  Reading this file
-+		returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/aggr_us
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the aggregation interval of
-+		the DAMON context in microseconds as the value.  Reading this
-+		file returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/update_us
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the update interval of the
-+		DAMON context in microseconds as the value.  Reading this file
-+		returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/min
-+
-+WDate:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the minimum number of
-+		monitoring regions of the DAMON context as the value.  Reading
-+		this file returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/max
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the maximum number of
-+		monitoring regions of the DAMON context as the value.  Reading
-+		this file returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/nr_targets
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for controlling each DAMON target of the context
-+		named '0' to 'N-1' under the contexts/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/pid_target
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the pid of
-+		the target process if the context is for virtual address spaces
-+		monitoring, respectively.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/nr_regions
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for setting each DAMON target memory region of the
-+		context named '0' to 'N-1' under the regions/ directory.  In
-+		case of the virtual address space monitoring, DAMON
-+		automatically sets the target memory region based on the target
-+		processes' mappings.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/<R>/start
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the start
-+		address of the monitoring region.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/<R>/end
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the end
-+		address of the monitoring region.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/nr_schemes
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for controlling each DAMON-based operation scheme
-+		of the context named '0' to 'N-1' under the schemes/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/action
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the action
-+		of the scheme.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/sz/min
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the mimimum
-+		size of the scheme's target regions in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/sz/max
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the maximum
-+		size of the scheme's target regions in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/nr_accesses/min
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the manimum
-+		'nr_accesses' of the scheme's target regions.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/nr_accesses/max
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the maximum
-+		'nr_accesses' of the scheme's target regions.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/age/min
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the minimum
-+		'age' of the scheme's target regions.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/age/max
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the maximum
-+		'age' of the scheme's target regions.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/ms
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the time
-+		quota of the scheme in milliseconds.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/bytes
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the size
-+		quota of the scheme in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/reset_interval_ms
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the quotas
-+		charge reset interval of the scheme in milliseconds.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/sz_permil
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		under-quota limit regions prioritization weight for 'size' in
-+		permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/nr_accesses_permil
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		under-quota limit regions prioritization weight for
-+		'nr_accesses' in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/age_permil
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		under-quota limit regions prioritization weight for 'age' in
-+		permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/metric
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the metric
-+		of the watermarks for the scheme.  The writable/readable
-+		keywords for this file are 'none' for disabling the watermarks
-+		feature, or 'free_mem_rate' for the system's global free memory
-+		rate in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/interval_us
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the metric
-+		check interval of the watermarks for the scheme in
-+		microseconds.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/high
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the high
-+		watermark of the scheme in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/mid
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the mid
-+		watermark of the scheme in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/low
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the low
-+		watermark of the scheme in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_tried
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the number of regions that the action
-+		of the scheme has tried to be applied.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/sz_tried
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the total size of regions that the
-+		action of the scheme has tried to be applied in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_applied
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the number of regions that the action
-+		of the scheme has successfully applied.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/sz_applied
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the total size of regions that the
-+		action of the scheme has successfully applied in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/qt_exceeds
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the number of the exceed events of
-+		the scheme's quotas.
---- a/MAINTAINERS~docs-abi-testing-add-damon-sysfs-interface-abi-document
-+++ a/MAINTAINERS
-@@ -5317,6 +5317,7 @@ DATA ACCESS MONITOR
- M:	SeongJae Park <sj@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
-+F:	Documentation/ABI/testing/sysfs-kernel-mm-damon
- F:	Documentation/admin-guide/mm/damon/
- F:	Documentation/vm/damon/
- F:	include/linux/damon.h
-_
+               Linus
