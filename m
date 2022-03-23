@@ -2,124 +2,114 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF60C43219
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:06:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A00ADC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:06:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345412AbiCWXIJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Mar 2022 19:08:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54490 "EHLO
+        id S1345416AbiCWXIL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Mar 2022 19:08:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345516AbiCWXIG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:06 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DEDA90CC0
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:06:36 -0700 (PDT)
+        with ESMTP id S1345399AbiCWXHt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:07:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59BD590CD2
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:06:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1B16DB82181
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDF93C340F2;
-        Wed, 23 Mar 2022 23:06:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E968B617F1
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E818C36AE7;
+        Wed, 23 Mar 2022 23:06:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648076793;
-        bh=TX5G4upTJl4ETwZq2aediUjJjaKt4CWUAw7Nzl1Q/Yk=;
+        s=korg; t=1648076778;
+        bh=4hNNHxiVyfteaC8NEM+kjhvExFaE8Bhlb1AV9KeKdeY=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=S9cgh3TOp6xBMD9sEIsuKIinWnvFoMVuDhTBT8a9qk3C97qbiSffFKCdgPam1R6NY
-         CoN0NxX3yq+FkiDPLoEk4dfMYtr7t68++9T2dmMBg8uk9/gJVXMfNfAaUUlZsmNKpD
-         4dcz9R6HfxoTm3vzcYJ3V+VibUT+u9LSggKNgXk0=
-Date:   Wed, 23 Mar 2022 16:06:33 -0700
-To:     will@kernel.org, tglx@linutronix.de, rmk+kernel@armlinux.org.uk,
-        paul.walmsley@sifive.com, palmer@rivosinc.com, palmer@dabbelt.com,
-        mingo@redhat.com, linux@armlinux.org.uk, hpa@zytor.com,
-        ebiederm@xmission.com, dave.hansen@linux.intel.com,
-        catalin.marinas@arm.com, bp@alien8.de, bhe@redhat.com,
-        aou@eecs.berkeley.edu, alex@ghiti.fr, jszhang@kernel.org,
+        b=bWw+flDnUcPt/agnl/uqsZAVR72bp2KE0fa8Rf7u0H9p446bqhRT+pTwVzn90AWbv
+         QomyPHzvgwuiAC80R5lR+fGtitL7c1SwfWRjesqYXCZYd2X8r6Nty2ZBFgNQPMnpbS
+         agoGS5KaIMKYPgnyvI3tJ/aV3JtL3JApfmE+1ZOo=
+Date:   Wed, 23 Mar 2022 16:06:17 -0700
+To:     viro@zeniv.linux.org.uk, 0x7f454c46@gmail.com, avagin@gmail.com,
         akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220323160453.65922ced539cbf445b191555@linux-foundation.org>
-Subject: [patch 25/41] kexec: make crashk_res, crashk_low_res and crash_notes symbols always visible
-Message-Id: <20220323230633.BDF93C340F2@smtp.kernel.org>
+Subject: [patch 20/41] fs/pipe: use kvcalloc to allocate a pipe_buffer array
+Message-Id: <20220323230618.4E818C36AE7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jisheng Zhang <jszhang@kernel.org>
-Subject: kexec: make crashk_res, crashk_low_res and crash_notes symbols always visible
+From: Andrei Vagin <avagin@gmail.com>
+Subject: fs/pipe: use kvcalloc to allocate a pipe_buffer array
 
-Patch series "kexec: use IS_ENABLED(CONFIG_KEXEC_CORE) instead of #ifdef", v2.
+Right now, kcalloc is used to allocate a pipe_buffer array.  The size of
+the pipe_buffer struct is 40 bytes.  kcalloc allows allocating reliably
+chunks with sizes less or equal to PAGE_ALLOC_COSTLY_ORDER (3).  It means
+that the maximum pipe size is 3.2MB in this case.
 
-Replace the conditional compilation using "#ifdef CONFIG_KEXEC_CORE" by a
-check for "IS_ENABLED(CONFIG_KEXEC_CORE)", to simplify the code and
-increase compile coverage.
+In CRIU, we use pipes to dump processes memory.  CRIU freezes a target
+process, injects a parasite code into it and then this code splices memory
+into pipes.  If a maximum pipe size is small, we need to do many
+iterations or create many pipes.
 
-I only modified x86, arm, arm64 and riscv, other architectures such as sh,
-powerpc and s390 are better to be kept kexec code as-is so they are not
-touched.
+kvcalloc attempt to allocate physically contiguous memory, but upon
+failure, fall back to non-contiguous (vmalloc) allocation and so it isn't
+limited by PAGE_ALLOC_COSTLY_ORDER.
 
+The maximum pipe size for non-root users is limited by the
+/proc/sys/fs/pipe-max-size sysctl that is 1MB by default, so only the root
+user will be able to trigger vmalloc allocations.
 
-This patch (of 5):
-
-Make the forward declarations of crashk_res, crashk_low_res and
-crash_notes always visible.  Code referring to these symbols can then just
-check for IS_ENABLED(CONFIG_KEXEC_CORE), instead of requiring conditional
-compilation using an #ifdef, thus preparing to increase compile coverage
-and simplify the code.
-
-Link: https://lkml.kernel.org/r/20211206160514.2000-1-jszhang@kernel.org
-Link: https://lkml.kernel.org/r/20211206160514.2000-2-jszhang@kernel.org
-Signed-off-by: Jisheng Zhang <jszhang@kernel.org>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
-Cc: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
+Link: https://lkml.kernel.org/r/20220104171058.22580-1-avagin@gmail.com
+Signed-off-by: Andrei Vagin <avagin@gmail.com>
+Reviewed-by: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/pipe.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/include/linux/kexec.h~kexec-make-crashk_res-crashk_low_res-and-crash_notes-symbols-always-visible
-+++ a/include/linux/kexec.h
-@@ -20,6 +20,12 @@
+--- a/fs/pipe.c~fs-pipe-use-kvcalloc-to-allocate-a-pipe_buffer-array
++++ a/fs/pipe.c
+@@ -804,7 +804,7 @@ struct pipe_inode_info *alloc_pipe_info(
+ 	if (too_many_pipe_buffers_hard(user_bufs) && pipe_is_unprivileged_user())
+ 		goto out_revert_acct;
  
- #include <uapi/linux/kexec.h>
+-	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
++	pipe->bufs = kvcalloc(pipe_bufs, sizeof(struct pipe_buffer),
+ 			     GFP_KERNEL_ACCOUNT);
  
-+/* Location of a reserved region to hold the crash kernel.
-+ */
-+extern struct resource crashk_res;
-+extern struct resource crashk_low_res;
-+extern note_buf_t __percpu *crash_notes;
-+
- #ifdef CONFIG_KEXEC_CORE
- #include <linux/list.h>
- #include <linux/compat.h>
-@@ -350,12 +356,6 @@ extern int kexec_load_disabled;
- #define KEXEC_FILE_FLAGS	(KEXEC_FILE_UNLOAD | KEXEC_FILE_ON_CRASH | \
- 				 KEXEC_FILE_NO_INITRAMFS)
+ 	if (pipe->bufs) {
+@@ -849,7 +849,7 @@ void free_pipe_info(struct pipe_inode_in
+ #endif
+ 	if (pipe->tmp_page)
+ 		__free_page(pipe->tmp_page);
+-	kfree(pipe->bufs);
++	kvfree(pipe->bufs);
+ 	kfree(pipe);
+ }
  
--/* Location of a reserved region to hold the crash kernel.
-- */
--extern struct resource crashk_res;
--extern struct resource crashk_low_res;
--extern note_buf_t __percpu *crash_notes;
--
- /* flag to track if kexec reboot is in progress */
- extern bool kexec_in_progress;
+@@ -1264,8 +1264,7 @@ int pipe_resize_ring(struct pipe_inode_i
+ 	if (nr_slots < n)
+ 		return -EBUSY;
  
+-	bufs = kcalloc(nr_slots, sizeof(*bufs),
+-		       GFP_KERNEL_ACCOUNT | __GFP_NOWARN);
++	bufs = kvcalloc(nr_slots, sizeof(*bufs), GFP_KERNEL_ACCOUNT);
+ 	if (unlikely(!bufs))
+ 		return -ENOMEM;
+ 
+@@ -1292,7 +1291,7 @@ int pipe_resize_ring(struct pipe_inode_i
+ 	head = n;
+ 	tail = 0;
+ 
+-	kfree(pipe->bufs);
++	kvfree(pipe->bufs);
+ 	pipe->bufs = bufs;
+ 	pipe->ring_size = nr_slots;
+ 	if (pipe->max_usage > nr_slots)
 _
