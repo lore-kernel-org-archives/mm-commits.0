@@ -2,134 +2,195 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FCA5C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5DD1C433F5
 	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:07:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345499AbiCWXI4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1345430AbiCWXI4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 23 Mar 2022 19:08:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54972 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345441AbiCWXIl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:41 -0400
+        with ESMTP id S1345432AbiCWXIz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C48990CEC
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:07:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 595D790FC1
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:07:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C0BD0617E6
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:07:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 238AEC340E9;
-        Wed, 23 Mar 2022 23:07:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D6995617E8
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:07:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C3B1C340EE;
+        Wed, 23 Mar 2022 23:07:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648076830;
-        bh=HJL/a8dVL1hD5DWiRcjwxa2xs/1lwp8SEAp/hR2if0s=;
+        s=korg; t=1648076833;
+        bh=ieZvFT9UQ8ZqTn3xIfN/Eo2mE2Sb9Lvenjy4fOgtUFE=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=WXKP1M2NeiswUPXW6iXzWVVglMmYdOlsNZMammxGLWRjPHz4NSKrqcUh1qA2yZ+Nu
-         MWY4TlR2+J3trdvqhoPSgHjLiReqCRBDm2SsyTLWWMi6SKHE4bbkvdcpa8pTp+TNY1
-         6l57ekEDRZ2IFcF4NPr9AANTwviGa5gYeK8PWT2I=
-Date:   Wed, 23 Mar 2022 16:07:09 -0700
-To:     senozhatsky@chromium.org, pmladek@suse.com, feng.tang@intel.com,
-        bhe@redhat.com, gpiccoli@igalia.com, akpm@linux-foundation.org,
+        b=lAZqTWtXf0EiQxrWcdaROu5qGdDKai0XV/HPGLEfbODc+zLDZnVd8cIraRKxBp1RG
+         3fdsmOvezYQ0+3Uwrbe1NDKPzXcoicWTurrtXc6wt6omm1Vm0ds8V3uiTJeLpg6+KJ
+         HriJVM1kKJDJhKoQwALrplyA+xl+7JfNGL4QhEwA=
+Date:   Wed, 23 Mar 2022 16:07:12 -0700
+To:     tarasmadan@google.com, glider@google.com, elver@google.com,
+        dvyukov@google.com, bigeasy@linutronix.de, andreyknvl@gmail.com,
+        nogikh@google.com, akpm@linux-foundation.org,
         patches@lists.linux.dev, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220323160453.65922ced539cbf445b191555@linux-foundation.org>
-Subject: [patch 37/41] panic: move panic_print before kmsg dumpers
-Message-Id: <20220323230710.238AEC340E9@smtp.kernel.org>
+Subject: [patch 38/41] kcov: split ioctl handling into locked and unlocked parts
+Message-Id: <20220323230713.3C3B1C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Subject: panic: move panic_print before kmsg dumpers
+From: Aleksandr Nogikh <nogikh@google.com>
+Subject: kcov: split ioctl handling into locked and unlocked parts
 
-The panic_print setting allows users to collect more information in a
-panic event, like memory stats, tasks, CPUs backtraces, etc.  This is an
-interesting debug mechanism, but currently the print event happens *after*
-kmsg_dump(), meaning that pstore, for example, cannot collect a dmesg with
-the panic_print extra information.
+Patch series "kcov: improve mmap processing", v3.
 
-This patch changes that in 2 steps:
+Subsequent mmaps of the same kcov descriptor currently do not update the
+virtual memory of the task and yet return 0 (success).  This is
+counter-intuitive and may lead to unexpected memory access errors.
 
-(a) The panic_print setting allows to replay the existing kernel log
-    buffer to the console (bit 5), besides the extra information dump. 
-    This functionality makes sense only at the end of the panic()
-    function.  So, we hereby allow to distinguish the two situations by a
-    new boolean parameter in the function panic_print_sys_info().
+Also, this unnecessarily limits the functionality of kcov to only the
+simplest usage scenarios.  Kcov instances are effectively forever attached
+to their first address spaces and it becomes impossible to e.g.  reuse the
+same kcov handle in forked child processes without mmapping the memory
+first.  This is exactly what we tried to do in syzkaller and inadvertently
+came upon this behavior.
 
-(b) With the above change, we can safely call panic_print_sys_info()
-    before kmsg_dump(), allowing to dump the extra information when using
-    pstore or other kmsg dumpers.
+This patch series addresses the problem described above.
 
-The additional messages from panic_print could overwrite the oldest
-messages when the buffer is full.  The only reasonable solution is to use
-a large enough log buffer, hence we added an advice into the kernel
-parameters documentation about that.
 
-Link: https://lkml.kernel.org/r/20220214141308.841525-1-gpiccoli@igalia.com
-Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Feng Tang <feng.tang@intel.com>
+This patch (of 3):
+
+Currently all ioctls are de facto processed under a spinlock in order to
+serialise them.  This, however, prohibits the use of vmalloc and other
+memory management functions in the implementations of those ioctls,
+unnecessary complicating any further changes to the code.
+
+Let all ioctls first be processed inside the kcov_ioctl() function which
+should execute the ones that are not compatible with spinlock and then
+pass control to kcov_ioctl_locked() for all other ones. 
+KCOV_REMOTE_ENABLE is processed both in kcov_ioctl() and
+kcov_ioctl_locked() as the steps are easily separable.
+
+Although it is still compatible with a spinlock, move KCOV_INIT_TRACE
+handling to kcov_ioctl(), so that the changes from the next commit are
+easier to follow.
+
+Link: https://lkml.kernel.org/r/20220117153634.150357-1-nogikh@google.com
+Link: https://lkml.kernel.org/r/20220117153634.150357-2-nogikh@google.com
+Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Taras Madan <tarasmadan@google.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    4 ++++
- kernel/panic.c                                  |   13 +++++++++----
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ kernel/kcov.c |   68 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 37 insertions(+), 31 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~panic-move-panic_print-before-kmsg-dumpers
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3727,6 +3727,10 @@
- 			bit 4: print ftrace buffer
- 			bit 5: print all printk messages in buffer
- 			bit 6: print all CPUs backtrace (if available in the arch)
-+			*Be aware* that this option may print a _lot_ of lines,
-+			so there are risks of losing older messages in the log.
-+			Use this option carefully, maybe worth to setup a
-+			bigger log buffer with "log_buf_len" along with this.
- 
- 	panic_on_taint=	Bitmask for conditionally calling panic() in add_taint()
- 			Format: <hex>[,nousertaint]
---- a/kernel/panic.c~panic-move-panic_print-before-kmsg-dumpers
-+++ a/kernel/panic.c
-@@ -148,10 +148,13 @@ void nmi_panic(struct pt_regs *regs, con
- }
- EXPORT_SYMBOL(nmi_panic);
- 
--static void panic_print_sys_info(void)
-+static void panic_print_sys_info(bool console_flush)
+--- a/kernel/kcov.c~kcov-split-ioctl-handling-into-locked-and-unlocked-parts
++++ a/kernel/kcov.c
+@@ -564,31 +564,12 @@ static int kcov_ioctl_locked(struct kcov
+ 			     unsigned long arg)
  {
--	if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
--		console_flush_on_panic(CONSOLE_REPLAY_ALL);
-+	if (console_flush) {
-+		if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
-+			console_flush_on_panic(CONSOLE_REPLAY_ALL);
-+		return;
-+	}
+ 	struct task_struct *t;
+-	unsigned long size, unused;
++	unsigned long flags, unused;
+ 	int mode, i;
+ 	struct kcov_remote_arg *remote_arg;
+ 	struct kcov_remote *remote;
+-	unsigned long flags;
  
- 	if (panic_print & PANIC_PRINT_ALL_CPU_BT)
- 		trigger_all_cpu_backtrace();
-@@ -286,6 +289,8 @@ void panic(const char *fmt, ...)
- 	 */
- 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
+ 	switch (cmd) {
+-	case KCOV_INIT_TRACE:
+-		/*
+-		 * Enable kcov in trace mode and setup buffer size.
+-		 * Must happen before anything else.
+-		 */
+-		if (kcov->mode != KCOV_MODE_DISABLED)
+-			return -EBUSY;
+-		/*
+-		 * Size must be at least 2 to hold current position and one PC.
+-		 * Later we allocate size * sizeof(unsigned long) memory,
+-		 * that must not overflow.
+-		 */
+-		size = arg;
+-		if (size < 2 || size > INT_MAX / sizeof(unsigned long))
+-			return -EINVAL;
+-		kcov->size = size;
+-		kcov->mode = KCOV_MODE_INIT;
+-		return 0;
+ 	case KCOV_ENABLE:
+ 		/*
+ 		 * Enable coverage for the current task.
+@@ -692,9 +673,32 @@ static long kcov_ioctl(struct file *file
+ 	struct kcov_remote_arg *remote_arg = NULL;
+ 	unsigned int remote_num_handles;
+ 	unsigned long remote_arg_size;
+-	unsigned long flags;
++	unsigned long size, flags;
  
-+	panic_print_sys_info(false);
-+
- 	kmsg_dump(KMSG_DUMP_PANIC);
+-	if (cmd == KCOV_REMOTE_ENABLE) {
++	kcov = filep->private_data;
++	switch (cmd) {
++	case KCOV_INIT_TRACE:
++		/*
++		 * Enable kcov in trace mode and setup buffer size.
++		 * Must happen before anything else.
++		 *
++		 * First check the size argument - it must be at least 2
++		 * to hold the current position and one PC. Later we allocate
++		 * size * sizeof(unsigned long) memory, that must not overflow.
++		 */
++		size = arg;
++		if (size < 2 || size > INT_MAX / sizeof(unsigned long))
++			return -EINVAL;
++		spin_lock_irqsave(&kcov->lock, flags);
++		if (kcov->mode != KCOV_MODE_DISABLED) {
++			spin_unlock_irqrestore(&kcov->lock, flags);
++			return -EBUSY;
++		}
++		kcov->size = size;
++		kcov->mode = KCOV_MODE_INIT;
++		spin_unlock_irqrestore(&kcov->lock, flags);
++		return 0;
++	case KCOV_REMOTE_ENABLE:
+ 		if (get_user(remote_num_handles, (unsigned __user *)(arg +
+ 				offsetof(struct kcov_remote_arg, num_handles))))
+ 			return -EFAULT;
+@@ -710,16 +714,18 @@ static long kcov_ioctl(struct file *file
+ 			return -EINVAL;
+ 		}
+ 		arg = (unsigned long)remote_arg;
++		fallthrough;
++	default:
++		/*
++		 * All other commands can be normally executed under a spin lock, so we
++		 * obtain and release it here in order to simplify kcov_ioctl_locked().
++		 */
++		spin_lock_irqsave(&kcov->lock, flags);
++		res = kcov_ioctl_locked(kcov, cmd, arg);
++		spin_unlock_irqrestore(&kcov->lock, flags);
++		kfree(remote_arg);
++		return res;
+ 	}
+-
+-	kcov = filep->private_data;
+-	spin_lock_irqsave(&kcov->lock, flags);
+-	res = kcov_ioctl_locked(kcov, cmd, arg);
+-	spin_unlock_irqrestore(&kcov->lock, flags);
+-
+-	kfree(remote_arg);
+-
+-	return res;
+ }
  
- 	/*
-@@ -316,7 +321,7 @@ void panic(const char *fmt, ...)
- 	debug_locks_off();
- 	console_flush_on_panic(CONSOLE_FLUSH_PENDING);
- 
--	panic_print_sys_info();
-+	panic_print_sys_info(true);
- 
- 	if (!panic_blink)
- 		panic_blink = no_blink;
+ static const struct file_operations kcov_fops = {
 _
