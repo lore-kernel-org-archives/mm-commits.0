@@ -2,84 +2,100 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64D67C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:07:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A934EC4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:07:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345428AbiCWXIg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Mar 2022 19:08:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54830 "EHLO
+        id S1345426AbiCWXIi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Mar 2022 19:08:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244356AbiCWXIb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:31 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0CE490CE0
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:07:00 -0700 (PDT)
+        with ESMTP id S1345436AbiCWXIf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:35 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A526190CEF
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:07:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5A711B8214F
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17B64C36AE3;
-        Wed, 23 Mar 2022 23:06:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5563FB8214F
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:07:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10843C340E8;
+        Wed, 23 Mar 2022 23:07:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648076818;
-        bh=hxk7kBSl4cgSFefnme3Gtf3lrT03mqYn2+Ec8eARHKY=;
+        s=korg; t=1648076821;
+        bh=GjfTSEjREVFETddnHTx3cT/Fhv/AEqbaNHY+hVV71Pc=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=T4wnPit94vmyT15PfOHt60dbyJMW9Jkn5UOgRtamRRFQmbiQS3BOINPERn7H7EB0O
-         +Epp6qaHGGSk7V+guNJMSxesUOIbshbGXmOSqxmbacOUCVCjRzqay4bcTl762j48pv
-         AJrWXXLdiTXchJgP9c/6FyC5ETPsJGvF5Y2AKGFo=
-Date:   Wed, 23 Mar 2022 16:06:57 -0700
-To:     ryabinin.a.a@gmail.com, lixuefeng@loongson.cn, elver@google.com,
-        corbet@lwn.net, bhe@redhat.com, yangtiezhu@loongson.cn,
+        b=mBpfeBqd8aUU3Frd340eKGpiVJQIlPHG+11jlF0Q43fY+5Wf+p9F/Nubpy8VTcUdj
+         ui0Xch30KMol2sqDrsWpmmSwBeVtBZG2MjFcmXzOoe5rE9zKASBN/is4LKRI0g+XEl
+         F9ZF8kIbFngbhxF0YvGCSp9JUJIgJlaEyQlYFQLI=
+Date:   Wed, 23 Mar 2022 16:07:00 -0700
+To:     trix@redhat.com, ndesaulniers@google.com, natechancellor@gmail.com,
+        bsingharora@gmail.com, lukas.bulwahn@gmail.com,
         akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220323160453.65922ced539cbf445b191555@linux-foundation.org>
-Subject: [patch 33/41] kasan: no need to unset panic_on_warn in end_report()
-Message-Id: <20220323230658.17B64C36AE3@smtp.kernel.org>
+Subject: [patch 34/41] taskstats: remove unneeded dead assignment
+Message-Id: <20220323230701.10843C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: kasan: no need to unset panic_on_warn in end_report()
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: taskstats: remove unneeded dead assignment
 
-panic_on_warn is unset inside panic(), so no need to unset it before
-calling panic() in end_report().
+make clang-analyzer on x86_64 defconfig caught my attention with:
 
-Link: https://lkml.kernel.org/r/1644324666-15947-6-git-send-email-yangtiezhu@loongson.cn
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Xuefeng Li <lixuefeng@loongson.cn>
+  kernel/taskstats.c:120:2: warning: Value stored to 'rc' is never read \
+  [clang-analyzer-deadcode.DeadStores]
+          rc = 0;
+          ^
+
+Commit d94a041519f3 ("taskstats: free skb, avoid returns in
+send_cpu_listeners") made send_cpu_listeners() not return a value and
+hence, the rc variable remained only to be used within the loop where
+it is always assigned before read and it does not need any other
+initialisation.
+
+So, simply remove this unneeded dead initializing assignment.
+
+As compilers will detect this unneeded assignment and optimize this anyway,
+the resulting object code is identical before and after this change.
+
+No functional change. No change to object code.
+
+[akpm@linux-foundation.org: reduce scope of `rc']
+Link: https://lkml.kernel.org/r/20220307093942.21310-1-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Tom Rix <trix@redhat.com>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ kernel/taskstats.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/report.c~kasan-no-need-to-unset-panic_on_warn-in-end_report
-+++ a/mm/kasan/report.c
-@@ -117,16 +117,8 @@ static void end_report(unsigned long *fl
- 	pr_err("==================================================================\n");
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
- 	spin_unlock_irqrestore(&report_lock, *flags);
--	if (panic_on_warn && !test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags)) {
--		/*
--		 * This thread may hit another WARN() in the panic path.
--		 * Resetting this prevents additional WARN() from panicking the
--		 * system on this thread.  Other threads are blocked by the
--		 * panic_mutex in panic().
--		 */
--		panic_on_warn = 0;
-+	if (panic_on_warn && !test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
- 		panic("panic_on_warn set ...\n");
--	}
- 	if (kasan_arg_fault == KASAN_ARG_FAULT_PANIC)
- 		panic("kasan.fault=panic set ...\n");
- 	kasan_enable_current();
+--- a/kernel/taskstats.c~taskstats-remove-unneeded-dead-assignment
++++ a/kernel/taskstats.c
+@@ -113,13 +113,14 @@ static void send_cpu_listeners(struct sk
+ 	struct listener *s, *tmp;
+ 	struct sk_buff *skb_next, *skb_cur = skb;
+ 	void *reply = genlmsg_data(genlhdr);
+-	int rc, delcount = 0;
++	int delcount = 0;
+ 
+ 	genlmsg_end(skb, reply);
+ 
+-	rc = 0;
+ 	down_read(&listeners->sem);
+ 	list_for_each_entry(s, &listeners->list, list) {
++		int rc;
++
+ 		skb_next = NULL;
+ 		if (!list_is_last(&s->list, &listeners->list)) {
+ 			skb_next = skb_clone(skb_cur, GFP_KERNEL);
 _
