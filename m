@@ -2,131 +2,90 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC22BC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 00:25:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 603A1C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 02:08:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240908AbiCWA0a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Mar 2022 20:26:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38452 "EHLO
+        id S240963AbiCWCKC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Mar 2022 22:10:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230174AbiCWA0a (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 20:26:30 -0400
-Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B340813D50;
-        Tue, 22 Mar 2022 17:25:01 -0700 (PDT)
-Received: by mail-pf1-x431.google.com with SMTP id u22so168525pfg.6;
-        Tue, 22 Mar 2022 17:25:01 -0700 (PDT)
+        with ESMTP id S231596AbiCWCJ7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2022 22:09:59 -0400
+Received: from mail-lj1-x236.google.com (mail-lj1-x236.google.com [IPv6:2a00:1450:4864:20::236])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BC9826AD5
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:08:30 -0700 (PDT)
+Received: by mail-lj1-x236.google.com with SMTP id u3so114179ljd.0
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:08:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=sender:date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=R+KjN3V1SlenXxLe5Smnpn6Kl0EaEBKZxKusql1w254=;
-        b=cvECYKNH5pjdsTN/s4iB+l7+gDkakGP7uIYy2JGzTxtG2ATo9nLBii0ZdatESkWG3r
-         xpu9zPFmFQIcFc2NgGPRDHqFw286JKtjV4porAqlXMNXwjp3taEqGJGgENu7mlpc7UJE
-         pz91lVnxkYRu1p+b95nNx2EkIDcRYKEaNTHEM8Zaf8Gq+Dc4UhOutT/roPqH2cmF75JV
-         c59rhnnyv/iSyQKaM8GMVvYIYNFsEZPjLnyZ3Ca2c/1wZbRaJpD9NsfnJJ0BMz1IJ0oa
-         bBsifDdmeE2f7E99dKbDCRH03P1IbvTt4/rnGec8PnA+0KqtLa7vmz4O42hF6kN3ebm5
-         KOUQ==
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=J8R5fIKIW6T8IIqFMnxqRAyAbWLACxuZ0qCUQR/pgGY=;
+        b=Eq6BQka4f8LYxS/Tno67bSzUoi2mPqlP+glM7TxOjfAPhoCdKuboSnQmWForCK/G5Q
+         uvSWbW9LGbfwRAbIk2bphRZ9Qq8tpiA45DZWZTzPG6mPJUagHr2/7r5uPM6LolhND+kx
+         ws/mB3u/w9v98tgrtujz3csM3dx0hX8Bmi0fQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :references:mime-version:content-disposition:in-reply-to;
-        bh=R+KjN3V1SlenXxLe5Smnpn6Kl0EaEBKZxKusql1w254=;
-        b=8IL/oRifEzffCFCb6TzU7oiPduLzjY1lFaf/ZXHq5lidddyOJxlxfsodNGu6fl5ezC
-         mVQs+BtR4MTg9BXS118ctRwL2wftXGGFZwmwQLkmhUhdXuRaDqXPc6vjvQBrGWxpzxmC
-         fFS0eNHhS7CFqiZwvZFmQupKkJn+OS9JFwGr3BwrYAo5PbTibpoCboRGbBa19iDjymKT
-         XsSkOPboOaRHVhWudvHusy6QADdPqFyI6NhJKCMdiijsDl5fK+okYsxYlcFs03JU7Ghy
-         DAzsjFLfxxL1XrGWNQj0zBooO1/3pR0XIDBu4Y++9aH68kP69ji763hyJBeGykn6OUyw
-         9G/Q==
-X-Gm-Message-State: AOAM532o/qV7cZU7nju3GKW3g1jEimBoX852hHAqTHXr02N3ee6Tllyp
-        dosk392GHSKf9rCzfsZUKJo=
-X-Google-Smtp-Source: ABdhPJzCZi/vmJnOJ2M5f5b9fWl00X7eHUop/OzzdFXBsx9usW96xIqvw/d6pRX/L31s2XfkT3Y6nQ==
-X-Received: by 2002:a63:194e:0:b0:372:c757:c569 with SMTP id 14-20020a63194e000000b00372c757c569mr23701978pgz.516.1647995101156;
-        Tue, 22 Mar 2022 17:25:01 -0700 (PDT)
-Received: from google.com ([2620:15c:211:201:3d69:cefc:7302:2e52])
-        by smtp.gmail.com with ESMTPSA id n14-20020a17090a394e00b001c670d67b8esm3968381pjf.32.2022.03.22.17.24.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Mar 2022 17:25:00 -0700 (PDT)
-Sender: Minchan Kim <minchan.kim@gmail.com>
-Date:   Tue, 22 Mar 2022 17:24:58 -0700
-From:   Minchan Kim <minchan@kernel.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     vbabka@suse.cz, surenb@google.com, stable@vger.kernel.org,
-        sfr@canb.auug.org.au, rientjes@google.com, nadav.amit@gmail.com,
-        mhocko@suse.com, quic_charante@quicinc.com,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject: Re: [patch 163/227] mm: madvise: skip unmapped vma holes passed to
- process_madvise
-Message-ID: <Yjpo2jnp5pkJr+XI@google.com>
-References: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
- <20220322214648.AB7A1C340EC@smtp.kernel.org>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=J8R5fIKIW6T8IIqFMnxqRAyAbWLACxuZ0qCUQR/pgGY=;
+        b=5y0VqbqN3EGKjvoWq6r/ABDRHqeHTiyFTsFmTUMFdcepQ5vN1rFk+1nqNg6KGP8KSk
+         SDqEjJybj7h2ApCCMgoj+m7UN2Ov0DLQ2rrcF3m/CMj8prmagImyRmIkQcLuRJXK/boU
+         2D7X24p8MF8U1kPTgnwSIqrb3dcW9F+yDPYKGvJ2ipAlRagF+X2SoJ+g6Ahu4IaHH3uA
+         bIlyAMrOM//bXq3CeQwZvmvRGfRSkBxtHNa2JAoP1OvfDlejse4C8dH20/Oa88x5tbRz
+         4FG/CuRa3c63OObJyU9llC9nI74TZRMaOJhrk1idSruGW/R9RbvPaf8KwH9FBjqlHvFz
+         74GQ==
+X-Gm-Message-State: AOAM533VBX+xEFkn+48sP8X11ehlvA+xzPcKPXAnFFErdA2Pq0FweQ+s
+        JA34Hc64vX0zWYZUpu/AUixT92zEB9DIyT0dFh4=
+X-Google-Smtp-Source: ABdhPJzEmZhtwEygkDgq9XkctSMRkTfeT2FzJTQsFNhB/AV67dsT31mDmm1ni3oacq0ZU1h7+FAN/g==
+X-Received: by 2002:a05:651c:179c:b0:247:e1b4:92aa with SMTP id bn28-20020a05651c179c00b00247e1b492aamr21759648ljb.55.1648001308275;
+        Tue, 22 Mar 2022 19:08:28 -0700 (PDT)
+Received: from mail-lj1-f177.google.com (mail-lj1-f177.google.com. [209.85.208.177])
+        by smtp.gmail.com with ESMTPSA id l10-20020a056512110a00b0044a50ffb05esm32315lfg.122.2022.03.22.19.08.24
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 22 Mar 2022 19:08:25 -0700 (PDT)
+Received: by mail-lj1-f177.google.com with SMTP id u3so114064ljd.0
+        for <mm-commits@vger.kernel.org>; Tue, 22 Mar 2022 19:08:24 -0700 (PDT)
+X-Received: by 2002:a2e:9794:0:b0:249:8488:7dbd with SMTP id
+ y20-20020a2e9794000000b0024984887dbdmr9591965lji.176.1648001304369; Tue, 22
+ Mar 2022 19:08:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220322214648.AB7A1C340EC@smtp.kernel.org>
+References: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
+ <20220322214648.AB7A1C340EC@smtp.kernel.org> <Yjpo2jnp5pkJr+XI@google.com>
+In-Reply-To: <Yjpo2jnp5pkJr+XI@google.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Tue, 22 Mar 2022 19:08:08 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wiLMM1QJfmosoY3+Ah79_Oga8=EzUZnR8AoTRBUZGSfoA@mail.gmail.com>
+Message-ID: <CAHk-=wiLMM1QJfmosoY3+Ah79_Oga8=EzUZnR8AoTRBUZGSfoA@mail.gmail.com>
+Subject: Re: [patch 163/227] mm: madvise: skip unmapped vma holes passed to process_madvise
+To:     Minchan Kim <minchan@kernel.org>,
+        Charan Teja Kalla <quic_charante@quicinc.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Suren Baghdasaryan <surenb@google.com>,
+        stable <stable@vger.kernel.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        David Rientjes <rientjes@google.com>,
+        Nadav Amit <nadav.amit@gmail.com>,
+        Michal Hocko <mhocko@suse.com>, patches@lists.linux.dev,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Mar 22, 2022 at 02:46:48PM -0700, Andrew Morton wrote:
-> From: Charan Teja Kalla <quic_charante@quicinc.com>
-> Subject: mm: madvise: skip unmapped vma holes passed to process_madvise
-> 
-> The process_madvise() system call is expected to skip holes in vma passed
-> through 'struct iovec' vector list.  But do_madvise, which
-> process_madvise() calls for each vma, returns ENOMEM in case of unmapped
-> holes, despite the VMA is processed.
-> 
-> Thus process_madvise() should treat ENOMEM as expected and consider the
-> VMA passed to as processed and continue processing other vma's in the
-> vector list.  Returning -ENOMEM to user, despite the VMA is processed,
-> will be unable to figure out where to start the next madvise.
-> 
-> Link: https://lkml.kernel.org/r/4f091776142f2ebf7b94018146de72318474e686.1647008754.git.quic_charante@quicinc.com
+On Tue, Mar 22, 2022 at 5:25 PM Minchan Kim <minchan@kernel.org> wrote:
+>
+> I thought it was still under discussion and Charan will post next
+> version along with previous patch
+> "mm: madvise: return correct bytes advised with process_madvise"
+>
+> https://lore.kernel.org/linux-mm/7207b2f5-6b3e-aea4-aa1b-9c6d849abe34@quicinc.com/
 
-I thought it was still under discussion and Charan will post next
-version along with previous patch
-"mm: madvise: return correct bytes advised with process_madvise"
+Hmm. It's merged now, as commit 08095d6310a7.
 
-https://lore.kernel.org/linux-mm/7207b2f5-6b3e-aea4-aa1b-9c6d849abe34@quicinc.com/
+So any fixes please do it on top of that existing state ;(
 
-
-> Fixes: ecb8ac8b1f14("mm/madvise: introduce process_madvise() syscall: an external memory hinting API")
-> Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
-> Cc: David Rientjes <rientjes@google.com>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Cc: Nadav Amit <nadav.amit@gmail.com>
-> Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  mm/madvise.c |    9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
-> 
-> --- a/mm/madvise.c~mm-madvise-skip-unmapped-vma-holes-passed-to-process_madvise
-> +++ a/mm/madvise.c
-> @@ -1428,9 +1428,16 @@ SYSCALL_DEFINE5(process_madvise, int, pi
->  
->  	while (iov_iter_count(&iter)) {
->  		iovec = iov_iter_iovec(&iter);
-> +		/*
-> +		 * do_madvise returns ENOMEM if unmapped holes are present
-> +		 * in the passed VMA. process_madvise() is expected to skip
-> +		 * unmapped holes passed to it in the 'struct iovec' list
-> +		 * and not fail because of them. Thus treat -ENOMEM return
-> +		 * from do_madvise as valid and continue processing.
-> +		 */
->  		ret = do_madvise(mm, (unsigned long)iovec.iov_base,
->  					iovec.iov_len, behavior);
-> -		if (ret < 0)
-> +		if (ret < 0 && ret != -ENOMEM)
->  			break;
->  		iov_iter_advance(&iter, iovec.iov_len);
->  	}
-> _
+            Linus
