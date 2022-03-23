@@ -2,65 +2,173 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82DA9C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 18:14:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C05D6C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 22:11:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238439AbiCWSQ1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Mar 2022 14:16:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40808 "EHLO
+        id S243736AbiCWWMy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Mar 2022 18:12:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231508AbiCWSQ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 14:16:27 -0400
-Received: from fanzine2.igalia.com (fanzine.igalia.com [178.60.130.6])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DB451FCD0
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 11:14:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-        s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=pLzC/IHt7BEKdj4U9paKcllOLq0ll96Uxs8Nz++o3aI=; b=NGwYYkJDRdeNihmyQp6CovYpae
-        4waoY42Y6JewhrbW1iUggjjVOCz1/fT5CAw6wAANG+J3nxEU3uhIU7suyENBVz00oerF3ftj4lbUT
-        fndr6cK13LMTtRBNdaEsIHSyiobTaxGnRnu0LpvHQ82JWgeU2o232BKO5rPet66qv1tvh3GnTC+xM
-        vwM3KyzDuQlU0+DNGp30Tb+MYH8WeAcfUiCVdFXupbPvrIuJIRaKGuD/B9hvlx1A5B866RXhXNWbH
-        F0Ci8i4OFgqXl/0iQ1oUkZKGxb+DFEFy0YXlG86l7NzjES+rkbdGFT/vyudEcGCSplQs2hRR3kqrv
-        6BVqaqTQ==;
-Received: from [187.39.124.208] (helo=[192.168.0.110])
-        by fanzine2.igalia.com with esmtpsa 
-        (Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-        id 1nX5VT-0001QG-1J; Wed, 23 Mar 2022 19:14:51 +0100
-Message-ID: <c7018094-c892-587a-5a02-47ad95a00f5a@igalia.com>
-Date:   Wed, 23 Mar 2022 15:14:37 -0300
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: + panic-move-panic_print-before-kmsg-dumpers.patch added to -mm
- tree
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, bhe@redhat.com, feng.tang@intel.com,
-        pmladek@suse.com, senozhatsky@chromium.org
-References: <20220228185002.EF7D1C340F1@smtp.kernel.org>
- <6a5bbbfd-3071-20dd-80b9-0e3bda3122ce@igalia.com>
- <20220323092815.cc84a802d11985996c35cfb0@linux-foundation.org>
-From:   "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-In-Reply-To: <20220323092815.cc84a802d11985996c35cfb0@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S241228AbiCWWMy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 18:12:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89DA48F98B
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 15:11:23 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 23ADE61743
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 22:11:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 726E1C340E8;
+        Wed, 23 Mar 2022 22:11:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1648073482;
+        bh=VIbdAssNc0vPo0jQh08STd4KALBn3HCTgQcCspp8j2M=;
+        h=Date:To:From:Subject:From;
+        b=HNF7ZmMQUY6VNEQaQemkVm8+X3j/vB2apwKc/FkE66BtnbLC1gsoNEHTLMsxtE3qv
+         8Rep4CASdu5iJ1qxIPvOxV6g8RyP1g0Wlgfhjr5gcYiQq7HVgTjv5lbxEb4NWhaESv
+         kny8Of/kfh9sDysHvQiF3ATSFqKy0QEUU0m8IQGs=
+Date:   Wed, 23 Mar 2022 15:11:21 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        wangkefeng.wang@huawei.com, v.narang@samsung.com,
+        swboyd@chromium.org, senozhatsky@chromium.org, rostedt@goodmis.org,
+        pmladek@suse.com, ojeda@kernel.org, mcgrof@kernel.org,
+        mbenes@suse.cz, linux@rasmusvillemoes.dk, catalin.marinas@arm.com,
+        andriy.shevchenko@linux.intel.com, maninder1.s@samsung.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [obsolete] kallsyms-print-module-name-in-%ps-s-case-when-kallsyms-is-disabled.patch removed from -mm tree
+Message-Id: <20220323221122.726E1C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 23/03/2022 13:28, Andrew Morton wrote:
-> On Wed, 23 Mar 2022 11:23:39 -0300 "Guilherme G. Piccoli" <gpiccoli@igalia.com> wrote:
-> [...] 
->> Hi Andrew, I'd like to ask you if it's possible to merge this patch (and
->> also [0]) for 5.18. I've checked Linus tree as for today and it's not
->> there, I hope there is still time.
->>
-> 
-> Yes, it's in the queue.
 
-Thanks a lot, much appreciated!
+The patch titled
+     Subject: kallsyms: print module name in %ps/S case when KALLSYMS is disabled
+has been removed from the -mm tree.  Its filename was
+     kallsyms-print-module-name-in-%ps-s-case-when-kallsyms-is-disabled.patch
+
+This patch was dropped because it is obsolete
+
+------------------------------------------------------
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: kallsyms: print module name in %ps/S case when KALLSYMS is disabled
+
+original:
+With KALLSYMS
+                   %pS                               %ps
+[16.4200]  hello_init+0x0/0x24 [crash]        hello_init [crash]
+
+Without KALLSYMS:
+[16.2200]      0xbe200040                         0xbe200040
+
+With Patch (Without KALLSYMS:) load address + current offset [Module Name]
+
+[13.5993]  0xbe200000+0x40 [crash]           0xbe200000+0x40 [crash]
+
+It will help in better debugging and checking when KALLSYMS is disabled,
+user will get information about module name and load address of module.
+
+verified for arm64:
+/ # insmod /crash.ko
+
+[   19.263556] 0xffff800000ec0000+0x38 [crash]
+
+..
+
+[   19.276023] Call trace:
+[   19.276277]  0xffff800000ec0000+0x28 [crash]
+[   19.276567]  0xffff800000ec0000+0x58 [crash]
+[   19.276727]  0xffff800000ec0000+0x74 [crash]
+[   19.276866]  0xffff8000080127d0
+[   19.276978]  0xffff80000812d95c
+[   19.277085]  0xffff80000812f554
+
+Link: https://lkml.kernel.org/r/20220201040044.1528568-1-maninder1.s@samsung.com
+Signed-off-by: Vaneet Narang <v.narang@samsung.com>
+Co-developed-by: Vaneet Narang <v.narang@samsung.com>
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Miroslav Benes <mbenes@suse.cz>
+Cc: Stephen Boyd <swboyd@chromium.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/kallsyms.h |   27 +++++++++++++++++++++++++++
+ lib/vsprintf.c           |    5 +++--
+ 2 files changed, 30 insertions(+), 2 deletions(-)
+
+--- a/include/linux/kallsyms.h~kallsyms-print-module-name-in-%ps-s-case-when-kallsyms-is-disabled
++++ a/include/linux/kallsyms.h
+@@ -163,6 +163,33 @@ static inline bool kallsyms_show_value(c
+ 	return false;
+ }
+ 
++#ifdef CONFIG_MODULES
++static inline int fill_minimal_module_info(char *sym, int size, unsigned long value)
++{
++	struct module *mod;
++	unsigned long offset;
++	int ret = 0;
++
++	preempt_disable();
++	mod = __module_address(value);
++	if (mod) {
++		offset = value - (unsigned long)mod->core_layout.base;
++		snprintf(sym, size - 1, "0x%lx+0x%lx [%s]",
++				(unsigned long)mod->core_layout.base, offset, mod->name);
++
++		sym[size - 1] = '\0';
++		ret = 1;
++	}
++
++	preempt_enable();
++	return ret;
++}
++#else
++static inline int fill_minimal_module_info(char *sym, int size, unsigned long value)
++{
++	return 0;
++}
++#endif /*CONFIG_MODULES*/
+ #endif /*CONFIG_KALLSYMS*/
+ 
+ static inline void print_ip_sym(const char *loglvl, unsigned long ip)
+--- a/lib/vsprintf.c~kallsyms-print-module-name-in-%ps-s-case-when-kallsyms-is-disabled
++++ a/lib/vsprintf.c
+@@ -984,9 +984,7 @@ char *symbol_string(char *buf, char *end
+ 		    struct printf_spec spec, const char *fmt)
+ {
+ 	unsigned long value;
+-#ifdef CONFIG_KALLSYMS
+ 	char sym[KSYM_SYMBOL_LEN];
+-#endif
+ 
+ 	if (fmt[1] == 'R')
+ 		ptr = __builtin_extract_return_addr(ptr);
+@@ -1006,6 +1004,9 @@ char *symbol_string(char *buf, char *end
+ 
+ 	return string_nocheck(buf, end, sym, spec);
+ #else
++	if (fill_minimal_module_info(sym, KSYM_SYMBOL_LEN, value))
++		return string_nocheck(buf, end, sym, spec);
++
+ 	return special_hex_number(buf, end, value, sizeof(void *));
+ #endif
+ }
+_
+
+Patches currently in -mm which might be from maninder1.s@samsung.com are
+
+
