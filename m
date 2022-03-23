@@ -2,111 +2,81 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3A3EC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:06:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBB4FC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:06:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345398AbiCWXHr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Mar 2022 19:07:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53274 "EHLO
+        id S239861AbiCWXII (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Mar 2022 19:08:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345415AbiCWXHq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:07:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF24990CCF
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:06:14 -0700 (PDT)
+        with ESMTP id S1345476AbiCWXIB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:01 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16CEA90FC3
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:06:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A9F83B82181
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65987C340E8;
-        Wed, 23 Mar 2022 23:06:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C3B3DB82182
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6016BC340E9;
+        Wed, 23 Mar 2022 23:06:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648076772;
-        bh=pXxe4GoU2D3A9KWBwr5wb4WM0HFwzyMO1uZb/t9+YMQ=;
+        s=korg; t=1648076784;
+        bh=tN4p0J3FdsIJcTqpYHQYhslGR1cMY0pflMq2Wwx8foY=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=mQm4bFUdf8SEoKXuY25vFShuF/EU4CWJ48C72TJjKc7LPSl55ctRfka5qXtzLAGxx
-         iSUd2SiTFCfAnTIpVveRlSFR3JBFLTtMOegdLsu2aNWz5xapSPmHYKqrzsQK06G8Nk
-         r7XY6IVBX061JkUx37pRj+HF8F0QTpCNLbNl1aNs=
-Date:   Wed, 23 Mar 2022 16:06:11 -0700
-To:     mingo@kernel.org, i.zhbanov@omprussia.ru,
-        gregkh@linuxfoundation.org, rdunlap@infradead.org,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=qNt92sH3G/TRnit530UcJmVcVLAZiV8GcmV3zwdbByGBWRBsWw4EOXhhXhcefYJV6
+         /6E+bIrrlLI8Nc2m7nWviubtJiJoB4R1v/tz6xo78g5HnumO9gUHM3KgxdkZifxbJE
+         O4AIh/DENp3TRmzc92+KqKRpYWq4SVS+X5LEf0AU=
+Date:   Wed, 23 Mar 2022 16:06:23 -0700
+To:     jack@suse.cz, colin.king@intel.com, christian.brauner@ubuntu.com,
+        qhjin.dev@gmail.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220323160453.65922ced539cbf445b191555@linux-foundation.org>
-Subject: [patch 18/41] init.h: improve __setup and early_param documentation
-Message-Id: <20220323230612.65987C340E8@smtp.kernel.org>
+Subject: [patch 22/41] minix: fix bug when opening a file with O_DIRECT
+Message-Id: <20220323230624.6016BC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: init.h: improve __setup and early_param documentation
+From: Qinghua Jin <qhjin.dev@gmail.com>
+Subject: minix: fix bug when opening a file with O_DIRECT
 
-Igor noted in [1] that there are quite a few __setup() handling functions
-that return incorrect values.  Doing this can be harmless, but it can also
-cause strings to be added to init's argument or environment list,
-polluting them.
+Testcase:
+1. create a minix file system and mount it
+2. open a file on the file system with O_RDWR|O_CREAT|O_TRUNC|O_DIRECT
+3. open fails with -EINVAL but leaves an empty file behind. All other
+open() failures don't leave the failed open files behind.
 
-Since __setup() handling and return values are not documented, first add
-documentation for that.  Also add more documentation for early_param()
-handling and return values.
+It is hard to check the direct_IO op before creating the inode.  Just as
+ext4 and btrfs do, this patch will resolve the issue by allowing to create
+the file with O_DIRECT but returning error when writing the file.
 
-For __setup() functions, returning 0 (not handled) has questionable
-value if it is just a malformed option value, as in
-  rodata=junk
-since returning 0 would just cause "rodata=junk" to be added to init's
-environment unnecessarily:
-  Run /sbin/init as init process
-    with arguments:
-      /sbin/init
-    with environment:
-      HOME=/
-      TERM=linux
-      splash=native
-      rodata=junk
-
-Also, there are no recommendations on whether to print a warning when an
-unknown parameter value is seen.  I am not addressing that here.
-
-[1] lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
-
-Link: https://lkml.kernel.org/r/20220221050852.1147-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Igor Zhbanov <i.zhbanov@omprussia.ru>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20220107133626.413379-1-qhjin.dev@gmail.com
+Signed-off-by: Qinghua Jin <qhjin.dev@gmail.com>
+Reported-by: Colin Ian King <colin.king@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ fs/minix/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/init.h~inith-improve-__setup-and-early_param-documentation
-+++ a/include/linux/init.h
-@@ -320,12 +320,19 @@ struct obs_kernel_param {
- 		__aligned(__alignof__(struct obs_kernel_param))		\
- 		= { __setup_str_##unique_id, fn, early }
+--- a/fs/minix/inode.c~minix-fix-bug-when-opening-a-file-with-o_direct
++++ a/fs/minix/inode.c
+@@ -447,7 +447,8 @@ static const struct address_space_operat
+ 	.writepage = minix_writepage,
+ 	.write_begin = minix_write_begin,
+ 	.write_end = generic_write_end,
+-	.bmap = minix_bmap
++	.bmap = minix_bmap,
++	.direct_IO = noop_direct_IO
+ };
  
-+/*
-+ * NOTE: __setup functions return values:
-+ * @fn returns 1 (or non-zero) if the option argument is "handled"
-+ * and returns 0 if the option argument is "not handled".
-+ */
- #define __setup(str, fn)						\
- 	__setup_param(str, fn, fn, 0)
- 
- /*
-- * NOTE: fn is as per module_param, not __setup!
-- * Emits warning if fn returns non-zero.
-+ * NOTE: @fn is as per module_param, not __setup!
-+ * I.e., @fn returns 0 for no error or non-zero for error
-+ * (possibly @fn returns a -errno value, but it does not matter).
-+ * Emits warning if @fn returns non-zero.
-  */
- #define early_param(str, fn)						\
- 	__setup_param(str, fn, fn, 1)
+ static const struct inode_operations minix_symlink_inode_operations = {
 _
