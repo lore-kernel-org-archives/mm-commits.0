@@ -2,122 +2,134 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72677C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:07:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FCA5C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:07:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345451AbiCWXIt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Mar 2022 19:08:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54916 "EHLO
+        id S1345499AbiCWXI4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Mar 2022 19:08:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345430AbiCWXIi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ED5690CC0
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:07:08 -0700 (PDT)
+        with ESMTP id S1345441AbiCWXIl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C48990CEC
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:07:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BA3D0617C1
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:07:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20A52C340E9;
-        Wed, 23 Mar 2022 23:07:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C0BD0617E6
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:07:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 238AEC340E9;
+        Wed, 23 Mar 2022 23:07:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648076827;
-        bh=VqhygAS1t2nG4D0I4BLfEi0GaTUbQew/QgIBNQ+wk84=;
+        s=korg; t=1648076830;
+        bh=HJL/a8dVL1hD5DWiRcjwxa2xs/1lwp8SEAp/hR2if0s=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=VUH+4Wn3UGxrIFstuc6TQW0EWOHBu6fooelqo+Sx1DK0XH75WVjcC9qRcVncsaAZ5
-         qWsg/4yISElhV6WqFenc5EmcH2Fj92McDeoz5uj0vIOuETBopmEPsg8/HaS3DzFwS1
-         RgduCnkET99292/h2Yj+c2fXKIW9Ed9g4eDUSqME=
-Date:   Wed, 23 Mar 2022 16:07:06 -0700
-To:     yzaikin@google.com, siglesias@igalia.com, mcgrof@kernel.org,
-        keescook@chromium.org, feng.tang@intel.com, gpiccoli@igalia.com,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=WXKP1M2NeiswUPXW6iXzWVVglMmYdOlsNZMammxGLWRjPHz4NSKrqcUh1qA2yZ+Nu
+         MWY4TlR2+J3trdvqhoPSgHjLiReqCRBDm2SsyTLWWMi6SKHE4bbkvdcpa8pTp+TNY1
+         6l57ekEDRZ2IFcF4NPr9AANTwviGa5gYeK8PWT2I=
+Date:   Wed, 23 Mar 2022 16:07:09 -0700
+To:     senozhatsky@chromium.org, pmladek@suse.com, feng.tang@intel.com,
+        bhe@redhat.com, gpiccoli@igalia.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220323160453.65922ced539cbf445b191555@linux-foundation.org>
-Subject: [patch 36/41] panic: add option to dump all CPUs backtraces in panic_print
-Message-Id: <20220323230707.20A52C340E9@smtp.kernel.org>
+Subject: [patch 37/41] panic: move panic_print before kmsg dumpers
+Message-Id: <20220323230710.238AEC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Subject: panic: add option to dump all CPUs backtraces in panic_print
+Subject: panic: move panic_print before kmsg dumpers
 
-Currently the "panic_print" parameter/sysctl allows some interesting debug
-information to be printed during a panic event.  This is useful for
-example in cases the user cannot kdump due to resource limits, or if the
-user collects panic logs in a serial output (or pstore) and prefers a fast
-reboot instead of a kdump.
+The panic_print setting allows users to collect more information in a
+panic event, like memory stats, tasks, CPUs backtraces, etc.  This is an
+interesting debug mechanism, but currently the print event happens *after*
+kmsg_dump(), meaning that pstore, for example, cannot collect a dmesg with
+the panic_print extra information.
 
-Happens that currently there's no way to see all CPUs backtraces in a
-panic using "panic_print" on architectures that support that.  We do have
-"oops_all_cpu_backtrace" sysctl, but although partially overlapping in the
-functionality, they are orthogonal in nature: "panic_print" is a panic
-tuning (and we have panics without oopses, like direct calls to panic() or
-maybe other paths that don't go through oops_enter() function), and the
-original purpose of "oops_all_cpu_backtrace" is to provide more
-information on oopses for cases in which the users desire to continue
-running the kernel even after an oops, i.e., used in non-panic scenarios.
+This patch changes that in 2 steps:
 
-So, we hereby introduce an additional bit for "panic_print" to allow
-dumping the CPUs backtraces during a panic event.
+(a) The panic_print setting allows to replay the existing kernel log
+    buffer to the console (bit 5), besides the extra information dump. 
+    This functionality makes sense only at the end of the panic()
+    function.  So, we hereby allow to distinguish the two situations by a
+    new boolean parameter in the function panic_print_sys_info().
 
-Link: https://lkml.kernel.org/r/20211109202848.610874-3-gpiccoli@igalia.com
+(b) With the above change, we can safely call panic_print_sys_info()
+    before kmsg_dump(), allowing to dump the extra information when using
+    pstore or other kmsg dumpers.
+
+The additional messages from panic_print could overwrite the oldest
+messages when the buffer is full.  The only reasonable solution is to use
+a large enough log buffer, hence we added an advice into the kernel
+parameters documentation about that.
+
+Link: https://lkml.kernel.org/r/20220214141308.841525-1-gpiccoli@igalia.com
 Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
-Reviewed-by: Feng Tang <feng.tang@intel.com>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    1 +
- Documentation/admin-guide/sysctl/kernel.rst     |    1 +
- kernel/panic.c                                  |    4 ++++
- 3 files changed, 6 insertions(+)
+ Documentation/admin-guide/kernel-parameters.txt |    4 ++++
+ kernel/panic.c                                  |   13 +++++++++----
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~panic-add-option-to-dump-all-cpus-backtraces-in-panic_print
+--- a/Documentation/admin-guide/kernel-parameters.txt~panic-move-panic_print-before-kmsg-dumpers
 +++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3726,6 +3726,7 @@
- 			bit 3: print locks info if CONFIG_LOCKDEP is on
+@@ -3727,6 +3727,10 @@
  			bit 4: print ftrace buffer
  			bit 5: print all printk messages in buffer
-+			bit 6: print all CPUs backtrace (if available in the arch)
+ 			bit 6: print all CPUs backtrace (if available in the arch)
++			*Be aware* that this option may print a _lot_ of lines,
++			so there are risks of losing older messages in the log.
++			Use this option carefully, maybe worth to setup a
++			bigger log buffer with "log_buf_len" along with this.
  
  	panic_on_taint=	Bitmask for conditionally calling panic() in add_taint()
  			Format: <hex>[,nousertaint]
---- a/Documentation/admin-guide/sysctl/kernel.rst~panic-add-option-to-dump-all-cpus-backtraces-in-panic_print
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -807,6 +807,7 @@ bit 2  print timer info
- bit 3  print locks info if ``CONFIG_LOCKDEP`` is on
- bit 4  print ftrace buffer
- bit 5  print all printk messages in buffer
-+bit 6  print all CPUs backtrace (if available in the arch)
- =====  ============================================
- 
- So for example to print tasks and memory info on panic, user can::
---- a/kernel/panic.c~panic-add-option-to-dump-all-cpus-backtraces-in-panic_print
+--- a/kernel/panic.c~panic-move-panic_print-before-kmsg-dumpers
 +++ a/kernel/panic.c
-@@ -66,6 +66,7 @@ EXPORT_SYMBOL_GPL(panic_timeout);
- #define PANIC_PRINT_LOCK_INFO		0x00000008
- #define PANIC_PRINT_FTRACE_INFO		0x00000010
- #define PANIC_PRINT_ALL_PRINTK_MSG	0x00000020
-+#define PANIC_PRINT_ALL_CPU_BT		0x00000040
- unsigned long panic_print;
+@@ -148,10 +148,13 @@ void nmi_panic(struct pt_regs *regs, con
+ }
+ EXPORT_SYMBOL(nmi_panic);
  
- ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
-@@ -152,6 +153,9 @@ static void panic_print_sys_info(void)
- 	if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
- 		console_flush_on_panic(CONSOLE_REPLAY_ALL);
+-static void panic_print_sys_info(void)
++static void panic_print_sys_info(bool console_flush)
+ {
+-	if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
+-		console_flush_on_panic(CONSOLE_REPLAY_ALL);
++	if (console_flush) {
++		if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
++			console_flush_on_panic(CONSOLE_REPLAY_ALL);
++		return;
++	}
  
-+	if (panic_print & PANIC_PRINT_ALL_CPU_BT)
-+		trigger_all_cpu_backtrace();
+ 	if (panic_print & PANIC_PRINT_ALL_CPU_BT)
+ 		trigger_all_cpu_backtrace();
+@@ -286,6 +289,8 @@ void panic(const char *fmt, ...)
+ 	 */
+ 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
+ 
++	panic_print_sys_info(false);
 +
- 	if (panic_print & PANIC_PRINT_TASK_INFO)
- 		show_state();
+ 	kmsg_dump(KMSG_DUMP_PANIC);
  
+ 	/*
+@@ -316,7 +321,7 @@ void panic(const char *fmt, ...)
+ 	debug_locks_off();
+ 	console_flush_on_panic(CONSOLE_FLUSH_PENDING);
+ 
+-	panic_print_sys_info();
++	panic_print_sys_info(true);
+ 
+ 	if (!panic_blink)
+ 		panic_blink = no_blink;
 _
