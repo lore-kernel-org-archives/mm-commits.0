@@ -2,97 +2,124 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DA66C43217
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:06:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF60C43219
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:06:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345413AbiCWXIJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1345412AbiCWXIJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 23 Mar 2022 19:08:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54394 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345484AbiCWXIB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 900E790FCA
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:06:28 -0700 (PDT)
+        with ESMTP id S1345516AbiCWXIG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:06 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DEDA90CC0
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:06:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 119F7617E6
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C695C340EE;
-        Wed, 23 Mar 2022 23:06:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1B16DB82181
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDF93C340F2;
+        Wed, 23 Mar 2022 23:06:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648076787;
-        bh=u8NikUXS3lKhEPGBMZz34AzW0dMm+xyst10stuZzfes=;
+        s=korg; t=1648076793;
+        bh=TX5G4upTJl4ETwZq2aediUjJjaKt4CWUAw7Nzl1Q/Yk=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=19H5erTVx/m2WAsNRfXfBdJJG1aqs0Wr/asUdzwnsMhhZ2ob2BCn6HtlKf1T5EXAy
-         +W45FfC37SpMRk7m6L46yFcaSEJ9YKdqceTDwV8lW5dTa9osclNHsswfD9iPI8ixM8
-         1oMhInodKY5Br0vf0GUjHXYMGiOVvLOBk4HFGEv0=
-Date:   Wed, 23 Mar 2022 16:06:26 -0700
-To:     schwab@linux-m68k.org, hirofumi@mail.parknet.co.jp,
-        David.Laight@aculab.com, deller@gmx.de, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=S9cgh3TOp6xBMD9sEIsuKIinWnvFoMVuDhTBT8a9qk3C97qbiSffFKCdgPam1R6NY
+         CoN0NxX3yq+FkiDPLoEk4dfMYtr7t68++9T2dmMBg8uk9/gJVXMfNfAaUUlZsmNKpD
+         4dcz9R6HfxoTm3vzcYJ3V+VibUT+u9LSggKNgXk0=
+Date:   Wed, 23 Mar 2022 16:06:33 -0700
+To:     will@kernel.org, tglx@linutronix.de, rmk+kernel@armlinux.org.uk,
+        paul.walmsley@sifive.com, palmer@rivosinc.com, palmer@dabbelt.com,
+        mingo@redhat.com, linux@armlinux.org.uk, hpa@zytor.com,
+        ebiederm@xmission.com, dave.hansen@linux.intel.com,
+        catalin.marinas@arm.com, bp@alien8.de, bhe@redhat.com,
+        aou@eecs.berkeley.edu, alex@ghiti.fr, jszhang@kernel.org,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220323160453.65922ced539cbf445b191555@linux-foundation.org>
-Subject: [patch 23/41] fat: use pointer to simple type in put_user()
-Message-Id: <20220323230627.6C695C340EE@smtp.kernel.org>
+Subject: [patch 25/41] kexec: make crashk_res, crashk_low_res and crash_notes symbols always visible
+Message-Id: <20220323230633.BDF93C340F2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Helge Deller <deller@gmx.de>
-Subject: fat: use pointer to simple type in put_user()
+From: Jisheng Zhang <jszhang@kernel.org>
+Subject: kexec: make crashk_res, crashk_low_res and crash_notes symbols always visible
 
-The put_user(val,ptr) macro wants a pointer to a simple type, but in
-fat_ioctl_filldir() the d_name field references an "array of chars".  Be
-more accurate and explicitly give the pointer to the first character of
-the d_name[] array.
+Patch series "kexec: use IS_ENABLED(CONFIG_KEXEC_CORE) instead of #ifdef", v2.
 
-I noticed that issue while trying to optimize the parisc put_user() macro
-and used an intermediate variable to store the pointer.  In that case I
-got this error:
+Replace the conditional compilation using "#ifdef CONFIG_KEXEC_CORE" by a
+check for "IS_ENABLED(CONFIG_KEXEC_CORE)", to simplify the code and
+increase compile coverage.
 
-In file included from include/linux/uaccess.h:11,
-                 from include/linux/compat.h:17,
-                 from fs/fat/dir.c:18:
-fs/fat/dir.c: In function `fat_ioctl_filldir':
-fs/fat/dir.c:725:33: error: invalid initializer
-  725 |                 if (put_user(0, d2->d_name)                     ||         \
-      |                                 ^~
-include/asm/uaccess.h:152:33: note: in definition of macro `__put_user'
-  152 |         __typeof__(ptr) __ptr = ptr;                            \
-      |                                 ^~~
-fs/fat/dir.c:759:1: note: in expansion of macro `FAT_IOCTL_FILLDIR_FUNC'
-  759 | FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, __fat_dirent)
+I only modified x86, arm, arm64 and riscv, other architectures such as sh,
+powerpc and s390 are better to be kept kexec code as-is so they are not
+touched.
 
-Andreas Schwab <schwab@linux-m68k.org> suggested to use
-   __typeof__(&*(ptr)) __ptr = ptr;
-instead. This works, but nevertheless it's probably reasonable to
-fix the original caller too.
 
-Link: https://lkml.kernel.org/r/Ygo+A9MREmC1H3kr@p100
-Signed-off-by: Helge Deller <deller@gmx.de>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: David Laight <David.Laight@aculab.com>
-Cc: Andreas Schwab <schwab@linux-m68k.org>
+This patch (of 5):
+
+Make the forward declarations of crashk_res, crashk_low_res and
+crash_notes always visible.  Code referring to these symbols can then just
+check for IS_ENABLED(CONFIG_KEXEC_CORE), instead of requiring conditional
+compilation using an #ifdef, thus preparing to increase compile coverage
+and simplify the code.
+
+Link: https://lkml.kernel.org/r/20211206160514.2000-1-jszhang@kernel.org
+Link: https://lkml.kernel.org/r/20211206160514.2000-2-jszhang@kernel.org
+Signed-off-by: Jisheng Zhang <jszhang@kernel.org>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Palmer Dabbelt <palmer@rivosinc.com>
+Cc: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kexec.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/fat/dir.c~fat-use-pointer-to-simple-type-in-put_user
-+++ a/fs/fat/dir.c
-@@ -722,7 +722,7 @@ static int func(struct dir_context *ctx,
- 		if (name_len >= sizeof(d1->d_name))			   \
- 			name_len = sizeof(d1->d_name) - 1;		   \
- 									   \
--		if (put_user(0, d2->d_name)			||	   \
-+		if (put_user(0, &d2->d_name[0])			||	   \
- 		    put_user(0, &d2->d_reclen)			||	   \
- 		    copy_to_user(d1->d_name, name, name_len)	||	   \
- 		    put_user(0, d1->d_name + name_len)		||	   \
+--- a/include/linux/kexec.h~kexec-make-crashk_res-crashk_low_res-and-crash_notes-symbols-always-visible
++++ a/include/linux/kexec.h
+@@ -20,6 +20,12 @@
+ 
+ #include <uapi/linux/kexec.h>
+ 
++/* Location of a reserved region to hold the crash kernel.
++ */
++extern struct resource crashk_res;
++extern struct resource crashk_low_res;
++extern note_buf_t __percpu *crash_notes;
++
+ #ifdef CONFIG_KEXEC_CORE
+ #include <linux/list.h>
+ #include <linux/compat.h>
+@@ -350,12 +356,6 @@ extern int kexec_load_disabled;
+ #define KEXEC_FILE_FLAGS	(KEXEC_FILE_UNLOAD | KEXEC_FILE_ON_CRASH | \
+ 				 KEXEC_FILE_NO_INITRAMFS)
+ 
+-/* Location of a reserved region to hold the crash kernel.
+- */
+-extern struct resource crashk_res;
+-extern struct resource crashk_low_res;
+-extern note_buf_t __percpu *crash_notes;
+-
+ /* flag to track if kexec reboot is in progress */
+ extern bool kexec_in_progress;
+ 
 _
