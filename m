@@ -2,84 +2,83 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 726C9C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 08:30:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB2DC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 14:47:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242787AbiCWIba (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Mar 2022 04:31:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37828 "EHLO
+        id S233331AbiCWOsg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Mar 2022 10:48:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242790AbiCWIbF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 04:31:05 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4254A765B8;
-        Wed, 23 Mar 2022 01:28:39 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id DE5C3210E9;
-        Wed, 23 Mar 2022 08:28:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1648024117; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=CW3R+Yiroys6he2hHa/SHBZUim+4itSeZjujNKPJOmQ=;
-        b=tB448LMyefBx5twawDjt8knurabMyegikQW37yhYusJrNOEXKgv24DS1/jaejnVIzzL2kC
-        TRwSrtJYxTnLlLapwzTrdxKmv0M0c2o7gdzOXvw4NQNzFLUKjENKzApLxv6UR+TN3zYYdM
-        lWYYH57ssNh0s5XojNY4nxboJ1uCwzw=
-Received: from suse.cz (unknown [10.100.201.86])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 8E09FA3BA1;
-        Wed, 23 Mar 2022 08:28:37 +0000 (UTC)
-Date:   Wed, 23 Mar 2022 09:28:37 +0100
-From:   Michal Hocko <mhocko@suse.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Andrew Morton <akpm@linux-foundation.org>, vbabka@suse.cz,
-        surenb@google.com, stable@vger.kernel.org, sfr@canb.auug.org.au,
-        rientjes@google.com, nadav.amit@gmail.com,
-        quic_charante@quicinc.com, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject: Re: [patch 163/227] mm: madvise: skip unmapped vma holes passed to
- process_madvise
-Message-ID: <YjraNQkmtkLiv1yz@dhcp22.suse.cz>
-References: <20220322143803.04a5e59a07e48284f196a2f9@linux-foundation.org>
- <20220322214648.AB7A1C340EC@smtp.kernel.org>
- <Yjpo2jnp5pkJr+XI@google.com>
+        with ESMTP id S236019AbiCWOsg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 10:48:36 -0400
+X-Greylist: delayed 1386 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 23 Mar 2022 07:47:06 PDT
+Received: from fanzine2.igalia.com (fanzine.igalia.com [178.60.130.6])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 199F781645
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 07:47:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+        s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:Cc:
+        References:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:Content-ID
+        :Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:
+        Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe
+        :List-Post:List-Owner:List-Archive;
+        bh=c+ExfHopgW16KW/FrpCo9RgoUoNpsP1qcv+Xhy92Gl4=; b=K1NXUzDG4LODFazFaaQmzB5fTg
+        A2fKXD0zoV+1PBxbpaudEJodhb6274vF0eosjPZjkPdJCN2LrpsDWUaL8LdtlytAs4FYX+YD8nkza
+        M4jQavXza6oDEnV2tjXFEfju8S2rCazhFpWl6IFMwxMUH1JHCjL+PLKNsz9vkzvEjJv27wy78u+wu
+        Ikh1qciSFfPZAvGKgpIsIQQleK6TkYWA721QgyEmpwi/blhxLtGDRqO3020q0kPCbdJ0OjbL0nPdA
+        7ap73/SZNcRqt4//PudAcwCEyOWxVhywYCK+yJKae3FA4pZL2s8OuQ81s011odf71VrurZC5/ggKi
+        JFblVPmQ==;
+Received: from [187.39.124.208] (helo=[192.168.0.110])
+        by fanzine2.igalia.com with esmtpsa 
+        (Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
+        id 1nX1tx-0005Fj-00; Wed, 23 Mar 2022 15:23:53 +0100
+Message-ID: <6a5bbbfd-3071-20dd-80b9-0e3bda3122ce@igalia.com>
+Date:   Wed, 23 Mar 2022 11:23:39 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Yjpo2jnp5pkJr+XI@google.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: + panic-move-panic_print-before-kmsg-dumpers.patch added to -mm
+ tree
+Content-Language: en-US
+To:     Andrew Morton <akpm@linux-foundation.org>
+References: <20220228185002.EF7D1C340F1@smtp.kernel.org>
+Cc:     mm-commits@vger.kernel.org, bhe@redhat.com, feng.tang@intel.com,
+        pmladek@suse.com, senozhatsky@chromium.org
+From:   "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+In-Reply-To: <20220228185002.EF7D1C340F1@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue 22-03-22 17:24:58, Minchan Kim wrote:
-> On Tue, Mar 22, 2022 at 02:46:48PM -0700, Andrew Morton wrote:
-> > From: Charan Teja Kalla <quic_charante@quicinc.com>
-> > Subject: mm: madvise: skip unmapped vma holes passed to process_madvise
-> > 
-> > The process_madvise() system call is expected to skip holes in vma passed
-> > through 'struct iovec' vector list.  But do_madvise, which
-> > process_madvise() calls for each vma, returns ENOMEM in case of unmapped
-> > holes, despite the VMA is processed.
-> > 
-> > Thus process_madvise() should treat ENOMEM as expected and consider the
-> > VMA passed to as processed and continue processing other vma's in the
-> > vector list.  Returning -ENOMEM to user, despite the VMA is processed,
-> > will be unable to figure out where to start the next madvise.
-> > 
-> > Link: https://lkml.kernel.org/r/4f091776142f2ebf7b94018146de72318474e686.1647008754.git.quic_charante@quicinc.com
+On 28/02/2022 15:50, Andrew Morton wrote:
+> The patch titled
+>      Subject: panic: move panic_print before kmsg dumpers
+> has been added to the -mm tree.  Its filename is
+>      panic-move-panic_print-before-kmsg-dumpers.patch
 > 
-> I thought it was still under discussion and Charan will post next
-> version along with previous patch
-> "mm: madvise: return correct bytes advised with process_madvise"
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/panic-move-panic_print-before-kmsg-dumpers.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/panic-move-panic_print-before-kmsg-dumpers.patch
 > 
-> https://lore.kernel.org/linux-mm/7207b2f5-6b3e-aea4-aa1b-9c6d849abe34@quicinc.com/
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
 
-Yes, I am not even sure the new semantic is sensible[1]. We should discuss
-that and see all the consequences. Changing the semantic of an existing
-syscall is always tricky going back and forth is even worse.
--- 
-Michal Hocko
-SUSE Labs
+Hi Andrew, I'd like to ask you if it's possible to merge this patch (and
+also [0]) for 5.18. I've checked Linus tree as for today and it's not
+there, I hope there is still time.
+
+Thanks in advance,
+
+
+Guilherme
+
+
+[0]
+https://ozlabs.org/~akpm/mmotm/broken-out/panic-add-option-to-dump-all-cpus-backtraces-in-panic_print.patch
