@@ -2,114 +2,117 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F428C4321E
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:06:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5EA5C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Mar 2022 23:06:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345399AbiCWXIL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Mar 2022 19:08:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53274 "EHLO
+        id S1345435AbiCWXI0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Mar 2022 19:08:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345494AbiCWXIC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E2FA9027D
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:06:31 -0700 (PDT)
+        with ESMTP id S234935AbiCWXIJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2022 19:08:09 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 864539027C
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 16:06:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 33232617E8
-        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C004C340E8;
-        Wed, 23 Mar 2022 23:06:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 31142B82183
+        for <mm-commits@vger.kernel.org>; Wed, 23 Mar 2022 23:06:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E557BC340F7;
+        Wed, 23 Mar 2022 23:06:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648076790;
-        bh=mF7cqnLLCton8JUDogwJIiL0I5aHocH5B/iOBqPbVuA=;
+        s=korg; t=1648076797;
+        bh=+YGftbqbU90b8j5fQHsfgsfEMHcpmMhQkMql1qawrEo=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=1m8W4SCBPBK7xtMlnBo+CwOHJey2ms9ynUyWoE/wdE6bY3RxGFGWeAusqMEwFyia+
-         4xzjVIqG8FGlCD6POMR3zMgvcXLoQ0jPPIiC4MEHVC8NDiJ51sNTEVmP31Kt7rxcR8
-         3BZseB19aldfxSY4noV9ve6TBXPAQr6DWDhN9ue0=
-Date:   Wed, 23 Mar 2022 16:06:29 -0700
-To:     tj@kernel.org, tglx@linutronix.de, lizefan.x@bytedance.com,
-        hannes@cmpxchg.org, bigeasy@linutronix.de,
+        b=MoVRwHLAeamjs5j1Md+cNU+tuxEGEOJcqyODri+BPRcxb29fMBcV1NvaxyYf8PiO5
+         ynXHbBFeq5z0yFUc2vbNuDjAeEa/QDjNr8xtN0zQdVc8deUiSyWveFYB439gkfZmnj
+         jM1t2ALQbUxVqRtuyNl6zlrY12Kfl+szhXqleWPE=
+Date:   Wed, 23 Mar 2022 16:06:36 -0700
+To:     will@kernel.org, tglx@linutronix.de, rmk+kernel@armlinux.org.uk,
+        paul.walmsley@sifive.com, palmer@rivosinc.com, palmer@dabbelt.com,
+        mingo@redhat.com, linux@armlinux.org.uk, hpa@zytor.com,
+        ebiederm@xmission.com, dave.hansen@linux.intel.com,
+        catalin.marinas@arm.com, bp@alien8.de, bhe@redhat.com,
+        aou@eecs.berkeley.edu, alex@ghiti.fr, jszhang@kernel.org,
         akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220323160453.65922ced539cbf445b191555@linux-foundation.org>
-Subject: [patch 24/41] cgroup: use irqsave in cgroup_rstat_flush_locked().
-Message-Id: <20220323230630.8C004C340E8@smtp.kernel.org>
+Subject: [patch 26/41] riscv: mm: init: use IS_ENABLED(CONFIG_KEXEC_CORE) instead of #ifdef
+Message-Id: <20220323230636.E557BC340F7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: cgroup: use irqsave in cgroup_rstat_flush_locked().
+From: Jisheng Zhang <jszhang@kernel.org>
+Subject: riscv: mm: init: use IS_ENABLED(CONFIG_KEXEC_CORE) instead of #ifdef
 
-All callers of cgroup_rstat_flush_locked() acquire cgroup_rstat_lock
-either with spin_lock_irq() or spin_lock_irqsave(). 
-cgroup_rstat_flush_locked() itself acquires cgroup_rstat_cpu_lock which is
-a raw_spin_lock.  This lock is also acquired in cgroup_rstat_updated() in
-IRQ context and therefore requires _irqsave() locking suffix in
-cgroup_rstat_flush_locked().
+Replace the conditional compilation using "#ifdef CONFIG_KEXEC_CORE" by a
+check for "IS_ENABLED(CONFIG_KEXEC_CORE)", to simplify the code and
+increase compile coverage.
 
-Since there is no difference between spin_lock_t and raw_spin_lock_t on
-!RT lockdep does not complain here.  On RT lockdep complains because the
-interrupts were not disabled here and a deadlock is possible.
-
-Acquire the raw_spin_lock_t with disabled interrupts.
-
-Link: https://lkml.kernel.org/r/20220301122143.1521823-2-bigeasy@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20211206160514.2000-3-jszhang@kernel.org
+Signed-off-by: Jisheng Zhang <jszhang@kernel.org>
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zefan Li <lizefan.x@bytedance.com>
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: cgroup: add a comment to cgroup_rstat_flush_locked().
-
-Add a comment why spin_lock_irq() -> raw_spin_lock_irqsave() is needed.
-
-Link: https://lkml.kernel.org/r/Yh+DOK73hfVV5ThX@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/rstat.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ arch/riscv/mm/init.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/kernel/cgroup/rstat.c~cgroup-use-irqsave-in-cgroup_rstat_flush_locked
-+++ a/kernel/cgroup/rstat.c
-@@ -153,8 +153,17 @@ static void cgroup_rstat_flush_locked(st
- 		raw_spinlock_t *cpu_lock = per_cpu_ptr(&cgroup_rstat_cpu_lock,
- 						       cpu);
- 		struct cgroup *pos = NULL;
-+		unsigned long flags;
+--- a/arch/riscv/mm/init.c~riscv-mm-init-use-is_enabledconfig_kexec_core-instead-of-ifdef
++++ a/arch/riscv/mm/init.c
+@@ -957,7 +957,6 @@ static inline void setup_vm_final(void)
+ }
+ #endif /* CONFIG_MMU */
  
--		raw_spin_lock(cpu_lock);
-+		/*
-+		 * The _irqsave() is needed because cgroup_rstat_lock is
-+		 * spinlock_t which is a sleeping lock on PREEMPT_RT. Acquiring
-+		 * this lock with the _irq() suffix only disables interrupts on
-+		 * a non-PREEMPT_RT kernel. The raw_spinlock_t below disables
-+		 * interrupts on both configurations. The _irqsave() ensures
-+		 * that interrupts are always disabled and later restored.
-+		 */
-+		raw_spin_lock_irqsave(cpu_lock, flags);
- 		while ((pos = cgroup_rstat_cpu_pop_updated(pos, cgrp, cpu))) {
- 			struct cgroup_subsys_state *css;
+-#ifdef CONFIG_KEXEC_CORE
+ /*
+  * reserve_crashkernel() - reserves memory for crash kernel
+  *
+@@ -974,6 +973,8 @@ static void __init reserve_crashkernel(v
  
-@@ -166,7 +175,7 @@ static void cgroup_rstat_flush_locked(st
- 				css->ss->css_rstat_flush(css, cpu);
- 			rcu_read_unlock();
- 		}
--		raw_spin_unlock(cpu_lock);
-+		raw_spin_unlock_irqrestore(cpu_lock, flags);
+ 	int ret = 0;
  
- 		/* if @may_sleep, play nice and yield if necessary */
- 		if (may_sleep && (need_resched() ||
++	if (!IS_ENABLED(CONFIG_KEXEC_CORE))
++		return;
+ 	/*
+ 	 * Don't reserve a region for a crash kernel on a crash kernel
+ 	 * since it doesn't make much sense and we have limited memory
+@@ -1023,7 +1024,6 @@ static void __init reserve_crashkernel(v
+ 	crashk_res.start = crash_base;
+ 	crashk_res.end = crash_base + crash_size - 1;
+ }
+-#endif /* CONFIG_KEXEC_CORE */
+ 
+ void __init paging_init(void)
+ {
+@@ -1037,9 +1037,7 @@ void __init misc_mem_init(void)
+ 	arch_numa_init();
+ 	sparse_init();
+ 	zone_sizes_init();
+-#ifdef CONFIG_KEXEC_CORE
+ 	reserve_crashkernel();
+-#endif
+ 	memblock_dump_all();
+ }
+ 
 _
