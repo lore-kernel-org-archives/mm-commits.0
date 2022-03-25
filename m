@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 305FFC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:41:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0676C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:41:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233815AbiCYWnC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:43:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49514 "EHLO
+        id S233889AbiCYWnE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:43:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233889AbiCYWnC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18601208C14
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:27 -0700 (PDT)
+        with ESMTP id S233892AbiCYWnD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9425E208C11
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A5776614A8
+        by ams.source.kernel.org (Postfix) with ESMTPS id 45C86B82A2F
         for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0B67C004DD;
-        Fri, 25 Mar 2022 22:41:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE57AC340ED;
+        Fri, 25 Mar 2022 22:41:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248086;
-        bh=yyb6PvzgRUjsYle1VduF/ErCUWQ6qqdUtxPQ9MMurQM=;
+        s=korg; t=1648248084;
+        bh=Sv/Hf7z8l3Aa7qEdh6i/n8zU3g+Jxi0MnwFxjRVVuoA=;
         h=Date:To:From:Subject:From;
-        b=sRaQ5n+HGVz2sYYY4DwHiEqre8CXDLD1rkBeLwt/91y+1roQhYCOlFOHhNlVe7zro
-         j4OHjM2WDcE6/qAtxAqm41FWNx1jPtdaW+9dcT9+3/R7RT+p77jiDKbZXe80NMQMZj
-         f5CeOHPn25lmbuYzzzOl+Jg8pEZArHEDIbfga0bw=
-Date:   Fri, 25 Mar 2022 15:41:25 -0700
-To:     mm-commits@vger.kernel.org, zhangshengju@cmss.chinamobile.com,
-        weizhenliang@huawei.com, tangbin@cmss.chinamobile.com,
-        sfr@canb.auug.org.au, seanga2@gmail.com, ch0.han@lge.com,
-        zhangyinan2019@email.szu.edu.cn, akpm@linux-foundation.org
+        b=rjJBgbG5/PdW9mlCcMdn6iQA4bt3unHPrBgi4CmUU81eSUr9EzdzWYJJQzGrzVwKQ
+         l9mr++wO0j6olWv6+1JGNGugWxZmJc5VIqdaT/lCC+kCESU794SS4OpXiwuq/N0PMd
+         GKKNOy7pgl0riPDZO1YLlmpqyp1xkPXRFvDn3k+M=
+Date:   Fri, 25 Mar 2022 15:41:24 -0700
+To:     mm-commits@vger.kernel.org, zhangyinan2019@email.szu.edu.cn,
+        zhangshengju@cmss.chinamobile.com, weizhenliang@huawei.com,
+        tangbin@cmss.chinamobile.com, sfr@canb.auug.org.au,
+        ch0.han@lge.com, seanga2@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] tools-vm-page_owner_sortc-add-switch-between-culling-by-stacktrace-and-txt.patch removed from -mm tree
-Message-Id: <20220325224125.F0B67C004DD@smtp.kernel.org>
+Subject: [merged] tools-vm-page_owner_sortc-support-sorting-by-stack-trace.patch removed from -mm tree
+Message-Id: <20220325224124.BE57AC340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,141 +43,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page_owner_sort.c: add switch between culling by stacktrace and txt
+     Subject: tools/vm/page_owner_sort.c: support sorting by stack trace
 has been removed from the -mm tree.  Its filename was
-     tools-vm-page_owner_sortc-add-switch-between-culling-by-stacktrace-and-txt.patch
+     tools-vm-page_owner_sortc-support-sorting-by-stack-trace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
-Subject: tools/vm/page_owner_sort.c: add switch between culling by stacktrace and txt
+From: Sean Anderson <seanga2@gmail.com>
+Subject: tools/vm/page_owner_sort.c: support sorting by stack trace
 
-Culling by comparing stacktrace would casue loss of some information.  For
-example, if there exists 2 blocks which have the same stacktrace and the
-different head info
+This adds the ability to sort by stacktraces.  This is helpful when
+comparing multiple dumps of page_owner taken at different times, since
+blocks will not be reordered if they were allocated/free'd.
 
-Page allocated via order 0, mask 0x108c48(...), pid 73696,
- ts 1578829190639010 ns, free_ts 1576583851324450 ns
- prep_new_page+0x80/0xb8
- get_page_from_freelist+0x924/0xee8
- __alloc_pages+0x138/0xc18
- alloc_pages+0x80/0xf0
- __page_cache_alloc+0x90/0xc8
-
-Page allocated via order 0, mask 0x108c48(...), pid 61806,
- ts 1354113726046100 ns, free_ts 1354104926841400 ns
- prep_new_page+0x80/0xb8
- get_page_from_freelist+0x924/0xee8
- __alloc_pages+0x138/0xc18
- alloc_pages+0x80/0xf0
- __page_cache_alloc+0x90/0xc8
-
-After culling, it would be like this
-
-2 times, 2 pages:
-Page allocated via order 0, mask 0x108c48(...), pid 73696,
- ts 1578829190639010 ns, free_ts 1576583851324450 ns
- prep_new_page+0x80/0xb8
- get_page_from_freelist+0x924/0xee8
- __alloc_pages+0x138/0xc18
- alloc_pages+0x80/0xf0
- __page_cache_alloc+0x90/0xc8
-
-The info of second block missed.  So, add -c to turn on culling by
-stacktrace.  By default, it will cull by txt.
-
-Link: https://lkml.kernel.org/r/20211129145658.2491-1-zhangyinan2019@email.szu.edu.cn
-Signed-off-by: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Link: https://lkml.kernel.org/r/20211124193709.1805776-2-seanga2@gmail.com
+Signed-off-by: Sean Anderson <seanga2@gmail.com>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Cc: Changhee Han <ch0.han@lge.com>
-Cc: Sean Anderson <seanga2@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Tang Bin <tangbin@cmss.chinamobile.com>
 Cc: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
-Cc: Zhenliang Wei <weizhenliang@huawei.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |   23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
+ tools/vm/page_owner_sort.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-add-switch-between-culling-by-stacktrace-and-txt
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-support-sorting-by-stack-trace
 +++ a/tools/vm/page_owner_sort.c
-@@ -51,6 +51,13 @@ int read_block(char *buf, int buf_size,
- 	return -1; /* EOF or no space left in buf. */
- }
+@@ -29,7 +29,6 @@ struct block_list {
+ 	int page_num;
+ };
  
-+static int compare_txt(const void *p1, const void *p2)
-+{
-+	const struct block_list *l1 = p1, *l2 = p2;
-+
-+	return strcmp(l1->txt, l2->txt);
-+}
-+
- static int compare_stacktrace(const void *p1, const void *p2)
+-static int sort_by_memory;
+ static regex_t order_pattern;
+ static struct block_list *list;
+ static int list_size;
+@@ -134,13 +133,16 @@ static void add_list(char *buf, int len)
+ 
+ static void usage(void)
  {
- 	const struct block_list *l1 = p1, *l2 = p2;
-@@ -137,12 +144,14 @@ static void usage(void)
- 		"-m	Sort by total memory.\n"
- 		"-s	Sort by the stack trace.\n"
- 		"-t	Sort by times (default).\n"
-+		"-c	cull by comparing stacktrace instead of total block.\n"
+-	printf("Usage: ./page_owner_sort [-m] <input> <output>\n"
+-		"-m	Sort by total memory. If this option is unset, sort by times\n"
++	printf("Usage: ./page_owner_sort [OPTIONS] <input> <output>\n"
++		"-m	Sort by total memory.\n"
++		"-s	Sort by the stack trace.\n"
++		"-t	Sort by times (default).\n"
  	);
  }
  
  int main(int argc, char **argv)
  {
- 	int (*cmp)(const void *, const void *) = compare_num;
-+	int cull_st = 0;
++	int (*cmp)(const void *, const void *) = compare_num;
  	FILE *fin, *fout;
  	char *buf;
  	int ret, i, count;
-@@ -151,7 +160,7 @@ int main(int argc, char **argv)
+@@ -149,10 +151,16 @@ int main(int argc, char **argv)
  	int err;
  	int opt;
  
--	while ((opt = getopt(argc, argv, "mst")) != -1)
-+	while ((opt = getopt(argc, argv, "mstc")) != -1)
+-	while ((opt = getopt(argc, argv, "m")) != -1)
++	while ((opt = getopt(argc, argv, "mst")) != -1)
  		switch (opt) {
  		case 'm':
- 			cmp = compare_page_num;
-@@ -162,6 +171,9 @@ int main(int argc, char **argv)
- 		case 't':
- 			cmp = compare_num;
- 			break;
-+		case 'c':
-+			cull_st = 1;
+-			sort_by_memory = 1;
++			cmp = compare_page_num;
 +			break;
++		case 's':
++			cmp = compare_stacktrace;
++			break;
++		case 't':
++			cmp = compare_num;
+ 			break;
  		default:
  			usage();
- 			exit(1);
-@@ -209,7 +221,10 @@ int main(int argc, char **argv)
+@@ -221,10 +229,7 @@ int main(int argc, char **argv)
+ 		}
+ 	}
  
- 	printf("sorting ....\n");
+-	if (sort_by_memory)
+-		qsort(list2, count, sizeof(list[0]), compare_page_num);
+-	else
+-		qsort(list2, count, sizeof(list[0]), compare_num);
++	qsort(list2, count, sizeof(list[0]), cmp);
  
--	qsort(list, list_size, sizeof(list[0]), compare_stacktrace);
-+	if (cull_st == 1)
-+		qsort(list, list_size, sizeof(list[0]), compare_stacktrace);
-+	else
-+		qsort(list, list_size, sizeof(list[0]), compare_txt);
- 
- 	list2 = malloc(sizeof(*list) * list_size);
- 	if (!list2) {
-@@ -219,9 +234,11 @@ int main(int argc, char **argv)
- 
- 	printf("culling\n");
- 
-+	long offset = cull_st ? &list[0].stacktrace - &list[0].txt : 0;
-+
- 	for (i = count = 0; i < list_size; i++) {
- 		if (count == 0 ||
--		    strcmp(list2[count-1].stacktrace, list[i].stacktrace) != 0) {
-+		    strcmp(*(&list2[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
- 			list2[count++] = list[i];
- 		} else {
- 			list2[count-1].num += list[i].num;
+ 	for (i = 0; i < count; i++)
+ 		fprintf(fout, "%d times, %d pages:\n%s\n",
 _
 
-Patches currently in -mm which might be from zhangyinan2019@email.szu.edu.cn are
+Patches currently in -mm which might be from seanga2@gmail.com are
 
 
