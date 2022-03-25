@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4A51C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFCD5C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234021AbiCYWol (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:44:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55586 "EHLO
+        id S234022AbiCYWom (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:44:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234022AbiCYWob (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:44:31 -0400
+        with ESMTP id S234018AbiCYWo2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:44:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D04620C2EF
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E09320C2F8
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0834C61582
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DC5CC004DD;
-        Fri, 25 Mar 2022 22:42:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 08ABC611CF
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B311C340F0;
+        Fri, 25 Mar 2022 22:42:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248175;
-        bh=5Nkm/hpJh2Weauy1xqHedrh8IGcXIhtDaBPAp+NsFIM=;
+        s=korg; t=1648248173;
+        bh=3AopFjaS8zdxWl9v5Co8JsEjdQ67W0W/XJbGSm+Dmr4=;
         h=Date:To:From:Subject:From;
-        b=2BJIfSpphZbkzx9c2D/ZqovYqoPlgjWdlFsdtbka3zh98o9gZ1AF2VUf3gRXv3aaa
-         DpySNARwXTvPIRxuFXaXtTQhpa218zwUkj6lo4RgjoXzjPgkbtKfNQzhP+yRpGvxIu
-         sSys+0gfK3kGbsCNRvRqR51l2cgF2EAgEQwvu3Zw=
-Date:   Fri, 25 Mar 2022 15:42:54 -0700
+        b=lwKwcTDchpdw+M+z9ipsRdszyrqGx6n9kvn2iOjSEnCXxvZQJjG3w5tTJHoUwS++6
+         MFwquSieKqFEZLqgmcZ0VTYjJEYrArZa0lWz2Bq1Vg+AAz8w1i9d7yEsxfwnPiKrHG
+         Lhehpxa0JJasWXE/iZYHZKug8K4qOnfSPyP8M+qU=
+Date:   Fri, 25 Mar 2022 15:42:52 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kasan-call-print_report-from-kasan_report_invalid_free.patch removed from -mm tree
-Message-Id: <20220325224255.5DC5CC004DD@smtp.kernel.org>
+Subject: [merged] kasan-restructure-kasan_report.patch removed from -mm tree
+Message-Id: <20220325224253.5B311C340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,28 +42,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: call print_report from kasan_report_invalid_free
+     Subject: kasan: restructure kasan_report
 has been removed from the -mm tree.  Its filename was
-     kasan-call-print_report-from-kasan_report_invalid_free.patch
+     kasan-restructure-kasan_report.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: call print_report from kasan_report_invalid_free
+Subject: kasan: restructure kasan_report
 
-Call print_report() in kasan_report_invalid_free() instead of calling
-printing functions directly.  Compared to the existing implementation of
-kasan_report_invalid_free(), print_report() makes sure that the buggy
-address has metadata before printing it.
+Restructure kasan_report() to make reviewing the subsequent patches
+easier.
 
-The change requires adding a report type field into kasan_access_info and
-using it accordingly.
-
-kasan_report_async() is left as is, as using print_report() will only
-complicate the code.
-
-Link: https://lkml.kernel.org/r/9ea6f0604c5d2e1fb28d93dc6c44232c1f8017fe.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/ca28042889858b8cc4724d3d4378387f90d7a59d.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -72,98 +64,36 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h  |    6 ++++++
- mm/kasan/report.c |   42 ++++++++++++++++++++++++++----------------
- 2 files changed, 32 insertions(+), 16 deletions(-)
+ mm/kasan/report.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-call-print_report-from-kasan_report_invalid_free
-+++ a/mm/kasan/kasan.h
-@@ -127,7 +127,13 @@ static inline bool kasan_sync_fault_poss
- #define META_MEM_BYTES_PER_ROW (META_BYTES_PER_ROW * KASAN_GRANULE_SIZE)
- #define META_ROWS_AROUND_ADDR 2
- 
-+enum kasan_report_type {
-+	KASAN_REPORT_ACCESS,
-+	KASAN_REPORT_INVALID_FREE,
-+};
-+
- struct kasan_access_info {
-+	enum kasan_report_type type;
- 	void *access_addr;
- 	void *first_bad_addr;
- 	size_t access_size;
---- a/mm/kasan/report.c~kasan-call-print_report-from-kasan_report_invalid_free
+--- a/mm/kasan/report.c~kasan-restructure-kasan_report
 +++ a/mm/kasan/report.c
-@@ -86,6 +86,12 @@ __setup("kasan_multi_shot", kasan_set_mu
- 
- static void print_error_description(struct kasan_access_info *info)
- {
-+	if (info->type == KASAN_REPORT_INVALID_FREE) {
-+		pr_err("BUG: KASAN: double-free or invalid-free in %pS\n",
-+		       (void *)info->ip);
-+		return;
-+	}
-+
- 	pr_err("BUG: KASAN: %s in %pS\n",
- 		kasan_get_bug_type(info), (void *)info->ip);
- 	if (info->access_size)
-@@ -386,22 +392,6 @@ static bool report_enabled(void)
- 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
- }
- 
--void kasan_report_invalid_free(void *object, unsigned long ip)
--{
--	unsigned long flags;
--	u8 tag = get_tag(object);
--
--	object = kasan_reset_tag(object);
--
--	start_report(&flags, true);
--	pr_err("BUG: KASAN: double-free or invalid-free in %pS\n", (void *)ip);
--	kasan_print_tags(tag, object);
--	pr_err("\n");
--	print_address_description(object, tag);
--	print_memory_metadata(object);
--	end_report(&flags, object);
--}
--
- #ifdef CONFIG_KASAN_HW_TAGS
- void kasan_report_async(void)
- {
-@@ -435,6 +425,25 @@ static void print_report(struct kasan_ac
- 	}
- }
- 
-+void kasan_report_invalid_free(void *ptr, unsigned long ip)
-+{
-+	unsigned long flags;
-+	struct kasan_access_info info;
-+
-+	start_report(&flags, true);
-+
-+	info.type = KASAN_REPORT_INVALID_FREE;
-+	info.access_addr = ptr;
-+	info.first_bad_addr = kasan_reset_tag(ptr);
-+	info.access_size = 0;
-+	info.is_write = false;
-+	info.ip = ip;
-+
-+	print_report(&info);
-+
-+	end_report(&flags, ptr);
-+}
-+
+@@ -457,15 +457,18 @@ static void __kasan_report(void *addr, s
  bool kasan_report(unsigned long addr, size_t size, bool is_write,
  			unsigned long ip)
  {
-@@ -451,6 +460,7 @@ bool kasan_report(unsigned long addr, si
+-	unsigned long flags = user_access_save();
+-	bool ret = false;
++	unsigned long ua_flags = user_access_save();
++	bool ret = true;
  
- 	start_report(&irq_flags, true);
+-	if (likely(report_enabled())) {
+-		__kasan_report((void *)addr, size, is_write, ip);
+-		ret = true;
++	if (unlikely(!report_enabled())) {
++		ret = false;
++		goto out;
+ 	}
  
-+	info.type = KASAN_REPORT_ACCESS;
- 	info.access_addr = ptr;
- 	info.first_bad_addr = kasan_find_first_bad_addr(ptr, size);
- 	info.access_size = size;
+-	user_access_restore(flags);
++	__kasan_report((void *)addr, size, is_write, ip);
++
++out:
++	user_access_restore(ua_flags);
+ 
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
