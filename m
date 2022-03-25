@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BE83C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:12:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF3E1C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:12:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357210AbiCYBON (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:14:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42724 "EHLO
+        id S1357215AbiCYBO0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:14:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357206AbiCYBOD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:14:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82655BD7CF
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:12:30 -0700 (PDT)
+        with ESMTP id S1357213AbiCYBOI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:14:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 649ABBD7C2
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:12:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 123166185F
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:12:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68820C340ED;
-        Fri, 25 Mar 2022 01:12:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E59E461874
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:12:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A3EC340EE;
+        Fri, 25 Mar 2022 01:12:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648170749;
-        bh=r5idV1IUWOr1mv9pfTf8SslHP9r/IjdZQN39xBzUOkY=;
+        s=korg; t=1648170755;
+        bh=zKCj9zem4HgrYLg7iAwTv8ZW5zlJ+KMXrTr8EDOKmgQ=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=EI+3EBaH+2XOjHWZyto5y6n6IPhcX/xPbkVX2xnbLTGI33alV92igX8iMMMCKpfsU
-         PnZgU+XLLCiiptj9cXgO4C9npSEDMoYKgaufQW8oRmAzU91ljbfmJjC6FgCAIiIJEU
-         X1buElKx3t85Rl3Bu1o4G5WYZnL9VIl3keNP4RoI=
-Date:   Thu, 24 Mar 2022 18:12:28 -0700
+        b=pWIubxch0/EaFAWmsZSnBmMAvjsSuyTojCW6dUilkfd3hfJQkiXTFcmyT1+6zoSty
+         KZGX194aSGK+lY9dtO+7gGRBGS0odCOSXmv9rU9Ib39Wud+BS4hxcL6qPuOrw3yxua
+         6D+TC1nI/iu2b6qzEOWl9POZMN30aS62XZw9K0EM=
+Date:   Thu, 24 Mar 2022 18:12:34 -0700
 To:     ryabinin.a.a@gmail.com, glider@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org, patches@lists.linux.dev,
@@ -36,47 +36,79 @@ To:     ryabinin.a.a@gmail.com, glider@google.com, elver@google.com,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220324180758.96b1ac7e17675d6bc474485e@linux-foundation.org>
-Subject: [patch 078/114] kasan: simplify async check in end_report()
-Message-Id: <20220325011229.68820C340ED@smtp.kernel.org>
+Subject: [patch 080/114] kasan: check CONFIG_KASAN_KUNIT_TEST instead of CONFIG_KUNIT
+Message-Id: <20220325011235.43A3EC340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: simplify async check in end_report()
+Subject: kasan: check CONFIG_KASAN_KUNIT_TEST instead of CONFIG_KUNIT
 
-Currently, end_report() does not call trace_error_report_end() for bugs
-detected in either async or asymm mode (when kasan_async_fault_possible()
-returns true), as the address of the bad access might be unknown.
+Check the more specific CONFIG_KASAN_KUNIT_TEST config option when
+defining things related to KUnit-compatible KASAN tests instead of
+CONFIG_KUNIT.
 
-However, for asymm mode, the address is known for faults triggered by read
-operations.
+Also put the kunit_kasan_status definition next to the definitons of other
+KASAN-related structs.
 
-Instead of using kasan_async_fault_possible(), simply check that the addr
-is not NULL when calling trace_error_report_end().
-
-Link: https://lkml.kernel.org/r/1c8ce43f97300300e62c941181afa2eb738965c5.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/223592d38d2a601a160a3b2b3d5a9f9090350e62.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/kasan/kasan.h  |   18 ++++++++----------
  mm/kasan/report.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
---- a/mm/kasan/report.c~kasan-simplify-async-check-in-end_report
-+++ a/mm/kasan/report.c
-@@ -112,7 +112,7 @@ static void start_report(unsigned long *
+--- a/mm/kasan/kasan.h~kasan-check-config_kasan_kunit_test-instead-of-config_kunit
++++ a/mm/kasan/kasan.h
+@@ -7,16 +7,6 @@
+ #include <linux/kfence.h>
+ #include <linux/stackdepot.h>
  
- static void end_report(unsigned long *flags, unsigned long addr)
+-#if IS_ENABLED(CONFIG_KUNIT)
+-
+-/* Used in KUnit-compatible KASAN tests. */
+-struct kunit_kasan_status {
+-	bool report_found;
+-	bool sync_fault;
+-};
+-
+-#endif
+-
+ #ifdef CONFIG_KASAN_HW_TAGS
+ 
+ #include <linux/static_key.h>
+@@ -224,6 +214,14 @@ struct kasan_free_meta {
+ #endif
+ };
+ 
++#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
++/* Used in KUnit-compatible KASAN tests. */
++struct kunit_kasan_status {
++	bool report_found;
++	bool sync_fault;
++};
++#endif
++
+ struct kasan_alloc_meta *kasan_get_alloc_meta(struct kmem_cache *cache,
+ 						const void *object);
+ #ifdef CONFIG_KASAN_GENERIC
+--- a/mm/kasan/report.c~kasan-check-config_kasan_kunit_test-instead-of-config_kunit
++++ a/mm/kasan/report.c
+@@ -356,7 +356,7 @@ static bool report_enabled(void)
+ 	return !test_and_set_bit(KASAN_BIT_REPORTED, &kasan_flags);
+ }
+ 
+-#if IS_ENABLED(CONFIG_KUNIT)
++#if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ static void update_kunit_status(bool sync)
  {
--	if (!kasan_async_fault_possible())
-+	if (addr)
- 		trace_error_report_end(ERROR_DETECTOR_KASAN, addr);
- 	pr_err("==================================================================\n");
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ 	struct kunit *test;
 _
