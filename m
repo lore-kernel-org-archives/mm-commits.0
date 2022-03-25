@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 247ADC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:14:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC0A7C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:14:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357212AbiCYBQD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:16:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47722 "EHLO
+        id S1348548AbiCYBQZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:16:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357239AbiCYBQA (ORCPT
+        with ESMTP id S1357243AbiCYBQA (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:16:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB0296C94D
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:13:51 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A02A6D847
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:13:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 50739618CB
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:13:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7C30C340EE;
-        Fri, 25 Mar 2022 01:13:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1DFD0B826FE
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:13:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2A77C340ED;
+        Fri, 25 Mar 2022 01:13:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648170830;
-        bh=0AMPK9xxavkzjnOdXbqwTMLz7OA078YEf426HHuQZ48=;
+        s=korg; t=1648170833;
+        bh=VMasHTNe9PmjXaNEuD7uDNdZdUoS8JuXqBfIBEUJWXM=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=WEJtxfM4qji35Z8P3o1sa6vz6HKcRwyV4We+pJq8lU9DINu7Fcj9YxDODl5cYs1Lj
-         018+F69mW5cIYOutPg/IRnPEWgUB1kXDCJ5WurDzuceiUvYpLpa3qGXDThNyegGspJ
-         qkUjOEodRZqIp70terg7JJyjeKXlsrdAJpGeT0ig=
-Date:   Thu, 24 Mar 2022 18:13:50 -0700
+        b=P37CBKSWQz9oIhbH2ZZqstKPiXCOVIeIlelZrSLm3F0T0qP0c1ndrtQ22edc/eV54
+         /kVshn6WAyc1T2CFfQyUeBLAf//Hgp6nCaKgn3xuPVhSJ+g82OgAWY4lU6zFh0a3cr
+         yJkuj9LJunyiiwuGyi42lPTSZuuwgiF0znwXccqk=
+Date:   Thu, 24 Mar 2022 18:13:53 -0700
 To:     zhangliang5@huawei.com, willy@infradead.org, vbabka@suse.cz,
         shy828301@gmail.com, shakeelb@google.com, rppt@linux.ibm.com,
         roman.gushchin@linux.dev, rientjes@google.com, riel@surriel.com,
@@ -43,20 +43,19 @@ To:     zhangliang5@huawei.com, willy@infradead.org, vbabka@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220324180758.96b1ac7e17675d6bc474485e@linux-foundation.org>
-Subject: [patch 105/114] mm/swapfile: remove stale reuse_swap_page()
-Message-Id: <20220325011350.A7C30C340EE@smtp.kernel.org>
+Subject: [patch 106/114] mm/huge_memory: remove stale page_trans_huge_mapcount()
+Message-Id: <20220325011353.C2A77C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/swapfile: remove stale reuse_swap_page()
+Subject: mm/huge_memory: remove stale page_trans_huge_mapcount()
 
-All users are gone, let's remove it.  We'll let SWP_STABLE_WRITES stick
-around for now, as it might come in handy in the near future.
+All users are gone, let's remove it.
 
-Link: https://lkml.kernel.org/r/20220131162940.210846-8-david@redhat.com
+Link: https://lkml.kernel.org/r/20220131162940.210846-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -84,148 +83,84 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 -
- mm/swapfile.c        |  104 -----------------------------------------
- 2 files changed, 108 deletions(-)
+ include/linux/mm.h |    5 ----
+ mm/huge_memory.c   |   48 -------------------------------------------
+ 2 files changed, 53 deletions(-)
 
---- a/include/linux/swap.h~mm-swapfile-remove-stale-reuse_swap_page
-+++ a/include/linux/swap.h
-@@ -515,7 +515,6 @@ extern int __swp_swapcount(swp_entry_t e
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
- extern struct swap_info_struct *swp_swap_info(swp_entry_t entry);
--extern bool reuse_swap_page(struct page *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
- extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
-@@ -681,9 +680,6 @@ static inline int swp_swapcount(swp_entr
- 	return 0;
+--- a/include/linux/mm.h~mm-huge_memory-remove-stale-page_trans_huge_mapcount
++++ a/include/linux/mm.h
+@@ -834,16 +834,11 @@ static inline int total_mapcount(struct
+ 	return folio_mapcount(page_folio(page));
  }
  
--#define reuse_swap_page(page) \
--	(page_trans_huge_mapcount(page) == 1)
--
- static inline int try_to_free_swap(struct page *page)
+-int page_trans_huge_mapcount(struct page *page);
+ #else
+ static inline int total_mapcount(struct page *page)
  {
- 	return 0;
---- a/mm/swapfile.c~mm-swapfile-remove-stale-reuse_swap_page
-+++ a/mm/swapfile.c
-@@ -1167,16 +1167,6 @@ out:
- 	return NULL;
+ 	return page_mapcount(page);
  }
- 
--static struct swap_info_struct *swap_info_get(swp_entry_t entry)
+-static inline int page_trans_huge_mapcount(struct page *page)
 -{
--	struct swap_info_struct *p;
--
--	p = _swap_info_get(entry);
--	if (p)
--		spin_lock(&p->lock);
--	return p;
+-	return page_mapcount(page);
 -}
--
- static struct swap_info_struct *swap_info_get_cont(swp_entry_t entry,
- 					struct swap_info_struct *q)
- {
-@@ -1601,100 +1591,6 @@ static bool page_swapped(struct page *pa
- 	return false;
+ #endif
+ 
+ static inline struct page *virt_to_head_page(const void *x)
+--- a/mm/huge_memory.c~mm-huge_memory-remove-stale-page_trans_huge_mapcount
++++ a/mm/huge_memory.c
+@@ -2483,54 +2483,6 @@ static void __split_huge_page(struct pag
+ 	}
  }
  
--static int page_trans_huge_map_swapcount(struct page *page,
--					 int *total_swapcount)
+-/*
+- * This calculates accurately how many mappings a transparent hugepage
+- * has (unlike page_mapcount() which isn't fully accurate). This full
+- * accuracy is primarily needed to know if copy-on-write faults can
+- * reuse the page and change the mapping to read-write instead of
+- * copying them. At the same time this returns the total_mapcount too.
+- *
+- * The function returns the highest mapcount any one of the subpages
+- * has. If the return value is one, even if different processes are
+- * mapping different subpages of the transparent hugepage, they can
+- * all reuse it, because each process is reusing a different subpage.
+- *
+- * The total_mapcount is instead counting all virtual mappings of the
+- * subpages. If the total_mapcount is equal to "one", it tells the
+- * caller all mappings belong to the same "mm" and in turn the
+- * anon_vma of the transparent hugepage can become the vma->anon_vma
+- * local one as no other process may be mapping any of the subpages.
+- *
+- * It would be more accurate to replace page_mapcount() with
+- * page_trans_huge_mapcount(), however we only use
+- * page_trans_huge_mapcount() in the copy-on-write faults where we
+- * need full accuracy to avoid breaking page pinning, because
+- * page_trans_huge_mapcount() is slower than page_mapcount().
+- */
+-int page_trans_huge_mapcount(struct page *page)
 -{
--	int i, map_swapcount, _total_swapcount;
--	unsigned long offset = 0;
--	struct swap_info_struct *si;
--	struct swap_cluster_info *ci = NULL;
--	unsigned char *map = NULL;
--	int swapcount = 0;
+-	int i, ret;
 -
 -	/* hugetlbfs shouldn't call it */
 -	VM_BUG_ON_PAGE(PageHuge(page), page);
 -
--	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!PageTransCompound(page))) {
--		if (PageSwapCache(page))
--			swapcount = page_swapcount(page);
--		if (total_swapcount)
--			*total_swapcount = swapcount;
--		return swapcount + page_trans_huge_mapcount(page);
--	}
+-	if (likely(!PageTransCompound(page)))
+-		return atomic_read(&page->_mapcount) + 1;
 -
 -	page = compound_head(page);
 -
--	_total_swapcount = map_swapcount = 0;
--	if (PageSwapCache(page)) {
--		swp_entry_t entry;
--
--		entry.val = page_private(page);
--		si = _swap_info_get(entry);
--		if (si) {
--			map = si->swap_map;
--			offset = swp_offset(entry);
--		}
--	}
--	if (map)
--		ci = lock_cluster(si, offset);
--	for (i = 0; i < HPAGE_PMD_NR; i++) {
+-	ret = 0;
+-	for (i = 0; i < thp_nr_pages(page); i++) {
 -		int mapcount = atomic_read(&page[i]._mapcount) + 1;
--		if (map) {
--			swapcount = swap_count(map[offset + i]);
--			_total_swapcount += swapcount;
--		}
--		map_swapcount = max(map_swapcount, mapcount + swapcount);
+-		ret = max(ret, mapcount);
 -	}
--	unlock_cluster(ci);
 -
 -	if (PageDoubleMap(page))
--		map_swapcount -= 1;
+-		ret -= 1;
 -
--	if (total_swapcount)
--		*total_swapcount = _total_swapcount;
--
--	return map_swapcount + compound_mapcount(page);
+-	return ret + compound_mapcount(page);
 -}
 -
--/*
-- * We can write to an anon page without COW if there are no other references
-- * to it.  And as a side-effect, free up its swap: because the old content
-- * on disk will never be read, and seeking back there to write new content
-- * later would only waste time away from clustering.
-- */
--bool reuse_swap_page(struct page *page)
--{
--	int count, total_swapcount;
--
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
--	if (unlikely(PageKsm(page)))
--		return false;
--	count = page_trans_huge_map_swapcount(page, &total_swapcount);
--	if (count == 1 && PageSwapCache(page) &&
--	    (likely(!PageTransCompound(page)) ||
--	     /* The remaining swap count will be freed soon */
--	     total_swapcount == page_swapcount(page))) {
--		if (!PageWriteback(page)) {
--			page = compound_head(page);
--			delete_from_swap_cache(page);
--			SetPageDirty(page);
--		} else {
--			swp_entry_t entry;
--			struct swap_info_struct *p;
--
--			entry.val = page_private(page);
--			p = swap_info_get(entry);
--			if (p->flags & SWP_STABLE_WRITES) {
--				spin_unlock(&p->lock);
--				return false;
--			}
--			spin_unlock(&p->lock);
--		}
--	}
--
--	return count <= 1;
--}
--
- /*
-  * If swap is getting full, or if there are no more mappings of this page,
-  * then try_to_free_swap is called to free its swap space.
+ /* Racy check whether the huge page can be split */
+ bool can_split_folio(struct folio *folio, int *pextra_pins)
+ {
 _
