@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BB07C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 00:28:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA77CC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 00:29:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244435AbiCYA3u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 20:29:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46154 "EHLO
+        id S244446AbiCYAac (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 20:30:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240633AbiCYA3s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 20:29:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DF9A3FD9D
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 17:28:15 -0700 (PDT)
+        with ESMTP id S244440AbiCYAac (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 20:30:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80DC152E16
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 17:28:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F30FF617E2
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 00:28:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45A1EC340EC;
-        Fri, 25 Mar 2022 00:28:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E4F27B826B9
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 00:28:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78356C340EC;
+        Fri, 25 Mar 2022 00:28:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648168094;
-        bh=sWTNAFnGbnvfTRTtPP8wyKIJU42O3DDcBL0w8+mTxaQ=;
+        s=korg; t=1648168136;
+        bh=NMjgY7MMRE5OKIzGPhqg8YSkc9r/5PuljWtKH/cld6M=;
         h=Date:To:From:Subject:From;
-        b=PJCFdcuwCkO051zS5gqdV3JtxZ7LMp4dyVMhgP9mFhFfb2NmEgNDkyGaHZAiiNCcz
-         DiRdXmKjA+hRqjmXVOlW+7pb//wCiIlwum1s12R5UAPLQ11urIpaiC8QLJnOlA95rJ
-         TtBUK/F2ppyZs4//1Wph20B0uBYAZFkGeBomVr8E=
-Date:   Thu, 24 Mar 2022 17:28:13 -0700
-To:     mm-commits@vger.kernel.org, zhangyinan2019@email.szu.edu.cn,
-        zhangshengju@cmss.chinamobile.com, weizhenliang@huawei.com,
-        tangbin@cmss.chinamobile.com, sfr@canb.auug.org.au,
-        ch0.han@lge.com, seanga2@gmail.com, akpm@linux-foundation.org
+        b=i2/7oXCuvwR4a/Y1ZZRrKth7zSTujyduf0zftQw2eAOWmjN52WCULg8+uGlXn7FaA
+         0X9btYwNjDOh9TL57t9kH+AJXxU9t8J5qj3C+nu1YokK9ojApZBAPYeXRluQPggnyc
+         vVwtKlIVIJENRXebLY8NKX6xEWpH71JgGcUBgNE0=
+Date:   Thu, 24 Mar 2022 17:28:55 -0700
+To:     mm-commits@vger.kernel.org, zhangshengju@cmss.chinamobile.com,
+        weizhenliang@huawei.com, vbabka@suse.cz,
+        tangbin@cmss.chinamobile.com, nixiaoming@huawei.com,
+        lmark@codeaurora.org, hanshenghong2019@email.szu.edu.cn,
+        georgi.djakov@linaro.org, corbet@lwn.net,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling-fix.patch removed from -mm tree
-Message-Id: <20220325002814.45A1EC340EC@smtp.kernel.org>
+Subject: [folded-merged] documentation-vm-page_ownerrst-update-the-documentation-fix.patch removed from -mm tree
+Message-Id: <20220325002856.78356C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,60 +45,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page_owner_sort.c: fix NULL-pointer dereference when comparing stack traces
+     Subject: documentation-vm-page_ownerrst-update-the-documentation-fix
 has been removed from the -mm tree.  Its filename was
-     tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling-fix.patch
+     documentation-vm-page_ownerrst-update-the-documentation-fix.patch
 
-This patch was dropped because it was folded into tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch
+This patch was dropped because it was folded into documentation-vm-page_ownerrst-update-the-documentation.patch
 
 ------------------------------------------------------
-From: Sean Anderson <seanga2@gmail.com>
-Subject: tools/vm/page_owner_sort.c: fix NULL-pointer dereference when comparing stack traces
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: documentation-vm-page_ownerrst-update-the-documentation-fix
 
-If there is no newline in a block, then strchr returns NULL.  We check for
-this in stacktrace_compare, but not when culling.  Fix this (and any
-future bugs like it) by replacing NULL stack traces with "" in add_list.
+small grammatical tweaks
 
-Link: https://lkml.kernel.org/r/20211125162653.1855958-1-seanga2@gmail.com
-Fixes: d0abbab9e9e9 ("tools/vm/page_owner_sort.c: sort by stacktrace before culling")
-Signed-off-by: Sean Anderson <seanga2@gmail.com>
-Cc: Changhee Han <ch0.han@lge.com>
-Cc: Zhenliang Wei <weizhenliang@huawei.com>
-Cc: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
+Cc: Georgi Djakov <georgi.djakov@linaro.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Mark <lmark@codeaurora.org>
+Cc: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
 Cc: Tang Bin <tangbin@cmss.chinamobile.com>
-Cc: Sean Anderson <seanga2@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
+Cc: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/vm/page_owner.rst |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling-fix
-+++ a/tools/vm/page_owner_sort.c
-@@ -56,7 +56,7 @@ static int compare_stacktrace(const void
- {
- 	const struct block_list *l1 = p1, *l2 = p2;
+--- a/Documentation/vm/page_owner.rst~documentation-vm-page_ownerrst-update-the-documentation-fix
++++ a/Documentation/vm/page_owner.rst
+@@ -107,17 +107,17 @@ Usage
+ 	 // Detailed stack
  
--	return strcmp(l1->stacktrace ?: "", l2->stacktrace ?: "");
-+	return strcmp(l1->stacktrace, l2->stacktrace);
- }
+    By default, ``page_owner_sort`` is sorted according to the times of buf.
+-   If you want to sort by the pages nums of buf, use the ``-m`` parameter.
+-   The detail parameters are shown as follows:
++   If you want to sort by the page nums of buf, use the ``-m`` parameter.
++   The detailed parameters are:
  
- static int compare_num(const void *p1, const void *p2)
-@@ -122,7 +122,7 @@ static void add_list(char *buf, int len)
- 	list[list_size].page_num = get_page_num(buf);
- 	memcpy(list[list_size].txt, buf, len);
- 	list[list_size].txt[len] = 0;
--	list[list_size].stacktrace = strchr(list[list_size].txt, '\n');
-+	list[list_size].stacktrace = strchr(list[list_size].txt, '\n') ?: "";
- 	list_size++;
- 	if (list_size % 1000 == 0) {
- 		printf("loaded %d\r", list_size);
+    fundamental function:
+ 
+ 	Sort:
+-		-a		Sort by memory allocate time.
++		-a		Sort by memory allocation time.
+ 		-m		Sort by total memory.
+ 		-p		Sort by pid.
+ 		-r		Sort by memory release time.
+-		-s		Sort by the stack trace.
++		-s		Sort by stack trace.
+ 		-t		Sort by times (default).
+ 
+    additional function:
 _
 
-Patches currently in -mm which might be from seanga2@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch
-tools-vm-page_owner_sortc-support-sorting-by-stack-trace.patch
+documentation-vm-page_ownerrst-update-the-documentation.patch
+kasan-improve-vmalloc-tests-fix-3-fix.patch
+mm-slightly-clarify-ksm-logic-in-do_swap_page-fix.patch
+mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
+mm.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
