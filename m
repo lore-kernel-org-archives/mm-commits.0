@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86D9FC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:42:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4AACC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:42:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233949AbiCYWoA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:44:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52930 "EHLO
+        id S233937AbiCYWoB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:44:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233937AbiCYWn4 (ORCPT
+        with ESMTP id S233938AbiCYWn4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E7C920A398
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9D8C20A39B
         for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 20ECAB82A1C
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6FAC4614DE
         for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB474C004DD;
-        Fri, 25 Mar 2022 22:41:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB21FC340ED;
+        Fri, 25 Mar 2022 22:41:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248114;
-        bh=/zlh79HzPOjA6wNIL8JwTJIgLUgA4cfq7XwxJY761Os=;
+        s=korg; t=1648248115;
+        bh=8CTFFAsEXvf2BNH4f2u9NoClv9BIRYfUHS54vwPq0vE=;
         h=Date:To:From:Subject:From;
-        b=OMPCA5rkOeUUvR3h9SNWZKvojluU6GAj3xUZuSRtQTRr1rOxpzmN9mNNDuNC2iCwz
-         0JW5gv70ULFpNZ/8JSvpLTXcXrmiVg3+gmGxBbM0Whha9KSJi81QDDXD7Cl69Cxvfj
-         ZilkNMbC+qyIv4LjxZVZaWbRn9ADB/hwjb6qKVu4=
-Date:   Fri, 25 Mar 2022 15:41:54 -0700
+        b=q6jgjFQj1N47TYCTNLFvAhTfViHL+CWJZuB7E5SHuXx5eFPV4a2DBP09w/YWqnzcb
+         FehaxTZEaUsJdXwcLRtz0+qwJUdnguwrs6kKYhcbXWYhkHkXYMI/F4hdRD9vbKpdDN
+         RVlEKV41XF6KCof+cPTZ1GFn9fLibgFHC3Z/eRi8=
+Date:   Fri, 25 Mar 2022 15:41:55 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
         mark.rutland@arm.com, glider@google.com, eugenis@google.com,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch removed from -mm tree
-Message-Id: <20220325224154.BB474C004DD@smtp.kernel.org>
+Subject: [merged] kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch removed from -mm tree
+Message-Id: <20220325224155.CB21FC340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,150 +44,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, page_alloc: deduplicate should_skip_kasan_poison
+     Subject: kasan, page_alloc: move tag_clear_highpage out of kernel_init_free_pages
 has been removed from the -mm tree.  Its filename was
-     kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+     kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: deduplicate should_skip_kasan_poison
+Subject: kasan, page_alloc: move tag_clear_highpage out of kernel_init_free_pages
 
-Patch series "kasan, vmalloc, arm64: add vmalloc tagging support for SW/HW_TAGS", v6.
+Currently, kernel_init_free_pages() serves two purposes: it either only
+zeroes memory or zeroes both memory and memory tags via a different code
+path.  As this function has only two callers, each using only one code
+path, this behaviour is confusing.
 
-This patchset adds vmalloc tagging support for SW_TAGS and HW_TAGS
-KASAN modes.
+Pull the code that zeroes both memory and tags out of
+kernel_init_free_pages().
 
-About half of patches are cleanups I went for along the way.  None of them
-seem to be important enough to go through stable, so I decided not to
-split them out into separate patches/series.
+As a result of this change, the code in free_pages_prepare() starts to
+look complicated, but this is improved in the few following patches. 
+Those improvements are not integrated into this patch to make diffs easier
+to read.
 
-The patchset is partially based on an early version of the HW_TAGS
-patchset by Vincenzo that had vmalloc support.  Thus, I added a
-Co-developed-by tag into a few patches.
+This patch does no functional changes.
 
-SW_TAGS vmalloc tagging support is straightforward.  It reuses all of the
-generic KASAN machinery, but uses shadow memory to store tags instead of
-magic values.  Naturally, vmalloc tagging requires adding a few
-kasan_reset_tag() annotations to the vmalloc code.
-
-HW_TAGS vmalloc tagging support stands out.  HW_TAGS KASAN is based on Arm
-MTE, which can only assigns tags to physical memory.  As a result, HW_TAGS
-KASAN only tags vmalloc() allocations, which are backed by page_alloc
-memory.  It ignores vmap() and others.
-
-
-This patch (of 39):
-
-Currently, should_skip_kasan_poison() has two definitions: one for when
-CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled, one for when it's not.
-
-Instead of duplicating the checks, add a deferred_pages_enabled() helper
-and use it in a single should_skip_kasan_poison() definition.
-
-Also move should_skip_kasan_poison() closer to its caller and clarify all
-conditions in the comment.
-
-Link: https://lkml.kernel.org/r/cover.1643047180.git.andreyknvl@google.com
-Link: https://lkml.kernel.org/r/658b79f5fb305edaf7dc16bc52ea870d3220d4a8.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/7719874e68b23902629c7cf19f966c4fd5f57979.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Peter Collingbourne <pcc@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   55 +++++++++++++++++++++++++++-------------------
- 1 file changed, 33 insertions(+), 22 deletions(-)
+ mm/page_alloc.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
---- a/mm/page_alloc.c~kasan-page_alloc-deduplicate-should_skip_kasan_poison
+--- a/mm/page_alloc.c~kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages
 +++ a/mm/page_alloc.c
-@@ -378,25 +378,9 @@ int page_group_by_mobility_disabled __re
-  */
- static DEFINE_STATIC_KEY_TRUE(deferred_pages);
- 
--/*
-- * Calling kasan_poison_pages() only after deferred memory initialization
-- * has completed. Poisoning pages during deferred memory init will greatly
-- * lengthen the process and cause problem in large memory systems as the
-- * deferred pages initialization is done with interrupt disabled.
-- *
-- * Assuming that there will be no reference to those newly initialized
-- * pages before they are ever allocated, this should have no effect on
-- * KASAN memory tracking as the poison will be properly inserted at page
-- * allocation time. The only corner case is when pages are allocated by
-- * on-demand allocation and then freed again before the deferred pages
-- * initialization is done, but this is not likely to happen.
-- */
--static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
-+static inline bool deferred_pages_enabled(void)
- {
--	return static_branch_unlikely(&deferred_pages) ||
--	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
--		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
--	       PageSkipKASanPoison(page);
-+	return static_branch_unlikely(&deferred_pages);
+@@ -1278,16 +1278,10 @@ static inline bool should_skip_kasan_poi
+ 	       PageSkipKASanPoison(page);
  }
  
- /* Returns true if the struct page for the pfn is uninitialised */
-@@ -447,11 +431,9 @@ defer_init(int nid, unsigned long pfn, u
- 	return false;
- }
- #else
--static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
-+static inline bool deferred_pages_enabled(void)
- {
--	return (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
--		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
--	       PageSkipKASanPoison(page);
-+	return false;
- }
- 
- static inline bool early_page_uninitialised(unsigned long pfn)
-@@ -1267,6 +1249,35 @@ out:
- 	return ret;
- }
- 
-+/*
-+ * Skip KASAN memory poisoning when either:
-+ *
-+ * 1. Deferred memory initialization has not yet completed,
-+ *    see the explanation below.
-+ * 2. Skipping poisoning is requested via FPI_SKIP_KASAN_POISON,
-+ *    see the comment next to it.
-+ * 3. Skipping poisoning is requested via __GFP_SKIP_KASAN_POISON,
-+ *    see the comment next to it.
-+ *
-+ * Poisoning pages during deferred memory init will greatly lengthen the
-+ * process and cause problem in large memory systems as the deferred pages
-+ * initialization is done with interrupt disabled.
-+ *
-+ * Assuming that there will be no reference to those newly initialized
-+ * pages before they are ever allocated, this should have no effect on
-+ * KASAN memory tracking as the poison will be properly inserted at page
-+ * allocation time. The only corner case is when pages are allocated by
-+ * on-demand allocation and then freed again before the deferred pages
-+ * initialization is done, but this is not likely to happen.
-+ */
-+static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
-+{
-+	return deferred_pages_enabled() ||
-+	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
-+		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
-+	       PageSkipKASanPoison(page);
-+}
-+
- static void kernel_init_free_pages(struct page *page, int numpages, bool zero_tags)
+-static void kernel_init_free_pages(struct page *page, int numpages, bool zero_tags)
++static void kernel_init_free_pages(struct page *page, int numpages)
  {
  	int i;
+ 
+-	if (zero_tags) {
+-		for (i = 0; i < numpages; i++)
+-			tag_clear_highpage(page + i);
+-		return;
+-	}
+-
+ 	/* s390's use of memset() could override KASAN redzones. */
+ 	kasan_disable_current();
+ 	for (i = 0; i < numpages; i++) {
+@@ -1383,7 +1377,7 @@ static __always_inline bool free_pages_p
+ 		bool init = want_init_on_free();
+ 
+ 		if (init)
+-			kernel_init_free_pages(page, 1 << order, false);
++			kernel_init_free_pages(page, 1 << order);
+ 		if (!skip_kasan_poison)
+ 			kasan_poison_pages(page, order, init);
+ 	}
+@@ -2378,9 +2372,17 @@ inline void post_alloc_hook(struct page
+ 		bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
+ 
+ 		kasan_unpoison_pages(page, order, init);
+-		if (init)
+-			kernel_init_free_pages(page, 1 << order,
+-					       gfp_flags & __GFP_ZEROTAGS);
++
++		if (init) {
++			if (gfp_flags & __GFP_ZEROTAGS) {
++				int i;
++
++				for (i = 0; i < 1 << order; i++)
++					tag_clear_highpage(page + i);
++			} else {
++				kernel_init_free_pages(page, 1 << order);
++			}
++		}
+ 	}
+ 
+ 	set_page_owner(page, order, gfp_flags);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
