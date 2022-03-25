@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DDD4C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 00:31:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49272C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 00:33:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356075AbiCYAcx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 20:32:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58362 "EHLO
+        id S1353645AbiCYAes (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 20:34:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244454AbiCYAcs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 20:32:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64CE0BB0A4
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 17:31:15 -0700 (PDT)
+        with ESMTP id S236404AbiCYAer (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 20:34:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7508A2AE1A
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 17:33:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 17F9BB826E8
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 00:31:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C17F0C340EC;
-        Fri, 25 Mar 2022 00:31:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DEB606178F
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 00:33:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41529C340ED;
+        Fri, 25 Mar 2022 00:33:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648168272;
-        bh=OWl60GIbzVIuuGXE5HtwhVhXsbGB6e36GaAF5IcqmfE=;
+        s=korg; t=1648168391;
+        bh=EMtXU3L1KWta2f+kt63xLMyFaTy7Fak0/Nlxg7xpsqs=;
         h=Date:To:From:Subject:From;
-        b=i1Js9XxdcPC0hA7ZV2SV1tdS2eiL2AVF+mHnHckbDrnqxsXAI7OevmBflSKRKb+U1
-         GhJu/UNQavHYzTJaNTJmdowCfRQtyfnlxh0toMzLvwHGK7+ZHlxkAWcp3HcSUUluBo
-         btBksGMWIRYBSnNit9gqvFCR10hYbsWUPJA9Rm3I=
-Date:   Thu, 24 Mar 2022 17:31:12 -0700
-To:     mm-commits@vger.kernel.org, gor@linux.ibm.com,
+        b=AHilE4XApdUeVwbxG+f87pLdhLuFhqdjMnqYvYuSE86j96y0MLLL/cm6kBwKeGYRS
+         GZ71nMq0C1+IIBVm5lbsazkb/xsT41eoKjXFfkNQ6Uyl63/VBBZa4JBgFVzheGHfOt
+         Bgzr2+AYP3gDCMCtsjrdlJ+fM72hmJ7GI9McJuPo=
+Date:   Thu, 24 Mar 2022 17:33:10 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch removed from -mm tree
-Message-Id: <20220325003112.C17F0C340EC@smtp.kernel.org>
+Subject: [folded-merged] kasan-improve-vmalloc-tests-fix-2.patch removed from -mm tree
+Message-Id: <20220325003311.41529C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,44 +42,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix for "kasan, vmalloc: only tag normal vmalloc allocations"
+     Subject: fix for "kasan: improve vmalloc tests"
 has been removed from the -mm tree.  Its filename was
-     kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch
+     kasan-improve-vmalloc-tests-fix-2.patch
 
-This patch was dropped because it was folded into kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+This patch was dropped because it was folded into kasan-improve-vmalloc-tests.patch
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: fix for "kasan, vmalloc: only tag normal vmalloc allocations"
+Subject: fix for "kasan: improve vmalloc tests"
 
-"kasan, vmalloc: only tag normal vmalloc allocations" unintentionally
-disabled poisoning of executable memory for the Generic mode.  Fix it.
+vmap_tags() and vm_map_ram_tags() pass invalid page array size to
+vm_map_ram() and vm_unmap_ram().  It's supposed to be 1, but it's 1 <<
+order == 2 currently.
 
-Link: https://lkml.kernel.org/r/de4587d6a719232e83c760113e46ed2d4d8da61e.1646757322.git.andreyknvl@google.com
+Remove order variable (it can only be 0 with the current code) and
+hardcode the number of pages in these tests.
+
+Link: https://lkml.kernel.org/r/865c91ba49b90623ab50c7526b79ccb955f544f0.1644950160.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Vasily Gorbik <gor@linux.ibm.com>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/shadow.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/test_kasan.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
---- a/mm/kasan/shadow.c~kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3
-+++ a/mm/kasan/shadow.c
-@@ -489,10 +489,11 @@ void *__kasan_unpoison_vmalloc(const voi
- 		return (void *)start;
+--- a/lib/test_kasan.c~kasan-improve-vmalloc-tests-fix-2
++++ a/lib/test_kasan.c
+@@ -1145,7 +1145,6 @@ static void vmap_tags(struct kunit *test
+ {
+ 	char *p_ptr, *v_ptr;
+ 	struct page *p_page, *v_page;
+-	size_t order = 1;
  
  	/*
--	 * Don't tag executable memory.
-+	 * Don't tag executable memory with the tag-based mode.
- 	 * The kernel doesn't tolerate having the PC register tagged.
- 	 */
--	if (!(flags & KASAN_VMALLOC_PROT_NORMAL))
-+	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) &&
-+	    !(flags & KASAN_VMALLOC_PROT_NORMAL))
- 		return (void *)start;
+ 	 * This test is specifically crafted for the software tag-based mode,
+@@ -1155,12 +1154,12 @@ static void vmap_tags(struct kunit *test
  
- 	start = set_tag(start, kasan_random_tag());
+ 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_VMALLOC);
+ 
+-	p_page = alloc_pages(GFP_KERNEL, order);
++	p_page = alloc_pages(GFP_KERNEL, 1);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_page);
+ 	p_ptr = page_address(p_page);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_ptr);
+ 
+-	v_ptr = vmap(&p_page, 1 << order, VM_MAP, PAGE_KERNEL);
++	v_ptr = vmap(&p_page, 1, VM_MAP, PAGE_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
+ 
+ 	/*
+@@ -1182,14 +1181,13 @@ static void vmap_tags(struct kunit *test
+ 	KUNIT_EXPECT_PTR_EQ(test, p_page, v_page);
+ 
+ 	vunmap(v_ptr);
+-	free_pages((unsigned long)p_ptr, order);
++	free_pages((unsigned long)p_ptr, 1);
+ }
+ 
+ static void vm_map_ram_tags(struct kunit *test)
+ {
+ 	char *p_ptr, *v_ptr;
+ 	struct page *page;
+-	size_t order = 1;
+ 
+ 	/*
+ 	 * This test is specifically crafted for the software tag-based mode,
+@@ -1197,12 +1195,12 @@ static void vm_map_ram_tags(struct kunit
+ 	 */
+ 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_SW_TAGS);
+ 
+-	page = alloc_pages(GFP_KERNEL, order);
++	page = alloc_pages(GFP_KERNEL, 1);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, page);
+ 	p_ptr = page_address(page);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_ptr);
+ 
+-	v_ptr = vm_map_ram(&page, 1 << order, -1);
++	v_ptr = vm_map_ram(&page, 1, -1);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
+ 
+ 	KUNIT_EXPECT_GE(test, (u8)get_tag(v_ptr), (u8)KASAN_TAG_MIN);
+@@ -1212,8 +1210,8 @@ static void vm_map_ram_tags(struct kunit
+ 	*p_ptr = 0;
+ 	*v_ptr = 0;
+ 
+-	vm_unmap_ram(v_ptr, 1 << order);
+-	free_pages((unsigned long)p_ptr, order);
++	vm_unmap_ram(v_ptr, 1);
++	free_pages((unsigned long)p_ptr, 1);
+ }
+ 
+ static void vmalloc_percpu(struct kunit *test)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
@@ -122,7 +181,6 @@ kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
 arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
 kasan-documentation-updates.patch
 kasan-improve-vmalloc-tests.patch
-kasan-improve-vmalloc-tests-fix-2.patch
 kasan-improve-vmalloc-tests-fix-3.patch
 kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
 kasan-print-virtual-mapping-info-in-reports.patch
