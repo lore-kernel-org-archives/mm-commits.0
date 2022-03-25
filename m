@@ -2,121 +2,161 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E89CFC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:09:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BE39C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:10:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357150AbiCYBL0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:11:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37930 "EHLO
+        id S237462AbiCYBLd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:11:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357158AbiCYBLZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:11:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD04762CB3
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:09:49 -0700 (PDT)
+        with ESMTP id S1357146AbiCYBL0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:11:26 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFABA62A3F
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:09:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8976DB8270B
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:09:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49968C340EE;
-        Fri, 25 Mar 2022 01:09:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A07ADB82708
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:09:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E8DDC340ED;
+        Fri, 25 Mar 2022 01:09:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648170587;
-        bh=rLj7PEI5rE0+gZUsAXJCpZPs59KBUytd/Ofr3qhg30s=;
+        s=korg; t=1648170590;
+        bh=EEBzXX9FqejaMH4HLz4mbN6zJ46CBwBkgiWCFAKq4r4=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=eTx85JjY7nQk/VhRHt14uD9x/BpUWpn+UyVu4JQSuPcv3EbuDjK0DQnuIVIt56szK
-         bscbcigqKacCvMJog5Q17E+shYvpoxKHECR0j594UJLIub1GGOCOV4neGhKwNNL8rZ
-         /kjZWYD4cT8euHl0RZ0i2Yb0gbs9fpRhHvx1o8Zg=
-Date:   Thu, 24 Mar 2022 18:09:46 -0700
-To:     shuah@kernel.org, rppt@linux.ibm.com, aneesh.kumar@linux.ibm.com,
-        rppt@kernel.org, akpm@linux-foundation.org,
+        b=Mjz8eu+amio4lsxBq2Ni0P1xfkdb0jjua+i8/eEHmJ6GoiVmHS5gD01Vmku2NsH22
+         OEAsl30nPWYGuB0xJJKwjWGEiMMxxTyWH3PRyIp2F54aoVUXvevBf5XPPKwlM1j40D
+         EalQJWs/tkoLYEolU7ufRfszNgW416DUYWSntnjs=
+Date:   Thu, 24 Mar 2022 18:09:49 -0700
+To:     yuzhao@google.com, willy@infradead.org, shy828301@gmail.com,
+        npiggin@gmail.com, mhocko@suse.com, david@redhat.com,
+        hughd@google.com, akpm@linux-foundation.org,
         patches@lists.linux.dev, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220324180758.96b1ac7e17675d6bc474485e@linux-foundation.org>
-Subject: [patch 024/114] selftest/vm: add helpers to detect PAGE_SIZE and PAGE_SHIFT
-Message-Id: <20220325010947.49968C340EE@smtp.kernel.org>
+Subject: [patch 025/114] mm: delete __ClearPageWaiters()
+Message-Id: <20220325010950.3E8DDC340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@kernel.org>
-Subject: selftest/vm: add helpers to detect PAGE_SIZE and PAGE_SHIFT
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: delete __ClearPageWaiters()
 
-PAGE_SIZE is not 4096 in many configurations, particularly ppc64 uses 64K
-pages in majority of cases.
+The PG_waiters bit is not included in PAGE_FLAGS_CHECK_AT_FREE, and
+vmscan.c's free_unref_page_list() callers rely on that not to generate
+bad_page() alerts.  So __page_cache_release(), put_pages_list() and
+release_pages() (and presumably copy-and-pasted free_zone_device_page())
+are redundant and misleading to make a special point of clearing it (as
+the "__" implies, it could only safely be used on the freeing path).
 
-Add helpers to detect PAGE_SIZE and PAGE_SHIFT dynamically.
+Delete __ClearPageWaiters().  Remark on this in one of the "possible"
+comments in folio_wake_bit(), and delete the superfluous comments.
 
-Without this tests are broken w.r.t reading /proc/self/pagemap
-
-    if (pread(pagemap_fd, ent, sizeof(ent),
-              (uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
-              err(2, "read pagemap");
-
-Link: https://lkml.kernel.org/r/20220307054355.149820-2-aneesh.kumar@linux.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/3eafa969-5b1a-accf-88fe-318784c791a@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Tested-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/gup_test.c |    3 +-
- tools/testing/selftests/vm/util.h     |   27 +++++++++++++++++++++---
- 2 files changed, 26 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ mm/filemap.c               |   23 ++++++++---------------
+ mm/memremap.c              |    2 --
+ mm/swap.c                  |    4 ----
+ 4 files changed, 9 insertions(+), 22 deletions(-)
 
---- a/tools/testing/selftests/vm/gup_test.c~selftest-vm-add-helpers-to-detect-page_size-and-page_shift
-+++ a/tools/testing/selftests/vm/gup_test.c
-@@ -10,8 +10,9 @@
- #include <assert.h>
- #include "../../../../mm/gup_test.h"
+--- a/include/linux/page-flags.h~mm-delete-__clearpagewaiters
++++ a/include/linux/page-flags.h
+@@ -481,7 +481,7 @@ static inline int TestClearPage##uname(s
+ 	TESTSETFLAG_FALSE(uname, lname) TESTCLEARFLAG_FALSE(uname, lname)
  
-+#include "util.h"
+ __PAGEFLAG(Locked, locked, PF_NO_TAIL)
+-PAGEFLAG(Waiters, waiters, PF_ONLY_HEAD) __CLEARPAGEFLAG(Waiters, waiters, PF_ONLY_HEAD)
++PAGEFLAG(Waiters, waiters, PF_ONLY_HEAD)
+ PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
+ PAGEFLAG(Referenced, referenced, PF_HEAD)
+ 	TESTCLEARFLAG(Referenced, referenced, PF_HEAD)
+--- a/mm/filemap.c~mm-delete-__clearpagewaiters
++++ a/mm/filemap.c
+@@ -1185,24 +1185,17 @@ static void folio_wake_bit(struct folio
+ 	}
+ 
+ 	/*
+-	 * It is possible for other pages to have collided on the waitqueue
+-	 * hash, so in that case check for a page match. That prevents a long-
+-	 * term waiter
++	 * It's possible to miss clearing waiters here, when we woke our page
++	 * waiters, but the hashed waitqueue has waiters for other pages on it.
++	 * That's okay, it's a rare case. The next waker will clear it.
+ 	 *
+-	 * It is still possible to miss a case here, when we woke page waiters
+-	 * and removed them from the waitqueue, but there are still other
+-	 * page waiters.
++	 * Note that, depending on the page pool (buddy, hugetlb, ZONE_DEVICE,
++	 * other), the flag may be cleared in the course of freeing the page;
++	 * but that is not required for correctness.
+ 	 */
+-	if (!waitqueue_active(q) || !key.page_match) {
++	if (!waitqueue_active(q) || !key.page_match)
+ 		folio_clear_waiters(folio);
+-		/*
+-		 * It's possible to miss clearing Waiters here, when we woke
+-		 * our page waiters, but the hashed waitqueue has waiters for
+-		 * other pages on it.
+-		 *
+-		 * That's okay, it's a rare case. The next waker will clear it.
+-		 */
+-	}
 +
- #define MB (1UL << 20)
--#define PAGE_SIZE sysconf(_SC_PAGESIZE)
+ 	spin_unlock_irqrestore(&q->lock, flags);
+ }
  
- /* Just the flags we need, copied from mm.h: */
- #define FOLL_WRITE	0x01	/* check pte is writable */
---- a/tools/testing/selftests/vm/util.h~selftest-vm-add-helpers-to-detect-page_size-and-page_shift
-+++ a/tools/testing/selftests/vm/util.h
-@@ -6,11 +6,32 @@
- #include <stdint.h>
- #include <sys/mman.h>
- #include <err.h>
-+#include <string.h> /* ffsl() */
-+#include <unistd.h> /* _SC_PAGESIZE */
+--- a/mm/memremap.c~mm-delete-__clearpagewaiters
++++ a/mm/memremap.c
+@@ -456,8 +456,6 @@ void free_zone_device_page(struct page *
+ 	if (WARN_ON_ONCE(!page->pgmap->ops || !page->pgmap->ops->page_free))
+ 		return;
  
--#define PAGE_SHIFT	12
--#define HPAGE_SHIFT	21
-+static unsigned int __page_size;
-+static unsigned int __page_shift;
+-	__ClearPageWaiters(page);
+-
+ 	mem_cgroup_uncharge(page_folio(page));
  
--#define PAGE_SIZE (1 << PAGE_SHIFT)
-+static inline unsigned int page_size(void)
-+{
-+	if (!__page_size)
-+		__page_size = sysconf(_SC_PAGESIZE);
-+	return __page_size;
-+}
-+
-+static inline unsigned int page_shift(void)
-+{
-+	if (!__page_shift)
-+		__page_shift = (ffsl(page_size()) - 1);
-+	return __page_shift;
-+}
-+
-+#define PAGE_SHIFT	(page_shift())
-+#define PAGE_SIZE	(page_size())
-+/*
-+ * On ppc64 this will only work with radix 2M hugepage size
-+ */
-+#define HPAGE_SHIFT 21
- #define HPAGE_SIZE (1 << HPAGE_SHIFT)
+ 	/*
+--- a/mm/swap.c~mm-delete-__clearpagewaiters
++++ a/mm/swap.c
+@@ -97,7 +97,6 @@ static void __page_cache_release(struct
+ 		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
+ 		count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
+ 	}
+-	__ClearPageWaiters(page);
+ }
  
- #define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
+ static void __put_single_page(struct page *page)
+@@ -152,7 +151,6 @@ void put_pages_list(struct list_head *pa
+ 			continue;
+ 		}
+ 		/* Cannot be PageLRU because it's passed to us using the lru */
+-		__ClearPageWaiters(page);
+ 	}
+ 
+ 	free_unref_page_list(pages);
+@@ -971,8 +969,6 @@ void release_pages(struct page **pages,
+ 			count_vm_event(UNEVICTABLE_PGCLEARED);
+ 		}
+ 
+-		__ClearPageWaiters(page);
+-
+ 		list_add(&page->lru, &pages_to_free);
+ 	}
+ 	if (lruvec)
 _
