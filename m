@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C620C43219
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:33:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E98EC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:33:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357387AbiCYBfD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:35:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38896 "EHLO
+        id S1356334AbiCYBfE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:35:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357392AbiCYBdt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5A12BF03C
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:32:15 -0700 (PDT)
+        with ESMTP id S1357365AbiCYBdx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:53 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 678FC3DA66
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:32:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A29260A66
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:32:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CBBFC340ED;
-        Fri, 25 Mar 2022 01:32:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 18EDCB82725
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:32:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB649C340ED;
+        Fri, 25 Mar 2022 01:32:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171934;
-        bh=U2hZAXUHI1I/EltsErokQsq9B3cmwoT8fC+4A6xGB8M=;
+        s=korg; t=1648171937;
+        bh=7Uees5Qr4/e5SzPArRidgqC6gK1CvOrY5Ft02nG9JSU=;
         h=Date:To:From:Subject:From;
-        b=oQOxQEw8Kuukm2VSae2/QdwK7Q15WrKoGB3y6zvh0ADlDlon/DgXINUiZ6l61Ar4f
-         nf+DS6dzYSLPiO+VR8E4Viip4UTH2hSMD8ZAFO8zogWjOLDHDtXP8e1yX6rl11/kO0
-         bIN2oEkjmv+AcyeY33EyBVwLfCckCxmiBiy3Mnkg=
-Date:   Thu, 24 Mar 2022 18:32:13 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, mingo@redhat.com,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
+        b=EdwffoqokjJAvrTQ3VCnnL7LbHkXYGKpEHwTVfiPH7WhWGzOuUzdHxfRqxwoW92gm
+         vCU79C9Z+U0UN2r8Rb54BljpMI3ypuC4ae8uoVo2PvVLBZ2mtEBKp8HlZyRCnWwlBe
+         jSLPjZDO3xJl/+Fq4lIlG5qNRrl7ItGWu47c62wA=
+Date:   Thu, 24 Mar 2022 18:32:17 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        zhongjiang-ali@linux.alibaba.com, xlpang@linux.alibaba.com,
+        shy828301@gmail.com, osalvador@suse.de,
+        mgorman@techsingularity.net, dave.hansen@linux.intel.com,
+        baolin.wang@linux.alibaba.com, ying.huang@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-compaction-cleanup-the-compaction-trace-events.patch removed from -mm tree
-Message-Id: <20220325013214.8CBBFC340ED@smtp.kernel.org>
+Subject: [merged] mmmigrate-fix-establishing-demotion-target.patch removed from -mm tree
+Message-Id: <20220325013217.AB649C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,142 +45,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: cleanup the compaction trace events
+     Subject: mm,migrate: fix establishing demotion target
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-cleanup-the-compaction-trace-events.patch
+     mmmigrate-fix-establishing-demotion-target.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: compaction: cleanup the compaction trace events
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm,migrate: fix establishing demotion target
 
-As Steven suggested [1], we should access the pointers from the trace
-event to avoid dereferencing them to the tracepoint function when the
-tracepoint is disabled.
+In commit ac16ec835314 ("mm: migrate: support multiple target nodes
+demotion"), after the first demotion target node is found, we will
+continue to check the next candidate obtained via find_next_best_node(). 
+This is to find all demotion target nodes with same NUMA distance.  But
+one side effect of find_next_best_node() is that the candidate node
+returned will be set in "used" parameter, even if the candidate node isn't
+passed in the following NUMA distance checking, the candidate node will
+not be used as demotion target node for the following nodes.  For example,
+for system as follows,
 
-[1] https://lkml.org/lkml/2021/11/3/409
+node distances:
+node   0   1   2   3
+  0:  10  21  17  28
+  1:  21  10  28  17
+  2:  17  28  10  28
+  3:  28  17  28  10
 
-Link: https://lkml.kernel.org/r/4cd393b4d57f8f01ed72c001509b28e3a3b1a8c1.1646985115.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+when we establish demotion target node for node 0, in the first round node
+2 is added to the demotion target node set.  Then in the second round,
+node 3 is checked and failed because distance(0, 3) > distance(0, 2).  But
+node 3 is set in "used" nodemask too.  When we establish demotion target
+node for node 1, there is no available node.  This is wrong, node 3 should
+be set as the demotion target of node 1.
+
+To fix this, if the candidate node is failed to pass the distance
+checking, it will be cleared in "used" nodemask.  So that it can be used
+for the following node.
+
+The bug can be reproduced and fixed with this patch on a 2 socket server
+machine with DRAM and PMEM.
+
+Link: https://lkml.kernel.org/r/20220128055940.1792614-1-ying.huang@intel.com
+Fixes: ac16ec835314 ("mm: migrate: support multiple target nodes demotion")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
+Cc: Xunlei Pang <xlpang@linux.alibaba.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |   26 +++++++++++++-------------
- mm/compaction.c                   |    9 +++------
- 2 files changed, 16 insertions(+), 19 deletions(-)
+ mm/migrate.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/trace/events/compaction.h~mm-compaction-cleanup-the-compaction-trace-events
-+++ a/include/trace/events/compaction.h
-@@ -67,10 +67,10 @@ DEFINE_EVENT(mm_compaction_isolate_templ
- #ifdef CONFIG_COMPACTION
- TRACE_EVENT(mm_compaction_migratepages,
+--- a/mm/migrate.c~mmmigrate-fix-establishing-demotion-target
++++ a/mm/migrate.c
+@@ -3079,18 +3079,21 @@ static int establish_migrate_target(int
+ 	if (best_distance != -1) {
+ 		val = node_distance(node, migration_target);
+ 		if (val > best_distance)
+-			return NUMA_NO_NODE;
++			goto out_clear;
+ 	}
  
--	TP_PROTO(unsigned long nr_all,
-+	TP_PROTO(struct compact_control *cc,
- 		unsigned int nr_succeeded),
+ 	index = nd->nr;
+ 	if (WARN_ONCE(index >= DEMOTION_TARGET_NODES,
+ 		      "Exceeds maximum demotion target nodes\n"))
+-		return NUMA_NO_NODE;
++		goto out_clear;
  
--	TP_ARGS(nr_all, nr_succeeded),
-+	TP_ARGS(cc, nr_succeeded),
+ 	nd->nodes[index] = migration_target;
+ 	nd->nr++;
  
- 	TP_STRUCT__entry(
- 		__field(unsigned long, nr_migrated)
-@@ -79,7 +79,7 @@ TRACE_EVENT(mm_compaction_migratepages,
- 
- 	TP_fast_assign(
- 		__entry->nr_migrated = nr_succeeded;
--		__entry->nr_failed = nr_all - nr_succeeded;
-+		__entry->nr_failed = cc->nr_migratepages - nr_succeeded;
- 	),
- 
- 	TP_printk("nr_migrated=%lu nr_failed=%lu",
-@@ -88,10 +88,10 @@ TRACE_EVENT(mm_compaction_migratepages,
- );
- 
- TRACE_EVENT(mm_compaction_begin,
--	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
--		unsigned long free_pfn, unsigned long zone_end, bool sync),
-+	TP_PROTO(struct compact_control *cc, unsigned long zone_start,
-+		unsigned long zone_end, bool sync),
- 
--	TP_ARGS(zone_start, migrate_pfn, free_pfn, zone_end, sync),
-+	TP_ARGS(cc, zone_start, zone_end, sync),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, zone_start)
-@@ -103,8 +103,8 @@ TRACE_EVENT(mm_compaction_begin,
- 
- 	TP_fast_assign(
- 		__entry->zone_start = zone_start;
--		__entry->migrate_pfn = migrate_pfn;
--		__entry->free_pfn = free_pfn;
-+		__entry->migrate_pfn = cc->migrate_pfn;
-+		__entry->free_pfn = cc->free_pfn;
- 		__entry->zone_end = zone_end;
- 		__entry->sync = sync;
- 	),
-@@ -118,11 +118,11 @@ TRACE_EVENT(mm_compaction_begin,
- );
- 
- TRACE_EVENT(mm_compaction_end,
--	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
--		unsigned long free_pfn, unsigned long zone_end, bool sync,
-+	TP_PROTO(struct compact_control *cc, unsigned long zone_start,
-+		unsigned long zone_end, bool sync,
- 		int status),
- 
--	TP_ARGS(zone_start, migrate_pfn, free_pfn, zone_end, sync, status),
-+	TP_ARGS(cc, zone_start, zone_end, sync, status),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, zone_start)
-@@ -135,8 +135,8 @@ TRACE_EVENT(mm_compaction_end,
- 
- 	TP_fast_assign(
- 		__entry->zone_start = zone_start;
--		__entry->migrate_pfn = migrate_pfn;
--		__entry->free_pfn = free_pfn;
-+		__entry->migrate_pfn = cc->migrate_pfn;
-+		__entry->free_pfn = cc->free_pfn;
- 		__entry->zone_end = zone_end;
- 		__entry->sync = sync;
- 		__entry->status = status;
---- a/mm/compaction.c~mm-compaction-cleanup-the-compaction-trace-events
-+++ a/mm/compaction.c
-@@ -2387,8 +2387,7 @@ compact_zone(struct compact_control *cc,
- 	update_cached = !sync &&
- 		cc->zone->compact_cached_migrate_pfn[0] == cc->zone->compact_cached_migrate_pfn[1];
- 
--	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
--				cc->free_pfn, end_pfn, sync);
-+	trace_mm_compaction_begin(cc, start_pfn, end_pfn, sync);
- 
- 	/* lru_add_drain_all could be expensive with involving other CPUs */
- 	lru_add_drain();
-@@ -2438,8 +2437,7 @@ compact_zone(struct compact_control *cc,
- 				compaction_free, (unsigned long)cc, cc->mode,
- 				MR_COMPACTION, &nr_succeeded);
- 
--		trace_mm_compaction_migratepages(cc->nr_migratepages,
--						 nr_succeeded);
-+		trace_mm_compaction_migratepages(cc, nr_succeeded);
- 
- 		/* All pages were either migrated or will be released */
- 		cc->nr_migratepages = 0;
-@@ -2515,8 +2513,7 @@ out:
- 	count_compact_events(COMPACTMIGRATE_SCANNED, cc->total_migrate_scanned);
- 	count_compact_events(COMPACTFREE_SCANNED, cc->total_free_scanned);
- 
--	trace_mm_compaction_end(start_pfn, cc->migrate_pfn,
--				cc->free_pfn, end_pfn, sync, ret);
-+	trace_mm_compaction_end(cc, start_pfn, end_pfn, sync, ret);
- 
- 	return ret;
+ 	return migration_target;
++out_clear:
++	node_clear(migration_target, *used);
++	return NUMA_NO_NODE;
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
