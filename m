@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17FF0C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 715AFC433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:33:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348622AbiCYBfB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:35:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38954 "EHLO
+        id S1357375AbiCYBfC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:35:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38978 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357391AbiCYBdt (ORCPT
+        with ESMTP id S1357388AbiCYBdt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB5FABF50B;
-        Thu, 24 Mar 2022 18:32:16 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D069BF01E
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:32:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 414BD60A75;
-        Fri, 25 Mar 2022 01:32:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95457C340EC;
-        Fri, 25 Mar 2022 01:32:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F3DDEB8261B
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:32:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95B13C340EC;
+        Fri, 25 Mar 2022 01:32:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171935;
-        bh=GPnNHMMIEhE67/T0q4IYfGXt5Gp84D0IzgWbrvyJ4XY=;
+        s=korg; t=1648171933;
+        bh=LySOqN1rNTclEAd1b6e8RW5mMnkczilUDWzQV7AjDU8=;
         h=Date:To:From:Subject:From;
-        b=V1bb0XaUfAxMhGXZHgURmE/BCtXw7mluxPZxvAITaQvu73OY4hmp2D4ysUsDOjmKb
-         cuX0rHe5SLA2Xz545ost5eGUBpRc5/POQ2QbbmbSEMq+ss64toZrxKd2oWe7eawIZ2
-         lvKMLChjgn+srj2pxmxEPQ/XfhknvotlUYe7YVzY=
-Date:   Thu, 24 Mar 2022 18:32:15 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
-        oleg@redhat.com, Liam.Howlett@oracle.com, hughd@google.com,
-        akpm@linux-foundation.org
+        b=iErEanm6TwsGlCbl/xEAK9QiqEHYj7qOGsoKx8+6O4ALiaVEfidFjv2eIbaEMKcud
+         oRLPfgh1kumu5s8jROWYIbuT3mNPO0tafajkgNTJ7HIQ7BGUrnPXJM9nuJo+Er1+A+
+         YAwJGylAvxILa1/ZI3YH2z/ZJ/fsCBx17sF+mXqc=
+Date:   Thu, 24 Mar 2022 18:32:13 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
+        iamjoonsoo.kim@lge.com, hannes@cmpxchg.org,
+        quic_charante@quicinc.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mempolicy-mbind_range-set_policy-after-vma_merge.patch removed from -mm tree
-Message-Id: <20220325013215.95457C340EC@smtp.kernel.org>
+Subject: [merged] mm-vmscan-fix-documentation-for-page_check_references.patch removed from -mm tree
+Message-Id: <20220325013213.95B13C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,92 +42,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: mbind_range() set_policy() after vma_merge()
+     Subject: mm: vmscan: fix documentation for page_check_references()
 has been removed from the -mm tree.  Its filename was
-     mempolicy-mbind_range-set_policy-after-vma_merge.patch
+     mm-vmscan-fix-documentation-for-page_check_references.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: mbind_range() set_policy() after vma_merge()
+From: Charan Teja Kalla <quic_charante@quicinc.com>
+Subject: mm: vmscan: fix documentation for page_check_references()
 
-v2.6.34 commit 9d8cebd4bcd7 ("mm: fix mbind vma merge problem") introduced
-vma_merge() to mbind_range(); but unlike madvise, mlock and mprotect, it
-put a "continue" to next vma where its precedents go to update flags on
-current vma before advancing: that left vma with the wrong setting in the
-infamous vma_merge() case 8.
+commit b518154e59aa ("mm/vmscan: protect the workingset on anonymous LRU")
+requires to look twice for both mapped anon/file pages are used more than
+once to take the decission of reclaim or activation.  Correct the
+documentation accordingly.
 
-v3.10 commit 1444f92c8498 ("mm: merging memory blocks resets mempolicy")
-tried to fix that in vma_adjust(), without fully understanding the issue.
-
-v3.11 commit 3964acd0dbec ("mm: mempolicy: fix mbind_range() &&
-vma_adjust() interaction") reverted that, and went about the fix in the
-right way, but chose to optimize out an unnecessary mpol_dup() with a
-prior mpol_equal() test.  But on tmpfs, that also pessimized out the vital
-call to its ->set_policy(), leaving the new mbind unenforced.
-
-The user visible effect was that the pages got allocated on the local
-node (happened to be 0), after the mbind() caller had specifically
-asked for them to be allocated on node 1.  There was not any page
-migration involved in the case reported: the pages simply got allocated
-on the wrong node.
-
-Just delete that optimization now (though it could be made conditional on
-vma not having a set_policy).  Also remove the "next" variable: it turned
-out to be blameless, but also pointless.
-
-Link: https://lkml.kernel.org/r/319e4db9-64ae-4bca-92f0-ade85d342ff@google.com
-Fixes: 3964acd0dbec ("mm: mempolicy: fix mbind_range() && vma_adjust() interaction")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/1646925640-21324-1-git-send-email-quic_charante@quicinc.com
+Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mempolicy-mbind_range-set_policy-after-vma_merge
-+++ a/mm/mempolicy.c
-@@ -786,7 +786,6 @@ static int vma_replace_policy(struct vm_
- static int mbind_range(struct mm_struct *mm, unsigned long start,
- 		       unsigned long end, struct mempolicy *new_pol)
- {
--	struct vm_area_struct *next;
- 	struct vm_area_struct *prev;
- 	struct vm_area_struct *vma;
- 	int err = 0;
-@@ -801,8 +800,7 @@ static int mbind_range(struct mm_struct
- 	if (start > vma->vm_start)
- 		prev = vma;
- 
--	for (; vma && vma->vm_start < end; prev = vma, vma = next) {
--		next = vma->vm_next;
-+	for (; vma && vma->vm_start < end; prev = vma, vma = vma->vm_next) {
- 		vmstart = max(start, vma->vm_start);
- 		vmend   = min(end, vma->vm_end);
- 
-@@ -817,10 +815,6 @@ static int mbind_range(struct mm_struct
- 				 anon_vma_name(vma));
- 		if (prev) {
- 			vma = prev;
--			next = vma->vm_next;
--			if (mpol_equal(vma_policy(vma), new_pol))
--				continue;
--			/* vma_merge() joined vma && vma->next, case 8 */
- 			goto replace;
- 		}
- 		if (vma->vm_start != vmstart) {
+--- a/mm/vmscan.c~mm-vmscan-fix-documentation-for-page_check_references
++++ a/mm/vmscan.c
+@@ -1385,7 +1385,7 @@ static enum page_references page_check_r
+ 		/*
+ 		 * All mapped pages start out with page table
+ 		 * references from the instantiating fault, so we need
+-		 * to look twice if a mapped file page is used more
++		 * to look twice if a mapped file/anon page is used more
+ 		 * than once.
+ 		 *
+ 		 * Mark it and spare it for another trip around the
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from quic_charante@quicinc.com are
 
-mm-delete-__clearpagewaiters.patch
-mm-filemap_unaccount_folio-large-skip-mapcount-fixup.patch
-mm-thp-fix-nr_file_mapped-accounting-in-page__file_rmap.patch
-mm-warn-on-deleting-redirtied-only-if-accounted.patch
-mm-unmap_mapping_range_tree-with-i_mmap_rwsem-shared.patch
 
