@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA8BC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 20:14:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79BD5C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 20:28:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230155AbiCYUQV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 16:16:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55160 "EHLO
+        id S232184AbiCYUaQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 16:30:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231962AbiCYUQU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 16:16:20 -0400
+        with ESMTP id S232169AbiCYUaP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 16:30:15 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD29D4550C
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 13:14:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 263773B004
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 13:28:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A21861D01
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:14:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2D50C340F0;
-        Fri, 25 Mar 2022 20:14:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8222261D39
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:28:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CABDDC2BBE4;
+        Fri, 25 Mar 2022 20:28:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648239284;
-        bh=DWVPTxQH8RnFbnl5bbxAj+qvEiI+fUGEhAMA4QBVZyc=;
+        s=korg; t=1648240118;
+        bh=Hb9+40E2lYeyRLvxMJeIKmr8VT9h5P+89unA3uTajtU=;
         h=Date:To:From:Subject:From;
-        b=h7d2KJPkfLPXJZs9d5p/2tW44biGOIsX/bBP2XYUVVrQ2Bm6I6SRSX1eg5fUPDbJ+
-         oVQsjtMHk6JM5ZjZwZCkj6nSnsokxvZ/00QaYZvw2qdud5MrDdyQ5zU697qfgGt+/T
-         GJNFo5JxWLaoO+w7/zJ9TNFJCCg2jNTXeFPWBCRs=
-Date:   Fri, 25 Mar 2022 13:14:44 -0700
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
-        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
-        jakobkoschel@gmail.com, akpm@linux-foundation.org
+        b=l7DrqmaOi6tPE7Wpfb3xG5p2uyEgix1Mkse0fqEb+b42viVgTXDjw8RO2ojNwBQFd
+         iMP6n66d3mvBjj0KKyx/rPtGWRfPifmNugJwu9golc0k4YU/bZ/7svVFx2q3nfbAII
+         KCdDbDv8NXLYn6HiragBekkTTmJGzD12MwIQFUzQ=
+Date:   Fri, 25 Mar 2022 13:28:37 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tglx@linutronix.de, songmuchun@bytedance.com, shuah@kernel.org,
+        rcampbell@nvidia.com, kirill.shutemov@linux.intel.com,
+        jhubbard@nvidia.com, jack@suse.cz, hughd@google.com,
+        bigeasy@linutronix.de, apopple@nvidia.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-replace-usage-of-found-with-dedicated-list-iterator-variable.patch added to -mm tree
-Message-Id: <20220325201444.D2D50C340F0@smtp.kernel.org>
+Subject: + mm-add-selftests-for-migration-entries.patch added to -mm tree
+Message-Id: <20220325202838.CABDDC2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: replace usage of found with dedicated list iterator variable
+     Subject: mm: Add selftests for migration entries
 has been added to the -mm tree.  Its filename is
-     ocfs2-replace-usage-of-found-with-dedicated-list-iterator-variable.patch
+     mm-add-selftests-for-migration-entries.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-replace-usage-of-found-with-dedicated-list-iterator-variable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-selftests-for-migration-entries.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-replace-usage-of-found-with-dedicated-list-iterator-variable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-selftests-for-migration-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,126 +66,249 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jakob Koschel <jakobkoschel@gmail.com>
-Subject: ocfs2: replace usage of found with dedicated list iterator variable
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm: Add selftests for migration entries
 
-To move the list iterator variable into the list_for_each_entry_*() macro
-in the future it should be avoided to use the list iterator variable after
-the loop body.
+Add some basic migration tests and in particular tests that will
+stress both the pte and pmd migration entry wait paths.
 
-To *never* use the list iterator variable after the loop it was concluded
-to use a separate iterator variable instead of a found boolean [1].
-
-This removes the need to use a found variable and simply checking if the
-variable was set, can determine if the break/goto was hit.
-
-Link: https://lore.kernel.org/all/CAHk-=wgRr_D8CB-D9Kg-c=EHreAsk5SqXPwr9Y7k9sA6cWXJ6w@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20220324071650.61168-1-jakobkoschel@gmail.com
-Signed-off-by: Jakob Koschel <jakobkoschel@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20220324014349.229253-1-apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmunlock.c |   21 ++++++++++-----------
- fs/ocfs2/quota_local.c   |   10 +++++-----
- 2 files changed, 15 insertions(+), 16 deletions(-)
+ tools/testing/selftests/vm/Makefile    |    3 
+ tools/testing/selftests/vm/migration.c |  193 +++++++++++++++++++++++
+ 2 files changed, 196 insertions(+)
 
---- a/fs/ocfs2/dlm/dlmunlock.c~ocfs2-replace-usage-of-found-with-dedicated-list-iterator-variable
-+++ a/fs/ocfs2/dlm/dlmunlock.c
-@@ -392,9 +392,9 @@ int dlm_unlock_lock_handler(struct o2net
- 	struct dlm_ctxt *dlm = data;
- 	struct dlm_unlock_lock *unlock = (struct dlm_unlock_lock *)msg->buf;
- 	struct dlm_lock_resource *res = NULL;
--	struct dlm_lock *lock = NULL;
-+	struct dlm_lock *lock = NULL, *iter;
- 	enum dlm_status status = DLM_NORMAL;
--	int found = 0, i;
+--- a/tools/testing/selftests/vm/Makefile~mm-add-selftests-for-migration-entries
++++ a/tools/testing/selftests/vm/Makefile
+@@ -41,6 +41,7 @@ TEST_GEN_FILES += map_fixed_noreplace
+ TEST_GEN_FILES += map_hugetlb
+ TEST_GEN_FILES += map_populate
+ TEST_GEN_FILES += memfd_secret
++TEST_GEN_FILES += migration
+ TEST_GEN_FILES += mlock-random-test
+ TEST_GEN_FILES += mlock2-tests
+ TEST_GEN_FILES += mremap_dontunmap
+@@ -149,6 +150,8 @@ $(OUTPUT)/hmm-tests: LDLIBS += $(HMM_EXT
+ 
+ $(OUTPUT)/ksm_tests: LDLIBS += -lnuma
+ 
++$(OUTPUT)/migration: LDLIBS += -lnuma
++
+ local_config.mk local_config.h: check_config.sh
+ 	/bin/sh ./check_config.sh $(CC)
+ 
+--- /dev/null
++++ a/tools/testing/selftests/vm/migration.c
+@@ -0,0 +1,193 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * The main purpose of the tests here is to exercise the migration entry code
++ * paths in the kernel.
++ */
++
++#include "../kselftest_harness.h"
++#include <strings.h>
++#include <pthread.h>
++#include <numa.h>
++#include <numaif.h>
++#include <sys/mman.h>
++#include <sys/types.h>
++#include <signal.h>
++#include <time.h>
++
++#define TWOMEG (2<<20)
++#define RUNTIME (60)
++
++#define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
++
++FIXTURE(migration)
++{
++	pthread_t *threads;
++	pid_t *pids;
++	int nthreads;
++	int n1;
++	int n2;
++};
++
++FIXTURE_SETUP(migration)
++{
++	int n;
++
++	ASSERT_EQ(numa_available(), 0);
++	self->nthreads = numa_num_task_cpus() - 1;
++	self->n1 = -1;
++	self->n2 = -1;
++
++	for (n = 0; n < numa_max_possible_node(); n++)
++		if (numa_bitmask_isbitset(numa_all_nodes_ptr, n)) {
++			if (self->n1 == -1) {
++				self->n1 = n;
++			} else {
++				self->n2 = n;
++				break;
++			}
++		}
++
++	self->threads = malloc(self->nthreads * sizeof(*self->threads));
++	ASSERT_NE(self->threads, NULL);
++	self->pids = malloc(self->nthreads * sizeof(*self->pids));
++	ASSERT_NE(self->pids, NULL);
++};
++
++FIXTURE_TEARDOWN(migration)
++{
++	free(self->threads);
++	free(self->pids);
++}
++
++int migrate(uint64_t *ptr, int n1, int n2)
++{
++	int ret, tmp;
++	int status = 0;
++	struct timespec ts1, ts2;
++
++	if (clock_gettime(CLOCK_MONOTONIC, &ts1))
++		return -1;
++
++	while (1) {
++		if (clock_gettime(CLOCK_MONOTONIC, &ts2))
++			return -1;
++
++		if (ts2.tv_sec - ts1.tv_sec >= RUNTIME)
++			return 0;
++
++		ret = move_pages(0, 1, (void **) &ptr, &n2, &status,
++				MPOL_MF_MOVE_ALL);
++		if (ret) {
++			if (ret > 0)
++				printf("Didn't migrate %d pages\n", ret);
++			else
++				perror("Couldn't migrate pages");
++			return -2;
++		}
++
++		tmp = n2;
++		n2 = n1;
++		n1 = tmp;
++	}
++
++	return 0;
++}
++
++void *access_mem(void *ptr)
++{
++	uint64_t y = 0;
++	volatile uint64_t *x = ptr;
++
++	while (1) {
++		pthread_testcancel();
++		y += *x;
++	}
++
++	return NULL;
++}
++
++/*
++ * Basic migration entry testing. One thread will move pages back and forth
++ * between nodes whilst other threads try and access them triggering the
++ * migration entry wait paths in the kernel.
++ */
++TEST_F_TIMEOUT(migration, private_anon, 2*RUNTIME)
++{
++	uint64_t *ptr;
 +	int i;
- 	struct dlm_lockstatus *lksb = NULL;
- 	int ignore;
- 	u32 flags;
-@@ -437,7 +437,6 @@ int dlm_unlock_lock_handler(struct o2net
- 	}
- 
- 	queue=&res->granted;
--	found = 0;
- 	spin_lock(&res->spinlock);
- 	if (res->state & DLM_LOCK_RES_RECOVERING) {
- 		spin_unlock(&res->spinlock);
-@@ -461,21 +460,21 @@ int dlm_unlock_lock_handler(struct o2net
- 	}
- 
- 	for (i=0; i<3; i++) {
--		list_for_each_entry(lock, queue, list) {
--			if (lock->ml.cookie == unlock->cookie &&
--		    	    lock->ml.node == unlock->node_idx) {
--				dlm_lock_get(lock);
--				found = 1;
-+		list_for_each_entry(iter, queue, list) {
-+			if (iter->ml.cookie == unlock->cookie &&
-+			    iter->ml.node == unlock->node_idx) {
-+				dlm_lock_get(iter);
-+				lock = iter;
- 				break;
- 			}
- 		}
--		if (found)
-+		if (lock)
- 			break;
- 		/* scan granted -> converting -> blocked queues */
- 		queue++;
- 	}
- 	spin_unlock(&res->spinlock);
--	if (!found) {
-+	if (!lock) {
- 		status = DLM_IVLOCKID;
- 		goto not_found;
- 	}
-@@ -505,7 +504,7 @@ int dlm_unlock_lock_handler(struct o2net
- 	dlm_kick_thread(dlm, res);
- 
- not_found:
--	if (!found)
-+	if (!lock)
- 		mlog(ML_ERROR, "failed to find lock to unlock! "
- 			       "cookie=%u:%llu\n",
- 		     dlm_get_lock_cookie_node(be64_to_cpu(unlock->cookie)),
---- a/fs/ocfs2/quota_local.c~ocfs2-replace-usage-of-found-with-dedicated-list-iterator-variable
-+++ a/fs/ocfs2/quota_local.c
-@@ -923,19 +923,19 @@ static struct ocfs2_quota_chunk *ocfs2_f
- {
- 	struct mem_dqinfo *info = sb_dqinfo(sb, type);
- 	struct ocfs2_mem_dqinfo *oinfo = info->dqi_priv;
--	struct ocfs2_quota_chunk *chunk;
-+	struct ocfs2_quota_chunk *chunk = NULL, *iter;
- 	struct ocfs2_local_disk_chunk *dchunk;
- 	int found = 0, len;
- 
--	list_for_each_entry(chunk, &oinfo->dqi_chunk, qc_chunk) {
-+	list_for_each_entry(iter, &oinfo->dqi_chunk, qc_chunk) {
- 		dchunk = (struct ocfs2_local_disk_chunk *)
--						chunk->qc_headerbh->b_data;
-+						iter->qc_headerbh->b_data;
- 		if (le32_to_cpu(dchunk->dqc_free) > 0) {
--			found = 1;
-+			chunk = iter;
- 			break;
- 		}
- 	}
--	if (!found)
-+	if (!chunk)
- 		return NULL;
- 
- 	if (chunk->qc_num < oinfo->dqi_chunks - 1) {
++
++	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
++		SKIP(return, "Not enough threads or NUMA nodes available");
++
++	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
++		MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	memset(ptr, 0xde, TWOMEG);
++	for (i = 0; i < self->nthreads - 1; i++)
++		if (pthread_create(&self->threads[i], NULL, access_mem, ptr))
++			perror("Couldn't create thread");
++
++	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
++	for (i = 0; i < self->nthreads - 1; i++)
++		ASSERT_EQ(pthread_cancel(self->threads[i]), 0);
++}
++
++/*
++ * Same as the previous test but with shared memory.
++ */
++TEST_F_TIMEOUT(migration, shared_anon, 2*RUNTIME)
++{
++	pid_t pid;
++	uint64_t *ptr;
++	int i;
++
++	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
++		SKIP(return, "Not enough threads or NUMA nodes available");
++
++	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
++		MAP_SHARED | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	memset(ptr, 0xde, TWOMEG);
++	for (i = 0; i < self->nthreads - 1; i++) {
++		pid = fork();
++		if (!pid)
++			access_mem(ptr);
++		else
++			self->pids[i] = pid;
++	}
++
++	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
++	for (i = 0; i < self->nthreads - 1; i++)
++		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
++}
++
++/*
++ * Tests the pmd migration entry paths.
++ */
++TEST_F_TIMEOUT(migration, private_anon_thp, 2*RUNTIME)
++{
++	uint64_t *ptr;
++	int i;
++
++	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
++		SKIP(return, "Not enough threads or NUMA nodes available");
++
++	ptr = mmap(NULL, 2*TWOMEG, PROT_READ | PROT_WRITE,
++		MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	ptr = (uint64_t *) ALIGN((uintptr_t) ptr, TWOMEG);
++	ASSERT_EQ(madvise(ptr, TWOMEG, MADV_HUGEPAGE), 0);
++	memset(ptr, 0xde, TWOMEG);
++	for (i = 0; i < self->nthreads - 1; i++)
++		if (pthread_create(&self->threads[i], NULL, access_mem, ptr))
++			perror("Couldn't create thread");
++
++	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
++	for (i = 0; i < self->nthreads - 1; i++)
++		ASSERT_EQ(pthread_cancel(self->threads[i]), 0);
++}
++
++TEST_HARNESS_MAIN
 _
 
-Patches currently in -mm which might be from jakobkoschel@gmail.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-ocfs2-replace-usage-of-found-with-dedicated-list-iterator-variable.patch
+mm-add-selftests-for-migration-entries.patch
 
