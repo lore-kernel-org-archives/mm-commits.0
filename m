@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E957FC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1685C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234030AbiCYWpJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:45:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57378 "EHLO
+        id S234036AbiCYWpL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:45:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234033AbiCYWpC (ORCPT
+        with ESMTP id S234035AbiCYWpC (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:45:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA63120D833
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:43:07 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5745A20D83D
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:43:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B968614BD
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:43:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3698C34110;
-        Fri, 25 Mar 2022 22:43:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 013FAB82A35
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:43:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BFE1C36AE3;
+        Fri, 25 Mar 2022 22:43:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248186;
-        bh=CfD5MDIWWOLwhaALCkL0ZSlSqrLG8m29JLNIwLLw2A0=;
+        s=korg; t=1648248185;
+        bh=O4KGOOB2NhV1kh7AuCLcNY5y64la7crnbDto0kcPmyU=;
         h=Date:To:From:Subject:From;
-        b=oTKd/6+sgXfl0dXMqAR6c4IdDH7hD96gv74ezAf4alqzKjnDhuBXy2FSR1JdXchIl
-         cO/4NSh4csCv8JnYsvrINjReQ9RzGJLkUZ58F5PYm0sF1le6axOK34jb4gpOGfHZn9
-         KDjHrjNq8bZ66fnZApgjRxjRxR4Pj+YrDoR7uNpU=
-Date:   Fri, 25 Mar 2022 15:43:06 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        william.kucharski@oracle.com, songmuchun@bytedance.com,
-        shy828301@gmail.com, peterx@redhat.com, hughd@google.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=KQJpFrR/zMsgu+W3rmmCqi2PcrnrQB8bs+NjF3OHSzGzAXbAHJtNqUo48EdwjP6Sk
+         TTaFOpk2XU1ezoipAkAnXoDTRehz33srN4nKxWvOQk30QpiqGuRISvHb4WpfIMxy3L
+         J2LeqceH3VLQz1EZ6/MosNKtpsYzh4cPfQEJvGLU=
+Date:   Fri, 25 Mar 2022 15:43:05 -0700
+To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
+        rppt@kernel.org, peterx@redhat.com, naoya.horiguchi@linux.dev,
+        mhocko@suse.com, david@redhat.com, axelrasmussen@google.com,
+        almasrymina@google.com, aarcange@redhat.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-huge_memory-make-is_transparent_hugepage-static.patch removed from -mm tree
-Message-Id: <20220325224306.A3698C34110@smtp.kernel.org>
+Subject: [merged] userfaultfd-selftests-enable-hugetlb-remap-and-remove-event-testing.patch removed from -mm tree
+Message-Id: <20220325224305.9BFE1C36AE3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,85 +44,204 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory: make is_transparent_hugepage() static
+     Subject: userfaultfd/selftests: enable hugetlb remap and remove event testing
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-make-is_transparent_hugepage-static.patch
+     userfaultfd-selftests-enable-hugetlb-remap-and-remove-event-testing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory: make is_transparent_hugepage() static
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: userfaultfd/selftests: enable hugetlb remap and remove event testing
 
-It's only used inside the huge_memory.c now. Don't export it and make
-it static. We can thus reduce the size of huge_memory.o a bit.
+With MADV_DONTNEED support added to hugetlb mappings, mremap testing can
+also be enabled for hugetlb.
 
-Without this patch:
-   text	   data	    bss	    dec	    hex	filename
-  32319	   2965	      4	  35288	   89d8	mm/huge_memory.o
+Modify the tests to use madvise MADV_DONTNEED and MADV_REMOVE instead of
+fallocate hole puch for releasing hugetlb pages.
 
-With this patch:
-   text	   data	    bss	    dec	    hex	filename
-  32042	   2957	      4	  35003	   88bb	mm/huge_memory.o
-
-Link: https://lkml.kernel.org/r/20220302082145.12028-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20220215002348.128823-4-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    6 ------
- mm/huge_memory.c        |    3 +--
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ tools/testing/selftests/vm/run_vmtests.sh |    3 
+ tools/testing/selftests/vm/userfaultfd.c  |   69 ++++++++++----------
+ 2 files changed, 36 insertions(+), 36 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-make-is_transparent_hugepage-static
-+++ a/include/linux/huge_mm.h
-@@ -183,7 +183,6 @@ unsigned long thp_get_unmapped_area(stru
+--- a/tools/testing/selftests/vm/run_vmtests.sh~userfaultfd-selftests-enable-hugetlb-remap-and-remove-event-testing
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -208,14 +208,13 @@ echo "running userfaultfd_hugetlb"
+ echo "---------------------------"
+ # Test requires source and destination huge pages.  Size of source
+ # (half_ufd_size_MB) is passed as argument to test.
+-./userfaultfd hugetlb $half_ufd_size_MB 32 $mnt/ufd_test_file
++./userfaultfd hugetlb $half_ufd_size_MB 32
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
+ else
+ 	echo "[PASS]"
+ fi
+-rm -f $mnt/ufd_test_file
  
- void prep_transhuge_page(struct page *page);
- void free_transhuge_page(struct page *page);
--bool is_transparent_hugepage(struct page *page);
+ echo "-------------------------"
+ echo "running userfaultfd_shmem"
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-enable-hugetlb-remap-and-remove-event-testing
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -89,7 +89,6 @@ static bool test_uffdio_minor = false;
+ static bool map_shared;
+ static int shm_fd;
+ static int huge_fd;
+-static char *huge_fd_off0;
+ static unsigned long long *count_verify;
+ static int uffd = -1;
+ static int uffd_flags, finished, *pipefd;
+@@ -128,9 +127,9 @@ const char *examples =
+     "./userfaultfd anon 100 99999\n\n"
+     "# Run share memory test on 1GiB region with 99 bounces:\n"
+     "./userfaultfd shmem 1000 99\n\n"
+-    "# Run hugetlb memory test on 256MiB region with 50 bounces (using /dev/hugepages/hugefile):\n"
+-    "./userfaultfd hugetlb 256 50 /dev/hugepages/hugefile\n\n"
+-    "# Run the same hugetlb test but using shmem:\n"
++    "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
++    "./userfaultfd hugetlb 256 50\n\n"
++    "# Run the same hugetlb test but using shared file:\n"
+     "./userfaultfd hugetlb_shared 256 50 /dev/hugepages/hugefile\n\n"
+     "# 10MiB-~6GiB 999 bounces anonymous test, "
+     "continue forever unless an error triggers\n"
+@@ -227,10 +226,13 @@ static void noop_alias_mapping(__u64 *st
  
- bool can_split_folio(struct folio *folio, int *pextra_pins);
- int split_huge_page_to_list(struct page *page, struct list_head *list);
-@@ -341,11 +340,6 @@ static inline bool transhuge_vma_enabled
- 
- static inline void prep_transhuge_page(struct page *page) {}
- 
--static inline bool is_transparent_hugepage(struct page *page)
--{
--	return false;
--}
--
- #define transparent_hugepage_flags 0UL
- 
- #define thp_get_unmapped_area	NULL
---- a/mm/huge_memory.c~mm-huge_memory-make-is_transparent_hugepage-static
-+++ a/mm/huge_memory.c
-@@ -533,7 +533,7 @@ void prep_transhuge_page(struct page *pa
- 	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
- }
- 
--bool is_transparent_hugepage(struct page *page)
-+static inline bool is_transparent_hugepage(struct page *page)
+ static void hugetlb_release_pages(char *rel_area)
  {
- 	if (!PageCompound(page))
- 		return false;
-@@ -542,7 +542,6 @@ bool is_transparent_hugepage(struct page
- 	return is_huge_zero_page(page) ||
- 	       page[1].compound_dtor == TRANSHUGE_PAGE_DTOR;
+-	if (fallocate(huge_fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+-		      rel_area == huge_fd_off0 ? 0 : nr_pages * page_size,
+-		      nr_pages * page_size))
+-		err("fallocate() failed");
++	if (!map_shared) {
++		if (madvise(rel_area, nr_pages * page_size, MADV_DONTNEED))
++			err("madvise(MADV_DONTNEED) failed");
++	} else {
++		if (madvise(rel_area, nr_pages * page_size, MADV_REMOVE))
++			err("madvise(MADV_REMOVE) failed");
++	}
  }
--EXPORT_SYMBOL_GPL(is_transparent_hugepage);
  
- static unsigned long __thp_get_unmapped_area(struct file *filp,
- 		unsigned long addr, unsigned long len,
+ static void hugetlb_allocate_area(void **alloc_area)
+@@ -238,26 +240,37 @@ static void hugetlb_allocate_area(void *
+ 	void *area_alias = NULL;
+ 	char **alloc_area_alias;
+ 
+-	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+-			   (map_shared ? MAP_SHARED : MAP_PRIVATE) |
+-			   MAP_HUGETLB |
+-			   (*alloc_area == area_src ? 0 : MAP_NORESERVE),
+-			   huge_fd, *alloc_area == area_src ? 0 :
+-			   nr_pages * page_size);
++	if (!map_shared)
++		*alloc_area = mmap(NULL,
++			nr_pages * page_size,
++			PROT_READ | PROT_WRITE,
++			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB |
++				(*alloc_area == area_src ? 0 : MAP_NORESERVE),
++			-1,
++			0);
++	else
++		*alloc_area = mmap(NULL,
++			nr_pages * page_size,
++			PROT_READ | PROT_WRITE,
++			MAP_SHARED |
++				(*alloc_area == area_src ? 0 : MAP_NORESERVE),
++			huge_fd,
++			*alloc_area == area_src ? 0 : nr_pages * page_size);
+ 	if (*alloc_area == MAP_FAILED)
+ 		err("mmap of hugetlbfs file failed");
+ 
+ 	if (map_shared) {
+-		area_alias = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+-				  MAP_SHARED | MAP_HUGETLB,
+-				  huge_fd, *alloc_area == area_src ? 0 :
+-				  nr_pages * page_size);
++		area_alias = mmap(NULL,
++			nr_pages * page_size,
++			PROT_READ | PROT_WRITE,
++			MAP_SHARED,
++			huge_fd,
++			*alloc_area == area_src ? 0 : nr_pages * page_size);
+ 		if (area_alias == MAP_FAILED)
+ 			err("mmap of hugetlb file alias failed");
+ 	}
+ 
+ 	if (*alloc_area == area_src) {
+-		huge_fd_off0 = *alloc_area;
+ 		alloc_area_alias = &area_src_alias;
+ 	} else {
+ 		alloc_area_alias = &area_dst_alias;
+@@ -270,12 +283,7 @@ static void hugetlb_alias_mapping(__u64
+ {
+ 	if (!map_shared)
+ 		return;
+-	/*
+-	 * We can't zap just the pagetable with hugetlbfs because
+-	 * MADV_DONTEED won't work. So exercise -EEXIST on a alias
+-	 * mapping where the pagetables are not established initially,
+-	 * this way we'll exercise the -EEXEC at the fs level.
+-	 */
++
+ 	*start = (unsigned long) area_dst_alias + offset;
+ }
+ 
+@@ -428,7 +436,6 @@ static void uffd_test_ctx_clear(void)
+ 		uffd = -1;
+ 	}
+ 
+-	huge_fd_off0 = NULL;
+ 	munmap_area((void **)&area_src);
+ 	munmap_area((void **)&area_src_alias);
+ 	munmap_area((void **)&area_dst);
+@@ -926,10 +933,7 @@ static int faulting_process(int signal_t
+ 	struct sigaction act;
+ 	unsigned long signalled = 0;
+ 
+-	if (test_type != TEST_HUGETLB)
+-		split_nr_pages = (nr_pages + 1) / 2;
+-	else
+-		split_nr_pages = nr_pages;
++	split_nr_pages = (nr_pages + 1) / 2;
+ 
+ 	if (signal_test) {
+ 		sigbuf = &jbuf;
+@@ -986,9 +990,6 @@ static int faulting_process(int signal_t
+ 	if (signal_test)
+ 		return signalled != split_nr_pages;
+ 
+-	if (test_type == TEST_HUGETLB)
+-		return 0;
+-
+ 	area_dst = mremap(area_dst, nr_pages * page_size,  nr_pages * page_size,
+ 			  MREMAP_MAYMOVE | MREMAP_FIXED, area_src);
+ 	if (area_dst == MAP_FAILED)
+@@ -1676,7 +1677,7 @@ int main(int argc, char **argv)
+ 	}
+ 	nr_pages = nr_pages_per_cpu * nr_cpus;
+ 
+-	if (test_type == TEST_HUGETLB) {
++	if (test_type == TEST_HUGETLB && map_shared) {
+ 		if (argc < 5)
+ 			usage();
+ 		huge_fd = open(argv[4], O_CREAT | O_RDWR, 0755);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
+hugetlb-do-not-demote-poisoned-hugetlb-pages.patch
 
