@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FE7C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 21:52:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5446C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:41:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233526AbiCYVxi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 17:53:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39808 "EHLO
+        id S233875AbiCYWnA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:43:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233578AbiCYVxi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 17:53:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B69DF3668F
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 14:52:02 -0700 (PDT)
+        with ESMTP id S233815AbiCYWm7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:42:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF0CD20833E
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F396361138
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 21:52:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43B76C2BBE4;
-        Fri, 25 Mar 2022 21:52:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 59148614A8
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA6ECC004DD;
+        Fri, 25 Mar 2022 22:41:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648245121;
-        bh=nLtxpQG6GGkYaphSGEnKDsDUVrx3Fnwx132m21YQTp8=;
+        s=korg; t=1648248083;
+        bh=XdUcXzvDoKxVy4nvPQGrWwiKDN29RAv6eIE0M1GpNIo=;
         h=Date:To:From:Subject:From;
-        b=zftQnWRhIV8JK2qWu4g08be8u8oA3O13XwReArSG84XKQ0MgldRQSPxzXiSqkr5+a
-         XbiqWXKiYUZ+PKYJDp7ZarCV+LsrTwWIQjZnd0HRzmS7DAHXEhkJ5qQWOR3W1tvaLi
-         t/LpqWFoFQ4kMfc2QOod/rUsxHiUJIIUuia5AbNM=
-Date:   Fri, 25 Mar 2022 14:52:00 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        huntbag@linux.vnet.ibm.com, dave.hansen@linux.intel.com,
-        baolin.wang@linux.alibaba.com, osalvador@suse.de,
-        akpm@linux-foundation.org
+        b=z3fXbA9kjAkhAErupWEZrshr4XG2c2F10wZAEGg1ySt9QzGS8lZ2hTyCbis06QABy
+         00deynQxpJOwEVitshwnOyRiGI/QAXNxkbDBuPBwmj7NEPoQvfigxAA5U+lMZJkjDC
+         vLR/InAuUcAcLND0/M1kvuH/Lu25pNTIoGxEzOH8=
+Date:   Fri, 25 Mar 2022 15:41:22 -0700
+To:     mm-commits@vger.kernel.org, zhangyinan2019@email.szu.edu.cn,
+        zhangshengju@cmss.chinamobile.com, weizhenliang@huawei.com,
+        tangbin@cmss.chinamobile.com, sfr@canb.auug.org.au,
+        ch0.han@lge.com, seanga2@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-untangle-config-dependencies-for-demote-on-reclaim.patch added to -mm tree
-Message-Id: <20220325215201.43B76C2BBE4@smtp.kernel.org>
+Subject: [merged] tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch removed from -mm tree
+Message-Id: <20220325224123.AA6ECC004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,188 +43,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: untangle config dependencies for demote-on-reclaim
-has been added to the -mm tree.  Its filename is
-     mm-untangle-config-dependencies-for-demote-on-reclaim.patch
+     Subject: tools/vm/page_owner_sort.c: sort by stacktrace before culling
+has been removed from the -mm tree.  Its filename was
+     tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-untangle-config-dependencies-for-demote-on-reclaim.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-untangle-config-dependencies-for-demote-on-reclaim.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm: untangle config dependencies for demote-on-reclaim
+From: Sean Anderson <seanga2@gmail.com>
+Subject: tools/vm/page_owner_sort.c: sort by stacktrace before culling
 
-At the time demote-on-reclaim was introduced, it was tied to
-CONFIG_HOTPLUG_CPU + CONFIG_MIGRATE, but that is not really accurate.
+The contents of page_owner have changed to include more information than
+the stack trace.  On a modern kernel, the blocks look like
 
-The only two things we need to depend on are CONFIG_NUMA + CONFIG_MIGRATE,
-so clean this up.  Furthermore, we only register the hotplug memory
-notifier when the system has CONFIG_MEMORY_HOTPLUG.
+Page allocated via order 0, mask 0x0(), pid 1, ts 165564237 ns, free_ts 0 ns
+ register_early_stack+0x4b/0x90
+ init_page_owner+0x39/0x250
+ kernel_init_freeable+0x11e/0x242
+ kernel_init+0x16/0x130
 
-Link: https://lkml.kernel.org/r/20220322224016.4574-1-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Abhishek Goel <huntbag@linux.vnet.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Sorting by the contents of .txt will result in almost no repeated pages,
+as the pid, ts, and free_ts will almost never be the same.  Instead, sort
+by the contents of the stack trace, which we assume to be whatever is
+after the first line.
+
+[seanga2@gmail.com: fix NULL-pointer dereference when comparing stack traces]
+  Link: https://lkml.kernel.org/r/20211125162653.1855958-1-seanga2@gmail.com
+Link: https://lkml.kernel.org/r/20211124193709.1805776-1-seanga2@gmail.com
+Signed-off-by: Sean Anderson <seanga2@gmail.com>
+Signed-off-by: Sean Anderson <seanga2@gmail.com>
+Cc: Changhee Han <ch0.han@lge.com>
+Cc: Tang Bin <tangbin@cmss.chinamobile.com>
+Cc: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |   34 +++++++++++++++-------------------
- mm/migrate.c            |   11 ++++++-----
- mm/vmstat.c             |    2 --
- 3 files changed, 21 insertions(+), 26 deletions(-)
+ tools/vm/page_owner_sort.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/linux/migrate.h~mm-untangle-config-dependencies-for-demote-on-reclaim
-+++ a/include/linux/migrate.h
-@@ -47,17 +47,8 @@ void folio_migrate_copy(struct folio *ne
- int folio_migrate_mapping(struct address_space *mapping,
- 		struct folio *newfolio, struct folio *folio, int extra_count);
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling
++++ a/tools/vm/page_owner_sort.c
+@@ -23,6 +23,7 @@
  
--extern bool numa_demotion_enabled;
--extern void migrate_on_reclaim_init(void);
--#ifdef CONFIG_HOTPLUG_CPU
--extern void set_migration_target_nodes(void);
--#else
--static inline void set_migration_target_nodes(void) {}
--#endif
- #else
- 
--static inline void set_migration_target_nodes(void) {}
--
- static inline void putback_movable_pages(struct list_head *l) {}
- static inline int migrate_pages(struct list_head *l, new_page_t new,
- 		free_page_t free, unsigned long private, enum migrate_mode mode,
-@@ -82,9 +73,23 @@ static inline int migrate_huge_page_move
- 	return -ENOSYS;
+ struct block_list {
+ 	char *txt;
++	char *stacktrace;
+ 	int len;
+ 	int num;
+ 	int page_num;
+@@ -51,11 +52,11 @@ int read_block(char *buf, int buf_size,
+ 	return -1; /* EOF or no space left in buf. */
  }
  
--#define numa_demotion_enabled	false
- #endif /* CONFIG_MIGRATION */
- 
-+#if defined(CONFIG_MIGRATION) && defined(CONFIG_NUMA)
-+extern void set_migration_target_nodes(void);
-+extern void migrate_on_reclaim_init(void);
-+extern bool numa_demotion_enabled;
-+extern int next_demotion_node(int node);
-+#else
-+static inline void set_migration_target_nodes(void) {}
-+static inline void migrate_on_reclaim_init(void) {}
-+static inline int next_demotion_node(int node)
-+{
-+        return NUMA_NO_NODE;
-+}
-+#define numa_demotion_enabled  false
-+#endif
-+
- #ifdef CONFIG_COMPACTION
- extern int PageMovable(struct page *page);
- extern void __SetPageMovable(struct page *page, struct address_space *mapping);
-@@ -172,15 +177,6 @@ struct migrate_vma {
- int migrate_vma_setup(struct migrate_vma *args);
- void migrate_vma_pages(struct migrate_vma *migrate);
- void migrate_vma_finalize(struct migrate_vma *migrate);
--int next_demotion_node(int node);
--
--#else /* CONFIG_MIGRATION disabled: */
--
--static inline int next_demotion_node(int node)
--{
--	return NUMA_NO_NODE;
--}
--
- #endif /* CONFIG_MIGRATION */
- 
- #endif /* _LINUX_MIGRATE_H */
---- a/mm/migrate.c~mm-untangle-config-dependencies-for-demote-on-reclaim
-+++ a/mm/migrate.c
-@@ -2144,7 +2144,6 @@ out:
- 	return 0;
- }
- #endif /* CONFIG_NUMA_BALANCING */
--#endif /* CONFIG_NUMA */
- 
- /*
-  * node_demotion[] example:
-@@ -2278,7 +2277,6 @@ out:
- 	return target;
- }
- 
--#if defined(CONFIG_HOTPLUG_CPU)
- /* Disable reclaim-based migration. */
- static void __disable_all_migrate_targets(void)
+-static int compare_txt(const void *p1, const void *p2)
++static int compare_stacktrace(const void *p1, const void *p2)
  {
-@@ -2471,6 +2469,7 @@ void set_migration_target_nodes(void)
-  * __set_migration_target_nodes() can be used as opposed to
-  * set_migration_target_nodes().
-  */
-+#ifdef CONFIG_MEMORY_HOTPLUG
- static int __meminit migrate_on_reclaim_callback(struct notifier_block *self,
- 						 unsigned long action, void *_arg)
- {
-@@ -2516,6 +2515,7 @@ static int __meminit migrate_on_reclaim_
+ 	const struct block_list *l1 = p1, *l2 = p2;
  
- 	return notifier_from_errno(0);
+-	return strcmp(l1->txt, l2->txt);
++	return strcmp(l1->stacktrace, l2->stacktrace);
  }
-+#endif
  
- void __init migrate_on_reclaim_init(void)
- {
-@@ -2523,8 +2523,9 @@ void __init migrate_on_reclaim_init(void
- 				      sizeof(struct demotion_nodes),
- 				      GFP_KERNEL);
- 	WARN_ON(!node_demotion);
--
-+#ifdef CONFIG_MEMORY_HOTPLUG
- 	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
-+#endif
- 	/*
- 	 * At this point, all numa nodes with memory/CPus have their state
- 	 * properly set, so we can build the demotion order now.
-@@ -2535,7 +2536,6 @@ void __init migrate_on_reclaim_init(void
- 	set_migration_target_nodes();
- 	cpus_read_unlock();
- }
--#endif /* CONFIG_HOTPLUG_CPU */
+ static int compare_num(const void *p1, const void *p2)
+@@ -121,6 +122,7 @@ static void add_list(char *buf, int len)
+ 	list[list_size].page_num = get_page_num(buf);
+ 	memcpy(list[list_size].txt, buf, len);
+ 	list[list_size].txt[len] = 0;
++	list[list_size].stacktrace = strchr(list[list_size].txt, '\n') ?: "";
+ 	list_size++;
+ 	if (list_size % 1000 == 0) {
+ 		printf("loaded %d\r", list_size);
+@@ -199,7 +201,7 @@ int main(int argc, char **argv)
  
- bool numa_demotion_enabled = false;
+ 	printf("sorting ....\n");
  
-@@ -2596,4 +2596,5 @@ delete_obj:
- 	return err;
- }
- subsys_initcall(numa_init_sysfs);
--#endif
-+#endif /* CONFIG_SYSFS */
-+#endif /* CONFIG_NUMA */
---- a/mm/vmstat.c~mm-untangle-config-dependencies-for-demote-on-reclaim
-+++ a/mm/vmstat.c
-@@ -2111,9 +2111,7 @@ void __init init_mm_internals(void)
+-	qsort(list, list_size, sizeof(list[0]), compare_txt);
++	qsort(list, list_size, sizeof(list[0]), compare_stacktrace);
  
- 	start_shepherd_timer();
- #endif
--#if defined(CONFIG_MIGRATION) && defined(CONFIG_HOTPLUG_CPU)
- 	migrate_on_reclaim_init();
--#endif
- #ifdef CONFIG_PROC_FS
- 	proc_create_seq("buddyinfo", 0444, NULL, &fragmentation_op);
- 	proc_create_seq("pagetypeinfo", 0400, NULL, &pagetypeinfo_op);
+ 	list2 = malloc(sizeof(*list) * list_size);
+ 	if (!list2) {
+@@ -211,7 +213,7 @@ int main(int argc, char **argv)
+ 
+ 	for (i = count = 0; i < list_size; i++) {
+ 		if (count == 0 ||
+-		    strcmp(list2[count-1].txt, list[i].txt) != 0) {
++		    strcmp(list2[count-1].stacktrace, list[i].stacktrace) != 0) {
+ 			list2[count++] = list[i];
+ 		} else {
+ 			list2[count-1].num += list[i].num;
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from seanga2@gmail.com are
 
-mm-untangle-config-dependencies-for-demote-on-reclaim.patch
 
