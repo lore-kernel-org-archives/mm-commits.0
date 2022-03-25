@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE923C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:41:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F67EC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:41:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233935AbiCYWn2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:43:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50398 "EHLO
+        id S233919AbiCYWn3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:43:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233919AbiCYWnT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBE8F209A5A
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:43 -0700 (PDT)
+        with ESMTP id S233924AbiCYWnW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52BEB209A6C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 59FC8B82A36
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1AB6C340F0;
-        Fri, 25 Mar 2022 22:41:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D694361582
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A509C36AE2;
+        Fri, 25 Mar 2022 22:41:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248103;
-        bh=Jo9VI/p0JlRpcoRK6zAlHpwKRNo3E7q4RQDaLwh2040=;
+        s=korg; t=1648248105;
+        bh=KvxGuddRAJks3V0H9gibyunRWGgjwkMu0ye+1PWg4RU=;
         h=Date:To:From:Subject:From;
-        b=M7lyufonq2t0sZbnhWm10xEVk2v/5nPS/Pq2cv2ocmD88tfXaODbd4ilaw0fVhb0q
-         YGTdGaULJx/LFdgeqfj/ayILrvaUE0uwncVmKS9q+Rd59T0ZT9D9QePXH7PuSJVNvV
-         sH8mPcB+MKqLf0zdE7TmXTkw8F61AejLX1IB0hYA=
-Date:   Fri, 25 Mar 2022 15:41:42 -0700
+        b=llPbWVlIba9kY33PBcN427J+ovphGTsMxDMWytLZktsv16aeiBZJSKkHhDWn0Q3By
+         +/XV6khQTpOaGtC9OMiAifSec2NeCdzNqW4mTVU9JvqRZDmOxZBCQxvMcZSVwTi6RS
+         WIGk/rCZotrn0G4k9jEhKnTcJPikZmIj+gbtT+Fs=
+Date:   Fri, 25 Mar 2022 15:41:44 -0700
 To:     mm-commits@vger.kernel.org, zhaochongxi2019@email.szu.edu.cn,
-        zhangyinan2019@email.szu.edu.cn, weizhenliang@huawei.com,
+        zhangyinan2019@email.szu.edu.cn, yuhongf@szu.edu.cn,
         sfr@canb.auug.org.au, seanga2@gmail.com,
         hanshenghong2019@email.szu.edu.cn, caoyixuan2019@email.szu.edu.cn,
         yejiajian2018@email.szu.edu.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] tools-vm-page_owner_sort-support-for-sorting-by-task-command-name.patch removed from -mm tree
-Message-Id: <20220325224142.F1AB6C340F0@smtp.kernel.org>
+Subject: [merged] tools-vm-page_owner_sortc-support-for-user-defined-culling-rules.patch removed from -mm tree
+Message-Id: <20220325224145.3A509C36AE2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,167 +44,409 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page_owner_sort: support for sorting by task command name
+     Subject: tools/vm/page_owner_sort.c: support for user-defined culling rules
 has been removed from the -mm tree.  Its filename was
-     tools-vm-page_owner_sort-support-for-sorting-by-task-command-name.patch
+     tools-vm-page_owner_sortc-support-for-user-defined-culling-rules.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Subject: tools/vm/page_owner_sort: support for sorting by task command name
+Subject: tools/vm/page_owner_sort.c: support for user-defined culling rules
 
-When viewing page owner information, we may also need to the block to be
-sorted by task command name.  Therefore, the following adjustments are
-made:
+When viewing page owner information, we may want to cull blocks of
+information with our own rules.  So it is important to enhance culling
+function to provide the support for customizing culling rules.  Therefore,
+following adjustments are made:
 
-1. Add a member variable to record task command name of block.
+1. Add --cull option to support the culling of blocks of information
+with user-defined culling rules.
 
-2. Add a new -n option to sort the information of blocks by task command
-   name.
+	./page_owner_sort <input> <output> --cull=<rules>
+	./page_owner_sort <input> <output> --cull <rules>
 
-3. Add -n option explanation in the document.
+<rules> is a single argument in the form of a comma-separated list to
+specify individual culling rules, by the sequence of keys k1,k2, .... 
+Mixed use of abbreviated and complete-form of keys is allowed.
 
-Link: https://lkml.kernel.org/r/20220306030640.43054-2-yejiajian2018@email.szu.edu.cn
+For reference, please see the document(Documentation/vm/page_owner.rst).
+
+Now, assuming two blocks in the input file are as follows:
+
+	Page allocated via order 0, mask xxxx, pid 1, tgid 1 (task_name_demo)
+	PFN xxxx
+	 prep_new_page+0xd0/0xf8
+	 get_page_from_freelist+0x4a0/0x1290
+	 __alloc_pages+0x168/0x340
+	 alloc_pages+0xb0/0x158
+
+	Page allocated via order 0, mask xxxx, pid 32, tgid 32 (task_name_demo)
+	PFN xxxx
+	 prep_new_page+0xd0/0xf8
+	 get_page_from_freelist+0x4a0/0x1290
+	 __alloc_pages+0x168/0x340
+	 alloc_pages+0xb0/0x158
+
+If we want to cull the blocks by stacktrace and task command name, we can
+use this command:
+
+	./page_owner_sort <input> <output> --cull=stacktrace,name
+
+The output would be like:
+
+	2 times, 2 pages, task_comm_name: task_name_demo
+	 prep_new_page+0xd0/0xf8
+	 get_page_from_freelist+0x4a0/0x1290
+	 __alloc_pages+0x168/0x340
+	 alloc_pages+0xb0/0x158
+
+As we can see, these two blocks are culled successfully, for they share
+the same pid and task command name.
+
+However, if we want to cull the blocks by pid, stacktrace and task command
+name, we can this command:
+
+	./page_owner_sort <input> <output> --cull=stacktrace,name,pid
+
+The output would be like:
+
+	1 times, 1 pages, PID 1, task_comm_name: task_name_demo
+	 prep_new_page+0xd0/0xf8
+	 get_page_from_freelist+0x4a0/0x1290
+	 __alloc_pages+0x168/0x340
+	 alloc_pages+0xb0/0x158
+
+	1 times, 1 pages, PID 32, task_comm_name: task_name_demo
+	 prep_new_page+0xd0/0xf8
+	 get_page_from_freelist+0x4a0/0x1290
+	 __alloc_pages+0x168/0x340
+	 alloc_pages+0xb0/0x158
+
+As we can see, these two blocks are failed to cull, for their PIDs are
+different.
+
+2. Add explanations of --cull options to the document.
+
+This work is coauthored by
+	Yixuan Cao
+	Shenghong Han
+	Yinan Zhang
+	Chongxi Zhao
+	Yuhong Feng
+
+Link: https://lkml.kernel.org/r/20220312145834.624-1-yejiajian2018@email.szu.edu.cn
 Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Sean Anderson <seanga2@gmail.com>
 Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
-Cc: Zhenliang Wei <weizhenliang@huawei.com>
-Cc: <zhaochongxi2019@email.szu.edu.cn>
-Cc: <hanshenghong2019@email.szu.edu.cn>
-Cc: <zhangyinan2019@email.szu.edu.cn>
+Cc: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
+Cc: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Cc: Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>
+Cc: Yuhong Feng <yuhongf@szu.edu.cn>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Sean Anderson <seanga2@gmail.com>			
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_owner.rst |    1 
- tools/vm/page_owner_sort.c      |   35 +++++++++++++++++++++++++++++-
- 2 files changed, 35 insertions(+), 1 deletion(-)
+ Documentation/vm/page_owner.rst |   31 ++++++
+ tools/vm/page_owner_sort.c      |  150 +++++++++++++++++++++++++-----
+ 2 files changed, 159 insertions(+), 22 deletions(-)
 
---- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sort-support-for-sorting-by-task-command-name
+--- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sortc-support-for-user-defined-culling-rules
 +++ a/Documentation/vm/page_owner.rst
-@@ -117,6 +117,7 @@ Usage
- 		-m		Sort by total memory.
- 		-p		Sort by pid.
- 		-P		Sort by tgid.
-+		-n		Sort by task command name.
- 		-r		Sort by memory release time.
- 		-s		Sort by stack trace.
- 		-t		Sort by times (default).
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-support-for-sorting-by-task-command-name
-+++ a/tools/vm/page_owner_sort.c
-@@ -24,6 +24,7 @@
+@@ -126,12 +126,41 @@ Usage
  
- struct block_list {
- 	char *txt;
-+	char *comm; // task command name
- 	char *stacktrace;
- 	__u64 ts_nsec;
- 	__u64 free_ts_nsec;
-@@ -37,6 +38,7 @@ struct block_list {
- static regex_t order_pattern;
- static regex_t pid_pattern;
- static regex_t tgid_pattern;
-+static regex_t comm_pattern;
- static regex_t ts_nsec_pattern;
- static regex_t free_ts_nsec_pattern;
+ 	Cull:
+ 		-c		Cull by comparing stacktrace instead of total block.
++		--cull <rules>
++				Specify culling rules.Culling syntax is key[,key[,...]].Choose a
++				multi-letter key from the **STANDARD FORMAT SPECIFIERS** section.
++
++
++		<rules> is a single argument in the form of a comma-separated list,
++		which offers a way to specify individual culling rules.  The recognized
++		keywords are described in the **STANDARD FORMAT SPECIFIERS** section below.
++		<rules> can be specified by the sequence of keys k1,k2, ..., as described in
++		the STANDARD SORT KEYS section below. Mixed use of abbreviated and
++		complete-form of keys is allowed.
++
++
++		Examples:
++				./page_owner_sort <input> <output> --cull=stacktrace
++				./page_owner_sort <input> <output> --cull=st,pid,name
++				./page_owner_sort <input> <output> --cull=n,f
+ 
+ 	Filter:
+ 		-f		Filter out the information of blocks whose memory has been released.
+ 
+ 	Select:
+-		--pid <PID>			Select by pid.
++		--pid <PID>		Select by pid.
+ 		--tgid <TGID>		Select by tgid.
+ 		--name <command>	Select by task command name.
+ 
++STANDARD FORMAT SPECIFIERS
++==========================
++
++	KEY		LONG		DESCRIPTION
++	p		pid		process ID
++	tg		tgid		thread group ID
++	n		name		task command name
++	f		free		whether the page has been released or not
++	st		stacktrace	stace trace of the page allocation
++
++
++
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-support-for-user-defined-culling-rules
++++ a/tools/vm/page_owner_sort.c
+@@ -44,7 +44,14 @@ enum FILTER_BIT {
+ 	FILTER_UNRELEASE = 1<<1,
+ 	FILTER_PID = 1<<2,
+ 	FILTER_TGID = 1<<3,
+-	FILTER_TASK_COMM_NAME = 1<<4
++	FILTER_COMM = 1<<4
++};
++enum CULL_BIT {
++	CULL_UNRELEASE = 1<<1,
++	CULL_PID = 1<<2,
++	CULL_TGID = 1<<3,
++	CULL_COMM = 1<<4,
++	CULL_STACKTRACE = 1<<5
+ };
+ struct filter_condition {
+ 	pid_t tgid;
+@@ -61,7 +68,7 @@ static regex_t free_ts_nsec_pattern;
  static struct block_list *list;
-@@ -102,6 +104,13 @@ static int compare_tgid(const void *p1,
- 	return l1->tgid - l2->tgid;
+ static int list_size;
+ static int max_size;
+-static int cull_st;
++static int cull;
+ static int filter;
+ 
+ int read_block(char *buf, int buf_size, FILE *fin)
+@@ -142,6 +149,36 @@ static int compare_free_ts(const void *p
+ 	return l1->free_ts_nsec < l2->free_ts_nsec ? -1 : 1;
  }
  
-+static int compare_comm(const void *p1, const void *p2)
++
++static int compare_release(const void *p1, const void *p2)
 +{
 +	const struct block_list *l1 = p1, *l2 = p2;
 +
-+	return strcmp(l1->comm, l2->comm);
++	if (!l1->free_ts_nsec && !l2->free_ts_nsec)
++		return 0;
++	if (l1->free_ts_nsec && l2->free_ts_nsec)
++		return 0;
++	return l1->free_ts_nsec ? 1 : -1;
 +}
 +
- static int compare_ts(const void *p1, const void *p2)
++
++static int compare_cull_condition(const void *p1, const void *p2)
++{
++	if (cull == 0)
++		return compare_txt(p1, p2);
++	if ((cull & CULL_STACKTRACE) && compare_stacktrace(p1, p2))
++		return compare_stacktrace(p1, p2);
++	if ((cull & CULL_PID) && compare_pid(p1, p2))
++		return compare_pid(p1, p2);
++	if ((cull & CULL_TGID) && compare_tgid(p1, p2))
++		return compare_tgid(p1, p2);
++	if ((cull & CULL_COMM) && compare_comm(p1, p2))
++		return compare_comm(p1, p2);
++	if ((cull & CULL_UNRELEASE) && compare_release(p1, p2))
++		return compare_release(p1, p2);
++	return 0;
++}
++
+ static int search_pattern(regex_t *pattern, char *pattern_str, char *buf)
  {
- 	const struct block_list *l1 = p1, *l2 = p2;
-@@ -145,6 +154,7 @@ static void check_regcomp(regex_t *patte
+ 	int err, val_len;
+@@ -170,6 +207,38 @@ static void check_regcomp(regex_t *patte
+ 	}
  }
  
++static char **explode(char sep, const char *str, int *size)
++{
++	int count = 0, len = strlen(str);
++	int lastindex = -1, j = 0;
++
++	for (int i = 0; i < len; i++)
++		if (str[i] == sep)
++			count++;
++	char **ret = calloc(++count, sizeof(char *));
++
++	for (int i = 0; i < len; i++) {
++		if (str[i] == sep) {
++			ret[j] = calloc(i - lastindex, sizeof(char));
++			memcpy(ret[j++], str + lastindex + 1, i - lastindex - 1);
++			lastindex = i;
++		}
++	}
++	if (lastindex <= len - 1) {
++		ret[j] = calloc(len - lastindex, sizeof(char));
++		memcpy(ret[j++], str + lastindex + 1, strlen(str) - 1 - lastindex);
++	}
++	*size = j;
++	return ret;
++}
++
++static void free_explode(char **arr, int size)
++{
++	for (int i = 0; i < size; i++)
++		free(arr[i]);
++	free(arr);
++}
++
  # define FIELD_BUFF 25
-+# define TASK_COMM_LEN 16
  
  static int get_page_num(char *buf)
+@@ -277,16 +346,16 @@ static char *get_comm(char *buf)
+ 
+ static bool is_need(char *buf)
  {
-@@ -233,6 +243,22 @@ static __u64 get_free_ts_nsec(char *buf)
- 	return free_ts_nsec;
+-		if ((filter & FILTER_UNRELEASE) != 0 && get_free_ts_nsec(buf) != 0)
++		if ((filter & FILTER_UNRELEASE) && get_free_ts_nsec(buf) != 0)
+ 			return false;
+-		if ((filter & FILTER_PID) != 0 && get_pid(buf) != fc.pid)
++		if ((filter & FILTER_PID) && get_pid(buf) != fc.pid)
+ 			return false;
+-		if ((filter & FILTER_TGID) != 0 && get_tgid(buf) != fc.tgid)
++		if ((filter & FILTER_TGID) && get_tgid(buf) != fc.tgid)
+ 			return false;
+ 
+ 		char *comm = get_comm(buf);
+ 
+-		if ((filter & FILTER_TASK_COMM_NAME) != 0  &&
++		if ((filter & FILTER_COMM) &&
+ 		strncmp(comm, fc.comm, TASK_COMM_LEN) != 0) {
+ 			free(comm);
+ 			return false;
+@@ -335,6 +404,30 @@ static void add_list(char *buf, int len)
+ 	}
  }
  
-+static char *get_comm(char *buf)
++static bool parse_cull_args(const char *arg_str)
 +{
-+	char *comm_str = malloc(TASK_COMM_LEN);
++	int size = 0;
++	char **args = explode(',', arg_str, &size);
 +
-+	memset(comm_str, 0, TASK_COMM_LEN);
-+
-+	search_pattern(&comm_pattern, comm_str, buf);
-+	errno = 0;
-+	if (errno != 0) {
-+		printf("wrong comm in follow buf:\n%s\n", buf);
-+		return NULL;
-+	}
-+
-+	return comm_str;
++	for (int i = 0; i < size; ++i)
++		if (!strcmp(args[i], "pid") || !strcmp(args[i], "p"))
++			cull |= CULL_PID;
++		else if (!strcmp(args[i], "tgid") || !strcmp(args[i], "tg"))
++			cull |= CULL_TGID;
++		else if (!strcmp(args[i], "name") || !strcmp(args[i], "n"))
++			cull |= CULL_COMM;
++		else if (!strcmp(args[i], "stacktrace") || !strcmp(args[i], "st"))
++			cull |= CULL_STACKTRACE;
++		else if (!strcmp(args[i], "free") || !strcmp(args[i], "f"))
++			cull |= CULL_UNRELEASE;
++		else {
++			free_explode(args, size);
++			return false;
++		}
++	free_explode(args, size);
++	return true;
 +}
 +
- static void add_list(char *buf, int len)
- {
- 	if (list_size != 0 &&
-@@ -266,6 +292,7 @@ static void add_list(char *buf, int len)
- 		list[list_size].stacktrace++;
- 	list[list_size].pid = get_pid(buf);
- 	list[list_size].tgid = get_tgid(buf);
-+	list[list_size].comm = get_comm(buf);
- 	list[list_size].ts_nsec = get_ts_nsec(buf);
- 	list_size++;
- 	if (list_size % 1000 == 0) {
-@@ -284,6 +311,7 @@ static void usage(void)
- 		"-t	Sort by times (default).\n"
- 		"-p	Sort by pid.\n"
- 		"-P	Sort by tgid.\n"
-+		"-n	Sort by task command name.\n"
- 		"-a	Sort by memory allocate time.\n"
- 		"-r	Sort by memory release time.\n"
- 		"-c	Cull by comparing stacktrace instead of total block.\n"
-@@ -300,7 +328,7 @@ int main(int argc, char **argv)
- 	struct stat st;
- 	int opt;
+ #define BUF_SIZE	(128 * 1024)
  
--	while ((opt = getopt(argc, argv, "acfmprstP")) != -1)
-+	while ((opt = getopt(argc, argv, "acfmnprstP")) != -1)
- 		switch (opt) {
- 		case 'a':
+ static void usage(void)
+@@ -353,6 +446,7 @@ static void usage(void)
+ 		"--pid <PID>\tSelect by pid. This selects the information of blocks whose process ID number equals to <PID>.\n"
+ 		"--tgid <TGID>\tSelect by tgid. This selects the information of blocks whose Thread Group ID number equals to <TGID>.\n"
+ 		"--name <command>\n\t\tSelect by command name. This selects the information of blocks whose command name identical to <command>.\n"
++		"--cull <rules>\tCull by user-defined rules. <rules> is a single argument in the form of a comma-separated list with some common fields predefined\n"
+ 	);
+ }
+ 
+@@ -368,6 +462,7 @@ int main(int argc, char **argv)
+ 		{ "pid", required_argument, NULL, 1 },
+ 		{ "tgid", required_argument, NULL, 2 },
+ 		{ "name", required_argument, NULL, 3 },
++		{ "cull",  required_argument, NULL, 4 },
+ 		{ 0, 0, 0, 0},
+ 	};
+ 
+@@ -377,7 +472,7 @@ int main(int argc, char **argv)
  			cmp = compare_ts;
-@@ -329,6 +357,9 @@ int main(int argc, char **argv)
- 		case 'P':
- 			cmp = compare_tgid;
  			break;
-+		case 'n':
-+			cmp = compare_comm;
+ 		case 'c':
+-			cull_st = 1;
++			cull = cull | CULL_STACKTRACE;
+ 			break;
+ 		case 'f':
+ 			filter = filter | FILTER_UNRELEASE;
+@@ -422,10 +517,17 @@ int main(int argc, char **argv)
+ 			}
+ 			break;
+ 		case 3:
+-			filter = filter | FILTER_TASK_COMM_NAME;
++			filter = filter | FILTER_COMM;
+ 			strncpy(fc.comm, optarg, TASK_COMM_LEN);
+ 			fc.comm[TASK_COMM_LEN-1] = '\0';
+ 			break;
++		case 4:
++			if (!parse_cull_args(optarg)) {
++				printf("wrong argument after --cull in from the command line:%s\n",
++						optarg);
++				exit(1);
++			}
 +			break;
  		default:
  			usage();
  			exit(1);
-@@ -350,6 +381,7 @@ int main(int argc, char **argv)
- 	check_regcomp(&order_pattern, "order\\s*([0-9]*),");
- 	check_regcomp(&pid_pattern, "pid\\s*([0-9]*),");
- 	check_regcomp(&tgid_pattern, "tgid\\s*([0-9]*) ");
-+	check_regcomp(&comm_pattern, "tgid\\s*[0-9]*\\s*\\((.*)\\),\\s*ts");
- 	check_regcomp(&ts_nsec_pattern, "ts\\s*([0-9]*)\\s*ns,");
- 	check_regcomp(&free_ts_nsec_pattern, "free_ts\\s*([0-9]*)\\s*ns");
- 	fstat(fileno(fin), &st);
-@@ -408,6 +440,7 @@ int main(int argc, char **argv)
+@@ -472,20 +574,13 @@ int main(int argc, char **argv)
+ 
+ 	printf("sorting ....\n");
+ 
+-	if (cull_st == 1)
+-		qsort(list, list_size, sizeof(list[0]), compare_stacktrace);
+-	else
+-		qsort(list, list_size, sizeof(list[0]), compare_txt);
+-
+-
++	qsort(list, list_size, sizeof(list[0]), compare_cull_condition);
+ 
+ 	printf("culling\n");
+ 
+-	long offset = cull_st ? &list[0].stacktrace - &list[0].txt : 0;
+-
+ 	for (i = count = 0; i < list_size; i++) {
+ 		if (count == 0 ||
+-		    strcmp(*(&list[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
++		    compare_cull_condition((void *)(&list[count-1]), (void *)(&list[i])) != 0) {
+ 			list[count++] = list[i];
+ 		} else {
+ 			list[count-1].num += list[i].num;
+@@ -496,12 +591,25 @@ int main(int argc, char **argv)
+ 	qsort(list, count, sizeof(list[0]), cmp);
+ 
+ 	for (i = 0; i < count; i++) {
+-		if (cull_st == 0)
++		if (cull == 0)
+ 			fprintf(fout, "%d times, %d pages:\n%s\n",
+ 					list[i].num, list[i].page_num, list[i].txt);
+-		else
+-			fprintf(fout, "%d times, %d pages:\n%s\n",
+-					list[i].num, list[i].page_num, list[i].stacktrace);
++		else {
++			fprintf(fout, "%d times, %d pages",
++					list[i].num, list[i].page_num);
++			if (cull & CULL_PID || filter & FILTER_PID)
++				fprintf(fout, ", PID %d", list[i].pid);
++			if (cull & CULL_TGID || filter & FILTER_TGID)
++				fprintf(fout, ", TGID %d", list[i].pid);
++			if (cull & CULL_COMM || filter & FILTER_COMM)
++				fprintf(fout, ", task_comm_name: %s", list[i].comm);
++			if (cull & CULL_UNRELEASE)
++				fprintf(fout, " (%s)",
++						list[i].free_ts_nsec ? "UNRELEASED" : "RELEASED");
++			if (cull & CULL_STACKTRACE)
++				fprintf(fout, ":\n%s", list[i].stacktrace);
++			fprintf(fout, "\n");
++		}
+ 	}
  	regfree(&order_pattern);
  	regfree(&pid_pattern);
- 	regfree(&tgid_pattern);
-+	regfree(&comm_pattern);
- 	regfree(&ts_nsec_pattern);
- 	regfree(&free_ts_nsec_pattern);
- 	return 0;
 _
 
 Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
