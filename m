@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA6AAC43217
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FE93C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234007AbiCYWpV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:45:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57408 "EHLO
+        id S234076AbiCYWp3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:45:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234043AbiCYWpC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:45:02 -0400
+        with ESMTP id S234029AbiCYWpG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:45:06 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8E8220E942
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:43:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1236B20E965
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:43:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 64D83B82A32
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:43:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05401C340F0;
-        Fri, 25 Mar 2022 22:43:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B93EFB82A1C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:43:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A0A3C004DD;
+        Fri, 25 Mar 2022 22:43:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248192;
-        bh=GjL3SWvS5fnQX39RSazRypVFXlAkQIm8k7pOrqibv+g=;
+        s=korg; t=1648248198;
+        bh=SlFEEMApTumoiX4JFjYndZdS3+8zZEvtXxJriQmTakY=;
         h=Date:To:From:Subject:From;
-        b=FNEBM6XIxZM2G7TlrQc2jCpJfi8fim7HXCT+WBVf7eylUISWP+s4ykSTJmYp3TwYn
-         Xb/SCTebufRS375ImYZXrZBevIMocKsc5yC+rVRzK38n4j3H6oPvj9OdchEvv0iy8w
-         vancNA/nYdVaFiseRvRfVhqvnbrsvJfkNnm8q4aM=
-Date:   Fri, 25 Mar 2022 15:43:11 -0700
+        b=fltt1zz0BhCvKSoXsehRXEKA2FNUmxmgU0D3PHq47w8NP2ML8GrfVbn1wSI+1s0LG
+         HFfFDZJ7UGqOznTZ7upBR9tdyhPxkl9t+zuhc0oVYDUwKBfqCiRJ842J+DPKRYL4MM
+         +oKSZJtJnlRmHXYT/rZsFO3dmnDbaC4ULsHj6wgE=
+Date:   Fri, 25 Mar 2022 15:43:17 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
         shakeelb@google.com, rppt@linux.ibm.com, roman.gushchin@linux.dev,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         jack@suse.cz, hughd@google.com, hch@lst.de, ddutile@redhat.com,
         aarcange@redhat.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-streamline-cow-logic-in-do_swap_page.patch removed from -mm tree
-Message-Id: <20220325224312.05401C340F0@smtp.kernel.org>
+Subject: [merged] mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch removed from -mm tree
+Message-Id: <20220325224318.5A0A3C004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,59 +48,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: streamline COW logic in do_swap_page()
+     Subject: mm/huge_memory: remove stale locking logic from __split_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-streamline-cow-logic-in-do_swap_page.patch
+     mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: streamline COW logic in do_swap_page()
+Subject: mm/huge_memory: remove stale locking logic from __split_huge_pmd()
 
-Currently we have a different COW logic when:
-* triggering a read-fault to swapin first and then trigger a write-fault
-  -> do_swap_page() + do_wp_page()
-* triggering a write-fault to swapin
-  -> do_swap_page() + do_wp_page() only if we fail reuse in do_swap_page()
+Let's remove the stale logic that was required for reuse_swap_page().
 
-The COW logic in do_swap_page() is different than our reuse logic in
-do_wp_page().  The COW logic in do_wp_page() -- page_count() == 1 -- makes
-currently sure that we certainly don't have a remaining reference, e.g.,
-via GUP, on the target page we want to reuse: if there is any unexpected
-reference, we have to copy to avoid information leaks.
-
-As do_swap_page() behaves differently, in environments with swap enabled
-we can currently have an unintended information leak from the parent to
-the child, similar as known from CVE-2020-29374:
-
-	1. Parent writes to anonymous page
-	-> Page is mapped writable and modified
-	2. Page is swapped out
-	-> Page is unmapped and replaced by swap entry
-	3. fork()
-	-> Swap entries are copied to child
-	4. Child pins page R/O
-	-> Page is mapped R/O into child
-	5. Child unmaps page
-	-> Child still holds GUP reference
-	6. Parent writes to page
-	-> Page is reused in do_swap_page()
-	-> Child can observe changes
-
-Exchanging 2. and 3. should have the same effect.
-
-Let's apply the same COW logic as in do_wp_page(), conditionally trying to
-remove the page from the swapcache after freeing the swap entry, however,
-before actually mapping our page.  We can change the order now that we use
-try_to_free_swap(), which doesn't care about the mapcount, instead of
-reuse_swap_page().
-
-To handle references from the LRU pagevecs, conditionally drain the local
-LRU pagevecs when required, however, don't consider the page_count() when
-deciding whether to drain to keep it simple for now.
-
-Link: https://lkml.kernel.org/r/20220131162940.210846-5-david@redhat.com
+[akpm@linux-foundation.org: simplification, per Yang Shi]
+Link: https://lkml.kernel.org/r/20220131162940.210846-10-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -128,99 +89,67 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   55 +++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 43 insertions(+), 12 deletions(-)
+ mm/huge_memory.c |   40 ++++------------------------------------
+ 1 file changed, 4 insertions(+), 36 deletions(-)
 
---- a/mm/memory.c~mm-streamline-cow-logic-in-do_swap_page
-+++ a/mm/memory.c
-@@ -3489,6 +3489,25 @@ static vm_fault_t remove_device_exclusiv
- 	return 0;
- }
+--- a/mm/huge_memory.c~mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd
++++ a/mm/huge_memory.c
+@@ -2133,8 +2133,6 @@ void __split_huge_pmd(struct vm_area_str
+ {
+ 	spinlock_t *ptl;
+ 	struct mmu_notifier_range range;
+-	bool do_unlock_folio = false;
+-	pmd_t _pmd;
  
-+static inline bool should_try_to_free_swap(struct page *page,
-+					   struct vm_area_struct *vma,
-+					   unsigned int fault_flags)
-+{
-+	if (!PageSwapCache(page))
-+		return false;
-+	if (mem_cgroup_swap_full(page) || (vma->vm_flags & VM_LOCKED) ||
-+	    PageMlocked(page))
-+		return true;
-+	/*
-+	 * If we want to map a page that's in the swapcache writable, we
-+	 * have to detect via the refcount if we're really the exclusive
-+	 * user. Try freeing the swapcache to get rid of the swapcache
-+	 * reference only in case it's likely that we'll be the exlusive user.
-+	 */
-+	return (fault_flags & FAULT_FLAG_WRITE) && !PageKsm(page) &&
-+		page_count(page) == 2;
-+}
-+
- /*
-  * We enter with non-exclusive mmap_lock (to exclude vma changes,
-  * but allow concurrent faults), and pte mapped but not yet locked.
-@@ -3630,6 +3649,16 @@ vm_fault_t do_swap_page(struct vm_fault
- 			page = swapcache;
- 			goto out_page;
- 		}
-+
-+		/*
-+		 * If we want to map a page that's in the swapcache writable, we
-+		 * have to detect via the refcount if we're really the exclusive
-+		 * owner. Try removing the extra reference from the local LRU
-+		 * pagevecs if required.
-+		 */
-+		if ((vmf->flags & FAULT_FLAG_WRITE) && page == swapcache &&
-+		    !PageKsm(page) && !PageLRU(page))
-+			lru_add_drain();
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+ 				address & HPAGE_PMD_MASK,
+@@ -2153,42 +2151,12 @@ void __split_huge_pmd(struct vm_area_str
+ 			goto out;
  	}
  
- 	cgroup_throttle_swaprate(page, GFP_KERNEL);
-@@ -3648,19 +3677,25 @@ vm_fault_t do_swap_page(struct vm_fault
- 	}
- 
+-repeat:
+-	if (pmd_trans_huge(*pmd)) {
+-		if (!folio) {
+-			folio = page_folio(pmd_page(*pmd));
+-			/*
+-			 * An anonymous page must be locked, to ensure that a
+-			 * concurrent reuse_swap_page() sees stable mapcount;
+-			 * but reuse_swap_page() is not used on shmem or file,
+-			 * and page lock must not be taken when zap_pmd_range()
+-			 * calls __split_huge_pmd() while i_mmap_lock is held.
+-			 */
+-			if (folio_test_anon(folio)) {
+-				if (unlikely(!folio_trylock(folio))) {
+-					folio_get(folio);
+-					_pmd = *pmd;
+-					spin_unlock(ptl);
+-					folio_lock(folio);
+-					spin_lock(ptl);
+-					if (unlikely(!pmd_same(*pmd, _pmd))) {
+-						folio_unlock(folio);
+-						folio_put(folio);
+-						folio = NULL;
+-						goto repeat;
+-					}
+-					folio_put(folio);
+-				}
+-				do_unlock_folio = true;
+-			}
+-		}
+-	} else if (!(pmd_devmap(*pmd) || is_pmd_migration_entry(*pmd)))
+-		goto out;
+-	__split_huge_pmd_locked(vma, pmd, range.start, freeze);
++	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
++	    is_pmd_migration_entry(*pmd))
++		__split_huge_pmd_locked(vma, pmd, range.start, freeze);
++
+ out:
+ 	spin_unlock(ptl);
+-	if (do_unlock_folio)
+-		folio_unlock(folio);
  	/*
--	 * The page isn't present yet, go ahead with the fault.
--	 *
--	 * Be careful about the sequence of operations here.
--	 * To get its accounting right, reuse_swap_page() must be called
--	 * while the page is counted on swap but not yet in mapcount i.e.
--	 * before page_add_anon_rmap() and swap_free(); try_to_free_swap()
--	 * must be called after the swap_free(), or it will never succeed.
-+	 * Remove the swap entry and conditionally try to free up the swapcache.
-+	 * We're already holding a reference on the page but haven't mapped it
-+	 * yet.
- 	 */
-+	swap_free(entry);
-+	if (should_try_to_free_swap(page, vma, vmf->flags))
-+		try_to_free_swap(page);
- 
- 	inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
- 	dec_mm_counter_fast(vma->vm_mm, MM_SWAPENTS);
- 	pte = mk_pte(page, vma->vm_page_prot);
--	if ((vmf->flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
-+
-+	/*
-+	 * Same logic as in do_wp_page(); however, optimize for fresh pages
-+	 * that are certainly not shared because we just allocated them without
-+	 * exposing them to the swapcache.
-+	 */
-+	if ((vmf->flags & FAULT_FLAG_WRITE) && !PageKsm(page) &&
-+	    (page != swapcache || page_count(page) == 1)) {
- 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
- 		vmf->flags &= ~FAULT_FLAG_WRITE;
- 		ret |= VM_FAULT_WRITE;
-@@ -3686,10 +3721,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
- 	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
- 
--	swap_free(entry);
--	if (mem_cgroup_swap_full(page) ||
--	    (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
--		try_to_free_swap(page);
- 	unlock_page(page);
- 	if (page != swapcache && swapcache) {
- 		/*
+ 	 * No need to double call mmu_notifier->invalidate_range() callback.
+ 	 * They are 3 cases to consider inside __split_huge_pmd_locked():
 _
 
 Patches currently in -mm which might be from david@redhat.com are
