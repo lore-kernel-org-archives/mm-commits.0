@@ -2,45 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05ADDC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 00:38:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D293FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 00:41:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354311AbiCYAka (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 20:40:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46554 "EHLO
+        id S1348270AbiCYAnW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 20:43:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348270AbiCYAk3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 20:40:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D71C975E63
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 17:38:56 -0700 (PDT)
+        with ESMTP id S1347857AbiCYAnV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 20:43:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A64ADBB0B6
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 17:41:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D514617E3
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 00:38:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1BF5C340EC;
-        Fri, 25 Mar 2022 00:38:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 56A60B826E8
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 00:41:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB4A9C340EC;
+        Fri, 25 Mar 2022 00:41:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648168735;
-        bh=R+v+RP0PR4o3y9P1rShUzNNiLr/KRo+A9AYuMxV0Vk8=;
+        s=korg; t=1648168906;
+        bh=GDvW8fVyf/gEzoML2wpJv4SYd0ZG70lxJ89dxPoXFTw=;
         h=Date:To:From:Subject:From;
-        b=UZLAx2oIGdZUz1HpglyE2X4oISjMhUBiwFX7NiEpRTo+bNWkU1e8W2J/16DIzS2n1
-         oA9TxWT/rUc5375W7tzLGkaPLb9Pud7/rdE/FyPOI0w7EY++XqklYxHiRYs4IoyvkO
-         lrbN1/e/uDjrn7Q2mvUMjRKGxOIIKldwL59D2nBA=
-Date:   Thu, 24 Mar 2022 17:38:55 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        shy828301@gmail.com, ponnuvel.palaniyappan@canonical.com,
-        minchan@kernel.org, matthew.ruffell@canonical.com,
-        linmiaohe@huawei.com, jay.vosburgh@canonical.com,
-        ioanna-maria.alifieraki@canonical.com, halves@canonical.com,
-        gerald.yang@canonical.com, gavin.guo@canonical.com,
-        dongdong.tao@canonical.com, dan.streetman@canonical.com,
-        daniel.hill@canonical.com, mfo@canonical.com,
-        akpm@linux-foundation.org
+        b=ljaMZ8zBzDgg5e1Rxfod/72amrp9VtuM3tf7HHBHdemj7jhl5Ie+JG6RIKh0pxNJw
+         xL519xj+KEtJ8u0jeUUg5YRJb0VK+bR0HcBv8d4MRW/A0l7sCO2lX+FFa1caT/j5QU
+         7IFfpqpFV72udPnup3xRACLfAdP+qWl2+ulmS+LA=
+Date:   Thu, 24 Mar 2022 17:41:44 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au, lkft@linaro.org,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch removed from -mm tree
-Message-Id: <20220325003855.B1BF5C340EC@smtp.kernel.org>
+Subject: [folded-merged] mm-madvise-madv_dontneed_locked-fix.patch removed from -mm tree
+Message-Id: <20220325004145.EB4A9C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,74 +41,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
+     Subject: mm-madvise-madv_dontneed_locked-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
+     mm-madvise-madv_dontneed_locked-fix.patch
 
-This patch was dropped because it was folded into mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read.patch
+This patch was dropped because it was folded into mm-madvise-madv_dontneed_locked.patch
 
 ------------------------------------------------------
-From: Mauricio Faria de Oliveira <mfo@canonical.com>
-Subject: mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm-madvise-madv_dontneed_locked-fix
 
-v4: - fixed Fixes: tag to first support, after tests on v4.5;
-      updated commit message/reproducer section with results.
-    - tested on v5.17-rc3 and v4.5.
-    - shorten comment line; remove inner braces in the check.
-      (Thanks: Christoph Hellwig <hch@infradead.org>)
-    - clarify comment about __remove_mapping()
-      (Thanks: Yu Zhao <yuzhao@google.com>)
+On MiPS:
+mm/madvise.c:55:7: error: 'MADV_DONTNEED_LOCKED' undeclared (first use in this function); did you mean 'MADV_DONTNEED'?
 
-Link: https://lkml.kernel.org/r/20220209202659.183418-1-mfo@canonical.com
-Fixes: 854e9ed09ded ("mm: support madvise(MADV_FREE)")
-Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dan Hill <daniel.hill@canonical.com>
-Cc: Dan Streetman <dan.streetman@canonical.com>
-Cc: Dongdong Tao <dongdong.tao@canonical.com>
-Cc: Gavin Guo <gavin.guo@canonical.com>
-Cc: Gerald Yang <gerald.yang@canonical.com>
-Cc: Heitor Alves de Siqueira <halves@canonical.com>
-Cc: Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>
-Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
-Cc: Matthew Ruffell <matthew.ruffell@canonical.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Ponnuvel Palaniyappan <ponnuvel.palaniyappan@canonical.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Define MADV_DONTNEED_LOCKED on archs that don't use the common mman.h
+
+Link: https://lkml.kernel.org/r/YiY2KYyjsCaANwo0@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/alpha/include/uapi/asm/mman.h  |    2 ++
+ arch/mips/include/uapi/asm/mman.h   |    2 ++
+ arch/parisc/include/uapi/asm/mman.h |    2 ++
+ arch/xtensa/include/uapi/asm/mman.h |    2 ++
+ 4 files changed, 8 insertions(+)
 
---- a/mm/rmap.c~mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
-+++ a/mm/rmap.c
-@@ -1645,16 +1645,16 @@ static bool try_to_unmap_one(struct foli
- 				map_count = folio_mapcount(folio);
+--- a/arch/alpha/include/uapi/asm/mman.h~mm-madvise-madv_dontneed_locked-fix
++++ a/arch/alpha/include/uapi/asm/mman.h
+@@ -74,6 +74,8 @@
+ #define MADV_POPULATE_READ	22	/* populate (prefault) page tables readable */
+ #define MADV_POPULATE_WRITE	23	/* populate (prefault) page tables writable */
  
- 				/*
--				 * Order reads for page refcount and dirty flag;
--				 * see __remove_mapping().
-+				 * Order reads for page refcount and dirty flag
-+				 * (see comments in __remove_mapping()).
- 				 */
- 				smp_rmb();
++#define MADV_DONTNEED_LOCKED	24	/* like DONTNEED, but drop locked pages too */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
  
- 				/*
--				 * The only page refs must be from the isolation
--				 * plus one or more rmap's (dropped by discard:).
-+				 * The only page refs must be one from isolation
-+				 * plus the rmap(s) (dropped by discard:).
- 				 */
--				if ((ref_count == 1 + map_count) &&
-+				if (ref_count == 1 + map_count &&
- 				    !folio_test_dirty(folio)) {
- 					/* Invalidate as we cleared the pte */
- 					mmu_notifier_invalidate_range(mm,
+--- a/arch/mips/include/uapi/asm/mman.h~mm-madvise-madv_dontneed_locked-fix
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -101,6 +101,8 @@
+ #define MADV_POPULATE_READ	22	/* populate (prefault) page tables readable */
+ #define MADV_POPULATE_WRITE	23	/* populate (prefault) page tables writable */
+ 
++#define MADV_DONTNEED_LOCKED	24	/* like DONTNEED, but drop locked pages too */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+--- a/arch/parisc/include/uapi/asm/mman.h~mm-madvise-madv_dontneed_locked-fix
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -55,6 +55,8 @@
+ #define MADV_POPULATE_READ	22	/* populate (prefault) page tables readable */
+ #define MADV_POPULATE_WRITE	23	/* populate (prefault) page tables writable */
+ 
++#define MADV_DONTNEED_LOCKED	24	/* like DONTNEED, but drop locked pages too */
++
+ #define MADV_MERGEABLE   65		/* KSM may merge identical pages */
+ #define MADV_UNMERGEABLE 66		/* KSM may not merge identical pages */
+ 
+--- a/arch/xtensa/include/uapi/asm/mman.h~mm-madvise-madv_dontneed_locked-fix
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -109,6 +109,8 @@
+ #define MADV_POPULATE_READ	22	/* populate (prefault) page tables readable */
+ #define MADV_POPULATE_WRITE	23	/* populate (prefault) page tables writable */
+ 
++#define MADV_DONTNEED_LOCKED	24	/* like DONTNEED, but drop locked pages too */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
 _
 
-Patches currently in -mm which might be from mfo@canonical.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read.patch
+mm-madvise-madv_dontneed_locked.patch
 
