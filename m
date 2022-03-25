@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DF1C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:32:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09343C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:32:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354982AbiCYBeH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:34:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37216 "EHLO
+        id S1357383AbiCYBeJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:34:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357385AbiCYBcx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:32:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B63FEBD8BB;
-        Thu, 24 Mar 2022 18:30:59 -0700 (PDT)
+        with ESMTP id S1357513AbiCYBdO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:14 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 576CDBF953
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:31:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CAC261929;
-        Fri, 25 Mar 2022 01:30:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73D43C340ED;
-        Fri, 25 Mar 2022 01:30:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1187FB82726
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:31:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1D97C340ED;
+        Fri, 25 Mar 2022 01:31:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171858;
-        bh=o1caomXWTkg3q+ycHD/SyKcBw92CFsJiouV4Yy2dr+g=;
+        s=korg; t=1648171890;
+        bh=wwf8Rw9G5TJfos9vRV4vWvPhgztaClG9pL3swz3S4i0=;
         h=Date:To:From:Subject:From;
-        b=sYB8OiNdWZHGcdcuQNTNTmtoTiSIn9oj4WQ+TaXFVEhUW5RFWwsQ9xkc4iItc2D1q
-         XOT3OOtpcR4QB5gfdU+NfTKwHn82mSJJGmqFOjbrogmrDOD1oTWwJl/gEoFweZoQ40
-         2UF8xcBkAqAPdpeeUBgtm6UlBIwBoB+1NOeXfMOE=
-Date:   Thu, 24 Mar 2022 18:30:57 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        stable@vger.kernel.org, shy828301@gmail.com, kirill@shutemov.name,
-        jhubbard@nvidia.com, hughd@google.com, david@redhat.com,
-        apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=l+YVBv+02ZaKyDqSdvXGw1i7GiHJdZ9oYrsb117CT2HkqrGghaDorPJrt5tFwLElO
+         PRBbx/Ds4VJYGlMT4RJtaIEpDYQ/PfpAlycTE4OlT1QML0amnu9aiq8NpfL8giIkJZ
+         BHVSWz5xw7IYJNwXcwvR15eIV/ezKScJK7NYT88o=
+Date:   Thu, 24 Mar 2022 18:31:30 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@kernel.org,
+        dave.hansen@linux.intel.com, brouer@redhat.com, aaron.lu@intel.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-dont-skip-swap-entry-even-if-zap_details-specified.patch removed from -mm tree
-Message-Id: <20220325013058.73D43C340ED@smtp.kernel.org>
+Subject: [merged] mm-page_alloc-do-not-prefetch-buddies-during-bulk-free.patch removed from -mm tree
+Message-Id: <20220325013130.C1D97C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,210 +42,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't skip swap entry even if zap_details specified
+     Subject: mm/page_alloc: do not prefetch buddies during bulk free
 has been removed from the -mm tree.  Its filename was
-     mm-dont-skip-swap-entry-even-if-zap_details-specified.patch
+     mm-page_alloc-do-not-prefetch-buddies-during-bulk-free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: don't skip swap entry even if zap_details specified
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: do not prefetch buddies during bulk free
 
-Patch series "mm: Rework zap ptes on swap entries", v5.
+free_pcppages_bulk() has taken two passes through the pcp lists since
+commit 0a5f4e5b4562 ("mm/free_pcppages_bulk: do not hold lock when picking
+pages to free") due to deferring the cost of selecting PCP lists until the
+zone lock is held.
 
-Patch 1 should fix a long standing bug for zap_pte_range() on zap_details
-usage.  The risk is we could have some swap entries skipped while we should
-have zapped them.
+As the list processing now takes place under the zone lock, it's less
+clear that this will always benefit for two reasons.
 
-Migration entries are not the major concern because file backed memory always
-zap in the pattern that "first time without page lock, then re-zap with page
-lock" hence the 2nd zap will always make sure all migration entries are already
-recovered.
+1. There is a guaranteed cost to calculating the buddy which definitely
+   has to be calculated again. However, as the zone lock is held and
+   there is no deferring of buddy merging, there is no guarantee that the
+   prefetch will have completed when the second buddy calculation takes
+   place and buddies are being merged.  With or without the prefetch, there
+   may be further stalls depending on how many pages get merged. In other
+   words, a stall due to merging is inevitable and at best only one stall
+   might be avoided at the cost of calculating the buddy location twice.
 
-However there can be issues with real swap entries got skipped errornoously.
-There's a reproducer provided in commit message of patch 1 for that.
+2. As the zone lock is held, prefetch_nr makes less sense as once
+   prefetch_nr expires, the cache lines of interest have already been
+   merged.
 
-Patch 2-4 are cleanups that are based on patch 1.  After the whole patchset
-applied, we should have a very clean view of zap_pte_range().
+The main concern is that there is a definite cost to calculating the buddy
+location early for the prefetch and it is a "maybe win" depending on
+whether the CPU prefetch logic and memory is fast enough.  Remove the
+prefetch logic on the basis that reduced instructions in a path is always
+a saving where as the prefetch might save one memory stall depending on
+the CPU and memory.
 
-Only patch 1 needs to be backported to stable if necessary.
+In most cases, this has marginal benefit as the calculations are a small
+part of the overall freeing of pages.  However, it was detectable on at
+least one machine.
 
+                              5.17.0-rc3             5.17.0-rc3
+                    mm-highpcplimit-v2r1     mm-noprefetch-v1r1
+Min       elapsed      630.00 (   0.00%)      610.00 (   3.17%)
+Amean     elapsed      639.00 (   0.00%)      623.00 *   2.50%*
+Max       elapsed      660.00 (   0.00%)      660.00 (   0.00%)
 
-This patch (of 4):
-
-The "details" pointer shouldn't be the token to decide whether we should
-skip swap entries.
-
-For example, when the callers specified details->zap_mapping==NULL, it
-means the user wants to zap all the pages (including COWed pages), then we
-need to look into swap entries because there can be private COWed pages
-that was swapped out.
-
-Skipping some swap entries when details is non-NULL may lead to wrongly
-leaving some of the swap entries while we should have zapped them.
-
-A reproducer of the problem:
-
-===8<===
-        #define _GNU_SOURCE         /* See feature_test_macros(7) */
-        #include <stdio.h>
-        #include <assert.h>
-        #include <unistd.h>
-        #include <sys/mman.h>
-        #include <sys/types.h>
-
-        int page_size;
-        int shmem_fd;
-        char *buffer;
-
-        void main(void)
-        {
-                int ret;
-                char val;
-
-                page_size = getpagesize();
-                shmem_fd = memfd_create("test", 0);
-                assert(shmem_fd >= 0);
-
-                ret = ftruncate(shmem_fd, page_size * 2);
-                assert(ret == 0);
-
-                buffer = mmap(NULL, page_size * 2, PROT_READ | PROT_WRITE,
-                                MAP_PRIVATE, shmem_fd, 0);
-                assert(buffer != MAP_FAILED);
-
-                /* Write private page, swap it out */
-                buffer[page_size] = 1;
-                madvise(buffer, page_size * 2, MADV_PAGEOUT);
-
-                /* This should drop private buffer[page_size] already */
-                ret = ftruncate(shmem_fd, page_size);
-                assert(ret == 0);
-                /* Recover the size */
-                ret = ftruncate(shmem_fd, page_size * 2);
-                assert(ret == 0);
-
-                /* Re-read the data, it should be all zero */
-                val = buffer[page_size];
-                if (val == 0)
-                        printf("Good\n");
-                else
-                        printf("BUG\n");
-        }
-===8<===
-
-We don't need to touch up the pmd path, because pmd never had a issue with
-swap entries.  For example, shmem pmd migration will always be split into
-pte level, and same to swapping on anonymous.
-
-Add another helper should_zap_cows() so that we can also check whether we
-should zap private mappings when there's no page pointer specified.
-
-This patch drops that trick, so we handle swap ptes coherently.  Meanwhile
-we should do the same check upon migration entry, hwpoison entry and
-genuine swap entries too.
-
-To be explicit, we should still remember to keep the private entries if
-even_cows==false, and always zap them when even_cows==true.
-
-The issue seems to exist starting from the initial commit of git.
-
-[peterx@redhat.com: comment tweaks]
-  Link: https://lkml.kernel.org/r/20220217060746.71256-2-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20220217060746.71256-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20220216094810.60572-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20220216094810.60572-2-peterx@redhat.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220221094119.15282-2-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Suggested-by: Aaron Lu <aaron.lu@intel.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   40 +++++++++++++++++++++++++++++++---------
- 1 file changed, 31 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
---- a/mm/memory.c~mm-dont-skip-swap-entry-even-if-zap_details-specified
-+++ a/mm/memory.c
-@@ -1313,6 +1313,17 @@ struct zap_details {
- 	struct folio *single_folio;	/* Locked folio to be unmapped */
- };
- 
-+/* Whether we should zap all COWed (private) pages too */
-+static inline bool should_zap_cows(struct zap_details *details)
-+{
-+	/* By default, zap all pages */
-+	if (!details)
-+		return true;
-+
-+	/* Or, we zap COWed pages only if the caller wants to */
-+	return !details->zap_mapping;
-+}
-+
- /*
-  * We set details->zap_mapping when we want to unmap shared but keep private
-  * pages. Return true if skip zapping this page, false otherwise.
-@@ -1320,11 +1331,15 @@ struct zap_details {
- static inline bool
- zap_skip_check_mapping(struct zap_details *details, struct page *page)
- {
--	if (!details || !page)
-+	/* If we can make a decision without *page.. */
-+	if (should_zap_cows(details))
-+		return false;
-+
-+	/* E.g. the caller passes NULL for the case of a zero page */
-+	if (!page)
- 		return false;
- 
--	return details->zap_mapping &&
--		(details->zap_mapping != page_rmapping(page));
-+	return details->zap_mapping != page_rmapping(page);
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-prefetch-buddies-during-bulk-free
++++ a/mm/page_alloc.c
+@@ -1429,15 +1429,6 @@ static bool bulkfree_pcp_prepare(struct
  }
+ #endif /* CONFIG_DEBUG_VM */
  
- static unsigned long zap_pte_range(struct mmu_gather *tlb,
-@@ -1405,17 +1420,24 @@ again:
- 			continue;
- 		}
- 
--		/* If details->check_mapping, we leave swap entries. */
--		if (unlikely(details))
--			continue;
+-static inline void prefetch_buddy(struct page *page, unsigned int order)
+-{
+-	unsigned long pfn = page_to_pfn(page);
+-	unsigned long buddy_pfn = __find_buddy_pfn(pfn, order);
+-	struct page *buddy = page + (buddy_pfn - pfn);
 -
--		if (!non_swap_entry(entry))
-+		if (!non_swap_entry(entry)) {
-+			/* Genuine swap entry, hence a private anon page */
-+			if (!should_zap_cows(details))
-+				continue;
- 			rss[MM_SWAPENTS]--;
--		else if (is_migration_entry(entry)) {
-+		} else if (is_migration_entry(entry)) {
- 			struct page *page;
+-	prefetch(buddy);
+-}
+-
+ /*
+  * Frees a number of pages from the PCP lists
+  * Assumes all pages on list are in same zone.
+@@ -1450,7 +1441,6 @@ static void free_pcppages_bulk(struct zo
+ 	int min_pindex = 0;
+ 	int max_pindex = NR_PCP_LISTS - 1;
+ 	unsigned int order;
+-	int prefetch_nr = READ_ONCE(pcp->batch);
+ 	bool isolated_pageblocks;
+ 	struct page *page;
  
- 			page = pfn_swap_entry_to_page(entry);
-+			if (zap_skip_check_mapping(details, page))
-+				continue;
- 			rss[mm_counter(page)]--;
-+		} else if (is_hwpoison_entry(entry)) {
-+			if (!should_zap_cows(details))
-+				continue;
-+		} else {
-+			/* We should have covered all the swap entry types */
-+			WARN_ON_ONCE(1);
- 		}
- 		if (unlikely(!free_swap_and_cache(entry)))
- 			print_bad_pte(vma, addr, ptent, NULL);
+@@ -1505,20 +1495,6 @@ static void free_pcppages_bulk(struct zo
+ 			if (bulkfree_pcp_prepare(page))
+ 				continue;
+ 
+-			/*
+-			 * We are going to put the page back to the global
+-			 * pool, prefetch its buddy to speed up later access
+-			 * under zone->lock. It is believed the overhead of
+-			 * an additional test and calculating buddy_pfn here
+-			 * can be offset by reduced memory latency later. To
+-			 * avoid excessive prefetching due to large count, only
+-			 * prefetch buddy for the first pcp->batch nr of pages.
+-			 */
+-			if (prefetch_nr) {
+-				prefetch_buddy(page, order);
+-				prefetch_nr--;
+-			}
+-
+ 			/* MIGRATE_ISOLATE page should not go to pcplists */
+ 			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
+ 			/* Pageblock could have been isolated meanwhile */
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
