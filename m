@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD6EC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:10:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 194DEC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:10:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357148AbiCYBLs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:11:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39760 "EHLO
+        id S1357153AbiCYBLt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:11:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357162AbiCYBLr (ORCPT
+        with ESMTP id S1357165AbiCYBLr (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:11:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFFE265D08
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:10:10 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BE5665D34
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:10:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 76245B82707
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:10:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 144AFC340EC;
-        Fri, 25 Mar 2022 01:10:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BA3266185C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:10:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D97CC340EE;
+        Fri, 25 Mar 2022 01:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648170608;
-        bh=VgsYjCRlJjN3M+XYSwbBaWpwmU2njZSGVQaMljhDDh8=;
+        s=korg; t=1648170611;
+        bh=Ndv6k7BnDMrkT2jWLbGKzC4FbVYDQt1vXc2M9TuA9+8=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=POoXUPdvIpRJRTnnpwybYaV2PVOTzqQw96MJAdvOlIPk8geb0xozKTnKAGqgz3UIz
-         q/kS9MRWkIg3h5HBCqWcxu7zrxC4QCuqoGETGp+Hdwx5i+WAWDmAmzSS2zzbtgrQNo
-         To81sRs+DtJ2bAlTDFqhdVaXQI9f3t6JcNhafGkI=
-Date:   Thu, 24 Mar 2022 18:10:07 -0700
+        b=A4Ofr9JICUKBRobEhTrYyyYtifLwgHEALtZn5qZYD1vHdPWgGyr6VsGttNa2qjbbs
+         8dFutjqQdJCNWNEXKkfFc5io4OJN4OP0hy7Cb0QNvqrfkRMUl2b7e61tu2O0N9U61b
+         DM25qoVLZFV6qYW0Mxs8woq5oB2KqL8iwqI21ZVU=
+Date:   Thu, 24 Mar 2022 18:10:10 -0700
 To:     will@kernel.org, vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com,
         pcc@google.com, mark.rutland@arm.com, glider@google.com,
         eugenis@google.com, elver@google.com, dvyukov@google.com,
@@ -38,32 +38,33 @@ To:     will@kernel.org, vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220324180758.96b1ac7e17675d6bc474485e@linux-foundation.org>
-Subject: [patch 031/114] kasan, page_alloc: move tag_clear_highpage out of kernel_init_free_pages
-Message-Id: <20220325011008.144AFC340EC@smtp.kernel.org>
+Subject: [patch 032/114] kasan, page_alloc: merge kasan_free_pages into free_pages_prepare
+Message-Id: <20220325011011.1D97CC340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: move tag_clear_highpage out of kernel_init_free_pages
+Subject: kasan, page_alloc: merge kasan_free_pages into free_pages_prepare
 
-Currently, kernel_init_free_pages() serves two purposes: it either only
-zeroes memory or zeroes both memory and memory tags via a different code
-path.  As this function has only two callers, each using only one code
-path, this behaviour is confusing.
+Currently, the code responsible for initializing and poisoning memory in
+free_pages_prepare() is scattered across two locations: kasan_free_pages()
+for HW_TAGS KASAN and free_pages_prepare() itself.  This is confusing.
 
-Pull the code that zeroes both memory and tags out of
-kernel_init_free_pages().
+This and a few following patches combine the code from these two
+locations.  Along the way, these patches also simplify the performed
+checks to make them easier to follow.
 
-As a result of this change, the code in free_pages_prepare() starts to
-look complicated, but this is improved in the few following patches. 
-Those improvements are not integrated into this patch to make diffs easier
-to read.
+Replaces the only caller of kasan_free_pages() with its implementation.
 
-This patch does no functional changes.
+As kasan_has_integrated_init() is only true when CONFIG_KASAN_HW_TAGS is
+enabled, moving the code does no functional changes.
 
-Link: https://lkml.kernel.org/r/7719874e68b23902629c7cf19f966c4fd5f57979.1643047180.git.andreyknvl@google.com
+This patch is not useful by itself but makes the simplifications in the
+following patches easier to follow.
+
+Link: https://lkml.kernel.org/r/303498d15840bb71905852955c6e2390ecc87139.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
@@ -78,57 +79,87 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ include/linux/kasan.h |    8 --------
+ mm/kasan/common.c     |    2 +-
+ mm/kasan/hw_tags.c    |   11 -----------
+ mm/page_alloc.c       |    6 ++++--
+ 4 files changed, 5 insertions(+), 22 deletions(-)
 
---- a/mm/page_alloc.c~kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages
-+++ a/mm/page_alloc.c
-@@ -1278,16 +1278,10 @@ static inline bool should_skip_kasan_poi
- 	       PageSkipKASanPoison(page);
+--- a/include/linux/kasan.h~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
++++ a/include/linux/kasan.h
+@@ -85,7 +85,6 @@ static inline void kasan_disable_current
+ #ifdef CONFIG_KASAN_HW_TAGS
+ 
+ void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags);
+-void kasan_free_pages(struct page *page, unsigned int order);
+ 
+ #else /* CONFIG_KASAN_HW_TAGS */
+ 
+@@ -94,13 +93,6 @@ static __always_inline void kasan_alloc_
+ {
+ 	/* Only available for integrated init. */
+ 	BUILD_BUG();
+-}
+-
+-static __always_inline void kasan_free_pages(struct page *page,
+-					     unsigned int order)
+-{
+-	/* Only available for integrated init. */
+-	BUILD_BUG();
  }
  
--static void kernel_init_free_pages(struct page *page, int numpages, bool zero_tags)
-+static void kernel_init_free_pages(struct page *page, int numpages)
- {
- 	int i;
+ #endif /* CONFIG_KASAN_HW_TAGS */
+--- a/mm/kasan/common.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
++++ a/mm/kasan/common.c
+@@ -387,7 +387,7 @@ static inline bool ____kasan_kfree_large
+ 	}
  
--	if (zero_tags) {
--		for (i = 0; i < numpages; i++)
--			tag_clear_highpage(page + i);
--		return;
--	}
+ 	/*
+-	 * The object will be poisoned by kasan_free_pages() or
++	 * The object will be poisoned by kasan_poison_pages() or
+ 	 * kasan_slab_free_mempool().
+ 	 */
+ 
+--- a/mm/kasan/hw_tags.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
++++ a/mm/kasan/hw_tags.c
+@@ -213,17 +213,6 @@ void kasan_alloc_pages(struct page *page
+ 	}
+ }
+ 
+-void kasan_free_pages(struct page *page, unsigned int order)
+-{
+-	/*
+-	 * This condition should match the one in free_pages_prepare() in
+-	 * page_alloc.c.
+-	 */
+-	bool init = want_init_on_free();
 -
- 	/* s390's use of memset() could override KASAN redzones. */
- 	kasan_disable_current();
- 	for (i = 0; i < numpages; i++) {
-@@ -1383,7 +1377,7 @@ static __always_inline bool free_pages_p
+-	kasan_poison_pages(page, order, init);
+-}
+-
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+ void kasan_enable_tagging_sync(void)
+--- a/mm/page_alloc.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
++++ a/mm/page_alloc.c
+@@ -1364,15 +1364,17 @@ static __always_inline bool free_pages_p
+ 
+ 	/*
+ 	 * As memory initialization might be integrated into KASAN,
+-	 * kasan_free_pages and kernel_init_free_pages must be
++	 * KASAN poisoning and memory initialization code must be
+ 	 * kept together to avoid discrepancies in behavior.
+ 	 *
+ 	 * With hardware tag-based KASAN, memory tags must be set before the
+ 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
+ 	 */
+ 	if (kasan_has_integrated_init()) {
++		bool init = want_init_on_free();
++
+ 		if (!skip_kasan_poison)
+-			kasan_free_pages(page, order);
++			kasan_poison_pages(page, order, init);
+ 	} else {
  		bool init = want_init_on_free();
  
- 		if (init)
--			kernel_init_free_pages(page, 1 << order, false);
-+			kernel_init_free_pages(page, 1 << order);
- 		if (!skip_kasan_poison)
- 			kasan_poison_pages(page, order, init);
- 	}
-@@ -2378,9 +2372,17 @@ inline void post_alloc_hook(struct page
- 		bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
- 
- 		kasan_unpoison_pages(page, order, init);
--		if (init)
--			kernel_init_free_pages(page, 1 << order,
--					       gfp_flags & __GFP_ZEROTAGS);
-+
-+		if (init) {
-+			if (gfp_flags & __GFP_ZEROTAGS) {
-+				int i;
-+
-+				for (i = 0; i < 1 << order; i++)
-+					tag_clear_highpage(page + i);
-+			} else {
-+				kernel_init_free_pages(page, 1 << order);
-+			}
-+		}
- 	}
- 
- 	set_page_owner(page, order, gfp_flags);
 _
