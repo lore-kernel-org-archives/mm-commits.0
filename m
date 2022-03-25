@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF752C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:12:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C60AC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:12:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354388AbiCYBOL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:14:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42298 "EHLO
+        id S1354486AbiCYBOM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:14:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354593AbiCYBN7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:13:59 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31655BD2FE
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:12:26 -0700 (PDT)
+        with ESMTP id S1357214AbiCYBOG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:14:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C1DEBD2E3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:12:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DD008B81DE2
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:12:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 932C7C340EC;
-        Fri, 25 Mar 2022 01:12:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F191161857
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:12:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 525A8C340ED;
+        Fri, 25 Mar 2022 01:12:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648170743;
-        bh=vnAUd7nf5uyUi8olJddwm57pCYbDS8/7np9LcQEPrxc=;
+        s=korg; t=1648170752;
+        bh=BvySnWZa+bNjUg/rrHE485qNGZVu5dsTywZhyhuER0M=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=Ct9Ii/FiAGzRWUkNzl9KtFFlzOhvNnguTYRuFUtalu96XtrhXmvXRXgYntfiK0b9q
-         I+nDT/mQLn4PQHSYGMaOe+8BQfMw6tQmgx1yaw0eteGaeHEGWCdPG3k4dicXgN/DkR
-         uPZIFCnjEglz0zAowOp1VhOzc+ereSJmEA1M+Ms8=
-Date:   Thu, 24 Mar 2022 18:12:23 -0700
+        b=LdU0Uz9Zf4aksZhhSlkvLU+npiFGLNU/E0J8Npv0+c6XEI5ru1+/NjQo9sSvnOHut
+         bnhgYhX8fv9rcobDYwZWKkxFwvl8cEIpunnYj+meW8akszURVFDxd0cihZBRBLZTXy
+         wydKu7XhyS/DKNEKgJW79Qhvju7XliH4hNTCJTVg=
+Date:   Thu, 24 Mar 2022 18:12:31 -0700
 To:     ryabinin.a.a@gmail.com, glider@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org, patches@lists.linux.dev,
@@ -36,22 +36,25 @@ To:     ryabinin.a.a@gmail.com, glider@google.com, elver@google.com,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220324180758.96b1ac7e17675d6bc474485e@linux-foundation.org>
-Subject: [patch 076/114] kasan: improve stack frame info in reports
-Message-Id: <20220325011223.932C7C340EC@smtp.kernel.org>
+Subject: [patch 079/114] kasan: simplify kasan_update_kunit_status() and call sites
+Message-Id: <20220325011232.525A8C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: improve stack frame info in reports
+Subject: kasan: simplify kasan_update_kunit_status() and call sites
 
-- Print at least task name and id for reports affecting allocas
-  (get_address_stack_frame_info() does not support them).
+- Rename kasan_update_kunit_status() to update_kunit_status()
+  (the function is static).
 
-- Capitalize first letter of each sentence.
+- Move the IS_ENABLED(CONFIG_KUNIT) to the function's
+  definition instead of duplicating it at call sites.
 
-Link: https://lkml.kernel.org/r/aa613f097c12f7b75efb17f2618ae00480fb4bc3.1646237226.git.andreyknvl@google.com
+- Obtain and check current->kunit_test within the function.
+
+Link: https://lkml.kernel.org/r/dac26d811ae31856c3d7666de0b108a3735d962d.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -60,36 +63,81 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report_generic.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/kasan/report.c |   30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
---- a/mm/kasan/report_generic.c~kasan-improve-stack-frame-info-in-reports
-+++ a/mm/kasan/report_generic.c
-@@ -180,7 +180,7 @@ static void print_decoded_frame_descr(co
+--- a/mm/kasan/report.c~kasan-simplify-kasan_update_kunit_status-and-call-sites
++++ a/mm/kasan/report.c
+@@ -357,24 +357,31 @@ static bool report_enabled(void)
+ }
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+-static void kasan_update_kunit_status(struct kunit *cur_test, bool sync)
++static void update_kunit_status(bool sync)
+ {
++	struct kunit *test;
+ 	struct kunit_resource *resource;
+ 	struct kunit_kasan_status *status;
+ 
+-	resource = kunit_find_named_resource(cur_test, "kasan_status");
++	test = current->kunit_test;
++	if (!test)
++		return;
+ 
++	resource = kunit_find_named_resource(test, "kasan_status");
+ 	if (!resource) {
+-		kunit_set_failure(cur_test);
++		kunit_set_failure(test);
  		return;
+ 	}
  
- 	pr_err("\n");
--	pr_err("this frame has %lu %s:\n", num_objects,
-+	pr_err("This frame has %lu %s:\n", num_objects,
- 	       num_objects == 1 ? "object" : "objects");
- 
- 	while (num_objects--) {
-@@ -266,13 +266,14 @@ void kasan_print_address_stack_frame(con
- 	if (WARN_ON(!object_is_on_stack(addr)))
- 		return;
- 
-+	pr_err("The buggy address belongs to stack of task %s/%d\n",
-+	       current->comm, task_pid_nr(current));
+ 	status = (struct kunit_kasan_status *)resource->data;
+ 	WRITE_ONCE(status->report_found, true);
+ 	WRITE_ONCE(status->sync_fault, sync);
 +
- 	if (!get_address_stack_frame_info(addr, &offset, &frame_descr,
- 					  &frame_pc))
- 		return;
+ 	kunit_put_resource(resource);
+ }
+-#endif /* IS_ENABLED(CONFIG_KUNIT) */
++#else
++static void update_kunit_status(bool sync) { }
++#endif
  
--	pr_err("\n");
--	pr_err("addr %px is located in stack of task %s/%d at offset %lu in frame:\n",
--	       addr, current->comm, task_pid_nr(current), offset);
-+	pr_err(" and is located at offset %lu in frame:\n", offset);
- 	pr_err(" %pS\n", frame_pc);
+ void kasan_report_invalid_free(void *object, unsigned long ip)
+ {
+@@ -383,10 +390,7 @@ void kasan_report_invalid_free(void *obj
  
- 	if (!frame_descr)
+ 	object = kasan_reset_tag(object);
+ 
+-#if IS_ENABLED(CONFIG_KUNIT)
+-	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test, true);
+-#endif /* IS_ENABLED(CONFIG_KUNIT) */
++	update_kunit_status(true);
+ 
+ 	start_report(&flags);
+ 	pr_err("BUG: KASAN: double-free or invalid-free in %pS\n", (void *)ip);
+@@ -402,10 +406,7 @@ void kasan_report_async(void)
+ {
+ 	unsigned long flags;
+ 
+-#if IS_ENABLED(CONFIG_KUNIT)
+-	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test, false);
+-#endif /* IS_ENABLED(CONFIG_KUNIT) */
++	update_kunit_status(false);
+ 
+ 	start_report(&flags);
+ 	pr_err("BUG: KASAN: invalid-access\n");
+@@ -424,10 +425,7 @@ static void __kasan_report(unsigned long
+ 	void *untagged_addr;
+ 	unsigned long flags;
+ 
+-#if IS_ENABLED(CONFIG_KUNIT)
+-	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test, true);
+-#endif /* IS_ENABLED(CONFIG_KUNIT) */
++	update_kunit_status(true);
+ 
+ 	disable_trace_on_warning();
+ 
 _
