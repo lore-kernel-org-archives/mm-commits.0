@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD19FC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC50CC4332F
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:34:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357424AbiCYBgF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:36:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40014 "EHLO
+        id S1357391AbiCYBgE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:36:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357414AbiCYBfY (ORCPT
+        with ESMTP id S1357357AbiCYBfY (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:24 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBD72D56
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:05 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A60F01013
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 847F2B82727
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41C30C340EC;
-        Fri, 25 Mar 2022 01:33:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0C50F60B08
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 671E1C340EC;
+        Fri, 25 Mar 2022 01:33:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171983;
-        bh=BQd8dbjIPA7sq06vp9Ys2mHcGK3KXNA5yP2BsyI07hQ=;
+        s=korg; t=1648171985;
+        bh=wm9Dsfu0HhA1AQRiHi75sYSXCTem54iIxiroJL/8LZ0=;
         h=Date:To:From:Subject:From;
-        b=GKAS9pwDqS0wSUlYARXQgRKA0u5A6VBWh8AM42l+nq4iQb2TRMSYh0aPKaTqbLF+Y
-         rM1Ck5TX+TbaJC0lAGe+f9AZdBRLceQHKSnhvgIfl2RY82Vs1AcZImEvT2K3sVMcB1
-         wg+zp5g/5528sWfBeZuZ2RSGLQaRST2ydvTkgK7Y=
-Date:   Thu, 24 Mar 2022 18:33:02 -0700
+        b=q162x2kWm8fdJ1qI96wnOrXJIdbzb3KMUvYIGJnaqALbFpBOnm8KUtYzSG2ef7yXX
+         HDQiTed/fGgRiux12O3mvC/RY9kHiRoDiMr/UHUJFCNAKwVBlfvbS7Ul5zm4WNXaaI
+         pgW8AqqLu0tBrdjuTIGZy/0+dKpUpkIiA40iRn8k=
+Date:   Thu, 24 Mar 2022 18:33:04 -0700
 To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         dlatypov@google.com, davidgow@google.com,
         brendanhiggins@google.com, liupeng256@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kunit-fix-uaf-when-run-kfence-test-case-test_gfpzero.patch removed from -mm tree
-Message-Id: <20220325013303.41C30C340EC@smtp.kernel.org>
+Subject: [merged] kfence-test-try-to-avoid-test_gfpzero-trigger-rcu_stall.patch removed from -mm tree
+Message-Id: <20220325013305.671E1C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,64 +44,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kunit: fix UAF when run kfence test case test_gfpzero
+     Subject: kfence: test: try to avoid test_gfpzero trigger rcu_stall
 has been removed from the -mm tree.  Its filename was
-     kunit-fix-uaf-when-run-kfence-test-case-test_gfpzero.patch
+     kfence-test-try-to-avoid-test_gfpzero-trigger-rcu_stall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peng Liu <liupeng256@huawei.com>
-Subject: kunit: fix UAF when run kfence test case test_gfpzero
+Subject: kfence: test: try to avoid test_gfpzero trigger rcu_stall
 
-Patch series "kunit: fix a UAF bug and do some optimization", v2.
+When CONFIG_KFENCE_NUM_OBJECTS is set to a big number, kfence
+kunit-test-case test_gfpzero will eat up nearly all the CPU's resources
+and rcu_stall is reported as the following log which is cut from a
+physical server.
 
-This series is to fix UAF (use after free) when running kfence test case
-test_gfpzero, which is time costly.  This UAF bug can be easily triggered
-by setting CONFIG_KFENCE_NUM_OBJECTS = 65535.  Furthermore, some
-optimization for kunit tests has been done.
-
-
-This patch (of 3):
-
-Kunit will create a new thread to run an actual test case, and the main
-process will wait for the completion of the actual test thread until
-overtime.  The variable "struct kunit test" has local property in function
-kunit_try_catch_run, and will be used in the test case thread.  Task
-kunit_try_catch_run will free "struct kunit test" when kunit runs
-overtime, but the actual test case is still run and an UAF bug will be
-triggered.
-
-The above problem has been both observed in a physical machine and qemu
-platform when running kfence kunit tests.  The problem can be triggered
-when setting CONFIG_KFENCE_NUM_OBJECTS = 65535.  Under this setting, the
-test case test_gfpzero will cost hours and kunit will run to overtime. 
-The follows show the panic log.
-
-  BUG: unable to handle page fault for address: ffffffff82d882e9
-
-  Call Trace:
-   kunit_log_append+0x58/0xd0
+  rcu: INFO: rcu_sched self-detected stall on CPU
+  rcu: 	68-....: (14422 ticks this GP) idle=6ce/1/0x4000000000000002
+  softirq=592/592 fqs=7500 (t=15004 jiffies g=10677 q=20019)
+  Task dump for CPU 68:
+  task:kunit_try_catch state:R  running task
+  stack:    0 pid: 9728 ppid:     2 flags:0x0000020a
+  Call trace:
+   dump_backtrace+0x0/0x1e4
+   show_stack+0x20/0x2c
+   sched_show_task+0x148/0x170
    ...
-   test_alloc.constprop.0.cold+0x6b/0x8a [kfence_test]
-   test_gfpzero.cold+0x61/0x8ab [kfence_test]
-   kunit_try_run_case+0x4c/0x70
-   kunit_generic_run_threadfn_adapter+0x11/0x20
-   kthread+0x166/0x190
-   ret_from_fork+0x22/0x30
-  Kernel panic - not syncing: Fatal exception
-  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
-  Ubuntu-1.8.2-1ubuntu1 04/01/2014
+   rcu_sched_clock_irq+0x70/0x180
+   update_process_times+0x68/0xb0
+   tick_sched_handle+0x38/0x74
+   ...
+   gic_handle_irq+0x78/0x2c0
+   el1_irq+0xb8/0x140
+   kfree+0xd8/0x53c
+   test_alloc+0x264/0x310 [kfence_test]
+   test_gfpzero+0xf4/0x840 [kfence_test]
+   kunit_try_run_case+0x48/0x20c
+   kunit_generic_run_threadfn_adapter+0x28/0x34
+   kthread+0x108/0x13c
+   ret_from_fork+0x10/0x18
 
-To solve this problem, the test case thread should be stopped when the
-kunit frame runs overtime.  The stop signal will send in function
-kunit_try_catch_run, and test_gfpzero will handle it.
+To avoid rcu_stall and unacceptable latency, a schedule point is
+added to test_gfpzero.
 
-Link: https://lkml.kernel.org/r/20220309083753.1561921-1-liupeng256@huawei.com
-Link: https://lkml.kernel.org/r/20220309083753.1561921-2-liupeng256@huawei.com
+Link: https://lkml.kernel.org/r/20220309083753.1561921-4-liupeng256@huawei.com
 Signed-off-by: Peng Liu <liupeng256@huawei.com>
 Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
 Tested-by: Brendan Higgins <brendanhiggins@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -111,31 +99,19 @@ Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kunit/try-catch.c   |    1 +
- mm/kfence/kfence_test.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ mm/kfence/kfence_test.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/kunit/try-catch.c~kunit-fix-uaf-when-run-kfence-test-case-test_gfpzero
-+++ a/lib/kunit/try-catch.c
-@@ -78,6 +78,7 @@ void kunit_try_catch_run(struct kunit_tr
- 	if (time_remaining == 0) {
- 		kunit_err(test, "try timed out\n");
- 		try_catch->try_result = -ETIMEDOUT;
-+		kthread_stop(task_struct);
- 	}
- 
- 	exit_code = try_catch->try_result;
---- a/mm/kfence/kfence_test.c~kunit-fix-uaf-when-run-kfence-test-case-test_gfpzero
+--- a/mm/kfence/kfence_test.c~kfence-test-try-to-avoid-test_gfpzero-trigger-rcu_stall
 +++ a/mm/kfence/kfence_test.c
-@@ -623,7 +623,7 @@ static void test_gfpzero(struct kunit *t
- 			break;
- 		test_free(buf2);
- 
--		if (i == CONFIG_KFENCE_NUM_OBJECTS) {
-+		if (kthread_should_stop() || (i == CONFIG_KFENCE_NUM_OBJECTS)) {
+@@ -627,6 +627,7 @@ static void test_gfpzero(struct kunit *t
  			kunit_warn(test, "giving up ... cannot get same object back\n");
  			return;
  		}
++		cond_resched();
+ 	}
+ 
+ 	for (i = 0; i < size; i++)
 _
 
 Patches currently in -mm which might be from liupeng256@huawei.com are
