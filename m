@@ -2,170 +2,316 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C565C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:09:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 162B2C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:09:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347505AbiCYBLQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:11:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36370 "EHLO
+        id S1357143AbiCYBLS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:11:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357150AbiCYBLF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:11:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23B615133F
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:09:32 -0700 (PDT)
+        with ESMTP id S1357158AbiCYBLL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:11:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EF28606E0
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:09:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D5226B82707
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:09:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91833C340EE;
-        Fri, 25 Mar 2022 01:09:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F12E7B82707
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:09:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 877B6C340EE;
+        Fri, 25 Mar 2022 01:09:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648170569;
-        bh=2IFH8W3AxHUPucqXzAAGwgn/SCDG1NngfymN9bkp7n8=;
+        s=korg; t=1648170575;
+        bh=B8NIBq0NakOB1oQvrAszd5FdAg2a0WRU4gOU+wg2Q3Q=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=efNhAqU/H8QpFEeAUk+Al1DGhuQ6ythcpCgvIw/xRgO8nDv5t8JQildSu35ZY/To4
-         DSj/B8uw2oXu89qZ9IgQa6YgwRGZh3qzlRKEmvz/tTvX20RuAyjaxqMkQuTfzLzw1Z
-         LQRsFBZ8yomzUq2PxAScM0KkSGnWeX1kWpTunMP0=
-Date:   Thu, 24 Mar 2022 18:09:29 -0700
-To:     zhangyinan2019@email.szu.edu.cn, weizhenliang@huawei.com,
-        sfr@canb.auug.org.au, seanga2@gmail.com,
-        hanshenghong2019@email.szu.edu.cn, caoyixuan2019@email.szu.edu.cn,
+        b=jjaNdUGACAkvI85jajmG4bMky3MBE2GSY/VYkK+F9sM1xO09w9CMQGKEeZDag+OUf
+         08bgospYk4C9+cO+p2NddNBI1rQzP8u40nbvP2zHTLprKmQRrvgO3EMPWUkJt1yp7i
+         1VM4E/NIEcFA6JMIt3uudesNk89cyy3abM8obayc=
+Date:   Thu, 24 Mar 2022 18:09:34 -0700
+To:     weizhenliang@huawei.com, sfr@canb.auug.org.au, seanga2@gmail.com,
         yejiajian2018@email.szu.edu.cn, akpm@linux-foundation.org,
         patches@lists.linux.dev, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220324180758.96b1ac7e17675d6bc474485e@linux-foundation.org>
-Subject: [patch 018/114] tools/vm/page_owner_sort: fix three trivival places
-Message-Id: <20220325010929.91833C340EE@smtp.kernel.org>
+Subject: [patch 020/114] tools/vm/page_owner_sort.c: support for selecting by PID, TGID or task command name
+Message-Id: <20220325010935.877B6C340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Subject: tools/vm/page_owner_sort: fix three trivival places
+Subject: tools/vm/page_owner_sort.c: support for selecting by PID, TGID or task command name
 
-The following adjustments are made:
+When viewing page owner information, we may also need to select the blocks
+by PID, TGID or task command name, which helps to get more accurate page
+allocation information as needed.
 
-1. Instead of using another array to cull the blocks after sorting,
-   reuse the old array.  So there is no need to malloc a new array.
+Therefore, following adjustments are made:
 
-2. When enabling '-f' option to filter out the blocks which have been
-   released, only add those have not been released in the list, rather
-   than add all of blocks in the list and then do the filtering when
-   printing the result.
+1. Add three new options, including --pid, --tgid and --name, to support
+the selection of information blocks by a specific pid, tgid and task
+command name. In addtion, multiple options are allowed to be used at the
+same time.
 
-3. When enabling '-c' option to cull the blocks by comparing
-   stacktrace, print the stacetrace rather than the total block.
+	./page_owner_sort [input] [output] --pid <PID>
+	./page_owner_sort [input] [output] --tgid <TGID>
+	./page_owner_sort [input] [output] --name <TASK_COMMAND_NAME>
 
-Link: https://lkml.kernel.org/r/20220306030640.43054-1-yejiajian2018@email.szu.edu.cn
+Assuming a scenario when a multi-threaded program, ./demo (PID = 5280),
+is running, and ./demo creates a child process (PID = 5281).
+
+	$ps
+	PID   TTY        TIME   CMD
+	5215  pts/0    00:00:00  bash
+	5280  pts/0    00:00:00  ./demo
+	5281  pts/0    00:00:00  ./demo
+	5282  pts/0    00:00:00  ps
+
+It would be better to filter out the records with tgid=5280 and the
+task name "demo" when debugging the parent process, and the specific
+usage is
+
+	./page_owner_sort [input] [output] --tgid 5280 --name demo
+
+2. Add explanations of three new options, including --pid, --tgid
+and --name, to the document.
+
+This work is coauthored by
+	Shenghong Han <hanshenghong2019@email.szu.edu.cn>,
+	Yixuan Cao <caoyixuan2019@email.szu.edu.cn>,
+	Yinan Zhang <zhangyinan2019@email.szu.edu.cn>,
+	Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>,
+	Yuhong Feng <yuhongf@szu.edu.cn>.
+
+Link: https://lkml.kernel.org/r/1646835223-7584-1-git-send-email-yejiajian2018@email.szu.edu.cn
 Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Cc: <hanshenghong2019@email.szu.edu.cn>
 Cc: Sean Anderson <seanga2@gmail.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
-Cc: <zhangyinan2019@email.szu.edu.cn>
 Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |   37 +++++++++++++++++------------------
- 1 file changed, 19 insertions(+), 18 deletions(-)
+ Documentation/vm/page_owner.rst |    6 +
+ tools/vm/page_owner_sort.c      |  118 +++++++++++++++++++++++-------
+ 2 files changed, 98 insertions(+), 26 deletions(-)
 
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-fix-three-trivival-places
-+++ a/tools/vm/page_owner_sort.c
-@@ -42,6 +42,8 @@ static regex_t free_ts_nsec_pattern;
- static struct block_list *list;
- static int list_size;
- static int max_size;
-+static int cull_st;
-+static int filter;
+--- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name
++++ a/Documentation/vm/page_owner.rst
+@@ -129,3 +129,9 @@ Usage
  
- int read_block(char *buf, int buf_size, FILE *fin)
+ 	Filter:
+ 		-f		Filter out the information of blocks whose memory has been released.
++
++	Select:
++		--pid <PID>			Select by pid.
++		--tgid <TGID>		Select by tgid.
++		--name <command>	Select by task command name.
++
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-support-for-selecting-by-pid-tgid-or-task-command-name
++++ a/tools/vm/page_owner_sort.c
+@@ -21,6 +21,12 @@
+ #include <regex.h>
+ #include <errno.h>
+ #include <linux/types.h>
++#include <getopt.h>
++
++#define bool int
++#define true 1
++#define false 0
++#define TASK_COMM_LEN 16
+ 
+ struct block_list {
+ 	char *txt;
+@@ -34,7 +40,18 @@ struct block_list {
+ 	pid_t pid;
+ 	pid_t tgid;
+ };
+-
++enum FILTER_BIT {
++	FILTER_UNRELEASE = 1<<1,
++	FILTER_PID = 1<<2,
++	FILTER_TGID = 1<<3,
++	FILTER_TASK_COMM_NAME = 1<<4
++};
++struct filter_condition {
++	pid_t tgid;
++	pid_t pid;
++	char comm[TASK_COMM_LEN];
++};
++static struct filter_condition fc;
+ static regex_t order_pattern;
+ static regex_t pid_pattern;
+ static regex_t tgid_pattern;
+@@ -154,7 +171,6 @@ static void check_regcomp(regex_t *patte
+ }
+ 
+ # define FIELD_BUFF 25
+-# define TASK_COMM_LEN 16
+ 
+ static int get_page_num(char *buf)
  {
-@@ -245,6 +247,9 @@ static void add_list(char *buf, int len)
+@@ -259,11 +275,30 @@ static char *get_comm(char *buf)
+ 	return comm_str;
+ }
+ 
++static bool is_need(char *buf)
++{
++		if ((filter & FILTER_UNRELEASE) != 0 && get_free_ts_nsec(buf) != 0)
++			return false;
++		if ((filter & FILTER_PID) != 0 && get_pid(buf) != fc.pid)
++			return false;
++		if ((filter & FILTER_TGID) != 0 && get_tgid(buf) != fc.tgid)
++			return false;
++
++		char *comm = get_comm(buf);
++
++		if ((filter & FILTER_TASK_COMM_NAME) != 0  &&
++		strncmp(comm, fc.comm, TASK_COMM_LEN) != 0) {
++			free(comm);
++			return false;
++		}
++		return true;
++}
++
+ static void add_list(char *buf, int len)
+ {
+ 	if (list_size != 0 &&
+-	    len == list[list_size-1].len &&
+-	    memcmp(buf, list[list_size-1].txt, len) == 0) {
++		len == list[list_size-1].len &&
++		memcmp(buf, list[list_size-1].txt, len) == 0) {
+ 		list[list_size-1].num++;
+ 		list[list_size-1].page_num += get_page_num(buf);
+ 		return;
+@@ -272,28 +307,27 @@ static void add_list(char *buf, int len)
+ 		printf("max_size too small??\n");
  		exit(1);
  	}
- 
-+	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
-+	if (filter == 1 && list[list_size].free_ts_nsec != 0)
-+		return;
+-
+-	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
+-	if (filter == 1 && list[list_size].free_ts_nsec != 0)
++	if (!is_need(buf))
+ 		return;
++	list[list_size].pid = get_pid(buf);
++	list[list_size].tgid = get_tgid(buf);
++	list[list_size].comm = get_comm(buf);
  	list[list_size].txt = malloc(len+1);
  	if (!list[list_size].txt) {
  		printf("Out of memory\n");
-@@ -257,10 +262,11 @@ static void add_list(char *buf, int len)
- 	memcpy(list[list_size].txt, buf, len);
- 	list[list_size].txt[len] = 0;
+ 		exit(1);
+ 	}
+-
++	memcpy(list[list_size].txt, buf, len);
++	list[list_size].txt[len] = 0;
+ 	list[list_size].len = len;
+ 	list[list_size].num = 1;
+ 	list[list_size].page_num = get_page_num(buf);
+-	memcpy(list[list_size].txt, buf, len);
+-	list[list_size].txt[len] = 0;
++
  	list[list_size].stacktrace = strchr(list[list_size].txt, '\n') ?: "";
-+	if (*list[list_size].stacktrace == '\n')
-+		list[list_size].stacktrace++;
- 	list[list_size].pid = get_pid(buf);
- 	list[list_size].tgid = get_tgid(buf);
+ 	if (*list[list_size].stacktrace == '\n')
+ 		list[list_size].stacktrace++;
+-	list[list_size].pid = get_pid(buf);
+-	list[list_size].tgid = get_tgid(buf);
+-	list[list_size].comm = get_comm(buf);
  	list[list_size].ts_nsec = get_ts_nsec(buf);
--	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
++	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
  	list_size++;
  	if (list_size % 1000 == 0) {
  		printf("loaded %d\r", list_size);
-@@ -288,12 +294,9 @@ static void usage(void)
- int main(int argc, char **argv)
+@@ -306,16 +340,19 @@ static void add_list(char *buf, int len)
+ static void usage(void)
+ {
+ 	printf("Usage: ./page_owner_sort [OPTIONS] <input> <output>\n"
+-		"-m	Sort by total memory.\n"
+-		"-s	Sort by the stack trace.\n"
+-		"-t	Sort by times (default).\n"
+-		"-p	Sort by pid.\n"
+-		"-P	Sort by tgid.\n"
+-		"-n	Sort by task command name.\n"
+-		"-a	Sort by memory allocate time.\n"
+-		"-r	Sort by memory release time.\n"
+-		"-c	Cull by comparing stacktrace instead of total block.\n"
+-		"-f	Filter out the information of blocks whose memory has been released.\n"
++		"-m\t\tSort by total memory.\n"
++		"-s\t\tSort by the stack trace.\n"
++		"-t\t\tSort by times (default).\n"
++		"-p\t\tSort by pid.\n"
++		"-P\t\tSort by tgid.\n"
++		"-n\t\tSort by task command name.\n"
++		"-a\t\tSort by memory allocate time.\n"
++		"-r\t\tSort by memory release time.\n"
++		"-c\t\tCull by comparing stacktrace instead of total block.\n"
++		"-f\t\tFilter out the information of blocks whose memory has been released.\n"
++		"--pid <PID>\tSelect by pid. This selects the information of blocks whose process ID number equals to <PID>.\n"
++		"--tgid <TGID>\tSelect by tgid. This selects the information of blocks whose Thread Group ID number equals to <TGID>.\n"
++		"--name <command>\n\t\tSelect by command name. This selects the information of blocks whose command name identical to <command>.\n"
+ 	);
+ }
+ 
+@@ -323,12 +360,18 @@ int main(int argc, char **argv)
  {
  	int (*cmp)(const void *, const void *) = compare_num;
--	int cull_st = 0;
--	int filter = 0;
  	FILE *fin, *fout;
- 	char *buf;
+-	char *buf;
++	char *buf, *endptr;
  	int ret, i, count;
--	struct block_list *list2;
  	struct stat st;
  	int opt;
++	struct option longopts[] = {
++		{ "pid", required_argument, NULL, 1 },
++		{ "tgid", required_argument, NULL, 2 },
++		{ "name", required_argument, NULL, 3 },
++		{ 0, 0, 0, 0},
++	};
  
-@@ -376,11 +379,7 @@ int main(int argc, char **argv)
- 	else
- 		qsort(list, list_size, sizeof(list[0]), compare_txt);
- 
--	list2 = malloc(sizeof(*list) * list_size);
--	if (!list2) {
--		printf("Out of memory\n");
--		exit(1);
--	}
-+
- 
- 	printf("culling\n");
- 
-@@ -388,21 +387,23 @@ int main(int argc, char **argv)
- 
- 	for (i = count = 0; i < list_size; i++) {
- 		if (count == 0 ||
--		    strcmp(*(&list2[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
--			list2[count++] = list[i];
-+		    strcmp(*(&list[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
-+			list[count++] = list[i];
- 		} else {
--			list2[count-1].num += list[i].num;
--			list2[count-1].page_num += list[i].page_num;
-+			list[count-1].num += list[i].num;
-+			list[count-1].page_num += list[i].page_num;
- 		}
- 	}
- 
--	qsort(list2, count, sizeof(list[0]), cmp);
-+	qsort(list, count, sizeof(list[0]), cmp);
- 
- 	for (i = 0; i < count; i++) {
--		if (filter == 1 && list2[i].free_ts_nsec != 0)
--			continue;
--		fprintf(fout, "%d times, %d pages:\n%s\n",
--				list2[i].num, list2[i].page_num, list2[i].txt);
-+		if (cull_st == 0)
-+			fprintf(fout, "%d times, %d pages:\n%s\n",
-+					list[i].num, list[i].page_num, list[i].txt);
-+		else
-+			fprintf(fout, "%d times, %d pages:\n%s\n",
-+					list[i].num, list[i].page_num, list[i].stacktrace);
- 	}
- 	regfree(&order_pattern);
- 	regfree(&pid_pattern);
+-	while ((opt = getopt(argc, argv, "acfmnprstP")) != -1)
++	while ((opt = getopt_long(argc, argv, "acfmnprstP", longopts, NULL)) != -1)
+ 		switch (opt) {
+ 		case 'a':
+ 			cmp = compare_ts;
+@@ -337,7 +380,7 @@ int main(int argc, char **argv)
+ 			cull_st = 1;
+ 			break;
+ 		case 'f':
+-			filter = 1;
++			filter = filter | FILTER_UNRELEASE;
+ 			break;
+ 		case 'm':
+ 			cmp = compare_page_num;
+@@ -360,6 +403,29 @@ int main(int argc, char **argv)
+ 		case 'n':
+ 			cmp = compare_comm;
+ 			break;
++		case 1:
++			filter = filter | FILTER_PID;
++			errno = 0;
++			fc.pid = strtol(optarg, &endptr, 10);
++			if (errno != 0 || endptr == optarg || *endptr != '\0') {
++				printf("wrong/invalid pid in from the command line:%s\n", optarg);
++				exit(1);
++			}
++			break;
++		case 2:
++			filter = filter | FILTER_TGID;
++			errno = 0;
++			fc.tgid = strtol(optarg, &endptr, 10);
++			if (errno != 0 || endptr == optarg || *endptr != '\0') {
++				printf("wrong/invalid tgid in from the command line:%s\n", optarg);
++				exit(1);
++			}
++			break;
++		case 3:
++			filter = filter | FILTER_TASK_COMM_NAME;
++			strncpy(fc.comm, optarg, TASK_COMM_LEN);
++			fc.comm[TASK_COMM_LEN-1] = '\0';
++			break;
+ 		default:
+ 			usage();
+ 			exit(1);
 _
