@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8451FC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCAFAC433FE
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234009AbiCYWok (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:44:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54738 "EHLO
+        id S234019AbiCYWol (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:44:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234019AbiCYWoa (ORCPT
+        with ESMTP id S234021AbiCYWoa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:44:30 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B488A20D504
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:54 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B2EF20D510
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 0FF78CE2A9E
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 722CAC004DD;
-        Fri, 25 Mar 2022 22:42:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F1969614D8
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56C36C340ED;
+        Fri, 25 Mar 2022 22:42:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248171;
-        bh=oYDRghRg/LkgFlYXzP3yN02LNdkv6kEvApWfMEI+7Wc=;
+        s=korg; t=1648248174;
+        bh=kBIFlCReCjYTkombzzoTwmdLryQ3GUUWHdvTdrbb6u4=;
         h=Date:To:From:Subject:From;
-        b=eHRioVGGhXkvOnLAqeooqb8j3+UlEZhVxX5szn0pWjHQr8waNuqcwZGEKu1xf1GBf
-         zTn++BCx4L3bC6kX1qg4KUvLmkSPGU+ATjLfDH1iHByLlBkFojnizfmOSwnQnHd3yj
-         SN82grxtDeBzOf9j+EzYmbqk8Qx6O0uXuCDmMCYs=
-Date:   Fri, 25 Mar 2022 15:42:50 -0700
+        b=MiyfZVnPDVAseeN3s9Wh37fF5LfFHTA7tNQV8z3E3YJXPgTGXP5hyaoiNOsiG+bYp
+         Nncp2aLCVaPztfwEL/qKp8u1OmWn1ZeTCw+WbxPvEgivXtnvf8kpvJbzDa9htGCh7B
+         jNAQwTg9llfjVKkd+AmRcfXu5NbZsx4+JzW1BMmk=
+Date:   Fri, 25 Mar 2022 15:42:53 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kasan-split-out-print_report-from-__kasan_report.patch removed from -mm tree
-Message-Id: <20220325224251.722CAC004DD@smtp.kernel.org>
+Subject: [merged] kasan-merge-__kasan_report-into-kasan_report.patch removed from -mm tree
+Message-Id: <20220325224254.56C36C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,29 +42,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: split out print_report from __kasan_report
+     Subject: kasan: merge __kasan_report into kasan_report
 has been removed from the -mm tree.  Its filename was
-     kasan-split-out-print_report-from-__kasan_report.patch
+     kasan-merge-__kasan_report-into-kasan_report.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: split out print_report from __kasan_report
+Subject: kasan: merge __kasan_report into kasan_report
 
-Split out the part of __kasan_report() that prints things into
-print_report().  One of the subsequent patches makes another error handler
-use print_report() as well.
+Merge __kasan_report() into kasan_report().  The code is simple enough to
+be readable without the __kasan_report() helper.
 
-Includes lower-level changes:
-
-- Allow addr_has_metadata() accepting a tagged address.
-- Drop the const qualifier from the fields of kasan_access_info to avoid
-  excessive type casts.
-- Change the type of the address argument of __kasan_report() and
-  end_report() to void * to reduce the number of type casts.
-
-Link: https://lkml.kernel.org/r/9be3ed99dd24b9c4e1c4a848b69a0c6ecefd845e.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/c8a125497ef82f7042b3795918dffb81a85a878e.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -73,138 +64,64 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h  |    7 +++--
- mm/kasan/report.c |   58 +++++++++++++++++++++++---------------------
- 2 files changed, 35 insertions(+), 30 deletions(-)
+ mm/kasan/report.c |   36 +++++++++++++++---------------------
+ 1 file changed, 15 insertions(+), 21 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-split-out-print_report-from-__kasan_report
-+++ a/mm/kasan/kasan.h
-@@ -128,8 +128,8 @@ static inline bool kasan_sync_fault_poss
- #define META_ROWS_AROUND_ADDR 2
- 
- struct kasan_access_info {
--	const void *access_addr;
--	const void *first_bad_addr;
-+	void *access_addr;
-+	void *first_bad_addr;
- 	size_t access_size;
- 	bool is_write;
- 	unsigned long ip;
-@@ -239,7 +239,8 @@ static inline const void *kasan_shadow_t
- 
- static inline bool addr_has_metadata(const void *addr)
- {
--	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
-+	return (kasan_reset_tag(addr) >=
-+		kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
- }
- 
- /**
---- a/mm/kasan/report.c~kasan-split-out-print_report-from-__kasan_report
+--- a/mm/kasan/report.c~kasan-merge-__kasan_report-into-kasan_report
 +++ a/mm/kasan/report.c
-@@ -139,10 +139,11 @@ static void start_report(unsigned long *
- 	pr_err("==================================================================\n");
+@@ -435,37 +435,31 @@ static void print_report(struct kasan_ac
+ 	}
  }
  
--static void end_report(unsigned long *flags, unsigned long addr)
-+static void end_report(unsigned long *flags, void *addr)
- {
- 	if (addr)
--		trace_error_report_end(ERROR_DETECTOR_KASAN, addr);
-+		trace_error_report_end(ERROR_DETECTOR_KASAN,
-+				       (unsigned long)addr);
- 	pr_err("==================================================================\n");
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
- 	spin_unlock_irqrestore(&report_lock, *flags);
-@@ -398,7 +399,7 @@ void kasan_report_invalid_free(void *obj
- 	pr_err("\n");
- 	print_address_description(object, tag);
- 	print_memory_metadata(object);
--	end_report(&flags, (unsigned long)object);
-+	end_report(&flags, object);
- }
- 
- #ifdef CONFIG_KASAN_HW_TAGS
-@@ -411,44 +412,47 @@ void kasan_report_async(void)
- 	pr_err("Asynchronous mode enabled: no access details available\n");
- 	pr_err("\n");
- 	dump_stack_lvl(KERN_ERR);
--	end_report(&flags, 0);
-+	end_report(&flags, NULL);
- }
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
--static void __kasan_report(unsigned long addr, size_t size, bool is_write,
-+static void print_report(struct kasan_access_info *info)
-+{
-+	void *tagged_addr = info->access_addr;
-+	void *untagged_addr = kasan_reset_tag(tagged_addr);
-+	u8 tag = get_tag(tagged_addr);
-+
-+	print_error_description(info);
-+	if (addr_has_metadata(untagged_addr))
-+		kasan_print_tags(tag, info->first_bad_addr);
-+	pr_err("\n");
-+
-+	if (addr_has_metadata(untagged_addr)) {
-+		print_address_description(untagged_addr, tag);
-+		print_memory_metadata(info->first_bad_addr);
-+	} else {
-+		dump_stack_lvl(KERN_ERR);
-+	}
-+}
-+
-+static void __kasan_report(void *addr, size_t size, bool is_write,
- 				unsigned long ip)
- {
- 	struct kasan_access_info info;
--	void *tagged_addr;
--	void *untagged_addr;
- 	unsigned long flags;
- 
- 	start_report(&flags, true);
- 
--	tagged_addr = (void *)addr;
--	untagged_addr = kasan_reset_tag(tagged_addr);
+-static void __kasan_report(void *addr, size_t size, bool is_write,
+-				unsigned long ip)
+-{
+-	struct kasan_access_info info;
+-	unsigned long flags;
 -
--	info.access_addr = tagged_addr;
--	if (addr_has_metadata(untagged_addr))
--		info.first_bad_addr =
--			kasan_find_first_bad_addr(tagged_addr, size);
-+	info.access_addr = addr;
-+	if (addr_has_metadata(addr))
-+		info.first_bad_addr = kasan_find_first_bad_addr(addr, size);
- 	else
--		info.first_bad_addr = untagged_addr;
-+		info.first_bad_addr = addr;
- 	info.access_size = size;
- 	info.is_write = is_write;
- 	info.ip = ip;
- 
--	print_error_description(&info);
--	if (addr_has_metadata(untagged_addr))
--		kasan_print_tags(get_tag(tagged_addr), info.first_bad_addr);
--	pr_err("\n");
+-	start_report(&flags, true);
 -
--	if (addr_has_metadata(untagged_addr)) {
--		print_address_description(untagged_addr, get_tag(tagged_addr));
--		print_memory_metadata(info.first_bad_addr);
--	} else {
--		dump_stack_lvl(KERN_ERR);
--	}
-+	print_report(&info);
+-	info.access_addr = addr;
+-	info.first_bad_addr = kasan_find_first_bad_addr(addr, size);
+-	info.access_size = size;
+-	info.is_write = is_write;
+-	info.ip = ip;
+-
+-	print_report(&info);
+-
+-	end_report(&flags, addr);
+-}
+-
+ bool kasan_report(unsigned long addr, size_t size, bool is_write,
+ 			unsigned long ip)
+ {
+-	unsigned long ua_flags = user_access_save();
+ 	bool ret = true;
++	void *ptr = (void *)addr;
++	unsigned long ua_flags = user_access_save();
++	unsigned long irq_flags;
++	struct kasan_access_info info;
  
- 	end_report(&flags, addr);
- }
-@@ -460,7 +464,7 @@ bool kasan_report(unsigned long addr, si
- 	bool ret = false;
- 
- 	if (likely(report_enabled())) {
--		__kasan_report(addr, size, is_write, ip);
-+		__kasan_report((void *)addr, size, is_write, ip);
- 		ret = true;
+ 	if (unlikely(!report_enabled())) {
+ 		ret = false;
+ 		goto out;
  	}
  
+-	__kasan_report((void *)addr, size, is_write, ip);
++	start_report(&irq_flags, true);
++
++	info.access_addr = ptr;
++	info.first_bad_addr = kasan_find_first_bad_addr(ptr, size);
++	info.access_size = size;
++	info.is_write = is_write;
++	info.ip = ip;
++
++	print_report(&info);
++
++	end_report(&irq_flags, ptr);
+ 
+ out:
+ 	user_access_restore(ua_flags);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
