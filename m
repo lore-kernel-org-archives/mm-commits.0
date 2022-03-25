@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E42EC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:42:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36EFDC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:42:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233957AbiCYWoU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:44:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52932 "EHLO
+        id S234002AbiCYWoV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:44:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233956AbiCYWn4 (ORCPT
+        with ESMTP id S233953AbiCYWn4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 261F020A948
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:06 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95BBB20A946
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BD9F5B82A32
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70121C340ED;
-        Fri, 25 Mar 2022 22:42:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 309CE614DE
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 877DEC004DD;
+        Fri, 25 Mar 2022 22:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248123;
-        bh=nVzIBqavv2GoTW2ujib3pGHhVMdqAi5P4Az2cJ5Bi4M=;
+        s=korg; t=1648248124;
+        bh=1PVhabPIWNOU6UdktGLe6f7lQEY4JVIfWLPjolSGGoY=;
         h=Date:To:From:Subject:From;
-        b=X6xGz9hcoISb18fC+6Rer9+Aj/xuDjzuL7EethckGWJlgnqACPjiIbQJ6PbXuAA6h
-         6nbMJgTVMsunWtI1eDB4Kv0Dgw4tUPKtXKsgVdQBqA9Mh+txDWYtaEByYJkRZaZgWS
-         AyRUd+b5Gyg16nB/5aXLnJn2+vG5hhtwC3k3hEXY=
-Date:   Fri, 25 Mar 2022 15:42:02 -0700
+        b=RZbZpD/HnR7zLPDhONZKKWrmJTNnn91xM5yJKu4ZLrzVeEMNrzdwaSsJI2FN9QdpN
+         QpmN8+zw2sDjkpv9k66VDqRCsBcG6VhYTaLqrX0t127/tDfA4i2SdrvBMrlcvAU8c3
+         U/9C51ery+eKmlwwtXm1T+AW9doauIYzmS7FxZNM=
+Date:   Fri, 25 Mar 2022 15:42:03 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
         mark.rutland@arm.com, glider@google.com, eugenis@google.com,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch removed from -mm tree
-Message-Id: <20220325224203.70121C340ED@smtp.kernel.org>
+Subject: [merged] kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch removed from -mm tree
+Message-Id: <20220325224204.877DEC004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,28 +44,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, page_alloc: refactor init checks in post_alloc_hook
+     Subject: kasan, page_alloc: merge kasan_alloc_pages into post_alloc_hook
 has been removed from the -mm tree.  Its filename was
-     kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+     kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: refactor init checks in post_alloc_hook
+Subject: kasan, page_alloc: merge kasan_alloc_pages into post_alloc_hook
 
-Separate code for zeroing memory from the code clearing tags in
-post_alloc_hook().
+Currently, the code responsible for initializing and poisoning memory in
+post_alloc_hook() is scattered across two locations: kasan_alloc_pages()
+hook for HW_TAGS KASAN and post_alloc_hook() itself.  This is confusing.
+
+This and a few following patches combine the code from these two
+locations.  Along the way, these patches do a step-by-step restructure the
+many performed checks to make them easier to follow.
+
+Replace the only caller of kasan_alloc_pages() with its implementation.
+
+As kasan_has_integrated_init() is only true when CONFIG_KASAN_HW_TAGS is
+enabled, moving the code does no functional changes.
+
+Also move init and init_tags variables definitions out of
+kasan_has_integrated_init() clause in post_alloc_hook(), as they have the
+same values regardless of what the if condition evaluates to.
 
 This patch is not useful by itself but makes the simplifications in the
 following patches easier to follow.
 
-This patch does no functional changes.
-
-Link: https://lkml.kernel.org/r/2283fde963adfd8a2b29a92066f106cc16661a3c.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/5ac7e0b30f5cbb177ec363ddd7878a3141289592.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -77,42 +89,114 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ include/linux/kasan.h |    9 ---------
+ mm/kasan/common.c     |    2 +-
+ mm/kasan/hw_tags.c    |   22 ----------------------
+ mm/page_alloc.c       |   20 +++++++++++++++-----
+ 4 files changed, 16 insertions(+), 37 deletions(-)
 
---- a/mm/page_alloc.c~kasan-page_alloc-refactor-init-checks-in-post_alloc_hook
-+++ a/mm/page_alloc.c
-@@ -2368,19 +2368,21 @@ inline void post_alloc_hook(struct page
- 		kasan_alloc_pages(page, order, gfp_flags);
- 	} else {
- 		bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
-+		bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
+--- a/include/linux/kasan.h~kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook
++++ a/include/linux/kasan.h
+@@ -84,17 +84,8 @@ static inline void kasan_disable_current
  
- 		kasan_unpoison_pages(page, order, init);
+ #ifdef CONFIG_KASAN_HW_TAGS
  
--		if (init) {
--			if (gfp_flags & __GFP_ZEROTAGS) {
--				int i;
+-void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags);
 -
--				for (i = 0; i < 1 << order; i++)
--					tag_clear_highpage(page + i);
--			} else {
--				kernel_init_free_pages(page, 1 << order);
--			}
+ #else /* CONFIG_KASAN_HW_TAGS */
+ 
+-static __always_inline void kasan_alloc_pages(struct page *page,
+-					      unsigned int order, gfp_t flags)
+-{
+-	/* Only available for integrated init. */
+-	BUILD_BUG();
+-}
+-
+ #endif /* CONFIG_KASAN_HW_TAGS */
+ 
+ static inline bool kasan_has_integrated_init(void)
+--- a/mm/kasan/common.c~kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook
++++ a/mm/kasan/common.c
+@@ -538,7 +538,7 @@ void * __must_check __kasan_kmalloc_larg
+ 		return NULL;
+ 
+ 	/*
+-	 * The object has already been unpoisoned by kasan_alloc_pages() for
++	 * The object has already been unpoisoned by kasan_unpoison_pages() for
+ 	 * alloc_pages() or by kasan_krealloc() for krealloc().
+ 	 */
+ 
+--- a/mm/kasan/hw_tags.c~kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook
++++ a/mm/kasan/hw_tags.c
+@@ -192,28 +192,6 @@ void __init kasan_init_hw_tags(void)
+ 		kasan_stack_collection_enabled() ? "on" : "off");
+ }
+ 
+-void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags)
+-{
+-	/*
+-	 * This condition should match the one in post_alloc_hook() in
+-	 * page_alloc.c.
+-	 */
+-	bool init = !want_init_on_free() && want_init_on_alloc(flags);
+-	bool init_tags = init && (flags & __GFP_ZEROTAGS);
+-
+-	if (flags & __GFP_SKIP_KASAN_POISON)
+-		SetPageSkipKASanPoison(page);
+-
+-	if (init_tags) {
+-		int i;
+-
+-		for (i = 0; i != 1 << order; ++i)
+-			tag_clear_highpage(page + i);
+-	} else {
+-		kasan_unpoison_pages(page, order, init);
+-	}
+-}
+-
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+ void kasan_enable_tagging_sync(void)
+--- a/mm/page_alloc.c~kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook
++++ a/mm/page_alloc.c
+@@ -2346,6 +2346,9 @@ static inline bool check_new_pcp(struct
+ inline void post_alloc_hook(struct page *page, unsigned int order,
+ 				gfp_t gfp_flags)
+ {
++	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
++	bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
++
+ 	set_page_private(page, 0);
+ 	set_page_refcounted(page);
+ 
+@@ -2361,15 +2364,22 @@ inline void post_alloc_hook(struct page
+ 
+ 	/*
+ 	 * As memory initialization might be integrated into KASAN,
+-	 * kasan_alloc_pages and kernel_init_free_pages must be
++	 * KASAN unpoisoning and memory initializion code must be
+ 	 * kept together to avoid discrepancies in behavior.
+ 	 */
+ 	if (kasan_has_integrated_init()) {
+-		kasan_alloc_pages(page, order, gfp_flags);
+-	} else {
+-		bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
+-		bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
++		if (gfp_flags & __GFP_SKIP_KASAN_POISON)
++			SetPageSkipKASanPoison(page);
+ 
 +		if (init_tags) {
 +			int i;
 +
-+			for (i = 0; i < 1 << order; i++)
++			for (i = 0; i != 1 << order; ++i)
 +				tag_clear_highpage(page + i);
-+
-+			init = false;
- 		}
-+
-+		if (init)
-+			kernel_init_free_pages(page, 1 << order);
- 	}
++		} else {
++			kasan_unpoison_pages(page, order, init);
++		}
++	} else {
+ 		kasan_unpoison_pages(page, order, init);
  
- 	set_page_owner(page, order, gfp_flags);
+ 		if (init_tags) {
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
