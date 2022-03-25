@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82386C4321E
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:42:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1414C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:42:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233945AbiCYWn6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:43:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50804 "EHLO
+        id S233924AbiCYWn5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:43:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233931AbiCYWnZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69E29208C20
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:50 -0700 (PDT)
+        with ESMTP id S233925AbiCYWn2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FDDC209A6C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EF0BB614BD
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 567B5C36AE2;
-        Fri, 25 Mar 2022 22:41:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D1E0614DE
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 734F1C004DD;
+        Fri, 25 Mar 2022 22:41:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248109;
-        bh=kkucyzKtTOfe7FH0x7ydWAMHiePiBH+2aYyKAaQ61mw=;
+        s=korg; t=1648248112;
+        bh=h9lhknYYzD7XK83kNZmGKqsCKGhwN7+weknTR3X4dao=;
         h=Date:To:From:Subject:From;
-        b=euwDRYzTLjnpcoFgWs+II93hTczmUG2sx8tUbuyvANe3oOo5j0CwBQWe623D7XTsL
-         10kvtALMEc1yatL/G3yD+ycxQufWFuUCRC5JoEfQ/gszaPETjKa6hoPABvAo09ts2l
-         nA7DcxYEzqlQLBdRTY5GekdPY4B+kV1LGL9SzOUY=
-Date:   Fri, 25 Mar 2022 15:41:48 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        shy828301@gmail.com, npiggin@gmail.com, mhocko@suse.com,
-        david@redhat.com, hughd@google.com, akpm@linux-foundation.org
+        b=onctMkZhRK12DcOytE4ZIpOJ66oNvVO5HmoZBK2Hy5QJ+FNUzv3jya/1Aj5dUj6g3
+         auQhN+6YLazUMYQ16TIIECZFMQzGAt9dihFPoAHVCsS412JCsxfWb7EkzVsAgxN+1W
+         /TCjlWxWYptxqlCL93afRZkXC7rJ56Fp0EmqXqgI=
+Date:   Fri, 25 Mar 2022 15:41:51 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
+        rostedt@goodmis.org, paulus@samba.org, naoya.horiguchi@nec.com,
+        mpe@ellerman.id.au, mingo@redhat.com, jhubbard@nvidia.com,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-delete-__clearpagewaiters.patch removed from -mm tree
-Message-Id: <20220325224149.567B5C36AE2@smtp.kernel.org>
+Subject: [merged] mm-migration-add-trace-events-for-thp-migrations.patch removed from -mm tree
+Message-Id: <20220325224152.734F1C004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,130 +43,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: delete __ClearPageWaiters()
+     Subject: mm/migration: add trace events for THP migrations
 has been removed from the -mm tree.  Its filename was
-     mm-delete-__clearpagewaiters.patch
+     mm-migration-add-trace-events-for-thp-migrations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: delete __ClearPageWaiters()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/migration: add trace events for THP migrations
 
-The PG_waiters bit is not included in PAGE_FLAGS_CHECK_AT_FREE, and
-vmscan.c's free_unref_page_list() callers rely on that not to generate
-bad_page() alerts.  So __page_cache_release(), put_pages_list() and
-release_pages() (and presumably copy-and-pasted free_zone_device_page())
-are redundant and misleading to make a special point of clearing it (as
-the "__" implies, it could only safely be used on the freeing path).
+Patch series "mm/migration: Add trace events", v3.
 
-Delete __ClearPageWaiters().  Remark on this in one of the "possible"
-comments in folio_wake_bit(), and delete the superfluous comments.
+This adds trace events for all migration scenarios including base page,
+THP and HugeTLB.
 
-Link: https://lkml.kernel.org/r/3eafa969-5b1a-accf-88fe-318784c791a@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Tested-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+
+This patch (of 3):
+
+This adds two trace events for PMD based THP migration without split. 
+These events closely follow the implementation details like setting and
+removing of PMD migration entries, which are essential operations for THP
+migration.  This moves CREATE_TRACE_POINTS into generic THP from powerpc
+for these new trace events to be available on other platforms as well.
+
+Link: https://lkml.kernel.org/r/1643368182-9588-1-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1643368182-9588-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- mm/filemap.c               |   23 ++++++++---------------
- mm/memremap.c              |    2 --
- mm/swap.c                  |    4 ----
- 4 files changed, 9 insertions(+), 22 deletions(-)
+ arch/powerpc/mm/book3s64/trace.c |    1 -
+ include/trace/events/thp.h       |   27 +++++++++++++++++++++++++++
+ mm/huge_memory.c                 |    5 +++++
+ 3 files changed, 32 insertions(+), 1 deletion(-)
 
---- a/include/linux/page-flags.h~mm-delete-__clearpagewaiters
-+++ a/include/linux/page-flags.h
-@@ -481,7 +481,7 @@ static inline int TestClearPage##uname(s
- 	TESTSETFLAG_FALSE(uname, lname) TESTCLEARFLAG_FALSE(uname, lname)
+--- a/arch/powerpc/mm/book3s64/trace.c~mm-migration-add-trace-events-for-thp-migrations
++++ a/arch/powerpc/mm/book3s64/trace.c
+@@ -3,6 +3,5 @@
+  * This file is for defining trace points and trace related helpers.
+  */
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#define CREATE_TRACE_POINTS
+ #include <trace/events/thp.h>
+ #endif
+--- a/include/trace/events/thp.h~mm-migration-add-trace-events-for-thp-migrations
++++ a/include/trace/events/thp.h
+@@ -48,6 +48,33 @@ TRACE_EVENT(hugepage_update,
+ 	    TP_printk("hugepage update at addr 0x%lx and pte = 0x%lx clr = 0x%lx, set = 0x%lx", __entry->addr, __entry->pte, __entry->clr, __entry->set)
+ );
  
- __PAGEFLAG(Locked, locked, PF_NO_TAIL)
--PAGEFLAG(Waiters, waiters, PF_ONLY_HEAD) __CLEARPAGEFLAG(Waiters, waiters, PF_ONLY_HEAD)
-+PAGEFLAG(Waiters, waiters, PF_ONLY_HEAD)
- PAGEFLAG(Error, error, PF_NO_TAIL) TESTCLEARFLAG(Error, error, PF_NO_TAIL)
- PAGEFLAG(Referenced, referenced, PF_HEAD)
- 	TESTCLEARFLAG(Referenced, referenced, PF_HEAD)
---- a/mm/filemap.c~mm-delete-__clearpagewaiters
-+++ a/mm/filemap.c
-@@ -1185,24 +1185,17 @@ static void folio_wake_bit(struct folio
- 	}
- 
- 	/*
--	 * It is possible for other pages to have collided on the waitqueue
--	 * hash, so in that case check for a page match. That prevents a long-
--	 * term waiter
-+	 * It's possible to miss clearing waiters here, when we woke our page
-+	 * waiters, but the hashed waitqueue has waiters for other pages on it.
-+	 * That's okay, it's a rare case. The next waker will clear it.
- 	 *
--	 * It is still possible to miss a case here, when we woke page waiters
--	 * and removed them from the waitqueue, but there are still other
--	 * page waiters.
-+	 * Note that, depending on the page pool (buddy, hugetlb, ZONE_DEVICE,
-+	 * other), the flag may be cleared in the course of freeing the page;
-+	 * but that is not required for correctness.
- 	 */
--	if (!waitqueue_active(q) || !key.page_match) {
-+	if (!waitqueue_active(q) || !key.page_match)
- 		folio_clear_waiters(folio);
--		/*
--		 * It's possible to miss clearing Waiters here, when we woke
--		 * our page waiters, but the hashed waitqueue has waiters for
--		 * other pages on it.
--		 *
--		 * That's okay, it's a rare case. The next waker will clear it.
--		 */
--	}
++DECLARE_EVENT_CLASS(migration_pmd,
 +
- 	spin_unlock_irqrestore(&q->lock, flags);
++		TP_PROTO(unsigned long addr, unsigned long pmd),
++
++		TP_ARGS(addr, pmd),
++
++		TP_STRUCT__entry(
++			__field(unsigned long, addr)
++			__field(unsigned long, pmd)
++		),
++
++		TP_fast_assign(
++			__entry->addr = addr;
++			__entry->pmd = pmd;
++		),
++		TP_printk("addr=%lx, pmd=%lx", __entry->addr, __entry->pmd)
++);
++
++DEFINE_EVENT(migration_pmd, set_migration_pmd,
++	TP_PROTO(unsigned long addr, unsigned long pmd),
++	TP_ARGS(addr, pmd)
++);
++
++DEFINE_EVENT(migration_pmd, remove_migration_pmd,
++	TP_PROTO(unsigned long addr, unsigned long pmd),
++	TP_ARGS(addr, pmd)
++);
+ #endif /* _TRACE_THP_H */
+ 
+ /* This part must be outside protection */
+--- a/mm/huge_memory.c~mm-migration-add-trace-events-for-thp-migrations
++++ a/mm/huge_memory.c
+@@ -40,6 +40,9 @@
+ #include <asm/pgalloc.h>
+ #include "internal.h"
+ 
++#define CREATE_TRACE_POINTS
++#include <trace/events/thp.h>
++
+ /*
+  * By default, transparent hugepage support is disabled in order to avoid
+  * risking an increased memory footprint for applications that are not
+@@ -3131,6 +3134,7 @@ void set_pmd_migration_entry(struct page
+ 	set_pmd_at(mm, address, pvmw->pmd, pmdswp);
+ 	page_remove_rmap(page, vma, true);
+ 	put_page(page);
++	trace_set_migration_pmd(address, pmd_val(pmdswp));
  }
  
---- a/mm/memremap.c~mm-delete-__clearpagewaiters
-+++ a/mm/memremap.c
-@@ -456,8 +456,6 @@ void free_zone_device_page(struct page *
- 	if (WARN_ON_ONCE(!page->pgmap->ops || !page->pgmap->ops->page_free))
- 		return;
+ void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
+@@ -3163,5 +3167,6 @@ void remove_migration_pmd(struct page_vm
  
--	__ClearPageWaiters(page);
--
- 	mem_cgroup_uncharge(page_folio(page));
- 
- 	/*
---- a/mm/swap.c~mm-delete-__clearpagewaiters
-+++ a/mm/swap.c
-@@ -97,7 +97,6 @@ static void __page_cache_release(struct
- 		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
- 		count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
- 	}
--	__ClearPageWaiters(page);
+ 	/* No need to invalidate - it was non-present before */
+ 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
++	trace_remove_migration_pmd(address, pmd_val(pmde));
  }
- 
- static void __put_single_page(struct page *page)
-@@ -152,7 +151,6 @@ void put_pages_list(struct list_head *pa
- 			continue;
- 		}
- 		/* Cannot be PageLRU because it's passed to us using the lru */
--		__ClearPageWaiters(page);
- 	}
- 
- 	free_unref_page_list(pages);
-@@ -971,8 +969,6 @@ void release_pages(struct page **pages,
- 			count_vm_event(UNEVICTABLE_PGCLEARED);
- 		}
- 
--		__ClearPageWaiters(page);
--
- 		list_add(&page->lru, &pages_to_free);
- 	}
- 	if (lruvec)
+ #endif
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 
