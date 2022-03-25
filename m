@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C409C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD7EBC433FE
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:34:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357445AbiCYBgX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:36:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42932 "EHLO
+        id S240305AbiCYBgY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:36:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357478AbiCYBfc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2C9B29C93
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:24 -0700 (PDT)
+        with ESMTP id S1345273AbiCYBfq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:46 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C40022B1B8
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 758C960AD1
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD5CAC340ED;
-        Fri, 25 Mar 2022 01:33:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 72452B826FE
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16773C340ED;
+        Fri, 25 Mar 2022 01:33:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172003;
-        bh=X+LlXmYDomsVKZhoi7YpExrL/m5RcpNcInHJeXojIuQ=;
+        s=korg; t=1648172005;
+        bh=tIMYx1A1QGebjZDyb8cuZQOKgcAnW3djz60Y88ZC++A=;
         h=Date:To:From:Subject:From;
-        b=NuEeTNGzjf5w/iB32dD7e3YRFMY3kAY9pFXRh/H26pF0/0H+bITZXquuXA/RCsj5O
-         Xemt8iVy7uJ0nny6vkxyeK3XbX62vJmUs6jTzpgqvp2TkJvdqNM+qFaOIAZI5eDn4h
-         +E/KQ/ROOEUexT6qMtCGBxyIpfHcDdFobYuZl2Ms=
-Date:   Thu, 24 Mar 2022 18:33:23 -0700
-To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
+        b=HOP9PKtc1XmSJeo+VKJ7QXEULaAJUsEv5dtFG8XhzQdvnRGgt7bN6avuE6ne23oGc
+         Bon+AiGNuSdtzu+foHw8w9o91fCfwpP4mXbTWBuh3GCMePk3JvEswWxfSqr+qjCXRe
+         /GualL9yRlr6CVNjmOoovxwzGs0leMMFIwGtc1N4=
+Date:   Thu, 24 Mar 2022 18:33:24 -0700
+To:     mm-commits@vger.kernel.org, xhao@linux.alibaba.com,
+        skhan@linuxfoundation.org, rientjes@google.com,
+        gregkh@linuxfoundation.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] docs-damon-update-outdated-term-regions-update-interval.patch removed from -mm tree
-Message-Id: <20220325013323.CD5CAC340ED@smtp.kernel.org>
+Subject: [merged] mm-damon-core-allow-non-exclusive-damon-start-stop.patch removed from -mm tree
+Message-Id: <20220325013325.16773C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,79 +43,290 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/damon: update outdated term 'regions update interval'
+     Subject: mm/damon/core: allow non-exclusive DAMON start/stop
 has been removed from the -mm tree.  Its filename was
-     docs-damon-update-outdated-term-regions-update-interval.patch
+     mm-damon-core-allow-non-exclusive-damon-start-stop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/damon: update outdated term 'regions update interval'
+Subject: mm/damon/core: allow non-exclusive DAMON start/stop
 
-Before DAMON is merged in the mainline, the concept of 'regions update
-interval' has generalized to be used as the time interval for update of
-any monitoring operations related data structure, but the document has not
-updated properly.  This commit updates the document for better
-consistency.
+Patch series "Introduce DAMON sysfs interface", v3.
 
-Link: https://lkml.kernel.org/r/20220222170100.17068-4-sj@kernel.org
+Introduction
+============
+
+DAMON's debugfs-based user interface (DAMON_DBGFS) served very well, so
+far.  However, it unnecessarily depends on debugfs, while DAMON is not
+aimed to be used for only debugging.  Also, the interface receives
+multiple values via one file.  For example, schemes file receives 18
+values.  As a result, it is inefficient, hard to be used, and difficult to
+be extended.  Especially, keeping backward compatibility of user space
+tools is getting only challenging.  It would be better to implement
+another reliable and flexible interface and deprecate DAMON_DBGFS in long
+term.
+
+For the reason, this patchset introduces a sysfs-based new user interface
+of DAMON.  The idea of the new interface is, using directory hierarchies
+and having one dedicated file for each value.  For a short example, users
+can do the virtual address monitoring via the interface as below:
+
+    # cd /sys/kernel/mm/damon/admin/
+    # echo 1 > kdamonds/nr_kdamonds
+    # echo 1 > kdamonds/0/contexts/nr_contexts
+    # echo vaddr > kdamonds/0/contexts/0/operations
+    # echo 1 > kdamonds/0/contexts/0/targets/nr_targets
+    # echo $(pidof <workload>) > kdamonds/0/contexts/0/targets/0/pid_target
+    # echo on > kdamonds/0/state
+
+A brief representation of the files hierarchy of DAMON sysfs interface is
+as below.  Childs are represented with indentation, directories are having
+'/' suffix, and files in each directory are separated by comma.
+
+    /sys/kernel/mm/damon/admin
+    │ kdamonds/nr_kdamonds
+    │ │ 0/state,pid
+    │ │ │ contexts/nr_contexts
+    │ │ │ │ 0/operations
+    │ │ │ │ │ monitoring_attrs/
+    │ │ │ │ │ │ intervals/sample_us,aggr_us,update_us
+    │ │ │ │ │ │ nr_regions/min,max
+    │ │ │ │ │ targets/nr_targets
+    │ │ │ │ │ │ 0/pid_target
+    │ │ │ │ │ │ │ regions/nr_regions
+    │ │ │ │ │ │ │ │ 0/start,end
+    │ │ │ │ │ │ │ │ ...
+    │ │ │ │ │ │ ...
+    │ │ │ │ │ schemes/nr_schemes
+    │ │ │ │ │ │ 0/action
+    │ │ │ │ │ │ │ access_pattern/
+    │ │ │ │ │ │ │ │ sz/min,max
+    │ │ │ │ │ │ │ │ nr_accesses/min,max
+    │ │ │ │ │ │ │ │ age/min,max
+    │ │ │ │ │ │ │ quotas/ms,bytes,reset_interval_ms
+    │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
+    │ │ │ │ │ │ │ watermarks/metric,interval_us,high,mid,low
+    │ │ │ │ │ │ │ stats/nr_tried,sz_tried,nr_applied,sz_applied,qt_exceeds
+    │ │ │ │ │ │ ...
+    │ │ │ │ ...
+    │ │ ...
+
+Detailed usage of the files will be described in the final Documentation
+patch of this patchset.
+
+Main Difference Between DAMON_DBGFS and DAMON_SYSFS
+---------------------------------------------------
+
+At the moment, DAMON_DBGFS and DAMON_SYSFS provides same features.  One
+important difference between them is their exclusiveness.  DAMON_DBGFS
+works in an exclusive manner, so that no DAMON worker thread (kdamond) in
+the system can run concurrently and interfere somehow.  For the reason,
+DAMON_DBGFS asks users to construct all monitoring contexts and start them
+at once.  It's not a big problem but makes the operation a little bit
+complex and unflexible.
+
+For more flexible usage, DAMON_SYSFS moves the responsibility of
+preventing any possible interference to the admins and work in a
+non-exclusive manner.  That is, users can configure and start contexts one
+by one.  Note that DAMON respects both exclusive groups and non-exclusive
+groups of contexts, in a manner similar to that of reader-writer locks. 
+That is, if any exclusive monitoring contexts (e.g., contexts that started
+via DAMON_DBGFS) are running, DAMON_SYSFS does not start new contexts, and
+vice versa.
+
+Future Plan of DAMON_DBGFS Deprecation
+======================================
+
+Once this patchset is merged, DAMON_DBGFS development will be frozen. 
+That is, we will maintain it to work as is now so that no users will be
+break.  But, it will not be extended to provide any new feature of DAMON. 
+The support will be continued only until next LTS release.  After that, we
+will drop DAMON_DBGFS.
+
+User-space Tooling Compatibility
+--------------------------------
+
+As DAMON_SYSFS provides all features of DAMON_DBGFS, all user space
+tooling can move to DAMON_SYSFS.  As we will continue supporting
+DAMON_DBGFS until next LTS kernel release, user space tools would have
+enough time to move to DAMON_SYSFS.
+
+The official user space tool, damo[1], is already supporting both
+DAMON_SYSFS and DAMON_DBGFS.  Both correctness tests[2] and performance
+tests[3] of DAMON using DAMON_SYSFS also passed.
+
+[1] https://github.com/awslabs/damo
+[2] https://github.com/awslabs/damon-tests/tree/master/corr
+[3] https://github.com/awslabs/damon-tests/tree/master/perf
+
+Sequence of Patches
+===================
+
+First two patches (patches 1-2) make core changes for DAMON_SYSFS.  The
+first one (patch 1) allows non-exclusive DAMON contexts so that
+DAMON_SYSFS can work in non-exclusive mode, while the second one (patch 2)
+adds size of DAMON enum types so that DAMON API users can safely iterate
+the enums.
+
+Third patch (patch 3) implements basic sysfs stub for virtual address
+spaces monitoring.  Note that this implements only sysfs files and DAMON
+is not linked.  Fourth patch (patch 4) links the DAMON_SYSFS to DAMON so
+that users can control DAMON using the sysfs files.
+
+Following six patches (patches 5-10) implements other DAMON features that
+DAMON_DBGFS supports one by one (physical address space monitoring,
+DAMON-based operation schemes, schemes quotas, schemes prioritization
+weights, schemes watermarks, and schemes stats).
+
+Following patch (patch 11) adds a simple selftest for DAMON_SYSFS, and the
+final one (patch 12) documents DAMON_SYSFS.
+
+
+This patch (of 13):
+
+To avoid interference between DAMON contexts monitoring overlapping memory
+regions, damon_start() works in an exclusive manner.  That is,
+damon_start() does nothing bug fails if any context that started by
+another instance of the function is still running.  This makes its usage a
+little bit restrictive.  However, admins could aware each DAMON usage and
+address such interferences on their own in some cases.
+
+This commit hence implements non-exclusive mode of the function and allows
+the callers to select the mode.  Note that the exclusive groups and
+non-exclusive groups of contexts will respect each other in a manner
+similar to that of reader-writer locks.  Therefore, this commit will not
+cause any behavioral change to the exclusive groups.
+
+Link: https://lkml.kernel.org/r/20220228081314.5770-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220228081314.5770-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Xin Hao <xhao@linux.alibaba.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    6 +++---
- Documentation/vm/damon/design.rst            |   12 +++++++-----
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ include/linux/damon.h |    2 +-
+ mm/damon/core.c       |   23 +++++++++++++++--------
+ mm/damon/dbgfs.c      |    2 +-
+ mm/damon/reclaim.c    |    2 +-
+ 4 files changed, 18 insertions(+), 11 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-damon-update-outdated-term-regions-update-interval
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -47,7 +47,7 @@ Attributes
- ----------
+--- a/include/linux/damon.h~mm-damon-core-allow-non-exclusive-damon-start-stop
++++ a/include/linux/damon.h
+@@ -508,7 +508,7 @@ int damon_nr_running_ctxs(void);
+ int damon_register_ops(struct damon_operations *ops);
+ int damon_select_ops(struct damon_ctx *ctx, enum damon_ops_id id);
  
- Users can get and set the ``sampling interval``, ``aggregation interval``,
--``regions update interval``, and min/max number of monitoring target regions by
-+``update interval``, and min/max number of monitoring target regions by
- reading from and writing to the ``attrs`` file.  To know about the monitoring
- attributes in detail, please refer to the :doc:`/vm/damon/design`.  For
- example, below commands set those values to 5 ms, 100 ms, 1,000 ms, 10 and
-@@ -128,8 +128,8 @@ ranges, ``20-40`` and ``50-100`` as that
+-int damon_start(struct damon_ctx **ctxs, int nr_ctxs);
++int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
  
- Note that this sets the initial monitoring target regions only.  In case of
- virtual memory monitoring, DAMON will automatically updates the boundary of the
--regions after one ``regions update interval``.  Therefore, users should set the
--``regions update interval`` large enough in this case, if they don't want the
-+regions after one ``update interval``.  Therefore, users should set the
-+``update interval`` large enough in this case, if they don't want the
- update.
+ #endif	/* CONFIG_DAMON */
+--- a/mm/damon/core.c~mm-damon-core-allow-non-exclusive-damon-start-stop
++++ a/mm/damon/core.c
+@@ -24,6 +24,7 @@
  
+ static DEFINE_MUTEX(damon_lock);
+ static int nr_running_ctxs;
++static bool running_exclusive_ctxs;
  
---- a/Documentation/vm/damon/design.rst~docs-damon-update-outdated-term-regions-update-interval
-+++ a/Documentation/vm/damon/design.rst
-@@ -95,8 +95,8 @@ Address Space Independent Core Mechanism
+ static DEFINE_MUTEX(damon_ops_lock);
+ static struct damon_operations damon_registered_ops[NR_DAMON_OPS];
+@@ -434,22 +435,25 @@ static int __damon_start(struct damon_ct
+  * damon_start() - Starts the monitorings for a given group of contexts.
+  * @ctxs:	an array of the pointers for contexts to start monitoring
+  * @nr_ctxs:	size of @ctxs
++ * @exclusive:	exclusiveness of this contexts group
+  *
+  * This function starts a group of monitoring threads for a group of monitoring
+  * contexts.  One thread per each context is created and run in parallel.  The
+- * caller should handle synchronization between the threads by itself.  If a
+- * group of threads that created by other 'damon_start()' call is currently
+- * running, this function does nothing but returns -EBUSY.
++ * caller should handle synchronization between the threads by itself.  If
++ * @exclusive is true and a group of threads that created by other
++ * 'damon_start()' call is currently running, this function does nothing but
++ * returns -EBUSY.
+  *
+  * Return: 0 on success, negative error code otherwise.
+  */
+-int damon_start(struct damon_ctx **ctxs, int nr_ctxs)
++int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive)
+ {
+ 	int i;
+ 	int err = 0;
  
- Below four sections describe each of the DAMON core mechanisms and the five
- monitoring attributes, ``sampling interval``, ``aggregation interval``,
--``regions update interval``, ``minimum number of regions``, and ``maximum
--number of regions``.
-+``update interval``, ``minimum number of regions``, and ``maximum number of
-+regions``.
+ 	mutex_lock(&damon_lock);
+-	if (nr_running_ctxs) {
++	if ((exclusive && nr_running_ctxs) ||
++			(!exclusive && running_exclusive_ctxs)) {
+ 		mutex_unlock(&damon_lock);
+ 		return -EBUSY;
+ 	}
+@@ -460,13 +464,15 @@ int damon_start(struct damon_ctx **ctxs,
+ 			break;
+ 		nr_running_ctxs++;
+ 	}
++	if (exclusive && nr_running_ctxs)
++		running_exclusive_ctxs = true;
+ 	mutex_unlock(&damon_lock);
  
+ 	return err;
+ }
  
- Access Frequency Monitoring
-@@ -169,6 +169,8 @@ The monitoring target address range coul
- virtual memory could be dynamically mapped and unmapped.  Physical memory could
- be hot-plugged.
+ /*
+- * __damon_stop() - Stops monitoring of given context.
++ * __damon_stop() - Stops monitoring of a given context.
+  * @ctx:	monitoring context
+  *
+  * Return: 0 on success, negative error code otherwise.
+@@ -504,9 +510,8 @@ int damon_stop(struct damon_ctx **ctxs,
+ 		/* nr_running_ctxs is decremented in kdamond_fn */
+ 		err = __damon_stop(ctxs[i]);
+ 		if (err)
+-			return err;
++			break;
+ 	}
+-
+ 	return err;
+ }
  
--As the changes could be quite frequent in some cases, DAMON checks the dynamic
--memory mapping changes and applies it to the abstracted target area only for
--each of a user-specified time interval (``regions update interval``).
-+As the changes could be quite frequent in some cases, DAMON allows the
-+monitoring operations to check dynamic changes including memory mapping changes
-+and applies it to monitoring operations-related data structures such as the
-+abstracted monitoring target memory area only for each of a user-specified time
-+interval (``update interval``).
+@@ -1102,6 +1107,8 @@ static int kdamond_fn(void *data)
+ 
+ 	mutex_lock(&damon_lock);
+ 	nr_running_ctxs--;
++	if (!nr_running_ctxs && running_exclusive_ctxs)
++		running_exclusive_ctxs = false;
+ 	mutex_unlock(&damon_lock);
+ 
+ 	return 0;
+--- a/mm/damon/dbgfs.c~mm-damon-core-allow-non-exclusive-damon-start-stop
++++ a/mm/damon/dbgfs.c
+@@ -967,7 +967,7 @@ static ssize_t dbgfs_monitor_on_write(st
+ 				return -EINVAL;
+ 			}
+ 		}
+-		ret = damon_start(dbgfs_ctxs, dbgfs_nr_ctxs);
++		ret = damon_start(dbgfs_ctxs, dbgfs_nr_ctxs, true);
+ 	} else if (!strncmp(kbuf, "off", count)) {
+ 		ret = damon_stop(dbgfs_ctxs, dbgfs_nr_ctxs);
+ 	} else {
+--- a/mm/damon/reclaim.c~mm-damon-core-allow-non-exclusive-damon-start-stop
++++ a/mm/damon/reclaim.c
+@@ -330,7 +330,7 @@ static int damon_reclaim_turn(bool on)
+ 	if (err)
+ 		goto free_scheme_out;
+ 
+-	err = damon_start(&ctx, 1);
++	err = damon_start(&ctx, 1, true);
+ 	if (!err) {
+ 		kdamond_pid = ctx->kdamond->pid;
+ 		return 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
