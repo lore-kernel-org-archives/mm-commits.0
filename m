@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 640C9C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 21:49:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FE7C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 21:52:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233564AbiCYVv2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 17:51:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59662 "EHLO
+        id S233526AbiCYVxi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 17:53:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233563AbiCYVv1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 17:51:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F6E143ECB;
-        Fri, 25 Mar 2022 14:49:52 -0700 (PDT)
+        with ESMTP id S233578AbiCYVxi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 17:53:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B69DF3668F
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 14:52:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 21FC46104F;
-        Fri, 25 Mar 2022 21:49:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79664C2BBE4;
-        Fri, 25 Mar 2022 21:49:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F396361138
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 21:52:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43B76C2BBE4;
+        Fri, 25 Mar 2022 21:52:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648244991;
-        bh=befP00TAyiEqfK47sz/4og2i/ze5u6nkmRIjj7lJxMI=;
+        s=korg; t=1648245121;
+        bh=nLtxpQG6GGkYaphSGEnKDsDUVrx3Fnwx132m21YQTp8=;
         h=Date:To:From:Subject:From;
-        b=f+/sI/T4l5oDOJyrrjRAN3wlohU9Qoms+udccG8r+HMFLbPnk4SgFe/c3I7UAvMB6
-         VMoLQpbDFYHYFIBzpF5UKpZvwGjBfqDB1+8eu0r8r+yKOUpV4UL5vS/tcxbcjoXgyR
-         wr4HV+d2UOkVnnRYyuyx1aBsB/wRcKaiGX7/LEZQ=
-Date:   Fri, 25 Mar 2022 14:49:50 -0700
-To:     mm-commits@vger.kernel.org, vvidic@valentin-vidic.from.hr,
-        stable@vger.kernel.org, sathlerds@gmail.com,
-        joseph.qi@linux.alibaba.com, akpm@linux-foundation.org
+        b=zftQnWRhIV8JK2qWu4g08be8u8oA3O13XwReArSG84XKQ0MgldRQSPxzXiSqkr5+a
+         XbiqWXKiYUZ+PKYJDp7ZarCV+LsrTwWIQjZnd0HRzmS7DAHXEhkJ5qQWOR3W1tvaLi
+         t/LpqWFoFQ4kMfc2QOod/rUsxHiUJIIUuia5AbNM=
+Date:   Fri, 25 Mar 2022 14:52:00 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        huntbag@linux.vnet.ibm.com, dave.hansen@linux.intel.com,
+        baolin.wang@linux.alibaba.com, osalvador@suse.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-crash-when-mount-with-quota-enabled.patch added to -mm tree
-Message-Id: <20220325214951.79664C2BBE4@smtp.kernel.org>
+Subject: + mm-untangle-config-dependencies-for-demote-on-reclaim.patch added to -mm tree
+Message-Id: <20220325215201.43B76C2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix crash when mount with quota enabled
+     Subject: mm: untangle config dependencies for demote-on-reclaim
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-crash-when-mount-with-quota-enabled.patch
+     mm-untangle-config-dependencies-for-demote-on-reclaim.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-crash-when-mount-with-quota-enabled.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-untangle-config-dependencies-for-demote-on-reclaim.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-crash-when-mount-with-quota-enabled.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-untangle-config-dependencies-for-demote-on-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,116 +64,167 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: fix crash when mount with quota enabled
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm: untangle config dependencies for demote-on-reclaim
 
-There is a reported crash when mounting ocfs2 with quota enabled.
+At the time demote-on-reclaim was introduced, it was tied to
+CONFIG_HOTPLUG_CPU + CONFIG_MIGRATE, but that is not really accurate.
 
-RIP: 0010:ocfs2_qinfo_lock_res_init+0x44/0x50 [ocfs2]
-Call Trace:
-<TASK>
-ocfs2_local_read_info+0xb9/0x6f0 [ocfs2]
-? ocfs2_local_check_quota_file+0x197/0x390 [ocfs2]
-dquot_load_quota_sb+0x216/0x470
-? preempt_count_add+0x68/0xa0
-dquot_load_quota_inode+0x85/0x100
-ocfs2_enable_quotas+0xa0/0x1c0 [ocfs2]
-ocfs2_fill_super.cold+0xc8/0x1bf [ocfs2]
-mount_bdev+0x185/0x1b0
-? ocfs2_initialize_super.isra.0+0xf40/0xf40 [ocfs2]
-legacy_get_tree+0x27/0x40
-vfs_get_tree+0x25/0xb0
-path_mount+0x465/0xac0
-__x64_sys_mount+0x103/0x140
-do_syscall_64+0x3b/0xc0
-entry_SYSCALL_64_after_hwframe+0x44/0xae
-</TASK>
+The only two things we need to depend on are CONFIG_NUMA + CONFIG_MIGRATE,
+so clean this up.  Furthermore, we only register the hotplug memory
+notifier when the system has CONFIG_MEMORY_HOTPLUG.
 
-It is caused by when initializing dqi_gqlock, the corresponding dqi_type
-and dqi_sb are not properly initialized.  This issue is introduced by
-commit 6c85c2c72819, which wants to avoid accessing uninitialized
-variables in error cases.  So make global quota info properly initialized.
-
-Link: https://lkml.kernel.org/r/20220323023644.40084-1-joseph.qi@linux.alibaba.com
-Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1007141
-Fixes: 6c85c2c72819 ("ocfs2: quota_local: fix possible uninitialized-variable access in ocfs2_local_read_info()")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reported-by: Dayvison <sathlerds@gmail.com>
-Tested-by: Valentin Vidic <vvidic@valentin-vidic.from.hr>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220322224016.4574-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Suggested-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Abhishek Goel <huntbag@linux.vnet.ibm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |   23 ++++++++++++-----------
- fs/ocfs2/quota_local.c  |    2 --
- 2 files changed, 12 insertions(+), 13 deletions(-)
+ include/linux/migrate.h |   34 +++++++++++++++-------------------
+ mm/migrate.c            |   11 ++++++-----
+ mm/vmstat.c             |    2 --
+ 3 files changed, 21 insertions(+), 26 deletions(-)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-fix-crash-when-mount-with-quota-enabled
-+++ a/fs/ocfs2/quota_global.c
-@@ -337,7 +337,6 @@ void ocfs2_unlock_global_qf(struct ocfs2
- /* Read information header from global quota file */
- int ocfs2_global_read_info(struct super_block *sb, int type)
+--- a/include/linux/migrate.h~mm-untangle-config-dependencies-for-demote-on-reclaim
++++ a/include/linux/migrate.h
+@@ -47,17 +47,8 @@ void folio_migrate_copy(struct folio *ne
+ int folio_migrate_mapping(struct address_space *mapping,
+ 		struct folio *newfolio, struct folio *folio, int extra_count);
+ 
+-extern bool numa_demotion_enabled;
+-extern void migrate_on_reclaim_init(void);
+-#ifdef CONFIG_HOTPLUG_CPU
+-extern void set_migration_target_nodes(void);
+-#else
+-static inline void set_migration_target_nodes(void) {}
+-#endif
+ #else
+ 
+-static inline void set_migration_target_nodes(void) {}
+-
+ static inline void putback_movable_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t new,
+ 		free_page_t free, unsigned long private, enum migrate_mode mode,
+@@ -82,9 +73,23 @@ static inline int migrate_huge_page_move
+ 	return -ENOSYS;
+ }
+ 
+-#define numa_demotion_enabled	false
+ #endif /* CONFIG_MIGRATION */
+ 
++#if defined(CONFIG_MIGRATION) && defined(CONFIG_NUMA)
++extern void set_migration_target_nodes(void);
++extern void migrate_on_reclaim_init(void);
++extern bool numa_demotion_enabled;
++extern int next_demotion_node(int node);
++#else
++static inline void set_migration_target_nodes(void) {}
++static inline void migrate_on_reclaim_init(void) {}
++static inline int next_demotion_node(int node)
++{
++        return NUMA_NO_NODE;
++}
++#define numa_demotion_enabled  false
++#endif
++
+ #ifdef CONFIG_COMPACTION
+ extern int PageMovable(struct page *page);
+ extern void __SetPageMovable(struct page *page, struct address_space *mapping);
+@@ -172,15 +177,6 @@ struct migrate_vma {
+ int migrate_vma_setup(struct migrate_vma *args);
+ void migrate_vma_pages(struct migrate_vma *migrate);
+ void migrate_vma_finalize(struct migrate_vma *migrate);
+-int next_demotion_node(int node);
+-
+-#else /* CONFIG_MIGRATION disabled: */
+-
+-static inline int next_demotion_node(int node)
+-{
+-	return NUMA_NO_NODE;
+-}
+-
+ #endif /* CONFIG_MIGRATION */
+ 
+ #endif /* _LINUX_MIGRATE_H */
+--- a/mm/migrate.c~mm-untangle-config-dependencies-for-demote-on-reclaim
++++ a/mm/migrate.c
+@@ -2144,7 +2144,6 @@ out:
+ 	return 0;
+ }
+ #endif /* CONFIG_NUMA_BALANCING */
+-#endif /* CONFIG_NUMA */
+ 
+ /*
+  * node_demotion[] example:
+@@ -2278,7 +2277,6 @@ out:
+ 	return target;
+ }
+ 
+-#if defined(CONFIG_HOTPLUG_CPU)
+ /* Disable reclaim-based migration. */
+ static void __disable_all_migrate_targets(void)
  {
--	struct inode *gqinode = NULL;
- 	unsigned int ino[OCFS2_MAXQUOTAS] = { USER_QUOTA_SYSTEM_INODE,
- 					      GROUP_QUOTA_SYSTEM_INODE };
- 	struct ocfs2_global_disk_dqinfo dinfo;
-@@ -346,29 +345,31 @@ int ocfs2_global_read_info(struct super_
- 	u64 pcount;
- 	int status;
+@@ -2471,6 +2469,7 @@ void set_migration_target_nodes(void)
+  * __set_migration_target_nodes() can be used as opposed to
+  * set_migration_target_nodes().
+  */
++#ifdef CONFIG_MEMORY_HOTPLUG
+ static int __meminit migrate_on_reclaim_callback(struct notifier_block *self,
+ 						 unsigned long action, void *_arg)
+ {
+@@ -2516,6 +2515,7 @@ static int __meminit migrate_on_reclaim_
  
-+	oinfo->dqi_gi.dqi_sb = sb;
-+	oinfo->dqi_gi.dqi_type = type;
-+	ocfs2_qinfo_lock_res_init(&oinfo->dqi_gqlock, oinfo);
-+	oinfo->dqi_gi.dqi_entry_size = sizeof(struct ocfs2_global_disk_dqblk);
-+	oinfo->dqi_gi.dqi_ops = &ocfs2_global_ops;
-+	oinfo->dqi_gqi_bh = NULL;
-+	oinfo->dqi_gqi_count = 0;
-+
- 	/* Read global header */
--	gqinode = ocfs2_get_system_file_inode(OCFS2_SB(sb), ino[type],
-+	oinfo->dqi_gqinode = ocfs2_get_system_file_inode(OCFS2_SB(sb), ino[type],
- 			OCFS2_INVALID_SLOT);
--	if (!gqinode) {
-+	if (!oinfo->dqi_gqinode) {
- 		mlog(ML_ERROR, "failed to get global quota inode (type=%d)\n",
- 			type);
- 		status = -EINVAL;
- 		goto out_err;
- 	}
--	oinfo->dqi_gi.dqi_sb = sb;
--	oinfo->dqi_gi.dqi_type = type;
--	oinfo->dqi_gi.dqi_entry_size = sizeof(struct ocfs2_global_disk_dqblk);
--	oinfo->dqi_gi.dqi_ops = &ocfs2_global_ops;
--	oinfo->dqi_gqi_bh = NULL;
--	oinfo->dqi_gqi_count = 0;
--	oinfo->dqi_gqinode = gqinode;
-+
- 	status = ocfs2_lock_global_qf(oinfo, 0);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out_err;
- 	}
+ 	return notifier_from_errno(0);
+ }
++#endif
  
--	status = ocfs2_extent_map_get_blocks(gqinode, 0, &oinfo->dqi_giblk,
-+	status = ocfs2_extent_map_get_blocks(oinfo->dqi_gqinode, 0, &oinfo->dqi_giblk,
- 					     &pcount, NULL);
- 	if (status < 0)
- 		goto out_unlock;
---- a/fs/ocfs2/quota_local.c~ocfs2-fix-crash-when-mount-with-quota-enabled
-+++ a/fs/ocfs2/quota_local.c
-@@ -702,8 +702,6 @@ static int ocfs2_local_read_info(struct
- 	info->dqi_priv = oinfo;
- 	oinfo->dqi_type = type;
- 	INIT_LIST_HEAD(&oinfo->dqi_chunk);
--	oinfo->dqi_gqinode = NULL;
--	ocfs2_qinfo_lock_res_init(&oinfo->dqi_gqlock, oinfo);
- 	oinfo->dqi_rec = NULL;
- 	oinfo->dqi_lqi_bh = NULL;
- 	oinfo->dqi_libh = NULL;
+ void __init migrate_on_reclaim_init(void)
+ {
+@@ -2523,8 +2523,9 @@ void __init migrate_on_reclaim_init(void
+ 				      sizeof(struct demotion_nodes),
+ 				      GFP_KERNEL);
+ 	WARN_ON(!node_demotion);
+-
++#ifdef CONFIG_MEMORY_HOTPLUG
+ 	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
++#endif
+ 	/*
+ 	 * At this point, all numa nodes with memory/CPus have their state
+ 	 * properly set, so we can build the demotion order now.
+@@ -2535,7 +2536,6 @@ void __init migrate_on_reclaim_init(void
+ 	set_migration_target_nodes();
+ 	cpus_read_unlock();
+ }
+-#endif /* CONFIG_HOTPLUG_CPU */
+ 
+ bool numa_demotion_enabled = false;
+ 
+@@ -2596,4 +2596,5 @@ delete_obj:
+ 	return err;
+ }
+ subsys_initcall(numa_init_sysfs);
+-#endif
++#endif /* CONFIG_SYSFS */
++#endif /* CONFIG_NUMA */
+--- a/mm/vmstat.c~mm-untangle-config-dependencies-for-demote-on-reclaim
++++ a/mm/vmstat.c
+@@ -2111,9 +2111,7 @@ void __init init_mm_internals(void)
+ 
+ 	start_shepherd_timer();
+ #endif
+-#if defined(CONFIG_MIGRATION) && defined(CONFIG_HOTPLUG_CPU)
+ 	migrate_on_reclaim_init();
+-#endif
+ #ifdef CONFIG_PROC_FS
+ 	proc_create_seq("buddyinfo", 0444, NULL, &fragmentation_op);
+ 	proc_create_seq("pagetypeinfo", 0400, NULL, &pagetypeinfo_op);
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-ocfs2-fix-crash-when-mount-with-quota-enabled.patch
+mm-untangle-config-dependencies-for-demote-on-reclaim.patch
 
