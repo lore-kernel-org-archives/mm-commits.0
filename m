@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC5CC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8451FC4332F
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233953AbiCYWok (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234009AbiCYWok (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 25 Mar 2022 18:44:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54978 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234009AbiCYWoY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:44:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AFEA20C1A2
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:48 -0700 (PDT)
+        with ESMTP id S234019AbiCYWoa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:44:30 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B488A20D504
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1BD6E61576
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75CDCC36AE3;
-        Fri, 25 Mar 2022 22:42:47 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 0FF78CE2A9E
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 722CAC004DD;
+        Fri, 25 Mar 2022 22:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248167;
-        bh=N8909sa2wCE8GPPqapBXlJukUB8thvOvzDR8t1RNGug=;
+        s=korg; t=1648248171;
+        bh=oYDRghRg/LkgFlYXzP3yN02LNdkv6kEvApWfMEI+7Wc=;
         h=Date:To:From:Subject:From;
-        b=l6sbbyaJH/QavZJxC4MQwrZ5EupG6j3vx9RvJ39k9IBbYGMr6SL6OIFFpyKUAqWzA
-         86T0Bf6jukHGEPNFKaCF3JsFudfNLxVZWcHWXtP+jADNg/mh2w4LioUoyMwACCGG7N
-         ZPn0ifPU5S7hidlFdL/+IBSKYxmub9rrGAgSic5w=
-Date:   Fri, 25 Mar 2022 15:42:46 -0700
+        b=eHRioVGGhXkvOnLAqeooqb8j3+UlEZhVxX5szn0pWjHQr8waNuqcwZGEKu1xf1GBf
+         zTn++BCx4L3bC6kX1qg4KUvLmkSPGU+ATjLfDH1iHByLlBkFojnizfmOSwnQnHd3yj
+         SN82grxtDeBzOf9j+EzYmbqk8Qx6O0uXuCDmMCYs=
+Date:   Fri, 25 Mar 2022 15:42:50 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kasan-simplify-kasan_update_kunit_status-and-call-sites.patch removed from -mm tree
-Message-Id: <20220325224247.75CDCC36AE3@smtp.kernel.org>
+Subject: [merged] kasan-split-out-print_report-from-__kasan_report.patch removed from -mm tree
+Message-Id: <20220325224251.722CAC004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,109 +42,168 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: simplify kasan_update_kunit_status() and call sites
+     Subject: kasan: split out print_report from __kasan_report
 has been removed from the -mm tree.  Its filename was
-     kasan-simplify-kasan_update_kunit_status-and-call-sites.patch
+     kasan-split-out-print_report-from-__kasan_report.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: simplify kasan_update_kunit_status() and call sites
+Subject: kasan: split out print_report from __kasan_report
 
-- Rename kasan_update_kunit_status() to update_kunit_status()
-  (the function is static).
+Split out the part of __kasan_report() that prints things into
+print_report().  One of the subsequent patches makes another error handler
+use print_report() as well.
 
-- Move the IS_ENABLED(CONFIG_KUNIT) to the function's
-  definition instead of duplicating it at call sites.
+Includes lower-level changes:
 
-- Obtain and check current->kunit_test within the function.
+- Allow addr_has_metadata() accepting a tagged address.
+- Drop the const qualifier from the fields of kasan_access_info to avoid
+  excessive type casts.
+- Change the type of the address argument of __kasan_report() and
+  end_report() to void * to reduce the number of type casts.
 
-Link: https://lkml.kernel.org/r/dac26d811ae31856c3d7666de0b108a3735d962d.1646237226.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/9be3ed99dd24b9c4e1c4a848b69a0c6ecefd845e.1646237226.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ mm/kasan/kasan.h  |    7 +++--
+ mm/kasan/report.c |   58 +++++++++++++++++++++++---------------------
+ 2 files changed, 35 insertions(+), 30 deletions(-)
 
---- a/mm/kasan/report.c~kasan-simplify-kasan_update_kunit_status-and-call-sites
+--- a/mm/kasan/kasan.h~kasan-split-out-print_report-from-__kasan_report
++++ a/mm/kasan/kasan.h
+@@ -128,8 +128,8 @@ static inline bool kasan_sync_fault_poss
+ #define META_ROWS_AROUND_ADDR 2
+ 
+ struct kasan_access_info {
+-	const void *access_addr;
+-	const void *first_bad_addr;
++	void *access_addr;
++	void *first_bad_addr;
+ 	size_t access_size;
+ 	bool is_write;
+ 	unsigned long ip;
+@@ -239,7 +239,8 @@ static inline const void *kasan_shadow_t
+ 
+ static inline bool addr_has_metadata(const void *addr)
+ {
+-	return (addr >= kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
++	return (kasan_reset_tag(addr) >=
++		kasan_shadow_to_mem((void *)KASAN_SHADOW_START));
+ }
+ 
+ /**
+--- a/mm/kasan/report.c~kasan-split-out-print_report-from-__kasan_report
 +++ a/mm/kasan/report.c
-@@ -357,24 +357,31 @@ static bool report_enabled(void)
+@@ -139,10 +139,11 @@ static void start_report(unsigned long *
+ 	pr_err("==================================================================\n");
  }
  
- #if IS_ENABLED(CONFIG_KUNIT)
--static void kasan_update_kunit_status(struct kunit *cur_test, bool sync)
-+static void update_kunit_status(bool sync)
+-static void end_report(unsigned long *flags, unsigned long addr)
++static void end_report(unsigned long *flags, void *addr)
  {
-+	struct kunit *test;
- 	struct kunit_resource *resource;
- 	struct kunit_kasan_status *status;
+ 	if (addr)
+-		trace_error_report_end(ERROR_DETECTOR_KASAN, addr);
++		trace_error_report_end(ERROR_DETECTOR_KASAN,
++				       (unsigned long)addr);
+ 	pr_err("==================================================================\n");
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ 	spin_unlock_irqrestore(&report_lock, *flags);
+@@ -398,7 +399,7 @@ void kasan_report_invalid_free(void *obj
+ 	pr_err("\n");
+ 	print_address_description(object, tag);
+ 	print_memory_metadata(object);
+-	end_report(&flags, (unsigned long)object);
++	end_report(&flags, object);
+ }
  
--	resource = kunit_find_named_resource(cur_test, "kasan_status");
-+	test = current->kunit_test;
-+	if (!test)
-+		return;
+ #ifdef CONFIG_KASAN_HW_TAGS
+@@ -411,44 +412,47 @@ void kasan_report_async(void)
+ 	pr_err("Asynchronous mode enabled: no access details available\n");
+ 	pr_err("\n");
+ 	dump_stack_lvl(KERN_ERR);
+-	end_report(&flags, 0);
++	end_report(&flags, NULL);
+ }
+ #endif /* CONFIG_KASAN_HW_TAGS */
  
-+	resource = kunit_find_named_resource(test, "kasan_status");
- 	if (!resource) {
--		kunit_set_failure(cur_test);
-+		kunit_set_failure(test);
- 		return;
- 	}
- 
- 	status = (struct kunit_kasan_status *)resource->data;
- 	WRITE_ONCE(status->report_found, true);
- 	WRITE_ONCE(status->sync_fault, sync);
+-static void __kasan_report(unsigned long addr, size_t size, bool is_write,
++static void print_report(struct kasan_access_info *info)
++{
++	void *tagged_addr = info->access_addr;
++	void *untagged_addr = kasan_reset_tag(tagged_addr);
++	u8 tag = get_tag(tagged_addr);
 +
- 	kunit_put_resource(resource);
++	print_error_description(info);
++	if (addr_has_metadata(untagged_addr))
++		kasan_print_tags(tag, info->first_bad_addr);
++	pr_err("\n");
++
++	if (addr_has_metadata(untagged_addr)) {
++		print_address_description(untagged_addr, tag);
++		print_memory_metadata(info->first_bad_addr);
++	} else {
++		dump_stack_lvl(KERN_ERR);
++	}
++}
++
++static void __kasan_report(void *addr, size_t size, bool is_write,
+ 				unsigned long ip)
+ {
+ 	struct kasan_access_info info;
+-	void *tagged_addr;
+-	void *untagged_addr;
+ 	unsigned long flags;
+ 
+ 	start_report(&flags, true);
+ 
+-	tagged_addr = (void *)addr;
+-	untagged_addr = kasan_reset_tag(tagged_addr);
+-
+-	info.access_addr = tagged_addr;
+-	if (addr_has_metadata(untagged_addr))
+-		info.first_bad_addr =
+-			kasan_find_first_bad_addr(tagged_addr, size);
++	info.access_addr = addr;
++	if (addr_has_metadata(addr))
++		info.first_bad_addr = kasan_find_first_bad_addr(addr, size);
+ 	else
+-		info.first_bad_addr = untagged_addr;
++		info.first_bad_addr = addr;
+ 	info.access_size = size;
+ 	info.is_write = is_write;
+ 	info.ip = ip;
+ 
+-	print_error_description(&info);
+-	if (addr_has_metadata(untagged_addr))
+-		kasan_print_tags(get_tag(tagged_addr), info.first_bad_addr);
+-	pr_err("\n");
+-
+-	if (addr_has_metadata(untagged_addr)) {
+-		print_address_description(untagged_addr, get_tag(tagged_addr));
+-		print_memory_metadata(info.first_bad_addr);
+-	} else {
+-		dump_stack_lvl(KERN_ERR);
+-	}
++	print_report(&info);
+ 
+ 	end_report(&flags, addr);
  }
--#endif /* IS_ENABLED(CONFIG_KUNIT) */
-+#else
-+static void update_kunit_status(bool sync) { }
-+#endif
+@@ -460,7 +464,7 @@ bool kasan_report(unsigned long addr, si
+ 	bool ret = false;
  
- void kasan_report_invalid_free(void *object, unsigned long ip)
- {
-@@ -383,10 +390,7 @@ void kasan_report_invalid_free(void *obj
- 
- 	object = kasan_reset_tag(object);
- 
--#if IS_ENABLED(CONFIG_KUNIT)
--	if (current->kunit_test)
--		kasan_update_kunit_status(current->kunit_test, true);
--#endif /* IS_ENABLED(CONFIG_KUNIT) */
-+	update_kunit_status(true);
- 
- 	start_report(&flags);
- 	pr_err("BUG: KASAN: double-free or invalid-free in %pS\n", (void *)ip);
-@@ -402,10 +406,7 @@ void kasan_report_async(void)
- {
- 	unsigned long flags;
- 
--#if IS_ENABLED(CONFIG_KUNIT)
--	if (current->kunit_test)
--		kasan_update_kunit_status(current->kunit_test, false);
--#endif /* IS_ENABLED(CONFIG_KUNIT) */
-+	update_kunit_status(false);
- 
- 	start_report(&flags);
- 	pr_err("BUG: KASAN: invalid-access\n");
-@@ -424,10 +425,7 @@ static void __kasan_report(unsigned long
- 	void *untagged_addr;
- 	unsigned long flags;
- 
--#if IS_ENABLED(CONFIG_KUNIT)
--	if (current->kunit_test)
--		kasan_update_kunit_status(current->kunit_test, true);
--#endif /* IS_ENABLED(CONFIG_KUNIT) */
-+	update_kunit_status(true);
- 
- 	disable_trace_on_warning();
+ 	if (likely(report_enabled())) {
+-		__kasan_report(addr, size, is_write, ip);
++		__kasan_report((void *)addr, size, is_write, ip);
+ 		ret = true;
+ 	}
  
 _
 
