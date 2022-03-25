@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4359BC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 20:44:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF07FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 20:44:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232360AbiCYUpw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 16:45:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42600 "EHLO
+        id S232333AbiCYUpx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 16:45:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232329AbiCYUpt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 16:45:49 -0400
+        with ESMTP id S232349AbiCYUpv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 16:45:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FC1832061
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 13:44:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A5322FFE9
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 13:44:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F099861D40
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:44:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55760C004DD;
-        Fri, 25 Mar 2022 20:44:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EE2BA61D40
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:44:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FD87C004DD;
+        Fri, 25 Mar 2022 20:44:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648241052;
-        bh=zmmCtgE9suKNrf+Ce+locR/ECx8QAJZJHL9QDBJvqbM=;
+        s=korg; t=1648241055;
+        bh=tJKpz3rjtGn4XmWxjkZaHwtmgTYyLePykHe9Gqy7HPE=;
         h=Date:To:From:Subject:From;
-        b=wt7ShDJKj+8DcrAV0ynbz6q6Afg1bM/XkiHPfvkfEO79kn1EMidF+S9GZyg85cR7S
-         IZgDnkrvDl8gPFmOoWdBWIw6ACfL4loi6MlM8iA8G3oz0ktrzuyl3igwyPBx8pF4dF
-         hMd1dvytQ8v0BcYhZFaEOPU/4vIECdYNwspm98Qo=
-Date:   Fri, 25 Mar 2022 13:44:11 -0700
+        b=Rs2BFJJa7sGju2WAnk4Tz8YkZ00px9Up5/5POEq8hd5jF+0lKUBAg2WdGfaoUGM/J
+         +ckzOxQ6lmS1G60OnsoZNigN2PEAbznamqBtUuvypbt9gIGLt9NBrR/r+kMIiYAOr9
+         tpQxXJmj2I7gFNSolOwqz2C2D8nec/+QCH5PYOK4=
+Date:   Fri, 25 Mar 2022 13:44:14 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, samitolvanen@google.com,
         ryabinin.a.a@gmail.com, pcc@google.com, mark.rutland@arm.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch added to -mm tree
-Message-Id: <20220325204412.55760C004DD@smtp.kernel.org>
+Subject: + arm64-implement-stack_trace_save_shadow.patch added to -mm tree
+Message-Id: <20220325204415.4FD87C004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64, scs: save scs_sp values per-cpu when switching stacks
+     Subject: arm64: implement stack_trace_save_shadow
 has been added to the -mm tree.  Its filename is
-     arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch
+     arm64-implement-stack_trace_save_shadow.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-implement-stack_trace_save_shadow.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-implement-stack_trace_save_shadow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,36 +67,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: arm64, scs: save scs_sp values per-cpu when switching stacks
+Subject: arm64: implement stack_trace_save_shadow
 
-When an interrupt happens, the current Shadow Call Stack (SCS) pointer is
-switched to a per-interrupt one stored in a per-CPU variable.  The old
-pointer is then saved on the normal stack and restored when the interrupt
-is handled.
+Implement the stack_trace_save_shadow() interface that collects stack
+traces based on the Shadow Call Stack (SCS) for arm64.
 
-To collect the current stack trace based on SCS when the interrupt is
-being handled, we need to know the SCS pointers that belonged to the task
-and potentially other interrupts that were interrupted.
+The implementation walks through available SCS pointers (the per-task one
+and the per-interrupt-type ones) and copies the frames.
 
-Instead of trying to retrieve the SCS pointers from the stack, change
-interrupt handlers (for hard IRQ, Normal and Critical SDEI) to save the
-previous SCS pointer in a per-CPU variable.
+Note that the frame of the interrupted function is not included into the
+stack trace, as it is not yet saved on the SCS when an interrupt happens.
 
-Note that interrupts stack.  A task can be interrupted by a hard IRQ,
-which then can interrupted by a normal SDEI, etc.  This is handled by
-using a separate per-CPU variable for each interrupt type.
-
-Also reset the saved SCS pointer when exiting the interrupt.  This allows
-checking whether we should include any interrupt frames when collecting
-the stack trace.  While we could use in_hardirq(), there seems to be no
-easy way to check whether we are in an SDEI handler.  Directly checking
-the per-CPU variables for being non-zero is more resilient.
-
-Also expose both the the added saved SCS variables and the existing SCS
-base variables in arch/arm64/include/asm/scs.h so that the stack trace
-collection impementation can use them.
-
-Link: https://lkml.kernel.org/r/f75c58b17bfaa419f84286cd174e3a08f971b779.1648049113.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/0bb72ea8fa88ef9ae3508c23d993952a0ae6f0f9.1648049113.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -113,148 +95,119 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/assembler.h |   12 +++++++++++
- arch/arm64/include/asm/scs.h       |   13 +++++++++++-
- arch/arm64/kernel/entry.S          |   28 +++++++++++++++++++++++----
- arch/arm64/kernel/irq.c            |    4 ---
- arch/arm64/kernel/sdei.c           |    5 +---
- 5 files changed, 51 insertions(+), 11 deletions(-)
+ arch/arm64/Kconfig             |    1 
+ arch/arm64/kernel/stacktrace.c |   83 +++++++++++++++++++++++++++++++
+ 2 files changed, 84 insertions(+)
 
---- a/arch/arm64/include/asm/assembler.h~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
-+++ a/arch/arm64/include/asm/assembler.h
-@@ -270,6 +270,18 @@ alternative_endif
- 	ldr	\dst, [\dst, \tmp]
- 	.endm
+--- a/arch/arm64/Kconfig~arm64-implement-stack_trace_save_shadow
++++ a/arch/arm64/Kconfig
+@@ -200,6 +200,7 @@ config ARM64
+ 	select HAVE_FUNCTION_ARG_ACCESS_API
+ 	select MMU_GATHER_RCU_TABLE_FREE
+ 	select HAVE_RSEQ
++	select HAVE_SHADOW_STACKTRACE
+ 	select HAVE_STACKPROTECTOR
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_KPROBES
+--- a/arch/arm64/kernel/stacktrace.c~arm64-implement-stack_trace_save_shadow
++++ a/arch/arm64/kernel/stacktrace.c
+@@ -12,9 +12,11 @@
+ #include <linux/sched/debug.h>
+ #include <linux/sched/task_stack.h>
+ #include <linux/stacktrace.h>
++#include <linux/scs.h>
  
-+	/*
-+	 * @src: Register whose value gets stored in sym
-+	 * @sym: The name of the per-cpu variable
-+	 * @tmp0: Scratch register
-+	 * @tmp1: Another scratch register
-+	 */
-+	.macro str_this_cpu src, sym, tmp0, tmp1
-+	adr_l	\tmp0, \sym
-+	get_this_cpu_offset \tmp1
-+	str	\src, [\tmp0, \tmp1]
-+	.endm
+ #include <asm/irq.h>
+ #include <asm/pointer_auth.h>
++#include <asm/scs.h>
+ #include <asm/stack_pointer.h>
+ #include <asm/stacktrace.h>
+ 
+@@ -210,3 +212,84 @@ noinline notrace void arch_stack_walk(st
+ 
+ 	walk_stackframe(task, &frame, consume_entry, cookie);
+ }
 +
- /*
-  * vma_vm_mm - get mm pointer from vma pointer (vma->vm_mm)
-  */
---- a/arch/arm64/include/asm/scs.h~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
-+++ a/arch/arm64/include/asm/scs.h
-@@ -24,6 +24,17 @@
- 	.endm
- #endif /* CONFIG_SHADOW_CALL_STACK */
- 
--#endif /* __ASSEMBLY __ */
-+#else /* __ASSEMBLY__ */
++static const struct {
++	unsigned long ** __percpu saved;
++	unsigned long ** __percpu base;
++} scs_parts[] = {
++#ifdef CONFIG_ARM_SDE_INTERFACE
++	{
++		.saved = &sdei_shadow_call_stack_critical_saved_ptr,
++		.base = &sdei_shadow_call_stack_critical_ptr,
++	},
++	{
++		.saved = &sdei_shadow_call_stack_normal_saved_ptr,
++		.base = &sdei_shadow_call_stack_normal_ptr,
++	},
++#endif /* CONFIG_ARM_SDE_INTERFACE */
++	{
++		.saved = &irq_shadow_call_stack_saved_ptr,
++		.base = &irq_shadow_call_stack_ptr,
++	},
++};
 +
-+#include <linux/percpu.h>
++static inline bool walk_shadow_stack_part(
++				unsigned long *scs_top, unsigned long *scs_base,
++				unsigned long *store, unsigned int size,
++				unsigned int *skipnr, unsigned int *len)
++{
++	unsigned long *frame;
 +
-+DECLARE_PER_CPU(unsigned long *, irq_shadow_call_stack_ptr);
-+DECLARE_PER_CPU(unsigned long *, irq_shadow_call_stack_saved_ptr);
-+DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_ptr);
-+DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_saved_ptr);
-+DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_ptr);
-+DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_saved_ptr);
++	for (frame = scs_top; frame >= scs_base; frame--) {
++		if (*skipnr > 0) {
++			(*skipnr)--;
++			continue;
++		}
++		/*
++		 * Do not leak PTR_AUTH tags in stack traces.
++		 * Use READ_ONCE_NOCHECK as SCS is poisoned with Generic KASAN.
++		 */
++		store[(*len)++] =
++			ptrauth_strip_insn_pac(READ_ONCE_NOCHECK(*frame));
++		if (*len >= size)
++			return true;
++	}
 +
-+#endif /* __ASSEMBLY__ */
- 
- #endif /* _ASM_SCS_H */
---- a/arch/arm64/kernel/entry.S~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
-+++ a/arch/arm64/kernel/entry.S
-@@ -880,7 +880,8 @@ NOKPROBE(ret_from_fork)
-  */
- SYM_FUNC_START(call_on_irq_stack)
- #ifdef CONFIG_SHADOW_CALL_STACK
--	stp	scs_sp, xzr, [sp, #-16]!
-+	/* Save the current SCS pointer and load the per-IRQ one. */
-+	str_this_cpu scs_sp, irq_shadow_call_stack_saved_ptr, x15, x17
- 	ldr_this_cpu scs_sp, irq_shadow_call_stack_ptr, x17
- #endif
- 	/* Create a frame record to save our LR and SP (implicit in FP) */
-@@ -902,7 +903,9 @@ SYM_FUNC_START(call_on_irq_stack)
- 	mov	sp, x29
- 	ldp	x29, x30, [sp], #16
- #ifdef CONFIG_SHADOW_CALL_STACK
--	ldp	scs_sp, xzr, [sp], #16
-+	/* Restore saved SCS pointer and reset the saved value. */
-+	ldr_this_cpu scs_sp, irq_shadow_call_stack_saved_ptr, x17
-+	str_this_cpu xzr, irq_shadow_call_stack_saved_ptr, x15, x17
- #endif
- 	ret
- SYM_FUNC_END(call_on_irq_stack)
-@@ -1024,11 +1027,16 @@ SYM_CODE_START(__sdei_asm_handler)
- #endif
- 
- #ifdef CONFIG_SHADOW_CALL_STACK
--	/* Use a separate shadow call stack for normal and critical events */
-+	/*
-+	 * Use a separate shadow call stack for normal and critical events.
-+	 * Save the current SCS pointer and load the per-SDEI one.
-+	 */
- 	cbnz	w4, 3f
-+	str_this_cpu src=scs_sp, sym=sdei_shadow_call_stack_normal_saved_ptr, tmp0=x5, tmp1=x6
- 	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_normal_ptr, tmp=x6
- 	b	4f
--3:	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_critical_ptr, tmp=x6
-+3:	str_this_cpu src=scs_sp, sym=sdei_shadow_call_stack_critical_saved_ptr, tmp0=x5, tmp1=x6
-+	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_critical_ptr, tmp=x6
- 4:
- #endif
- 
-@@ -1062,6 +1070,18 @@ SYM_CODE_START(__sdei_asm_handler)
- 	ldp	lr, x1, [x4, #SDEI_EVENT_INTREGS + S_LR]
- 	mov	sp, x1
- 
-+#ifdef CONFIG_SHADOW_CALL_STACK
-+	/* Restore saved SCS pointer and reset the saved value. */
-+	ldrb	w5, [x4, #SDEI_EVENT_PRIORITY]
-+	cbnz	w5, 5f
-+	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_normal_saved_ptr, tmp=x6
-+	str_this_cpu src=xzr, sym=sdei_shadow_call_stack_normal_saved_ptr, tmp0=x5, tmp1=x6
-+	b	6f
-+5:	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_critical_saved_ptr, tmp=x6
-+	str_this_cpu src=xzr, sym=sdei_shadow_call_stack_critical_saved_ptr, tmp0=x5, tmp1=x6
-+6:
-+#endif
++	return false;
++}
 +
- 	mov	x1, x0			// address to complete_and_resume
- 	/* x0 = (x0 <= SDEI_EV_FAILED) ?
- 	 * EVENT_COMPLETE:EVENT_COMPLETE_AND_RESUME
---- a/arch/arm64/kernel/irq.c~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
-+++ a/arch/arm64/kernel/irq.c
-@@ -28,11 +28,9 @@ DEFINE_PER_CPU(struct nmi_ctx, nmi_conte
- 
- DEFINE_PER_CPU(unsigned long *, irq_stack_ptr);
- 
--
--DECLARE_PER_CPU(unsigned long *, irq_shadow_call_stack_ptr);
--
- #ifdef CONFIG_SHADOW_CALL_STACK
- DEFINE_PER_CPU(unsigned long *, irq_shadow_call_stack_ptr);
-+DEFINE_PER_CPU(unsigned long *, irq_shadow_call_stack_saved_ptr);
- #endif
- 
- static void init_irq_scs(void)
---- a/arch/arm64/kernel/sdei.c~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
-+++ a/arch/arm64/kernel/sdei.c
-@@ -39,12 +39,11 @@ DEFINE_PER_CPU(unsigned long *, sdei_sta
- DEFINE_PER_CPU(unsigned long *, sdei_stack_critical_ptr);
- #endif
- 
--DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_ptr);
--DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_ptr);
--
- #ifdef CONFIG_SHADOW_CALL_STACK
- DEFINE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_ptr);
-+DEFINE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_saved_ptr);
- DEFINE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_ptr);
-+DEFINE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_saved_ptr);
- #endif
- 
- static void _free_sdei_stack(unsigned long * __percpu *ptr, int cpu)
++noinline notrace int arch_stack_walk_shadow(unsigned long *store,
++					    unsigned int size,
++					    unsigned int skipnr)
++{
++	unsigned long *scs_top, *scs_base, *scs_next;
++	unsigned int len = 0, part;
++
++	preempt_disable();
++
++	/* Get the SCS pointer. */
++	asm volatile("mov %0, x18" : "=&r" (scs_top));
++
++	/* The top SCS slot is empty. */
++	scs_top -= 1;
++
++	/* Handle SDEI and hardirq frames. */
++	for (part = 0; part < ARRAY_SIZE(scs_parts); part++) {
++		scs_next = *this_cpu_ptr(scs_parts[part].saved);
++		if (scs_next) {
++			scs_base = *this_cpu_ptr(scs_parts[part].base);
++			if (walk_shadow_stack_part(scs_top, scs_base, store,
++						   size, &skipnr, &len))
++				goto out;
++			scs_top = scs_next;
++		}
++	}
++
++	/* Handle task and softirq frames. */
++	scs_base = task_scs(current);
++	walk_shadow_stack_part(scs_top, scs_base, store, size, &skipnr, &len);
++
++out:
++	preempt_enable();
++	return len;
++}
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
