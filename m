@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 108B1C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:42:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D19C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:42:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233958AbiCYWoW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:44:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53094 "EHLO
+        id S233936AbiCYWoZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:44:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233932AbiCYWn6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69B8C209A63
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:23 -0700 (PDT)
+        with ESMTP id S233951AbiCYWoB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:44:01 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8A9920A398
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1FAAAB82A1E
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C69DEC004DD;
-        Fri, 25 Mar 2022 22:42:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 62775B82A33
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0705FC004DD;
+        Fri, 25 Mar 2022 22:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248140;
-        bh=Kgpn00ZAmzV/CSeYSw05wUqESh8P/BKju/h6iOFZRoo=;
+        s=korg; t=1648248143;
+        bh=O6PcInHqaTyKjHNAezn5o4gnRADs8PliDcKy0iC5J/g=;
         h=Date:To:From:Subject:From;
-        b=E/lzrQGAEXX5aG7KbmX4HxKvr6KGV1/3VBKL0NijMcK8SJmaEFI+ZRnwRCoG/2p8D
-         lsRkeUXuzQVg9IitX1ivXHgIWZ5fZ5O0VL06UwuJp5+FnRZS/UJEP6GWcVORY3235z
-         Ryg33eVWhgVnJGh2VjFEAmSzaftS0p4QSgSr34lA=
-Date:   Fri, 25 Mar 2022 15:42:20 -0700
+        b=CjW90O36AecwPXIhJe04u0zXSz5H7l2y4qqtW1BA93dlwBhEDtFBVAYfE/pB0pCbF
+         zuma/+LB/3QR48D0Z0qsZc+fHJIZLEafFHZ9IRGUi9qg3aOYAJIzC2JTbEgfrvsPjP
+         hOimcruJa0q9RU4pwjRQqdnJv/zjqlS3zRfIdBkU=
+Date:   Fri, 25 Mar 2022 15:42:22 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
         mark.rutland@arm.com, glider@google.com, eugenis@google.com,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch removed from -mm tree
-Message-Id: <20220325224220.C69DEC004DD@smtp.kernel.org>
+Subject: [merged] kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch removed from -mm tree
+Message-Id: <20220325224223.0705FC004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,28 +44,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, vmalloc, arm64: mark vmalloc mappings as pgprot_tagged
+     Subject: kasan, mm: only define ___GFP_SKIP_KASAN_POISON with HW_TAGS
 has been removed from the -mm tree.  Its filename was
-     kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+     kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, vmalloc, arm64: mark vmalloc mappings as pgprot_tagged
+Subject: kasan, mm: only define ___GFP_SKIP_KASAN_POISON with HW_TAGS
 
-HW_TAGS KASAN relies on ARM Memory Tagging Extension (MTE).  With MTE, a
-memory region must be mapped as MT_NORMAL_TAGGED to allow setting memory
-tags via MTE-specific instructions.
+Only define the ___GFP_SKIP_KASAN_POISON flag when CONFIG_KASAN_HW_TAGS is
+enabled.
 
-Add proper protection bits to vmalloc() allocations.  These allocations
-are always backed by page_alloc pages, so the tags will actually be
-getting set on the corresponding physical memory.
+This patch it not useful by itself, but it prepares the code for additions
+of new KASAN-specific GFP patches.
 
-Link: https://lkml.kernel.org/r/983fc33542db2f6b1e77b34ca23448d4640bbb9e.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/44e5738a584c11801b2b8f1231898918efc8634a.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -74,62 +70,64 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/vmalloc.h |    6 ++++++
- include/linux/vmalloc.h          |    7 +++++++
- mm/vmalloc.c                     |    9 +++++++++
- 3 files changed, 22 insertions(+)
+ include/linux/gfp.h            |    8 +++++++-
+ include/trace/events/mmflags.h |   12 +++++++++---
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/vmalloc.h~kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged
-+++ a/arch/arm64/include/asm/vmalloc.h
-@@ -25,4 +25,10 @@ static inline bool arch_vmap_pmd_support
- 
- #endif
- 
-+#define arch_vmap_pgprot_tagged arch_vmap_pgprot_tagged
-+static inline pgprot_t arch_vmap_pgprot_tagged(pgprot_t prot)
-+{
-+	return pgprot_tagged(prot);
-+}
-+
- #endif /* _ASM_ARM64_VMALLOC_H */
---- a/include/linux/vmalloc.h~kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged
-+++ a/include/linux/vmalloc.h
-@@ -115,6 +115,13 @@ static inline int arch_vmap_pte_supporte
- }
- #endif
- 
-+#ifndef arch_vmap_pgprot_tagged
-+static inline pgprot_t arch_vmap_pgprot_tagged(pgprot_t prot)
-+{
-+	return prot;
-+}
+--- a/include/linux/gfp.h~kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags
++++ a/include/linux/gfp.h
+@@ -54,7 +54,11 @@ struct vm_area_struct;
+ #define ___GFP_THISNODE		0x200000u
+ #define ___GFP_ACCOUNT		0x400000u
+ #define ___GFP_ZEROTAGS		0x800000u
++#ifdef CONFIG_KASAN_HW_TAGS
+ #define ___GFP_SKIP_KASAN_POISON	0x1000000u
++#else
++#define ___GFP_SKIP_KASAN_POISON	0
 +#endif
-+
- /*
-  *	Highlevel APIs for driver use
-  */
---- a/mm/vmalloc.c~kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged
-+++ a/mm/vmalloc.c
-@@ -3128,6 +3128,15 @@ again:
- 		goto fail;
- 	}
+ #ifdef CONFIG_LOCKDEP
+ #define ___GFP_NOLOCKDEP	0x2000000u
+ #else
+@@ -251,7 +255,9 @@ struct vm_area_struct;
+ #define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
  
-+	/*
-+	 * Modify protection bits to allow tagging.
-+	 * This must be done before mapping by __vmalloc_area_node().
-+	 */
-+	if (kasan_hw_tags_enabled() &&
-+	    pgprot_val(prot) == pgprot_val(PAGE_KERNEL))
-+		prot = arch_vmap_pgprot_tagged(prot);
+ /* Room for N __GFP_FOO bits */
+-#define __GFP_BITS_SHIFT (25 + IS_ENABLED(CONFIG_LOCKDEP))
++#define __GFP_BITS_SHIFT (24 +					\
++			  IS_ENABLED(CONFIG_KASAN_HW_TAGS) +	\
++			  IS_ENABLED(CONFIG_LOCKDEP))
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ 
+ /**
+--- a/include/trace/events/mmflags.h~kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags
++++ a/include/trace/events/mmflags.h
+@@ -49,12 +49,18 @@
+ 	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
+ 	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
+ 	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
+-	{(unsigned long)__GFP_ZEROTAGS,		"__GFP_ZEROTAGS"},	\
+-	{(unsigned long)__GFP_SKIP_KASAN_POISON,"__GFP_SKIP_KASAN_POISON"}\
++	{(unsigned long)__GFP_ZEROTAGS,		"__GFP_ZEROTAGS"}	\
 +
-+	/* Allocate physical pages and map them into vmalloc space. */
- 	addr = __vmalloc_area_node(area, gfp_mask, prot, shift, node);
- 	if (!addr)
- 		goto fail;
++#ifdef CONFIG_KASAN_HW_TAGS
++#define __def_gfpflag_names_kasan					      \
++	, {(unsigned long)__GFP_SKIP_KASAN_POISON, "__GFP_SKIP_KASAN_POISON"}
++#else
++#define __def_gfpflag_names_kasan
++#endif
+ 
+ #define show_gfp_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",				\
+-	__def_gfpflag_names						\
++	__def_gfpflag_names __def_gfpflag_names_kasan			\
+ 	) : "none"
+ 
+ #ifdef CONFIG_MMU
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
