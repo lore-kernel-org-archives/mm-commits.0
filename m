@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25ABAC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3C9DC433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:32:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357371AbiCYBdq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1357378AbiCYBdq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 24 Mar 2022 21:33:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37386 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357428AbiCYBdL (ORCPT
+        with ESMTP id S1357430AbiCYBdL (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AF68BF015
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:31:05 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABAB9BF01F
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:31:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3CE6BB81DEA
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:31:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D01EFC340ED;
-        Fri, 25 Mar 2022 01:31:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 483AE61947
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:31:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C9C2C340EC;
+        Fri, 25 Mar 2022 01:31:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171862;
-        bh=1McRRbhJMENLQuaJz3JlS8GwdhEgiyxj71gSdjqHAU0=;
+        s=korg; t=1648171866;
+        bh=T4IvWXLCADV7aD0ZfUZURVntjjomonqvgwtsLdPKkHo=;
         h=Date:To:From:Subject:From;
-        b=Av/eZOvh4kILkF8RCn6NCFk2QKyn0rBOWaf5faXiuxc04MEgZD8yERzFQwC1AuvPb
-         9XI2xCShUShJXo0cHGBRXToFti0Kn7jSySFjL6DnpGopC4DeHRDJ77Qqc7U5KM/uTB
-         aeLWDHYxLnTeoMdL85mVHXYoiP/vDBOZvE7ITkaU=
-Date:   Thu, 24 Mar 2022 18:31:02 -0700
-To:     mm-commits@vger.kernel.org, i.zhbanov@omprussia.ru,
-        hughd@google.com, rdunlap@infradead.org, akpm@linux-foundation.org
+        b=MURIaUgam2pF21frjXm5hwViuBsBWLYeusmx9WjmNj1s+ZHJ/8cxk3sph4ijIT84+
+         i926Cx2SN11+ZQ2j86PKrPrUMT0Sw38wwzM46R30+HAKPn8Q+YYB7Zlni5EdepwVEK
+         QqQCI5sd5QZwTUc/59OeYVNLfV7MuUB0P406fffc=
+Date:   Thu, 24 Mar 2022 18:31:06 -0700
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-mmap-return-1-from-stack_guard_gap-__setup-handler.patch removed from -mm tree
-Message-Id: <20220325013102.D01EFC340ED@smtp.kernel.org>
+Subject: [merged] mm-mmap-remove-obsolete-comment-in-ksys_mmap_pgoff.patch removed from -mm tree
+Message-Id: <20220325013106.9C9C2C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,69 +41,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: return 1 from stack_guard_gap __setup() handler
+     Subject: mm/mmap: remove obsolete comment in ksys_mmap_pgoff
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-return-1-from-stack_guard_gap-__setup-handler.patch
+     mm-mmap-remove-obsolete-comment-in-ksys_mmap_pgoff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/mmap: return 1 from stack_guard_gap __setup() handler
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mmap: remove obsolete comment in ksys_mmap_pgoff
 
-__setup() handlers should return 1 if the command line option is handled
-and 0 if not (or maybe never return 0; it just pollutes init's
-environment).  This prevents:
+RLIMIT_MEMLOCK is already reimplemented on top of ucounts now.  And since
+commit 83c1fd763b32 ("mm,hugetlb: remove mlock ulimit for SHM_HUGETLB"),
+mlock ulimit for SHM_HUGETLB is further removed.  So we should remove this
+obsolete comment.
 
-  Unknown kernel command line parameters \
-  "BOOT_IMAGE=/boot/bzImage-517rc5 stack_guard_gap=100", will be \
-  passed to user space.
-
-  Run /sbin/init as init process
-   with arguments:
-     /sbin/init
-   with environment:
-     HOME=/
-     TERM=linux
-     BOOT_IMAGE=/boot/bzImage-517rc5
-     stack_guard_gap=100
-
-Return 1 to indicate that the boot option has been handled.
-
-Note that there is no warning message if someone enters:
-	stack_guard_gap=anything_invalid
-and 'val' and stack_guard_gap are both set to 0 due to the use of
-simple_strtoul(). This could be improved by using kstrtoxxx() and
-checking for an error.
-
-It appears that having stack_guard_gap == 0 is valid (if unexpected) since
-using "stack_guard_gap=0" on the kernel command line does that.
-
-Link: https://lkml.kernel.org/r/20220222005817.11087-1-rdunlap@infradead.org
-Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
-Fixes: 1be7107fbe18e ("mm: larger stack guard gap, between vmas")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Igor Zhbanov <i.zhbanov@omprussia.ru>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20220309090623.13036-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-return-1-from-stack_guard_gap-__setup-handler
+--- a/mm/mmap.c~mm-mmap-remove-obsolete-comment-in-ksys_mmap_pgoff
 +++ a/mm/mmap.c
-@@ -2557,7 +2557,7 @@ static int __init cmdline_parse_stack_gu
- 	if (!*endptr)
- 		stack_guard_gap = val << PAGE_SHIFT;
- 
--	return 0;
-+	return 1;
- }
- __setup("stack_guard_gap=", cmdline_parse_stack_guard_gap);
- 
+@@ -1616,8 +1616,6 @@ unsigned long ksys_mmap_pgoff(unsigned l
+ 		/*
+ 		 * VM_NORESERVE is used because the reservations will be
+ 		 * taken when vm_ops->mmap() is called
+-		 * A dummy user value is used because we are not locking
+-		 * memory so no accounting is necessary
+ 		 */
+ 		file = hugetlb_file_setup(HUGETLB_ANON_FILE, len,
+ 				VM_NORESERVE,
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-huge_memory-make-is_transparent_hugepage-static.patch
 
