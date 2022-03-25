@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B95C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5803C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357081AbiCYBgp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:36:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40704 "EHLO
+        id S1347593AbiCYBgq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:36:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357483AbiCYBfr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 469862FFDD
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:42 -0700 (PDT)
+        with ESMTP id S1357474AbiCYBew (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:34:52 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BD24C12E8;
+        Thu, 24 Mar 2022 18:32:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E73F2B826FE
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86C91C340EC;
-        Fri, 25 Mar 2022 01:33:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 99136B82726;
+        Fri, 25 Mar 2022 01:32:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39535C340ED;
+        Fri, 25 Mar 2022 01:32:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172019;
-        bh=5YQaZejHFJyVYCLDGMyMWi6kdrchgdSw+QVCHQXm9SI=;
+        s=korg; t=1648171970;
+        bh=2xRjG0TAX9wdABTQj/Q9IDV4oZQXMOnRMl1YwU9V2Ss=;
         h=Date:To:From:Subject:From;
-        b=qS9lm7PI8Blsaqp8GiuuToSrOxQb743tDDlohRtZUK0vU3py+ht+BL92TVqi+TFV5
-         JUhdk7V2HDRqxTI2HmGJmrwt4bwJuYf0EEqa+eJrgx+dk2SCGlmHuP3JwDyRdu78qZ
-         0M70H7t+82YumufvyIN9M8qRp6K7fxzXiiVS6Tw8=
-Date:   Thu, 24 Mar 2022 18:33:38 -0700
-To:     mm-commits@vger.kernel.org, keescook@chromium.org,
-        jamorris@linux.microsoft.com, christian.brauner@ubuntu.com,
-        adobriyan@gmail.com, haolee.swjtu@gmail.com,
-        akpm@linux-foundation.org
+        b=oa2zyt2rrHqzNqaj4S/fyR+WUjWp7inwvfBQxArTJlum0NiM5ndzqhdJTSicuNeUT
+         0xlC6umGexsG7VnRq+Z4rHCHE0zW/oAwwkB271BgxVPr9xxjCfYDtoMbzHqW4pxhFm
+         KVENMqUNELfalJPgY7QC/V3sHSfZdIbLwdP4JMZk=
+Date:   Thu, 24 Mar 2022 18:32:49 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        stable@vger.kernel.org, huntbag@linux.vnet.ibm.com,
+        dave.hansen@linux.intel.com, baolin.wang@linux.alibaba.com,
+        osalvador@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks.patch removed from -mm tree
-Message-Id: <20220325013339.86C91C340EC@smtp.kernel.org>
+Subject: [merged] mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch removed from -mm tree
+Message-Id: <20220325013250.39535C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,70 +43,190 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: alloc PATH_MAX bytes for /proc/${pid}/fd/ symlinks
+     Subject: mm: only re-generate demotion targets when a numa node changes its N_CPU state
 has been removed from the -mm tree.  Its filename was
-     proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks.patch
+     mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hao Lee <haolee.swjtu@gmail.com>
-Subject: proc: alloc PATH_MAX bytes for /proc/${pid}/fd/ symlinks
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm: only re-generate demotion targets when a numa node changes its N_CPU state
 
-It's not a standard approach that use __get_free_page() to alloc path
-buffer directly.  We'd better use kmalloc and PATH_MAX.
+Abhishek reported that after patch [1], hotplug operations are taking
+~double the expected time.  [2]
 
-	PAGE_SIZE is different on different archs. An unlinked file
-	with very long canonical pathname will readlink differently
-	because "(deleted)" eats into a buffer.	--adobriyan
+The reason behind is that the CPU callbacks that migrate_on_reclaim_init()
+sets always call set_migration_target_nodes() whenever a CPU is brought
+up/down.
 
-[akpm@linux-foundation.org: remove now-unneeded cast]
-Link: https://lkml.kernel.org/r/Ye1fCxyZZ0I5lgOL@localhost.localdomain
-Signed-off-by: Hao Lee <haolee.swjtu@gmail.com>
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: James Morris <jamorris@linux.microsoft.com>
+But we only care about numa nodes going from having cpus to become
+cpuless, and vice versa, as that influences the demotion_target order.
+
+We do already have two CPU callbacks (vmstat_cpu_online() and
+vmstat_cpu_dead()) that check exactly that, so get rid of the CPU
+callbacks in migrate_on_reclaim_init() and only call
+set_migration_target_nodes() from vmstat_cpu_{dead,online}() whenever a
+numa node change its N_CPU state.
+
+[1] https://lore.kernel.org/linux-mm/20210721063926.3024591-2-ying.huang@intel.com/
+[2] https://lore.kernel.org/linux-mm/eb438ddd-2919-73d4-bd9f-b7eecdd9577a@linux.vnet.ibm.com/
+
+[osalvador@suse.de: add feedback from Huang Ying]
+  Link: https://lkml.kernel.org/r/20220314150945.12694-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20220310120749.23077-1-osalvador@suse.de
+Fixes: 884a6e5d1f93b ("mm/migrate: update node demotion order on hotplug events")
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: Abhishek Goel <huntbag@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Abhishek Goel <huntbag@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/migrate.h |    8 ++++++
+ mm/migrate.c            |   47 ++++++++------------------------------
+ mm/vmstat.c             |   13 +++++++++-
+ 3 files changed, 30 insertions(+), 38 deletions(-)
 
---- a/fs/proc/base.c~proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks
-+++ a/fs/proc/base.c
-@@ -1764,25 +1764,25 @@ out:
+--- a/include/linux/migrate.h~mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state
++++ a/include/linux/migrate.h
+@@ -48,7 +48,15 @@ int folio_migrate_mapping(struct address
+ 		struct folio *newfolio, struct folio *folio, int extra_count);
  
- static int do_proc_readlink(struct path *path, char __user *buffer, int buflen)
+ extern bool numa_demotion_enabled;
++extern void migrate_on_reclaim_init(void);
++#ifdef CONFIG_HOTPLUG_CPU
++extern void set_migration_target_nodes(void);
+ #else
++static inline void set_migration_target_nodes(void) {}
++#endif
++#else
++
++static inline void set_migration_target_nodes(void) {}
+ 
+ static inline void putback_movable_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t new,
+--- a/mm/migrate.c~mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state
++++ a/mm/migrate.c
+@@ -3209,7 +3209,7 @@ again:
+ /*
+  * For callers that do not hold get_online_mems() already.
+  */
+-static void set_migration_target_nodes(void)
++void set_migration_target_nodes(void)
  {
--	char *tmp = (char *)__get_free_page(GFP_KERNEL);
-+	char *tmp = kmalloc(PATH_MAX, GFP_KERNEL);
- 	char *pathname;
- 	int len;
- 
- 	if (!tmp)
- 		return -ENOMEM;
- 
--	pathname = d_path(path, tmp, PAGE_SIZE);
-+	pathname = d_path(path, tmp, PATH_MAX);
- 	len = PTR_ERR(pathname);
- 	if (IS_ERR(pathname))
- 		goto out;
--	len = tmp + PAGE_SIZE - 1 - pathname;
-+	len = tmp + PATH_MAX - 1 - pathname;
- 
- 	if (len > buflen)
- 		len = buflen;
- 	if (copy_to_user(buffer, pathname, len))
- 		len = -EFAULT;
-  out:
--	free_page((unsigned long)tmp);
-+	kfree(tmp);
- 	return len;
+ 	get_online_mems();
+ 	__set_migration_target_nodes();
+@@ -3273,51 +3273,24 @@ static int __meminit migrate_on_reclaim_
+ 	return notifier_from_errno(0);
  }
  
+-/*
+- * React to hotplug events that might affect the migration targets
+- * like events that online or offline NUMA nodes.
+- *
+- * The ordering is also currently dependent on which nodes have
+- * CPUs.  That means we need CPU on/offline notification too.
+- */
+-static int migration_online_cpu(unsigned int cpu)
+-{
+-	set_migration_target_nodes();
+-	return 0;
+-}
+-
+-static int migration_offline_cpu(unsigned int cpu)
+-{
+-	set_migration_target_nodes();
+-	return 0;
+-}
+-
+-static int __init migrate_on_reclaim_init(void)
++void __init migrate_on_reclaim_init(void)
+ {
+-	int ret;
+-
+ 	node_demotion = kmalloc_array(nr_node_ids,
+ 				      sizeof(struct demotion_nodes),
+ 				      GFP_KERNEL);
+ 	WARN_ON(!node_demotion);
+ 
+-	ret = cpuhp_setup_state_nocalls(CPUHP_MM_DEMOTION_DEAD, "mm/demotion:offline",
+-					NULL, migration_offline_cpu);
++	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
+ 	/*
+-	 * In the unlikely case that this fails, the automatic
+-	 * migration targets may become suboptimal for nodes
+-	 * where N_CPU changes.  With such a small impact in a
+-	 * rare case, do not bother trying to do anything special.
++	 * At this point, all numa nodes with memory/CPus have their state
++	 * properly set, so we can build the demotion order now.
++	 * Let us hold the cpu_hotplug lock just, as we could possibily have
++	 * CPU hotplug events during boot.
+ 	 */
+-	WARN_ON(ret < 0);
+-	ret = cpuhp_setup_state(CPUHP_AP_MM_DEMOTION_ONLINE, "mm/demotion:online",
+-				migration_online_cpu, NULL);
+-	WARN_ON(ret < 0);
+-
+-	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
+-	return 0;
++	cpus_read_lock();
++	set_migration_target_nodes();
++	cpus_read_unlock();
+ }
+-late_initcall(migrate_on_reclaim_init);
+ #endif /* CONFIG_HOTPLUG_CPU */
+ 
+ bool numa_demotion_enabled = false;
+--- a/mm/vmstat.c~mm-only-re-generate-demotion-targets-when-a-numa-node-changes-its-n_cpu-state
++++ a/mm/vmstat.c
+@@ -28,6 +28,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/page_ext.h>
+ #include <linux/page_owner.h>
++#include <linux/migrate.h>
+ 
+ #include "internal.h"
+ 
+@@ -2049,7 +2050,12 @@ static void __init init_cpu_node_state(v
+ static int vmstat_cpu_online(unsigned int cpu)
+ {
+ 	refresh_zone_stat_thresholds();
+-	node_set_state(cpu_to_node(cpu), N_CPU);
++
++	if (!node_state(cpu_to_node(cpu), N_CPU)) {
++		node_set_state(cpu_to_node(cpu), N_CPU);
++		set_migration_target_nodes();
++	}
++
+ 	return 0;
+ }
+ 
+@@ -2072,6 +2078,8 @@ static int vmstat_cpu_dead(unsigned int
+ 		return 0;
+ 
+ 	node_clear_state(node, N_CPU);
++	set_migration_target_nodes();
++
+ 	return 0;
+ }
+ 
+@@ -2103,6 +2111,9 @@ void __init init_mm_internals(void)
+ 
+ 	start_shepherd_timer();
+ #endif
++#if defined(CONFIG_MIGRATION) && defined(CONFIG_HOTPLUG_CPU)
++	migrate_on_reclaim_init();
++#endif
+ #ifdef CONFIG_PROC_FS
+ 	proc_create_seq("buddyinfo", 0444, NULL, &fragmentation_op);
+ 	proc_create_seq("pagetypeinfo", 0400, NULL, &pagetypeinfo_op);
 _
 
-Patches currently in -mm which might be from haolee.swjtu@gmail.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
 
