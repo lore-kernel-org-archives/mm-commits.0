@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ABB0C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:33:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD7BCC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:33:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348827AbiCYBez (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:34:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37216 "EHLO
+        id S1357434AbiCYBex (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:34:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357506AbiCYBdO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:14 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61B05BF946
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:31:31 -0700 (PDT)
+        with ESMTP id S1357514AbiCYBdP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1963CBF950
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:31:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 12905B8272B
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:31:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7029C340EC;
-        Fri, 25 Mar 2022 01:31:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A29AB61948
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:31:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09D06C340F5;
+        Fri, 25 Mar 2022 01:31:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171889;
-        bh=/Xi9vRcNb+ABkKVLvYzEmpcdCJent6lY7BJ6msLZw+4=;
+        s=korg; t=1648171892;
+        bh=kuzE5O8gjiNaMnWxW9RGfB5RDEhZOFIKhcy1GPqrq+o=;
         h=Date:To:From:Subject:From;
-        b=mlo0PfXTAtgAYTg5jkYwaQhGMHpQ2tVYJOdpXehM13wB9dc/LObKKj6DJ8a7cRR6D
-         wjnivyuijJtZShaSl+9pdExntm5TM7R+/UTJKV0ERvwKaTN72PP/Iqwx0atd8HJi+7
-         PJZRNudMbHaw/lxxFnV6JOaBtHU1JewtlnEMNXHw=
-Date:   Thu, 24 Mar 2022 18:31:29 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@kernel.org,
-        dave.hansen@linux.intel.com, brouer@redhat.com, aaron.lu@intel.com,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        b=hAiCkRM0FFdA3Ys5eclSOTyeJTqLXDqYWXwkbsio+f9oGIKCoKFgcOMbvRdpNYJR9
+         ztkQjA2fA1rBDrX9IEtldF6e+wFcX8qtAdlb4rofajFz9qZtYWWTv7R6ZGAxS0iFIi
+         en3CPhjEiLQJmPOTk3ugEnldtopadoyq27aEFzIw=
+Date:   Thu, 24 Mar 2022 18:31:31 -0700
+To:     mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        raquini@redhat.com, mhocko@suse.com, dennis@kernel.org,
+        david@redhat.com, dave.hansen@linux.intel.com,
+        amakhalov@vmware.com, osalvador@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-page_alloc-limit-number-of-high-order-pages-on-pcp-during-bulk-free.patch removed from -mm tree
-Message-Id: <20220325013129.A7029C340EC@smtp.kernel.org>
+Subject: [merged] arch-x86-mm-numa-do-not-initialize-nodes-twice.patch removed from -mm tree
+Message-Id: <20220325013132.09D06C340F5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,173 +43,249 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: limit number of high-order pages on PCP during bulk free
+     Subject: arch/x86/mm/numa: Do not initialize nodes twice
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-limit-number-of-high-order-pages-on-pcp-during-bulk-free.patch
+     arch-x86-mm-numa-do-not-initialize-nodes-twice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: limit number of high-order pages on PCP during bulk free
+From: Oscar Salvador <osalvador@suse.de>
+Subject: arch/x86/mm/numa: Do not initialize nodes twice
 
-When a PCP is mostly used for frees then high-order pages can exist on PCP
-lists for some time.  This is problematic when the allocation pattern is
-all allocations from one CPU and all frees from another resulting in
-colder pages being used.  When bulk freeing pages, limit the number of
-high-order pages that are stored on the PCP lists.
+On x86, prior to ("mm: handle uninitialized numa nodes gracecully"), NUMA
+nodes could be allocated at three different places.
 
-Netperf running on localhost exhibits this pattern and while it does not
-matter for some machines, it does matter for others with smaller caches
-where cache misses cause problems due to reduced page reuse.  Pages freed
-directly to the buddy list may be reused quickly while still cache hot
-where as storing on the PCP lists may be cold by the time
-free_pcppages_bulk() is called.
+- numa_register_memblks
+- init_cpu_to_node
+- init_gi_nodes
 
-Using perf kmem:mm_page_alloc, the 5 most used page frames were
+All these calls happen at setup_arch, and have the following order:
 
-5.17-rc3
-  13041 pfn=0x111a30
-  13081 pfn=0x5814d0
-  13097 pfn=0x108258
-  13121 pfn=0x689598
-  13128 pfn=0x5814d8
+setup_arch
+  ...
+  x86_numa_init
+   numa_init
+    numa_register_memblks
+  ...
+  init_cpu_to_node
+   init_memory_less_node
+    alloc_node_data
+    free_area_init_memoryless_node
+  init_gi_nodes
+   init_memory_less_node
+    alloc_node_data
+    free_area_init_memoryless_node
 
-5.17-revert-highpcp
- 192009 pfn=0x54c140
- 195426 pfn=0x1081d0
- 200908 pfn=0x61c808
- 243515 pfn=0xa9dc20
- 402523 pfn=0x222bb8
+numa_register_memblks() is only interested in those nodes which have
+memory, so it skips over any memoryless node it founds.  Later on, when we
+have read ACPI's SRAT table, we call init_cpu_to_node() and
+init_gi_nodes(), which initialize any memoryless node we might have that
+have either CPU or Initiator affinity, meaning we allocate pg_data_t
+struct for them and we mark them as ONLINE.
 
-5.17-full-series
- 142693 pfn=0x346208
- 162227 pfn=0x13bf08
- 166413 pfn=0x2711e0
- 166950 pfn=0x2702f8
+So far so good, but the thing is that after ("mm: handle uninitialized
+numa nodes gracefully"), we allocate all possible NUMA nodes in
+free_area_init(), meaning we have a picture like the following:
 
-The spread is wider as there is still time before pages freed to one PCP
-get released with a tradeoff between fast reuse and reduced zone lock
-acquisition.
+setup_arch
+  x86_numa_init
+   numa_init
+    numa_register_memblks  <-- allocate non-memoryless node
+  x86_init.paging.pagetable_init
+   ...
+    free_area_init
+     free_area_init_memoryless <-- allocate memoryless node
+  init_cpu_to_node
+   alloc_node_data             <-- allocate memoryless node with CPU
+   free_area_init_memoryless_node
+  init_gi_nodes
+   alloc_node_data             <-- allocate memoryless node with Initiator
+   free_area_init_memoryless_node
 
-On the machine used to gather the traces, the headline performance was
-equivalent.
+free_area_init() already allocates all possible NUMA nodes, but
+init_cpu_to_node() and init_gi_nodes() are clueless about that, so they go
+ahead and allocate a new pg_data_t struct without checking anything,
+meaning we end up allocating twice.
 
-netperf-tcp
-                            5.17.0-rc3             5.17.0-rc3             5.17.0-rc3
-                               vanilla  mm-reverthighpcp-v1r1     mm-highpcplimit-v2
-Hmean     64         839.93 (   0.00%)      840.77 (   0.10%)      841.02 (   0.13%)
-Hmean     128       1614.22 (   0.00%)     1622.07 *   0.49%*     1636.41 *   1.37%*
-Hmean     256       2952.00 (   0.00%)     2953.19 (   0.04%)     2977.76 *   0.87%*
-Hmean     1024     10291.67 (   0.00%)    10239.17 (  -0.51%)    10434.41 *   1.39%*
-Hmean     2048     17335.08 (   0.00%)    17399.97 (   0.37%)    17134.81 *  -1.16%*
-Hmean     3312     22628.15 (   0.00%)    22471.97 (  -0.69%)    22422.78 (  -0.91%)
-Hmean     4096     25009.50 (   0.00%)    24752.83 *  -1.03%*    24740.41 (  -1.08%)
-Hmean     8192     32745.01 (   0.00%)    31682.63 *  -3.24%*    32153.50 *  -1.81%*
-Hmean     16384    39759.59 (   0.00%)    36805.78 *  -7.43%*    38948.13 *  -2.04%*
+It should be mad clear that this only happens in the case where memoryless
+NUMA node happens to have a CPU/Initiator affinity.
 
-On a 1-socket skylake machine with a small CPU cache that suffers more if
-cache misses are too high
+So get rid of init_memory_less_node() and just set the node online.
 
-netperf-tcp
-                            5.17.0-rc3             5.17.0-rc3             5.17.0-rc3
-                               vanilla    mm-reverthighpcp-v1     mm-highpcplimit-v2
-Hmean     64         938.95 (   0.00%)      941.50 *   0.27%*      943.61 *   0.50%*
-Hmean     128       1843.10 (   0.00%)     1857.58 *   0.79%*     1861.09 *   0.98%*
-Hmean     256       3573.07 (   0.00%)     3667.45 *   2.64%*     3674.91 *   2.85%*
-Hmean     1024     13206.52 (   0.00%)    13487.80 *   2.13%*    13393.21 *   1.41%*
-Hmean     2048     22870.23 (   0.00%)    23337.96 *   2.05%*    23188.41 *   1.39%*
-Hmean     3312     31001.99 (   0.00%)    32206.50 *   3.89%*    31863.62 *   2.78%*
-Hmean     4096     35364.59 (   0.00%)    36490.96 *   3.19%*    36112.54 *   2.11%*
-Hmean     8192     48497.71 (   0.00%)    49954.05 *   3.00%*    49588.26 *   2.25%*
-Hmean     16384    58410.86 (   0.00%)    60839.80 *   4.16%*    62282.96 *   6.63%*
+Note that setting the node online is needed, otherwise we choke down the
+chain when bringup_nonboot_cpus() ends up calling
+__try_online_node()->register_one_node()->...  and we blow up in
+bus_add_device().  As can be seen here:
 
-Note that this was a machine that did not benefit from caching high-order
-pages and performance is almost restored with the series applied.  It's
-not fully restored as cache misses are still higher.  This is a trade-off
-between optimising for a workload that does all allocs on one CPU and
-frees on another or more general workloads that need high-order pages for
-SLUB and benefit from avoiding zone->lock for every SLUB refill/drain.
+==========
+[    0.585060] BUG: kernel NULL pointer dereference, address: 0000000000000060
+[    0.586091] #PF: supervisor read access in kernel mode
+[    0.586831] #PF: error_code(0x0000) - not-present page
+[    0.586930] PGD 0 P4D 0
+[    0.586930] Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC PTI
+[    0.586930] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.17.0-rc4-1-default+ #45
+[    0.586930] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/4
+[    0.586930] RIP: 0010:bus_add_device+0x5a/0x140
+[    0.586930] Code: 8b 74 24 20 48 89 df e8 84 96 ff ff 85 c0 89 c5 75 38 48 8b 53 50 48 85 d2 0f 84 bb 00 004
+[    0.586930] RSP: 0000:ffffc9000022bd10 EFLAGS: 00010246
+[    0.586930] RAX: 0000000000000000 RBX: ffff888100987400 RCX: ffff8881003e4e19
+[    0.586930] RDX: ffff8881009a5e00 RSI: ffff888100987400 RDI: ffff888100987400
+[    0.586930] RBP: 0000000000000000 R08: ffff8881003e4e18 R09: ffff8881003e4c98
+[    0.586930] R10: 0000000000000000 R11: ffff888100402bc0 R12: ffffffff822ceba0
+[    0.586930] R13: 0000000000000000 R14: ffff888100987400 R15: 0000000000000000
+[    0.586930] FS:  0000000000000000(0000) GS:ffff88853fc00000(0000) knlGS:0000000000000000
+[    0.586930] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    0.586930] CR2: 0000000000000060 CR3: 000000000200a001 CR4: 00000000001706b0
+[    0.586930] Call Trace:
+[    0.586930]  <TASK>
+[    0.586930]  device_add+0x4c0/0x910
+[    0.586930]  __register_one_node+0x97/0x2d0
+[    0.586930]  __try_online_node+0x85/0xc0
+[    0.586930]  try_online_node+0x25/0x40
+[    0.586930]  cpu_up+0x4f/0x100
+[    0.586930]  bringup_nonboot_cpus+0x4f/0x60
+[    0.586930]  smp_init+0x26/0x79
+[    0.586930]  kernel_init_freeable+0x130/0x2f1
+[    0.586930]  ? rest_init+0x100/0x100
+[    0.586930]  kernel_init+0x17/0x150
+[    0.586930]  ? rest_init+0x100/0x100
+[    0.586930]  ret_from_fork+0x22/0x30
+[    0.586930]  </TASK>
+[    0.586930] Modules linked in:
+[    0.586930] CR2: 0000000000000060
+[    0.586930] ---[ end trace 0000000000000000 ]---
+==========
 
-Link: https://lkml.kernel.org/r/20220217002227.5739-7-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Aaron Lu <aaron.lu@intel.com>
+The reason is simple, by the time bringup_nonboot_cpus() gets called, we
+did not register the node_subsys bus yet, so we crash when
+bus_add_device() tries to dereference bus()->p.
+
+The following shows the order of the calls:
+
+kernel_init_freeable
+ smp_init
+  bringup_nonboot_cpus
+   ...
+     bus_add_device()      <- we did not register node_subsys yet
+ do_basic_setup
+  do_initcalls
+   postcore_initcall(register_node_type);
+    register_node_type
+     subsys_system_register
+      subsys_register
+       bus_register         <- register node_subsys bus
+
+Why setting the node online saves us then?  Well, simply because
+__try_online_node() backs off when the node is online, meaning we do not
+end up calling register_one_node() in the first place.
+
+This is subtle, broken and deserves a deep analysis and thought about how
+to put this into shape, but for now let us have this easy fix for the
+leaking memory issue.
+
+[osalvador@suse.de: add comments]
+  Link: https://lkml.kernel.org/r/20220221142649.3457-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20220218224302.5282-2-osalvador@suse.de
+Fixes: da4490c958ad ("mm: handle uninitialized numa nodes gracefully")
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Alexey Makhalov <amakhalov@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ arch/x86/mm/numa.c |   33 ++++++++++++++++++++-------------
+ include/linux/mm.h |    1 -
+ mm/page_alloc.c    |    2 +-
+ 3 files changed, 21 insertions(+), 15 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-limit-number-of-high-order-pages-on-pcp-during-bulk-free
-+++ a/mm/page_alloc.c
-@@ -3299,10 +3299,15 @@ static bool free_unref_page_prepare(stru
- 	return true;
+--- a/arch/x86/mm/numa.c~arch-x86-mm-numa-do-not-initialize-nodes-twice
++++ a/arch/x86/mm/numa.c
+@@ -738,17 +738,6 @@ void __init x86_numa_init(void)
+ 	numa_init(dummy_numa_init);
  }
  
--static int nr_pcp_free(struct per_cpu_pages *pcp, int high, int batch)
-+static int nr_pcp_free(struct per_cpu_pages *pcp, int high, int batch,
-+		       bool free_high)
+-static void __init init_memory_less_node(int nid)
+-{
+-	/* Allocate and initialize node data. Memory-less node is now online.*/
+-	alloc_node_data(nid);
+-	free_area_init_memoryless_node(nid);
+-
+-	/*
+-	 * All zonelists will be built later in start_kernel() after per cpu
+-	 * areas are initialized.
+-	 */
+-}
+ 
+ /*
+  * A node may exist which has one or more Generic Initiators but no CPUs and no
+@@ -766,9 +755,18 @@ void __init init_gi_nodes(void)
  {
- 	int min_nr_free, max_nr_free;
+ 	int nid;
  
-+	/* Free everything if batch freeing high-order pages. */
-+	if (unlikely(free_high))
-+		return pcp->count;
-+
- 	/* Check for PCP disabled or boot pageset */
- 	if (unlikely(high < batch))
- 		return 1;
-@@ -3323,11 +3328,12 @@ static int nr_pcp_free(struct per_cpu_pa
- 	return batch;
- }
- 
--static int nr_pcp_high(struct per_cpu_pages *pcp, struct zone *zone)
-+static int nr_pcp_high(struct per_cpu_pages *pcp, struct zone *zone,
-+		       bool free_high)
- {
- 	int high = READ_ONCE(pcp->high);
- 
--	if (unlikely(!high))
-+	if (unlikely(!high || free_high))
- 		return 0;
- 
- 	if (!test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
-@@ -3347,17 +3353,27 @@ static void free_unref_page_commit(struc
- 	struct per_cpu_pages *pcp;
- 	int high;
- 	int pindex;
-+	bool free_high;
- 
- 	__count_vm_event(PGFREE);
- 	pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 	pindex = order_to_pindex(migratetype, order);
- 	list_add(&page->lru, &pcp->lists[pindex]);
- 	pcp->count += 1 << order;
--	high = nr_pcp_high(pcp, zone);
-+
 +	/*
-+	 * As high-order pages other than THP's stored on PCP can contribute
-+	 * to fragmentation, limit the number stored when PCP is heavily
-+	 * freeing without allocation. The remainder after bulk freeing
-+	 * stops will be drained from vmstat refresh context.
++	 * Exclude this node from
++	 * bringup_nonboot_cpus
++	 *  cpu_up
++	 *   __try_online_node
++	 *    register_one_node
++	 * because node_subsys is not initialized yet.
++	 * TODO remove dependency on node_online
 +	 */
-+	free_high = (pcp->free_factor && order && order <= PAGE_ALLOC_COSTLY_ORDER);
-+
-+	high = nr_pcp_high(pcp, zone, free_high);
- 	if (pcp->count >= high) {
- 		int batch = READ_ONCE(pcp->batch);
- 
--		free_pcppages_bulk(zone, nr_pcp_free(pcp, high, batch), pcp, pindex);
-+		free_pcppages_bulk(zone, nr_pcp_free(pcp, high, batch, free_high), pcp, pindex);
- 	}
+ 	for_each_node_state(nid, N_GENERIC_INITIATOR)
+ 		if (!node_online(nid))
+-			init_memory_less_node(nid);
++			node_set_online(nid);
  }
  
+ /*
+@@ -798,8 +796,17 @@ void __init init_cpu_to_node(void)
+ 		if (node == NUMA_NO_NODE)
+ 			continue;
+ 
++		/*
++		 * Exclude this node from
++		 * bringup_nonboot_cpus
++		 *  cpu_up
++		 *   __try_online_node
++		 *    register_one_node
++		 * because node_subsys is not initialized yet.
++		 * TODO remove dependency on node_online
++		 */
+ 		if (!node_online(node))
+-			init_memory_less_node(node);
++			node_set_online(node);
+ 
+ 		numa_set_node(cpu, node);
+ 	}
+--- a/include/linux/mm.h~arch-x86-mm-numa-do-not-initialize-nodes-twice
++++ a/include/linux/mm.h
+@@ -2449,7 +2449,6 @@ static inline spinlock_t *pud_lock(struc
+ }
+ 
+ extern void __init pagecache_init(void);
+-extern void __init free_area_init_memoryless_node(int nid);
+ extern void free_initmem(void);
+ 
+ /*
+--- a/mm/page_alloc.c~arch-x86-mm-numa-do-not-initialize-nodes-twice
++++ a/mm/page_alloc.c
+@@ -7626,7 +7626,7 @@ static void __init free_area_init_node(i
+ 	free_area_init_core(pgdat);
+ }
+ 
+-void __init free_area_init_memoryless_node(int nid)
++static void __init free_area_init_memoryless_node(int nid)
+ {
+ 	free_area_init_node(nid);
+ }
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from osalvador@suse.de are
 
 
