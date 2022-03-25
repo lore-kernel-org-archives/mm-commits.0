@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12297C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B49B4C433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:34:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354770AbiCYBf6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S243247AbiCYBf6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 24 Mar 2022 21:35:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40686 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357456AbiCYBew (ORCPT
+        with ESMTP id S1345845AbiCYBew (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:34:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B300C12CA
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:32:44 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43AD6C12C6
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:32:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9BE7460A50
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:32:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F05EAC340ED;
-        Fri, 25 Mar 2022 01:32:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EC9CCB81DEA
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:32:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB8E8C340ED;
+        Fri, 25 Mar 2022 01:32:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171963;
-        bh=CMq0ZYB9pQ9lS8pmgT+lUb9aJkevb/sM4w7aRjR+vR4=;
+        s=korg; t=1648171960;
+        bh=2/eys9/bJH8i1o7Hggiq7dXLzaT4mc/hmLYHnCLxoQM=;
         h=Date:To:From:Subject:From;
-        b=BMlRUqIJBlB8fYFUcNECC3MtdAWIU0LiZAmgDxGKNRSQbKWzLtJPSOM5wZLNuEhjf
-         vlRG0fcJNWqCzbs82yM6bLjLG+3xfyk2JmpAdbccQKwQYZUOaWyUZcy/WusYKUTlVX
-         HTSv4wwXa9zJCLuefN6CWER5/KA6Ix+7Bt1XRsL8=
-Date:   Thu, 24 Mar 2022 18:32:42 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com, linmiaohe@huawei.com,
+        b=s4vdFRxsXDKYyX3wl4DlvxvXkuqOLhgUOobFZELQufsOXGzGegOIeXNS1kxdt/tH0
+         iaUYuce56jpMltgiYqkIlpHXTuSCW4QydY4CJ9i0/JfmDg3qS3p2ePA2+oMrrVemHU
+         g8pwdt9iykYAoqRpAqh2w0veqtNTHKaubhpFnXLA=
+Date:   Thu, 24 Mar 2022 18:32:40 -0700
+To:     mm-commits@vger.kernel.org, rafael@kernel.org, osalvador@suse.de,
+        mhocko@suse.com, gregkh@linuxfoundation.org, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch removed from -mm tree
-Message-Id: <20220325013242.F05EAC340ED@smtp.kernel.org>
+Subject: [merged] drivers-base-memory-add-memory-block-to-memory-group-after-registration-succeeded.patch removed from -mm tree
+Message-Id: <20220325013240.AB8E8C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,56 +42,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: remove obsolete comment of __add_pages
+     Subject: drivers/base/memory: add memory block to memory group after registration succeeded
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
+     drivers-base-memory-add-memory-block-to-memory-group-after-registration-succeeded.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory_hotplug: remove obsolete comment of __add_pages
+From: David Hildenbrand <david@redhat.com>
+Subject: drivers/base/memory: add memory block to memory group after registration succeeded
 
-Patch series "A few cleanup patches around memory_hotplug".
+If register_memory() fails, we freed the memory block but already added
+the memory block to the group list, not good.  Let's defer adding the
+block to the memory group to after registering the memory block device.
 
-This series contains a few patches to fix obsolete and misplaced comments,
-clean up the try_offline_node function and so on.  
+We do handle it properly during unregister_memory(), but that's not
+called when the registration fails.
 
-
-This patch (of 4):
-
-Since commit f1dd2cd13c4b ("mm, memory_hotplug: do not associate hotadded
-memory to zones until online"), there is no need to pass in the zone.
-
-[akpm@linux-foundation.org: remove the comment altogether, per David]
-Link: https://lkml.kernel.org/r/20220207133643.23427-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220207133643.23427-2-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20220128144540.153902-1-david@redhat.com
+Fixes: 028fc57a1c36 ("drivers/base/memory: introduce "memory groups" to logically group memory blocks")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/base/memory.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-obsolete-comment-of-__add_pages
-+++ a/mm/memory_hotplug.c
-@@ -295,12 +295,6 @@ struct page *pfn_to_online_page(unsigned
- }
- EXPORT_SYMBOL_GPL(pfn_to_online_page);
+--- a/drivers/base/memory.c~drivers-base-memory-add-memory-block-to-memory-group-after-registration-succeeded
++++ a/drivers/base/memory.c
+@@ -665,14 +665,16 @@ static int init_memory_block(unsigned lo
+ 	mem->nr_vmemmap_pages = nr_vmemmap_pages;
+ 	INIT_LIST_HEAD(&mem->group_next);
  
--/*
-- * Reasonably generic function for adding memory.  It is
-- * expected that archs that support memory hotplug will
-- * call this function after deciding the zone to which to
-- * add the new pages.
-- */
- int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
- 		struct mhp_params *params)
- {
++	ret = register_memory(mem);
++	if (ret)
++		return ret;
++
+ 	if (group) {
+ 		mem->group = group;
+ 		list_add(&mem->group_next, &group->memory_blocks);
+ 	}
+ 
+-	ret = register_memory(mem);
+-
+-	return ret;
++	return 0;
+ }
+ 
+ static int add_memory_block(unsigned long base_section_nr)
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-huge_memory-make-is_transparent_hugepage-static.patch
+mm-optimize-do_wp_page-for-exclusive-pages-in-the-swapcache.patch
+mm-optimize-do_wp_page-for-fresh-pages-in-local-lru-pagevecs.patch
+mm-slightly-clarify-ksm-logic-in-do_swap_page.patch
+mm-streamline-cow-logic-in-do_swap_page.patch
+mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch
+mm-khugepaged-remove-reuse_swap_page-usage.patch
+mm-swapfile-remove-stale-reuse_swap_page.patch
+mm-huge_memory-remove-stale-page_trans_huge_mapcount.patch
+mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 
