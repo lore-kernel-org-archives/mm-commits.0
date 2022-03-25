@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E651C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BBD4C43217
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:36:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357511AbiCYBhc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1357512AbiCYBhc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 24 Mar 2022 21:37:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44574 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357521AbiCYBf6 (ORCPT
+        with ESMTP id S1357524AbiCYBf6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE81D3DA6B
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:34:23 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 035C93A739
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:34:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 73677B82738
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:34:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FA35C340EC;
-        Fri, 25 Mar 2022 01:34:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 947A060B08
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:34:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F109CC340ED;
+        Fri, 25 Mar 2022 01:34:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172061;
-        bh=UjLdjbkg06eA5wXKQBEre2HxwIOLvGNt3dAhLNRhyDc=;
+        s=korg; t=1648172053;
+        bh=93jyMUIddQ7t9w+BZ+FuPVMEDObBylkXv90S9LK1Wxo=;
         h=Date:To:From:Subject:From;
-        b=mz5X0wBqo9rSFQKMOcMrecamDmRvD8GHKVa2PxTNwahT2ys5TjyUX9ziKdKyOvtrU
-         DWGLvmmhowyxJmaBOYyjpbqZ7C2jUVRM80ch4wWeMhCP6HTT0JBnw1rit8VSNSVuQQ
-         nDfO6Yd97BJAwpV213/Tar5if4ykKL/CeNecjtIc=
-Date:   Thu, 24 Mar 2022 18:34:20 -0700
-To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        nathan@kernel.org, keescook@chromium.org, glider@google.com,
-        dvyukov@google.com, arnd@arndb.de, elver@google.com,
-        akpm@linux-foundation.org
+        b=coiQvetJ75kQABAuy3lX4yv1u80bBVhg5GFFQbJspYq6fiJ3co6KihACU3GPqjlZk
+         LuRrmrKSqGG6v2XK/LEsdwj6O8xB1PKlJrgcC1cot08vB/G8VV8kHE3VOYIEAmHkT/
+         j0zaV8+CYixOYEXwiJBGwcZH0KhNz3zCjVeKpUi0=
+Date:   Thu, 24 Mar 2022 18:34:12 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        lixuefeng@loongson.cn, elver@google.com, corbet@lwn.net,
+        bhe@redhat.com, yangtiezhu@loongson.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch removed from -mm tree
-Message-Id: <20220325013421.2FA35C340EC@smtp.kernel.org>
+Subject: [merged] kasan-no-need-to-unset-panic_on_warn-in-end_report.patch removed from -mm tree
+Message-Id: <20220325013412.F109CC340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,101 +42,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "ubsan, kcsan: Don't combine sanitizer with kcov on clang"
+     Subject: kasan: no need to unset panic_on_warn in end_report()
 has been removed from the -mm tree.  Its filename was
-     revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
+     kasan-no-need-to-unset-panic_on_warn-in-end_report.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: Revert "ubsan, kcsan: Don't combine sanitizer with kcov on clang"
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: kasan: no need to unset panic_on_warn in end_report()
 
-This reverts commit ea91a1d45d19469001a4955583187b0d75915759.
+panic_on_warn is unset inside panic(), so no need to unset it before
+calling panic() in end_report().
 
-Since df05c0e9496c ("Documentation: Raise the minimum supported version
-of LLVM to 11.0.0") the minimum Clang version is now 11.0, which fixed
-the UBSAN/KCSAN vs. KCOV incompatibilities.
-
-Link: https://bugs.llvm.org/show_bug.cgi?id=45831
-Link: https://lkml.kernel.org/r/YaodyZzu0MTCJcvO@elver.google.com
-Link: https://lkml.kernel.org/r/20220128105631.509772-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/1644324666-15947-6-git-send-email-yangtiezhu@loongson.cn
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Xuefeng Li <lixuefeng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kcsan |   11 -----------
- lib/Kconfig.ubsan |   12 ------------
- 2 files changed, 23 deletions(-)
+ mm/kasan/report.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
---- a/lib/Kconfig.kcsan~revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang
-+++ a/lib/Kconfig.kcsan
-@@ -10,21 +10,10 @@ config HAVE_KCSAN_COMPILER
- 	  For the list of compilers that support KCSAN, please see
- 	  <file:Documentation/dev-tools/kcsan.rst>.
- 
--config KCSAN_KCOV_BROKEN
--	def_bool KCOV && CC_HAS_SANCOV_TRACE_PC
--	depends on CC_IS_CLANG
--	depends on !$(cc-option,-Werror=unused-command-line-argument -fsanitize=thread -fsanitize-coverage=trace-pc)
--	help
--	  Some versions of clang support either KCSAN and KCOV but not the
--	  combination of the two.
--	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
--	  in newer releases.
--
- menuconfig KCSAN
- 	bool "KCSAN: dynamic data race detector"
- 	depends on HAVE_ARCH_KCSAN && HAVE_KCSAN_COMPILER
- 	depends on DEBUG_KERNEL && !KASAN
--	depends on !KCSAN_KCOV_BROKEN
- 	select STACKTRACE
- 	help
- 	  The Kernel Concurrency Sanitizer (KCSAN) is a dynamic
---- a/lib/Kconfig.ubsan~revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang
-+++ a/lib/Kconfig.ubsan
-@@ -27,16 +27,6 @@ config UBSAN_TRAP
- 	  the system. For some system builders this is an acceptable
- 	  trade-off.
- 
--config UBSAN_KCOV_BROKEN
--	def_bool KCOV && CC_HAS_SANCOV_TRACE_PC
--	depends on CC_IS_CLANG
--	depends on !$(cc-option,-Werror=unused-command-line-argument -fsanitize=bounds -fsanitize-coverage=trace-pc)
--	help
--	  Some versions of clang support either UBSAN or KCOV but not the
--	  combination of the two.
--	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
--	  in newer releases.
--
- config CC_HAS_UBSAN_BOUNDS
- 	def_bool $(cc-option,-fsanitize=bounds)
- 
-@@ -46,7 +36,6 @@ config CC_HAS_UBSAN_ARRAY_BOUNDS
- config UBSAN_BOUNDS
- 	bool "Perform array index bounds checking"
- 	default UBSAN
--	depends on !UBSAN_KCOV_BROKEN
- 	depends on CC_HAS_UBSAN_ARRAY_BOUNDS || CC_HAS_UBSAN_BOUNDS
- 	help
- 	  This option enables detection of directly indexed out of bounds
-@@ -72,7 +61,6 @@ config UBSAN_ARRAY_BOUNDS
- config UBSAN_LOCAL_BOUNDS
- 	bool "Perform array local bounds checking"
- 	depends on UBSAN_TRAP
--	depends on !UBSAN_KCOV_BROKEN
- 	depends on $(cc-option,-fsanitize=local-bounds)
- 	help
- 	  This option enables -fsanitize=local-bounds which traps when an
+--- a/mm/kasan/report.c~kasan-no-need-to-unset-panic_on_warn-in-end_report
++++ a/mm/kasan/report.c
+@@ -117,16 +117,8 @@ static void end_report(unsigned long *fl
+ 	pr_err("==================================================================\n");
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ 	spin_unlock_irqrestore(&report_lock, *flags);
+-	if (panic_on_warn && !test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags)) {
+-		/*
+-		 * This thread may hit another WARN() in the panic path.
+-		 * Resetting this prevents additional WARN() from panicking the
+-		 * system on this thread.  Other threads are blocked by the
+-		 * panic_mutex in panic().
+-		 */
+-		panic_on_warn = 0;
++	if (panic_on_warn && !test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
+ 		panic("panic_on_warn set ...\n");
+-	}
+ 	if (kasan_arg_fault == KASAN_ARG_FAULT_PANIC)
+ 		panic("kasan.fault=panic set ...\n");
+ 	kasan_enable_current();
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from yangtiezhu@loongson.cn are
 
 
