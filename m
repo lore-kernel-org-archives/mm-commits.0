@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E25E3C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DE8FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233992AbiCYWod (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:44:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54196 "EHLO
+        id S233993AbiCYWoe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:44:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233993AbiCYWoO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:44:14 -0400
+        with ESMTP id S233977AbiCYWoP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:44:15 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A06D20A951
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6C3D20A965
         for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:42:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8A5ECB82A1E
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DE66C004DD;
-        Fri, 25 Mar 2022 22:42:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 81618B82A1C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:42:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 344C9C340ED;
+        Fri, 25 Mar 2022 22:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248156;
-        bh=/iHf6GbGT728HEBUpSTPRx64YI2VoAoLJkF8zS5Ox8I=;
+        s=korg; t=1648248157;
+        bh=kKgZBd8GTUtz3SIAUivoqDDueS3y/dd/hqDuHR+X4w0=;
         h=Date:To:From:Subject:From;
-        b=gy2u+NbHDD6Bq5mi03AuJpSboZghtssvikTHGyECmcvE5PYz2DoIEUBzFtxNtr7ll
-         93mGV9JJbArpfLHxgfhRRwdFcA06TQJ/vB+5Ig4qFhKvTRKeeo1fl9l/k3dNxwgsEs
-         T7HMzpjJcqSVgNJXae+2Gu4/d/kxZGLwgq9qEuew=
-Date:   Fri, 25 Mar 2022 15:42:35 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        vincenzo.frascino@arm.com, sfr@canb.auug.org.au,
-        ryabinin.a.a@gmail.com, pcc@google.com, mark.rutland@arm.com,
-        glider@google.com, eugenis@google.com, elver@google.com,
-        dvyukov@google.com, catalin.marinas@arm.com, andreyknvl@gmail.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=mKwRumTd9MNElMX4MXtl+BS+sOIHH8MFwwtKVmInOruZYwFe+jfCy8hytsUjsz06K
+         teR710ZcCO6mA7eLZoLx9FztCjHD3N4c1ZGRif7yB50UOflgRLWc/Qvu4A1sNzq+i3
+         ot/PM20AB6Ycy9SYr+CHCRyCXun95zDq9PtBLUpU=
+Date:   Fri, 25 Mar 2022 15:42:36 -0700
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        ryabinin.a.a@gmail.com, glider@google.com, elver@google.com,
+        dvyukov@google.com, catalin.marinas@arm.com, andreyknvl@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kasan-improve-vmalloc-tests.patch removed from -mm tree
-Message-Id: <20220325224236.1DE66C004DD@smtp.kernel.org>
+Subject: [merged] kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch removed from -mm tree
+Message-Id: <20220325224237.344C9C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,293 +43,280 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: improve vmalloc tests
+     Subject: kasan: test: support async (again) and asymm modes for HW_TAGS
 has been removed from the -mm tree.  Its filename was
-     kasan-improve-vmalloc-tests.patch
+     kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: improve vmalloc tests
+Subject: kasan: test: support async (again) and asymm modes for HW_TAGS
 
-Update the existing vmalloc_oob() test to account for the specifics of the
-tag-based modes.  Also add a few new checks and comments.
+Async mode support has already been implemented in commit e80a76aa1a91
+("kasan, arm64: tests supports for HW_TAGS async mode") but then got
+accidentally broken in commit 99734b535d9b ("kasan: detect false-positives
+in tests").
 
-Add new vmalloc-related tests:
+Restore the changes removed by the latter patch and adapt them for asymm
+mode: add a sync_fault flag to kunit_kasan_expectation that only get set
+if the MTE fault was synchronous, and reenable MTE on such faults in
+tests.
 
-- vmalloc_helpers_tags() to check that exported vmalloc helpers can
-  handle tagged pointers.
-- vmap_tags() to check that SW_TAGS mode properly tags vmap() mappings.
-- vm_map_ram_tags() to check that SW_TAGS mode properly tags
-  vm_map_ram() mappings.
-- vmalloc_percpu() to check that SW_TAGS mode tags regions allocated
-  for __alloc_percpu(). The tagging of per-cpu mappings is best-effort;
-  proper tagging is tracked in [1].
+Also rename kunit_kasan_expectation to kunit_kasan_status and move its
+definition to mm/kasan/kasan.h from include/linux/kasan.h, as this
+structure is only internally used by KASAN.  Also put the structure
+definition under IS_ENABLED(CONFIG_KUNIT).
 
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=215019
-
-[sfr@canb.auug.org.au: similar to "kasan: test: fix compatibility with FORTIFY_SOURCE"]
-  Link: https://lkml.kernel.org/r/20220128144801.73f5ced0@canb.auug.org.au
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-[andreyknvl@google.com: vmap_tags() and vm_map_ram_tags() pass invalid page array size]
-  Link: https://lkml.kernel.org/r/865c91ba49b90623ab50c7526b79ccb955f544f0.1644950160.git.andreyknvl@google.com
-[andreyknvl@google.com: set_memory_rw/ro() are not exported to modules]
-  Link: https://lkml.kernel.org/r/019ac41602e0c4a7dfe96dc8158a95097c2b2ebd.1645554036.git.andreyknvl@google.com
-[akpm@linux-foundation.org: fix build]
-Link: https://lkml.kernel.org/r/bbdc1c0501c5275e7f26fdb8e2a7b14a40a9f36b.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/133970562ccacc93ba19d754012c562351d4a8c8.1645033139.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Marco Elver <elver@google.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Collingbourne <pcc@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |  194 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 188 insertions(+), 6 deletions(-)
+ include/linux/kasan.h |    5 -----
+ lib/test_kasan.c      |   39 ++++++++++++++++++++++-----------------
+ mm/kasan/hw_tags.c    |   18 +++++++++---------
+ mm/kasan/kasan.h      |   14 ++++++++++++--
+ mm/kasan/report.c     |   17 +++++++++--------
+ 5 files changed, 52 insertions(+), 41 deletions(-)
 
---- a/lib/test_kasan.c~kasan-improve-vmalloc-tests
+--- a/include/linux/kasan.h~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/include/linux/kasan.h
+@@ -19,11 +19,6 @@ struct task_struct;
+ #include <linux/linkage.h>
+ #include <asm/kasan.h>
+ 
+-/* kasan_data struct is used in KUnit tests for KASAN expected failures */
+-struct kunit_kasan_expectation {
+-	bool report_found;
+-};
+-
+ #endif
+ 
+ typedef unsigned int __bitwise kasan_vmalloc_flags_t;
+--- a/lib/test_kasan.c~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
 +++ a/lib/test_kasan.c
-@@ -19,6 +19,7 @@
- #include <linux/uaccess.h>
- #include <linux/io.h>
- #include <linux/vmalloc.h>
-+#include <linux/set_memory.h>
+@@ -37,7 +37,7 @@ void *kasan_ptr_result;
+ int kasan_int_result;
  
- #include <asm/page.h>
- 
-@@ -1057,21 +1058,186 @@ static void kmalloc_double_kzfree(struct
- 	KUNIT_EXPECT_KASAN_FAIL(test, kfree_sensitive(ptr));
- }
- 
-+static void vmalloc_helpers_tags(struct kunit *test)
-+{
-+	void *ptr;
-+
-+	/* This test is intended for tag-based modes. */
-+	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_GENERIC);
-+
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_VMALLOC);
-+
-+	ptr = vmalloc(PAGE_SIZE);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+
-+	/* Check that the returned pointer is tagged. */
-+	KUNIT_EXPECT_GE(test, (u8)get_tag(ptr), (u8)KASAN_TAG_MIN);
-+	KUNIT_EXPECT_LT(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
-+
-+	/* Make sure exported vmalloc helpers handle tagged pointers. */
-+	KUNIT_ASSERT_TRUE(test, is_vmalloc_addr(ptr));
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, vmalloc_to_page(ptr));
-+
-+#if !IS_MODULE(CONFIG_KASAN_KUNIT_TEST)
-+	{
-+		int rv;
-+
-+		/* Make sure vmalloc'ed memory permissions can be changed. */
-+		rv = set_memory_ro((unsigned long)ptr, 1);
-+		KUNIT_ASSERT_GE(test, rv, 0);
-+		rv = set_memory_rw((unsigned long)ptr, 1);
-+		KUNIT_ASSERT_GE(test, rv, 0);
-+	}
-+#endif
-+
-+	vfree(ptr);
-+}
-+
- static void vmalloc_oob(struct kunit *test)
- {
--	void *area;
-+	char *v_ptr, *p_ptr;
-+	struct page *page;
-+	size_t size = PAGE_SIZE / 2 - KASAN_GRANULE_SIZE - 5;
- 
- 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_VMALLOC);
- 
-+	v_ptr = vmalloc(size);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
-+
-+	OPTIMIZER_HIDE_VAR(v_ptr);
-+
- 	/*
--	 * We have to be careful not to hit the guard page.
-+	 * We have to be careful not to hit the guard page in vmalloc tests.
- 	 * The MMU will catch that and crash us.
- 	 */
--	area = vmalloc(3000);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, area);
- 
--	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)area)[3100]);
--	vfree(area);
-+	/* Make sure in-bounds accesses are valid. */
-+	v_ptr[0] = 0;
-+	v_ptr[size - 1] = 0;
-+
-+	/*
-+	 * An unaligned access past the requested vmalloc size.
-+	 * Only generic KASAN can precisely detect these.
-+	 */
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)v_ptr)[size]);
-+
-+	/* An aligned access into the first out-of-bounds granule. */
-+	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)v_ptr)[size + 5]);
-+
-+	/* Check that in-bounds accesses to the physical page are valid. */
-+	page = vmalloc_to_page(v_ptr);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, page);
-+	p_ptr = page_address(page);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_ptr);
-+	p_ptr[0] = 0;
-+
-+	vfree(v_ptr);
-+
-+	/*
-+	 * We can't check for use-after-unmap bugs in this nor in the following
-+	 * vmalloc tests, as the page might be fully unmapped and accessing it
-+	 * will crash the kernel.
-+	 */
-+}
-+
-+static void vmap_tags(struct kunit *test)
-+{
-+	char *p_ptr, *v_ptr;
-+	struct page *p_page, *v_page;
-+
-+	/*
-+	 * This test is specifically crafted for the software tag-based mode,
-+	 * the only tag-based mode that poisons vmap mappings.
-+	 */
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_SW_TAGS);
-+
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_VMALLOC);
-+
-+	p_page = alloc_pages(GFP_KERNEL, 1);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_page);
-+	p_ptr = page_address(p_page);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_ptr);
-+
-+	v_ptr = vmap(&p_page, 1, VM_MAP, PAGE_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
-+
-+	/*
-+	 * We can't check for out-of-bounds bugs in this nor in the following
-+	 * vmalloc tests, as allocations have page granularity and accessing
-+	 * the guard page will crash the kernel.
-+	 */
-+
-+	KUNIT_EXPECT_GE(test, (u8)get_tag(v_ptr), (u8)KASAN_TAG_MIN);
-+	KUNIT_EXPECT_LT(test, (u8)get_tag(v_ptr), (u8)KASAN_TAG_KERNEL);
-+
-+	/* Make sure that in-bounds accesses through both pointers work. */
-+	*p_ptr = 0;
-+	*v_ptr = 0;
-+
-+	/* Make sure vmalloc_to_page() correctly recovers the page pointer. */
-+	v_page = vmalloc_to_page(v_ptr);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_page);
-+	KUNIT_EXPECT_PTR_EQ(test, p_page, v_page);
-+
-+	vunmap(v_ptr);
-+	free_pages((unsigned long)p_ptr, 1);
-+}
-+
-+static void vm_map_ram_tags(struct kunit *test)
-+{
-+	char *p_ptr, *v_ptr;
-+	struct page *page;
-+
-+	/*
-+	 * This test is specifically crafted for the software tag-based mode,
-+	 * the only tag-based mode that poisons vm_map_ram mappings.
-+	 */
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_SW_TAGS);
-+
-+	page = alloc_pages(GFP_KERNEL, 1);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, page);
-+	p_ptr = page_address(page);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, p_ptr);
-+
-+	v_ptr = vm_map_ram(&page, 1, -1);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
-+
-+	KUNIT_EXPECT_GE(test, (u8)get_tag(v_ptr), (u8)KASAN_TAG_MIN);
-+	KUNIT_EXPECT_LT(test, (u8)get_tag(v_ptr), (u8)KASAN_TAG_KERNEL);
-+
-+	/* Make sure that in-bounds accesses through both pointers work. */
-+	*p_ptr = 0;
-+	*v_ptr = 0;
-+
-+	vm_unmap_ram(v_ptr, 1);
-+	free_pages((unsigned long)p_ptr, 1);
-+}
-+
-+static void vmalloc_percpu(struct kunit *test)
-+{
-+	char __percpu *ptr;
-+	int cpu;
-+
-+	/*
-+	 * This test is specifically crafted for the software tag-based mode,
-+	 * the only tag-based mode that poisons percpu mappings.
-+	 */
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_SW_TAGS);
-+
-+	ptr = __alloc_percpu(PAGE_SIZE, PAGE_SIZE);
-+
-+	for_each_possible_cpu(cpu) {
-+		char *c_ptr = per_cpu_ptr(ptr, cpu);
-+
-+		KUNIT_EXPECT_GE(test, (u8)get_tag(c_ptr), (u8)KASAN_TAG_MIN);
-+		KUNIT_EXPECT_LT(test, (u8)get_tag(c_ptr), (u8)KASAN_TAG_KERNEL);
-+
-+		/* Make sure that in-bounds accesses don't crash the kernel. */
-+		*c_ptr = 0;
-+	}
-+
-+	free_percpu(ptr);
- }
+ static struct kunit_resource resource;
+-static struct kunit_kasan_expectation fail_data;
++static struct kunit_kasan_status test_status;
+ static bool multishot;
  
  /*
-@@ -1105,6 +1271,18 @@ static void match_all_not_assigned(struc
- 		KUNIT_EXPECT_LT(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
- 		free_pages((unsigned long)ptr, order);
+@@ -54,58 +54,63 @@ static int kasan_test_init(struct kunit
  	}
-+
-+	if (!IS_ENABLED(CONFIG_KASAN_VMALLOC))
-+		return;
-+
-+	for (i = 0; i < 256; i++) {
-+		size = (get_random_int() % 1024) + 1;
-+		ptr = vmalloc(size);
-+		KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+		KUNIT_EXPECT_GE(test, (u8)get_tag(ptr), (u8)KASAN_TAG_MIN);
-+		KUNIT_EXPECT_LT(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
-+		vfree(ptr);
-+	}
+ 
+ 	multishot = kasan_save_enable_multi_shot();
+-	fail_data.report_found = false;
++	test_status.report_found = false;
++	test_status.sync_fault = false;
+ 	kunit_add_named_resource(test, NULL, NULL, &resource,
+-					"kasan_data", &fail_data);
++					"kasan_status", &test_status);
+ 	return 0;
  }
  
- /* Check that 0xff works as a match-all pointer tag for tag-based modes. */
-@@ -1210,7 +1388,11 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kasan_bitops_generic),
- 	KUNIT_CASE(kasan_bitops_tags),
- 	KUNIT_CASE(kmalloc_double_kzfree),
-+	KUNIT_CASE(vmalloc_helpers_tags),
- 	KUNIT_CASE(vmalloc_oob),
-+	KUNIT_CASE(vmap_tags),
-+	KUNIT_CASE(vm_map_ram_tags),
-+	KUNIT_CASE(vmalloc_percpu),
- 	KUNIT_CASE(match_all_not_assigned),
- 	KUNIT_CASE(match_all_ptr_tag),
- 	KUNIT_CASE(match_all_mem_tag),
+ static void kasan_test_exit(struct kunit *test)
+ {
+ 	kasan_restore_multi_shot(multishot);
+-	KUNIT_EXPECT_FALSE(test, fail_data.report_found);
++	KUNIT_EXPECT_FALSE(test, test_status.report_found);
+ }
+ 
+ /**
+  * KUNIT_EXPECT_KASAN_FAIL() - check that the executed expression produces a
+  * KASAN report; causes a test failure otherwise. This relies on a KUnit
+- * resource named "kasan_data". Do not use this name for KUnit resources
++ * resource named "kasan_status". Do not use this name for KUnit resources
+  * outside of KASAN tests.
+  *
+- * For hardware tag-based KASAN in sync mode, when a tag fault happens, tag
++ * For hardware tag-based KASAN, when a synchronous tag fault happens, tag
+  * checking is auto-disabled. When this happens, this test handler reenables
+  * tag checking. As tag checking can be only disabled or enabled per CPU,
+  * this handler disables migration (preemption).
+  *
+- * Since the compiler doesn't see that the expression can change the fail_data
++ * Since the compiler doesn't see that the expression can change the test_status
+  * fields, it can reorder or optimize away the accesses to those fields.
+  * Use READ/WRITE_ONCE() for the accesses and compiler barriers around the
+  * expression to prevent that.
+  *
+- * In between KUNIT_EXPECT_KASAN_FAIL checks, fail_data.report_found is kept as
+- * false. This allows detecting KASAN reports that happen outside of the checks
+- * by asserting !fail_data.report_found at the start of KUNIT_EXPECT_KASAN_FAIL
+- * and in kasan_test_exit.
++ * In between KUNIT_EXPECT_KASAN_FAIL checks, test_status.report_found is kept
++ * as false. This allows detecting KASAN reports that happen outside of the
++ * checks by asserting !test_status.report_found at the start of
++ * KUNIT_EXPECT_KASAN_FAIL and in kasan_test_exit.
+  */
+ #define KUNIT_EXPECT_KASAN_FAIL(test, expression) do {			\
+ 	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
+ 	    kasan_sync_fault_possible())				\
+ 		migrate_disable();					\
+-	KUNIT_EXPECT_FALSE(test, READ_ONCE(fail_data.report_found));	\
++	KUNIT_EXPECT_FALSE(test, READ_ONCE(test_status.report_found));	\
+ 	barrier();							\
+ 	expression;							\
+ 	barrier();							\
+-	if (!READ_ONCE(fail_data.report_found)) {			\
++	if (kasan_async_fault_possible())				\
++		kasan_force_async_fault();				\
++	if (!READ_ONCE(test_status.report_found)) {			\
+ 		KUNIT_FAIL(test, KUNIT_SUBTEST_INDENT "KASAN failure "	\
+ 				"expected in \"" #expression		\
+ 				 "\", but none occurred");		\
+ 	}								\
+-	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {				\
+-		if (READ_ONCE(fail_data.report_found))			\
+-			kasan_enable_tagging_sync();			\
++	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
++	    kasan_sync_fault_possible()) {				\
++		if (READ_ONCE(test_status.report_found) &&		\
++		    READ_ONCE(test_status.sync_fault))			\
++			kasan_enable_tagging();				\
+ 		migrate_enable();					\
+ 	}								\
+-	WRITE_ONCE(fail_data.report_found, false);			\
++	WRITE_ONCE(test_status.report_found, false);			\
+ } while (0)
+ 
+ #define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
+--- a/mm/kasan/hw_tags.c~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/mm/kasan/hw_tags.c
+@@ -172,12 +172,7 @@ void kasan_init_hw_tags_cpu(void)
+ 	 * Enable async or asymm modes only when explicitly requested
+ 	 * through the command line.
+ 	 */
+-	if (kasan_arg_mode == KASAN_ARG_MODE_ASYNC)
+-		hw_enable_tagging_async();
+-	else if (kasan_arg_mode == KASAN_ARG_MODE_ASYMM)
+-		hw_enable_tagging_asymm();
+-	else
+-		hw_enable_tagging_sync();
++	kasan_enable_tagging();
+ }
+ 
+ /* kasan_init_hw_tags() is called once on boot CPU. */
+@@ -343,11 +338,16 @@ void __kasan_poison_vmalloc(const void *
+ 
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+-void kasan_enable_tagging_sync(void)
++void kasan_enable_tagging(void)
+ {
+-	hw_enable_tagging_sync();
++	if (kasan_arg_mode == KASAN_ARG_MODE_ASYNC)
++		hw_enable_tagging_async();
++	else if (kasan_arg_mode == KASAN_ARG_MODE_ASYMM)
++		hw_enable_tagging_asymm();
++	else
++		hw_enable_tagging_sync();
+ }
+-EXPORT_SYMBOL_GPL(kasan_enable_tagging_sync);
++EXPORT_SYMBOL_GPL(kasan_enable_tagging);
+ 
+ void kasan_force_async_fault(void)
+ {
+--- a/mm/kasan/kasan.h~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/mm/kasan/kasan.h
+@@ -7,6 +7,16 @@
+ #include <linux/kfence.h>
+ #include <linux/stackdepot.h>
+ 
++#if IS_ENABLED(CONFIG_KUNIT)
++
++/* Used in KUnit-compatible KASAN tests. */
++struct kunit_kasan_status {
++	bool report_found;
++	bool sync_fault;
++};
++
++#endif
++
+ #ifdef CONFIG_KASAN_HW_TAGS
+ 
+ #include <linux/static_key.h>
+@@ -350,12 +360,12 @@ static inline const void *arch_kasan_set
+ 
+ #if defined(CONFIG_KASAN_HW_TAGS) && IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+-void kasan_enable_tagging_sync(void);
++void kasan_enable_tagging(void);
+ void kasan_force_async_fault(void);
+ 
+ #else /* CONFIG_KASAN_HW_TAGS || CONFIG_KASAN_KUNIT_TEST */
+ 
+-static inline void kasan_enable_tagging_sync(void) { }
++static inline void kasan_enable_tagging(void) { }
+ static inline void kasan_force_async_fault(void) { }
+ 
+ #endif /* CONFIG_KASAN_HW_TAGS || CONFIG_KASAN_KUNIT_TEST */
+--- a/mm/kasan/report.c~kasan-test-support-async-again-and-asymm-modes-for-hw_tags
++++ a/mm/kasan/report.c
+@@ -336,20 +336,21 @@ static bool report_enabled(void)
+ }
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+-static void kasan_update_kunit_status(struct kunit *cur_test)
++static void kasan_update_kunit_status(struct kunit *cur_test, bool sync)
+ {
+ 	struct kunit_resource *resource;
+-	struct kunit_kasan_expectation *kasan_data;
++	struct kunit_kasan_status *status;
+ 
+-	resource = kunit_find_named_resource(cur_test, "kasan_data");
++	resource = kunit_find_named_resource(cur_test, "kasan_status");
+ 
+ 	if (!resource) {
+ 		kunit_set_failure(cur_test);
+ 		return;
+ 	}
+ 
+-	kasan_data = (struct kunit_kasan_expectation *)resource->data;
+-	WRITE_ONCE(kasan_data->report_found, true);
++	status = (struct kunit_kasan_status *)resource->data;
++	WRITE_ONCE(status->report_found, true);
++	WRITE_ONCE(status->sync_fault, sync);
+ 	kunit_put_resource(resource);
+ }
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
+@@ -363,7 +364,7 @@ void kasan_report_invalid_free(void *obj
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+ 	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test);
++		kasan_update_kunit_status(current->kunit_test, true);
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
+ 
+ 	start_report(&flags);
+@@ -383,7 +384,7 @@ void kasan_report_async(void)
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+ 	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test);
++		kasan_update_kunit_status(current->kunit_test, false);
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
+ 
+ 	start_report(&flags);
+@@ -405,7 +406,7 @@ static void __kasan_report(unsigned long
+ 
+ #if IS_ENABLED(CONFIG_KUNIT)
+ 	if (current->kunit_test)
+-		kasan_update_kunit_status(current->kunit_test);
++		kasan_update_kunit_status(current->kunit_test, true);
+ #endif /* IS_ENABLED(CONFIG_KUNIT) */
+ 
+ 	disable_trace_on_warning();
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
