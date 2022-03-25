@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B3CEC43217
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:34:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48F24C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357453AbiCYBga (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:36:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43980 "EHLO
+        id S1357533AbiCYBgb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:36:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357452AbiCYBfr (ORCPT
+        with ESMTP id S1357480AbiCYBfr (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D6782E088
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6E8E2E690
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A70C60909
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92FC6C340ED;
-        Fri, 25 Mar 2022 01:33:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 43AD360A1C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 999E8C340EC;
+        Fri, 25 Mar 2022 01:33:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172013;
-        bh=Nc96IKBP8BSIS6CLqjCyRgUR5fv40W1NprfSIRVAP2w=;
+        s=korg; t=1648172015;
+        bh=GvPJpDgYFGG9J6zkjTFCe+vvHAx8MRC+wD7GcG+Tu9k=;
         h=Date:To:From:Subject:From;
-        b=uxpiQJ/2L4NnwdJHEWNQRWei1EcBqTIJT9mdVmGG1DjZzvq6DnQ1Nw4/h0piflq3+
-         CcpvdTSub89zZeGxuAGT9OJ5cmyynTRsQDHTtDUxs/g1uOPUwEkh/kiJcmdQHcbdcR
-         JwAYhLbByZvDPLwzZk7bD6I7kRCtE+kzs62Z3Dmg=
-Date:   Thu, 24 Mar 2022 18:33:32 -0700
+        b=dKGuJZHHmjWTh5LKbsXMgrwx4K16aMMhsmqNEyD57GXecE5gzNEZpBapkKWk22w8M
+         /kItINToAqwbgPRA9FQBVeQPXcm+JGQ+BFxLk6DiETih8qINLDA8lDH7FgMQd5DwKM
+         g+EHiBCSQsqIzxMW7KlAzXTbv4G3LBVQ/5mDx4ls=
+Date:   Thu, 24 Mar 2022 18:33:35 -0700
 To:     mm-commits@vger.kernel.org, xhao@linux.alibaba.com,
         skhan@linuxfoundation.org, rientjes@google.com,
-        gregkh@linuxfoundation.org, corbet@lwn.net, colin.i.king@gmail.com,
-        sj@kernel.org, akpm@linux-foundation.org
+        gregkh@linuxfoundation.org, corbet@lwn.net, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-damon-sysfs-support-damos-watermarks.patch removed from -mm tree
-Message-Id: <20220325013333.92FC6C340ED@smtp.kernel.org>
+Subject: [merged] selftests-damon-add-a-test-for-damon-sysfs-interface.patch removed from -mm tree
+Message-Id: <20220325013335.999E8C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,339 +43,352 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs: support DAMOS watermarks
+     Subject: selftests/damon: add a test for DAMON sysfs interface
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-support-damos-watermarks.patch
+     selftests-damon-add-a-test-for-damon-sysfs-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: support DAMOS watermarks
+Subject: selftests/damon: add a test for DAMON sysfs interface
 
-This commit makes DAMON sysfs interface supports the DAMOS watermarks
-feature.  Specifically, this commit adds 'watermarks' directory under each
-scheme directory and makes kdamond 'state' file writing respects the
-contents in the directory.
+This commit adds a selftest for DAMON sysfs interface.  It tests the
+functionality of 'nr' files and existence of files in each directory of
+the hierarchy.
 
-As a result, the files hierarchy becomes as below:
-
-    /sys/kernel/mm/damon/admin
-    │ kdamonds/nr_kdamonds
-    │ │ 0/state,pid
-    │ │ │ contexts/nr_contexts
-    │ │ │ │ 0/operations
-    │ │ │ │ │ monitoring_attrs/intervals/sample_us,aggr_us,update_us
-    │ │ │ │ │ │ nr_regions/min,max
-    │ │ │ │ │ targets/nr_targets
-    │ │ │ │ │ │ 0/pid_target
-    │ │ │ │ │ │ │ regions/nr_regions
-    │ │ │ │ │ │ │ │ 0/start,end
-    │ │ │ │ │ │ │ │ ...
-    │ │ │ │ │ │ ...
-    │ │ │ │ │ schemes/nr_schemes
-    │ │ │ │ │ │ 0/action
-    │ │ │ │ │ │ │ access_pattern/
-    │ │ │ │ │ │ │ │ sz/min,max
-    │ │ │ │ │ │ │ │ nr_accesses/min,max
-    │ │ │ │ │ │ │ │ age/min,max
-    │ │ │ │ │ │ │ quotas/ms,sz,reset_interval_ms
-    │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
-    │ │ │ │ │ │ │ watermarks/    <- NEW DIRECTORY
-    │ │ │ │ │ │ │ │ metric,interval_us,high,mid,lo
-    │ │ │ │ │ │ ...
-    │ │ │ │ ...
-    │ │ ...
-
-[sj@kernel.org: fix out-of-bound array access for wmark_metric_strs[]]
-  Link: https://lkml.kernel.org/r/20220301185619.2904-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20220228081314.5770-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220228081314.5770-12-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Xin Hao <xhao@linux.alibaba.com>
-Cc: Colin Ian King <colin.i.king@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |  220 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 215 insertions(+), 5 deletions(-)
+ tools/testing/selftests/damon/Makefile |    1 
+ tools/testing/selftests/damon/sysfs.sh |  306 +++++++++++++++++++++++
+ 2 files changed, 307 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-support-damos-watermarks
-+++ a/mm/damon/sysfs.c
-@@ -114,6 +114,189 @@ static struct kobj_type damon_sysfs_ul_r
- };
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-add-a-test-for-damon-sysfs-interface
++++ a/tools/testing/selftests/damon/Makefile
+@@ -6,5 +6,6 @@ TEST_GEN_FILES += huge_count_read_write
+ TEST_FILES = _chk_dependency.sh _debugfs_common.sh
+ TEST_PROGS = debugfs_attrs.sh debugfs_schemes.sh debugfs_target_ids.sh
+ TEST_PROGS += debugfs_empty_targets.sh debugfs_huge_count_read_write.sh
++TEST_PROGS += sysfs.sh
  
- /*
-+ * watermarks directory
-+ */
+ include ../lib.mk
+--- /dev/null
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -0,0 +1,306 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
 +
-+struct damon_sysfs_watermarks {
-+	struct kobject kobj;
-+	enum damos_wmark_metric metric;
-+	unsigned long interval_us;
-+	unsigned long high;
-+	unsigned long mid;
-+	unsigned long low;
-+};
++# Kselftest frmework requirement - SKIP code is 4.
++ksft_skip=4
 +
-+static struct damon_sysfs_watermarks *damon_sysfs_watermarks_alloc(
-+		enum damos_wmark_metric metric, unsigned long interval_us,
-+		unsigned long high, unsigned long mid, unsigned long low)
++ensure_write_succ()
 +{
-+	struct damon_sysfs_watermarks *watermarks = kmalloc(
-+			sizeof(*watermarks), GFP_KERNEL);
++	file=$1
++	content=$2
++	reason=$3
 +
-+	if (!watermarks)
-+		return NULL;
-+	watermarks->kobj = (struct kobject){};
-+	watermarks->metric = metric;
-+	watermarks->interval_us = interval_us;
-+	watermarks->high = high;
-+	watermarks->mid = mid;
-+	watermarks->low = low;
-+	return watermarks;
++	if ! echo "$content" > "$file"
++	then
++		echo "writing $content to $file failed"
++		echo "expected success because $reason"
++		exit 1
++	fi
 +}
 +
-+/* Should match with enum damos_wmark_metric */
-+static const char * const damon_sysfs_wmark_metric_strs[] = {
-+	"none",
-+	"free_mem_rate",
-+};
-+
-+static ssize_t metric_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
++ensure_write_fail()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
++	file=$1
++	content=$2
++	reason=$3
 +
-+	return sysfs_emit(buf, "%s\n",
-+			damon_sysfs_wmark_metric_strs[watermarks->metric]);
++	if echo "$content" > "$file"
++	then
++		echo "writing $content to $file succeed ($fail_reason)"
++		echo "expected failure because $reason"
++		exit 1
++	fi
 +}
 +
-+static ssize_t metric_store(struct kobject *kobj, struct kobj_attribute *attr,
-+		const char *buf, size_t count)
++ensure_dir()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+	enum damos_wmark_metric metric;
-+
-+	for (metric = 0; metric < NR_DAMOS_WMARK_METRICS; metric++) {
-+		if (sysfs_streq(buf, damon_sysfs_wmark_metric_strs[metric])) {
-+			watermarks->metric = metric;
-+			return count;
-+		}
-+	}
-+	return -EINVAL;
++	dir=$1
++	to_ensure=$2
++	if [ "$to_ensure" = "exist" ] && [ ! -d "$dir" ]
++	then
++		echo "$dir dir is expected but not found"
++		exit 1
++	elif [ "$to_ensure" = "not_exist" ] && [ -d "$dir" ]
++	then
++		echo "$dir dir is not expected but found"
++		exit 1
++	fi
 +}
 +
-+static ssize_t interval_us_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
++ensure_file()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", watermarks->interval_us);
++	file=$1
++	to_ensure=$2
++	permission=$3
++	if [ "$to_ensure" = "exist" ]
++	then
++		if [ ! -f "$file" ]
++		then
++			echo "$file is expected but not found"
++			exit 1
++		fi
++		perm=$(stat -c "%a" "$file")
++		if [ ! "$perm" = "$permission" ]
++		then
++			echo "$file permission: expected $permission but $perm"
++			exit 1
++		fi
++	elif [ "$to_ensure" = "not_exist" ] && [ -f "$dir" ]
++	then
++		echo "$file is not expected but found"
++		exit 1
++	fi
 +}
 +
-+static ssize_t interval_us_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
++test_range()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+	int err = kstrtoul(buf, 0, &watermarks->interval_us);
-+
-+	if (err)
-+		return -EINVAL;
-+	return count;
++	range_dir=$1
++	ensure_dir "$range_dir" "exist"
++	ensure_file "$range_dir/min" "exist" 600
++	ensure_file "$range_dir/max" "exist" 600
 +}
 +
-+static ssize_t high_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
++test_stats()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", watermarks->high);
++	stats_dir=$1
++	ensure_dir "$stats_dir" "exist"
++	for f in nr_tried sz_tried nr_applied sz_applied qt_exceeds
++	do
++		ensure_file "$stats_dir/$f" "exist" "400"
++	done
 +}
 +
-+static ssize_t high_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
++test_watermarks()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+	int err = kstrtoul(buf, 0, &watermarks->high);
-+
-+	if (err)
-+		return -EINVAL;
-+	return count;
++	watermarks_dir=$1
++	ensure_dir "$watermarks_dir" "exist"
++	ensure_file "$watermarks_dir/metric" "exist" "600"
++	ensure_file "$watermarks_dir/interval_us" "exist" "600"
++	ensure_file "$watermarks_dir/high" "exist" "600"
++	ensure_file "$watermarks_dir/mid" "exist" "600"
++	ensure_file "$watermarks_dir/low" "exist" "600"
 +}
 +
-+static ssize_t mid_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
++test_weights()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", watermarks->mid);
++	weights_dir=$1
++	ensure_dir "$weights_dir" "exist"
++	ensure_file "$weights_dir/sz_permil" "exist" "600"
++	ensure_file "$weights_dir/nr_accesses_permil" "exist" "600"
++	ensure_file "$weights_dir/age_permil" "exist" "600"
 +}
 +
-+static ssize_t mid_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
++test_quotas()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+	int err = kstrtoul(buf, 0, &watermarks->mid);
-+
-+	if (err)
-+		return -EINVAL;
-+	return count;
++	quotas_dir=$1
++	ensure_dir "$quotas_dir" "exist"
++	ensure_file "$quotas_dir/ms" "exist" 600
++	ensure_file "$quotas_dir/bytes" "exist" 600
++	ensure_file "$quotas_dir/reset_interval_ms" "exist" 600
++	test_weights "$quotas_dir/weights"
 +}
 +
-+static ssize_t low_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
++test_access_pattern()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", watermarks->low);
++	access_pattern_dir=$1
++	ensure_dir "$access_pattern_dir" "exist"
++	test_range "$access_pattern_dir/age"
++	test_range "$access_pattern_dir/nr_accesses"
++	test_range "$access_pattern_dir/sz"
 +}
 +
-+static ssize_t low_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
++test_scheme()
 +{
-+	struct damon_sysfs_watermarks *watermarks = container_of(kobj,
-+			struct damon_sysfs_watermarks, kobj);
-+	int err = kstrtoul(buf, 0, &watermarks->low);
-+
-+	if (err)
-+		return -EINVAL;
-+	return count;
++	scheme_dir=$1
++	ensure_dir "$scheme_dir" "exist"
++	ensure_file "$scheme_dir/action" "exist" "600"
++	test_access_pattern "$scheme_dir/access_pattern"
++	test_quotas "$scheme_dir/quotas"
++	test_watermarks "$scheme_dir/watermarks"
++	test_stats "$scheme_dir/stats"
 +}
 +
-+static void damon_sysfs_watermarks_release(struct kobject *kobj)
++test_schemes()
 +{
-+	kfree(container_of(kobj, struct damon_sysfs_watermarks, kobj));
++	schemes_dir=$1
++	ensure_dir "$schemes_dir" "exist"
++	ensure_file "$schemes_dir/nr_schemes" "exist" 600
++
++	ensure_write_succ  "$schemes_dir/nr_schemes" "1" "valid input"
++	test_scheme "$schemes_dir/0"
++
++	ensure_write_succ  "$schemes_dir/nr_schemes" "2" "valid input"
++	test_scheme "$schemes_dir/0"
++	test_scheme "$schemes_dir/1"
++
++	ensure_write_succ "$schemes_dir/nr_schemes" "0" "valid input"
++	ensure_dir "$schemes_dir/0" "not_exist"
++	ensure_dir "$schemes_dir/1" "not_exist"
 +}
 +
-+static struct kobj_attribute damon_sysfs_watermarks_metric_attr =
-+		__ATTR_RW_MODE(metric, 0600);
-+
-+static struct kobj_attribute damon_sysfs_watermarks_interval_us_attr =
-+		__ATTR_RW_MODE(interval_us, 0600);
-+
-+static struct kobj_attribute damon_sysfs_watermarks_high_attr =
-+		__ATTR_RW_MODE(high, 0600);
-+
-+static struct kobj_attribute damon_sysfs_watermarks_mid_attr =
-+		__ATTR_RW_MODE(mid, 0600);
-+
-+static struct kobj_attribute damon_sysfs_watermarks_low_attr =
-+		__ATTR_RW_MODE(low, 0600);
-+
-+static struct attribute *damon_sysfs_watermarks_attrs[] = {
-+	&damon_sysfs_watermarks_metric_attr.attr,
-+	&damon_sysfs_watermarks_interval_us_attr.attr,
-+	&damon_sysfs_watermarks_high_attr.attr,
-+	&damon_sysfs_watermarks_mid_attr.attr,
-+	&damon_sysfs_watermarks_low_attr.attr,
-+	NULL,
-+};
-+ATTRIBUTE_GROUPS(damon_sysfs_watermarks);
-+
-+static struct kobj_type damon_sysfs_watermarks_ktype = {
-+	.release = damon_sysfs_watermarks_release,
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = damon_sysfs_watermarks_groups,
-+};
-+
-+/*
-  * scheme/weights directory
-  */
- 
-@@ -469,6 +652,7 @@ struct damon_sysfs_scheme {
- 	enum damos_action action;
- 	struct damon_sysfs_access_pattern *access_pattern;
- 	struct damon_sysfs_quotas *quotas;
-+	struct damon_sysfs_watermarks *watermarks;
- };
- 
- /* This should match with enum damos_action */
-@@ -541,6 +725,24 @@ out:
- 	return err;
- }
- 
-+static int damon_sysfs_scheme_set_watermarks(struct damon_sysfs_scheme *scheme)
++test_region()
 +{
-+	struct damon_sysfs_watermarks *watermarks =
-+		damon_sysfs_watermarks_alloc(DAMOS_WMARK_NONE, 0, 0, 0, 0);
-+	int err;
-+
-+	if (!watermarks)
-+		return -ENOMEM;
-+	err = kobject_init_and_add(&watermarks->kobj,
-+			&damon_sysfs_watermarks_ktype, &scheme->kobj,
-+			"watermarks");
-+	if (err)
-+		kobject_put(&watermarks->kobj);
-+	else
-+		scheme->watermarks = watermarks;
-+	return err;
++	region_dir=$1
++	ensure_dir "$region_dir" "exist"
++	ensure_file "$region_dir/start" "exist" 600
++	ensure_file "$region_dir/end" "exist" 600
 +}
 +
- static int damon_sysfs_scheme_add_dirs(struct damon_sysfs_scheme *scheme)
- {
- 	int err;
-@@ -551,8 +753,14 @@ static int damon_sysfs_scheme_add_dirs(s
- 	err = damon_sysfs_scheme_set_quotas(scheme);
- 	if (err)
- 		goto put_access_pattern_out;
-+	err = damon_sysfs_scheme_set_watermarks(scheme);
-+	if (err)
-+		goto put_quotas_access_pattern_out;
- 	return 0;
- 
-+put_quotas_access_pattern_out:
-+	kobject_put(&scheme->quotas->kobj);
-+	scheme->quotas = NULL;
- put_access_pattern_out:
- 	kobject_put(&scheme->access_pattern->kobj);
- 	scheme->access_pattern = NULL;
-@@ -565,6 +773,7 @@ static void damon_sysfs_scheme_rm_dirs(s
- 	kobject_put(&scheme->access_pattern->kobj);
- 	damon_sysfs_quotas_rm_dirs(scheme->quotas);
- 	kobject_put(&scheme->quotas->kobj);
-+	kobject_put(&scheme->watermarks->kobj);
- }
- 
- static ssize_t action_show(struct kobject *kobj, struct kobj_attribute *attr,
-@@ -1805,6 +2014,7 @@ static struct damos *damon_sysfs_mk_sche
- 		sysfs_scheme->access_pattern;
- 	struct damon_sysfs_quotas *sysfs_quotas = sysfs_scheme->quotas;
- 	struct damon_sysfs_weights *sysfs_weights = sysfs_quotas->weights;
-+	struct damon_sysfs_watermarks *sysfs_wmarks = sysfs_scheme->watermarks;
- 	struct damos_quota quota = {
- 		.ms = sysfs_quotas->ms,
- 		.sz = sysfs_quotas->sz,
-@@ -1814,11 +2024,11 @@ static struct damos *damon_sysfs_mk_sche
- 		.weight_age = sysfs_weights->age,
- 	};
- 	struct damos_watermarks wmarks = {
--		.metric = DAMOS_WMARK_NONE,
--		.interval = 0,
--		.high = 0,
--		.mid = 0,
--		.low = 0,
-+		.metric = sysfs_wmarks->metric,
-+		.interval = sysfs_wmarks->interval_us,
-+		.high = sysfs_wmarks->high,
-+		.mid = sysfs_wmarks->mid,
-+		.low = sysfs_wmarks->low,
- 	};
- 
- 	return damon_new_scheme(pattern->sz->min, pattern->sz->max,
++test_regions()
++{
++	regions_dir=$1
++	ensure_dir "$regions_dir" "exist"
++	ensure_file "$regions_dir/nr_regions" "exist" 600
++
++	ensure_write_succ  "$regions_dir/nr_regions" "1" "valid input"
++	test_region "$regions_dir/0"
++
++	ensure_write_succ  "$regions_dir/nr_regions" "2" "valid input"
++	test_region "$regions_dir/0"
++	test_region "$regions_dir/1"
++
++	ensure_write_succ "$regions_dir/nr_regions" "0" "valid input"
++	ensure_dir "$regions_dir/0" "not_exist"
++	ensure_dir "$regions_dir/1" "not_exist"
++}
++
++test_target()
++{
++	target_dir=$1
++	ensure_dir "$target_dir" "exist"
++	ensure_file "$target_dir/pid_target" "exist" "600"
++	test_regions "$target_dir/regions"
++}
++
++test_targets()
++{
++	targets_dir=$1
++	ensure_dir "$targets_dir" "exist"
++	ensure_file "$targets_dir/nr_targets" "exist" 600
++
++	ensure_write_succ  "$targets_dir/nr_targets" "1" "valid input"
++	test_target "$targets_dir/0"
++
++	ensure_write_succ  "$targets_dir/nr_targets" "2" "valid input"
++	test_target "$targets_dir/0"
++	test_target "$targets_dir/1"
++
++	ensure_write_succ "$targets_dir/nr_targets" "0" "valid input"
++	ensure_dir "$targets_dir/0" "not_exist"
++	ensure_dir "$targets_dir/1" "not_exist"
++}
++
++test_intervals()
++{
++	intervals_dir=$1
++	ensure_dir "$intervals_dir" "exist"
++	ensure_file "$intervals_dir/aggr_us" "exist" "600"
++	ensure_file "$intervals_dir/sample_us" "exist" "600"
++	ensure_file "$intervals_dir/update_us" "exist" "600"
++}
++
++test_monitoring_attrs()
++{
++	monitoring_attrs_dir=$1
++	ensure_dir "$monitoring_attrs_dir" "exist"
++	test_intervals "$monitoring_attrs_dir/intervals"
++	test_range "$monitoring_attrs_dir/nr_regions"
++}
++
++test_context()
++{
++	context_dir=$1
++	ensure_dir "$context_dir" "exist"
++	ensure_file "$context_dir/operations" "exist" 600
++	test_monitoring_attrs "$context_dir/monitoring_attrs"
++	test_targets "$context_dir/targets"
++	test_schemes "$context_dir/schemes"
++}
++
++test_contexts()
++{
++	contexts_dir=$1
++	ensure_dir "$contexts_dir" "exist"
++	ensure_file "$contexts_dir/nr_contexts" "exist" 600
++
++	ensure_write_succ  "$contexts_dir/nr_contexts" "1" "valid input"
++	test_context "$contexts_dir/0"
++
++	ensure_write_fail "$contexts_dir/nr_contexts" "2" "only 0/1 are supported"
++	test_context "$contexts_dir/0"
++
++	ensure_write_succ "$contexts_dir/nr_contexts" "0" "valid input"
++	ensure_dir "$contexts_dir/0" "not_exist"
++}
++
++test_kdamond()
++{
++	kdamond_dir=$1
++	ensure_dir "$kdamond_dir" "exist"
++	ensure_file "$kdamond_dir/state" "exist" "600"
++	ensure_file "$kdamond_dir/pid" "exist" 400
++	test_contexts "$kdamond_dir/contexts"
++}
++
++test_kdamonds()
++{
++	kdamonds_dir=$1
++	ensure_dir "$kdamonds_dir" "exist"
++
++	ensure_file "$kdamonds_dir/nr_kdamonds" "exist" "600"
++
++	ensure_write_succ  "$kdamonds_dir/nr_kdamonds" "1" "valid input"
++	test_kdamond "$kdamonds_dir/0"
++
++	ensure_write_succ  "$kdamonds_dir/nr_kdamonds" "2" "valid input"
++	test_kdamond "$kdamonds_dir/0"
++	test_kdamond "$kdamonds_dir/1"
++
++	ensure_write_succ "$kdamonds_dir/nr_kdamonds" "0" "valid input"
++	ensure_dir "$kdamonds_dir/0" "not_exist"
++	ensure_dir "$kdamonds_dir/1" "not_exist"
++}
++
++test_damon_sysfs()
++{
++	damon_sysfs=$1
++	if [ ! -d "$damon_sysfs" ]
++	then
++		echo "$damon_sysfs not found"
++		exit $ksft_skip
++	fi
++
++	test_kdamonds "$damon_sysfs/kdamonds"
++}
++
++check_dependencies()
++{
++	if [ $EUID -ne 0 ]
++	then
++		echo "Run as root"
++		exit $ksft_skip
++	fi
++}
++
++check_dependencies
++test_damon_sysfs "/sys/kernel/mm/damon/admin"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
