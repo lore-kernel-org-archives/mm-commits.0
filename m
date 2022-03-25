@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28805C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBEF9C43217
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:31:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357354AbiCYBcc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:32:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37248 "EHLO
+        id S1357340AbiCYBcd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:32:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37244 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357340AbiCYBcW (ORCPT
+        with ESMTP id S1357355AbiCYBcW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:32:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 705FBA94D3
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:30:41 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07CF88567D
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:30:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 29AC9B81DEA
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:30:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9C60C340EC;
-        Fri, 25 Mar 2022 01:30:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B4734B826FE
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:30:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64ACCC340EC;
+        Fri, 25 Mar 2022 01:30:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171839;
-        bh=kIOhHIfk4hpiOiv8nCfgzhET0mzx/s27vOBVyRFpPBA=;
+        s=korg; t=1648171836;
+        bh=ITQx3oBPdewceFYfZ2bzfHSIIkSsEcCl9Hf/Ei/UiIA=;
         h=Date:To:From:Subject:From;
-        b=bN8onYUjvAyapB9VUfqPGkIphbmQjd3yq0ajOLsJl6UL01womwFkz6IU1V5MbNO0M
-         zFUtWm9oxs3wHz+o4mifop48LEdj2pr/cVASxthkMQcDjjMUyvJTHmJ/ZHu5AZDApJ
-         Dspkejk9NK9eQ2QE9+ak7iN4KRWskUGohjKOQxJs=
-Date:   Thu, 24 Mar 2022 18:30:38 -0700
+        b=iZV7BPYFEZmPonNqnIY3G1B5C7Fx24Sx+oMme55Uus71ULAvGp9Ql+Rvqd7XVHMyi
+         PL0ssjy2q9ZaZJrwbJcQh5YebMlp1XmKGZX/mxbXG3NrWSrSEpXuxRogvyZGgqyCpj
+         syzCKZe2GGGVoHRiVAxmAr0eZkk0zncJM4BZUcQc=
+Date:   Thu, 24 Mar 2022 18:30:35 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
         tytso@mit.edu, trond.myklebust@hammerspace.com,
@@ -40,8 +40,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         alexs@kernel.org, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus.patch removed from -mm tree
-Message-Id: <20220325013038.D9C60C340EC@smtp.kernel.org>
+Subject: [merged] mm-memcontrol-move-memcg_online_kmem-to-mem_cgroup_css_online.patch removed from -mm tree
+Message-Id: <20220325013036.64ACCC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,23 +49,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: list_lru: rename memcg_drain_all_list_lrus to memcg_reparent_list_lrus
+     Subject: mm: memcontrol: move memcg_online_kmem() to mem_cgroup_css_online()
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus.patch
+     mm-memcontrol-move-memcg_online_kmem-to-mem_cgroup_css_online.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: list_lru: rename memcg_drain_all_list_lrus to memcg_reparent_list_lrus
+Subject: mm: memcontrol: move memcg_online_kmem() to mem_cgroup_css_online()
 
-The purpose of the memcg_drain_all_list_lrus() is list_lrus reparenting. 
-It is very similar to memcg_reparent_objcgs().  Rename it to
-memcg_reparent_list_lrus() so that the name can more consistent with
-memcg_reparent_objcgs().
+It will simplify the code if moving memcg_online_kmem() to
+mem_cgroup_css_online() and do not need to set ->kmemcg_id to -1 to
+indicate the memcg is offline.  In the next patch, ->kmemcg_id will be
+used to sync list lru reparenting which requires not to change
+->kmemcg_id.
 
-Link: https://lkml.kernel.org/r/20220228122126.37293-12-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220228122126.37293-10-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
 Cc: Chao Yu <chao@kernel.org>
@@ -77,7 +79,6 @@ Cc: Kari Argillander <kari.argillander@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
@@ -89,109 +90,119 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |    2 +-
- mm/list_lru.c            |   24 ++++++++++++------------
- mm/memcontrol.c          |    6 +++---
- 3 files changed, 16 insertions(+), 16 deletions(-)
+ mm/memcontrol.c |   37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
 
---- a/include/linux/list_lru.h~mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus
-+++ a/include/linux/list_lru.h
-@@ -78,7 +78,7 @@ int __list_lru_init(struct list_lru *lru
- int memcg_list_lru_alloc(struct mem_cgroup *memcg, struct list_lru *lru,
- 			 gfp_t gfp);
- int memcg_update_all_list_lrus(int num_memcgs);
--void memcg_drain_all_list_lrus(struct mem_cgroup *src, struct mem_cgroup *dst);
-+void memcg_reparent_list_lrus(struct mem_cgroup *memcg, struct mem_cgroup *parent);
- 
- /**
-  * list_lru_add: add an element to the lru list's tail
---- a/mm/list_lru.c~mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus
-+++ a/mm/list_lru.c
-@@ -457,8 +457,8 @@ int memcg_update_all_list_lrus(int new_s
- 	return ret;
- }
- 
--static void memcg_drain_list_lru_node(struct list_lru *lru, int nid,
--				      int src_idx, struct mem_cgroup *dst_memcg)
-+static void memcg_reparent_list_lru_node(struct list_lru *lru, int nid,
-+					 int src_idx, struct mem_cgroup *dst_memcg)
- {
- 	struct list_lru_node *nlru = &lru->node[nid];
- 	int dst_idx = dst_memcg->kmemcg_id;
-@@ -486,22 +486,22 @@ out:
- 	spin_unlock_irq(&nlru->lock);
- }
- 
--static void memcg_drain_list_lru(struct list_lru *lru,
--				 int src_idx, struct mem_cgroup *dst_memcg)
-+static void memcg_reparent_list_lru(struct list_lru *lru,
-+				    int src_idx, struct mem_cgroup *dst_memcg)
- {
- 	int i;
- 
- 	for_each_node(i)
--		memcg_drain_list_lru_node(lru, i, src_idx, dst_memcg);
-+		memcg_reparent_list_lru_node(lru, i, src_idx, dst_memcg);
- 
- 	memcg_list_lru_free(lru, src_idx);
- }
- 
--void memcg_drain_all_list_lrus(struct mem_cgroup *src, struct mem_cgroup *dst)
-+void memcg_reparent_list_lrus(struct mem_cgroup *memcg, struct mem_cgroup *parent)
- {
- 	struct cgroup_subsys_state *css;
- 	struct list_lru *lru;
--	int src_idx = src->kmemcg_id;
-+	int src_idx = memcg->kmemcg_id;
- 
- 	/*
- 	 * Change kmemcg_id of this cgroup and all its descendants to the
-@@ -517,17 +517,17 @@ void memcg_drain_all_list_lrus(struct me
- 	 * call.
- 	 */
- 	rcu_read_lock();
--	css_for_each_descendant_pre(css, &src->css) {
--		struct mem_cgroup *memcg;
-+	css_for_each_descendant_pre(css, &memcg->css) {
-+		struct mem_cgroup *child;
- 
--		memcg = mem_cgroup_from_css(css);
--		memcg->kmemcg_id = dst->kmemcg_id;
-+		child = mem_cgroup_from_css(css);
-+		child->kmemcg_id = parent->kmemcg_id;
- 	}
- 	rcu_read_unlock();
- 
- 	mutex_lock(&list_lrus_mutex);
- 	list_for_each_entry(lru, &memcg_list_lrus, list)
--		memcg_drain_list_lru(lru, src_idx, dst);
-+		memcg_reparent_list_lru(lru, src_idx, parent);
- 	mutex_unlock(&list_lrus_mutex);
- }
- 
---- a/mm/memcontrol.c~mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus
+--- a/mm/memcontrol.c~mm-memcontrol-move-memcg_online_kmem-to-mem_cgroup_css_online
 +++ a/mm/memcontrol.c
-@@ -3710,7 +3710,7 @@ static void memcg_offline_kmem(struct me
+@@ -3670,7 +3670,8 @@ static int memcg_online_kmem(struct mem_
+ 	if (cgroup_memory_nokmem)
+ 		return 0;
+ 
+-	BUG_ON(memcg->kmemcg_id >= 0);
++	if (unlikely(mem_cgroup_is_root(memcg)))
++		return 0;
+ 
+ 	memcg_id = memcg_alloc_cache_id();
+ 	if (memcg_id < 0)
+@@ -3696,7 +3697,10 @@ static void memcg_offline_kmem(struct me
+ 	struct mem_cgroup *parent;
+ 	int kmemcg_id;
+ 
+-	if (memcg->kmemcg_id == -1)
++	if (cgroup_memory_nokmem)
++		return;
++
++	if (unlikely(mem_cgroup_is_root(memcg)))
+ 		return;
+ 
+ 	parent = parent_mem_cgroup(memcg);
+@@ -3706,7 +3710,6 @@ static void memcg_offline_kmem(struct me
  	memcg_reparent_objcgs(memcg, parent);
  
- 	/*
--	 * memcg_drain_all_list_lrus() can change memcg->kmemcg_id.
-+	 * memcg_reparent_list_lrus() can change memcg->kmemcg_id.
- 	 * Cache it to local @kmemcg_id.
- 	 */
  	kmemcg_id = memcg->kmemcg_id;
-@@ -3719,9 +3719,9 @@ static void memcg_offline_kmem(struct me
+-	BUG_ON(kmemcg_id < 0);
+ 
+ 	/*
  	 * After we have finished memcg_reparent_objcgs(), all list_lrus
- 	 * corresponding to this cgroup are guaranteed to remain empty.
- 	 * The ordering is imposed by list_lru_node->lock taken by
--	 * memcg_drain_all_list_lrus().
-+	 * memcg_reparent_list_lrus().
- 	 */
--	memcg_drain_all_list_lrus(memcg, parent);
-+	memcg_reparent_list_lrus(memcg, parent);
+@@ -3717,7 +3720,6 @@ static void memcg_offline_kmem(struct me
+ 	memcg_drain_all_list_lrus(kmemcg_id, parent);
  
  	memcg_free_cache_id(kmemcg_id);
+-	memcg->kmemcg_id = -1;
  }
+ #else
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
+@@ -5237,7 +5239,6 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ {
+ 	struct mem_cgroup *parent = mem_cgroup_from_css(parent_css);
+ 	struct mem_cgroup *memcg, *old_memcg;
+-	long error = -ENOMEM;
+ 
+ 	old_memcg = set_active_memcg(parent);
+ 	memcg = mem_cgroup_alloc();
+@@ -5266,34 +5267,26 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 		return &memcg->css;
+ 	}
+ 
+-	/* The following stuff does not apply to the root */
+-	error = memcg_online_kmem(memcg);
+-	if (error)
+-		goto fail;
+-
+ 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
+ 		static_branch_inc(&memcg_sockets_enabled_key);
+ 
+ 	return &memcg->css;
+-fail:
+-	mem_cgroup_id_remove(memcg);
+-	mem_cgroup_free(memcg);
+-	return ERR_PTR(error);
+ }
+ 
+ static int mem_cgroup_css_online(struct cgroup_subsys_state *css)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 
++	if (memcg_online_kmem(memcg))
++		goto remove_id;
++
+ 	/*
+ 	 * A memcg must be visible for expand_shrinker_info()
+ 	 * by the time the maps are allocated. So, we allocate maps
+ 	 * here, when for_each_mem_cgroup() can't skip it.
+ 	 */
+-	if (alloc_shrinker_info(memcg)) {
+-		mem_cgroup_id_remove(memcg);
+-		return -ENOMEM;
+-	}
++	if (alloc_shrinker_info(memcg))
++		goto offline_kmem;
+ 
+ 	/* Online state pins memcg ID, memcg ID pins CSS */
+ 	refcount_set(&memcg->id.ref, 1);
+@@ -5303,6 +5296,11 @@ static int mem_cgroup_css_online(struct
+ 		queue_delayed_work(system_unbound_wq, &stats_flush_dwork,
+ 				   2UL*HZ);
+ 	return 0;
++offline_kmem:
++	memcg_offline_kmem(memcg);
++remove_id:
++	mem_cgroup_id_remove(memcg);
++	return -ENOMEM;
+ }
+ 
+ static void mem_cgroup_css_offline(struct cgroup_subsys_state *css)
+@@ -5360,9 +5358,6 @@ static void mem_cgroup_css_free(struct c
+ 	cancel_work_sync(&memcg->high_work);
+ 	mem_cgroup_remove_from_trees(memcg);
+ 	free_shrinker_info(memcg);
+-
+-	/* Need to offline kmem if online_css() fails */
+-	memcg_offline_kmem(memcg);
+ 	mem_cgroup_free(memcg);
+ }
+ 
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
