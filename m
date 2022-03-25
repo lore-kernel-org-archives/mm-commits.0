@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58B72C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 20:44:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4359BC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 20:44:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232347AbiCYUpr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 16:45:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42404 "EHLO
+        id S232360AbiCYUpw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 16:45:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232329AbiCYUpq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 16:45:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA57E377EF
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 13:44:10 -0700 (PDT)
+        with ESMTP id S232329AbiCYUpt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 16:45:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FC1832061
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 13:44:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 64DE561D49
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:44:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DC13C004DD;
-        Fri, 25 Mar 2022 20:44:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F099861D40
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:44:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55760C004DD;
+        Fri, 25 Mar 2022 20:44:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648241049;
-        bh=ZVfaHUD3qqhqZ02qewoXeL8Awh6zgQkA18HjReoSNRg=;
+        s=korg; t=1648241052;
+        bh=zmmCtgE9suKNrf+Ce+locR/ECx8QAJZJHL9QDBJvqbM=;
         h=Date:To:From:Subject:From;
-        b=NKWDMWJtmaWniyzpjDoGLtFhmaVB/aF2aCNT8WDHGURsawx3WKnE2Z3yOGHHkWJc/
-         fZelNyyk0hBcM2Oq6hOeGqD9nov5Ym3rxmhuqRkhONA8q83CMFXEGV1qPJc1Cj3MKM
-         PYhWgpH+tzVf1Pxf7PNy69+qXvqY34Adr0XykEmc=
-Date:   Fri, 25 Mar 2022 13:44:08 -0700
+        b=wt7ShDJKj+8DcrAV0ynbz6q6Afg1bM/XkiHPfvkfEO79kn1EMidF+S9GZyg85cR7S
+         IZgDnkrvDl8gPFmOoWdBWIw6ACfL4loi6MlM8iA8G3oz0ktrzuyl3igwyPBx8pF4dF
+         hMd1dvytQ8v0BcYhZFaEOPU/4vIECdYNwspm98Qo=
+Date:   Fri, 25 Mar 2022 13:44:11 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, samitolvanen@google.com,
         ryabinin.a.a@gmail.com, pcc@google.com, mark.rutland@arm.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + stacktrace-add-interface-based-on-shadow-call-stack.patch added to -mm tree
-Message-Id: <20220325204409.9DC13C004DD@smtp.kernel.org>
+Subject: + arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch added to -mm tree
+Message-Id: <20220325204412.55760C004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: stacktrace: add interface based on shadow call stack
+     Subject: arm64, scs: save scs_sp values per-cpu when switching stacks
 has been added to the -mm tree.  Its filename is
-     stacktrace-add-interface-based-on-shadow-call-stack.patch
+     arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/stacktrace-add-interface-based-on-shadow-call-stack.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/stacktrace-add-interface-based-on-shadow-call-stack.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,138 +67,194 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: stacktrace: add interface based on shadow call stack
+Subject: arm64, scs: save scs_sp values per-cpu when switching stacks
 
-Patch series "kasan, arm64, scs, stacktrace: collect stack traces from Shadow Call Stack", v2.
+When an interrupt happens, the current Shadow Call Stack (SCS) pointer is
+switched to a per-interrupt one stored in a per-CPU variable.  The old
+pointer is then saved on the normal stack and restored when the interrupt
+is handled.
 
-Currently, KASAN always uses the normal stack trace collection routines,
-which rely on the unwinder, when saving alloc and free stack traces.
+To collect the current stack trace based on SCS when the interrupt is
+being handled, we need to know the SCS pointers that belonged to the task
+and potentially other interrupts that were interrupted.
 
-Instead of invoking the unwinder, collect the stack trace by copying
-frames from the Shadow Call Stack whenever it is enabled.  This reduces
-boot time by 30% for all KASAN modes when Shadow Call Stack is enabled.
+Instead of trying to retrieve the SCS pointers from the stack, change
+interrupt handlers (for hard IRQ, Normal and Critical SDEI) to save the
+previous SCS pointer in a per-CPU variable.
 
-Stack staces are collected from the Shadow Call Stack via a new
-stack_trace_save_shadow() interface.
+Note that interrupts stack.  A task can be interrupted by a hard IRQ,
+which then can interrupted by a normal SDEI, etc.  This is handled by
+using a separate per-CPU variable for each interrupt type.
 
-Note that the frame of the interrupted function is not included into the
-stack trace, as it is not yet saved on the SCS when an interrupt happens.
+Also reset the saved SCS pointer when exiting the interrupt.  This allows
+checking whether we should include any interrupt frames when collecting
+the stack trace.  While we could use in_hardirq(), there seems to be no
+easy way to check whether we are in an SDEI handler.  Directly checking
+the per-CPU variables for being non-zero is more resilient.
 
+Also expose both the the added saved SCS variables and the existing SCS
+base variables in arch/arm64/include/asm/scs.h so that the stack trace
+collection impementation can use them.
 
-This patch (of 4):
-
-Add a new interface stack_trace_save_shadow() for collecting stack traces
-by copying frames from the Shadow Call Stack.
-
-Collecting stack traces this way is significantly faster: boot time of a
-defconfig build with KASAN enabled gets descreased by ~30%.
-
-The few patches following this one add an implementation of
-stack_trace_save_shadow() for arm64.
-
-The implementation of the added interface is not meant to use
-stack_trace_consume_fn to avoid making a function call for each collected
-frame to further improve performance.
-
-Link: https://lkml.kernel.org/r/cover.1648049113.git.andreyknvl@google.com
-Link: https://lkml.kernel.org/r/21e3e20ea58e242e3c82c19abbfe65b579e0e4b8.1648049113.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/f75c58b17bfaa419f84286cd174e3a08f971b779.1648049113.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Florian Mayer <fmayer@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig               |    6 ++++++
- include/linux/stacktrace.h |   15 +++++++++++++++
- kernel/stacktrace.c        |   21 +++++++++++++++++++++
- 3 files changed, 42 insertions(+)
+ arch/arm64/include/asm/assembler.h |   12 +++++++++++
+ arch/arm64/include/asm/scs.h       |   13 +++++++++++-
+ arch/arm64/kernel/entry.S          |   28 +++++++++++++++++++++++----
+ arch/arm64/kernel/irq.c            |    4 ---
+ arch/arm64/kernel/sdei.c           |    5 +---
+ 5 files changed, 51 insertions(+), 11 deletions(-)
 
---- a/arch/Kconfig~stacktrace-add-interface-based-on-shadow-call-stack
-+++ a/arch/Kconfig
-@@ -1036,6 +1036,12 @@ config HAVE_RELIABLE_STACKTRACE
- 	  arch_stack_walk_reliable() function which only returns a stack trace
- 	  if it can guarantee the trace is reliable.
+--- a/arch/arm64/include/asm/assembler.h~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
++++ a/arch/arm64/include/asm/assembler.h
+@@ -270,6 +270,18 @@ alternative_endif
+ 	ldr	\dst, [\dst, \tmp]
+ 	.endm
  
-+config HAVE_SHADOW_STACKTRACE
-+	bool
-+	help
-+	  If this is set, the architecture provides the arch_stack_walk_shadow()
-+	  function, which collects the stack trace from the shadow call stack.
-+
- config HAVE_ARCH_HASH
- 	bool
- 	default n
---- a/include/linux/stacktrace.h~stacktrace-add-interface-based-on-shadow-call-stack
-+++ a/include/linux/stacktrace.h
-@@ -60,6 +60,9 @@ int arch_stack_walk_reliable(stack_trace
- 
- void arch_stack_walk_user(stack_trace_consume_fn consume_entry, void *cookie,
- 			  const struct pt_regs *regs);
-+
-+int arch_stack_walk_shadow(unsigned long *store, unsigned int size,
-+			   unsigned int skipnr);
- #endif /* CONFIG_ARCH_STACKWALK */
- 
- #ifdef CONFIG_STACKTRACE
-@@ -106,6 +109,18 @@ static inline int stack_trace_save_tsk_r
- {
- 	return -ENOSYS;
- }
-+#endif
-+
-+#if defined(CONFIG_STACKTRACE) && defined(CONFIG_HAVE_SHADOW_STACKTRACE)
-+int stack_trace_save_shadow(unsigned long *store, unsigned int size,
-+			    unsigned int skipnr);
-+#else
-+static inline int stack_trace_save_shadow(unsigned long *store,
-+					  unsigned int size,
-+					  unsigned int skipnr)
-+{
-+	return -ENOSYS;
-+}
- #endif
- 
- #endif /* __LINUX_STACKTRACE_H */
---- a/kernel/stacktrace.c~stacktrace-add-interface-based-on-shadow-call-stack
-+++ a/kernel/stacktrace.c
-@@ -237,6 +237,27 @@ unsigned int stack_trace_save_user(unsig
- }
- #endif
- 
-+#ifdef CONFIG_HAVE_SHADOW_STACKTRACE
-+/**
-+ * stack_trace_save_shadow - Save a stack trace based on shadow call stack
-+ * @store:	Pointer to the storage array
-+ * @size:	Size of the storage array
-+ * @skipnr:	Number of entries to skip at the start of the stack trace
-+ *
-+ * Return: Number of trace entries stored.
-+ */
-+int stack_trace_save_shadow(unsigned long *store, unsigned int size,
-+			    unsigned int skipnr)
-+{
 +	/*
-+	 * Do not use stack_trace_consume_fn to avoid making a function
-+	 * call for each collected frame to improve performance.
-+	 * Skip + 1 frame to skip stack_trace_save_shadow.
++	 * @src: Register whose value gets stored in sym
++	 * @sym: The name of the per-cpu variable
++	 * @tmp0: Scratch register
++	 * @tmp1: Another scratch register
 +	 */
-+	return arch_stack_walk_shadow(store, size, skipnr + 1);
-+}
++	.macro str_this_cpu src, sym, tmp0, tmp1
++	adr_l	\tmp0, \sym
++	get_this_cpu_offset \tmp1
++	str	\src, [\tmp0, \tmp1]
++	.endm
++
+ /*
+  * vma_vm_mm - get mm pointer from vma pointer (vma->vm_mm)
+  */
+--- a/arch/arm64/include/asm/scs.h~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
++++ a/arch/arm64/include/asm/scs.h
+@@ -24,6 +24,17 @@
+ 	.endm
+ #endif /* CONFIG_SHADOW_CALL_STACK */
+ 
+-#endif /* __ASSEMBLY __ */
++#else /* __ASSEMBLY__ */
++
++#include <linux/percpu.h>
++
++DECLARE_PER_CPU(unsigned long *, irq_shadow_call_stack_ptr);
++DECLARE_PER_CPU(unsigned long *, irq_shadow_call_stack_saved_ptr);
++DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_ptr);
++DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_saved_ptr);
++DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_ptr);
++DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_saved_ptr);
++
++#endif /* __ASSEMBLY__ */
+ 
+ #endif /* _ASM_SCS_H */
+--- a/arch/arm64/kernel/entry.S~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
++++ a/arch/arm64/kernel/entry.S
+@@ -880,7 +880,8 @@ NOKPROBE(ret_from_fork)
+  */
+ SYM_FUNC_START(call_on_irq_stack)
+ #ifdef CONFIG_SHADOW_CALL_STACK
+-	stp	scs_sp, xzr, [sp, #-16]!
++	/* Save the current SCS pointer and load the per-IRQ one. */
++	str_this_cpu scs_sp, irq_shadow_call_stack_saved_ptr, x15, x17
+ 	ldr_this_cpu scs_sp, irq_shadow_call_stack_ptr, x17
+ #endif
+ 	/* Create a frame record to save our LR and SP (implicit in FP) */
+@@ -902,7 +903,9 @@ SYM_FUNC_START(call_on_irq_stack)
+ 	mov	sp, x29
+ 	ldp	x29, x30, [sp], #16
+ #ifdef CONFIG_SHADOW_CALL_STACK
+-	ldp	scs_sp, xzr, [sp], #16
++	/* Restore saved SCS pointer and reset the saved value. */
++	ldr_this_cpu scs_sp, irq_shadow_call_stack_saved_ptr, x17
++	str_this_cpu xzr, irq_shadow_call_stack_saved_ptr, x15, x17
+ #endif
+ 	ret
+ SYM_FUNC_END(call_on_irq_stack)
+@@ -1024,11 +1027,16 @@ SYM_CODE_START(__sdei_asm_handler)
+ #endif
+ 
+ #ifdef CONFIG_SHADOW_CALL_STACK
+-	/* Use a separate shadow call stack for normal and critical events */
++	/*
++	 * Use a separate shadow call stack for normal and critical events.
++	 * Save the current SCS pointer and load the per-SDEI one.
++	 */
+ 	cbnz	w4, 3f
++	str_this_cpu src=scs_sp, sym=sdei_shadow_call_stack_normal_saved_ptr, tmp0=x5, tmp1=x6
+ 	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_normal_ptr, tmp=x6
+ 	b	4f
+-3:	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_critical_ptr, tmp=x6
++3:	str_this_cpu src=scs_sp, sym=sdei_shadow_call_stack_critical_saved_ptr, tmp0=x5, tmp1=x6
++	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_critical_ptr, tmp=x6
+ 4:
+ #endif
+ 
+@@ -1062,6 +1070,18 @@ SYM_CODE_START(__sdei_asm_handler)
+ 	ldp	lr, x1, [x4, #SDEI_EVENT_INTREGS + S_LR]
+ 	mov	sp, x1
+ 
++#ifdef CONFIG_SHADOW_CALL_STACK
++	/* Restore saved SCS pointer and reset the saved value. */
++	ldrb	w5, [x4, #SDEI_EVENT_PRIORITY]
++	cbnz	w5, 5f
++	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_normal_saved_ptr, tmp=x6
++	str_this_cpu src=xzr, sym=sdei_shadow_call_stack_normal_saved_ptr, tmp0=x5, tmp1=x6
++	b	6f
++5:	ldr_this_cpu dst=scs_sp, sym=sdei_shadow_call_stack_critical_saved_ptr, tmp=x6
++	str_this_cpu src=xzr, sym=sdei_shadow_call_stack_critical_saved_ptr, tmp0=x5, tmp1=x6
++6:
 +#endif
 +
- #else /* CONFIG_ARCH_STACKWALK */
+ 	mov	x1, x0			// address to complete_and_resume
+ 	/* x0 = (x0 <= SDEI_EV_FAILED) ?
+ 	 * EVENT_COMPLETE:EVENT_COMPLETE_AND_RESUME
+--- a/arch/arm64/kernel/irq.c~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
++++ a/arch/arm64/kernel/irq.c
+@@ -28,11 +28,9 @@ DEFINE_PER_CPU(struct nmi_ctx, nmi_conte
  
- /*
+ DEFINE_PER_CPU(unsigned long *, irq_stack_ptr);
+ 
+-
+-DECLARE_PER_CPU(unsigned long *, irq_shadow_call_stack_ptr);
+-
+ #ifdef CONFIG_SHADOW_CALL_STACK
+ DEFINE_PER_CPU(unsigned long *, irq_shadow_call_stack_ptr);
++DEFINE_PER_CPU(unsigned long *, irq_shadow_call_stack_saved_ptr);
+ #endif
+ 
+ static void init_irq_scs(void)
+--- a/arch/arm64/kernel/sdei.c~arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks
++++ a/arch/arm64/kernel/sdei.c
+@@ -39,12 +39,11 @@ DEFINE_PER_CPU(unsigned long *, sdei_sta
+ DEFINE_PER_CPU(unsigned long *, sdei_stack_critical_ptr);
+ #endif
+ 
+-DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_ptr);
+-DECLARE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_ptr);
+-
+ #ifdef CONFIG_SHADOW_CALL_STACK
+ DEFINE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_ptr);
++DEFINE_PER_CPU(unsigned long *, sdei_shadow_call_stack_normal_saved_ptr);
+ DEFINE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_ptr);
++DEFINE_PER_CPU(unsigned long *, sdei_shadow_call_stack_critical_saved_ptr);
+ #endif
+ 
+ static void _free_sdei_stack(unsigned long * __percpu *ptr, int cpu)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
