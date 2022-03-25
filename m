@@ -2,156 +2,122 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35027C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:36:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDA33C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 02:04:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357513AbiCYBhd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:37:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40716 "EHLO
+        id S237272AbiCYCFh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 22:05:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357522AbiCYBf6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB5A63336D
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:50 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8F65CB826FE
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFE9C340ED;
-        Fri, 25 Mar 2022 01:33:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172028;
-        bh=8aPShN57G1YXiw3jk+NhB8+YaYp1eOYXRqEZiz42/wk=;
-        h=Date:To:From:Subject:From;
-        b=h7Nmh1r1YqAsuluQVXI31sRqWU81jrkkmhwUdhbGZCtsOF5hKmFI7Hn9DozAv8yAX
-         Nmk/jU+BA6qdRPJxdmST78wjoaTCx2tSxd5vS8R2NJ5Sl0iF9GpbBfAj02kr42lWQK
-         m8cilViuiFfUXjRoXo9Ty3emvYJ3UOipXJjM2Wl0=
-Date:   Thu, 24 Mar 2022 18:33:47 -0700
-To:     mm-commits@vger.kernel.org, christophe.leroy@csgroup.eu,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64.patch removed from -mm tree
-Message-Id: <20220325013348.1FFE9C340ED@smtp.kernel.org>
+        with ESMTP id S1357661AbiCYCFg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 22:05:36 -0400
+Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CE64A27FD
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 19:04:03 -0700 (PDT)
+Received: by mail-ej1-x630.google.com with SMTP id qx21so12613867ejb.13
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 19:04:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=ngtVr9tesRrH3h9QuJdwsRWwUqV+lCc3sEv7bM/pFPs=;
+        b=S6nDFjuC5irly55Lifc9R62XBYSxZJDRmTi0DdDbogM1HSiCQm+1qbdjfGbyF021eP
+         fEF2cncLSM88eWWsLKedyC+Z2HLojh7NeGRv6ZfKizTnEqphPmPBkhbk1gP4Cqld8agq
+         j+FqOohMFDtUCRF5jWZ2XNLWo6mMTAQVnDgWg=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ngtVr9tesRrH3h9QuJdwsRWwUqV+lCc3sEv7bM/pFPs=;
+        b=yduUrtgpfxkDN8qlsHQv2t8DwIP08o9zZH9S+2sfgVMa/peBxPBT2XbgKEisjSAq3g
+         BiaGoZI1U3t6I8jtT19qQvIcaPQJiqAyehzuPAb8NuRuLD2OJ2VNH8lULhWLVR3f3QCE
+         rU9dz7wLx6aOUccitNC3jC4gVJUna2EfeLjLMb5i2EUR9dCX4hc014qFlY90LMssZveG
+         Gc/8P4PcsuxqWK2pa+6iaROXbeSrXbzlXlOpYoXy8NjTWTiOp4Q4hNZF5YNe9J9b1A2v
+         wiCMPHHshz3HH8XYlZdNYfyPoXdM6C/EjTvCf8rb0gpvPEMnLxDxaff+fqfQGXuzL3sE
+         oQPA==
+X-Gm-Message-State: AOAM531tn9TIQx60GHz5TZ6GiWmblukZ/zzVqZXZOdVDc8u73fgTfkFj
+        Biotleh06eclW8npQG2DxHv/wxaSWUoAKZI8AH0=
+X-Google-Smtp-Source: ABdhPJx46GAjlaV8IhGh9Tby4iorIm8HeikcSFwXAE/29UtRcvu5jjuM9L6sJ12o0BWGs+kOJ6Nycw==
+X-Received: by 2002:a17:907:3e82:b0:6da:6f15:ff38 with SMTP id hs2-20020a1709073e8200b006da6f15ff38mr8870488ejc.324.1648173841490;
+        Thu, 24 Mar 2022 19:04:01 -0700 (PDT)
+Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com. [209.85.218.49])
+        by smtp.gmail.com with ESMTPSA id c2-20020aa7d602000000b0041997b3ce40sm880973edr.86.2022.03.24.19.04.01
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 24 Mar 2022 19:04:01 -0700 (PDT)
+Received: by mail-ej1-f49.google.com with SMTP id bg10so12676269ejb.4
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 19:04:01 -0700 (PDT)
+X-Received: by 2002:a2e:a5c4:0:b0:249:9ec3:f2b with SMTP id
+ n4-20020a2ea5c4000000b002499ec30f2bmr6190271ljp.358.1648173425818; Thu, 24
+ Mar 2022 18:57:05 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220324180758.96b1ac7e17675d6bc474485e@linux-foundation.org> <20220325011415.C645DC340EC@smtp.kernel.org>
+In-Reply-To: <20220325011415.C645DC340EC@smtp.kernel.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu, 24 Mar 2022 18:56:49 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wiLFGsHbbAEJV3j=Gj1p2foAf4+76XbH-nYzFh7EbxTPg@mail.gmail.com>
+Message-ID: <CAHk-=wiLFGsHbbAEJV3j=Gj1p2foAf4+76XbH-nYzFh7EbxTPg@mail.gmail.com>
+Subject: Re: [patch 113/114] selftests: vm: remove dependecy from internal
+ kernel macros
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Shuah Khan <shuah@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Paolo Bonzini <pbonzini@redhat.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        =?UTF-8?B?TWlja2HDq2wgU2FsYcO8bg==?= <mic@digikod.net>,
+        Matthieu Baerts <matthieu.baerts@tessares.net>,
+        mathew.j.martineau@linux.intel.com,
+        Jakub Kicinski <kuba@kernel.org>,
+        Darren Hart <dvhart@infradead.org>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        David Miller <davem@davemloft.net>, chi.minghao@zte.com.cn,
+        Alistair Popple <apopple@nvidia.com>,
+        andrealmeid@collabora.com, usama.anjum@collabora.com,
+        patches@lists.linux.dev, Linux-MM <linux-mm@kvack.org>,
+        mm-commits@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, Mar 24, 2022 at 6:14 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+> Subject: selftests: vm: remove dependecy from internal kernel macros
 
-The patch titled
-     Subject: ilog2: force inlining of __ilog2_u32() and __ilog2_u64()
-has been removed from the -mm tree.  Its filename was
-     ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64.patch
+What what what?
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+> --- a/tools/testing/selftests/vm/userfaultfd.c~selftests-vm-remove-dependecy-from-internal-kernel-macros
+> +++ a/tools/testing/selftests/vm/userfaultfd.c
+> @@ -122,6 +122,9 @@ struct uffd_stats {
+>  #define swap(a, b) \
+>         do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+>
+> +#define swap(a, b) \
+> +       do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+> +
+>  const char *examples =
+>      "# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
+>      "./userfaultfd anon 100 99999\n\n"
 
-------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: ilog2: force inlining of __ilog2_u32() and __ilog2_u64()
+Read that patch one more time.
 
-Building a kernel with CONFIG_CC_OPTIMISE_FOR_SIZE leads to __ilog2_u32()
-being duplicated 50 times and __ilog2_u64() 3 times in vmlinux on a tiny
-powerpc32 config.
+This was already merged in commit 681696862bc1 ("selftests: vm: remove
+dependecy from internal kernel macros"), just how many of those
+'swap()' macros do you think we need?
 
-__ilog2_u32() being 2 instructions it is not worth being kept out of line,
-so force inlining.  Allthough the u64 version is a bit bigger, there is
-still a small benefit in keeping it inlined.  On a 64 bits config there's
-a real benefit.
+Your patch managment logic seems to have failed the "was this already
+applied" thing.
 
-With this change the size of vmlinux text is reduced by 1 kbytes, which is
-approx 50% more than the size of the removed functions.
+This smells like another "it applied with some context noise that I
+just ignored" thing. Please please PLEASE use "-F0" to apply patches,
+and if you have context that causes it to not apply cleanly,
+double-check what is up.
 
-Before the patch there is for instance:
+(And if you are not git tool based, the *default* for git is to not
+ignore context. But if you have scripts that do "-C1" or something to
+ignore context lines, please make them warn very very loudly)
 
-	c00d2a94 <__ilog2_u32>:
-	c00d2a94:	7c 63 00 34 	cntlzw  r3,r3
-	c00d2a98:	20 63 00 1f 	subfic  r3,r3,31
-	c00d2a9c:	4e 80 00 20 	blr
-
-	c00d36d8 <__order_base_2>:
-	c00d36d8:	28 03 00 01 	cmplwi  r3,1
-	c00d36dc:	40 81 00 2c 	ble     c00d3708 <__order_base_2+0x30>
-	c00d36e0:	94 21 ff f0 	stwu    r1,-16(r1)
-	c00d36e4:	7c 08 02 a6 	mflr    r0
-	c00d36e8:	38 63 ff ff 	addi    r3,r3,-1
-	c00d36ec:	90 01 00 14 	stw     r0,20(r1)
-	c00d36f0:	4b ff f3 a5 	bl      c00d2a94 <__ilog2_u32>
-	c00d36f4:	80 01 00 14 	lwz     r0,20(r1)
-	c00d36f8:	38 63 00 01 	addi    r3,r3,1
-	c00d36fc:	7c 08 03 a6 	mtlr    r0
-	c00d3700:	38 21 00 10 	addi    r1,r1,16
-	c00d3704:	4e 80 00 20 	blr
-	c00d3708:	38 60 00 00 	li      r3,0
-	c00d370c:	4e 80 00 20 	blr
-
-With the patch it has become:
-
-	c00d356c <__order_base_2>:
-	c00d356c:	28 03 00 01 	cmplwi  r3,1
-	c00d3570:	40 81 00 14 	ble     c00d3584 <__order_base_2+0x18>
-	c00d3574:	38 63 ff ff 	addi    r3,r3,-1
-	c00d3578:	7c 63 00 34 	cntlzw  r3,r3
-	c00d357c:	20 63 00 20 	subfic  r3,r3,32
-	c00d3580:	4e 80 00 20 	blr
-	c00d3584:	38 60 00 00 	li      r3,0
-	c00d3588:	4e 80 00 20 	blr
-
-No more need for __order_base_2() to setup a stack frame and
-save/restore caller address. And the following 'add 1' is
-merged in the subtract.
-
-Another typical use of it:
-
-	c080ff28 <hugepagesz_setup>:
-	...
-	c080fff8:	7f c3 f3 78 	mr      r3,r30
-	c080fffc:	4b 8f 81 f1 	bl      c01081ec <__ilog2_u32>
-	c0810000:	38 63 ff f2 	addi    r3,r3,-14
-	...
-
-Becomes
-
-	c080ff1c <hugepagesz_setup>:
-	...
-	c080ffec:	7f c3 00 34 	cntlzw  r3,r30
-	c080fff0:	20 63 00 11 	subfic  r3,r3,17
-	...
-
-Here no need to move r30 argument to r3 then substract 14 to result.  Just
-work on r30 and merge the 'sub 14' with the 'sub from 31'.
-
-Link: https://lkml.kernel.org/r/803a2ac3d923ebcfd0dd40f5886b05cae7bb0aba.1644243860.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/log2.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/include/linux/log2.h~ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64
-+++ a/include/linux/log2.h
-@@ -18,7 +18,7 @@
-  * - the arch is not required to handle n==0 if implementing the fallback
-  */
- #ifndef CONFIG_ARCH_HAS_ILOG2_U32
--static inline __attribute__((const))
-+static __always_inline __attribute__((const))
- int __ilog2_u32(u32 n)
- {
- 	return fls(n) - 1;
-@@ -26,7 +26,7 @@ int __ilog2_u32(u32 n)
- #endif
- 
- #ifndef CONFIG_ARCH_HAS_ILOG2_U64
--static inline __attribute__((const))
-+static __always_inline __attribute__((const))
- int __ilog2_u64(u64 n)
- {
- 	return fls64(n) - 1;
-_
-
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
-
-
+               Linus
