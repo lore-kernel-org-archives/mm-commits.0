@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59231C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A785C43219
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357535AbiCYBgc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:36:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43990 "EHLO
+        id S1357429AbiCYBgd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:36:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357481AbiCYBfr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B29292F018
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:38 -0700 (PDT)
+        with ESMTP id S1357444AbiCYBfc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A91F229C83
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4083360A1C
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94739C340F5;
-        Fri, 25 Mar 2022 01:33:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 58D49B82725
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAE09C340ED;
+        Fri, 25 Mar 2022 01:33:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172017;
-        bh=0EyQ5YvsZMNRzCd06J5BtCqwGjyPoGshQH2X6+gIcTo=;
+        s=korg; t=1648172002;
+        bh=y7Vc4Nv6KCm1FVIBS/1OIk0+QyjI+KSeJZGAOpTazIQ=;
         h=Date:To:From:Subject:From;
-        b=Duack0DcsiMcYqxHHxk5SJMh9F+wOKp1Sy/h6VwqAqDTg7iMo3MhTVBrSxgy/Qdzp
-         4f3Tz7K3EqYgRb8INU9rR7Q8fEGDxi6tUFhIeeAz75w0K/ux8nu5Kovhb7mUQKOLyO
-         iOyeoPhHsZTBJZD/b3sZqaDtu0JXvxpD+ROys0qo=
-Date:   Thu, 24 Mar 2022 18:33:37 -0700
-To:     mm-commits@vger.kernel.org, xhao@linux.alibaba.com,
-        skhan@linuxfoundation.org, rientjes@google.com,
-        gregkh@linuxfoundation.org, corbet@lwn.net, sj@kernel.org,
+        b=A6BdEfjIt0pzNrXCzhFA2ONrORx6cfhgEAGsmsIaTnxyQTT+tK+PQzRJG8FHNSVk6
+         lWkpxOaFKQWKDhCW1/CYBW5JY97PfXcU9ozhTEbzVf6Ua8G/CcBsZC9sjGWg5ZFIOr
+         IN6D9CnTt2XFogrdyfWleAfk6bXgWGf20d2QReNs=
+Date:   Thu, 24 Mar 2022 18:33:21 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] docs-abi-testing-add-damon-sysfs-interface-abi-document.patch removed from -mm tree
-Message-Id: <20220325013337.94739C340F5@smtp.kernel.org>
+Subject: [merged] docs-vm-damon-call-low-level-monitoring-primitives-the-operations.patch removed from -mm tree
+Message-Id: <20220325013321.EAE09C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,320 +41,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/ABI/testing: add DAMON sysfs interface ABI document
+     Subject: Docs/vm/damon: call low level monitoring primitives the operations
 has been removed from the -mm tree.  Its filename was
-     docs-abi-testing-add-damon-sysfs-interface-abi-document.patch
+     docs-vm-damon-call-low-level-monitoring-primitives-the-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/testing: add DAMON sysfs interface ABI document
+Subject: Docs/vm/damon: call low level monitoring primitives the operations
 
-This commit adds DAMON sysfs interface ABI document under
-Documentation/ABI/testing.
+Patch series "Docs/damon: Update documents for better consistency".
 
-Link: https://lkml.kernel.org/r/20220228081314.5770-14-sj@kernel.org
+Some of DAMON document are not properly updated for latest version.  This
+patchset updates such parts.
+
+
+This patch (of 3):
+
+DAMON code calls the low level monitoring primitives implementations the
+monitoring operations.  The documentation would have no problem at still
+calling those primitives implementation because there is no real
+difference in the concepts, but making it more consistent with the code
+would make it better.  This commit therefore convert sentences in the doc
+specifically pointing the implementations of the primitives to call it
+monitoring operations.
+
+Link: https://lkml.kernel.org/r/20220222170100.17068-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220222170100.17068-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Xin Hao <xhao@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |  274 ++++++++++++++
- MAINTAINERS                                     |    1 
- 2 files changed, 275 insertions(+)
+ Documentation/vm/damon/design.rst |   24 ++++++++++++------------
+ Documentation/vm/damon/faq.rst    |    2 +-
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -0,0 +1,274 @@
-+what:		/sys/kernel/mm/damon/
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Interface for Data Access MONitoring (DAMON).  Contains files
-+		for controlling DAMON.  For more details on DAMON itself,
-+		please refer to Documentation/admin-guide/mm/damon/index.rst.
-+
-+What:		/sys/kernel/mm/damon/admin/
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Interface for privileged users of DAMON.  Contains files for
-+		controlling DAMON that aimed to be used by privileged users.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/nr_kdamonds
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for controlling each DAMON worker thread (kdamond)
-+		named '0' to 'N-1' under the kdamonds/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/state
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing 'on' or 'off' to this file makes the kdamond starts or
-+		stops, respectively.  Reading the file returns the keywords
-+		based on the current status.  Writing 'update_schemes_stats' to
-+		the file updates contents of schemes stats files of the
-+		kdamond.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/pid
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the pid of the kdamond if it is
-+		running.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/nr_contexts
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for controlling each DAMON context named '0' to
-+		'N-1' under the contexts/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/operations
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a keyword for a monitoring operations set ('vaddr' for
-+		virtual address spaces monitoring, and 'paddr' for the physical
-+		address space monitoring) to this file makes the context to use
-+		the operations set.  Reading the file returns the keyword for
-+		the operations set the context is set to use.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/sample_us
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the sampling interval of the
-+		DAMON context in microseconds as the value.  Reading this file
-+		returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/aggr_us
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the aggregation interval of
-+		the DAMON context in microseconds as the value.  Reading this
-+		file returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/update_us
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the update interval of the
-+		DAMON context in microseconds as the value.  Reading this file
-+		returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/min
-+
-+WDate:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the minimum number of
-+		monitoring regions of the DAMON context as the value.  Reading
-+		this file returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/max
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the maximum number of
-+		monitoring regions of the DAMON context as the value.  Reading
-+		this file returns the value.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/nr_targets
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for controlling each DAMON target of the context
-+		named '0' to 'N-1' under the contexts/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/pid_target
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the pid of
-+		the target process if the context is for virtual address spaces
-+		monitoring, respectively.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/nr_regions
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for setting each DAMON target memory region of the
-+		context named '0' to 'N-1' under the regions/ directory.  In
-+		case of the virtual address space monitoring, DAMON
-+		automatically sets the target memory region based on the target
-+		processes' mappings.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/<R>/start
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the start
-+		address of the monitoring region.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/<R>/end
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the end
-+		address of the monitoring region.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/nr_schemes
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for controlling each DAMON-based operation scheme
-+		of the context named '0' to 'N-1' under the schemes/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/action
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the action
-+		of the scheme.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/sz/min
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the mimimum
-+		size of the scheme's target regions in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/sz/max
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the maximum
-+		size of the scheme's target regions in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/nr_accesses/min
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the manimum
-+		'nr_accesses' of the scheme's target regions.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/nr_accesses/max
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the maximum
-+		'nr_accesses' of the scheme's target regions.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/age/min
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the minimum
-+		'age' of the scheme's target regions.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/age/max
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the maximum
-+		'age' of the scheme's target regions.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/ms
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the time
-+		quota of the scheme in milliseconds.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/bytes
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the size
-+		quota of the scheme in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/reset_interval_ms
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the quotas
-+		charge reset interval of the scheme in milliseconds.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/sz_permil
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		under-quota limit regions prioritization weight for 'size' in
-+		permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/nr_accesses_permil
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		under-quota limit regions prioritization weight for
-+		'nr_accesses' in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/age_permil
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		under-quota limit regions prioritization weight for 'age' in
-+		permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/metric
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the metric
-+		of the watermarks for the scheme.  The writable/readable
-+		keywords for this file are 'none' for disabling the watermarks
-+		feature, or 'free_mem_rate' for the system's global free memory
-+		rate in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/interval_us
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the metric
-+		check interval of the watermarks for the scheme in
-+		microseconds.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/high
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the high
-+		watermark of the scheme in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/mid
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the mid
-+		watermark of the scheme in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/watermarks/low
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the low
-+		watermark of the scheme in permil.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_tried
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the number of regions that the action
-+		of the scheme has tried to be applied.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/sz_tried
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the total size of regions that the
-+		action of the scheme has tried to be applied in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_applied
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the number of regions that the action
-+		of the scheme has successfully applied.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/sz_applied
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the total size of regions that the
-+		action of the scheme has successfully applied in bytes.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/qt_exceeds
-+Date:		Mar 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the number of the exceed events of
-+		the scheme's quotas.
---- a/MAINTAINERS~docs-abi-testing-add-damon-sysfs-interface-abi-document
-+++ a/MAINTAINERS
-@@ -5317,6 +5317,7 @@ DATA ACCESS MONITOR
- M:	SeongJae Park <sj@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
-+F:	Documentation/ABI/testing/sysfs-kernel-mm-damon
- F:	Documentation/admin-guide/mm/damon/
- F:	Documentation/vm/damon/
- F:	include/linux/damon.h
+--- a/Documentation/vm/damon/design.rst~docs-vm-damon-call-low-level-monitoring-primitives-the-operations
++++ a/Documentation/vm/damon/design.rst
+@@ -13,12 +13,13 @@ primitives that dependent on and optimiz
+ the other hand, the accuracy and overhead tradeoff mechanism, which is the core
+ of DAMON, is in the pure logic space.  DAMON separates the two parts in
+ different layers and defines its interface to allow various low level
+-primitives implementations configurable with the core logic.
++primitives implementations configurable with the core logic.  We call the low
++level primitives implementations monitoring operations.
+ 
+ Due to this separated design and the configurable interface, users can extend
+-DAMON for any address space by configuring the core logics with appropriate low
+-level primitive implementations.  If appropriate one is not provided, users can
+-implement the primitives on their own.
++DAMON for any address space by configuring the core logics with appropriate
++monitoring operations.  If appropriate one is not provided, users can implement
++the operations on their own.
+ 
+ For example, physical memory, virtual memory, swap space, those for specific
+ processes, NUMA nodes, files, and backing memory devices would be supportable.
+@@ -26,25 +27,24 @@ Also, if some architectures or devices s
+ primitives, those will be easily configurable.
+ 
+ 
+-Reference Implementations of Address Space Specific Primitives
+-==============================================================
++Reference Implementations of Address Space Specific Monitoring Operations
++=========================================================================
+ 
+-The low level primitives for the fundamental access monitoring are defined in
+-two parts:
++The monitoring operations are defined in two parts:
+ 
+ 1. Identification of the monitoring target address range for the address space.
+ 2. Access check of specific address range in the target space.
+ 
+-DAMON currently provides the implementations of the primitives for the physical
++DAMON currently provides the implementations of the operations for the physical
+ and virtual address spaces. Below two subsections describe how those work.
+ 
+ 
+ VMA-based Target Address Range Construction
+ -------------------------------------------
+ 
+-This is only for the virtual address space primitives implementation.  That for
+-the physical address space simply asks users to manually set the monitoring
+-target address ranges.
++This is only for the virtual address space monitoring operations
++implementation.  That for the physical address space simply asks users to
++manually set the monitoring target address ranges.
+ 
+ Only small parts in the super-huge virtual address space of the processes are
+ mapped to the physical memory and accessed.  Thus, tracking the unmapped
+--- a/Documentation/vm/damon/faq.rst~docs-vm-damon-call-low-level-monitoring-primitives-the-operations
++++ a/Documentation/vm/damon/faq.rst
+@@ -31,7 +31,7 @@ Does DAMON support virtual memory only?
+ =======================================
+ 
+ No.  The core of the DAMON is address space independent.  The address space
+-specific low level primitive parts including monitoring target regions
++specific monitoring operations including monitoring target regions
+ constructions and actual access checks can be implemented and configured on the
+ DAMON core by the users.  In this way, DAMON users can monitor any address
+ space with any access check technique.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
