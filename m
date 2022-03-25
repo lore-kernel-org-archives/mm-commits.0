@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A904BC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60A66C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356410AbiCYBhL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:37:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42384 "EHLO
+        id S1350491AbiCYBhM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:37:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357525AbiCYBf5 (ORCPT
+        with ESMTP id S1357531AbiCYBf5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 129BD3B033
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:34:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 209D23B573
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:34:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 94AAE60A75
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:34:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF104C340EC;
-        Fri, 25 Mar 2022 01:34:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B084260A75
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:34:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14BFEC340EC;
+        Fri, 25 Mar 2022 01:34:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172054;
-        bh=08fdCpHjzZ63osXy+9UgStxG8nM0fdqoHiu3IOgrBIs=;
+        s=korg; t=1648172056;
+        bh=cJ4+Eh/hPzpmzvMDfz3MMRiBW9EhElmtbJObyF4zMmE=;
         h=Date:To:From:Subject:From;
-        b=I0SDBDNZMJPpuZkq/mjeXM6xjd3eutdbEZFXwIjzw0VQKVxcfDpRTGY5SJNxkOO88
-         cB8mEX5vWQ/3jmbCC2Di4yAkEOLOdPvTxmtMcA3ye2ICBNhghdUJe7Xei4xEgSSx6a
-         6h09u36qqjdzKiwyoGNyg1c/hE0jWOQ6tof0bKuA=
-Date:   Thu, 24 Mar 2022 18:34:13 -0700
-To:     mm-commits@vger.kernel.org, trix@redhat.com,
-        ndesaulniers@google.com, natechancellor@gmail.com,
-        bsingharora@gmail.com, lukas.bulwahn@gmail.com,
-        akpm@linux-foundation.org
+        b=m2VASoL6i+BCbtYZAK0IP1E7OYb836y5EWPhv72lv7Xcijwmp6Z4x1uE0BtpZyneV
+         Q3wS4MAEbVDUL+lFdoAwOaf6lfK0oa/wsGn6kL9f9sF9zcA80WVs4FtdgaV0w2Euxf
+         6oFJa4eZCVzdEjJ6xNVRKXywB5Pu/KiYv59tlHPE=
+Date:   Thu, 24 Mar 2022 18:34:15 -0700
+To:     mm-commits@vger.kernel.org, yzaikin@google.com,
+        siglesias@igalia.com, mcgrof@kernel.org, keescook@chromium.org,
+        feng.tang@intel.com, gpiccoli@igalia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] taskstats-remove-unneeded-dead-assignment.patch removed from -mm tree
-Message-Id: <20220325013413.EF104C340EC@smtp.kernel.org>
+Subject: [merged] panic-add-option-to-dump-all-cpus-backtraces-in-panic_print.patch removed from -mm tree
+Message-Id: <20220325013416.14BFEC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,70 +42,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: taskstats: remove unneeded dead assignment
+     Subject: panic: add option to dump all CPUs backtraces in panic_print
 has been removed from the -mm tree.  Its filename was
-     taskstats-remove-unneeded-dead-assignment.patch
+     panic-add-option-to-dump-all-cpus-backtraces-in-panic_print.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: taskstats: remove unneeded dead assignment
+From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Subject: panic: add option to dump all CPUs backtraces in panic_print
 
-make clang-analyzer on x86_64 defconfig caught my attention with:
+Currently the "panic_print" parameter/sysctl allows some interesting debug
+information to be printed during a panic event.  This is useful for
+example in cases the user cannot kdump due to resource limits, or if the
+user collects panic logs in a serial output (or pstore) and prefers a fast
+reboot instead of a kdump.
 
-  kernel/taskstats.c:120:2: warning: Value stored to 'rc' is never read \
-  [clang-analyzer-deadcode.DeadStores]
-          rc = 0;
-          ^
+Happens that currently there's no way to see all CPUs backtraces in a
+panic using "panic_print" on architectures that support that.  We do have
+"oops_all_cpu_backtrace" sysctl, but although partially overlapping in the
+functionality, they are orthogonal in nature: "panic_print" is a panic
+tuning (and we have panics without oopses, like direct calls to panic() or
+maybe other paths that don't go through oops_enter() function), and the
+original purpose of "oops_all_cpu_backtrace" is to provide more
+information on oopses for cases in which the users desire to continue
+running the kernel even after an oops, i.e., used in non-panic scenarios.
 
-Commit d94a041519f3 ("taskstats: free skb, avoid returns in
-send_cpu_listeners") made send_cpu_listeners() not return a value and
-hence, the rc variable remained only to be used within the loop where
-it is always assigned before read and it does not need any other
-initialisation.
+So, we hereby introduce an additional bit for "panic_print" to allow
+dumping the CPUs backtraces during a panic event.
 
-So, simply remove this unneeded dead initializing assignment.
-
-As compilers will detect this unneeded assignment and optimize this anyway,
-the resulting object code is identical before and after this change.
-
-No functional change. No change to object code.
-
-[akpm@linux-foundation.org: reduce scope of `rc']
-Link: https://lkml.kernel.org/r/20220307093942.21310-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Tom Rix <trix@redhat.com>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
+Link: https://lkml.kernel.org/r/20211109202848.610874-3-gpiccoli@igalia.com
+Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
+Reviewed-by: Feng Tang <feng.tang@intel.com>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    1 +
+ Documentation/admin-guide/sysctl/kernel.rst     |    1 +
+ kernel/panic.c                                  |    4 ++++
+ 3 files changed, 6 insertions(+)
 
---- a/kernel/taskstats.c~taskstats-remove-unneeded-dead-assignment
-+++ a/kernel/taskstats.c
-@@ -113,13 +113,14 @@ static void send_cpu_listeners(struct sk
- 	struct listener *s, *tmp;
- 	struct sk_buff *skb_next, *skb_cur = skb;
- 	void *reply = genlmsg_data(genlhdr);
--	int rc, delcount = 0;
-+	int delcount = 0;
+--- a/Documentation/admin-guide/kernel-parameters.txt~panic-add-option-to-dump-all-cpus-backtraces-in-panic_print
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3726,6 +3726,7 @@
+ 			bit 3: print locks info if CONFIG_LOCKDEP is on
+ 			bit 4: print ftrace buffer
+ 			bit 5: print all printk messages in buffer
++			bit 6: print all CPUs backtrace (if available in the arch)
  
- 	genlmsg_end(skb, reply);
+ 	panic_on_taint=	Bitmask for conditionally calling panic() in add_taint()
+ 			Format: <hex>[,nousertaint]
+--- a/Documentation/admin-guide/sysctl/kernel.rst~panic-add-option-to-dump-all-cpus-backtraces-in-panic_print
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -807,6 +807,7 @@ bit 2  print timer info
+ bit 3  print locks info if ``CONFIG_LOCKDEP`` is on
+ bit 4  print ftrace buffer
+ bit 5  print all printk messages in buffer
++bit 6  print all CPUs backtrace (if available in the arch)
+ =====  ============================================
  
--	rc = 0;
- 	down_read(&listeners->sem);
- 	list_for_each_entry(s, &listeners->list, list) {
-+		int rc;
+ So for example to print tasks and memory info on panic, user can::
+--- a/kernel/panic.c~panic-add-option-to-dump-all-cpus-backtraces-in-panic_print
++++ a/kernel/panic.c
+@@ -66,6 +66,7 @@ EXPORT_SYMBOL_GPL(panic_timeout);
+ #define PANIC_PRINT_LOCK_INFO		0x00000008
+ #define PANIC_PRINT_FTRACE_INFO		0x00000010
+ #define PANIC_PRINT_ALL_PRINTK_MSG	0x00000020
++#define PANIC_PRINT_ALL_CPU_BT		0x00000040
+ unsigned long panic_print;
+ 
+ ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
+@@ -152,6 +153,9 @@ static void panic_print_sys_info(void)
+ 	if (panic_print & PANIC_PRINT_ALL_PRINTK_MSG)
+ 		console_flush_on_panic(CONSOLE_REPLAY_ALL);
+ 
++	if (panic_print & PANIC_PRINT_ALL_CPU_BT)
++		trigger_all_cpu_backtrace();
 +
- 		skb_next = NULL;
- 		if (!list_is_last(&s->list, &listeners->list)) {
- 			skb_next = skb_clone(skb_cur, GFP_KERNEL);
+ 	if (panic_print & PANIC_PRINT_TASK_INFO)
+ 		show_state();
+ 
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from gpiccoli@igalia.com are
 
 
