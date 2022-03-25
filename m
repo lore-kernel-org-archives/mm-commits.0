@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9810C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:33:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9366EC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:33:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348477AbiCYBe6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:34:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38296 "EHLO
+        id S1354341AbiCYBe7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:34:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357538AbiCYBdP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:15 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 112F35C667
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:31:40 -0700 (PDT)
+        with ESMTP id S1357374AbiCYBdo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7E63BF008
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:32:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AC5BCB82727
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:31:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41764C340ED;
-        Fri, 25 Mar 2022 01:31:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2D452608C1
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:32:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7ED6EC340EC;
+        Fri, 25 Mar 2022 01:32:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171897;
-        bh=JEkV3VIH36D7/Q28L4ZN3l3KtEilN0pj3qixQRdrIj0=;
+        s=korg; t=1648171929;
+        bh=9aQ4mwB+L5Cnk+/gEHux3B8YLn5AdeHeaNzJAbDMNas=;
         h=Date:To:From:Subject:From;
-        b=zdcPMZ6gtY+bcSaA2SIoG15ui2KFPD8L05VXrlE6DEklExFHJMB2hW77SobTg0lTQ
-         6o3xzX7GXQ4VTemJTKR9G6CkMnJXcN2Mi9H5P4QvYrJeklNVZQJ1pxuX1BTrHuA/cB
-         xo8MD+yjShrip8YxUKQ1XEg0kBne/Ho++OAbLVQc=
-Date:   Thu, 24 Mar 2022 18:31:36 -0700
-To:     mm-commits@vger.kernel.org, youquan.song@intel.com,
-        tony.luck@intel.com, naoya.horiguchi@nec.com,
+        b=RDzBYsAT8+jkO4AlpU9ujJfN8kD4Gimx6W8qR3wmhcH1CppagrjZyS+5ICk92PTsh
+         6EB9gnZ0g2P9ZuxvZc5VQRtVeBH04DGLRYQbw+crq06qMhl0uhKdHqnFTIpBXv8dh7
+         1dFevuNDhjnJOsrH0535z4o/CR3gOlJWGcx8nBlo=
+Date:   Thu, 24 Mar 2022 18:32:08 -0700
+To:     mm-commits@vger.kernel.org, rientjes@google.com, alexs@kernel.org,
+        alexander.duyck@gmail.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch removed from -mm tree
-Message-Id: <20220325013137.41764C340ED@smtp.kernel.org>
+Subject: [merged] mm-__isolate_lru_page_prepare-in-isolate_migratepages_block.patch removed from -mm tree
+Message-Id: <20220325013209.7ED6EC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,69 +42,321 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
+     Subject: mm: __isolate_lru_page_prepare() in isolate_migratepages_block()
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
+     mm-__isolate_lru_page_prepare-in-isolate_migratepages_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: __isolate_lru_page_prepare() in isolate_migratepages_block()
 
-When an uncorrected memory error is consumed there is a race between the
-CMCI from the memory controller reporting an uncorrected error with a UCNA
-signature, and the core reporting and SRAR signature machine check when
-the data is about to be consumed.
+__isolate_lru_page_prepare() conflates two unrelated functions, with the
+flags to one disjoint from the flags to the other; and hides some of the
+important checks outside of isolate_migratepages_block(), where the
+sequence is better to be visible.  It comes from the days of lumpy
+reclaim, before compaction, when the combination made more sense.
 
-If the CMCI wins that race, the page is marked poisoned when
-uc_decode_notifier() calls memory_failure() and the machine check
-processing code finds the page already poisoned.  It calls
-kill_accessing_process() to make sure a SIGBUS is sent.  But returns the
-wrong error code.
+Move what's needed by mm/compaction.c isolate_migratepages_block() inline
+there, and what's needed by mm/vmscan.c isolate_lru_pages() inline there.
 
-Console log looks like this:
+Shorten "isolate_mode" to "mode", so the sequence of conditions is easier
+to read.  Declare a "mapping" variable, to save one call to page_mapping()
+(but not another: calling again after page is locked is necessary). 
+Simplify isolate_lru_pages() with a "move_to" list pointer.
 
-[34775.674296] mce: Uncorrected hardware memory error in user-access at 3710b3400
-[34775.675413] Memory failure: 0x3710b3: recovery action for dirty LRU page: Recovered
-[34775.690310] Memory failure: 0x3710b3: already hardware poisoned
-[34775.696247] Memory failure: 0x3710b3: Sending SIGBUS to einj_mem_uc:361438 due to hardware memory corruption
-[34775.706072] mce: Memory error not recovered
-
-kill_accessing_process() is supposed to return -EHWPOISON to notify that
-SIGBUS is already set to the process and kill_me_maybe() doesn't have to
-send it again.  But current code simply fails to do this, so fix it to
-make sure to work as intended.  This change avoids the noise message
-"Memory error not recovered" and skips duplicate SIGBUSs.
-
-[tony.luck@intel.com: reword some parts of commit message]
-Link: https://lkml.kernel.org/r/20220113231117.1021405-1-naoya.horiguchi@linux.dev
-Fixes: a3f5d80ea401 ("mm,hwpoison: send SIGBUS with error virutal address")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Youquan Song <youquan.song@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/879d62a8-91cc-d3c6-fb3b-69768236df68@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Alex Shi <alexs@kernel.org>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/swap.h |    1 
+ mm/compaction.c      |   51 +++++++++++++++++---
+ mm/vmscan.c          |  101 +++++++----------------------------------
+ 3 files changed, 62 insertions(+), 91 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered
-+++ a/mm/memory-failure.c
-@@ -707,8 +707,10 @@ static int kill_accessing_process(struct
- 			      (void *)&priv);
- 	if (ret == 1 && priv.tk.addr)
- 		kill_proc(&priv.tk, pfn, flags);
-+	else
-+		ret = 0;
- 	mmap_read_unlock(p->mm);
--	return ret ? -EFAULT : -EHWPOISON;
-+	return ret > 0 ? -EHWPOISON : -EFAULT;
+--- a/include/linux/swap.h~mm-__isolate_lru_page_prepare-in-isolate_migratepages_block
++++ a/include/linux/swap.h
+@@ -387,7 +387,6 @@ extern void lru_cache_add_inactive_or_un
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
+-extern bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+--- a/mm/compaction.c~mm-__isolate_lru_page_prepare-in-isolate_migratepages_block
++++ a/mm/compaction.c
+@@ -785,7 +785,7 @@ static bool too_many_isolated(pg_data_t
+  * @cc:		Compaction control structure.
+  * @low_pfn:	The first PFN to isolate
+  * @end_pfn:	The one-past-the-last PFN to isolate, within same pageblock
+- * @isolate_mode: Isolation mode to be used.
++ * @mode:	Isolation mode to be used.
+  *
+  * Isolate all pages that can be migrated from the range specified by
+  * [low_pfn, end_pfn). The range is expected to be within same pageblock.
+@@ -798,7 +798,7 @@ static bool too_many_isolated(pg_data_t
+  */
+ static int
+ isolate_migratepages_block(struct compact_control *cc, unsigned long low_pfn,
+-			unsigned long end_pfn, isolate_mode_t isolate_mode)
++			unsigned long end_pfn, isolate_mode_t mode)
+ {
+ 	pg_data_t *pgdat = cc->zone->zone_pgdat;
+ 	unsigned long nr_scanned = 0, nr_isolated = 0;
+@@ -806,6 +806,7 @@ isolate_migratepages_block(struct compac
+ 	unsigned long flags = 0;
+ 	struct lruvec *locked = NULL;
+ 	struct page *page = NULL, *valid_page = NULL;
++	struct address_space *mapping;
+ 	unsigned long start_pfn = low_pfn;
+ 	bool skip_on_failure = false;
+ 	unsigned long next_skip_pfn = 0;
+@@ -990,7 +991,7 @@ isolate_migratepages_block(struct compac
+ 					locked = NULL;
+ 				}
+ 
+-				if (!isolate_movable_page(page, isolate_mode))
++				if (!isolate_movable_page(page, mode))
+ 					goto isolate_success;
+ 			}
+ 
+@@ -1002,15 +1003,15 @@ isolate_migratepages_block(struct compac
+ 		 * so avoid taking lru_lock and isolating it unnecessarily in an
+ 		 * admittedly racy check.
+ 		 */
+-		if (!page_mapping(page) &&
+-		    page_count(page) > page_mapcount(page))
++		mapping = page_mapping(page);
++		if (!mapping && page_count(page) > page_mapcount(page))
+ 			goto isolate_fail;
+ 
+ 		/*
+ 		 * Only allow to migrate anonymous pages in GFP_NOFS context
+ 		 * because those do not depend on fs locks.
+ 		 */
+-		if (!(cc->gfp_mask & __GFP_FS) && page_mapping(page))
++		if (!(cc->gfp_mask & __GFP_FS) && mapping)
+ 			goto isolate_fail;
+ 
+ 		/*
+@@ -1021,9 +1022,45 @@ isolate_migratepages_block(struct compac
+ 		if (unlikely(!get_page_unless_zero(page)))
+ 			goto isolate_fail;
+ 
+-		if (!__isolate_lru_page_prepare(page, isolate_mode))
++		/* Only take pages on LRU: a check now makes later tests safe */
++		if (!PageLRU(page))
+ 			goto isolate_fail_put;
+ 
++		/* Compaction might skip unevictable pages but CMA takes them */
++		if (!(mode & ISOLATE_UNEVICTABLE) && PageUnevictable(page))
++			goto isolate_fail_put;
++
++		/*
++		 * To minimise LRU disruption, the caller can indicate with
++		 * ISOLATE_ASYNC_MIGRATE that it only wants to isolate pages
++		 * it will be able to migrate without blocking - clean pages
++		 * for the most part.  PageWriteback would require blocking.
++		 */
++		if ((mode & ISOLATE_ASYNC_MIGRATE) && PageWriteback(page))
++			goto isolate_fail_put;
++
++		if ((mode & ISOLATE_ASYNC_MIGRATE) && PageDirty(page)) {
++			bool migrate_dirty;
++
++			/*
++			 * Only pages without mappings or that have a
++			 * ->migratepage callback are possible to migrate
++			 * without blocking. However, we can be racing with
++			 * truncation so it's necessary to lock the page
++			 * to stabilise the mapping as truncation holds
++			 * the page lock until after the page is removed
++			 * from the page cache.
++			 */
++			if (!trylock_page(page))
++				goto isolate_fail_put;
++
++			mapping = page_mapping(page);
++			migrate_dirty = !mapping || mapping->a_ops->migratepage;
++			unlock_page(page);
++			if (!migrate_dirty)
++				goto isolate_fail_put;
++		}
++
+ 		/* Try isolate the page */
+ 		if (!TestClearPageLRU(page))
+ 			goto isolate_fail_put;
+--- a/mm/vmscan.c~mm-__isolate_lru_page_prepare-in-isolate_migratepages_block
++++ a/mm/vmscan.c
+@@ -1999,69 +1999,6 @@ unsigned int reclaim_clean_pages_from_li
  }
  
- static const char *action_name[] = {
+ /*
+- * Attempt to remove the specified page from its LRU.  Only take this page
+- * if it is of the appropriate PageActive status.  Pages which are being
+- * freed elsewhere are also ignored.
+- *
+- * page:	page to consider
+- * mode:	one of the LRU isolation modes defined above
+- *
+- * returns true on success, false on failure.
+- */
+-bool __isolate_lru_page_prepare(struct page *page, isolate_mode_t mode)
+-{
+-	/* Only take pages on the LRU. */
+-	if (!PageLRU(page))
+-		return false;
+-
+-	/* Compaction should not handle unevictable pages but CMA can do so */
+-	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
+-		return false;
+-
+-	/*
+-	 * To minimise LRU disruption, the caller can indicate that it only
+-	 * wants to isolate pages it will be able to operate on without
+-	 * blocking - clean pages for the most part.
+-	 *
+-	 * ISOLATE_ASYNC_MIGRATE is used to indicate that it only wants to pages
+-	 * that it is possible to migrate without blocking
+-	 */
+-	if (mode & ISOLATE_ASYNC_MIGRATE) {
+-		/* All the caller can do on PageWriteback is block */
+-		if (PageWriteback(page))
+-			return false;
+-
+-		if (PageDirty(page)) {
+-			struct address_space *mapping;
+-			bool migrate_dirty;
+-
+-			/*
+-			 * Only pages without mappings or that have a
+-			 * ->migratepage callback are possible to migrate
+-			 * without blocking. However, we can be racing with
+-			 * truncation so it's necessary to lock the page
+-			 * to stabilise the mapping as truncation holds
+-			 * the page lock until after the page is removed
+-			 * from the page cache.
+-			 */
+-			if (!trylock_page(page))
+-				return false;
+-
+-			mapping = page_mapping(page);
+-			migrate_dirty = !mapping || mapping->a_ops->migratepage;
+-			unlock_page(page);
+-			if (!migrate_dirty)
+-				return false;
+-		}
+-	}
+-
+-	if ((mode & ISOLATE_UNMAPPED) && page_mapped(page))
+-		return false;
+-
+-	return true;
+-}
+-
+-/*
+  * Update LRU sizes after isolating pages. The LRU size updates must
+  * be complete before mem_cgroup_update_lru_size due to a sanity check.
+  */
+@@ -2112,11 +2049,11 @@ static unsigned long isolate_lru_pages(u
+ 	unsigned long skipped = 0;
+ 	unsigned long scan, total_scan, nr_pages;
+ 	LIST_HEAD(pages_skipped);
+-	isolate_mode_t mode = (sc->may_unmap ? 0 : ISOLATE_UNMAPPED);
+ 
+ 	total_scan = 0;
+ 	scan = 0;
+ 	while (scan < nr_to_scan && !list_empty(src)) {
++		struct list_head *move_to = src;
+ 		struct page *page;
+ 
+ 		page = lru_to_page(src);
+@@ -2126,9 +2063,9 @@ static unsigned long isolate_lru_pages(u
+ 		total_scan += nr_pages;
+ 
+ 		if (page_zonenum(page) > sc->reclaim_idx) {
+-			list_move(&page->lru, &pages_skipped);
+ 			nr_skipped[page_zonenum(page)] += nr_pages;
+-			continue;
++			move_to = &pages_skipped;
++			goto move;
+ 		}
+ 
+ 		/*
+@@ -2136,37 +2073,34 @@ static unsigned long isolate_lru_pages(u
+ 		 * return with no isolated pages if the LRU mostly contains
+ 		 * ineligible pages.  This causes the VM to not reclaim any
+ 		 * pages, triggering a premature OOM.
+-		 *
+-		 * Account all tail pages of THP.  This would not cause
+-		 * premature OOM since __isolate_lru_page() returns -EBUSY
+-		 * only when the page is being freed somewhere else.
++		 * Account all tail pages of THP.
+ 		 */
+ 		scan += nr_pages;
+-		if (!__isolate_lru_page_prepare(page, mode)) {
+-			/* It is being freed elsewhere */
+-			list_move(&page->lru, src);
+-			continue;
+-		}
++
++		if (!PageLRU(page))
++			goto move;
++		if (!sc->may_unmap && page_mapped(page))
++			goto move;
++
+ 		/*
+ 		 * Be careful not to clear PageLRU until after we're
+ 		 * sure the page is not being freed elsewhere -- the
+ 		 * page release code relies on it.
+ 		 */
+-		if (unlikely(!get_page_unless_zero(page))) {
+-			list_move(&page->lru, src);
+-			continue;
+-		}
++		if (unlikely(!get_page_unless_zero(page)))
++			goto move;
+ 
+ 		if (!TestClearPageLRU(page)) {
+ 			/* Another thread is already isolating this page */
+ 			put_page(page);
+-			list_move(&page->lru, src);
+-			continue;
++			goto move;
+ 		}
+ 
+ 		nr_taken += nr_pages;
+ 		nr_zone_taken[page_zonenum(page)] += nr_pages;
+-		list_move(&page->lru, dst);
++		move_to = dst;
++move:
++		list_move(&page->lru, move_to);
+ 	}
+ 
+ 	/*
+@@ -2190,7 +2124,8 @@ static unsigned long isolate_lru_pages(u
+ 	}
+ 	*nr_scanned = total_scan;
+ 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan,
+-				    total_scan, skipped, nr_taken, mode, lru);
++				    total_scan, skipped, nr_taken,
++				    sc->may_unmap ? 0 : ISOLATE_UNMAPPED, lru);
+ 	update_lru_sizes(lruvec, lru, nr_zone_taken);
+ 	return nr_taken;
+ }
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-delete-__clearpagewaiters.patch
+mm-filemap_unaccount_folio-large-skip-mapcount-fixup.patch
+mm-thp-fix-nr_file_mapped-accounting-in-page__file_rmap.patch
+mm-warn-on-deleting-redirtied-only-if-accounted.patch
+mm-unmap_mapping_range_tree-with-i_mmap_rwsem-shared.patch
 
