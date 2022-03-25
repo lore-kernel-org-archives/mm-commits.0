@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB9E4C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:32:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED939C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:32:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353656AbiCYBeK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:34:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37252 "EHLO
+        id S236968AbiCYBeL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:34:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357488AbiCYBdN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6875BF539;
-        Thu, 24 Mar 2022 18:31:25 -0700 (PDT)
+        with ESMTP id S1357530AbiCYBdP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:33:15 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E60BBBF968
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:31:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 66DABB826FE;
-        Fri, 25 Mar 2022 01:31:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29604C340ED;
-        Fri, 25 Mar 2022 01:31:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9F81CB826FE
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:31:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EFA7C340ED;
+        Fri, 25 Mar 2022 01:31:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171883;
-        bh=70fH0VBkEqkkInDIOOfS381LDbZmMcnGnVUUoQMtTf0=;
+        s=korg; t=1648171895;
+        bh=bjeRbf0zPnFwbjwENKQhBL3K5y0bRE/n1FMbZcg50qo=;
         h=Date:To:From:Subject:From;
-        b=GWD8SiyJFSJRRWhUh7ddUhgvK6ZZQfWQXyQXyJKl3Hn721v7JLoVpIK75lcXQP4du
-         jOA0uqzKgcoY7aqses8sOtvTZSqiKZKHPdV2bQj2vtYsywyMDvd0nMwfQbhJzgf0KW
-         ErWtwYN2ppQYk4d96KKrKCyqkFfhEGQU6BZhCJQ4=
-Date:   Thu, 24 Mar 2022 18:31:22 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, stable@vger.kernel.org,
-        osalvador@suse.de, mgorman@techsingularity.net,
-        jhubbard@nvidia.com, david@redhat.com, anshuman.khandual@arm.com,
-        apopple@nvidia.com, akpm@linux-foundation.org
+        b=r3XPcOHLnVLCj3uILIXjbw75VuDibXct/l25io2lhXgIN6aFcAFw3vVkguPrpL+DU
+         D298oEIMNl5DX45KGY565XoMyVdiN4CPH+8r2EjVqRnW88MSlnckFp4quaDsYeXJiK
+         NfcWsDjhB6LikqEfmHvkZA7fjKW/I/cbvtfPhcMY=
+Date:   Thu, 24 Mar 2022 18:31:34 -0700
+To:     mm-commits@vger.kernel.org, weixugc@google.com, vbabka@suse.cz,
+        shakeelb@google.com, rientjes@google.com, mhocko@kernel.org,
+        hughd@google.com, gthelen@google.com, edumazet@google.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch removed from -mm tree
-Message-Id: <20220325013123.29604C340ED@smtp.kernel.org>
+Subject: [merged] mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations.patch removed from -mm tree
+Message-Id: <20220325013135.3EFA7C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,124 +43,140 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pages_alloc.c: don't create ZONE_MOVABLE beyond the end of a node
+     Subject: mm/page_alloc: check high-order pages for corruption during PCP operations
 has been removed from the -mm tree.  Its filename was
-     mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node.patch
+     mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/pages_alloc.c: don't create ZONE_MOVABLE beyond the end of a node
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: check high-order pages for corruption during PCP operations
 
-ZONE_MOVABLE uses the remaining memory in each node.  Its starting pfn is
-also aligned to MAX_ORDER_NR_PAGES.  It is possible for the remaining
-memory in a node to be less than MAX_ORDER_NR_PAGES, meaning there is not
-enough room for ZONE_MOVABLE on that node.
+Eric Dumazet pointed out that commit 44042b449872 ("mm/page_alloc: allow
+high-order pages to be stored on the per-cpu lists") only checks the head
+page during PCP refill and allocation operations.  This was an oversight
+and all pages should be checked.  This will incur a small performance
+penalty but it's necessary for correctness.
 
-Unfortunately this condition is not checked for.  This leads to
-zone_movable_pfn[] getting set to a pfn greater than the last pfn in a
-node.
-
-calculate_node_totalpages() then sets zone->present_pages to be greater
-than zone->spanned_pages which is invalid, as spanned_pages represents the
-maximum number of pages in a zone assuming no holes.
-
-Subsequently it is possible free_area_init_core() will observe a zone of
-size zero with present pages.  In this case it will skip setting up the
-zone, including the initialisation of free_lists[].
-
-However populated_zone() checks zone->present_pages to see if a zone has
-memory available.  This is used by iterators such as walk_zones_in_node().
-pagetypeinfo_showfree() uses this to walk the free_list of each zone in
-each node, which are assumed to be initialised due to the zone not being
-empty.  As free_area_init_core() never initialised the free_lists[] this
-results in the following kernel crash when trying to read
-/proc/pagetypeinfo:
-
-[   67.534914] BUG: kernel NULL pointer dereference, address: 0000000000000000
-[   67.535429] #PF: supervisor read access in kernel mode
-[   67.535789] #PF: error_code(0x0000) - not-present page
-[   67.536128] PGD 0 P4D 0
-[   67.536305] Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC NOPTI
-[   67.536696] CPU: 0 PID: 456 Comm: cat Not tainted 5.16.0 #461
-[   67.537096] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
-[   67.537638] RIP: 0010:pagetypeinfo_show+0x163/0x460
-[   67.537992] Code: 9e 82 e8 80 57 0e 00 49 8b 06 b9 01 00 00 00 4c 39 f0 75 16 e9 65 02 00 00 48 83 c1 01 48 81 f9 a0 86 01 00 0f 84 48 02 00 00 <48> 8b 00 4c 39 f0 75 e7 48 c7 c2 80 a2 e2 82 48 c7 c6 79 ef e3 82
-[   67.538259] RSP: 0018:ffffc90001c4bd10 EFLAGS: 00010003
-[   67.538259] RAX: 0000000000000000 RBX: ffff88801105f638 RCX: 0000000000000001
-[   67.538259] RDX: 0000000000000001 RSI: 000000000000068b RDI: ffff8880163dc68b
-[   67.538259] RBP: ffffc90001c4bd90 R08: 0000000000000001 R09: ffff8880163dc67e
-[   67.538259] R10: 656c6261766f6d6e R11: 6c6261766f6d6e55 R12: ffff88807ffb4a00
-[   67.538259] R13: ffff88807ffb49f8 R14: ffff88807ffb4580 R15: ffff88807ffb3000
-[   67.538259] FS:  00007f9c83eff5c0(0000) GS:ffff88807dc00000(0000) knlGS:0000000000000000
-[   67.538259] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   67.538259] CR2: 0000000000000000 CR3: 0000000013c8e000 CR4: 0000000000350ef0
-[   67.538259] Call Trace:
-[   67.538259]  <TASK>
-[   67.538259]  seq_read_iter+0x128/0x460
-[   67.538259]  ? aa_file_perm+0x1af/0x5f0
-[   67.538259]  proc_reg_read_iter+0x51/0x80
-[   67.538259]  ? lock_is_held_type+0xea/0x140
-[   67.538259]  new_sync_read+0x113/0x1a0
-[   67.538259]  vfs_read+0x136/0x1d0
-[   67.538259]  ksys_read+0x70/0xf0
-[   67.538259]  __x64_sys_read+0x1a/0x20
-[   67.538259]  do_syscall_64+0x3b/0xc0
-[   67.538259]  entry_SYSCALL_64_after_hwframe+0x44/0xae
-[   67.538259] RIP: 0033:0x7f9c83e23cce
-[   67.538259] Code: c0 e9 b6 fe ff ff 50 48 8d 3d 6e 13 0a 00 e8 c9 e3 01 00 66 0f 1f 84 00 00 00 00 00 64 8b 04 25 18 00 00 00 85 c0 75 14 0f 05 <48> 3d 00 f0 ff ff 77 5a c3 66 0f 1f 84 00 00 00 00 00 48 83 ec 28
-[   67.538259] RSP: 002b:00007fff116e1a08 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
-[   67.538259] RAX: ffffffffffffffda RBX: 0000000000020000 RCX: 00007f9c83e23cce
-[   67.538259] RDX: 0000000000020000 RSI: 00007f9c83a2c000 RDI: 0000000000000003
-[   67.538259] RBP: 00007f9c83a2c000 R08: 00007f9c83a2b010 R09: 0000000000000000
-[   67.538259] R10: 00007f9c83f2d7d0 R11: 0000000000000246 R12: 0000000000000000
-[   67.538259] R13: 0000000000000003 R14: 0000000000020000 R15: 0000000000020000
-[   67.538259]  </TASK>
-
-Fix this by checking that the aligned zone_movable_pfn[] does not exceed
-the end of the node, and if it does skip creating a movable zone on this
-node.
-
-Link: https://lkml.kernel.org/r/20220215025831.2113067-1-apopple@nvidia.com
-Fixes: 2a1e274acf0b ("Create the ZONE_MOVABLE zone")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220310092456.GJ15701@techsingularity.net
+Fixes: 44042b449872 ("mm/page_alloc: allow high-order pages to be stored on the per-cpu lists")
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   46 +++++++++++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
---- a/mm/page_alloc.c~mm-pages_allocc-dont-create-zone_movable-beyond-the-end-of-a-node
+--- a/mm/page_alloc.c~mm-page_alloc-check-high-order-pages-for-corruption-during-pcp-operations
 +++ a/mm/page_alloc.c
-@@ -7951,10 +7951,17 @@ restart:
+@@ -2291,23 +2291,36 @@ static inline int check_new_page(struct
+ 	return 1;
+ }
  
- out2:
- 	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
--	for (nid = 0; nid < MAX_NUMNODES; nid++)
-+	for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+		unsigned long start_pfn, end_pfn;
++static bool check_new_pages(struct page *page, unsigned int order)
++{
++	int i;
++	for (i = 0; i < (1 << order); i++) {
++		struct page *p = page + i;
 +
- 		zone_movable_pfn[nid] =
- 			roundup(zone_movable_pfn[nid], MAX_ORDER_NR_PAGES);
- 
-+		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
-+		if (zone_movable_pfn[nid] >= end_pfn)
-+			zone_movable_pfn[nid] = 0;
++		if (unlikely(check_new_page(p)))
++			return true;
 +	}
 +
- out:
- 	/* restore the node_state */
- 	node_states[N_MEMORY] = saved_node_state;
++	return false;
++}
++
+ #ifdef CONFIG_DEBUG_VM
+ /*
+  * With DEBUG_VM enabled, order-0 pages are checked for expected state when
+  * being allocated from pcp lists. With debug_pagealloc also enabled, they are
+  * also checked when pcp lists are refilled from the free lists.
+  */
+-static inline bool check_pcp_refill(struct page *page)
++static inline bool check_pcp_refill(struct page *page, unsigned int order)
+ {
+ 	if (debug_pagealloc_enabled_static())
+-		return check_new_page(page);
++		return check_new_pages(page, order);
+ 	else
+ 		return false;
+ }
+ 
+-static inline bool check_new_pcp(struct page *page)
++static inline bool check_new_pcp(struct page *page, unsigned int order)
+ {
+-	return check_new_page(page);
++	return check_new_pages(page, order);
+ }
+ #else
+ /*
+@@ -2315,32 +2328,19 @@ static inline bool check_new_pcp(struct
+  * when pcp lists are being refilled from the free lists. With debug_pagealloc
+  * enabled, they are also checked when being allocated from the pcp lists.
+  */
+-static inline bool check_pcp_refill(struct page *page)
++static inline bool check_pcp_refill(struct page *page, unsigned int order)
+ {
+-	return check_new_page(page);
++	return check_new_pages(page, order);
+ }
+-static inline bool check_new_pcp(struct page *page)
++static inline bool check_new_pcp(struct page *page, unsigned int order)
+ {
+ 	if (debug_pagealloc_enabled_static())
+-		return check_new_page(page);
++		return check_new_pages(page, order);
+ 	else
+ 		return false;
+ }
+ #endif /* CONFIG_DEBUG_VM */
+ 
+-static bool check_new_pages(struct page *page, unsigned int order)
+-{
+-	int i;
+-	for (i = 0; i < (1 << order); i++) {
+-		struct page *p = page + i;
+-
+-		if (unlikely(check_new_page(p)))
+-			return true;
+-	}
+-
+-	return false;
+-}
+-
+ inline void post_alloc_hook(struct page *page, unsigned int order,
+ 				gfp_t gfp_flags)
+ {
+@@ -2982,7 +2982,7 @@ static int rmqueue_bulk(struct zone *zon
+ 		if (unlikely(page == NULL))
+ 			break;
+ 
+-		if (unlikely(check_pcp_refill(page)))
++		if (unlikely(check_pcp_refill(page, order)))
+ 			continue;
+ 
+ 		/*
+@@ -3600,7 +3600,7 @@ struct page *__rmqueue_pcplist(struct zo
+ 		page = list_first_entry(list, struct page, lru);
+ 		list_del(&page->lru);
+ 		pcp->count -= 1 << order;
+-	} while (check_new_pcp(page));
++	} while (check_new_pcp(page, order));
+ 
+ 	return page;
+ }
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
