@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA77CC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 00:29:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2349C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 00:29:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244446AbiCYAac (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 20:30:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48904 "EHLO
+        id S1346312AbiCYAbX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 20:31:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244440AbiCYAac (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 20:30:32 -0400
+        with ESMTP id S244440AbiCYAbW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 20:31:22 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80DC152E16
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 17:28:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AA2E56428
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 17:29:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E4F27B826B9
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 00:28:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78356C340EC;
-        Fri, 25 Mar 2022 00:28:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1CE5AB826A1
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 00:29:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD789C340EC;
+        Fri, 25 Mar 2022 00:29:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648168136;
-        bh=NMjgY7MMRE5OKIzGPhqg8YSkc9r/5PuljWtKH/cld6M=;
+        s=korg; t=1648168186;
+        bh=ssU1lE0/RZXz2SGiyttfyslsiE+HB/DL7CE9dxXt66w=;
         h=Date:To:From:Subject:From;
-        b=i2/7oXCuvwR4a/Y1ZZRrKth7zSTujyduf0zftQw2eAOWmjN52WCULg8+uGlXn7FaA
-         0X9btYwNjDOh9TL57t9kH+AJXxU9t8J5qj3C+nu1YokK9ojApZBAPYeXRluQPggnyc
-         vVwtKlIVIJENRXebLY8NKX6xEWpH71JgGcUBgNE0=
-Date:   Thu, 24 Mar 2022 17:28:55 -0700
-To:     mm-commits@vger.kernel.org, zhangshengju@cmss.chinamobile.com,
-        weizhenliang@huawei.com, vbabka@suse.cz,
-        tangbin@cmss.chinamobile.com, nixiaoming@huawei.com,
-        lmark@codeaurora.org, hanshenghong2019@email.szu.edu.cn,
-        georgi.djakov@linaro.org, corbet@lwn.net,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=b2ZlZHPWigps0xH7wWjrtqjDtIaGyRr9zweB3o8L73Rce/g5kT+Xi+aRYvS5jwH31
+         sLGJ2ismJGBTElUqquhkzvvkg3X0k3kmOihpOYVU+rjC24xxH9N0PFgzSBY92FhQK7
+         SyKW+xMs/fip6uDv/kTMd2mL87sAlrxBAK/SJFPs=
+Date:   Thu, 24 Mar 2022 17:29:46 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
+        mark.rutland@arm.com, glider@google.com, eugenis@google.com,
+        elver@google.com, dvyukov@google.com, andreyknvl@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] documentation-vm-page_ownerrst-update-the-documentation-fix.patch removed from -mm tree
-Message-Id: <20220325002856.78356C340EC@smtp.kernel.org>
+Subject: [folded-merged] kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch removed from -mm tree
+Message-Id: <20220325002946.BD789C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,70 +44,136 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: documentation-vm-page_ownerrst-update-the-documentation-fix
+     Subject: fix for "kasan, fork: reset pointer tags of vmapped stacks"
 has been removed from the -mm tree.  Its filename was
-     documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+     kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix.patch
 
-This patch was dropped because it was folded into documentation-vm-page_ownerrst-update-the-documentation.patch
+This patch was dropped because it was folded into kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: documentation-vm-page_ownerrst-update-the-documentation-fix
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: fix for "kasan, fork: reset pointer tags of vmapped stacks"
 
-small grammatical tweaks
+That patch didn't update the case when a stack is retrieved from
+cached_stacks in alloc_thread_stack_node().  As cached_stacks stores
+vm_structs and not stack pointers themselves, the pointer tag needs to be
+reset there as well.
 
-Cc: Georgi Djakov <georgi.djakov@linaro.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Mark <lmark@codeaurora.org>
-Cc: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
-Cc: Tang Bin <tangbin@cmss.chinamobile.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
-Cc: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
-Cc: Zhenliang Wei <weizhenliang@huawei.com>
+Link: https://lkml.kernel.org/r/f50c5f96ef896d7936192c888b0c0a7674e33184.1644943792.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_owner.rst |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/fork.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/Documentation/vm/page_owner.rst~documentation-vm-page_ownerrst-update-the-documentation-fix
-+++ a/Documentation/vm/page_owner.rst
-@@ -107,17 +107,17 @@ Usage
- 	 // Detailed stack
+--- a/kernel/fork.c~kasan-fork-reset-pointer-tags-of-vmapped-stacks-fix
++++ a/kernel/fork.c
+@@ -286,11 +286,13 @@ static int alloc_thread_stack_node(struc
+ 		if (!s)
+ 			continue;
  
-    By default, ``page_owner_sort`` is sorted according to the times of buf.
--   If you want to sort by the pages nums of buf, use the ``-m`` parameter.
--   The detail parameters are shown as follows:
-+   If you want to sort by the page nums of buf, use the ``-m`` parameter.
-+   The detailed parameters are:
+-		/* Mark stack accessible for KASAN. */
++		/* Reset stack metadata. */
+ 		kasan_unpoison_range(s->addr, THREAD_SIZE);
  
-    fundamental function:
++		stack = kasan_reset_tag(s->addr);
++
+ 		/* Clear stale pointers from reused stack. */
+-		memset(s->addr, 0, THREAD_SIZE);
++		memset(stack, 0, THREAD_SIZE);
  
- 	Sort:
--		-a		Sort by memory allocate time.
-+		-a		Sort by memory allocation time.
- 		-m		Sort by total memory.
- 		-p		Sort by pid.
- 		-r		Sort by memory release time.
--		-s		Sort by the stack trace.
-+		-s		Sort by stack trace.
- 		-t		Sort by times (default).
+ 		if (memcg_charge_kernel_stack(s)) {
+ 			vfree(s->addr);
+@@ -298,7 +300,7 @@ static int alloc_thread_stack_node(struc
+ 		}
  
-    additional function:
+ 		tsk->stack_vm_area = s;
+-		tsk->stack = s->addr;
++		tsk->stack = stack;
+ 		return 0;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-documentation-vm-page_ownerrst-update-the-documentation.patch
-kasan-improve-vmalloc-tests-fix-3-fix.patch
-mm-slightly-clarify-ksm-logic-in-do_swap_page-fix.patch
-mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd-fix.patch
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
+kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+mm-clarify-__gfp_zerotags-comment.patch
+kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
+kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
+kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
+kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
+kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+kasan-clean-up-metadata-byte-definitions.patch
+kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
+kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+kasan-reorder-vmalloc-hooks.patch
+kasan-add-wrappers-for-vmalloc-hooks.patch
+kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
+kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
+kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
+kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
+kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
+kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-fix.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations-fix-3.patch
+kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
+kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+kasan-add-kasanvmalloc-command-line-flag.patch
+kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
+arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
+kasan-documentation-updates.patch
+kasan-improve-vmalloc-tests.patch
+kasan-improve-vmalloc-tests-fix-2.patch
+kasan-improve-vmalloc-tests-fix-3.patch
+kasan-test-support-async-again-and-asymm-modes-for-hw_tags.patch
+kasan-print-virtual-mapping-info-in-reports.patch
+kasan-drop-addr-check-from-describe_object_addr.patch
+kasan-more-line-breaks-in-reports.patch
+kasan-rearrange-stack-frame-info-in-reports.patch
+kasan-improve-stack-frame-info-in-reports.patch
+kasan-print-basic-stack-frame-info-for-sw_tags.patch
+kasan-print-basic-stack-frame-info-for-sw_tags-fix.patch
+kasan-simplify-async-check-in-end_report.patch
+kasan-simplify-kasan_update_kunit_status-and-call-sites.patch
+kasan-check-config_kasan_kunit_test-instead-of-config_kunit.patch
+kasan-move-update_kunit_status-to-start_report.patch
+kasan-move-disable_trace_on_warning-to-start_report.patch
+kasan-split-out-print_report-from-__kasan_report.patch
+kasan-simplify-kasan_find_first_bad_addr-call-sites.patch
+kasan-restructure-kasan_report.patch
+kasan-merge-__kasan_report-into-kasan_report.patch
+kasan-call-print_report-from-kasan_report_invalid_free.patch
+kasan-move-and-simplify-kasan_report_async.patch
+kasan-rename-kasan_access_info-to-kasan_report_info.patch
+kasan-add-comment-about-uaccess-regions-to-kasan_report.patch
+kasan-respect-kasan_bit_reported-in-all-reporting-routines.patch
+kasan-reorder-reporting-functions.patch
+kasan-move-and-hide-kasan_save_enable-restore_multi_shot.patch
+kasan-disable-lockdep-when-printing-reports.patch
 
