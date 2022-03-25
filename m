@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE41C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:32:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DF1C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:32:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357384AbiCYBeI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:34:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37252 "EHLO
+        id S1354982AbiCYBeH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:34:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357383AbiCYBcw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:32:52 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC9ACBD8B7
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:30:58 -0700 (PDT)
+        with ESMTP id S1357385AbiCYBcx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:32:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B63FEBD8BB;
+        Thu, 24 Mar 2022 18:30:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 79815B82726
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:30:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 180B7C340EE;
-        Fri, 25 Mar 2022 01:30:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CAC261929;
+        Fri, 25 Mar 2022 01:30:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73D43C340ED;
+        Fri, 25 Mar 2022 01:30:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171856;
-        bh=6wShLKWwZ57Jm+uan/ndDs87DZEDKeaj/YAjxvRxP6o=;
+        s=korg; t=1648171858;
+        bh=o1caomXWTkg3q+ycHD/SyKcBw92CFsJiouV4Yy2dr+g=;
         h=Date:To:From:Subject:From;
-        b=Xez2GaJsjZbarZefiWGOUm1DHc2jGtFQDWIW9oeIIyapRJEZIXO4IQSSXaAn+VLeH
-         b3Ptg4KCm9qYxnooieV+WsignOpIcX02p6UOfaMtT5n5YS2DLBrTxlQZAmli3BcAwg
-         BwhijOFVM+2U3hj10WG/C9P9u6jKNQ9gprNI/1bk=
-Date:   Thu, 24 Mar 2022 18:30:55 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, rientjes@google.com,
-        peterx@redhat.com, mike.kravetz@oracle.com, lars.persson@axis.com,
-        kirill.shutemov@linux.intel.com, fam.zheng@bytedance.com,
-        duanxiongchun@bytedance.com, axelrasmussen@google.com,
-        songmuchun@bytedance.com, akpm@linux-foundation.org
+        b=sYB8OiNdWZHGcdcuQNTNTmtoTiSIn9oj4WQ+TaXFVEhUW5RFWwsQ9xkc4iItc2D1q
+         XOT3OOtpcR4QB5gfdU+NfTKwHn82mSJJGmqFOjbrogmrDOD1oTWwJl/gEoFweZoQ40
+         2UF8xcBkAqAPdpeeUBgtm6UlBIwBoB+1NOeXfMOE=
+Date:   Thu, 24 Mar 2022 18:30:57 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        stable@vger.kernel.org, shy828301@gmail.com, kirill@shutemov.name,
+        jhubbard@nvidia.com, hughd@google.com, david@redhat.com,
+        apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-userfaultfd-fix-missing-cache-flush-in-mcopy_atomic_pte-and-__mcopy_atomic.patch removed from -mm tree
-Message-Id: <20220325013056.180B7C340EE@smtp.kernel.org>
+Subject: [merged] mm-dont-skip-swap-entry-even-if-zap_details-specified.patch removed from -mm tree
+Message-Id: <20220325013058.73D43C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,63 +44,210 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: userfaultfd: fix missing cache flush in mcopy_atomic_pte() and __mcopy_atomic()
+     Subject: mm: don't skip swap entry even if zap_details specified
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-fix-missing-cache-flush-in-mcopy_atomic_pte-and-__mcopy_atomic.patch
+     mm-dont-skip-swap-entry-even-if-zap_details-specified.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: userfaultfd: fix missing cache flush in mcopy_atomic_pte() and __mcopy_atomic()
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: don't skip swap entry even if zap_details specified
 
-userfaultfd calls mcopy_atomic_pte() and __mcopy_atomic() which do not do
-any cache flushing for the target page.  Then the target page will be
-mapped to the user space with a different address (user address), which
-might have an alias issue with the kernel address used to copy the data
-from the user to.  Fix this by insert flush_dcache_page() after
-copy_from_user() succeeds.
+Patch series "mm: Rework zap ptes on swap entries", v5.
 
-Link: https://lkml.kernel.org/r/20220210123058.79206-7-songmuchun@bytedance.com
-Fixes: b6ebaedb4cb1 ("userfaultfd: avoid mmap_sem read recursion in mcopy_atomic")
-Fixes: c1a4de99fada ("userfaultfd: mcopy_atomic|mfill_zeropage: UFFDIO_COPY|UFFDIO_ZEROPAGE preparation")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Lars Persson <lars.persson@axis.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Patch 1 should fix a long standing bug for zap_pte_range() on zap_details
+usage.  The risk is we could have some swap entries skipped while we should
+have zapped them.
+
+Migration entries are not the major concern because file backed memory always
+zap in the pattern that "first time without page lock, then re-zap with page
+lock" hence the 2nd zap will always make sure all migration entries are already
+recovered.
+
+However there can be issues with real swap entries got skipped errornoously.
+There's a reproducer provided in commit message of patch 1 for that.
+
+Patch 2-4 are cleanups that are based on patch 1.  After the whole patchset
+applied, we should have a very clean view of zap_pte_range().
+
+Only patch 1 needs to be backported to stable if necessary.
+
+
+This patch (of 4):
+
+The "details" pointer shouldn't be the token to decide whether we should
+skip swap entries.
+
+For example, when the callers specified details->zap_mapping==NULL, it
+means the user wants to zap all the pages (including COWed pages), then we
+need to look into swap entries because there can be private COWed pages
+that was swapped out.
+
+Skipping some swap entries when details is non-NULL may lead to wrongly
+leaving some of the swap entries while we should have zapped them.
+
+A reproducer of the problem:
+
+===8<===
+        #define _GNU_SOURCE         /* See feature_test_macros(7) */
+        #include <stdio.h>
+        #include <assert.h>
+        #include <unistd.h>
+        #include <sys/mman.h>
+        #include <sys/types.h>
+
+        int page_size;
+        int shmem_fd;
+        char *buffer;
+
+        void main(void)
+        {
+                int ret;
+                char val;
+
+                page_size = getpagesize();
+                shmem_fd = memfd_create("test", 0);
+                assert(shmem_fd >= 0);
+
+                ret = ftruncate(shmem_fd, page_size * 2);
+                assert(ret == 0);
+
+                buffer = mmap(NULL, page_size * 2, PROT_READ | PROT_WRITE,
+                                MAP_PRIVATE, shmem_fd, 0);
+                assert(buffer != MAP_FAILED);
+
+                /* Write private page, swap it out */
+                buffer[page_size] = 1;
+                madvise(buffer, page_size * 2, MADV_PAGEOUT);
+
+                /* This should drop private buffer[page_size] already */
+                ret = ftruncate(shmem_fd, page_size);
+                assert(ret == 0);
+                /* Recover the size */
+                ret = ftruncate(shmem_fd, page_size * 2);
+                assert(ret == 0);
+
+                /* Re-read the data, it should be all zero */
+                val = buffer[page_size];
+                if (val == 0)
+                        printf("Good\n");
+                else
+                        printf("BUG\n");
+        }
+===8<===
+
+We don't need to touch up the pmd path, because pmd never had a issue with
+swap entries.  For example, shmem pmd migration will always be split into
+pte level, and same to swapping on anonymous.
+
+Add another helper should_zap_cows() so that we can also check whether we
+should zap private mappings when there's no page pointer specified.
+
+This patch drops that trick, so we handle swap ptes coherently.  Meanwhile
+we should do the same check upon migration entry, hwpoison entry and
+genuine swap entries too.
+
+To be explicit, we should still remember to keep the private entries if
+even_cows==false, and always zap them when even_cows==true.
+
+The issue seems to exist starting from the initial commit of git.
+
+[peterx@redhat.com: comment tweaks]
+  Link: https://lkml.kernel.org/r/20220217060746.71256-2-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220217060746.71256-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220216094810.60572-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220216094810.60572-2-peterx@redhat.com
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory.c |   40 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 31 insertions(+), 9 deletions(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-fix-missing-cache-flush-in-mcopy_atomic_pte-and-__mcopy_atomic
-+++ a/mm/userfaultfd.c
-@@ -150,6 +150,8 @@ static int mcopy_atomic_pte(struct mm_st
- 			/* don't free the page */
- 			goto out;
- 		}
+--- a/mm/memory.c~mm-dont-skip-swap-entry-even-if-zap_details-specified
++++ a/mm/memory.c
+@@ -1313,6 +1313,17 @@ struct zap_details {
+ 	struct folio *single_folio;	/* Locked folio to be unmapped */
+ };
+ 
++/* Whether we should zap all COWed (private) pages too */
++static inline bool should_zap_cows(struct zap_details *details)
++{
++	/* By default, zap all pages */
++	if (!details)
++		return true;
 +
-+		flush_dcache_page(page);
- 	} else {
- 		page = *pagep;
- 		*pagep = NULL;
-@@ -625,6 +627,7 @@ retry:
- 				err = -EFAULT;
- 				goto out;
- 			}
-+			flush_dcache_page(page);
- 			goto retry;
- 		} else
- 			BUG_ON(page);
++	/* Or, we zap COWed pages only if the caller wants to */
++	return !details->zap_mapping;
++}
++
+ /*
+  * We set details->zap_mapping when we want to unmap shared but keep private
+  * pages. Return true if skip zapping this page, false otherwise.
+@@ -1320,11 +1331,15 @@ struct zap_details {
+ static inline bool
+ zap_skip_check_mapping(struct zap_details *details, struct page *page)
+ {
+-	if (!details || !page)
++	/* If we can make a decision without *page.. */
++	if (should_zap_cows(details))
++		return false;
++
++	/* E.g. the caller passes NULL for the case of a zero page */
++	if (!page)
+ 		return false;
+ 
+-	return details->zap_mapping &&
+-		(details->zap_mapping != page_rmapping(page));
++	return details->zap_mapping != page_rmapping(page);
+ }
+ 
+ static unsigned long zap_pte_range(struct mmu_gather *tlb,
+@@ -1405,17 +1420,24 @@ again:
+ 			continue;
+ 		}
+ 
+-		/* If details->check_mapping, we leave swap entries. */
+-		if (unlikely(details))
+-			continue;
+-
+-		if (!non_swap_entry(entry))
++		if (!non_swap_entry(entry)) {
++			/* Genuine swap entry, hence a private anon page */
++			if (!should_zap_cows(details))
++				continue;
+ 			rss[MM_SWAPENTS]--;
+-		else if (is_migration_entry(entry)) {
++		} else if (is_migration_entry(entry)) {
+ 			struct page *page;
+ 
+ 			page = pfn_swap_entry_to_page(entry);
++			if (zap_skip_check_mapping(details, page))
++				continue;
+ 			rss[mm_counter(page)]--;
++		} else if (is_hwpoison_entry(entry)) {
++			if (!should_zap_cows(details))
++				continue;
++		} else {
++			/* We should have covered all the swap entry types */
++			WARN_ON_ONCE(1);
+ 		}
+ 		if (unlikely(!free_swap_and_cache(entry)))
+ 			print_bad_pte(vma, addr, ptent, NULL);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
 
