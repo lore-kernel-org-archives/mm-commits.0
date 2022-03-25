@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9BCCC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:36:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E651C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:36:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357406AbiCYBhb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:37:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40598 "EHLO
+        id S1357511AbiCYBhc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:37:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357530AbiCYBf5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECCEB3C4B6
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:34:18 -0700 (PDT)
+        with ESMTP id S1357521AbiCYBf6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:58 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE81D3DA6B
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:34:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CD75760B08
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:34:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EACEC340ED;
-        Fri, 25 Mar 2022 01:34:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 73677B82738
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:34:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FA35C340EC;
+        Fri, 25 Mar 2022 01:34:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172058;
-        bh=KZ+jH9oqivMxE0aNxDdkpAarlNnTwOtJQD+eSZEXoBs=;
+        s=korg; t=1648172061;
+        bh=UjLdjbkg06eA5wXKQBEre2HxwIOLvGNt3dAhLNRhyDc=;
         h=Date:To:From:Subject:From;
-        b=JoByH/aGo8JlFqhS1WW+ElArwuEuCH2R4VAAElewGExt0vp3SapwpJGUMkAE7s39r
-         RKWSSbtXZboG4gOWSw/2ugqJLW2UjvJNebXsFOcnKrOdtcEoCjkAvNvxUq9AJSKWZO
-         yw1Z/sCzfbvHbkWnK3CT3LW/mASefgye73u0ydt0=
-Date:   Thu, 24 Mar 2022 18:34:17 -0700
-To:     mm-commits@vger.kernel.org, tarasmadan@google.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        bigeasy@linutronix.de, andreyknvl@gmail.com, nogikh@google.com,
+        b=mz5X0wBqo9rSFQKMOcMrecamDmRvD8GHKVa2PxTNwahT2ys5TjyUX9ziKdKyOvtrU
+         DWGLvmmhowyxJmaBOYyjpbqZ7C2jUVRM80ch4wWeMhCP6HTT0JBnw1rit8VSNSVuQQ
+         nDfO6Yd97BJAwpV213/Tar5if4ykKL/CeNecjtIc=
+Date:   Thu, 24 Mar 2022 18:34:20 -0700
+To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        nathan@kernel.org, keescook@chromium.org, glider@google.com,
+        dvyukov@google.com, arnd@arndb.de, elver@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kcov-split-ioctl-handling-into-locked-and-unlocked-parts.patch removed from -mm tree
-Message-Id: <20220325013418.2EACEC340ED@smtp.kernel.org>
+Subject: [merged] revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch removed from -mm tree
+Message-Id: <20220325013421.2FA35C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,164 +43,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: split ioctl handling into locked and unlocked parts
+     Subject: Revert "ubsan, kcsan: Don't combine sanitizer with kcov on clang"
 has been removed from the -mm tree.  Its filename was
-     kcov-split-ioctl-handling-into-locked-and-unlocked-parts.patch
+     revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aleksandr Nogikh <nogikh@google.com>
-Subject: kcov: split ioctl handling into locked and unlocked parts
+From: Marco Elver <elver@google.com>
+Subject: Revert "ubsan, kcsan: Don't combine sanitizer with kcov on clang"
 
-Patch series "kcov: improve mmap processing", v3.
+This reverts commit ea91a1d45d19469001a4955583187b0d75915759.
 
-Subsequent mmaps of the same kcov descriptor currently do not update the
-virtual memory of the task and yet return 0 (success).  This is
-counter-intuitive and may lead to unexpected memory access errors.
+Since df05c0e9496c ("Documentation: Raise the minimum supported version
+of LLVM to 11.0.0") the minimum Clang version is now 11.0, which fixed
+the UBSAN/KCSAN vs. KCOV incompatibilities.
 
-Also, this unnecessarily limits the functionality of kcov to only the
-simplest usage scenarios.  Kcov instances are effectively forever attached
-to their first address spaces and it becomes impossible to e.g.  reuse the
-same kcov handle in forked child processes without mmapping the memory
-first.  This is exactly what we tried to do in syzkaller and inadvertently
-came upon this behavior.
-
-This patch series addresses the problem described above.
-
-
-This patch (of 3):
-
-Currently all ioctls are de facto processed under a spinlock in order to
-serialise them.  This, however, prohibits the use of vmalloc and other
-memory management functions in the implementations of those ioctls,
-unnecessary complicating any further changes to the code.
-
-Let all ioctls first be processed inside the kcov_ioctl() function which
-should execute the ones that are not compatible with spinlock and then
-pass control to kcov_ioctl_locked() for all other ones. 
-KCOV_REMOTE_ENABLE is processed both in kcov_ioctl() and
-kcov_ioctl_locked() as the steps are easily separable.
-
-Although it is still compatible with a spinlock, move KCOV_INIT_TRACE
-handling to kcov_ioctl(), so that the changes from the next commit are
-easier to follow.
-
-Link: https://lkml.kernel.org/r/20220117153634.150357-1-nogikh@google.com
-Link: https://lkml.kernel.org/r/20220117153634.150357-2-nogikh@google.com
-Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Marco Elver <elver@google.com>
+Link: https://bugs.llvm.org/show_bug.cgi?id=45831
+Link: https://lkml.kernel.org/r/YaodyZzu0MTCJcvO@elver.google.com
+Link: https://lkml.kernel.org/r/20220128105631.509772-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Taras Madan <tarasmadan@google.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |   68 ++++++++++++++++++++++++++----------------------
- 1 file changed, 37 insertions(+), 31 deletions(-)
+ lib/Kconfig.kcsan |   11 -----------
+ lib/Kconfig.ubsan |   12 ------------
+ 2 files changed, 23 deletions(-)
 
---- a/kernel/kcov.c~kcov-split-ioctl-handling-into-locked-and-unlocked-parts
-+++ a/kernel/kcov.c
-@@ -564,31 +564,12 @@ static int kcov_ioctl_locked(struct kcov
- 			     unsigned long arg)
- {
- 	struct task_struct *t;
--	unsigned long size, unused;
-+	unsigned long flags, unused;
- 	int mode, i;
- 	struct kcov_remote_arg *remote_arg;
- 	struct kcov_remote *remote;
--	unsigned long flags;
+--- a/lib/Kconfig.kcsan~revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang
++++ a/lib/Kconfig.kcsan
+@@ -10,21 +10,10 @@ config HAVE_KCSAN_COMPILER
+ 	  For the list of compilers that support KCSAN, please see
+ 	  <file:Documentation/dev-tools/kcsan.rst>.
  
- 	switch (cmd) {
--	case KCOV_INIT_TRACE:
--		/*
--		 * Enable kcov in trace mode and setup buffer size.
--		 * Must happen before anything else.
--		 */
--		if (kcov->mode != KCOV_MODE_DISABLED)
--			return -EBUSY;
--		/*
--		 * Size must be at least 2 to hold current position and one PC.
--		 * Later we allocate size * sizeof(unsigned long) memory,
--		 * that must not overflow.
--		 */
--		size = arg;
--		if (size < 2 || size > INT_MAX / sizeof(unsigned long))
--			return -EINVAL;
--		kcov->size = size;
--		kcov->mode = KCOV_MODE_INIT;
--		return 0;
- 	case KCOV_ENABLE:
- 		/*
- 		 * Enable coverage for the current task.
-@@ -692,9 +673,32 @@ static long kcov_ioctl(struct file *file
- 	struct kcov_remote_arg *remote_arg = NULL;
- 	unsigned int remote_num_handles;
- 	unsigned long remote_arg_size;
--	unsigned long flags;
-+	unsigned long size, flags;
+-config KCSAN_KCOV_BROKEN
+-	def_bool KCOV && CC_HAS_SANCOV_TRACE_PC
+-	depends on CC_IS_CLANG
+-	depends on !$(cc-option,-Werror=unused-command-line-argument -fsanitize=thread -fsanitize-coverage=trace-pc)
+-	help
+-	  Some versions of clang support either KCSAN and KCOV but not the
+-	  combination of the two.
+-	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
+-	  in newer releases.
+-
+ menuconfig KCSAN
+ 	bool "KCSAN: dynamic data race detector"
+ 	depends on HAVE_ARCH_KCSAN && HAVE_KCSAN_COMPILER
+ 	depends on DEBUG_KERNEL && !KASAN
+-	depends on !KCSAN_KCOV_BROKEN
+ 	select STACKTRACE
+ 	help
+ 	  The Kernel Concurrency Sanitizer (KCSAN) is a dynamic
+--- a/lib/Kconfig.ubsan~revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang
++++ a/lib/Kconfig.ubsan
+@@ -27,16 +27,6 @@ config UBSAN_TRAP
+ 	  the system. For some system builders this is an acceptable
+ 	  trade-off.
  
--	if (cmd == KCOV_REMOTE_ENABLE) {
-+	kcov = filep->private_data;
-+	switch (cmd) {
-+	case KCOV_INIT_TRACE:
-+		/*
-+		 * Enable kcov in trace mode and setup buffer size.
-+		 * Must happen before anything else.
-+		 *
-+		 * First check the size argument - it must be at least 2
-+		 * to hold the current position and one PC. Later we allocate
-+		 * size * sizeof(unsigned long) memory, that must not overflow.
-+		 */
-+		size = arg;
-+		if (size < 2 || size > INT_MAX / sizeof(unsigned long))
-+			return -EINVAL;
-+		spin_lock_irqsave(&kcov->lock, flags);
-+		if (kcov->mode != KCOV_MODE_DISABLED) {
-+			spin_unlock_irqrestore(&kcov->lock, flags);
-+			return -EBUSY;
-+		}
-+		kcov->size = size;
-+		kcov->mode = KCOV_MODE_INIT;
-+		spin_unlock_irqrestore(&kcov->lock, flags);
-+		return 0;
-+	case KCOV_REMOTE_ENABLE:
- 		if (get_user(remote_num_handles, (unsigned __user *)(arg +
- 				offsetof(struct kcov_remote_arg, num_handles))))
- 			return -EFAULT;
-@@ -710,16 +714,18 @@ static long kcov_ioctl(struct file *file
- 			return -EINVAL;
- 		}
- 		arg = (unsigned long)remote_arg;
-+		fallthrough;
-+	default:
-+		/*
-+		 * All other commands can be normally executed under a spin lock, so we
-+		 * obtain and release it here in order to simplify kcov_ioctl_locked().
-+		 */
-+		spin_lock_irqsave(&kcov->lock, flags);
-+		res = kcov_ioctl_locked(kcov, cmd, arg);
-+		spin_unlock_irqrestore(&kcov->lock, flags);
-+		kfree(remote_arg);
-+		return res;
- 	}
+-config UBSAN_KCOV_BROKEN
+-	def_bool KCOV && CC_HAS_SANCOV_TRACE_PC
+-	depends on CC_IS_CLANG
+-	depends on !$(cc-option,-Werror=unused-command-line-argument -fsanitize=bounds -fsanitize-coverage=trace-pc)
+-	help
+-	  Some versions of clang support either UBSAN or KCOV but not the
+-	  combination of the two.
+-	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
+-	  in newer releases.
 -
--	kcov = filep->private_data;
--	spin_lock_irqsave(&kcov->lock, flags);
--	res = kcov_ioctl_locked(kcov, cmd, arg);
--	spin_unlock_irqrestore(&kcov->lock, flags);
--
--	kfree(remote_arg);
--
--	return res;
- }
+ config CC_HAS_UBSAN_BOUNDS
+ 	def_bool $(cc-option,-fsanitize=bounds)
  
- static const struct file_operations kcov_fops = {
+@@ -46,7 +36,6 @@ config CC_HAS_UBSAN_ARRAY_BOUNDS
+ config UBSAN_BOUNDS
+ 	bool "Perform array index bounds checking"
+ 	default UBSAN
+-	depends on !UBSAN_KCOV_BROKEN
+ 	depends on CC_HAS_UBSAN_ARRAY_BOUNDS || CC_HAS_UBSAN_BOUNDS
+ 	help
+ 	  This option enables detection of directly indexed out of bounds
+@@ -72,7 +61,6 @@ config UBSAN_ARRAY_BOUNDS
+ config UBSAN_LOCAL_BOUNDS
+ 	bool "Perform array local bounds checking"
+ 	depends on UBSAN_TRAP
+-	depends on !UBSAN_KCOV_BROKEN
+ 	depends on $(cc-option,-fsanitize=local-bounds)
+ 	help
+ 	  This option enables -fsanitize=local-bounds which traps when an
 _
 
-Patches currently in -mm which might be from nogikh@google.com are
+Patches currently in -mm which might be from elver@google.com are
 
 
