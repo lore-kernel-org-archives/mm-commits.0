@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B2B9C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCC7FC433FE
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:41:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233908AbiCYWnX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:43:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50080 "EHLO
+        id S233910AbiCYWnY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:43:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233910AbiCYWnP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:15 -0400
+        with ESMTP id S233916AbiCYWnS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:43:18 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D764E209A41
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC1C5209A56
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:41:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 272EAB82A34
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB000C340ED;
-        Fri, 25 Mar 2022 22:41:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4E015B82A1C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:41:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF091C004DD;
+        Fri, 25 Mar 2022 22:41:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248096;
-        bh=FXCsVnbHdxjQERTa7IiNLSG1Hd/pCJYp2lnoR14VtLQ=;
+        s=korg; t=1648248102;
+        bh=QKt+iTqAEo+EDw66bDlGdiv6fEXw2Dw/TZcNCys04Y4=;
         h=Date:To:From:Subject:From;
-        b=esZNGjIAK09BmshEr8V6cN68/vUG1uIHJiqUcg2xfsc2aCaZ75AVnnBxhO0WycIPJ
-         0GjjJ7et1CIU8dsMEFtPi0h2Wlf+8H+SISRVfJsFDxURiqT6NmO9cF+Vq9OkFm5HyD
-         ZJarzTy4aC5Rh0VEGPmWgHdGZKGvvk5v7iWpMN0w=
-Date:   Fri, 25 Mar 2022 15:41:36 -0700
-To:     mm-commits@vger.kernel.org, longman@redhat.com, aquini@redhat.com,
-        caoyixuan2019@email.szu.edu.cn, akpm@linux-foundation.org
+        b=e03pAu8n6unmu1k8ltQmOxlbYg/cAZ5x2t9xfGcct7yWh042qZ+3APFbn2TZW+iJa
+         wFelv8Yl1RpdGwdRjKQj4xEiIGPxoqG/ILgmG1t5MaZLECMMdufSunBiHvZL59hEzn
+         kB8zkKwT0FYTmzhXNKYq1u8fIgkERS+2OPdvPw+U=
+Date:   Fri, 25 Mar 2022 15:41:41 -0700
+To:     mm-commits@vger.kernel.org, zhangyinan2019@email.szu.edu.cn,
+        weizhenliang@huawei.com, sfr@canb.auug.org.au, seanga2@gmail.com,
+        hanshenghong2019@email.szu.edu.cn, caoyixuan2019@email.szu.edu.cn,
+        yejiajian2018@email.szu.edu.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-page_ownerc-record-tgid.patch removed from -mm tree
-Message-Id: <20220325224136.CB000C340ED@smtp.kernel.org>
+Subject: [merged] tools-vm-page_owner_sort-fix-three-trivival-places.patch removed from -mm tree
+Message-Id: <20220325224141.DF091C004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,102 +43,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner.c: record tgid
+     Subject: tools/vm/page_owner_sort: fix three trivival places
 has been removed from the -mm tree.  Its filename was
-     mm-page_ownerc-record-tgid.patch
+     tools-vm-page_owner_sort-fix-three-trivival-places.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
-Subject: mm/page_owner.c: record tgid
+From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Subject: tools/vm/page_owner_sort: fix three trivival places
 
-In a single-threaded process, the pid in kernel task_struct is the same as
-the tgid, which can mark the process of page allocation.  But in a
-multithreaded process, only the task_struct of the thread leader has the
-same pid as tgid, and the pids of other threads are different from tgid. 
-Therefore, tgid is recorded to provide effective information for debugging
-and data statistics of multithreaded programs.
+The following adjustments are made:
 
-This can also be achieved by observing the task name (executable file
-name) for a specific process.  However, when the same program is started
-multiple times, the task name is the same and the tgid is different. 
-Therefore, in the debugging of multi-threaded programs, combined with the
-task name and tgid, more accurate runtime information of a certain run of
-the program can be obtained.
+1. Instead of using another array to cull the blocks after sorting,
+   reuse the old array.  So there is no need to malloc a new array.
 
-Link: https://lkml.kernel.org/r/20220219180450.2399-1-caoyixuan2019@email.szu.edu.cn
-Signed-off-by: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+2. When enabling '-f' option to filter out the blocks which have been
+   released, only add those have not been released in the list, rather
+   than add all of blocks in the list and then do the filtering when
+   printing the result.
+
+3. When enabling '-c' option to cull the blocks by comparing
+   stacktrace, print the stacetrace rather than the total block.
+
+Link: https://lkml.kernel.org/r/20220306030640.43054-1-yejiajian2018@email.szu.edu.cn
+Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Cc: <hanshenghong2019@email.szu.edu.cn>
+Cc: Sean Anderson <seanga2@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Cc: <zhangyinan2019@email.szu.edu.cn>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ tools/vm/page_owner_sort.c |   37 +++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
---- a/mm/page_owner.c~mm-page_ownerc-record-tgid
-+++ a/mm/page_owner.c
-@@ -31,6 +31,7 @@ struct page_owner {
- 	u64 free_ts_nsec;
- 	char comm[TASK_COMM_LEN];
- 	pid_t pid;
-+	pid_t tgid;
- };
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-fix-three-trivival-places
++++ a/tools/vm/page_owner_sort.c
+@@ -42,6 +42,8 @@ static regex_t free_ts_nsec_pattern;
+ static struct block_list *list;
+ static int list_size;
+ static int max_size;
++static int cull_st;
++static int filter;
  
- static bool page_owner_enabled = false;
-@@ -165,6 +166,7 @@ static inline void __set_page_owner_hand
- 		page_owner->gfp_mask = gfp_mask;
- 		page_owner->last_migrate_reason = -1;
- 		page_owner->pid = current->pid;
-+		page_owner->tgid = current->tgid;
- 		page_owner->ts_nsec = local_clock();
- 		strlcpy(page_owner->comm, current->comm,
- 			sizeof(page_owner->comm));
-@@ -233,6 +235,7 @@ void __folio_copy_owner(struct folio *ne
- 		old_page_owner->last_migrate_reason;
- 	new_page_owner->handle = old_page_owner->handle;
- 	new_page_owner->pid = old_page_owner->pid;
-+	new_page_owner->tgid = old_page_owner->tgid;
- 	new_page_owner->ts_nsec = old_page_owner->ts_nsec;
- 	new_page_owner->free_ts_nsec = old_page_owner->ts_nsec;
- 	strcpy(new_page_owner->comm, old_page_owner->comm);
-@@ -383,11 +386,11 @@ print_page_owner(char __user *buf, size_
- 		return -ENOMEM;
+ int read_block(char *buf, int buf_size, FILE *fin)
+ {
+@@ -245,6 +247,9 @@ static void add_list(char *buf, int len)
+ 		exit(1);
+ 	}
  
- 	ret = scnprintf(kbuf, count,
--			"Page allocated via order %u, mask %#x(%pGg), pid %d (%s), ts %llu ns, free_ts %llu ns\n",
-+			"Page allocated via order %u, mask %#x(%pGg), pid %d, tgid %d (%s), ts %llu ns, free_ts %llu ns\n",
- 			page_owner->order, page_owner->gfp_mask,
- 			&page_owner->gfp_mask, page_owner->pid,
--			page_owner->comm, page_owner->ts_nsec,
--			page_owner->free_ts_nsec);
-+			page_owner->tgid, page_owner->comm,
-+			page_owner->ts_nsec, page_owner->free_ts_nsec);
++	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
++	if (filter == 1 && list[list_size].free_ts_nsec != 0)
++		return;
+ 	list[list_size].txt = malloc(len+1);
+ 	if (!list[list_size].txt) {
+ 		printf("Out of memory\n");
+@@ -257,10 +262,11 @@ static void add_list(char *buf, int len)
+ 	memcpy(list[list_size].txt, buf, len);
+ 	list[list_size].txt[len] = 0;
+ 	list[list_size].stacktrace = strchr(list[list_size].txt, '\n') ?: "";
++	if (*list[list_size].stacktrace == '\n')
++		list[list_size].stacktrace++;
+ 	list[list_size].pid = get_pid(buf);
+ 	list[list_size].tgid = get_tgid(buf);
+ 	list[list_size].ts_nsec = get_ts_nsec(buf);
+-	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
+ 	list_size++;
+ 	if (list_size % 1000 == 0) {
+ 		printf("loaded %d\r", list_size);
+@@ -288,12 +294,9 @@ static void usage(void)
+ int main(int argc, char **argv)
+ {
+ 	int (*cmp)(const void *, const void *) = compare_num;
+-	int cull_st = 0;
+-	int filter = 0;
+ 	FILE *fin, *fout;
+ 	char *buf;
+ 	int ret, i, count;
+-	struct block_list *list2;
+ 	struct stat st;
+ 	int opt;
  
- 	/* Print information relevant to grouping pages by mobility */
- 	pageblock_mt = get_pageblock_migratetype(page);
-@@ -454,10 +457,10 @@ void __dump_page_owner(const struct page
+@@ -376,11 +379,7 @@ int main(int argc, char **argv)
  	else
- 		pr_alert("page_owner tracks the page as freed\n");
+ 		qsort(list, list_size, sizeof(list[0]), compare_txt);
  
--	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d (%s), ts %llu, free_ts %llu\n",
-+	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, tgid %d (%s), ts %llu, free_ts %llu\n",
- 		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
--		 page_owner->pid, page_owner->comm, page_owner->ts_nsec,
--		 page_owner->free_ts_nsec);
-+		 page_owner->pid, page_owner->tgid, page_owner->comm,
-+		 page_owner->ts_nsec, page_owner->free_ts_nsec);
- 
- 	handle = READ_ONCE(page_owner->handle);
- 	if (!handle)
-@@ -669,3 +672,4 @@ static int __init pageowner_init(void)
- 	return 0;
- }
- late_initcall(pageowner_init)
+-	list2 = malloc(sizeof(*list) * list_size);
+-	if (!list2) {
+-		printf("Out of memory\n");
+-		exit(1);
+-	}
 +
+ 
+ 	printf("culling\n");
+ 
+@@ -388,21 +387,23 @@ int main(int argc, char **argv)
+ 
+ 	for (i = count = 0; i < list_size; i++) {
+ 		if (count == 0 ||
+-		    strcmp(*(&list2[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
+-			list2[count++] = list[i];
++		    strcmp(*(&list[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
++			list[count++] = list[i];
+ 		} else {
+-			list2[count-1].num += list[i].num;
+-			list2[count-1].page_num += list[i].page_num;
++			list[count-1].num += list[i].num;
++			list[count-1].page_num += list[i].page_num;
+ 		}
+ 	}
+ 
+-	qsort(list2, count, sizeof(list[0]), cmp);
++	qsort(list, count, sizeof(list[0]), cmp);
+ 
+ 	for (i = 0; i < count; i++) {
+-		if (filter == 1 && list2[i].free_ts_nsec != 0)
+-			continue;
+-		fprintf(fout, "%d times, %d pages:\n%s\n",
+-				list2[i].num, list2[i].page_num, list2[i].txt);
++		if (cull_st == 0)
++			fprintf(fout, "%d times, %d pages:\n%s\n",
++					list[i].num, list[i].page_num, list[i].txt);
++		else
++			fprintf(fout, "%d times, %d pages:\n%s\n",
++					list[i].num, list[i].page_num, list[i].stacktrace);
+ 	}
+ 	regfree(&order_pattern);
+ 	regfree(&pid_pattern);
 _
 
-Patches currently in -mm which might be from caoyixuan2019@email.szu.edu.cn are
+Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
 
 
