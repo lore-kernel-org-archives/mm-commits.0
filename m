@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3E57C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 644E2C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:35:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357501AbiCYBhP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:37:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42846 "EHLO
+        id S1357504AbiCYBhR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:37:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357526AbiCYBf5 (ORCPT
+        with ESMTP id S1357519AbiCYBf5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 147E73B2B4
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:34:16 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C01C3A5D7
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:34:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A5D1960A1C
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:34:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7A0C340ED;
-        Fri, 25 Mar 2022 01:34:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A373860A1C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:34:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02FBEC340EE;
+        Fri, 25 Mar 2022 01:34:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648172055;
-        bh=Ow/Uq2bkt6acNpsSWTwafwc8sULcXxyGTak2Bnidv0k=;
+        s=korg; t=1648172052;
+        bh=hxTSYUovnFMPl5iQG89z4pHd/x1F1+HYzSvPg0fyzS0=;
         h=Date:To:From:Subject:From;
-        b=Zer1RnV7hXOZGID5pL8U8MdE6tnGW7bKSzWi2UVaaTM3UQOJULJI1glaD5LlbVF1G
-         snRtGaA7KDrde4eBQ8EW3a87bdhYuDwotjXi+0GaeVdwj4MK5VacqHru/OebvgUw2a
-         uoIFiaJGSrUKKedhD9vgk/xnuAa+fzqaIigD/wbA=
-Date:   Thu, 24 Mar 2022 18:34:14 -0700
-To:     mm-commits@vger.kernel.org, yzaikin@google.com,
-        siglesias@igalia.com, mcgrof@kernel.org, keescook@chromium.org,
-        feng.tang@intel.com, gpiccoli@igalia.com, akpm@linux-foundation.org
+        b=pXp1A5ODeWLriy+bvk+zR/t72qACpO6xQkZ1btlLHwjt3Ui2hx6IVNxDwpznk3xv/
+         y/fW2nPlX/Rm/MB0tpgduCA1b2y3SGNA1wXxzt0gS8ZeL9z7lQxY3Dg3jFtxQeMKy0
+         D9LGUZXDIkPwlUA5Kipg9Mhl35I6qg2fdBfqXa5E=
+Date:   Thu, 24 Mar 2022 18:34:11 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        lixuefeng@loongson.cn, elver@google.com, corbet@lwn.net,
+        bhe@redhat.com, yangtiezhu@loongson.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] docs-sysctl-kernel-add-missing-bit-to-panic_print.patch removed from -mm tree
-Message-Id: <20220325013415.0D7A0C340ED@smtp.kernel.org>
+Subject: [merged] ubsan-no-need-to-unset-panic_on_warn-in-ubsan_epilogue.patch removed from -mm tree
+Message-Id: <20220325013412.02FBEC340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,63 +42,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs: sysctl/kernel: add missing bit to panic_print
+     Subject: ubsan: no need to unset panic_on_warn in ubsan_epilogue()
 has been removed from the -mm tree.  Its filename was
-     docs-sysctl-kernel-add-missing-bit-to-panic_print.patch
+     ubsan-no-need-to-unset-panic_on_warn-in-ubsan_epilogue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Subject: docs: sysctl/kernel: add missing bit to panic_print
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: ubsan: no need to unset panic_on_warn in ubsan_epilogue()
 
-Patch series "Some improvements on panic_print".
+panic_on_warn is unset inside panic(), so no need to unset it before
+calling panic() in ubsan_epilogue().
 
-This is a mix of a documentation fix with some additions to the
-"panic_print" syscall / parameter.  The goal here is being able to collect
-all CPUs backtraces during a panic event and also to enable "panic_print"
-in a kdump event - details of the reasoning and design choices in the
-patches.
-
-
-This patch (of 3):
-
-Commit de6da1e8bcf0 ("panic: add an option to replay all the printk
-message in buffer") added a new bit to the sysctl/kernel parameter
-"panic_print", but the documentation was added only in
-kernel-parameters.txt, not in the sysctl guide.
-
-Fix it here by adding bit 5 to sysctl admin-guide documentation.
-
-[rdunlap@infradead.org: fix table format warning]
-  Link: https://lkml.kernel.org/r/20220109055635.6999-1-rdunlap@infradead.org
-Link: https://lkml.kernel.org/r/20211109202848.610874-1-gpiccoli@igalia.com
-Link: https://lkml.kernel.org/r/20211109202848.610874-2-gpiccoli@igalia.com
-Fixes: de6da1e8bcf0 ("panic: add an option to replay all the printk message in buffer")
-Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
-Reviewed-by: Feng Tang <feng.tang@intel.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
+Link: https://lkml.kernel.org/r/1644324666-15947-5-git-send-email-yangtiezhu@loongson.cn
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Xuefeng Li <lixuefeng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    1 +
- 1 file changed, 1 insertion(+)
+ lib/ubsan.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~docs-sysctl-kernel-add-missing-bit-to-panic_print
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -806,6 +806,7 @@ bit 1  print system memory info
- bit 2  print timer info
- bit 3  print locks info if ``CONFIG_LOCKDEP`` is on
- bit 4  print ftrace buffer
-+bit 5  print all printk messages in buffer
- =====  ============================================
+--- a/lib/ubsan.c~ubsan-no-need-to-unset-panic_on_warn-in-ubsan_epilogue
++++ a/lib/ubsan.c
+@@ -154,16 +154,8 @@ static void ubsan_epilogue(void)
  
- So for example to print tasks and memory info on panic, user can::
+ 	current->in_ubsan--;
+ 
+-	if (panic_on_warn) {
+-		/*
+-		 * This thread may hit another WARN() in the panic path.
+-		 * Resetting this prevents additional WARN() from panicking the
+-		 * system on this thread.  Other threads are blocked by the
+-		 * panic_mutex in panic().
+-		 */
+-		panic_on_warn = 0;
++	if (panic_on_warn)
+ 		panic("panic_on_warn set ...\n");
+-	}
+ }
+ 
+ void __ubsan_handle_divrem_overflow(void *_data, void *lhs, void *rhs)
 _
 
-Patches currently in -mm which might be from gpiccoli@igalia.com are
+Patches currently in -mm which might be from yangtiezhu@loongson.cn are
 
 
