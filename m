@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FC57C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:31:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28805C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:31:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239546AbiCYBcc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1357354AbiCYBcc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 24 Mar 2022 21:32:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37258 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357356AbiCYBcW (ORCPT
+        with ESMTP id S1357340AbiCYBcW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:32:22 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F9CBBD8AB
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:30:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 705FBA94D3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:30:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 179E1B826FE
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:30:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCEFEC340EC;
-        Fri, 25 Mar 2022 01:30:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 29AC9B81DEA
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:30:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9C60C340EC;
+        Fri, 25 Mar 2022 01:30:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171843;
-        bh=hKNptcnojKKO3wBVK0BupFgo0OisrVIChm1N2r53Nno=;
+        s=korg; t=1648171839;
+        bh=kIOhHIfk4hpiOiv8nCfgzhET0mzx/s27vOBVyRFpPBA=;
         h=Date:To:From:Subject:From;
-        b=ghwgt3oAxqG2GKNW3Bz+W8lpL9A8KaqH3tXrdZYt3/XmKdsjuxL3GFEz64UzP/fxR
-         DoDjmsXrhBoa9T/7m9rk1ROWTS1WNHFizLcVOmI4ZsGoKZHyc0DEh3w2oe7VA4nCZH
-         /7Kz9xXtRFwpt6BQfCgSBJF3JQ2k+8CuHj/x6kPY=
-Date:   Thu, 24 Mar 2022 18:30:43 -0700
+        b=bN8onYUjvAyapB9VUfqPGkIphbmQjd3yq0ajOLsJl6UL01womwFkz6IU1V5MbNO0M
+         zFUtWm9oxs3wHz+o4mifop48LEdj2pr/cVASxthkMQcDjjMUyvJTHmJ/ZHu5AZDApJ
+         Dspkejk9NK9eQ2QE9+ak7iN4KRWskUGohjKOQxJs=
+Date:   Thu, 24 Mar 2022 18:30:38 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
         tytso@mit.edu, trond.myklebust@hammerspace.com,
@@ -40,8 +40,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         alexs@kernel.org, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg.patch removed from -mm tree
-Message-Id: <20220325013043.BCEFEC340EC@smtp.kernel.org>
+Subject: [merged] mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus.patch removed from -mm tree
+Message-Id: <20220325013038.D9C60C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,21 +49,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: list_lru: rename list_lru_per_memcg to list_lru_memcg
+     Subject: mm: list_lru: rename memcg_drain_all_list_lrus to memcg_reparent_list_lrus
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg.patch
+     mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: list_lru: rename list_lru_per_memcg to list_lru_memcg
+Subject: mm: list_lru: rename memcg_drain_all_list_lrus to memcg_reparent_list_lrus
 
-The name of list_lru_memcg was occupied before and became free since last
-commit.  Rename list_lru_per_memcg to list_lru_memcg since the name is
-brief.
+The purpose of the memcg_drain_all_list_lrus() is list_lrus reparenting. 
+It is very similar to memcg_reparent_objcgs().  Rename it to
+memcg_reparent_list_lrus() so that the name can more consistent with
+memcg_reparent_objcgs().
 
-Link: https://lkml.kernel.org/r/20220228122126.37293-16-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220228122126.37293-12-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
@@ -89,98 +90,108 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/list_lru.h |    2 +-
- mm/list_lru.c            |   18 +++++++++---------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ mm/list_lru.c            |   24 ++++++++++++------------
+ mm/memcontrol.c          |    6 +++---
+ 3 files changed, 16 insertions(+), 16 deletions(-)
 
---- a/include/linux/list_lru.h~mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg
+--- a/include/linux/list_lru.h~mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus
 +++ a/include/linux/list_lru.h
-@@ -32,7 +32,7 @@ struct list_lru_one {
- 	long			nr_items;
- };
+@@ -78,7 +78,7 @@ int __list_lru_init(struct list_lru *lru
+ int memcg_list_lru_alloc(struct mem_cgroup *memcg, struct list_lru *lru,
+ 			 gfp_t gfp);
+ int memcg_update_all_list_lrus(int num_memcgs);
+-void memcg_drain_all_list_lrus(struct mem_cgroup *src, struct mem_cgroup *dst);
++void memcg_reparent_list_lrus(struct mem_cgroup *memcg, struct mem_cgroup *parent);
  
--struct list_lru_per_memcg {
-+struct list_lru_memcg {
- 	struct rcu_head		rcu;
- 	/* array of per cgroup per node lists, indexed by node id */
- 	struct list_lru_one	node[];
---- a/mm/list_lru.c~mm-list_lru-rename-list_lru_per_memcg-to-list_lru_memcg
+ /**
+  * list_lru_add: add an element to the lru list's tail
+--- a/mm/list_lru.c~mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus
 +++ a/mm/list_lru.c
-@@ -53,7 +53,7 @@ static inline struct list_lru_one *
- list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
- {
- 	if (list_lru_memcg_aware(lru) && idx >= 0) {
--		struct list_lru_per_memcg *mlru = xa_load(&lru->xa, idx);
-+		struct list_lru_memcg *mlru = xa_load(&lru->xa, idx);
- 
- 		return mlru ? &mlru->node[nid] : NULL;
- 	}
-@@ -306,7 +306,7 @@ unsigned long list_lru_walk_node(struct
- 
- #ifdef CONFIG_MEMCG_KMEM
- 	if (*nr_to_walk > 0 && list_lru_memcg_aware(lru)) {
--		struct list_lru_per_memcg *mlru;
-+		struct list_lru_memcg *mlru;
- 		unsigned long index;
- 
- 		xa_for_each(&lru->xa, index, mlru) {
-@@ -335,10 +335,10 @@ static void init_one_lru(struct list_lru
+@@ -457,8 +457,8 @@ int memcg_update_all_list_lrus(int new_s
+ 	return ret;
  }
  
- #ifdef CONFIG_MEMCG_KMEM
--static struct list_lru_per_memcg *memcg_init_list_lru_one(gfp_t gfp)
-+static struct list_lru_memcg *memcg_init_list_lru_one(gfp_t gfp)
+-static void memcg_drain_list_lru_node(struct list_lru *lru, int nid,
+-				      int src_idx, struct mem_cgroup *dst_memcg)
++static void memcg_reparent_list_lru_node(struct list_lru *lru, int nid,
++					 int src_idx, struct mem_cgroup *dst_memcg)
  {
- 	int nid;
--	struct list_lru_per_memcg *mlru;
-+	struct list_lru_memcg *mlru;
+ 	struct list_lru_node *nlru = &lru->node[nid];
+ 	int dst_idx = dst_memcg->kmemcg_id;
+@@ -486,22 +486,22 @@ out:
+ 	spin_unlock_irq(&nlru->lock);
+ }
  
- 	mlru = kmalloc(struct_size(mlru, node, nr_node_ids), gfp);
- 	if (!mlru)
-@@ -352,7 +352,7 @@ static struct list_lru_per_memcg *memcg_
- 
- static void memcg_list_lru_free(struct list_lru *lru, int src_idx)
+-static void memcg_drain_list_lru(struct list_lru *lru,
+-				 int src_idx, struct mem_cgroup *dst_memcg)
++static void memcg_reparent_list_lru(struct list_lru *lru,
++				    int src_idx, struct mem_cgroup *dst_memcg)
  {
--	struct list_lru_per_memcg *mlru = xa_erase_irq(&lru->xa, src_idx);
-+	struct list_lru_memcg *mlru = xa_erase_irq(&lru->xa, src_idx);
- 
- 	/*
- 	 * The __list_lru_walk_one() can walk the list of this node.
-@@ -374,7 +374,7 @@ static inline void memcg_init_list_lru(s
- static void memcg_destroy_list_lru(struct list_lru *lru)
- {
- 	XA_STATE(xas, &lru->xa, 0);
--	struct list_lru_per_memcg *mlru;
-+	struct list_lru_memcg *mlru;
- 
- 	if (!list_lru_memcg_aware(lru))
- 		return;
-@@ -475,7 +475,7 @@ int memcg_list_lru_alloc(struct mem_cgro
  	int i;
- 	unsigned long flags;
- 	struct list_lru_memcg_table {
--		struct list_lru_per_memcg *mlru;
-+		struct list_lru_memcg *mlru;
- 		struct mem_cgroup *memcg;
- 	} *table;
- 	XA_STATE(xas, &lru->xa, 0);
-@@ -491,7 +491,7 @@ int memcg_list_lru_alloc(struct mem_cgro
- 	/*
- 	 * Because the list_lru can be reparented to the parent cgroup's
- 	 * list_lru, we should make sure that this cgroup and all its
--	 * ancestors have allocated list_lru_per_memcg.
-+	 * ancestors have allocated list_lru_memcg.
- 	 */
- 	for (i = 0; memcg; memcg = parent_mem_cgroup(memcg), i++) {
- 		if (memcg_list_lru_allocated(memcg, lru))
-@@ -510,7 +510,7 @@ int memcg_list_lru_alloc(struct mem_cgro
- 	xas_lock_irqsave(&xas, flags);
- 	while (i--) {
- 		int index = READ_ONCE(table[i].memcg->kmemcg_id);
--		struct list_lru_per_memcg *mlru = table[i].mlru;
-+		struct list_lru_memcg *mlru = table[i].mlru;
  
- 		xas_set(&xas, index);
- retry:
+ 	for_each_node(i)
+-		memcg_drain_list_lru_node(lru, i, src_idx, dst_memcg);
++		memcg_reparent_list_lru_node(lru, i, src_idx, dst_memcg);
+ 
+ 	memcg_list_lru_free(lru, src_idx);
+ }
+ 
+-void memcg_drain_all_list_lrus(struct mem_cgroup *src, struct mem_cgroup *dst)
++void memcg_reparent_list_lrus(struct mem_cgroup *memcg, struct mem_cgroup *parent)
+ {
+ 	struct cgroup_subsys_state *css;
+ 	struct list_lru *lru;
+-	int src_idx = src->kmemcg_id;
++	int src_idx = memcg->kmemcg_id;
+ 
+ 	/*
+ 	 * Change kmemcg_id of this cgroup and all its descendants to the
+@@ -517,17 +517,17 @@ void memcg_drain_all_list_lrus(struct me
+ 	 * call.
+ 	 */
+ 	rcu_read_lock();
+-	css_for_each_descendant_pre(css, &src->css) {
+-		struct mem_cgroup *memcg;
++	css_for_each_descendant_pre(css, &memcg->css) {
++		struct mem_cgroup *child;
+ 
+-		memcg = mem_cgroup_from_css(css);
+-		memcg->kmemcg_id = dst->kmemcg_id;
++		child = mem_cgroup_from_css(css);
++		child->kmemcg_id = parent->kmemcg_id;
+ 	}
+ 	rcu_read_unlock();
+ 
+ 	mutex_lock(&list_lrus_mutex);
+ 	list_for_each_entry(lru, &memcg_list_lrus, list)
+-		memcg_drain_list_lru(lru, src_idx, dst);
++		memcg_reparent_list_lru(lru, src_idx, parent);
+ 	mutex_unlock(&list_lrus_mutex);
+ }
+ 
+--- a/mm/memcontrol.c~mm-list_lru-rename-memcg_drain_all_list_lrus-to-memcg_reparent_list_lrus
++++ a/mm/memcontrol.c
+@@ -3710,7 +3710,7 @@ static void memcg_offline_kmem(struct me
+ 	memcg_reparent_objcgs(memcg, parent);
+ 
+ 	/*
+-	 * memcg_drain_all_list_lrus() can change memcg->kmemcg_id.
++	 * memcg_reparent_list_lrus() can change memcg->kmemcg_id.
+ 	 * Cache it to local @kmemcg_id.
+ 	 */
+ 	kmemcg_id = memcg->kmemcg_id;
+@@ -3719,9 +3719,9 @@ static void memcg_offline_kmem(struct me
+ 	 * After we have finished memcg_reparent_objcgs(), all list_lrus
+ 	 * corresponding to this cgroup are guaranteed to remain empty.
+ 	 * The ordering is imposed by list_lru_node->lock taken by
+-	 * memcg_drain_all_list_lrus().
++	 * memcg_reparent_list_lrus().
+ 	 */
+-	memcg_drain_all_list_lrus(memcg, parent);
++	memcg_reparent_list_lrus(memcg, parent);
+ 
+ 	memcg_free_cache_id(kmemcg_id);
+ }
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
