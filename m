@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA7A2C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:34:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C031EC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:34:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244969AbiCYBgG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:36:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40598 "EHLO
+        id S1354709AbiCYBgJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:36:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357429AbiCYBfb (ORCPT
+        with ESMTP id S1357433AbiCYBfb (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:35:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3D0E19299
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:12 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8758725C5C
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:33:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CC31960AD1
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E828C340EC;
-        Fri, 25 Mar 2022 01:33:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DAD5A60A1C
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:33:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EA6FC340EC;
+        Fri, 25 Mar 2022 01:33:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171991;
-        bh=1x1/xrQaKwhyHWHL1HxIDsVZBzZlRHzBhhuzBSMSZkM=;
+        s=korg; t=1648171994;
+        bh=eWxodczbMdo+0PGiOjFEEW0NItNbOI0LaRqZnHTIfKk=;
         h=Date:To:From:Subject:From;
-        b=jxoE5h3kMD+zUMZ23lS9wdZBsYSsVXYwmHjfxveKf2I4vrldRi3rVcLdoEqSHvaCx
-         iIUNMo7Q5Gn6rvlaHGFRTBbO2bYIk+DZNze/YA7WQ/z4pQNz4qEpPm7DotkZlSzdR8
-         IUQ4+mcdSCFLBOdprNpuVDA/ZpYPQzGiMx7dzwP0=
-Date:   Thu, 24 Mar 2022 18:33:10 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
-        akpm@linux-foundation.org
+        b=UZmFKL5/MVlfGNZW/GsZWa7Dyjw8C/u010Njg3ZBsbx9xyXqHN2pJEtRiV3RyJKOI
+         yuRfwB0lTFjl7VH822euhmT4bZTJlcjp8yVBhdJ1duYIig13BSXDDHE9SRx4UX8ZQ1
+         qRd/Nh+URqrMVs8i3RegnsEqbB12INrk7TEiekEk=
+Date:   Thu, 24 Mar 2022 18:33:13 -0700
+To:     mm-commits@vger.kernel.org, xhao@linux.alibaba.com,
+        rientjes@google.com, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-damon-remove-the-target-id-concept.patch removed from -mm tree
-Message-Id: <20220325013311.2E828C340EC@smtp.kernel.org>
+Subject: [merged] mm-damon-let-monitoring-operations-can-be-registered-and-selected.patch removed from -mm tree
+Message-Id: <20220325013314.3EA6FC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,667 +41,166 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: remove the target id concept
+     Subject: mm/damon: let monitoring operations can be registered and selected
 has been removed from the -mm tree.  Its filename was
-     mm-damon-remove-the-target-id-concept.patch
+     mm-damon-let-monitoring-operations-can-be-registered-and-selected.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: remove the target id concept
+Subject: mm/damon: let monitoring operations can be registered and selected
 
-DAMON asks each monitoring target ('struct damon_target') to have one
-'unsigned long' integer called 'id', which should be unique among the
-targets of same monitoring context.  Meaning of it is, however, totally up
-to the monitoring primitives that registered to the monitoring context. 
-For example, the virtual address spaces monitoring primitives treats the
-id as a 'struct pid' pointer.
+In-kernel DAMON user code like DAMON debugfs interface should set 'struct
+damon_operations' of its 'struct damon_ctx' on its own.  Therefore, the
+client code should depend on all supporting monitoring operations
+implementations that it could use.  For example, DAMON debugfs interface
+depends on both vaddr and paddr, while some of the users are not always
+interested in both.
 
-This makes the code flexible, but ugly, not well-documented, and
-type-unsafe[1].  Also, identification of each target can be done via its
-index.  For the reason, this commit removes the concept and uses clear
-type definition.  For now, only 'struct pid' pointer is used for the
-virtual address spaces monitoring.  If DAMON is extended in future so that
-we need to put another identifier field in the struct, we will use a union
-for such primitives-dependent fields and document which primitives are
-using which type.
+To minimize such unnecessary dependencies, this commit makes the
+monitoring operations can be registered by implementing code and then
+dynamically selected by the user code without build-time dependency.
 
-[1] https://lore.kernel.org/linux-mm/20211013154535.4aaeaaf9d0182922e405dd1e@linux-foundation.org/
-
-Link: https://lkml.kernel.org/r/20211230100723.2238-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220215184603.1479-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Xin Hao <xhao@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   11 +-
- mm/damon/core-test.h  |   18 ++--
- mm/damon/core.c       |    4 -
- mm/damon/dbgfs-test.h |   63 +++++-----------
- mm/damon/dbgfs.c      |  152 +++++++++++++++++++++++-----------------
- mm/damon/reclaim.c    |    3 
- mm/damon/vaddr-test.h |    6 -
- mm/damon/vaddr.c      |    4 -
- 8 files changed, 133 insertions(+), 128 deletions(-)
+ include/linux/damon.h |   18 ++++++++++
+ mm/damon/core.c       |   66 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 84 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-remove-the-target-id-concept
+--- a/include/linux/damon.h~mm-damon-let-monitoring-operations-can-be-registered-and-selected
 +++ a/include/linux/damon.h
-@@ -60,19 +60,18 @@ struct damon_region {
+@@ -253,11 +253,24 @@ struct damos {
+ 	struct list_head list;
+ };
+ 
++/**
++ * enum damon_ops_id - Identifier for each monitoring operations implementation
++ *
++ * @DAMON_OPS_VADDR:	Monitoring operations for virtual address spaces
++ * @DAMON_OPS_PADDR:	Monitoring operations for the physical address space
++ */
++enum damon_ops_id {
++	DAMON_OPS_VADDR,
++	DAMON_OPS_PADDR,
++	NR_DAMON_OPS,
++};
++
+ struct damon_ctx;
  
  /**
-  * struct damon_target - Represents a monitoring target.
-- * @id:			Unique identifier for this target.
-+ * @pid:		The PID of the virtual address space to monitor.
-  * @nr_regions:		Number of monitoring target regions of this target.
-  * @regions_list:	Head of the monitoring target regions of this target.
-  * @list:		List head for siblings.
+  * struct damon_operations - Monitoring operations for given use cases.
   *
-  * Each monitoring context could have multiple targets.  For example, a context
-  * for virtual memory address spaces could have multiple target processes.  The
-- * @id of each target should be unique among the targets of the context.  For
-- * example, in the virtual address monitoring context, it could be a pidfd or
-- * an address of an mm_struct.
-+ * @pid should be set for appropriate address space monitoring primitives
-+ * including the virtual address spaces monitoring primitives.
++ * @id:				Identifier of this operations set.
+  * @init:			Initialize operations-related data structures.
+  * @update:			Update operations-related data structures.
+  * @prepare_access_checks:	Prepare next access check of target regions.
+@@ -277,6 +290,8 @@ struct damon_ctx;
+  * &damon_ctx.sample_interval.  Finally, @reset_aggregated is called after each
+  * &damon_ctx.aggr_interval.
+  *
++ * Each &struct damon_operations instance having valid @id can be registered
++ * via damon_register_ops() and selected by damon_select_ops() later.
+  * @init should initialize operations-related data structures.  For example,
+  * this could be used to construct proper monitoring target regions and link
+  * those to @damon_ctx.adaptive_targets.
+@@ -301,6 +316,7 @@ struct damon_ctx;
+  * @cleanup is called from @kdamond just before its termination.
   */
- struct damon_target {
--	unsigned long id;
-+	struct pid *pid;
- 	unsigned int nr_regions;
- 	struct list_head regions_list;
- 	struct list_head list;
-@@ -475,7 +474,7 @@ struct damos *damon_new_scheme(
- void damon_add_scheme(struct damon_ctx *ctx, struct damos *s);
- void damon_destroy_scheme(struct damos *s);
+ struct damon_operations {
++	enum damon_ops_id id;
+ 	void (*init)(struct damon_ctx *context);
+ 	void (*update)(struct damon_ctx *context);
+ 	void (*prepare_access_checks)(struct damon_ctx *context);
+@@ -489,6 +505,8 @@ int damon_set_attrs(struct damon_ctx *ct
+ int damon_set_schemes(struct damon_ctx *ctx,
+ 			struct damos **schemes, ssize_t nr_schemes);
+ int damon_nr_running_ctxs(void);
++int damon_register_ops(struct damon_operations *ops);
++int damon_select_ops(struct damon_ctx *ctx, enum damon_ops_id id);
  
--struct damon_target *damon_new_target(unsigned long id);
-+struct damon_target *damon_new_target(void);
- void damon_add_target(struct damon_ctx *ctx, struct damon_target *t);
- bool damon_targets_empty(struct damon_ctx *ctx);
- void damon_free_target(struct damon_target *t);
---- a/mm/damon/core.c~mm-damon-remove-the-target-id-concept
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs);
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
+--- a/mm/damon/core.c~mm-damon-let-monitoring-operations-can-be-registered-and-selected
 +++ a/mm/damon/core.c
-@@ -144,7 +144,7 @@ void damon_destroy_scheme(struct damos *
-  *
-  * Returns the pointer to the new struct if success, or NULL otherwise
-  */
--struct damon_target *damon_new_target(unsigned long id)
-+struct damon_target *damon_new_target(void)
- {
- 	struct damon_target *t;
+@@ -25,6 +25,72 @@
+ static DEFINE_MUTEX(damon_lock);
+ static int nr_running_ctxs;
  
-@@ -152,7 +152,7 @@ struct damon_target *damon_new_target(un
- 	if (!t)
- 		return NULL;
- 
--	t->id = id;
-+	t->pid = NULL;
- 	t->nr_regions = 0;
- 	INIT_LIST_HEAD(&t->regions_list);
- 
---- a/mm/damon/core-test.h~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/core-test.h
-@@ -24,7 +24,7 @@ static void damon_test_regions(struct ku
- 	KUNIT_EXPECT_EQ(test, 2ul, r->ar.end);
- 	KUNIT_EXPECT_EQ(test, 0u, r->nr_accesses);
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	KUNIT_EXPECT_EQ(test, 0u, damon_nr_regions(t));
- 
- 	damon_add_region(r, t);
-@@ -52,8 +52,7 @@ static void damon_test_target(struct kun
- 	struct damon_ctx *c = damon_new_ctx();
- 	struct damon_target *t;
- 
--	t = damon_new_target(42);
--	KUNIT_EXPECT_EQ(test, 42ul, t->id);
-+	t = damon_new_target();
- 	KUNIT_EXPECT_EQ(test, 0u, nr_damon_targets(c));
- 
- 	damon_add_target(c, t);
-@@ -78,7 +77,6 @@ static void damon_test_target(struct kun
- static void damon_test_aggregate(struct kunit *test)
- {
- 	struct damon_ctx *ctx = damon_new_ctx();
--	unsigned long target_ids[] = {1, 2, 3};
- 	unsigned long saddr[][3] = {{10, 20, 30}, {5, 42, 49}, {13, 33, 55} };
- 	unsigned long eaddr[][3] = {{15, 27, 40}, {31, 45, 55}, {23, 44, 66} };
- 	unsigned long accesses[][3] = {{42, 95, 84}, {10, 20, 30}, {0, 1, 2} };
-@@ -87,7 +85,7 @@ static void damon_test_aggregate(struct
- 	int it, ir;
- 
- 	for (it = 0; it < 3; it++) {
--		t = damon_new_target(target_ids[it]);
-+		t = damon_new_target();
- 		damon_add_target(ctx, t);
- 	}
- 
-@@ -125,7 +123,7 @@ static void damon_test_split_at(struct k
- 	struct damon_target *t;
- 	struct damon_region *r;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	r = damon_new_region(0, 100);
- 	damon_add_region(r, t);
- 	damon_split_region_at(c, t, r, 25);
-@@ -146,7 +144,7 @@ static void damon_test_merge_two(struct
- 	struct damon_region *r, *r2, *r3;
- 	int i;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	r = damon_new_region(0, 100);
- 	r->nr_accesses = 10;
- 	damon_add_region(r, t);
-@@ -194,7 +192,7 @@ static void damon_test_merge_regions_of(
- 	unsigned long eaddrs[] = {112, 130, 156, 170, 230};
- 	int i;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	for (i = 0; i < ARRAY_SIZE(sa); i++) {
- 		r = damon_new_region(sa[i], ea[i]);
- 		r->nr_accesses = nrs[i];
-@@ -218,14 +216,14 @@ static void damon_test_split_regions_of(
- 	struct damon_target *t;
- 	struct damon_region *r;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	r = damon_new_region(0, 22);
- 	damon_add_region(r, t);
- 	damon_split_regions_of(c, t, 2);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
- 	damon_free_target(t);
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	r = damon_new_region(0, 220);
- 	damon_add_region(r, t);
- 	damon_split_regions_of(c, t, 4);
---- a/mm/damon/dbgfs.c~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/dbgfs.c
-@@ -275,7 +275,7 @@ out:
- 	return ret;
- }
- 
--static inline bool targetid_is_pid(const struct damon_ctx *ctx)
-+static inline bool target_has_pid(const struct damon_ctx *ctx)
- {
- 	return ctx->primitive.target_valid == damon_va_target_valid;
- }
-@@ -283,17 +283,19 @@ static inline bool targetid_is_pid(const
- static ssize_t sprint_target_ids(struct damon_ctx *ctx, char *buf, ssize_t len)
- {
- 	struct damon_target *t;
--	unsigned long id;
-+	int id;
- 	int written = 0;
- 	int rc;
- 
- 	damon_for_each_target(t, ctx) {
--		id = t->id;
--		if (targetid_is_pid(ctx))
-+		if (target_has_pid(ctx))
- 			/* Show pid numbers to debugfs users */
--			id = (unsigned long)pid_vnr((struct pid *)id);
-+			id = pid_vnr(t->pid);
-+		else
-+			/* Show 42 for physical address space, just for fun */
-+			id = 42;
- 
--		rc = scnprintf(&buf[written], len - written, "%lu ", id);
-+		rc = scnprintf(&buf[written], len - written, "%d ", id);
- 		if (!rc)
- 			return -ENOMEM;
- 		written += rc;
-@@ -321,75 +323,114 @@ static ssize_t dbgfs_target_ids_read(str
- }
- 
- /*
-- * Converts a string into an array of unsigned long integers
-+ * Converts a string into an integers array
-  *
-- * Returns an array of unsigned long integers if the conversion success, or
-- * NULL otherwise.
-+ * Returns an array of integers array if the conversion success, or NULL
-+ * otherwise.
-  */
--static unsigned long *str_to_target_ids(const char *str, ssize_t len,
--					ssize_t *nr_ids)
-+static int *str_to_ints(const char *str, ssize_t len, ssize_t *nr_ints)
- {
--	unsigned long *ids;
--	const int max_nr_ids = 32;
--	unsigned long id;
-+	int *array;
-+	const int max_nr_ints = 32;
-+	int nr;
- 	int pos = 0, parsed, ret;
- 
--	*nr_ids = 0;
--	ids = kmalloc_array(max_nr_ids, sizeof(id), GFP_KERNEL);
--	if (!ids)
-+	*nr_ints = 0;
-+	array = kmalloc_array(max_nr_ints, sizeof(*array), GFP_KERNEL);
-+	if (!array)
- 		return NULL;
--	while (*nr_ids < max_nr_ids && pos < len) {
--		ret = sscanf(&str[pos], "%lu%n", &id, &parsed);
-+	while (*nr_ints < max_nr_ints && pos < len) {
-+		ret = sscanf(&str[pos], "%d%n", &nr, &parsed);
- 		pos += parsed;
- 		if (ret != 1)
- 			break;
--		ids[*nr_ids] = id;
--		*nr_ids += 1;
-+		array[*nr_ints] = nr;
-+		*nr_ints += 1;
- 	}
- 
--	return ids;
-+	return array;
- }
- 
--static void dbgfs_put_pids(unsigned long *ids, int nr_ids)
-+static void dbgfs_put_pids(struct pid **pids, int nr_pids)
- {
- 	int i;
- 
--	for (i = 0; i < nr_ids; i++)
--		put_pid((struct pid *)ids[i]);
-+	for (i = 0; i < nr_pids; i++)
-+		put_pid(pids[i]);
++static DEFINE_MUTEX(damon_ops_lock);
++static struct damon_operations damon_registered_ops[NR_DAMON_OPS];
++
++/* Should be called under damon_ops_lock with id smaller than NR_DAMON_OPS */
++static bool damon_registered_ops_id(enum damon_ops_id id)
++{
++	struct damon_operations empty_ops = {};
++
++	if (!memcmp(&empty_ops, &damon_registered_ops[id], sizeof(empty_ops)))
++		return false;
++	return true;
 +}
 +
-+/*
-+ * Converts a string into an struct pid pointers array
++/**
++ * damon_register_ops() - Register a monitoring operations set to DAMON.
++ * @ops:	monitoring operations set to register.
 + *
-+ * Returns an array of struct pid pointers if the conversion success, or NULL
-+ * otherwise.
++ * This function registers a monitoring operations set of valid &struct
++ * damon_operations->id so that others can find and use them later.
++ *
++ * Return: 0 on success, negative error code otherwise.
 + */
-+static struct pid **str_to_pids(const char *str, ssize_t len, ssize_t *nr_pids)
++int damon_register_ops(struct damon_operations *ops)
 +{
-+	int *ints;
-+	ssize_t nr_ints;
-+	struct pid **pids;
++	int err = 0;
 +
-+	*nr_pids = 0;
-+
-+	ints = str_to_ints(str, len, &nr_ints);
-+	if (!ints)
-+		return NULL;
-+
-+	pids = kmalloc_array(nr_ints, sizeof(*pids), GFP_KERNEL);
-+	if (!pids)
++	if (ops->id >= NR_DAMON_OPS)
++		return -EINVAL;
++	mutex_lock(&damon_ops_lock);
++	/* Fail for already registered ops */
++	if (damon_registered_ops_id(ops->id)) {
++		err = -EINVAL;
 +		goto out;
-+
-+	for (; *nr_pids < nr_ints; (*nr_pids)++) {
-+		pids[*nr_pids] = find_get_pid(ints[*nr_pids]);
-+		if (!pids[*nr_pids]) {
-+			dbgfs_put_pids(pids, *nr_pids);
-+			kfree(ints);
-+			kfree(pids);
-+			return NULL;
-+		}
 +	}
-+
++	damon_registered_ops[ops->id] = *ops;
 +out:
-+	kfree(ints);
-+	return pids;
- }
- 
++	mutex_unlock(&damon_ops_lock);
++	return err;
++}
++
++/**
++ * damon_select_ops() - Select a monitoring operations to use with the context.
++ * @ctx:	monitoring context to use the operations.
++ * @id:		id of the registered monitoring operations to select.
++ *
++ * This function finds registered monitoring operations set of @id and make
++ * @ctx to use it.
++ *
++ * Return: 0 on success, negative error code otherwise.
++ */
++int damon_select_ops(struct damon_ctx *ctx, enum damon_ops_id id)
++{
++	int err = 0;
++
++	if (id >= NR_DAMON_OPS)
++		return -EINVAL;
++
++	mutex_lock(&damon_ops_lock);
++	if (!damon_registered_ops_id(id))
++		err = -EINVAL;
++	else
++		ctx->ops = damon_registered_ops[id];
++	mutex_unlock(&damon_ops_lock);
++	return err;
++}
++
  /*
-  * dbgfs_set_targets() - Set monitoring targets.
-  * @ctx:	monitoring context
-- * @ids:	array of target ids
-- * @nr_ids:	number of entries in @ids
-+ * @nr_targets:	number of targets
-+ * @pids:	array of target pids (size is same to @nr_targets)
+  * Construct a damon_region struct
   *
-- * This function should not be called while the kdamond is running.
-+ * This function should not be called while the kdamond is running.  @pids is
-+ * ignored if the context is not configured to have pid in each target.  On
-+ * failure, reference counts of all pids in @pids are decremented.
-  *
-  * Return: 0 on success, negative error code otherwise.
-  */
--static int dbgfs_set_targets(struct damon_ctx *ctx,
--		      unsigned long *ids, ssize_t nr_ids)
-+static int dbgfs_set_targets(struct damon_ctx *ctx, ssize_t nr_targets,
-+		struct pid **pids)
- {
- 	ssize_t i;
- 	struct damon_target *t, *next;
- 
- 	damon_for_each_target_safe(t, next, ctx) {
--		if (targetid_is_pid(ctx))
--			put_pid((struct pid *)t->id);
-+		if (target_has_pid(ctx))
-+			put_pid(t->pid);
- 		damon_destroy_target(t);
- 	}
- 
--	for (i = 0; i < nr_ids; i++) {
--		t = damon_new_target(ids[i]);
-+	for (i = 0; i < nr_targets; i++) {
-+		t = damon_new_target();
- 		if (!t) {
--			/* The caller should do cleanup of the ids itself */
- 			damon_for_each_target_safe(t, next, ctx)
- 				damon_destroy_target(t);
--			if (targetid_is_pid(ctx))
--				dbgfs_put_pids(ids, nr_ids);
-+			if (target_has_pid(ctx))
-+				dbgfs_put_pids(pids, nr_targets);
- 			return -ENOMEM;
- 		}
-+		if (target_has_pid(ctx))
-+			t->pid = pids[i];
- 		damon_add_target(ctx, t);
- 	}
- 
-@@ -402,10 +443,9 @@ static ssize_t dbgfs_target_ids_write(st
- 	struct damon_ctx *ctx = file->private_data;
- 	bool id_is_pid = true;
- 	char *kbuf;
--	unsigned long *targets;
-+	struct pid **target_pids = NULL;
- 	ssize_t nr_targets;
- 	ssize_t ret;
--	int i;
- 
- 	kbuf = user_input_str(buf, count, ppos);
- 	if (IS_ERR(kbuf))
-@@ -413,38 +453,27 @@ static ssize_t dbgfs_target_ids_write(st
- 
- 	if (!strncmp(kbuf, "paddr\n", count)) {
- 		id_is_pid = false;
--		/* target id is meaningless here, but we set it just for fun */
--		scnprintf(kbuf, count, "42    ");
--	}
--
--	targets = str_to_target_ids(kbuf, count, &nr_targets);
--	if (!targets) {
--		ret = -ENOMEM;
--		goto out;
-+		nr_targets = 1;
- 	}
- 
- 	if (id_is_pid) {
--		for (i = 0; i < nr_targets; i++) {
--			targets[i] = (unsigned long)find_get_pid(
--					(int)targets[i]);
--			if (!targets[i]) {
--				dbgfs_put_pids(targets, i);
--				ret = -EINVAL;
--				goto free_targets_out;
--			}
-+		target_pids = str_to_pids(kbuf, count, &nr_targets);
-+		if (!target_pids) {
-+			ret = -ENOMEM;
-+			goto out;
- 		}
- 	}
- 
- 	mutex_lock(&ctx->kdamond_lock);
- 	if (ctx->kdamond) {
- 		if (id_is_pid)
--			dbgfs_put_pids(targets, nr_targets);
-+			dbgfs_put_pids(target_pids, nr_targets);
- 		ret = -EBUSY;
- 		goto unlock_out;
- 	}
- 
- 	/* remove previously set targets */
--	dbgfs_set_targets(ctx, NULL, 0);
-+	dbgfs_set_targets(ctx, 0, NULL);
- 
- 	/* Configure the context for the address space type */
- 	if (id_is_pid)
-@@ -452,14 +481,13 @@ static ssize_t dbgfs_target_ids_write(st
- 	else
- 		damon_pa_set_primitives(ctx);
- 
--	ret = dbgfs_set_targets(ctx, targets, nr_targets);
-+	ret = dbgfs_set_targets(ctx, nr_targets, target_pids);
- 	if (!ret)
- 		ret = count;
- 
- unlock_out:
- 	mutex_unlock(&ctx->kdamond_lock);
--free_targets_out:
--	kfree(targets);
-+	kfree(target_pids);
- out:
- 	kfree(kbuf);
- 	return ret;
-@@ -688,12 +716,12 @@ static void dbgfs_before_terminate(struc
- {
- 	struct damon_target *t, *next;
- 
--	if (!targetid_is_pid(ctx))
-+	if (!target_has_pid(ctx))
- 		return;
- 
- 	mutex_lock(&ctx->kdamond_lock);
- 	damon_for_each_target_safe(t, next, ctx) {
--		put_pid((struct pid *)t->id);
-+		put_pid(t->pid);
- 		damon_destroy_target(t);
- 	}
- 	mutex_unlock(&ctx->kdamond_lock);
---- a/mm/damon/dbgfs-test.h~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/dbgfs-test.h
-@@ -12,66 +12,58 @@
- 
- #include <kunit/test.h>
- 
--static void damon_dbgfs_test_str_to_target_ids(struct kunit *test)
-+static void damon_dbgfs_test_str_to_ints(struct kunit *test)
- {
- 	char *question;
--	unsigned long *answers;
--	unsigned long expected[] = {12, 35, 46};
-+	int *answers;
-+	int expected[] = {12, 35, 46};
- 	ssize_t nr_integers = 0, i;
- 
- 	question = "123";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)1, nr_integers);
--	KUNIT_EXPECT_EQ(test, 123ul, answers[0]);
-+	KUNIT_EXPECT_EQ(test, 123, answers[0]);
- 	kfree(answers);
- 
- 	question = "123abc";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)1, nr_integers);
--	KUNIT_EXPECT_EQ(test, 123ul, answers[0]);
-+	KUNIT_EXPECT_EQ(test, 123, answers[0]);
- 	kfree(answers);
- 
- 	question = "a123";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
- 	kfree(answers);
- 
- 	question = "12 35";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)2, nr_integers);
- 	for (i = 0; i < nr_integers; i++)
- 		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
- 	kfree(answers);
- 
- 	question = "12 35 46";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)3, nr_integers);
- 	for (i = 0; i < nr_integers; i++)
- 		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
- 	kfree(answers);
- 
- 	question = "12 35 abc 46";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)2, nr_integers);
- 	for (i = 0; i < 2; i++)
- 		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
- 	kfree(answers);
- 
- 	question = "";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
- 	kfree(answers);
- 
- 	question = "\n";
--	answers = str_to_target_ids(question, strlen(question),
--			&nr_integers);
-+	answers = str_to_ints(question, strlen(question), &nr_integers);
- 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
- 	kfree(answers);
- }
-@@ -79,30 +71,20 @@ static void damon_dbgfs_test_str_to_targ
- static void damon_dbgfs_test_set_targets(struct kunit *test)
- {
- 	struct damon_ctx *ctx = dbgfs_new_ctx();
--	unsigned long ids[] = {1, 2, 3};
- 	char buf[64];
- 
--	/* Make DAMON consider target id as plain number */
--	ctx->primitive.target_valid = NULL;
--	ctx->primitive.cleanup = NULL;
-+	/* Make DAMON consider target has no pid */
-+	ctx->primitive = (struct damon_primitive){};
- 
--	dbgfs_set_targets(ctx, ids, 3);
--	sprint_target_ids(ctx, buf, 64);
--	KUNIT_EXPECT_STREQ(test, (char *)buf, "1 2 3\n");
--
--	dbgfs_set_targets(ctx, NULL, 0);
-+	dbgfs_set_targets(ctx, 0, NULL);
- 	sprint_target_ids(ctx, buf, 64);
- 	KUNIT_EXPECT_STREQ(test, (char *)buf, "\n");
- 
--	dbgfs_set_targets(ctx, (unsigned long []){1, 2}, 2);
--	sprint_target_ids(ctx, buf, 64);
--	KUNIT_EXPECT_STREQ(test, (char *)buf, "1 2\n");
--
--	dbgfs_set_targets(ctx, (unsigned long []){2}, 1);
-+	dbgfs_set_targets(ctx, 1, NULL);
- 	sprint_target_ids(ctx, buf, 64);
--	KUNIT_EXPECT_STREQ(test, (char *)buf, "2\n");
-+	KUNIT_EXPECT_STREQ(test, (char *)buf, "42\n");
- 
--	dbgfs_set_targets(ctx, NULL, 0);
-+	dbgfs_set_targets(ctx, 0, NULL);
- 	sprint_target_ids(ctx, buf, 64);
- 	KUNIT_EXPECT_STREQ(test, (char *)buf, "\n");
- 
-@@ -112,7 +94,6 @@ static void damon_dbgfs_test_set_targets
- static void damon_dbgfs_test_set_init_regions(struct kunit *test)
- {
- 	struct damon_ctx *ctx = damon_new_ctx();
--	unsigned long ids[] = {1, 2, 3};
- 	/* Each line represents one region in ``<target idx> <start> <end>`` */
- 	char * const valid_inputs[] = {"1 10 20\n 1   20 30\n1 35 45",
- 		"1 10 20\n",
-@@ -130,7 +111,7 @@ static void damon_dbgfs_test_set_init_re
- 	int i, rc;
- 	char buf[256];
- 
--	dbgfs_set_targets(ctx, ids, 3);
-+	dbgfs_set_targets(ctx, 3, NULL);
- 
- 	/* Put valid inputs and check the results */
- 	for (i = 0; i < ARRAY_SIZE(valid_inputs); i++) {
-@@ -158,12 +139,12 @@ static void damon_dbgfs_test_set_init_re
- 		KUNIT_EXPECT_STREQ(test, (char *)buf, "");
- 	}
- 
--	dbgfs_set_targets(ctx, NULL, 0);
-+	dbgfs_set_targets(ctx, 0, NULL);
- 	damon_destroy_ctx(ctx);
- }
- 
- static struct kunit_case damon_test_cases[] = {
--	KUNIT_CASE(damon_dbgfs_test_str_to_target_ids),
-+	KUNIT_CASE(damon_dbgfs_test_str_to_ints),
- 	KUNIT_CASE(damon_dbgfs_test_set_targets),
- 	KUNIT_CASE(damon_dbgfs_test_set_init_regions),
- 	{},
---- a/mm/damon/reclaim.c~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/reclaim.c
-@@ -387,8 +387,7 @@ static int __init damon_reclaim_init(voi
- 	damon_pa_set_primitives(ctx);
- 	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
- 
--	/* 4242 means nothing but fun */
--	target = damon_new_target(4242);
-+	target = damon_new_target();
- 	if (!target) {
- 		damon_destroy_ctx(ctx);
- 		return -ENOMEM;
---- a/mm/damon/vaddr.c~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/vaddr.c
-@@ -23,12 +23,12 @@
- #endif
- 
- /*
-- * 't->id' should be the pointer to the relevant 'struct pid' having reference
-+ * 't->pid' should be the pointer to the relevant 'struct pid' having reference
-  * count.  Caller must put the returned task, unless it is NULL.
-  */
- static inline struct task_struct *damon_get_task_struct(struct damon_target *t)
- {
--	return get_pid_task((struct pid *)t->id, PIDTYPE_PID);
-+	return get_pid_task(t->pid, PIDTYPE_PID);
- }
- 
- /*
---- a/mm/damon/vaddr-test.h~mm-damon-remove-the-target-id-concept
-+++ a/mm/damon/vaddr-test.h
-@@ -139,7 +139,7 @@ static void damon_do_test_apply_three_re
- 	struct damon_region *r;
- 	int i;
- 
--	t = damon_new_target(42);
-+	t = damon_new_target();
- 	for (i = 0; i < nr_regions / 2; i++) {
- 		r = damon_new_region(regions[i * 2], regions[i * 2 + 1]);
- 		damon_add_region(r, t);
-@@ -251,7 +251,7 @@ static void damon_test_apply_three_regio
- static void damon_test_split_evenly_fail(struct kunit *test,
- 		unsigned long start, unsigned long end, unsigned int nr_pieces)
- {
--	struct damon_target *t = damon_new_target(42);
-+	struct damon_target *t = damon_new_target();
- 	struct damon_region *r = damon_new_region(start, end);
- 
- 	damon_add_region(r, t);
-@@ -270,7 +270,7 @@ static void damon_test_split_evenly_fail
- static void damon_test_split_evenly_succ(struct kunit *test,
- 	unsigned long start, unsigned long end, unsigned int nr_pieces)
- {
--	struct damon_target *t = damon_new_target(42);
-+	struct damon_target *t = damon_new_target();
- 	struct damon_region *r = damon_new_region(start, end);
- 	unsigned long expected_width = (end - start) / nr_pieces;
- 	unsigned long i = 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
