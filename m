@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28299C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC06CC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234045AbiCYWpT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234046AbiCYWpT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 25 Mar 2022 18:45:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57500 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234046AbiCYWpC (ORCPT
+        with ESMTP id S234044AbiCYWpC (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:45:02 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD2FF20E95E
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:43:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 301DC20E943
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:43:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7C0AAB82A36
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:43:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18DBCC340ED;
-        Fri, 25 Mar 2022 22:43:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C4200B82A1E
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:43:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C6D2C004DD;
+        Fri, 25 Mar 2022 22:43:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248197;
-        bh=TRyO5krPR9ugWONbD07ikj7eH5w/C9o7DlHMdi+nXy0=;
+        s=korg; t=1648248193;
+        bh=m+FToA+JMOkFoWXkiDnjIaGoIiGDAWtXSsq7tP+PygE=;
         h=Date:To:From:Subject:From;
-        b=z10hKz4g+aZUqM5iBypnEZ2TO/EfzRHcNfyokFBpeXlKqV0Ex29qv6JyFA9opXNO3
-         kXkbGNTC4/0rk2l2/BV8dXevVpPyb8VayO6ilfaymUqJQn+EqSeKjNhe7uYyfO/OQq
-         vLPGwGobxhhxbhYvICbL63G8p43t/jAsIy+00PJw=
-Date:   Fri, 25 Mar 2022 15:43:16 -0700
+        b=qxARZsQxzXPxVwkmCiqctIFIkCAiGl07axb3FTH6RjHY791Gel6GnKFlIBpICJyD3
+         YMVbe9wgeYOcgLRqvvBV49eNb8ZqtDP5OPqh07axYWf16W8jH4TmeMbBNH+3p4xm5G
+         ERPh6TwjOkWfL8SDkFYymgOkfVsDWUlHEaOKqVPA=
+Date:   Fri, 25 Mar 2022 15:43:12 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
         shakeelb@google.com, rppt@linux.ibm.com, roman.gushchin@linux.dev,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         jack@suse.cz, hughd@google.com, hch@lst.de, ddutile@redhat.com,
         aarcange@redhat.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-huge_memory-remove-stale-page_trans_huge_mapcount.patch removed from -mm tree
-Message-Id: <20220325224317.18DBCC340ED@smtp.kernel.org>
+Subject: [merged] mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch removed from -mm tree
+Message-Id: <20220325224313.5C6D2C004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,19 +48,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory: remove stale page_trans_huge_mapcount()
+     Subject: mm/huge_memory: streamline COW logic in do_huge_pmd_wp_page()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-remove-stale-page_trans_huge_mapcount.patch
+     mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/huge_memory: remove stale page_trans_huge_mapcount()
+Subject: mm/huge_memory: streamline COW logic in do_huge_pmd_wp_page()
 
-All users are gone, let's remove it.
+We currently have a different COW logic for anon THP than we have for
+ordinary anon pages in do_wp_page(): the effect is that the issue reported
+in CVE-2020-29374 is currently still possible for anon THP: an unintended
+information leak from the parent to the child.
 
-Link: https://lkml.kernel.org/r/20220131162940.210846-9-david@redhat.com
+Let's apply the same logic (page_count() == 1), with similar optimizations
+to remove additional references first as we really want to avoid
+PTE-mapping the THP and copying individual pages best we can.
+
+If we end up with a page that has page_count() != 1, we'll have to PTE-map
+the THP and fallback to do_wp_page(), which will always copy the page.
+
+Note that KSM does not apply to THP.
+
+I. Interaction with the swapcache and writeback
+
+While a THP is in the swapcache, the swapcache holds one reference on each
+subpage of the THP.  So with PageSwapCache() set, we expect as many
+additional references as we have subpages.  If we manage to remove the THP
+from the swapcache, all these references will be gone.
+
+Usually, a THP is not split when entered into the swapcache and stays a
+compound page.  However, try_to_unmap() will PTE-map the THP and use PTE
+swap entries.  There are no PMD swap entries for that purpose,
+consequently, we always only swapin subpages into PTEs.
+
+Removing a page from the swapcache can fail either when there are
+remaining swap entries (in which case COW is the right thing to do) or if
+the page is currently under writeback.
+
+Having a locked, R/O PMD-mapped THP that is in the swapcache seems to be
+possible only in corner cases, for example, if try_to_unmap() failed after
+adding the page to the swapcache.  However, it's comparatively easy to
+handle.
+
+As we have to fully unmap a THP before starting writeback, and swapin is
+always done on the PTE level, we shouldn't find a R/O PMD-mapped THP in
+the swapcache that is under writeback.  This should at least leave
+writeback out of the picture.
+
+II. Interaction with GUP references
+
+Having a R/O PMD-mapped THP with GUP references (i.e., R/O references)
+will result in PTE-mapping the THP on a write fault.  Similar to ordinary
+anon pages, do_wp_page() will have to copy sub-pages and result in a
+disconnect between the GUP references and the pages actually mapped into
+the page tables.  To improve the situation in the future, we'll need
+additional handling to mark anonymous pages as definitely exclusive to a
+single process, only allow GUP pins on exclusive anon pages, and disallow
+sharing of exclusive anon pages with GUP pins e.g., during fork().
+
+III. Interaction with references from LRU pagevecs
+
+There is no need to try draining the (local) LRU pagevecs in case we would
+stumble over a !PageLRU() page: folio_add_lru() and friends will always
+flush the affected pagevec after adding a compound page to it immediately
+-- pagevec_add_and_need_flush() always returns "true" for them.  Note that
+the LRU pagevecs will hold a reference on the compound page for a very
+short time, between adding the page to the pagevec and draining it
+immediately afterwards.
+
+IV. Interaction with speculative/temporary references
+
+Similar to ordinary anon pages, other speculative/temporary references on
+the THP, for example, from the pagecache or page migration code, will
+disallow exclusive reuse of the page.  We'll have to PTE-map the THP.
+
+Link: https://lkml.kernel.org/r/20220131162940.210846-6-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -88,86 +153,46 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 ----
- mm/huge_memory.c   |   48 -------------------------------------------
- 2 files changed, 53 deletions(-)
+ mm/huge_memory.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm.h~mm-huge_memory-remove-stale-page_trans_huge_mapcount
-+++ a/include/linux/mm.h
-@@ -834,16 +834,11 @@ static inline int total_mapcount(struct
- 	return folio_mapcount(page_folio(page));
- }
- 
--int page_trans_huge_mapcount(struct page *page);
- #else
- static inline int total_mapcount(struct page *page)
- {
- 	return page_mapcount(page);
- }
--static inline int page_trans_huge_mapcount(struct page *page)
--{
--	return page_mapcount(page);
--}
- #endif
- 
- static inline struct page *virt_to_head_page(const void *x)
---- a/mm/huge_memory.c~mm-huge_memory-remove-stale-page_trans_huge_mapcount
+--- a/mm/huge_memory.c~mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page
 +++ a/mm/huge_memory.c
-@@ -2483,54 +2483,6 @@ static void __split_huge_page(struct pag
- 	}
- }
+@@ -1303,7 +1303,6 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 	page = pmd_page(orig_pmd);
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
  
--/*
-- * This calculates accurately how many mappings a transparent hugepage
-- * has (unlike page_mapcount() which isn't fully accurate). This full
-- * accuracy is primarily needed to know if copy-on-write faults can
-- * reuse the page and change the mapping to read-write instead of
-- * copying them. At the same time this returns the total_mapcount too.
-- *
-- * The function returns the highest mapcount any one of the subpages
-- * has. If the return value is one, even if different processes are
-- * mapping different subpages of the transparent hugepage, they can
-- * all reuse it, because each process is reusing a different subpage.
-- *
-- * The total_mapcount is instead counting all virtual mappings of the
-- * subpages. If the total_mapcount is equal to "one", it tells the
-- * caller all mappings belong to the same "mm" and in turn the
-- * anon_vma of the transparent hugepage can become the vma->anon_vma
-- * local one as no other process may be mapping any of the subpages.
-- *
-- * It would be more accurate to replace page_mapcount() with
-- * page_trans_huge_mapcount(), however we only use
-- * page_trans_huge_mapcount() in the copy-on-write faults where we
-- * need full accuracy to avoid breaking page pinning, because
-- * page_trans_huge_mapcount() is slower than page_mapcount().
-- */
--int page_trans_huge_mapcount(struct page *page)
--{
--	int i, ret;
--
--	/* hugetlbfs shouldn't call it */
--	VM_BUG_ON_PAGE(PageHuge(page), page);
--
--	if (likely(!PageTransCompound(page)))
--		return atomic_read(&page->_mapcount) + 1;
--
--	page = compound_head(page);
--
--	ret = 0;
--	for (i = 0; i < thp_nr_pages(page); i++) {
--		int mapcount = atomic_read(&page[i]._mapcount) + 1;
--		ret = max(ret, mapcount);
--	}
--
--	if (PageDoubleMap(page))
--		ret -= 1;
--
--	return ret + compound_mapcount(page);
--}
--
- /* Racy check whether the huge page can be split */
- bool can_split_folio(struct folio *folio, int *pextra_pins)
- {
+-	/* Lock page for reuse_swap_page() */
+ 	if (!trylock_page(page)) {
+ 		get_page(page);
+ 		spin_unlock(vmf->ptl);
+@@ -1319,10 +1318,15 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 	}
+ 
+ 	/*
+-	 * We can only reuse the page if nobody else maps the huge page or it's
+-	 * part.
++	 * See do_wp_page(): we can only map the page writable if there are
++	 * no additional references. Note that we always drain the LRU
++	 * pagevecs immediately after adding a THP.
+ 	 */
+-	if (reuse_swap_page(page)) {
++	if (page_count(page) > 1 + PageSwapCache(page) * thp_nr_pages(page))
++		goto unlock_fallback;
++	if (PageSwapCache(page))
++		try_to_free_swap(page);
++	if (page_count(page) == 1) {
+ 		pmd_t entry;
+ 		entry = pmd_mkyoung(orig_pmd);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+@@ -1333,6 +1337,7 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 		return VM_FAULT_WRITE;
+ 	}
+ 
++unlock_fallback:
+ 	unlock_page(page);
+ 	spin_unlock(vmf->ptl);
+ fallback:
 _
 
 Patches currently in -mm which might be from david@redhat.com are
