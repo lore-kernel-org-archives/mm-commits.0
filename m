@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC55C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA6C3C433FE
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 01:30:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350261AbiCYBcX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Mar 2022 21:32:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36306 "EHLO
+        id S1357349AbiCYBcY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Mar 2022 21:32:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357349AbiCYBcH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:32:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 801F24BB85
-        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:30:33 -0700 (PDT)
+        with ESMTP id S1357343AbiCYBcF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2022 21:32:05 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB72B3DDED
+        for <mm-commits@vger.kernel.org>; Thu, 24 Mar 2022 18:30:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0AD46B82729
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:30:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93474C340EE;
-        Fri, 25 Mar 2022 01:30:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 58744B82726
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 01:30:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB991C340ED;
+        Fri, 25 Mar 2022 01:30:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648171831;
-        bh=wbG+jAXNoNgVpV5S0pDsxD+rTFRKgiqjEorX1j/Z/mE=;
+        s=korg; t=1648171828;
+        bh=2IKPu4dzV5KAjHCGyasVqdq8m7rhw03dyrxP4yz//6s=;
         h=Date:To:From:Subject:From;
-        b=pOOv4T5S9r6YgoQvhDkljqReen7UqSz5RvmRVPrhDj0fteG5vylijQCwdDEmH/HNI
-         K+W7te426C6sanXUfAFbE+OEG8xKR/oX4ll8el3QuB3upmo0tpJI5BUmZr3pnfbenn
-         hh2BqvwuFVK3BALSADRUFV7xr/lpOYrKLRxXYxMM=
-Date:   Thu, 24 Mar 2022 18:30:31 -0700
+        b=SZ06e2MBxkp/T/C5iHLk8DByVchvug549edkmohg9m9I5QkKSy7DGRs+e4A/8+4Lk
+         I6Ysd4135fxYflLGokv152YEYRP6SbLygtdEv5FDSz49pZg+vqeVnjAkn/3KNkQk6E
+         4URaq9dg0Qrz4WICKswzICf6sC89h3Qo+7O1uFsg=
+Date:   Thu, 24 Mar 2022 18:30:27 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
         tytso@mit.edu, trond.myklebust@hammerspace.com,
@@ -40,8 +40,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         alexs@kernel.org, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] fs-allocate-inode-by-using-alloc_inode_sb.patch removed from -mm tree
-Message-Id: <20220325013031.93474C340EE@smtp.kernel.org>
+Subject: [merged] mm-list_lru-transpose-the-array-of-per-node-per-memcg-lru-lists.patch removed from -mm tree
+Message-Id: <20220325013027.DB991C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,730 +49,578 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: allocate inode by using alloc_inode_sb()
+     Subject: mm: list_lru: transpose the array of per-node per-memcg lru lists
 has been removed from the -mm tree.  Its filename was
-     fs-allocate-inode-by-using-alloc_inode_sb.patch
+     mm-list_lru-transpose-the-array-of-per-node-per-memcg-lru-lists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: fs: allocate inode by using alloc_inode_sb()
+Subject: mm: list_lru: transpose the array of per-node per-memcg lru lists
 
-The inode allocation is supposed to use alloc_inode_sb(), so convert
-kmem_cache_alloc() of all filesystems to alloc_inode_sb().
+Patch series "Optimize list lru memory consumption", v6.
 
-Link: https://lkml.kernel.org/r/20220228122126.37293-5-songmuchun@bytedance.com
+In our server, we found a suspected memory leak problem.  The kmalloc-32
+consumes more than 6GB of memory.  Other kmem_caches consume less than 2GB
+memory.
+
+After our in-depth analysis, the memory consumption of kmalloc-32 slab
+cache is the cause of list_lru_one allocation.
+
+  crash> p
+  memcg_nr_cache_ids memcg_nr_cache_ids = $2 = 24574
+
+memcg_nr_cache_ids is very large and memory consumption of each list_lru
+can be calculated with the following formula.
+
+  num_numa_node * memcg_nr_cache_ids * 32 (kmalloc-32)
+
+There are 4 numa nodes in our system, so each list_lru consumes ~3MB.
+
+  crash> list super_blocks | wc -l
+  952
+
+Every mount will register 2 list lrus, one is for inode, another is for
+dentry.  There are 952 super_blocks.  So the total memory is 952 * 2 * 3
+MB (~5.6GB).  But now the number of memory cgroups is less than 500.  So I
+guess more than 12286 memory cgroups have been created on this machine (I
+do not know why there are so many cgroups, it may be a user's bug or the
+user really want to do that).  Because memcg_nr_cache_ids has not been
+reduced to a suitable value.  It leads to waste a lot of memory.  If we
+want to reduce memcg_nr_cache_ids, we have to *reboot* the server.  This
+is not what we want.
+
+In order to reduce memcg_nr_cache_ids, I had posted a patchset [1] to do
+this.  But this did not fundamentally solve the problem.
+
+We currently allocate scope for every memcg to be able to tracked on every
+superblock instantiated in the system, regardless of whether that
+superblock is even accessible to that memcg.
+
+These huge memcg counts come from container hosts where memcgs are
+confined to just a small subset of the total number of superblocks that
+instantiated at any given point in time.
+
+For these systems with huge container counts, list_lru does not need the
+capability of tracking every memcg on every superblock.
+
+What it comes down to is that the list_lru is only needed for a given
+memcg if that memcg is instatiating and freeing objects on a given
+list_lru.
+
+As Dave said, "Which makes me think we should be moving more towards 'add
+the memcg to the list_lru at the first insert' model rather than
+'instantiate all at memcg init time just in case'."
+
+This patchset aims to optimize the list lru memory consumption from
+different aspects.
+
+I had done a easy test to show the optimization.  I create 10k memory
+cgroups and mount 10k filesystems in the systems.  We use free command to
+show how many memory does the systems comsumes after this operation (There
+are 2 numa nodes in the system).
+
+        +-----------------------+------------------------+
+        |      condition        |   memory consumption   |
+        +-----------------------+------------------------+
+        | without this patchset |        24464 MB        |
+        +-----------------------+------------------------+
+        |     after patch 1     |        21957 MB        | <--------+
+        +-----------------------+------------------------+          |
+        |     after patch 10    |         6895 MB        |          |
+        +-----------------------+------------------------+          |
+        |     after patch 12    |         4367 MB        |          |
+        +-----------------------+------------------------+          |
+                                                                    |
+        The more the number of nodes, the more obvious the effect---+
+
+BTW, there was a recent discussion [2] on the same issue.
+
+[1] https://lore.kernel.org/all/20210428094949.43579-1-songmuchun@bytedance.com/
+[2] https://lore.kernel.org/all/20210405054848.GA1077931@in.ibm.com/
+
+This series not only optimizes the memory usage of list_lru but also
+simplifies the code.
+
+
+This patch (of 16):
+
+The current scheme of maintaining per-node per-memcg lru lists looks like:
+  struct list_lru {
+    struct list_lru_node *node;           (for each node)
+      struct list_lru_memcg *memcg_lrus;
+        struct list_lru_one *lru[];       (for each memcg)
+  }
+
+By effectively transposing the two-dimension array of list_lru_one's structures
+(per-node per-memcg => per-memcg per-node) it's possible to save some memory
+and simplify alloc/dealloc paths. The new scheme looks like:
+  struct list_lru {
+    struct list_lru_memcg *mlrus;
+      struct list_lru_per_memcg *mlru[];  (for each memcg)
+        struct list_lru_one node[0];      (for each node)
+  }
+
+Memory savings are coming from not only 'struct rcu_head' but also some
+pointer arrays used to store the pointer to 'struct list_lru_one'.  The
+array is per node and its size is 8 (a pointer) * num_memcgs.  So the
+total size of the arrays is 8 * num_nodes * memcg_nr_cache_ids.  After
+this patch, the size becomes 8 * memcg_nr_cache_ids.
+
+Link: https://lkml.kernel.org/r/20220228122126.37293-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220228122126.37293-2-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Theodore Ts'o <tytso@mit.edu>		[ext4]
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kari Argillander <kari.argillander@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Yang Shi <shy828301@gmail.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Kari Argillander <kari.argillander@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Fam Zheng <fam.zheng@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bdev.c             |    2 +-
- drivers/dax/super.c      |    2 +-
- fs/9p/vfs_inode.c        |    2 +-
- fs/adfs/super.c          |    2 +-
- fs/affs/super.c          |    2 +-
- fs/afs/super.c           |    2 +-
- fs/befs/linuxvfs.c       |    2 +-
- fs/bfs/inode.c           |    2 +-
- fs/btrfs/inode.c         |    2 +-
- fs/ceph/inode.c          |    2 +-
- fs/cifs/cifsfs.c         |    2 +-
- fs/coda/inode.c          |    2 +-
- fs/ecryptfs/super.c      |    2 +-
- fs/efs/super.c           |    2 +-
- fs/erofs/super.c         |    2 +-
- fs/exfat/super.c         |    2 +-
- fs/ext2/super.c          |    2 +-
- fs/ext4/super.c          |    2 +-
- fs/fat/inode.c           |    2 +-
- fs/freevxfs/vxfs_super.c |    2 +-
- fs/fuse/inode.c          |    2 +-
- fs/gfs2/super.c          |    2 +-
- fs/hfs/super.c           |    2 +-
- fs/hfsplus/super.c       |    2 +-
- fs/hostfs/hostfs_kern.c  |    2 +-
- fs/hpfs/super.c          |    2 +-
- fs/hugetlbfs/inode.c     |    2 +-
- fs/isofs/inode.c         |    2 +-
- fs/jffs2/super.c         |    2 +-
- fs/jfs/super.c           |    2 +-
- fs/minix/inode.c         |    2 +-
- fs/nfs/inode.c           |    2 +-
- fs/nilfs2/super.c        |    2 +-
- fs/ntfs/inode.c          |    2 +-
- fs/ntfs3/super.c         |    2 +-
- fs/ocfs2/dlmfs/dlmfs.c   |    2 +-
- fs/ocfs2/super.c         |    2 +-
- fs/openpromfs/inode.c    |    2 +-
- fs/orangefs/super.c      |    2 +-
- fs/overlayfs/super.c     |    2 +-
- fs/proc/inode.c          |    2 +-
- fs/qnx4/inode.c          |    2 +-
- fs/qnx6/inode.c          |    2 +-
- fs/reiserfs/super.c      |    2 +-
- fs/romfs/super.c         |    2 +-
- fs/squashfs/super.c      |    2 +-
- fs/sysv/inode.c          |    2 +-
- fs/ubifs/super.c         |    2 +-
- fs/udf/super.c           |    2 +-
- fs/ufs/super.c           |    2 +-
- fs/vboxsf/super.c        |    2 +-
- fs/xfs/xfs_icache.c      |    2 +-
- fs/zonefs/super.c        |    2 +-
- ipc/mqueue.c             |    2 +-
- mm/shmem.c               |    2 +-
- net/socket.c             |    2 +-
- net/sunrpc/rpc_pipe.c    |    2 +-
- 57 files changed, 57 insertions(+), 57 deletions(-)
+ include/linux/list_lru.h |   17 +--
+ mm/list_lru.c            |  206 +++++++++++++------------------------
+ 2 files changed, 86 insertions(+), 137 deletions(-)
 
---- a/block/bdev.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/block/bdev.c
-@@ -385,7 +385,7 @@ static struct kmem_cache * bdev_cachep _
+--- a/include/linux/list_lru.h~mm-list_lru-transpose-the-array-of-per-node-per-memcg-lru-lists
++++ a/include/linux/list_lru.h
+@@ -31,10 +31,15 @@ struct list_lru_one {
+ 	long			nr_items;
+ };
  
- static struct inode *bdev_alloc_inode(struct super_block *sb)
++struct list_lru_per_memcg {
++	/* array of per cgroup per node lists, indexed by node id */
++	struct list_lru_one	node[0];
++};
++
+ struct list_lru_memcg {
+-	struct rcu_head		rcu;
++	struct rcu_head			rcu;
+ 	/* array of per cgroup lists, indexed by memcg_cache_id */
+-	struct list_lru_one	*lru[];
++	struct list_lru_per_memcg	*mlru[];
+ };
+ 
+ struct list_lru_node {
+@@ -42,11 +47,7 @@ struct list_lru_node {
+ 	spinlock_t		lock;
+ 	/* global list, used for the root cgroup in cgroup aware lrus */
+ 	struct list_lru_one	lru;
+-#ifdef CONFIG_MEMCG_KMEM
+-	/* for cgroup aware lrus points to per cgroup lists, otherwise NULL */
+-	struct list_lru_memcg	__rcu *memcg_lrus;
+-#endif
+-	long nr_items;
++	long			nr_items;
+ } ____cacheline_aligned_in_smp;
+ 
+ struct list_lru {
+@@ -55,6 +56,8 @@ struct list_lru {
+ 	struct list_head	list;
+ 	int			shrinker_id;
+ 	bool			memcg_aware;
++	/* for cgroup aware lrus points to per cgroup lists, otherwise NULL */
++	struct list_lru_memcg	__rcu *mlrus;
+ #endif
+ };
+ 
+--- a/mm/list_lru.c~mm-list_lru-transpose-the-array-of-per-node-per-memcg-lru-lists
++++ a/mm/list_lru.c
+@@ -49,35 +49,37 @@ static int lru_shrinker_id(struct list_l
+ }
+ 
+ static inline struct list_lru_one *
+-list_lru_from_memcg_idx(struct list_lru_node *nlru, int idx)
++list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
  {
--	struct bdev_inode *ei = kmem_cache_alloc(bdev_cachep, GFP_KERNEL);
-+	struct bdev_inode *ei = alloc_inode_sb(sb, bdev_cachep, GFP_KERNEL);
+-	struct list_lru_memcg *memcg_lrus;
++	struct list_lru_memcg *mlrus;
++	struct list_lru_node *nlru = &lru->node[nid];
++
+ 	/*
+ 	 * Either lock or RCU protects the array of per cgroup lists
+-	 * from relocation (see memcg_update_list_lru_node).
++	 * from relocation (see memcg_update_list_lru).
+ 	 */
+-	memcg_lrus = rcu_dereference_check(nlru->memcg_lrus,
+-					   lockdep_is_held(&nlru->lock));
+-	if (memcg_lrus && idx >= 0)
+-		return memcg_lrus->lru[idx];
++	mlrus = rcu_dereference_check(lru->mlrus, lockdep_is_held(&nlru->lock));
++	if (mlrus && idx >= 0)
++		return &mlrus->mlru[idx]->node[nid];
+ 	return &nlru->lru;
+ }
  
- 	if (!ei)
- 		return NULL;
---- a/drivers/dax/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/drivers/dax/super.c
-@@ -282,7 +282,7 @@ static struct inode *dax_alloc_inode(str
- 	struct dax_device *dax_dev;
- 	struct inode *inode;
- 
--	dax_dev = kmem_cache_alloc(dax_cache, GFP_KERNEL);
-+	dax_dev = alloc_inode_sb(sb, dax_cache, GFP_KERNEL);
- 	if (!dax_dev)
- 		return NULL;
- 
---- a/fs/9p/vfs_inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/9p/vfs_inode.c
-@@ -228,7 +228,7 @@ struct inode *v9fs_alloc_inode(struct su
+ static inline struct list_lru_one *
+-list_lru_from_kmem(struct list_lru_node *nlru, void *ptr,
++list_lru_from_kmem(struct list_lru *lru, int nid, void *ptr,
+ 		   struct mem_cgroup **memcg_ptr)
  {
- 	struct v9fs_inode *v9inode;
++	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l = &nlru->lru;
+ 	struct mem_cgroup *memcg = NULL;
  
--	v9inode = kmem_cache_alloc(v9fs_inode_cache, GFP_KERNEL);
-+	v9inode = alloc_inode_sb(sb, v9fs_inode_cache, GFP_KERNEL);
- 	if (!v9inode)
- 		return NULL;
- #ifdef CONFIG_9P_FSCACHE
---- a/fs/adfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/adfs/super.c
-@@ -220,7 +220,7 @@ static struct kmem_cache *adfs_inode_cac
- static struct inode *adfs_alloc_inode(struct super_block *sb)
+-	if (!nlru->memcg_lrus)
++	if (!lru->mlrus)
+ 		goto out;
+ 
+ 	memcg = mem_cgroup_from_obj(ptr);
+ 	if (!memcg)
+ 		goto out;
+ 
+-	l = list_lru_from_memcg_idx(nlru, memcg_cache_id(memcg));
++	l = list_lru_from_memcg_idx(lru, nid, memcg_cache_id(memcg));
+ out:
+ 	if (memcg_ptr)
+ 		*memcg_ptr = memcg;
+@@ -103,18 +105,18 @@ static inline bool list_lru_memcg_aware(
+ }
+ 
+ static inline struct list_lru_one *
+-list_lru_from_memcg_idx(struct list_lru_node *nlru, int idx)
++list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
  {
- 	struct adfs_inode_info *ei;
--	ei = kmem_cache_alloc(adfs_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, adfs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
---- a/fs/affs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/affs/super.c
-@@ -100,7 +100,7 @@ static struct inode *affs_alloc_inode(st
+-	return &nlru->lru;
++	return &lru->node[nid].lru;
+ }
+ 
+ static inline struct list_lru_one *
+-list_lru_from_kmem(struct list_lru_node *nlru, void *ptr,
++list_lru_from_kmem(struct list_lru *lru, int nid, void *ptr,
+ 		   struct mem_cgroup **memcg_ptr)
  {
- 	struct affs_inode_info *i;
+ 	if (memcg_ptr)
+ 		*memcg_ptr = NULL;
+-	return &nlru->lru;
++	return &lru->node[nid].lru;
+ }
+ #endif /* CONFIG_MEMCG_KMEM */
  
--	i = kmem_cache_alloc(affs_inode_cachep, GFP_KERNEL);
-+	i = alloc_inode_sb(sb, affs_inode_cachep, GFP_KERNEL);
- 	if (!i)
- 		return NULL;
+@@ -127,7 +129,7 @@ bool list_lru_add(struct list_lru *lru,
  
---- a/fs/afs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/afs/super.c
-@@ -679,7 +679,7 @@ static struct inode *afs_alloc_inode(str
+ 	spin_lock(&nlru->lock);
+ 	if (list_empty(item)) {
+-		l = list_lru_from_kmem(nlru, item, &memcg);
++		l = list_lru_from_kmem(lru, nid, item, &memcg);
+ 		list_add_tail(item, &l->list);
+ 		/* Set shrinker bit if the first element was added */
+ 		if (!l->nr_items++)
+@@ -150,7 +152,7 @@ bool list_lru_del(struct list_lru *lru,
+ 
+ 	spin_lock(&nlru->lock);
+ 	if (!list_empty(item)) {
+-		l = list_lru_from_kmem(nlru, item, NULL);
++		l = list_lru_from_kmem(lru, nid, item, NULL);
+ 		list_del_init(item);
+ 		l->nr_items--;
+ 		nlru->nr_items--;
+@@ -180,12 +182,11 @@ EXPORT_SYMBOL_GPL(list_lru_isolate_move)
+ unsigned long list_lru_count_one(struct list_lru *lru,
+ 				 int nid, struct mem_cgroup *memcg)
  {
- 	struct afs_vnode *vnode;
+-	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l;
+ 	long count;
  
--	vnode = kmem_cache_alloc(afs_inode_cachep, GFP_KERNEL);
-+	vnode = alloc_inode_sb(sb, afs_inode_cachep, GFP_KERNEL);
- 	if (!vnode)
- 		return NULL;
+ 	rcu_read_lock();
+-	l = list_lru_from_memcg_idx(nlru, memcg_cache_id(memcg));
++	l = list_lru_from_memcg_idx(lru, nid, memcg_cache_id(memcg));
+ 	count = READ_ONCE(l->nr_items);
+ 	rcu_read_unlock();
  
---- a/fs/befs/linuxvfs.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/befs/linuxvfs.c
-@@ -277,7 +277,7 @@ befs_alloc_inode(struct super_block *sb)
+@@ -206,16 +207,16 @@ unsigned long list_lru_count_node(struct
+ EXPORT_SYMBOL_GPL(list_lru_count_node);
+ 
+ static unsigned long
+-__list_lru_walk_one(struct list_lru_node *nlru, int memcg_idx,
++__list_lru_walk_one(struct list_lru *lru, int nid, int memcg_idx,
+ 		    list_lru_walk_cb isolate, void *cb_arg,
+ 		    unsigned long *nr_to_walk)
  {
- 	struct befs_inode_info *bi;
+-
++	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l;
+ 	struct list_head *item, *n;
+ 	unsigned long isolated = 0;
  
--	bi = kmem_cache_alloc(befs_inode_cachep, GFP_KERNEL);
-+	bi = alloc_inode_sb(sb, befs_inode_cachep, GFP_KERNEL);
- 	if (!bi)
- 		return NULL;
- 	return &bi->vfs_inode;
---- a/fs/bfs/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/bfs/inode.c
-@@ -239,7 +239,7 @@ static struct kmem_cache *bfs_inode_cach
- static struct inode *bfs_alloc_inode(struct super_block *sb)
+-	l = list_lru_from_memcg_idx(nlru, memcg_idx);
++	l = list_lru_from_memcg_idx(lru, nid, memcg_idx);
+ restart:
+ 	list_for_each_safe(item, n, &l->list) {
+ 		enum lru_status ret;
+@@ -272,8 +273,8 @@ list_lru_walk_one(struct list_lru *lru,
+ 	unsigned long ret;
+ 
+ 	spin_lock(&nlru->lock);
+-	ret = __list_lru_walk_one(nlru, memcg_cache_id(memcg), isolate, cb_arg,
+-				  nr_to_walk);
++	ret = __list_lru_walk_one(lru, nid, memcg_cache_id(memcg), isolate,
++				  cb_arg, nr_to_walk);
+ 	spin_unlock(&nlru->lock);
+ 	return ret;
+ }
+@@ -288,8 +289,8 @@ list_lru_walk_one_irq(struct list_lru *l
+ 	unsigned long ret;
+ 
+ 	spin_lock_irq(&nlru->lock);
+-	ret = __list_lru_walk_one(nlru, memcg_cache_id(memcg), isolate, cb_arg,
+-				  nr_to_walk);
++	ret = __list_lru_walk_one(lru, nid, memcg_cache_id(memcg), isolate,
++				  cb_arg, nr_to_walk);
+ 	spin_unlock_irq(&nlru->lock);
+ 	return ret;
+ }
+@@ -308,7 +309,7 @@ unsigned long list_lru_walk_node(struct
+ 			struct list_lru_node *nlru = &lru->node[nid];
+ 
+ 			spin_lock(&nlru->lock);
+-			isolated += __list_lru_walk_one(nlru, memcg_idx,
++			isolated += __list_lru_walk_one(lru, nid, memcg_idx,
+ 							isolate, cb_arg,
+ 							nr_to_walk);
+ 			spin_unlock(&nlru->lock);
+@@ -328,166 +329,111 @@ static void init_one_lru(struct list_lru
+ }
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+-static void __memcg_destroy_list_lru_node(struct list_lru_memcg *memcg_lrus,
+-					  int begin, int end)
++static void memcg_destroy_list_lru_range(struct list_lru_memcg *mlrus,
++					 int begin, int end)
  {
- 	struct bfs_inode_info *bi;
--	bi = kmem_cache_alloc(bfs_inode_cachep, GFP_KERNEL);
-+	bi = alloc_inode_sb(sb, bfs_inode_cachep, GFP_KERNEL);
- 	if (!bi)
- 		return NULL;
- 	return &bi->vfs_inode;
---- a/fs/btrfs/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/btrfs/inode.c
-@@ -8787,7 +8787,7 @@ struct inode *btrfs_alloc_inode(struct s
- 	struct btrfs_inode *ei;
- 	struct inode *inode;
- 
--	ei = kmem_cache_alloc(btrfs_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, btrfs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 
---- a/fs/ceph/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ceph/inode.c
-@@ -447,7 +447,7 @@ struct inode *ceph_alloc_inode(struct su
- 	struct ceph_inode_info *ci;
  	int i;
  
--	ci = kmem_cache_alloc(ceph_inode_cachep, GFP_NOFS);
-+	ci = alloc_inode_sb(sb, ceph_inode_cachep, GFP_NOFS);
- 	if (!ci)
- 		return NULL;
- 
---- a/fs/cifs/cifsfs.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/cifs/cifsfs.c
-@@ -354,7 +354,7 @@ static struct inode *
- cifs_alloc_inode(struct super_block *sb)
- {
- 	struct cifsInodeInfo *cifs_inode;
--	cifs_inode = kmem_cache_alloc(cifs_inode_cachep, GFP_KERNEL);
-+	cifs_inode = alloc_inode_sb(sb, cifs_inode_cachep, GFP_KERNEL);
- 	if (!cifs_inode)
- 		return NULL;
- 	cifs_inode->cifsAttrs = 0x20;	/* default */
---- a/fs/coda/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/coda/inode.c
-@@ -43,7 +43,7 @@ static struct kmem_cache * coda_inode_ca
- static struct inode *coda_alloc_inode(struct super_block *sb)
- {
- 	struct coda_inode_info *ei;
--	ei = kmem_cache_alloc(coda_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, coda_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	memset(&ei->c_fid, 0, sizeof(struct CodaFid));
---- a/fs/ecryptfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ecryptfs/super.c
-@@ -38,7 +38,7 @@ static struct inode *ecryptfs_alloc_inod
- 	struct ecryptfs_inode_info *inode_info;
- 	struct inode *inode = NULL;
- 
--	inode_info = kmem_cache_alloc(ecryptfs_inode_info_cache, GFP_KERNEL);
-+	inode_info = alloc_inode_sb(sb, ecryptfs_inode_info_cache, GFP_KERNEL);
- 	if (unlikely(!inode_info))
- 		goto out;
- 	if (ecryptfs_init_crypt_stat(&inode_info->crypt_stat)) {
---- a/fs/efs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/efs/super.c
-@@ -69,7 +69,7 @@ static struct kmem_cache * efs_inode_cac
- static struct inode *efs_alloc_inode(struct super_block *sb)
- {
- 	struct efs_inode_info *ei;
--	ei = kmem_cache_alloc(efs_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, efs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
---- a/fs/erofs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/erofs/super.c
-@@ -84,7 +84,7 @@ static void erofs_inode_init_once(void *
- static struct inode *erofs_alloc_inode(struct super_block *sb)
- {
- 	struct erofs_inode *vi =
--		kmem_cache_alloc(erofs_inode_cachep, GFP_KERNEL);
-+		alloc_inode_sb(sb, erofs_inode_cachep, GFP_KERNEL);
- 
- 	if (!vi)
- 		return NULL;
---- a/fs/exfat/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/exfat/super.c
-@@ -183,7 +183,7 @@ static struct inode *exfat_alloc_inode(s
- {
- 	struct exfat_inode_info *ei;
- 
--	ei = kmem_cache_alloc(exfat_inode_cachep, GFP_NOFS);
-+	ei = alloc_inode_sb(sb, exfat_inode_cachep, GFP_NOFS);
- 	if (!ei)
- 		return NULL;
- 
---- a/fs/ext2/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ext2/super.c
-@@ -180,7 +180,7 @@ static struct kmem_cache * ext2_inode_ca
- static struct inode *ext2_alloc_inode(struct super_block *sb)
- {
- 	struct ext2_inode_info *ei;
--	ei = kmem_cache_alloc(ext2_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, ext2_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	ei->i_block_alloc_info = NULL;
---- a/fs/ext4/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ext4/super.c
-@@ -1316,7 +1316,7 @@ static struct inode *ext4_alloc_inode(st
- {
- 	struct ext4_inode_info *ei;
- 
--	ei = kmem_cache_alloc(ext4_inode_cachep, GFP_NOFS);
-+	ei = alloc_inode_sb(sb, ext4_inode_cachep, GFP_NOFS);
- 	if (!ei)
- 		return NULL;
- 
---- a/fs/fat/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/fat/inode.c
-@@ -745,7 +745,7 @@ static struct kmem_cache *fat_inode_cach
- static struct inode *fat_alloc_inode(struct super_block *sb)
- {
- 	struct msdos_inode_info *ei;
--	ei = kmem_cache_alloc(fat_inode_cachep, GFP_NOFS);
-+	ei = alloc_inode_sb(sb, fat_inode_cachep, GFP_NOFS);
- 	if (!ei)
- 		return NULL;
- 
---- a/fs/freevxfs/vxfs_super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/freevxfs/vxfs_super.c
-@@ -124,7 +124,7 @@ static struct inode *vxfs_alloc_inode(st
- {
- 	struct vxfs_inode_info *vi;
- 
--	vi = kmem_cache_alloc(vxfs_inode_cachep, GFP_KERNEL);
-+	vi = alloc_inode_sb(sb, vxfs_inode_cachep, GFP_KERNEL);
- 	if (!vi)
- 		return NULL;
- 	inode_init_once(&vi->vfs_inode);
---- a/fs/fuse/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/fuse/inode.c
-@@ -72,7 +72,7 @@ static struct inode *fuse_alloc_inode(st
- {
- 	struct fuse_inode *fi;
- 
--	fi = kmem_cache_alloc(fuse_inode_cachep, GFP_KERNEL);
-+	fi = alloc_inode_sb(sb, fuse_inode_cachep, GFP_KERNEL);
- 	if (!fi)
- 		return NULL;
- 
---- a/fs/gfs2/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/gfs2/super.c
-@@ -1425,7 +1425,7 @@ static struct inode *gfs2_alloc_inode(st
- {
- 	struct gfs2_inode *ip;
- 
--	ip = kmem_cache_alloc(gfs2_inode_cachep, GFP_KERNEL);
-+	ip = alloc_inode_sb(sb, gfs2_inode_cachep, GFP_KERNEL);
- 	if (!ip)
- 		return NULL;
- 	ip->i_flags = 0;
---- a/fs/hfsplus/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/hfsplus/super.c
-@@ -624,7 +624,7 @@ static struct inode *hfsplus_alloc_inode
- {
- 	struct hfsplus_inode_info *i;
- 
--	i = kmem_cache_alloc(hfsplus_inode_cachep, GFP_KERNEL);
-+	i = alloc_inode_sb(sb, hfsplus_inode_cachep, GFP_KERNEL);
- 	return i ? &i->vfs_inode : NULL;
+ 	for (i = begin; i < end; i++)
+-		kfree(memcg_lrus->lru[i]);
++		kfree(mlrus->mlru[i]);
  }
  
---- a/fs/hfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/hfs/super.c
-@@ -162,7 +162,7 @@ static struct inode *hfs_alloc_inode(str
+-static int __memcg_init_list_lru_node(struct list_lru_memcg *memcg_lrus,
+-				      int begin, int end)
++static int memcg_init_list_lru_range(struct list_lru_memcg *mlrus,
++				     int begin, int end)
  {
- 	struct hfs_inode_info *i;
+ 	int i;
  
--	i = kmem_cache_alloc(hfs_inode_cachep, GFP_KERNEL);
-+	i = alloc_inode_sb(sb, hfs_inode_cachep, GFP_KERNEL);
- 	return i ? &i->vfs_inode : NULL;
+ 	for (i = begin; i < end; i++) {
+-		struct list_lru_one *l;
++		int nid;
++		struct list_lru_per_memcg *mlru;
+ 
+-		l = kmalloc(sizeof(struct list_lru_one), GFP_KERNEL);
+-		if (!l)
++		mlru = kmalloc(struct_size(mlru, node, nr_node_ids), GFP_KERNEL);
++		if (!mlru)
+ 			goto fail;
+ 
+-		init_one_lru(l);
+-		memcg_lrus->lru[i] = l;
++		for_each_node(nid)
++			init_one_lru(&mlru->node[nid]);
++		mlrus->mlru[i] = mlru;
+ 	}
+ 	return 0;
+ fail:
+-	__memcg_destroy_list_lru_node(memcg_lrus, begin, i);
++	memcg_destroy_list_lru_range(mlrus, begin, i);
+ 	return -ENOMEM;
  }
  
---- a/fs/hostfs/hostfs_kern.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -222,7 +222,7 @@ static struct inode *hostfs_alloc_inode(
+-static int memcg_init_list_lru_node(struct list_lru_node *nlru)
++static int memcg_init_list_lru(struct list_lru *lru, bool memcg_aware)
  {
- 	struct hostfs_inode_info *hi;
+-	struct list_lru_memcg *memcg_lrus;
++	struct list_lru_memcg *mlrus;
+ 	int size = memcg_nr_cache_ids;
  
--	hi = kmem_cache_alloc(hostfs_inode_cache, GFP_KERNEL_ACCOUNT);
-+	hi = alloc_inode_sb(sb, hostfs_inode_cache, GFP_KERNEL_ACCOUNT);
- 	if (hi == NULL)
- 		return NULL;
- 	hi->fd = -1;
---- a/fs/hpfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/hpfs/super.c
-@@ -232,7 +232,7 @@ static struct kmem_cache * hpfs_inode_ca
- static struct inode *hpfs_alloc_inode(struct super_block *sb)
- {
- 	struct hpfs_inode_info *ei;
--	ei = kmem_cache_alloc(hpfs_inode_cachep, GFP_NOFS);
-+	ei = alloc_inode_sb(sb, hpfs_inode_cachep, GFP_NOFS);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
---- a/fs/hugetlbfs/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/hugetlbfs/inode.c
-@@ -1110,7 +1110,7 @@ static struct inode *hugetlbfs_alloc_ino
+-	memcg_lrus = kvmalloc(struct_size(memcg_lrus, lru, size), GFP_KERNEL);
+-	if (!memcg_lrus)
++	lru->memcg_aware = memcg_aware;
++	if (!memcg_aware)
++		return 0;
++
++	mlrus = kvmalloc(struct_size(mlrus, mlru, size), GFP_KERNEL);
++	if (!mlrus)
+ 		return -ENOMEM;
  
- 	if (unlikely(!hugetlbfs_dec_free_inodes(sbinfo)))
- 		return NULL;
--	p = kmem_cache_alloc(hugetlbfs_inode_cachep, GFP_KERNEL);
-+	p = alloc_inode_sb(sb, hugetlbfs_inode_cachep, GFP_KERNEL);
- 	if (unlikely(!p)) {
- 		hugetlbfs_inc_free_inodes(sbinfo);
- 		return NULL;
---- a/fs/isofs/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/isofs/inode.c
-@@ -70,7 +70,7 @@ static struct kmem_cache *isofs_inode_ca
- static struct inode *isofs_alloc_inode(struct super_block *sb)
- {
- 	struct iso_inode_info *ei;
--	ei = kmem_cache_alloc(isofs_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, isofs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
---- a/fs/jffs2/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/jffs2/super.c
-@@ -39,7 +39,7 @@ static struct inode *jffs2_alloc_inode(s
- {
- 	struct jffs2_inode_info *f;
+-	if (__memcg_init_list_lru_node(memcg_lrus, 0, size)) {
+-		kvfree(memcg_lrus);
++	if (memcg_init_list_lru_range(mlrus, 0, size)) {
++		kvfree(mlrus);
+ 		return -ENOMEM;
+ 	}
+-	RCU_INIT_POINTER(nlru->memcg_lrus, memcg_lrus);
++	RCU_INIT_POINTER(lru->mlrus, mlrus);
  
--	f = kmem_cache_alloc(jffs2_inode_cachep, GFP_KERNEL);
-+	f = alloc_inode_sb(sb, jffs2_inode_cachep, GFP_KERNEL);
- 	if (!f)
- 		return NULL;
- 	return &f->vfs_inode;
---- a/fs/jfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/jfs/super.c
-@@ -102,7 +102,7 @@ static struct inode *jfs_alloc_inode(str
- {
- 	struct jfs_inode_info *jfs_inode;
- 
--	jfs_inode = kmem_cache_alloc(jfs_inode_cachep, GFP_NOFS);
-+	jfs_inode = alloc_inode_sb(sb, jfs_inode_cachep, GFP_NOFS);
- 	if (!jfs_inode)
- 		return NULL;
- #ifdef CONFIG_QUOTA
---- a/fs/minix/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/minix/inode.c
-@@ -63,7 +63,7 @@ static struct kmem_cache * minix_inode_c
- static struct inode *minix_alloc_inode(struct super_block *sb)
- {
- 	struct minix_inode_info *ei;
--	ei = kmem_cache_alloc(minix_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, minix_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
---- a/fs/nfs/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/nfs/inode.c
-@@ -2238,7 +2238,7 @@ static int nfs_update_inode(struct inode
- struct inode *nfs_alloc_inode(struct super_block *sb)
- {
- 	struct nfs_inode *nfsi;
--	nfsi = kmem_cache_alloc(nfs_inode_cachep, GFP_KERNEL);
-+	nfsi = alloc_inode_sb(sb, nfs_inode_cachep, GFP_KERNEL);
- 	if (!nfsi)
- 		return NULL;
- 	nfsi->flags = 0UL;
---- a/fs/nilfs2/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/nilfs2/super.c
-@@ -151,7 +151,7 @@ struct inode *nilfs_alloc_inode(struct s
- {
- 	struct nilfs_inode_info *ii;
- 
--	ii = kmem_cache_alloc(nilfs_inode_cachep, GFP_NOFS);
-+	ii = alloc_inode_sb(sb, nilfs_inode_cachep, GFP_NOFS);
- 	if (!ii)
- 		return NULL;
- 	ii->i_bh = NULL;
---- a/fs/ntfs3/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ntfs3/super.c
-@@ -399,7 +399,7 @@ static struct kmem_cache *ntfs_inode_cac
- 
- static struct inode *ntfs_alloc_inode(struct super_block *sb)
- {
--	struct ntfs_inode *ni = kmem_cache_alloc(ntfs_inode_cachep, GFP_NOFS);
-+	struct ntfs_inode *ni = alloc_inode_sb(sb, ntfs_inode_cachep, GFP_NOFS);
- 
- 	if (!ni)
- 		return NULL;
---- a/fs/ntfs/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ntfs/inode.c
-@@ -310,7 +310,7 @@ struct inode *ntfs_alloc_big_inode(struc
- 	ntfs_inode *ni;
- 
- 	ntfs_debug("Entering.");
--	ni = kmem_cache_alloc(ntfs_big_inode_cache, GFP_NOFS);
-+	ni = alloc_inode_sb(sb, ntfs_big_inode_cache, GFP_NOFS);
- 	if (likely(ni != NULL)) {
- 		ni->state = 0;
- 		return VFS_I(ni);
---- a/fs/ocfs2/dlmfs/dlmfs.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ocfs2/dlmfs/dlmfs.c
-@@ -280,7 +280,7 @@ static struct inode *dlmfs_alloc_inode(s
- {
- 	struct dlmfs_inode_private *ip;
- 
--	ip = kmem_cache_alloc(dlmfs_inode_cache, GFP_NOFS);
-+	ip = alloc_inode_sb(sb, dlmfs_inode_cache, GFP_NOFS);
- 	if (!ip)
- 		return NULL;
- 
---- a/fs/ocfs2/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ocfs2/super.c
-@@ -548,7 +548,7 @@ static struct inode *ocfs2_alloc_inode(s
- {
- 	struct ocfs2_inode_info *oi;
- 
--	oi = kmem_cache_alloc(ocfs2_inode_cachep, GFP_NOFS);
-+	oi = alloc_inode_sb(sb, ocfs2_inode_cachep, GFP_NOFS);
- 	if (!oi)
- 		return NULL;
- 
---- a/fs/openpromfs/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/openpromfs/inode.c
-@@ -335,7 +335,7 @@ static struct inode *openprom_alloc_inod
- {
- 	struct op_inode_info *oi;
- 
--	oi = kmem_cache_alloc(op_inode_cachep, GFP_KERNEL);
-+	oi = alloc_inode_sb(sb, op_inode_cachep, GFP_KERNEL);
- 	if (!oi)
- 		return NULL;
- 
---- a/fs/orangefs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/orangefs/super.c
-@@ -107,7 +107,7 @@ static struct inode *orangefs_alloc_inod
- {
- 	struct orangefs_inode_s *orangefs_inode;
- 
--	orangefs_inode = kmem_cache_alloc(orangefs_inode_cache, GFP_KERNEL);
-+	orangefs_inode = alloc_inode_sb(sb, orangefs_inode_cache, GFP_KERNEL);
- 	if (!orangefs_inode)
- 		return NULL;
- 
---- a/fs/overlayfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/overlayfs/super.c
-@@ -174,7 +174,7 @@ static struct kmem_cache *ovl_inode_cach
- 
- static struct inode *ovl_alloc_inode(struct super_block *sb)
- {
--	struct ovl_inode *oi = kmem_cache_alloc(ovl_inode_cachep, GFP_KERNEL);
-+	struct ovl_inode *oi = alloc_inode_sb(sb, ovl_inode_cachep, GFP_KERNEL);
- 
- 	if (!oi)
- 		return NULL;
---- a/fs/proc/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/proc/inode.c
-@@ -66,7 +66,7 @@ static struct inode *proc_alloc_inode(st
- {
- 	struct proc_inode *ei;
- 
--	ei = kmem_cache_alloc(proc_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, proc_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	ei->pid = NULL;
---- a/fs/qnx4/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/qnx4/inode.c
-@@ -338,7 +338,7 @@ static struct kmem_cache *qnx4_inode_cac
- static struct inode *qnx4_alloc_inode(struct super_block *sb)
- {
- 	struct qnx4_inode_info *ei;
--	ei = kmem_cache_alloc(qnx4_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, qnx4_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
---- a/fs/qnx6/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/qnx6/inode.c
-@@ -597,7 +597,7 @@ static struct kmem_cache *qnx6_inode_cac
- static struct inode *qnx6_alloc_inode(struct super_block *sb)
- {
- 	struct qnx6_inode_info *ei;
--	ei = kmem_cache_alloc(qnx6_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, qnx6_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
---- a/fs/reiserfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/reiserfs/super.c
-@@ -639,7 +639,7 @@ static struct kmem_cache *reiserfs_inode
- static struct inode *reiserfs_alloc_inode(struct super_block *sb)
- {
- 	struct reiserfs_inode_info *ei;
--	ei = kmem_cache_alloc(reiserfs_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, reiserfs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	atomic_set(&ei->openers, 0);
---- a/fs/romfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/romfs/super.c
-@@ -375,7 +375,7 @@ static struct inode *romfs_alloc_inode(s
- {
- 	struct romfs_inode_info *inode;
- 
--	inode = kmem_cache_alloc(romfs_inode_cachep, GFP_KERNEL);
-+	inode = alloc_inode_sb(sb, romfs_inode_cachep, GFP_KERNEL);
- 	return inode ? &inode->vfs_inode : NULL;
+ 	return 0;
  }
  
---- a/fs/squashfs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/squashfs/super.c
-@@ -584,7 +584,7 @@ static void __exit exit_squashfs_fs(void
- static struct inode *squashfs_alloc_inode(struct super_block *sb)
+-static void memcg_destroy_list_lru_node(struct list_lru_node *nlru)
++static void memcg_destroy_list_lru(struct list_lru *lru)
  {
- 	struct squashfs_inode_info *ei =
--		kmem_cache_alloc(squashfs_inode_cachep, GFP_KERNEL);
-+		alloc_inode_sb(sb, squashfs_inode_cachep, GFP_KERNEL);
- 
- 	return ei ? &ei->vfs_inode : NULL;
- }
---- a/fs/sysv/inode.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/sysv/inode.c
-@@ -306,7 +306,7 @@ static struct inode *sysv_alloc_inode(st
- {
- 	struct sysv_inode_info *si;
- 
--	si = kmem_cache_alloc(sysv_inode_cachep, GFP_KERNEL);
-+	si = alloc_inode_sb(sb, sysv_inode_cachep, GFP_KERNEL);
- 	if (!si)
- 		return NULL;
- 	return &si->vfs_inode;
---- a/fs/ubifs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ubifs/super.c
-@@ -268,7 +268,7 @@ static struct inode *ubifs_alloc_inode(s
- {
- 	struct ubifs_inode *ui;
- 
--	ui = kmem_cache_alloc(ubifs_inode_slab, GFP_NOFS);
-+	ui = alloc_inode_sb(sb, ubifs_inode_slab, GFP_NOFS);
- 	if (!ui)
- 		return NULL;
- 
---- a/fs/udf/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/udf/super.c
-@@ -136,7 +136,7 @@ static struct kmem_cache *udf_inode_cach
- static struct inode *udf_alloc_inode(struct super_block *sb)
- {
- 	struct udf_inode_info *ei;
--	ei = kmem_cache_alloc(udf_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, udf_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 
---- a/fs/ufs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/ufs/super.c
-@@ -1443,7 +1443,7 @@ static struct inode *ufs_alloc_inode(str
- {
- 	struct ufs_inode_info *ei;
- 
--	ei = kmem_cache_alloc(ufs_inode_cachep, GFP_NOFS);
-+	ei = alloc_inode_sb(sb, ufs_inode_cachep, GFP_NOFS);
- 	if (!ei)
- 		return NULL;
- 
---- a/fs/vboxsf/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/vboxsf/super.c
-@@ -241,7 +241,7 @@ static struct inode *vboxsf_alloc_inode(
- {
- 	struct vboxsf_inode *sf_i;
- 
--	sf_i = kmem_cache_alloc(vboxsf_inode_cachep, GFP_NOFS);
-+	sf_i = alloc_inode_sb(sb, vboxsf_inode_cachep, GFP_NOFS);
- 	if (!sf_i)
- 		return NULL;
- 
---- a/fs/xfs/xfs_icache.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/xfs/xfs_icache.c
-@@ -77,7 +77,7 @@ xfs_inode_alloc(
- 	 * XXX: If this didn't occur in transactions, we could drop GFP_NOFAIL
- 	 * and return NULL here on ENOMEM.
+-	struct list_lru_memcg *memcg_lrus;
++	struct list_lru_memcg *mlrus;
++
++	if (!list_lru_memcg_aware(lru))
++		return;
++
+ 	/*
+ 	 * This is called when shrinker has already been unregistered,
+ 	 * and nobody can use it. So, there is no need to use kvfree_rcu().
  	 */
--	ip = kmem_cache_alloc(xfs_inode_cache, GFP_KERNEL | __GFP_NOFAIL);
-+	ip = alloc_inode_sb(mp->m_super, xfs_inode_cache, GFP_KERNEL | __GFP_NOFAIL);
+-	memcg_lrus = rcu_dereference_protected(nlru->memcg_lrus, true);
+-	__memcg_destroy_list_lru_node(memcg_lrus, 0, memcg_nr_cache_ids);
+-	kvfree(memcg_lrus);
++	mlrus = rcu_dereference_protected(lru->mlrus, true);
++	memcg_destroy_list_lru_range(mlrus, 0, memcg_nr_cache_ids);
++	kvfree(mlrus);
+ }
  
- 	if (inode_init_always(mp->m_super, VFS_I(ip))) {
- 		kmem_cache_free(xfs_inode_cache, ip);
---- a/fs/zonefs/super.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/fs/zonefs/super.c
-@@ -1137,7 +1137,7 @@ static struct inode *zonefs_alloc_inode(
+-static int memcg_update_list_lru_node(struct list_lru_node *nlru,
+-				      int old_size, int new_size)
++static int memcg_update_list_lru(struct list_lru *lru, int old_size, int new_size)
  {
- 	struct zonefs_inode_info *zi;
+ 	struct list_lru_memcg *old, *new;
  
--	zi = kmem_cache_alloc(zonefs_inode_cachep, GFP_KERNEL);
-+	zi = alloc_inode_sb(sb, zonefs_inode_cachep, GFP_KERNEL);
- 	if (!zi)
- 		return NULL;
+ 	BUG_ON(old_size > new_size);
  
---- a/ipc/mqueue.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/ipc/mqueue.c
-@@ -486,7 +486,7 @@ static struct inode *mqueue_alloc_inode(
- {
- 	struct mqueue_inode_info *ei;
+-	old = rcu_dereference_protected(nlru->memcg_lrus,
++	old = rcu_dereference_protected(lru->mlrus,
+ 					lockdep_is_held(&list_lrus_mutex));
+-	new = kvmalloc(struct_size(new, lru, new_size), GFP_KERNEL);
++	new = kvmalloc(struct_size(new, mlru, new_size), GFP_KERNEL);
+ 	if (!new)
+ 		return -ENOMEM;
  
--	ei = kmem_cache_alloc(mqueue_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, mqueue_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
---- a/mm/shmem.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/mm/shmem.c
-@@ -3708,7 +3708,7 @@ static struct kmem_cache *shmem_inode_ca
- static struct inode *shmem_alloc_inode(struct super_block *sb)
- {
- 	struct shmem_inode_info *info;
--	info = kmem_cache_alloc(shmem_inode_cachep, GFP_KERNEL);
-+	info = alloc_inode_sb(sb, shmem_inode_cachep, GFP_KERNEL);
- 	if (!info)
- 		return NULL;
- 	return &info->vfs_inode;
---- a/net/socket.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/net/socket.c
-@@ -301,7 +301,7 @@ static struct inode *sock_alloc_inode(st
- {
- 	struct socket_alloc *ei;
+-	if (__memcg_init_list_lru_node(new, old_size, new_size)) {
++	if (memcg_init_list_lru_range(new, old_size, new_size)) {
+ 		kvfree(new);
+ 		return -ENOMEM;
+ 	}
  
--	ei = kmem_cache_alloc(sock_inode_cachep, GFP_KERNEL);
-+	ei = alloc_inode_sb(sb, sock_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	init_waitqueue_head(&ei->socket.wq.wait);
---- a/net/sunrpc/rpc_pipe.c~fs-allocate-inode-by-using-alloc_inode_sb
-+++ a/net/sunrpc/rpc_pipe.c
-@@ -197,7 +197,7 @@ static struct inode *
- rpc_alloc_inode(struct super_block *sb)
+-	memcpy(&new->lru, &old->lru, flex_array_size(new, lru, old_size));
+-	rcu_assign_pointer(nlru->memcg_lrus, new);
++	memcpy(&new->mlru, &old->mlru, flex_array_size(new, mlru, old_size));
++	rcu_assign_pointer(lru->mlrus, new);
+ 	kvfree_rcu(old, rcu);
+ 	return 0;
+ }
+ 
+-static void memcg_cancel_update_list_lru_node(struct list_lru_node *nlru,
+-					      int old_size, int new_size)
+-{
+-	struct list_lru_memcg *memcg_lrus;
+-
+-	memcg_lrus = rcu_dereference_protected(nlru->memcg_lrus,
+-					       lockdep_is_held(&list_lrus_mutex));
+-	/* do not bother shrinking the array back to the old size, because we
+-	 * cannot handle allocation failures here */
+-	__memcg_destroy_list_lru_node(memcg_lrus, old_size, new_size);
+-}
+-
+-static int memcg_init_list_lru(struct list_lru *lru, bool memcg_aware)
+-{
+-	int i;
+-
+-	lru->memcg_aware = memcg_aware;
+-
+-	if (!memcg_aware)
+-		return 0;
+-
+-	for_each_node(i) {
+-		if (memcg_init_list_lru_node(&lru->node[i]))
+-			goto fail;
+-	}
+-	return 0;
+-fail:
+-	for (i = i - 1; i >= 0; i--) {
+-		if (!lru->node[i].memcg_lrus)
+-			continue;
+-		memcg_destroy_list_lru_node(&lru->node[i]);
+-	}
+-	return -ENOMEM;
+-}
+-
+-static void memcg_destroy_list_lru(struct list_lru *lru)
+-{
+-	int i;
+-
+-	if (!list_lru_memcg_aware(lru))
+-		return;
+-
+-	for_each_node(i)
+-		memcg_destroy_list_lru_node(&lru->node[i]);
+-}
+-
+-static int memcg_update_list_lru(struct list_lru *lru,
+-				 int old_size, int new_size)
+-{
+-	int i;
+-
+-	for_each_node(i) {
+-		if (memcg_update_list_lru_node(&lru->node[i],
+-					       old_size, new_size))
+-			goto fail;
+-	}
+-	return 0;
+-fail:
+-	for (i = i - 1; i >= 0; i--) {
+-		if (!lru->node[i].memcg_lrus)
+-			continue;
+-
+-		memcg_cancel_update_list_lru_node(&lru->node[i],
+-						  old_size, new_size);
+-	}
+-	return -ENOMEM;
+-}
+-
+ static void memcg_cancel_update_list_lru(struct list_lru *lru,
+ 					 int old_size, int new_size)
  {
- 	struct rpc_inode *rpci;
--	rpci = kmem_cache_alloc(rpc_inode_cachep, GFP_KERNEL);
-+	rpci = alloc_inode_sb(sb, rpc_inode_cachep, GFP_KERNEL);
- 	if (!rpci)
- 		return NULL;
- 	return &rpci->vfs_inode;
+-	int i;
++	struct list_lru_memcg *mlrus;
+ 
+-	for_each_node(i)
+-		memcg_cancel_update_list_lru_node(&lru->node[i],
+-						  old_size, new_size);
++	mlrus = rcu_dereference_protected(lru->mlrus,
++					  lockdep_is_held(&list_lrus_mutex));
++	/*
++	 * Do not bother shrinking the array back to the old size, because we
++	 * cannot handle allocation failures here.
++	 */
++	memcg_destroy_list_lru_range(mlrus, old_size, new_size);
+ }
+ 
+ int memcg_update_all_list_lrus(int new_size)
+@@ -524,8 +470,8 @@ static void memcg_drain_list_lru_node(st
+ 	 */
+ 	spin_lock_irq(&nlru->lock);
+ 
+-	src = list_lru_from_memcg_idx(nlru, src_idx);
+-	dst = list_lru_from_memcg_idx(nlru, dst_idx);
++	src = list_lru_from_memcg_idx(lru, nid, src_idx);
++	dst = list_lru_from_memcg_idx(lru, nid, dst_idx);
+ 
+ 	list_splice_init(&src->list, &dst->list);
+ 
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
