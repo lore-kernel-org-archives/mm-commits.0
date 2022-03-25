@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAFA5C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA6AAC43217
 	for <mm-commits@archiver.kernel.org>; Fri, 25 Mar 2022 22:43:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234044AbiCYWpU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 18:45:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57380 "EHLO
+        id S234007AbiCYWpV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 18:45:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234007AbiCYWpC (ORCPT
+        with ESMTP id S234043AbiCYWpC (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 18:45:02 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FC4420E95D
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:43:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8E8220E942
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 15:43:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 40550B82A1E
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:43:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D383AC004DD;
-        Fri, 25 Mar 2022 22:43:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 64D83B82A32
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 22:43:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05401C340F0;
+        Fri, 25 Mar 2022 22:43:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648248195;
-        bh=MEuwbQu9JFVQiKEs33v7gwz7dN9V7cIdWVtnN+1FNpY=;
+        s=korg; t=1648248192;
+        bh=GjL3SWvS5fnQX39RSazRypVFXlAkQIm8k7pOrqibv+g=;
         h=Date:To:From:Subject:From;
-        b=jWoFKZqcjr6WgrA8PNxzP2rSIu6ulqku/v+BNTlPyVl1zWG9416HXYVzs/DAHvUi+
-         09RwFnIHUT9WIK4Sm9rWdzAH4+q9aGGzee50YQlaA1sguoR2+zPDr6wGoxluo3uOY8
-         peVyX9cbpF3xzyx02MiLTGdHI+e/m5bbsQbheRuc=
-Date:   Fri, 25 Mar 2022 15:43:15 -0700
+        b=FNEBM6XIxZM2G7TlrQc2jCpJfi8fim7HXCT+WBVf7eylUISWP+s4ykSTJmYp3TwYn
+         Xb/SCTebufRS375ImYZXrZBevIMocKsc5yC+rVRzK38n4j3H6oPvj9OdchEvv0iy8w
+         vancNA/nYdVaFiseRvRfVhqvnbrsvJfkNnm8q4aM=
+Date:   Fri, 25 Mar 2022 15:43:11 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
         shakeelb@google.com, rppt@linux.ibm.com, roman.gushchin@linux.dev,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         jack@suse.cz, hughd@google.com, hch@lst.de, ddutile@redhat.com,
         aarcange@redhat.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-swapfile-remove-stale-reuse_swap_page.patch removed from -mm tree
-Message-Id: <20220325224315.D383AC004DD@smtp.kernel.org>
+Subject: [merged] mm-streamline-cow-logic-in-do_swap_page.patch removed from -mm tree
+Message-Id: <20220325224312.05401C340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,20 +48,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile: remove stale reuse_swap_page()
+     Subject: mm: streamline COW logic in do_swap_page()
 has been removed from the -mm tree.  Its filename was
-     mm-swapfile-remove-stale-reuse_swap_page.patch
+     mm-streamline-cow-logic-in-do_swap_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/swapfile: remove stale reuse_swap_page()
+Subject: mm: streamline COW logic in do_swap_page()
 
-All users are gone, let's remove it.  We'll let SWP_STABLE_WRITES stick
-around for now, as it might come in handy in the near future.
+Currently we have a different COW logic when:
+* triggering a read-fault to swapin first and then trigger a write-fault
+  -> do_swap_page() + do_wp_page()
+* triggering a write-fault to swapin
+  -> do_swap_page() + do_wp_page() only if we fail reuse in do_swap_page()
 
-Link: https://lkml.kernel.org/r/20220131162940.210846-8-david@redhat.com
+The COW logic in do_swap_page() is different than our reuse logic in
+do_wp_page().  The COW logic in do_wp_page() -- page_count() == 1 -- makes
+currently sure that we certainly don't have a remaining reference, e.g.,
+via GUP, on the target page we want to reuse: if there is any unexpected
+reference, we have to copy to avoid information leaks.
+
+As do_swap_page() behaves differently, in environments with swap enabled
+we can currently have an unintended information leak from the parent to
+the child, similar as known from CVE-2020-29374:
+
+	1. Parent writes to anonymous page
+	-> Page is mapped writable and modified
+	2. Page is swapped out
+	-> Page is unmapped and replaced by swap entry
+	3. fork()
+	-> Swap entries are copied to child
+	4. Child pins page R/O
+	-> Page is mapped R/O into child
+	5. Child unmaps page
+	-> Child still holds GUP reference
+	6. Parent writes to page
+	-> Page is reused in do_swap_page()
+	-> Child can observe changes
+
+Exchanging 2. and 3. should have the same effect.
+
+Let's apply the same COW logic as in do_wp_page(), conditionally trying to
+remove the page from the swapcache after freeing the swap entry, however,
+before actually mapping our page.  We can change the order now that we use
+try_to_free_swap(), which doesn't care about the mapcount, instead of
+reuse_swap_page().
+
+To handle references from the LRU pagevecs, conditionally drain the local
+LRU pagevecs when required, however, don't consider the page_count() when
+deciding whether to drain to keep it simple for now.
+
+Link: https://lkml.kernel.org/r/20220131162940.210846-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -89,150 +128,99 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 -
- mm/swapfile.c        |  104 -----------------------------------------
- 2 files changed, 108 deletions(-)
+ mm/memory.c |   55 +++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 43 insertions(+), 12 deletions(-)
 
---- a/include/linux/swap.h~mm-swapfile-remove-stale-reuse_swap_page
-+++ a/include/linux/swap.h
-@@ -515,7 +515,6 @@ extern int __swp_swapcount(swp_entry_t e
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
- extern struct swap_info_struct *swp_swap_info(swp_entry_t entry);
--extern bool reuse_swap_page(struct page *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
- extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
-@@ -681,9 +680,6 @@ static inline int swp_swapcount(swp_entr
+--- a/mm/memory.c~mm-streamline-cow-logic-in-do_swap_page
++++ a/mm/memory.c
+@@ -3489,6 +3489,25 @@ static vm_fault_t remove_device_exclusiv
  	return 0;
  }
  
--#define reuse_swap_page(page) \
--	(page_trans_huge_mapcount(page) == 1)
--
- static inline int try_to_free_swap(struct page *page)
- {
- 	return 0;
---- a/mm/swapfile.c~mm-swapfile-remove-stale-reuse_swap_page
-+++ a/mm/swapfile.c
-@@ -1167,16 +1167,6 @@ out:
- 	return NULL;
- }
- 
--static struct swap_info_struct *swap_info_get(swp_entry_t entry)
--{
--	struct swap_info_struct *p;
--
--	p = _swap_info_get(entry);
--	if (p)
--		spin_lock(&p->lock);
--	return p;
--}
--
- static struct swap_info_struct *swap_info_get_cont(swp_entry_t entry,
- 					struct swap_info_struct *q)
- {
-@@ -1601,100 +1591,6 @@ static bool page_swapped(struct page *pa
- 	return false;
- }
- 
--static int page_trans_huge_map_swapcount(struct page *page,
--					 int *total_swapcount)
--{
--	int i, map_swapcount, _total_swapcount;
--	unsigned long offset = 0;
--	struct swap_info_struct *si;
--	struct swap_cluster_info *ci = NULL;
--	unsigned char *map = NULL;
--	int swapcount = 0;
--
--	/* hugetlbfs shouldn't call it */
--	VM_BUG_ON_PAGE(PageHuge(page), page);
--
--	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!PageTransCompound(page))) {
--		if (PageSwapCache(page))
--			swapcount = page_swapcount(page);
--		if (total_swapcount)
--			*total_swapcount = swapcount;
--		return swapcount + page_trans_huge_mapcount(page);
--	}
--
--	page = compound_head(page);
--
--	_total_swapcount = map_swapcount = 0;
--	if (PageSwapCache(page)) {
--		swp_entry_t entry;
--
--		entry.val = page_private(page);
--		si = _swap_info_get(entry);
--		if (si) {
--			map = si->swap_map;
--			offset = swp_offset(entry);
--		}
--	}
--	if (map)
--		ci = lock_cluster(si, offset);
--	for (i = 0; i < HPAGE_PMD_NR; i++) {
--		int mapcount = atomic_read(&page[i]._mapcount) + 1;
--		if (map) {
--			swapcount = swap_count(map[offset + i]);
--			_total_swapcount += swapcount;
--		}
--		map_swapcount = max(map_swapcount, mapcount + swapcount);
--	}
--	unlock_cluster(ci);
--
--	if (PageDoubleMap(page))
--		map_swapcount -= 1;
--
--	if (total_swapcount)
--		*total_swapcount = _total_swapcount;
--
--	return map_swapcount + compound_mapcount(page);
--}
--
--/*
-- * We can write to an anon page without COW if there are no other references
-- * to it.  And as a side-effect, free up its swap: because the old content
-- * on disk will never be read, and seeking back there to write new content
-- * later would only waste time away from clustering.
-- */
--bool reuse_swap_page(struct page *page)
--{
--	int count, total_swapcount;
--
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
--	if (unlikely(PageKsm(page)))
--		return false;
--	count = page_trans_huge_map_swapcount(page, &total_swapcount);
--	if (count == 1 && PageSwapCache(page) &&
--	    (likely(!PageTransCompound(page)) ||
--	     /* The remaining swap count will be freed soon */
--	     total_swapcount == page_swapcount(page))) {
--		if (!PageWriteback(page)) {
--			page = compound_head(page);
--			delete_from_swap_cache(page);
--			SetPageDirty(page);
--		} else {
--			swp_entry_t entry;
--			struct swap_info_struct *p;
--
--			entry.val = page_private(page);
--			p = swap_info_get(entry);
--			if (p->flags & SWP_STABLE_WRITES) {
--				spin_unlock(&p->lock);
--				return false;
--			}
--			spin_unlock(&p->lock);
--		}
--	}
--
--	return count <= 1;
--}
--
++static inline bool should_try_to_free_swap(struct page *page,
++					   struct vm_area_struct *vma,
++					   unsigned int fault_flags)
++{
++	if (!PageSwapCache(page))
++		return false;
++	if (mem_cgroup_swap_full(page) || (vma->vm_flags & VM_LOCKED) ||
++	    PageMlocked(page))
++		return true;
++	/*
++	 * If we want to map a page that's in the swapcache writable, we
++	 * have to detect via the refcount if we're really the exclusive
++	 * user. Try freeing the swapcache to get rid of the swapcache
++	 * reference only in case it's likely that we'll be the exlusive user.
++	 */
++	return (fault_flags & FAULT_FLAG_WRITE) && !PageKsm(page) &&
++		page_count(page) == 2;
++}
++
  /*
-  * If swap is getting full, or if there are no more mappings of this page,
-  * then try_to_free_swap is called to free its swap space.
+  * We enter with non-exclusive mmap_lock (to exclude vma changes,
+  * but allow concurrent faults), and pte mapped but not yet locked.
+@@ -3630,6 +3649,16 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			page = swapcache;
+ 			goto out_page;
+ 		}
++
++		/*
++		 * If we want to map a page that's in the swapcache writable, we
++		 * have to detect via the refcount if we're really the exclusive
++		 * owner. Try removing the extra reference from the local LRU
++		 * pagevecs if required.
++		 */
++		if ((vmf->flags & FAULT_FLAG_WRITE) && page == swapcache &&
++		    !PageKsm(page) && !PageLRU(page))
++			lru_add_drain();
+ 	}
+ 
+ 	cgroup_throttle_swaprate(page, GFP_KERNEL);
+@@ -3648,19 +3677,25 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	}
+ 
+ 	/*
+-	 * The page isn't present yet, go ahead with the fault.
+-	 *
+-	 * Be careful about the sequence of operations here.
+-	 * To get its accounting right, reuse_swap_page() must be called
+-	 * while the page is counted on swap but not yet in mapcount i.e.
+-	 * before page_add_anon_rmap() and swap_free(); try_to_free_swap()
+-	 * must be called after the swap_free(), or it will never succeed.
++	 * Remove the swap entry and conditionally try to free up the swapcache.
++	 * We're already holding a reference on the page but haven't mapped it
++	 * yet.
+ 	 */
++	swap_free(entry);
++	if (should_try_to_free_swap(page, vma, vmf->flags))
++		try_to_free_swap(page);
+ 
+ 	inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
+ 	dec_mm_counter_fast(vma->vm_mm, MM_SWAPENTS);
+ 	pte = mk_pte(page, vma->vm_page_prot);
+-	if ((vmf->flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
++
++	/*
++	 * Same logic as in do_wp_page(); however, optimize for fresh pages
++	 * that are certainly not shared because we just allocated them without
++	 * exposing them to the swapcache.
++	 */
++	if ((vmf->flags & FAULT_FLAG_WRITE) && !PageKsm(page) &&
++	    (page != swapcache || page_count(page) == 1)) {
+ 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
+ 		vmf->flags &= ~FAULT_FLAG_WRITE;
+ 		ret |= VM_FAULT_WRITE;
+@@ -3686,10 +3721,6 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
+ 	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
+ 
+-	swap_free(entry);
+-	if (mem_cgroup_swap_full(page) ||
+-	    (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
+-		try_to_free_swap(page);
+ 	unlock_page(page);
+ 	if (page != swapcache && swapcache) {
+ 		/*
 _
 
 Patches currently in -mm which might be from david@redhat.com are
