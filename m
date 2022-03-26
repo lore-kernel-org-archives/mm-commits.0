@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A0B8C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Mar 2022 03:16:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48F1CC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Mar 2022 03:16:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230471AbiCZDSY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 23:18:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37378 "EHLO
+        id S230123AbiCZDS2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 23:18:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229893AbiCZDSX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 23:18:23 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B155139259
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:16:48 -0700 (PDT)
+        with ESMTP id S229893AbiCZDS0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 23:18:26 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94065139871
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:16:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DB7B1B82AE6
-        for <mm-commits@vger.kernel.org>; Sat, 26 Mar 2022 03:16:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 917B0C004DD;
-        Sat, 26 Mar 2022 03:16:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 410CDB82B03
+        for <mm-commits@vger.kernel.org>; Sat, 26 Mar 2022 03:16:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD24EC004DD;
+        Sat, 26 Mar 2022 03:16:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648264605;
-        bh=8anf0ec9TAtD+Vb4Et/3e2cxy1NWvzgEIEwP1Z3X7ZI=;
+        s=korg; t=1648264608;
+        bh=dHJWpreyfBpL+3sjTnmiaJlC5+wD5lu1Qm+7kzu6LXo=;
         h=Date:To:From:Subject:From;
-        b=I1uyRPRZOzZuToPky7vS/OZg8xj2kJB5aI3EQI9vucujB19VO+DewRkdwYjQXbJYs
-         Wl/uVIk0ooF8HijXyOlmWoN33SM+6daqLZzrFokb7xkEL/mSlb4N53jeHi0Jeq4K/F
-         b3vUFQTzf+iaVTdhvZ1FdpTjg6mTetMr0ytMXI0U=
-Date:   Fri, 25 Mar 2022 20:16:44 -0700
+        b=q5k5QsDuG+7Z2cek9yGAh92M1kMnFUjOFBf6fHpMfEGXDiGWbYgri+7G+FyAilfC1
+         a0BRNsB9bHmpuZ6UIG5bXXK6Plo8cLRl/YzDakxhOHloRwFYn+OVa0zTsn+n0BrGYE
+         2Mpq6Iw9Qp8PUopAb6atBgfebgognCNZxg+uzICo=
+Date:   Fri, 25 Mar 2022 20:16:47 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         sridhar.samudrala@intel.com, soheil@google.com, kuni1840@gmail.com,
         dave@stgolabs.net, alexander.h.duyck@intel.com,
-        kuniyu@amazon.co.jp, akpm@linux-foundation.org
+        akpm@linux-foundation.org, kuniyu@amazon.co.jp,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + pipe-make-poll_usage-boolean-and-annotate-its-access.patch added to -mm tree
-Message-Id: <20220326031645.917B0C004DD@smtp.kernel.org>
+Subject: + list-fix-a-data-race-around-ep-rdllist.patch added to -mm tree
+Message-Id: <20220326031647.DD24EC004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: make poll_usage boolean and annotate its access
+     Subject: list: fix a data-race around ep->rdllist
 has been added to the -mm tree.  Its filename is
-     pipe-make-poll_usage-boolean-and-annotate-its-access.patch
+     list-fix-a-data-race-around-ep-rdllist.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/pipe-make-poll_usage-boolean-and-annotate-its-access.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/list-fix-a-data-race-around-ep-rdllist.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/pipe-make-poll_usage-boolean-and-annotate-its-access.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/list-fix-a-data-race-around-ep-rdllist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,81 +66,107 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
-Subject: pipe: make poll_usage boolean and annotate its access
+Subject: list: fix a data-race around ep->rdllist
 
-Patch series "Fix data-races around epoll reported by KCSAN."
+ep_poll() first calls ep_events_available() with no lock held and checks
+if ep->rdllist is empty by list_empty_careful(), which reads
+rdllist->prev.  Thus all accesses to it need some protection to avoid
+store/load-tearing.
 
-This series suppresses a false positive KCSAN's message and fixes a real
-data-race.
+Note INIT_LIST_HEAD_RCU() already has the annotation for both prev
+and next.
 
+Commit bf3b9f6372c4 ("epoll: Add busy poll support to epoll with socket
+fds.") added the first lockless ep_events_available(), and commit
+c5a282e9635e ("fs/epoll: reduce the scope of wq lock in epoll_wait()")
+made some ep_events_available() calls lockless and added single call under
+a lock, finally commit e59d3c64cba6 ("epoll: eliminate unnecessary lock
+for zero timeout") made the last ep_events_available() lockless.
 
-This patch (of 2):
+BUG: KCSAN: data-race in do_epoll_wait / do_epoll_wait
 
-pipe_poll() runs locklessly and assigns 1 to poll_usage.  Once poll_usage
-is set to 1, it never changes in other places.  However, concurrent writes
-of a value trigger KCSAN, so let's make KCSAN happy.
+write to 0xffff88810480c7d8 of 8 bytes by task 1802 on cpu 0:
+ INIT_LIST_HEAD include/linux/list.h:38 [inline]
+ list_splice_init include/linux/list.h:492 [inline]
+ ep_start_scan fs/eventpoll.c:622 [inline]
+ ep_send_events fs/eventpoll.c:1656 [inline]
+ ep_poll fs/eventpoll.c:1806 [inline]
+ do_epoll_wait+0x4eb/0xf40 fs/eventpoll.c:2234
+ do_epoll_pwait fs/eventpoll.c:2268 [inline]
+ __do_sys_epoll_pwait fs/eventpoll.c:2281 [inline]
+ __se_sys_epoll_pwait+0x12b/0x240 fs/eventpoll.c:2275
+ __x64_sys_epoll_pwait+0x74/0x80 fs/eventpoll.c:2275
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-BUG: KCSAN: data-race in pipe_poll / pipe_poll
+read to 0xffff88810480c7d8 of 8 bytes by task 1799 on cpu 1:
+ list_empty_careful include/linux/list.h:329 [inline]
+ ep_events_available fs/eventpoll.c:381 [inline]
+ ep_poll fs/eventpoll.c:1797 [inline]
+ do_epoll_wait+0x279/0xf40 fs/eventpoll.c:2234
+ do_epoll_pwait fs/eventpoll.c:2268 [inline]
+ __do_sys_epoll_pwait fs/eventpoll.c:2281 [inline]
+ __se_sys_epoll_pwait+0x12b/0x240 fs/eventpoll.c:2275
+ __x64_sys_epoll_pwait+0x74/0x80 fs/eventpoll.c:2275
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-write to 0xffff8880042f6678 of 4 bytes by task 174 on cpu 3:
- pipe_poll (fs/pipe.c:656)
- ep_item_poll.isra.0 (./include/linux/poll.h:88 fs/eventpoll.c:853)
- do_epoll_wait (fs/eventpoll.c:1692 fs/eventpoll.c:1806 fs/eventpoll.c:2234)
- __x64_sys_epoll_wait (fs/eventpoll.c:2246 fs/eventpoll.c:2241 fs/eventpoll.c:2241)
- do_syscall_64 (arch/x86/entry/common.c:50 arch/x86/entry/common.c:80)
- entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:113)
-
-write to 0xffff8880042f6678 of 4 bytes by task 177 on cpu 1:
- pipe_poll (fs/pipe.c:656)
- ep_item_poll.isra.0 (./include/linux/poll.h:88 fs/eventpoll.c:853)
- do_epoll_wait (fs/eventpoll.c:1692 fs/eventpoll.c:1806 fs/eventpoll.c:2234)
- __x64_sys_epoll_wait (fs/eventpoll.c:2246 fs/eventpoll.c:2241 fs/eventpoll.c:2241)
- do_syscall_64 (arch/x86/entry/common.c:50 arch/x86/entry/common.c:80)
- entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:113)
+value changed: 0xffff88810480c7d0 -> 0xffff888103c15098
 
 Reported by Kernel Concurrency Sanitizer on:
-CPU: 1 PID: 177 Comm: epoll_race Not tainted 5.17.0-58927-gf443e374ae13 #6
-Hardware name: Red Hat KVM, BIOS 1.11.0-2.amzn2 04/01/2014
+CPU: 1 PID: 1799 Comm: syz-fuzzer Tainted: G        W         5.17.0-rc7-syzkaller-dirty #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
 
-Link: https://lkml.kernel.org/r/20220322002653.33865-1-kuniyu@amazon.co.jp
-Link: https://lkml.kernel.org/r/20220322002653.33865-2-kuniyu@amazon.co.jp
-Fixes: 3b844826b6c6 ("pipe: avoid unnecessary EPOLLET wakeups under normal loads")
+Link: https://lkml.kernel.org/r/20220322002653.33865-3-kuniyu@amazon.co.jp
+Fixes: e59d3c64cba6 ("epoll: eliminate unnecessary lock for zero timeout")
+Fixes: c5a282e9635e ("fs/epoll: reduce the scope of wq lock in epoll_wait()")
+Fixes: bf3b9f6372c4 ("epoll: Add busy poll support to epoll with socket fds.")
 Signed-off-by: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
-Cc: Alexander Duyck <alexander.h.duyck@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Reported-by: syzbot+bdd6e38a1ed5ee58d8bd@syzkaller.appspotmail.com
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
 Cc: Kuniyuki Iwashima <kuni1840@gmail.com>
 Cc: "Soheil Hassas Yeganeh" <soheil@google.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: "Sridhar Samudrala" <sridhar.samudrala@intel.com>
+Cc: Alexander Duyck <alexander.h.duyck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                 |    2 +-
- include/linux/pipe_fs_i.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/list.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/pipe.c~pipe-make-poll_usage-boolean-and-annotate-its-access
-+++ a/fs/pipe.c
-@@ -653,7 +653,7 @@ pipe_poll(struct file *filp, poll_table
- 	unsigned int head, tail;
+--- a/include/linux/list.h~list-fix-a-data-race-around-ep-rdllist
++++ a/include/linux/list.h
+@@ -35,7 +35,7 @@
+ static inline void INIT_LIST_HEAD(struct list_head *list)
+ {
+ 	WRITE_ONCE(list->next, list);
+-	list->prev = list;
++	WRITE_ONCE(list->prev, list);
+ }
  
- 	/* Epoll has some historical nasty semantics, this enables them */
--	pipe->poll_usage = 1;
-+	WRITE_ONCE(pipe->poll_usage, true);
+ #ifdef CONFIG_DEBUG_LIST
+@@ -306,7 +306,7 @@ static inline int list_empty(const struc
+ static inline void list_del_init_careful(struct list_head *entry)
+ {
+ 	__list_del_entry(entry);
+-	entry->prev = entry;
++	WRITE_ONCE(entry->prev, entry);
+ 	smp_store_release(&entry->next, entry);
+ }
  
- 	/*
- 	 * Reading pipe state only -- no need for acquiring the semaphore.
---- a/include/linux/pipe_fs_i.h~pipe-make-poll_usage-boolean-and-annotate-its-access
-+++ a/include/linux/pipe_fs_i.h
-@@ -71,7 +71,7 @@ struct pipe_inode_info {
- 	unsigned int files;
- 	unsigned int r_counter;
- 	unsigned int w_counter;
--	unsigned int poll_usage;
-+	bool poll_usage;
- 	struct page *tmp_page;
- 	struct fasync_struct *fasync_readers;
- 	struct fasync_struct *fasync_writers;
+@@ -326,7 +326,7 @@ static inline void list_del_init_careful
+ static inline int list_empty_careful(const struct list_head *head)
+ {
+ 	struct list_head *next = smp_load_acquire(&head->next);
+-	return list_is_head(next, head) && (next == head->prev);
++	return list_is_head(next, head) && (next == READ_ONCE(head->prev));
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from kuniyu@amazon.co.jp are
