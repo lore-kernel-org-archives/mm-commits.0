@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48F1CC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 26 Mar 2022 03:16:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3318EC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 26 Mar 2022 03:19:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230123AbiCZDS2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 25 Mar 2022 23:18:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37558 "EHLO
+        id S230415AbiCZDVT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 25 Mar 2022 23:21:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229893AbiCZDS0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 23:18:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94065139871
-        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:16:50 -0700 (PDT)
+        with ESMTP id S229893AbiCZDVS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2022 23:21:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDE9F51E63
+        for <mm-commits@vger.kernel.org>; Fri, 25 Mar 2022 20:19:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 410CDB82B03
-        for <mm-commits@vger.kernel.org>; Sat, 26 Mar 2022 03:16:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD24EC004DD;
-        Sat, 26 Mar 2022 03:16:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5F6FB619BF
+        for <mm-commits@vger.kernel.org>; Sat, 26 Mar 2022 03:19:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0838C004DD;
+        Sat, 26 Mar 2022 03:19:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648264608;
-        bh=dHJWpreyfBpL+3sjTnmiaJlC5+wD5lu1Qm+7kzu6LXo=;
+        s=korg; t=1648264781;
+        bh=8TxN2Ln4GkXeNvY1tiBcUlEa3v5KbEqI6/XDTJXmCyE=;
         h=Date:To:From:Subject:From;
-        b=q5k5QsDuG+7Z2cek9yGAh92M1kMnFUjOFBf6fHpMfEGXDiGWbYgri+7G+FyAilfC1
-         a0BRNsB9bHmpuZ6UIG5bXXK6Plo8cLRl/YzDakxhOHloRwFYn+OVa0zTsn+n0BrGYE
-         2Mpq6Iw9Qp8PUopAb6atBgfebgognCNZxg+uzICo=
-Date:   Fri, 25 Mar 2022 20:16:47 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        sridhar.samudrala@intel.com, soheil@google.com, kuni1840@gmail.com,
-        dave@stgolabs.net, alexander.h.duyck@intel.com,
-        akpm@linux-foundation.org, kuniyu@amazon.co.jp,
+        b=Mpt27BJB3JQOk9AQi5Fa1PHx5/+IegUL6LWkrbKGLUfmrKHusyqY97OjtkBKzQrhF
+         5zqFR70wvA4i2Nt9RPgD6F2LyH0KA3QKScmKmZs9b2c3h9nTRzkvLYbnbZuwP30Cei
+         TbYap3tNwnlsHit9WH3mqns5N2kumDO33ejaE1Y4=
+Date:   Fri, 25 Mar 2022 20:19:40 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        tglx@linutronix.de, hughd@google.com, bigeasy@linutronix.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + list-fix-a-data-race-around-ep-rdllist.patch added to -mm tree
-Message-Id: <20220326031647.DD24EC004DD@smtp.kernel.org>
+Subject: + mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t.patch added to -mm tree
+Message-Id: <20220326031941.B0838C004DD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list: fix a data-race around ep->rdllist
+     Subject: mm/munlock: protect the per-CPU pagevec by a local_lock_t
 has been added to the -mm tree.  Its filename is
-     list-fix-a-data-race-around-ep-rdllist.patch
+     mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/list-fix-a-data-race-around-ep-rdllist.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/list-fix-a-data-race-around-ep-rdllist.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,112 +63,253 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
-Subject: list: fix a data-race around ep->rdllist
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm/munlock: protect the per-CPU pagevec by a local_lock_t
 
-ep_poll() first calls ep_events_available() with no lock held and checks
-if ep->rdllist is empty by list_empty_careful(), which reads
-rdllist->prev.  Thus all accesses to it need some protection to avoid
-store/load-tearing.
+The access to mlock_pvec is protected by disabling preemption via
+get_cpu_var() or implicit by having preemption disabled by the caller (in
+mlock_page_drain() case).  This breaks on PREEMPT_RT since
+folio_lruvec_lock_irq() acquires a sleeping lock in this section.
 
-Note INIT_LIST_HEAD_RCU() already has the annotation for both prev
-and next.
+Create struct mlock_pvec which consits of the local_lock_t and the
+pagevec.  Acquire the local_lock() before accessing the per-CPU pagevec. 
+Replace mlock_page_drain() with a _local() version which is invoked on the
+local CPU and acquires the local_lock_t and a _remote() version which uses
+the pagevec from a remote CPU which offline.
 
-Commit bf3b9f6372c4 ("epoll: Add busy poll support to epoll with socket
-fds.") added the first lockless ep_events_available(), and commit
-c5a282e9635e ("fs/epoll: reduce the scope of wq lock in epoll_wait()")
-made some ep_events_available() calls lockless and added single call under
-a lock, finally commit e59d3c64cba6 ("epoll: eliminate unnecessary lock
-for zero timeout") made the last ep_events_available() lockless.
-
-BUG: KCSAN: data-race in do_epoll_wait / do_epoll_wait
-
-write to 0xffff88810480c7d8 of 8 bytes by task 1802 on cpu 0:
- INIT_LIST_HEAD include/linux/list.h:38 [inline]
- list_splice_init include/linux/list.h:492 [inline]
- ep_start_scan fs/eventpoll.c:622 [inline]
- ep_send_events fs/eventpoll.c:1656 [inline]
- ep_poll fs/eventpoll.c:1806 [inline]
- do_epoll_wait+0x4eb/0xf40 fs/eventpoll.c:2234
- do_epoll_pwait fs/eventpoll.c:2268 [inline]
- __do_sys_epoll_pwait fs/eventpoll.c:2281 [inline]
- __se_sys_epoll_pwait+0x12b/0x240 fs/eventpoll.c:2275
- __x64_sys_epoll_pwait+0x74/0x80 fs/eventpoll.c:2275
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x44/0xae
-
-read to 0xffff88810480c7d8 of 8 bytes by task 1799 on cpu 1:
- list_empty_careful include/linux/list.h:329 [inline]
- ep_events_available fs/eventpoll.c:381 [inline]
- ep_poll fs/eventpoll.c:1797 [inline]
- do_epoll_wait+0x279/0xf40 fs/eventpoll.c:2234
- do_epoll_pwait fs/eventpoll.c:2268 [inline]
- __do_sys_epoll_pwait fs/eventpoll.c:2281 [inline]
- __se_sys_epoll_pwait+0x12b/0x240 fs/eventpoll.c:2275
- __x64_sys_epoll_pwait+0x74/0x80 fs/eventpoll.c:2275
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x44/0xae
-
-value changed: 0xffff88810480c7d0 -> 0xffff888103c15098
-
-Reported by Kernel Concurrency Sanitizer on:
-CPU: 1 PID: 1799 Comm: syz-fuzzer Tainted: G        W         5.17.0-rc7-syzkaller-dirty #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-
-Link: https://lkml.kernel.org/r/20220322002653.33865-3-kuniyu@amazon.co.jp
-Fixes: e59d3c64cba6 ("epoll: eliminate unnecessary lock for zero timeout")
-Fixes: c5a282e9635e ("fs/epoll: reduce the scope of wq lock in epoll_wait()")
-Fixes: bf3b9f6372c4 ("epoll: Add busy poll support to epoll with socket fds.")
-Signed-off-by: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
-Reported-by: syzbot+bdd6e38a1ed5ee58d8bd@syzkaller.appspotmail.com
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
-Cc: Kuniyuki Iwashima <kuni1840@gmail.com>
-Cc: "Soheil Hassas Yeganeh" <soheil@google.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: "Sridhar Samudrala" <sridhar.samudrala@intel.com>
-Cc: Alexander Duyck <alexander.h.duyck@intel.com>
+Link: https://lkml.kernel.org/r/YjizWi9IY0mpvIfb@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/internal.h   |    6 ++++--
+ mm/migrate.c    |    2 +-
+ mm/mlock.c      |   46 ++++++++++++++++++++++++++++++++++++----------
+ mm/page_alloc.c |    1 +
+ mm/rmap.c       |    4 ++--
+ mm/swap.c       |    4 +++-
+ 6 files changed, 47 insertions(+), 16 deletions(-)
 
---- a/include/linux/list.h~list-fix-a-data-race-around-ep-rdllist
-+++ a/include/linux/list.h
-@@ -35,7 +35,7 @@
- static inline void INIT_LIST_HEAD(struct list_head *list)
+--- a/mm/internal.h~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/internal.h
+@@ -456,7 +456,8 @@ static inline void munlock_vma_page(stru
+ }
+ void mlock_new_page(struct page *page);
+ bool need_mlock_page_drain(int cpu);
+-void mlock_page_drain(int cpu);
++void mlock_page_drain_local(void);
++void mlock_page_drain_remote(int cpu);
+ 
+ extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
+ 
+@@ -539,7 +540,8 @@ static inline void munlock_vma_page(stru
+ 			struct vm_area_struct *vma, bool compound) { }
+ static inline void mlock_new_page(struct page *page) { }
+ static inline bool need_mlock_page_drain(int cpu) { return false; }
+-static inline void mlock_page_drain(int cpu) { }
++static inline void mlock_page_drain_local(void) { }
++static inline void mlock_page_drain_remote(int cpu) { }
+ static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
  {
- 	WRITE_ONCE(list->next, list);
--	list->prev = list;
-+	WRITE_ONCE(list->prev, list);
+ }
+--- a/mm/migrate.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/migrate.c
+@@ -246,7 +246,7 @@ static bool remove_migration_pte(struct
+ 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
+ 		}
+ 		if (vma->vm_flags & VM_LOCKED)
+-			mlock_page_drain(smp_processor_id());
++			mlock_page_drain_local();
+ 
+ 		trace_remove_migration_pte(pvmw.address, pte_val(pte),
+ 					   compound_order(new));
+--- a/mm/mlock.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/mlock.c
+@@ -28,7 +28,14 @@
+ 
+ #include "internal.h"
+ 
+-static DEFINE_PER_CPU(struct pagevec, mlock_pvec);
++struct mlock_pvec {
++	local_lock_t lock;
++	struct pagevec vec;
++};
++
++static DEFINE_PER_CPU(struct mlock_pvec, mlock_pvec) = {
++	.lock = INIT_LOCAL_LOCK(lock),
++};
+ 
+ bool can_do_mlock(void)
+ {
+@@ -203,18 +210,30 @@ static void mlock_pagevec(struct pagevec
+ 	pagevec_reinit(pvec);
  }
  
- #ifdef CONFIG_DEBUG_LIST
-@@ -306,7 +306,7 @@ static inline int list_empty(const struc
- static inline void list_del_init_careful(struct list_head *entry)
+-void mlock_page_drain(int cpu)
++void mlock_page_drain_local(void)
  {
- 	__list_del_entry(entry);
--	entry->prev = entry;
-+	WRITE_ONCE(entry->prev, entry);
- 	smp_store_release(&entry->next, entry);
+ 	struct pagevec *pvec;
+ 
+-	pvec = &per_cpu(mlock_pvec, cpu);
++	local_lock(&mlock_pvec.lock);
++	pvec = this_cpu_ptr(&mlock_pvec.vec);
++	if (pagevec_count(pvec))
++		mlock_pagevec(pvec);
++	local_unlock(&mlock_pvec.lock);
++}
++
++void mlock_page_drain_remote(int cpu)
++{
++	struct pagevec *pvec;
++
++	WARN_ON_ONCE(cpu_online(cpu));
++	pvec = &per_cpu(mlock_pvec.vec, cpu);
+ 	if (pagevec_count(pvec))
+ 		mlock_pagevec(pvec);
  }
  
-@@ -326,7 +326,7 @@ static inline void list_del_init_careful
- static inline int list_empty_careful(const struct list_head *head)
+ bool need_mlock_page_drain(int cpu)
  {
- 	struct list_head *next = smp_load_acquire(&head->next);
--	return list_is_head(next, head) && (next == head->prev);
-+	return list_is_head(next, head) && (next == READ_ONCE(head->prev));
+-	return pagevec_count(&per_cpu(mlock_pvec, cpu));
++	return pagevec_count(&per_cpu(mlock_pvec.vec, cpu));
  }
  
  /**
+@@ -223,7 +242,10 @@ bool need_mlock_page_drain(int cpu)
+  */
+ void mlock_folio(struct folio *folio)
+ {
+-	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
++	struct pagevec *pvec;
++
++	local_lock(&mlock_pvec.lock);
++	pvec = this_cpu_ptr(&mlock_pvec.vec);
+ 
+ 	if (!folio_test_set_mlocked(folio)) {
+ 		int nr_pages = folio_nr_pages(folio);
+@@ -236,7 +258,7 @@ void mlock_folio(struct folio *folio)
+ 	if (!pagevec_add(pvec, mlock_lru(&folio->page)) ||
+ 	    folio_test_large(folio) || lru_cache_disabled())
+ 		mlock_pagevec(pvec);
+-	put_cpu_var(mlock_pvec);
++	local_unlock(&mlock_pvec.lock);
+ }
+ 
+ /**
+@@ -245,9 +267,11 @@ void mlock_folio(struct folio *folio)
+  */
+ void mlock_new_page(struct page *page)
+ {
+-	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
++	struct pagevec *pvec;
+ 	int nr_pages = thp_nr_pages(page);
+ 
++	local_lock(&mlock_pvec.lock);
++	pvec = this_cpu_ptr(&mlock_pvec.vec);
+ 	SetPageMlocked(page);
+ 	mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
+ 	__count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
+@@ -256,7 +280,7 @@ void mlock_new_page(struct page *page)
+ 	if (!pagevec_add(pvec, mlock_new(page)) ||
+ 	    PageHead(page) || lru_cache_disabled())
+ 		mlock_pagevec(pvec);
+-	put_cpu_var(mlock_pvec);
++	local_unlock(&mlock_pvec.lock);
+ }
+ 
+ /**
+@@ -265,8 +289,10 @@ void mlock_new_page(struct page *page)
+  */
+ void munlock_page(struct page *page)
+ {
+-	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
++	struct pagevec *pvec;
+ 
++	local_lock(&mlock_pvec.lock);
++	pvec = this_cpu_ptr(&mlock_pvec.vec);
+ 	/*
+ 	 * TestClearPageMlocked(page) must be left to __munlock_page(),
+ 	 * which will check whether the page is multiply mlocked.
+@@ -276,7 +302,7 @@ void munlock_page(struct page *page)
+ 	if (!pagevec_add(pvec, page) ||
+ 	    PageHead(page) || lru_cache_disabled())
+ 		mlock_pagevec(pvec);
+-	put_cpu_var(mlock_pvec);
++	local_unlock(&mlock_pvec.lock);
+ }
+ 
+ static int mlock_pte_range(pmd_t *pmd, unsigned long addr,
+--- a/mm/page_alloc.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/page_alloc.c
+@@ -8356,6 +8356,7 @@ static int page_alloc_cpu_dead(unsigned
+ 	struct zone *zone;
+ 
+ 	lru_add_drain_cpu(cpu);
++	mlock_page_drain_remote(cpu);
+ 	drain_pages(cpu);
+ 
+ 	/*
+--- a/mm/rmap.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/rmap.c
+@@ -1683,7 +1683,7 @@ discard:
+ 		 */
+ 		page_remove_rmap(subpage, vma, folio_test_hugetlb(folio));
+ 		if (vma->vm_flags & VM_LOCKED)
+-			mlock_page_drain(smp_processor_id());
++			mlock_page_drain_local();
+ 		folio_put(folio);
+ 	}
+ 
+@@ -1961,7 +1961,7 @@ static bool try_to_migrate_one(struct fo
+ 		 */
+ 		page_remove_rmap(subpage, vma, folio_test_hugetlb(folio));
+ 		if (vma->vm_flags & VM_LOCKED)
+-			mlock_page_drain(smp_processor_id());
++			mlock_page_drain_local();
+ 		folio_put(folio);
+ 	}
+ 
+--- a/mm/swap.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/swap.c
+@@ -624,7 +624,6 @@ void lru_add_drain_cpu(int cpu)
+ 		pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
+ 
+ 	activate_page_drain(cpu);
+-	mlock_page_drain(cpu);
+ }
+ 
+ /**
+@@ -706,6 +705,7 @@ void lru_add_drain(void)
+ 	local_lock(&lru_pvecs.lock);
+ 	lru_add_drain_cpu(smp_processor_id());
+ 	local_unlock(&lru_pvecs.lock);
++	mlock_page_drain_local();
+ }
+ 
+ /*
+@@ -720,6 +720,7 @@ static void lru_add_and_bh_lrus_drain(vo
+ 	lru_add_drain_cpu(smp_processor_id());
+ 	local_unlock(&lru_pvecs.lock);
+ 	invalidate_bh_lrus_cpu();
++	mlock_page_drain_local();
+ }
+ 
+ void lru_add_drain_cpu_zone(struct zone *zone)
+@@ -728,6 +729,7 @@ void lru_add_drain_cpu_zone(struct zone
+ 	lru_add_drain_cpu(smp_processor_id());
+ 	drain_local_pages(zone);
+ 	local_unlock(&lru_pvecs.lock);
++	mlock_page_drain_local();
+ }
+ 
+ #ifdef CONFIG_SMP
 _
 
-Patches currently in -mm which might be from kuniyu@amazon.co.jp are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-pipe-make-poll_usage-boolean-and-annotate-its-access.patch
-list-fix-a-data-race-around-ep-rdllist.patch
+mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t.patch
 
