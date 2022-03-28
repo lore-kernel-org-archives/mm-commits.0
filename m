@@ -2,43 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37433C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 22:39:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECB78C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 22:46:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230138AbiC1Wl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Mar 2022 18:41:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37474 "EHLO
+        id S230101AbiC1Wsj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Mar 2022 18:48:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230091AbiC1WlP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 18:41:15 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 825B94A910
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 15:39:32 -0700 (PDT)
+        with ESMTP id S230144AbiC1Wsi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 18:48:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED53317ADA3
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 15:46:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id CB5C1CE1767
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 22:39:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E684C340EC;
-        Mon, 28 Mar 2022 22:39:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D29960BAD
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 22:46:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCAC8C340EC;
+        Mon, 28 Mar 2022 22:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648507169;
-        bh=33e4jeP4hD6/3z6LsciUPRFfukpuzreIkCbysXMxXJA=;
+        s=korg; t=1648507616;
+        bh=1g1VhbeYlga+6GgDpaib8aSBuO85+u+d57oeRhTcTHI=;
         h=Date:To:From:Subject:From;
-        b=EHQo0uxXSKi4xRPdLnXH1EQV86f46D7RAvbd8eBktwATgjuw/j/TXMVAYs/LaBO/j
-         sGl6uizbxDs1vXGo840fEwOkDA+RwbTMoWy52SV83/xb6g7ZMthYFFDvi2W2IGkfrn
-         3vYkzOHS7Hz/aRUwS1FPrQ/cvGLNYC9wkBv/Jg68=
-Date:   Mon, 28 Mar 2022 15:39:28 -0700
-To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
-        xiyuyang19@fudan.edu.cn, willy@infradead.org,
-        viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
-        kirill.shutemov@linux.intel.com, jack@suse.cz, hughd@google.com,
-        hch@lst.de, duanxiongchun@bytedance.com, dan.j.williams@intel.com,
-        apopple@nvidia.com, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
+        b=oMxMlrwzNogrJE27AQWx1t/H8gwVUWuuaDApFxaMRETJeFVfX0qDUEdvqmZfBPY/s
+         uelAt7gJsf2uT/V5NYqzYxHZzLJsI7PSSpNvNt8XfCQjzaOl+UTQBdqrkKa7tJk9o+
+         r8KdFEdxtdG6kE2ruIBz/wJdJsAzxTm04JNcoCfM=
+Date:   Mon, 28 Mar 2022 15:46:55 -0700
+To:     mm-commits@vger.kernel.org, andy@kernel.org,
+        linux@rasmusvillemoes.dk, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-simplify-follow_invalidate_pte.patch added to -mm tree
-Message-Id: <20220328223929.2E684C340EC@smtp.kernel.org>
+Subject: + lib-test_stringc-add-strspn-and-strcspn-tests.patch added to -mm tree
+Message-Id: <20220328224655.DCAC8C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: simplify follow_invalidate_pte()
+     Subject: lib/test_string.c: add strspn and strcspn tests
 has been added to the -mm tree.  Its filename is
-     mm-simplify-follow_invalidate_pte.patch
+     lib-test_stringc-add-strspn-and-strcspn-tests.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-follow_invalidate_pte.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-test_stringc-add-strspn-and-strcspn-tests.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-follow_invalidate_pte.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-test_stringc-add-strspn-and-strcspn-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,172 +62,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: simplify follow_invalidate_pte()
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/test_string.c: add strspn and strcspn tests
 
-The only user (DAX) of range and pmdpp parameters of
-follow_invalidate_pte() is gone, it is safe to remove them and make it
-static to simlify the code.  This is revertant of the following commits:
+Before refactoring strspn() and strcspn(), add some simple test cases.
 
-  097963959594 ("mm: add follow_pte_pmd()")
-  a4d1a8852513 ("dax: update to new mmu_notifier semantic")
-
-There is only one caller of the follow_invalidate_pte().  So just fold it
-into follow_pte() and remove it.
-
-Link: https://lkml.kernel.org/r/20220318074529.5261-7-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/20220328224119.3003834-1-linux@rasmusvillemoes.dk
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Andy Shevchenko <andy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 -
- mm/memory.c        |   81 ++++++++++++-------------------------------
- 2 files changed, 23 insertions(+), 61 deletions(-)
+ lib/test_string.c |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
---- a/include/linux/mm.h~mm-simplify-follow_invalidate_pte
-+++ a/include/linux/mm.h
-@@ -1845,9 +1845,6 @@ void free_pgd_range(struct mmu_gather *t
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- int
- copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
--int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
--			  struct mmu_notifier_range *range, pte_t **ptepp,
--			  pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pte(struct mm_struct *mm, unsigned long address,
- 	       pte_t **ptepp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
---- a/mm/memory.c~mm-simplify-follow_invalidate_pte
-+++ a/mm/memory.c
-@@ -4949,9 +4949,29 @@ int __pmd_alloc(struct mm_struct *mm, pu
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
--int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
--			  struct mmu_notifier_range *range, pte_t **ptepp,
--			  pmd_t **pmdpp, spinlock_t **ptlp)
-+/**
-+ * follow_pte - look up PTE at a user virtual address
-+ * @mm: the mm_struct of the target address space
-+ * @address: user virtual address
-+ * @ptepp: location to store found PTE
-+ * @ptlp: location to store the lock for the PTE
-+ *
-+ * On a successful return, the pointer to the PTE is stored in @ptepp;
-+ * the corresponding lock is taken and its location is stored in @ptlp.
-+ * The contents of the PTE are only stable until @ptlp is released;
-+ * any further use, if any, must be protected against invalidation
-+ * with MMU notifiers.
-+ *
-+ * Only IO mappings and raw PFN mappings are allowed.  The mmap semaphore
-+ * should be taken for read.
-+ *
-+ * KVM uses this function.  While it is arguably less bad than ``follow_pfn``,
-+ * it is not a good general-purpose API.
-+ *
-+ * Return: zero on success, -ve otherwise.
-+ */
-+int follow_pte(struct mm_struct *mm, unsigned long address,
-+	       pte_t **ptepp, spinlock_t **ptlp)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -4974,35 +4994,9 @@ int follow_invalidate_pte(struct mm_stru
- 	pmd = pmd_offset(pud, address);
- 	VM_BUG_ON(pmd_trans_huge(*pmd));
- 
--	if (pmd_huge(*pmd)) {
--		if (!pmdpp)
--			goto out;
--
--		if (range) {
--			mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0,
--						NULL, mm, address & PMD_MASK,
--						(address & PMD_MASK) + PMD_SIZE);
--			mmu_notifier_invalidate_range_start(range);
--		}
--		*ptlp = pmd_lock(mm, pmd);
--		if (pmd_huge(*pmd)) {
--			*pmdpp = pmd;
--			return 0;
--		}
--		spin_unlock(*ptlp);
--		if (range)
--			mmu_notifier_invalidate_range_end(range);
--	}
--
- 	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
- 		goto out;
- 
--	if (range) {
--		mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0, NULL, mm,
--					address & PAGE_MASK,
--					(address & PAGE_MASK) + PAGE_SIZE);
--		mmu_notifier_invalidate_range_start(range);
--	}
- 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
- 	if (!pte_present(*ptep))
- 		goto unlock;
-@@ -5010,38 +5004,9 @@ int follow_invalidate_pte(struct mm_stru
+--- a/lib/test_string.c~lib-test_stringc-add-strspn-and-strcspn-tests
++++ a/lib/test_string.c
+@@ -179,6 +179,34 @@ static __init int strnchr_selftest(void)
  	return 0;
- unlock:
- 	pte_unmap_unlock(ptep, *ptlp);
--	if (range)
--		mmu_notifier_invalidate_range_end(range);
- out:
- 	return -EINVAL;
  }
--
--/**
-- * follow_pte - look up PTE at a user virtual address
-- * @mm: the mm_struct of the target address space
-- * @address: user virtual address
-- * @ptepp: location to store found PTE
-- * @ptlp: location to store the lock for the PTE
-- *
-- * On a successful return, the pointer to the PTE is stored in @ptepp;
-- * the corresponding lock is taken and its location is stored in @ptlp.
-- * The contents of the PTE are only stable until @ptlp is released;
-- * any further use, if any, must be protected against invalidation
-- * with MMU notifiers.
-- *
-- * Only IO mappings and raw PFN mappings are allowed.  The mmap semaphore
-- * should be taken for read.
-- *
-- * KVM uses this function.  While it is arguably less bad than ``follow_pfn``,
-- * it is not a good general-purpose API.
-- *
-- * Return: zero on success, -ve otherwise.
-- */
--int follow_pte(struct mm_struct *mm, unsigned long address,
--	       pte_t **ptepp, spinlock_t **ptlp)
--{
--	return follow_invalidate_pte(mm, address, NULL, ptepp, NULL, ptlp);
--}
- EXPORT_SYMBOL_GPL(follow_pte);
  
- /**
++static __init int strspn_selftest(void)
++{
++	static const struct strspn_test {
++		const char str[16];
++		const char accept[16];
++		const char reject[16];
++		unsigned a;
++		unsigned r;
++	} tests[] __initconst = {
++		{ "foobar", "", "", 0, 6 },
++		{ "abba", "abc", "ABBA", 4, 4 },
++		{ "abba", "a", "b", 1, 1 },
++		{ "", "abc", "abc", 0, 0},
++	};
++	const struct strspn_test *s = tests;
++	size_t i, res;
++
++	for (i = 0; i < ARRAY_SIZE(tests); ++i, ++s) {
++		res = strspn(s->str, s->accept);
++		if (res != s->a)
++			return 0x100 + 2*i;
++		res = strcspn(s->str, s->reject);
++		if (res != s->r)
++			return 0x100 + 2*i + 1;
++	}
++	return 0;
++}
++
+ static __exit void string_selftest_remove(void)
+ {
+ }
+@@ -212,6 +240,11 @@ static __init int string_selftest_init(v
+ 	if (subtest)
+ 		goto fail;
+ 
++	test = 6;
++	subtest = strspn_selftest();
++	if (subtest)
++		goto fail;
++
+ 	pr_info("String selftests succeeded\n");
+ 	return 0;
+ fail:
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-mm-kfence-fix-objcgs-vector-allocation.patch
-mm-rmap-fix-cache-flush-on-thp-pages.patch
-dax-fix-cache-flush-on-pmd-mapped-pages.patch
-mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
-mm-pvmw-add-support-for-walking-devmap-pages.patch
-dax-fix-missing-writeprotect-the-pte-entry.patch
-mm-simplify-follow_invalidate_pte.patch
+lib-kconfigdebug-remove-more-config__value-indirections.patch
+lib-test_stringc-add-strspn-and-strcspn-tests.patch
+lib-stringc-simplify-strspn.patch
 
