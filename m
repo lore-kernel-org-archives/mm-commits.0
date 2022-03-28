@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60107C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 22:47:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31CDEC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 22:49:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230157AbiC1Wsk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Mar 2022 18:48:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33370 "EHLO
+        id S230180AbiC1WvI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Mar 2022 18:51:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230144AbiC1Wsk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 18:48:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D42B67B122
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 15:46:58 -0700 (PDT)
+        with ESMTP id S230145AbiC1WvI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 18:51:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB84431368;
+        Mon, 28 Mar 2022 15:49:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7133760AEC
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 22:46:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE610C340F0;
-        Mon, 28 Mar 2022 22:46:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7704F60B2B;
+        Mon, 28 Mar 2022 22:49:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D012AC340EC;
+        Mon, 28 Mar 2022 22:49:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648507617;
-        bh=lYnFS9e04D/YdBnfDCu+UrOAE+sA15Cs3cBjxakj/vc=;
+        s=korg; t=1648507764;
+        bh=ti+Uxwgl8S3d+NQCkL2kffrbV+92sfXMKmHambz1xkM=;
         h=Date:To:From:Subject:From;
-        b=UlwH2i8OtU3yefppEc+/SarqIOYbinT+D+TSNzRGV+n9eiCGho3gOOlLFfMrbraEt
-         lAOaArSANNTFo+mnBlL8W9lzjnlgU/h1N/VaaDf3A0A1n3d5X1SWcO6tbt/DxabIgV
-         dPRZgB/JbcAjXR0LpNb1w7n22t8YXTxpXfPDadFM=
-Date:   Mon, 28 Mar 2022 15:46:57 -0700
-To:     mm-commits@vger.kernel.org, andy@kernel.org,
-        linux@rasmusvillemoes.dk, akpm@linux-foundation.org
+        b=ISa2skua4T/8eADyZ1O7kBiXU/plMErTebacnsMDPAOzscUHOmCNuB5KtF3NY7Tda
+         gvlCpMqNpip0voT0fJEdSEfCcykaMNPI+7wptgxunMQDUmRjXSS64HbBa0fw49/O9B
+         h6PeN0cysWOTkQmkXGaZY5f/BxZhNypd8Cltxf8M=
+Date:   Mon, 28 Mar 2022 15:49:24 -0700
+To:     mm-commits@vger.kernel.org, yee.lee@mediatek.com,
+        stable@vger.kernel.org, nicholas.tang@mediatek.com,
+        matthias.bgg@gmail.com, chinwen.chang@mediatek.com,
+        catalin.marinas@arm.com, Kuan-Ying.Lee@mediatek.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stringc-simplify-strspn.patch added to -mm tree
-Message-Id: <20220328224657.BE610C340F0@smtp.kernel.org>
+Subject: + mm-kmemleak-reset-tag-when-compare-object-pointer.patch added to -mm tree
+Message-Id: <20220328224924.D012AC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string.c: simplify str[c]spn
+     Subject: mm/kmemleak: Reset tag when compare object pointer
 has been added to the -mm tree.  Its filename is
-     lib-stringc-simplify-strspn.patch
+     mm-kmemleak-reset-tag-when-compare-object-pointer.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-stringc-simplify-strspn.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-reset-tag-when-compare-object-pointer.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stringc-simplify-strspn.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-reset-tag-when-compare-object-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,81 +65,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/string.c: simplify str[c]spn
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: mm/kmemleak: Reset tag when compare object pointer
 
-Use strchr(), which makes them a lot shorter, and more obviously symmetric
-in their treatment of accept/reject.  It also saves a little bit of .text;
-bloat-o-meter for an arm build says
+When we use HW-tag based kasan and enable vmalloc support, we hit
+the following bug. It is due to comparison between tagged object
+and non-tagged pointer.
 
-Function                                     old     new   delta
-strcspn                                       92      76     -16
-strspn                                       108      76     -32
+We need to reset the kasan tag when we need to compare tagged object
+and non-tagged pointer.
 
-While here, also remove a stray empty line before EXPORT_SYMBOL().
+[    7.690429][T400001] init: kmemleak: [name:kmemleak&]Scan area larger than object 0xffffffe77076f440
+[    7.691762][T400001] init: CPU: 4 PID: 1 Comm: init Tainted: G S      W         5.15.25-android13-0-g5cacf919c2bc #1
+[    7.693218][T400001] init: Hardware name: MT6983(ENG) (DT)
+[    7.693983][T400001] init: Call trace:
+[    7.694508][T400001] init:  dump_backtrace.cfi_jt+0x0/0x8
+[    7.695272][T400001] init:  dump_stack_lvl+0xac/0x120
+[    7.695985][T400001] init:  add_scan_area+0xc4/0x244
+[    7.696685][T400001] init:  kmemleak_scan_area+0x40/0x9c
+[    7.697428][T400001] init:  layout_and_allocate+0x1e8/0x288
+[    7.698211][T400001] init:  load_module+0x2c8/0xf00
+[    7.698895][T400001] init:  __se_sys_finit_module+0x190/0x1d0
+[    7.699701][T400001] init:  __arm64_sys_finit_module+0x20/0x30
+[    7.700517][T400001] init:  invoke_syscall+0x60/0x170
+[    7.701225][T400001] init:  el0_svc_common+0xc8/0x114
+[    7.701933][T400001] init:  do_el0_svc+0x28/0xa0
+[    7.702580][T400001] init:  el0_svc+0x60/0xf8
+[    7.703196][T400001] init:  el0t_64_sync_handler+0x88/0xec
+[    7.703964][T400001] init:  el0t_64_sync+0x1b4/0x1b8
+[    7.704658][T400001] init: kmemleak: [name:kmemleak&]Object 0xf5ffffe77076b000 (size 32768):
+[    7.705824][T400001] init: kmemleak: [name:kmemleak&]  comm "init", pid 1, jiffies 4294894197
+[    7.707002][T400001] init: kmemleak: [name:kmemleak&]  min_count = 0
+[    7.707886][T400001] init: kmemleak: [name:kmemleak&]  count = 0
+[    7.708718][T400001] init: kmemleak: [name:kmemleak&]  flags = 0x1
+[    7.709574][T400001] init: kmemleak: [name:kmemleak&]  checksum = 0
+[    7.710440][T400001] init: kmemleak: [name:kmemleak&]  backtrace:
+[    7.711284][T400001] init:      module_alloc+0x9c/0x120
+[    7.712015][T400001] init:      move_module+0x34/0x19c
+[    7.712735][T400001] init:      layout_and_allocate+0x1c4/0x288
+[    7.713561][T400001] init:      load_module+0x2c8/0xf00
+[    7.714291][T400001] init:      __se_sys_finit_module+0x190/0x1d0
+[    7.715142][T400001] init:      __arm64_sys_finit_module+0x20/0x30
+[    7.716004][T400001] init:      invoke_syscall+0x60/0x170
+[    7.716758][T400001] init:      el0_svc_common+0xc8/0x114
+[    7.717512][T400001] init:      do_el0_svc+0x28/0xa0
+[    7.718207][T400001] init:      el0_svc+0x60/0xf8
+[    7.718869][T400001] init:      el0t_64_sync_handler+0x88/0xec
+[    7.719683][T400001] init:      el0t_64_sync+0x1b4/0x1b8
 
-Link: https://lkml.kernel.org/r/20220328224119.3003834-2-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Andy Shevchenko <andy@kernel.org>
+Link: https://lkml.kernel.org/r/20220318034051.30687-1-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Nicholas Tang <nicholas.tang@mediatek.com>
+Cc: Yee Lee <yee.lee@mediatek.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |   25 ++++++-------------------
- 1 file changed, 6 insertions(+), 19 deletions(-)
+ mm/kmemleak.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/lib/string.c~lib-stringc-simplify-strspn
-+++ a/lib/string.c
-@@ -517,21 +517,13 @@ EXPORT_SYMBOL(strnlen);
- size_t strspn(const char *s, const char *accept)
- {
- 	const char *p;
--	const char *a;
--	size_t count = 0;
+--- a/mm/kmemleak.c~mm-kmemleak-reset-tag-when-compare-object-pointer
++++ a/mm/kmemleak.c
+@@ -796,6 +796,8 @@ static void add_scan_area(unsigned long
+ 	unsigned long flags;
+ 	struct kmemleak_object *object;
+ 	struct kmemleak_scan_area *area = NULL;
++	unsigned long untagged_ptr;
++	unsigned long untagged_objp;
  
- 	for (p = s; *p != '\0'; ++p) {
--		for (a = accept; *a != '\0'; ++a) {
--			if (*p == *a)
--				break;
--		}
--		if (*a == '\0')
--			return count;
--		++count;
-+		if (!strchr(accept, *p))
-+			break;
+ 	object = find_and_get_object(ptr, 1);
+ 	if (!object) {
+@@ -804,6 +806,9 @@ static void add_scan_area(unsigned long
+ 		return;
  	}
--	return count;
-+	return p - s;
- }
--
- EXPORT_SYMBOL(strspn);
- #endif
  
-@@ -544,17 +536,12 @@ EXPORT_SYMBOL(strspn);
- size_t strcspn(const char *s, const char *reject)
- {
- 	const char *p;
--	const char *r;
--	size_t count = 0;
++	untagged_ptr = (unsigned long)kasan_reset_tag((void *)ptr);
++	untagged_objp = (unsigned long)kasan_reset_tag((void *)object->pointer);
++
+ 	if (scan_area_cache)
+ 		area = kmem_cache_alloc(scan_area_cache, gfp_kmemleak_mask(gfp));
  
- 	for (p = s; *p != '\0'; ++p) {
--		for (r = reject; *r != '\0'; ++r) {
--			if (*p == *r)
--				return count;
--		}
--		++count;
-+		if (strchr(reject, *p))
-+			break;
+@@ -815,8 +820,8 @@ static void add_scan_area(unsigned long
+ 		goto out_unlock;
  	}
--	return count;
-+	return p - s;
- }
- EXPORT_SYMBOL(strcspn);
- #endif
+ 	if (size == SIZE_MAX) {
+-		size = object->pointer + object->size - ptr;
+-	} else if (ptr + size > object->pointer + object->size) {
++		size = untagged_objp + object->size - untagged_ptr;
++	} else if (untagged_ptr + size > untagged_objp + object->size) {
+ 		kmemleak_warn("Scan area larger than object 0x%08lx\n", ptr);
+ 		dump_object_info(object);
+ 		kmem_cache_free(scan_area_cache, area);
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-lib-kconfigdebug-remove-more-config__value-indirections.patch
-lib-test_stringc-add-strspn-and-strcspn-tests.patch
-lib-stringc-simplify-strspn.patch
+mm-kmemleak-reset-tag-when-compare-object-pointer.patch
 
