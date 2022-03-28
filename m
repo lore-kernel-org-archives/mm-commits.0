@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB41FC433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 22:12:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69356C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 22:15:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229560AbiC1WNn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Mar 2022 18:13:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37872 "EHLO
+        id S229659AbiC1WQv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Mar 2022 18:16:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37894 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229561AbiC1WN1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 18:13:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5A82694A3
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 15:02:34 -0700 (PDT)
+        with ESMTP id S229612AbiC1WQh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 18:16:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DB7CC65
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 15:12:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C36A2B81259
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 21:54:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64C75C340ED;
-        Mon, 28 Mar 2022 21:54:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1873D61543
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 22:12:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68CC3C340F0;
+        Mon, 28 Mar 2022 22:12:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648504490;
-        bh=tiGvKyyMvOaqyMDQHmK8mz3vuJd0MWfBLha7EOr1Y7w=;
+        s=korg; t=1648505569;
+        bh=WR9UwexNQzO0haMRu85XGoIIiCAhma3Af9eeUWyLFis=;
         h=Date:To:From:Subject:From;
-        b=ISIgh+ZxKP3GJcl77xFFasxk/ikVgmFlKWrBbOoPGupK9PV4mJlumWxoxyflaClss
-         i+GSg8pjSB8QfX3gCIyTLQJfvFmY6wA9s25JlVrNKwGWCBKo1t4YSFf2Cp3PU7z0OE
-         jtA69YwvhKaWwQ+9QAKUglzBv+MTCEQapue+MWQc=
-Date:   Mon, 28 Mar 2022 14:54:49 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, efault@gmx.de,
-        hughd@google.com, akpm@linux-foundation.org
+        b=OZS4CKXnLJenGzZajZ4cSNDEPU4Q/ryQ5YXfEVNweFa4pB2jSzszPZjVBfTwNa3hZ
+         8D0G5AeBlWrRp5iCL+E3xT72F17fw60iWTj4KpxWMawYCsr9Gk0R1JImA4C/HPYzoi
+         LaaWmgP63BjfPjMbN/sC2ozcXi+oatPoiF+Lponc=
+Date:   Mon, 28 Mar 2022 15:12:48 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
+        songmuchun@bytedance.com, baolin.wang@linux.alibaba.com,
+        apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-munlock-add-lru_add_drain-to-fix-memcg_stat_test.patch added to -mm tree
-Message-Id: <20220328215450.64C75C340ED@smtp.kernel.org>
+Subject: + mm-migration-remove-unneeded-local-variable-mapping_locked.patch added to -mm tree
+Message-Id: <20220328221249.68CC3C340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/munlock: add lru_add_drain() to fix memcg_stat_test
+     Subject: mm/migration: remove unneeded local variable mapping_locked
 has been added to the -mm tree.  Its filename is
-     mm-munlock-add-lru_add_drain-to-fix-memcg_stat_test.patch
+     mm-migration-remove-unneeded-local-variable-mapping_locked.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-add-lru_add_drain-to-fix-memcg_stat_test.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migration-remove-unneeded-local-variable-mapping_locked.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-add-lru_add_drain-to-fix-memcg_stat_test.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-remove-unneeded-local-variable-mapping_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,90 +63,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/munlock: add lru_add_drain() to fix memcg_stat_test
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/migration: remove unneeded local variable mapping_locked
 
-Mike reports that LTP memcg_stat_test usually leads to...
-memcg_stat_test 3 TINFO: Test unevictable with MAP_LOCKED
-memcg_stat_test 3 TINFO: Running memcg_process --mmap-lock1 -s 135168
-memcg_stat_test 3 TINFO: Warming up pid: 3460
-memcg_stat_test 3 TINFO: Process is still here after warm up: 3460
-memcg_stat_test 3 TFAIL: unevictable is 122880, 135168 expected
-...but may lead to...
-memcg_stat_test 4 TINFO: Test unevictable with mlock
-memcg_stat_test 4 TINFO: Running memcg_process --mmap-lock2 -s 135168
-memcg_stat_test 4 TINFO: Warming up pid: 4271
-memcg_stat_test 4 TINFO: Process is still here after warm up: 4271
-memcg_stat_test 4 TFAIL: unevictable is 122880, 135168 expected
-...or both.  A wee bit flaky.
+Patch series "A few cleanup and fixup patches for migration", v2.
 
-follow_page_pte() used to have an lru_add_drain() per each page mlocked,
-and the test came to rely on accurate stats.  The pagevec to be drained is
-different now, but still covered by lru_add_drain(); and, never mind the
-test, I believe it's in everyone's interest that a bulk faulting interface
-like populate_vma_page_range() or faultin_vma_page_range() should drain
-its local pagevecs at the end, to save others sometimes needing the much
-more expensive lru_add_drain_all().  This does not absolutely guarantee
-exact stats - the mlocking task can be migrated between CPUs as it
-proceeds - but it's good enough and the tests pass.
+This series contains a few patches to remove unneeded variables, jump
+label and use helper to simplify the code.  Also we fix some bugs such as
+page refcounts leak , invalid node access and so on.  More details can be
+found in the respective changelogs.
 
-Link: https://lkml.kernel.org/r/47f6d39c-a075-50cb-1cfb-26dd957a48af@google.com
-Fixes: b67bf49ce7aa ("mm/munlock: delete FOLL_MLOCK and FOLL_POPULATE")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Mike Galbraith <efault@gmx.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+
+This patch (of 11):
+
+When mapping_locked is true, TTU_RMAP_LOCKED is always set to ttu.  We can
+check ttu instead so mapping_locked can be removed.  And ttu is either 0
+or TTU_RMAP_LOCKED now.  Change '|=' to '=' to reflect this.
+
+Link: https://lkml.kernel.org/r/20220318111709.60311-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220318111709.60311-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/migrate.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/gup.c~mm-munlock-add-lru_add_drain-to-fix-memcg_stat_test
-+++ a/mm/gup.c
-@@ -1404,6 +1404,7 @@ long populate_vma_page_range(struct vm_a
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
- 	int gup_flags;
-+	long ret;
+--- a/mm/migrate.c~mm-migration-remove-unneeded-local-variable-mapping_locked
++++ a/mm/migrate.c
+@@ -1230,7 +1230,6 @@ static int unmap_and_move_huge_page(new_
+ 		goto put_anon;
  
- 	VM_BUG_ON(!PAGE_ALIGNED(start));
- 	VM_BUG_ON(!PAGE_ALIGNED(end));
-@@ -1438,8 +1439,10 @@ long populate_vma_page_range(struct vm_a
- 	 * We made sure addr is within a VMA, so the following will
- 	 * not result in a stack expansion that recurses back here.
- 	 */
--	return __get_user_pages(mm, start, nr_pages, gup_flags,
-+	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
- 				NULL, NULL, locked);
-+	lru_add_drain();
-+	return ret;
- }
+ 	if (page_mapped(hpage)) {
+-		bool mapping_locked = false;
+ 		enum ttu_flags ttu = 0;
  
- /*
-@@ -1471,6 +1474,7 @@ long faultin_vma_page_range(struct vm_ar
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
- 	int gup_flags;
-+	long ret;
+ 		if (!PageAnon(hpage)) {
+@@ -1244,14 +1243,13 @@ static int unmap_and_move_huge_page(new_
+ 			if (unlikely(!mapping))
+ 				goto unlock_put_anon;
  
- 	VM_BUG_ON(!PAGE_ALIGNED(start));
- 	VM_BUG_ON(!PAGE_ALIGNED(end));
-@@ -1498,8 +1502,10 @@ long faultin_vma_page_range(struct vm_ar
- 	if (check_vma_flags(vma, gup_flags))
- 		return -EINVAL;
+-			mapping_locked = true;
+-			ttu |= TTU_RMAP_LOCKED;
++			ttu = TTU_RMAP_LOCKED;
+ 		}
  
--	return __get_user_pages(mm, start, nr_pages, gup_flags,
-+	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
- 				NULL, NULL, locked);
-+	lru_add_drain();
-+	return ret;
- }
+ 		try_to_migrate(src, ttu);
+ 		page_was_mapped = 1;
  
- /*
+-		if (mapping_locked)
++		if (ttu & TTU_RMAP_LOCKED)
+ 			i_mmap_unlock_write(mapping);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-munlock-remove-fields-to-fix-htmldocs-warnings.patch
-mm-munlock-add-lru_add_drain-to-fix-memcg_stat_test.patch
+mm-shmem-make-shmem_init-return-void.patch
+mm-memcg-remove-unneeded-nr_scanned.patch
+mm-mremap-use-helper-mlock_future_check.patch
+mm-mlock-fix-two-bugs-in-user_shm_lock.patch
+mm-compaction-use-helper-isolation_suitable.patch
+mm-migration-remove-unneeded-local-variable-mapping_locked.patch
+mm-migration-remove-unneeded-out-label.patch
+mm-migration-remove-unneeded-local-variable-page_lru.patch
+mm-migration-fix-the-confusing-pagetranshuge-check.patch
+mm-migration-use-helper-function-vma_lookup-in-add_page_for_migration.patch
+mm-migration-use-helper-macro-min-in-do_pages_stat.patch
+mm-migration-avoid-unneeded-nodemask_t-initialization.patch
+mm-migration-remove-some-duplicated-codes-in-migrate_pages.patch
+mm-migration-fix-potential-page-refcounts-leak-in-migrate_pages.patch
+mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch
+mm-migration-fix-possible-do_pages_stat_array-racing-with-memory-offline.patch
 
