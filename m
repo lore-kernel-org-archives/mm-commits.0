@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D22FCC433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 21:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80B68C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 21:32:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229647AbiC1V3C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Mar 2022 17:29:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33998 "EHLO
+        id S229495AbiC1Vdt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Mar 2022 17:33:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229629AbiC1V3B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 17:29:01 -0400
+        with ESMTP id S229482AbiC1Vds (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 17:33:48 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAB197E095
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 14:27:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE4E5164D30
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 14:31:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B199B61505
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 21:27:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 173F0C34100;
-        Mon, 28 Mar 2022 21:27:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3011461507
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 21:28:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B20AC340F0;
+        Mon, 28 Mar 2022 21:28:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648502825;
-        bh=7ePvnviPfzkURbJeSLu25JVwGYn2DulVstr15e4bgtA=;
+        s=korg; t=1648502934;
+        bh=9L2C6WM0JWxVoyzj4+12O1Sy2xp7jwUocF1PkrWAiCY=;
         h=Date:To:From:Subject:From;
-        b=u7DSmREMR6FGOB6Bbj5zzbfCImUSW/8fzUd3bbqwnU8AvwXQTD0ABLDFCItmvU8lb
-         5UmlXLBFHo1Y8m9qm6MhUWLcyB0OyE9DQWnQFW9LHxq4XSycEqQs7ywCgeNl27dqyF
-         jJh3nqD/y3+LfD4Y13vKc+31WOm0IeSCvX5AOldE=
-Date:   Mon, 28 Mar 2022 14:27:04 -0700
-To:     mm-commits@vger.kernel.org, yanfei.xu@windriver.com,
-        tanxin.ctf@gmail.com, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, feng.tang@intel.com,
-        ben.widawsky@intel.com, xiyuyang19@fudan.edu.cn,
+        b=grTmHnU1fXu2eSuqYeXhYdDPwqllMuEXxLB8977E3v0jCJnjomUpKgEnZGcJ4LGnr
+         dVkBXn0JM3A0wWC3gejJhZCP5m1mdLfkyR83jwxFDuaHtIZnFhZ6xdxvz1l3BxKC0Z
+         fp/w3aiwmZj4K3z+9rPNTP5XI1MATDAiVsHO/yRY=
+Date:   Mon, 28 Mar 2022 14:28:53 -0700
+To:     mm-commits@vger.kernel.org, hulkci@huawei.com,
+        hirofumi@mail.parknet.co.jp, fengyubo3@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch removed from -mm tree
-Message-Id: <20220328212705.173F0C34100@smtp.kernel.org>
+Subject: + fatfs-remove-redundant-judgment.patch added to -mm tree
+Message-Id: <20220328212854.7B20AC340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,123 +42,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: convert from atomic_t to refcount_t on mempolicy->refcnt
-has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
+     Subject: fatfs: remove redundant judgment
+has been added to the -mm tree.  Its filename is
+     fatfs-remove-redundant-judgment.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/fatfs-remove-redundant-judgment.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/fatfs-remove-redundant-judgment.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Subject: mm/mempolicy: convert from atomic_t to refcount_t on mempolicy->refcnt
+From: Yubo Feng <fengyubo3@huawei.com>
+Subject: fatfs: remove redundant judgment
 
-refcount_t type and corresponding API can protect refcounters from
-accidental underflow and overflow and further use-after-free situations.
+iput() has already judged the incoming parameter, so there is no need to
+repeat outside.
 
-[akpm@linux-foundation.org: fix warnings]
-Link: https://lkml.kernel.org/r/1626683671-64407-1-git-send-email-xiyuyang19@fudan.edu.cn
-Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
-Acked-by: Ben Widawsky <ben.widawsky@intel.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Yanfei Xu <yanfei.xu@windriver.com>
+Link: https://lkml.kernel.org/r/1648265418-76563-1-git-send-email-fengyubo3@huawei.com
+Signed-off-by: Yubo Feng <fengyubo3@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    5 +++--
- mm/mempolicy.c            |   12 ++++++------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ fs/fat/inode.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/include/linux/mempolicy.h~mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt
-+++ a/include/linux/mempolicy.h
-@@ -6,6 +6,7 @@
- #ifndef _LINUX_MEMPOLICY_H
- #define _LINUX_MEMPOLICY_H 1
+--- a/fs/fat/inode.c~fatfs-remove-redundant-judgment
++++ a/fs/fat/inode.c
+@@ -1889,10 +1889,8 @@ out_invalid:
+ 		fat_msg(sb, KERN_INFO, "Can't find a valid FAT filesystem");
  
-+#include <linux/refcount.h>
- #include <linux/sched.h>
- #include <linux/mmzone.h>
- #include <linux/slab.h>
-@@ -42,7 +43,7 @@ struct mm_struct;
-  * to 1, representing the caller of mpol_dup().
-  */
- struct mempolicy {
--	atomic_t refcnt;
-+	refcount_t refcnt;
- 	unsigned short mode; 	/* See MPOL_* above */
- 	unsigned short flags;	/* See set_mempolicy() MPOL_F_* above */
- 	nodemask_t nodes;	/* interleave/bind/perfer */
-@@ -94,7 +95,7 @@ static inline struct mempolicy *mpol_dup
- static inline void mpol_get(struct mempolicy *pol)
- {
- 	if (pol)
--		atomic_inc(&pol->refcnt);
-+		refcount_inc(&pol->refcnt);
- }
- 
- extern bool __mpol_equal(struct mempolicy *a, struct mempolicy *b);
---- a/mm/mempolicy.c~mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt
-+++ a/mm/mempolicy.c
-@@ -123,7 +123,7 @@ enum zone_type policy_zone = 0;
-  * run-time system-wide default policy => local allocation
-  */
- static struct mempolicy default_policy = {
--	.refcnt = ATOMIC_INIT(1), /* never free it */
-+	.refcnt = { ATOMIC_INIT(1), }, /* never free it */
- 	.mode = MPOL_LOCAL,
- };
- 
-@@ -295,7 +295,7 @@ static struct mempolicy *mpol_new(unsign
- 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
- 	if (!policy)
- 		return ERR_PTR(-ENOMEM);
--	atomic_set(&policy->refcnt, 1);
-+	refcount_set(&policy->refcnt, 1);
- 	policy->mode = mode;
- 	policy->flags = flags;
- 	policy->home_node = NUMA_NO_NODE;
-@@ -306,7 +306,7 @@ static struct mempolicy *mpol_new(unsign
- /* Slow path of a mpol destructor. */
- void __mpol_put(struct mempolicy *p)
- {
--	if (!atomic_dec_and_test(&p->refcnt))
-+	if (!refcount_dec_and_test(&p->refcnt))
- 		return;
- 	kmem_cache_free(policy_cache, p);
- }
-@@ -2400,7 +2400,7 @@ struct mempolicy *__mpol_dup(struct memp
- 		nodemask_t mems = cpuset_mems_allowed(current);
- 		mpol_rebind_policy(new, &mems);
- 	}
--	atomic_set(&new->refcnt, 1);
-+	refcount_set(&new->refcnt, 1);
- 	return new;
- }
- 
-@@ -2697,7 +2697,7 @@ restart:
- 					goto alloc_new;
- 
- 				*mpol_new = *n->policy;
--				atomic_set(&mpol_new->refcnt, 1);
-+				refcount_set(&mpol_new->refcnt, 1);
- 				sp_node_init(n_new, end, n->end, mpol_new);
- 				n->end = start;
- 				sp_insert(sp, n_new);
-@@ -2891,7 +2891,7 @@ void __init numa_policy_init(void)
- 
- 	for_each_node(nid) {
- 		preferred_node_policy[nid] = (struct mempolicy) {
--			.refcnt = ATOMIC_INIT(1),
-+			.refcnt = { ATOMIC_INIT(1), },
- 			.mode = MPOL_PREFERRED,
- 			.flags = MPOL_F_MOF | MPOL_F_MORON,
- 			.nodes = nodemask_of_node(nid),
+ out_fail:
+-	if (fsinfo_inode)
+-		iput(fsinfo_inode);
+-	if (fat_inode)
+-		iput(fat_inode);
++	iput(fsinfo_inode);
++	iput(fat_inode);
+ 	unload_nls(sbi->nls_io);
+ 	unload_nls(sbi->nls_disk);
+ 	fat_reset_iocharset(&sbi->options);
 _
 
-Patches currently in -mm which might be from xiyuyang19@fudan.edu.cn are
+Patches currently in -mm which might be from fengyubo3@huawei.com are
 
-mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
+fatfs-remove-redundant-judgment.patch
 
