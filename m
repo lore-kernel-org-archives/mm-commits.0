@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DD1FC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 22:39:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37433C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 22:39:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230105AbiC1WlN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Mar 2022 18:41:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37254 "EHLO
+        id S230138AbiC1Wl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Mar 2022 18:41:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230113AbiC1WlK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 18:41:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46EB14A92A
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 15:39:28 -0700 (PDT)
+        with ESMTP id S230091AbiC1WlP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 18:41:15 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 825B94A910
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 15:39:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D67D26093C
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 22:39:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389C7C340EC;
-        Mon, 28 Mar 2022 22:39:27 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id CB5C1CE1767
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 22:39:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E684C340EC;
+        Mon, 28 Mar 2022 22:39:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648507167;
-        bh=stNYfCYnDKXBwY+0JI4fuzy8wkirDr0YgQfpSGuPtZI=;
+        s=korg; t=1648507169;
+        bh=33e4jeP4hD6/3z6LsciUPRFfukpuzreIkCbysXMxXJA=;
         h=Date:To:From:Subject:From;
-        b=stQ/ahqJdwxP8jquPKqTnwQJFZf09WwRIF6FO3GEnfwRBn0pSncthASFMghpaiJf0
-         +Gzh4R+xdlwy3nVGaXIVSwSadtAeFG4zDtSRdf7qYvqblNxIr68Y4Ojxp4JmvG3849
-         j8pc2kiJerWxQT6QPEThVD0q8+8dVL3eOjNUqoI8=
-Date:   Mon, 28 Mar 2022 15:39:26 -0700
+        b=EHQo0uxXSKi4xRPdLnXH1EQV86f46D7RAvbd8eBktwATgjuw/j/TXMVAYs/LaBO/j
+         sGl6uizbxDs1vXGo840fEwOkDA+RwbTMoWy52SV83/xb6g7ZMthYFFDvi2W2IGkfrn
+         3vYkzOHS7Hz/aRUwS1FPrQ/cvGLNYC9wkBv/Jg68=
+Date:   Mon, 28 Mar 2022 15:39:28 -0700
 To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         xiyuyang19@fudan.edu.cn, willy@infradead.org,
         viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         apopple@nvidia.com, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-fix-missing-writeprotect-the-pte-entry.patch added to -mm tree
-Message-Id: <20220328223927.389C7C340EC@smtp.kernel.org>
+Subject: + mm-simplify-follow_invalidate_pte.patch added to -mm tree
+Message-Id: <20220328223929.2E684C340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix missing writeprotect the pte entry
+     Subject: mm: simplify follow_invalidate_pte()
 has been added to the -mm tree.  Its filename is
-     dax-fix-missing-writeprotect-the-pte-entry.patch
+     mm-simplify-follow_invalidate_pte.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/dax-fix-missing-writeprotect-the-pte-entry.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-follow_invalidate_pte.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-missing-writeprotect-the-pte-entry.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-follow_invalidate_pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,32 +68,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: dax: fix missing writeprotect the pte entry
+Subject: mm: simplify follow_invalidate_pte()
 
-Currently dax_mapping_entry_mkclean() fails to clean and write protect the
-pte entry within a DAX PMD entry during an *sync operation.  This can
-result in data loss in the following sequence:
+The only user (DAX) of range and pmdpp parameters of
+follow_invalidate_pte() is gone, it is safe to remove them and make it
+static to simlify the code.  This is revertant of the following commits:
 
-  1) process A mmap write to DAX PMD, dirtying PMD radix tree entry and
-     making the pmd entry dirty and writeable.
-  2) process B mmap with the @offset (e.g. 4K) and @length (e.g. 4K)
-     write to the same file, dirtying PMD radix tree entry (already
-     done in 1)) and making the pte entry dirty and writeable.
-  3) fsync, flushing out PMD data and cleaning the radix tree entry. We
-     currently fail to mark the pte entry as clean and write protected
-     since the vma of process B is not covered in dax_entry_mkclean().
-  4) process B writes to the pte. These don't cause any page faults since
-     the pte entry is dirty and writeable. The radix tree entry remains
-     clean.
-  5) fsync, which fails to flush the dirty PMD data because the radix tree
-     entry was clean.
-  6) crash - dirty data that should have been fsync'd as part of 5) could
-     still have been in the processor cache, and is lost.
+  097963959594 ("mm: add follow_pte_pmd()")
+  a4d1a8852513 ("dax: update to new mmu_notifier semantic")
 
-Just to use pfn_mkclean_range() to clean the pfns to fix this issue.
+There is only one caller of the follow_invalidate_pte().  So just fold it
+into follow_pte() and remove it.
 
-Link: https://lkml.kernel.org/r/20220318074529.5261-6-songmuchun@bytedance.com
-Fixes: 4b4bb46d00b3 ("dax: clear dirty entry tags on cache flush")
+Link: https://lkml.kernel.org/r/20220318074529.5261-7-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -111,121 +98,132 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   83 ++++-------------------------------------------------
- 1 file changed, 7 insertions(+), 76 deletions(-)
+ include/linux/mm.h |    3 -
+ mm/memory.c        |   81 ++++++++++++-------------------------------
+ 2 files changed, 23 insertions(+), 61 deletions(-)
 
---- a/fs/dax.c~dax-fix-missing-writeprotect-the-pte-entry
-+++ a/fs/dax.c
-@@ -24,6 +24,7 @@
- #include <linux/sizes.h>
- #include <linux/mmu_notifier.h>
- #include <linux/iomap.h>
-+#include <linux/rmap.h>
- #include <asm/pgalloc.h>
- 
- #define CREATE_TRACE_POINTS
-@@ -789,87 +790,17 @@ static void *dax_insert_entry(struct xa_
- 	return entry;
+--- a/include/linux/mm.h~mm-simplify-follow_invalidate_pte
++++ a/include/linux/mm.h
+@@ -1845,9 +1845,6 @@ void free_pgd_range(struct mmu_gather *t
+ 		unsigned long end, unsigned long floor, unsigned long ceiling);
+ int
+ copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
+-int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
+-			  struct mmu_notifier_range *range, pte_t **ptepp,
+-			  pmd_t **pmdpp, spinlock_t **ptlp);
+ int follow_pte(struct mm_struct *mm, unsigned long address,
+ 	       pte_t **ptepp, spinlock_t **ptlp);
+ int follow_pfn(struct vm_area_struct *vma, unsigned long address,
+--- a/mm/memory.c~mm-simplify-follow_invalidate_pte
++++ a/mm/memory.c
+@@ -4949,9 +4949,29 @@ int __pmd_alloc(struct mm_struct *mm, pu
  }
+ #endif /* __PAGETABLE_PMD_FOLDED */
  
--static inline
--unsigned long pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
--{
--	unsigned long address;
--
--	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
--	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
--	return address;
--}
--
- /* Walk all mappings of a given index of a file and writeprotect them */
--static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
--		unsigned long pfn)
-+static void dax_entry_mkclean(struct address_space *mapping, unsigned long pfn,
-+			      unsigned long npfn, pgoff_t start)
+-int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
+-			  struct mmu_notifier_range *range, pte_t **ptepp,
+-			  pmd_t **pmdpp, spinlock_t **ptlp)
++/**
++ * follow_pte - look up PTE at a user virtual address
++ * @mm: the mm_struct of the target address space
++ * @address: user virtual address
++ * @ptepp: location to store found PTE
++ * @ptlp: location to store the lock for the PTE
++ *
++ * On a successful return, the pointer to the PTE is stored in @ptepp;
++ * the corresponding lock is taken and its location is stored in @ptlp.
++ * The contents of the PTE are only stable until @ptlp is released;
++ * any further use, if any, must be protected against invalidation
++ * with MMU notifiers.
++ *
++ * Only IO mappings and raw PFN mappings are allowed.  The mmap semaphore
++ * should be taken for read.
++ *
++ * KVM uses this function.  While it is arguably less bad than ``follow_pfn``,
++ * it is not a good general-purpose API.
++ *
++ * Return: zero on success, -ve otherwise.
++ */
++int follow_pte(struct mm_struct *mm, unsigned long address,
++	       pte_t **ptepp, spinlock_t **ptlp)
  {
- 	struct vm_area_struct *vma;
--	pte_t pte, *ptep = NULL;
--	pmd_t *pmdp = NULL;
--	spinlock_t *ptl;
-+	pgoff_t end = start + npfn - 1;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -4974,35 +4994,9 @@ int follow_invalidate_pte(struct mm_stru
+ 	pmd = pmd_offset(pud, address);
+ 	VM_BUG_ON(pmd_trans_huge(*pmd));
  
- 	i_mmap_lock_read(mapping);
--	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
--		struct mmu_notifier_range range;
--		unsigned long address;
+-	if (pmd_huge(*pmd)) {
+-		if (!pmdpp)
+-			goto out;
 -
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap, start, end) {
-+		pfn_mkclean_range(pfn, npfn, start, vma);
- 		cond_resched();
--
--		if (!(vma->vm_flags & VM_SHARED))
--			continue;
--
--		address = pgoff_address(index, vma);
--
--		/*
--		 * follow_invalidate_pte() will use the range to call
--		 * mmu_notifier_invalidate_range_start() on our behalf before
--		 * taking any lock.
--		 */
--		if (follow_invalidate_pte(vma->vm_mm, address, &range, &ptep,
--					  &pmdp, &ptl))
--			continue;
--
--		/*
--		 * No need to call mmu_notifier_invalidate_range() as we are
--		 * downgrading page table protection not changing it to point
--		 * to a new page.
--		 *
--		 * See Documentation/vm/mmu_notifier.rst
--		 */
--		if (pmdp) {
--#ifdef CONFIG_FS_DAX_PMD
--			pmd_t pmd;
--
--			if (pfn != pmd_pfn(*pmdp))
--				goto unlock_pmd;
--			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
--				goto unlock_pmd;
--
--			flush_cache_range(vma, address,
--					  address + HPAGE_PMD_SIZE);
--			pmd = pmdp_invalidate(vma, address, pmdp);
--			pmd = pmd_wrprotect(pmd);
--			pmd = pmd_mkclean(pmd);
--			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
--unlock_pmd:
--#endif
--			spin_unlock(ptl);
--		} else {
--			if (pfn != pte_pfn(*ptep))
--				goto unlock_pte;
--			if (!pte_dirty(*ptep) && !pte_write(*ptep))
--				goto unlock_pte;
--
--			flush_cache_page(vma, address, pfn);
--			pte = ptep_clear_flush(vma, address, ptep);
--			pte = pte_wrprotect(pte);
--			pte = pte_mkclean(pte);
--			set_pte_at(vma->vm_mm, address, ptep, pte);
--unlock_pte:
--			pte_unmap_unlock(ptep, ptl);
+-		if (range) {
+-			mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0,
+-						NULL, mm, address & PMD_MASK,
+-						(address & PMD_MASK) + PMD_SIZE);
+-			mmu_notifier_invalidate_range_start(range);
 -		}
+-		*ptlp = pmd_lock(mm, pmd);
+-		if (pmd_huge(*pmd)) {
+-			*pmdpp = pmd;
+-			return 0;
+-		}
+-		spin_unlock(*ptlp);
+-		if (range)
+-			mmu_notifier_invalidate_range_end(range);
+-	}
 -
--		mmu_notifier_invalidate_range_end(&range);
- 	}
- 	i_mmap_unlock_read(mapping);
- }
-@@ -937,7 +868,7 @@ static int dax_writeback_one(struct xa_s
- 	count = 1UL << dax_entry_order(entry);
- 	index = xas->xa_index & ~(count - 1);
+ 	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
+ 		goto out;
  
--	dax_entry_mkclean(mapping, index, pfn);
-+	dax_entry_mkclean(mapping, pfn, count, index);
- 	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
+-	if (range) {
+-		mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0, NULL, mm,
+-					address & PAGE_MASK,
+-					(address & PAGE_MASK) + PAGE_SIZE);
+-		mmu_notifier_invalidate_range_start(range);
+-	}
+ 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
+ 	if (!pte_present(*ptep))
+ 		goto unlock;
+@@ -5010,38 +5004,9 @@ int follow_invalidate_pte(struct mm_stru
+ 	return 0;
+ unlock:
+ 	pte_unmap_unlock(ptep, *ptlp);
+-	if (range)
+-		mmu_notifier_invalidate_range_end(range);
+ out:
+ 	return -EINVAL;
+ }
+-
+-/**
+- * follow_pte - look up PTE at a user virtual address
+- * @mm: the mm_struct of the target address space
+- * @address: user virtual address
+- * @ptepp: location to store found PTE
+- * @ptlp: location to store the lock for the PTE
+- *
+- * On a successful return, the pointer to the PTE is stored in @ptepp;
+- * the corresponding lock is taken and its location is stored in @ptlp.
+- * The contents of the PTE are only stable until @ptlp is released;
+- * any further use, if any, must be protected against invalidation
+- * with MMU notifiers.
+- *
+- * Only IO mappings and raw PFN mappings are allowed.  The mmap semaphore
+- * should be taken for read.
+- *
+- * KVM uses this function.  While it is arguably less bad than ``follow_pfn``,
+- * it is not a good general-purpose API.
+- *
+- * Return: zero on success, -ve otherwise.
+- */
+-int follow_pte(struct mm_struct *mm, unsigned long address,
+-	       pte_t **ptepp, spinlock_t **ptlp)
+-{
+-	return follow_invalidate_pte(mm, address, NULL, ptepp, NULL, ptlp);
+-}
+ EXPORT_SYMBOL_GPL(follow_pte);
+ 
+ /**
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
