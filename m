@@ -2,40 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEB78C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 20:28:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD82FC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 28 Mar 2022 20:29:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243163AbiC1Ua2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Mar 2022 16:30:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34650 "EHLO
+        id S1345895AbiC1UbS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Mar 2022 16:31:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345811AbiC1Ua0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 16:30:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B287414085;
-        Mon, 28 Mar 2022 13:28:42 -0700 (PDT)
+        with ESMTP id S1345886AbiC1UbM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 16:31:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A0F93CA62
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 13:29:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6457C60ED9;
-        Mon, 28 Mar 2022 20:28:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B296FC340ED;
-        Mon, 28 Mar 2022 20:28:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E5DA5B81210
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 20:29:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B24DC340ED;
+        Mon, 28 Mar 2022 20:29:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648499321;
-        bh=SNWUr/AycHWkjdXz/AGkNvmnUQgBzSkJ+3Rend7O/Rw=;
+        s=korg; t=1648499368;
+        bh=gwYfDmh51FrptYrFQxpe3aEeq9ju8ZKRbCudXoI39M4=;
         h=Date:To:From:Subject:From;
-        b=Q70OX5Zo6Din9jQEAQx1j3CGq5nyEUoHWBqPpceSeEZbENBcuJxSN7uR2Ob+vPe5T
-         4KWgFmkFzZwdyl7T87JdJCUgZ8xMFnpXOgAQBXOrlNtcrWQllWjoO9zgj2n6M5V15u
-         b71PW1y1a1RuExg0SoPZ4jk35NhT8nXBKq9hB85Q=
-Date:   Mon, 28 Mar 2022 13:28:41 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        osalvador@suse.de, naoya.horiguchi@nec.com, mgorman@suse.de,
-        linmiaohe@huawei.com, hannes@cmpxchg.org, riel@surriel.com,
-        akpm@linux-foundation.org
+        b=HhPiyYPxKEFxP0+XA8fixKu14OHMH3pi1btDeT21lc7R8p5NhVUWeYdXQL2CMFYT7
+         mmZOfc2Dv9ZTeMJrnkkmW0r1bMLQSs274uc83be/LmVVYPbjrL6AnwA35c5l+Z/Odk
+         0k4wRqREjUgjOhSNGrWZeWxFEZsSV0LIork04qxU=
+Date:   Mon, 28 Mar 2022 13:29:27 -0700
+To:     mm-commits@vger.kernel.org, eb@emlix.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmhwpoison-unmap-poisoned-page-before-invalidation.patch added to -mm tree
-Message-Id: <20220328202841.B296FC340ED@smtp.kernel.org>
+Subject: + mm-use-mmap_assert_write_locked-instead-of-open-coding-it.patch added to -mm tree
+Message-Id: <20220328202928.9B24DC340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: unmap poisoned page before invalidation
+     Subject: mm/mmap.c: use mmap_assert_write_locked() instead of open coding it
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-unmap-poisoned-page-before-invalidation.patch
+     mm-use-mmap_assert_write_locked-instead-of-open-coding-it.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-unmap-poisoned-page-before-invalidation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-mmap_assert_write_locked-instead-of-open-coding-it.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-unmap-poisoned-page-before-invalidation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-mmap_assert_write_locked-instead-of-open-coding-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,68 +61,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm,hwpoison: unmap poisoned page before invalidation
+From: Rolf Eike Beer <eb@emlix.com>
+Subject: mm/mmap.c: use mmap_assert_write_locked() instead of open coding it
 
-In some cases it appears the invalidation of a hwpoisoned page fails
-because the page is still mapped in another process.  This can cause a
-program to be continuously restarted and die when it page faults on the
-page that was not invalidated.  Avoid that problem by unmapping the
-hwpoisoned page when we find it.
+In case the lock is actually not held at this point this also avoids a
+stale lock reference if built with NDEBUG.
 
-Another issue is that sometimes we end up oopsing in finish_fault, if the
-code tries to do something with the now-NULL vmf->page.  I did not hit
-this error when submitting the previous patch because there are several
-opportunities for alloc_set_pte to bail out before accessing vmf->page,
-and that apparently happened on those systems, and most of the time on
-other systems, too.
-
-However, across several million systems that error does occur a handful of
-times a day.  It can be avoided by returning VM_FAULT_NOPAGE which will
-cause do_read_fault to return before calling finish_fault.
-
-Link: https://lkml.kernel.org/r/20220325161428.5068d97e@imladris.surriel.com
-Fixes: e53ac7374e64 ("mm: invalidate hwpoison page cache page in fault path")
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Tested-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/5827758.TJ1SttVevJ@mobilepool36.emlix.com
+Signed-off-by: Rolf Eike Beer <eb@emlix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory.c~mmhwpoison-unmap-poisoned-page-before-invalidation
-+++ a/mm/memory.c
-@@ -3918,14 +3918,18 @@ static vm_fault_t __do_fault(struct vm_f
- 		return ret;
+--- a/mm/mmap.c~mm-use-mmap_assert_write_locked-instead-of-open-coding-it
++++ a/mm/mmap.c
+@@ -3561,7 +3561,7 @@ int mm_take_all_locks(struct mm_struct *
+ 	struct vm_area_struct *vma;
+ 	struct anon_vma_chain *avc;
  
- 	if (unlikely(PageHWPoison(vmf->page))) {
-+		struct page *page = vmf->page;
- 		vm_fault_t poisonret = VM_FAULT_HWPOISON;
- 		if (ret & VM_FAULT_LOCKED) {
-+			if (page_mapped(page))
-+				unmap_mapping_pages(page_mapping(page),
-+						    page->index, 1, false);
- 			/* Retry if a clean page was removed from the cache. */
--			if (invalidate_inode_page(vmf->page))
--				poisonret = 0;
--			unlock_page(vmf->page);
-+			if (invalidate_inode_page(page))
-+				poisonret = VM_FAULT_NOPAGE;
-+			unlock_page(page);
- 		}
--		put_page(vmf->page);
-+		put_page(page);
- 		vmf->page = NULL;
- 		return poisonret;
- 	}
+-	BUG_ON(mmap_read_trylock(mm));
++	mmap_assert_write_locked(mm);
+ 
+ 	mutex_lock(&mm_all_locks_mutex);
+ 
+@@ -3641,7 +3641,7 @@ void mm_drop_all_locks(struct mm_struct
+ 	struct vm_area_struct *vma;
+ 	struct anon_vma_chain *avc;
+ 
+-	BUG_ON(mmap_read_trylock(mm));
++	mmap_assert_write_locked(mm);
+ 	BUG_ON(!mutex_is_locked(&mm_all_locks_mutex));
+ 
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from eb@emlix.com are
 
-mmhwpoison-unmap-poisoned-page-before-invalidation.patch
+mm-use-mmap_assert_write_locked-instead-of-open-coding-it.patch
 
