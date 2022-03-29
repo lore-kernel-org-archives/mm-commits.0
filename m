@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BFCFC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Mar 2022 01:18:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92B0BC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Mar 2022 01:20:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229531AbiC2BUW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Mar 2022 21:20:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41882 "EHLO
+        id S229450AbiC2BVx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 28 Mar 2022 21:21:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbiC2BUS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 21:20:18 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B74382C10F
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 18:18:35 -0700 (PDT)
+        with ESMTP id S229437AbiC2BVw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 21:21:52 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FFDD2C10D
+        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 18:20:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 706FEB81255
-        for <mm-commits@vger.kernel.org>; Tue, 29 Mar 2022 01:18:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26C5BC340EC;
-        Tue, 29 Mar 2022 01:18:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D82B611D0
+        for <mm-commits@vger.kernel.org>; Tue, 29 Mar 2022 01:20:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEAECC340EC;
+        Tue, 29 Mar 2022 01:20:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648516713;
-        bh=JWGOsasOl2HcxzqtJkhYxrVUCanx+tOcPquROQhfNvc=;
+        s=korg; t=1648516810;
+        bh=IhAQk/YTgTjM0mksd/kJUPBDwe2zOV2vuEGo+wlSwHM=;
         h=Date:To:From:Subject:From;
-        b=b8W1n/ZgnNisbc0k8rL+ofJGw1NsmlQXrYSfFggq6eghGFEI/dVUYOSVwB0qJQPEN
-         +lkj6vatkX6etm/cvNtp6NIIsFlN2SfZq2rClKBwojQjHKqwhA+q+6/xL3k9SsDdVm
-         Vo+AnGv0VGN+P6nUEkFC0voenU6PhKv+aVxcI5AY=
-Date:   Mon, 28 Mar 2022 18:18:32 -0700
+        b=pwxqxLNDobYbhJ/hci0haeXvnumbVn/+F6kPDxyFxkMG85Mm1fwYwlvlJwJrZsrUm
+         IdtmcEjzYP4u9QDVyOifz3PpRB/ZBjJiskSI85e+A9rDTNwXlGdyOAmDB27LjSa6vk
+         YBtrd1haa99OJOnwOflcV+2f9Uuu2QoDEYqr+1qo=
+Date:   Mon, 28 Mar 2022 18:20:09 -0700
 To:     mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
         mhocko@kernel.org, linmiaohe@huawei.com, david@redhat.com,
         osalvador@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node.patch added to -mm tree
-Message-Id: <20220329011833.26C5BC340EC@smtp.kernel.org>
+Subject: + mm-page_alloc-do-not-calculate-nodes-total-pages-and-memmap-pages-when-empty.patch added to -mm tree
+Message-Id: <20220329012009.EEAECC340EC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: refactor hotadd_init_pgdat and try_online_node
+     Subject: mm/page_alloc: do not calculate node's total pages and memmap pages when empty
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node.patch
+     mm-page_alloc-do-not-calculate-nodes-total-pages-and-memmap-pages-when-empty.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-calculate-nodes-total-pages-and-memmap-pages-when-empty.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-calculate-nodes-total-pages-and-memmap-pages-when-empty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,106 +64,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm/memory_hotplug: refactor hotadd_init_pgdat and try_online_node
+Subject: mm/page_alloc: do not calculate node's total pages and memmap pages when empty
 
-Since we pre-allocate all nodes now, hotadd_init_pgdat() does not need to
-return a pgdat struct, as that was meant for __try_online_node() to check
-whether the node was succesfully allocated.
+Patch series "A minor hotplug refactoring".
 
-Also get rid of the __ref as all functions hotadd_init_pgdat() calls fall
-within the same section.
 
-Also try to make more clear the return codes from __try_online_node(). 
-__try_online_node() can return either 0, 1 or -errno (the latter not
-really as the BUG_ON() would catch it before we return) but depending on
-the caller that has different meanings.
+This patch (of 3):
 
-For add_memory_resource(), when __try_online_node() returns non-zero, it
-means that the node was already allocated and it does not need to bring it
-up.  It is fine not to check for -errno values because we do not get to
-call register_one_node() when !set_node_online.  For those who call
-try_online_node(), so set_node_online is true, a value other than zero
-means a failure (e.g: cpu_up() or find_and_online_cpu_nid()).
+free_area_init_node() calls calculate_node_totalpages() and
+free_area_init_core().  The former to get node's {spanned,present}_pages,
+and the latter to calculate, among other things, how many pages per zone
+we spent on memmap_pages, which is used to subtract zone's free pages.
 
-Link: https://lkml.kernel.org/r/20220307150725.6810-4-osalvador@suse.de
+On memoryless nodes, it is pointless to perform such a bunch of work, so
+make sure we skip the calculations when having a node or empty zone.
+
+Link: https://lkml.kernel.org/r/20220307150725.6810-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20220307150725.6810-2-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   37 +++++++++++++++----------------------
- 1 file changed, 15 insertions(+), 22 deletions(-)
+ mm/page_alloc.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node
-+++ a/mm/memory_hotplug.c
-@@ -1155,8 +1155,7 @@ static void reset_node_present_pages(pg_
- 	pgdat->node_present_pages = 0;
- }
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-calculate-nodes-total-pages-and-memmap-pages-when-empty
++++ a/mm/page_alloc.c
+@@ -7321,6 +7321,10 @@ static void __init calculate_node_totalp
+ 	unsigned long realtotalpages = 0, totalpages = 0;
+ 	enum zone_type i;
  
--/* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
--static pg_data_t __ref *hotadd_init_pgdat(int nid)
-+static void hotadd_init_pgdat(int nid)
- {
- 	struct pglist_data *pgdat = NODE_DATA(nid);
- 
-@@ -1176,8 +1175,6 @@ static pg_data_t __ref *hotadd_init_pgda
- 	 * to access not-initialized zonelist, build here.
- 	 */
- 	build_all_zonelists(pgdat);
--
--	return pgdat;
- }
- 
- /*
-@@ -1187,31 +1184,27 @@ static pg_data_t __ref *hotadd_init_pgda
-  * called by cpu_up() to online a node without onlined memory.
-  *
-  * Returns:
-- * 1 -> a new node has been allocated
-- * 0 -> the node is already online
-- * -ENOMEM -> the node could not be allocated
-+ * 1 -> The node has been initialized.
-+ * 0 -> Either the node was already online, or we succesfully registered a new
-+ *      one.
-+ * -errno -> register_one_node() failed.
-  */
- static int __try_online_node(int nid, bool set_node_online)
- {
--	pg_data_t *pgdat;
--	int ret = 1;
-+	int ret;
- 
- 	if (node_online(nid))
- 		return 0;
- 
--	pgdat = hotadd_init_pgdat(nid);
--	if (!pgdat) {
--		pr_err("Cannot online node %d due to NULL pgdat\n", nid);
--		ret = -ENOMEM;
--		goto out;
--	}
--
--	if (set_node_online) {
--		node_set_online(nid);
--		ret = register_one_node(nid);
--		BUG_ON(ret);
--	}
--out:
-+	hotadd_init_pgdat(nid);
++	/* Skip calculation for memoryless nodes */
++	if (node_start_pfn == node_end_pfn)
++		goto no_pages;
 +
-+	if (!set_node_online)
-+		return 1;
-+
-+	node_set_online(nid);
-+	ret = register_one_node(nid);
-+	BUG_ON(ret);
-+
- 	return ret;
- }
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+ 		struct zone *zone = pgdat->node_zones + i;
+ 		unsigned long zone_start_pfn, zone_end_pfn;
+@@ -7353,6 +7357,7 @@ static void __init calculate_node_totalp
+ 		realtotalpages += real_size;
+ 	}
  
++no_pages:
+ 	pgdat->node_spanned_pages = totalpages;
+ 	pgdat->node_present_pages = realtotalpages;
+ 	pr_debug("On node %d totalpages: %lu\n", pgdat->node_id, realtotalpages);
+@@ -7570,6 +7575,10 @@ static void __init free_area_init_core(s
+ 		size = zone->spanned_pages;
+ 		freesize = zone->present_pages;
+ 
++		/* No pages? Nothing to calculate then. */
++		if (!size)
++			goto no_pages;
++
+ 		/*
+ 		 * Adjust freesize so that it accounts for how much memory
+ 		 * is used by this zone for memmap. This affects the watermark
+@@ -7605,6 +7614,7 @@ static void __init free_area_init_core(s
+ 		 * when the bootmem allocator frees pages into the buddy system.
+ 		 * And all highmem pages will be managed by the buddy system.
+ 		 */
++no_pages:
+ 		zone_init_internals(zone, j, nid, freesize);
+ 
+ 		if (!size)
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
