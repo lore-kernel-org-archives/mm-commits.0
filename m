@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44849C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Mar 2022 01:20:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC61CC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Mar 2022 00:55:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229501AbiC2BWJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 28 Mar 2022 21:22:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47834 "EHLO
+        id S241050AbiC3A4y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Mar 2022 20:56:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbiC2BWA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2022 21:22:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC0DA2C660
-        for <mm-commits@vger.kernel.org>; Mon, 28 Mar 2022 18:20:18 -0700 (PDT)
+        with ESMTP id S231459AbiC3A4y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Mar 2022 20:56:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FC2119531B
+        for <mm-commits@vger.kernel.org>; Tue, 29 Mar 2022 17:55:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7305FB815A0
-        for <mm-commits@vger.kernel.org>; Tue, 29 Mar 2022 01:20:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12DC7C340EC;
-        Tue, 29 Mar 2022 01:20:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E710B61266
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 00:55:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B030C2BBE4;
+        Wed, 30 Mar 2022 00:55:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648516816;
-        bh=oMGY1RgnIcClserK+ASxrS1KKoc4pRZBq+/tSGHfv7c=;
+        s=korg; t=1648601709;
+        bh=HeJwDZyv5x7lqoFTeGm2hTC6dNpH0uHNY7U5KZb8nxI=;
         h=Date:To:From:Subject:From;
-        b=GuZTcbBy10NKdazzqnmVrmLOketil3Eq5mIsxcFzX9I0YhaQgbXjKyhCO7fQgd8y5
-         Qq0cDoeiexEcgqOeFxiVY804eQzyITq7tibEkaa2h3RIvMcPnbbi0M2p5EPSAEylD8
-         8tDdN7gYHbe5QjE9S9SXDLei2XPQbCFHAoGsG24U=
-Date:   Mon, 28 Mar 2022 18:20:15 -0700
-To:     mm-commits@vger.kernel.org, osalvador@suse.de,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=mEnYvCgIBtRh1p7veRLkBJRtSy00H2H5vsD/KsuHBJSMAv+3gHuVEx3g6qvWCkqQM
+         EHCoX/OXKjI6M8YpHW8nxRzOkvJZxPGtczvGzZRN6NRF29M+xJuogNDpv8qF0Tj+pw
+         PCgTLK0c4/mLvofK8mlZU1YsAWYSkanb9KQYJrNM=
+Date:   Tue, 29 Mar 2022 17:55:08 -0700
+To:     mm-commits@vger.kernel.org, legion@kernel.org, hughd@google.com,
+        ebiederm@xmission.com, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch added to -mm tree
-Message-Id: <20220329012016.12DC7C340EC@smtp.kernel.org>
+Subject: [merged] mm-mlock-fix-two-bugs-in-user_shm_lock.patch removed from -mm tree
+Message-Id: <20220330005509.4B030C2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,85 +42,83 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
+     Subject: mm/mlock: fix two bugs in user_shm_lock()
+has been removed from the -mm tree.  Its filename was
+     mm-mlock-fix-two-bugs-in-user_shm_lock.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mlock: fix two bugs in user_shm_lock()
 
-WARNING: 'succesfully' may be misspelled - perhaps 'successfully'?
-#6: 
-whether the node was succesfully allocated.
-                     ^^^^^^^^^^^
+user_shm_lock forgets to set allowed to 0 when get_ucounts fails.  So the
+later user_shm_unlock might do the extra dec_rlimit_ucounts.  Also in the
+RLIM_INFINITY case, user_shm_lock will success regardless of the value of
+memlock where memblock == LONG_MAX && !capable(CAP_IPC_LOCK) should fail. 
+Fix all of these by changing the code to leave lock_limit at ULONG_MAX aka
+RLIM_INFINITY, leave "allowed" initialized to 0 and remove the special
+case of RLIM_INFINITY as nothing can be greater than ULONG_MAX.
 
-WARNING: 'succesfully' may be misspelled - perhaps 'successfully'?
-#64: FILE: mm/memory_hotplug.c:1188:
-+ * 0 -> Either the node was already online, or we succesfully registered a new
-                                                   ^^^^^^^^^^^
+Credit goes to Eric W.  Biederman for proposing simplifying the code and
+thus catching the later bug.
 
-WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
-#97: FILE: mm/memory_hotplug.c:1206:
-+	BUG_ON(ret);
-
-total: 0 errors, 3 warnings, 62 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20220322080918.59861-1-linmiaohe@huawei.com
+Fixes: d7c9e99aee48 ("Reimplement RLIMIT_MEMLOCK on top of ucounts")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alexey Gladkov <legion@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mlock.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes
-+++ a/mm/memory_hotplug.c
-@@ -1185,7 +1185,7 @@ static void hotadd_init_pgdat(int nid)
-  *
-  * Returns:
-  * 1 -> The node has been initialized.
-- * 0 -> Either the node was already online, or we succesfully registered a new
-+ * 0 -> Either the node was already online, or we successfully registered a new
-  *      one.
-  * -errno -> register_one_node() failed.
-  */
+--- a/mm/mlock.c~mm-mlock-fix-two-bugs-in-user_shm_lock
++++ a/mm/mlock.c
+@@ -721,13 +721,12 @@ int user_shm_lock(size_t size, struct uc
+ 
+ 	locked = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	lock_limit = rlimit(RLIMIT_MEMLOCK);
+-	if (lock_limit == RLIM_INFINITY)
+-		allowed = 1;
+-	lock_limit >>= PAGE_SHIFT;
++	if (lock_limit != RLIM_INFINITY)
++		lock_limit >>= PAGE_SHIFT;
+ 	spin_lock(&shmlock_user_lock);
+ 	memlock = inc_rlimit_ucounts(ucounts, UCOUNT_RLIMIT_MEMLOCK, locked);
+ 
+-	if (!allowed && (memlock == LONG_MAX || memlock > lock_limit) && !capable(CAP_IPC_LOCK)) {
++	if ((memlock == LONG_MAX || memlock > lock_limit) && !capable(CAP_IPC_LOCK)) {
+ 		dec_rlimit_ucounts(ucounts, UCOUNT_RLIMIT_MEMLOCK, locked);
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm.patch
-mm-shmem-make-shmem_init-return-void-fix.patch
-ksm-count-ksm-merging-pages-for-each-process-fix.patch
-mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-linux-next-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-shmem-make-shmem_init-return-void.patch
+mm-memcg-remove-unneeded-nr_scanned.patch
+mm-mremap-use-helper-mlock_future_check.patch
+mm-z3fold-declare-z3fold_mount-with-__init.patch
+mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch
+mm-z3fold-minor-clean-up-for-z3fold_free.patch
+mm-z3fold-remove-unneeded-page_mapcount_reset-and-clearpageprivate.patch
+mm-z3fold-remove-confusing-local-variable-l-reassignment.patch
+mm-z3fold-move-decrement-of-pool-pages_nr-into-__release_z3fold_page.patch
+mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free.patch
+mm-z3fold-remove-unneeded-page_headless-check-in-free_handle.patch
+mm-compaction-use-helper-isolation_suitable.patch
+mm-migration-remove-unneeded-local-variable-mapping_locked.patch
+mm-migration-remove-unneeded-out-label.patch
+mm-migration-remove-unneeded-local-variable-page_lru.patch
+mm-migration-fix-the-confusing-pagetranshuge-check.patch
+mm-migration-use-helper-function-vma_lookup-in-add_page_for_migration.patch
+mm-migration-use-helper-macro-min-in-do_pages_stat.patch
+mm-migration-avoid-unneeded-nodemask_t-initialization.patch
+mm-migration-remove-some-duplicated-codes-in-migrate_pages.patch
+mm-migration-fix-potential-page-refcounts-leak-in-migrate_pages.patch
+mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch
+mm-migration-fix-possible-do_pages_stat_array-racing-with-memory-offline.patch
 
