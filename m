@@ -2,212 +2,147 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FACFC433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 30 Mar 2022 20:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89071C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Mar 2022 20:57:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346007AbiC3UDr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 30 Mar 2022 16:03:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37526 "EHLO
+        id S244409AbiC3U7K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 30 Mar 2022 16:59:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231866AbiC3UDr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2022 16:03:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E158139BA6;
-        Wed, 30 Mar 2022 13:02:00 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S1351176AbiC3U7H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2022 16:59:07 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 96C7F42A2F
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 13:57:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1648673840;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=MeKkthCeJH55gUCoXkC5opPjQPW4ec2xHA9SFzG0sjg=;
+        b=DOh6WOcXBV2r3+l+jpnYo/cWaVBLXT42ooweCF7JjhnciR9uZTisvZlD4A9uEnR6Au13sd
+        pbC+gX+O8ReMwrSip9tz7cAVk6Nd9Q4czUk5izggV2VIR/AyZQFXQVCG5c2QJU6eFSIVi1
+        iobled2K5d0DD4ny3KyuseXCjdKfAVI=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-265-rRhSNS5kPnaJhPicSdvszQ-1; Wed, 30 Mar 2022 16:57:17 -0400
+X-MC-Unique: rRhSNS5kPnaJhPicSdvszQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9CBB5B81E41;
-        Wed, 30 Mar 2022 20:01:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F031C340EC;
-        Wed, 30 Mar 2022 20:01:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648670518;
-        bh=D6t+1GcBH79l7qhD0Q85c+NZyKW0vagPZr/Wc9lOaa8=;
-        h=Date:To:From:Subject:From;
-        b=jc/p1Y3/iUNbO/272k2HXr67HedR/6vUGUcApbnpVHGxTW4jOeh/zLdzoBdbNcLKv
-         pbTzRmpSGCr8qjyq83RA3B34uBaKtlgXRfwBtw1deujybErOH/e9FL89qqXTRSCE6W
-         ffAqpHYPwvBi/FDvUKZsNrY78bCJeq/F4LlzzUZA=
-Date:   Wed, 30 Mar 2022 13:01:57 -0700
-To:     broonie@kernel.org, mhocko@suse.cz, sfr@canb.auug.org.au,
-        linux-next@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: mmotm 2022-03-30-13-01 uploaded
-Message-Id: <20220330200158.2F031C340EC@smtp.kernel.org>
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 9E5A5899EC1;
+        Wed, 30 Mar 2022 20:57:16 +0000 (UTC)
+Received: from [10.18.17.215] (dhcp-17-215.bos.redhat.com [10.18.17.215])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id C3BB9C202C8;
+        Wed, 30 Mar 2022 20:57:15 +0000 (UTC)
+Message-ID: <64eb7879-b2be-0c9b-bd60-8c7b8de89987@redhat.com>
+Date:   Wed, 30 Mar 2022 16:57:15 -0400
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [failures]
+ mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning.patch removed
+ from -mm tree
+Content-Language: en-US
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au, mingo@kernel.org,
+        marcan@marcan.st, kirill.shutemov@linux.intel.com,
+        jforbes@redhat.com, aquini@redhat.com
+References: <20220222041217.3C24BC340EB@smtp.kernel.org>
+From:   Waiman Long <longman@redhat.com>
+In-Reply-To: <20220222041217.3C24BC340EB@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.85 on 10.11.54.8
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2022-03-30-13-01 has been uploaded to
+On 2/21/22 23:12, Andrew Morton wrote:
+> The patch titled
+>       Subject: mm/sparsemem: fix 'mem_section' will never be NULL gcc 12 warning
+> has been removed from the -mm tree.  Its filename was
+>       mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning.patch
+>
+> This patch was dropped because it had testing failures
+>
+> ------------------------------------------------------
+> From: Waiman Long <longman@redhat.com>
+> Subject: mm/sparsemem: fix 'mem_section' will never be NULL gcc 12 warning
+>
+> The gcc 12 compiler reports a "'mem_section' will never be NULL" warning
+> on the following code:
+>
+>      static inline struct mem_section *__nr_to_section(unsigned long nr)
+>      {
+>      #ifdef CONFIG_SPARSEMEM_EXTREME
+>          if (!mem_section)
+>                  return NULL;
+>      #endif
+>          if (!mem_section[SECTION_NR_TO_ROOT(nr)])
+>                  return NULL;
+>         :
+>
+> It happens with both CONFIG_SPARSEMEM_EXTREME on and off.  The mem_section
+> definition is
+>
+>      #ifdef CONFIG_SPARSEMEM_EXTREME
+>      extern struct mem_section **mem_section;
+>      #else
+>      extern struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT];
+>      #endif
+>
+> In the CONFIG_SPARSEMEM_EXTREME case, mem_section obviously cannot be
+> NULL, but *mem_section can be if memory hasn't been allocated for the
+> dynamic mem_section[] array yet.  In the !CONFIG_SPARSEMEM_EXTREME case,
+> mem_section is a static 2-dimensional array and so the check
+> "!mem_section[SECTION_NR_TO_ROOT(nr)]" doesn't make sense.
+>
+> Fix this warning by checking for "!*mem_section" instead of "!mem_section"
+> and moving the "!mem_section[SECTION_NR_TO_ROOT(nr)]" check up inside the
+> CONFIG_SPARSEMEM_EXTREME block.
+>
+> [longman@redhat.com: v2]
+>    Link: https://lkml.kernel.org/r/20220202003550.698768-1-longman@redhat.com
+> Link: https://lkml.kernel.org/r/20220201192924.672675-1-longman@redhat.com
+> Fixes: 83e3c48729d9 ("mm/sparsemem: Allocate mem_section at runtime for CONFIG_SPARSEMEM_EXTREME=y")
+> Fixes: 3e347261a80b ("sparsemem extreme implementation")
+> Signed-off-by: Waiman Long <longman@redhat.com>
+> Reported-by: Justin Forbes <jforbes@redhat.com>
+> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Cc: Justin Forbes <jforbes@redhat.com>
+> Cc: Rafael Aquini <aquini@redhat.com>
+> Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+> Cc: Hector Martin <marcan@marcan.st>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>   include/linux/mmzone.h |    4 +---
+>   1 file changed, 1 insertion(+), 3 deletions(-)
+>
+> --- a/include/linux/mmzone.h~mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning
+> +++ a/include/linux/mmzone.h
+> @@ -1390,11 +1390,9 @@ static inline unsigned long *section_to_
+>   static inline struct mem_section *__nr_to_section(unsigned long nr)
+>   {
+>   #ifdef CONFIG_SPARSEMEM_EXTREME
+> -	if (!mem_section)
+> +	if (!*mem_section || !mem_section[SECTION_NR_TO_ROOT(nr)])
+>   		return NULL;
+>   #endif
+> -	if (!mem_section[SECTION_NR_TO_ROOT(nr)])
+> -		return NULL;
+>   	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
+>   }
+>   extern size_t mem_section_usage_size(void);
 
-   https://www.ozlabs.org/~akpm/mmotm/
+I am sorry that I had a brain fart on my part to add the "*" to 
+mem_section. I will post an updated patch to fix that.
 
-mmotm-readme.txt says
+Cheers,
+Longman
 
-README for mm-of-the-moment:
-
-https://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-https://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
-
-	https://github.com/hnaz/linux-mm
-
-The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is also available at
-
-	https://github.com/hnaz/linux-mm
-
-
-
-This mmotm tree contains the following patches against 5.17:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-* mm-secretmem-fix-panic-when-growing-a-memfd_secret.patch
-* mailmap-update-vasily-averins-email-address.patch
-* memcg-sync-flush-only-if-periodic-flush-is-delayed.patch
-* revert-mm-madvise-skip-unmapped-vma-holes-passed-to-process_madvise.patch
-* ocfs2-fix-crash-when-mount-with-quota-enabled.patch
-* nilfs2-fix-lockdep-warnings-in-page-operations-for-btree-nodes.patch
-* nilfs2-fix-lockdep-warnings-during-disk-space-reclamation.patch
-* nilfs2-get-rid-of-nilfs_mapping_init.patch
-* mm-munlock-remove-fields-to-fix-htmldocs-warnings.patch
-* mm-munlock-add-lru_add_drain-to-fix-memcg_stat_test.patch
-* mm-kfence-fix-objcgs-vector-allocation.patch
-* mailmap-update-kirills-email.patch
-* mmhwpoison-unmap-poisoned-page-before-invalidation.patch
-* mm-kasan-fix-__gfp_bits_shift-definition-breaking-lockdep.patch
-* tools-vm-page_owner_sortc-remove-c-option.patch
-* doc-vm-page_ownerrst-remove-content-related-to-c-option.patch
-* mm-kmemleak-reset-tag-when-compare-object-pointer.patch
-* userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
-* mm-fix-unexpected-zeroed-page-mapping-with-zram-swap.patch
-* mm-compaction-fix-compiler-warning-when-config_compaction=n.patch
-* hugetlb-do-not-demote-poisoned-hugetlb-pages.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* procfs-prevent-unpriveleged-processes-accessing-fdinfo-dir.patch
-  mm.patch
-* stacktrace-add-interface-based-on-shadow-call-stack.patch
-* arm64-scs-save-scs_sp-values-per-cpu-when-switching-stacks.patch
-* arm64-implement-stack_trace_save_shadow.patch
-* kasan-use-stack_trace_save_shadow.patch
-* mm-shmem-make-shmem_init-return-void.patch
-* mm-shmem-make-shmem_init-return-void-fix.patch
-* mm-memcg-remove-unneeded-nr_scanned.patch
-* mm-memcg-mz-already-removed-from-rb_tree-if-not-null.patch
-* mm-use-mmap_assert_write_locked-instead-of-open-coding-it.patch
-* mm-mmu_gather-limit-free-batch-count-and-add-schedule-point-in-tlb_batch_pages_flush.patch
-* mm-mremap-use-helper-mlock_future_check.patch
-* documentation-sysctl-document-page_lock_unfairness.patch
-* mm-page_alloc-simplify-update-of-pgdat-in-wake_all_kswapds.patch
-* mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
-* mm-discard-__gfp_atomic.patch
-* mm-remove-unnecessary-void-conversions.patch
-* mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t.patch
-* mm-khugepaged-sched-to-numa-node-when-collapse-huge-page.patch
-* mm-vmscan-reclaim-only-affects-managed_zones.patch
-* mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone.patch
-* mm-vmscan-sc-reclaim_idx-must-be-a-valid-zone-index.patch
-* mm-z3fold-declare-z3fold_mount-with-__init.patch
-* mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch
-* mm-z3fold-minor-clean-up-for-z3fold_free.patch
-* mm-z3fold-remove-unneeded-page_mapcount_reset-and-clearpageprivate.patch
-* mm-z3fold-remove-confusing-local-variable-l-reassignment.patch
-* mm-z3fold-move-decrement-of-pool-pages_nr-into-__release_z3fold_page.patch
-* mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free.patch
-* mm-z3fold-remove-unneeded-page_headless-check-in-free_handle.patch
-* mm-compaction-use-helper-isolation_suitable.patch
-* mm-add-selftests-for-migration-entries.patch
-* mm-migration-remove-unneeded-local-variable-mapping_locked.patch
-* mm-migration-remove-unneeded-out-label.patch
-* mm-migration-remove-unneeded-local-variable-page_lru.patch
-* mm-migration-fix-the-confusing-pagetranshuge-check.patch
-* mm-migration-use-helper-function-vma_lookup-in-add_page_for_migration.patch
-* mm-migration-use-helper-macro-min-in-do_pages_stat.patch
-* mm-migration-avoid-unneeded-nodemask_t-initialization.patch
-* mm-migration-remove-some-duplicated-codes-in-migrate_pages.patch
-* mm-migration-fix-potential-page-refcounts-leak-in-migrate_pages.patch
-* mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch
-* mm-migration-fix-possible-do_pages_stat_array-racing-with-memory-offline.patch
-* ksm-count-ksm-merging-pages-for-each-process.patch
-* ksm-count-ksm-merging-pages-for-each-process-fix.patch
-* mm-untangle-config-dependencies-for-demote-on-reclaim.patch
-* mm-page_alloc-do-not-calculate-nodes-total-pages-and-memmap-pages-when-empty.patch
-* mm-memory_hotplug-reset-nodes-state-when-empty-during-offline.patch
-* mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node.patch
-* mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-* mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
-* mm-rmap-fix-cache-flush-on-thp-pages.patch
-* dax-fix-cache-flush-on-pmd-mapped-pages.patch
-* mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
-* mm-pvmw-add-support-for-walking-devmap-pages.patch
-* dax-fix-missing-writeprotect-the-pte-entry.patch
-* mm-simplify-follow_invalidate_pte.patch
-* zram-add-a-huge_idle-writeback-mode.patch
-* damon-vaddr-test-tweak-code-to-make-the-logic-clearer.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* ia64-fix-typos-in-comments.patch
-* ia64-ptrace-fix-typos-in-comments.patch
-* ia64-replace-comments-with-c99-initializers.patch
-* ocfs2-replace-usage-of-found-with-dedicated-list-iterator-variable.patch
-* ocfs2-remove-usage-of-list-iterator-variable-after-the-loop-body.patch
-* ocfs2-reflink-deadlock-when-clone-file-to-the-same-directory-simultaneously.patch
-* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
-* proc-fix-dentry-inode-overinstantiating-under-proc-pid-net.patch
-* proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-* proc-sysctl-make-protected_-world-readable.patch
-* kernel-pid_namespace-use-null-instead-of-using-plain-integer-as-pointer.patch
-* get_maintainer-honor-mailmap-for-in-file-emails.patch
-* lib-test_meminit-optimize-do_kmem_cache_rcu_persistent-test.patch
-* lib-kconfigdebug-remove-more-config__value-indirections.patch
-* lib-test_stringc-add-strspn-and-strcspn-tests.patch
-* lib-stringc-simplify-strspn.patch
-* lz4-fix-lz4_decompress_safe_partial-read-out-of-bound.patch
-* pipe-make-poll_usage-boolean-and-annotate-its-access.patch
-* list-fix-a-data-race-around-ep-rdllist.patch
-* init-mainc-silence-some-wunused-parameter-warnings.patch
-* fatfs-remove-redundant-judgment.patch
-* rapidio-remove-unnecessary-use-of-list-iterator.patch
-* ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree.patch
-  linux-next.patch
-  linux-next-rejects.patch
-* mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-* selftests-vm-add-test-for-soft-dirty-pte-bit.patch
-* kselftest-vm-override-targets-from-arguments.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  mutex-subsystem-synchro-test-module-fix.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
