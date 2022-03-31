@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AED2C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:33:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FCF8C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:33:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229567AbiCaEfH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 00:35:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37540 "EHLO
+        id S229450AbiCaEfI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 00:35:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229682AbiCaEes (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:34:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57C315AA4D
-        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:33:01 -0700 (PDT)
+        with ESMTP id S229502AbiCaEeu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:34:50 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A59B85A161
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:33:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0045AB81E46
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:33:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AAAEC340ED;
-        Thu, 31 Mar 2022 04:32:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 44962B81EC2
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:33:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F07C8C340ED;
+        Thu, 31 Mar 2022 04:33:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648701178;
-        bh=+OXQ3FkgnhNZyD1e11PkCSUUjL63bQxXQVjHebB98ks=;
+        s=korg; t=1648701181;
+        bh=Yck72K6gRzKyzRmnBElhEsmOBRmo0pgZY4un973EjN4=;
         h=Date:To:From:Subject:From;
-        b=jl8Qe7g9f5GLno1T7BZ23o7/LhexBhBM1dWBf7Z8pdp/MJprAUCO02kErmi8d4UpY
-         R8ubK6sgP1ib1cOu3yc3wyDJYzXZTlWB5yHG9q1j3gmu642ufzitkFaEu+MwUivXbk
-         Hrw8OQUpWkNK92uQsCngPrk2ydbFBWpdoMXHGaJw=
-Date:   Wed, 30 Mar 2022 21:32:58 -0700
+        b=gO14y5ofF6gXY7H6CG6/j7DStc/4sF5d13xCuovFB9+3lZ+RgmYrF0AJIj3xMKR9k
+         GfQpDpEr8BZNhrRfD4mpZSwH9kKv4yue+a7UtCViqK/X6bZK69CypmDID1tpKGZuzC
+         c/jJEgKadXokNghD8AvZgjAelWOdRS+CpDtaP6H4=
+Date:   Wed, 30 Mar 2022 21:33:00 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
         shakeelb@google.com, rppt@linux.ibm.com, rientjes@google.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         ddutile@redhat.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively.patch added to -mm tree
-Message-Id: <20220331043258.9AAAEC340ED@smtp.kernel.org>
+Subject: + mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page.patch added to -mm tree
+Message-Id: <20220331043300.F07C8C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: use page_move_anon_rmap() when reusing a mapped PageAnon() page exclusively
+     Subject: mm/huge_memory: remove outdated VM_WARN_ON_ONCE_PAGE from unmap_page()
 has been added to the -mm tree.  Its filename is
-     mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively.patch
+     mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,23 +72,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: use page_move_anon_rmap() when reusing a mapped PageAnon() page exclusively
+Subject: mm/huge_memory: remove outdated VM_WARN_ON_ONCE_PAGE from unmap_page()
 
-We want to mark anonymous pages exclusive, and when using
-page_move_anon_rmap() we know that we are the exclusive user, as properly
-documented.  This is a preparation for marking anonymous pages exclusive
-in page_move_anon_rmap().
+We can already theoretically fail to unmap (still having page_mapped()) in
+case arch_unmap_one() fails, which can happen on sparc.  Failures to unmap
+are handled gracefully, just as if there are other references on the
+target page: freezing the refcount in split_huge_page_to_list() will fail
+if still mapped and we'll simply remap.
 
-In both instances, we're holding page lock and are sure that we're the
-exclusive owner (page_count() == 1).  hugetlb already properly uses
-page_move_anon_rmap() in the write fault handler.
+In commit 504e070dc08f ("mm: thp: replace DEBUG_VM BUG with VM_WARN when
+unmap fails for split") we already converted to VM_WARN_ON_ONCE_PAGE,
+let's get rid of it completely now.
 
-Note that in case of a PTE-mapped THP, we'll only end up calling this
-function if the whole THP is only referenced by the single PTE mapping a
-single subpage (page_count() == 1); consequently, it's fine to modify the
-compound page mapping inside page_move_anon_rmap().
+This is a preparation for making try_to_migrate() fail on anonymous pages
+with GUP pins, which will make this VM_WARN_ON_ONCE_PAGE trigger more
+frequently.
 
-Link: https://lkml.kernel.org/r/20220329160440.193848-10-david@redhat.com
+Link: https://lkml.kernel.org/r/20220329160440.193848-11-david@redhat.com
+Reported-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -115,35 +117,23 @@ Cc: Rik van Riel <riel@surriel.com>
 Cc: Roman Gushchin <guro@fb.com>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 ++
- mm/memory.c      |    1 +
- 2 files changed, 3 insertions(+)
+ mm/huge_memory.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively
+--- a/mm/huge_memory.c~mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page
 +++ a/mm/huge_memory.c
-@@ -1317,6 +1317,8 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
- 		try_to_free_swap(page);
- 	if (page_count(page) == 1) {
- 		pmd_t entry;
-+
-+		page_move_anon_rmap(page, vma);
- 		entry = pmd_mkyoung(orig_pmd);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 		if (pmdp_set_access_flags(vma, haddr, vmf->pmd, entry, 1))
---- a/mm/memory.c~mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively
-+++ a/mm/memory.c
-@@ -3303,6 +3303,7 @@ static vm_fault_t do_wp_page(struct vm_f
- 		 * and the page is locked, it's dark out, and we're wearing
- 		 * sunglasses. Hit it.
- 		 */
-+		page_move_anon_rmap(page, vma);
- 		unlock_page(page);
- 		wp_page_reuse(vmf);
- 		return VM_FAULT_WRITE;
+@@ -2241,8 +2241,6 @@ static void unmap_page(struct page *page
+ 		try_to_migrate(folio, ttu_flags);
+ 	else
+ 		try_to_unmap(folio, ttu_flags | TTU_IGNORE_MLOCK);
+-
+-	VM_WARN_ON_ONCE_PAGE(page_mapped(page), page);
+ }
+ 
+ static void remap_page(struct folio *folio, unsigned long nr)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
