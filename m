@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A94A5C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:34:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D6C7C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:34:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229676AbiCaEgK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229918AbiCaEgK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 31 Mar 2022 00:36:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40024 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229939AbiCaEgE (ORCPT
+        with ESMTP id S229910AbiCaEgE (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:36:04 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B3015AEEB
-        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:33:40 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD9FA5B3D7
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:33:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3E142B81ED6
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:33:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D058FC340ED;
-        Thu, 31 Mar 2022 04:33:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8E059B81ED5
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:33:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 457B6C340ED;
+        Thu, 31 Mar 2022 04:33:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648701217;
-        bh=LsZi1rnO1h1vV6qplbRpZHFldE2qbxTX8TaYrbCoOZk=;
+        s=korg; t=1648701222;
+        bh=H3TAWqhYjY5gTECA22rRRUhAzKx6XV/upRx6tX797Qs=;
         h=Date:To:From:Subject:From;
-        b=S/20SbVlTIDGwsBw+AlhaQ5/ABdLVcboPdvcj0z2na72j4sc4GaiZbOFXt92N1QJk
-         UN0opbFsCtAfDW2dchNslvYvTLfl8BsCzipFizOiFE7TzOhWD39yBl5PgLoqmKXtUC
-         o4N+AUHTLFZGL9ky86HK40O9Ulx9U5vggsZD9eBI=
-Date:   Wed, 30 Mar 2022 21:33:37 -0700
+        b=DgT4eTMxnsXx0rrGNUgGtZ0lkoQj043mcfeZFp1OhzFxQER256Ltc/oLfvXZWSay8
+         EMVWr9q+/TDDRE03wnAfBj5qm60cxRi+FDdGvsOMXPIkqSJz11neWhFm4FkMX6piJy
+         wcU/ra5qPX1ukzLbAL34YIHJlRlbjrRfmuhg22Fs=
+Date:   Wed, 30 Mar 2022 21:33:41 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         tglx@linutronix.de, shakeelb@google.com, rppt@linux.ibm.com,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         benh@kernel.crashing.org, agordeev@linux.ibm.com,
         aarcange@redhat.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-pgtable-support-__have_arch_pte_swp_exclusive.patch added to -mm tree
-Message-Id: <20220331043337.D058FC340ED@smtp.kernel.org>
+Subject: + powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s.patch added to -mm tree
+Message-Id: <20220331043342.457B6C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+     Subject: powerpc/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE for book3s
 has been added to the -mm tree.  Its filename is
-     s390-pgtable-support-__have_arch_pte_swp_exclusive.patch
+     powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/s390-pgtable-support-__have_arch_pte_swp_exclusive.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/s390-pgtable-support-__have_arch_pte_swp_exclusive.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,11 +75,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: s390/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+Subject: powerpc/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE for book3s
 
-Let's use bit 52, which is unused.
+Right now, the last 5 bits (0x1f) of the swap entry are used for the type
+and the bit before that (0x20) is used for _PAGE_SWP_SOFT_DIRTY.  We
+cannot use 0x40, as that collides with _RPAGE_RSV1 -- contained in
+_PAGE_HPTEFLAGS.  The next candidate would be _RPAGE_SW3 (0x200) -- which
+is used for _PAGE_SOFT_DIRTY for !swp ptes.
 
-Link: https://lkml.kernel.org/r/20220329164329.208407-7-david@redhat.com
+So let's just use _PAGE_SOFT_DIRTY for _PAGE_SWP_SOFT_DIRTY (to make it
+easier to grasp) and use 0x20 now for _PAGE_SWP_EXCLUSIVE.
+
+Link: https://lkml.kernel.org/r/20220329164329.208407-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -120,61 +127,57 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   21 ++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
---- a/arch/s390/include/asm/pgtable.h~s390-pgtable-support-__have_arch_pte_swp_exclusive
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -181,6 +181,8 @@ static inline int is_module_addr(void *a
- #define _PAGE_SOFT_DIRTY 0x000
- #endif
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -752,6 +752,7 @@ static inline pte_t pte_modify(pte_t pte
+ 	 */							\
+ 	BUILD_BUG_ON(_PAGE_HPTEFLAGS & SWP_TYPE_MASK); \
+ 	BUILD_BUG_ON(_PAGE_HPTEFLAGS & _PAGE_SWP_SOFT_DIRTY);	\
++	BUILD_BUG_ON(_PAGE_HPTEFLAGS & _PAGE_SWP_EXCLUSIVE);	\
+ 	} while (0)
  
-+#define _PAGE_SWP_EXCLUSIVE _PAGE_LARGE	/* SW pte exclusive swap bit */
+ #define SWP_TYPE_BITS 5
+@@ -772,11 +773,13 @@ static inline pte_t pte_modify(pte_t pte
+ #define __swp_entry_to_pmd(x)	(pte_pmd(__swp_entry_to_pte(x)))
+ 
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+-#define _PAGE_SWP_SOFT_DIRTY	_PAGE_NON_IDEMPOTENT
++#define _PAGE_SWP_SOFT_DIRTY	_PAGE_SOFT_DIRTY
+ #else
+ #define _PAGE_SWP_SOFT_DIRTY	0UL
+ #endif /* CONFIG_MEM_SOFT_DIRTY */
+ 
++#define _PAGE_SWP_EXCLUSIVE	_PAGE_NON_IDEMPOTENT
 +
- /* Set of bits not changed in pte_modify */
- #define _PAGE_CHG_MASK		(PAGE_MASK | _PAGE_SPECIAL | _PAGE_DIRTY | \
- 				 _PAGE_YOUNG | _PAGE_SOFT_DIRTY)
-@@ -826,6 +828,22 @@ static inline int pmd_protnone(pmd_t pmd
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
+ {
+@@ -794,6 +797,22 @@ static inline pte_t pte_swp_clear_soft_d
  }
- #endif
+ #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
  
 +#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-+static inline int pte_swp_exclusive(pte_t pte)
-+{
-+	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
-+}
-+
 +static inline pte_t pte_swp_mkexclusive(pte_t pte)
 +{
-+	return set_pte_bit(pte, __pgprot(_PAGE_SWP_EXCLUSIVE));
++	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_SWP_EXCLUSIVE));
++}
++
++static inline int pte_swp_exclusive(pte_t pte)
++{
++	return !!(pte_raw(pte) & cpu_to_be64(_PAGE_SWP_EXCLUSIVE));
 +}
 +
 +static inline pte_t pte_swp_clear_exclusive(pte_t pte)
 +{
-+	return clear_pte_bit(pte, __pgprot(_PAGE_SWP_EXCLUSIVE));
++	return __pte_raw(pte_raw(pte) & cpu_to_be64(~_PAGE_SWP_EXCLUSIVE));
 +}
 +
- static inline int pte_soft_dirty(pte_t pte)
+ static inline bool check_pte_access(unsigned long access, unsigned long ptev)
  {
- 	return pte_val(pte) & _PAGE_SOFT_DIRTY;
-@@ -1715,14 +1733,15 @@ static inline int has_transparent_hugepa
-  * Bits 54 and 63 are used to indicate the page type. Bit 53 marks the pte
-  * as invalid.
-  * A swap pte is indicated by bit pattern (pte & 0x201) == 0x200
-- * |			  offset			|X11XX|type |S0|
-+ * |			  offset			|E11XX|type |S0|
-  * |0000000000111111111122222222223333333333444444444455|55555|55566|66|
-  * |0123456789012345678901234567890123456789012345678901|23456|78901|23|
-  *
-  * Bits 0-51 store the offset.
-+ * Bit 52 (E) is used to remember PG_anon_exclusive.
-  * Bits 57-61 store the type.
-  * Bit 62 (S) is used for softdirty tracking.
-- * Bits 52, 55 and 56 (X) are unused.
-+ * Bits 55 and 56 (X) are unused.
-  */
- 
- #define __SWP_OFFSET_MASK	((1UL << 52) - 1)
+ 	/*
 _
 
 Patches currently in -mm which might be from david@redhat.com are
