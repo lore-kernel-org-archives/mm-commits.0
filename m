@@ -2,43 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70DB3C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 05:06:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69E0AC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 05:06:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229604AbiCaFIg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 01:08:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54396 "EHLO
+        id S229614AbiCaFIh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 01:08:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229618AbiCaFIc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 01:08:32 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92FA842EE2
-        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 22:06:42 -0700 (PDT)
+        with ESMTP id S229567AbiCaFIa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 01:08:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9303542EE6
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 22:06:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 4528ACE1FA4
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 05:06:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 793BCC340ED;
-        Thu, 31 Mar 2022 05:06:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C8C3E61565
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 05:06:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29D34C340ED;
+        Thu, 31 Mar 2022 05:06:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648703198;
-        bh=rSdrXDio+buWJaY6ewB5VlzTa/9fLY+61+yAdF9lDpg=;
+        s=korg; t=1648703202;
+        bh=1EVdpdy3n703MubyUFujSo+XyoUEY8Zm8ce7xfG2So4=;
         h=Date:To:From:Subject:From;
-        b=af/OEwg8Mp13OZDtkqtWTEwpBj4mxZXXJPJznVpp63M1QBRGhKDbKUYoanVBU76Em
-         swtHSYL6ChNLKvH3iaHDIGBqKUnDMTMZHjgKoZlmrfx+zWndRm9KP2vSJ3Dt2ZlsB1
-         yzh4iO0ZGpqcZhR9tHmKl7Rm+IukiqZQTqD77DpA=
-Date:   Wed, 30 Mar 2022 22:06:37 -0700
-To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
-        xiyuyang19@fudan.edu.cn, willy@infradead.org,
-        viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
-        kirill.shutemov@linux.intel.com, jack@suse.cz, hughd@google.com,
-        hch@lst.de, duanxiongchun@bytedance.com, dan.j.williams@intel.com,
-        apopple@nvidia.com, songmuchun@bytedance.com,
+        b=xGIgIcHwEq8FGXIz/HrfcqEOaOqKqnEWbXYqtdl6eQUOQ+b1E//mKJuwDAboAdUWT
+         bVSJeMO/Gp6w5bEdniHMBw4Qiye+Fn7XULBlVRx1Iy69foNQ7Yg+cs6GlkbnBumzHZ
+         4q8TXHD7n+mJgEloo+7N7s5YWqxWX6qfWL30XcYo=
+Date:   Wed, 30 Mar 2022 22:06:41 -0700
+To:     mm-commits@vger.kernel.org, hch@lst.de, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pvmw-add-support-for-walking-devmap-pages.patch added to -mm tree
-Message-Id: <20220331050638.793BCC340ED@smtp.kernel.org>
+Subject: + dax-fix-missing-writeprotect-the-pte-entry-v6.patch added to -mm tree
+Message-Id: <20220331050642.29D34C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pvmw: add support for walking devmap pages
+     Subject: dax-fix-missing-writeprotect-the-pte-entry-v6
 has been added to the -mm tree.  Its filename is
-     mm-pvmw-add-support-for-walking-devmap-pages.patch
+     dax-fix-missing-writeprotect-the-pte-entry-v6.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-pvmw-add-support-for-walking-devmap-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/dax-fix-missing-writeprotect-the-pte-entry-v6.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pvmw-add-support-for-walking-devmap-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-missing-writeprotect-the-pte-entry-v6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,67 +63,69 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: pvmw: add support for walking devmap pages
+Subject: dax-fix-missing-writeprotect-the-pte-entry-v6
 
-The devmap pages can not use page_vma_mapped_walk() to check if a huge
-devmap page is mapped into a vma.  Add support for walking huge devmap
-pages so that DAX can use it in the next patch.
+fold dax_entry_mkclean() into dax_writeback_one()
 
-Link: https://lkml.kernel.org/r/20220318074529.5261-5-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220329134853.68403-6-songmuchun@bytedance.com
+Fixes: 4b4bb46d00b3 ("dax: clear dirty entry tags on cache flush")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Cc: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/dax.c |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-pvmw-add-support-for-walking-devmap-pages
-+++ a/mm/page_vma_mapped.c
-@@ -210,16 +210,9 @@ restart:
- 		 */
- 		pmde = READ_ONCE(*pvmw->pmd);
+--- a/fs/dax.c~dax-fix-missing-writeprotect-the-pte-entry-v6
++++ a/fs/dax.c
+@@ -790,26 +790,12 @@ static void *dax_insert_entry(struct xa_
+ 	return entry;
+ }
  
--		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
-+		if (pmd_leaf(pmde) || is_pmd_migration_entry(pmde)) {
- 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
- 			pmde = *pvmw->pmd;
--			if (likely(pmd_trans_huge(pmde))) {
--				if (pvmw->flags & PVMW_MIGRATION)
--					return not_found(pvmw);
--				if (!check_pmd(pmd_pfn(pmde), pvmw))
--					return not_found(pvmw);
--				return true;
--			}
- 			if (!pmd_present(pmde)) {
- 				swp_entry_t entry;
+-/* Walk all mappings of a given index of a file and writeprotect them */
+-static void dax_entry_mkclean(struct address_space *mapping, unsigned long pfn,
+-			      unsigned long npfn, pgoff_t start)
+-{
+-	struct vm_area_struct *vma;
+-	pgoff_t end = start + npfn - 1;
+-
+-	i_mmap_lock_read(mapping);
+-	vma_interval_tree_foreach(vma, &mapping->i_mmap, start, end) {
+-		pfn_mkclean_range(pfn, npfn, start, vma);
+-		cond_resched();
+-	}
+-	i_mmap_unlock_read(mapping);
+-}
+-
+ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
+ 		struct address_space *mapping, void *entry)
+ {
+-	unsigned long pfn, index, count;
++	unsigned long pfn, index, count, end;
+ 	long ret = 0;
++	struct vm_area_struct *vma;
  
-@@ -232,6 +225,13 @@ restart:
- 					return not_found(pvmw);
- 				return true;
- 			}
-+			if (likely(pmd_trans_huge(pmde) || pmd_devmap(pmde))) {
-+				if (pvmw->flags & PVMW_MIGRATION)
-+					return not_found(pvmw);
-+				if (!check_pmd(pmd_pfn(pmde), pvmw))
-+					return not_found(pvmw);
-+				return true;
-+			}
- 			/* THP pmd was split under us: handle on pte level */
- 			spin_unlock(pvmw->ptl);
- 			pvmw->ptl = NULL;
+ 	/*
+ 	 * A page got tagged dirty in DAX mapping? Something is seriously
+@@ -867,8 +853,16 @@ static int dax_writeback_one(struct xa_s
+ 	pfn = dax_to_pfn(entry);
+ 	count = 1UL << dax_entry_order(entry);
+ 	index = xas->xa_index & ~(count - 1);
++	end = index + count - 1;
++
++	/* Walk all mappings of a given index of a file and writeprotect them */
++	i_mmap_lock_read(mapping);
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, end) {
++		pfn_mkclean_range(pfn, count, index, vma);
++		cond_resched();
++	}
++	i_mmap_unlock_read(mapping);
+ 
+-	dax_entry_mkclean(mapping, pfn, count, index);
+ 	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
+ 	/*
+ 	 * After we have flushed the cache, we can clear the dirty tag. There
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
