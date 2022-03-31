@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF344C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 22:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED5C1C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 23:10:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234022AbiCaWfY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 18:35:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48048 "EHLO
+        id S233403AbiCaXMi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 19:12:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242500AbiCaWfX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 18:35:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D44BE66
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 15:33:35 -0700 (PDT)
+        with ESMTP id S242850AbiCaXMg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 19:12:36 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AC09116B66
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 16:10:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DB7DC61146
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 22:33:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E4B4C340ED;
-        Thu, 31 Mar 2022 22:33:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A32BA611B9
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 23:10:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AF84C340F0;
+        Thu, 31 Mar 2022 23:10:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648766014;
-        bh=W0+N3s4Q5DRlPC2oK8UfDjY0Pm3xBKrFbhxdltQ7JzY=;
+        s=korg; t=1648768246;
+        bh=m1QrNfENOxQobuw988vV/kdm/l6gU5hz91yhQQgO80s=;
         h=Date:To:From:Subject:From;
-        b=QPmlCN38FKa++Ps52hVH5HeHz+zctsmBTdR+LFbkVNYIqQ/Mq8KyG8VBrqMQYKVUC
-         vRMm63CJAlUoHF7AXjGmc0Jtm5KHJEMQVHia3rZh/P7MaGH7hssODMYn6eQUxZ7IFR
-         83dt210AUkl7x/aaBfsubtc5d2Xe+bBuTRnP8pSU=
-Date:   Thu, 31 Mar 2022 15:33:33 -0700
-To:     mm-commits@vger.kernel.org, axelrasmussen@google.com,
-        lkp@intel.com, akpm@linux-foundation.org
+        b=Ud4G3uyFI8mmvX4P75yW8fdjtbfKPHJbXTlv70asdPcOBXAbRj05WsyrS0eAINjFr
+         cg2Hp7ND6L6PyDnlGB8Yfadd+awHgf9wt93Stj/Ye2ACER8kf7dE3vKrMBibIXHStr
+         W2TzlWARunBeOPZyJGkuTAK4j+bpzLwtq3c8m98A=
+Date:   Thu, 31 Mar 2022 16:10:45 -0700
+To:     mm-commits@vger.kernel.org, andreyknvl@google.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix.patch added to -mm tree
-Message-Id: <20220331223334.3E4B4C340ED@smtp.kernel.org>
+Subject: + arm64-implement-stack_trace_save_shadow-fix.patch added to -mm tree
+Message-Id: <20220331231046.0AF84C340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/secretmem: secretmem_iops can be static
+     Subject: arm64-implement-stack_trace_save_shadow-fix
 has been added to the -mm tree.  Its filename is
-     mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix.patch
+     arm64-implement-stack_trace_save_shadow-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-implement-stack_trace_save_shadow-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-implement-stack_trace_save_shadow-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,36 +62,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: kernel test robot <lkp@intel.com>
-Subject: mm/secretmem: secretmem_iops can be static
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arm64-implement-stack_trace_save_shadow-fix
 
-mm/secretmem.c:173:31: warning: symbol 'secretmem_iops' was not declared. Should it be static?
+add ifdefs to arch/arm64/kernel/stacktrace.c
 
-Link: https://lkml.kernel.org/r/YkXc0RjJYQoGZZ8A@57de4820519d
-Fixes: 24209f2f4d62 ("mm/secretmem: fix panic when growing a memfd_secret")
-Signed-off-by: kernel test robot <lkp@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/kernel/stacktrace.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/secretmem.c~mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix
-+++ a/mm/secretmem.c
-@@ -170,7 +170,7 @@ static int secretmem_setattr(struct user
- 	return simple_setattr(mnt_userns, dentry, iattr);
+--- a/arch/arm64/kernel/stacktrace.c~arm64-implement-stack_trace_save_shadow-fix
++++ a/arch/arm64/kernel/stacktrace.c
+@@ -213,6 +213,7 @@ noinline notrace void arch_stack_walk(st
+ 	walk_stackframe(task, &frame, consume_entry, cookie);
  }
  
--const struct inode_operations secretmem_iops = {
-+static const struct inode_operations secretmem_iops = {
- 	.setattr = secretmem_setattr,
- };
- 
++#ifdef CONFIG_SHADOW_CALL_STACK
+ static const struct {
+ 	unsigned long ** __percpu saved;
+ 	unsigned long ** __percpu base;
+@@ -293,3 +294,4 @@ out:
+ 	preempt_enable();
+ 	return len;
+ }
++#endif		/* CONFIG_SHADOW_CALL_STACK */
 _
 
-Patches currently in -mm which might be from lkp@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix.patch
+mm.patch
+arm64-implement-stack_trace_save_shadow-fix.patch
+mm-shmem-make-shmem_init-return-void-fix.patch
+ksm-count-ksm-merging-pages-for-each-process-fix.patch
+mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
+proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
+add-fat-messages-to-printk-index-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+b.patch
 
