@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8056BC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DD29C4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:34:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbiCaEgP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229644AbiCaEgP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 31 Mar 2022 00:36:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38970 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229682AbiCaEfT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:35:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4002D5AA75
-        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:33:33 -0700 (PDT)
+        with ESMTP id S229684AbiCaEfV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:35:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F10B5AEC1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:33:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BE025B81ED6
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:33:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74CCCC340ED;
-        Thu, 31 Mar 2022 04:33:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF83A61480
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:33:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 354E9C340ED;
+        Thu, 31 Mar 2022 04:33:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648701210;
-        bh=EoTlhDjEalyScY3F4TcRbo+1oXuP/M2G2hboZxyvjN8=;
+        s=korg; t=1648701213;
+        bh=KDcFpz9Zx4dOubO4KWtChnbcx3F93ZY6oLIDsW9HbS8=;
         h=Date:To:From:Subject:From;
-        b=PmzS4TlMLhqenCgWhPUHLhxIak+ytKYIkJRVk0ydFuWQxpFwCwYlX8FOhBsZs1Zj5
-         ug0maLWAXiAiV9v51Bzbt+6aG7/DxX/nGyaD5QTWDA7AQWWNVPxKTDG4ZG40BzLa48
-         uA52YD6uTHifvZ3W+A+FcO15XwT7cdDsm3vpJCaA=
-Date:   Wed, 30 Mar 2022 21:33:29 -0700
+        b=icfGXhsUMYpzmHxXbuqM7wUJKhNRo29rOd71KoyNVDg63URFfUjoCbcav9GUH9SyT
+         Qryp9czZyfY4cgRvgPsvwvZ4wE93V4ffBe1r+/NjN+Rfa6/BOD8+Uwyju54Ff/cwOU
+         X6LUiNMH3zsJfpPC0YOGzb1aoPEQgaI9Uu/j8wyg=
+Date:   Wed, 30 Mar 2022 21:33:32 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         tglx@linutronix.de, shakeelb@google.com, rppt@linux.ibm.com,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         benh@kernel.crashing.org, agordeev@linux.ibm.com,
         aarcange@redhat.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-pgtable-support-__have_arch_pte_swp_exclusive.patch added to -mm tree
-Message-Id: <20220331043330.74CCCC340ED@smtp.kernel.org>
+Subject: + arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch added to -mm tree
+Message-Id: <20220331043333.354E9C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+     Subject: arm64/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 has been added to the -mm tree.  Its filename is
-     x86-pgtable-support-__have_arch_pte_swp_exclusive.patch
+     arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-pgtable-support-__have_arch_pte_swp_exclusive.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-pgtable-support-__have_arch_pte_swp_exclusive.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,17 +75,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: x86/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+Subject: arm64/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 
-Let's use bit 3 to remember PG_anon_exclusive in swap ptes.
+Let's use one of the type bits: core-mm only supports 5, so there is no
+need to consume 6.
 
-Link: https://lkml.kernel.org/r/20220329164329.208407-4-david@redhat.com
+Note that we might be able to reuse bit 1, but reusing bit 1 turned out
+problematic in the past for PROT_NONE handling; so let's play safe and use
+another bit.
+
+Link: https://lkml.kernel.org/r/20220329164329.208407-5-david@redhat.com
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Don Dutile <ddutile@redhat.com>
@@ -120,70 +125,62 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h       |   16 ++++++++++++++++
- arch/x86/include/asm/pgtable_64.h    |    4 +++-
- arch/x86/include/asm/pgtable_types.h |    5 +++++
- 3 files changed, 24 insertions(+), 1 deletion(-)
+ arch/arm64/include/asm/pgtable-prot.h |    1 +
+ arch/arm64/include/asm/pgtable.h      |   23 ++++++++++++++++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
---- a/arch/x86/include/asm/pgtable_64.h~x86-pgtable-support-__have_arch_pte_swp_exclusive
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -186,7 +186,7 @@ static inline void native_pgd_clear(pgd_
-  *
-  * |     ...            | 11| 10|  9|8|7|6|5| 4| 3|2| 1|0| <- bit number
-  * |     ...            |SW3|SW2|SW1|G|L|D|A|CD|WT|U| W|P| <- bit names
-- * | TYPE (59-63) | ~OFFSET (9-58)  |0|0|X|X| X| X|F|SD|0| <- swp entry
-+ * | TYPE (59-63) | ~OFFSET (9-58)  |0|0|X|X| X| E|F|SD|0| <- swp entry
-  *
-  * G (8) is aliased and used as a PROT_NONE indicator for
-  * !present ptes.  We need to start storing swap entries above
-@@ -203,6 +203,8 @@ static inline void native_pgd_clear(pgd_
-  * F (2) in swp entry is used to record when a pagetable is
-  * writeprotected by userfaultfd WP support.
-  *
-+ * E (3) in swp entry is used to rememeber PG_anon_exclusive.
-+ *
-  * Bit 7 in swp entry should be 0 because pmd_present checks not only P,
-  * but also L and G.
-  *
---- a/arch/x86/include/asm/pgtable.h~x86-pgtable-support-__have_arch_pte_swp_exclusive
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1292,6 +1292,22 @@ static inline void update_mmu_cache_pud(
- {
+--- a/arch/arm64/include/asm/pgtable.h~arm64-pgtable-support-__have_arch_pte_swp_exclusive
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -402,6 +402,22 @@ static inline pgprot_t mk_pmd_sect_prot(
+ 	return __pgprot((pgprot_val(prot) & ~PMD_TABLE_BIT) | PMD_TYPE_SECT);
  }
  
 +#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 +static inline pte_t pte_swp_mkexclusive(pte_t pte)
 +{
-+	return pte_set_flags(pte, _PAGE_SWP_EXCLUSIVE);
++	return set_pte_bit(pte, __pgprot(PTE_SWP_EXCLUSIVE));
 +}
 +
 +static inline int pte_swp_exclusive(pte_t pte)
 +{
-+	return pte_flags(pte) & _PAGE_SWP_EXCLUSIVE;
++	return pte_val(pte) & PTE_SWP_EXCLUSIVE;
 +}
 +
 +static inline pte_t pte_swp_clear_exclusive(pte_t pte)
 +{
-+	return pte_clear_flags(pte, _PAGE_SWP_EXCLUSIVE);
++	return clear_pte_bit(pte, __pgprot(PTE_SWP_EXCLUSIVE));
 +}
 +
- #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
- {
---- a/arch/x86/include/asm/pgtable_types.h~x86-pgtable-support-__have_arch_pte_swp_exclusive
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -84,6 +84,11 @@
- #endif
- 
+ #ifdef CONFIG_NUMA_BALANCING
  /*
-+ * We borrow bit 3 to remember PG_anon_exclusive.
-+ */
-+#define _PAGE_SWP_EXCLUSIVE	_PAGE_PWT
-+
-+/*
-  * Tracking soft dirty bit when a page goes to a swap is tricky.
-  * We need a bit which can be stored in pte _and_ not conflict
-  * with swap entry format. On x86 bits 1-4 are *not* involved
+  * See the comment in include/linux/pgtable.h
+@@ -909,12 +925,13 @@ static inline pmd_t pmdp_establish(struc
+ /*
+  * Encode and decode a swap entry:
+  *	bits 0-1:	present (must be zero)
+- *	bits 2-7:	swap type
++ *	bits 2:		remember PG_anon_exclusive
++ *	bits 3-7:	swap type
+  *	bits 8-57:	swap offset
+  *	bit  58:	PTE_PROT_NONE (must be zero)
+  */
+-#define __SWP_TYPE_SHIFT	2
+-#define __SWP_TYPE_BITS		6
++#define __SWP_TYPE_SHIFT	3
++#define __SWP_TYPE_BITS		5
+ #define __SWP_OFFSET_BITS	50
+ #define __SWP_TYPE_MASK		((1 << __SWP_TYPE_BITS) - 1)
+ #define __SWP_OFFSET_SHIFT	(__SWP_TYPE_BITS + __SWP_TYPE_SHIFT)
+--- a/arch/arm64/include/asm/pgtable-prot.h~arm64-pgtable-support-__have_arch_pte_swp_exclusive
++++ a/arch/arm64/include/asm/pgtable-prot.h
+@@ -14,6 +14,7 @@
+  * Software defined PTE bits definition.
+  */
+ #define PTE_WRITE		(PTE_DBM)		 /* same as DBM (51) */
++#define PTE_SWP_EXCLUSIVE	(_AT(pteval_t, 1) << 2)	 /* only for swp ptes */
+ #define PTE_DIRTY		(_AT(pteval_t, 1) << 55)
+ #define PTE_SPECIAL		(_AT(pteval_t, 1) << 56)
+ #define PTE_DEVMAP		(_AT(pteval_t, 1) << 57)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
