@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2A4BC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:33:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2882C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:33:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229647AbiCaEer (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 00:34:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37346 "EHLO
+        id S229457AbiCaEet (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 00:34:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229564AbiCaEef (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:34:35 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF33B5A17C
-        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:32:47 -0700 (PDT)
+        with ESMTP id S229458AbiCaEeh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:34:37 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9855C2DAB1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:32:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A05C4B81EC2
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:32:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28405C34111;
-        Thu, 31 Mar 2022 04:32:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 50E0DB81E46
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:32:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F23EDC340F0;
+        Thu, 31 Mar 2022 04:32:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648701165;
-        bh=Y4PZgXsZHl7Q2enAb58FImT57XHXAuJBeso9BpCLx2E=;
+        s=korg; t=1648701168;
+        bh=PuHaQ8bWFQtC2xY1NqWDBwJhg8Cps38pifW/q10Qc1g=;
         h=Date:To:From:Subject:From;
-        b=xlr26DnTK0b1QFOerlbT0NA24yCNmS2GsZ9gEDAG2w3U/9RnXu4Mes/C635zvnwOF
-         3ggQ1davaId5kqNgGX8d3EKSJxO5JMPqIFOWFUh85ycfeWgTCJZVE9lJl1Yg4TmYym
-         vHFcevsYJJmKQp9Qvl+fFs/vN9Fwpkm4axUTdYuM=
-Date:   Wed, 30 Mar 2022 21:32:44 -0700
+        b=y67Zr5zOwLCYnbJF8O1Y5/gc3AK/oN8GITTYHpvUpoNui+WS82Nrn5BozwjvE0Ax3
+         7Id06SLzgWfwxYdiMo+PPkXzNjoRQutNZZQ7AfoWzzK6CXg7KI5VR48r2wC/iiZ1OQ
+         aesWXIK28GuaoQft8z++sVrRl5MwPDtyv3nxRTPM=
+Date:   Wed, 30 Mar 2022 21:32:47 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
         shakeelb@google.com, rppt@linux.ibm.com, rientjes@google.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         ddutile@redhat.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type.patch added to -mm tree
-Message-Id: <20220331043245.28405C34111@smtp.kernel.org>
+Subject: + mm-rmap-remove-do_page_add_anon_rmap.patch added to -mm tree
+Message-Id: <20220331043247.F23EDC340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: convert RMAP flags to a proper distinct rmap_t type
+     Subject: mm/rmap: remove do_page_add_anon_rmap()
 has been added to the -mm tree.  Its filename is
-     mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type.patch
+     mm-rmap-remove-do_page_add_anon_rmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-remove-do_page_add_anon_rmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-remove-do_page_add_anon_rmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,13 +72,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: convert RMAP flags to a proper distinct rmap_t type
+Subject: mm/rmap: remove do_page_add_anon_rmap()
 
-We want to pass the flags to more than one anon rmap function, getting rid
-of special "do_page_add_anon_rmap()".  So let's pass around a distinct
-__bitwise type and refine documentation.
+... and instead convert page_add_anon_rmap() to accept flags.
 
-Link: https://lkml.kernel.org/r/20220329160440.193848-6-david@redhat.com
+Passing flags instead of bools is usually nicer either way, and we want to
+more often also pass RMAP_EXCLUSIVE in follow up patches when detecting
+that an anonymous page is exclusive: for example, when restoring an
+anonymous page from a writable migration entry.
+
+This is a preparation for marking an anonymous page inside
+page_add_anon_rmap() as exclusive when RMAP_EXCLUSIVE is passed.
+
+Link: https://lkml.kernel.org/r/20220329160440.193848-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -109,111 +115,121 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   22 ++++++++++++++++++----
- mm/memory.c          |    6 +++---
- mm/rmap.c            |    7 ++++---
- 3 files changed, 25 insertions(+), 10 deletions(-)
+ include/linux/rmap.h |    2 --
+ mm/huge_memory.c     |    2 +-
+ mm/ksm.c             |    2 +-
+ mm/memory.c          |    4 ++--
+ mm/migrate.c         |    3 ++-
+ mm/rmap.c            |   14 +-------------
+ mm/swapfile.c        |    2 +-
+ 7 files changed, 8 insertions(+), 21 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type
+--- a/include/linux/rmap.h~mm-rmap-remove-do_page_add_anon_rmap
 +++ a/include/linux/rmap.h
-@@ -160,9 +160,23 @@ static inline void anon_vma_merge(struct
- 
- struct anon_vma *page_get_anon_vma(struct page *page);
- 
--/* bitflags for do_page_add_anon_rmap() */
--#define RMAP_EXCLUSIVE 0x01
--#define RMAP_COMPOUND 0x02
-+/* RMAP flags, currently only relevant for some anon rmap operations. */
-+typedef int __bitwise rmap_t;
-+
-+/*
-+ * No special request: if the page is a subpage of a compound page, it is
-+ * mapped via a PTE. The mapped (sub)page is possibly shared between processes.
-+ */
-+#define RMAP_NONE		((__force rmap_t)0)
-+
-+/* The (sub)page is exclusive to a single process. */
-+#define RMAP_EXCLUSIVE		((__force rmap_t)BIT(0))
-+
-+/*
-+ * The compound page is not mapped via PTEs, but instead via a single PMD and
-+ * should be accounted accordingly.
-+ */
-+#define RMAP_COMPOUND		((__force rmap_t)BIT(1))
- 
- /*
-  * rmap interfaces called when adding or removing pte of page
-@@ -171,7 +185,7 @@ void page_move_anon_rmap(struct page *,
+@@ -183,8 +183,6 @@ typedef int __bitwise rmap_t;
+  */
+ void page_move_anon_rmap(struct page *, struct vm_area_struct *);
  void page_add_anon_rmap(struct page *, struct vm_area_struct *,
- 		unsigned long address, bool compound);
- void do_page_add_anon_rmap(struct page *, struct vm_area_struct *,
--		unsigned long address, int flags);
-+		unsigned long address, rmap_t flags);
+-		unsigned long address, bool compound);
+-void do_page_add_anon_rmap(struct page *, struct vm_area_struct *,
+ 		unsigned long address, rmap_t flags);
  void page_add_new_anon_rmap(struct page *, struct vm_area_struct *,
  		unsigned long address, bool compound);
- void page_add_file_rmap(struct page *, struct vm_area_struct *,
---- a/mm/memory.c~mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type
-+++ a/mm/memory.c
-@@ -3507,10 +3507,10 @@ vm_fault_t do_swap_page(struct vm_fault
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page = NULL, *swapcache;
- 	struct swap_info_struct *si = NULL;
-+	rmap_t rmap_flags = RMAP_NONE;
- 	swp_entry_t entry;
- 	pte_t pte;
- 	int locked;
--	int exclusive = 0;
- 	vm_fault_t ret = 0;
- 	void *shadow = NULL;
+--- a/mm/huge_memory.c~mm-rmap-remove-do_page_add_anon_rmap
++++ a/mm/huge_memory.c
+@@ -3073,7 +3073,7 @@ void remove_migration_pmd(struct page_vm
+ 		pmde = pmd_wrprotect(pmd_mkuffd_wp(pmde));
  
-@@ -3685,7 +3685,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
- 		vmf->flags &= ~FAULT_FLAG_WRITE;
- 		ret |= VM_FAULT_WRITE;
--		exclusive = RMAP_EXCLUSIVE;
-+		rmap_flags |= RMAP_EXCLUSIVE;
- 	}
- 	flush_icache_page(vma, page);
- 	if (pte_swp_soft_dirty(vmf->orig_pte))
+ 	if (PageAnon(new))
+-		page_add_anon_rmap(new, vma, mmun_start, true);
++		page_add_anon_rmap(new, vma, mmun_start, RMAP_COMPOUND);
+ 	else
+ 		page_add_file_rmap(new, vma, true);
+ 	set_pmd_at(mm, mmun_start, pvmw->pmd, pmde);
+--- a/mm/ksm.c~mm-rmap-remove-do_page_add_anon_rmap
++++ a/mm/ksm.c
+@@ -1150,7 +1150,7 @@ static int replace_page(struct vm_area_s
+ 	 */
+ 	if (!is_zero_pfn(page_to_pfn(kpage))) {
+ 		get_page(kpage);
+-		page_add_anon_rmap(kpage, vma, addr, false);
++		page_add_anon_rmap(kpage, vma, addr, RMAP_NONE);
+ 		newpte = mk_pte(kpage, vma->vm_page_prot);
+ 	} else {
+ 		newpte = pte_mkspecial(pfn_pte(page_to_pfn(kpage),
+--- a/mm/memory.c~mm-rmap-remove-do_page_add_anon_rmap
++++ a/mm/memory.c
+@@ -725,7 +725,7 @@ static void restore_exclusive_pte(struct
+ 	 * created when the swap entry was made.
+ 	 */
+ 	if (PageAnon(page))
+-		page_add_anon_rmap(page, vma, address, false);
++		page_add_anon_rmap(page, vma, address, RMAP_NONE);
+ 	else
+ 		/*
+ 		 * Currently device exclusive access only supports anonymous
 @@ -3701,7 +3701,7 @@ vm_fault_t do_swap_page(struct vm_fault
  		page_add_new_anon_rmap(page, vma, vmf->address, false);
  		lru_cache_add_inactive_or_unevictable(page, vma);
  	} else {
--		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
-+		do_page_add_anon_rmap(page, vma, vmf->address, rmap_flags);
+-		do_page_add_anon_rmap(page, vma, vmf->address, rmap_flags);
++		page_add_anon_rmap(page, vma, vmf->address, rmap_flags);
  	}
  
  	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
---- a/mm/rmap.c~mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type
+--- a/mm/migrate.c~mm-rmap-remove-do_page_add_anon_rmap
++++ a/mm/migrate.c
+@@ -240,7 +240,8 @@ static bool remove_migration_pte(struct
+ #endif
+ 		{
+ 			if (folio_test_anon(folio))
+-				page_add_anon_rmap(new, vma, pvmw.address, false);
++				page_add_anon_rmap(new, vma, pvmw.address,
++						   RMAP_NONE);
+ 			else
+ 				page_add_file_rmap(new, vma, false);
+ 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
+--- a/mm/rmap.c~mm-rmap-remove-do_page_add_anon_rmap
 +++ a/mm/rmap.c
-@@ -1137,7 +1137,8 @@ static void __page_check_anon_rmap(struc
- void page_add_anon_rmap(struct page *page,
- 	struct vm_area_struct *vma, unsigned long address, bool compound)
- {
--	do_page_add_anon_rmap(page, vma, address, compound ? RMAP_COMPOUND : 0);
-+	do_page_add_anon_rmap(page, vma, address,
-+			      compound ? RMAP_COMPOUND : RMAP_NONE);
- }
- 
- /*
-@@ -1146,7 +1147,7 @@ void page_add_anon_rmap(struct page *pag
-  * Everybody else should continue to use page_add_anon_rmap above.
+@@ -1127,7 +1127,7 @@ static void __page_check_anon_rmap(struc
+  * @page:	the page to add the mapping to
+  * @vma:	the vm area in which the mapping is added
+  * @address:	the user virtual address mapped
+- * @compound:	charge the page as compound or small page
++ * @flags:	the rmap flags
+  *
+  * The caller needs to hold the pte lock, and the page must be locked in
+  * the anon_vma case: to serialize mapping,index checking after setting,
+@@ -1135,18 +1135,6 @@ static void __page_check_anon_rmap(struc
+  * (but PageKsm is never downgraded to PageAnon).
   */
- void do_page_add_anon_rmap(struct page *page,
--	struct vm_area_struct *vma, unsigned long address, int flags)
-+	struct vm_area_struct *vma, unsigned long address, rmap_t flags)
+ void page_add_anon_rmap(struct page *page,
+-	struct vm_area_struct *vma, unsigned long address, bool compound)
+-{
+-	do_page_add_anon_rmap(page, vma, address,
+-			      compound ? RMAP_COMPOUND : RMAP_NONE);
+-}
+-
+-/*
+- * Special version of the above for do_swap_page, which often runs
+- * into pages that are exclusively owned by the current process.
+- * Everybody else should continue to use page_add_anon_rmap above.
+- */
+-void do_page_add_anon_rmap(struct page *page,
+ 	struct vm_area_struct *vma, unsigned long address, rmap_t flags)
  {
  	bool compound = flags & RMAP_COMPOUND;
- 	bool first;
-@@ -1185,7 +1186,7 @@ void do_page_add_anon_rmap(struct page *
- 	/* address might be in next vma when migration races vma_adjust */
- 	else if (first)
- 		__page_set_anon_rmap(page, vma, address,
--				flags & RMAP_EXCLUSIVE);
-+				     !!(flags & RMAP_EXCLUSIVE));
- 	else
- 		__page_check_anon_rmap(page, vma, address);
- 
+--- a/mm/swapfile.c~mm-rmap-remove-do_page_add_anon_rmap
++++ a/mm/swapfile.c
+@@ -1800,7 +1800,7 @@ static int unuse_pte(struct vm_area_stru
+ 	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
+ 	get_page(page);
+ 	if (page == swapcache) {
+-		page_add_anon_rmap(page, vma, addr, false);
++		page_add_anon_rmap(page, vma, addr, RMAP_NONE);
+ 	} else { /* ksm created a completely new copy */
+ 		page_add_new_anon_rmap(page, vma, addr, false);
+ 		lru_cache_add_inactive_or_unevictable(page, vma);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
