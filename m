@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A8D1C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 21:53:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85AF4C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 21:54:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241593AbiCaVzi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 17:55:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34380 "EHLO
+        id S234144AbiCaV4W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 17:56:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239751AbiCaVzh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 17:55:37 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA90A25CB
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 14:53:47 -0700 (PDT)
+        with ESMTP id S231529AbiCaV4V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 17:56:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1337D2DD5B
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 14:54:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id D3F50CE2343
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 21:53:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37963C340ED;
-        Thu, 31 Mar 2022 21:53:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BD6D5B82253
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 21:54:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56209C340F0;
+        Thu, 31 Mar 2022 21:54:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648763624;
+        s=korg; t=1648763670;
         bh=1YPzAg6KEd1+8m1rUGHvS4eDljvh1Mtdlp+ferumJv8=;
         h=Date:To:From:Subject:From;
-        b=vMtCz2HraY9kyXL9DzD4yRYoU3IJRTD6r3vxFDVQhpRljandn5kNcbgzz4ykaJ1G0
-         HeTurRoYEjz9x0BsZd9ikduVPUOtA3AwoL/XJY8DxtZS2IUYDTtHEUhUzPkLfdGpfa
-         +Fvv5rDv/GPOPaH4gXALZWuQ2WySNMwBewgAzQko=
-Date:   Thu, 31 Mar 2022 14:53:42 -0700
+        b=ZHFEeM24g/ZHlMwojkVTokefIlztdHZrxZu5aHMGMjTY69jCXCuGYiO7A8G0B0wgL
+         IXi1ymamTVqoyPcisQUaC9GRSj3QOMZNEwajlbq47DvYYhado3xSgu3d4gdE5QjtyL
+         MR13lG02lfPErFFSHX5tPk8rjcK9GPCq6pWMUwwU=
+Date:   Thu, 31 Mar 2022 14:54:29 -0700
 To:     mm-commits@vger.kernel.org, mingo@kernel.org,
         kirill.shutemov@linux.intel.com, jforbes@redhat.com,
         aquini@redhat.com, longman@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning.patch added to -mm tree
-Message-Id: <20220331215344.37963C340ED@smtp.kernel.org>
+Message-Id: <20220331215430.56209C340F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
