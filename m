@@ -2,41 +2,47 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01681C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:29:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABE11C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 04:32:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229645AbiCaEbW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 00:31:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47950 "EHLO
+        id S229437AbiCaEeX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 00:34:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230010AbiCaE05 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:26:57 -0400
+        with ESMTP id S229450AbiCaEeW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 00:34:22 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01F5EF7F77
-        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:16:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD96B2DAB1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 21:32:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 85904612AF
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:16:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4963C340F0;
-        Thu, 31 Mar 2022 04:16:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 64E5D6146B
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 04:32:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3A67C340ED;
+        Thu, 31 Mar 2022 04:32:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648700214;
-        bh=MwmeNTxY8m+grQbRwAGudJ0SWa1y5zXNUzQEREcStI4=;
+        s=korg; t=1648701154;
+        bh=V1PuTIrkrvwk4DlMMHJ171h/mMY42eqeQPvak1sv0E8=;
         h=Date:To:From:Subject:From;
-        b=tLM996t9MyW2m/zUjOm2OJqyPoVa++tchtoqGdebb/be1sbpZhCJkmkl+zvnep7vg
-         mTXZyE4AR5qwYGF0R6hI2qhX11y0t741kbgtOmqZs+mQ+u20EMHyGV4tr/01QlYF81
-         mSmxC1SsczR+OTxJ1bAnmUmK56DWDGrdSjuJNVAc=
-Date:   Wed, 30 Mar 2022 21:16:54 -0700
-To:     mm-commits@vger.kernel.org, xu.xin16@zte.com.cn,
-        willy@infradead.org, saravanand@fb.com, ran.xiaokai@zte.com.cn,
-        minchan@kernel.org, jhubbard@nvidia.com, david@redhat.com,
-        dave.hansen@linux.intel.com, corbet@lwn.net,
-        yang.yang29@zte.com.cn, akpm@linux-foundation.org
+        b=MnbNJ5bd+htliQZAgdayxCmQ0EgfmXDbHFsI5CGSUeLGOAAm978dUD5MPH0HJzUkn
+         r8FCBqS8uxjv9fA68BxPkrNdHYE0TV6YZC5vgoibvzs74OYWydR+RUjLG9+5whbCZj
+         1d+Jb2DkUVAlYpIxhgIN+OMhyUT9P+Iux2Xt+lUQ=
+Date:   Wed, 30 Mar 2022 21:32:33 -0700
+To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
+        willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
+        shakeelb@google.com, rppt@linux.ibm.com, rientjes@google.com,
+        riel@surriel.com, peterx@redhat.com, pedrodemargomes@gmail.com,
+        oleg@redhat.com, oded.gabbay@gmail.com, namit@vmware.com,
+        mike.kravetz@oracle.com, mhocko@kernel.org,
+        kirill.shutemov@linux.intel.com, khalid.aziz@oracle.com,
+        jhubbard@nvidia.com, jgg@nvidia.com, jannh@google.com,
+        jack@suse.cz, hughd@google.com, hch@lst.de, guro@fb.com,
+        ddutile@redhat.com, aarcange@redhat.com, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmstat-add-events-for-ksm-cow.patch added to -mm tree
-Message-Id: <20220331041654.D4963C340F0@smtp.kernel.org>
+Subject: + mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch added to -mm tree
+Message-Id: <20220331043234.A3A67C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmstat: add events for ksm cow
+     Subject: mm/rmap: fix missing swap_free() in try_to_unmap() after arch_unmap_one() failed
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-add-events-for-ksm-cow.patch
+     mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-add-events-for-ksm-cow.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-add-events-for-ksm-cow.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,105 +71,181 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: mm/vmstat: add events for ksm cow
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/rmap: fix missing swap_free() in try_to_unmap() after arch_unmap_one() failed
 
-Users may use ksm by calling madvise(, , MADV_MERGEABLE) when they want to
-save memory, it's a tradeoff by suffering delay on ksm cow.  Users can get
-to know how much memory ksm saved by reading
-/sys/kernel/mm/ksm/pages_sharing, but they don't know what's the costs of
-ksm cow, and this is important of some delay sensitive tasks.
+Patch series "mm: COW fixes part 2: reliable GUP pins of anonymous pages", v3.
 
-So add ksm cow events to help users evaluate whether or how to use ksm. 
-Also update Documentation/admin-guide/mm/ksm.rst with new added events.
+This series is the result of the discussion on the previous approach [2]. 
+More information on the general COW issues can be found there.  It is
+based on latest linus/master (post v5.17, with relevant core-MM changes
+for v5.18-rc1).
 
-Link: https://lkml.kernel.org/r/20220331035616.2390805-1-yang.yang29@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: xu xin <xu.xin16@zte.com.cn>
-Reviewed-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Saravanan D <saravanand@fb.com>
-Cc: Minchan Kim <minchan@kernel.org>
+This series fixes memory corruptions when a GUP pin (FOLL_PIN) was taken
+on an anonymous page and COW logic fails to detect exclusivity of the page
+to then replacing the anonymous page by a copy in the page table: The GUP
+pin lost synchronicity with the pages mapped into the page tables.
+
+This issue, including other related COW issues, has been summarized in [3]
+under 3):
+"
+  3. Intra Process Memory Corruptions due to Wrong COW (FOLL_PIN)
+
+  page_maybe_dma_pinned() is used to check if a page may be pinned for
+  DMA (using FOLL_PIN instead of FOLL_GET).  While false positives are
+  tolerable, false negatives are problematic: pages that are pinned for
+  DMA must not be added to the swapcache.  If it happens, the (now pinned)
+  page could be faulted back from the swapcache into page tables
+  read-only.  Future write-access would detect the pinning and COW the
+  page, losing synchronicity.  For the interested reader, this is nicely
+  documented in feb889fb40fa ("mm: don't put pinned pages into the swap
+  cache").
+
+  Peter reports [8] that page_maybe_dma_pinned() as used is racy in some
+  cases and can result in a violation of the documented semantics: giving
+  false negatives because of the race.
+
+  There are cases where we call it without properly taking a per-process
+  sequence lock, turning the usage of page_maybe_dma_pinned() racy.  While
+  one case (clear_refs SOFTDIRTY tracking, see below) seems to be easy to
+  handle, there is especially one rmap case (shrink_page_list) that's hard
+  to fix: in the rmap world, we're not limited to a single process.
+
+  The shrink_page_list() issue is really subtle.  If we race with
+  someone pinning a page, we can trigger the same issue as in the FOLL_GET
+  case.  See the detail section at the end of this mail on a discussion
+  how bad this can bite us with VFIO or other FOLL_PIN user.
+
+  It's harder to reproduce, but I managed to modify the O_DIRECT
+  reproducer to use io_uring fixed buffers [15] instead, which ends up
+  using FOLL_PIN | FOLL_WRITE | FOLL_LONGTERM to pin buffer pages and can
+  similarly trigger a loss of synchronicity and consequently a memory
+  corruption.
+
+  Again, the root issue is that a write-fault on a page that has
+  additional references results in a COW and thereby a loss of
+  synchronicity and consequently a memory corruption if two parties
+  believe they are referencing the same page.
+"
+
+This series makes GUP pins (R/O and R/W) on anonymous pages fully
+reliable, especially also taking care of concurrent pinning via GUP-fast,
+for example, also fully fixing an issue reported regarding NUMA balancing
+[4] recently.  While doing that, it further reduces "unnecessary COWs",
+especially when we don't fork()/KSM and don't swapout, and fixes the COW
+security for hugetlb for FOLL_PIN.
+
+In summary, we track via a pageflag (PG_anon_exclusive) whether a mapped
+anonymous page is exclusive.  Exclusive anonymous pages that are mapped
+R/O can directly be mapped R/W by the COW logic in the write fault
+handler.  Exclusive anonymous pages that want to be shared (fork(), KSM)
+first have to be marked shared -- which will fail if there are GUP pins on
+the page.  GUP is only allowed to take a pin on anonymous pages that are
+exclusive.  The PT lock is the primary mechanism to synchronize
+modifications of PG_anon_exclusive.  We synchronize against GUP-fast
+either via the src_mm->write_protect_seq (during fork()) or via
+clear/invalidate+flush of the relevant page table entry.
+
+Special care has to be taken about swap, migration, and THPs (whereby a
+PMD-mapping can be converted to a PTE mapping and we have to track
+information for subpages).  Besides these, we let the rmap code handle
+most magic.  For reliable R/O pins of anonymous pages, we need
+FAULT_FLAG_UNSHARE logic as part of our previous approach [2], however,
+it's now 100% mapcount free and I further simplified it a bit.
+
+  #1 is a fix
+  #3-#10 are mostly rmap preparations for PG_anon_exclusive handling
+  #11 introduces PG_anon_exclusive
+  #12 uses PG_anon_exclusive and make R/W pins of anonymous pages
+   reliable
+  #13 is a preparation for reliable R/O pins
+  #14 and #15 is reused/modified GUP-triggered unsharing for R/O GUP pins
+   make R/O pins of anonymous pages reliable
+  #16 adds sanity check when (un)pinning anonymous pages
+
+[1] https://lkml.kernel.org/r/20220131162940.210846-1-david@redhat.com
+[2] https://lkml.kernel.org/r/20211217113049.23850-1-david@redhat.com
+[3] https://lore.kernel.org/r/3ae33b08-d9ef-f846-56fb-645e3b9b4c66@redhat.com
+[4] https://bugzilla.kernel.org/show_bug.cgi?id=215616
+
+
+This patch (of 16):
+
+In case arch_unmap_one() fails, we already did a swap_duplicate().  let's
+undo that properly via swap_free().
+
+Link: https://lkml.kernel.org/r/20220329160440.193848-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20220329160440.193848-2-david@redhat.com
+Fixes: ca827d55ebaa ("mm, swap: Add infrastructure for saving page metadata on swap")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Don Dutile <ddutile@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Liang Zhang <zhangliang5@huawei.com>
+Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/ksm.rst |   18 ++++++++++++++++++
- include/linux/vm_event_item.h        |    3 +++
- mm/memory.c                          |    4 ++++
- mm/vmstat.c                          |    3 +++
- 4 files changed, 28 insertions(+)
+ mm/rmap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/admin-guide/mm/ksm.rst~mm-vmstat-add-events-for-ksm-cow
-+++ a/Documentation/admin-guide/mm/ksm.rst
-@@ -184,6 +184,24 @@ The maximum possible ``pages_sharing/pag
- ``max_page_sharing`` tunable. To increase the ratio ``max_page_sharing`` must
- be increased accordingly.
- 
-+Monitoring KSM events
-+=====================
-+
-+There are some counters in /proc/vmstat that may be used to monitor KSM events.
-+KSM might help save memory, it's a tradeoff by may suffering delay on KSM COW
-+or on swapping in copy. Those events could help users evaluate whether or how
-+to use KSM. For example, if cow_ksm increases too fast, user may decrease the
-+range of madvise(, , MADV_MERGEABLE).
-+
-+cow_ksm
-+	is incremented every time a KSM page triggers copy on write (COW)
-+	when users try to write to a KSM page, we have to make a copy.
-+
-+ksm_swpin_copy
-+	is incremented every time a KSM page is copied when swapping in
-+	note that KSM page might be copied when swapping in because do_swap_page()
-+	cannot do all the locking needed to reconstitute a cross-anon_vma KSM page.
-+
- --
- Izik Eidus,
- Hugh Dickins, 17 Nov 2009
---- a/include/linux/vm_event_item.h~mm-vmstat-add-events-for-ksm-cow
-+++ a/include/linux/vm_event_item.h
-@@ -133,6 +133,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		KSM_SWPIN_COPY,
- #endif
- #endif
-+#ifdef CONFIG_KSM
-+		COW_KSM,
-+#endif
- #ifdef CONFIG_X86
- 		DIRECT_MAP_LEVEL2_SPLIT,
- 		DIRECT_MAP_LEVEL3_SPLIT,
---- a/mm/memory.c~mm-vmstat-add-events-for-ksm-cow
-+++ a/mm/memory.c
-@@ -3332,6 +3332,10 @@ copy:
- 	get_page(vmf->page);
- 
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
-+#ifdef CONFIG_KSM
-+	if (PageKsm(vmf->page))
-+		count_vm_event(COW_KSM);
-+#endif
- 	return wp_page_copy(vmf);
- }
- 
---- a/mm/vmstat.c~mm-vmstat-add-events-for-ksm-cow
-+++ a/mm/vmstat.c
-@@ -1393,6 +1393,9 @@ const char * const vmstat_text[] = {
- 	"ksm_swpin_copy",
- #endif
- #endif
-+#ifdef CONFIG_KSM
-+	"cow_ksm",
-+#endif
- #ifdef CONFIG_X86
- 	"direct_map_level2_splits",
- 	"direct_map_level3_splits",
+--- a/mm/rmap.c~mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed
++++ a/mm/rmap.c
+@@ -1637,6 +1637,7 @@ static bool try_to_unmap_one(struct foli
+ 				break;
+ 			}
+ 			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
++				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				ret = false;
+ 				page_vma_mapped_walk_done(&pvmw);
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-vmstat-add-events-for-ksm-cow.patch
+mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
+mm-hugetlb-take-src_mm-write_protect_seq-in-copy_hugetlb_page_range.patch
+mm-memory-slightly-simplify-copy_present_pte.patch
+mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap.patch
+mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type.patch
+mm-rmap-remove-do_page_add_anon_rmap.patch
+mm-rmap-pass-rmap-flags-to-hugepage_add_anon_rmap.patch
+mm-rmap-drop-compound-parameter-from-page_add_new_anon_rmap.patch
+mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively.patch
+mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page.patch
+mm-page-flags-reuse-pg_mappedtodisk-as-pg_anon_exclusive-for-pageanon-pages.patch
+mm-remember-exclusively-mapped-anonymous-pages-with-pg_anon_exclusive.patch
+mm-gup-disallow-follow_pagefoll_pin.patch
+mm-support-gup-triggered-unsharing-of-anonymous-pages.patch
+mm-gup-trigger-fault_flag_unshare-when-r-o-pinning-a-possibly-shared-anonymous-page.patch
+mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning.patch
+mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit.patch
+mm-debug_vm_pgtable-add-tests-for-__have_arch_pte_swp_exclusive.patch
+x86-pgtable-support-__have_arch_pte_swp_exclusive.patch
+arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch
+s390-pgtable-cleanup-description-of-swp-pte-layout.patch
+s390-pgtable-support-__have_arch_pte_swp_exclusive.patch
+powerpc-pgtable-remove-_page_bit_swap_type-for-book3s.patch
+powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s.patch
 
