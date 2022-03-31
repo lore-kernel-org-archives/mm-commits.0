@@ -2,106 +2,89 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED5C1C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 23:10:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC2CAC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 23:14:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233403AbiCaXMi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 19:12:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37462 "EHLO
+        id S239089AbiCaXQK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 19:16:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242850AbiCaXMg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 19:12:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AC09116B66
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 16:10:47 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A32BA611B9
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 23:10:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AF84C340F0;
-        Thu, 31 Mar 2022 23:10:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648768246;
-        bh=m1QrNfENOxQobuw988vV/kdm/l6gU5hz91yhQQgO80s=;
-        h=Date:To:From:Subject:From;
-        b=Ud4G3uyFI8mmvX4P75yW8fdjtbfKPHJbXTlv70asdPcOBXAbRj05WsyrS0eAINjFr
-         cg2Hp7ND6L6PyDnlGB8Yfadd+awHgf9wt93Stj/Ye2ACER8kf7dE3vKrMBibIXHStr
-         W2TzlWARunBeOPZyJGkuTAK4j+bpzLwtq3c8m98A=
-Date:   Thu, 31 Mar 2022 16:10:45 -0700
-To:     mm-commits@vger.kernel.org, andreyknvl@google.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-implement-stack_trace_save_shadow-fix.patch added to -mm tree
-Message-Id: <20220331231046.0AF84C340F0@smtp.kernel.org>
+        with ESMTP id S240020AbiCaXQJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 19:16:09 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5FB524CEE2;
+        Thu, 31 Mar 2022 16:14:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:
+        Content-Transfer-Encoding:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description;
+        bh=vSuDqO1mBWaRpB9pMyPQmfeFPj52J4m6p+U+XX+jzGk=; b=z/+63mxYdii+hr9hKP7wTPDhLi
+        shZ57JUlb8IsF0nNtcU4ki81rNDpAONMfizJYx1ZdWJ5dFO9rCUlaW9WJxiGxh6/ASs/iwuEwPtMM
+        oTqFWEq4Rv5RmnXNLGH7WoG3v7uTsoYcxYAOtoinLtGHg279YK1GtzzJ9VYrpnfJSP/DcwjO/T8Ht
+        BilpOy/6iVOK1fvKuSzej9ZhFvTlld2/8mTNgh95avoCoDGdLJU4U29+DasDgoE0Eu61XYPmolXx8
+        /a76e6PMhK3zK6D1cmGRXNZkjUnhOvVTjHjND9shYBcTOreN4FupP/j81i3mjYGJt0+T0/wzekcMN
+        OrtTLTvw==;
+Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1na3zc-003vkn-Ud; Thu, 31 Mar 2022 23:14:16 +0000
+Date:   Thu, 31 Mar 2022 16:14:16 -0700
+From:   Luis Chamberlain <mcgrof@kernel.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>, broonie@kernel.org,
+        mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
+Subject: Re: mmotm 2022-03-30-13-01 uploaded (kernel/sched/ and sysctls)
+Message-ID: <YkY1yNjfdT3E4iiG@bombadil.infradead.org>
+References: <20220330200158.2F031C340EC@smtp.kernel.org>
+ <8d27a9f5-047b-05d5-3594-a51cef06222c@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <8d27a9f5-047b-05d5-3594-a51cef06222c@infradead.org>
+Sender: Luis Chamberlain <mcgrof@infradead.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Mar 30, 2022 at 11:50:23PM -0700, Randy Dunlap wrote:
+> Luis-
+> 
+> On 3/30/22 13:01, Andrew Morton wrote:
+> > The mm-of-the-moment snapshot 2022-03-30-13-01 has been uploaded to
+> > 
+> >    https://www.ozlabs.org/~akpm/mmotm/
+> > 
+> > mmotm-readme.txt says
+> > 
+> > README for mm-of-the-moment:
+> > 
+> > https://www.ozlabs.org/~akpm/mmotm/
+> > 
+> > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> > more than once a week.
+> > 
+> > You will need quilt to apply these patches to the latest Linus release (5.x
+> > or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> > https://ozlabs.org/~akpm/mmotm/series
+> 
+> 
+> # CONFIG_SYSCTL is not set
+> # CONFIG_PROC_SYSCTL is not set
+> 
+> In file included from ../kernel/sched/build_policy.c:43:0:
+> ../kernel/sched/rt.c:3017:12: warning: ‘sched_rr_handler’ defined but not used [-Wunused-function]
+>  static int sched_rr_handler(struct ctl_table *table, int write, void *buffer,
+>             ^~~~~~~~~~~~~~~~
+> ../kernel/sched/rt.c:2978:12: warning: ‘sched_rt_handler’ defined but not used [-Wunused-function]
+>  static int sched_rt_handler(struct ctl_table *table, int write, void *buffer,
+>             ^~~~~~~~~~~~~~~~
+> 
+> 
+> This was also reported on Feb.22/2022:
+>   https://lore.kernel.org/all/fbfc360c-d68f-d83b-5124-d6d930235b8c@infradead.org/
 
-The patch titled
-     Subject: arm64-implement-stack_trace_save_shadow-fix
-has been added to the -mm tree.  Its filename is
-     arm64-implement-stack_trace_save_shadow-fix.patch
+Yes, I'm on it, thanks!
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-implement-stack_trace_save_shadow-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-implement-stack_trace_save_shadow-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arm64-implement-stack_trace_save_shadow-fix
-
-add ifdefs to arch/arm64/kernel/stacktrace.c
-
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/arm64/kernel/stacktrace.c |    2 ++
- 1 file changed, 2 insertions(+)
-
---- a/arch/arm64/kernel/stacktrace.c~arm64-implement-stack_trace_save_shadow-fix
-+++ a/arch/arm64/kernel/stacktrace.c
-@@ -213,6 +213,7 @@ noinline notrace void arch_stack_walk(st
- 	walk_stackframe(task, &frame, consume_entry, cookie);
- }
- 
-+#ifdef CONFIG_SHADOW_CALL_STACK
- static const struct {
- 	unsigned long ** __percpu saved;
- 	unsigned long ** __percpu base;
-@@ -293,3 +294,4 @@ out:
- 	preempt_enable();
- 	return len;
- }
-+#endif		/* CONFIG_SHADOW_CALL_STACK */
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm.patch
-arm64-implement-stack_trace_save_shadow-fix.patch
-mm-shmem-make-shmem_init-return-void-fix.patch
-ksm-count-ksm-merging-pages-for-each-process-fix.patch
-mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-add-fat-messages-to-printk-index-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-b.patch
-
+ Luis
