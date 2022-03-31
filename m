@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA48C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 05:06:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70DB3C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 31 Mar 2022 05:06:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229498AbiCaFIe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 01:08:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53916 "EHLO
+        id S229604AbiCaFIg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 01:08:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54396 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229643AbiCaFI0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 01:08:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 597E943AD9
-        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 22:06:39 -0700 (PDT)
+        with ESMTP id S229618AbiCaFIc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 01:08:32 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92FA842EE2
+        for <mm-commits@vger.kernel.org>; Wed, 30 Mar 2022 22:06:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 08F9CB81EDD
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 05:06:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1875C340ED;
-        Thu, 31 Mar 2022 05:06:36 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 4528ACE1FA4
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 05:06:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 793BCC340ED;
+        Thu, 31 Mar 2022 05:06:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648703196;
-        bh=6/WJGe4ejN3nOv5ahRVbI1/v6gMk0DI3rMCHbiuanpo=;
+        s=korg; t=1648703198;
+        bh=rSdrXDio+buWJaY6ewB5VlzTa/9fLY+61+yAdF9lDpg=;
         h=Date:To:From:Subject:From;
-        b=ISGQboezVwWER2k+3WTH4arCstrGkLsd4dRyIHn8eWat22h/VL898MlBipPd6mP1y
-         OaGROO7aAv+swxFe7TH2mOUxxSpUKQWF+CEZQpIjZxU4FsCHjdS+t2qQYzddnLpKnQ
-         3yjsZ5BX1Lmb1BzyyLsTaMkT2pywE0QeEU0+vxdE=
-Date:   Wed, 30 Mar 2022 22:06:36 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com, hch@lst.de,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=af/OEwg8Mp13OZDtkqtWTEwpBj4mxZXXJPJznVpp63M1QBRGhKDbKUYoanVBU76Em
+         swtHSYL6ChNLKvH3iaHDIGBqKUnDMTMZHjgKoZlmrfx+zWndRm9KP2vSJ3Dt2ZlsB1
+         yzh4iO0ZGpqcZhR9tHmKl7Rm+IukiqZQTqD77DpA=
+Date:   Wed, 30 Mar 2022 22:06:37 -0700
+To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
+        xiyuyang19@fudan.edu.cn, willy@infradead.org,
+        viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
+        kirill.shutemov@linux.intel.com, jack@suse.cz, hughd@google.com,
+        hch@lst.de, duanxiongchun@bytedance.com, dan.j.williams@intel.com,
+        apopple@nvidia.com, songmuchun@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes-fix.patch added to -mm tree
-Message-Id: <20220331050636.A1875C340ED@smtp.kernel.org>
+Subject: + mm-pvmw-add-support-for-walking-devmap-pages.patch added to -mm tree
+Message-Id: <20220331050638.793BCC340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes-fix
+     Subject: mm: pvmw: add support for walking devmap pages
 has been added to the -mm tree.  Its filename is
-     mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes-fix.patch
+     mm-pvmw-add-support-for-walking-devmap-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-pvmw-add-support-for-walking-devmap-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pvmw-add-support-for-walking-devmap-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,41 +67,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes-fix
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: pvmw: add support for walking devmap pages
 
-fix comment, per hch
+The devmap pages can not use page_vma_mapped_walk() to check if a huge
+devmap page is mapped into a vma.  Add support for walking huge devmap
+pages so that DAX can use it in the next patch.
 
+Link: https://lkml.kernel.org/r/20220318074529.5261-5-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_vma_mapped.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/internal.h~mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes-fix
-+++ a/mm/internal.h
-@@ -462,7 +462,7 @@ void mlock_page_drain_remote(int cpu);
- extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
+--- a/mm/page_vma_mapped.c~mm-pvmw-add-support-for-walking-devmap-pages
++++ a/mm/page_vma_mapped.c
+@@ -210,16 +210,9 @@ restart:
+ 		 */
+ 		pmde = READ_ONCE(*pvmw->pmd);
  
- /*
-- * * Return the start of user virtual address at the specific offset within
-+ * Return the start of user virtual address at the specific offset within
-  * a vma.
-  */
- static inline unsigned long
+-		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
++		if (pmd_leaf(pmde) || is_pmd_migration_entry(pmde)) {
+ 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+ 			pmde = *pvmw->pmd;
+-			if (likely(pmd_trans_huge(pmde))) {
+-				if (pvmw->flags & PVMW_MIGRATION)
+-					return not_found(pvmw);
+-				if (!check_pmd(pmd_pfn(pmde), pvmw))
+-					return not_found(pvmw);
+-				return true;
+-			}
+ 			if (!pmd_present(pmde)) {
+ 				swp_entry_t entry;
+ 
+@@ -232,6 +225,13 @@ restart:
+ 					return not_found(pvmw);
+ 				return true;
+ 			}
++			if (likely(pmd_trans_huge(pmde) || pmd_devmap(pmde))) {
++				if (pvmw->flags & PVMW_MIGRATION)
++					return not_found(pvmw);
++				if (!check_pmd(pmd_pfn(pmde), pvmw))
++					return not_found(pvmw);
++				return true;
++			}
+ 			/* THP pmd was split under us: handle on pte level */
+ 			spin_unlock(pvmw->ptl);
+ 			pvmw->ptl = NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm.patch
-mm-shmem-make-shmem_init-return-void-fix.patch
-ksm-count-ksm-merging-pages-for-each-process-fix.patch
-mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes-fix.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-add-fat-messages-to-printk-index-checkpatch-fixes.patch
-linux-next-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+mm-kfence-fix-objcgs-vector-allocation.patch
+mm-rmap-fix-cache-flush-on-thp-pages.patch
+dax-fix-cache-flush-on-pmd-mapped-pages.patch
+mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
+mm-pvmw-add-support-for-walking-devmap-pages.patch
+dax-fix-missing-writeprotect-the-pte-entry.patch
+dax-fix-missing-writeprotect-the-pte-entry-v6.patch
+mm-simplify-follow_invalidate_pte.patch
 
