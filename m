@@ -2,159 +2,94 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C113EC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:27:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF999C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:28:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351007AbiDAS3d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Apr 2022 14:29:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58788 "EHLO
+        id S1349839AbiDASaE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Apr 2022 14:30:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349076AbiDAS3c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:29:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EA541AC732
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 11:27:42 -0700 (PDT)
+        with ESMTP id S1347575AbiDASaD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:30:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3445F1AC72A;
+        Fri,  1 Apr 2022 11:28:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2106160DDF
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 18:27:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 642FAC2BBE4;
-        Fri,  1 Apr 2022 18:27:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C214760F69;
+        Fri,  1 Apr 2022 18:28:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27EE7C2BBE4;
+        Fri,  1 Apr 2022 18:28:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648837661;
-        bh=gEPbvk9tmneMqjUIw2yexjgi3dPXWjjb/dk4zbG9Mx0=;
-        h=Date:From:To:Cc:Subject:From;
-        b=TbXO2j8IcKBJeUsmTNYXa03pZVMjyWSxxi2IkwALFq6VPGuXuJURs36qPQ/4xWlY5
-         7otHVnoqNwrxwye9JQJ1gh258w7KL6nf/x+Lok7gwQQsIvWz6eJGFnjo2KVDoAROyi
-         3ZGXw4n0vy7hLwIEpck7zpS5/SZqIhpgO0i00rE8=
-Date:   Fri, 1 Apr 2022 11:27:40 -0700
+        s=korg; t=1648837693;
+        bh=Y1DSYXwwtCvcVdddctf38D7U2PdgnxIbrJmSu/87218=;
+        h=Date:To:From:In-Reply-To:Subject:From;
+        b=pMnBwW3Bhg2X9q+7e9HyTQG/VvIQwiOuZM4Bm3z70U3yuluq6p/JLV7GVuJq6bdjy
+         XLOi0V5zSW0dqceXt2TpxHjtNZSY8nzv/YVUobzHmrlzABvJ6G11zIxpbnPucqXiEI
+         XWFVLVVxV+NkiH3qdWLQ3zDIcMUuwstGocPmjgKo=
+Date:   Fri, 01 Apr 2022 11:28:12 -0700
+To:     vbabka@suse.cz, surenb@google.com, stable@vger.kernel.org,
+        rientjes@google.com, nadav.amit@gmail.com, mhocko@suse.com,
+        quic_charante@quicinc.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        patches@lists.linux.dev
-Subject: incoming
-Message-Id: <20220401112740.351496714b370467a92207a6@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20220401112740.351496714b370467a92207a6@linux-foundation.org>
+Subject: [patch 01/16] Revert "mm: madvise: skip unmapped vma holes passed to process_madvise"
+Message-Id: <20220401182813.27EE7C2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-16 patches, based on e8b767f5e04097aaedcd6e06e2270f9fe5282696.
+From: Charan Teja Kalla <quic_charante@quicinc.com>
+Subject: Revert "mm: madvise: skip unmapped vma holes passed to process_madvise"
 
-Subsystems affected by this patch series:
+This reverts commit 08095d6310a7 ("mm: madvise: skip unmapped vma holes
+passed to process_madvise") as process_madvise() fails to return the exact
+processed bytes in other cases too.  As an example: if process_madvise()
+hits mlocked pages after processing some initial bytes passed in [start,
+end), it just returns EINVAL although some bytes are processed.  Thus
+making an exception only for ENOMEM is partially fixing the problem of
+returning the proper advised bytes.
 
-  mm/madvise
-  ofs2
-  nilfs2
-  mm/mlock
-  mm/mfence
-  mailmap
-  mm/memory-failure
-  mm/kasan
-  mm/debug
-  mm/kmemleak
-  mm/damon
+Thus revert this patch and return proper bytes advised.
 
-Subsystem: mm/madvise
+Link: https://lkml.kernel.org/r/e73da1304a88b6a8a11907045117cccf4c2b8374.1648046642.git.quic_charante@quicinc.com
+Fixes: 08095d6310a7ce ("mm: madvise: skip unmapped vma holes passed to process_madvise")
+Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    Charan Teja Kalla <quic_charante@quicinc.com>:
-      Revert "mm: madvise: skip unmapped vma holes passed to process_madvise"
+ mm/madvise.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-Subsystem: ofs2
-
-    Joseph Qi <joseph.qi@linux.alibaba.com>:
-      ocfs2: fix crash when mount with quota enabled
-
-Subsystem: nilfs2
-
-    Ryusuke Konishi <konishi.ryusuke@gmail.com>:
-    Patch series "nilfs2 lockdep warning fixes":
-      nilfs2: fix lockdep warnings in page operations for btree nodes
-      nilfs2: fix lockdep warnings during disk space reclamation
-      nilfs2: get rid of nilfs_mapping_init()
-
-Subsystem: mm/mlock
-
-    Hugh Dickins <hughd@google.com>:
-      mm/munlock: add lru_add_drain() to fix memcg_stat_test
-      mm/munlock: update Documentation/vm/unevictable-lru.rst
-
-    Sebastian Andrzej Siewior <bigeasy@linutronix.de>:
-      mm/munlock: protect the per-CPU pagevec by a local_lock_t
-
-Subsystem: mm/kfence
-
-    Muchun Song <songmuchun@bytedance.com>:
-      mm: kfence: fix objcgs vector allocation
-
-Subsystem: mailmap
-
-    Kirill Tkhai <kirill.tkhai@openvz.org>:
-      mailmap: update Kirill's email
-
-Subsystem: mm/memory-failure
-
-    Rik van Riel <riel@surriel.com>:
-      mm,hwpoison: unmap poisoned page before invalidation
-
-Subsystem: mm/kasan
-
-    Andrey Konovalov <andreyknvl@google.com>:
-      mm, kasan: fix __GFP_BITS_SHIFT definition breaking LOCKDEP
-
-Subsystem: mm/debug
-
-    Yinan Zhang <zhangyinan2019@email.szu.edu.cn>:
-      tools/vm/page_owner_sort.c: remove -c option
-      doc/vm/page_owner.rst: remove content related to -c option
-
-Subsystem: mm/kmemleak
-
-    Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>:
-      mm/kmemleak: reset tag when compare object pointer
-
-Subsystem: mm/damon
-
-    Jonghyeon Kim <tome01@ajou.ac.kr>:
-      mm/damon: prevent activated scheme from sleeping by deactivated schemes
-
- .mailmap                             |    1 
- Documentation/vm/page_owner.rst      |    1 
- Documentation/vm/unevictable-lru.rst |  473 +++++++++++++++--------------------
- fs/nilfs2/btnode.c                   |   23 +
- fs/nilfs2/btnode.h                   |    1 
- fs/nilfs2/btree.c                    |   27 +
- fs/nilfs2/dat.c                      |    4 
- fs/nilfs2/gcinode.c                  |    7 
- fs/nilfs2/inode.c                    |  167 +++++++++++-
- fs/nilfs2/mdt.c                      |   45 ++-
- fs/nilfs2/mdt.h                      |    6 
- fs/nilfs2/nilfs.h                    |   16 -
- fs/nilfs2/page.c                     |   16 -
- fs/nilfs2/page.h                     |    1 
- fs/nilfs2/segment.c                  |    9 
- fs/nilfs2/super.c                    |    5 
- fs/ocfs2/quota_global.c              |   23 -
- fs/ocfs2/quota_local.c               |    2 
- include/linux/gfp.h                  |    4 
- mm/damon/core.c                      |    5 
- mm/gup.c                             |   10 
- mm/internal.h                        |    6 
- mm/kfence/core.c                     |   11 
- mm/kfence/kfence.h                   |    3 
- mm/kmemleak.c                        |    9 
- mm/madvise.c                         |    9 
- mm/memory.c                          |   12 
- mm/migrate.c                         |    2 
- mm/mlock.c                           |   46 ++-
- mm/page_alloc.c                      |    1 
- mm/rmap.c                            |    4 
- mm/swap.c                            |    4 
- tools/vm/page_owner_sort.c           |    6 
- 33 files changed, 560 insertions(+), 399 deletions(-)
-
+--- a/mm/madvise.c~revert-mm-madvise-skip-unmapped-vma-holes-passed-to-process_madvise
++++ a/mm/madvise.c
+@@ -1464,16 +1464,9 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 
+ 	while (iov_iter_count(&iter)) {
+ 		iovec = iov_iter_iovec(&iter);
+-		/*
+-		 * do_madvise returns ENOMEM if unmapped holes are present
+-		 * in the passed VMA. process_madvise() is expected to skip
+-		 * unmapped holes passed to it in the 'struct iovec' list
+-		 * and not fail because of them. Thus treat -ENOMEM return
+-		 * from do_madvise as valid and continue processing.
+-		 */
+ 		ret = do_madvise(mm, (unsigned long)iovec.iov_base,
+ 					iovec.iov_len, behavior);
+-		if (ret < 0 && ret != -ENOMEM)
++		if (ret < 0)
+ 			break;
+ 		iov_iter_advance(&iter, iovec.iov_len);
+ 	}
+_
