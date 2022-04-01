@@ -2,128 +2,117 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7141AC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 02:35:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FFA1C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 02:42:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244136AbiDAChX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 22:37:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55602 "EHLO
+        id S234270AbiDACol (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 22:44:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56522 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244119AbiDAChW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 22:37:22 -0400
-Received: from mail-yw1-x1133.google.com (mail-yw1-x1133.google.com [IPv6:2607:f8b0:4864:20::1133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 408BB6B093
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 19:35:34 -0700 (PDT)
-Received: by mail-yw1-x1133.google.com with SMTP id 00721157ae682-2db2add4516so18732217b3.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 19:35:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=hP5WWbtuGsDWD55Jj1fJetObaJLNZPB0A2WU8y815mk=;
-        b=KlS+WfsrxHOGjj/wuqJYnZZs3aOBAx/NWdN3gL52r0AFeXinukZIQfaG+OYPnGYxWT
-         yNUt4av6z1vSvpb92Jrhi55LgsILie34OWfemWzoO6PDtZXNg5Jg/aP206SWlRCRJvCB
-         TmWwFo1HpDv9/rZxkJjwIfF7fkvYcLMXo9ZxKVewn8GBsTEtG6UW3A8N4/zS6SQIgMiy
-         nwbGCtMSlnTOtHQBDNeD4InOeafToFyqdtL829i2Kpcq9S990DC08ofHFTt6iMeiykLw
-         aq4efU7AjAzWSr6b5K/t3w6FdCeGcsWpkOV7J4TF+MYs96Db+qIUckfuwz5tpD833MKh
-         Zhjg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=hP5WWbtuGsDWD55Jj1fJetObaJLNZPB0A2WU8y815mk=;
-        b=HeW1jXPzE3Qs0IGkp7Cw068vqSxW9LGOGX2YpDIrEBenKJrndStRkWedgiM8P95Uo8
-         DzWWMq4NRERD8X0etEvVt7FUw9IrEidlI84KvbmBu1FMja36SDkndQn4q8vFL75vFk7L
-         YuB9S4Et67pBmsMdwpwXdxr8FPVot7R15h+BV+6tyYPTEwCgux5dZj70tMMJrzq1FXfE
-         NIzD+2NM8YtsMce7hcDoi5X77eo8Xuj3+QtpJKLYhyE2g6PV9kdFC/805J/HUfSs7e0u
-         QufADYcXBYgooHG/RQpkFqfL5xrV0eup5p5FOymwiMonl71AWeTBov1bz6voTdkQUGJz
-         PYNg==
-X-Gm-Message-State: AOAM5336SEAhZ0+sDBYuWEWhNo94EZP2uxMFWMypAEkSEaHiwjtJAuVO
-        cwT4VwURhsKwkUDtqReJyYdU+IWS5U75LRycxdvhhyJxa7/mwQ==
-X-Google-Smtp-Source: ABdhPJy/Cd4NfcSEkXGEVNwceKKy0igmNxqURdW8EhM3BQTMzIAr2N3sFThjeSG9q5kGNgljAU2gvcOY6pS3/Vl2m2s=
-X-Received: by 2002:a81:1c4f:0:b0:2e5:9db3:7a8e with SMTP id
- c76-20020a811c4f000000b002e59db37a8emr7433298ywc.319.1648780533468; Thu, 31
- Mar 2022 19:35:33 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220401022700.1C58DC340F0@smtp.kernel.org>
-In-Reply-To: <20220401022700.1C58DC340F0@smtp.kernel.org>
-From:   Muchun Song <songmuchun@bytedance.com>
-Date:   Fri, 1 Apr 2022 10:34:57 +0800
-Message-ID: <CAMZfGtUVoP_2CTkvJwhfj+F7e9z_6sgMcsN4XgtHa8vKwcFaEQ@mail.gmail.com>
-Subject: Re: + nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
- added to -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
-        Neil Brown <neilb@suse.de>
-Content-Type: text/plain; charset="UTF-8"
+        with ESMTP id S231317AbiDACok (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 22:44:40 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB1EE217967
+        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 19:42:51 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 72EEDB82346
+        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 02:42:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F01CBC340ED;
+        Fri,  1 Apr 2022 02:42:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1648780969;
+        bh=s/b96ghJosoMpUOQHEt17xL4WdZFpLIY1ldS82ZE44g=;
+        h=Date:To:From:Subject:From;
+        b=tzqFB9A15ILqt3l+WKzQo0oWiVsn7NuDkJpbESXjY4Jr3xsUg5wSycKuPUFtmhqdO
+         BfvXelXwS2AcBHJPiikg1lGHlgeB9tI5Yc+yxvokd+t4FxCnb4DBXLi0RL8KncE3nn
+         9LxaRoSzmtCvT2fvTHRZpjqkxU46sxCI7MCWB/dM=
+Date:   Thu, 31 Mar 2022 19:42:48 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        osalvador@suse.de, mgorman@techsingularity.net,
+        linmiaohe@huawei.com, david@redhat.com, richard.weiyang@gmail.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2.patch added to -mm tree
+Message-Id: <20220401024248.F01CBC340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Apr 1, 2022 at 10:27 AM Andrew Morton <akpm@linux-foundation.org> wrote:
->
->
-> The patch titled
->      Subject: nfs42: use a specific kmem_cache to allocate nfs4_xattr_entry
-> has been added to the -mm tree.  Its filename is
->      nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
->
-> This patch should soon appear at
->     https://ozlabs.org/~akpm/mmots/broken-out/nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
-> and later at
->     https://ozlabs.org/~akpm/mmotm/broken-out/nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
->
-> ------------------------------------------------------
-> From: Muchun Song <songmuchun@bytedance.com>
-> Subject: nfs42: use a specific kmem_cache to allocate nfs4_xattr_entry
->
-> Fixes a null-pointer deref in nfs4.
->
-> If we want to add the allocated objects to its list_lru, we should use
-> kmem_cache_alloc_lru() to allocate objects.  So intruduce
-> nfs4_xattr_entry_cachep which is used to allocate nfs4_xattr_entry.
->
-> Link: https://lkml.kernel.org/r/164876616694.25542.14010655277238655246@noble.neil.brown.name
-> Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-> Tested-by: NeilBrown <neilb@suse.de>
-> Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-My bad. I think this patch could be dropped.  I have looked at
-the latest code. I found the following commit has removed
-GFP_ACCOUNT on allocation.
+The patch titled
+     Subject: mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2
+has been added to the -mm tree.  Its filename is
+     mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2.patch
 
-5c60e89e71f8 ("NFSv4.2: Fix up an invalid combination of memory
-allocation flags")
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2.patch
 
-But this commit forgot to remove SLAB_ACCOUNT when creating
-nfs4_xattr_cache_cachep (I think it is a bug).  So I think the following
-patch could work properly.  I'll send a new patch to fix this issue.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Thanks.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-diff --git a/fs/nfs/nfs42xattr.c b/fs/nfs/nfs42xattr.c
-index ad3405c64b9e..e7b34f7e0614 100644
---- a/fs/nfs/nfs42xattr.c
-+++ b/fs/nfs/nfs42xattr.c
-@@ -997,7 +997,7 @@ int __init nfs4_xattr_cache_init(void)
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-        nfs4_xattr_cache_cachep = kmem_cache_create("nfs4_xattr_cache_cache",
-            sizeof(struct nfs4_xattr_cache), 0,
--           (SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD|SLAB_ACCOUNT),
-+           (SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD),
-            nfs4_xattr_cache_init_once);
-        if (nfs4_xattr_cache_cachep == NULL)
-                return -ENOMEM;
+------------------------------------------------------
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2
+
+adjust the usage in migrate_balanced_pgdat()
+
+Link: https://lkml.kernel.org/r/20220329010901.1654-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/migrate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/mm/migrate.c~mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2
++++ a/mm/migrate.c
+@@ -1983,7 +1983,7 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid,
+ #ifdef CONFIG_NUMA_BALANCING
+ /*
+  * Returns true if this is a safe migration target node for misplaced NUMA
+- * pages. Currently it only checks the watermarks which crude
++ * pages. Currently it only checks the watermarks which is crude.
+  */
+ static bool migrate_balanced_pgdat(struct pglist_data *pgdat,
+ 				   unsigned long nr_migrate_pages)
+@@ -1993,7 +1993,7 @@ static bool migrate_balanced_pgdat(struc
+ 	for (z = pgdat->nr_zones - 1; z >= 0; z--) {
+ 		struct zone *zone = pgdat->node_zones + z;
+ 
+-		if (!populated_zone(zone))
++		if (!managed_zone(zone))
+ 			continue;
+ 
+ 		/* Avoid waking kswapd by allocating pages_to_migrate pages. */
+_
+
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
+
+mm-memcg-mz-already-removed-from-rb_tree-if-not-null.patch
+mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
+mm-memcg-set-pos-explicitly-for-reclaim-and-reclaim.patch
+mm-memcg-move-generation-assignment-and-comparison-together.patch
+mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+mm-vmscan-reclaim-only-affects-managed_zones.patch
+mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone.patch
+mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2.patch
+mm-vmscan-sc-reclaim_idx-must-be-a-valid-zone-index.patch
+
