@@ -2,124 +2,289 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F35EC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:28:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB828C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:28:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351023AbiDASaV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Apr 2022 14:30:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60244 "EHLO
+        id S1351027AbiDASa3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Apr 2022 14:30:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347575AbiDASaT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:30:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39AAD1AE20A
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 11:28:29 -0700 (PDT)
+        with ESMTP id S1347575AbiDASaZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:30:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 751B11B0BCA
+        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 11:28:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CA78060F19
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 18:28:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3285DC2BBE4;
-        Fri,  1 Apr 2022 18:28:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 04B0D60F6B
+        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 18:28:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5824BC2BBE4;
+        Fri,  1 Apr 2022 18:28:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648837708;
-        bh=2hQH4xIfEI7cKb8n8lwC1lNjdFUqMLTsrFO0c/gJyxI=;
+        s=korg; t=1648837714;
+        bh=wiaiyYD5Exg1iE/Ow+PGQJbfOm3yZEYIqlFoEbDZzbk=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=fRoz1FkM6CrxpvCckjKNb6Cj+/bSdqzaSXAcYspSbXnrKOIbf3/3PinUJ4ukaRhLG
-         pUJ07KDeKpSm9/JK/cpFzE0TDy/q/nzymyC6ayjni9uYHnYBMjtwoLfMgzKGO+s4Qy
-         3P07KRj6WCKIjSIy7c1otB5b3CYb9MpJEr9WQyb0=
-Date:   Fri, 01 Apr 2022 11:28:27 -0700
-To:     vbabka@suse.cz, efault@gmx.de, hughd@google.com,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=fhAYCR9P+bkTYNjk6PYdfJuz6UOLjWXAUoO7deMcopY5l6d4VrOwmhpaZxk0fM2c9
+         mcr+RmodDn2qLodtrHUnjKIB1jLXAsUa34ymUDlMiBGiQTeySXMkxMUWcTxaQjBqX7
+         qvXZgRGk69AQT7lh7xUljrWBP0ImCXqamw4l9UYE=
+Date:   Fri, 01 Apr 2022 11:28:33 -0700
+To:     willy@infradead.org, vbabka@suse.cz, tglx@linutronix.de,
+        hughd@google.com, bigeasy@linutronix.de, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220401112740.351496714b370467a92207a6@linux-foundation.org>
-Subject: [patch 06/16] mm/munlock: add lru_add_drain() to fix memcg_stat_test
-Message-Id: <20220401182828.3285DC2BBE4@smtp.kernel.org>
+Subject: [patch 08/16] mm/munlock: protect the per-CPU pagevec by a local_lock_t
+Message-Id: <20220401182834.5824BC2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/munlock: add lru_add_drain() to fix memcg_stat_test
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm/munlock: protect the per-CPU pagevec by a local_lock_t
 
-Mike reports that LTP memcg_stat_test usually leads to...
-memcg_stat_test 3 TINFO: Test unevictable with MAP_LOCKED
-memcg_stat_test 3 TINFO: Running memcg_process --mmap-lock1 -s 135168
-memcg_stat_test 3 TINFO: Warming up pid: 3460
-memcg_stat_test 3 TINFO: Process is still here after warm up: 3460
-memcg_stat_test 3 TFAIL: unevictable is 122880, 135168 expected
-...but may lead to...
-memcg_stat_test 4 TINFO: Test unevictable with mlock
-memcg_stat_test 4 TINFO: Running memcg_process --mmap-lock2 -s 135168
-memcg_stat_test 4 TINFO: Warming up pid: 4271
-memcg_stat_test 4 TINFO: Process is still here after warm up: 4271
-memcg_stat_test 4 TFAIL: unevictable is 122880, 135168 expected
-...or both.  A wee bit flaky.
+The access to mlock_pvec is protected by disabling preemption via
+get_cpu_var() or implicit by having preemption disabled by the caller (in
+mlock_page_drain() case).  This breaks on PREEMPT_RT since
+folio_lruvec_lock_irq() acquires a sleeping lock in this section.
 
-follow_page_pte() used to have an lru_add_drain() per each page mlocked,
-and the test came to rely on accurate stats.  The pagevec to be drained is
-different now, but still covered by lru_add_drain(); and, never mind the
-test, I believe it's in everyone's interest that a bulk faulting interface
-like populate_vma_page_range() or faultin_vma_page_range() should drain
-its local pagevecs at the end, to save others sometimes needing the much
-more expensive lru_add_drain_all().  This does not absolutely guarantee
-exact stats - the mlocking task can be migrated between CPUs as it
-proceeds - but it's good enough and the tests pass.
+Create struct mlock_pvec which consits of the local_lock_t and the
+pagevec.  Acquire the local_lock() before accessing the per-CPU pagevec. 
+Replace mlock_page_drain() with a _local() version which is invoked on the
+local CPU and acquires the local_lock_t and a _remote() version which uses
+the pagevec from a remote CPU which offline.
 
-Link: https://lkml.kernel.org/r/47f6d39c-a075-50cb-1cfb-26dd957a48af@google.com
-Fixes: b67bf49ce7aa ("mm/munlock: delete FOLL_MLOCK and FOLL_POPULATE")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Mike Galbraith <efault@gmx.de>
+Link: https://lkml.kernel.org/r/YjizWi9IY0mpvIfb@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/internal.h   |    6 ++++--
+ mm/migrate.c    |    2 +-
+ mm/mlock.c      |   46 ++++++++++++++++++++++++++++++++++++----------
+ mm/page_alloc.c |    1 +
+ mm/rmap.c       |    4 ++--
+ mm/swap.c       |    4 +++-
+ 6 files changed, 47 insertions(+), 16 deletions(-)
 
---- a/mm/gup.c~mm-munlock-add-lru_add_drain-to-fix-memcg_stat_test
-+++ a/mm/gup.c
-@@ -1404,6 +1404,7 @@ long populate_vma_page_range(struct vm_a
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
- 	int gup_flags;
-+	long ret;
+--- a/mm/internal.h~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/internal.h
+@@ -456,7 +456,8 @@ static inline void munlock_vma_page(stru
+ }
+ void mlock_new_page(struct page *page);
+ bool need_mlock_page_drain(int cpu);
+-void mlock_page_drain(int cpu);
++void mlock_page_drain_local(void);
++void mlock_page_drain_remote(int cpu);
  
- 	VM_BUG_ON(!PAGE_ALIGNED(start));
- 	VM_BUG_ON(!PAGE_ALIGNED(end));
-@@ -1438,8 +1439,10 @@ long populate_vma_page_range(struct vm_a
- 	 * We made sure addr is within a VMA, so the following will
- 	 * not result in a stack expansion that recurses back here.
- 	 */
--	return __get_user_pages(mm, start, nr_pages, gup_flags,
-+	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
- 				NULL, NULL, locked);
-+	lru_add_drain();
-+	return ret;
+ extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
+ 
+@@ -539,7 +540,8 @@ static inline void munlock_vma_page(stru
+ 			struct vm_area_struct *vma, bool compound) { }
+ static inline void mlock_new_page(struct page *page) { }
+ static inline bool need_mlock_page_drain(int cpu) { return false; }
+-static inline void mlock_page_drain(int cpu) { }
++static inline void mlock_page_drain_local(void) { }
++static inline void mlock_page_drain_remote(int cpu) { }
+ static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
+ {
+ }
+--- a/mm/migrate.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/migrate.c
+@@ -246,7 +246,7 @@ static bool remove_migration_pte(struct
+ 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
+ 		}
+ 		if (vma->vm_flags & VM_LOCKED)
+-			mlock_page_drain(smp_processor_id());
++			mlock_page_drain_local();
+ 
+ 		trace_remove_migration_pte(pvmw.address, pte_val(pte),
+ 					   compound_order(new));
+--- a/mm/mlock.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/mlock.c
+@@ -28,7 +28,14 @@
+ 
+ #include "internal.h"
+ 
+-static DEFINE_PER_CPU(struct pagevec, mlock_pvec);
++struct mlock_pvec {
++	local_lock_t lock;
++	struct pagevec vec;
++};
++
++static DEFINE_PER_CPU(struct mlock_pvec, mlock_pvec) = {
++	.lock = INIT_LOCAL_LOCK(lock),
++};
+ 
+ bool can_do_mlock(void)
+ {
+@@ -203,18 +210,30 @@ static void mlock_pagevec(struct pagevec
+ 	pagevec_reinit(pvec);
+ }
+ 
+-void mlock_page_drain(int cpu)
++void mlock_page_drain_local(void)
+ {
+ 	struct pagevec *pvec;
+ 
+-	pvec = &per_cpu(mlock_pvec, cpu);
++	local_lock(&mlock_pvec.lock);
++	pvec = this_cpu_ptr(&mlock_pvec.vec);
++	if (pagevec_count(pvec))
++		mlock_pagevec(pvec);
++	local_unlock(&mlock_pvec.lock);
++}
++
++void mlock_page_drain_remote(int cpu)
++{
++	struct pagevec *pvec;
++
++	WARN_ON_ONCE(cpu_online(cpu));
++	pvec = &per_cpu(mlock_pvec.vec, cpu);
+ 	if (pagevec_count(pvec))
+ 		mlock_pagevec(pvec);
+ }
+ 
+ bool need_mlock_page_drain(int cpu)
+ {
+-	return pagevec_count(&per_cpu(mlock_pvec, cpu));
++	return pagevec_count(&per_cpu(mlock_pvec.vec, cpu));
+ }
+ 
+ /**
+@@ -223,7 +242,10 @@ bool need_mlock_page_drain(int cpu)
+  */
+ void mlock_folio(struct folio *folio)
+ {
+-	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
++	struct pagevec *pvec;
++
++	local_lock(&mlock_pvec.lock);
++	pvec = this_cpu_ptr(&mlock_pvec.vec);
+ 
+ 	if (!folio_test_set_mlocked(folio)) {
+ 		int nr_pages = folio_nr_pages(folio);
+@@ -236,7 +258,7 @@ void mlock_folio(struct folio *folio)
+ 	if (!pagevec_add(pvec, mlock_lru(&folio->page)) ||
+ 	    folio_test_large(folio) || lru_cache_disabled())
+ 		mlock_pagevec(pvec);
+-	put_cpu_var(mlock_pvec);
++	local_unlock(&mlock_pvec.lock);
+ }
+ 
+ /**
+@@ -245,9 +267,11 @@ void mlock_folio(struct folio *folio)
+  */
+ void mlock_new_page(struct page *page)
+ {
+-	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
++	struct pagevec *pvec;
+ 	int nr_pages = thp_nr_pages(page);
+ 
++	local_lock(&mlock_pvec.lock);
++	pvec = this_cpu_ptr(&mlock_pvec.vec);
+ 	SetPageMlocked(page);
+ 	mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
+ 	__count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
+@@ -256,7 +280,7 @@ void mlock_new_page(struct page *page)
+ 	if (!pagevec_add(pvec, mlock_new(page)) ||
+ 	    PageHead(page) || lru_cache_disabled())
+ 		mlock_pagevec(pvec);
+-	put_cpu_var(mlock_pvec);
++	local_unlock(&mlock_pvec.lock);
+ }
+ 
+ /**
+@@ -265,8 +289,10 @@ void mlock_new_page(struct page *page)
+  */
+ void munlock_page(struct page *page)
+ {
+-	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
++	struct pagevec *pvec;
+ 
++	local_lock(&mlock_pvec.lock);
++	pvec = this_cpu_ptr(&mlock_pvec.vec);
+ 	/*
+ 	 * TestClearPageMlocked(page) must be left to __munlock_page(),
+ 	 * which will check whether the page is multiply mlocked.
+@@ -276,7 +302,7 @@ void munlock_page(struct page *page)
+ 	if (!pagevec_add(pvec, page) ||
+ 	    PageHead(page) || lru_cache_disabled())
+ 		mlock_pagevec(pvec);
+-	put_cpu_var(mlock_pvec);
++	local_unlock(&mlock_pvec.lock);
+ }
+ 
+ static int mlock_pte_range(pmd_t *pmd, unsigned long addr,
+--- a/mm/page_alloc.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/page_alloc.c
+@@ -8367,6 +8367,7 @@ static int page_alloc_cpu_dead(unsigned
+ 	struct zone *zone;
+ 
+ 	lru_add_drain_cpu(cpu);
++	mlock_page_drain_remote(cpu);
+ 	drain_pages(cpu);
+ 
+ 	/*
+--- a/mm/rmap.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/rmap.c
+@@ -1683,7 +1683,7 @@ discard:
+ 		 */
+ 		page_remove_rmap(subpage, vma, folio_test_hugetlb(folio));
+ 		if (vma->vm_flags & VM_LOCKED)
+-			mlock_page_drain(smp_processor_id());
++			mlock_page_drain_local();
+ 		folio_put(folio);
+ 	}
+ 
+@@ -1961,7 +1961,7 @@ static bool try_to_migrate_one(struct fo
+ 		 */
+ 		page_remove_rmap(subpage, vma, folio_test_hugetlb(folio));
+ 		if (vma->vm_flags & VM_LOCKED)
+-			mlock_page_drain(smp_processor_id());
++			mlock_page_drain_local();
+ 		folio_put(folio);
+ 	}
+ 
+--- a/mm/swap.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
++++ a/mm/swap.c
+@@ -624,7 +624,6 @@ void lru_add_drain_cpu(int cpu)
+ 		pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
+ 
+ 	activate_page_drain(cpu);
+-	mlock_page_drain(cpu);
+ }
+ 
+ /**
+@@ -706,6 +705,7 @@ void lru_add_drain(void)
+ 	local_lock(&lru_pvecs.lock);
+ 	lru_add_drain_cpu(smp_processor_id());
+ 	local_unlock(&lru_pvecs.lock);
++	mlock_page_drain_local();
  }
  
  /*
-@@ -1471,6 +1474,7 @@ long faultin_vma_page_range(struct vm_ar
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
- 	int gup_flags;
-+	long ret;
- 
- 	VM_BUG_ON(!PAGE_ALIGNED(start));
- 	VM_BUG_ON(!PAGE_ALIGNED(end));
-@@ -1498,8 +1502,10 @@ long faultin_vma_page_range(struct vm_ar
- 	if (check_vma_flags(vma, gup_flags))
- 		return -EINVAL;
- 
--	return __get_user_pages(mm, start, nr_pages, gup_flags,
-+	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
- 				NULL, NULL, locked);
-+	lru_add_drain();
-+	return ret;
+@@ -720,6 +720,7 @@ static void lru_add_and_bh_lrus_drain(vo
+ 	lru_add_drain_cpu(smp_processor_id());
+ 	local_unlock(&lru_pvecs.lock);
+ 	invalidate_bh_lrus_cpu();
++	mlock_page_drain_local();
  }
  
- /*
+ void lru_add_drain_cpu_zone(struct zone *zone)
+@@ -728,6 +729,7 @@ void lru_add_drain_cpu_zone(struct zone
+ 	lru_add_drain_cpu(smp_processor_id());
+ 	drain_local_pages(zone);
+ 	local_unlock(&lru_pvecs.lock);
++	mlock_page_drain_local();
+ }
+ 
+ #ifdef CONFIG_SMP
 _
