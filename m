@@ -2,152 +2,377 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A42BC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:21:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45333C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:21:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349243AbiDASWt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Apr 2022 14:22:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45050 "EHLO
+        id S1346342AbiDASW5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Apr 2022 14:22:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348320AbiDASWs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:22:48 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 393F438198;
-        Fri,  1 Apr 2022 11:20:58 -0700 (PDT)
+        with ESMTP id S1349508AbiDASWw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:22:52 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 053F2387A5
+        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 11:21:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 82C13CE260A;
-        Fri,  1 Apr 2022 18:20:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAA5DC340EE;
-        Fri,  1 Apr 2022 18:20:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 990BA60BA8
+        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 18:21:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA5EEC340EE;
+        Fri,  1 Apr 2022 18:21:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648837254;
-        bh=Lm0D/YOjiaC1fJrSaS/VnTH44XnK4Q/rb4BonQvOl/4=;
+        s=korg; t=1648837261;
+        bh=CkQphY0QYOc8FbKilT+8ChcArn53/cUZcUu59a+UOUw=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=TaK+rnB5h1/zxWNa6Bv2o5e+5w+ab4fLUroDon3fr61xlUBPRvxwmCSonjSGn6mB2
-         ux71xRkhdrMIy/DRhxapZgRULLzs25HiXBBexkHW48+2cvfx458OgBLiY8THBECSg7
-         BWi4wHNOa9l82+jAKUdD/oD7vvOiCQopEdZuoXjs=
-Date:   Fri, 01 Apr 2022 11:20:54 -0700
-To:     vvidic@valentin-vidic.from.hr, stable@vger.kernel.org,
-        sathlerds@gmail.com, joseph.qi@linux.alibaba.com,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=TqSnywzNWjQg0uOwCxT2ZBeqolXteU/jWS2J0fm4W0I/pIK73tMzrrOvmnaNQ2Rtn
+         724m9Qk9fZy2aWkj8GhjcJociSYvm5VXfLAC6vpx+R/1tPYFJldSOktZ8KDRrplimd
+         aJ2LwhXBfxkGTSGV4EJlRiv4eTehy9ip3/gerRGg=
+Date:   Fri, 01 Apr 2022 11:21:00 -0700
+To:     willy@infradead.org, sunhao.th@gmail.com, david@redhat.com,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <l>
-Subject: [patch 02/16] ocfs2: fix crash when mount with quota enabled
-Message-Id: <20220401182054.BAA5DC340EE@smtp.kernel.org>
+Subject: [patch 04/16] nilfs2: fix lockdep warnings during disk space reclamation
+Message-Id: <20220401182100.EA5EEC340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: fix crash when mount with quota enabled
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix lockdep warnings during disk space reclamation
 
-There is a reported crash when mounting ocfs2 with quota enabled.
+During disk space reclamation, nilfs2 still emits the following lockdep
+warning due to page/folio operations on shadowed page caches that nilfs2
+uses to get a snapshot of DAT file in memory:
 
-RIP: 0010:ocfs2_qinfo_lock_res_init+0x44/0x50 [ocfs2]
-Call Trace:
-<TASK>
-ocfs2_local_read_info+0xb9/0x6f0 [ocfs2]
-? ocfs2_local_check_quota_file+0x197/0x390 [ocfs2]
-dquot_load_quota_sb+0x216/0x470
-? preempt_count_add+0x68/0xa0
-dquot_load_quota_inode+0x85/0x100
-ocfs2_enable_quotas+0xa0/0x1c0 [ocfs2]
-ocfs2_fill_super.cold+0xc8/0x1bf [ocfs2]
-mount_bdev+0x185/0x1b0
-? ocfs2_initialize_super.isra.0+0xf40/0xf40 [ocfs2]
-legacy_get_tree+0x27/0x40
-vfs_get_tree+0x25/0xb0
-path_mount+0x465/0xac0
-__x64_sys_mount+0x103/0x140
-do_syscall_64+0x3b/0xc0
-entry_SYSCALL_64_after_hwframe+0x44/0xae
-</TASK>
+ WARNING: CPU: 0 PID: 2643 at include/linux/backing-dev.h:272 __folio_mark_dirty+0x645/0x670
+ ...
+ RIP: 0010:__folio_mark_dirty+0x645/0x670
+ ...
+ Call Trace:
+  <TASK>
+  filemap_dirty_folio+0x74/0xd0
+  __set_page_dirty_nobuffers+0x85/0xb0
+  nilfs_copy_dirty_pages+0x288/0x510 [nilfs2]
+  nilfs_mdt_save_to_shadow_map+0x50/0xe0 [nilfs2]
+  nilfs_clean_segments+0xee/0x5d0 [nilfs2]
+  nilfs_ioctl_clean_segments.isra.19+0xb08/0xf40 [nilfs2]
+  nilfs_ioctl+0xc52/0xfb0 [nilfs2]
+  __x64_sys_ioctl+0x11d/0x170
+  do_syscall_64+0x3a/0x80
+  entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-It is caused by when initializing dqi_gqlock, the corresponding dqi_type
-and dqi_sb are not properly initialized.  This issue is introduced by
-commit 6c85c2c72819, which wants to avoid accessing uninitialized
-variables in error cases.  So make global quota info properly initialized.
+This fixes the remaining warning by using inode objects to hold those
+page caches.
 
-Link: https://lkml.kernel.org/r/20220323023644.40084-1-joseph.qi@linux.alibaba.com
-Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1007141
-Fixes: 6c85c2c72819 ("ocfs2: quota_local: fix possible uninitialized-variable access in ocfs2_local_read_info()")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reported-by: Dayvison <sathlerds@gmail.com>
-Tested-by: Valentin Vidic <vvidic@valentin-vidic.from.hr>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/1647867427-30498-3-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hao Sun <sunhao.th@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |   23 ++++++++++++-----------
- fs/ocfs2/quota_local.c  |    2 --
- 2 files changed, 12 insertions(+), 13 deletions(-)
+ fs/nilfs2/dat.c   |    4 ++
+ fs/nilfs2/inode.c |   63 +++++++++++++++++++++++++++++++++++++++++---
+ fs/nilfs2/mdt.c   |   38 ++++++++++++++++++--------
+ fs/nilfs2/mdt.h   |    6 +---
+ fs/nilfs2/nilfs.h |    2 +
+ 5 files changed, 92 insertions(+), 21 deletions(-)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-fix-crash-when-mount-with-quota-enabled
-+++ a/fs/ocfs2/quota_global.c
-@@ -337,7 +337,6 @@ void ocfs2_unlock_global_qf(struct ocfs2
- /* Read information header from global quota file */
- int ocfs2_global_read_info(struct super_block *sb, int type)
+--- a/fs/nilfs2/dat.c~nilfs2-fix-lockdep-warnings-during-disk-space-reclamation
++++ a/fs/nilfs2/dat.c
+@@ -497,7 +497,9 @@ int nilfs_dat_read(struct super_block *s
+ 	di = NILFS_DAT_I(dat);
+ 	lockdep_set_class(&di->mi.mi_sem, &dat_lock_key);
+ 	nilfs_palloc_setup_cache(dat, &di->palloc_cache);
+-	nilfs_mdt_setup_shadow_map(dat, &di->shadow);
++	err = nilfs_mdt_setup_shadow_map(dat, &di->shadow);
++	if (err)
++		goto failed;
+ 
+ 	err = nilfs_read_inode_common(dat, raw_inode);
+ 	if (err)
+--- a/fs/nilfs2/inode.c~nilfs2-fix-lockdep-warnings-during-disk-space-reclamation
++++ a/fs/nilfs2/inode.c
+@@ -30,6 +30,7 @@
+  * @root: pointer on NILFS root object (mounted checkpoint)
+  * @for_gc: inode for GC flag
+  * @for_btnc: inode for B-tree node cache flag
++ * @for_shadow: inode for shadowed page cache flag
+  */
+ struct nilfs_iget_args {
+ 	u64 ino;
+@@ -37,6 +38,7 @@ struct nilfs_iget_args {
+ 	struct nilfs_root *root;
+ 	bool for_gc;
+ 	bool for_btnc;
++	bool for_shadow;
+ };
+ 
+ static int nilfs_iget_test(struct inode *inode, void *opaque);
+@@ -315,7 +317,7 @@ static int nilfs_insert_inode_locked(str
  {
--	struct inode *gqinode = NULL;
- 	unsigned int ino[OCFS2_MAXQUOTAS] = { USER_QUOTA_SYSTEM_INODE,
- 					      GROUP_QUOTA_SYSTEM_INODE };
- 	struct ocfs2_global_disk_dqinfo dinfo;
-@@ -346,29 +345,31 @@ int ocfs2_global_read_info(struct super_
- 	u64 pcount;
- 	int status;
+ 	struct nilfs_iget_args args = {
+ 		.ino = ino, .root = root, .cno = 0, .for_gc = false,
+-		.for_btnc = false
++		.for_btnc = false, .for_shadow = false
+ 	};
  
-+	oinfo->dqi_gi.dqi_sb = sb;
-+	oinfo->dqi_gi.dqi_type = type;
-+	ocfs2_qinfo_lock_res_init(&oinfo->dqi_gqlock, oinfo);
-+	oinfo->dqi_gi.dqi_entry_size = sizeof(struct ocfs2_global_disk_dqblk);
-+	oinfo->dqi_gi.dqi_ops = &ocfs2_global_ops;
-+	oinfo->dqi_gqi_bh = NULL;
-+	oinfo->dqi_gqi_count = 0;
-+
- 	/* Read global header */
--	gqinode = ocfs2_get_system_file_inode(OCFS2_SB(sb), ino[type],
-+	oinfo->dqi_gqinode = ocfs2_get_system_file_inode(OCFS2_SB(sb), ino[type],
- 			OCFS2_INVALID_SLOT);
--	if (!gqinode) {
-+	if (!oinfo->dqi_gqinode) {
- 		mlog(ML_ERROR, "failed to get global quota inode (type=%d)\n",
- 			type);
- 		status = -EINVAL;
- 		goto out_err;
+ 	return insert_inode_locked4(inode, ino, nilfs_iget_test, &args);
+@@ -534,6 +536,12 @@ static int nilfs_iget_test(struct inode
+ 	} else if (args->for_btnc) {
+ 		return 0;
  	}
--	oinfo->dqi_gi.dqi_sb = sb;
--	oinfo->dqi_gi.dqi_type = type;
--	oinfo->dqi_gi.dqi_entry_size = sizeof(struct ocfs2_global_disk_dqblk);
--	oinfo->dqi_gi.dqi_ops = &ocfs2_global_ops;
--	oinfo->dqi_gqi_bh = NULL;
--	oinfo->dqi_gqi_count = 0;
--	oinfo->dqi_gqinode = gqinode;
-+
- 	status = ocfs2_lock_global_qf(oinfo, 0);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out_err;
- 	}
++	if (test_bit(NILFS_I_SHADOW, &ii->i_state)) {
++		if (!args->for_shadow)
++			return 0;
++	} else if (args->for_shadow) {
++		return 0;
++	}
  
--	status = ocfs2_extent_map_get_blocks(gqinode, 0, &oinfo->dqi_giblk,
-+	status = ocfs2_extent_map_get_blocks(oinfo->dqi_gqinode, 0, &oinfo->dqi_giblk,
- 					     &pcount, NULL);
- 	if (status < 0)
- 		goto out_unlock;
---- a/fs/ocfs2/quota_local.c~ocfs2-fix-crash-when-mount-with-quota-enabled
-+++ a/fs/ocfs2/quota_local.c
-@@ -702,8 +702,6 @@ static int ocfs2_local_read_info(struct
- 	info->dqi_priv = oinfo;
- 	oinfo->dqi_type = type;
- 	INIT_LIST_HEAD(&oinfo->dqi_chunk);
--	oinfo->dqi_gqinode = NULL;
--	ocfs2_qinfo_lock_res_init(&oinfo->dqi_gqlock, oinfo);
- 	oinfo->dqi_rec = NULL;
- 	oinfo->dqi_lqi_bh = NULL;
- 	oinfo->dqi_libh = NULL;
+ 	if (!test_bit(NILFS_I_GCINODE, &ii->i_state))
+ 		return !args->for_gc;
+@@ -555,6 +563,8 @@ static int nilfs_iget_set(struct inode *
+ 		NILFS_I(inode)->i_state = BIT(NILFS_I_GCINODE);
+ 	if (args->for_btnc)
+ 		NILFS_I(inode)->i_state |= BIT(NILFS_I_BTNC);
++	if (args->for_shadow)
++		NILFS_I(inode)->i_state |= BIT(NILFS_I_SHADOW);
+ 	return 0;
+ }
+ 
+@@ -563,7 +573,7 @@ struct inode *nilfs_ilookup(struct super
+ {
+ 	struct nilfs_iget_args args = {
+ 		.ino = ino, .root = root, .cno = 0, .for_gc = false,
+-		.for_btnc = false
++		.for_btnc = false, .for_shadow = false
+ 	};
+ 
+ 	return ilookup5(sb, ino, nilfs_iget_test, &args);
+@@ -574,7 +584,7 @@ struct inode *nilfs_iget_locked(struct s
+ {
+ 	struct nilfs_iget_args args = {
+ 		.ino = ino, .root = root, .cno = 0, .for_gc = false,
+-		.for_btnc = false
++		.for_btnc = false, .for_shadow = false
+ 	};
+ 
+ 	return iget5_locked(sb, ino, nilfs_iget_test, nilfs_iget_set, &args);
+@@ -606,7 +616,7 @@ struct inode *nilfs_iget_for_gc(struct s
+ {
+ 	struct nilfs_iget_args args = {
+ 		.ino = ino, .root = NULL, .cno = cno, .for_gc = true,
+-		.for_btnc = false
++		.for_btnc = false, .for_shadow = false
+ 	};
+ 	struct inode *inode;
+ 	int err;
+@@ -653,6 +663,7 @@ int nilfs_attach_btree_node_cache(struct
+ 	args.cno = ii->i_cno;
+ 	args.for_gc = test_bit(NILFS_I_GCINODE, &ii->i_state) != 0;
+ 	args.for_btnc = true;
++	args.for_shadow = test_bit(NILFS_I_SHADOW, &ii->i_state) != 0;
+ 
+ 	btnc_inode = iget5_locked(inode->i_sb, inode->i_ino, nilfs_iget_test,
+ 				  nilfs_iget_set, &args);
+@@ -688,6 +699,50 @@ void nilfs_detach_btree_node_cache(struc
+ 	}
+ }
+ 
++/**
++ * nilfs_iget_for_shadow - obtain inode for shadow mapping
++ * @inode: inode object that uses shadow mapping
++ *
++ * nilfs_iget_for_shadow() allocates a pair of inodes that holds page
++ * caches for shadow mapping.  The page cache for data pages is set up
++ * in one inode and the one for b-tree node pages is set up in the
++ * other inode, which is attached to the former inode.
++ *
++ * Return Value: On success, a pointer to the inode for data pages is
++ * returned. On errors, one of the following negative error code is returned
++ * in a pointer type.
++ *
++ * %-ENOMEM - Insufficient memory available.
++ */
++struct inode *nilfs_iget_for_shadow(struct inode *inode)
++{
++	struct nilfs_iget_args args = {
++		.ino = inode->i_ino, .root = NULL, .cno = 0, .for_gc = false,
++		.for_btnc = false, .for_shadow = true
++	};
++	struct inode *s_inode;
++	int err;
++
++	s_inode = iget5_locked(inode->i_sb, inode->i_ino, nilfs_iget_test,
++			       nilfs_iget_set, &args);
++	if (unlikely(!s_inode))
++		return ERR_PTR(-ENOMEM);
++	if (!(s_inode->i_state & I_NEW))
++		return inode;
++
++	NILFS_I(s_inode)->i_flags = 0;
++	memset(NILFS_I(s_inode)->i_bmap, 0, sizeof(struct nilfs_bmap));
++	mapping_set_gfp_mask(s_inode->i_mapping, GFP_NOFS);
++
++	err = nilfs_attach_btree_node_cache(s_inode);
++	if (unlikely(err)) {
++		iget_failed(s_inode);
++		return ERR_PTR(err);
++	}
++	unlock_new_inode(s_inode);
++	return s_inode;
++}
++
+ void nilfs_write_inode_common(struct inode *inode,
+ 			      struct nilfs_inode *raw_inode, int has_bmap)
+ {
+--- a/fs/nilfs2/mdt.c~nilfs2-fix-lockdep-warnings-during-disk-space-reclamation
++++ a/fs/nilfs2/mdt.c
+@@ -471,9 +471,18 @@ int nilfs_mdt_init(struct inode *inode,
+ void nilfs_mdt_clear(struct inode *inode)
+ {
+ 	struct nilfs_mdt_info *mdi = NILFS_MDT(inode);
++	struct nilfs_shadow_map *shadow = mdi->mi_shadow;
+ 
+ 	if (mdi->mi_palloc_cache)
+ 		nilfs_palloc_destroy_cache(inode);
++
++	if (shadow) {
++		struct inode *s_inode = shadow->inode;
++
++		shadow->inode = NULL;
++		iput(s_inode);
++		mdi->mi_shadow = NULL;
++	}
+ }
+ 
+ /**
+@@ -507,12 +516,15 @@ int nilfs_mdt_setup_shadow_map(struct in
+ 			       struct nilfs_shadow_map *shadow)
+ {
+ 	struct nilfs_mdt_info *mi = NILFS_MDT(inode);
++	struct inode *s_inode;
+ 
+ 	INIT_LIST_HEAD(&shadow->frozen_buffers);
+-	address_space_init_once(&shadow->frozen_data);
+-	nilfs_mapping_init(&shadow->frozen_data, inode);
+-	address_space_init_once(&shadow->frozen_btnodes);
+-	nilfs_mapping_init(&shadow->frozen_btnodes, inode);
++
++	s_inode = nilfs_iget_for_shadow(inode);
++	if (IS_ERR(s_inode))
++		return PTR_ERR(s_inode);
++
++	shadow->inode = s_inode;
+ 	mi->mi_shadow = shadow;
+ 	return 0;
+ }
+@@ -526,13 +538,14 @@ int nilfs_mdt_save_to_shadow_map(struct
+ 	struct nilfs_mdt_info *mi = NILFS_MDT(inode);
+ 	struct nilfs_inode_info *ii = NILFS_I(inode);
+ 	struct nilfs_shadow_map *shadow = mi->mi_shadow;
++	struct inode *s_inode = shadow->inode;
+ 	int ret;
+ 
+-	ret = nilfs_copy_dirty_pages(&shadow->frozen_data, inode->i_mapping);
++	ret = nilfs_copy_dirty_pages(s_inode->i_mapping, inode->i_mapping);
+ 	if (ret)
+ 		goto out;
+ 
+-	ret = nilfs_copy_dirty_pages(&shadow->frozen_btnodes,
++	ret = nilfs_copy_dirty_pages(NILFS_I(s_inode)->i_assoc_inode->i_mapping,
+ 				     ii->i_assoc_inode->i_mapping);
+ 	if (ret)
+ 		goto out;
+@@ -549,7 +562,7 @@ int nilfs_mdt_freeze_buffer(struct inode
+ 	struct page *page;
+ 	int blkbits = inode->i_blkbits;
+ 
+-	page = grab_cache_page(&shadow->frozen_data, bh->b_page->index);
++	page = grab_cache_page(shadow->inode->i_mapping, bh->b_page->index);
+ 	if (!page)
+ 		return -ENOMEM;
+ 
+@@ -581,7 +594,7 @@ nilfs_mdt_get_frozen_buffer(struct inode
+ 	struct page *page;
+ 	int n;
+ 
+-	page = find_lock_page(&shadow->frozen_data, bh->b_page->index);
++	page = find_lock_page(shadow->inode->i_mapping, bh->b_page->index);
+ 	if (page) {
+ 		if (page_has_buffers(page)) {
+ 			n = bh_offset(bh) >> inode->i_blkbits;
+@@ -622,11 +635,11 @@ void nilfs_mdt_restore_from_shadow_map(s
+ 		nilfs_palloc_clear_cache(inode);
+ 
+ 	nilfs_clear_dirty_pages(inode->i_mapping, true);
+-	nilfs_copy_back_pages(inode->i_mapping, &shadow->frozen_data);
++	nilfs_copy_back_pages(inode->i_mapping, shadow->inode->i_mapping);
+ 
+ 	nilfs_clear_dirty_pages(ii->i_assoc_inode->i_mapping, true);
+ 	nilfs_copy_back_pages(ii->i_assoc_inode->i_mapping,
+-			      &shadow->frozen_btnodes);
++			      NILFS_I(shadow->inode)->i_assoc_inode->i_mapping);
+ 
+ 	nilfs_bmap_restore(ii->i_bmap, &shadow->bmap_store);
+ 
+@@ -641,10 +654,11 @@ void nilfs_mdt_clear_shadow_map(struct i
+ {
+ 	struct nilfs_mdt_info *mi = NILFS_MDT(inode);
+ 	struct nilfs_shadow_map *shadow = mi->mi_shadow;
++	struct inode *shadow_btnc_inode = NILFS_I(shadow->inode)->i_assoc_inode;
+ 
+ 	down_write(&mi->mi_sem);
+ 	nilfs_release_frozen_buffers(shadow);
+-	truncate_inode_pages(&shadow->frozen_data, 0);
+-	truncate_inode_pages(&shadow->frozen_btnodes, 0);
++	truncate_inode_pages(shadow->inode->i_mapping, 0);
++	truncate_inode_pages(shadow_btnc_inode->i_mapping, 0);
+ 	up_write(&mi->mi_sem);
+ }
+--- a/fs/nilfs2/mdt.h~nilfs2-fix-lockdep-warnings-during-disk-space-reclamation
++++ a/fs/nilfs2/mdt.h
+@@ -18,14 +18,12 @@
+ /**
+  * struct nilfs_shadow_map - shadow mapping of meta data file
+  * @bmap_store: shadow copy of bmap state
+- * @frozen_data: shadowed dirty data pages
+- * @frozen_btnodes: shadowed dirty b-tree nodes' pages
++ * @inode: holder of page caches used in shadow mapping
+  * @frozen_buffers: list of frozen buffers
+  */
+ struct nilfs_shadow_map {
+ 	struct nilfs_bmap_store bmap_store;
+-	struct address_space frozen_data;
+-	struct address_space frozen_btnodes;
++	struct inode *inode;
+ 	struct list_head frozen_buffers;
+ };
+ 
+--- a/fs/nilfs2/nilfs.h~nilfs2-fix-lockdep-warnings-during-disk-space-reclamation
++++ a/fs/nilfs2/nilfs.h
+@@ -92,6 +92,7 @@ enum {
+ 	NILFS_I_BMAP,			/* has bmap and btnode_cache */
+ 	NILFS_I_GCINODE,		/* inode for GC, on memory only */
+ 	NILFS_I_BTNC,			/* inode for btree node cache */
++	NILFS_I_SHADOW,			/* inode for shadowed page cache */
+ };
+ 
+ /*
+@@ -263,6 +264,7 @@ extern struct inode *nilfs_iget_for_gc(s
+ 				       unsigned long ino, __u64 cno);
+ int nilfs_attach_btree_node_cache(struct inode *inode);
+ void nilfs_detach_btree_node_cache(struct inode *inode);
++struct inode *nilfs_iget_for_shadow(struct inode *inode);
+ extern void nilfs_update_inode(struct inode *, struct buffer_head *, int);
+ extern void nilfs_truncate(struct inode *);
+ extern void nilfs_evict_inode(struct inode *);
 _
