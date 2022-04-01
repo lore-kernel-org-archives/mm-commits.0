@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2499C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 02:27:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46C62C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 02:30:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244080AbiDAC27 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 31 Mar 2022 22:28:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59030 "EHLO
+        id S244095AbiDACcV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 31 Mar 2022 22:32:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244059AbiDAC2v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 22:28:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC6AB255A9D
-        for <mm-commits@vger.kernel.org>; Thu, 31 Mar 2022 19:27:02 -0700 (PDT)
+        with ESMTP id S244098AbiDACcT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2022 22:32:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED1ED255AA9;
+        Thu, 31 Mar 2022 19:30:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9EF05B82206
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 02:27:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C58DC340F0;
-        Fri,  1 Apr 2022 02:27:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 91CB1B82201;
+        Fri,  1 Apr 2022 02:30:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 497FAC340ED;
+        Fri,  1 Apr 2022 02:30:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648780020;
-        bh=BJNdn8zdvmg63DOoivqD2ReWavptk/oOjhAiytQ6oqQ=;
+        s=korg; t=1648780228;
+        bh=h0I6APgffxJnFTPhGm3k4VyPCEfUxXSCYV9LSQPOrNk=;
         h=Date:To:From:Subject:From;
-        b=oK5NTri8RA9hk+m4lOYvL08lRjQ4BPFjnppxRGrX4YaPUm1DSjRyyz5G2eX3coMUH
-         pVimO1ZCxkYTv1957nsyrGIcxeDg00RdE3BYzxn4YjwmVGNAVvmw74XwxO42638Lx0
-         Q95U2+Rj40/voLybGMKtcGQWIdyZXmN8xINSDXOs=
-Date:   Thu, 31 Mar 2022 19:26:59 -0700
-To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
-        neilb@suse.de, songmuchun@bytedance.com, akpm@linux-foundation.org
+        b=2vVD2Y2VVwVEAkT6dzzU3QqjwbC0P7mEM3Qg/zUC9i5sYEdYgaCzzuoKr1Pzc7vGe
+         4gQCvxykG6cusLxdirMaz7uksP1rOAe5PtK/S1ACu62bqg8CeyZPUtjMqWD+4WgzN+
+         cqIGnId7rpRK7WKTjCgRNFkwEZI3Xpc2qcERC3NY=
+Date:   Thu, 31 Mar 2022 19:30:27 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        mhocko@suse.com, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch added to -mm tree
-Message-Id: <20220401022700.1C58DC340F0@smtp.kernel.org>
+Subject: + mm-mempolicy-fix-mpol_new-leak-in-shared_policy_replace.patch added to -mm tree
+Message-Id: <20220401023028.497FAC340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nfs42: use a specific kmem_cache to allocate nfs4_xattr_entry
+     Subject: mm/mempolicy: fix mpol_new leak in shared_policy_replace
 has been added to the -mm tree.  Its filename is
-     nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
+     mm-mempolicy-fix-mpol_new-leak-in-shared_policy_replace.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-fix-mpol_new-leak-in-shared_policy_replace.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-fix-mpol_new-leak-in-shared_policy_replace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,198 +63,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: nfs42: use a specific kmem_cache to allocate nfs4_xattr_entry
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mempolicy: fix mpol_new leak in shared_policy_replace
 
-Fixes a null-pointer deref in nfs4.
+If mpol_new is allocated but not used in restart loop, mpol_new will be
+freed via mpol_put before returning to the caller.  But refcnt is not
+initialized yet, so mpol_put could not do the right things and might leak
+the unused mpol_new.  This would happen if mempolicy was updated on the
+shared shmem file while the sp->lock has been dropped during the memory
+allocation.
 
-If we want to add the allocated objects to its list_lru, we should use
-kmem_cache_alloc_lru() to allocate objects.  So intruduce
-nfs4_xattr_entry_cachep which is used to allocate nfs4_xattr_entry.
+This issue could be triggered easily with the below code snippet if there
+are many processes doing the below work at the same time:
 
-Link: https://lkml.kernel.org/r/164876616694.25542.14010655277238655246@noble.neil.brown.name
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Tested-by: NeilBrown <neilb@suse.de>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+  shmid = shmget((key_t)5566, 1024 * PAGE_SIZE, 0666|IPC_CREAT);
+  shm = shmat(shmid, 0, 0);
+  loop many times {
+    mbind(shm, 1024 * PAGE_SIZE, MPOL_LOCAL, mask, maxnode, 0);
+    mbind(shm + 128 * PAGE_SIZE, 128 * PAGE_SIZE, MPOL_DEFAULT, mask,
+          maxnode, 0);
+  }
+
+Link: https://lkml.kernel.org/r/20220329111416.27954-1-linmiaohe@huawei.com
+Fixes: 42288fe366c4 ("mm: mempolicy: Convert shared_policy mutex to spinlock")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: <stable@vger.kernel.org>	[3.8
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs42xattr.c |   95 ++++++++++++++++++++----------------------
- 1 file changed, 47 insertions(+), 48 deletions(-)
+ mm/mempolicy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/nfs/nfs42xattr.c~nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry
-+++ a/fs/nfs/nfs42xattr.c
-@@ -81,7 +81,7 @@ struct nfs4_xattr_entry {
- 	struct hlist_node hnode;
- 	struct list_head lru;
- 	struct list_head dispose;
--	char *xattr_name;
-+	const char *xattr_name;
- 	void *xattr_value;
- 	size_t xattr_size;
- 	struct nfs4_xattr_bucket *bucket;
-@@ -98,6 +98,7 @@ static struct list_lru nfs4_xattr_entry_
- static struct list_lru nfs4_xattr_large_entry_lru;
- 
- static struct kmem_cache *nfs4_xattr_cache_cachep;
-+static struct kmem_cache *nfs4_xattr_entry_cachep;
- 
- /*
-  * Hashing helper functions.
-@@ -177,49 +178,28 @@ nfs4_xattr_alloc_entry(const char *name,
- {
- 	struct nfs4_xattr_entry *entry;
- 	void *valp;
--	char *namep;
--	size_t alloclen, slen;
--	char *buf;
--	uint32_t flags;
-+	const char *namep;
-+	uint32_t flags = len > PAGE_SIZE ? NFS4_XATTR_ENTRY_EXTVAL : 0;
-+	gfp_t gfp = GFP_KERNEL;
-+	struct list_lru *lru;
- 
- 	BUILD_BUG_ON(sizeof(struct nfs4_xattr_entry) +
- 	    XATTR_NAME_MAX + 1 > PAGE_SIZE);
- 
--	alloclen = sizeof(struct nfs4_xattr_entry);
--	if (name != NULL) {
--		slen = strlen(name) + 1;
--		alloclen += slen;
--	} else
--		slen = 0;
--
--	if (alloclen + len <= PAGE_SIZE) {
--		alloclen += len;
--		flags = 0;
--	} else {
--		flags = NFS4_XATTR_ENTRY_EXTVAL;
--	}
--
--	buf = kmalloc(alloclen, GFP_KERNEL);
--	if (buf == NULL)
-+	lru = flags & NFS4_XATTR_ENTRY_EXTVAL ? &nfs4_xattr_large_entry_lru :
-+	      &nfs4_xattr_entry_lru;
-+	entry = kmem_cache_alloc_lru(nfs4_xattr_entry_cachep, lru, gfp);
-+	if (!entry)
- 		return NULL;
--	entry = (struct nfs4_xattr_entry *)buf;
--
--	if (name != NULL) {
--		namep = buf + sizeof(struct nfs4_xattr_entry);
--		memcpy(namep, name, slen);
--	} else {
--		namep = NULL;
--	}
--
--
--	if (flags & NFS4_XATTR_ENTRY_EXTVAL) {
--		valp = kvmalloc(len, GFP_KERNEL);
--		if (valp == NULL) {
--			kfree(buf);
--			return NULL;
--		}
--	} else if (len != 0) {
--		valp = buf + sizeof(struct nfs4_xattr_entry) + slen;
-+	kref_init(&entry->ref);
-+	namep = kstrdup_const(name, gfp);
-+	if (!namep && name)
-+		goto free_buf;
-+
-+	if (len != 0) {
-+		valp = kvmalloc(len, gfp);
-+		if (!valp)
-+			goto free_name;
- 	} else
- 		valp = NULL;
- 
-@@ -232,23 +212,23 @@ nfs4_xattr_alloc_entry(const char *name,
- 
- 	entry->flags = flags;
- 	entry->xattr_value = valp;
--	kref_init(&entry->ref);
- 	entry->xattr_name = namep;
- 	entry->xattr_size = len;
--	entry->bucket = NULL;
--	INIT_LIST_HEAD(&entry->lru);
--	INIT_LIST_HEAD(&entry->dispose);
--	INIT_HLIST_NODE(&entry->hnode);
- 
- 	return entry;
-+free_name:
-+	kfree_const(namep);
-+free_buf:
-+	kmem_cache_free(nfs4_xattr_entry_cachep, entry);
-+	return NULL;
+--- a/mm/mempolicy.c~mm-mempolicy-fix-mpol_new-leak-in-shared_policy_replace
++++ a/mm/mempolicy.c
+@@ -2733,6 +2733,7 @@ alloc_new:
+ 	mpol_new = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 	if (!mpol_new)
+ 		goto err_out;
++	atomic_set(&mpol_new->refcnt, 1);
+ 	goto restart;
  }
  
- static void
- nfs4_xattr_free_entry(struct nfs4_xattr_entry *entry)
- {
--	if (entry->flags & NFS4_XATTR_ENTRY_EXTVAL)
--		kvfree(entry->xattr_value);
--	kfree(entry);
-+	kvfree(entry->xattr_value);
-+	kfree_const(entry->xattr_name);
-+	kmem_cache_free(nfs4_xattr_entry_cachep, entry);
- }
- 
- static void
-@@ -289,7 +269,7 @@ nfs4_xattr_alloc_cache(void)
- {
- 	struct nfs4_xattr_cache *cache;
- 
--	cache = kmem_cache_alloc(nfs4_xattr_cache_cachep, GFP_KERNEL);
-+	cache = kmem_cache_alloc_lru(nfs4_xattr_cache_cachep, &nfs4_xattr_cache_lru, GFP_KERNEL);
- 	if (cache == NULL)
- 		return NULL;
- 
-@@ -991,6 +971,16 @@ static void nfs4_xattr_cache_init_once(v
- 	INIT_LIST_HEAD(&cache->dispose);
- }
- 
-+static void nfs4_xattr_entry_init_once(void *p)
-+{
-+	struct nfs4_xattr_entry *entry = p;
-+
-+	entry->bucket = NULL;
-+	INIT_LIST_HEAD(&entry->lru);
-+	INIT_LIST_HEAD(&entry->dispose);
-+	INIT_HLIST_NODE(&entry->hnode);
-+}
-+
- int __init nfs4_xattr_cache_init(void)
- {
- 	int ret = 0;
-@@ -1002,6 +992,13 @@ int __init nfs4_xattr_cache_init(void)
- 	if (nfs4_xattr_cache_cachep == NULL)
- 		return -ENOMEM;
- 
-+	nfs4_xattr_entry_cachep = kmem_cache_create("nfs4_xattr_entry",
-+			sizeof(struct nfs4_xattr_entry), 0,
-+			(SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD | SLAB_ACCOUNT),
-+			nfs4_xattr_entry_init_once);
-+	if (!nfs4_xattr_entry_cachep)
-+		goto out5;
-+
- 	ret = list_lru_init_memcg(&nfs4_xattr_large_entry_lru,
- 	    &nfs4_xattr_large_entry_shrinker);
- 	if (ret)
-@@ -1039,6 +1036,8 @@ out2:
- out3:
- 	list_lru_destroy(&nfs4_xattr_large_entry_lru);
- out4:
-+	kmem_cache_destroy(nfs4_xattr_entry_cachep);
-+out5:
- 	kmem_cache_destroy(nfs4_xattr_cache_cachep);
- 
- 	return ret;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-kfence-fix-objcgs-vector-allocation.patch
-nfs42-use-a-specific-kmem_cache-to-allocate-nfs4_xattr_entry.patch
-mm-hugetlb_vmemmap-introduce-arch_want_hugetlb_page_free_vmemmap.patch
-arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64.patch
+mm-mempolicy-fix-mpol_new-leak-in-shared_policy_replace.patch
+mm-shmem-make-shmem_init-return-void.patch
+mm-memcg-remove-unneeded-nr_scanned.patch
+mm-mremap-use-helper-mlock_future_check.patch
+mm-z3fold-declare-z3fold_mount-with-__init.patch
+mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch
+mm-z3fold-minor-clean-up-for-z3fold_free.patch
+mm-z3fold-remove-unneeded-page_mapcount_reset-and-clearpageprivate.patch
+mm-z3fold-remove-confusing-local-variable-l-reassignment.patch
+mm-z3fold-move-decrement-of-pool-pages_nr-into-__release_z3fold_page.patch
+mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free.patch
+mm-z3fold-remove-unneeded-page_headless-check-in-free_handle.patch
+mm-compaction-use-helper-isolation_suitable.patch
+mm-migration-remove-unneeded-local-variable-mapping_locked.patch
+mm-migration-remove-unneeded-out-label.patch
+mm-migration-remove-unneeded-local-variable-page_lru.patch
+mm-migration-fix-the-confusing-pagetranshuge-check.patch
+mm-migration-use-helper-function-vma_lookup-in-add_page_for_migration.patch
+mm-migration-use-helper-macro-min-in-do_pages_stat.patch
+mm-migration-avoid-unneeded-nodemask_t-initialization.patch
+mm-migration-remove-some-duplicated-codes-in-migrate_pages.patch
+mm-migration-fix-potential-page-refcounts-leak-in-migrate_pages.patch
+mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch
+mm-migration-fix-possible-do_pages_stat_array-racing-with-memory-offline.patch
 
