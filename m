@@ -2,289 +2,118 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E27FCC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:21:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5572C4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:21:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348320AbiDASXI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Apr 2022 14:23:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46238 "EHLO
+        id S1349792AbiDASXJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Apr 2022 14:23:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349792AbiDASXE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:23:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20335541A5
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 11:21:14 -0700 (PDT)
+        with ESMTP id S1349432AbiDASXI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:23:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9570A38198
+        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 11:21:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A923260E07
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 18:21:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0555FC2BBE4;
-        Fri,  1 Apr 2022 18:21:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4E52FB82594
+        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 18:21:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F190C3410F;
+        Fri,  1 Apr 2022 18:21:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648837273;
-        bh=wiaiyYD5Exg1iE/Ow+PGQJbfOm3yZEYIqlFoEbDZzbk=;
+        s=korg; t=1648837276;
+        bh=j3G5qLSFoKcDWuso+x7UqSY0ZG6NlWyASPqJ1eYQrJE=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=Ppkl34hOeGC7EruKvbavuu2PRWk7/8XJY6z9sdISz2eX70I0JfY6giKQXsNcdInhB
-         s/qXaBTkBmEe4dSeoxVjmroKPgh76USUHlUi3jA6GnAMZCiLvQhIXhfyyektbMXsCm
-         52fpg+US/hNVt6wR774Spw40HPUPVZHLi5hpJyRk=
-Date:   Fri, 01 Apr 2022 11:21:12 -0700
-To:     willy@infradead.org, vbabka@suse.cz, tglx@linutronix.de,
-        hughd@google.com, bigeasy@linutronix.de, akpm@linux-foundation.org,
+        b=xwVG9jsTYWxFeX0EIHI7Rm+8T6JoFAbTCBUwVjF6YU1EBYuJAq/blaFdWGYHb+mzG
+         FGEDE75OS48xwkw1EUnHQajzjome11aexWWqGjgGMd1NRrAvN8oJ/eZIQMsFfEuCmM
+         DGxIsPc7TwyS6sJ+vnQd+W+U3lGBoBCI7FFx5Kgk=
+Date:   Fri, 01 Apr 2022 11:21:15 -0700
+To:     roman.gushchin@linux.dev, glider@google.com, elver@google.com,
+        dvyukov@google.com, duanxiongchun@bytedance.com,
+        songmuchun@bytedance.com, akpm@linux-foundation.org,
         patches@lists.linux.dev, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <l>
-Subject: [patch 08/16] mm/munlock: protect the per-CPU pagevec by a local_lock_t
-Message-Id: <20220401182113.0555FC2BBE4@smtp.kernel.org>
+Subject: [patch 09/16] mm: kfence: fix objcgs vector allocation
+Message-Id: <20220401182116.0F190C3410F@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: mm/munlock: protect the per-CPU pagevec by a local_lock_t
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: kfence: fix objcgs vector allocation
 
-The access to mlock_pvec is protected by disabling preemption via
-get_cpu_var() or implicit by having preemption disabled by the caller (in
-mlock_page_drain() case).  This breaks on PREEMPT_RT since
-folio_lruvec_lock_irq() acquires a sleeping lock in this section.
+If the kfence object is allocated to be used for objects vector, then this
+slot of the pool eventually being occupied permanently since the vector is
+never freed.  The solutions could be 1) freeing vector when the kfence
+object is freed or 2) allocating all vectors statically.  Since the memory
+consumption of object vectors is low, it is better to chose 2) to fix the
+issue and it is also can reduce overhead of vectors allocating in the
+future.
 
-Create struct mlock_pvec which consits of the local_lock_t and the
-pagevec.  Acquire the local_lock() before accessing the per-CPU pagevec. 
-Replace mlock_page_drain() with a _local() version which is invoked on the
-local CPU and acquires the local_lock_t and a _remote() version which uses
-the pagevec from a remote CPU which offline.
-
-Link: https://lkml.kernel.org/r/YjizWi9IY0mpvIfb@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20220328132843.16624-1-songmuchun@bytedance.com
+Fixes: d3fb45f370d9 ("mm, kfence: insert KFENCE hooks for SLAB")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    6 ++++--
- mm/migrate.c    |    2 +-
- mm/mlock.c      |   46 ++++++++++++++++++++++++++++++++++++----------
- mm/page_alloc.c |    1 +
- mm/rmap.c       |    4 ++--
- mm/swap.c       |    4 +++-
- 6 files changed, 47 insertions(+), 16 deletions(-)
+ mm/kfence/core.c   |   11 ++++++++++-
+ mm/kfence/kfence.h |    3 +++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
-+++ a/mm/internal.h
-@@ -456,7 +456,8 @@ static inline void munlock_vma_page(stru
- }
- void mlock_new_page(struct page *page);
- bool need_mlock_page_drain(int cpu);
--void mlock_page_drain(int cpu);
-+void mlock_page_drain_local(void);
-+void mlock_page_drain_remote(int cpu);
- 
- extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
- 
-@@ -539,7 +540,8 @@ static inline void munlock_vma_page(stru
- 			struct vm_area_struct *vma, bool compound) { }
- static inline void mlock_new_page(struct page *page) { }
- static inline bool need_mlock_page_drain(int cpu) { return false; }
--static inline void mlock_page_drain(int cpu) { }
-+static inline void mlock_page_drain_local(void) { }
-+static inline void mlock_page_drain_remote(int cpu) { }
- static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
- {
- }
---- a/mm/migrate.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
-+++ a/mm/migrate.c
-@@ -246,7 +246,7 @@ static bool remove_migration_pte(struct
- 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
- 		}
- 		if (vma->vm_flags & VM_LOCKED)
--			mlock_page_drain(smp_processor_id());
-+			mlock_page_drain_local();
- 
- 		trace_remove_migration_pte(pvmw.address, pte_val(pte),
- 					   compound_order(new));
---- a/mm/mlock.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
-+++ a/mm/mlock.c
-@@ -28,7 +28,14 @@
- 
- #include "internal.h"
- 
--static DEFINE_PER_CPU(struct pagevec, mlock_pvec);
-+struct mlock_pvec {
-+	local_lock_t lock;
-+	struct pagevec vec;
-+};
+--- a/mm/kfence/core.c~mm-kfence-fix-objcgs-vector-allocation
++++ a/mm/kfence/core.c
+@@ -566,6 +566,8 @@ static unsigned long kfence_init_pool(vo
+ 	 * enters __slab_free() slow-path.
+ 	 */
+ 	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
++		struct slab *slab = page_slab(&pages[i]);
 +
-+static DEFINE_PER_CPU(struct mlock_pvec, mlock_pvec) = {
-+	.lock = INIT_LOCAL_LOCK(lock),
-+};
+ 		if (!i || (i % 2))
+ 			continue;
  
- bool can_do_mlock(void)
- {
-@@ -203,18 +210,30 @@ static void mlock_pagevec(struct pagevec
- 	pagevec_reinit(pvec);
- }
+@@ -573,7 +575,11 @@ static unsigned long kfence_init_pool(vo
+ 		if (WARN_ON(compound_head(&pages[i]) != &pages[i]))
+ 			return addr;
  
--void mlock_page_drain(int cpu)
-+void mlock_page_drain_local(void)
- {
- 	struct pagevec *pvec;
- 
--	pvec = &per_cpu(mlock_pvec, cpu);
-+	local_lock(&mlock_pvec.lock);
-+	pvec = this_cpu_ptr(&mlock_pvec.vec);
-+	if (pagevec_count(pvec))
-+		mlock_pagevec(pvec);
-+	local_unlock(&mlock_pvec.lock);
-+}
-+
-+void mlock_page_drain_remote(int cpu)
-+{
-+	struct pagevec *pvec;
-+
-+	WARN_ON_ONCE(cpu_online(cpu));
-+	pvec = &per_cpu(mlock_pvec.vec, cpu);
- 	if (pagevec_count(pvec))
- 		mlock_pagevec(pvec);
- }
- 
- bool need_mlock_page_drain(int cpu)
- {
--	return pagevec_count(&per_cpu(mlock_pvec, cpu));
-+	return pagevec_count(&per_cpu(mlock_pvec.vec, cpu));
- }
- 
- /**
-@@ -223,7 +242,10 @@ bool need_mlock_page_drain(int cpu)
-  */
- void mlock_folio(struct folio *folio)
- {
--	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
-+	struct pagevec *pvec;
-+
-+	local_lock(&mlock_pvec.lock);
-+	pvec = this_cpu_ptr(&mlock_pvec.vec);
- 
- 	if (!folio_test_set_mlocked(folio)) {
- 		int nr_pages = folio_nr_pages(folio);
-@@ -236,7 +258,7 @@ void mlock_folio(struct folio *folio)
- 	if (!pagevec_add(pvec, mlock_lru(&folio->page)) ||
- 	    folio_test_large(folio) || lru_cache_disabled())
- 		mlock_pagevec(pvec);
--	put_cpu_var(mlock_pvec);
-+	local_unlock(&mlock_pvec.lock);
- }
- 
- /**
-@@ -245,9 +267,11 @@ void mlock_folio(struct folio *folio)
-  */
- void mlock_new_page(struct page *page)
- {
--	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
-+	struct pagevec *pvec;
- 	int nr_pages = thp_nr_pages(page);
- 
-+	local_lock(&mlock_pvec.lock);
-+	pvec = this_cpu_ptr(&mlock_pvec.vec);
- 	SetPageMlocked(page);
- 	mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
- 	__count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
-@@ -256,7 +280,7 @@ void mlock_new_page(struct page *page)
- 	if (!pagevec_add(pvec, mlock_new(page)) ||
- 	    PageHead(page) || lru_cache_disabled())
- 		mlock_pagevec(pvec);
--	put_cpu_var(mlock_pvec);
-+	local_unlock(&mlock_pvec.lock);
- }
- 
- /**
-@@ -265,8 +289,10 @@ void mlock_new_page(struct page *page)
-  */
- void munlock_page(struct page *page)
- {
--	struct pagevec *pvec = &get_cpu_var(mlock_pvec);
-+	struct pagevec *pvec;
- 
-+	local_lock(&mlock_pvec.lock);
-+	pvec = this_cpu_ptr(&mlock_pvec.vec);
- 	/*
- 	 * TestClearPageMlocked(page) must be left to __munlock_page(),
- 	 * which will check whether the page is multiply mlocked.
-@@ -276,7 +302,7 @@ void munlock_page(struct page *page)
- 	if (!pagevec_add(pvec, page) ||
- 	    PageHead(page) || lru_cache_disabled())
- 		mlock_pagevec(pvec);
--	put_cpu_var(mlock_pvec);
-+	local_unlock(&mlock_pvec.lock);
- }
- 
- static int mlock_pte_range(pmd_t *pmd, unsigned long addr,
---- a/mm/page_alloc.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
-+++ a/mm/page_alloc.c
-@@ -8367,6 +8367,7 @@ static int page_alloc_cpu_dead(unsigned
- 	struct zone *zone;
- 
- 	lru_add_drain_cpu(cpu);
-+	mlock_page_drain_remote(cpu);
- 	drain_pages(cpu);
- 
- 	/*
---- a/mm/rmap.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
-+++ a/mm/rmap.c
-@@ -1683,7 +1683,7 @@ discard:
- 		 */
- 		page_remove_rmap(subpage, vma, folio_test_hugetlb(folio));
- 		if (vma->vm_flags & VM_LOCKED)
--			mlock_page_drain(smp_processor_id());
-+			mlock_page_drain_local();
- 		folio_put(folio);
+-		__SetPageSlab(&pages[i]);
++		__folio_set_slab(slab_folio(slab));
++#ifdef CONFIG_MEMCG
++		slab->memcg_data = (unsigned long)&kfence_metadata[i / 2 - 1].objcg |
++				   MEMCG_DATA_OBJCGS;
++#endif
  	}
  
-@@ -1961,7 +1961,7 @@ static bool try_to_migrate_one(struct fo
- 		 */
- 		page_remove_rmap(subpage, vma, folio_test_hugetlb(folio));
- 		if (vma->vm_flags & VM_LOCKED)
--			mlock_page_drain(smp_processor_id());
-+			mlock_page_drain_local();
- 		folio_put(folio);
- 	}
+ 	/*
+@@ -1033,6 +1039,9 @@ void __kfence_free(void *addr)
+ {
+ 	struct kfence_metadata *meta = addr_to_metadata((unsigned long)addr);
  
---- a/mm/swap.c~mm-munlock-protect-the-per-cpu-pagevec-by-a-local_lock_t
-+++ a/mm/swap.c
-@@ -624,7 +624,6 @@ void lru_add_drain_cpu(int cpu)
- 		pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
++#ifdef CONFIG_MEMCG
++	KFENCE_WARN_ON(meta->objcg);
++#endif
+ 	/*
+ 	 * If the objects of the cache are SLAB_TYPESAFE_BY_RCU, defer freeing
+ 	 * the object, as the object page may be recycled for other-typed
+--- a/mm/kfence/kfence.h~mm-kfence-fix-objcgs-vector-allocation
++++ a/mm/kfence/kfence.h
+@@ -89,6 +89,9 @@ struct kfence_metadata {
+ 	struct kfence_track free_track;
+ 	/* For updating alloc_covered on frees. */
+ 	u32 alloc_stack_hash;
++#ifdef CONFIG_MEMCG
++	struct obj_cgroup *objcg;
++#endif
+ };
  
- 	activate_page_drain(cpu);
--	mlock_page_drain(cpu);
- }
- 
- /**
-@@ -706,6 +705,7 @@ void lru_add_drain(void)
- 	local_lock(&lru_pvecs.lock);
- 	lru_add_drain_cpu(smp_processor_id());
- 	local_unlock(&lru_pvecs.lock);
-+	mlock_page_drain_local();
- }
- 
- /*
-@@ -720,6 +720,7 @@ static void lru_add_and_bh_lrus_drain(vo
- 	lru_add_drain_cpu(smp_processor_id());
- 	local_unlock(&lru_pvecs.lock);
- 	invalidate_bh_lrus_cpu();
-+	mlock_page_drain_local();
- }
- 
- void lru_add_drain_cpu_zone(struct zone *zone)
-@@ -728,6 +729,7 @@ void lru_add_drain_cpu_zone(struct zone
- 	lru_add_drain_cpu(smp_processor_id());
- 	drain_local_pages(zone);
- 	local_unlock(&lru_pvecs.lock);
-+	mlock_page_drain_local();
- }
- 
- #ifdef CONFIG_SMP
+ extern struct kfence_metadata kfence_metadata[CONFIG_KFENCE_NUM_OBJECTS];
 _
