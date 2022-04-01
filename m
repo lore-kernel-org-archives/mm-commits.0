@@ -2,111 +2,141 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FBA3C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:29:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F3F8C4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:29:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351054AbiDASar (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Apr 2022 14:30:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33266 "EHLO
+        id S1351057AbiDASas (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Apr 2022 14:30:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33360 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351064AbiDASap (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:30:45 -0400
+        with ESMTP id S1351050AbiDASaq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:30:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 682301C1EFE
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 11:28:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 855B51AE234;
+        Fri,  1 Apr 2022 11:28:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 066B060BA8
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 18:28:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C923C2BBE4;
-        Fri,  1 Apr 2022 18:28:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 256D460F19;
+        Fri,  1 Apr 2022 18:28:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79CC7C2BBE4;
+        Fri,  1 Apr 2022 18:28:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648837729;
-        bh=DCibZQewi/0BBcb27xyMZjj8pKguysaeJUdBaIHe/zQ=;
+        s=korg; t=1648837735;
+        bh=2Pjq8XcpdCGc+T07YRo4AccJvw0mDqgQtNTu4AoreVY=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=ERbQWDyD/kt4XjR3wfgrDYch+DWOKagMys9BqJfWTLIWZPnvmmFBfTkw+g0sn5qxS
-         041aI11OKVyKEMKjbPS8Ri65kVWVNmqCyNVWZynpcntwdvZH08pzdcVj/HH9wKUtiC
-         mr188EiYOW1f/GBa4X+aB0COI+QX8RSn31OiB7io=
-Date:   Fri, 01 Apr 2022 11:28:48 -0700
-To:     zhaochongxi2019@email.szu.edu.cn, yuhongf@szu.edu.cn,
-        yejiajian2018@email.szu.edu.cn, weizhenliang@huawei.com,
-        tangbin@cmss.chinamobile.com, sfr@canb.auug.org.au,
-        seanga2@gmail.com, liuyongqiang13@huawei.com,
-        georgi.djakov@linaro.org, corbet@lwn.net,
-        caoyixuan2019@email.szu.edu.cn, zhangyinan2019@email.szu.edu.cn,
-        akpm@linux-foundation.org, patches@lists.linux.dev,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=xfk9N5vCuDxKrDos5ZnntEAqM3DGLqSlD3DUIRNZPLaq2yH1/YeI68tbwSKSe+red
+         8OghXQ0QMGrBiRvMgiK4k15wc375vSsqrZ3AV0Gu4F/DpQtRdin9YeZMn5EmpWsWga
+         /YpfSnw+FK8cBiMgSjIb+hfVtCB4tqaMrGCdUrio=
+Date:   Fri, 01 Apr 2022 11:28:54 -0700
+To:     yee.lee@mediatek.com, stable@vger.kernel.org,
+        nicholas.tang@mediatek.com, matthias.bgg@gmail.com,
+        chinwen.chang@mediatek.com, catalin.marinas@arm.com,
+        Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org,
+        patches@lists.linux.dev, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220401112740.351496714b370467a92207a6@linux-foundation.org>
-Subject: [patch 13/16] tools/vm/page_owner_sort.c: remove -c option
-Message-Id: <20220401182849.5C923C2BBE4@smtp.kernel.org>
+Subject: [patch 15/16] mm/kmemleak: reset tag when compare object pointer
+Message-Id: <20220401182855.79CC7C2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
-Subject: tools/vm/page_owner_sort.c: remove -c option
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: mm/kmemleak: reset tag when compare object pointer
 
--c option is used to cull by stacktrace.  Now, --cull option has been
-Added in page_owner_sort.c.  Culling by stacktrace is one of the function
-of "--cull".  No need to set an extra parameter.  So remove -c option.
+When we use HW-tag based kasan and enable vmalloc support, we hit
+the following bug. It is due to comparison between tagged object
+and non-tagged pointer.
 
-Remove parsing of -c when parse parameter and remove "-c" from usage.
+We need to reset the kasan tag when we need to compare tagged object
+and non-tagged pointer.
 
-This work is coauthored by
-        Shenghong Han
-        Yixuan Cao
-        Chongxi Zhao
-        Jiajian Ye
-        Yuhong Feng
-        Yongqiang Liu
+[    7.690429][T400001] init: kmemleak: [name:kmemleak&]Scan area larger than object 0xffffffe77076f440
+[    7.691762][T400001] init: CPU: 4 PID: 1 Comm: init Tainted: G S      W         5.15.25-android13-0-g5cacf919c2bc #1
+[    7.693218][T400001] init: Hardware name: MT6983(ENG) (DT)
+[    7.693983][T400001] init: Call trace:
+[    7.694508][T400001] init:  dump_backtrace.cfi_jt+0x0/0x8
+[    7.695272][T400001] init:  dump_stack_lvl+0xac/0x120
+[    7.695985][T400001] init:  add_scan_area+0xc4/0x244
+[    7.696685][T400001] init:  kmemleak_scan_area+0x40/0x9c
+[    7.697428][T400001] init:  layout_and_allocate+0x1e8/0x288
+[    7.698211][T400001] init:  load_module+0x2c8/0xf00
+[    7.698895][T400001] init:  __se_sys_finit_module+0x190/0x1d0
+[    7.699701][T400001] init:  __arm64_sys_finit_module+0x20/0x30
+[    7.700517][T400001] init:  invoke_syscall+0x60/0x170
+[    7.701225][T400001] init:  el0_svc_common+0xc8/0x114
+[    7.701933][T400001] init:  do_el0_svc+0x28/0xa0
+[    7.702580][T400001] init:  el0_svc+0x60/0xf8
+[    7.703196][T400001] init:  el0t_64_sync_handler+0x88/0xec
+[    7.703964][T400001] init:  el0t_64_sync+0x1b4/0x1b8
+[    7.704658][T400001] init: kmemleak: [name:kmemleak&]Object 0xf5ffffe77076b000 (size 32768):
+[    7.705824][T400001] init: kmemleak: [name:kmemleak&]  comm "init", pid 1, jiffies 4294894197
+[    7.707002][T400001] init: kmemleak: [name:kmemleak&]  min_count = 0
+[    7.707886][T400001] init: kmemleak: [name:kmemleak&]  count = 0
+[    7.708718][T400001] init: kmemleak: [name:kmemleak&]  flags = 0x1
+[    7.709574][T400001] init: kmemleak: [name:kmemleak&]  checksum = 0
+[    7.710440][T400001] init: kmemleak: [name:kmemleak&]  backtrace:
+[    7.711284][T400001] init:      module_alloc+0x9c/0x120
+[    7.712015][T400001] init:      move_module+0x34/0x19c
+[    7.712735][T400001] init:      layout_and_allocate+0x1c4/0x288
+[    7.713561][T400001] init:      load_module+0x2c8/0xf00
+[    7.714291][T400001] init:      __se_sys_finit_module+0x190/0x1d0
+[    7.715142][T400001] init:      __arm64_sys_finit_module+0x20/0x30
+[    7.716004][T400001] init:      invoke_syscall+0x60/0x170
+[    7.716758][T400001] init:      el0_svc_common+0xc8/0x114
+[    7.717512][T400001] init:      do_el0_svc+0x28/0xa0
+[    7.718207][T400001] init:      el0_svc+0x60/0xf8
+[    7.718869][T400001] init:      el0t_64_sync_handler+0x88/0xec
+[    7.719683][T400001] init:      el0t_64_sync+0x1b4/0x1b8
 
-Link: https://lkml.kernel.org/r/20220326085920.1470081-1-zhangyinan2019@email.szu.edu.cn
-Signed-off-by: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
-Cc: Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>
-Cc: Georgi Djakov <georgi.djakov@linaro.org>
-Cc: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Sean Anderson <seanga2@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Tang Bin <tangbin@cmss.chinamobile.com>
-Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
-Cc: Yongqiang Liu <liuyongqiang13@huawei.com>
-Cc: Yuhong Feng <yuhongf@szu.edu.cn>
-Cc: Zhenliang Wei <weizhenliang@huawei.com>
+Link: https://lkml.kernel.org/r/20220318034051.30687-1-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Nicholas Tang <nicholas.tang@mediatek.com>
+Cc: Yee Lee <yee.lee@mediatek.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/kmemleak.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-remove-c-option
-+++ a/tools/vm/page_owner_sort.c
-@@ -441,7 +441,6 @@ static void usage(void)
- 		"-n\t\tSort by task command name.\n"
- 		"-a\t\tSort by memory allocate time.\n"
- 		"-r\t\tSort by memory release time.\n"
--		"-c\t\tCull by comparing stacktrace instead of total block.\n"
- 		"-f\t\tFilter out the information of blocks whose memory has been released.\n"
- 		"--pid <PID>\tSelect by pid. This selects the information of blocks whose process ID number equals to <PID>.\n"
- 		"--tgid <TGID>\tSelect by tgid. This selects the information of blocks whose Thread Group ID number equals to <TGID>.\n"
-@@ -466,14 +465,11 @@ int main(int argc, char **argv)
- 		{ 0, 0, 0, 0},
- 	};
+--- a/mm/kmemleak.c~mm-kmemleak-reset-tag-when-compare-object-pointer
++++ a/mm/kmemleak.c
+@@ -796,6 +796,8 @@ static void add_scan_area(unsigned long
+ 	unsigned long flags;
+ 	struct kmemleak_object *object;
+ 	struct kmemleak_scan_area *area = NULL;
++	unsigned long untagged_ptr;
++	unsigned long untagged_objp;
  
--	while ((opt = getopt_long(argc, argv, "acfmnprstP", longopts, NULL)) != -1)
-+	while ((opt = getopt_long(argc, argv, "afmnprstP", longopts, NULL)) != -1)
- 		switch (opt) {
- 		case 'a':
- 			cmp = compare_ts;
- 			break;
--		case 'c':
--			cull = cull | CULL_STACKTRACE;
--			break;
- 		case 'f':
- 			filter = filter | FILTER_UNRELEASE;
- 			break;
+ 	object = find_and_get_object(ptr, 1);
+ 	if (!object) {
+@@ -804,6 +806,9 @@ static void add_scan_area(unsigned long
+ 		return;
+ 	}
+ 
++	untagged_ptr = (unsigned long)kasan_reset_tag((void *)ptr);
++	untagged_objp = (unsigned long)kasan_reset_tag((void *)object->pointer);
++
+ 	if (scan_area_cache)
+ 		area = kmem_cache_alloc(scan_area_cache, gfp_kmemleak_mask(gfp));
+ 
+@@ -815,8 +820,8 @@ static void add_scan_area(unsigned long
+ 		goto out_unlock;
+ 	}
+ 	if (size == SIZE_MAX) {
+-		size = object->pointer + object->size - ptr;
+-	} else if (ptr + size > object->pointer + object->size) {
++		size = untagged_objp + object->size - untagged_ptr;
++	} else if (untagged_ptr + size > untagged_objp + object->size) {
+ 		kmemleak_warn("Scan area larger than object 0x%08lx\n", ptr);
+ 		dump_object_info(object);
+ 		kmem_cache_free(scan_area_cache, area);
 _
