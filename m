@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12862C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 23:16:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0954CC433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 23:16:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241927AbiDDXSD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Apr 2022 19:18:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43262 "EHLO
+        id S236757AbiDDXSc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Apr 2022 19:18:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242234AbiDDXRt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 19:17:49 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EFA1A1B0
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 16:08:36 -0700 (PDT)
+        with ESMTP id S233870AbiDDXSQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 19:18:16 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5216414023
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 16:09:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 47C09B81AD0
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 23:08:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E579BC340F2;
-        Mon,  4 Apr 2022 23:08:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 03214B81AD2
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 23:09:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8E8CC2BBE4;
+        Mon,  4 Apr 2022 23:09:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649113714;
-        bh=QsjQxxlDZCnzrji4TXJlqbfmTle0nMq6ayPLu/eqhrg=;
+        s=korg; t=1649113750;
+        bh=zeNnEwjkBeMbUhA3CezaxI088J9ifGOJ6Q5OQha+gUg=;
         h=Date:To:From:Subject:From;
-        b=w+MFsgNW7ZYxe6kd5fZSLEFTa+EFaZnklt2Gym1T/efHwlgS9zGjSYg1kTmmntv7y
-         fbWjvuotk3u7Nfv7SJBu7xL09phQpLNbmJOuqQFP0dNggs1unsDUZLkrvloxYS+TIj
-         TRx2M9WGAubJYiGNXK1arE/xSnr31+fTIcp7zDZk=
-Date:   Mon, 04 Apr 2022 16:08:33 -0700
-To:     mm-commits@vger.kernel.org, rafael@kernel.org,
-        minchan.kim@gmail.com, mel@csn.ul.ie,
-        kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com,
-        gregkh@linuxfoundation.org, linmiaohe@huawei.com,
+        b=RdVxpXF0xlX9ubUec/v2MuecOczpt8wmTFmWwUbx/xBRnKt7BFmF/F+die5lKUn4c
+         zaxdUiwMEEbYpU0goXkUhk25j+TNvlX+7Rt9eOkpfUCD0oXYXhuIs1k6vlNVBQJKUy
+         PzyY9rY39ywuYgL1ihn/BuvE+W9X6ha8LkfUPpAs=
+Date:   Mon, 04 Apr 2022 16:09:09 -0700
+To:     mm-commits@vger.kernel.org, caoyixuan2019@email.szu.edu.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-nodec-fix-compaction-sysfs-file-leak.patch added to -mm tree
-Message-Id: <20220404230833.E579BC340F2@smtp.kernel.org>
+Subject: + mm-vmalloc-fix-a-comment.patch added to -mm tree
+Message-Id: <20220404230910.A8E8CC2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/base/node.c: fix compaction sysfs file leak
+     Subject: mm/vmalloc: fix a comment
 has been added to the -mm tree.  Its filename is
-     drivers-base-nodec-fix-compaction-sysfs-file-leak.patch
+     mm-vmalloc-fix-a-comment.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/drivers-base-nodec-fix-compaction-sysfs-file-leak.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-a-comment.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-nodec-fix-compaction-sysfs-file-leak.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-a-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,68 +62,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: drivers/base/node.c: fix compaction sysfs file leak
+From: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Subject: mm/vmalloc: fix a comment
 
-Compaction sysfs file is created via compaction_register_node in
-register_node.  But we forgot to remove it in unregister_node.  Thus
-compaction sysfs file is leaked.  Using compaction_unregister_node to fix
-this issue.
+The sentence
+"but the mempolcy want to alloc memory by interleaving"
+should be rephrased with
+"but the mempolicy wants to alloc memory by interleaving"
+where "mempolicy" is a struct name.
 
-Link: https://lkml.kernel.org/r/20220401070905.43679-1-linmiaohe@huawei.com
-Fixes: ed4a6d7f0676 ("mm: compaction: add /sys trigger for per-node memory compaction")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+This work is coauthored by
+Yinan Zhang
+Jiajian Ye
+Shenghong Han
+Chongxi Zhao
+Yuhong Feng
+Yongqiang Liu
+
+Link: https://lkml.kernel.org/r/20220401064543.4447-1-caoyixuan2019@email.szu.edu.cn
+Signed-off-by: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/base/node.c~drivers-base-nodec-fix-compaction-sysfs-file-leak
-+++ a/drivers/base/node.c
-@@ -682,6 +682,7 @@ static int register_node(struct node *no
-  */
- void unregister_node(struct node *node)
- {
-+	compaction_unregister_node(node);
- 	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
- 	node_remove_accesses(node);
- 	node_remove_caches(node);
+--- a/mm/vmalloc.c~mm-vmalloc-fix-a-comment
++++ a/mm/vmalloc.c
+@@ -2903,7 +2903,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			/* memory allocation should consider mempolicy, we can't
+ 			 * wrongly use nearest node when nid == NUMA_NO_NODE,
+ 			 * otherwise memory may be allocated in only one node,
+-			 * but mempolcy want to alloc memory by interleaving.
++			 * but mempolicy wants to alloc memory by interleaving.
+ 			 */
+ 			if (IS_ENABLED(CONFIG_NUMA) && nid == NUMA_NO_NODE)
+ 				nr = alloc_pages_bulk_array_mempolicy(bulk_gfp,
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from caoyixuan2019@email.szu.edu.cn are
 
-mm-mempolicy-fix-mpol_new-leak-in-shared_policy_replace.patch
-mm-shmem-make-shmem_init-return-void.patch
-mm-memcg-remove-unneeded-nr_scanned.patch
-mm-mmapc-use-helper-mlock_future_check.patch
-mm-mremap-use-helper-mlock_future_check.patch
-mm-mremap-avoid-unneeded-do_munmap-call.patch
-mm-z3fold-declare-z3fold_mount-with-__init.patch
-mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch
-mm-z3fold-minor-clean-up-for-z3fold_free.patch
-mm-z3fold-remove-unneeded-page_mapcount_reset-and-clearpageprivate.patch
-mm-z3fold-remove-confusing-local-variable-l-reassignment.patch
-mm-z3fold-move-decrement-of-pool-pages_nr-into-__release_z3fold_page.patch
-mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free.patch
-mm-z3fold-remove-unneeded-page_headless-check-in-free_handle.patch
-mm-compaction-use-helper-isolation_suitable.patch
-drivers-base-nodec-fix-compaction-sysfs-file-leak.patch
-mm-migration-remove-unneeded-local-variable-mapping_locked.patch
-mm-migration-remove-unneeded-out-label.patch
-mm-migration-remove-unneeded-local-variable-page_lru.patch
-mm-migration-fix-the-confusing-pagetranshuge-check.patch
-mm-migration-use-helper-function-vma_lookup-in-add_page_for_migration.patch
-mm-migration-use-helper-macro-min-in-do_pages_stat.patch
-mm-migration-avoid-unneeded-nodemask_t-initialization.patch
-mm-migration-remove-some-duplicated-codes-in-migrate_pages.patch
-mm-migration-fix-potential-page-refcounts-leak-in-migrate_pages.patch
-mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch
-mm-migration-fix-possible-do_pages_stat_array-racing-with-memory-offline.patch
+mm-vmalloc-fix-a-comment.patch
 
