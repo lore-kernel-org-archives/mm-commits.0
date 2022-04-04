@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17F8EC4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 21:39:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD30C43219
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 21:39:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379842AbiDDVlG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:41:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41958 "EHLO
+        id S1380224AbiDDVlI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:41:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380579AbiDDUeP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 16:34:15 -0400
+        with ESMTP id S1380094AbiDDSzr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 14:55:47 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65F9B387AD
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 13:32:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D827B24B
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 11:53:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 23284B81A0D
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 20:32:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8E9EC2BBE4;
-        Mon,  4 Apr 2022 20:32:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 82F61B81916
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 18:53:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CFDAC340F3;
+        Mon,  4 Apr 2022 18:53:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649104334;
-        bh=gCm7CeLgqn1A+2ruJBr6WgtcBZuNs5AsO6ywmpa2HsE=;
+        s=korg; t=1649098427;
+        bh=/7J369MJo7n5yWRlk04/eBx+YGg1cWfzf/x5tlZ4UAk=;
         h=Date:To:From:Subject:From;
-        b=gIbWFFe92Z6FsAEUO7DnXpJNCj4YrNSwTkx01kW6OdN0e2S7OmNHqTecEp0gKtGOj
-         BzwCnKbIzvquiXKOfNOrLg5NWz4ELg5ndeDTnjh4Ivfb1Nz8j8QqGZgXl+PkxHEP5h
-         +fi7p3cMyTiVzXSoQNiAeSoIoH9obQ0ZBTayVFno=
-Date:   Mon, 04 Apr 2022 13:32:14 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        glider@google.com, dvyukov@google.com, andreyknvl@gmail.com,
-        qiang1.zhang@intel.com, akpm@linux-foundation.org
+        b=Gfjw8lQxPjmiei6J9x7ntrYg75iHhVKJGcrveH6CM69DVuQu2yLgDSc/0+OXLYgeS
+         Zj3ygpZuU8wqMAstYytDdgQGddBpnbXHD0/99iZ4TcHrs/naG3M+LvZt82+OML4WDB
+         DOn0A3qf5b3ROBHrtMEScX0laL8QbB2zCaODeMeU=
+Date:   Mon, 04 Apr 2022 11:53:46 -0700
+To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com,
+        naoya.horiguchi@nec.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + irq_work-use-kasan_record_aux_stack_noalloc-record-callstack.patch added to -mm tree
-Message-Id: <20220404203214.B8E9EC2BBE4@smtp.kernel.org>
+Subject: + mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch added to -mm tree
+Message-Id: <20220404185347.1CFDAC340F3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: irq_work: use kasan_record_aux_stack_noalloc() record callstack
+     Subject: mm/hwpoison: fix race between hugetlb free/demotion and memory_failure_hugetlb()
 has been added to the -mm tree.  Its filename is
-     irq_work-use-kasan_record_aux_stack_noalloc-record-callstack.patch
+     mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/irq_work-use-kasan_record_aux_stack_noalloc-record-callstack.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/irq_work-use-kasan_record_aux_stack_noalloc-record-callstack.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,79 +63,314 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zqiang <qiang1.zhang@intel.com>
-Subject: irq_work: use kasan_record_aux_stack_noalloc() record callstack
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: fix race between hugetlb free/demotion and memory_failure_hugetlb()
 
-[    4.113128] BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:46
-[    4.113132] in_atomic(): 1, irqs_disabled(): 1, non_block: 0, pid: 239, name: bootlogd
-[    4.113149] Preemption disabled at:
-[    4.113149] [<ffffffffbab1a531>] rt_mutex_slowunlock+0xa1/0x4e0
-[    4.113154] CPU: 3 PID: 239 Comm: bootlogd Tainted: G        W
-5.17.1-rt17-yocto-preempt-rt+ #105
-[    4.113157] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009),
-BIOS rel-1.15.0-0-g2dd4b9b3f840-prebuilt.qemu.org 04/01/2014
-[    4.113159] Call Trace:
-[    4.113160]  <TASK>
-[    4.113161]  dump_stack_lvl+0x60/0x8c
-[    4.113165]  dump_stack+0x10/0x12
-[    4.113167]  __might_resched.cold+0x13b/0x173
-[    4.113172]  rt_spin_lock+0x5b/0xf0
-[    4.113179]  get_page_from_freelist+0x20c/0x1610
-[    4.113208]  __alloc_pages+0x25e/0x5e0
-[    4.113222]  __stack_depot_save+0x3c0/0x4a0
-[    4.113228]  kasan_save_stack+0x3a/0x50
-[    4.113322]  __kasan_record_aux_stack+0xb6/0xc0
-[    4.113326]  kasan_record_aux_stack+0xe/0x10
-[    4.113329]  irq_work_queue_on+0x6a/0x1c0
-[    4.113333]  pull_rt_task+0x631/0x6b0
-[    4.113343]  do_balance_callbacks+0x56/0x80
-[    4.113346]  __balance_callbacks+0x63/0x90
-[    4.113350]  rt_mutex_setprio+0x349/0x880
-[    4.113366]  rt_mutex_slowunlock+0x22a/0x4e0
-[    4.113377]  rt_spin_unlock+0x49/0x80
-[    4.113380]  uart_write+0x186/0x2b0
-[    4.113385]  do_output_char+0x2e9/0x3a0
-[    4.113389]  n_tty_write+0x306/0x800
-[    4.113413]  file_tty_write.isra.0+0x2af/0x450
-[    4.113422]  tty_write+0x22/0x30
-[    4.113425]  new_sync_write+0x27c/0x3a0
-[    4.113446]  vfs_write+0x3f7/0x5d0
-[    4.113451]  ksys_write+0xd9/0x180
-[    4.113463]  __x64_sys_write+0x43/0x50
-[    4.113466]  do_syscall_64+0x44/0x90
-[    4.113469]  entry_SYSCALL_64_after_hwframe+0x44/0xae
+There is a race condition between memory_failure_hugetlb() and hugetlb
+free/demotion, which causes setting PageHWPoison flag on the wrong page. 
+The one simple result is that wrong processes can be killed, but another
+(more serious) one is that the actual error is left unhandled, so no one
+prevents later access to it, and that might lead to more serious results
+like consuming corrupted data.
 
-On PREEMPT_RT kernel and KASAN is enabled.  the kasan_record_aux_stack()
-may call alloc_pages(), and the rt-spinlock will be acquired, if currently
-in atomic context, will trigger warning.  fix it by use
-kasan_record_aux_stack_noalloc() to avoid call alloc_pages().
+Think about the below race window:
 
-Link: https://lkml.kernel.org/r/20220402142555.2699582-1-qiang1.zhang@intel.com
-Signed-off-by: Zqiang <qiang1.zhang@intel.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+  CPU 1                                   CPU 2
+  memory_failure_hugetlb
+  struct page *head = compound_head(p);
+                                          hugetlb page might be freed to
+                                          buddy, or even changed to another
+                                          compound page.
+
+  get_hwpoison_page -- page is not what we want now...
+
+The current code first does prechecks roughly and then reconfirms after
+taking refcount, but it's found that it makes code overly complicated, so
+move the prechecks in a single hugetlb_lock range.
+
+A newly introduced function, try_memory_failure_hugetlb(), always takes
+hugetlb_lock (even for non-hugetlb pages).  That can be improved, but
+memory_failure() is rare in principle, so should not be a big problem.
+
+Link: https://lkml.kernel.org/r/20220404092131.751733-1-naoya.horiguchi@linux.dev
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq_work.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/hugetlb.h |    6 +
+ include/linux/mm.h      |    8 +
+ mm/hugetlb.c            |   10 ++
+ mm/memory-failure.c     |  153 +++++++++++++++++++++++++++-----------
+ 4 files changed, 135 insertions(+), 42 deletions(-)
 
---- a/kernel/irq_work.c~irq_work-use-kasan_record_aux_stack_noalloc-record-callstack
-+++ a/kernel/irq_work.c
-@@ -137,7 +137,7 @@ bool irq_work_queue_on(struct irq_work *
- 	if (!irq_work_claim(work))
- 		return false;
+--- a/include/linux/hugetlb.h~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb
++++ a/include/linux/hugetlb.h
+@@ -169,6 +169,7 @@ long hugetlb_unreserve_pages(struct inod
+ 						long freed);
+ bool isolate_huge_page(struct page *page, struct list_head *list);
+ int get_hwpoison_huge_page(struct page *page, bool *hugetlb);
++int get_huge_page_for_hwpoison(unsigned long pfn, int flags);
+ void putback_active_hugepage(struct page *page);
+ void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason);
+ void free_huge_page(struct page *page);
+@@ -377,6 +378,11 @@ static inline int get_hwpoison_huge_page
+ {
+ 	return 0;
+ }
++
++static inline int get_huge_page_for_hwpoison(unsigned long pfn, int flags)
++{
++	return 0;
++}
  
--	kasan_record_aux_stack(work);
-+	kasan_record_aux_stack_noalloc(work);
+ static inline void putback_active_hugepage(struct page *page)
+ {
+--- a/include/linux/mm.h~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb
++++ a/include/linux/mm.h
+@@ -3197,6 +3197,14 @@ extern int sysctl_memory_failure_recover
+ extern void shake_page(struct page *p);
+ extern atomic_long_t num_poisoned_pages __read_mostly;
+ extern int soft_offline_page(unsigned long pfn, int flags);
++#ifdef CONFIG_MEMORY_FAILURE
++extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags);
++#else
++static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags)
++{
++	return 0;
++}
++#endif
  
- 	preempt_disable();
- 	if (cpu != smp_processor_id()) {
+ #ifndef arch_memory_failure
+ static inline int arch_memory_failure(unsigned long pfn, int flags)
+--- a/mm/hugetlb.c~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb
++++ a/mm/hugetlb.c
+@@ -6782,6 +6782,16 @@ int get_hwpoison_huge_page(struct page *
+ 	return ret;
+ }
+ 
++int get_huge_page_for_hwpoison(unsigned long pfn, int flags)
++{
++	int ret;
++
++	spin_lock_irq(&hugetlb_lock);
++	ret = __get_huge_page_for_hwpoison(pfn, flags);
++	spin_unlock_irq(&hugetlb_lock);
++	return ret;
++}
++
+ void putback_active_hugepage(struct page *page)
+ {
+ 	spin_lock_irq(&hugetlb_lock);
+--- a/mm/memory-failure.c~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb
++++ a/mm/memory-failure.c
+@@ -1498,50 +1498,121 @@ static int try_to_split_thp_page(struct
+ 	return 0;
+ }
+ 
+-static int memory_failure_hugetlb(unsigned long pfn, int flags)
++/*
++ * Called from hugetlb code with hugetlb_lock held.
++ * If a hugepage is successfully grabbed (so it's determined to handle
++ * the error as a hugepage error), returns with holding the page lock.
++ *
++ * Return values:
++ *   0             - free hugepage
++ *   1             - in-use hugepage
++ *   2             - not a hugepage
++ *   -EBUSY        - the hugepage is busy (try to retry)
++ *   -EOPNOTSUPP   - error handling is cancelled due to hwpoison_filter()
++ *   -EHWPOISON    - the hugepage is already hwpoisoned
++ */
++int __get_huge_page_for_hwpoison(unsigned long pfn, int flags)
++{
++	struct page *page = pfn_to_page(pfn);
++	struct page *head = compound_head(page);
++	int ret = 2;	/* fallback to normal page handling */
++	bool count_increased = false;
++
++	if (!PageHeadHuge(head))
++		goto out;
++
++	if (flags & MF_COUNT_INCREASED) {
++		ret = 1;
++		count_increased = true;
++	} else if (HPageFreed(head) || HPageMigratable(head)) {
++		ret = get_page_unless_zero(head);
++		if (ret)
++			count_increased = true;
++	} else {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	lock_page(head);
++
++	if (hwpoison_filter(page)) {
++		ret = -EOPNOTSUPP;
++		goto unlock;
++	}
++
++	if (TestSetPageHWPoison(head)) {
++		ret = -EHWPOISON;
++		goto unlock;
++	}
++
++	/* keep locking page. */
++	return ret;
++unlock:
++	unlock_page(head);
++	if (count_increased)
++		put_page(head);
++out:
++	return ret;
++}
++
++#ifdef CONFIG_HUGETLB_PAGE
++/*
++ * Taking refcount of hugetlb pages needs extra care about race conditions
++ * with basic operations like hugepage allocation/free/demotion.
++ * So all necessary prechecks for hwpoison (like pinning, testing/setting
++ * PageHWPoison, and hwpoison_filter) are done in single hugetlb_lock range.
++ */
++static int try_memory_failure_hugetlb(unsigned long pfn, int flags, int *hugetlb)
+ {
+-	struct page *p = pfn_to_page(pfn);
+-	struct page *head = compound_head(p);
+ 	int res;
++	struct page *p = pfn_to_page(pfn);
++	struct page *head;
+ 	unsigned long page_flags;
++	bool retry = true;
+ 
+-	if (TestSetPageHWPoison(head)) {
+-		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+-		       pfn);
+-		res = -EHWPOISON;
+-		if (flags & MF_ACTION_REQUIRED)
++	*hugetlb = 1;
++retry:
++	res = get_huge_page_for_hwpoison(pfn, flags);
++	if (res == 2) { /* fallback to normal page handling */
++		*hugetlb = 0;
++		return 0;
++	} else if (res == -EOPNOTSUPP) {
++		return res;
++	} else if (res == -EHWPOISON) {
++		pr_err("Memory failure: %#lx: already hardware poisoned\n", pfn);
++		if (flags & MF_ACTION_REQUIRED) {
++			head = compound_head(p);
+ 			res = kill_accessing_process(current, page_to_pfn(head), flags);
++		}
++		return res;
++	} else if (res == -EBUSY) {
++		if (retry) {
++			retry = false;
++			goto retry;
++		}
++		action_result(pfn, MF_MSG_UNKNOWN, MF_IGNORED);
+ 		return res;
+ 	}
+ 
+ 	num_poisoned_pages_inc();
+ 
+-	if (!(flags & MF_COUNT_INCREASED)) {
+-		res = get_hwpoison_page(p, flags);
+-		if (!res) {
+-			lock_page(head);
+-			if (hwpoison_filter(p)) {
+-				if (TestClearPageHWPoison(head))
+-					num_poisoned_pages_dec();
+-				unlock_page(head);
+-				return -EOPNOTSUPP;
+-			}
+-			unlock_page(head);
+-			res = MF_FAILED;
+-			if (__page_handle_poison(p)) {
+-				page_ref_inc(p);
+-				res = MF_RECOVERED;
+-			}
+-			action_result(pfn, MF_MSG_FREE_HUGE, res);
+-			return res == MF_RECOVERED ? 0 : -EBUSY;
+-		} else if (res < 0) {
+-			action_result(pfn, MF_MSG_UNKNOWN, MF_IGNORED);
+-			return -EBUSY;
++	head = compound_head(p);
++
++	/*
++	 * Handling free hugepage.  The possible race with hugepage allocation
++	 * or demotion can be prevented by PageHWPoison flag.
++	 */
++	if (res == 0) {
++		unlock_page(head);
++		res = MF_FAILED;
++		if (__page_handle_poison(p)) {
++			page_ref_inc(p);
++			res = MF_RECOVERED;
+ 		}
++		action_result(pfn, MF_MSG_FREE_HUGE, res);
++		return res == MF_RECOVERED ? 0 : -EBUSY;
+ 	}
+ 
+-	lock_page(head);
+-
+ 	/*
+ 	 * The page could have changed compound pages due to race window.
+ 	 * If this happens just bail out.
+@@ -1554,14 +1625,6 @@ static int memory_failure_hugetlb(unsign
+ 
+ 	page_flags = head->flags;
+ 
+-	if (hwpoison_filter(p)) {
+-		if (TestClearPageHWPoison(head))
+-			num_poisoned_pages_dec();
+-		put_page(p);
+-		res = -EOPNOTSUPP;
+-		goto out;
+-	}
+-
+ 	/*
+ 	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
+ 	 * simply disable it. In order to make it work properly, we need
+@@ -1588,6 +1651,12 @@ out:
+ 	unlock_page(head);
+ 	return res;
+ }
++#else
++static inline int try_memory_failure_hugetlb(unsigned long pfn, int flags, int *hugetlb)
++{
++	return 0;
++}
++#endif
+ 
+ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		struct dev_pagemap *pgmap)
+@@ -1712,6 +1781,7 @@ int memory_failure(unsigned long pfn, in
+ 	int res = 0;
+ 	unsigned long page_flags;
+ 	bool retry = true;
++	int hugetlb = 0;
+ 
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
+@@ -1739,10 +1809,9 @@ int memory_failure(unsigned long pfn, in
+ 	}
+ 
+ try_again:
+-	if (PageHuge(p)) {
+-		res = memory_failure_hugetlb(pfn, flags);
++	res = try_memory_failure_hugetlb(pfn, flags, &hugetlb);
++	if (hugetlb)
+ 		goto unlock_mutex;
+-	}
+ 
+ 	if (TestSetPageHWPoison(p)) {
+ 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
 _
 
-Patches currently in -mm which might be from qiang1.zhang@intel.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-irq_work-use-kasan_record_aux_stack_noalloc-record-callstack.patch
+mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
 
