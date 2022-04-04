@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A911C35295
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3572C47082
 	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 21:39:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232494AbiDDVlC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:41:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48660 "EHLO
+        id S237291AbiDDVlF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:41:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380224AbiDDTRG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 15:17:06 -0400
+        with ESMTP id S1379760AbiDDSB4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 14:01:56 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D70CB33E0A
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 12:15:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFE1A26110
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 10:59:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 82071B818E2
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 19:15:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 149FDC2BBE4;
-        Mon,  4 Apr 2022 19:15:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B9C34B818D7
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 17:59:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 689B8C2BBE4;
+        Mon,  4 Apr 2022 17:59:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649099707;
-        bh=qkSzNdbO6PYaQAMR0y5C131vo2lvlJ6rdLSb86+lKMk=;
+        s=korg; t=1649095197;
+        bh=5kDxjVpg478Eip2iqrxillyutNEcAu4yjJy2z0IjLjM=;
         h=Date:To:From:Subject:From;
-        b=NDFA0K9ijXXak6J236rmTFqzTrJXM1+SbwT1WsZZkoc3hUtHw2nxDfOpdL++z3T6u
-         KqIL/x17t9fhSWKKTpMo0899RToO2Xd8LPWCeU59q1aulYiNkfSgczYFoBmragPLum
-         snXYaBqnuRddXiuM6e7PVaeK6e4HL9a3p4ziL6TM=
-Date:   Mon, 04 Apr 2022 12:15:06 -0700
-To:     mm-commits@vger.kernel.org, hch@lst.de, anshuman.khandual@arm.com,
+        b=elB6QK6ruUd7sIV73XIXHAMLUoO0R5uTcljXmnWdPZib8F1C55VV3sR4fX0HgPTUB
+         g5IL6kmwoLqkg24+Hdfk6AV+BC1UiCsKXltvNYELFnzat12YhYsS7lsbbic1294fbD
+         p3NNhmGH4DGjDPJyn4C7/U7H6sK13TlesTx6Z6ck=
+Date:   Mon, 04 Apr 2022 10:59:56 -0700
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug_vm_pgtable-drop-protection_map-usage.patch added to -mm tree
-Message-Id: <20220404191507.149FDC2BBE4@smtp.kernel.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Message-Id: <20220404175957.689B8C2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,151 +41,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: drop protection_map[] usage
-has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-drop-protection_map-usage.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-drop-protection_map-usage.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-drop-protection_map-usage.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/debug_vm_pgtable: drop protection_map[] usage
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Patch series "mm: protection_map[] cleanups".
-
-
-This patch (of 2):
-
-Although protection_map[] contains the platform defined page protection
-map for a given vm_flags combination, vm_get_page_prot() is the right
-interface to use.  This will also reduce dependency on protection_map[]
-which is going to be dropped off completely later on.
-
-Link: https://lkml.kernel.org/r/20220404031840.588321-1-anshuman.khandual@arm.com
-Link: https://lkml.kernel.org/r/20220404031840.588321-2-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   31 +++++++++++++++++++------------
- 1 file changed, 19 insertions(+), 12 deletions(-)
+ Makefile |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-drop-protection_map-usage
-+++ a/mm/debug_vm_pgtable.c
-@@ -93,7 +93,7 @@ struct pgtable_debug_args {
+--- a/Makefile~linux-next-git-rejects
++++ a/Makefile
+@@ -443,10 +443,7 @@ else
+ HOSTCC	= gcc
+ HOSTCXX	= g++
+ endif
+-<<<<<<< HEAD
+-=======
+ HOSTRUSTC = rustc
+->>>>>>> linux-next/akpm-base
  
- static void __init pte_basic_tests(struct pgtable_debug_args *args, int idx)
- {
--	pgprot_t prot = protection_map[idx];
-+	pgprot_t prot = vm_get_page_prot(idx);
- 	pte_t pte = pfn_pte(args->fixed_pte_pfn, prot);
- 	unsigned long val = idx, *ptr = &val;
+ KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
+ 			 -O2 -fomit-frame-pointer -std=gnu11 \
+@@ -454,8 +451,6 @@ KBUILD_USERHOSTCFLAGS := -Wall -Wmissing
+ KBUILD_USERCFLAGS  := $(KBUILD_USERHOSTCFLAGS) $(USERCFLAGS)
+ KBUILD_USERLDFLAGS := $(USERLDFLAGS)
  
-@@ -101,7 +101,7 @@ static void __init pte_basic_tests(struc
+-<<<<<<< HEAD
+-=======
+ # These flags apply to all Rust code in the tree, including the kernel and
+ # host programs.
+ export rust_common_flags := --edition=2021 \
+@@ -472,7 +467,6 @@ export rust_common_flags := --edition=20
+ 			    -Dclippy::needless_continue \
+ 			    -Wclippy::dbg_macro
  
- 	/*
- 	 * This test needs to be executed after the given page table entry
--	 * is created with pfn_pte() to make sure that protection_map[idx]
-+	 * is created with pfn_pte() to make sure that vm_get_page_prot(idx)
- 	 * does not have the dirty bit enabled from the beginning. This is
- 	 * important for platforms like arm64 where (!PTE_RDONLY) indicate
- 	 * dirty bit being set.
-@@ -190,7 +190,7 @@ static void __init pte_savedwrite_tests(
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx)
- {
--	pgprot_t prot = protection_map[idx];
-+	pgprot_t prot = vm_get_page_prot(idx);
- 	unsigned long val = idx, *ptr = &val;
- 	pmd_t pmd;
- 
-@@ -202,7 +202,7 @@ static void __init pmd_basic_tests(struc
- 
- 	/*
- 	 * This test needs to be executed after the given page table entry
--	 * is created with pfn_pmd() to make sure that protection_map[idx]
-+	 * is created with pfn_pmd() to make sure that vm_get_page_prot(idx)
- 	 * does not have the dirty bit enabled from the beginning. This is
- 	 * important for platforms like arm64 where (!PTE_RDONLY) indicate
- 	 * dirty bit being set.
-@@ -325,7 +325,7 @@ static void __init pmd_savedwrite_tests(
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx)
- {
--	pgprot_t prot = protection_map[idx];
-+	pgprot_t prot = vm_get_page_prot(idx);
- 	unsigned long val = idx, *ptr = &val;
- 	pud_t pud;
- 
-@@ -337,7 +337,7 @@ static void __init pud_basic_tests(struc
- 
- 	/*
- 	 * This test needs to be executed after the given page table entry
--	 * is created with pfn_pud() to make sure that protection_map[idx]
-+	 * is created with pfn_pud() to make sure that vm_get_page_prot(idx)
- 	 * does not have the dirty bit enabled from the beginning. This is
- 	 * important for platforms like arm64 where (!PTE_RDONLY) indicate
- 	 * dirty bit being set.
-@@ -1119,14 +1119,14 @@ static int __init init_args(struct pgtab
- 	/*
- 	 * Initialize the debugging data.
- 	 *
--	 * protection_map[0] (or even protection_map[8]) will help create
--	 * page table entries with PROT_NONE permission as required for
--	 * pxx_protnone_tests().
-+	 * vm_get_page_prot(VM_NONE) or vm_get_page_prot(VM_SHARED|VM_NONE)
-+	 * will help create page table entries with PROT_NONE permission as
-+	 * required for pxx_protnone_tests().
- 	 */
- 	memset(args, 0, sizeof(*args));
- 	args->vaddr              = get_random_vaddr();
- 	args->page_prot          = vm_get_page_prot(VMFLAGS);
--	args->page_prot_none     = protection_map[0];
-+	args->page_prot_none     = vm_get_page_prot(VM_NONE);
- 	args->is_contiguous_page = false;
- 	args->pud_pfn            = ULONG_MAX;
- 	args->pmd_pfn            = ULONG_MAX;
-@@ -1261,12 +1261,19 @@ static int __init debug_vm_pgtable(void)
- 		return ret;
- 
- 	/*
--	 * Iterate over the protection_map[] to make sure that all
-+	 * Iterate over each possible vm_flags to make sure that all
- 	 * the basic page table transformation validations just hold
- 	 * true irrespective of the starting protection value for a
- 	 * given page table entry.
-+	 *
-+	 * Protection based vm_flags combinatins are always linear
-+	 * and increasing i.e starting from VM_NONE and going upto
-+	 * (VM_SHARED | READ | WRITE | EXEC).
- 	 */
--	for (idx = 0; idx < ARRAY_SIZE(protection_map); idx++) {
-+#define VM_FLAGS_START	(VM_NONE)
-+#define VM_FLAGS_END	(VM_SHARED | VM_EXEC | VM_WRITE | VM_READ)
-+
-+	for (idx = VM_FLAGS_START; idx <= VM_FLAGS_END; idx++) {
- 		pte_basic_tests(&args, idx);
- 		pmd_basic_tests(&args, idx);
- 		pud_basic_tests(&args, idx);
+->>>>>>> linux-next/akpm-base
+ KBUILD_HOSTCFLAGS   := $(KBUILD_USERHOSTCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
+ KBUILD_HOSTCXXFLAGS := -Wall -O2 $(HOST_LFS_CFLAGS) $(HOSTCXXFLAGS)
+ KBUILD_HOSTRUSTFLAGS := $(rust_common_flags) -O -Cstrip=debuginfo \
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-debug_vm_pgtable-drop-protection_map-usage.patch
-mm-mmap-clarify-protection_map-indices.patch
+mm-list_lruc-revert-mm-list_lru-optimize-memcg_reparent_list_lru_node.patch
+mm.patch
+mm-create-new-mm-swaph-header-file-fix.patch
+mm-shmem-make-shmem_init-return-void-fix.patch
+ksm-count-ksm-merging-pages-for-each-process-fix.patch
+mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
+proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
+fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix.patch
+add-fat-messages-to-printk-index-checkpatch-fixes.patch
+linux-next-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
 
