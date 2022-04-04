@@ -2,90 +2,116 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91DD3C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Apr 2022 18:29:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D47EEC43219
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 21:39:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351085AbiDASa7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Apr 2022 14:30:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33674 "EHLO
+        id S1380133AbiDDVk1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:40:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351050AbiDASau (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2022 14:30:50 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2F751DD3CB
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 11:29:00 -0700 (PDT)
+        with ESMTP id S1379968AbiDDS34 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 14:29:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51E5313F48
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 11:27:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B2B5FB825B4
-        for <mm-commits@vger.kernel.org>; Fri,  1 Apr 2022 18:28:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73A57C340F3;
-        Fri,  1 Apr 2022 18:28:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E70F1B818E7
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 18:27:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A61ADC2BBE4;
+        Mon,  4 Apr 2022 18:27:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1648837738;
-        bh=FxgTMCltgj8iR00ivm3JJTqJdRoqVdzMYU6tKfr4jU8=;
-        h=Date:To:From:In-Reply-To:Subject:From;
-        b=vRfchcMietkIjkan8zWCrOtZIpnM3U0pITB5DhmDx4AHNKK0rfIyoXg5EwmIaBwCm
-         JHxlyIF6bVxGeecxhTynjz3JI8lXfTJvAOVwq4u/uBqZT0sWTrRR/KnbD/ijSPhLxR
-         xcl7elSLtBu6EufaSo5pb4oCZeQu6VdiWiRlJsFA=
-Date:   Fri, 01 Apr 2022 11:28:57 -0700
-To:     sj@kernel.org, tome01@ajou.ac.kr, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        s=korg; t=1649096876;
+        bh=UsWsru6FqYcfELEQGZ+RSq/VBF+ChxL1tiF5cM5gsPI=;
+        h=Date:To:From:Subject:From;
+        b=sl/VoQhTJntXgk0wue4uKYBX1xrf7sWSw23mURWm2ju7lpxvzaezu/U+JQl+aMGjq
+         j2YdBwlPFor0I0U16Ky7Yr5RgbqF0eMiIo5iiIg9Qf2dDJLtHt8X43DsTLnh1MdsZ6
+         yU+S0IdWcmcRXsDGQzohQ/JizAkT+UOIgF4gppFY=
+Date:   Mon, 04 Apr 2022 11:27:55 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        naoya.horiguchi@linux.dev, mhocko@kernel.org, ziy@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20220401112740.351496714b370467a92207a6@linux-foundation.org>
-Subject: [patch 16/16] mm/damon: prevent activated scheme from sleeping by deactivated schemes
-Message-Id: <20220401182858.73A57C340F3@smtp.kernel.org>
+Subject: + mm-migrate-use-thp_order-instead-of-hpage_pmd_order-for-new-page-allocation.patch added to -mm tree
+Message-Id: <20220404182756.A61ADC2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jonghyeon Kim <tome01@ajou.ac.kr>
-Subject: mm/damon: prevent activated scheme from sleeping by deactivated schemes
 
-In the DAMON, the minimum wait time of the schemes decides whether the
-kernel wakes up 'kdamon_fn()'.  But since the minimum wait time is
-initialized to zero, there are corner cases against the original
-objective.
+The patch titled
+     Subject: mm: migrate: use thp_order instead of HPAGE_PMD_ORDER for new page allocation.
+has been added to the -mm tree.  Its filename is
+     mm-migrate-use-thp_order-instead-of-hpage_pmd_order-for-new-page-allocation.patch
 
-For example, if we have several schemes for one target, and if the wait
-time of the first scheme is zero, the minimum wait time will set zero,
-which means 'kdamond_fn()' should wake up to apply this scheme.  However,
-in the following scheme, wait time can be set to non-zero.  Thus, the
-mininum wait time will be set to non-zero, which can cause sleeping this
-interval for 'kdamon_fn()' due to one deactivated last scheme.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-use-thp_order-instead-of-hpage_pmd_order-for-new-page-allocation.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-use-thp_order-instead-of-hpage_pmd_order-for-new-page-allocation.patch
 
-This commit prevents making DAMON monitoring inactive state due to other
-deactivated schemes.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Link: https://lkml.kernel.org/r/20220330105302.32114-1-tome01@ajou.ac.kr
-Signed-off-by: Jonghyeon Kim <tome01@ajou.ac.kr>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: migrate: use thp_order instead of HPAGE_PMD_ORDER for new page allocation.
+
+Fix a VM_BUG_ON_FOLIO(folio_nr_pages(old) != nr_pages) crash.
+
+With folios support, it is possible to have other than HPAGE_PMD_ORDER
+THPs, in the form of folios, in the system.  Use thp_order() to correctly
+determine the source page order during migration.
+
+Link: https://lkml.kernel.org/r/20220404165325.1883267-1-zi.yan@sent.com
+Link: https://lore.kernel.org/linux-mm/20220404132908.GA785673@u2004/
+Fixes: d68eccad3706 ("mm/filemap: Allow large folios to be added to the pag=
+e cache")
+Reported-by: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |    2 +-
+ mm/migrate.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-prevent-activated-scheme-from-sleeping-by-deactivated-schemes
-+++ a/mm/damon/core.c
-@@ -1019,12 +1019,15 @@ static int kdamond_wait_activation(struc
- 	struct damos *s;
- 	unsigned long wait_time;
- 	unsigned long min_wait_time = 0;
-+	bool init_wait_time = false;
+--- a/mm/mempolicy.c~mm-migrate-use-thp_order-instead-of-hpage_pmd_order-for-new-page-allocation
++++ a/mm/mempolicy.c
+@@ -1209,7 +1209,7 @@ static struct page *new_page(struct page
+ 		struct page *thp;
  
- 	while (!kdamond_need_stop(ctx)) {
- 		damon_for_each_scheme(s, ctx) {
- 			wait_time = damos_wmark_wait_us(s);
--			if (!min_wait_time || wait_time < min_wait_time)
-+			if (!init_wait_time || wait_time < min_wait_time) {
-+				init_wait_time = true;
- 				min_wait_time = wait_time;
-+			}
- 		}
- 		if (!min_wait_time)
- 			return 0;
+ 		thp = alloc_hugepage_vma(GFP_TRANSHUGE, vma, address,
+-					 HPAGE_PMD_ORDER);
++					 thp_order(page));
+ 		if (!thp)
+ 			return NULL;
+ 		prep_transhuge_page(thp);
+--- a/mm/migrate.c~mm-migrate-use-thp_order-instead-of-hpage_pmd_order-for-new-page-allocation
++++ a/mm/migrate.c
+@@ -1547,7 +1547,7 @@ struct page *alloc_migration_target(stru
+ 		 */
+ 		gfp_mask &= ~__GFP_RECLAIM;
+ 		gfp_mask |= GFP_TRANSHUGE;
+-		order = HPAGE_PMD_ORDER;
++		order = thp_order(page);
+ 	}
+ 	zidx = zone_idx(page_zone(page));
+ 	if (is_highmem_idx(zidx) || zidx == ZONE_MOVABLE)
 _
+
+Patches currently in -mm which might be from ziy@nvidia.com are
+
+mm-migrate-use-thp_order-instead-of-hpage_pmd_order-for-new-page-allocation.patch
+
