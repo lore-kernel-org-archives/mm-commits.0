@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80F78C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 23:38:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 529CDC433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 23:39:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231430AbiDDXkw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Apr 2022 19:40:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37990 "EHLO
+        id S229966AbiDDXkz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Apr 2022 19:40:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231440AbiDDXkt (ORCPT
+        with ESMTP id S231553AbiDDXkt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 19:40:49 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD21225D7
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 16:38:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5A75E9C
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 16:38:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3C0D2B81AD6
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 23:38:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8824C2BBE4;
-        Mon,  4 Apr 2022 23:38:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3C4EAB81AD5
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 23:38:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE817C2BBE4;
+        Mon,  4 Apr 2022 23:38:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649115490;
-        bh=I4HV82cETEha+CZGfRdLfr9Fi02dxiaHmQq3M3RwR+g=;
+        s=korg; t=1649115494;
+        bh=dGM3Lbw4DyKx1wcWSE/9APxdJ04itN1Y/8KvDdoqhbk=;
         h=Date:To:From:Subject:From;
-        b=zJycpEgvn/ucZek5t/LZeGrMYHl106bJQ5smm1w4WXSbx8i+xSU/AUaX+K1haSx2w
-         kbbLZBtGONli1zYJK8iU2pOSsZi+5SRMGolnOg4MA2TGD7inFxjmsK4NivRfeUAyRK
-         zjsBRUN8KFOxrzYsZi4F77aLZCz7zGCwaGxSGnwI=
-Date:   Mon, 04 Apr 2022 16:38:09 -0700
+        b=y5Jo5wx6jmdbHGObQq1D74R0EeNtGgASiDEcsV6kkOxKlD7nJwRlVo+momWTnsGFb
+         ug4CEtsQ6w1HyMLINOFo+Bb0wEQddoT/NpCKjoQeXWSdl6wz/csyvlOCLVatm/Vr5N
+         vTxOXwJ32NSwo4e3ZSxPx5iRBUIpT/fdgMHAecAg=
+Date:   Mon, 04 Apr 2022 16:38:14 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tytso@mit.edu, song@kernel.org, riel@surriel.com,
         linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
         shy828301@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-move-some-khugepaged_-functions-to-khugepagedc.patch added to -mm tree
-Message-Id: <20220404233809.E8824C2BBE4@smtp.kernel.org>
+Subject: + mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged.patch added to -mm tree
+Message-Id: <20220404233814.BE817C2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: move some khugepaged_* functions to khugepaged.c
+     Subject: mm: mmap: register suitable readonly file vmas for khugepaged
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-move-some-khugepaged_-functions-to-khugepagedc.patch
+     mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-move-some-khugepaged_-functions-to-khugepagedc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-move-some-khugepaged_-functions-to-khugepagedc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,131 +65,94 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: khugepaged: move some khugepaged_* functions to khugepaged.c
+Subject: mm: mmap: register suitable readonly file vmas for khugepaged
 
-To reuse hugepage_vma_check() for khugepaged_enter() so that we could
-remove some duplicate code.  But moving hugepage_vma_check() to
-khugepaged.h needs to include huge_mm.h in it, it seems not optimal to
-bloat khugepaged.h.
+The readonly FS THP relies on khugepaged to collapse THP for suitable
+vmas.  But it is kind of "random luck" for khugepaged to see the readonly
+FS vmas
+(https://lore.kernel.org/linux-mm/00f195d4-d039-3cf2-d3a1-a2c88de397a0@suse.cz/)
+since currently the vmas are registered to khugepaged when:
 
-And the khugepaged_* functions actually are wrappers for some non-inline
-functions, so it seems the benefits are not too much to keep them inline.
+  - Anon huge pmd page fault
+  - VMA merge
+  - MADV_HUGEPAGE
+  - Shmem mmap
 
-So move the khugepaged_* functions to khugepaged.c, any callers just need
-to include khugepaged.h which is quite small.  For example, the following
-patches will call khugepaged_enter() in filemap page fault path for
-regular filesystems to make readonly FS THP collapse more consistent.  The
-filemap.c just needs to include khugepaged.h.
+If the above conditions are not met, even though khugepaged is enabled it
+won't see readonly FS vmas at all.  MADV_HUGEPAGE could be specified
+explicitly to tell khugepaged to collapse this area, but when khugepaged
+mode is "always" it should scan suitable vmas as long as VM_NOHUGEPAGE is
+not set.
 
-Link: https://lkml.kernel.org/r/20220404200250.321455-7-shy828301@gmail.com
+So make sure readonly FS vmas are registered to khugepaged to make the
+behavior more consistent.
+
+Registering suitable vmas in common mmap path, that could cover both
+readonly FS vmas and shmem vmas, so removed the khugepaged calls in
+shmem.c.
+
+Still need to keep the khugepaged call in vma_merge() since vma_merge() is
+called in a lot of places, for example, madvise, mprotect, etc.
+
+Link: https://lkml.kernel.org/r/20220404200250.321455-9-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Song Liu <song@kernel.org>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Rik van Riel <riel@surriel.com>
+Cc: Song Liu <song@kernel.org>
 Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/khugepaged.h |   37 +++++------------------------------
- mm/khugepaged.c            |   20 ++++++++++++++++++
- 2 files changed, 26 insertions(+), 31 deletions(-)
+ mm/mmap.c  |    6 ++++++
+ mm/shmem.c |    4 ----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/linux/khugepaged.h~mm-khugepaged-move-some-khugepaged_-functions-to-khugepagedc
-+++ a/include/linux/khugepaged.h
-@@ -2,10 +2,6 @@
- #ifndef _LINUX_KHUGEPAGED_H
- #define _LINUX_KHUGEPAGED_H
- 
--#include <linux/sched/coredump.h> /* MMF_VM_HUGEPAGE */
--#include <linux/shmem_fs.h>
--
--
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- extern struct attribute_group khugepaged_attr_group;
- 
-@@ -16,6 +12,12 @@ extern void __khugepaged_enter(struct mm
- extern void __khugepaged_exit(struct mm_struct *mm);
- extern void khugepaged_enter_vma_merge(struct vm_area_struct *vma,
- 				       unsigned long vm_flags);
-+extern void khugepaged_fork(struct mm_struct *mm,
-+			    struct mm_struct *oldmm);
-+extern void khugepaged_exit(struct mm_struct *mm);
-+extern void khugepaged_enter(struct vm_area_struct *vma,
-+			     unsigned long vm_flags);
-+
- extern void khugepaged_min_free_kbytes_update(void);
- #ifdef CONFIG_SHMEM
- extern void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr);
-@@ -33,36 +35,9 @@ static inline void collapse_pte_mapped_t
- #define khugepaged_always()				\
- 	(transparent_hugepage_flags &			\
- 	 (1<<TRANSPARENT_HUGEPAGE_FLAG))
--#define khugepaged_req_madv()					\
--	(transparent_hugepage_flags &				\
--	 (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
- #define khugepaged_defrag()					\
- 	(transparent_hugepage_flags &				\
- 	 (1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG))
--
--static inline void khugepaged_fork(struct mm_struct *mm, struct mm_struct *oldmm)
--{
--	if (test_bit(MMF_VM_HUGEPAGE, &oldmm->flags))
--		__khugepaged_enter(mm);
--}
--
--static inline void khugepaged_exit(struct mm_struct *mm)
--{
--	if (test_bit(MMF_VM_HUGEPAGE, &mm->flags))
--		__khugepaged_exit(mm);
--}
--
--static inline void khugepaged_enter(struct vm_area_struct *vma,
--				   unsigned long vm_flags)
--{
--	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags))
--		if ((khugepaged_always() ||
--		     (shmem_file(vma->vm_file) && shmem_huge_enabled(vma)) ||
--		     (khugepaged_req_madv() && (vm_flags & VM_HUGEPAGE))) &&
--		    !(vm_flags & VM_NOHUGEPAGE) &&
--		    !test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
--			__khugepaged_enter(vma->vm_mm);
--}
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- static inline void khugepaged_fork(struct mm_struct *mm, struct mm_struct *oldmm)
- {
---- a/mm/khugepaged.c~mm-khugepaged-move-some-khugepaged_-functions-to-khugepagedc
-+++ a/mm/khugepaged.c
-@@ -556,6 +556,26 @@ void __khugepaged_exit(struct mm_struct
+--- a/mm/mmap.c~mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged
++++ a/mm/mmap.c
+@@ -1856,6 +1856,12 @@ unsigned long mmap_region(struct file *f
  	}
+ 
+ 	vma_link(mm, vma, prev, rb_link, rb_parent);
++
++	/*
++	 * vma_merge() calls khugepaged_enter_vma() either, the below
++	 * call covers the non-merge case.
++	 */
++	khugepaged_enter_vma(vma, vma->vm_flags);
+ 	/* Once vma denies write, undo our temporary denial count */
+ unmap_writable:
+ 	if (file && vm_flags & VM_SHARED)
+--- a/mm/shmem.c~mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged
++++ a/mm/shmem.c
+@@ -34,7 +34,6 @@
+ #include <linux/export.h>
+ #include <linux/swap.h>
+ #include <linux/uio.h>
+-#include <linux/khugepaged.h>
+ #include <linux/hugetlb.h>
+ #include <linux/fs_parser.h>
+ #include <linux/swapfile.h>
+@@ -2240,7 +2239,6 @@ static int shmem_mmap(struct file *file,
+ 
+ 	file_accessed(file);
+ 	vma->vm_ops = &shmem_vm_ops;
+-	khugepaged_enter_vma(vma, vma->vm_flags);
+ 	return 0;
  }
  
-+void khugepaged_fork(struct mm_struct *mm, struct mm_struct *oldmm)
-+{
-+	if (test_bit(MMF_VM_HUGEPAGE, &oldmm->flags))
-+		__khugepaged_enter(mm);
-+}
-+
-+void khugepaged_exit(struct mm_struct *mm)
-+{
-+	if (test_bit(MMF_VM_HUGEPAGE, &mm->flags))
-+		__khugepaged_exit(mm);
-+}
-+
-+void khugepaged_enter(struct vm_area_struct *vma, unsigned long vm_flags)
-+{
-+	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
-+	    khugepaged_enabled())
-+		if (hugepage_vma_check(vma, vm_flags))
-+			__khugepaged_enter(vma->vm_mm);
-+}
-+
- static void release_pte_page(struct page *page)
- {
- 	mod_node_page_state(page_pgdat(page),
+@@ -4130,8 +4128,6 @@ int shmem_zero_setup(struct vm_area_stru
+ 	vma->vm_file = file;
+ 	vma->vm_ops = &shmem_vm_ops;
+ 
+-	khugepaged_enter_vma(vma, vma->vm_flags);
+-
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
