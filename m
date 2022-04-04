@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87C73C3527B
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 21:41:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B34EC433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 21:41:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382993AbiDDVlT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:41:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54898 "EHLO
+        id S1383213AbiDDVld (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:41:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380152AbiDDTFD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 15:05:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E643233E06
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 12:03:06 -0700 (PDT)
+        with ESMTP id S1380490AbiDDUTb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 16:19:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30FAC33EB0
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 13:17:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 656E360DF1
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 19:03:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9C8DC340F3;
-        Mon,  4 Apr 2022 19:03:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BCC0860DD7
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 20:17:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AC0CC2BBE4;
+        Mon,  4 Apr 2022 20:17:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649098985;
-        bh=8/etholmPxQgrhFDEy7u5GKA2Z6XJ/qMyV349hgTqgE=;
+        s=korg; t=1649103454;
+        bh=DUy9V+jDLqfWVH/1OaIMnIwVexwzZCCqit3WcgVsHQ8=;
         h=Date:To:From:Subject:From;
-        b=v50ziU7GkwHmgHC5hoXl6RDlUXUdCKURemw/arHFCKqGSn5jQPVYhpCP801ef/tX5
-         jNfYTLYpYABbIcUUFjMWWf16aBdPQwfHQcJnFgNfRi7KNTyb0Aze+933zql6fdqQwh
-         NawISh8S9R/944myx6AdMnipwd2C6wOGjBHLqNWU=
-Date:   Mon, 04 Apr 2022 12:03:05 -0700
-To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
-        david@redhat.com, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
+        b=cXGQzNw9xuJg3zGS+wsMhPhB2P8QRiWcP+eZcrXLp9R6iJnGkJmhqMHaT+rQaqSmC
+         SRrlcltOjXWR3Fmfyn1y5XfXC03sykIXrlxzENiy+Iu4EcoQ2KDqD1NcMiBUEU9yH/
+         HQ8dGL7r6WC185Z2de40qi8bSMJ3TfiL08coYSuI=
+Date:   Mon, 04 Apr 2022 13:17:33 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
+        richard.weiyang@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch added to -mm tree
-Message-Id: <20220404190305.B9C8DC340F3@smtp.kernel.org>
+Subject: + mm-memcg-non-hierarchical-mode-is-deprecated.patch added to -mm tree
+Message-Id: <20220404201734.1AC0CC2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: cleanup CONFIG_HUGETLB_PAGE_FREE_VMEMMAP*
+     Subject: mm/memcg: non-hierarchical mode is deprecated
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch
+     mm-memcg-non-hierarchical-mode-is-deprecated.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-non-hierarchical-mode-is-deprecated.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-non-hierarchical-mode-is-deprecated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,262 +63,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb_vmemmap: cleanup CONFIG_HUGETLB_PAGE_FREE_VMEMMAP*
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/memcg: non-hierarchical mode is deprecated
 
-The word of "free" is not expressive enough to express the feature of
-optimizing vmemmap pages associated with each HugeTLB, rename this keywork
-to "optimize".  In this patch , cheanup configs to make code more
-expressive.
+After commit bef8620cd8e0 ("mm: memcg: deprecate the non-hierarchical
+mode"), we won't have a NULL parent except root_mem_cgroup.  And this case
+is handled when (memcg == root).
 
-Link: https://lkml.kernel.org/r/20220404074652.68024-4-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20220403020833.26164-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    4 +--
- Documentation/admin-guide/mm/hugetlbpage.rst    |    2 -
- arch/arm64/Kconfig                              |    2 -
- arch/arm64/mm/flush.c                           |    2 -
- arch/x86/Kconfig                                |    2 -
- arch/x86/mm/init_64.c                           |    2 -
- fs/Kconfig                                      |   16 +++++++-------
- include/linux/hugetlb.h                         |    2 -
- include/linux/mm.h                              |    2 -
- include/linux/page-flags.h                      |    6 ++---
- mm/Makefile                                     |    2 -
- mm/hugetlb_vmemmap.c                            |    4 +--
- mm/hugetlb_vmemmap.h                            |    4 +--
- mm/sparse-vmemmap.c                             |    4 +--
- 14 files changed, 27 insertions(+), 27 deletions(-)
+ mm/memcontrol.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/arch/arm64/Kconfig~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/arch/arm64/Kconfig
-@@ -96,7 +96,7 @@ config ARM64
- 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
- 	select ARCH_WANT_FRAME_POINTERS
- 	select ARCH_WANT_HUGE_PMD_SHARE if ARM64_4K_PAGES || (ARM64_16K_PAGES && !ARM64_VA_BITS_36)
--	select ARCH_WANT_HUGETLB_PAGE_FREE_VMEMMAP
-+	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	select ARCH_WANT_LD_ORPHAN_WARN
- 	select ARCH_WANTS_NO_INSTR
- 	select ARCH_HAS_UBSAN_SANITIZE_ALL
---- a/arch/arm64/mm/flush.c~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/arch/arm64/mm/flush.c
-@@ -78,7 +78,7 @@ void flush_dcache_page(struct page *page
- 	/*
- 	 * Only the head page's flags of HugeTLB can be cleared since the tail
- 	 * vmemmap pages associated with each HugeTLB page are mapped with
--	 * read-only when CONFIG_HUGETLB_PAGE_FREE_VMEMMAP is enabled (more
-+	 * read-only when CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP is enabled (more
- 	 * details can refer to vmemmap_remap_pte()).  Although
- 	 * __sync_icache_dcache() only set PG_dcache_clean flag on the head
- 	 * page struct, some tail page structs still can be seen the flag is
---- a/arch/x86/Kconfig~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/arch/x86/Kconfig
-@@ -121,7 +121,7 @@ config X86
- 	select ARCH_WANTS_NO_INSTR
- 	select ARCH_WANT_GENERAL_HUGETLB
- 	select ARCH_WANT_HUGE_PMD_SHARE
--	select ARCH_WANT_HUGETLB_PAGE_FREE_VMEMMAP	if X86_64
-+	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP	if X86_64
- 	select ARCH_WANT_LD_ORPHAN_WARN
- 	select ARCH_WANTS_THP_SWAP		if X86_64
- 	select ARCH_HAS_PARANOID_L1D_FLUSH
---- a/arch/x86/mm/init_64.c~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/arch/x86/mm/init_64.c
-@@ -1269,7 +1269,7 @@ static struct kcore_list kcore_vsyscall;
+--- a/mm/memcontrol.c~mm-memcg-non-hierarchical-mode-is-deprecated
++++ a/mm/memcontrol.c
+@@ -6588,9 +6588,6 @@ void mem_cgroup_calculate_protection(str
+ 		return;
  
- static void __init register_page_bootmem_info(void)
- {
--#if defined(CONFIG_NUMA) || defined(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP)
-+#if defined(CONFIG_NUMA) || defined(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP)
- 	int i;
+ 	parent = parent_mem_cgroup(memcg);
+-	/* No parent means a non-hierarchical mode on v1 memcg */
+-	if (!parent)
+-		return;
  
- 	for_each_online_node(i)
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1660,7 +1660,7 @@
- 			Format: size[KMG]
- 
- 	hugetlb_free_vmemmap=
--			[KNL] Reguires CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+			[KNL] Reguires CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 			enabled.
- 			Allows heavy hugetlb users to free up some more
- 			memory (7 * PAGE_SIZE for each 2MB hugetlb page).
-@@ -1669,7 +1669,7 @@
- 			on:  enable the feature
- 			off: disable the feature
- 
--			Built with CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON=y,
-+			Built with CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON=y,
- 			the default is on.
- 
- 			This is not compatible with memory_hotplug.memmap_on_memory.
---- a/Documentation/admin-guide/mm/hugetlbpage.rst~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/Documentation/admin-guide/mm/hugetlbpage.rst
-@@ -164,7 +164,7 @@ default_hugepagesz
- 	will all result in 256 2M huge pages being allocated.  Valid default
- 	huge page size is architecture dependent.
- hugetlb_free_vmemmap
--	When CONFIG_HUGETLB_PAGE_FREE_VMEMMAP is set, this enables freeing
-+	When CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP is set, this enables optimizing
- 	unused vmemmap pages associated with each HugeTLB page.
- 
- When multiple huge page sizes are supported, ``/proc/sys/vm/nr_hugepages``
---- a/fs/Kconfig~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/fs/Kconfig
-@@ -250,22 +250,22 @@ config HUGETLB_PAGE
- # to enable the feature of minimizing overhead of struct page associated with
- # each HugeTLB page.
- #
--config ARCH_WANT_HUGETLB_PAGE_FREE_VMEMMAP
-+config ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	bool
- 
--config HUGETLB_PAGE_FREE_VMEMMAP
-+config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	def_bool HUGETLB_PAGE
--	depends on ARCH_WANT_HUGETLB_PAGE_FREE_VMEMMAP
-+	depends on ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	depends on SPARSEMEM_VMEMMAP
- 
--config HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON
--	bool "Default freeing vmemmap pages of HugeTLB to on"
-+config HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON
-+	bool "Default optimizing vmemmap pages of HugeTLB to on"
- 	default n
--	depends on HUGETLB_PAGE_FREE_VMEMMAP
-+	depends on HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	help
--	  When using HUGETLB_PAGE_FREE_VMEMMAP, the freeing unused vmemmap
-+	  When using HUGETLB_PAGE_OPTIMIZE_VMEMMAP, the optimizing unused vmemmap
- 	  pages associated with each HugeTLB page is default off. Say Y here
--	  to enable freeing vmemmap pages of HugeTLB by default. It can then
-+	  to enable optimizing vmemmap pages of HugeTLB by default. It can then
- 	  be disabled on the command line via hugetlb_free_vmemmap=off.
- 
- config MEMFD_CREATE
---- a/include/linux/hugetlb.h~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/include/linux/hugetlb.h
-@@ -623,7 +623,7 @@ struct hstate {
- 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
- 	unsigned int free_huge_pages_node[MAX_NUMNODES];
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
--#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	unsigned int optimize_vmemmap_pages;
- #endif
- #ifdef CONFIG_CGROUP_HUGETLB
---- a/include/linux/mm.h~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/include/linux/mm.h
-@@ -3188,7 +3188,7 @@ static inline void print_vma_addr(char *
- }
- #endif
- 
--#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- int vmemmap_remap_free(unsigned long start, unsigned long end,
- 		       unsigned long reuse);
- int vmemmap_remap_alloc(unsigned long start, unsigned long end,
---- a/include/linux/page-flags.h~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/include/linux/page-flags.h
-@@ -199,13 +199,13 @@ enum pageflags {
- 
- #ifndef __GENERATING_BOUNDS_H
- 
--#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
--DECLARE_STATIC_KEY_MAYBE(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON,
-+#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
-+DECLARE_STATIC_KEY_MAYBE(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON,
- 			 hugetlb_optimize_vmemmap_key);
- 
- static __always_inline bool hugetlb_optimize_vmemmap_enabled(void)
- {
--	return static_branch_maybe(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON,
-+	return static_branch_maybe(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON,
- 				   &hugetlb_optimize_vmemmap_key);
- }
- 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/mm/hugetlb_vmemmap.c
-@@ -188,7 +188,7 @@
- #define RESERVE_VMEMMAP_NR		1U
- #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
- 
--DEFINE_STATIC_KEY_MAYBE(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON,
-+DEFINE_STATIC_KEY_MAYBE(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON,
- 			hugetlb_optimize_vmemmap_key);
- EXPORT_SYMBOL(hugetlb_optimize_vmemmap_key);
- 
-@@ -276,7 +276,7 @@ void __init hugetlb_vmemmap_init(struct
- 
- 	/*
- 	 * There are only (RESERVE_VMEMMAP_SIZE / sizeof(struct page)) struct
--	 * page structs that can be used when CONFIG_HUGETLB_PAGE_FREE_VMEMMAP,
-+	 * page structs that can be used when CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP,
- 	 * so add a BUILD_BUG_ON to catch invalid usage of the tail struct page.
- 	 */
- 	BUILD_BUG_ON(__NR_USED_SUBPAGE >=
---- a/mm/hugetlb_vmemmap.h~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/mm/hugetlb_vmemmap.h
-@@ -10,7 +10,7 @@
- #define _LINUX_HUGETLB_VMEMMAP_H
- #include <linux/hugetlb.h>
- 
--#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- int hugetlb_vmemmap_alloc(struct hstate *h, struct page *head);
- void hugetlb_vmemmap_free(struct hstate *h, struct page *head);
- void hugetlb_vmemmap_init(struct hstate *h);
-@@ -41,5 +41,5 @@ static inline unsigned int hugetlb_optim
- {
- 	return 0;
- }
--#endif /* CONFIG_HUGETLB_PAGE_FREE_VMEMMAP */
-+#endif /* CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP */
- #endif /* _LINUX_HUGETLB_VMEMMAP_H */
---- a/mm/Makefile~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/mm/Makefile
-@@ -77,7 +77,7 @@ obj-$(CONFIG_FRONTSWAP)	+= frontswap.o
- obj-$(CONFIG_ZSWAP)	+= zswap.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
- obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
--obj-$(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP)	+= hugetlb_vmemmap.o
-+obj-$(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP)	+= hugetlb_vmemmap.o
- obj-$(CONFIG_NUMA) 	+= mempolicy.o
- obj-$(CONFIG_SPARSEMEM)	+= sparse.o
- obj-$(CONFIG_SPARSEMEM_VMEMMAP) += sparse-vmemmap.o
---- a/mm/sparse-vmemmap.c~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
-+++ a/mm/sparse-vmemmap.c
-@@ -34,7 +34,7 @@
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- 
--#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- /**
-  * struct vmemmap_remap_walk - walk vmemmap page table
-  *
-@@ -420,7 +420,7 @@ int vmemmap_remap_alloc(unsigned long st
- 
- 	return 0;
- }
--#endif /* CONFIG_HUGETLB_PAGE_FREE_VMEMMAP */
-+#endif /* CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP */
- 
- /*
-  * Allocate a block of memory to be used to back the virtual memory map
+ 	if (parent == root) {
+ 		memcg->memory.emin = READ_ONCE(memcg->memory.min);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-hugetlb_vmemmap-introduce-arch_want_hugetlb_page_free_vmemmap.patch
-arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64.patch
-mm-hugetlb_vmemmap-cleanup-hugetlb_vmemmap-related-functions.patch
-mm-hugetlb_vmemmap-cleanup-hugetlb_free_vmemmap_enabled.patch
-mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch
+mm-memcg-mz-already-removed-from-rb_tree-if-not-null.patch
+mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
+mm-memcg-set-pos-explicitly-for-reclaim-and-reclaim.patch
+mm-memcg-move-generation-assignment-and-comparison-together.patch
+mm-memcg-non-hierarchical-mode-is-deprecated.patch
+mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+mm-vmscan-reclaim-only-affects-managed_zones.patch
+mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone.patch
+mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2.patch
+mm-vmscan-sc-reclaim_idx-must-be-a-valid-zone-index.patch
 
