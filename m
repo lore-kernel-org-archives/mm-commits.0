@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3572C47082
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 21:39:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10206C47085
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 21:39:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237291AbiDDVlF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:41:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58406 "EHLO
+        id S1356762AbiDDVlG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:41:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379760AbiDDSB4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 14:01:56 -0400
+        with ESMTP id S1380483AbiDDUQw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 16:16:52 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFE1A26110
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 10:59:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C65F433EAD
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 13:14:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B9C34B818D7
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 17:59:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 689B8C2BBE4;
-        Mon,  4 Apr 2022 17:59:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7FA62B819AC
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 20:14:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36E37C2BBE4;
+        Mon,  4 Apr 2022 20:14:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649095197;
-        bh=5kDxjVpg478Eip2iqrxillyutNEcAu4yjJy2z0IjLjM=;
+        s=korg; t=1649103293;
+        bh=aT5CoZCM6N7Ni6QDgQIuuMRpTP/GXmVqu6MOYAh/x3Q=;
         h=Date:To:From:Subject:From;
-        b=elB6QK6ruUd7sIV73XIXHAMLUoO0R5uTcljXmnWdPZib8F1C55VV3sR4fX0HgPTUB
-         g5IL6kmwoLqkg24+Hdfk6AV+BC1UiCsKXltvNYELFnzat12YhYsS7lsbbic1294fbD
-         p3NNhmGH4DGjDPJyn4C7/U7H6sK13TlesTx6Z6ck=
-Date:   Mon, 04 Apr 2022 10:59:56 -0700
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        b=EMtF0+/5M2M6MP/zXmPNNXcN7gDD7Xo5keLLNYezPgD2ru++OE7SJ/+5zme9OMCBx
+         Qg4/CK6tozeym7VNbJgs3LpNf4wVVaAa9VVNiURlxvywkX6wMcTxP1UcNv3HrTNXtk
+         djG8cQ4Y8atv8agkoS8H/qmMBHpVa7LQ/5D8SXzo=
+Date:   Mon, 04 Apr 2022 13:14:52 -0700
+To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
+        xiyuyang19@fudan.edu.cn, willy@infradead.org,
+        viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
+        kirill.shutemov@linux.intel.com, jack@suse.cz, hughd@google.com,
+        hch@lst.de, duanxiongchun@bytedance.com, dan.j.williams@intel.com,
+        apopple@nvidia.com, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Message-Id: <20220404175957.689B8C2BBE4@smtp.kernel.org>
+Subject: + mm-pvmw-add-support-for-walking-devmap-pages.patch added to -mm tree
+Message-Id: <20220404201453.36E37C2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,65 +46,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm: pvmw: add support for walking devmap pages
+has been added to the -mm tree.  Its filename is
+     mm-pvmw-add-support-for-walking-devmap-pages.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-pvmw-add-support-for-walking-devmap-pages.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pvmw-add-support-for-walking-devmap-pages.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: pvmw: add support for walking devmap pages
 
+The devmap pages can not use page_vma_mapped_walk() to check if a huge
+devmap page is mapped into a vma.  Add support for walking huge devmap
+pages so that DAX can use it in the next patch.
+
+Link: https://lkml.kernel.org/r/20220403053957.10770-5-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/page_vma_mapped.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/Makefile~linux-next-git-rejects
-+++ a/Makefile
-@@ -443,10 +443,7 @@ else
- HOSTCC	= gcc
- HOSTCXX	= g++
- endif
--<<<<<<< HEAD
--=======
- HOSTRUSTC = rustc
-->>>>>>> linux-next/akpm-base
+--- a/mm/page_vma_mapped.c~mm-pvmw-add-support-for-walking-devmap-pages
++++ a/mm/page_vma_mapped.c
+@@ -210,16 +210,10 @@ restart:
+ 		 */
+ 		pmde = READ_ONCE(*pvmw->pmd);
  
- KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
- 			 -O2 -fomit-frame-pointer -std=gnu11 \
-@@ -454,8 +451,6 @@ KBUILD_USERHOSTCFLAGS := -Wall -Wmissing
- KBUILD_USERCFLAGS  := $(KBUILD_USERHOSTCFLAGS) $(USERCFLAGS)
- KBUILD_USERLDFLAGS := $(USERLDFLAGS)
+-		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
++		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde) ||
++		    (pmd_present(pmde) && pmd_devmap(pmde))) {
+ 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+ 			pmde = *pvmw->pmd;
+-			if (likely(pmd_trans_huge(pmde))) {
+-				if (pvmw->flags & PVMW_MIGRATION)
+-					return not_found(pvmw);
+-				if (!check_pmd(pmd_pfn(pmde), pvmw))
+-					return not_found(pvmw);
+-				return true;
+-			}
+ 			if (!pmd_present(pmde)) {
+ 				swp_entry_t entry;
  
--<<<<<<< HEAD
--=======
- # These flags apply to all Rust code in the tree, including the kernel and
- # host programs.
- export rust_common_flags := --edition=2021 \
-@@ -472,7 +467,6 @@ export rust_common_flags := --edition=20
- 			    -Dclippy::needless_continue \
- 			    -Wclippy::dbg_macro
- 
-->>>>>>> linux-next/akpm-base
- KBUILD_HOSTCFLAGS   := $(KBUILD_USERHOSTCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
- KBUILD_HOSTCXXFLAGS := -Wall -O2 $(HOST_LFS_CFLAGS) $(HOSTCXXFLAGS)
- KBUILD_HOSTRUSTFLAGS := $(rust_common_flags) -O -Cstrip=debuginfo \
+@@ -232,6 +226,13 @@ restart:
+ 					return not_found(pvmw);
+ 				return true;
+ 			}
++			if (likely(pmd_trans_huge(pmde) || pmd_devmap(pmde))) {
++				if (pvmw->flags & PVMW_MIGRATION)
++					return not_found(pvmw);
++				if (!check_pmd(pmd_pfn(pmde), pvmw))
++					return not_found(pvmw);
++				return true;
++			}
+ 			/* THP pmd was split under us: handle on pte level */
+ 			spin_unlock(pvmw->ptl);
+ 			pvmw->ptl = NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-list_lruc-revert-mm-list_lru-optimize-memcg_reparent_list_lru_node.patch
-mm.patch
-mm-create-new-mm-swaph-header-file-fix.patch
-mm-shmem-make-shmem_init-return-void-fix.patch
-ksm-count-ksm-merging-pages-for-each-process-fix.patch
-mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix.patch
-add-fat-messages-to-printk-index-checkpatch-fixes.patch
-linux-next-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+mm-hugetlb_vmemmap-introduce-arch_want_hugetlb_page_free_vmemmap.patch
+arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64.patch
+mm-hugetlb_vmemmap-cleanup-hugetlb_vmemmap-related-functions.patch
+mm-hugetlb_vmemmap-cleanup-hugetlb_free_vmemmap_enabled.patch
+mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch
+mm-rmap-fix-cache-flush-on-thp-pages.patch
+dax-fix-cache-flush-on-pmd-mapped-pages.patch
+mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
+mm-pvmw-add-support-for-walking-devmap-pages.patch
+dax-fix-missing-writeprotect-the-pte-entry.patch
+mm-simplify-follow_invalidate_pte.patch
 
