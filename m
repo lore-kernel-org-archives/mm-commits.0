@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15D25C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 22:26:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7C2C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Apr 2022 23:06:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233588AbiDDW2M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Apr 2022 18:28:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35150 "EHLO
+        id S241939AbiDDXIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Apr 2022 19:08:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45518 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346325AbiDDW1J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 18:27:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1562D326CC
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 14:50:47 -0700 (PDT)
+        with ESMTP id S237414AbiDDXIR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2022 19:08:17 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA4C454FBB
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 15:36:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A6712614B3
-        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 21:50:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B0ADC2BBE4;
-        Mon,  4 Apr 2022 21:50:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D614EB81A55
+        for <mm-commits@vger.kernel.org>; Mon,  4 Apr 2022 22:36:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66C2BC2BBE4;
+        Mon,  4 Apr 2022 22:36:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649109046;
-        bh=O9Yz85uC5e8r0zVPip4gvQ8nAh4c3Lc/TlzctT4QCtc=;
+        s=korg; t=1649111803;
+        bh=9qdg0wd30caYI+zOhjkoDLNqLXYHbw5VOqmUitp/sp0=;
         h=Date:To:From:Subject:From;
-        b=YfQdbR/EPfpA3zRrq/729PgNTzZawB6PhSrVWJPIwWhoj0tHEK+1kOizRtOcNaqv2
-         7F20iRXtO7BejvPyK0/mAnWmAV6HsDvkwtWk34nbmzmi+mQ36HL3aPQP7IUTCf+Zgd
-         pxeBnO43rI4A5yhILD8A1OSQlbkOOY2u0PDv2m/0=
-Date:   Mon, 04 Apr 2022 14:50:45 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        torvalds@linux-foundation.org, rppt@kernel.org,
-        rostedt@goodmis.org, osalvador@suse.de,
-        mgorman@techsingularity.net, david@redhat.com, ziy@nvidia.com,
+        b=K7WV+ajPHVFfbTQ/kmwtQudq9O71/52pm/gQkx5D5o7AVB+jnMk8rwptNgBXGd+wY
+         Tl2QYrttw1KCN26aGdHD8WsN1svrEkMeZrT7/Vsk7lc+5xPpx6UBOauVmxHE0iLMKy
+         ZTr233XrbkctZQRzZ6C7g6z6FhNuBamry1VZuZcA=
+Date:   Mon, 04 Apr 2022 15:36:42 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
+        tglx@linutronix.de, peterz@infradead.org, peterx@redhat.com,
+        npiggin@gmail.com, luto@kernel.org, dave.hansen@linux.intel.com,
+        andrew.cooper3@citrix.com, aarcange@redhat.com, namit@vmware.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page.patch added to -mm tree
-Message-Id: <20220404215046.0B0ADC2BBE4@smtp.kernel.org>
+Subject: + mm-avoid-unnecessary-flush-on-change_huge_pmd.patch added to -mm tree
+Message-Id: <20220404223643.66C2BC2BBE4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: simplify pageblock migratetype check in __free_one_page()
+     Subject: mm: avoid unnecessary flush on change_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page.patch
+     mm-avoid-unnecessary-flush-on-change_huge_pmd.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-unnecessary-flush-on-change_huge_pmd.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-unnecessary-flush-on-change_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,110 +65,146 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm: page_alloc: simplify pageblock migratetype check in __free_one_page()
+From: Nadav Amit <namit@vmware.com>
+Subject: mm: avoid unnecessary flush on change_huge_pmd()
 
-Move pageblock migratetype check code in the while loop to simplify the
-logic. It also saves redundant buddy page checking code.
+Calls to change_protection_range() on THP can trigger, at least on x86,
+two TLB flushes for one page: one immediately, when pmdp_invalidate() is
+called by change_huge_pmd(), and then another one later (that can be
+batched) when change_protection_range() finishes.
 
-Link: https://lkml.kernel.org/r/20220401230804.1658207-1-zi.yan@sent.com
-Link: https://lore.kernel.org/linux-mm/27ff69f9-60c5-9e59-feb2-295250077551@suse.cz/
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+The first TLB flush is only necessary to prevent the dirty bit (and with a
+lesser importance the access bit) from changing while the PTE is modified.
+However, this is not necessary as the x86 CPUs set the dirty-bit
+atomically with an additional check that the PTE is (still) present.  One
+caveat is Intel's Knights Landing that has a bug and does not do so.
+
+Leverage this behavior to eliminate the unnecessary TLB flush in
+change_huge_pmd().  Introduce a new arch specific pmdp_invalidate_ad()
+that only invalidates the access and dirty bit from further changes.
+
+Link: https://lkml.kernel.org/r/20220401180821.1986781-4-namit@vmware.com
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrew Cooper <andrew.cooper3@citrix.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Nick Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   46 +++++++++++++++++-----------------------------
- 1 file changed, 17 insertions(+), 29 deletions(-)
+ arch/x86/include/asm/pgtable.h |    5 +++++
+ arch/x86/mm/pgtable.c          |   10 ++++++++++
+ include/linux/pgtable.h        |   20 ++++++++++++++++++++
+ mm/huge_memory.c               |    4 ++--
+ mm/pgtable-generic.c           |    8 ++++++++
+ 5 files changed, 45 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page
-+++ a/mm/page_alloc.c
-@@ -1054,7 +1054,6 @@ static inline void __free_one_page(struc
- 		int migratetype, fpi_t fpi_flags)
- {
- 	struct capture_control *capc = task_capc(zone);
--	unsigned int max_order = pageblock_order;
- 	unsigned long buddy_pfn;
- 	unsigned long combined_pfn;
- 	struct page *buddy;
-@@ -1070,8 +1069,7 @@ static inline void __free_one_page(struc
- 	VM_BUG_ON_PAGE(pfn & ((1 << order) - 1), page);
- 	VM_BUG_ON_PAGE(bad_range(zone, page), page);
- 
--continue_merging:
--	while (order < max_order) {
-+	while (order < MAX_ORDER - 1) {
- 		if (compaction_capture(capc, page, order, migratetype)) {
- 			__mod_zone_freepage_state(zone, -(1 << order),
- 								migratetype);
-@@ -1082,6 +1080,22 @@ continue_merging:
- 
- 		if (!page_is_buddy(page, buddy, order))
- 			goto done_merging;
-+
-+		if (unlikely(order >= pageblock_order)) {
-+			/*
-+			 * We want to prevent merge between freepages on pageblock
-+			 * without fallbacks and normal pageblock. Without this,
-+			 * pageblock isolation could cause incorrect freepage or CMA
-+			 * accounting or HIGHATOMIC accounting.
-+			 */
-+			int buddy_mt = get_pageblock_migratetype(buddy);
-+
-+			if (migratetype != buddy_mt
-+					&& (!migratetype_is_mergeable(migratetype) ||
-+						!migratetype_is_mergeable(buddy_mt)))
-+				goto done_merging;
-+		}
-+
- 		/*
- 		 * Our buddy is free or it is CONFIG_DEBUG_PAGEALLOC guard page,
- 		 * merge with it and move up one order.
-@@ -1095,32 +1109,6 @@ continue_merging:
- 		pfn = combined_pfn;
- 		order++;
+--- a/arch/x86/include/asm/pgtable.h~mm-avoid-unnecessary-flush-on-change_huge_pmd
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1173,6 +1173,11 @@ static inline pmd_t pmdp_establish(struc
  	}
--	if (order < MAX_ORDER - 1) {
--		/* If we are here, it means order is >= pageblock_order.
--		 * We want to prevent merge between freepages on pageblock
--		 * without fallbacks and normal pageblock. Without this,
--		 * pageblock isolation could cause incorrect freepage or CMA
--		 * accounting or HIGHATOMIC accounting.
--		 *
--		 * We don't want to hit this code for the more frequent
--		 * low-order merging.
--		 */
--		int buddy_mt;
--
--		buddy_pfn = __find_buddy_pfn(pfn, order);
--		buddy = page + (buddy_pfn - pfn);
--
--		if (!page_is_buddy(page, buddy, order))
--			goto done_merging;
--		buddy_mt = get_pageblock_migratetype(buddy);
--
--		if (migratetype != buddy_mt
--				&& (!migratetype_is_mergeable(migratetype) ||
--					!migratetype_is_mergeable(buddy_mt)))
--			goto done_merging;
--		max_order = order + 1;
--		goto continue_merging;
--	}
+ }
+ #endif
++
++#define __HAVE_ARCH_PMDP_INVALIDATE_AD
++extern pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma,
++				unsigned long address, pmd_t *pmdp);
++
+ /*
+  * Page table pages are page-aligned.  The lower half of the top
+  * level is used for userspace and the top half for the kernel.
+--- a/arch/x86/mm/pgtable.c~mm-avoid-unnecessary-flush-on-change_huge_pmd
++++ a/arch/x86/mm/pgtable.c
+@@ -608,6 +608,16 @@ int pmdp_clear_flush_young(struct vm_are
  
- done_merging:
- 	set_buddy_order(page, order);
+ 	return young;
+ }
++
++pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma, unsigned long address,
++			 pmd_t *pmdp)
++{
++	/*
++	 * No flush is necessary. Once an invalid PTE is established, the PTE's
++	 * access and dirty bits cannot be updated.
++	 */
++	return pmdp_establish(vma, address, pmdp, pmd_mkinvalid(*pmdp));
++}
+ #endif
+ 
+ /**
+--- a/include/linux/pgtable.h~mm-avoid-unnecessary-flush-on-change_huge_pmd
++++ a/include/linux/pgtable.h
+@@ -570,6 +570,26 @@ extern pmd_t pmdp_invalidate(struct vm_a
+ 			    pmd_t *pmdp);
+ #endif
+ 
++#ifndef __HAVE_ARCH_PMDP_INVALIDATE_AD
++
++/*
++ * pmdp_invalidate_ad() invalidates the PMD while changing a transparent
++ * hugepage mapping in the page tables. This function is similar to
++ * pmdp_invalidate(), but should only be used if the access and dirty bits would
++ * not be cleared by the software in the new PMD value. The function ensures
++ * that hardware changes of the access and dirty bits updates would not be lost.
++ *
++ * Doing so can allow in certain architectures to avoid a TLB flush in most
++ * cases. Yet, another TLB flush might be necessary later if the PMD update
++ * itself requires such flush (e.g., if protection was set to be stricter). Yet,
++ * even when a TLB flush is needed because of the update, the caller may be able
++ * to batch these TLB flushing operations, so fewer TLB flush operations are
++ * needed.
++ */
++extern pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma,
++				unsigned long address, pmd_t *pmdp);
++#endif
++
+ #ifndef __HAVE_ARCH_PTE_SAME
+ static inline int pte_same(pte_t pte_a, pte_t pte_b)
+ {
+--- a/mm/huge_memory.c~mm-avoid-unnecessary-flush-on-change_huge_pmd
++++ a/mm/huge_memory.c
+@@ -1801,10 +1801,10 @@ int change_huge_pmd(struct mmu_gather *t
+ 	 * The race makes MADV_DONTNEED miss the huge pmd and don't clear it
+ 	 * which may break userspace.
+ 	 *
+-	 * pmdp_invalidate() is required to make sure we don't miss
++	 * pmdp_invalidate_ad() is required to make sure we don't miss
+ 	 * dirty/young flags set by hardware.
+ 	 */
+-	oldpmd = pmdp_invalidate(vma, addr, pmd);
++	oldpmd = pmdp_invalidate_ad(vma, addr, pmd);
+ 
+ 	entry = pmd_modify(oldpmd, newprot);
+ 	if (preserve_write)
+--- a/mm/pgtable-generic.c~mm-avoid-unnecessary-flush-on-change_huge_pmd
++++ a/mm/pgtable-generic.c
+@@ -201,6 +201,14 @@ pmd_t pmdp_invalidate(struct vm_area_str
+ }
+ #endif
+ 
++#ifndef __HAVE_ARCH_PMDP_INVALIDATE_AD
++pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma, unsigned long address,
++			 pmd_t *pmdp)
++{
++	return pmdp_invalidate(vma, address, pmdp);
++}
++#endif
++
+ #ifndef pmdp_collapse_flush
+ pmd_t pmdp_collapse_flush(struct vm_area_struct *vma, unsigned long address,
+ 			  pmd_t *pmdp)
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from namit@vmware.com are
 
-mm-migrate-use-thp_order-instead-of-hpage_pmd_order-for-new-page-allocation.patch
-mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page.patch
-mm-wrap-__find_buddy_pfn-with-a-necessary-buddy-page-validation.patch
+userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag.patch
+mm-mprotect-use-mmu_gather.patch
+mm-mprotect-do-not-flush-when-not-required-architecturally.patch
+mm-avoid-unnecessary-flush-on-change_huge_pmd.patch
 
