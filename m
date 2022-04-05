@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89DE1C4167B
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 01:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09BC0C46467
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 01:56:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1450713AbiDFB5L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Apr 2022 21:57:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41802 "EHLO
+        id S1455321AbiDFB5k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Apr 2022 21:57:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346576AbiDEUeI (ORCPT
+        with ESMTP id S1346257AbiDEUeI (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2022 16:34:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54122FD6E3
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:17:27 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54285FD6E6
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:17:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7E4C8B81FDF
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:17:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CA59C385A3;
-        Tue,  5 Apr 2022 20:17:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9665C61924
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:16:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB84AC385A3;
+        Tue,  5 Apr 2022 20:16:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649189825;
-        bh=MRToHUIq9y+drCh6lE2vrcW/Qo6Fe3cb0GmLjUt2xBQ=;
+        s=korg; t=1649189797;
+        bh=IwoXhqecGQBDz9y+blY6YHcd/IJ5d1qzCbg+XddOKrw=;
         h=Date:To:From:Subject:From;
-        b=yLiJclmZMFa0tBQhYM6rKVoIhAA+L0AHhFiX+wyRFP612woZHVed9FYhg6lTFVOrM
-         87hk6MrqIWtvUludF22ZBeTvjiIKu+Jj9uY9a7ekRBacDLTBNyan9wFAXVrojhlM6X
-         4UIUu78uLRLudUzGgLDQBkGD471o1620H71KnXiE=
-Date:   Tue, 05 Apr 2022 13:17:04 -0700
+        b=iEjg72CgR/1nEiPm+FjYND1B5W3+Ikkw0BJgfrdFv4TvfkuqG9uHm6dpalTgZOtja
+         Fm1RaWhuZVj8t7J8vlMAveigyqRWlsjfErUcPVraNnbt8faV6Sal/Cm/roLDYyipOX
+         9VkSPU5VSLKSM+sMnzj2zsb4SJsxbeloanqrBo6w=
+Date:   Tue, 05 Apr 2022 13:16:36 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rppt@linux.vnet.ibm.com, nadav.amit@gmail.com,
         mike.kravetz@oracle.com, kirill@shutemov.name, jglisse@redhat.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-handle-pte-markers-in-page-faults.patch added to -mm tree
-Message-Id: <20220405201705.3CA59C385A3@smtp.kernel.org>
+Subject: + mm-check-against-orig_pte-for-finish_fault.patch added to -mm tree
+Message-Id: <20220405201636.EB84AC385A3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: handle pte markers in page faults
+     Subject: mm: check against orig_pte for finish_fault()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-handle-pte-markers-in-page-faults.patch
+     mm-check-against-orig_pte-for-finish_fault.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-handle-pte-markers-in-page-faults.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-check-against-orig_pte-for-finish_fault.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-handle-pte-markers-in-page-faults.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-check-against-orig_pte-for-finish_fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,19 +67,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: handle pte markers in page faults
+Subject: mm: check against orig_pte for finish_fault()
 
-Allow hugetlb code to handle pte markers just like none ptes.  It's mostly
-there, we just need to make sure we don't assume hugetlb_no_page() only
-handles none pte, so when detecting pte change we should use pte_same()
-rather than pte_none().  We need to pass in the old_pte to do the
-comparison.
+We used to check against none pte in finish_fault(), with the assumption
+that the orig_pte is always none pte.
 
-Check the original pte to see whether it's a pte marker, if it is, we
-should recover uffd-wp bit on the new pte to be installed, so that the
-next write will be trapped by uffd.
+This change prepares us to be able to call do_fault() on !none ptes.  For
+example, we should allow that to happen for pte marker so that we can
+restore information out of the pte markers.
 
-Link: https://lkml.kernel.org/r/20220405014909.14761-1-peterx@redhat.com
+Let's change the "pte_none" check into detecting changes since we fetched
+orig_pte.  One trivial thing to take care of here is, when pmd==NULL for
+the pgtable we may not initialize orig_pte at all in handle_pte_fault().
+
+By default orig_pte will be all zeros however the problem is not all
+architectures are using all-zeros for a none pte.  pte_clear() will be the
+right thing to use here so that we'll always have a valid orig_pte value
+for the whole handle_pte_fault() call.
+
+Link: https://lkml.kernel.org/r/20220405014836.14077-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -95,57 +101,34 @@ Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/memory.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-handle-pte-markers-in-page-faults
-+++ a/mm/hugetlb.c
-@@ -5412,7 +5412,8 @@ static inline vm_fault_t hugetlb_handle_
- static vm_fault_t hugetlb_no_page(struct mm_struct *mm,
- 			struct vm_area_struct *vma,
- 			struct address_space *mapping, pgoff_t idx,
--			unsigned long address, pte_t *ptep, unsigned int flags)
-+			unsigned long address, pte_t *ptep,
-+			pte_t old_pte, unsigned int flags)
- {
- 	struct hstate *h = hstate_vma(vma);
- 	vm_fault_t ret = VM_FAULT_SIGBUS;
-@@ -5539,7 +5540,8 @@ retry:
- 
- 	ptl = huge_pte_lock(h, mm, ptep);
+--- a/mm/memory.c~mm-check-against-orig_pte-for-finish_fault
++++ a/mm/memory.c
+@@ -4237,7 +4237,7 @@ vm_fault_t finish_fault(struct vm_fault
+ 				      vmf->address, &vmf->ptl);
  	ret = 0;
--	if (!huge_pte_none(huge_ptep_get(ptep)))
-+	/* If pte changed from under us, retry */
-+	if (!pte_same(huge_ptep_get(ptep), old_pte))
- 		goto backout;
- 
- 	if (anon_rmap) {
-@@ -5549,6 +5551,12 @@ retry:
- 		page_dup_file_rmap(page, true);
- 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
- 				&& (vma->vm_flags & VM_SHARED)));
-+	/*
-+	 * If this pte was previously wr-protected, keep it wr-protected even
-+	 * if populated.
-+	 */
-+	if (unlikely(pte_marker_uffd_wp(old_pte)))
-+		new_pte = huge_pte_wrprotect(huge_pte_mkuffd_wp(new_pte));
- 	set_huge_pte_at(mm, haddr, ptep, new_pte);
- 
- 	hugetlb_count_add(pages_per_huge_page(h), mm);
-@@ -5666,8 +5674,10 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 	mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
- 	entry = huge_ptep_get(ptep);
--	if (huge_pte_none(entry)) {
--		ret = hugetlb_no_page(mm, vma, mapping, idx, address, ptep, flags);
-+	/* PTE markers should be handled the same way as none pte */
-+	if (huge_pte_none_mostly(entry)) {
-+		ret = hugetlb_no_page(mm, vma, mapping, idx, address, ptep,
-+				      entry, flags);
- 		goto out_mutex;
- 	}
- 
+ 	/* Re-check under ptl */
+-	if (likely(pte_none(*vmf->pte)))
++	if (likely(pte_same(*vmf->pte, vmf->orig_pte)))
+ 		do_set_pte(vmf, page, vmf->address);
+ 	else
+ 		ret = VM_FAULT_NOPAGE;
+@@ -4705,6 +4705,13 @@ static vm_fault_t handle_pte_fault(struc
+ 		 * concurrent faults and from rmap lookups.
+ 		 */
+ 		vmf->pte = NULL;
++		/*
++		 * Always initialize orig_pte.  This matches with below
++		 * code to have orig_pte to be the none pte if pte==NULL.
++		 * This makes the rest code to be always safe to reference
++		 * it, e.g. in finish_fault() we'll detect pte changes.
++		 */
++		pte_clear(vmf->vma->vm_mm, vmf->address, &vmf->orig_pte);
+ 	} else {
+ 		/*
+ 		 * If a huge pmd materialized under us just retry later.  Use
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
