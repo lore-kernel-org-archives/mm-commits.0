@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0239C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1218C433FE
 	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 01:56:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1845644AbiDFB6B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Apr 2022 21:58:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59480 "EHLO
+        id S1845649AbiDFB6D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Apr 2022 21:58:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346941AbiDEUeI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2022 16:34:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D0B3FD6EE
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:17:30 -0700 (PDT)
+        with ESMTP id S1359026AbiDEUgT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2022 16:36:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD9B9765B
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:18:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D4B8619BF
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:17:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4538C385A1;
-        Tue,  5 Apr 2022 20:17:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2D7236198A
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:16:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83C84C385A0;
+        Tue,  5 Apr 2022 20:16:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649189839;
-        bh=swoSdg3v5BA8Iw0OQv47T2Q/KKPOLMQ/RpxsXOBJuiY=;
+        s=korg; t=1649189801;
+        bh=Jms/RYe9H3viaVYyb50QJ+k6ZX3AtlXlyeqql7ykHJo=;
         h=Date:To:From:Subject:From;
-        b=kDB1xqgotj4HLkAgAUR2JHi8q63c6ygf53btq+WeGEtdZqMxiP4CBHvrtTwvlZCqm
-         pfLu8ADpB5VmXsGoRTBfxDzQBhhO6jM+Z/nWs2O9Gmz8Ta9nOoPZAF1CWKNP7cw8PF
-         2eb/5sJLRc5iMitZjy44ZtoV4YWh11HX6nrnCadU=
-Date:   Tue, 05 Apr 2022 13:17:18 -0700
+        b=C/to21E7djTfkZS4PEm44Eilof1pCPbx2VjLaBWzX1c/Ek3zdeqwJ91tJP+QJsbRT
+         ymSofbhrBGwrrpAgV225j/DPHksH2WgM7EzlPe2zn0Lu2R3k1c9DfpJt/tNG4g/3Hp
+         GdzZlZPU0igj98gaRBHNH6R2+/wCb97bGbLYqVeU=
+Date:   Tue, 05 Apr 2022 13:16:40 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rppt@linux.vnet.ibm.com, nadav.amit@gmail.com,
         mike.kravetz@oracle.com, kirill@shutemov.name, jglisse@redhat.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch added to -mm tree
-Message-Id: <20220405201718.E4538C385A1@smtp.kernel.org>
+Subject: + mm-shmem-take-care-of-uffdio_copy_mode_wp.patch added to -mm tree
+Message-Id: <20220405201641.83C84C385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/uffd: enable write protection for shmem & hugetlbfs
+     Subject: mm/shmem: take care of UFFDIO_COPY_MODE_WP
 has been added to the -mm tree.  Its filename is
-     mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
+     mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,17 +67,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/uffd: enable write protection for shmem & hugetlbfs
+Subject: mm/shmem: take care of UFFDIO_COPY_MODE_WP
 
-We've had all the necessary changes ready for both shmem and hugetlbfs. 
-Turn on all the shmem/hugetlbfs switches for userfaultfd-wp.
+Pass wp_copy into shmem_mfill_atomic_pte() through the stack, then apply
+the UFFD_WP bit properly when the UFFDIO_COPY on shmem is with
+UFFDIO_COPY_MODE_WP.  wp_copy lands mfill_atomic_install_pte() finally.
 
-We can expand UFFD_API_RANGE_IOCTLS_BASIC with _UFFDIO_WRITEPROTECT too
-because all existing types now support write protection mode.
+Note: we must do pte_wrprotect() if !writable in
+mfill_atomic_install_pte(), as mk_pte() could return a writable pte (e.g.,
+when VM_SHARED on a shmem file).
 
-Since vma_can_userfault() will be used elsewhere, move into userfaultfd_k.h.
-
-Link: https://lkml.kernel.org/r/20220405014926.15101-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220405014841.14185-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -93,146 +93,98 @@ Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |   21 +++------------------
- include/linux/userfaultfd_k.h    |   20 ++++++++++++++++++++
- include/uapi/linux/userfaultfd.h |   10 ++++++++--
- mm/userfaultfd.c                 |    9 +++------
- 4 files changed, 34 insertions(+), 26 deletions(-)
+ include/linux/shmem_fs.h |    4 ++--
+ mm/shmem.c               |    4 ++--
+ mm/userfaultfd.c         |   23 ++++++++++++++++++-----
+ 3 files changed, 22 insertions(+), 9 deletions(-)
 
---- a/fs/userfaultfd.c~mm-uffd-enable-write-protection-for-shmem-hugetlbfs
-+++ a/fs/userfaultfd.c
-@@ -1257,24 +1257,6 @@ static __always_inline int validate_rang
- 	return 0;
- }
+--- a/include/linux/shmem_fs.h~mm-shmem-take-care-of-uffdio_copy_mode_wp
++++ a/include/linux/shmem_fs.h
+@@ -145,11 +145,11 @@ extern int shmem_mfill_atomic_pte(struct
+ 				  struct vm_area_struct *dst_vma,
+ 				  unsigned long dst_addr,
+ 				  unsigned long src_addr,
+-				  bool zeropage,
++				  bool zeropage, bool wp_copy,
+ 				  struct page **pagep);
+ #else /* !CONFIG_SHMEM */
+ #define shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr, \
+-			       src_addr, zeropage, pagep)       ({ BUG(); 0; })
++			       src_addr, zeropage, wp_copy, pagep) ({ BUG(); 0; })
+ #endif /* CONFIG_SHMEM */
+ #endif /* CONFIG_USERFAULTFD */
  
--static inline bool vma_can_userfault(struct vm_area_struct *vma,
--				     unsigned long vm_flags)
--{
--	/* FIXME: add WP support to hugetlbfs and shmem */
--	if (vm_flags & VM_UFFD_WP) {
--		if (is_vm_hugetlb_page(vma) || vma_is_shmem(vma))
--			return false;
--	}
--
--	if (vm_flags & VM_UFFD_MINOR) {
--		if (!(is_vm_hugetlb_page(vma) || vma_is_shmem(vma)))
--			return false;
--	}
--
--	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma) ||
--	       vma_is_shmem(vma);
--}
--
- static int userfaultfd_register(struct userfaultfd_ctx *ctx,
- 				unsigned long arg)
+--- a/mm/shmem.c~mm-shmem-take-care-of-uffdio_copy_mode_wp
++++ a/mm/shmem.c
+@@ -2313,7 +2313,7 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 			   struct vm_area_struct *dst_vma,
+ 			   unsigned long dst_addr,
+ 			   unsigned long src_addr,
+-			   bool zeropage,
++			   bool zeropage, bool wp_copy,
+ 			   struct page **pagep)
  {
-@@ -1956,6 +1938,9 @@ static int userfaultfd_api(struct userfa
- #ifndef CONFIG_HAVE_ARCH_USERFAULTFD_WP
- 	uffdio_api.features &= ~UFFD_FEATURE_PAGEFAULT_FLAG_WP;
- #endif
-+#ifndef CONFIG_PTE_MARKER_UFFD_WP
-+	uffdio_api.features &= ~UFFD_FEATURE_WP_HUGETLBFS_SHMEM;
-+#endif
- 	uffdio_api.ioctls = UFFD_API_IOCTLS;
- 	ret = -EFAULT;
- 	if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
---- a/include/linux/userfaultfd_k.h~mm-uffd-enable-write-protection-for-shmem-hugetlbfs
-+++ a/include/linux/userfaultfd_k.h
-@@ -18,6 +18,7 @@
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <asm-generic/pgtable_uffd.h>
-+#include <linux/hugetlb_inline.h>
+ 	struct inode *inode = file_inode(dst_vma->vm_file);
+@@ -2386,7 +2386,7 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 		goto out_release;
  
- /* The set of all possible UFFD-related VM flags. */
- #define __VM_UFFD_FLAGS (VM_UFFD_MISSING | VM_UFFD_WP | VM_UFFD_MINOR)
-@@ -140,6 +141,25 @@ static inline bool userfaultfd_armed(str
- 	return vma->vm_flags & __VM_UFFD_FLAGS;
- }
+ 	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
+-				       page, true, false);
++				       page, true, wp_copy);
+ 	if (ret)
+ 		goto out_delete_from_cache;
  
-+static inline bool vma_can_userfault(struct vm_area_struct *vma,
-+				     unsigned long vm_flags)
-+{
-+	if (vm_flags & VM_UFFD_MINOR)
-+		return is_vm_hugetlb_page(vma) || vma_is_shmem(vma);
-+
-+#ifndef CONFIG_PTE_MARKER_UFFD_WP
-+	/*
-+	 * If user requested uffd-wp but not enabled pte markers for
-+	 * uffd-wp, then shmem & hugetlbfs are not supported but only
-+	 * anonymous.
-+	 */
-+	if ((vm_flags & VM_UFFD_WP) && !vma_is_anonymous(vma))
-+		return false;
-+#endif
-+	return vma_is_anonymous(vma) || is_vm_hugetlb_page(vma) ||
-+	    vma_is_shmem(vma);
-+}
-+
- extern int dup_userfaultfd(struct vm_area_struct *, struct list_head *);
- extern void dup_userfaultfd_complete(struct list_head *);
- 
---- a/include/uapi/linux/userfaultfd.h~mm-uffd-enable-write-protection-for-shmem-hugetlbfs
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -33,7 +33,8 @@
- 			   UFFD_FEATURE_THREAD_ID |		\
- 			   UFFD_FEATURE_MINOR_HUGETLBFS |	\
- 			   UFFD_FEATURE_MINOR_SHMEM |		\
--			   UFFD_FEATURE_EXACT_ADDRESS)
-+			   UFFD_FEATURE_EXACT_ADDRESS |		\
-+			   UFFD_FEATURE_WP_HUGETLBFS_SHMEM)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -47,7 +48,8 @@
- #define UFFD_API_RANGE_IOCTLS_BASIC		\
- 	((__u64)1 << _UFFDIO_WAKE |		\
- 	 (__u64)1 << _UFFDIO_COPY |		\
--	 (__u64)1 << _UFFDIO_CONTINUE)
-+	 (__u64)1 << _UFFDIO_CONTINUE |		\
-+	 (__u64)1 << _UFFDIO_WRITEPROTECT)
- 
- /*
-  * Valid ioctl command number range with this API is from 0x00 to
-@@ -194,6 +196,9 @@ struct uffdio_api {
- 	 * UFFD_FEATURE_EXACT_ADDRESS indicates that the exact address of page
- 	 * faults would be provided and the offset within the page would not be
- 	 * masked.
-+	 *
-+	 * UFFD_FEATURE_WP_HUGETLBFS_SHMEM indicates that userfaultfd
-+	 * write-protection mode is supported on both shmem and hugetlbfs.
- 	 */
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
-@@ -207,6 +212,7 @@ struct uffdio_api {
- #define UFFD_FEATURE_MINOR_HUGETLBFS		(1<<9)
- #define UFFD_FEATURE_MINOR_SHMEM		(1<<10)
- #define UFFD_FEATURE_EXACT_ADDRESS		(1<<11)
-+#define UFFD_FEATURE_WP_HUGETLBFS_SHMEM		(1<<12)
- 	__u64 features;
- 
- 	__u64 ioctls;
---- a/mm/userfaultfd.c~mm-uffd-enable-write-protection-for-shmem-hugetlbfs
+--- a/mm/userfaultfd.c~mm-shmem-take-care-of-uffdio_copy_mode_wp
 +++ a/mm/userfaultfd.c
-@@ -732,15 +732,12 @@ int mwriteprotect_range(struct mm_struct
- 
- 	err = -ENOENT;
- 	dst_vma = find_dst_vma(dst_mm, start, len);
--	/*
--	 * Make sure the vma is not shared, that the dst range is
--	 * both valid and fully within a single existing vma.
--	 */
--	if (!dst_vma || (dst_vma->vm_flags & VM_SHARED))
+@@ -78,10 +78,19 @@ int mfill_atomic_install_pte(struct mm_s
+ 	 * Always mark a PTE as write-protected when needed, regardless of
+ 	 * VM_WRITE, which the user might change.
+ 	 */
+-	if (wp_copy)
++	if (wp_copy) {
+ 		_dst_pte = pte_mkuffd_wp(_dst_pte);
+-	else if (writable)
++		writable = false;
++	}
 +
-+	if (!dst_vma)
- 		goto out_unlock;
- 	if (!userfaultfd_wp(dst_vma))
- 		goto out_unlock;
--	if (!vma_is_anonymous(dst_vma))
-+	if (!vma_can_userfault(dst_vma, dst_vma->vm_flags))
++	if (writable)
+ 		_dst_pte = pte_mkwrite(_dst_pte);
++	else
++		/*
++		 * We need this to make sure write bit removed; as mk_pte()
++		 * could return a pte with write bit set.
++		 */
++		_dst_pte = pte_wrprotect(_dst_pte);
+ 
+ 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
+ 
+@@ -96,7 +105,12 @@ int mfill_atomic_install_pte(struct mm_s
+ 	}
+ 
+ 	ret = -EEXIST;
+-	if (!pte_none(*dst_pte))
++	/*
++	 * We allow to overwrite a pte marker: consider when both MISSING|WP
++	 * registered, we firstly wr-protect a none pte which has no page cache
++	 * page backing it, then access the page.
++	 */
++	if (!pte_none_mostly(*dst_pte))
  		goto out_unlock;
  
- 	if (is_vm_hugetlb_page(dst_vma)) {
+ 	if (page_in_cache) {
+@@ -480,11 +494,10 @@ static __always_inline ssize_t mfill_ato
+ 			err = mfill_zeropage_pte(dst_mm, dst_pmd,
+ 						 dst_vma, dst_addr);
+ 	} else {
+-		VM_WARN_ON_ONCE(wp_copy);
+ 		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
+ 					     dst_addr, src_addr,
+ 					     mode != MCOPY_ATOMIC_NORMAL,
+-					     page);
++					     wp_copy, page);
+ 	}
+ 
+ 	return err;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
