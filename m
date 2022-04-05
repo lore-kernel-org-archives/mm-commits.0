@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 656DAC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 863EEC43217
 	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 01:56:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243873AbiDFB4b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Apr 2022 21:56:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41630 "EHLO
+        id S1379032AbiDFB4f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Apr 2022 21:56:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347341AbiDEUeK (ORCPT
+        with ESMTP id S1347343AbiDEUeK (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2022 16:34:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADEFBFDE19
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:17:34 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D58AFDE1C
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:17:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C238F61990
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:16:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D898C385A5;
-        Tue,  5 Apr 2022 20:16:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B1073B81FC9
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:17:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A6DFC385A3;
+        Tue,  5 Apr 2022 20:17:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649189804;
-        bh=SiBTvC7xrIw+VSNvajjz1h4YUC+E/Nz+CY8dU6jNdvQ=;
+        s=korg; t=1649189829;
+        bh=H6DOBh4q5MlXKQUv4+jzDbsvHgD2Gam1IBeiveTpLTE=;
         h=Date:To:From:Subject:From;
-        b=B0h5tIvZOeB5zWdRFL6DoOVX+EatFMBrv78xg1oepU0lhHgtIA8Yz3WD+PqL4DdyI
-         FOw8waQ6oWfHuTx0JiuUtERrA2NI3vV12aXV/hqbxsuugDb5rqoz/8ULfbh5aIkus5
-         BKTM/lNwZfT4IM6RVDQcvNNG6wULvK90S6RWcMGg=
-Date:   Tue, 05 Apr 2022 13:16:43 -0700
+        b=tQhU/ZQ1GBsI4Ginc72lSzCMgIUDIw6nMpvKyMfW3pKibiwR/XEhELcBfcJdweH0V
+         asMvAsYzpfi6tOyNUkyH4cycYlQobwIVsAZx8ay/9YCu6YGwdnip2Wp1gqo3Ixodfw
+         ligFPtVePALrLNoRAF5qUijJg05eW+Q5xdOtKiqs=
+Date:   Tue, 05 Apr 2022 13:17:08 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rppt@linux.vnet.ibm.com, nadav.amit@gmail.com,
         mike.kravetz@oracle.com, kirill@shutemov.name, jglisse@redhat.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch added to -mm tree
-Message-Id: <20220405201644.1D898C385A5@smtp.kernel.org>
+Subject: + mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch added to -mm tree
+Message-Id: <20220405201709.4A6DFC385A3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: handle uffd-wp special pte in page fault handler
+     Subject: mm/hugetlb: only drop uffd-wp special pte if required
 has been added to the -mm tree.  Its filename is
-     mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
+     mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,43 +67,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/shmem: handle uffd-wp special pte in page fault handler
+Subject: mm/hugetlb: only drop uffd-wp special pte if required
 
-File-backed memories are prone to unmap/swap so the ptes are always
-unstable, because they can be easily faulted back later using the page
-cache.  This could lead to uffd-wp getting lost when unmapping or swapping
-out such memory.  One example is shmem.  PTE markers are needed to store
-those information.
+As with shmem uffd-wp special ptes, only drop the uffd-wp special swap pte
+if unmapping an entire vma or synchronized such that faults can not race
+with the unmap operation.  This requires passing zap_flags all the way to
+the lowest level hugetlb unmap routine: __unmap_hugepage_range.
 
-This patch prepares it by handling uffd-wp pte markers first it is applied
-elsewhere, so that the page fault handler can recognize uffd-wp pte
-markers.
+In general, unmap calls originated in hugetlbfs code will pass the
+ZAP_FLAG_DROP_MARKER flag as synchronization is in place to prevent
+faults.  The exception is hole punch which will first unmap without any
+synchronization.  Later when hole punch actually removes the page from the
+file, it will check to see if there was a subsequent fault and if so take
+the hugetlb fault mutex while unmapping again.  This second unmap will
+pass in ZAP_FLAG_DROP_MARKER.
 
-The handling of uffd-wp pte markers is similar to missing fault, it's just
-that we'll handle this "missing fault" when we see the pte markers,
-meanwhile we need to make sure the marker information is kept during
-processing the fault.
+The justification of "whether to apply ZAP_FLAG_DROP_MARKER flag when
+unmap a hugetlb range" is (IMHO): we should never reach a state when a
+page fault could errornously fault in a page-cache page that was
+wr-protected to be writable, even in an extremely short period.  That
+could happen if e.g.  we pass ZAP_FLAG_DROP_MARKER when
+hugetlbfs_punch_hole() calls hugetlb_vmdelete_list(), because if a page
+faults after that call and before remove_inode_hugepages() is executed,
+the page cache can be mapped writable again in the small racy window, that
+can cause unexpected data overwritten.
 
-This is a slow path of uffd-wp handling, because zapping of wr-protected
-shmem ptes should be rare.  So far it should only trigger in two
-conditions:
-
-  (1) When trying to punch holes in shmem_fallocate(), there is an
-      optimization to zap the pgtables before evicting the page.
-
-  (2) When swapping out shmem pages.
-
-Because of this, the page fault handling is simplifed too by not sending
-the wr-protect message in the 1st page fault, instead the page will be
-installed read-only, so the uffd-wp message will be generated in the next
-fault, which will trigger the do_wp_page() path of general uffd-wp
-handling.
-
-Disable fault-around for all uffd-wp registered ranges for extra safety
-just like uffd-minor fault, and clean the code up.
-
-Link: https://lkml.kernel.org/r/20220405014844.14239-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220405014915.14873-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -112,162 +103,193 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |   17 ++++++++
- mm/memory.c                   |   67 +++++++++++++++++++++++++++-----
- 2 files changed, 75 insertions(+), 9 deletions(-)
+ fs/hugetlbfs/inode.c    |   15 +++++++++------
+ include/linux/hugetlb.h |    8 +++++---
+ mm/hugetlb.c            |   33 +++++++++++++++++++++++++--------
+ mm/memory.c             |    5 ++++-
+ 4 files changed, 43 insertions(+), 18 deletions(-)
 
---- a/include/linux/userfaultfd_k.h~mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler
-+++ a/include/linux/userfaultfd_k.h
-@@ -96,6 +96,18 @@ static inline bool uffd_disable_huge_pmd
- 	return vma->vm_flags & (VM_UFFD_WP | VM_UFFD_MINOR);
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required
++++ a/fs/hugetlbfs/inode.c
+@@ -404,7 +404,8 @@ static void remove_huge_page(struct page
  }
  
-+/*
-+ * Don't do fault around for either WP or MINOR registered uffd range.  For
-+ * MINOR registered range, fault around will be a total disaster and ptes can
-+ * be installed without notifications; for WP it should mostly be fine as long
-+ * as the fault around checks for pte_none() before the installation, however
-+ * to be super safe we just forbid it.
-+ */
-+static inline bool uffd_disable_fault_around(struct vm_area_struct *vma)
-+{
-+	return vma->vm_flags & (VM_UFFD_WP | VM_UFFD_MINOR);
-+}
-+
- static inline bool userfaultfd_missing(struct vm_area_struct *vma)
+ static void
+-hugetlb_vmdelete_list(struct rb_root_cached *root, pgoff_t start, pgoff_t end)
++hugetlb_vmdelete_list(struct rb_root_cached *root, pgoff_t start, pgoff_t end,
++		      unsigned long zap_flags)
  {
- 	return vma->vm_flags & VM_UFFD_MISSING;
-@@ -236,6 +248,11 @@ static inline void userfaultfd_unmap_com
- {
+ 	struct vm_area_struct *vma;
+ 
+@@ -438,7 +439,7 @@ hugetlb_vmdelete_list(struct rb_root_cac
+ 		}
+ 
+ 		unmap_hugepage_range(vma, vma->vm_start + v_offset, v_end,
+-									NULL);
++				     NULL, zap_flags);
+ 	}
  }
  
-+static inline bool uffd_disable_fault_around(struct vm_area_struct *vma)
-+{
-+	return false;
-+}
-+
- #endif /* CONFIG_USERFAULTFD */
+@@ -516,7 +517,8 @@ static void remove_inode_hugepages(struc
+ 				mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 				hugetlb_vmdelete_list(&mapping->i_mmap,
+ 					index * pages_per_huge_page(h),
+-					(index + 1) * pages_per_huge_page(h));
++					(index + 1) * pages_per_huge_page(h),
++					ZAP_FLAG_DROP_MARKER);
+ 				i_mmap_unlock_write(mapping);
+ 			}
  
- static inline bool pte_marker_entry_uffd_wp(swp_entry_t entry)
---- a/mm/memory.c~mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler
-+++ a/mm/memory.c
-@@ -3555,6 +3555,39 @@ static inline bool should_try_to_free_sw
- 		page_count(page) == 2;
+@@ -582,7 +584,8 @@ static void hugetlb_vmtruncate(struct in
+ 	i_mmap_lock_write(mapping);
+ 	i_size_write(inode, offset);
+ 	if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
+-		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0);
++		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0,
++				      ZAP_FLAG_DROP_MARKER);
+ 	i_mmap_unlock_write(mapping);
+ 	remove_inode_hugepages(inode, offset, LLONG_MAX);
  }
+@@ -615,8 +618,8 @@ static long hugetlbfs_punch_hole(struct
+ 		i_mmap_lock_write(mapping);
+ 		if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
+ 			hugetlb_vmdelete_list(&mapping->i_mmap,
+-						hole_start >> PAGE_SHIFT,
+-						hole_end  >> PAGE_SHIFT);
++					      hole_start >> PAGE_SHIFT,
++					      hole_end >> PAGE_SHIFT, 0);
+ 		i_mmap_unlock_write(mapping);
+ 		remove_inode_hugepages(inode, hole_start, hole_end);
+ 		inode_unlock(inode);
+--- a/include/linux/hugetlb.h~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required
++++ a/include/linux/hugetlb.h
+@@ -143,11 +143,12 @@ long follow_hugetlb_page(struct mm_struc
+ 			 unsigned long *, unsigned long *, long, unsigned int,
+ 			 int *);
+ void unmap_hugepage_range(struct vm_area_struct *,
+-			  unsigned long, unsigned long, struct page *);
++			  unsigned long, unsigned long, struct page *,
++			  unsigned long);
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma,
+ 			  unsigned long start, unsigned long end,
+-			  struct page *ref_page);
++			  struct page *ref_page, unsigned long zap_flags);
+ void hugetlb_report_meminfo(struct seq_file *);
+ int hugetlb_report_node_meminfo(char *buf, int len, int nid);
+ void hugetlb_show_meminfo(void);
+@@ -406,7 +407,8 @@ static inline unsigned long hugetlb_chan
  
-+static vm_fault_t pte_marker_clear(struct vm_fault *vmf)
-+{
-+	vmf->pte = pte_offset_map_lock(vmf->vma->vm_mm, vmf->pmd,
-+				       vmf->address, &vmf->ptl);
-+	/*
-+	 * Be careful so that we will only recover a special uffd-wp pte into a
-+	 * none pte.  Otherwise it means the pte could have changed, so retry.
-+	 */
-+	if (is_pte_marker(*vmf->pte))
-+		pte_clear(vmf->vma->vm_mm, vmf->address, vmf->pte);
-+	pte_unmap_unlock(vmf->pte, vmf->ptl);
-+	return 0;
-+}
-+
-+/*
-+ * This is actually a page-missing access, but with uffd-wp special pte
-+ * installed.  It means this pte was wr-protected before being unmapped.
-+ */
-+static vm_fault_t pte_marker_handle_uffd_wp(struct vm_fault *vmf)
-+{
-+	/*
-+	 * Just in case there're leftover special ptes even after the region
-+	 * got unregistered - we can simply clear them.  We can also do that
-+	 * proactively when e.g. when we do UFFDIO_UNREGISTER upon some uffd-wp
-+	 * ranges, but it should be more efficient to be done lazily here.
-+	 */
-+	if (unlikely(!userfaultfd_wp(vmf->vma) || vma_is_anonymous(vmf->vma)))
-+		return pte_marker_clear(vmf);
-+
-+	/* do_fault() can handle pte markers too like none pte */
-+	return do_fault(vmf);
-+}
-+
- static vm_fault_t handle_pte_marker(struct vm_fault *vmf)
+ static inline void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+ 			struct vm_area_struct *vma, unsigned long start,
+-			unsigned long end, struct page *ref_page)
++			unsigned long end, struct page *ref_page,
++			unsigned long zap_flags)
  {
- 	swp_entry_t entry = pte_to_swp_entry(vmf->orig_pte);
-@@ -3568,8 +3601,11 @@ static vm_fault_t handle_pte_marker(stru
- 	if (WARN_ON_ONCE(vma_is_anonymous(vmf->vma) || !marker))
- 		return VM_FAULT_SIGBUS;
- 
--	/* TODO: handle pte markers */
--	return 0;
-+	if (pte_marker_entry_uffd_wp(entry))
-+		return pte_marker_handle_uffd_wp(vmf);
-+
-+	/* This is an unknown pte marker */
-+	return VM_FAULT_SIGBUS;
+ 	BUG();
  }
+--- a/mm/hugetlb.c~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required
++++ a/mm/hugetlb.c
+@@ -4947,7 +4947,7 @@ int move_hugetlb_page_tables(struct vm_a
  
- /*
-@@ -4153,6 +4189,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- void do_set_pte(struct vm_fault *vmf, struct page *page, unsigned long addr)
+ static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 				   unsigned long start, unsigned long end,
+-				   struct page *ref_page)
++				   struct page *ref_page, unsigned long zap_flags)
  {
- 	struct vm_area_struct *vma = vmf->vma;
-+	bool uffd_wp = pte_marker_uffd_wp(vmf->orig_pte);
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	bool prefault = vmf->address != addr;
- 	pte_t entry;
-@@ -4167,6 +4204,8 @@ void do_set_pte(struct vm_fault *vmf, st
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long address;
+@@ -5003,7 +5003,18 @@ static void __unmap_hugepage_range(struc
+ 		 * unmapped and its refcount is dropped, so just clear pte here.
+ 		 */
+ 		if (unlikely(!pte_present(pte))) {
+-			huge_pte_clear(mm, address, ptep, sz);
++			/*
++			 * If the pte was wr-protected by uffd-wp in any of the
++			 * swap forms, meanwhile the caller does not want to
++			 * drop the uffd-wp bit in this zap, then replace the
++			 * pte with a marker.
++			 */
++			if (pte_swp_uffd_wp_any(pte) &&
++			    !(zap_flags & ZAP_FLAG_DROP_MARKER))
++				set_huge_pte_at(mm, address, ptep,
++						make_pte_marker(PTE_MARKER_UFFD_WP));
++			else
++				huge_pte_clear(mm, address, ptep, sz);
+ 			spin_unlock(ptl);
+ 			continue;
+ 		}
+@@ -5031,7 +5042,11 @@ static void __unmap_hugepage_range(struc
+ 		tlb_remove_huge_tlb_entry(h, tlb, ptep, address);
+ 		if (huge_pte_dirty(pte))
+ 			set_page_dirty(page);
+-
++		/* Leave a uffd-wp pte marker if needed */
++		if (huge_pte_uffd_wp(pte) &&
++		    !(zap_flags & ZAP_FLAG_DROP_MARKER))
++			set_huge_pte_at(mm, address, ptep,
++					make_pte_marker(PTE_MARKER_UFFD_WP));
+ 		hugetlb_count_sub(pages_per_huge_page(h), mm);
+ 		page_remove_rmap(page, vma, true);
  
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-+	if (unlikely(uffd_wp))
-+		entry = pte_mkuffd_wp(pte_wrprotect(entry));
- 	/* copy-on-write page */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
- 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
-@@ -4340,9 +4379,21 @@ static vm_fault_t do_fault_around(struct
- 	return vmf->vma->vm_ops->map_pages(vmf, start_pgoff, end_pgoff);
- }
+@@ -5065,9 +5080,10 @@ static void __unmap_hugepage_range(struc
  
-+/* Return true if we should do read fault-around, false otherwise */
-+static inline bool should_fault_around(struct vm_fault *vmf)
-+{
-+	/* No ->map_pages?  No way to fault around... */
-+	if (!vmf->vma->vm_ops->map_pages)
-+		return false;
-+
-+	if (uffd_disable_fault_around(vmf->vma))
-+		return false;
-+
-+	return fault_around_bytes >> PAGE_SHIFT > 1;
-+}
-+
- static vm_fault_t do_read_fault(struct vm_fault *vmf)
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma, unsigned long start,
+-			  unsigned long end, struct page *ref_page)
++			  unsigned long end, struct page *ref_page,
++			  unsigned long zap_flags)
  {
--	struct vm_area_struct *vma = vmf->vma;
- 	vm_fault_t ret = 0;
+-	__unmap_hugepage_range(tlb, vma, start, end, ref_page);
++	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
  
  	/*
-@@ -4350,12 +4401,10 @@ static vm_fault_t do_read_fault(struct v
- 	 * if page by the offset is not ready to be mapped (cold cache or
- 	 * something).
- 	 */
--	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
--		if (likely(!userfaultfd_minor(vmf->vma))) {
--			ret = do_fault_around(vmf);
--			if (ret)
--				return ret;
--		}
-+	if (should_fault_around(vmf)) {
-+		ret = do_fault_around(vmf);
-+		if (ret)
-+			return ret;
- 	}
+ 	 * Clear this flag so that x86's huge_pmd_share page_table_shareable
+@@ -5083,12 +5099,13 @@ void __unmap_hugepage_range_final(struct
+ }
  
- 	ret = __do_fault(vmf);
+ void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+-			  unsigned long end, struct page *ref_page)
++			  unsigned long end, struct page *ref_page,
++			  unsigned long zap_flags)
+ {
+ 	struct mmu_gather tlb;
+ 
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
+-	__unmap_hugepage_range(&tlb, vma, start, end, ref_page);
++	__unmap_hugepage_range(&tlb, vma, start, end, ref_page, zap_flags);
+ 	tlb_finish_mmu(&tlb);
+ }
+ 
+@@ -5143,7 +5160,7 @@ static void unmap_ref_private(struct mm_
+ 		 */
+ 		if (!is_vma_resv_set(iter_vma, HPAGE_RESV_OWNER))
+ 			unmap_hugepage_range(iter_vma, address,
+-					     address + huge_page_size(h), page);
++					     address + huge_page_size(h), page, 0);
+ 	}
+ 	i_mmap_unlock_write(mapping);
+ }
+--- a/mm/memory.c~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required
++++ a/mm/memory.c
+@@ -1675,8 +1675,11 @@ static void unmap_single_vma(struct mmu_
+ 			 * safe to do nothing in this case.
+ 			 */
+ 			if (vma->vm_file) {
++				unsigned long zap_flags = details ?
++				    details->zap_flags : 0;
+ 				i_mmap_lock_write(vma->vm_file->f_mapping);
+-				__unmap_hugepage_range_final(tlb, vma, start, end, NULL);
++				__unmap_hugepage_range_final(tlb, vma, start, end,
++							     NULL, zap_flags);
+ 				i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 			}
+ 		} else
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
