@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C9D7C4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0B83C4167E
 	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 01:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1392393AbiDFB5G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Apr 2022 21:57:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54128 "EHLO
+        id S1452097AbiDFB5U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Apr 2022 21:57:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242102AbiDEUch (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2022 16:32:37 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14D85F70C6
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:17:03 -0700 (PDT)
+        with ESMTP id S1380215AbiDEUkv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2022 16:40:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E97756C4A9
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:20:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7B9A8B81FC9
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:16:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34ACBC385A0;
-        Tue,  5 Apr 2022 20:16:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0EC65619A5
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:17:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68EAEC385A0;
+        Tue,  5 Apr 2022 20:17:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649189793;
-        bh=z1aA1K9GEL5/BRaAI0h0joETiySCEicVTDWXtGfwbtw=;
+        s=korg; t=1649189822;
+        bh=HV6+PSu3Bw/VOAIjErNjf3pc9y/U60NUMC/PgEq+MvI=;
         h=Date:To:From:Subject:From;
-        b=EoKzvsxpYGUjQ9DvdeNdW6JftZpjE9cwLhNcP/wz7s1DccWhWBZPHB7hSFZBH0MFB
-         RoEVlgQZX0Rip84itt2x6+GKezWxtnPlLwXdeLB735tMdNLZSLBM6UUPW0D+BryLlw
-         HFjz/JQxWfOSlBs6Soe2sskKuCan1pf/pkfZQd48=
-Date:   Tue, 05 Apr 2022 13:16:32 -0700
+        b=rsVZm9TSihNX8AuL6/4prYRVGTf8/zqRyOkgO5IlQOvyQJe5QeKJrgJvdWk9p0CVl
+         b1od4cP2sFSXgQMu4eO3J/CjwWMkcNwNF2FCcIV8n0xh2TKQ2Q4yAZQf5BpwuMi43u
+         o+yMtVRosG0lb2n9lRtH9DV515/HvcDTjwaTvlpo=
+Date:   Tue, 05 Apr 2022 13:17:01 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rppt@linux.vnet.ibm.com, nadav.amit@gmail.com,
         mike.kravetz@oracle.com, kirill@shutemov.name, jglisse@redhat.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-teach-core-mm-about-pte-markers.patch added to -mm tree
-Message-Id: <20220405201633.34ACBC385A0@smtp.kernel.org>
+Subject: + mm-hugetlb-handle-uffdio_writeprotect.patch added to -mm tree
+Message-Id: <20220405201702.68EAEC385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: teach core mm about pte markers
+     Subject: mm/hugetlb: handle UFFDIO_WRITEPROTECT
 has been added to the -mm tree.  Its filename is
-     mm-teach-core-mm-about-pte-markers.patch
+     mm-hugetlb-handle-uffdio_writeprotect.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-teach-core-mm-about-pte-markers.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-handle-uffdio_writeprotect.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-teach-core-mm-about-pte-markers.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-handle-uffdio_writeprotect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,20 +67,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: teach core mm about pte markers
+Subject: mm/hugetlb: handle UFFDIO_WRITEPROTECT
 
-This patch still does not use pte marker in any way, however it teaches
-the core mm about the pte marker idea.
+This starts from passing cp_flags into hugetlb_change_protection() so
+hugetlb will be able to handle MM_CP_UFFD_WP[_RESOLVE] requests.
 
-For example, handle_pte_marker() is introduced that will parse and handle
-all the pte marker faults.
+huge_pte_clear_uffd_wp() is introduced to handle the case where the
+UFFDIO_WRITEPROTECT is requested upon migrating huge page entries.
 
-Many of the places are more about commenting it up - so that we know
-there's the possibility of pte marker showing up, and why we don't need
-special code for the cases.
-
-Link: https://lkml.kernel.org/r/20220405014833.14015-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220405014906.14708-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -89,170 +86,118 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   10 ++++++----
- mm/filemap.c     |    5 +++++
- mm/hmm.c         |    2 +-
- mm/memcontrol.c  |    8 ++++++--
- mm/memory.c      |   23 +++++++++++++++++++++++
- mm/mincore.c     |    3 ++-
- mm/mprotect.c    |    3 +++
- 7 files changed, 46 insertions(+), 8 deletions(-)
+ include/linux/hugetlb.h |    6 ++++--
+ mm/hugetlb.c            |   13 ++++++++++++-
+ mm/mprotect.c           |    3 ++-
+ mm/userfaultfd.c        |    8 ++++++++
+ 4 files changed, 26 insertions(+), 4 deletions(-)
 
---- a/fs/userfaultfd.c~mm-teach-core-mm-about-pte-markers
-+++ a/fs/userfaultfd.c
-@@ -249,9 +249,10 @@ static inline bool userfaultfd_huge_must
+--- a/include/linux/hugetlb.h~mm-hugetlb-handle-uffdio_writeprotect
++++ a/include/linux/hugetlb.h
+@@ -211,7 +211,8 @@ struct page *follow_huge_pgd(struct mm_s
+ int pmd_huge(pmd_t pmd);
+ int pud_huge(pud_t pud);
+ unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
+-		unsigned long address, unsigned long end, pgprot_t newprot);
++		unsigned long address, unsigned long end, pgprot_t newprot,
++		unsigned long cp_flags);
  
- 	/*
- 	 * Lockless access: we're in a wait_event so it's ok if it
--	 * changes under us.
-+	 * changes under us.  PTE markers should be handled the same as none
-+	 * ptes here.
- 	 */
--	if (huge_pte_none(pte))
-+	if (huge_pte_none_mostly(pte))
- 		ret = true;
- 	if (!huge_pte_write(pte) && (reason & VM_UFFD_WP))
- 		ret = true;
-@@ -330,9 +331,10 @@ static inline bool userfaultfd_must_wait
- 	pte = pte_offset_map(pmd, address);
- 	/*
- 	 * Lockless access: we're in a wait_event so it's ok if it
--	 * changes under us.
-+	 * changes under us.  PTE markers should be handled the same as none
-+	 * ptes here.
- 	 */
--	if (pte_none(*pte))
-+	if (pte_none_mostly(*pte))
- 		ret = true;
- 	if (!pte_write(*pte) && (reason & VM_UFFD_WP))
- 		ret = true;
---- a/mm/filemap.c~mm-teach-core-mm-about-pte-markers
-+++ a/mm/filemap.c
-@@ -3382,6 +3382,11 @@ again:
- 		vmf->pte += xas.xa_index - last_pgoff;
- 		last_pgoff = xas.xa_index;
+ bool is_hugetlb_entry_migration(pte_t pte);
+ void hugetlb_unshare_all_pmds(struct vm_area_struct *vma);
+@@ -397,7 +398,8 @@ static inline void move_hugetlb_state(st
  
-+		/*
-+		 * NOTE: If there're PTE markers, we'll leave them to be
-+		 * handled in the specific fault path, and it'll prohibit the
-+		 * fault-around logic.
-+		 */
- 		if (!pte_none(*vmf->pte))
- 			goto unlock;
- 
---- a/mm/hmm.c~mm-teach-core-mm-about-pte-markers
-+++ a/mm/hmm.c
-@@ -239,7 +239,7 @@ static int hmm_vma_handle_pte(struct mm_
- 	pte_t pte = *ptep;
- 	uint64_t pfn_req_flags = *hmm_pfn;
- 
--	if (pte_none(pte)) {
-+	if (pte_none_mostly(pte)) {
- 		required_fault =
- 			hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0);
- 		if (required_fault)
---- a/mm/memcontrol.c~mm-teach-core-mm-about-pte-markers
-+++ a/mm/memcontrol.c
-@@ -5644,10 +5644,14 @@ static enum mc_target_type get_mctgt_typ
- 
- 	if (pte_present(ptent))
- 		page = mc_handle_present_pte(vma, addr, ptent);
-+	else if (pte_none_mostly(ptent))
-+		/*
-+		 * PTE markers should be treated as a none pte here, separated
-+		 * from other swap handling below.
-+		 */
-+		page = mc_handle_file_pte(vma, addr, ptent);
- 	else if (is_swap_pte(ptent))
- 		page = mc_handle_swap_pte(vma, ptent, &ent);
--	else if (pte_none(ptent))
--		page = mc_handle_file_pte(vma, addr, ptent);
- 
- 	if (!page && !ent.val)
- 		return ret;
---- a/mm/memory.c~mm-teach-core-mm-about-pte-markers
-+++ a/mm/memory.c
-@@ -100,6 +100,8 @@ struct page *mem_map;
- EXPORT_SYMBOL(mem_map);
- #endif
- 
-+static vm_fault_t do_fault(struct vm_fault *vmf);
-+
- /*
-  * A number of key systems in x86 including ioremap() rely on the assumption
-  * that high_memory defines the upper bound on direct map memory, then end
-@@ -1415,6 +1417,8 @@ again:
- 			if (!should_zap_page(details, page))
- 				continue;
- 			rss[mm_counter(page)]--;
-+		} else if (is_pte_marker_entry(entry)) {
-+			/* By default, simply drop all pte markers when zap */
- 		} else if (is_hwpoison_entry(entry)) {
- 			if (!should_zap_cows(details))
- 				continue;
-@@ -3551,6 +3555,23 @@ static inline bool should_try_to_free_sw
- 		page_count(page) == 2;
+ static inline unsigned long hugetlb_change_protection(
+ 			struct vm_area_struct *vma, unsigned long address,
+-			unsigned long end, pgprot_t newprot)
++			unsigned long end, pgprot_t newprot,
++			unsigned long cp_flags)
+ {
+ 	return 0;
+ }
+--- a/mm/hugetlb.c~mm-hugetlb-handle-uffdio_writeprotect
++++ a/mm/hugetlb.c
+@@ -6207,7 +6207,8 @@ long follow_hugetlb_page(struct mm_struc
  }
  
-+static vm_fault_t handle_pte_marker(struct vm_fault *vmf)
-+{
-+	swp_entry_t entry = pte_to_swp_entry(vmf->orig_pte);
-+	unsigned long marker = pte_marker_get(entry);
-+
-+	/*
-+	 * PTE markers should always be with file-backed memories, and the
-+	 * marker should never be empty.  If anything weird happened, the best
-+	 * thing to do is to kill the process along with its mm.
-+	 */
-+	if (WARN_ON_ONCE(vma_is_anonymous(vmf->vma) || !marker))
-+		return VM_FAULT_SIGBUS;
-+
-+	/* TODO: handle pte markers */
-+	return 0;
-+}
-+
- /*
-  * We enter with non-exclusive mmap_lock (to exclude vma changes,
-  * but allow concurrent faults), and pte mapped but not yet locked.
-@@ -3588,6 +3609,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 			ret = vmf->page->pgmap->ops->migrate_to_ram(vmf);
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
-+		} else if (is_pte_marker_entry(entry)) {
-+			ret = handle_pte_marker(vmf);
- 		} else {
- 			print_bad_pte(vma, vmf->address, vmf->orig_pte, NULL);
- 			ret = VM_FAULT_SIGBUS;
---- a/mm/mincore.c~mm-teach-core-mm-about-pte-markers
-+++ a/mm/mincore.c
-@@ -122,7 +122,8 @@ static int mincore_pte_range(pmd_t *pmd,
- 	for (; addr != end; ptep++, addr += PAGE_SIZE) {
- 		pte_t pte = *ptep;
+ unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
+-		unsigned long address, unsigned long end, pgprot_t newprot)
++		unsigned long address, unsigned long end,
++		pgprot_t newprot, unsigned long cp_flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long start = address;
+@@ -6217,6 +6218,8 @@ unsigned long hugetlb_change_protection(
+ 	unsigned long pages = 0;
+ 	bool shared_pmd = false;
+ 	struct mmu_notifier_range range;
++	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
++	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
  
--		if (pte_none(pte))
-+		/* We need to do cache lookup too for pte markers */
-+		if (pte_none_mostly(pte))
- 			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
- 						 vma, vec);
- 		else if (pte_present(pte))
---- a/mm/mprotect.c~mm-teach-core-mm-about-pte-markers
+ 	/*
+ 	 * In the case of shared PMDs, the area to flush could be beyond
+@@ -6263,6 +6266,10 @@ unsigned long hugetlb_change_protection(
+ 					entry = make_readable_migration_entry(
+ 								swp_offset(entry));
+ 				newpte = swp_entry_to_pte(entry);
++				if (uffd_wp)
++					newpte = pte_swp_mkuffd_wp(newpte);
++				else if (uffd_wp_resolve)
++					newpte = pte_swp_clear_uffd_wp(newpte);
+ 				set_huge_swap_pte_at(mm, address, ptep,
+ 						     newpte, huge_page_size(h));
+ 				pages++;
+@@ -6277,6 +6284,10 @@ unsigned long hugetlb_change_protection(
+ 			old_pte = huge_ptep_modify_prot_start(vma, address, ptep);
+ 			pte = huge_pte_modify(old_pte, newprot);
+ 			pte = arch_make_huge_pte(pte, shift, vma->vm_flags);
++			if (uffd_wp)
++				pte = huge_pte_mkuffd_wp(huge_pte_wrprotect(pte));
++			else if (uffd_wp_resolve)
++				pte = huge_pte_clear_uffd_wp(pte);
+ 			huge_ptep_modify_prot_commit(vma, address, ptep, old_pte, pte);
+ 			pages++;
+ 		}
+--- a/mm/mprotect.c~mm-hugetlb-handle-uffdio_writeprotect
 +++ a/mm/mprotect.c
-@@ -193,6 +193,9 @@ static unsigned long change_pte_range(st
- 					newpte = pte_swp_mksoft_dirty(newpte);
- 				if (pte_swp_uffd_wp(oldpte))
- 					newpte = pte_swp_mkuffd_wp(newpte);
-+			} else if (is_pte_marker_entry(entry)) {
-+				/* Skip it, the same as none pte */
-+				continue;
- 			} else {
- 				newpte = oldpte;
- 			}
+@@ -460,7 +460,8 @@ unsigned long change_protection(struct m
+ 	BUG_ON((cp_flags & MM_CP_UFFD_WP_ALL) == MM_CP_UFFD_WP_ALL);
+ 
+ 	if (is_vm_hugetlb_page(vma))
+-		pages = hugetlb_change_protection(vma, start, end, newprot);
++		pages = hugetlb_change_protection(vma, start, end, newprot,
++						  cp_flags);
+ 	else
+ 		pages = change_protection_range(tlb, vma, start, end, newprot,
+ 						cp_flags);
+--- a/mm/userfaultfd.c~mm-hugetlb-handle-uffdio_writeprotect
++++ a/mm/userfaultfd.c
+@@ -705,6 +705,7 @@ int mwriteprotect_range(struct mm_struct
+ 			atomic_t *mmap_changing)
+ {
+ 	struct vm_area_struct *dst_vma;
++	unsigned long page_mask;
+ 	struct mmu_gather tlb;
+ 	pgprot_t newprot;
+ 	int err;
+@@ -742,6 +743,13 @@ int mwriteprotect_range(struct mm_struct
+ 	if (!vma_is_anonymous(dst_vma))
+ 		goto out_unlock;
+ 
++	if (is_vm_hugetlb_page(dst_vma)) {
++		err = -EINVAL;
++		page_mask = vma_kernel_pagesize(dst_vma) - 1;
++		if ((start & page_mask) || (len & page_mask))
++			goto out_unlock;
++	}
++
+ 	if (enable_wp)
+ 		newprot = vm_get_page_prot(dst_vma->vm_flags & ~(VM_WRITE));
+ 	else
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
