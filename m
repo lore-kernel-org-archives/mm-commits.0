@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1218C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0891C43217
 	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 01:56:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1845649AbiDFB6D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Apr 2022 21:58:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34134 "EHLO
+        id S1845651AbiDFB6F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Apr 2022 21:58:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359026AbiDEUgT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2022 16:36:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD9B9765B
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:18:50 -0700 (PDT)
+        with ESMTP id S1347128AbiDEUeJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2022 16:34:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 846AEF9FB2
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 13:17:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2D7236198A
-        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:16:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83C84C385A0;
-        Tue,  5 Apr 2022 20:16:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2A2926199C
+        for <mm-commits@vger.kernel.org>; Tue,  5 Apr 2022 20:17:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E6C8C385A1;
+        Tue,  5 Apr 2022 20:17:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649189801;
-        bh=Jms/RYe9H3viaVYyb50QJ+k6ZX3AtlXlyeqql7ykHJo=;
+        s=korg; t=1649189843;
+        bh=YEFA/qFAlmkSwK7VRtwx5tumZXX6bVY1cO3Y1N845lQ=;
         h=Date:To:From:Subject:From;
-        b=C/to21E7djTfkZS4PEm44Eilof1pCPbx2VjLaBWzX1c/Ek3zdeqwJ91tJP+QJsbRT
-         ymSofbhrBGwrrpAgV225j/DPHksH2WgM7EzlPe2zn0Lu2R3k1c9DfpJt/tNG4g/3Hp
-         GdzZlZPU0igj98gaRBHNH6R2+/wCb97bGbLYqVeU=
-Date:   Tue, 05 Apr 2022 13:16:40 -0700
+        b=mtuuTbVoukcqAfMR7jKNdYAyISfJChGr3sdxIfYP+sn/R4iHZvG4mZAXAh1xsWu01
+         0pUmvddfuAAJuUjqEEP8mN9DLydpsbdIAOrFhRao3dI8m0Yi9oAdrZUNEL905ZaCal
+         lmOsBsm8/37O6nOxD/rU58QaUtaTIs4gGbs1t1mU=
+Date:   Tue, 05 Apr 2022 13:17:22 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rppt@linux.vnet.ibm.com, nadav.amit@gmail.com,
         mike.kravetz@oracle.com, kirill@shutemov.name, jglisse@redhat.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-take-care-of-uffdio_copy_mode_wp.patch added to -mm tree
-Message-Id: <20220405201641.83C84C385A0@smtp.kernel.org>
+Subject: + selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch added to -mm tree
+Message-Id: <20220405201723.7E6C8C385A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: take care of UFFDIO_COPY_MODE_WP
+     Subject: selftests/uffd: enable uffd-wp for shmem/hugetlbfs
 has been added to the -mm tree.  Its filename is
-     mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
+     selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,17 +67,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/shmem: take care of UFFDIO_COPY_MODE_WP
+Subject: selftests/uffd: enable uffd-wp for shmem/hugetlbfs
 
-Pass wp_copy into shmem_mfill_atomic_pte() through the stack, then apply
-the UFFD_WP bit properly when the UFFDIO_COPY on shmem is with
-UFFDIO_COPY_MODE_WP.  wp_copy lands mfill_atomic_install_pte() finally.
+After we added support for shmem and hugetlbfs, we can turn uffd-wp test
+on always now.
 
-Note: we must do pte_wrprotect() if !writable in
-mfill_atomic_install_pte(), as mk_pte() could return a writable pte (e.g.,
-when VM_SHARED on a shmem file).
-
-Link: https://lkml.kernel.org/r/20220405014841.14185-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220405014932.15212-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -93,98 +88,29 @@ Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    4 ++--
- mm/shmem.c               |    4 ++--
- mm/userfaultfd.c         |   23 ++++++++++++++++++-----
- 3 files changed, 22 insertions(+), 9 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/include/linux/shmem_fs.h~mm-shmem-take-care-of-uffdio_copy_mode_wp
-+++ a/include/linux/shmem_fs.h
-@@ -145,11 +145,11 @@ extern int shmem_mfill_atomic_pte(struct
- 				  struct vm_area_struct *dst_vma,
- 				  unsigned long dst_addr,
- 				  unsigned long src_addr,
--				  bool zeropage,
-+				  bool zeropage, bool wp_copy,
- 				  struct page **pagep);
- #else /* !CONFIG_SHMEM */
- #define shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr, \
--			       src_addr, zeropage, pagep)       ({ BUG(); 0; })
-+			       src_addr, zeropage, wp_copy, pagep) ({ BUG(); 0; })
- #endif /* CONFIG_SHMEM */
- #endif /* CONFIG_USERFAULTFD */
+--- a/tools/testing/selftests/vm/userfaultfd.c~selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -82,7 +82,7 @@ static int test_type;
+ static volatile bool test_uffdio_copy_eexist = true;
+ static volatile bool test_uffdio_zeropage_eexist = true;
+ /* Whether to test uffd write-protection */
+-static bool test_uffdio_wp = false;
++static bool test_uffdio_wp = true;
+ /* Whether to test uffd minor faults */
+ static bool test_uffdio_minor = false;
  
---- a/mm/shmem.c~mm-shmem-take-care-of-uffdio_copy_mode_wp
-+++ a/mm/shmem.c
-@@ -2313,7 +2313,7 @@ int shmem_mfill_atomic_pte(struct mm_str
- 			   struct vm_area_struct *dst_vma,
- 			   unsigned long dst_addr,
- 			   unsigned long src_addr,
--			   bool zeropage,
-+			   bool zeropage, bool wp_copy,
- 			   struct page **pagep)
- {
- 	struct inode *inode = file_inode(dst_vma->vm_file);
-@@ -2386,7 +2386,7 @@ int shmem_mfill_atomic_pte(struct mm_str
- 		goto out_release;
- 
- 	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
--				       page, true, false);
-+				       page, true, wp_copy);
- 	if (ret)
- 		goto out_delete_from_cache;
- 
---- a/mm/userfaultfd.c~mm-shmem-take-care-of-uffdio_copy_mode_wp
-+++ a/mm/userfaultfd.c
-@@ -78,10 +78,19 @@ int mfill_atomic_install_pte(struct mm_s
- 	 * Always mark a PTE as write-protected when needed, regardless of
- 	 * VM_WRITE, which the user might change.
- 	 */
--	if (wp_copy)
-+	if (wp_copy) {
- 		_dst_pte = pte_mkuffd_wp(_dst_pte);
--	else if (writable)
-+		writable = false;
-+	}
-+
-+	if (writable)
- 		_dst_pte = pte_mkwrite(_dst_pte);
-+	else
-+		/*
-+		 * We need this to make sure write bit removed; as mk_pte()
-+		 * could return a pte with write bit set.
-+		 */
-+		_dst_pte = pte_wrprotect(_dst_pte);
- 
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
- 
-@@ -96,7 +105,12 @@ int mfill_atomic_install_pte(struct mm_s
- 	}
- 
- 	ret = -EEXIST;
--	if (!pte_none(*dst_pte))
-+	/*
-+	 * We allow to overwrite a pte marker: consider when both MISSING|WP
-+	 * registered, we firstly wr-protect a none pte which has no page cache
-+	 * page backing it, then access the page.
-+	 */
-+	if (!pte_none_mostly(*dst_pte))
- 		goto out_unlock;
- 
- 	if (page_in_cache) {
-@@ -480,11 +494,10 @@ static __always_inline ssize_t mfill_ato
- 			err = mfill_zeropage_pte(dst_mm, dst_pmd,
- 						 dst_vma, dst_addr);
- 	} else {
--		VM_WARN_ON_ONCE(wp_copy);
- 		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
- 					     dst_addr, src_addr,
- 					     mode != MCOPY_ATOMIC_NORMAL,
--					     page);
-+					     wp_copy, page);
- 	}
- 
- 	return err;
+@@ -1594,8 +1594,6 @@ static void set_test_type(const char *ty
+ 	if (!strcmp(type, "anon")) {
+ 		test_type = TEST_ANON;
+ 		uffd_test_ops = &anon_uffd_test_ops;
+-		/* Only enable write-protect test for anonymous test */
+-		test_uffdio_wp = true;
+ 	} else if (!strcmp(type, "hugetlb")) {
+ 		test_type = TEST_HUGETLB;
+ 		uffd_test_ops = &hugetlb_uffd_test_ops;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
