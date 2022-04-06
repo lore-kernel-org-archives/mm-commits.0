@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7076FC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 21:32:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 351EEC433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 21:38:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235162AbiDFVeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Apr 2022 17:34:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38090 "EHLO
+        id S236714AbiDFVk0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Apr 2022 17:40:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233552AbiDFVeC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2022 17:34:02 -0400
+        with ESMTP id S236264AbiDFVhA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2022 17:37:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF0041020
-        for <mm-commits@vger.kernel.org>; Wed,  6 Apr 2022 13:46:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF762C5C
+        for <mm-commits@vger.kernel.org>; Wed,  6 Apr 2022 13:50:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A5E2616F3
-        for <mm-commits@vger.kernel.org>; Wed,  6 Apr 2022 20:46:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4697C385A5;
-        Wed,  6 Apr 2022 20:46:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B95E616F3
+        for <mm-commits@vger.kernel.org>; Wed,  6 Apr 2022 20:50:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA7E9C385A3;
+        Wed,  6 Apr 2022 20:50:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649277968;
-        bh=dosOYf2LFw4jC5fPw8awHjTUWzo3em2KnRj51bkFeoo=;
+        s=korg; t=1649278259;
+        bh=spy8LYaPR+JZkmjdAQp30zjMA/v8xnYPr1FpIxwRI0k=;
         h=Date:To:From:Subject:From;
-        b=r3mfb0t7jMvE3031lkzyczpOJeyo7LCJtKsBTi/CEHfQfWgk1Fyk7kAO5dGO9pnKA
-         GzaCzNo9sYIXyfDGFQPL6DWBH2zxxHzCMy3lRhn/IyNEuIBBb80ggCvpNfAy0ZbHUX
-         yNPukqHhmrJPx/LfLeA4rpxNUPXXUk7U4Vf3o+Tk=
-Date:   Wed, 06 Apr 2022 13:46:07 -0700
-To:     mm-commits@vger.kernel.org, urezki@gmail.com, hch@lst.de,
-        bhe@redhat.com, osandov@fb.com, akpm@linux-foundation.org
+        b=BG23MjPLbr2dIiR4Kth3Jw3FW1K3K6THNbEiC1Am7M3etaB/oiQziH+cwUHG+lOTq
+         sVDO2Iz6Aumsd5KL472P6+Rffg4n+TrcTt6Yj2Xt+zz+4cb4NV4QiMxoxFhm/Z7sWI
+         EjPEG1kRKo+tgwTk+XvwiaDq6Un1RDpIxrhDaTeU=
+Date:   Wed, 06 Apr 2022 13:50:58 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, dvyukov@google.com, bigeasy@linutronix.de,
+        andreyknvl@gmail.com, qiang1.zhang@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch added to -mm tree
-Message-Id: <20220406204608.A4697C385A5@smtp.kernel.org>
+Subject: + kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel.patch added to -mm tree
+Message-Id: <20220406205058.EA7E9C385A3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: fix spinning drain_vmap_work after reading from /proc/vmcore
+     Subject: kasan: fix sleeping function called from invalid context on RT kernel
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
+     kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,114 +64,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Omar Sandoval <osandov@fb.com>
-Subject: mm/vmalloc: fix spinning drain_vmap_work after reading from /proc/vmcore
+From: Zqiang <qiang1.zhang@intel.com>
+Subject: kasan: fix sleeping function called from invalid context on RT kernel
 
-Commit 3ee48b6af49c ("mm, x86: Saving vmcore with non-lazy freeing of
-vmas") introduced set_iounmap_nonlazy(), which sets vmap_lazy_nr to
-lazy_max_pages() + 1, ensuring that any future vunmaps() immediately purge
-the vmap areas instead of doing it lazily.
+BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:46
+in_atomic(): 1, irqs_disabled(): 1, non_block: 0, pid: 1, name: swapper/0
+preempt_count: 1, expected: 0
+...........
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.17.1-rt16-yocto-preempt-rt #22
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009),
+BIOS rel-1.15.0-0-g2dd4b9b3f840-prebuilt.qemu.org 04/01/2014
+Call Trace:
+<TASK>
+dump_stack_lvl+0x60/0x8c
+dump_stack+0x10/0x12
+ __might_resched.cold+0x13b/0x173
+rt_spin_lock+0x5b/0xf0
+ ___cache_free+0xa5/0x180
+qlist_free_all+0x7a/0x160
+per_cpu_remove_cache+0x5f/0x70
+smp_call_function_many_cond+0x4c4/0x4f0
+on_each_cpu_cond_mask+0x49/0xc0
+kasan_quarantine_remove_cache+0x54/0xf0
+kasan_cache_shrink+0x9/0x10
+kmem_cache_shrink+0x13/0x20
+acpi_os_purge_cache+0xe/0x20
+acpi_purge_cached_objects+0x21/0x6d
+acpi_initialize_objects+0x15/0x3b
+acpi_init+0x130/0x5ba
+do_one_initcall+0xe5/0x5b0
+kernel_init_freeable+0x34f/0x3ad
+kernel_init+0x1e/0x140
+ret_from_fork+0x22/0x30
 
-Commit 690467c81b1a ("mm/vmalloc: Move draining areas out of caller
-context") moved the purging from the vunmap() caller to a worker thread. 
-Unfortunately, set_iounmap_nonlazy() can cause the worker thread to spin
-(possibly forever).  For example, consider the following scenario:
+When the kmem_cache_shrink() was called, the IPI was triggered, the
+___cache_free() is called in IPI interrupt context, the local-lock or
+spin-lock will be acquired.  On PREEMPT_RT kernel, these locks are
+replaced with sleepbale rt-spinlock, so the above problem is triggered. 
+Fix it by moving the qlist_free_allfrom() from IPI interrupt context to
+task context when PREEMPT_RT is enabled.
 
-1. Thread reads from /proc/vmcore. This eventually calls
-   __copy_oldmem_page() -> set_iounmap_nonlazy(), which sets
-   vmap_lazy_nr to lazy_max_pages() + 1.
-2. Then it calls free_vmap_area_noflush() (via iounmap()), which adds 2
-   pages (one page plus the guard page) to the purge list and
-   vmap_lazy_nr. vmap_lazy_nr is now lazy_max_pages() + 3, so the
-   drain_vmap_work is scheduled.
-3. Thread returns from the kernel and is scheduled out.
-4. Worker thread is scheduled in and calls drain_vmap_area_work(). It
-   frees the 2 pages on the purge list. vmap_lazy_nr is now
-   lazy_max_pages() + 1.
-5. This is still over the threshold, so it tries to purge areas again,
-   but doesn't find anything.
-6. Repeat 5.
-
-If the system is running with only one CPU (which is typicial for kdump)
-and preemption is disabled, then this will never make forward progress:
-there aren't any more pages to purge, so it hangs.  If there is more than
-one CPU or preemption is enabled, then the worker thread will spin forever
-in the background.  (Note that if there were already pages to be purged at
-the time that set_iounmap_nonlazy() was called, this bug is avoided.)
-
-This can be reproduced with anything that reads from /proc/vmcore multiple
-times.  E.g., vmcore-dmesg /proc/vmcore.
-
-It turns out that improvements to vmap() over the years have obsoleted the
-need for this "optimization".  I benchmarked `dd if=/proc/vmcore
-of=/dev/null` with 4k and 1M read sizes on a system with a 32GB vmcore. 
-The test was run on 5.17, 5.18-rc1 with a fix that avoided the hang, and
-5.18-rc1 with set_iounmap_nonlazy() removed entirely:
-
-  |5.17  |5.18+fix|5.18+removal
-4k|40.86s|  40.09s|      26.73s
-1M|24.47s|  23.98s|      21.84s
-
-The removal was the fastest (by a wide margin with 4k reads). This patch
-removes set_iounmap_nonlazy().
-
-Link: https://lkml.kernel.org/r/52f819991051f9b865e9ce25605509bfdbacadcd.1649277321.git.osandov@fb.com
-Signed-off-by: Omar Sandoval <osandov@fb.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Baoquan He <bhe@redhat.com>
+Link: https://lkml.kernel.org/r/20220401134649.2222485-1-qiang1.zhang@intel.com
+Signed-off-by: Zqiang <qiang1.zhang@intel.com>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/io.h       |    2 --
- arch/x86/kernel/crash_dump_64.c |    1 -
- mm/vmalloc.c                    |   11 -----------
- 3 files changed, 14 deletions(-)
+ mm/kasan/quarantine.c |   40 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 38 insertions(+), 2 deletions(-)
 
---- a/arch/x86/include/asm/io.h~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
-+++ a/arch/x86/include/asm/io.h
-@@ -210,8 +210,6 @@ void __iomem *ioremap(resource_size_t of
- extern void iounmap(volatile void __iomem *addr);
- #define iounmap iounmap
+--- a/mm/kasan/quarantine.c~kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel
++++ a/mm/kasan/quarantine.c
+@@ -99,6 +99,17 @@ static unsigned long quarantine_size;
+ static DEFINE_RAW_SPINLOCK(quarantine_lock);
+ DEFINE_STATIC_SRCU(remove_cache_srcu);
  
--extern void set_iounmap_nonlazy(void);
++#ifdef CONFIG_PREEMPT_RT
++struct cpu_shrink_qlist {
++	raw_spinlock_t lock;
++	struct qlist_head qlist;
++};
++
++static DEFINE_PER_CPU(struct cpu_shrink_qlist, shrink_qlist) = {
++	.lock = __RAW_SPIN_LOCK_UNLOCKED(shrink_qlist.lock),
++};
++#endif
++
+ /* Maximum size of the global queue. */
+ static unsigned long quarantine_max_size;
+ 
+@@ -311,12 +322,23 @@ static void qlist_move_cache(struct qlis
+ static void per_cpu_remove_cache(void *arg)
+ {
+ 	struct kmem_cache *cache = arg;
+-	struct qlist_head to_free = QLIST_INIT;
+ 	struct qlist_head *q;
 -
- #ifdef __KERNEL__
- 
- void memcpy_fromio(void *, const volatile void __iomem *, size_t);
---- a/arch/x86/kernel/crash_dump_64.c~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
-+++ a/arch/x86/kernel/crash_dump_64.c
-@@ -37,7 +37,6 @@ static ssize_t __copy_oldmem_page(unsign
- 	} else
- 		memcpy(buf, vaddr + offset, csize);
- 
--	set_iounmap_nonlazy();
- 	iounmap((void __iomem *)vaddr);
- 	return csize;
++#ifndef CONFIG_PREEMPT_RT
++	struct qlist_head to_free = QLIST_INIT;
++#else
++	unsigned long flags;
++	struct cpu_shrink_qlist *sq;
++#endif
+ 	q = this_cpu_ptr(&cpu_quarantine);
++#ifndef CONFIG_PREEMPT_RT
+ 	qlist_move_cache(q, &to_free, cache);
+ 	qlist_free_all(&to_free, cache);
++#else
++	sq = this_cpu_ptr(&shrink_qlist);
++	raw_spin_lock_irqsave(&sq->lock, flags);
++	qlist_move_cache(q, &sq->qlist, cache);
++	raw_spin_unlock_irqrestore(&sq->lock, flags);
++#endif
  }
---- a/mm/vmalloc.c~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
-+++ a/mm/vmalloc.c
-@@ -1671,17 +1671,6 @@ static DEFINE_MUTEX(vmap_purge_lock);
- /* for per-CPU blocks */
- static void purge_fragmented_blocks_allcpus(void);
  
--#ifdef CONFIG_X86_64
--/*
-- * called before a call to iounmap() if the caller wants vm_area_struct's
-- * immediately freed.
-- */
--void set_iounmap_nonlazy(void)
--{
--	atomic_long_set(&vmap_lazy_nr, lazy_max_pages()+1);
--}
--#endif /* CONFIG_X86_64 */
--
- /*
-  * Purges all lazily-freed vmap areas.
-  */
+ /* Free all quarantined objects belonging to cache. */
+@@ -324,6 +346,10 @@ void kasan_quarantine_remove_cache(struc
+ {
+ 	unsigned long flags, i;
+ 	struct qlist_head to_free = QLIST_INIT;
++#ifdef CONFIG_PREEMPT_RT
++	int cpu;
++	struct cpu_shrink_qlist *sq;
++#endif
+ 
+ 	/*
+ 	 * Must be careful to not miss any objects that are being moved from
+@@ -334,6 +360,16 @@ void kasan_quarantine_remove_cache(struc
+ 	 */
+ 	on_each_cpu(per_cpu_remove_cache, cache, 1);
+ 
++#ifdef CONFIG_PREEMPT_RT
++	for_each_online_cpu(cpu) {
++		sq = per_cpu_ptr(&shrink_qlist, cpu);
++		raw_spin_lock_irqsave(&sq->lock, flags);
++		qlist_move_cache(&sq->qlist, &to_free, cache);
++		raw_spin_unlock_irqrestore(&sq->lock, flags);
++	}
++	qlist_free_all(&to_free, cache);
++#endif
++
+ 	raw_spin_lock_irqsave(&quarantine_lock, flags);
+ 	for (i = 0; i < QUARANTINE_BATCHES; i++) {
+ 		if (qlist_empty(&global_quarantine[i]))
 _
 
-Patches currently in -mm which might be from osandov@fb.com are
+Patches currently in -mm which might be from qiang1.zhang@intel.com are
 
-mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
+irq_work-use-kasan_record_aux_stack_noalloc-record-callstack.patch
+kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel.patch
 
