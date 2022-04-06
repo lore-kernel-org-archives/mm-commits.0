@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73DB6C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 21:32:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7076FC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Apr 2022 21:32:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236094AbiDFVeG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Apr 2022 17:34:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33798 "EHLO
+        id S235162AbiDFVeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Apr 2022 17:34:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234199AbiDFVdh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2022 17:33:37 -0400
+        with ESMTP id S233552AbiDFVeC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2022 17:34:02 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 887C012ABD
-        for <mm-commits@vger.kernel.org>; Wed,  6 Apr 2022 13:45:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF0041020
+        for <mm-commits@vger.kernel.org>; Wed,  6 Apr 2022 13:46:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 16E3561753
-        for <mm-commits@vger.kernel.org>; Wed,  6 Apr 2022 20:45:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 621ADC385A3;
-        Wed,  6 Apr 2022 20:45:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A5E2616F3
+        for <mm-commits@vger.kernel.org>; Wed,  6 Apr 2022 20:46:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4697C385A5;
+        Wed,  6 Apr 2022 20:46:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649277914;
-        bh=AdcXkTOk0zEUjV/jc3AaJ02MsHS8L4r0UUsSouFgA9A=;
+        s=korg; t=1649277968;
+        bh=dosOYf2LFw4jC5fPw8awHjTUWzo3em2KnRj51bkFeoo=;
         h=Date:To:From:Subject:From;
-        b=knoTyltXtf6TTvmVuLB9YlZjeEvvva5QZsQpNQB3XrqKOtUX+EraNHV99hmVH4scU
-         O720Phzyx1pZKA9jAPMc5axhNFdO4J7UnSE9VOoZC7lL9+qip73Nc+027/egU8IlXy
-         r2u97hkxjAu8Q+eCg3OD1R4tqxacxVdNtaerzeRk=
-Date:   Wed, 06 Apr 2022 13:45:13 -0700
+        b=r3mfb0t7jMvE3031lkzyczpOJeyo7LCJtKsBTi/CEHfQfWgk1Fyk7kAO5dGO9pnKA
+         GzaCzNo9sYIXyfDGFQPL6DWBH2zxxHzCMy3lRhn/IyNEuIBBb80ggCvpNfAy0ZbHUX
+         yNPukqHhmrJPx/LfLeA4rpxNUPXXUk7U4Vf3o+Tk=
+Date:   Wed, 06 Apr 2022 13:46:07 -0700
 To:     mm-commits@vger.kernel.org, urezki@gmail.com, hch@lst.de,
-        cpw@sgi.com, bhe@redhat.com, osandov@fb.com,
-        akpm@linux-foundation.org
+        bhe@redhat.com, osandov@fb.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch removed from -mm tree
-Message-Id: <20220406204514.621ADC385A3@smtp.kernel.org>
+Subject: + mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch added to -mm tree
+Message-Id: <20220406204608.A4697C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,10 +42,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm/vmalloc: fix spinning drain_vmap_work after reading from /proc/vmcore
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Omar Sandoval <osandov@fb.com>
@@ -54,8 +67,8 @@ Subject: mm/vmalloc: fix spinning drain_vmap_work after reading from /proc/vmcor
 
 Commit 3ee48b6af49c ("mm, x86: Saving vmcore with non-lazy freeing of
 vmas") introduced set_iounmap_nonlazy(), which sets vmap_lazy_nr to
-lazy_max_pages() + 1, ensuring that any future vunmaps() immediately
-purges the vmap areas instead of doing it lazily.
+lazy_max_pages() + 1, ensuring that any future vunmaps() immediately purge
+the vmap areas instead of doing it lazily.
 
 Commit 690467c81b1a ("mm/vmalloc: Move draining areas out of caller
 context") moved the purging from the vunmap() caller to a worker thread. 
@@ -87,49 +100,53 @@ the time that set_iounmap_nonlazy() was called, this bug is avoided.)
 This can be reproduced with anything that reads from /proc/vmcore multiple
 times.  E.g., vmcore-dmesg /proc/vmcore.
 
-A simple way to "fix" this would be to make set_iounmap_nonlazy() set
-vmap_lazy_nr to lazy_max_pages() instead of lazy_max_pages() + 1.  But, I
-think it'd be better to get rid of this hack of clobbering vmap_lazy_nr. 
-Instead, this fix makes __copy_oldmem_page() explicitly drain the vmap
-areas itself.
+It turns out that improvements to vmap() over the years have obsoleted the
+need for this "optimization".  I benchmarked `dd if=/proc/vmcore
+of=/dev/null` with 4k and 1M read sizes on a system with a 32GB vmcore. 
+The test was run on 5.17, 5.18-rc1 with a fix that avoided the hang, and
+5.18-rc1 with set_iounmap_nonlazy() removed entirely:
 
-Link: https://lkml.kernel.org/r/75014514645de97f2d9e087aa3df0880ea311b77.1649187356.git.osandov@fb.com
-Fixes: 3ee48b6af49c ("mm, x86: Saving vmcore with non-lazy freeing of vmas")
+  |5.17  |5.18+fix|5.18+removal
+4k|40.86s|  40.09s|      26.73s
+1M|24.47s|  23.98s|      21.84s
+
+The removal was the fastest (by a wide margin with 4k reads). This patch
+removes set_iounmap_nonlazy().
+
+Link: https://lkml.kernel.org/r/52f819991051f9b865e9ce25605509bfdbacadcd.1649277321.git.osandov@fb.com
 Signed-off-by: Omar Sandoval <osandov@fb.com>
 Cc: Uladzislau Rezki <urezki@gmail.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Cliff Wickman <cpw@sgi.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/io.h       |    2 +-
- arch/x86/kernel/crash_dump_64.c |    2 +-
- mm/vmalloc.c                    |   21 ++++++++++-----------
- 3 files changed, 12 insertions(+), 13 deletions(-)
+ arch/x86/include/asm/io.h       |    2 --
+ arch/x86/kernel/crash_dump_64.c |    1 -
+ mm/vmalloc.c                    |   11 -----------
+ 3 files changed, 14 deletions(-)
 
 --- a/arch/x86/include/asm/io.h~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
 +++ a/arch/x86/include/asm/io.h
-@@ -210,7 +210,7 @@ void __iomem *ioremap(resource_size_t of
+@@ -210,8 +210,6 @@ void __iomem *ioremap(resource_size_t of
  extern void iounmap(volatile void __iomem *addr);
  #define iounmap iounmap
  
 -extern void set_iounmap_nonlazy(void);
-+void iounmap_purge_vmap_area(void);
- 
+-
  #ifdef __KERNEL__
  
+ void memcpy_fromio(void *, const volatile void __iomem *, size_t);
 --- a/arch/x86/kernel/crash_dump_64.c~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
 +++ a/arch/x86/kernel/crash_dump_64.c
-@@ -37,8 +37,8 @@ static ssize_t __copy_oldmem_page(unsign
+@@ -37,7 +37,6 @@ static ssize_t __copy_oldmem_page(unsign
  	} else
  		memcpy(buf, vaddr + offset, csize);
  
 -	set_iounmap_nonlazy();
  	iounmap((void __iomem *)vaddr);
-+	iounmap_purge_vmap_area();
  	return csize;
  }
- 
 --- a/mm/vmalloc.c~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
 +++ a/mm/vmalloc.c
 @@ -1671,17 +1671,6 @@ static DEFINE_MUTEX(vmap_purge_lock);
@@ -150,25 +167,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  /*
   * Purges all lazily-freed vmap areas.
   */
-@@ -1753,6 +1742,16 @@ static void purge_vmap_area_lazy(void)
- 	mutex_unlock(&vmap_purge_lock);
- }
- 
-+#ifdef CONFIG_X86_64
-+/* Called after iounmap() to immediately free vm_area_struct's. */
-+void iounmap_purge_vmap_area(void)
-+{
-+	mutex_lock(&vmap_purge_lock);
-+	__purge_vmap_area_lazy(ULONG_MAX, 0);
-+	mutex_unlock(&vmap_purge_lock);
-+}
-+#endif /* CONFIG_X86_64 */
-+
- static void drain_vmap_area_work(struct work_struct *work)
- {
- 	unsigned long nr_lazy;
 _
 
 Patches currently in -mm which might be from osandov@fb.com are
 
+mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
 
