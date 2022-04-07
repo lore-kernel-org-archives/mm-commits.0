@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B11C0C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Apr 2022 23:27:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAEA0C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Apr 2022 23:27:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231331AbiDGX3F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Apr 2022 19:29:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58854 "EHLO
+        id S231713AbiDGX3G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Apr 2022 19:29:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231713AbiDGX24 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2022 19:28:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55EC9264C1A
-        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 16:26:52 -0700 (PDT)
+        with ESMTP id S231980AbiDGX3D (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2022 19:29:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3B77267C1D
+        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 16:26:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC15661365
-        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 23:26:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 399E9C385A0;
-        Thu,  7 Apr 2022 23:26:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9350A61365
+        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 23:26:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E550FC385A0;
+        Thu,  7 Apr 2022 23:26:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649374011;
-        bh=fI0cPw4VNzwCZ70qSRBnuM+dsu5pBHtP2oR8T41Lxeg=;
+        s=korg; t=1649374017;
+        bh=2Kgnq0F716+b8zFr0oyKUA1rsac3MDBejcxwESMDvZA=;
         h=Date:To:From:Subject:From;
-        b=1NIOU4/T7F6Fyr6d7YUkZk+3xMZLPiHP6TNuknAvSDcj8CxDL7aSqohiNzdUNPmdz
-         Yzye5BCk8WQRWTxD8xYxbLII7TcVgslKI0c1BdTWZzxML37I2X35sEDmkvVLuh9id4
-         X/AeIBcTZJvATRCkz3IzUwon2AwTey5Uu3AB+kKw=
-Date:   Thu, 07 Apr 2022 16:26:50 -0700
+        b=R/B++/XW+ejcxAVDe/DdBeMdpKzOwlJinzq1pRk9U2u4rgbT13gr3s8VpDjOX+Lj6
+         lDYFNSKCL69a7Ge1WKzedDb5f72yHHLWAkscm5EanwiBPJagjwJR1uDSm4lFRKCYQJ
+         aCIjA5QKqrdwPpH3Zc5Fo5Ovj2w5rjYzlz05R0/U=
+Date:   Thu, 07 Apr 2022 16:26:56 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, tglx@linutronix.de,
         paulus@samba.org, mpe@ellerman.id.au, mingo@redhat.com,
         khalid.aziz@oracle.com, hch@infradead.org, davem@davemloft.net,
         catalin.marinas@arm.com, anshuman.khandual@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc-mm-enable-arch_has_vm_get_page_prot.patch added to -mm tree
-Message-Id: <20220407232651.399E9C385A0@smtp.kernel.org>
+Subject: + mm-mmap-drop-arch_filter_pgprot.patch added to -mm tree
+Message-Id: <20220407232656.E550FC385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+     Subject: mm/mmap: drop arch_filter_pgprot()
 has been added to the -mm tree.  Its filename is
-     sparc-mm-enable-arch_has_vm_get_page_prot.patch
+     mm-mmap-drop-arch_filter_pgprot.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sparc-mm-enable-arch_has_vm_get_page_prot.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-drop-arch_filter_pgprot.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sparc-mm-enable-arch_has_vm_get_page_prot.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-drop-arch_filter_pgprot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,20 +66,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: sparc/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+Subject: mm/mmap: drop arch_filter_pgprot()
 
-This defines and exports a platform specific custom vm_get_page_prot() via
-subscribing ARCH_HAS_VM_GET_PAGE_PROT.  It localizes
-arch_vm_get_page_prot() as sparc_vm_get_page_prot() and moves near
-vm_get_page_prot().
+There are no platforms left which subscribe ARCH_HAS_FILTER_PGPROT.  Hence
+drop generic arch_filter_pgprot() and also config ARCH_HAS_FILTER_PGPROT.
 
-Link: https://lkml.kernel.org/r/20220407103251.1209606-5-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20220407103251.1209606-7-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -87,55 +85,46 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig            |    1 +
- arch/sparc/include/asm/mman.h |    6 ------
- arch/sparc/mm/init_64.c       |   13 +++++++++++++
- 3 files changed, 14 insertions(+), 6 deletions(-)
+ mm/Kconfig |    3 ---
+ mm/mmap.c  |    9 +--------
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
---- a/arch/sparc/include/asm/mman.h~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/include/asm/mman.h
-@@ -46,12 +46,6 @@ static inline unsigned long sparc_calc_v
- 	}
- }
+--- a/mm/Kconfig~mm-mmap-drop-arch_filter_pgprot
++++ a/mm/Kconfig
+@@ -762,9 +762,6 @@ config ARCH_HAS_CURRENT_STACK_POINTER
+ 	  register alias named "current_stack_pointer", this config can be
+ 	  selected.
  
--#define arch_vm_get_page_prot(vm_flags) sparc_vm_get_page_prot(vm_flags)
--static inline pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
--{
--	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
--}
+-config ARCH_HAS_FILTER_PGPROT
+-	bool
 -
- #define arch_validate_prot(prot, addr) sparc_validate_prot(prot, addr)
- static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
+ config ARCH_HAS_VM_GET_PAGE_PROT
+ 	bool
+ 
+--- a/mm/mmap.c~mm-mmap-drop-arch_filter_pgprot
++++ a/mm/mmap.c
+@@ -121,20 +121,13 @@ pgprot_t protection_map[16] __ro_after_i
+ };
+ 
+ #ifndef CONFIG_ARCH_HAS_VM_GET_PAGE_PROT
+-#ifndef CONFIG_ARCH_HAS_FILTER_PGPROT
+-static inline pgprot_t arch_filter_pgprot(pgprot_t prot)
+-{
+-	return prot;
+-}
+-#endif
+-
+ pgprot_t vm_get_page_prot(unsigned long vm_flags)
  {
---- a/arch/sparc/Kconfig~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/Kconfig
-@@ -84,6 +84,7 @@ config SPARC64
- 	select PERF_USE_VMALLOC
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_C_RECORDMCOUNT
-+	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
---- a/arch/sparc/mm/init_64.c~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/mm/init_64.c
-@@ -3184,3 +3184,16 @@ void copy_highpage(struct page *to, stru
- 	}
+ 	pgprot_t ret = __pgprot(pgprot_val(protection_map[vm_flags &
+ 				(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]) |
+ 			pgprot_val(arch_vm_get_page_prot(vm_flags)));
+ 
+-	return arch_filter_pgprot(ret);
++	return ret;
  }
- EXPORT_SYMBOL(copy_highpage);
-+
-+static pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
-+{
-+	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
-+}
-+
-+pgprot_t vm_get_page_prot(unsigned long vm_flags)
-+{
-+	return __pgprot(pgprot_val(protection_map[vm_flags &
-+			(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]) |
-+			pgprot_val(sparc_vm_get_page_prot(vm_flags)));
-+}
-+EXPORT_SYMBOL(vm_get_page_prot);
+ EXPORT_SYMBOL(vm_get_page_prot);
+ #endif	/* CONFIG_ARCH_HAS_VM_GET_PAGE_PROT */
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
