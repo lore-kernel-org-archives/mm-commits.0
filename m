@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B60CC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Apr 2022 22:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93E96C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Apr 2022 22:34:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232071AbiDGWg2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Apr 2022 18:36:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60012 "EHLO
+        id S232113AbiDGWgf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Apr 2022 18:36:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232099AbiDGWg2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2022 18:36:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C33F114DFE
-        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 15:34:27 -0700 (PDT)
+        with ESMTP id S232099AbiDGWgb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2022 18:36:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02AD7114DDE
+        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 15:34:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DA33162029
-        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 22:34:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A56BC385A0;
-        Thu,  7 Apr 2022 22:34:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ABBD262029
+        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 22:34:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C029C385A4;
+        Thu,  7 Apr 2022 22:34:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649370866;
-        bh=E7CJpAo39p3jkv3PxgLfe20+BkzKh4IlQmY9FK1ZgPo=;
+        s=korg; t=1649370868;
+        bh=axo/1K3QawSDNHHeylNcH2vBookTUwFvxbSzwSDp650=;
         h=Date:To:From:Subject:From;
-        b=tbQlz4v8DFAfrnr1LG4lSmnGkRTfOowTBBAWSmwv5SuZmgZfXkejHjJ/TBC8b91ZG
-         vQiIuEXi8D92uuSxJGQRklM4Vh9AYB9z5Vb4NvhgS/oX1OGE/AK/20QT5uhfjsByYL
-         xQfJXN2lXvXF5qYieLeGyoRp5U/iGo/0cf3u9kIM=
-Date:   Thu, 07 Apr 2022 15:34:25 -0700
+        b=MUerbP3yERiTMjqQAuRhDQ5uoO6ExVwAiXIIjTF5B5jzX15nFJdbUI1xMSF3rhP5J
+         zGfYyidjp5VXtl0oij/THkN44G9Y4yeogzkvuez9dq7xMMPj4YvZit3tHWEqD/Xrca
+         wNmjPXqJTEwh7b+ypZ7NhvKvyRaSfLUp1/7ueIe0=
+Date:   Thu, 07 Apr 2022 15:34:27 -0700
 To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
         naoya.horiguchi@nec.com, mike.kravetz@oracle.com, david@redhat.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch added to -mm tree
-Message-Id: <20220407223426.3A56BC385A0@smtp.kernel.org>
+Subject: + mm-memory-failurec-dissolve-truncated-hugetlb-page.patch added to -mm tree
+Message-Id: <20220407223428.0C029C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: minor cleanup for HWPoisonHandlable
+     Subject: mm/memory-failure.c: dissolve truncated hugetlb page
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch
+     mm-memory-failurec-dissolve-truncated-hugetlb-page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-dissolve-truncated-hugetlb-page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-dissolve-truncated-hugetlb-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,12 +64,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure.c: minor cleanup for HWPoisonHandlable
+Subject: mm/memory-failure.c: dissolve truncated hugetlb page
 
-The local variable movable can be removed by returning true directly. 
-Also fix typo 'mirgate'.  No functional change intended.
+If me_huge_page meets a truncated huge page, hpage won't be dissolved even
+if we hold the last refcnt.  It's because the truncated huge page has NULL
+page_mapping while it's not anonymous page too.  Thus we lose the last
+chance to dissolve it into buddy to save healthy subpages.  Remove
+PageAnon check to handle these huge pages too.
 
-Link: https://lkml.kernel.org/r/20220407130352.15618-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220407130352.15618-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
@@ -78,28 +81,21 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/memory-failure.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable
+--- a/mm/memory-failure.c~mm-memory-failurec-dissolve-truncated-hugetlb-page
 +++ a/mm/memory-failure.c
-@@ -1180,13 +1180,11 @@ void ClearPageHWPoisonTakenOff(struct pa
-  */
- static inline bool HWPoisonHandlable(struct page *page, unsigned long flags)
- {
--	bool movable = false;
--
--	/* Soft offline could mirgate non-LRU movable pages */
-+	/* Soft offline could migrate non-LRU movable pages */
- 	if ((flags & MF_SOFT_OFFLINE) && __PageMovable(page))
--		movable = true;
-+		return true;
- 
--	return movable || PageLRU(page) || is_free_buddy_page(page);
-+	return PageLRU(page) || is_free_buddy_page(page);
- }
- 
- static int __get_hwpoison_page(struct page *page, unsigned long flags)
+@@ -1046,8 +1046,7 @@ static int me_huge_page(struct page_stat
+ 		 * hugepage, so we can free and dissolve it into buddy to
+ 		 * save healthy subpages.
+ 		 */
+-		if (PageAnon(hpage))
+-			put_page(hpage);
++		put_page(hpage);
+ 		if (__page_handle_poison(p)) {
+ 			page_ref_inc(p);
+ 			res = MF_RECOVERED;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
