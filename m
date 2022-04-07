@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A89D4C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Apr 2022 22:52:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8037C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Apr 2022 22:58:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232315AbiDGWyr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Apr 2022 18:54:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46806 "EHLO
+        id S232367AbiDGXAI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Apr 2022 19:00:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232031AbiDGWyq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2022 18:54:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF0CA16C098
-        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 15:52:44 -0700 (PDT)
+        with ESMTP id S231496AbiDGXAH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Apr 2022 19:00:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A83B81D4C09
+        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 15:58:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6845E60AEB
-        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 22:52:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE3B2C385A4;
-        Thu,  7 Apr 2022 22:52:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3AF4860C54
+        for <mm-commits@vger.kernel.org>; Thu,  7 Apr 2022 22:58:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FEE1C385AA;
+        Thu,  7 Apr 2022 22:58:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649371963;
-        bh=G2igHkg+n73GIIA47s3GlUc1QiSBYNNxaBoTOwH3HDE=;
+        s=korg; t=1649372284;
+        bh=/+83rQyApgkh64qGV3CRRmdQ4uyKFyaLfTV9/POiDlc=;
         h=Date:To:From:Subject:From;
-        b=Pb3QyzKS5mMSnI+KCzPjCl3Yl6MURQtnsttffLpmHmQTrWxzwuYO7EFiZQyPSxbOq
-         zCYiB3y9rnkBY97sfCBpYieYu66X3tdMqECpd+ezEgHVJ7nEH+1gx04Y8K+k5504wu
-         hO8psXZ0kOmuwHG17bq1xGg/9jqheXlDCmzKtf+M=
-Date:   Thu, 07 Apr 2022 15:52:43 -0700
-To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
-        mike.kravetz@oracle.com, linmiaohe@huawei.com,
-        naoya.horiguchi@nec.com, akpm@linux-foundation.org
+        b=lGFWkik1imHELVFiUzH5F38Fwn7ozjEiKjWsPpjyAbDGB8zZrnliB6kcSg3h9uiPo
+         +dioS0s51tgkUfwcyPtp9LoaaOshnm7oKaXXxo3YDIStvmTjFhFtlBwISqb0KYJEz+
+         Bbuw6xL58PW38tXgTfgaV8gOkaS2Kf42ZlcyCBuk=
+Date:   Thu, 07 Apr 2022 15:58:03 -0700
+To:     mm-commits@vger.kernel.org, zhouchengming@bytedance.com,
+        tj@kernel.org, songmuchun@bytedance.com, ming.lei@redhat.com,
+        dennis@kernel.org, cl@linux.com, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb-v7.patch added to -mm tree
-Message-Id: <20220407225243.BE3B2C385A4@smtp.kernel.org>
+Subject: + percpu_ref-call-wake_up_all-after-percpu_ref_put-completes.patch added to -mm tree
+Message-Id: <20220407225804.8FEE1C385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb-v7
+     Subject: percpu_ref: call wake_up_all() after percpu_ref_put() completes
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb-v7.patch
+     percpu_ref-call-wake_up_all-after-percpu_ref_put-completes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb-v7.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/percpu_ref-call-wake_up_all-after-percpu_ref_put-completes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb-v7.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/percpu_ref-call-wake_up_all-after-percpu_ref_put-completes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,94 +64,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb-v7
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: percpu_ref: call wake_up_all() after percpu_ref_put() completes
 
-- Move lock_page() to try_memory_failure_hugetlb()
-  (based on bug report from Dan Carpenter)
-- Add Fixes: tag and CC to stable.
+In the percpu_ref_call_confirm_rcu(), we call the wake_up_all() before
+calling percpu_ref_put(), which will cause the value of percpu_ref to be
+unstable when percpu_ref_switch_to_atomic_sync() returns.
 
-Link: https://lkml.kernel.org/r/20220407112929.1344748-1-naoya.horiguchi@linux.dev
-Fixes: 761ad8d7c7b5 ("mm: hwpoison: introduce memory_failure_hugetlb()")
-Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Yang Shi <shy828301@gmail.com>
+	CPU0				CPU1
+
+percpu_ref_switch_to_atomic_sync(&ref)
+--> percpu_ref_switch_to_atomic(&ref)
+    --> percpu_ref_get(ref);	/* put after confirmation */
+	call_rcu(&ref->data->rcu, percpu_ref_switch_to_atomic_rcu);
+
+					percpu_ref_switch_to_atomic_rcu
+					--> percpu_ref_call_confirm_rcu
+					    --> data->confirm_switch = NULL;
+						wake_up_all(&percpu_ref_switch_waitq);
+
+    /* here waiting to wake up */
+    wait_event(percpu_ref_switch_waitq, !ref->data->confirm_switch);
+						(A)percpu_ref_put(ref);
+/* The value of &ref is unstable! */
+percpu_ref_is_zero(&ref)
+						(B)percpu_ref_put(ref);
+
+As shown above, assuming that the counts on each cpu add up to 0 before
+calling percpu_ref_switch_to_atomic_sync(), we expect that after switching
+to atomic mode, percpu_ref_is_zero() can return true.  But actually it
+will return different values in the two cases of A and B, which is not
+what we expected.
+
+Maybe the original purpose of percpu_ref_switch_to_atomic_sync() is just
+to ensure that the conversion to atomic mode is completed, but it should
+not return with an extra reference count.
+
+Calling wake_up_all() after percpu_ref_put() ensures that the value of
+percpu_ref is stable after percpu_ref_switch_to_atomic_sync() returns.  So
+just do it.
+
+Link: https://lkml.kernel.org/r/20220407103335.36885-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Ming Lei <ming.lei@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+ lib/percpu-refcount.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb-v7
-+++ a/mm/memory-failure.c
-@@ -1500,8 +1500,6 @@ static int try_to_split_thp_page(struct
+--- a/lib/percpu-refcount.c~percpu_ref-call-wake_up_all-after-percpu_ref_put-completes
++++ a/lib/percpu-refcount.c
+@@ -154,13 +154,14 @@ static void percpu_ref_call_confirm_rcu(
  
- /*
-  * Called from hugetlb code with hugetlb_lock held.
-- * If a hugepage is successfully grabbed (so it's determined to handle
-- * the error as a hugepage error), returns with holding the page lock.
-  *
-  * Return values:
-  *   0             - free hugepage
-@@ -1533,25 +1531,20 @@ int __get_huge_page_for_hwpoison(unsigne
- 		goto out;
- 	}
+ 	data->confirm_switch(ref);
+ 	data->confirm_switch = NULL;
+-	wake_up_all(&percpu_ref_switch_waitq);
  
--	lock_page(head);
--
- 	if (hwpoison_filter(page)) {
- 		ret = -EOPNOTSUPP;
--		goto unlock;
-+		goto out;
- 	}
+ 	if (!data->allow_reinit)
+ 		__percpu_ref_exit(ref);
  
- 	if (TestSetPageHWPoison(head)) {
- 		ret = -EHWPOISON;
--		goto unlock;
-+		goto out;
- 	}
- 
--	/* keep locking page. */
- 	return ret;
--unlock:
--	unlock_page(head);
-+out:
- 	if (count_increased)
- 		put_page(head);
--out:
- 	return ret;
+ 	/* drop ref from percpu_ref_switch_to_atomic() */
+ 	percpu_ref_put(ref);
++
++	wake_up_all(&percpu_ref_switch_waitq);
  }
  
-@@ -1596,14 +1589,11 @@ retry:
- 
- 	num_poisoned_pages_inc();
- 
--	head = compound_head(p);
--
- 	/*
- 	 * Handling free hugepage.  The possible race with hugepage allocation
- 	 * or demotion can be prevented by PageHWPoison flag.
- 	 */
- 	if (res == 0) {
--		unlock_page(head);
- 		res = MF_FAILED;
- 		if (__page_handle_poison(p)) {
- 			page_ref_inc(p);
-@@ -1613,6 +1603,9 @@ retry:
- 		return res == MF_RECOVERED ? 0 : -EBUSY;
- 	}
- 
-+	head = compound_head(p);
-+	lock_page(head);
-+
- 	/*
- 	 * The page could have changed compound pages due to race window.
- 	 * If this happens just bail out.
+ static void percpu_ref_switch_to_atomic_rcu(struct rcu_head *rcu)
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
-mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb-v7.patch
+percpu_ref-call-wake_up_all-after-percpu_ref_put-completes.patch
 
