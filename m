@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 007E0C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Apr 2022 21:02:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B504C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Apr 2022 23:44:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231898AbiDHVEd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Apr 2022 17:04:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51956 "EHLO
+        id S240068AbiDHXrA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Apr 2022 19:47:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229659AbiDHVEc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Apr 2022 17:04:32 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B5D5F847E
-        for <mm-commits@vger.kernel.org>; Fri,  8 Apr 2022 14:02:26 -0700 (PDT)
+        with ESMTP id S239738AbiDHXq7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Apr 2022 19:46:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F352A3010B7;
+        Fri,  8 Apr 2022 16:44:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 4A146CE2DA7
-        for <mm-commits@vger.kernel.org>; Fri,  8 Apr 2022 21:02:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A853DC385A3;
-        Fri,  8 Apr 2022 21:02:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7FABBB82DB9;
+        Fri,  8 Apr 2022 23:44:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07687C385A1;
+        Fri,  8 Apr 2022 23:44:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649451743;
-        bh=WtvPQSgyxuLeVRRu9TdCNNkbbtCYJ2qzKaOryHJKz44=;
+        s=korg; t=1649461491;
+        bh=Zz66XtRw0HBi0RaMQX4k84HTCTXDrrATkCRtU6VP4Qg=;
         h=Date:To:From:Subject:From;
-        b=pbqmf0Rxn/ZLN9M+wO0d/Z6JFEwIojq1j6Q1XKjVPsAvxwzbxv5N2YB4CF6zH0ZIm
-         MGplfA91waYXwQMJ0okVdXeIfVEcxT6Je05/mzv4p2ot4IMhNNf84lEKPA1Nz90f82
-         xqE6d7nUAAntRqYDlrG2XG2NnqmhR3GzrZP5yZtc=
-Date:   Fri, 08 Apr 2022 14:02:22 -0700
-To:     mm-commits@vger.kernel.org, patrice.chotard@foss.st.com,
-        mpatocka@redhat.com, markhemm@googlemail.com, lczerner@redhat.com,
-        hch@lst.de, djwong@kernel.org, chuck.lever@oracle.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=1NygGVw5cHCOsfOKVifBQ3hZdVcJWRaoqg/qEl3I64ARdNpYU1uL8opSVHgsPn/fk
+         PvgeL0IWS7GjfV/GIzyR5c1Wd/x9lxTeusZoah8KUE7ijYMelE9DWjVq4Ydy56pm+x
+         vhDDFSmYFrz0nylmzgnfdf8x+OTFEs1sIDa9cnt0=
+Date:   Fri, 08 Apr 2022 16:44:50 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        shy828301@gmail.com, mike.kravetz@oracle.com, linmiaohe@huawei.com,
+        dan.carpenter@oracle.com, naoya.horiguchi@nec.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tmpfs-fix-regressions-from-wider-use-of-zero_page.patch added to -mm tree
-Message-Id: <20220408210223.A853DC385A3@smtp.kernel.org>
+Subject: + mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch added to -mm tree
+Message-Id: <20220408234451.07687C385A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: fix regressions from wider use of ZERO_PAGE
+     Subject: mm/hwpoison: fix race between hugetlb free/demotion and memory_failure_hugetlb()
 has been added to the -mm tree.  Its filename is
-     tmpfs-fix-regressions-from-wider-use-of-zero_page.patch
+     mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tmpfs-fix-regressions-from-wider-use-of-zero_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-fix-regressions-from-wider-use-of-zero_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,119 +64,310 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: fix regressions from wider use of ZERO_PAGE
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: fix race between hugetlb free/demotion and memory_failure_hugetlb()
 
-Chuck Lever reported fsx-based xfstests generic 075 091 112 127 failing
-when 5.18-rc1 NFS server exports tmpfs: bisected to recent tmpfs change.
+There is a race condition between memory_failure_hugetlb() and hugetlb
+free/demotion, which causes setting PageHWPoison flag on the wrong page. 
+The one simple result is that wrong processes can be killed, but another
+(more serious) one is that the actual error is left unhandled, so no one
+prevents later access to it, and that might lead to more serious results
+like consuming corrupted data.
 
-Whilst nfsd_splice_action() does contain some questionable handling of
-repeated pages, and Chuck was able to work around there, history from
-Mark Hemment makes clear that there might be similar dangers elsewhere:
-it was not a good idea for me to pass ZERO_PAGE down to unknown actors.
+Think about the below race window:
 
-Revert shmem_file_read_iter() to using ZERO_PAGE for holes only when
-iter_is_iovec(); in other cases, use the more natural iov_iter_zero()
-instead of copy_page_to_iter().  We would use iov_iter_zero() throughout,
-but the x86 clear_user() is not nearly so well optimized as copy to user
-(dd of 1T sparse tmpfs file takes 57 seconds rather than 44 seconds).
+  CPU 1                                   CPU 2
+  memory_failure_hugetlb
+  struct page *head = compound_head(p);
+                                          hugetlb page might be freed to
+                                          buddy, or even changed to another
+                                          compound page.
 
-And now pagecache_init() does not need to SetPageUptodate(ZERO_PAGE(0)):
-which had caused boot failure on arm noMMU STM32F7 and STM32H7 boards
+  get_hwpoison_page -- page is not what we want now...
 
-Link: https://lkml.kernel.org/r/9a978571-8648-e830-5735-1f4748ce2e30@google.com
-Fixes: 56a8c8eb1eaf ("tmpfs: do not allocate pages on read")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Patrice CHOTARD <patrice.chotard@foss.st.com>
-Reported-by: Chuck Lever III <chuck.lever@oracle.com>
-Tested-by: Chuck Lever III <chuck.lever@oracle.com>
-Cc: Mark Hemment <markhemm@googlemail.com>
-Cc: Patrice CHOTARD <patrice.chotard@foss.st.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Lukas Czerner <lczerner@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
+The current code first does prechecks roughly and then reconfirms after
+taking refcount, but it's found that it makes code overly complicated, so
+move the prechecks in a single hugetlb_lock range.
+
+A newly introduced function, try_memory_failure_hugetlb(), always takes
+hugetlb_lock (even for non-hugetlb pages).  That can be improved, but
+memory_failure() is rare in principle, so should not be a big problem.
+
+Link: https://lkml.kernel.org/r/20220408135323.1559401-2-naoya.horiguchi@linux.dev
+Fixes: 761ad8d7c7b5 ("mm: hwpoison: introduce memory_failure_hugetlb()")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    6 ------
- mm/shmem.c   |   31 ++++++++++++++++++++-----------
- 2 files changed, 20 insertions(+), 17 deletions(-)
+ include/linux/hugetlb.h |    6 +
+ include/linux/mm.h      |    8 ++
+ mm/hugetlb.c            |   10 ++
+ mm/memory-failure.c     |  145 ++++++++++++++++++++++++++------------
+ 4 files changed, 127 insertions(+), 42 deletions(-)
 
---- a/mm/filemap.c~tmpfs-fix-regressions-from-wider-use-of-zero_page
-+++ a/mm/filemap.c
-@@ -1063,12 +1063,6 @@ void __init pagecache_init(void)
- 		init_waitqueue_head(&folio_wait_table[i]);
+--- a/include/linux/hugetlb.h~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb
++++ a/include/linux/hugetlb.h
+@@ -169,6 +169,7 @@ long hugetlb_unreserve_pages(struct inod
+ 						long freed);
+ bool isolate_huge_page(struct page *page, struct list_head *list);
+ int get_hwpoison_huge_page(struct page *page, bool *hugetlb);
++int get_huge_page_for_hwpoison(unsigned long pfn, int flags);
+ void putback_active_hugepage(struct page *page);
+ void move_hugetlb_state(struct page *oldpage, struct page *newpage, int reason);
+ void free_huge_page(struct page *page);
+@@ -377,6 +378,11 @@ static inline int get_hwpoison_huge_page
+ {
+ 	return 0;
+ }
++
++static inline int get_huge_page_for_hwpoison(unsigned long pfn, int flags)
++{
++	return 0;
++}
  
- 	page_writeback_init();
--
--	/*
--	 * tmpfs uses the ZERO_PAGE for reading holes: it is up-to-date,
--	 * and splice's page_cache_pipe_buf_confirm() needs to see that.
--	 */
--	SetPageUptodate(ZERO_PAGE(0));
+ static inline void putback_active_hugepage(struct page *page)
+ {
+--- a/include/linux/mm.h~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb
++++ a/include/linux/mm.h
+@@ -3197,6 +3197,14 @@ extern int sysctl_memory_failure_recover
+ extern void shake_page(struct page *p);
+ extern atomic_long_t num_poisoned_pages __read_mostly;
+ extern int soft_offline_page(unsigned long pfn, int flags);
++#ifdef CONFIG_MEMORY_FAILURE
++extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags);
++#else
++static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags)
++{
++	return 0;
++}
++#endif
+ 
+ #ifndef arch_memory_failure
+ static inline int arch_memory_failure(unsigned long pfn, int flags)
+--- a/mm/hugetlb.c~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb
++++ a/mm/hugetlb.c
+@@ -6782,6 +6782,16 @@ int get_hwpoison_huge_page(struct page *
+ 	return ret;
  }
  
- /*
---- a/mm/shmem.c~tmpfs-fix-regressions-from-wider-use-of-zero_page
-+++ a/mm/shmem.c
-@@ -2513,7 +2513,6 @@ static ssize_t shmem_file_read_iter(stru
- 		pgoff_t end_index;
- 		unsigned long nr, ret;
- 		loff_t i_size = i_size_read(inode);
--		bool got_page;
- 
- 		end_index = i_size >> PAGE_SHIFT;
- 		if (index > end_index)
-@@ -2570,24 +2569,34 @@ static ssize_t shmem_file_read_iter(stru
- 			 */
- 			if (!offset)
- 				mark_page_accessed(page);
--			got_page = true;
-+			/*
-+			 * Ok, we have the page, and it's up-to-date, so
-+			 * now we can copy it to user space...
-+			 */
-+			ret = copy_page_to_iter(page, offset, nr, to);
-+			put_page(page);
++int get_huge_page_for_hwpoison(unsigned long pfn, int flags)
++{
++	int ret;
 +
-+		} else if (iter_is_iovec(to)) {
-+			/*
-+			 * Copy to user tends to be so well optimized, but
-+			 * clear_user() not so much, that it is noticeably
-+			 * faster to copy the zero page instead of clearing.
-+			 */
-+			ret = copy_page_to_iter(ZERO_PAGE(0), offset, nr, to);
- 		} else {
--			page = ZERO_PAGE(0);
--			got_page = false;
-+			/*
-+			 * But submitting the same page twice in a row to
-+			 * splice() - or others? - can result in confusion:
-+			 * so don't attempt that optimization on pipes etc.
-+			 */
-+			ret = iov_iter_zero(nr, to);
++	spin_lock_irq(&hugetlb_lock);
++	ret = __get_huge_page_for_hwpoison(pfn, flags);
++	spin_unlock_irq(&hugetlb_lock);
++	return ret;
++}
++
+ void putback_active_hugepage(struct page *page)
+ {
+ 	spin_lock_irq(&hugetlb_lock);
+--- a/mm/memory-failure.c~mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb
++++ a/mm/memory-failure.c
+@@ -1498,50 +1498,113 @@ static int try_to_split_thp_page(struct
+ 	return 0;
+ }
+ 
+-static int memory_failure_hugetlb(unsigned long pfn, int flags)
++/*
++ * Called from hugetlb code with hugetlb_lock held.
++ *
++ * Return values:
++ *   0             - free hugepage
++ *   1             - in-use hugepage
++ *   2             - not a hugepage
++ *   -EBUSY        - the hugepage is busy (try to retry)
++ *   -EHWPOISON    - the hugepage is already hwpoisoned
++ */
++int __get_huge_page_for_hwpoison(unsigned long pfn, int flags)
++{
++	struct page *page = pfn_to_page(pfn);
++	struct page *head = compound_head(page);
++	int ret = 2;	/* fallback to normal page handling */
++	bool count_increased = false;
++
++	if (!PageHeadHuge(head))
++		goto out;
++
++	if (flags & MF_COUNT_INCREASED) {
++		ret = 1;
++		count_increased = true;
++	} else if (HPageFreed(head) || HPageMigratable(head)) {
++		ret = get_page_unless_zero(head);
++		if (ret)
++			count_increased = true;
++	} else {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	if (TestSetPageHWPoison(head)) {
++		ret = -EHWPOISON;
++		goto out;
++	}
++
++	return ret;
++out:
++	if (count_increased)
++		put_page(head);
++	return ret;
++}
++
++#ifdef CONFIG_HUGETLB_PAGE
++/*
++ * Taking refcount of hugetlb pages needs extra care about race conditions
++ * with basic operations like hugepage allocation/free/demotion.
++ * So some of prechecks for hwpoison (pinning, and testing/setting
++ * PageHWPoison) should be done in single hugetlb_lock range.
++ */
++static int try_memory_failure_hugetlb(unsigned long pfn, int flags, int *hugetlb)
+ {
+-	struct page *p = pfn_to_page(pfn);
+-	struct page *head = compound_head(p);
+ 	int res;
++	struct page *p = pfn_to_page(pfn);
++	struct page *head;
+ 	unsigned long page_flags;
++	bool retry = true;
+ 
+-	if (TestSetPageHWPoison(head)) {
+-		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+-		       pfn);
+-		res = -EHWPOISON;
+-		if (flags & MF_ACTION_REQUIRED)
++	*hugetlb = 1;
++retry:
++	res = get_huge_page_for_hwpoison(pfn, flags);
++	if (res == 2) { /* fallback to normal page handling */
++		*hugetlb = 0;
++		return 0;
++	} else if (res == -EHWPOISON) {
++		pr_err("Memory failure: %#lx: already hardware poisoned\n", pfn);
++		if (flags & MF_ACTION_REQUIRED) {
++			head = compound_head(p);
+ 			res = kill_accessing_process(current, page_to_pfn(head), flags);
++		}
+ 		return res;
++	} else if (res == -EBUSY) {
++		if (retry) {
++			retry = false;
++			goto retry;
++		}
++		action_result(pfn, MF_MSG_UNKNOWN, MF_IGNORED);
++		return res;
++	}
++
++	head = compound_head(p);
++	lock_page(head);
++
++	if (hwpoison_filter(p)) {
++		ClearPageHWPoison(head);
++		res = -EOPNOTSUPP;
++		goto out;
+ 	}
+ 
+ 	num_poisoned_pages_inc();
+ 
+-	if (!(flags & MF_COUNT_INCREASED)) {
+-		res = get_hwpoison_page(p, flags);
+-		if (!res) {
+-			lock_page(head);
+-			if (hwpoison_filter(p)) {
+-				if (TestClearPageHWPoison(head))
+-					num_poisoned_pages_dec();
+-				unlock_page(head);
+-				return -EOPNOTSUPP;
+-			}
+-			unlock_page(head);
+-			res = MF_FAILED;
+-			if (__page_handle_poison(p)) {
+-				page_ref_inc(p);
+-				res = MF_RECOVERED;
+-			}
+-			action_result(pfn, MF_MSG_FREE_HUGE, res);
+-			return res == MF_RECOVERED ? 0 : -EBUSY;
+-		} else if (res < 0) {
+-			action_result(pfn, MF_MSG_UNKNOWN, MF_IGNORED);
+-			return -EBUSY;
++	/*
++	 * Handling free hugepage.  The possible race with hugepage allocation
++	 * or demotion can be prevented by PageHWPoison flag.
++	 */
++	if (res == 0) {
++		unlock_page(head);
++		res = MF_FAILED;
++		if (__page_handle_poison(p)) {
++			page_ref_inc(p);
++			res = MF_RECOVERED;
  		}
++		action_result(pfn, MF_MSG_FREE_HUGE, res);
++		return res == MF_RECOVERED ? 0 : -EBUSY;
+ 	}
  
--		/*
--		 * Ok, we have the page, and it's up-to-date, so
--		 * now we can copy it to user space...
--		 */
--		ret = copy_page_to_iter(page, offset, nr, to);
- 		retval += ret;
- 		offset += ret;
- 		index += offset >> PAGE_SHIFT;
- 		offset &= ~PAGE_MASK;
+-	lock_page(head);
+-
+ 	/*
+ 	 * The page could have changed compound pages due to race window.
+ 	 * If this happens just bail out.
+@@ -1554,14 +1617,6 @@ static int memory_failure_hugetlb(unsign
  
--		if (got_page)
--			put_page(page);
- 		if (!iov_iter_count(to))
- 			break;
- 		if (ret < nr) {
+ 	page_flags = head->flags;
+ 
+-	if (hwpoison_filter(p)) {
+-		if (TestClearPageHWPoison(head))
+-			num_poisoned_pages_dec();
+-		put_page(p);
+-		res = -EOPNOTSUPP;
+-		goto out;
+-	}
+-
+ 	/*
+ 	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
+ 	 * simply disable it. In order to make it work properly, we need
+@@ -1588,6 +1643,12 @@ out:
+ 	unlock_page(head);
+ 	return res;
+ }
++#else
++static inline int try_memory_failure_hugetlb(unsigned long pfn, int flags, int *hugetlb)
++{
++	return 0;
++}
++#endif
+ 
+ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		struct dev_pagemap *pgmap)
+@@ -1712,6 +1773,7 @@ int memory_failure(unsigned long pfn, in
+ 	int res = 0;
+ 	unsigned long page_flags;
+ 	bool retry = true;
++	int hugetlb = 0;
+ 
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
+@@ -1739,10 +1801,9 @@ int memory_failure(unsigned long pfn, in
+ 	}
+ 
+ try_again:
+-	if (PageHuge(p)) {
+-		res = memory_failure_hugetlb(pfn, flags);
++	res = try_memory_failure_hugetlb(pfn, flags, &hugetlb);
++	if (hugetlb)
+ 		goto unlock_mutex;
+-	}
+ 
+ 	if (TestSetPageHWPoison(p)) {
+ 		pr_err("Memory failure: %#lx: already hardware poisoned\n",
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-tmpfs-fix-regressions-from-wider-use-of-zero_page.patch
-mm-munlock-remove-fields-to-fix-htmldocs-warnings.patch
+mm-hwpoison-fix-race-between-hugetlb-free-demotion-and-memory_failure_hugetlb.patch
+revert-mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
 
