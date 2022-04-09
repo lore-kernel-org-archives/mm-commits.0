@@ -2,38 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D15ABC433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  9 Apr 2022 21:55:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAF0AC433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  9 Apr 2022 22:17:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232345AbiDIV5k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 9 Apr 2022 17:57:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48196 "EHLO
+        id S232504AbiDIWTf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 9 Apr 2022 18:19:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231857AbiDIV5j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 9 Apr 2022 17:57:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37EC4B1A8C
-        for <mm-commits@vger.kernel.org>; Sat,  9 Apr 2022 14:55:30 -0700 (PDT)
+        with ESMTP id S232571AbiDIWTe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 9 Apr 2022 18:19:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B745C36B59;
+        Sat,  9 Apr 2022 15:17:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 522F96090A
-        for <mm-commits@vger.kernel.org>; Sat,  9 Apr 2022 21:55:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9225AC385A0;
-        Sat,  9 Apr 2022 21:55:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6A075B8077B;
+        Sat,  9 Apr 2022 22:17:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2908CC385A0;
+        Sat,  9 Apr 2022 22:17:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649541328;
-        bh=1QYotjoWc8j5c5CtWviLVUd8yQUOpzO9NYTMyTNIER8=;
+        s=korg; t=1649542641;
+        bh=pvCEBaBJUMTRj+swKZkxhmRi+c2W+8U2Q9YZOdZD34c=;
         h=Date:To:From:Subject:From;
-        b=onpCS67eUgzVDkRBeF+EZs5OYyrMCTqNqId+hqEm4/dYro1ZyOQR4nESB/SceaoAZ
-         UDea8KuFV0NLXO5RFQ3O34ndKvQqIBBhrC49ItgXQ0SKmy1u3w9FkU0gFQoSVdJ4pn
-         hgZe6wNNN9ETlSHgZCqsqJsNuH1CqTZY77vz+xys=
-Date:   Sat, 09 Apr 2022 14:55:27 -0700
-To:     mm-commits@vger.kernel.org, swboyd@chromium.org, schspa@gmail.com,
-        akpm@linux-foundation.org
+        b=q5I5Fc5c1dFfDGrGhdk9ZPNrlswHSTy6cKgTs8OarKRFJx9qSMrn3smjYE0BmrpWt
+         F0Cp/u9eDcG2FDYydVTNJ90ri4MK2AZgx+CPWxa6oSQRyoWqnrkqEoJDkg7y6slN0S
+         lPwDVzi/uxc6e0MvwE+KAR3hmkiPwegTPylqQ+5A=
+Date:   Sat, 09 Apr 2022 15:17:20 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        surenb@google.com, stable@vger.kernel.org, sspatil@google.com,
+        songliubraving@fb.com, shuah@kernel.org, rppt@kernel.org,
+        rientjes@google.com, regressions@leemhuis.info,
+        ndesaulniers@google.com, mike.kravetz@oracle.com,
+        maskray@google.com, kirill.shutemov@linux.intel.com,
+        irogers@google.com, hughd@google.com, hjl.tools@gmail.com,
+        ckennelly@google.com, adobriyan@gmail.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decode_stacktracesh-support-old-bash-version.patch added to -mm tree
-Message-Id: <20220409215528.9225AC385A0@smtp.kernel.org>
+Subject: + revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders.patch added to -mm tree
+Message-Id: <20220409221721.2908CC385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: support old bash version
+     Subject: revert "fs/binfmt_elf: fix PT_LOAD p_align values for loaders"
 has been added to the -mm tree.  Its filename is
-     scripts-decode_stacktracesh-support-old-bash-version.patch
+     revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/scripts-decode_stacktracesh-support-old-bash-version.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-decode_stacktracesh-support-old-bash-version.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,105 +69,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Schspa Shi <schspa@gmail.com>
-Subject: scripts/decode_stacktrace.sh: support old bash version
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "fs/binfmt_elf: fix PT_LOAD p_align values for loaders"
 
-Old bash version don't support associative array variables.  Avoid to use
-associative array variables to avoid error.
+925346c129da11 ("fs/binfmt_elf: fix PT_LOAD p_align values for loaders")
+is an attempt to fix regressions due to 9630f0d60fec5f ("fs/binfmt_elf:
+use PT_LOAD p_align values for static PIE").
 
-Without this, old bash version will report error as fellowing
-[   15.954042] Kernel panic - not syncing: sysrq triggered crash
-[   15.955252] CPU: 1 PID: 167 Comm: sh Not tainted 5.18.0-rc1-00208-gb7d075db2fd5 #4
-[   15.956472] Hardware name: Hobot J5 Virtual development board (DT)
-[   15.957856] Call trace:
-./scripts/decode_stacktrace.sh: line 128: ,dump_backtrace: syntax error: operand expected (error token is ",dump_backtrace")
+But regressionss continue to be reported:
 
-Link: https://lkml.kernel.org/r/20220409180331.24047-1-schspa@gmail.com
-Signed-off-by: Schspa Shi <schspa@gmail.com>
-Cc: Stephen Boyd <swboyd@chromium.org>
+https://lore.kernel.org/lkml/cb5b81bd-9882-e5dc-cd22-54bdbaaefbbc@leemhuis.info/
+https://bugzilla.kernel.org/show_bug.cgi?id=215720
+https://lkml.kernel.org/r/b685f3d0-da34-531d-1aa9-479accd3e21b@leemhuis.info
+
+This patch reverts the fix, so the original can also be reverted.
+
+Fixes: 925346c129da11 ("fs/binfmt_elf: fix PT_LOAD p_align values for loaders")
+Cc: H.J. Lu <hjl.tools@gmail.com>
+Cc: Chris Kennelly <ckennelly@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |   27 +++++++++++++++++++--------
- 1 file changed, 19 insertions(+), 8 deletions(-)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-support-old-bash-version
-+++ a/scripts/decode_stacktrace.sh
-@@ -45,8 +45,13 @@ else
- 	fi
- fi
- 
--declare -A cache
--declare -A modcache
-+declare aarray_support=true
-+declare -A cache 2>/dev/null
-+if [[ $? != 0 ]]; then
-+	aarray_support=false
-+else
-+	declare -A modcache
-+fi
- 
- find_module() {
- 	if [[ -n $debuginfod ]] ; then
-@@ -97,7 +102,7 @@ parse_symbol() {
- 
- 	if [[ $module == "" ]] ; then
- 		local objfile=$vmlinux
--	elif [[ "${modcache[$module]+isset}" == "isset" ]]; then
-+	elif [[ $aarray_support == true && "${modcache[$module]+isset}" == "isset" ]]; then
- 		local objfile=${modcache[$module]}
- 	else
- 		local objfile=$(find_module)
-@@ -105,7 +110,9 @@ parse_symbol() {
- 			echo "WARNING! Modules path isn't set, but is needed to parse this symbol" >&2
- 			return
- 		fi
--		modcache[$module]=$objfile
-+		if [[ $aarray_support == true ]]; then
-+			modcache[$module]=$objfile
-+		fi
- 	fi
- 
- 	# Remove the englobing parenthesis
-@@ -125,7 +132,7 @@ parse_symbol() {
- 	# Use 'nm vmlinux' to figure out the base address of said symbol.
- 	# It's actually faster to call it every time than to load it
- 	# all into bash.
--	if [[ "${cache[$module,$name]+isset}" == "isset" ]]; then
-+	if [[ $aarray_support == true && "${cache[$module,$name]+isset}" == "isset" ]]; then
- 		local base_addr=${cache[$module,$name]}
- 	else
- 		local base_addr=$(nm "$objfile" 2>/dev/null | awk '$3 == "'$name'" && ($2 == "t" || $2 == "T") {print $1; exit}')
-@@ -133,7 +140,9 @@ parse_symbol() {
- 			# address not found
- 			return
- 		fi
--		cache[$module,$name]="$base_addr"
-+		if [[ $aarray_support == true ]]; then
-+			cache[$module,$name]="$base_addr"
-+		fi
- 	fi
- 	# Let's start doing the math to get the exact address into the
- 	# symbol. First, strip out the symbol total length.
-@@ -149,11 +158,13 @@ parse_symbol() {
- 
- 	# Pass it to addr2line to get filename and line number
- 	# Could get more than one result
--	if [[ "${cache[$module,$address]+isset}" == "isset" ]]; then
-+	if [[ $aarray_support == true && "${cache[$module,$address]+isset}" == "isset" ]]; then
- 		local code=${cache[$module,$address]}
- 	else
- 		local code=$(${CROSS_COMPILE}addr2line -i -e "$objfile" "$address" 2>/dev/null)
--		cache[$module,$address]=$code
-+		if [[ $aarray_support == true ]]; then
-+			cache[$module,$address]=$code
-+		fi
- 	fi
- 
- 	# addr2line doesn't return a proper error code if it fails, so
+--- a/fs/binfmt_elf.c~revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders
++++ a/fs/binfmt_elf.c
+@@ -1118,7 +1118,7 @@ out_free_interp:
+ 			 * without MAP_FIXED nor MAP_FIXED_NOREPLACE).
+ 			 */
+ 			alignment = maximum_alignment(elf_phdata, elf_ex->e_phnum);
+-			if (interpreter || alignment > ELF_MIN_ALIGN) {
++			if (alignment > ELF_MIN_ALIGN) {
+ 				load_bias = ELF_ET_DYN_BASE;
+ 				if (current->flags & PF_RANDOMIZE)
+ 					load_bias += arch_mmap_rnd();
 _
 
-Patches currently in -mm which might be from schspa@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-decode_stacktracesh-support-old-bash-version.patch
+mm-list_lruc-revert-mm-list_lru-optimize-memcg_reparent_list_lru_node.patch
+revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders.patch
+revert-fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie.patch
+mm.patch
+mm-create-new-mm-swaph-header-file-fix.patch
+mm-shmem-make-shmem_init-return-void-fix.patch
+ksm-count-ksm-merging-pages-for-each-process-fix.patch
+mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
+proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
+fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix.patch
+add-fat-messages-to-printk-index-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
 
