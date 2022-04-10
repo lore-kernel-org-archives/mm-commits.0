@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82CE3C433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Apr 2022 04:39:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17BFFC433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Apr 2022 04:39:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231526AbiDJElR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 10 Apr 2022 00:41:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45862 "EHLO
+        id S231834AbiDJEl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 10 Apr 2022 00:41:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231686AbiDJElQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Apr 2022 00:41:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EAEB634E;
-        Sat,  9 Apr 2022 21:39:06 -0700 (PDT)
+        with ESMTP id S231797AbiDJElV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Apr 2022 00:41:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0FBD634E;
+        Sat,  9 Apr 2022 21:39:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EAA36B80B86;
-        Sun, 10 Apr 2022 04:39:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95800C385A1;
-        Sun, 10 Apr 2022 04:39:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2169FB80B87;
+        Sun, 10 Apr 2022 04:39:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAC07C385A5;
+        Sun, 10 Apr 2022 04:39:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649565543;
-        bh=QS/jb0j3kOaa2Lnwf4XbyyqD3ttLVGMRaigYk5q/g+M=;
+        s=korg; t=1649565546;
+        bh=eXcEXo0mhuRisakInDEzdxM5D6U9aHrHR81T6Nsf8yk=;
         h=Date:To:From:Subject:From;
-        b=hQYxHeJMKjQ/AFZngP75qbhZkTfkDkfzdTj15jwNsW2tVLRIU/mLwIeWx+C8l5DEx
-         3ALkZviZPY2Ylxb/f8n7a+3RyQYxTdOmCFpcDXVOVQg1jOoRWXBvj7bCD/jK1Cq2ul
-         ly48TCbqugJEU2kgIagYhjtkqzacFJGqT63hVJEs=
-Date:   Sat, 09 Apr 2022 21:39:02 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        stable@vger.kernel.org, peterz@infradead.org, jcmvbkbc@gmail.com,
-        akpm@linux-foundation.org
+        b=BYwUGA9xFKu5a9M4t3gdBwtlfdxx2CBnTuuye7DNihdzmbkcrRdc+l35OqahvHi6b
+         6JcOvX6iK+upf8Z46vvEUBzCPQ+HnzfXETrzLa0W5EHT+fBhXHgF8zXVwLwE+YCQW7
+         NnMvXDrEYJz12oDnyUp7QWiGvGhW732IiLQ1uzZs=
+Date:   Sat, 09 Apr 2022 21:39:06 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        seanjc@google.com, pbonzini@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] highmem-fix-checks-in-__kmap_local_sched_inout.patch removed from -mm tree
-Message-Id: <20220410043903.95800C385A1@smtp.kernel.org>
+Subject: [merged] mm-avoid-pointless-invalidate_range_start-end-on-mremapold_size=0.patch removed from -mm tree
+Message-Id: <20220410043906.AAC07C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,89 +41,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: highmem: fix checks in __kmap_local_sched_{in,out}
+     Subject: mmmremap.c: avoid pointless invalidate_range_start/end on mremap(old_size=0)
 has been removed from the -mm tree.  Its filename was
-     highmem-fix-checks-in-__kmap_local_sched_inout.patch
+     mm-avoid-pointless-invalidate_range_start-end-on-mremapold_size=0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Max Filippov <jcmvbkbc@gmail.com>
-Subject: highmem: fix checks in __kmap_local_sched_{in,out}
+From: Paolo Bonzini <pbonzini@redhat.com>
+Subject: mmmremap.c: avoid pointless invalidate_range_start/end on mremap(old_size=0)
 
-When CONFIG_DEBUG_KMAP_LOCAL is enabled __kmap_local_sched_{in,out} check
-that even slots in the tsk->kmap_ctrl.pteval are unmapped.  The slots are
-initialized with 0 value, but the check is done with pte_none.  0 pte
-however does not necessarily mean that pte_none will return true.  e.g. 
-on xtensa it returns false, resulting in the following runtime warnings:
+If an mremap() syscall with old_size=0 ends up in move_page_tables(), it
+will call invalidate_range_start()/invalidate_range_end() unnecessarily,
+i.e.  with an empty range.
 
- WARNING: CPU: 0 PID: 101 at mm/highmem.c:627 __kmap_local_sched_out+0x51/0x108
- CPU: 0 PID: 101 Comm: touch Not tainted 5.17.0-rc7-00010-gd3a1cdde80d2-dirty #13
- Call Trace:
-   dump_stack+0xc/0x40
-   __warn+0x8f/0x174
-   warn_slowpath_fmt+0x48/0xac
-   __kmap_local_sched_out+0x51/0x108
-   __schedule+0x71a/0x9c4
-   preempt_schedule_irq+0xa0/0xe0
-   common_exception_return+0x5c/0x93
-   do_wp_page+0x30e/0x330
-   handle_mm_fault+0xa70/0xc3c
-   do_page_fault+0x1d8/0x3c4
-   common_exception+0x7f/0x7f
+This causes a WARN in KVM's mmu_notifier.  In the past, empty ranges have
+been diagnosed to be off-by-one bugs, hence the WARNing.  Given the low
+(so far) number of unique reports, the benefits of detecting more buggy
+callers seem to outweigh the cost of having to fix cases such as this one,
+where userspace is doing something silly.  In this particular case, an
+early return from move_page_tables() is enough to fix the issue.
 
- WARNING: CPU: 0 PID: 101 at mm/highmem.c:664 __kmap_local_sched_in+0x50/0xe0
- CPU: 0 PID: 101 Comm: touch Tainted: G        W         5.17.0-rc7-00010-gd3a1cdde80d2-dirty #13
- Call Trace:
-   dump_stack+0xc/0x40
-   __warn+0x8f/0x174
-   warn_slowpath_fmt+0x48/0xac
-   __kmap_local_sched_in+0x50/0xe0
-   finish_task_switch$isra$0+0x1ce/0x2f8
-   __schedule+0x86e/0x9c4
-   preempt_schedule_irq+0xa0/0xe0
-   common_exception_return+0x5c/0x93
-   do_wp_page+0x30e/0x330
-   handle_mm_fault+0xa70/0xc3c
-   do_page_fault+0x1d8/0x3c4
-   common_exception+0x7f/0x7f
-
-Fix it by replacing !pte_none(pteval) with pte_val(pteval) != 0.
-
-Link: https://lkml.kernel.org/r/20220403235159.3498065-1-jcmvbkbc@gmail.com
-Fixes: 5fbda3ecd14a ("sched: highmem: Store local kmaps in task struct")
-Signed-off-by: Max Filippov <jcmvbkbc@gmail.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20220329173155.172439-1-pbonzini@redhat.com
+Reported-by: syzbot+6bde52d89cfdf9f61425@syzkaller.appspotmail.com
+Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mremap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/highmem.c~highmem-fix-checks-in-__kmap_local_sched_inout
-+++ a/mm/highmem.c
-@@ -624,7 +624,7 @@ void __kmap_local_sched_out(void)
+--- a/mm/mremap.c~mm-avoid-pointless-invalidate_range_start-end-on-mremapold_size=0
++++ a/mm/mremap.c
+@@ -486,6 +486,9 @@ unsigned long move_page_tables(struct vm
+ 	pmd_t *old_pmd, *new_pmd;
+ 	pud_t *old_pud, *new_pud;
  
- 		/* With debug all even slots are unmapped and act as guard */
- 		if (IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL) && !(i & 0x01)) {
--			WARN_ON_ONCE(!pte_none(pteval));
-+			WARN_ON_ONCE(pte_val(pteval) != 0);
- 			continue;
- 		}
- 		if (WARN_ON_ONCE(pte_none(pteval)))
-@@ -661,7 +661,7 @@ void __kmap_local_sched_in(void)
++	if (!len)
++		return 0;
++
+ 	old_end = old_addr + len;
+ 	flush_cache_range(vma, old_addr, old_end);
  
- 		/* With debug all even slots are unmapped and act as guard */
- 		if (IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL) && !(i & 0x01)) {
--			WARN_ON_ONCE(!pte_none(pteval));
-+			WARN_ON_ONCE(pte_val(pteval) != 0);
- 			continue;
- 		}
- 		if (WARN_ON_ONCE(pte_none(pteval)))
 _
 
-Patches currently in -mm which might be from jcmvbkbc@gmail.com are
+Patches currently in -mm which might be from pbonzini@redhat.com are
 
 
