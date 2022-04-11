@@ -2,88 +2,116 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AECFDC4321E
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Apr 2022 09:00:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4126C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Apr 2022 23:02:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243552AbiDKJCv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Apr 2022 05:02:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47308 "EHLO
+        id S229445AbiDKXE7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Apr 2022 19:04:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344141AbiDKJCq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Apr 2022 05:02:46 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66C743ED23
-        for <mm-commits@vger.kernel.org>; Mon, 11 Apr 2022 02:00:33 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S229436AbiDKXE6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Apr 2022 19:04:58 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B76B61ADB9
+        for <mm-commits@vger.kernel.org>; Mon, 11 Apr 2022 16:02:43 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 00533212C2;
-        Mon, 11 Apr 2022 09:00:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1649667632; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=UZRZq2BNI+gJGuuNOCZ+0G0H9vZfghchCCmW4z4a7Ak=;
-        b=JsUwME53yEsTOnMPLIHnBmBFUoN9ocjrmRSn4koc2p0Zokp5HiLuWozS0pN+WIDi4TrsZS
-        8IUMp6WA4HvKLlK04nvym//iRhDcFYSp9QFubSp2uYWP035khl45SahePhDWRfHNLHp4BF
-        uKYqZH9D71vSLjWbFYJhEGk3RbKaMqI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1649667632;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=UZRZq2BNI+gJGuuNOCZ+0G0H9vZfghchCCmW4z4a7Ak=;
-        b=2a1i4DPs81ozF0+NYwPSV5oLxA7sKOILrxHOEEoVuJiAiUz8BWjdclTA7jLkM25UtJvwBs
-        6ifHTzUCdMb/lQCg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 2423213A93;
-        Mon, 11 Apr 2022 09:00:31 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id 5AjWBC/uU2KxOwAAMHmgww
-        (envelope-from <osalvador@suse.de>); Mon, 11 Apr 2022 09:00:31 +0000
-Date:   Mon, 11 Apr 2022 11:00:29 +0200
-From:   Oscar Salvador <osalvador@suse.de>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mingo@kernel.org, kirill.shutemov@linux.intel.com,
-        jforbes@redhat.com, aquini@redhat.com, longman@redhat.com,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject: Re: [patch 4/9] mm/sparsemem: fix 'mem_section' will never be NULL
- gcc 12 warning
-Message-ID: <YlPuLXI819omL1WR@localhost.localdomain>
-References: <20220408130819.a89195e527ce58dfbe0700b9@linux-foundation.org>
- <20220408200902.A24A9C385A1@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220408200902.A24A9C385A1@smtp.kernel.org>
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6BE42B819A7
+        for <mm-commits@vger.kernel.org>; Mon, 11 Apr 2022 23:02:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2FD1C385A3;
+        Mon, 11 Apr 2022 23:02:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1649718161;
+        bh=k0A0fZnZGFK7AivLxlmrYTTAmKtgBQcKAz9HfkWJ2MA=;
+        h=Date:To:From:Subject:From;
+        b=xP37M2CmcHqVM6YDELNT20cAF0IT+rwqzdHtLVf8BYzjo9H6lwZe6p6kiHSAoyK1l
+         AdJIAW8p4wQYLJ4LAXu5RIuxayF7wmWcujG/6A7Nlu0ANtrjEi9eZuUFtSN+6bjkFW
+         3MvPL8OZExa6QStElpRK/Lfg/c25pcLL0nUduiuc=
+Date:   Mon, 11 Apr 2022 16:02:40 -0700
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Message-Id: <20220411230240.F2FD1C385A3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Apr 08, 2022 at 01:09:01PM -0700, Andrew Morton wrote:
-> From: Waiman Long <longman@redhat.com>
-> Subject: mm/sparsemem: fix 'mem_section' will never be NULL gcc 12 warning
-> 
- ...
-> Link: https://lkml.kernel.org/r/20220331180246.2746210-1-longman@redhat.com
-> Fixes: 3e347261a80b ("sparsemem extreme implementation")
-> Signed-off-by: Waiman Long <longman@redhat.com>
-> Reported-by: Justin Forbes <jforbes@redhat.com>
-> Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Cc: Rafael Aquini <aquini@redhat.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+The patch titled
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
+This patch was dropped because it is obsolete
 
--- 
-Oscar Salvador
-SUSE Labs
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/gpu/drm/amd/display/dc/dcn10/dcn10_hw_sequencer.c |    3 ---
+ drivers/mmc/host/mmci_stm32_sdmmc.c                       |    8 --------
+ 2 files changed, 11 deletions(-)
+
+--- a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_hw_sequencer.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_hw_sequencer.c
+@@ -1495,13 +1495,10 @@ void dcn10_init_hw(struct dc *dc)
+ 		if (link->link_enc->funcs->is_dig_enabled &&
+ 			link->link_enc->funcs->is_dig_enabled(link->link_enc)) {
+ 			link->link_status.link_active = true;
+-<<<<<<< HEAD
+-=======
+ 			if (link->link_enc->funcs->fec_is_active &&
+ 					link->link_enc->funcs->fec_is_active(link->link_enc))
+ 				link->fec_state = dc_link_fec_enabled;
+ 		}
+->>>>>>> linux-next/akpm-base
+ 	}
+ 
+ 	/* we want to turn off all dp displays before doing detection */
+--- a/drivers/mmc/host/mmci_stm32_sdmmc.c~linux-next-git-rejects
++++ a/drivers/mmc/host/mmci_stm32_sdmmc.c
+@@ -70,11 +70,7 @@ static int sdmmc_idma_validate_data(stru
+ 	for_each_sg(data->sg, sg, data->sg_len - 1, i) {
+ 		if (!IS_ALIGNED(sg->offset, sizeof(u32)) ||
+ 		    !IS_ALIGNED(sg->length, SDMMC_IDMA_BURST)) {
+-<<<<<<< HEAD
+-			dev_err(mmc_dev(host->mmc),
+-=======
+ 			dev_dbg(mmc_dev(host->mmc),
+->>>>>>> linux-next/akpm-base
+ 				"unaligned scatterlist: ofst:%x length:%d\n",
+ 				data->sg->offset, data->sg->length);
+ 			goto use_bounce_buffer;
+@@ -82,11 +78,7 @@ static int sdmmc_idma_validate_data(stru
+ 	}
+ 
+ 	if (!IS_ALIGNED(sg->offset, sizeof(u32))) {
+-<<<<<<< HEAD
+-		dev_err(mmc_dev(host->mmc),
+-=======
+ 		dev_dbg(mmc_dev(host->mmc),
+->>>>>>> linux-next/akpm-base
+ 			"unaligned last scatterlist: ofst:%x length:%d\n",
+ 			data->sg->offset, data->sg->length);
+ 		goto use_bounce_buffer;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+mm-create-new-mm-swaph-header-file-fix.patch
+mm-shmem-make-shmem_init-return-void-fix.patch
+ksm-count-ksm-merging-pages-for-each-process-fix.patch
+mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
+proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
+fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix.patch
+add-fat-messages-to-printk-index-checkpatch-fixes.patch
+linux-next-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+
