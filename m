@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E786AC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Apr 2022 23:24:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A73F7C43217
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Apr 2022 23:24:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230021AbiDLX0q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Apr 2022 19:26:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39068 "EHLO
+        id S229964AbiDLX0y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Apr 2022 19:26:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230041AbiDLX0W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Apr 2022 19:26:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3950E56C1D
-        for <mm-commits@vger.kernel.org>; Tue, 12 Apr 2022 15:42:48 -0700 (PDT)
+        with ESMTP id S229962AbiDLX0Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Apr 2022 19:26:25 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 492A055237
+        for <mm-commits@vger.kernel.org>; Tue, 12 Apr 2022 15:12:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7E10AB82021
-        for <mm-commits@vger.kernel.org>; Tue, 12 Apr 2022 21:24:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34BF9C385A1;
-        Tue, 12 Apr 2022 21:24:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EAD69B8200D
+        for <mm-commits@vger.kernel.org>; Tue, 12 Apr 2022 22:12:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E1F0C385A5;
+        Tue, 12 Apr 2022 22:12:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649798652;
-        bh=AjLVFMcVWAyBPT3Vfm86LWVt1r0ssG0xKQV3flPDbPA=;
+        s=korg; t=1649801536;
+        bh=rEyerkwd8eJzwLYNBl5lUPf80glAnuf75FSdVPvIBkM=;
         h=Date:To:From:Subject:From;
-        b=yRCi6JAP1UE7B+aOM5WhQYDmEZWWXZtQShebNV/tYd1SSjtVx3rABIGQGbj+5p9GM
-         xSU5PRkooGQvAJ15UmwDHP8DlP7gOwmaxHVvfkqszuufb94lKlvsKYjvJLlQIg1egp
-         0fu+XU43b5g/RUB6Y9c0TaM6jBm5U+/jxkNWrgSg=
-Date:   Tue, 12 Apr 2022 14:24:11 -0700
-To:     mm-commits@vger.kernel.org, michel@lespinasse.org,
-        hughd@google.com, 21cnbao@gmail.com, lipeifeng@oppo.com,
-        akpm@linux-foundation.org
+        b=przePeyJETMF9rDICog3nO/52Yd54P1yqtenO6yZOaFbizvHuGoePRKdwB4IywLip
+         eRl/wfo8BrB0xA1IHJrgBHy4JBwiQuQNH+xnDbjuBTtLmvlMmBFVZ/jpicKK1/F2xt
+         WGw3W7aqTcAQfTZbXWJaDFzispJVzinUP8PAIEc8=
+Date:   Tue, 12 Apr 2022 15:12:13 -0700
+To:     mm-commits@vger.kernel.org, trix@redhat.com,
+        ndesaulniers@google.com, nathan@kernel.org,
+        michalorzel.eng@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-align-error-when-get_addr-in-unmapped_area_topdown.patch added to -mm tree
-Message-Id: <20220412212412.34BF9C385A1@smtp.kernel.org>
+Subject: + ipc-sem-remove-redundant-assignments.patch added to -mm tree
+Message-Id: <20220412221216.7E1F0C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: fix align-error when get_addr in unmapped_area_topdown
+     Subject: ipc/sem: Remove redundant assignments
 has been added to the -mm tree.  Its filename is
-     mm-fix-align-error-when-get_addr-in-unmapped_area_topdown.patch
+     ipc-sem-remove-redundant-assignments.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-align-error-when-get_addr-in-unmapped_area_topdown.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-remove-redundant-assignments.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-align-error-when-get_addr-in-unmapped_area_topdown.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-remove-redundant-assignments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,64 +63,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: lipeifeng <lipeifeng@oppo.com>
-Subject: mm/mmap.c: fix align-error when get_addr in unmapped_area_topdown
+From: Michal Orzel <michalorzel.eng@gmail.com>
+Subject: ipc/sem: Remove redundant assignments
 
-When we found a suitable gap_end(> info->high_limit), gap_end must be set
-to info->high_limit.  And we will get the gap_end after computing highest
-gap address at the desired alignment.
+Get rid of redundant assignments which end up in values not being
+read either because they are overwritten or the function ends.
 
-2096 found:
-2097         if (gap_end > info->high_limit)
-2098                 gap_end = info->high_limit;
-2099
-2100 found_highest:
-2101         gap_end -= info->length;
-2102         gap_end -= (gap_end - info->align_offset) & info->align_mask;
-2103
-2104         VM_BUG_ON(gap_end < info->low_limit);
-2105         VM_BUG_ON(gap_end < gap_start);
-2106         return gap_end;
+Reported by clang-tidy [deadcode.DeadStores]
 
-so we must promise: info->high_limit - info->low_limit >= info->length +
-info->align_mask.
-
-Otherwise in rare cases(info->high_limit - info->low_limit < info->length
-+ info->align_mask) we will get the addr in align-error if found suitable
-gap_end(> info->high_limit).
-
-Link: https://lkml.kernel.org/r/20220412081014.399-1-lipeifeng@oppo.com
-Signed-off-by: lipeifeng <lipeifeng@oppo.com>
-Cc: Michel Lespinasse <michel@lespinasse.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Barry Song <21cnbao@gmail.com>
+Link: https://lkml.kernel.org/r/20220409101933.207157-1-michalorzel.eng@gmail.com
+Signed-off-by: Michal Orzel <michalorzel.eng@gmail.com>
+Reviewed-by: Tom Rix <trix@redhat.com>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-fix-align-error-when-get_addr-in-unmapped_area_topdown
-+++ a/mm/mmap.c
-@@ -2015,7 +2015,6 @@ static unsigned long unmapped_area_topdo
- 	if (length < info->length)
- 		return -ENOMEM;
+--- a/ipc/sem.c~ipc-sem-remove-redundant-assignments
++++ a/ipc/sem.c
+@@ -766,7 +766,6 @@ static int perform_atomic_semop(struct s
+ 	for (sop = sops; sop < sops + nsops; sop++) {
+ 		curr = &sma->sems[sop->sem_num];
+ 		sem_op = sop->sem_op;
+-		result = curr->semval;
  
--	length = info->length;
- 	/*
- 	 * Adjust search limits by the desired length.
- 	 * See implementation comment at top of unmapped_area().
-@@ -2027,6 +2026,8 @@ static unsigned long unmapped_area_topdo
+ 		if (sop->sem_flg & SEM_UNDO) {
+ 			int undo = un->semadj[sop->sem_num] - sem_op;
+@@ -1430,7 +1429,6 @@ static int semctl_main(struct ipc_namesp
+ 	if (err)
+ 		goto out_rcu_wakeup;
  
- 	if (info->low_limit > high_limit)
- 		return -ENOMEM;
-+
-+	length = info->length;
- 	low_limit = info->low_limit + length;
- 
- 	/* Check highest gap, which does not precede any rbtree node */
+-	err = -EACCES;
+ 	switch (cmd) {
+ 	case GETALL:
+ 	{
 _
 
-Patches currently in -mm which might be from lipeifeng@oppo.com are
+Patches currently in -mm which might be from michalorzel.eng@gmail.com are
 
-mm-modify-the-method-to-search-addr-in-unmapped_area_topdown.patch
-mm-fix-align-error-when-get_addr-in-unmapped_area_topdown.patch
+kexec-remove-redundant-assignments.patch
+ipc-sem-remove-redundant-assignments.patch
 
