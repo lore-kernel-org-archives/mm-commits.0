@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81298C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Apr 2022 21:22:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73E4CC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Apr 2022 21:29:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239069AbiDMVYh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Apr 2022 17:24:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53838 "EHLO
+        id S229720AbiDMVbb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Apr 2022 17:31:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238973AbiDMVYb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Apr 2022 17:24:31 -0400
+        with ESMTP id S229571AbiDMVba (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Apr 2022 17:31:30 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EECC665480
-        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 14:22:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CC5488B06
+        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 14:29:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AE961B8251D
-        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 21:22:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66FB2C385A6;
-        Wed, 13 Apr 2022 21:22:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CCBB8B818F1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 21:29:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A8C2C385A3;
+        Wed, 13 Apr 2022 21:29:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649884926;
-        bh=nHVcvVK7F/heHN9Z0/FOJGrZPkZ5MFHwhM3OvSsFYNg=;
+        s=korg; t=1649885345;
+        bh=BHcp78nf/JAh0u/oUpqJpK4hUsc5BR0nxL7Wlqf2+fw=;
         h=Date:To:From:Subject:From;
-        b=uBEscdyE1l6x8iLq41xBzLQu+OKaD0pw12YrDz47k8opmxilBHq7Va2QIK7WKk5am
-         lSs3juOZB4f0+Ml+ASE/dV4xIWwfnEvodVmsF9lshzJvb5BILbISglLxpXc7MXXcDB
-         msB2rPc5gSxLtugNjOQNkxmAXP0tWGUsba7yFRuY=
-Date:   Wed, 13 Apr 2022 14:22:05 -0700
-To:     mm-commits@vger.kernel.org, hughd@google.com, apopple@nvidia.com,
-        peterx@redhat.com, akpm@linux-foundation.org
+        b=BYYH357X+MqVJNyc4+3R5qs3ZpA02IWp9ywcuk6pYDX12e38BsrdrQJcK/P2kyGMX
+         2w3OIzwCm0DNP0pQC3OszHfoAmUjLJPOJ41OIszeCrqTJwwmSjP+cepboleeLmKQn9
+         igMv2LnW8LvFFfMUZMFc1HgcMA1LaAGnWlC4jVy8=
+Date:   Wed, 13 Apr 2022 14:29:04 -0700
+To:     mm-commits@vger.kernel.org, alex_y_xu@yahoo.ca,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-stub-for-non_swap_entry.patch added to -mm tree
-Message-Id: <20220413212206.66FB2C385A6@smtp.kernel.org>
+Subject: + mm-smaps_rollup-return-empty-file-for-kthreads-instead-of-esrch.patch added to -mm tree
+Message-Id: <20220413212905.6A8C2C385A3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/swapops.h: remove stub for non_swap_entry()
+     Subject: mm/smaps_rollup: return empty file for kthreads instead of ESRCH
 has been added to the -mm tree.  Its filename is
-     mm-remove-stub-for-non_swap_entry.patch
+     mm-smaps_rollup-return-empty-file-for-kthreads-instead-of-esrch.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-stub-for-non_swap_entry.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-smaps_rollup-return-empty-file-for-kthreads-instead-of-esrch.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-stub-for-non_swap_entry.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-smaps_rollup-return-empty-file-for-kthreads-instead-of-esrch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,96 +62,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: include/linux/swapops.h: remove stub for non_swap_entry()
+From: "Alex Xu (Hello71)" <alex_y_xu@yahoo.ca>
+Subject: mm/smaps_rollup: return empty file for kthreads instead of ESRCH
 
-The stub for non_swap_entry() may not help much, because MAX_SWAPFILES has
-already contained all the information to decide whether a swap entry is
-real swap entry or pesudo ones (migrations, ...).
+This restores the behavior prior to 258f669e7e88 ("mm:
+/proc/pid/smaps_rollup: convert to single value seq_file"), making it once
+again consistent with maps and smaps, and allowing patterns like awk
+'$1=="Anonymous:"{x+=$2}END{print x}' /proc/*/smaps_rollup to work. 
+Searching all Debian packages for "smaps_rollup" did not find any programs
+which would be affected by this change.
 
-There can be some performance influences on non_swap_entry() with below
-conditions all met:
-
-  !CONFIG_MIGRATION && !CONFIG_MEMORY_FAILURE && !CONFIG_DEVICE_PRIVATE
-
-But that's definitely not the major config most machines will use, at the
-meantime it's already in a slow path of swap entry (being parsed from a
-swap pte), so IMHO it shouldn't be a major issue.  Also according to the
-analysis from Alistair, somehow the stub didn't do the job right [1].
-
-To make the code cleaner, let's drop the stub.
-
-[1] https://lore.kernel.org/lkml/8735ihbw6g.fsf@nvdebian.thelocal/
-
-Note: the uffd-wp shmem & hugetlbfs series will need this patch to make
-sure swap entries work as expected with below config as spotted by
-Alistair:
-
-  !CONFIG_MIGRATION &&
-  !CONFIG_MEMORY_FAILURE &&
-  !CONFIG_DEVICE_PRIVATE &&
-  CONFIG_PTE_MARKER
-
-(PS: this config should mostly never gonna happen, though, afaict..)
-
-Link: https://lkml.kernel.org/r/20220413191147.66645-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20220413211357.26938-1-alex_y_xu@yahoo.ca
+Fixes: 258f669e7e88 ("mm: /proc/pid/smaps_rollup: convert to single value seq_file")
+Signed-off-by: Alex Xu (Hello71) <alex_y_xu@yahoo.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/swapops.h~mm-remove-stub-for-non_swap_entry
-+++ a/include/linux/swapops.h
-@@ -414,18 +414,10 @@ static inline void num_poisoned_pages_in
- }
- #endif
+--- a/fs/proc/task_mmu.c~mm-smaps_rollup-return-empty-file-for-kthreads-instead-of-esrch
++++ a/fs/proc/task_mmu.c
+@@ -883,10 +883,8 @@ static int show_smaps_rollup(struct seq_
+ 		return -ESRCH;
  
--#if defined(CONFIG_MEMORY_FAILURE) || defined(CONFIG_MIGRATION) || \
--    defined(CONFIG_DEVICE_PRIVATE)
- static inline int non_swap_entry(swp_entry_t entry)
- {
- 	return swp_type(entry) >= MAX_SWAPFILES;
- }
--#else
--static inline int non_swap_entry(swp_entry_t entry)
--{
--	return 0;
--}
--#endif
+ 	mm = priv->mm;
+-	if (!mm || !mmget_not_zero(mm)) {
+-		ret = -ESRCH;
++	if (!mm || !mmget_not_zero(mm))
+ 		goto out_put_task;
+-	}
  
- #endif /* CONFIG_MMU */
- #endif /* _LINUX_SWAPOPS_H */
+ 	memset(&mss, 0, sizeof(mss));
+ 
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from alex_y_xu@yahoo.ca are
 
-mm-remove-stub-for-non_swap_entry.patch
-mm-introduce-pte_marker-swap-entry.patch
-mm-introduce-pte_marker-swap-entry-fix.patch
-mm-teach-core-mm-about-pte-markers.patch
-mm-check-against-orig_pte-for-finish_fault.patch
-mm-uffd-pte_marker_uffd_wp.patch
-mm-uffd-pte_marker_uffd_wp-fix.patch
-mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
-mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
-mm-shmem-persist-uffd-wp-bit-across-zapping-for-file-backed.patch
-mm-shmem-allow-uffd-wr-protect-none-pte-for-file-backed-mem.patch
-mm-shmem-allows-file-back-mem-to-be-uffd-wr-protected-on-thps.patch
-mm-shmem-handle-uffd-wp-during-fork.patch
-mm-hugetlb-introduce-huge-pte-version-of-uffd-wp-helpers.patch
-mm-hugetlb-hook-page-faults-for-uffd-write-protection.patch
-mm-hugetlb-take-care-of-uffdio_copy_mode_wp.patch
-mm-hugetlb-handle-uffdio_writeprotect.patch
-mm-hugetlb-handle-pte-markers-in-page-faults.patch
-mm-hugetlb-allow-uffd-wr-protect-none-ptes.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
-mm-hugetlb-handle-uffd-wp-during-fork.patch
-mm-khugepaged-dont-recycle-vma-pgtable-if-uffd-wp-registered.patch
-mm-pagemap-recognize-uffd-wp-bit-for-shmem-hugetlbfs.patch
-mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
-mm-enable-pte-markers-by-default.patch
-selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
+mm-smaps_rollup-return-empty-file-for-kthreads-instead-of-esrch.patch
 
