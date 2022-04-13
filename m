@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B620EC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Apr 2022 19:30:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FA85C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Apr 2022 20:51:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231229AbiDMTdK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Apr 2022 15:33:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39290 "EHLO
+        id S232327AbiDMUyO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Apr 2022 16:54:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233559AbiDMTcU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Apr 2022 15:32:20 -0400
+        with ESMTP id S231935AbiDMUyN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Apr 2022 16:54:13 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AB329FEF
-        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 12:29:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07E9018B18
+        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 13:51:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 25C4561D9C
-        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 19:29:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C637C385A4;
-        Wed, 13 Apr 2022 19:29:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 97BF261E9A
+        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 20:51:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6D35C385A4;
+        Wed, 13 Apr 2022 20:51:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649878196;
-        bh=TRtKipY3DHI4mdMtPUwhxaeI65s/jeN088xjXslmK0M=;
+        s=korg; t=1649883110;
+        bh=Zgyf5DCB7/GxUsHZksI/Tb330Whm4jS5g5aNJmIMK9k=;
         h=Date:To:From:Subject:From;
-        b=BvH44UaBC7F/vn0chR2Oc7VB4IGYbTh2DbhpLhRydqog6sBYsOacIXvp3Y0WQWWEw
-         +sk634UxZU/tRqrn2OdgrZZG2kVXrdn3HTijYuFq4lEaCwOJazfnRcSz7jnTOJRviy
-         z0E+002jBvDAt+TvhPDvMw0yPemhNDGa2iYbbUls=
-Date:   Wed, 13 Apr 2022 12:29:55 -0700
-To:     mm-commits@vger.kernel.org, catalin.marinas@arm.com,
-        patrick.wang.shcn@gmail.com, akpm@linux-foundation.org
+        b=mdKdmMVDVFtxuCMutqr/HFPH9JMUm9VaOYPpMDH08aqNNFdcMr6emCaUBCXsyx+AX
+         TmyloLiFk/gas4L32mUA5zKX1/DTeViKEG7KbmuwSi+sLJQv1JSFYUEJDdp+HmDmi4
+         5MGeLi9NLsIctv/HHt6fsFwlEqZ7qBAyfJGitmPA=
+Date:   Wed, 13 Apr 2022 13:51:46 -0700
+To:     mm-commits@vger.kernel.org, lkp@intel.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch added to -mm tree
-Message-Id: <20220413192956.7C637C385A4@smtp.kernel.org>
+Subject: + mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch added to -mm tree
+Message-Id: <20220413205149.E6D35C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: take a full lowmem check in kmemleak_*_phys()
+     Subject: fixup! mm/hugetlb: Only drop uffd-wp special pte if required
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch
+     mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,93 +62,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Patrick Wang <patrick.wang.shcn@gmail.com>
-Subject: mm: kmemleak: take a full lowmem check in kmemleak_*_phys()
+From: Peter Xu <peterx@redhat.com>
+Subject: fixup! mm/hugetlb: Only drop uffd-wp special pte if required
 
-The kmemleak_*_phys() apis do not check the address for lowmem's min
-boundary, while the caller may pass an address below lowmem, which will
-trigger an oops:
+fix sparse warning
 
-# echo scan > /sys/kernel/debug/kmemleak
-[   54.888353] Unable to handle kernel paging request at virtual address ff5fffffffe00000
-[   54.888932] Oops [#1]
-[   54.889102] Modules linked in:
-[   54.889326] CPU: 2 PID: 134 Comm: bash Not tainted 5.18.0-rc1-next-20220407 #33
-[   54.889620] Hardware name: riscv-virtio,qemu (DT)
-[   54.889901] epc : scan_block+0x74/0x15c
-[   54.890215]  ra : scan_block+0x72/0x15c
-[   54.890390] epc : ffffffff801e5806 ra : ffffffff801e5804 sp : ff200000104abc30
-[   54.890607]  gp : ffffffff815cd4e8 tp : ff60000004cfa340 t0 : 0000000000000200
-[   54.890835]  t1 : 00aaaaaac23954cc t2 : 00000000000003ff s0 : ff200000104abc90
-[   54.891024]  s1 : ffffffff81b0ff28 a0 : 0000000000000000 a1 : ff5fffffffe01000
-[   54.891201]  a2 : ffffffff81b0ff28 a3 : 0000000000000002 a4 : 0000000000000001
-[   54.891377]  a5 : 0000000000000000 a6 : ff200000104abd7c a7 : 0000000000000005
-[   54.891552]  s2 : ff5fffffffe00ff9 s3 : ffffffff815cd998 s4 : ffffffff815d0e90
-[   54.891727]  s5 : ffffffff81b0ff28 s6 : 0000000000000020 s7 : ffffffff815d0eb0
-[   54.891903]  s8 : ffffffffffffffff s9 : ff5fffffffe00000 s10: ff5fffffffe01000
-[   54.892078]  s11: 0000000000000022 t3 : 00ffffffaa17db4c t4 : 000000000000000f
-[   54.892271]  t5 : 0000000000000001 t6 : 0000000000000000
-[   54.892408] status: 0000000000000100 badaddr: ff5fffffffe00000 cause: 000000000000000d
-[   54.892643] [<ffffffff801e5a1c>] scan_gray_list+0x12e/0x1a6
-[   54.892824] [<ffffffff801e5d3e>] kmemleak_scan+0x2aa/0x57e
-[   54.892961] [<ffffffff801e633c>] kmemleak_write+0x32a/0x40c
-[   54.893096] [<ffffffff803915ac>] full_proxy_write+0x56/0x82
-[   54.893235] [<ffffffff801ef456>] vfs_write+0xa6/0x2a6
-[   54.893362] [<ffffffff801ef880>] ksys_write+0x6c/0xe2
-[   54.893487] [<ffffffff801ef918>] sys_write+0x22/0x2a
-[   54.893609] [<ffffffff8000397c>] ret_from_syscall+0x0/0x2
-[   54.894183] ---[ end trace 0000000000000000 ]---
-
-So check the address for lowmem's min boundary.
-
-Link: https://lkml.kernel.org/r/20220413122925.33856-1-patrick.wang.shcn@gmail.com
-Signed-off-by: Patrick Wang <patrick.wang.shcn@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/Ylcdw8I1L5iAoWhb@xz-m1.local
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kmemleak.c~mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys
-+++ a/mm/kmemleak.c
-@@ -1132,7 +1132,7 @@ EXPORT_SYMBOL(kmemleak_no_scan);
- void __ref kmemleak_alloc_phys(phys_addr_t phys, size_t size, int min_count,
- 			       gfp_t gfp)
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix
++++ a/fs/hugetlbfs/inode.c
+@@ -405,7 +405,7 @@ static void remove_huge_page(struct page
+ 
+ static void
+ hugetlb_vmdelete_list(struct rb_root_cached *root, pgoff_t start, pgoff_t end,
+-		      unsigned long zap_flags)
++		      zap_flags_t zap_flags)
  {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_alloc(__va(phys), size, min_count, gfp);
- }
- EXPORT_SYMBOL(kmemleak_alloc_phys);
-@@ -1146,7 +1146,7 @@ EXPORT_SYMBOL(kmemleak_alloc_phys);
-  */
- void __ref kmemleak_free_part_phys(phys_addr_t phys, size_t size)
+ 	struct vm_area_struct *vma;
+ 
+--- a/include/linux/hugetlb.h~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix
++++ a/include/linux/hugetlb.h
+@@ -144,11 +144,11 @@ long follow_hugetlb_page(struct mm_struc
+ 			 int *);
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *,
+-			  unsigned long);
++			  zap_flags_t);
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma,
+ 			  unsigned long start, unsigned long end,
+-			  struct page *ref_page, unsigned long zap_flags);
++			  struct page *ref_page, zap_flags_t zap_flags);
+ void hugetlb_report_meminfo(struct seq_file *);
+ int hugetlb_report_node_meminfo(char *buf, int len, int nid);
+ void hugetlb_show_meminfo(void);
+@@ -408,7 +408,7 @@ static inline unsigned long hugetlb_chan
+ static inline void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+ 			struct vm_area_struct *vma, unsigned long start,
+ 			unsigned long end, struct page *ref_page,
+-			unsigned long zap_flags)
++			zap_flags_t zap_flags)
  {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_free_part(__va(phys), size);
+ 	BUG();
  }
- EXPORT_SYMBOL(kmemleak_free_part_phys);
-@@ -1158,7 +1158,7 @@ EXPORT_SYMBOL(kmemleak_free_part_phys);
-  */
- void __ref kmemleak_not_leak_phys(phys_addr_t phys)
+--- a/mm/hugetlb.c~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix
++++ a/mm/hugetlb.c
+@@ -4962,7 +4962,7 @@ int move_hugetlb_page_tables(struct vm_a
+ 
+ static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 				   unsigned long start, unsigned long end,
+-				   struct page *ref_page, unsigned long zap_flags)
++				   struct page *ref_page, zap_flags_t zap_flags)
  {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_not_leak(__va(phys));
- }
- EXPORT_SYMBOL(kmemleak_not_leak_phys);
-@@ -1170,7 +1170,7 @@ EXPORT_SYMBOL(kmemleak_not_leak_phys);
-  */
- void __ref kmemleak_ignore_phys(phys_addr_t phys)
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long address;
+@@ -5096,7 +5096,7 @@ static void __unmap_hugepage_range(struc
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma, unsigned long start,
+ 			  unsigned long end, struct page *ref_page,
+-			  unsigned long zap_flags)
++			  zap_flags_t zap_flags)
  {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_ignore(__va(phys));
- }
- EXPORT_SYMBOL(kmemleak_ignore_phys);
+ 	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
+ 
+@@ -5115,7 +5115,7 @@ void __unmap_hugepage_range_final(struct
+ 
+ void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+ 			  unsigned long end, struct page *ref_page,
+-			  unsigned long zap_flags)
++			  zap_flags_t zap_flags)
+ {
+ 	struct mmu_gather tlb;
+ 
+--- a/mm/memory.c~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix
++++ a/mm/memory.c
+@@ -1675,7 +1675,7 @@ static void unmap_single_vma(struct mmu_
+ 			 * safe to do nothing in this case.
+ 			 */
+ 			if (vma->vm_file) {
+-				unsigned long zap_flags = details ?
++				zap_flags_t zap_flags = details ?
+ 				    details->zap_flags : 0;
+ 				i_mmap_lock_write(vma->vm_file->f_mapping);
+ 				__unmap_hugepage_range_final(tlb, vma, start, end,
 _
 
-Patches currently in -mm which might be from patrick.wang.shcn@gmail.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch
+mm-introduce-pte_marker-swap-entry.patch
+mm-introduce-pte_marker-swap-entry-fix.patch
+mm-teach-core-mm-about-pte-markers.patch
+mm-check-against-orig_pte-for-finish_fault.patch
+mm-uffd-pte_marker_uffd_wp.patch
+mm-uffd-pte_marker_uffd_wp-fix.patch
+mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
+mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
+mm-shmem-persist-uffd-wp-bit-across-zapping-for-file-backed.patch
+mm-shmem-allow-uffd-wr-protect-none-pte-for-file-backed-mem.patch
+mm-shmem-allows-file-back-mem-to-be-uffd-wr-protected-on-thps.patch
+mm-shmem-handle-uffd-wp-during-fork.patch
+mm-hugetlb-introduce-huge-pte-version-of-uffd-wp-helpers.patch
+mm-hugetlb-hook-page-faults-for-uffd-write-protection.patch
+mm-hugetlb-take-care-of-uffdio_copy_mode_wp.patch
+mm-hugetlb-handle-uffdio_writeprotect.patch
+mm-hugetlb-handle-pte-markers-in-page-faults.patch
+mm-hugetlb-allow-uffd-wr-protect-none-ptes.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
+mm-hugetlb-handle-uffd-wp-during-fork.patch
+mm-khugepaged-dont-recycle-vma-pgtable-if-uffd-wp-registered.patch
+mm-pagemap-recognize-uffd-wp-bit-for-shmem-hugetlbfs.patch
+mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
+mm-enable-pte-markers-by-default.patch
+selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
 
