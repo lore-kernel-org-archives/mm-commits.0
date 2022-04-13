@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 068D5C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Apr 2022 21:13:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81298C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Apr 2022 21:22:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237847AbiDMVPn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Apr 2022 17:15:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58524 "EHLO
+        id S239069AbiDMVYh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Apr 2022 17:24:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239125AbiDMVPD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Apr 2022 17:15:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 932D8888F4;
-        Wed, 13 Apr 2022 14:11:54 -0700 (PDT)
+        with ESMTP id S238973AbiDMVYb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Apr 2022 17:24:31 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EECC665480
+        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 14:22:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 13FE461EAD;
-        Wed, 13 Apr 2022 21:11:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AFC4C385A3;
-        Wed, 13 Apr 2022 21:11:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AE961B8251D
+        for <mm-commits@vger.kernel.org>; Wed, 13 Apr 2022 21:22:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66FB2C385A6;
+        Wed, 13 Apr 2022 21:22:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649884313;
-        bh=8rxi6kXHApSynsrGuJLcmNBMOkxcsJDtzJEZEMw7/UU=;
+        s=korg; t=1649884926;
+        bh=nHVcvVK7F/heHN9Z0/FOJGrZPkZ5MFHwhM3OvSsFYNg=;
         h=Date:To:From:Subject:From;
-        b=OFhlp9puJXFzYHM5OYctIppTsA4aag8jbwgi70TZUHFBJqZpq8zbM6ixjLPyDeJvW
-         8HOfjlVJe1TCafk0JeUr9KxaNuyGAcxAXedetmAUoGS30efNTGFW4OyldqEnE+qXS6
-         V0vzOF98l/vmuJdsTc3DL9TJQ89XKRbBIT0TaoJM=
-Date:   Wed, 13 Apr 2022 14:11:50 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        stable@vger.kernel.org, rppt@linux.ibm.com, rientjes@google.com,
-        anshuman.khandual@arm.com, quic_sudaraja@quicinc.com,
-        akpm@linux-foundation.org
+        b=uBEscdyE1l6x8iLq41xBzLQu+OKaD0pw12YrDz47k8opmxilBHq7Va2QIK7WKk5am
+         lSs3juOZB4f0+Ml+ASE/dV4xIWwfnEvodVmsF9lshzJvb5BILbISglLxpXc7MXXcDB
+         msB2rPc5gSxLtugNjOQNkxmAXP0tWGUsba7yFRuY=
+Date:   Wed, 13 Apr 2022 14:22:05 -0700
+To:     mm-commits@vger.kernel.org, hughd@google.com, apopple@nvidia.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-page_alloc-check-pfn-is-valid-before-moving-to-freelist.patch removed from -mm tree
-Message-Id: <20220413211153.6AFC4C385A3@smtp.kernel.org>
+Subject: + mm-remove-stub-for-non_swap_entry.patch added to -mm tree
+Message-Id: <20220413212206.66FB2C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,134 +41,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: check pfn is valid before moving to freelist
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-check-pfn-is-valid-before-moving-to-freelist.patch
+     Subject: include/linux/swapops.h: remove stub for non_swap_entry()
+has been added to the -mm tree.  Its filename is
+     mm-remove-stub-for-non_swap_entry.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-stub-for-non_swap_entry.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-stub-for-non_swap_entry.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudarshan Rajagopalan <quic_sudaraja@quicinc.com>
-Subject: mm, page_alloc: check pfn is valid before moving to freelist
+From: Peter Xu <peterx@redhat.com>
+Subject: include/linux/swapops.h: remove stub for non_swap_entry()
 
-Check if pfn is valid before or not before moving it to freelist.
+The stub for non_swap_entry() may not help much, because MAX_SWAPFILES has
+already contained all the information to decide whether a swap entry is
+real swap entry or pesudo ones (migrations, ...).
 
-There are possible scenario where a pageblock can have partial physical
-hole and partial part of System RAM.  This happens when base address in
-RAM partition table is not aligned to pageblock size.
+There can be some performance influences on non_swap_entry() with below
+conditions all met:
 
-Example:
+  !CONFIG_MIGRATION && !CONFIG_MEMORY_FAILURE && !CONFIG_DEVICE_PRIVATE
 
-Say we have this first two entries in RAM partition table -
+But that's definitely not the major config most machines will use, at the
+meantime it's already in a slow path of swap entry (being parsed from a
+swap pte), so IMHO it shouldn't be a major issue.  Also according to the
+analysis from Alistair, somehow the stub didn't do the job right [1].
 
-Base Addr: 0x0000000080000000 Length: 0x0000000058000000
-Base Addr: 0x00000000E3930000 Length: 0x0000000020000000
-...
+To make the code cleaner, let's drop the stub.
 
-Physical hole: 0xD8000000 - 0xE3930000
+[1] https://lore.kernel.org/lkml/8735ihbw6g.fsf@nvdebian.thelocal/
 
-On system having 4K as page size and hence pageblock size being 4MB, the
-base address 0xE3930000 is not aligned to 4MB pageblock size.
+Note: the uffd-wp shmem & hugetlbfs series will need this patch to make
+sure swap entries work as expected with below config as spotted by
+Alistair:
 
-Now we will have pageblock which has partial physical hole and partial part
-of System RAM -
+  !CONFIG_MIGRATION &&
+  !CONFIG_MEMORY_FAILURE &&
+  !CONFIG_DEVICE_PRIVATE &&
+  CONFIG_PTE_MARKER
 
-Pageblock [0xE3800000 - 0xE3C00000] -
-	0xE3800000 - 0xE3930000 -- physical hole
-	0xE3930000 - 0xE3C00000 -- System RAM
+(PS: this config should mostly never gonna happen, though, afaict..)
 
-Now doing __alloc_pages say we get a valid page with PFN 0xE3B00 from
-__rmqueue_fallback, we try to put other pages from the same pageblock as well
-into freelist by calling steal_suitable_fallback().
-
-We then search for freepages from start of the pageblock due to below code -
-
- move_freepages_block(zone, page, migratetype, ...)
-{
-    pfn = page_to_pfn(page);
-    start_pfn = pfn & ~(pageblock_nr_pages - 1);
-    end_pfn = start_pfn + pageblock_nr_pages - 1;
-...
-}
-
-With the pageblock which has partial physical hole at the beginning, we
-will run into PFNs from the physical hole whose struct page is not
-initialized and is invalid, and system would crash as we operate on
-invalid struct page to find out of page is in Buddy or LRU or not
-
-[  107.629453][ T9688] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000
-[  107.639214][ T9688] Mem abort info:
-[  107.642829][ T9688]   ESR = 0x96000006
-[  107.646696][ T9688]   EC = 0x25: DABT (current EL), IL = 32 bits
-[  107.652878][ T9688]   SET = 0, FnV = 0
-[  107.656751][ T9688]   EA = 0, S1PTW = 0
-[  107.660705][ T9688]   FSC = 0x06: level 2 translation fault
-[  107.666455][ T9688] Data abort info:
-[  107.670151][ T9688]   ISV = 0, ISS = 0x00000006
-[  107.674827][ T9688]   CM = 0, WnR = 0
-[  107.678615][ T9688] user pgtable: 4k pages, 39-bit VAs, pgdp=000000098a237000
-[  107.685970][ T9688] [0000000000000000] pgd=0800000987170003, p4d=0800000987170003, pud=0800000987170003, pmd=0000000000000000
-[  107.697582][ T9688] Internal error: Oops: 96000006 [#1] PREEMPT SMP
-
-[  108.209839][ T9688] pc : move_freepages_block+0x174/0x27c
-[  108.215407][ T9688] lr : steal_suitable_fallback+0x20c/0x398
-
-[  108.305908][ T9688] Call trace:
-[  108.309151][ T9688]  move_freepages_block+0x174/0x27c        [PageLRU]
-[  108.314359][ T9688]  steal_suitable_fallback+0x20c/0x398
-[  108.319826][ T9688]  rmqueue_bulk+0x250/0x934
-[  108.324325][ T9688]  rmqueue_pcplist+0x178/0x2ac
-[  108.329086][ T9688]  rmqueue+0x5c/0xc10
-[  108.333048][ T9688]  get_page_from_freelist+0x19c/0x430
-[  108.338430][ T9688]  __alloc_pages+0x134/0x424
-[  108.343017][ T9688]  page_cache_ra_unbounded+0x120/0x324
-[  108.348494][ T9688]  do_sync_mmap_readahead+0x1b0/0x234
-[  108.353878][ T9688]  filemap_fault+0xe0/0x4c8
-[  108.358375][ T9688]  do_fault+0x168/0x6cc
-[  108.362518][ T9688]  handle_mm_fault+0x5c4/0x848
-[  108.367280][ T9688]  do_page_fault+0x3fc/0x5d0
-[  108.371867][ T9688]  do_translation_fault+0x6c/0x1b0
-[  108.376985][ T9688]  do_mem_abort+0x68/0x10c
-[  108.381389][ T9688]  el0_ia+0x50/0xbc
-[  108.385175][ T9688]  el0t_32_sync_handler+0x88/0xbc
-[  108.390208][ T9688]  el0t_32_sync+0x1b8/0x1bc
-
-Hence, avoid operating on invalid pages within the same pageblock by
-checking if pfn is valid or not.
-
-[akpm@linux-foundation.org: add comment, per David]
-Link: https://lkml.kernel.org/r/fb3c8c008994b2ed96f74b6b9698ff998b689bd2.1649794059.git.quic_sudaraja@quicinc.com
-Signed-off-by: Sudarshan Rajagopalan <quic_sudaraja@quicinc.com>
-Fixes: 859a85ddf90e7140 ("mm: remove pfn_valid_within() and CONFIG_HOLES_IN_ZONE")
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220413191147.66645-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/page_alloc.c~mm-page_alloc-check-pfn-is-valid-before-moving-to-freelist
-+++ a/mm/page_alloc.c
-@@ -2521,6 +2521,15 @@ static int move_freepages(struct zone *z
- 	int pages_moved = 0;
+--- a/include/linux/swapops.h~mm-remove-stub-for-non_swap_entry
++++ a/include/linux/swapops.h
+@@ -414,18 +414,10 @@ static inline void num_poisoned_pages_in
+ }
+ #endif
  
- 	for (pfn = start_pfn; pfn <= end_pfn;) {
-+		if (!pfn_valid(pfn)) {
-+			/*
-+			 * Pageblock alignment may cause us to try to access
-+			 * into a hole
-+			 */
-+			pfn++;
-+			continue;
-+		}
-+
- 		page = pfn_to_page(pfn);
- 		if (!PageBuddy(page)) {
- 			/*
+-#if defined(CONFIG_MEMORY_FAILURE) || defined(CONFIG_MIGRATION) || \
+-    defined(CONFIG_DEVICE_PRIVATE)
+ static inline int non_swap_entry(swp_entry_t entry)
+ {
+ 	return swp_type(entry) >= MAX_SWAPFILES;
+ }
+-#else
+-static inline int non_swap_entry(swp_entry_t entry)
+-{
+-	return 0;
+-}
+-#endif
+ 
+ #endif /* CONFIG_MMU */
+ #endif /* _LINUX_SWAPOPS_H */
 _
 
-Patches currently in -mm which might be from quic_sudaraja@quicinc.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
+mm-remove-stub-for-non_swap_entry.patch
+mm-introduce-pte_marker-swap-entry.patch
+mm-introduce-pte_marker-swap-entry-fix.patch
+mm-teach-core-mm-about-pte-markers.patch
+mm-check-against-orig_pte-for-finish_fault.patch
+mm-uffd-pte_marker_uffd_wp.patch
+mm-uffd-pte_marker_uffd_wp-fix.patch
+mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
+mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
+mm-shmem-persist-uffd-wp-bit-across-zapping-for-file-backed.patch
+mm-shmem-allow-uffd-wr-protect-none-pte-for-file-backed-mem.patch
+mm-shmem-allows-file-back-mem-to-be-uffd-wr-protected-on-thps.patch
+mm-shmem-handle-uffd-wp-during-fork.patch
+mm-hugetlb-introduce-huge-pte-version-of-uffd-wp-helpers.patch
+mm-hugetlb-hook-page-faults-for-uffd-write-protection.patch
+mm-hugetlb-take-care-of-uffdio_copy_mode_wp.patch
+mm-hugetlb-handle-uffdio_writeprotect.patch
+mm-hugetlb-handle-pte-markers-in-page-faults.patch
+mm-hugetlb-allow-uffd-wr-protect-none-ptes.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
+mm-hugetlb-handle-uffd-wp-during-fork.patch
+mm-khugepaged-dont-recycle-vma-pgtable-if-uffd-wp-registered.patch
+mm-pagemap-recognize-uffd-wp-bit-for-shmem-hugetlbfs.patch
+mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
+mm-enable-pte-markers-by-default.patch
+selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
 
