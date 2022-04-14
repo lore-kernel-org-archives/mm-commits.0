@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11C55C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Apr 2022 21:00:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A19CC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Apr 2022 21:10:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237557AbiDNVCm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 14 Apr 2022 17:02:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50134 "EHLO
+        id S1346808AbiDNVMf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 14 Apr 2022 17:12:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346739AbiDNVCk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 17:02:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60E9CD4C80
-        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 14:00:14 -0700 (PDT)
+        with ESMTP id S1346804AbiDNVMe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 17:12:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D441F483B1
+        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 14:10:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EDF2B61F90
-        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 21:00:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47D79C385A1;
-        Thu, 14 Apr 2022 21:00:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 88576B82762
+        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 21:10:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 136C4C385A8;
+        Thu, 14 Apr 2022 21:10:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649970013;
-        bh=CFtte09FlHDIZqlNLGA1Sf9LExqelVUjCFxi8sTZsEc=;
+        s=korg; t=1649970605;
+        bh=vphj9tlik8fcDsix2eF12eyTnfE57HiHgV4fecphizA=;
         h=Date:To:From:Subject:From;
-        b=MAZLdyaqjFDTsk7w4D2/kr7oCKPZQNZUR3DiMQtGNTNW9v25qaQ3S1so+wog5Tkzr
-         VhfY8EHwVsKn5+UFVYyBb8dbsUfTg+FPvgIC158dJ+yZdtkHoRmIdcwWIeNJcEv/ON
-         F69LLLZUotJXqc3CKwoJX5Pvx/aXeHdFrfi+FLac=
-Date:   Thu, 14 Apr 2022 14:00:12 -0700
-To:     mm-commits@vger.kernel.org, anshuman.khandual@arm.com,
-        songmuchun@bytedance.com, akpm@linux-foundation.org
+        b=otPe5IxTvOQ4wxWHFuKUSfPwt0ZZqAJ/PRYS3rQqR3XJEY3m8Wy/SEd6P4i6e9Th1
+         KUkpks06MKmoebzE6dn6NuITE3wfWKiEWYHJxLmYkZ9iL4FPLNOnX4heHl3TaHjEP/
+         Da9ReZXD92E4K85a6xw2Go4EQyr4xa+40DglQGMk=
+Date:   Thu, 14 Apr 2022 14:10:04 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org, tglx@linutronix.de,
+        paulus@samba.org, mpe@ellerman.id.au, mingo@redhat.com,
+        khalid.aziz@oracle.com, hch@infradead.org, davem@davemloft.net,
+        christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64-fix.patch added to -mm tree
-Message-Id: <20220414210013.47D79C385A1@smtp.kernel.org>
+Subject: + mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch added to -mm tree
+Message-Id: <20220414211005.136C4C385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mm: hugetlb: restructure the code comment inside flush_dcache_page()
+     Subject: mm/mmap: add new config ARCH_HAS_VM_GET_PAGE_PROT
 has been added to the -mm tree.  Its filename is
-     arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64-fix.patch
+     mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,49 +65,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: arm64: mm: hugetlb: restructure the code comment inside flush_dcache_page()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/mmap: add new config ARCH_HAS_VM_GET_PAGE_PROT
 
-Restructure the code comment inside flush_dcache_page() to make it more
-clear.
+Patch series "mm/mmap: Drop arch_vm_get_page_prot() and arch_filter_pgprot()", v7.
 
-Link: https://lkml.kernel.org/r/20220414072646.21910-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+protection_map[] is an array based construct that translates given
+vm_flags combination.  This array contains page protection map, which is
+populated by the platform via [__S000 ..  __S111] and [__P000 ..  __P111]
+exported macros.  Primary usage for protection_map[] is for
+vm_get_page_prot(), which is used to determine page protection value for a
+given vm_flags.  vm_get_page_prot() implementation, could again call
+platform overrides arch_vm_get_page_prot() and arch_filter_pgprot().  Some
+platforms override protection_map[] that was originally built with
+__SXXX/__PXXX with different runtime values.
+
+Currently there are multiple layers of abstraction i.e __SXXX/__PXXX
+macros , protection_map[], arch_vm_get_page_prot() and
+arch_filter_pgprot() built between the platform and generic MM, finally
+defining vm_get_page_prot().
+
+Hence this series proposes to drop later two abstraction levels and
+instead just move the responsibility of defining vm_get_page_prot() to the
+platform (still utilizing generic protection_map[] array) itself making it
+clean and simple.
+
+This first introduces ARCH_HAS_VM_GET_PAGE_PROT which enables the
+platforms to define custom vm_get_page_prot().  This starts converting
+platforms that define the overrides arch_filter_pgprot() or
+arch_vm_get_page_prot() which enables for those constructs to be dropped
+off completely.
+
+The series has been inspired from an earlier discuss with Christoph Hellwig
+
+https://lore.kernel.org/all/1632712920-8171-1-git-send-email-anshuman.khandual@arm.com/
+
+
+This patch (of 7):
+
+Add a new config ARCH_HAS_VM_GET_PAGE_PROT, which when subscribed enables
+a given platform to define its own vm_get_page_prot() but still utilizing
+the generic protection_map[] array.
+
+Link: https://lkml.kernel.org/r/20220414062125.609297-1-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20220414062125.609297-2-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/arm64/mm/flush.c~arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64-fix
-+++ a/arch/arm64/mm/flush.c
-@@ -81,9 +81,10 @@ void flush_dcache_page(struct page *page
- 	 * read-only when CONFIG_HUGETLB_PAGE_FREE_VMEMMAP is enabled (more
- 	 * details can refer to vmemmap_remap_pte()).  Although
- 	 * __sync_icache_dcache() only set PG_dcache_clean flag on the head
--	 * page struct, some tail page structs still can be seen the flag is
--	 * set since the head vmemmap page frame is reused (more details can
--	 * refer to the comments above page_fixed_fake_head()).
-+	 * page struct, there is more than one page struct with PG_dcache_clean
-+	 * associated with the HugeTLB page since the head vmemmap page frame
-+	 * is reused (more details can refer to the comments above
-+	 * page_fixed_fake_head()).
- 	 */
- 	if (hugetlb_free_vmemmap_enabled() && PageHuge(page))
- 		page = compound_head(page);
+--- a/mm/Kconfig~mm-mmap-add-new-config-arch_has_vm_get_page_prot
++++ a/mm/Kconfig
+@@ -765,6 +765,9 @@ config ARCH_HAS_CURRENT_STACK_POINTER
+ config ARCH_HAS_FILTER_PGPROT
+ 	bool
+ 
++config ARCH_HAS_VM_GET_PAGE_PROT
++	bool
++
+ config ARCH_HAS_PTE_DEVMAP
+ 	bool
+ 
+--- a/mm/mmap.c~mm-mmap-add-new-config-arch_has_vm_get_page_prot
++++ a/mm/mmap.c
+@@ -120,6 +120,7 @@ pgprot_t protection_map[16] __ro_after_i
+ 	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= __S111
+ };
+ 
++#ifndef CONFIG_ARCH_HAS_VM_GET_PAGE_PROT
+ #ifndef CONFIG_ARCH_HAS_FILTER_PGPROT
+ static inline pgprot_t arch_filter_pgprot(pgprot_t prot)
+ {
+@@ -136,6 +137,7 @@ pgprot_t vm_get_page_prot(unsigned long
+ 	return arch_filter_pgprot(ret);
+ }
+ EXPORT_SYMBOL(vm_get_page_prot);
++#endif	/* CONFIG_ARCH_HAS_VM_GET_PAGE_PROT */
+ 
+ static pgprot_t vm_pgprot_modify(pgprot_t oldprot, unsigned long vm_flags)
+ {
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-hugetlb_vmemmap-introduce-arch_want_hugetlb_page_free_vmemmap.patch
-arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64.patch
-arm64-mm-hugetlb-enable-hugetlb_page_free_vmemmap-for-arm64-fix.patch
-mm-hugetlb_vmemmap-cleanup-hugetlb_vmemmap-related-functions.patch
-mm-hugetlb_vmemmap-cleanup-hugetlb_free_vmemmap_enabled.patch
-mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch
-mm-rmap-fix-cache-flush-on-thp-pages.patch
-dax-fix-cache-flush-on-pmd-mapped-pages.patch
-mm-rmap-introduce-pfn_mkclean_range-to-cleans-ptes.patch
-mm-pvmw-add-support-for-walking-devmap-pages.patch
-dax-fix-missing-writeprotect-the-pte-entry.patch
-mm-simplify-follow_invalidate_pte.patch
+mm-debug_vm_pgtable-drop-protection_map-usage.patch
+mm-mmap-clarify-protection_map-indices.patch
+mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch
+powerpc-mm-enable-arch_has_vm_get_page_prot.patch
+arm64-mm-enable-arch_has_vm_get_page_prot.patch
+sparc-mm-enable-arch_has_vm_get_page_prot.patch
+mm-mmap-drop-arch_filter_pgprot.patch
+mm-mmap-drop-arch_vm_get_page_pgprot.patch
 
