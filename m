@@ -2,97 +2,101 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10730C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 02:13:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADD42C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 02:14:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348603AbiDOCQT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 14 Apr 2022 22:16:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51382 "EHLO
+        id S1348618AbiDOCQh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 14 Apr 2022 22:16:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348604AbiDOCQR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 22:16:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F2461A393
-        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 19:13:51 -0700 (PDT)
+        with ESMTP id S1348607AbiDOCQX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 22:16:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AF55ADD67;
+        Thu, 14 Apr 2022 19:13:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9F81162212
-        for <mm-commits@vger.kernel.org>; Fri, 15 Apr 2022 02:13:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02C1AC385A5;
-        Fri, 15 Apr 2022 02:13:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BDBF36221F;
+        Fri, 15 Apr 2022 02:13:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B0B3C385A1;
+        Fri, 15 Apr 2022 02:13:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649988830;
-        bh=HsSQiCzVou7pdy0n3uzXUYPUGgfLQFTxEX9aiaeWYA8=;
+        s=korg; t=1649988836;
+        bh=BKRZEFrsT7HckjP5sHfg9m9OXct1eM7WyctjCsktjL0=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=e9snAHju5jwScKCgUygtfIkII0Acd/DRIgk2wTJ1l4Gu+u23mxGMaYdnt/OD6BtjU
-         wwaUxNM8y0U27bq9nbGrMM7Ewruz3purAdgexvfYJxmnMOp9cNv8Cka1iEdRWWmLvq
-         LY8MjHFy47MBDWSew5Kcnieh8TuASIooAt6ITbSY=
-Date:   Thu, 14 Apr 2022 19:13:49 -0700
-To:     vbabka@suse.cz, nigupta@nvidia.com, lkp@intel.com,
-        quic_charante@quicinc.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=VobwKsOtL9/lzK56pUwdrV37Wx3MHwRc7XltBcqZa49C2J0b69TuppanPp8VWNJSh
+         XehNRwrTmpTtowSP/bBxehpNm6xcHvk54SRhkZRkXycGcETO+3af9J6HSxF0dNYTPT
+         D6jBG6ufJpIuv6tcbCDBrWkhg8cMyEpyw9wo40vQ=
+Date:   Thu, 14 Apr 2022 19:13:55 -0700
+To:     viro@zeniv.linux.org.uk, surenb@google.com, stable@vger.kernel.org,
+        sspatil@google.com, songliubraving@fb.com, shuah@kernel.org,
+        rppt@kernel.org, rientjes@google.com, regressions@leemhuis.info,
+        ndesaulniers@google.com, mike.kravetz@oracle.com,
+        maskray@google.com, kirill.shutemov@linux.intel.com,
+        irogers@google.com, hughd@google.com, hjl.tools@gmail.com,
+        ckennelly@google.com, adobriyan@gmail.com,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220414191240.9f86d15a3e3afd848a9839a6@linux-foundation.org>
-Subject: [patch 09/14] mm: compaction: fix compiler warning when CONFIG_COMPACTION=n
-Message-Id: <20220415021350.02C1AC385A5@smtp.kernel.org>
+Subject: [patch 11/14] revert "fs/binfmt_elf: fix PT_LOAD p_align values for loaders"
+Message-Id: <20220415021356.1B0B3C385A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Charan Teja Kalla <quic_charante@quicinc.com>
-Subject: mm: compaction: fix compiler warning when CONFIG_COMPACTION=n
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "fs/binfmt_elf: fix PT_LOAD p_align values for loaders"
 
-The below warning is reported when CONFIG_COMPACTION=n:
+925346c129da11 ("fs/binfmt_elf: fix PT_LOAD p_align values for loaders")
+is an attempt to fix regressions due to 9630f0d60fec5f ("fs/binfmt_elf:
+use PT_LOAD p_align values for static PIE").
 
-   mm/compaction.c:56:27: warning: 'HPAGE_FRAG_CHECK_INTERVAL_MSEC'
-defined but not used [-Wunused-const-variable=]
-      56 | static const unsigned int HPAGE_FRAG_CHECK_INTERVAL_MSEC =
-500;
-         |                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+But regressionss continue to be reported:
 
-Fix it by moving 'HPAGE_FRAG_CHECK_INTERVAL_MSEC' under
-CONFIG_COMPACTION defconfig. Also since this is just a 'static const
-int' type, use #define for it.
+https://lore.kernel.org/lkml/cb5b81bd-9882-e5dc-cd22-54bdbaaefbbc@leemhuis.info/
+https://bugzilla.kernel.org/show_bug.cgi?id=215720
+https://lkml.kernel.org/r/b685f3d0-da34-531d-1aa9-479accd3e21b@leemhuis.info
 
-Link: https://lkml.kernel.org/r/1647608518-20924-1-git-send-email-quic_charante@quicinc.com
-Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Nitin Gupta <nigupta@nvidia.com>
+This patch reverts the fix, so the original can also be reverted.
+
+Fixes: 925346c129da11 ("fs/binfmt_elf: fix PT_LOAD p_align values for loaders")
+Cc: H.J. Lu <hjl.tools@gmail.com>
+Cc: Chris Kennelly <ckennelly@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-fix-compiler-warning-when-config_compaction=n
-+++ a/mm/compaction.c
-@@ -26,6 +26,11 @@
- #include "internal.h"
- 
- #ifdef CONFIG_COMPACTION
-+/*
-+ * Fragmentation score check interval for proactive compaction purposes.
-+ */
-+#define HPAGE_FRAG_CHECK_INTERVAL_MSEC	(500)
-+
- static inline void count_compact_event(enum vm_event_item item)
- {
- 	count_vm_event(item);
-@@ -51,11 +56,6 @@ static inline void count_compact_events(
- #define pageblock_end_pfn(pfn)		block_end_pfn(pfn, pageblock_order)
- 
- /*
-- * Fragmentation score check interval for proactive compaction purposes.
-- */
--static const unsigned int HPAGE_FRAG_CHECK_INTERVAL_MSEC = 500;
--
--/*
-  * Page order with-respect-to which proactive compaction
-  * calculates external fragmentation, which is used as
-  * the "fragmentation score" of a node/zone.
+--- a/fs/binfmt_elf.c~revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders
++++ a/fs/binfmt_elf.c
+@@ -1118,7 +1118,7 @@ out_free_interp:
+ 			 * without MAP_FIXED nor MAP_FIXED_NOREPLACE).
+ 			 */
+ 			alignment = maximum_alignment(elf_phdata, elf_ex->e_phnum);
+-			if (interpreter || alignment > ELF_MIN_ALIGN) {
++			if (alignment > ELF_MIN_ALIGN) {
+ 				load_bias = ELF_ET_DYN_BASE;
+ 				if (current->flags & PF_RANDOMIZE)
+ 					load_bias += arch_mmap_rnd();
 _
