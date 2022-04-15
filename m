@@ -2,135 +2,99 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70328C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 02:14:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EFA2C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 14:01:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348614AbiDOCQi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 14 Apr 2022 22:16:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51592 "EHLO
+        id S1354225AbiDOODs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Apr 2022 10:03:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348622AbiDOCQh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 22:16:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B662B18AE;
-        Thu, 14 Apr 2022 19:14:06 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 037AD621EB;
-        Fri, 15 Apr 2022 02:14:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EBADC385A7;
-        Fri, 15 Apr 2022 02:14:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649988845;
-        bh=eBBWAnXrVUdhi6HB2GZp6T9EAQR1Og4UhicA+Umrp6E=;
-        h=Date:To:From:In-Reply-To:Subject:From;
-        b=k3qjibzzNtJShJVheS/MtFb3s5dnZMgNnC7Uvf9vgugDT+ZLPGgTOjdAntB9evZp0
-         HbtoPg/Wc/8mIXETw8DTz+kzj6w7RS9AwdVAYFXoBWLRB4A6NxSOJEC7XutmbN3UCt
-         f1Lo4iLlZOEJm0rUWWUnOItXBggfRnsuzk9DFDQ0=
-Date:   Thu, 14 Apr 2022 19:14:04 -0700
-To:     stable@vger.kernel.org, catalin.marinas@arm.com,
-        patrick.wang.shcn@gmail.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <20220414191240.9f86d15a3e3afd848a9839a6@linux-foundation.org>
-Subject: [patch 14/14] mm: kmemleak: take a full lowmem check in kmemleak_*_phys()
-Message-Id: <20220415021405.5EBADC385A7@smtp.kernel.org>
+        with ESMTP id S1353501AbiDOODs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2022 10:03:48 -0400
+Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11CE5BF30A
+        for <mm-commits@vger.kernel.org>; Fri, 15 Apr 2022 07:01:18 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R571e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=xianting.tian@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VA7VgG0_1650031273;
+Received: from 192.168.1.5(mailfrom:xianting.tian@linux.alibaba.com fp:SMTPD_---0VA7VgG0_1650031273)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Fri, 15 Apr 2022 22:01:15 +0800
+Subject: Re: + mm-proc-remove-redundant-page-validation-of-pte_page.patch
+ added to -mm tree
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        mm-commits@vger.kernel.org, shy828301@gmail.com, sashal@kernel.org,
+        linmiaohe@huawei.com, kch@nvidia.com, adobriyan@gmail.com
+References: <20220316211126.09A72C340E9@smtp.kernel.org>
+From:   Xianting Tian <xianting.tian@linux.alibaba.com>
+Message-ID: <98d85ec3-330b-0853-9a9c-64e908e50320@linux.alibaba.com>
+Date:   Fri, 15 Apr 2022 22:01:13 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.10.1
+MIME-Version: 1.0
+In-Reply-To: <20220316211126.09A72C340E9@smtp.kernel.org>
+Content-Type: text/plain; charset=gbk; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Patrick Wang <patrick.wang.shcn@gmail.com>
-Subject: mm: kmemleak: take a full lowmem check in kmemleak_*_phys()
+Could you share the reason why the patch is removed? thanks
 
-The kmemleak_*_phys() apis do not check the address for lowmem's min
-boundary, while the caller may pass an address below lowmem, which will
-trigger an oops:
-
-# echo scan > /sys/kernel/debug/kmemleak
-[   54.888353] Unable to handle kernel paging request at virtual address ff5fffffffe00000
-[   54.888932] Oops [#1]
-[   54.889102] Modules linked in:
-[   54.889326] CPU: 2 PID: 134 Comm: bash Not tainted 5.18.0-rc1-next-20220407 #33
-[   54.889620] Hardware name: riscv-virtio,qemu (DT)
-[   54.889901] epc : scan_block+0x74/0x15c
-[   54.890215]  ra : scan_block+0x72/0x15c
-[   54.890390] epc : ffffffff801e5806 ra : ffffffff801e5804 sp : ff200000104abc30
-[   54.890607]  gp : ffffffff815cd4e8 tp : ff60000004cfa340 t0 : 0000000000000200
-[   54.890835]  t1 : 00aaaaaac23954cc t2 : 00000000000003ff s0 : ff200000104abc90
-[   54.891024]  s1 : ffffffff81b0ff28 a0 : 0000000000000000 a1 : ff5fffffffe01000
-[   54.891201]  a2 : ffffffff81b0ff28 a3 : 0000000000000002 a4 : 0000000000000001
-[   54.891377]  a5 : 0000000000000000 a6 : ff200000104abd7c a7 : 0000000000000005
-[   54.891552]  s2 : ff5fffffffe00ff9 s3 : ffffffff815cd998 s4 : ffffffff815d0e90
-[   54.891727]  s5 : ffffffff81b0ff28 s6 : 0000000000000020 s7 : ffffffff815d0eb0
-[   54.891903]  s8 : ffffffffffffffff s9 : ff5fffffffe00000 s10: ff5fffffffe01000
-[   54.892078]  s11: 0000000000000022 t3 : 00ffffffaa17db4c t4 : 000000000000000f
-[   54.892271]  t5 : 0000000000000001 t6 : 0000000000000000
-[   54.892408] status: 0000000000000100 badaddr: ff5fffffffe00000 cause: 000000000000000d
-[   54.892643] [<ffffffff801e5a1c>] scan_gray_list+0x12e/0x1a6
-[   54.892824] [<ffffffff801e5d3e>] kmemleak_scan+0x2aa/0x57e
-[   54.892961] [<ffffffff801e633c>] kmemleak_write+0x32a/0x40c
-[   54.893096] [<ffffffff803915ac>] full_proxy_write+0x56/0x82
-[   54.893235] [<ffffffff801ef456>] vfs_write+0xa6/0x2a6
-[   54.893362] [<ffffffff801ef880>] ksys_write+0x6c/0xe2
-[   54.893487] [<ffffffff801ef918>] sys_write+0x22/0x2a
-[   54.893609] [<ffffffff8000397c>] ret_from_syscall+0x0/0x2
-[   54.894183] ---[ end trace 0000000000000000 ]---
-
-The callers may not quite know the actual address they pass(e.g.  from
-devicetree).  So the kmemleak_*_phys() apis should guarantee the
-address they finally use is in lowmem range, so check the address for
-lowmem's min boundary.
-
-Link: https://lkml.kernel.org/r/20220413122925.33856-1-patrick.wang.shcn@gmail.com
-Signed-off-by: Patrick Wang <patrick.wang.shcn@gmail.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/kmemleak.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
---- a/mm/kmemleak.c~mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys
-+++ a/mm/kmemleak.c
-@@ -1132,7 +1132,7 @@ EXPORT_SYMBOL(kmemleak_no_scan);
- void __ref kmemleak_alloc_phys(phys_addr_t phys, size_t size, int min_count,
- 			       gfp_t gfp)
- {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_alloc(__va(phys), size, min_count, gfp);
- }
- EXPORT_SYMBOL(kmemleak_alloc_phys);
-@@ -1146,7 +1146,7 @@ EXPORT_SYMBOL(kmemleak_alloc_phys);
-  */
- void __ref kmemleak_free_part_phys(phys_addr_t phys, size_t size)
- {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_free_part(__va(phys), size);
- }
- EXPORT_SYMBOL(kmemleak_free_part_phys);
-@@ -1158,7 +1158,7 @@ EXPORT_SYMBOL(kmemleak_free_part_phys);
-  */
- void __ref kmemleak_not_leak_phys(phys_addr_t phys)
- {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_not_leak(__va(phys));
- }
- EXPORT_SYMBOL(kmemleak_not_leak_phys);
-@@ -1170,7 +1170,7 @@ EXPORT_SYMBOL(kmemleak_not_leak_phys);
-  */
- void __ref kmemleak_ignore_phys(phys_addr_t phys)
- {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_ignore(__va(phys));
- }
- EXPORT_SYMBOL(kmemleak_ignore_phys);
-_
+ÔÚ 2022/3/17 ÉÏÎç5:11, Andrew Morton Ð´µÀ:
+> The patch titled
+>       Subject: fs/proc/task_mmu.c: remove redundant page validation of pte_page
+> has been added to the -mm tree.  Its filename is
+>       mm-proc-remove-redundant-page-validation-of-pte_page.patch
+>
+> This patch should soon appear at
+>      https://ozlabs.org/~akpm/mmots/broken-out/mm-proc-remove-redundant-page-validation-of-pte_page.patch
+> and later at
+>      https://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-remove-redundant-page-validation-of-pte_page.patch
+>
+> Before you just go and hit "reply", please:
+>     a) Consider who else should be cc'ed
+>     b) Prefer to cc a suitable mailing list as well
+>     c) Ideally: find the original patch on the mailing list and do a
+>        reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+>
+> ------------------------------------------------------
+> From: Xianting Tian <xianting.tian@linux.alibaba.com>
+> Subject: fs/proc/task_mmu.c: remove redundant page validation of pte_page
+>
+> pte_page() always returns a valid page, so remove the redundant page
+> validation, as we did in many other places.
+>
+> Link: https://lkml.kernel.org/r/20220316025947.328276-1-xianting.tian@linux.alibaba.com
+> Signed-off-by: Xianting Tian <xianting.tian@linux.alibaba.com>
+> Reviewed-by: Chaitanya Kulkarni <kch@nvidia.com>
+> Cc: Alexey Dobriyan <adobriyan@gmail.com>
+> Cc: Yang Shi <shy828301@gmail.com>
+> Cc: Sasha Levin <sashal@kernel.org>
+> Cc: Miaohe Lin <linmiaohe@huawei.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>   fs/proc/task_mmu.c |    2 --
+>   1 file changed, 2 deletions(-)
+>
+> --- a/fs/proc/task_mmu.c~mm-proc-remove-redundant-page-validation-of-pte_page
+> +++ a/fs/proc/task_mmu.c
+> @@ -1873,8 +1873,6 @@ static int gather_hugetlb_stats(pte_t *p
+>   		return 0;
+>   
+>   	page = pte_page(huge_pte);
+> -	if (!page)
+> -		return 0;
+>   
+>   	md = walk->private;
+>   	gather_stats(page, md, pte_dirty(huge_pte), 1);
+> _
+>
+> Patches currently in -mm which might be from xianting.tian@linux.alibaba.com are
+>
+> mm-proc-remove-redundant-page-validation-of-pte_page.patch
