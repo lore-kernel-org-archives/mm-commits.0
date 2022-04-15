@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6CAAC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Apr 2022 21:26:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0FD7C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 01:57:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235875AbiDNV23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 14 Apr 2022 17:28:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48994 "EHLO
+        id S244265AbiDOCAF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 14 Apr 2022 22:00:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229943AbiDNV23 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 17:28:29 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50B11E6C50
-        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 14:26:02 -0700 (PDT)
+        with ESMTP id S241271AbiDOCAE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 22:00:04 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19A30B1894
+        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 18:57:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7ABA7B82B9B
-        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 21:26:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13B1FC385A5;
-        Thu, 14 Apr 2022 21:26:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C7CB2B82B23
+        for <mm-commits@vger.kernel.org>; Fri, 15 Apr 2022 01:57:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F1BBC385A5;
+        Fri, 15 Apr 2022 01:57:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649971560;
-        bh=iwykIH0veXIwKzw95kvAkHacqqKUl73G4Jc4Sv2piEs=;
+        s=korg; t=1649987855;
+        bh=iFGoFGhaUzOMZDvDHYWxK1is14Itl29Hc0RbdcZKnXE=;
         h=Date:To:From:Subject:From;
-        b=nCxL9FIYYXgIW6iFtgygAnykPhT9avoVagIk3CW2SfB7HPvFcGkvEW12gVn6Tzc3U
-         sucW1V5EtWrtwDnUl8GNCpI/8lkXG6W6Lk5rVhFzZsPLTl3AwECH/4riGlPIoQA2KC
-         altz+tPCp0jzVYVbHCyEdyb/b2ny5dATqJ7tl2pU=
-Date:   Thu, 14 Apr 2022 14:25:59 -0700
-To:     mm-commits@vger.kernel.org, tarasmadan@google.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        bigeasy@linutronix.de, andreyknvl@gmail.com, nogikh@google.com,
-        akpm@linux-foundation.org
+        b=emvNJVrO03mdUIqCbqK2YTs5lHXRk79Zi7SHkmntPboW/7htZhCVTP2lce63GShpV
+         isn/NJ2drJDLDMOOkD9s1CZoT/fGRKJ265N3kX4JtpzvklrgRkcuhDnq8sSwBvWytR
+         PA+4Js3XViQL5xjU5Ki2dz3hxdrCgX6wJDGlTXig=
+Date:   Thu, 14 Apr 2022 18:57:34 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, rppt@kernel.org,
+        axelrasmussen@google.com, lkp@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch added to -mm tree
-Message-Id: <20220414212600.13B1FC385A5@smtp.kernel.org>
+Subject: [folded-merged] mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix.patch removed from -mm tree
+Message-Id: <20220415015735.7F1BBC385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,66 +41,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: don't generate a warning on vm_insert_page()'s failure
-has been added to the -mm tree.  Its filename is
-     kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch
+     Subject: mm/secretmem: secretmem_iops can be static
+has been removed from the -mm tree.  Its filename was
+     mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-secretmem-fix-panic-when-growing-a-memfd_secret.patch
 
 ------------------------------------------------------
-From: Aleksandr Nogikh <nogikh@google.com>
-Subject: kcov: don't generate a warning on vm_insert_page()'s failure
+From: kernel test robot <lkp@intel.com>
+Subject: mm/secretmem: secretmem_iops can be static
 
-vm_insert_page()'s failure is not an unexpected condition, so don't do
-WARN_ONCE() in such a case.
+mm/secretmem.c:173:31: warning: symbol 'secretmem_iops' was not declared. Should it be static?
 
-Instead, print a kernel message and just return an error code.
-
-Link: https://lkml.kernel.org/r/20220401182512.249282-1-nogikh@google.com
-Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Taras Madan <tarasmadan@google.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Link: https://lkml.kernel.org/r/YkXc0RjJYQoGZZ8A@57de4820519d
+Fixes: 24209f2f4d62 ("mm/secretmem: fix panic when growing a memfd_secret")
+Signed-off-by: kernel test robot <lkp@intel.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/secretmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kcov.c~kcov-dont-generate-a-warning-on-vm_insert_pages-failure
-+++ a/kernel/kcov.c
-@@ -475,8 +475,11 @@ static int kcov_mmap(struct file *filep,
- 	vma->vm_flags |= VM_DONTEXPAND;
- 	for (off = 0; off < size; off += PAGE_SIZE) {
- 		page = vmalloc_to_page(kcov->area + off);
--		if (vm_insert_page(vma, vma->vm_start + off, page))
--			WARN_ONCE(1, "vm_insert_page() failed");
-+		res = vm_insert_page(vma, vma->vm_start + off, page);
-+		if (res) {
-+			pr_warn_once("kcov: vm_insert_page() failed\n");
-+			return res;
-+		}
- 	}
- 	return 0;
- exit:
+--- a/mm/secretmem.c~mm-secretmem-fix-panic-when-growing-a-memfd_secret-fix
++++ a/mm/secretmem.c
+@@ -170,7 +170,7 @@ static int secretmem_setattr(struct user
+ 	return simple_setattr(mnt_userns, dentry, iattr);
+ }
+ 
+-const struct inode_operations secretmem_iops = {
++static const struct inode_operations secretmem_iops = {
+ 	.setattr = secretmem_setattr,
+ };
+ 
 _
 
-Patches currently in -mm which might be from nogikh@google.com are
+Patches currently in -mm which might be from lkp@intel.com are
 
-kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch
+mm-secretmem-fix-panic-when-growing-a-memfd_secret.patch
+mm-shmem-handle-uffd-wp-during-fork-fix.patch
 
