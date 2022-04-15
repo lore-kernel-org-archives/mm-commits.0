@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2859C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 18:35:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D97DC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 18:36:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346834AbiDOShq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Apr 2022 14:37:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46030 "EHLO
+        id S1346313AbiDOSjD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Apr 2022 14:39:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243945AbiDOShq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2022 14:37:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADC1B31519
-        for <mm-commits@vger.kernel.org>; Fri, 15 Apr 2022 11:35:16 -0700 (PDT)
+        with ESMTP id S1345786AbiDOSjD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2022 14:39:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D8833A5C9
+        for <mm-commits@vger.kernel.org>; Fri, 15 Apr 2022 11:36:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 26EBB61321
-        for <mm-commits@vger.kernel.org>; Fri, 15 Apr 2022 18:35:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77F1BC385A4;
-        Fri, 15 Apr 2022 18:35:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 31CBAB82E24
+        for <mm-commits@vger.kernel.org>; Fri, 15 Apr 2022 18:36:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC834C385A5;
+        Fri, 15 Apr 2022 18:36:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650047715;
-        bh=Glq9LUcw8H/jUOwGS9yAjkO1uFRYDeyZBgc4NMEHFoE=;
+        s=korg; t=1650047791;
+        bh=FsONxFtLr2IwmuHg1LevKDlLu8/NG5hEHOUsW21zHvk=;
         h=Date:To:From:Subject:From;
-        b=WXK4JOPiI1ZgDBeruUO188rTqT49OVeCHs1dOnm3dd3uFCaG3IJyT2er3tnfJWpLc
-         LaP/FvIqcI5u6VN6p1+8mi1thhQaXo4ec04WhW5c1gzYjf0zzxbhseMf6oyS370M5j
-         6EjHw/mMz2DkCjiyZF7I4LWPn4FGynitRZTdvkcE=
-Date:   Fri, 15 Apr 2022 11:35:14 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        qiang1.zhang@intel.com, glider@google.com, dvyukov@google.com,
-        bigeasy@linutronix.de, andreyknvl@gmail.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=Zi/V/w6oY5WEp0Q1h5zOpvhhnxkCEGUDP014Xf/DeE3xgYG9QmifGPvRO+Khe2z5p
+         3VnNjv3gvDff7A+jy8g0ZvE2DisUjZQ7uf0r6EvsjM1dsxv5pVGrpQgjuT3S/mD5lL
+         jTKKkiM8JVgvbGbtvfvYy5cm5PNycmA/+SXdHETc=
+Date:   Fri, 15 Apr 2022 11:36:29 -0700
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix.patch added to -mm tree
-Message-Id: <20220415183515.77F1BC385A4@smtp.kernel.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Message-Id: <20220415183630.DC834C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,107 +63,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix
+Subject: linux-next-git-rejects
 
-reduce ifdeffery
-
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Zqiang <qiang1.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kasan/quarantine.c~kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix
-+++ a/mm/kasan/quarantine.c
-@@ -319,28 +319,37 @@ static void qlist_move_cache(struct qlis
- 	}
+--- a/drivers/gpu/drm/msm/disp/mdp5/mdp5_plane.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/msm/disp/mdp5/mdp5_plane.c
+@@ -102,10 +102,7 @@ static void mdp5_plane_reset(struct drm_
+ 	mdp5_state = kzalloc(sizeof(*mdp5_state), GFP_KERNEL);
+ 	if (!mdp5_state)
+ 		return;
+-<<<<<<< HEAD
+-=======
+ 
+->>>>>>> linux-next/akpm-base
+ 	__drm_atomic_helper_plane_reset(plane, &mdp5_state->base);
  }
  
--static void per_cpu_remove_cache(void *arg)
-+#ifndef CONFIG_PREEMPT_RT
-+static void __per_cpu_remove_cache(struct qlist_head *q, void *arg)
- {
- 	struct kmem_cache *cache = arg;
--	struct qlist_head *q;
--#ifndef CONFIG_PREEMPT_RT
- 	struct qlist_head to_free = QLIST_INIT;
--#else
--	unsigned long flags;
--	struct cpu_shrink_qlist *sq;
--#endif
--	q = this_cpu_ptr(&cpu_quarantine);
--#ifndef CONFIG_PREEMPT_RT
--	if (READ_ONCE(q->offline))
--		return;
-+
- 	qlist_move_cache(q, &to_free, cache);
- 	qlist_free_all(&to_free, cache);
-+}
- #else
-+static void __per_cpu_remove_cache(struct qlist_head *q, void *arg)
-+{
-+	struct kmem_cache *cache = arg;
-+	unsigned long flags;
-+	struct cpu_shrink_qlist *sq;
-+
- 	sq = this_cpu_ptr(&shrink_qlist);
- 	raw_spin_lock_irqsave(&sq->lock, flags);
- 	qlist_move_cache(q, &sq->qlist, cache);
- 	raw_spin_unlock_irqrestore(&sq->lock, flags);
-+}
- #endif
-+
-+static void per_cpu_remove_cache(void *arg)
-+{
-+	struct qlist_head *q;
-+
-+	q = this_cpu_ptr(&cpu_quarantine);
-+	if (READ_ONCE(q->offline))
-+		return;
-+	__per_cpu_remove_cache(q, arg);
- }
- 
- /* Free all quarantined objects belonging to cache. */
-@@ -348,10 +357,6 @@ void kasan_quarantine_remove_cache(struc
- {
- 	unsigned long flags, i;
- 	struct qlist_head to_free = QLIST_INIT;
--#ifdef CONFIG_PREEMPT_RT
--	int cpu;
--	struct cpu_shrink_qlist *sq;
--#endif
- 
- 	/*
- 	 * Must be careful to not miss any objects that are being moved from
-@@ -363,13 +368,18 @@ void kasan_quarantine_remove_cache(struc
- 	on_each_cpu(per_cpu_remove_cache, cache, 1);
- 
- #ifdef CONFIG_PREEMPT_RT
--	for_each_online_cpu(cpu) {
--		sq = per_cpu_ptr(&shrink_qlist, cpu);
--		raw_spin_lock_irqsave(&sq->lock, flags);
--		qlist_move_cache(&sq->qlist, &to_free, cache);
--		raw_spin_unlock_irqrestore(&sq->lock, flags);
-+	{
-+		int cpu;
-+		struct cpu_shrink_qlist *sq;
-+
-+		for_each_online_cpu(cpu) {
-+			sq = per_cpu_ptr(&shrink_qlist, cpu);
-+			raw_spin_lock_irqsave(&sq->lock, flags);
-+			qlist_move_cache(&sq->qlist, &to_free, cache);
-+			raw_spin_unlock_irqrestore(&sq->lock, flags);
-+		}
-+		qlist_free_all(&to_free, cache);
- 	}
--	qlist_free_all(&to_free, cache);
- #endif
- 
- 	raw_spin_lock_irqsave(&quarantine_lock, flags);
+--- a/fs/cifs/cifsfs.c~linux-next-git-rejects
++++ a/fs/cifs/cifsfs.c
+@@ -266,11 +266,7 @@ static void cifs_kill_sb(struct super_bl
+ 	 * before we kill the sb.
+ 	 */
+ 	if (cifs_sb->root) {
+-<<<<<<< HEAD
+-		for (node = rb_first(root); node; node = rb_next(node)) {
+-=======
+ 		for(node = rb_first(root); node; node = rb_next(node)) {
+->>>>>>> linux-next/akpm-base
+ 			tlink = rb_entry(node, struct tcon_link, tl_rbnode);
+ 			tcon = tlink_tcon(tlink);
+ 			if (IS_ERR(tcon))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -187,4 +117,5 @@ fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix
 add-fat-messages-to-printk-index-checkpatch-fixes.patch
 linux-next-rejects.patch
 mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+linux-next-git-rejects.patch
 
