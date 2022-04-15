@@ -2,194 +2,115 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6581CC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 02:13:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9216CC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Apr 2022 02:13:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348597AbiDOCQD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 14 Apr 2022 22:16:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51230 "EHLO
+        id S1348601AbiDOCQJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 14 Apr 2022 22:16:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346914AbiDOCQB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 22:16:01 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 498F41D334;
-        Thu, 14 Apr 2022 19:13:34 -0700 (PDT)
+        with ESMTP id S1346792AbiDOCQE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Apr 2022 22:16:04 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A663ADD67
+        for <mm-commits@vger.kernel.org>; Thu, 14 Apr 2022 19:13:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id F31CDB82BF3;
-        Fri, 15 Apr 2022 02:13:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2123C385AA;
-        Fri, 15 Apr 2022 02:13:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2826CB82B9C
+        for <mm-commits@vger.kernel.org>; Fri, 15 Apr 2022 02:13:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8140C385A7;
+        Fri, 15 Apr 2022 02:13:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1649988811;
-        bh=kJy8HCH2PF88Ukvq4CiNIs0nm73iZq6YeCxUJq69zzo=;
+        s=korg; t=1649988814;
+        bh=avesztKyswte+MiaCofRGBooc6PzYRiWU186/DEL4nw=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=uu+rQXmnuzQrdBDHHnFepv7hC5HElUNTlNXY42oY1vQJEMWbF/Q9wg4Vownuq6Ui5
-         WNXGhnOtNdo/iIFhR0T701CvB8ZyO0EC3OsG1hnJydoulir/sSqJ1sHRsrEQPAB5sj
-         ixYL82RjBGRRKqdqH5jet6cUOiNBumH6CyLquD+A=
-Date:   Thu, 14 Apr 2022 19:13:31 -0700
-To:     willy@infradead.org, stable@vger.kernel.org, rppt@kernel.org,
-        lkp@intel.com, axelrasmussen@google.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=C1xBvHWjhXQRpvlx51OUvGJVlWdAE0VnCijcdALz8u3jaNCS7/qQRiorWawboiYXi
+         ERjgCERK4oV6fCYYU+wwtbSvp34l3fqD04tOBzk7BkFaUzLN6ZulVWWbA0iPY4zYwT
+         eTjVW4iW+TvoJu66tXi98UuQ9LcRBFkip3wQDfoo=
+Date:   Thu, 14 Apr 2022 19:13:34 -0700
+To:     ryabinin.a.a@gmail.com, glider@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, qiang1.zhang@intel.com,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220414191240.9f86d15a3e3afd848a9839a6@linux-foundation.org>
-Subject: [patch 03/14] mm/secretmem: fix panic when growing a memfd_secret
-Message-Id: <20220415021331.A2123C385AA@smtp.kernel.org>
+Subject: [patch 04/14] irq_work: use kasan_record_aux_stack_noalloc() record callstack
+Message-Id: <20220415021334.B8140C385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: mm/secretmem: fix panic when growing a memfd_secret
+From: Zqiang <qiang1.zhang@intel.com>
+Subject: irq_work: use kasan_record_aux_stack_noalloc() record callstack
 
-When one tries to grow an existing memfd_secret with ftruncate, one gets a
-panic [1].  For example, doing the following reliably induces the panic:
+[    4.113128] BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:46
+[    4.113132] in_atomic(): 1, irqs_disabled(): 1, non_block: 0, pid: 239, name: bootlogd
+[    4.113149] Preemption disabled at:
+[    4.113149] [<ffffffffbab1a531>] rt_mutex_slowunlock+0xa1/0x4e0
+[    4.113154] CPU: 3 PID: 239 Comm: bootlogd Tainted: G        W
+5.17.1-rt17-yocto-preempt-rt+ #105
+[    4.113157] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009),
+BIOS rel-1.15.0-0-g2dd4b9b3f840-prebuilt.qemu.org 04/01/2014
+[    4.113159] Call Trace:
+[    4.113160]  <TASK>
+[    4.113161]  dump_stack_lvl+0x60/0x8c
+[    4.113165]  dump_stack+0x10/0x12
+[    4.113167]  __might_resched.cold+0x13b/0x173
+[    4.113172]  rt_spin_lock+0x5b/0xf0
+[    4.113179]  get_page_from_freelist+0x20c/0x1610
+[    4.113208]  __alloc_pages+0x25e/0x5e0
+[    4.113222]  __stack_depot_save+0x3c0/0x4a0
+[    4.113228]  kasan_save_stack+0x3a/0x50
+[    4.113322]  __kasan_record_aux_stack+0xb6/0xc0
+[    4.113326]  kasan_record_aux_stack+0xe/0x10
+[    4.113329]  irq_work_queue_on+0x6a/0x1c0
+[    4.113333]  pull_rt_task+0x631/0x6b0
+[    4.113343]  do_balance_callbacks+0x56/0x80
+[    4.113346]  __balance_callbacks+0x63/0x90
+[    4.113350]  rt_mutex_setprio+0x349/0x880
+[    4.113366]  rt_mutex_slowunlock+0x22a/0x4e0
+[    4.113377]  rt_spin_unlock+0x49/0x80
+[    4.113380]  uart_write+0x186/0x2b0
+[    4.113385]  do_output_char+0x2e9/0x3a0
+[    4.113389]  n_tty_write+0x306/0x800
+[    4.113413]  file_tty_write.isra.0+0x2af/0x450
+[    4.113422]  tty_write+0x22/0x30
+[    4.113425]  new_sync_write+0x27c/0x3a0
+[    4.113446]  vfs_write+0x3f7/0x5d0
+[    4.113451]  ksys_write+0xd9/0x180
+[    4.113463]  __x64_sys_write+0x43/0x50
+[    4.113466]  do_syscall_64+0x44/0x90
+[    4.113469]  entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-    fd = memfd_secret();
+On PREEMPT_RT kernel and KASAN is enabled.  the kasan_record_aux_stack()
+may call alloc_pages(), and the rt-spinlock will be acquired, if currently
+in atomic context, will trigger warning.  fix it by use
+kasan_record_aux_stack_noalloc() to avoid call alloc_pages().
 
-    ftruncate(fd, 10);
-    ptr = mmap(NULL, 10, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    strcpy(ptr, "123456789");
-
-    munmap(ptr, 10);
-    ftruncate(fd, 20);
-
-The basic reason for this is, when we grow with ftruncate, we call down
-into simple_setattr, and then truncate_inode_pages_range, and eventually
-we try to zero part of the memory.  The normal truncation code does this
-via the direct map (i.e., it calls page_address() and hands that to
-memset()).
-
-For memfd_secret though, we specifically don't map our pages via the
-direct map (i.e.  we call set_direct_map_invalid_noflush() on every
-fault).  So the address returned by page_address() isn't useful, and when
-we try to memset() with it we panic.
-
-This patch avoids the panic by implementing a custom setattr for
-memfd_secret, which detects resizes specifically (setting the size for the
-first time works just fine, since there are no existing pages to try to
-zero), and rejects them with EINVAL.
-
-One could argue growing should be supported, but I think that will require
-a significantly more lengthy change.  So, I propose a minimal fix for the
-benefit of stable kernels, and then perhaps to extend memfd_secret to
-support growing in a separate patch.
-
-[1]:
-
-[  774.320433] BUG: unable to handle page fault for address: ffffa0a889277028
-[  774.322297] #PF: supervisor write access in kernel mode
-[  774.323306] #PF: error_code(0x0002) - not-present page
-[  774.324296] PGD afa01067 P4D afa01067 PUD 83f909067 PMD 83f8bf067 PTE 800ffffef6d88060
-[  774.325841] Oops: 0002 [#1] PREEMPT SMP DEBUG_PAGEALLOC PTI
-[  774.326934] CPU: 0 PID: 281 Comm: repro Not tainted 5.17.0-dbg-DEV #1
-[  774.328074] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
-[  774.329732] RIP: 0010:memset_erms+0x9/0x10
-[  774.330474] Code: c1 e9 03 40 0f b6 f6 48 b8 01 01 01 01 01 01 01 01 48 0f af c6 f3 48 ab 89 d1 f3 aa 4c 89 c8 c3 90 49 89 f9 40 88 f0 48 89 d1 <f3> aa 4c 89 c8 c3 90 49 89 fa 40 0f b6 ce 48 b8 01 01 01 01 01 01
-[  774.333543] RSP: 0018:ffffb932c09afbf0 EFLAGS: 00010246
-[  774.334404] RAX: 0000000000000000 RBX: ffffda63c4249dc0 RCX: 0000000000000fd8
-[  774.335545] RDX: 0000000000000fd8 RSI: 0000000000000000 RDI: ffffa0a889277028
-[  774.336685] RBP: ffffb932c09afc00 R08: 0000000000001000 R09: ffffa0a889277028
-[  774.337929] R10: 0000000000020023 R11: 0000000000000000 R12: ffffda63c4249dc0
-[  774.339236] R13: ffffa0a890d70d98 R14: 0000000000000028 R15: 0000000000000fd8
-[  774.340356] FS:  00007f7294899580(0000) GS:ffffa0af9bc00000(0000) knlGS:0000000000000000
-[  774.341635] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  774.342535] CR2: ffffa0a889277028 CR3: 0000000107ef6006 CR4: 0000000000370ef0
-[  774.343651] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[  774.344780] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[  774.345938] Call Trace:
-[  774.346334]  <TASK>
-[  774.346671]  ? zero_user_segments+0x82/0x190
-[  774.347346]  truncate_inode_partial_folio+0xd4/0x2a0
-[  774.348128]  truncate_inode_pages_range+0x380/0x830
-[  774.348904]  truncate_setsize+0x63/0x80
-[  774.349530]  simple_setattr+0x37/0x60
-[  774.350102]  notify_change+0x3d8/0x4d0
-[  774.350681]  do_sys_ftruncate+0x162/0x1d0
-[  774.351302]  __x64_sys_ftruncate+0x1c/0x20
-[  774.351936]  do_syscall_64+0x44/0xa0
-[  774.352486]  entry_SYSCALL_64_after_hwframe+0x44/0xae
-[  774.353284] RIP: 0033:0x7f72947c392b
-[  774.354001] Code: 77 05 c3 0f 1f 40 00 48 8b 15 41 85 0c 00 f7 d8 64 89 02 b8 ff ff ff ff c3 66 0f 1f 44 00 00 f3 0f 1e fa b8 4d 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 05 c3 0f 1f 40 00 48 8b 15 11 85 0c 00 f7 d8
-[  774.357938] RSP: 002b:00007ffcad62a1a8 EFLAGS: 00000202 ORIG_RAX: 000000000000004d
-[  774.359116] RAX: ffffffffffffffda RBX: 000055f47662b440 RCX: 00007f72947c392b
-[  774.360186] RDX: 0000000000000028 RSI: 0000000000000028 RDI: 0000000000000003
-[  774.361246] RBP: 00007ffcad62a1c0 R08: 0000000000000003 R09: 0000000000000000
-[  774.362324] R10: 00007f72946dc230 R11: 0000000000000202 R12: 000055f47662b0e0
-[  774.363393] R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-[  774.364470]  </TASK>
-[  774.364807] Modules linked in: xhci_pci xhci_hcd virtio_net net_failover failover virtio_blk virtio_balloon uhci_hcd ohci_pci ohci_hcd evdev ehci_pci ehci_hcd 9pnet_virtio 9p netfs 9pnet
-[  774.367325] CR2: ffffa0a889277028
-[  774.367838] ---[ end trace 0000000000000000 ]---
-[  774.368543] RIP: 0010:memset_erms+0x9/0x10
-[  774.369187] Code: c1 e9 03 40 0f b6 f6 48 b8 01 01 01 01 01 01 01 01 48 0f af c6 f3 48 ab 89 d1 f3 aa 4c 89 c8 c3 90 49 89 f9 40 88 f0 48 89 d1 <f3> aa 4c 89 c8 c3 90 49 89 fa 40 0f b6 ce 48 b8 01 01 01 01 01 01
-[  774.372282] RSP: 0018:ffffb932c09afbf0 EFLAGS: 00010246
-[  774.373372] RAX: 0000000000000000 RBX: ffffda63c4249dc0 RCX: 0000000000000fd8
-[  774.374814] RDX: 0000000000000fd8 RSI: 0000000000000000 RDI: ffffa0a889277028
-[  774.376248] RBP: ffffb932c09afc00 R08: 0000000000001000 R09: ffffa0a889277028
-[  774.377687] R10: 0000000000020023 R11: 0000000000000000 R12: ffffda63c4249dc0
-[  774.379135] R13: ffffa0a890d70d98 R14: 0000000000000028 R15: 0000000000000fd8
-[  774.380550] FS:  00007f7294899580(0000) GS:ffffa0af9bc00000(0000) knlGS:0000000000000000
-[  774.382177] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  774.383329] CR2: ffffa0a889277028 CR3: 0000000107ef6006 CR4: 0000000000370ef0
-[  774.384763] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[  774.386229] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[  774.387664] Kernel panic - not syncing: Fatal exception
-[  774.388863] Kernel Offset: 0x8000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
-[  774.391014] ---[ end Kernel panic - not syncing: Fatal exception ]---
-
-[lkp@intel.com: secretmem_iops can be static]
-  Signed-off-by: kernel test robot <lkp@intel.com>
-[axelrasmussen@google.com: return EINVAL]
-  Link: https://lkml.kernel.org/r/20220412193023.279320-1-axelrasmussen@google.com
-Link: https://lkml.kernel.org/r/20220324210909.1843814-1-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
-Cc: kernel test robot <lkp@intel.com>
+Link: https://lkml.kernel.org/r/20220402142555.2699582-1-qiang1.zhang@intel.com
+Signed-off-by: Zqiang <qiang1.zhang@intel.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ kernel/irq_work.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/secretmem.c~mm-secretmem-fix-panic-when-growing-a-memfd_secret
-+++ a/mm/secretmem.c
-@@ -158,6 +158,22 @@ const struct address_space_operations se
- 	.isolate_page	= secretmem_isolate_page,
- };
+--- a/kernel/irq_work.c~irq_work-use-kasan_record_aux_stack_noalloc-record-callstack
++++ a/kernel/irq_work.c
+@@ -137,7 +137,7 @@ bool irq_work_queue_on(struct irq_work *
+ 	if (!irq_work_claim(work))
+ 		return false;
  
-+static int secretmem_setattr(struct user_namespace *mnt_userns,
-+			     struct dentry *dentry, struct iattr *iattr)
-+{
-+	struct inode *inode = d_inode(dentry);
-+	unsigned int ia_valid = iattr->ia_valid;
-+
-+	if ((ia_valid & ATTR_SIZE) && inode->i_size)
-+		return -EINVAL;
-+
-+	return simple_setattr(mnt_userns, dentry, iattr);
-+}
-+
-+static const struct inode_operations secretmem_iops = {
-+	.setattr = secretmem_setattr,
-+};
-+
- static struct vfsmount *secretmem_mnt;
+-	kasan_record_aux_stack(work);
++	kasan_record_aux_stack_noalloc(work);
  
- static struct file *secretmem_file_create(unsigned long flags)
-@@ -177,6 +193,7 @@ static struct file *secretmem_file_creat
- 	mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
- 	mapping_set_unevictable(inode->i_mapping);
- 
-+	inode->i_op = &secretmem_iops;
- 	inode->i_mapping->a_ops = &secretmem_aops;
- 
- 	/* pretend we are a normal file with zero size */
+ 	preempt_disable();
+ 	if (cpu != smp_processor_id()) {
 _
