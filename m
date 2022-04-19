@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76694C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE5A9C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240514AbiDSA3D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Apr 2022 20:29:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57778 "EHLO
+        id S240600AbiDSA3F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Apr 2022 20:29:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240433AbiDSA2q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:28:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D5F1237E2
-        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 17:26:05 -0700 (PDT)
+        with ESMTP id S240459AbiDSA2r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:28:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFF7222B33;
+        Mon, 18 Apr 2022 17:26:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C9FCAB81106
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 00:26:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67549C385A1;
-        Tue, 19 Apr 2022 00:26:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3B4726134B;
+        Tue, 19 Apr 2022 00:26:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91F98C385A8;
+        Tue, 19 Apr 2022 00:26:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650327963;
-        bh=mDuJlu26WF8KYCSxacWWxc7w9dWCsChxEIc/CJH8ix4=;
+        s=korg; t=1650327964;
+        bh=6r8GqEddq/AMGZs2CHafjOe4FAUiGoKPrjTGdC1dw4A=;
         h=Date:To:From:Subject:From;
-        b=syZPgESKUdmteRIIh+Svn00ZTwLGsGuyVXmBZgYtx2tLRryo5FUQZN09EzDDX6yTV
-         52NSRTa4jDw++Irlx8XhHBLEaWZGNoWVw4k8Bw90lhlQzGfG48bc8v2UmoGvxacoKP
-         qBfsReIOWNXxcMVcUiO/CFFpm+ju8J9DkOrRB0H0=
-Date:   Mon, 18 Apr 2022 17:26:02 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, oliver.sang@intel.com,
-        42.hyeyoo@gmail.com, elver@google.com, akpm@linux-foundation.org
+        b=G875L8us5PsO2Oz8aHRuIQGOTBObYobsKJWMFsRxZYQ52T7widcCWsq1xqE6yU6jy
+         rGyxsssnwGGUIpiCxRkj90IEKzb3Vzr3+f1mMzW9szbvMPpx1AIzodzgfIsq5aH0n1
+         MhEX8ubhNLpGfqhxSCvErZu7G/TL+AIHVixztA54=
+Date:   Mon, 18 Apr 2022 17:26:03 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        richard.weiyang@gmail.com, mhocko@suse.com,
+        marmarek@invisiblethingslab.com, david@redhat.com, jgross@suse.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-kfence-support-kmem_dump_obj-for-kfence-objects.patch removed from -mm tree
-Message-Id: <20220419002603.67549C385A1@smtp.kernel.org>
+Subject: [merged] mm-page_alloc-fix-build_zonerefs_node.patch removed from -mm tree
+Message-Id: <20220419002604.91F98C385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,274 +43,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, kfence: support kmem_dump_obj() for KFENCE objects
+     Subject: mm, page_alloc: fix build_zonerefs_node()
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-support-kmem_dump_obj-for-kfence-objects.patch
+     mm-page_alloc-fix-build_zonerefs_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: mm, kfence: support kmem_dump_obj() for KFENCE objects
+From: Juergen Gross <jgross@suse.com>
+Subject: mm, page_alloc: fix build_zonerefs_node()
 
-Calling kmem_obj_info() via kmem_dump_obj() on KFENCE objects has been
-producing garbage data due to the object not actually being maintained by
-SLAB or SLUB.
+Since commit 6aa303defb74 ("mm, vmscan: only allocate and reclaim from
+zones with pages managed by the buddy allocator") only zones with free
+memory are included in a built zonelist.  This is problematic when e.g. 
+all memory of a zone has been ballooned out when zonelists are being
+rebuilt.
 
-Fix this by implementing __kfence_obj_info() that copies relevant
-information to struct kmem_obj_info when the object was allocated by
-KFENCE; this is called by a common kmem_obj_info(), which also calls the
-slab/slub/slob specific variant now called __kmem_obj_info().
+The decision whether to rebuild the zonelists when onlining new memory is
+done based on populated_zone() returning 0 for the zone the memory will be
+added to.  The new zone is added to the zonelists only, if it has free
+memory pages (managed_zone() returns a non-zero value) after the memory
+has been onlined.  This implies, that onlining memory will always free the
+added pages to the allocator immediately, but this is not true in all
+cases: when e.g.  running as a Xen guest the onlined new memory will be
+added only to the ballooned memory list, it will be freed only when the
+guest is being ballooned up afterwards.
 
-For completeness, kmem_dump_obj() now displays if the object was allocated
-by KFENCE.
+Another problem with using managed_zone() for the decision whether a zone
+is being added to the zonelists is, that a zone with all memory used will
+in fact be removed from all zonelists in case the zonelists happen to be
+rebuilt.
 
-Link: https://lore.kernel.org/all/20220323090520.GG16885@xsang-OptiPlex-9020/
-Link: https://lkml.kernel.org/r/20220406131558.3558585-1-elver@google.com
-Fixes: b89fb5ef0ce6 ("mm, kfence: insert KFENCE hooks for SLUB")
-Fixes: d3fb45f370d9 ("mm, kfence: insert KFENCE hooks for SLAB")
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>	[slab]
+Use populated_zone() when building a zonelist as it has been done before
+that commit.
+
+There was a report that QubesOS (based on Xen) is hitting this problem.
+Xen has switched to use the zone device functionality in kernel 5.9
+and QubesOS wants to use memory hotplugging for guests in order to be
+able to start a guest with minimal memory and expand it as needed. 
+This was the report leading to the patch.
+
+Link: https://lkml.kernel.org/r/20220407120637.9035-1-jgross@suse.com
+Fixes: 6aa303defb74 ("mm, vmscan: only allocate and reclaim from zones with pages managed by the buddy allocator")
+Signed-off-by: Juergen Gross <jgross@suse.com>
+Reported-by: Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kfence.h |   24 +++++++++++++++++++
- mm/kfence/core.c       |   21 -----------------
- mm/kfence/kfence.h     |   21 +++++++++++++++++
- mm/kfence/report.c     |   47 +++++++++++++++++++++++++++++++++++++++
- mm/slab.c              |    2 -
- mm/slab.h              |    2 -
- mm/slab_common.c       |    9 +++++++
- mm/slob.c              |    2 -
- mm/slub.c              |    2 -
- 9 files changed, 105 insertions(+), 25 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kfence.h~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/include/linux/kfence.h
-@@ -204,6 +204,22 @@ static __always_inline __must_check bool
-  */
- bool __must_check kfence_handle_page_fault(unsigned long addr, bool is_write, struct pt_regs *regs);
- 
-+#ifdef CONFIG_PRINTK
-+struct kmem_obj_info;
-+/**
-+ * __kfence_obj_info() - fill kmem_obj_info struct
-+ * @kpp: kmem_obj_info to be filled
-+ * @object: the object
-+ *
-+ * Return:
-+ * * false - not a KFENCE object
-+ * * true - a KFENCE object, filled @kpp
-+ *
-+ * Copies information to @kpp for KFENCE objects.
-+ */
-+bool __kfence_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab);
-+#endif
-+
- #else /* CONFIG_KFENCE */
- 
- static inline bool is_kfence_address(const void *addr) { return false; }
-@@ -221,6 +237,14 @@ static inline bool __must_check kfence_h
- 	return false;
- }
- 
-+#ifdef CONFIG_PRINTK
-+struct kmem_obj_info;
-+static inline bool __kfence_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
-+{
-+	return false;
-+}
-+#endif
-+
- #endif
- 
- #endif /* _LINUX_KFENCE_H */
---- a/mm/kfence/core.c~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/mm/kfence/core.c
-@@ -231,27 +231,6 @@ static bool kfence_unprotect(unsigned lo
- 	return !KFENCE_WARN_ON(!kfence_protect_page(ALIGN_DOWN(addr, PAGE_SIZE), false));
- }
- 
--static inline struct kfence_metadata *addr_to_metadata(unsigned long addr)
--{
--	long index;
--
--	/* The checks do not affect performance; only called from slow-paths. */
--
--	if (!is_kfence_address((void *)addr))
--		return NULL;
--
--	/*
--	 * May be an invalid index if called with an address at the edge of
--	 * __kfence_pool, in which case we would report an "invalid access"
--	 * error.
--	 */
--	index = (addr - (unsigned long)__kfence_pool) / (PAGE_SIZE * 2) - 1;
--	if (index < 0 || index >= CONFIG_KFENCE_NUM_OBJECTS)
--		return NULL;
--
--	return &kfence_metadata[index];
--}
--
- static inline unsigned long metadata_to_pageaddr(const struct kfence_metadata *meta)
- {
- 	unsigned long offset = (meta - kfence_metadata + 1) * PAGE_SIZE * 2;
---- a/mm/kfence/kfence.h~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/mm/kfence/kfence.h
-@@ -96,6 +96,27 @@ struct kfence_metadata {
- 
- extern struct kfence_metadata kfence_metadata[CONFIG_KFENCE_NUM_OBJECTS];
- 
-+static inline struct kfence_metadata *addr_to_metadata(unsigned long addr)
-+{
-+	long index;
-+
-+	/* The checks do not affect performance; only called from slow-paths. */
-+
-+	if (!is_kfence_address((void *)addr))
-+		return NULL;
-+
-+	/*
-+	 * May be an invalid index if called with an address at the edge of
-+	 * __kfence_pool, in which case we would report an "invalid access"
-+	 * error.
-+	 */
-+	index = (addr - (unsigned long)__kfence_pool) / (PAGE_SIZE * 2) - 1;
-+	if (index < 0 || index >= CONFIG_KFENCE_NUM_OBJECTS)
-+		return NULL;
-+
-+	return &kfence_metadata[index];
-+}
-+
- /* KFENCE error types for report generation. */
- enum kfence_error_type {
- 	KFENCE_ERROR_OOB,		/* Detected a out-of-bounds access. */
---- a/mm/kfence/report.c~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/mm/kfence/report.c
-@@ -273,3 +273,50 @@ void kfence_report_error(unsigned long a
- 	/* We encountered a memory safety error, taint the kernel! */
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_STILL_OK);
- }
-+
-+#ifdef CONFIG_PRINTK
-+static void kfence_to_kp_stack(const struct kfence_track *track, void **kp_stack)
-+{
-+	int i, j;
-+
-+	i = get_stack_skipnr(track->stack_entries, track->num_stack_entries, NULL);
-+	for (j = 0; i < track->num_stack_entries && j < KS_ADDRS_COUNT; ++i, ++j)
-+		kp_stack[j] = (void *)track->stack_entries[i];
-+	if (j < KS_ADDRS_COUNT)
-+		kp_stack[j] = NULL;
-+}
-+
-+bool __kfence_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
-+{
-+	struct kfence_metadata *meta = addr_to_metadata((unsigned long)object);
-+	unsigned long flags;
-+
-+	if (!meta)
-+		return false;
-+
-+	/*
-+	 * If state is UNUSED at least show the pointer requested; the rest
-+	 * would be garbage data.
-+	 */
-+	kpp->kp_ptr = object;
-+
-+	/* Requesting info an a never-used object is almost certainly a bug. */
-+	if (WARN_ON(meta->state == KFENCE_OBJECT_UNUSED))
-+		return true;
-+
-+	raw_spin_lock_irqsave(&meta->lock, flags);
-+
-+	kpp->kp_slab = slab;
-+	kpp->kp_slab_cache = meta->cache;
-+	kpp->kp_objp = (void *)meta->addr;
-+	kfence_to_kp_stack(&meta->alloc_track, kpp->kp_stack);
-+	if (meta->state == KFENCE_OBJECT_FREED)
-+		kfence_to_kp_stack(&meta->free_track, kpp->kp_free_stack);
-+	/* get_stack_skipnr() ensures the first entry is outside allocator. */
-+	kpp->kp_ret = kpp->kp_stack[0];
-+
-+	raw_spin_unlock_irqrestore(&meta->lock, flags);
-+
-+	return true;
-+}
-+#endif
---- a/mm/slab.c~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/mm/slab.c
-@@ -3665,7 +3665,7 @@ EXPORT_SYMBOL(__kmalloc_node_track_calle
- #endif /* CONFIG_NUMA */
- 
- #ifdef CONFIG_PRINTK
--void kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
-+void __kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
- {
- 	struct kmem_cache *cachep;
- 	unsigned int objnr;
---- a/mm/slab_common.c~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/mm/slab_common.c
-@@ -555,6 +555,13 @@ bool kmem_valid_obj(void *object)
- }
- EXPORT_SYMBOL_GPL(kmem_valid_obj);
- 
-+static void kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
-+{
-+	if (__kfence_obj_info(kpp, object, slab))
-+		return;
-+	__kmem_obj_info(kpp, object, slab);
-+}
-+
- /**
-  * kmem_dump_obj - Print available slab provenance information
-  * @object: slab object for which to find provenance information.
-@@ -590,6 +597,8 @@ void kmem_dump_obj(void *object)
- 		pr_cont(" slab%s %s", cp, kp.kp_slab_cache->name);
- 	else
- 		pr_cont(" slab%s", cp);
-+	if (is_kfence_address(object))
-+		pr_cont(" (kfence)");
- 	if (kp.kp_objp)
- 		pr_cont(" start %px", kp.kp_objp);
- 	if (kp.kp_data_offset)
---- a/mm/slab.h~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/mm/slab.h
-@@ -868,7 +868,7 @@ struct kmem_obj_info {
- 	void *kp_stack[KS_ADDRS_COUNT];
- 	void *kp_free_stack[KS_ADDRS_COUNT];
- };
--void kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab);
-+void __kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab);
- #endif
- 
- #ifdef CONFIG_HAVE_HARDENED_USERCOPY_ALLOCATOR
---- a/mm/slob.c~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/mm/slob.c
-@@ -463,7 +463,7 @@ out:
- }
- 
- #ifdef CONFIG_PRINTK
--void kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
-+void __kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
- {
- 	kpp->kp_ptr = object;
- 	kpp->kp_slab = slab;
---- a/mm/slub.c~mm-kfence-support-kmem_dump_obj-for-kfence-objects
-+++ a/mm/slub.c
-@@ -4312,7 +4312,7 @@ int __kmem_cache_shutdown(struct kmem_ca
- }
- 
- #ifdef CONFIG_PRINTK
--void kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
-+void __kmem_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
- {
- 	void *base;
- 	int __maybe_unused i;
+--- a/mm/page_alloc.c~mm-page_alloc-fix-build_zonerefs_node
++++ a/mm/page_alloc.c
+@@ -6131,7 +6131,7 @@ static int build_zonerefs_node(pg_data_t
+ 	do {
+ 		zone_type--;
+ 		zone = pgdat->node_zones + zone_type;
+-		if (managed_zone(zone)) {
++		if (populated_zone(zone)) {
+ 			zoneref_set_zone(zone, &zonerefs[nr_zones++]);
+ 			check_highest_zone(zone_type);
+ 		}
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from jgross@suse.com are
 
 
