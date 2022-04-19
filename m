@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AD18C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADA0AC433FE
 	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 03:59:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347289AbiDSECL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Apr 2022 00:02:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58906 "EHLO
+        id S1347294AbiDSECM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Apr 2022 00:02:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348161AbiDSECF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 00:02:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 702FE21E2E
-        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 20:59:21 -0700 (PDT)
+        with ESMTP id S1347285AbiDSEBy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 00:01:54 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ED5E21E03
+        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 20:59:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2C3CEB81125
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 03:59:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D751BC385A7;
-        Tue, 19 Apr 2022 03:59:18 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 8AFB9CE1297
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 03:59:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7935C385A8;
+        Tue, 19 Apr 2022 03:59:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650340758;
-        bh=HbDLMCSUjj2HV7Fx+ev7SJhqsmCMAEEuwqu5DrfDUok=;
+        s=korg; t=1650340749;
+        bh=mKnXpmaan4IbXRj/jRE+yorz3pwdsMDMCV9+oecUYLw=;
         h=Date:To:From:Subject:From;
-        b=rgDGOEV8XcnRmVFmnYX4eW5EtDKLvXlkON/gBp2OBhVIH+rdwP5JvabjX8454+Fb7
-         u2koIwRgjLm+4hY1lcawsKOEEILnRllE4csxCfeRLIQs8oxS2oHOP6HLuFWVnIQ+h9
-         6rk5psToL+JDQ9ADjv5gcvfPX1gdffMZw6Hq8BaA=
-Date:   Mon, 18 Apr 2022 20:59:18 -0700
+        b=mnQE+ahTFjR0iDTcaygM/0lrlrJnFjE1eW/LA0Fq2mi9OB+r0eM4iP6xsftn/OhON
+         fhNxMOHz7HfvbmoWxE8nCzLc565EJMVviROykXeJ4G2WN74qJqiKfHGZtrSCwcnkvZ
+         c3P2kYcivuRpbm597lzpxX3wqONCvFb1IkB/JeXQ=
+Date:   Mon, 18 Apr 2022 20:59:09 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-make-sure-highest-is-above-the-min_pfn.patch added to -mm tree
-Message-Id: <20220419035918.D751BC385A7@smtp.kernel.org>
+Subject: + mm-compaction-use-helper-compound_nr-in-isolate_migratepages_block.patch added to -mm tree
+Message-Id: <20220419035909.C7935C385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: make sure highest is above the min_pfn
+     Subject: mm: compaction: use helper compound_nr in isolate_migratepages_block
 has been added to the -mm tree.  Its filename is
-     mm-compaction-make-sure-highest-is-above-the-min_pfn.patch
+     mm-compaction-use-helper-compound_nr-in-isolate_migratepages_block.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-make-sure-highest-is-above-the-min_pfn.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-use-helper-compound_nr-in-isolate_migratepages_block.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-make-sure-highest-is-above-the-min_pfn.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-use-helper-compound_nr-in-isolate_migratepages_block.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,14 +64,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: make sure highest is above the min_pfn
+Subject: mm: compaction: use helper compound_nr in isolate_migratepages_block
 
-It's not guaranteed that highest will be above the min_pfn.  If highest is
-below the min_pfn, migrate_pfn and free_pfn can meet prematurely and lead
-to some useless work.  Make sure highest is above min_pfn to avoid making
-a futile effort.
+Use helper compound_nr to make use of compound_nr when CONFIG_64BIT and
+simplify the code a bit.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-13-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-8-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,17 +81,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/compaction.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-make-sure-highest-is-above-the-min_pfn
+--- a/mm/compaction.c~mm-compaction-use-helper-compound_nr-in-isolate_migratepages_block
 +++ a/mm/compaction.c
-@@ -1532,7 +1532,7 @@ fast_isolate_freepages(struct compact_co
- 			 * not found, be pessimistic for direct compaction
- 			 * and use the min mark.
- 			 */
--			if (highest) {
-+			if (highest >= min_pfn) {
- 				page = pfn_to_page(highest);
- 				cc->free_pfn = highest;
- 			} else {
+@@ -908,7 +908,7 @@ isolate_migratepages_block(struct compac
+ 				 /* Do not report -EBUSY down the chain */
+ 				if (ret == -EBUSY)
+ 					ret = 0;
+-				low_pfn += (1UL << compound_order(page)) - 1;
++				low_pfn += compound_nr(page) - 1;
+ 				goto isolate_fail;
+ 			}
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
