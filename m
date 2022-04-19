@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F06EC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03D8AC433FE
 	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240753AbiDSA31 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Apr 2022 20:29:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58080 "EHLO
+        id S240842AbiDSA33 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Apr 2022 20:29:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240574AbiDSA3F (ORCPT
+        with ESMTP id S240576AbiDSA3F (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:29:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E22C252AD;
-        Mon, 18 Apr 2022 17:26:13 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0202827CCC
+        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 17:26:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 11CA061358;
-        Tue, 19 Apr 2022 00:26:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A2E4C385A1;
-        Tue, 19 Apr 2022 00:26:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 961FCB80108
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 00:26:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54A5DC385A7;
+        Tue, 19 Apr 2022 00:26:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650327972;
-        bh=SX8vYiTfcK6YNPW5i5/fqXKLA3KAkWdwFjwI0+tZfDo=;
+        s=korg; t=1650327971;
+        bh=920PLQ2s3mbtWVTy8XyKB7kvxVdOBWMZ2nCfZlCHNCA=;
         h=Date:To:From:Subject:From;
-        b=VgcNG99nHBzh+alJlNexPRU+XG0rK05yeQ2BGJVL2VZB6IrRpailopHjpBZL7isCE
-         AN6w1rN4jIepXHI14o2zUWKnoq43346Htsv5wdtGASxN9yRVMMTmbX0b8mf0YKmSb0
-         mWLMQFmEt3GwnmYnj1JJ2lSSKwd7EB6mB5tTBPu8=
-Date:   Mon, 18 Apr 2022 17:26:11 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        catalin.marinas@arm.com, patrick.wang.shcn@gmail.com,
+        b=OC1n+JI+NCRft76rk8DB8g0zmPXqqwfYwQapyoguxmrX0ebOiqf73SQbLMJFVxs5a
+         7A/BS+XCi441FZzcE4xIust7fF3M2C1EUzGDvatUeYoVuzpNBPjPr/e/Hc7O0O4L4u
+         jjUyBnupjkuh7clhwGvTknAPCzhcdMTWymnD3M3I=
+Date:   Mon, 18 Apr 2022 17:26:10 -0700
+To:     mm-commits@vger.kernel.org, urezki@gmail.com, hch@lst.de,
+        chris@chrisdown.name, bhe@redhat.com, osandov@fb.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch removed from -mm tree
-Message-Id: <20220419002612.6A2E4C385A1@smtp.kernel.org>
+Subject: [merged] mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch removed from -mm tree
+Message-Id: <20220419002611.54A5DC385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,105 +42,122 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: take a full lowmem check in kmemleak_*_phys()
+     Subject: mm/vmalloc: fix spinning drain_vmap_work after reading from /proc/vmcore
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch
+     mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Patrick Wang <patrick.wang.shcn@gmail.com>
-Subject: mm: kmemleak: take a full lowmem check in kmemleak_*_phys()
+From: Omar Sandoval <osandov@fb.com>
+Subject: mm/vmalloc: fix spinning drain_vmap_work after reading from /proc/vmcore
 
-The kmemleak_*_phys() apis do not check the address for lowmem's min
-boundary, while the caller may pass an address below lowmem, which will
-trigger an oops:
+Commit 3ee48b6af49c ("mm, x86: Saving vmcore with non-lazy freeing of
+vmas") introduced set_iounmap_nonlazy(), which sets vmap_lazy_nr to
+lazy_max_pages() + 1, ensuring that any future vunmaps() immediately purge
+the vmap areas instead of doing it lazily.
 
-# echo scan > /sys/kernel/debug/kmemleak
-[   54.888353] Unable to handle kernel paging request at virtual address ff5fffffffe00000
-[   54.888932] Oops [#1]
-[   54.889102] Modules linked in:
-[   54.889326] CPU: 2 PID: 134 Comm: bash Not tainted 5.18.0-rc1-next-20220407 #33
-[   54.889620] Hardware name: riscv-virtio,qemu (DT)
-[   54.889901] epc : scan_block+0x74/0x15c
-[   54.890215]  ra : scan_block+0x72/0x15c
-[   54.890390] epc : ffffffff801e5806 ra : ffffffff801e5804 sp : ff200000104abc30
-[   54.890607]  gp : ffffffff815cd4e8 tp : ff60000004cfa340 t0 : 0000000000000200
-[   54.890835]  t1 : 00aaaaaac23954cc t2 : 00000000000003ff s0 : ff200000104abc90
-[   54.891024]  s1 : ffffffff81b0ff28 a0 : 0000000000000000 a1 : ff5fffffffe01000
-[   54.891201]  a2 : ffffffff81b0ff28 a3 : 0000000000000002 a4 : 0000000000000001
-[   54.891377]  a5 : 0000000000000000 a6 : ff200000104abd7c a7 : 0000000000000005
-[   54.891552]  s2 : ff5fffffffe00ff9 s3 : ffffffff815cd998 s4 : ffffffff815d0e90
-[   54.891727]  s5 : ffffffff81b0ff28 s6 : 0000000000000020 s7 : ffffffff815d0eb0
-[   54.891903]  s8 : ffffffffffffffff s9 : ff5fffffffe00000 s10: ff5fffffffe01000
-[   54.892078]  s11: 0000000000000022 t3 : 00ffffffaa17db4c t4 : 000000000000000f
-[   54.892271]  t5 : 0000000000000001 t6 : 0000000000000000
-[   54.892408] status: 0000000000000100 badaddr: ff5fffffffe00000 cause: 000000000000000d
-[   54.892643] [<ffffffff801e5a1c>] scan_gray_list+0x12e/0x1a6
-[   54.892824] [<ffffffff801e5d3e>] kmemleak_scan+0x2aa/0x57e
-[   54.892961] [<ffffffff801e633c>] kmemleak_write+0x32a/0x40c
-[   54.893096] [<ffffffff803915ac>] full_proxy_write+0x56/0x82
-[   54.893235] [<ffffffff801ef456>] vfs_write+0xa6/0x2a6
-[   54.893362] [<ffffffff801ef880>] ksys_write+0x6c/0xe2
-[   54.893487] [<ffffffff801ef918>] sys_write+0x22/0x2a
-[   54.893609] [<ffffffff8000397c>] ret_from_syscall+0x0/0x2
-[   54.894183] ---[ end trace 0000000000000000 ]---
+Commit 690467c81b1a ("mm/vmalloc: Move draining areas out of caller
+context") moved the purging from the vunmap() caller to a worker thread. 
+Unfortunately, set_iounmap_nonlazy() can cause the worker thread to spin
+(possibly forever).  For example, consider the following scenario:
 
-The callers may not quite know the actual address they pass(e.g.  from
-devicetree).  So the kmemleak_*_phys() apis should guarantee the
-address they finally use is in lowmem range, so check the address for
-lowmem's min boundary.
+1. Thread reads from /proc/vmcore. This eventually calls
+   __copy_oldmem_page() -> set_iounmap_nonlazy(), which sets
+   vmap_lazy_nr to lazy_max_pages() + 1.
+2. Then it calls free_vmap_area_noflush() (via iounmap()), which adds 2
+   pages (one page plus the guard page) to the purge list and
+   vmap_lazy_nr. vmap_lazy_nr is now lazy_max_pages() + 3, so the
+   drain_vmap_work is scheduled.
+3. Thread returns from the kernel and is scheduled out.
+4. Worker thread is scheduled in and calls drain_vmap_area_work(). It
+   frees the 2 pages on the purge list. vmap_lazy_nr is now
+   lazy_max_pages() + 1.
+5. This is still over the threshold, so it tries to purge areas again,
+   but doesn't find anything.
+6. Repeat 5.
 
-Link: https://lkml.kernel.org/r/20220413122925.33856-1-patrick.wang.shcn@gmail.com
-Signed-off-by: Patrick Wang <patrick.wang.shcn@gmail.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: <stable@vger.kernel.org>
+If the system is running with only one CPU (which is typicial for kdump)
+and preemption is disabled, then this will never make forward progress:
+there aren't any more pages to purge, so it hangs.  If there is more than
+one CPU or preemption is enabled, then the worker thread will spin forever
+in the background.  (Note that if there were already pages to be purged at
+the time that set_iounmap_nonlazy() was called, this bug is avoided.)
+
+This can be reproduced with anything that reads from /proc/vmcore multiple
+times.  E.g., vmcore-dmesg /proc/vmcore.
+
+It turns out that improvements to vmap() over the years have obsoleted the
+need for this "optimization".  I benchmarked `dd if=/proc/vmcore
+of=/dev/null` with 4k and 1M read sizes on a system with a 32GB vmcore. 
+The test was run on 5.17, 5.18-rc1 with a fix that avoided the hang, and
+5.18-rc1 with set_iounmap_nonlazy() removed entirely:
+
+  |5.17  |5.18+fix|5.18+removal
+4k|40.86s|  40.09s|      26.73s
+1M|24.47s|  23.98s|      21.84s
+
+The removal was the fastest (by a wide margin with 4k reads). This patch
+removes set_iounmap_nonlazy().
+
+Link: https://lkml.kernel.org/r/52f819991051f9b865e9ce25605509bfdbacadcd.1649277321.git.osandov@fb.com
+Fixes: 690467c81b1a  ("mm/vmalloc: Move draining areas out of caller context")
+Signed-off-by: Omar Sandoval <osandov@fb.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/io.h       |    2 --
+ arch/x86/kernel/crash_dump_64.c |    1 -
+ mm/vmalloc.c                    |   11 -----------
+ 3 files changed, 14 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys
-+++ a/mm/kmemleak.c
-@@ -1132,7 +1132,7 @@ EXPORT_SYMBOL(kmemleak_no_scan);
- void __ref kmemleak_alloc_phys(phys_addr_t phys, size_t size, int min_count,
- 			       gfp_t gfp)
- {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_alloc(__va(phys), size, min_count, gfp);
+--- a/arch/x86/include/asm/io.h~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
++++ a/arch/x86/include/asm/io.h
+@@ -210,8 +210,6 @@ void __iomem *ioremap(resource_size_t of
+ extern void iounmap(volatile void __iomem *addr);
+ #define iounmap iounmap
+ 
+-extern void set_iounmap_nonlazy(void);
+-
+ #ifdef __KERNEL__
+ 
+ void memcpy_fromio(void *, const volatile void __iomem *, size_t);
+--- a/arch/x86/kernel/crash_dump_64.c~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
++++ a/arch/x86/kernel/crash_dump_64.c
+@@ -37,7 +37,6 @@ static ssize_t __copy_oldmem_page(unsign
+ 	} else
+ 		memcpy(buf, vaddr + offset, csize);
+ 
+-	set_iounmap_nonlazy();
+ 	iounmap((void __iomem *)vaddr);
+ 	return csize;
  }
- EXPORT_SYMBOL(kmemleak_alloc_phys);
-@@ -1146,7 +1146,7 @@ EXPORT_SYMBOL(kmemleak_alloc_phys);
+--- a/mm/vmalloc.c~mm-vmalloc-fix-spinning-drain_vmap_work-after-reading-from-proc-vmcore
++++ a/mm/vmalloc.c
+@@ -1671,17 +1671,6 @@ static DEFINE_MUTEX(vmap_purge_lock);
+ /* for per-CPU blocks */
+ static void purge_fragmented_blocks_allcpus(void);
+ 
+-#ifdef CONFIG_X86_64
+-/*
+- * called before a call to iounmap() if the caller wants vm_area_struct's
+- * immediately freed.
+- */
+-void set_iounmap_nonlazy(void)
+-{
+-	atomic_long_set(&vmap_lazy_nr, lazy_max_pages()+1);
+-}
+-#endif /* CONFIG_X86_64 */
+-
+ /*
+  * Purges all lazily-freed vmap areas.
   */
- void __ref kmemleak_free_part_phys(phys_addr_t phys, size_t size)
- {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_free_part(__va(phys), size);
- }
- EXPORT_SYMBOL(kmemleak_free_part_phys);
-@@ -1158,7 +1158,7 @@ EXPORT_SYMBOL(kmemleak_free_part_phys);
-  */
- void __ref kmemleak_not_leak_phys(phys_addr_t phys)
- {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_not_leak(__va(phys));
- }
- EXPORT_SYMBOL(kmemleak_not_leak_phys);
-@@ -1170,7 +1170,7 @@ EXPORT_SYMBOL(kmemleak_not_leak_phys);
-  */
- void __ref kmemleak_ignore_phys(phys_addr_t phys)
- {
--	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
-+	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
- 		kmemleak_ignore(__va(phys));
- }
- EXPORT_SYMBOL(kmemleak_ignore_phys);
 _
 
-Patches currently in -mm which might be from patrick.wang.shcn@gmail.com are
+Patches currently in -mm which might be from osandov@fb.com are
 
 
