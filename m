@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CA74C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59533C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233195AbiDSA2k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Apr 2022 20:28:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57698 "EHLO
+        id S240382AbiDSA2p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Apr 2022 20:28:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230451AbiDSA2j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:28:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5C1522B33
-        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 17:25:58 -0700 (PDT)
+        with ESMTP id S234310AbiDSA2m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:28:42 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92EB7237C8
+        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 17:26:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 49C4461353
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 00:25:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5594C385A7;
-        Tue, 19 Apr 2022 00:25:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 49979B81106
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 00:26:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0A3AC385A8;
+        Tue, 19 Apr 2022 00:25:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650327957;
-        bh=fvaYaE397CRYGtY96XzN2UdVzL3oiix58cawtmMWIPg=;
+        s=korg; t=1650327959;
+        bh=Q/l0lKDskltJCevO2DNiaBiMpR9IAT9YPuQS2iai4RA=;
         h=Date:To:From:Subject:From;
-        b=mzubTzSMAMvmxAhcng6RGiRRAZAbHTFZjzLq2D8M0uJ/C9UFIJSxXrINasl1MEmvn
-         agO3zRVZyqzVKg2ppb+POHa9/S3WYdLep7cUThEsnP+2p6hoMQAQW7umTBqfCNBl4L
-         HsTdaZqHVho3v5fVTkleFbPPD6VcDNDJhFB0tJaE=
-Date:   Mon, 18 Apr 2022 17:25:56 -0700
-To:     mm-commits@vger.kernel.org, joe@perches.com,
-        akpm@linux-foundation.org
+        b=IVBQuRu14loAJQ5//Bsdn63TUj+xj1o6bSH2/SOMUFftJYAR0CVvBqaHrkpfsxMHd
+         get4IVKPkpLNlknZLanHDbFcnHPaJew76oaMQUM3WbKC4wfvM8kAF9laVWMvY2K03s
+         /XDVlvkmWsIEYqn34BVJjY48QLYBPD+GWN+P3L2I=
+Date:   Mon, 18 Apr 2022 17:25:58 -0700
+To:     mm-commits@vger.kernel.org, patrice.chotard@foss.st.com,
+        mpatocka@redhat.com, markhemm@googlemail.com, lczerner@redhat.com,
+        hch@lst.de, djwong@kernel.org, chuck.lever@oracle.com,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] maintainers-broadcom-internal-lists-arent-maintainers.patch removed from -mm tree
-Message-Id: <20220419002557.A5594C385A7@smtp.kernel.org>
+Subject: [merged] tmpfs-fix-regressions-from-wider-use-of-zero_page.patch removed from -mm tree
+Message-Id: <20220419002558.E0A3AC385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,319 +43,125 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Broadcom internal lists aren't maintainers
+     Subject: tmpfs: fix regressions from wider use of ZERO_PAGE
 has been removed from the -mm tree.  Its filename was
-     maintainers-broadcom-internal-lists-arent-maintainers.patch
+     tmpfs-fix-regressions-from-wider-use-of-zero_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: Broadcom internal lists aren't maintainers
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: fix regressions from wider use of ZERO_PAGE
 
-Convert the broadcom internal list M: and L: entries to R: as
-exploder email addresses are neither maintainers nor mailing lists.
+Chuck Lever reported fsx-based xfstests generic 075 091 112 127 failing
+when 5.18-rc1 NFS server exports tmpfs: bisected to recent tmpfs change.
 
-Reorder the entries as necessary.
+Whilst nfsd_splice_action() does contain some questionable handling of
+repeated pages, and Chuck was able to work around there, history from
+Mark Hemment makes clear that there might be similar dangers elsewhere:
+it was not a good idea for me to pass ZERO_PAGE down to unknown actors.
 
-Link: https://lkml.kernel.org/r/04eb301f5b3adbefdd78e76657eff0acb3e3d87f.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Revert shmem_file_read_iter() to using ZERO_PAGE for holes only when
+iter_is_iovec(); in other cases, use the more natural iov_iter_zero()
+instead of copy_page_to_iter().  We would use iov_iter_zero() throughout,
+but the x86 clear_user() is not nearly so well optimized as copy to user
+(dd of 1T sparse tmpfs file takes 57 seconds rather than 44 seconds).
+
+And now pagecache_init() does not need to SetPageUptodate(ZERO_PAGE(0)):
+which had caused boot failure on arm noMMU STM32F7 and STM32H7 boards
+
+Link: https://lkml.kernel.org/r/9a978571-8648-e830-5735-1f4748ce2e30@google.com
+Fixes: 56a8c8eb1eaf ("tmpfs: do not allocate pages on read")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Patrice CHOTARD <patrice.chotard@foss.st.com>
+Reported-by: Chuck Lever III <chuck.lever@oracle.com>
+Tested-by: Chuck Lever III <chuck.lever@oracle.com>
+Cc: Mark Hemment <markhemm@googlemail.com>
+Cc: Patrice CHOTARD <patrice.chotard@foss.st.com>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Lukas Czerner <lczerner@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   64 +++++++++++++++++++++++++-------------------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+ mm/filemap.c |    6 ------
+ mm/shmem.c   |   31 ++++++++++++++++++++-----------
+ 2 files changed, 20 insertions(+), 17 deletions(-)
 
---- a/MAINTAINERS~maintainers-broadcom-internal-lists-arent-maintainers
-+++ a/MAINTAINERS
-@@ -3743,7 +3743,7 @@ F:	include/linux/platform_data/b53.h
+--- a/mm/filemap.c~tmpfs-fix-regressions-from-wider-use-of-zero_page
++++ a/mm/filemap.c
+@@ -1063,12 +1063,6 @@ void __init pagecache_init(void)
+ 		init_waitqueue_head(&folio_wait_table[i]);
  
- BROADCOM BCM2711/BCM2835 ARM ARCHITECTURE
- M:	Nicolas Saenz Julienne <nsaenz@kernel.org>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-rpi-kernel@lists.infradead.org (moderated for non-subscribers)
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
-@@ -3758,7 +3758,7 @@ BROADCOM BCM281XX/BCM11XXX/BCM216XX ARM
- M:	Florian Fainelli <f.fainelli@gmail.com>
- M:	Ray Jui <rjui@broadcom.com>
- M:	Scott Branden <sbranden@broadcom.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- S:	Maintained
- T:	git git://github.com/broadcom/mach-bcm
- F:	arch/arm/mach-bcm/
-@@ -3778,7 +3778,7 @@ F:	arch/mips/include/asm/mach-bcm47xx/*
+ 	page_writeback_init();
+-
+-	/*
+-	 * tmpfs uses the ZERO_PAGE for reading holes: it is up-to-date,
+-	 * and splice's page_cache_pipe_buf_confirm() needs to see that.
+-	 */
+-	SetPageUptodate(ZERO_PAGE(0));
+ }
  
- BROADCOM BCM4908 ETHERNET DRIVER
- M:	Rafał Miłecki <rafal@milecki.pl>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	netdev@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/net/brcm,bcm4908-enet.yaml
-@@ -3787,7 +3787,7 @@ F:	drivers/net/ethernet/broadcom/unimac.
+ /*
+--- a/mm/shmem.c~tmpfs-fix-regressions-from-wider-use-of-zero_page
++++ a/mm/shmem.c
+@@ -2513,7 +2513,6 @@ static ssize_t shmem_file_read_iter(stru
+ 		pgoff_t end_index;
+ 		unsigned long nr, ret;
+ 		loff_t i_size = i_size_read(inode);
+-		bool got_page;
  
- BROADCOM BCM4908 PINMUX DRIVER
- M:	Rafał Miłecki <rafal@milecki.pl>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-gpio@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/pinctrl/brcm,bcm4908-pinctrl.yaml
-@@ -3797,7 +3797,7 @@ BROADCOM BCM5301X ARM ARCHITECTURE
- M:	Florian Fainelli <f.fainelli@gmail.com>
- M:	Hauke Mehrtens <hauke@hauke-m.de>
- M:	Rafał Miłecki <zajec5@gmail.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- F:	arch/arm/boot/dts/bcm470*
-@@ -3808,7 +3808,7 @@ F:	arch/arm/mach-bcm/bcm_5301x.c
- BROADCOM BCM53573 ARM ARCHITECTURE
- M:	Florian Fainelli <f.fainelli@gmail.com>
- M:	Rafał Miłecki <rafal@milecki.pl>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- F:	arch/arm/boot/dts/bcm47189*
-@@ -3816,7 +3816,7 @@ F:	arch/arm/boot/dts/bcm53573*
+ 		end_index = i_size >> PAGE_SHIFT;
+ 		if (index > end_index)
+@@ -2570,24 +2569,34 @@ static ssize_t shmem_file_read_iter(stru
+ 			 */
+ 			if (!offset)
+ 				mark_page_accessed(page);
+-			got_page = true;
++			/*
++			 * Ok, we have the page, and it's up-to-date, so
++			 * now we can copy it to user space...
++			 */
++			ret = copy_page_to_iter(page, offset, nr, to);
++			put_page(page);
++
++		} else if (iter_is_iovec(to)) {
++			/*
++			 * Copy to user tends to be so well optimized, but
++			 * clear_user() not so much, that it is noticeably
++			 * faster to copy the zero page instead of clearing.
++			 */
++			ret = copy_page_to_iter(ZERO_PAGE(0), offset, nr, to);
+ 		} else {
+-			page = ZERO_PAGE(0);
+-			got_page = false;
++			/*
++			 * But submitting the same page twice in a row to
++			 * splice() - or others? - can result in confusion:
++			 * so don't attempt that optimization on pipes etc.
++			 */
++			ret = iov_iter_zero(nr, to);
+ 		}
  
- BROADCOM BCM63XX ARM ARCHITECTURE
- M:	Florian Fainelli <f.fainelli@gmail.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- T:	git git://github.com/broadcom/stblinux.git
-@@ -3830,7 +3830,7 @@ F:	drivers/usb/gadget/udc/bcm63xx_udc.*
+-		/*
+-		 * Ok, we have the page, and it's up-to-date, so
+-		 * now we can copy it to user space...
+-		 */
+-		ret = copy_page_to_iter(page, offset, nr, to);
+ 		retval += ret;
+ 		offset += ret;
+ 		index += offset >> PAGE_SHIFT;
+ 		offset &= ~PAGE_MASK;
  
- BROADCOM BCM7XXX ARM ARCHITECTURE
- M:	Florian Fainelli <f.fainelli@gmail.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- T:	git git://github.com/broadcom/stblinux.git
-@@ -3848,21 +3848,21 @@ N:	bcm7120
- BROADCOM BDC DRIVER
- M:	Al Cooper <alcooperx@gmail.com>
- L:	linux-usb@vger.kernel.org
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- S:	Maintained
- F:	Documentation/devicetree/bindings/usb/brcm,bdc.yaml
- F:	drivers/usb/gadget/udc/bdc/
- 
- BROADCOM BMIPS CPUFREQ DRIVER
- M:	Markus Mayer <mmayer@broadcom.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-pm@vger.kernel.org
- S:	Maintained
- F:	drivers/cpufreq/bmips-cpufreq.c
- 
- BROADCOM BMIPS MIPS ARCHITECTURE
- M:	Florian Fainelli <f.fainelli@gmail.com>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-mips@vger.kernel.org
- S:	Maintained
- T:	git git://github.com/broadcom/stblinux.git
-@@ -3928,53 +3928,53 @@ F:	drivers/net/wireless/broadcom/brcm802
- BROADCOM BRCMSTB GPIO DRIVER
- M:	Doug Berger <opendmb@gmail.com>
- M:	Florian Fainelli <f.fainelli@gmail.com>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- S:	Supported
- F:	Documentation/devicetree/bindings/gpio/brcm,brcmstb-gpio.yaml
- F:	drivers/gpio/gpio-brcmstb.c
- 
- BROADCOM BRCMSTB I2C DRIVER
- M:	Kamal Dasu <kdasu.kdev@gmail.com>
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-i2c@vger.kernel.org
--L:	bcm-kernel-feedback-list@broadcom.com
- S:	Supported
- F:	Documentation/devicetree/bindings/i2c/brcm,brcmstb-i2c.yaml
- F:	drivers/i2c/busses/i2c-brcmstb.c
- 
- BROADCOM BRCMSTB UART DRIVER
- M:	Al Cooper <alcooperx@gmail.com>
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-serial@vger.kernel.org
--L:	bcm-kernel-feedback-list@broadcom.com
- S:	Maintained
- F:	Documentation/devicetree/bindings/serial/brcm,bcm7271-uart.yaml
- F:	drivers/tty/serial/8250/8250_bcm7271.c
- 
- BROADCOM BRCMSTB USB EHCI DRIVER
- M:	Al Cooper <alcooperx@gmail.com>
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-usb@vger.kernel.org
--L:	bcm-kernel-feedback-list@broadcom.com
- S:	Maintained
- F:	Documentation/devicetree/bindings/usb/brcm,bcm7445-ehci.yaml
- F:	drivers/usb/host/ehci-brcm.*
- 
- BROADCOM BRCMSTB USB PIN MAP DRIVER
- M:	Al Cooper <alcooperx@gmail.com>
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-usb@vger.kernel.org
--L:	bcm-kernel-feedback-list@broadcom.com
- S:	Maintained
- F:	Documentation/devicetree/bindings/usb/brcm,usb-pinmap.yaml
- F:	drivers/usb/misc/brcmstb-usb-pinmap.c
- 
- BROADCOM BRCMSTB USB2 and USB3 PHY DRIVER
- M:	Al Cooper <alcooperx@gmail.com>
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-kernel@vger.kernel.org
--L:	bcm-kernel-feedback-list@broadcom.com
- S:	Maintained
- F:	drivers/phy/broadcom/phy-brcm-usb*
- 
- BROADCOM ETHERNET PHY DRIVERS
- M:	Florian Fainelli <f.fainelli@gmail.com>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	netdev@vger.kernel.org
- S:	Supported
- F:	Documentation/devicetree/bindings/net/broadcom-bcm87xx.txt
-@@ -3985,7 +3985,7 @@ F:	include/linux/brcmphy.h
- BROADCOM GENET ETHERNET DRIVER
- M:	Doug Berger <opendmb@gmail.com>
- M:	Florian Fainelli <f.fainelli@gmail.com>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	netdev@vger.kernel.org
- S:	Supported
- F:	Documentation/devicetree/bindings/net/brcm,bcmgenet.yaml
-@@ -3999,7 +3999,7 @@ F:	include/linux/platform_data/mdio-bcm-
- BROADCOM IPROC ARM ARCHITECTURE
- M:	Ray Jui <rjui@broadcom.com>
- M:	Scott Branden <sbranden@broadcom.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- T:	git git://github.com/broadcom/stblinux.git
-@@ -4027,7 +4027,7 @@ N:	stingray
- 
- BROADCOM IPROC GBIT ETHERNET DRIVER
- M:	Rafał Miłecki <rafal@milecki.pl>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	netdev@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/net/brcm,amac.yaml
-@@ -4036,7 +4036,7 @@ F:	drivers/net/ethernet/broadcom/unimac.
- 
- BROADCOM KONA GPIO DRIVER
- M:	Ray Jui <rjui@broadcom.com>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- S:	Supported
- F:	Documentation/devicetree/bindings/gpio/brcm,kona-gpio.txt
- F:	drivers/gpio/gpio-bcm-kona.c
-@@ -4069,7 +4069,7 @@ F:	drivers/firmware/broadcom/*
- BROADCOM PMB (POWER MANAGEMENT BUS) DRIVER
- M:	Rafał Miłecki <rafal@milecki.pl>
- M:	Florian Fainelli <f.fainelli@gmail.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-pm@vger.kernel.org
- S:	Maintained
- T:	git git://github.com/broadcom/stblinux.git
-@@ -4085,7 +4085,7 @@ F:	include/linux/bcma/
- 
- BROADCOM SPI DRIVER
- M:	Kamal Dasu <kdasu.kdev@gmail.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- S:	Maintained
- F:	Documentation/devicetree/bindings/spi/brcm,spi-bcm-qspi.yaml
- F:	drivers/spi/spi-bcm-qspi.*
-@@ -4094,7 +4094,7 @@ F:	drivers/spi/spi-iproc-qspi.c
- 
- BROADCOM STB AVS CPUFREQ DRIVER
- M:	Markus Mayer <mmayer@broadcom.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-pm@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/cpufreq/brcm,stb-avs-cpu-freq.txt
-@@ -4102,7 +4102,7 @@ F:	drivers/cpufreq/brcmstb*
- 
- BROADCOM STB AVS TMON DRIVER
- M:	Markus Mayer <mmayer@broadcom.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-pm@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/thermal/brcm,avs-tmon.yaml
-@@ -4110,7 +4110,7 @@ F:	drivers/thermal/broadcom/brcmstb*
- 
- BROADCOM STB DPFE DRIVER
- M:	Markus Mayer <mmayer@broadcom.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- F:	Documentation/devicetree/bindings/memory-controllers/brcm,dpfe-cpu.yaml
-@@ -4119,8 +4119,8 @@ F:	drivers/memory/brcmstb_dpfe.c
- BROADCOM STB NAND FLASH DRIVER
- M:	Brian Norris <computersforpeace@gmail.com>
- M:	Kamal Dasu <kdasu.kdev@gmail.com>
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-mtd@lists.infradead.org
--L:	bcm-kernel-feedback-list@broadcom.com
- S:	Maintained
- F:	drivers/mtd/nand/raw/brcmnand/
- F:	include/linux/platform_data/brcmnand.h
-@@ -4129,7 +4129,7 @@ BROADCOM STB PCIE DRIVER
- M:	Jim Quinlan <jim2101024@gmail.com>
- M:	Nicolas Saenz Julienne <nsaenz@kernel.org>
- M:	Florian Fainelli <f.fainelli@gmail.com>
--M:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-pci@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/pci/brcm,stb-pcie.yaml
-@@ -4137,7 +4137,7 @@ F:	drivers/pci/controller/pcie-brcmstb.c
- 
- BROADCOM SYSTEMPORT ETHERNET DRIVER
- M:	Florian Fainelli <f.fainelli@gmail.com>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	netdev@vger.kernel.org
- S:	Supported
- F:	drivers/net/ethernet/broadcom/bcmsysport.*
-@@ -4154,7 +4154,7 @@ F:	drivers/net/ethernet/broadcom/tg3.*
- 
- BROADCOM VK DRIVER
- M:	Scott Branden <scott.branden@broadcom.com>
--L:	bcm-kernel-feedback-list@broadcom.com
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- S:	Supported
- F:	drivers/misc/bcm-vk/
- F:	include/uapi/linux/misc/bcm_vk.h
-@@ -17648,8 +17648,8 @@ K:	\bTIF_SECCOMP\b
- 
- SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) Broadcom BRCMSTB DRIVER
- M:	Al Cooper <alcooperx@gmail.com>
-+R:	Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-mmc@vger.kernel.org
--L:	bcm-kernel-feedback-list@broadcom.com
- S:	Maintained
- F:	drivers/mmc/host/sdhci-brcmstb*
- 
+-		if (got_page)
+-			put_page(page);
+ 		if (!iov_iter_count(to))
+ 			break;
+ 		if (ret < nr) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-munlock-remove-fields-to-fix-htmldocs-warnings.patch
 
