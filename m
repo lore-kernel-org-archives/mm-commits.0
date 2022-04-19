@@ -2,39 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B88CFC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3B25C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240462AbiDSA3K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Apr 2022 20:29:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58098 "EHLO
+        id S240479AbiDSA3L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Apr 2022 20:29:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240521AbiDSA3E (ORCPT
+        with ESMTP id S240433AbiDSA3E (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:29:04 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A1E5237F7;
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60C2823BC0;
         Mon, 18 Apr 2022 17:26:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 851AACE0B26;
-        Tue, 19 Apr 2022 00:26:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4936C385A9;
-        Tue, 19 Apr 2022 00:26:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E22F86136D;
+        Tue, 19 Apr 2022 00:26:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F789C385A9;
+        Tue, 19 Apr 2022 00:26:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650327967;
-        bh=skNu55G9fCAYKmUyUVwVAlr6+oOI8kBhIluTMIChEXA=;
+        s=korg; t=1650327970;
+        bh=XlAGNfTJHBYiVRL4RgGGMt88sf0sh8r5k2hLb/FuNE0=;
         h=Date:To:From:Subject:From;
-        b=vo7Ig6sxMiR3LvHpZuJyT3HIx9xWT2J3Yamtghj0HNNyzRuI2sSYQjH0vCJLYCaaM
-         NBeN+zOIoHBVURiM964F/D0shdK9eBKnZPP/arWw5/m9ZlCKUJYK+p/6X7GrvpHJ2I
-         i69+gMb3Hvsl1JbEdkLNe4ysN9JnHyymWvFnRaxg=
-Date:   Mon, 18 Apr 2022 17:26:07 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        naoya.horiguchi@nec.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        b=o9iKo4Sk0Aid9KJVpk1vASyGCSjN4uNPQd6sqbb2pOvqi+spjg6aVUFupVI7dFEU+
+         6miYMoe1ryT4FMCfpCElE236L7fM3coMWxhP+GOtm+81YTc7x1DT8FTYudfV7Ioa/J
+         MqvGScvnD8IYMy4c6bYJx74wO0YFwT3LrRmpZ9Hw=
+Date:   Mon, 18 Apr 2022 17:26:09 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        surenb@google.com, stable@vger.kernel.org, sspatil@google.com,
+        songliubraving@fb.com, shuah@kernel.org, rppt@kernel.org,
+        rientjes@google.com, regressions@leemhuis.info,
+        ndesaulniers@google.com, mike.kravetz@oracle.com,
+        maskray@google.com, kirill.shutemov@linux.intel.com,
+        irogers@google.com, hughd@google.com, hjl.tools@gmail.com,
+        ckennelly@google.com, adobriyan@gmail.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] hugetlb-do-not-demote-poisoned-hugetlb-pages.patch removed from -mm tree
-Message-Id: <20220419002607.C4936C385A9@smtp.kernel.org>
+Subject: [merged] revert-fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie.patch removed from -mm tree
+Message-Id: <20220419002610.3F789C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,79 +48,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: do not demote poisoned hugetlb pages
+     Subject: revert "fs/binfmt_elf: use PT_LOAD p_align values for static PIE"
 has been removed from the -mm tree.  Its filename was
-     hugetlb-do-not-demote-poisoned-hugetlb-pages.patch
+     revert-fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: do not demote poisoned hugetlb pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "fs/binfmt_elf: use PT_LOAD p_align values for static PIE"
 
-It is possible for poisoned hugetlb pages to reside on the free lists. 
-The huge page allocation routines which dequeue entries from the free
-lists make a point of avoiding poisoned pages.  There is no such check and
-avoidance in the demote code path.
+Despite Mike's attempted fix (925346c129da117122), regressions reports
+continue:
 
-If a hugetlb page on the is on a free list, poison will only be set in the
-head page rather then the page with the actual error.  If such a page is
-demoted, then the poison flag may follow the wrong page.  A page without
-error could have poison set, and a page with poison could not have the
-flag set.
+https://lore.kernel.org/lkml/cb5b81bd-9882-e5dc-cd22-54bdbaaefbbc@leemhuis.info/
+https://bugzilla.kernel.org/show_bug.cgi?id=215720
+https://lkml.kernel.org/r/b685f3d0-da34-531d-1aa9-479accd3e21b@leemhuis.info
 
-Check for poison before attempting to demote a hugetlb page.  Also, return
--EBUSY to the caller if only poisoned pages are on the free list.
+So revert this patch.
 
-Link: https://lkml.kernel.org/r/20220307215707.50916-1-mike.kravetz@oracle.com
-Fixes: 8531fc6f52f5 ("hugetlb: add hugetlb demote page support")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Fixes: 9630f0d60fec ("fs/binfmt_elf: use PT_LOAD p_align values for static PIE")
+
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Chris Kennelly <ckennelly@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: H.J. Lu <hjl.tools@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ fs/binfmt_elf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-do-not-demote-poisoned-hugetlb-pages
-+++ a/mm/hugetlb.c
-@@ -3475,7 +3475,6 @@ static int demote_pool_huge_page(struct
- {
- 	int nr_nodes, node;
- 	struct page *page;
--	int rc = 0;
- 
- 	lockdep_assert_held(&hugetlb_lock);
- 
-@@ -3486,15 +3485,19 @@ static int demote_pool_huge_page(struct
- 	}
- 
- 	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
--		if (!list_empty(&h->hugepage_freelists[node])) {
--			page = list_entry(h->hugepage_freelists[node].next,
--					struct page, lru);
--			rc = demote_free_huge_page(h, page);
--			break;
-+		list_for_each_entry(page, &h->hugepage_freelists[node], lru) {
-+			if (PageHWPoison(page))
-+				continue;
-+
-+			return demote_free_huge_page(h, page);
- 		}
- 	}
- 
--	return rc;
-+	/*
-+	 * Only way to get here is if all pages on free lists are poisoned.
-+	 * Return -EBUSY so that caller will not retry.
-+	 */
-+	return -EBUSY;
- }
- 
- #define HSTATE_ATTR_RO(_name) \
+--- a/fs/binfmt_elf.c~revert-fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie
++++ a/fs/binfmt_elf.c
+@@ -1117,11 +1117,11 @@ out_free_interp:
+ 			 * independently randomized mmap region (0 load_bias
+ 			 * without MAP_FIXED nor MAP_FIXED_NOREPLACE).
+ 			 */
+-			alignment = maximum_alignment(elf_phdata, elf_ex->e_phnum);
+-			if (alignment > ELF_MIN_ALIGN) {
++			if (interpreter) {
+ 				load_bias = ELF_ET_DYN_BASE;
+ 				if (current->flags & PF_RANDOMIZE)
+ 					load_bias += arch_mmap_rnd();
++				alignment = maximum_alignment(elf_phdata, elf_ex->e_phnum);
+ 				if (alignment)
+ 					load_bias &= ~(alignment - 1);
+ 				elf_flags |= MAP_FIXED_NOREPLACE;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm.patch
+kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix.patch
+mm-create-new-mm-swaph-header-file-fix.patch
+mm-shmem-make-shmem_init-return-void-fix.patch
+mm-khugepaged-introduce-khugepaged_enter_vma-helper-vs-maple-tree.patch
+mm-check-against-orig_pte-for-finish_fault-fix-checkpatch-fixes.patch
+mglru-vs-maple-tree.patch
+mm-vmscan-fix-comment-for-current_may_throttle-fix.patch
+ksm-count-ksm-merging-pages-for-each-process-fix.patch
+mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
+proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
+fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix.patch
+add-fat-messages-to-printk-index-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
 
