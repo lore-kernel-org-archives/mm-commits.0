@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59B64C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 18:01:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9259C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 18:35:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343952AbiDSSEh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Apr 2022 14:04:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43476 "EHLO
+        id S1354181AbiDSSi1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Apr 2022 14:38:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343940AbiDSSEh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 14:04:37 -0400
+        with ESMTP id S1357672AbiDSSh6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 14:37:58 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A5D1186F8
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 11:01:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 327F1165A4
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 11:32:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B89FCB8180C
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 18:01:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61F0EC385A5;
-        Tue, 19 Apr 2022 18:01:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E217DB818E0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 18:32:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75EFCC385A5;
+        Tue, 19 Apr 2022 18:32:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650391311;
-        bh=AKWbaJyKozt8nlYIjhim9q5v9rnzwOdECBay/y3XSvs=;
+        s=korg; t=1650393171;
+        bh=6NWsz0ftcvOEBHU1RNm6W1Asors96kbnGE8eJQ+VXhk=;
         h=Date:To:From:Subject:From;
-        b=LmasTTQqjpmYxe2pHHEdYQIpsieEPA4Cu51tC/We7hrrDB+8N0uJUknQHwVT9Gjdn
-         NvJOlqBLldxXSvIg3UCljJ3YGG76sIH8mNnFKfbXaDraPa+K7Lx85kpkcl613ONNBw
-         mIgGCH/KvwGwqtvuaDRo4B0b/DUz8eJ1JinBU2SU=
-Date:   Tue, 19 Apr 2022 11:01:50 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        peterz@infradead.org, hch@infradead.org,
-        gregkh@linuxfoundation.org, bigeasy@linutronix.de,
+        b=mJ68OGH+rNhzlsXprGTiVMpp4AZhAtTEObSLDochrPhSi00RHoNwdEN+OSAyEiZhn
+         kijsdnMmNsGAwvDmHaEPIRhKcHsgtTa6xBOm5R8bzt9gTzVm7//26s+hyiZO/PATP/
+         zzqePDD6YcPglbyM46K1eT6anGdAG+wXJ5GNsTKo=
+Date:   Tue, 19 Apr 2022 11:32:50 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        Liam.Howlett@oracle.com, liam.howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] lib-irq_poll-add-local_bh_disable-in-irq_poll_cpu_dead.patch removed from -mm tree
-Message-Id: <20220419180151.61F0EC385A5@smtp.kernel.org>
+Subject: + mglru-vs-maple-tree-fix.patch added to -mm tree
+Message-Id: <20220419183251.75EFCC385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,67 +42,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/irq_poll: Add local_bh_disable() in irq_poll_cpu_dead()
-has been removed from the -mm tree.  Its filename was
-     lib-irq_poll-add-local_bh_disable-in-irq_poll_cpu_dead.patch
+     Subject: mm/vmscan: Use VMA_ITERATOR in get_next_vma()
+has been added to the -mm tree.  Its filename is
+     mglru-vs-maple-tree-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mglru-vs-maple-tree-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mglru-vs-maple-tree-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: lib/irq_poll: Add local_bh_disable() in irq_poll_cpu_dead()
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: mm/vmscan: Use VMA_ITERATOR in get_next_vma()
 
-irq_poll_cpu_dead() pulls the blk_cpu_iopoll backlog from the dead CPU and
-raises the POLL softirq with __raise_softirq_irqoff() on the CPU it is
-running on.  That just sets the bit in the pending softirq mask.
+The next vma may actually be many VMAs away, so use the VMA_ITERATOR to
+continue searching from vm_end onwards.
 
-This means the handling of the softirq is delayed until the next interrupt
-or a local_bh_disable/enable() pair.  As a consequence the CPU on which
-this code runs can reach idle with the POLL softirq pending, which
-triggers a warning in the NOHZ idle code.
-
-Add a local_bh_disable/enable() pair around the interrupts disabled
-section in irq_poll_cpu_dead().  local_bh_enable will handle the pending
-softirq.
-
-[@linutronix.de: massaged changelog and comment]
-Link: https://lkml.kernel.org/r/87k0bxgl27.ffs@tglx
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20220419174757.2tptlbkebiletmck@revolver
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/irq_poll.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/lib/irq_poll.c~lib-irq_poll-add-local_bh_disable-in-irq_poll_cpu_dead
-+++ a/lib/irq_poll.c
-@@ -188,14 +188,18 @@ EXPORT_SYMBOL(irq_poll_init);
- static int irq_poll_cpu_dead(unsigned int cpu)
+--- a/mm/vmscan.c~mglru-vs-maple-tree-fix
++++ a/mm/vmscan.c
+@@ -3697,24 +3697,21 @@ static bool get_next_vma(struct mm_walk
+ 			 unsigned long *start, unsigned long *end)
  {
- 	/*
--	 * If a CPU goes away, splice its entries to the current CPU
--	 * and trigger a run of the softirq
-+	 * If a CPU goes away, splice its entries to the current CPU and
-+	 * set the POLL softirq bit. The local_bh_disable()/enable() pair
-+	 * ensures that it is handled. Otherwise the current CPU could
-+	 * reach idle with the POLL softirq pending.
- 	 */
-+	local_bh_disable();
- 	local_irq_disable();
- 	list_splice_init(&per_cpu(blk_cpu_iopoll, cpu),
- 			 this_cpu_ptr(&blk_cpu_iopoll));
- 	__raise_softirq_irqoff(IRQ_POLL_SOFTIRQ);
- 	local_irq_enable();
-+	local_bh_enable();
+ 	unsigned long next = round_up(*end, size);
++	VMA_ITERATOR(vmi, walk->mm, walk->vma->vm_end)
  
- 	return 0;
- }
+ 	VM_BUG_ON(mask & size);
+ 	VM_BUG_ON(*start >= *end);
+ 	VM_BUG_ON((next & mask) != (*start & mask));
+ 
+-	while (walk->vma) {
+-		if (next >= walk->vma->vm_end) {
+-			walk->vma = find_vma(walk->mm, walk->vma->vm_end);
++	for_each_mte_vma(vmi, walk->vma) {
++		if (next >= walk->vma->vm_end)
+ 			continue;
+-		}
+ 
+ 		if ((next & mask) != (walk->vma->vm_start & mask))
+ 			return false;
+ 
+-		if (should_skip_vma(walk->vma->vm_start, walk->vma->vm_end, walk)) {
+-			walk->vma = find_vma(walk->mm, walk->vma->vm_end);
++		if (should_skip_vma(walk->vma->vm_start, walk->vma->vm_end, walk))
+ 			continue;
+-		}
+ 
+ 		*start = max(next, walk->vma->vm_start);
+ 		next = (next | ~mask) + 1;
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
+radix-tree-test-suite-add-lockdep_is_held-to-header.patch
+mips-rename-mt_init-to-mips_mt_init.patch
+lib-test_maple_tree-add-testing-for-maple-tree.patch
+mmap-change-zeroing-of-maple-tree-in-__vma_adjust.patch
+riscv-use-vma-iterator-for-vdso.patch
+mm-mmapc-pass-in-mapping-to-__vma_link_file.patch
+mglru-vs-maple-tree-fix.patch
 
