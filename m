@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59533C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 545AEC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240382AbiDSA2p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S240402AbiDSA2p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 18 Apr 2022 20:28:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57722 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234310AbiDSA2m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:28:42 -0400
+        with ESMTP id S240359AbiDSA2o (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:28:44 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92EB7237C8
-        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 17:26:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E48B8237DA
+        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 17:26:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 49979B81106
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 00:26:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0A3AC385A8;
-        Tue, 19 Apr 2022 00:25:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A0B79B81136
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 00:26:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 359F4C385A1;
+        Tue, 19 Apr 2022 00:26:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650327959;
-        bh=Q/l0lKDskltJCevO2DNiaBiMpR9IAT9YPuQS2iai4RA=;
+        s=korg; t=1650327961;
+        bh=ZD5zCMu5Og3SIbLIjleOFgWp8hUOICzKds0Kw42O1MA=;
         h=Date:To:From:Subject:From;
-        b=IVBQuRu14loAJQ5//Bsdn63TUj+xj1o6bSH2/SOMUFftJYAR0CVvBqaHrkpfsxMHd
-         get4IVKPkpLNlknZLanHDbFcnHPaJew76oaMQUM3WbKC4wfvM8kAF9laVWMvY2K03s
-         /XDVlvkmWsIEYqn34BVJjY48QLYBPD+GWN+P3L2I=
-Date:   Mon, 18 Apr 2022 17:25:58 -0700
-To:     mm-commits@vger.kernel.org, patrice.chotard@foss.st.com,
-        mpatocka@redhat.com, markhemm@googlemail.com, lczerner@redhat.com,
-        hch@lst.de, djwong@kernel.org, chuck.lever@oracle.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=uEGOLGD9tbDPrN+BxF3bdBchoNE3WLYL7g8R0fdnkKQyc1lLumC/slgAoz9c7836+
+         +oh4d2Lx6Yk0W7U0eGJIE81WcbM3T1nyFYOzKww5bwaoSRruA/FLsfY2WBPuyGdMk4
+         VY2JT9tCBvVAjukUgaT0+mbXO2lEOpfqPCXMJKXY=
+Date:   Mon, 18 Apr 2022 17:26:00 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, dvyukov@google.com, andreyknvl@gmail.com,
+        qiang1.zhang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] tmpfs-fix-regressions-from-wider-use-of-zero_page.patch removed from -mm tree
-Message-Id: <20220419002558.E0A3AC385A8@smtp.kernel.org>
+Subject: [merged] irq_work-use-kasan_record_aux_stack_noalloc-record-callstack.patch removed from -mm tree
+Message-Id: <20220419002601.359F4C385A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,125 +42,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: fix regressions from wider use of ZERO_PAGE
+     Subject: irq_work: use kasan_record_aux_stack_noalloc() record callstack
 has been removed from the -mm tree.  Its filename was
-     tmpfs-fix-regressions-from-wider-use-of-zero_page.patch
+     irq_work-use-kasan_record_aux_stack_noalloc-record-callstack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: fix regressions from wider use of ZERO_PAGE
+From: Zqiang <qiang1.zhang@intel.com>
+Subject: irq_work: use kasan_record_aux_stack_noalloc() record callstack
 
-Chuck Lever reported fsx-based xfstests generic 075 091 112 127 failing
-when 5.18-rc1 NFS server exports tmpfs: bisected to recent tmpfs change.
+[    4.113128] BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:46
+[    4.113132] in_atomic(): 1, irqs_disabled(): 1, non_block: 0, pid: 239, name: bootlogd
+[    4.113149] Preemption disabled at:
+[    4.113149] [<ffffffffbab1a531>] rt_mutex_slowunlock+0xa1/0x4e0
+[    4.113154] CPU: 3 PID: 239 Comm: bootlogd Tainted: G        W
+5.17.1-rt17-yocto-preempt-rt+ #105
+[    4.113157] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009),
+BIOS rel-1.15.0-0-g2dd4b9b3f840-prebuilt.qemu.org 04/01/2014
+[    4.113159] Call Trace:
+[    4.113160]  <TASK>
+[    4.113161]  dump_stack_lvl+0x60/0x8c
+[    4.113165]  dump_stack+0x10/0x12
+[    4.113167]  __might_resched.cold+0x13b/0x173
+[    4.113172]  rt_spin_lock+0x5b/0xf0
+[    4.113179]  get_page_from_freelist+0x20c/0x1610
+[    4.113208]  __alloc_pages+0x25e/0x5e0
+[    4.113222]  __stack_depot_save+0x3c0/0x4a0
+[    4.113228]  kasan_save_stack+0x3a/0x50
+[    4.113322]  __kasan_record_aux_stack+0xb6/0xc0
+[    4.113326]  kasan_record_aux_stack+0xe/0x10
+[    4.113329]  irq_work_queue_on+0x6a/0x1c0
+[    4.113333]  pull_rt_task+0x631/0x6b0
+[    4.113343]  do_balance_callbacks+0x56/0x80
+[    4.113346]  __balance_callbacks+0x63/0x90
+[    4.113350]  rt_mutex_setprio+0x349/0x880
+[    4.113366]  rt_mutex_slowunlock+0x22a/0x4e0
+[    4.113377]  rt_spin_unlock+0x49/0x80
+[    4.113380]  uart_write+0x186/0x2b0
+[    4.113385]  do_output_char+0x2e9/0x3a0
+[    4.113389]  n_tty_write+0x306/0x800
+[    4.113413]  file_tty_write.isra.0+0x2af/0x450
+[    4.113422]  tty_write+0x22/0x30
+[    4.113425]  new_sync_write+0x27c/0x3a0
+[    4.113446]  vfs_write+0x3f7/0x5d0
+[    4.113451]  ksys_write+0xd9/0x180
+[    4.113463]  __x64_sys_write+0x43/0x50
+[    4.113466]  do_syscall_64+0x44/0x90
+[    4.113469]  entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-Whilst nfsd_splice_action() does contain some questionable handling of
-repeated pages, and Chuck was able to work around there, history from
-Mark Hemment makes clear that there might be similar dangers elsewhere:
-it was not a good idea for me to pass ZERO_PAGE down to unknown actors.
+On PREEMPT_RT kernel and KASAN is enabled.  the kasan_record_aux_stack()
+may call alloc_pages(), and the rt-spinlock will be acquired, if currently
+in atomic context, will trigger warning.  fix it by use
+kasan_record_aux_stack_noalloc() to avoid call alloc_pages().
 
-Revert shmem_file_read_iter() to using ZERO_PAGE for holes only when
-iter_is_iovec(); in other cases, use the more natural iov_iter_zero()
-instead of copy_page_to_iter().  We would use iov_iter_zero() throughout,
-but the x86 clear_user() is not nearly so well optimized as copy to user
-(dd of 1T sparse tmpfs file takes 57 seconds rather than 44 seconds).
-
-And now pagecache_init() does not need to SetPageUptodate(ZERO_PAGE(0)):
-which had caused boot failure on arm noMMU STM32F7 and STM32H7 boards
-
-Link: https://lkml.kernel.org/r/9a978571-8648-e830-5735-1f4748ce2e30@google.com
-Fixes: 56a8c8eb1eaf ("tmpfs: do not allocate pages on read")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Patrice CHOTARD <patrice.chotard@foss.st.com>
-Reported-by: Chuck Lever III <chuck.lever@oracle.com>
-Tested-by: Chuck Lever III <chuck.lever@oracle.com>
-Cc: Mark Hemment <markhemm@googlemail.com>
-Cc: Patrice CHOTARD <patrice.chotard@foss.st.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Lukas Czerner <lczerner@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
+Link: https://lkml.kernel.org/r/20220402142555.2699582-1-qiang1.zhang@intel.com
+Signed-off-by: Zqiang <qiang1.zhang@intel.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    6 ------
- mm/shmem.c   |   31 ++++++++++++++++++++-----------
- 2 files changed, 20 insertions(+), 17 deletions(-)
+ kernel/irq_work.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~tmpfs-fix-regressions-from-wider-use-of-zero_page
-+++ a/mm/filemap.c
-@@ -1063,12 +1063,6 @@ void __init pagecache_init(void)
- 		init_waitqueue_head(&folio_wait_table[i]);
+--- a/kernel/irq_work.c~irq_work-use-kasan_record_aux_stack_noalloc-record-callstack
++++ a/kernel/irq_work.c
+@@ -137,7 +137,7 @@ bool irq_work_queue_on(struct irq_work *
+ 	if (!irq_work_claim(work))
+ 		return false;
  
- 	page_writeback_init();
--
--	/*
--	 * tmpfs uses the ZERO_PAGE for reading holes: it is up-to-date,
--	 * and splice's page_cache_pipe_buf_confirm() needs to see that.
--	 */
--	SetPageUptodate(ZERO_PAGE(0));
- }
+-	kasan_record_aux_stack(work);
++	kasan_record_aux_stack_noalloc(work);
  
- /*
---- a/mm/shmem.c~tmpfs-fix-regressions-from-wider-use-of-zero_page
-+++ a/mm/shmem.c
-@@ -2513,7 +2513,6 @@ static ssize_t shmem_file_read_iter(stru
- 		pgoff_t end_index;
- 		unsigned long nr, ret;
- 		loff_t i_size = i_size_read(inode);
--		bool got_page;
- 
- 		end_index = i_size >> PAGE_SHIFT;
- 		if (index > end_index)
-@@ -2570,24 +2569,34 @@ static ssize_t shmem_file_read_iter(stru
- 			 */
- 			if (!offset)
- 				mark_page_accessed(page);
--			got_page = true;
-+			/*
-+			 * Ok, we have the page, and it's up-to-date, so
-+			 * now we can copy it to user space...
-+			 */
-+			ret = copy_page_to_iter(page, offset, nr, to);
-+			put_page(page);
-+
-+		} else if (iter_is_iovec(to)) {
-+			/*
-+			 * Copy to user tends to be so well optimized, but
-+			 * clear_user() not so much, that it is noticeably
-+			 * faster to copy the zero page instead of clearing.
-+			 */
-+			ret = copy_page_to_iter(ZERO_PAGE(0), offset, nr, to);
- 		} else {
--			page = ZERO_PAGE(0);
--			got_page = false;
-+			/*
-+			 * But submitting the same page twice in a row to
-+			 * splice() - or others? - can result in confusion:
-+			 * so don't attempt that optimization on pipes etc.
-+			 */
-+			ret = iov_iter_zero(nr, to);
- 		}
- 
--		/*
--		 * Ok, we have the page, and it's up-to-date, so
--		 * now we can copy it to user space...
--		 */
--		ret = copy_page_to_iter(page, offset, nr, to);
- 		retval += ret;
- 		offset += ret;
- 		index += offset >> PAGE_SHIFT;
- 		offset &= ~PAGE_MASK;
- 
--		if (got_page)
--			put_page(page);
- 		if (!iov_iter_count(to))
- 			break;
- 		if (ret < nr) {
+ 	preempt_disable();
+ 	if (cpu != smp_processor_id()) {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from qiang1.zhang@intel.com are
 
-mm-munlock-remove-fields-to-fix-htmldocs-warnings.patch
+kasan-prevent-cpu_quarantine-corruption-when-cpu-offline-and-cache-shrink-occur-at-same-time.patch
+kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel.patch
 
