@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D30F1C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 19:41:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29A3AC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 19:53:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244911AbiDSTod (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Apr 2022 15:44:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59098 "EHLO
+        id S1356314AbiDST4c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Apr 2022 15:56:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243888AbiDSToc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 15:44:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB1D940A3A
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 12:41:48 -0700 (PDT)
+        with ESMTP id S1344535AbiDST4c (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 15:56:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0C6D3818F
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 12:53:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 88A9A6167E
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 19:41:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D348BC385A5;
-        Tue, 19 Apr 2022 19:41:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6B415B81B67
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 19:53:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFD8DC385A5;
+        Tue, 19 Apr 2022 19:53:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650397307;
-        bh=45fxnu+Ohhx6BwN6n8eGN9lnlCtjqSiV3xZUxr/ye50=;
+        s=korg; t=1650398025;
+        bh=m/JgO9eAbrZ+yfJC0zJGDBFLRHzK+28z089hSxHu8lI=;
         h=Date:To:From:Subject:From;
-        b=XTOjl4qGhfd4l7/7AxgJ3GyLowpAjNwKxowaOXY0pQPP8oJ6DbVGIphz6vYRk3Chv
-         vCfciLfqvNj8YmB0pI1rFG++pCJsEG+HNuB1rP9JJ8AIcV6Rf7yPbhWBdZQmq9fbTh
-         U45tdTG37Ao6g8JvlfjCBReDPtDZ71aL9shGg304=
-Date:   Tue, 19 Apr 2022 12:41:47 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        Liam.Howlett@oracle.com, catalin.marinas@arm.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
+        b=rK0SpvZ3I23Xlgg3kzaDjgROCKhZpQY7tM/dKGGrCrrW3Sn2yZk8zPPXSdF3uQRBz
+         ReZXUQ31v2Iqh4yH3JnBTe1gGxO+2p6tD43jGU9w9NKeNIMp3TyDIw6TT0hiK1i8b+
+         W8guJiUEFaQJtcgkum0ZcApLtucyhlFT66MQjKGg=
+Date:   Tue, 19 Apr 2022 12:53:44 -0700
+To:     mm-commits@vger.kernel.org, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-remove-mmap-linked-list-from-vdso-fix.patch added to -mm tree
-Message-Id: <20220419194147.D348BC385A5@smtp.kernel.org>
+Subject: + x86-pgtable-support-__have_arch_pte_swp_exclusive-fix.patch added to -mm tree
+Message-Id: <20220419195344.DFD8DC385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: change elfcore for_each_mte_vma() to use VMA iterator
+     Subject: x86-pgtable-support-__have_arch_pte_swp_exclusive-fix
 has been added to the -mm tree.  Its filename is
-     arm64-remove-mmap-linked-list-from-vdso-fix.patch
+     x86-pgtable-support-__have_arch_pte_swp_exclusive-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-remove-mmap-linked-list-from-vdso-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-pgtable-support-__have_arch_pte_swp_exclusive-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-remove-mmap-linked-list-from-vdso-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-pgtable-support-__have_arch_pte_swp_exclusive-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,92 +62,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: arm64: change elfcore for_each_mte_vma() to use VMA iterator
+From: David Hildenbrand <david@redhat.com>
+Subject: x86-pgtable-support-__have_arch_pte_swp_exclusive-fix
 
-Rework for_each_mte_vma() to use a VMA iterator instead of an explicit
-linked-list.
+Looks like I ignored that 32bit uses a different (undocumented) swap layout
+and bit 3 falls into the swp type. We'll restrict this to x86-64 for now, just
+like for the other architectures.
 
-Link: https://lore.kernel.org/r/20220218023650.672072-1-Liam.Howlett@oracle.com
-Link: https://lkml.kernel.org/r/20220419192157.2jn6olj7lg6jvo5e@revolver
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Signed-off-by: Will Deacon <will@kernel.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/d875c292-46b3-f281-65ae-71d0b0c6f592@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/elfcore.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/pgtable.h          |    3 ++-
+ arch/x86/include/asm/pgtable_64_types.h |    5 +++++
+ arch/x86/include/asm/pgtable_types.h    |    5 -----
+ 3 files changed, 7 insertions(+), 6 deletions(-)
 
---- a/arch/arm64/kernel/elfcore.c~arm64-remove-mmap-linked-list-from-vdso-fix
-+++ a/arch/arm64/kernel/elfcore.c
-@@ -8,9 +8,9 @@
- #include <asm/cpufeature.h>
- #include <asm/mte.h>
+--- a/arch/x86/include/asm/pgtable_64_types.h~x86-pgtable-support-__have_arch_pte_swp_exclusive-fix
++++ a/arch/x86/include/asm/pgtable_64_types.h
+@@ -163,4 +163,9 @@ extern unsigned int ptrs_per_p4d;
  
--#define for_each_mte_vma(tsk, vma)					\
-+#define for_each_mte_vma(vmi, vma)					\
- 	if (system_supports_mte())					\
--		for (vma = tsk->mm->mmap; vma; vma = vma->vm_next)	\
-+		for_each_vma(vmi, vma)					\
- 			if (vma->vm_flags & VM_MTE)
+ #define PGD_KERNEL_START	((PAGE_SIZE / 2) / sizeof(pgd_t))
  
- static unsigned long mte_vma_tag_dump_size(struct vm_area_struct *vma)
-@@ -81,8 +81,9 @@ Elf_Half elf_core_extra_phdrs(void)
++/*
++ * We borrow bit 3 to remember PG_anon_exclusive.
++ */
++#define _PAGE_SWP_EXCLUSIVE	_PAGE_PWT
++
+ #endif /* _ASM_X86_PGTABLE_64_DEFS_H */
+--- a/arch/x86/include/asm/pgtable.h~x86-pgtable-support-__have_arch_pte_swp_exclusive-fix
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1291,7 +1291,7 @@ static inline void update_mmu_cache_pud(
+ 		unsigned long addr, pud_t *pud)
  {
- 	struct vm_area_struct *vma;
- 	int vma_count = 0;
-+	VMA_ITERATOR(vmi, current->mm, 0);
- 
--	for_each_mte_vma(current, vma)
-+	for_each_mte_vma(vmi, vma)
- 		vma_count++;
- 
- 	return vma_count;
-@@ -91,8 +92,9 @@ Elf_Half elf_core_extra_phdrs(void)
- int elf_core_write_extra_phdrs(struct coredump_params *cprm, loff_t offset)
+ }
+-
++#ifdef _PAGE_SWP_EXCLUSIVE
+ #define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ static inline pte_t pte_swp_mkexclusive(pte_t pte)
  {
- 	struct vm_area_struct *vma;
-+	VMA_ITERATOR(vmi, current->mm, 0);
- 
--	for_each_mte_vma(current, vma) {
-+	for_each_mte_vma(vmi, vma) {
- 		struct elf_phdr phdr;
- 
- 		phdr.p_type = PT_ARM_MEMTAG_MTE;
-@@ -116,8 +118,9 @@ size_t elf_core_extra_data_size(void)
+@@ -1307,6 +1307,7 @@ static inline pte_t pte_swp_clear_exclus
  {
- 	struct vm_area_struct *vma;
- 	size_t data_size = 0;
-+	VMA_ITERATOR(vmi, current->mm, 0);
+ 	return pte_clear_flags(pte, _PAGE_SWP_EXCLUSIVE);
+ }
++#endif /* _PAGE_SWP_EXCLUSIVE */
  
--	for_each_mte_vma(current, vma)
-+	for_each_mte_vma(vmi, vma)
- 		data_size += mte_vma_tag_dump_size(vma);
+ #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
+--- a/arch/x86/include/asm/pgtable_types.h~x86-pgtable-support-__have_arch_pte_swp_exclusive-fix
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -84,11 +84,6 @@
+ #endif
  
- 	return data_size;
-@@ -126,8 +129,9 @@ size_t elf_core_extra_data_size(void)
- int elf_core_write_extra_data(struct coredump_params *cprm)
- {
- 	struct vm_area_struct *vma;
-+	VMA_ITERATOR(vmi, current->mm, 0);
- 
--	for_each_mte_vma(current, vma) {
-+	for_each_mte_vma(vmi, vma) {
- 		if (vma->vm_flags & VM_DONTDUMP)
- 			continue;
- 
+ /*
+- * We borrow bit 3 to remember PG_anon_exclusive.
+- */
+-#define _PAGE_SWP_EXCLUSIVE	_PAGE_PWT
+-
+-/*
+  * Tracking soft dirty bit when a page goes to a swap is tricky.
+  * We need a bit which can be stored in pte _and_ not conflict
+  * with swap entry format. On x86 bits 1-4 are *not* involved
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-radix-tree-test-suite-add-lockdep_is_held-to-header.patch
-mips-rename-mt_init-to-mips_mt_init.patch
-maple-tree-add-new-data-structure-fix.patch
-lib-test_maple_tree-add-testing-for-maple-tree.patch
-mmap-change-zeroing-of-maple-tree-in-__vma_adjust.patch
-arm64-remove-mmap-linked-list-from-vdso-fix.patch
-riscv-use-vma-iterator-for-vdso.patch
-mm-mmapc-pass-in-mapping-to-__vma_link_file.patch
-mglru-vs-maple-tree-fix.patch
+mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
+mm-hugetlb-take-src_mm-write_protect_seq-in-copy_hugetlb_page_range.patch
+mm-memory-slightly-simplify-copy_present_pte.patch
+mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap.patch
+mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type.patch
+mm-rmap-remove-do_page_add_anon_rmap.patch
+mm-rmap-pass-rmap-flags-to-hugepage_add_anon_rmap.patch
+mm-rmap-drop-compound-parameter-from-page_add_new_anon_rmap.patch
+mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively.patch
+mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page.patch
+mm-page-flags-reuse-pg_mappedtodisk-as-pg_anon_exclusive-for-pageanon-pages.patch
+mm-remember-exclusively-mapped-anonymous-pages-with-pg_anon_exclusive.patch
+mm-gup-disallow-follow_pagefoll_pin.patch
+mm-support-gup-triggered-unsharing-of-anonymous-pages.patch
+mm-support-gup-triggered-unsharing-of-anonymous-pages-fix.patch
+mm-gup-trigger-fault_flag_unshare-when-r-o-pinning-a-possibly-shared-anonymous-page.patch
+mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning.patch
+mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit.patch
+mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix.patch
+mm-debug_vm_pgtable-add-tests-for-__have_arch_pte_swp_exclusive.patch
+x86-pgtable-support-__have_arch_pte_swp_exclusive.patch
+x86-pgtable-support-__have_arch_pte_swp_exclusive-fix.patch
+arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch
+s390-pgtable-cleanup-description-of-swp-pte-layout.patch
+s390-pgtable-support-__have_arch_pte_swp_exclusive.patch
+powerpc-pgtable-remove-_page_bit_swap_type-for-book3s.patch
+powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s.patch
 
