@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB09C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 03:59:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6345C43217
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 03:59:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347275AbiDSECJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Apr 2022 00:02:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58796 "EHLO
+        id S240345AbiDSECK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Apr 2022 00:02:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240345AbiDSECF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 00:02:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2186521E26
-        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 20:59:18 -0700 (PDT)
+        with ESMTP id S1348155AbiDSECD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 00:02:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D410321E22
+        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 20:59:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A89C16112D
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 03:59:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FF2AC385A5;
-        Tue, 19 Apr 2022 03:59:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8D636B81125
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 03:59:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EBD8C385A5;
+        Tue, 19 Apr 2022 03:59:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650340757;
-        bh=BNuRMG2SOm0oYeUDEjvmYF4xfLBGkioMuDa/uAb801Y=;
+        s=korg; t=1650340755;
+        bh=aQewnQNXHNpV6C+NgCNnwTRUg/8DTpS/rikTBF4ngNI=;
         h=Date:To:From:Subject:From;
-        b=c7LLfgrGjpWXmMFVW64r4Q/d85oOxZPgDwjxFy2PcKd09xR7LVNpX/kPO2cK4h1B1
-         Xjhi9QRVFR4xN3hLVL+ujKHSD60bkhtNnbRbETA4/uE41qFMHp1IIZP1Jl6P+BVfDr
-         CVyhgOySJQfCUWagDxVj3ItsrBRw7qVG64GZDVbo=
-Date:   Mon, 18 Apr 2022 20:59:16 -0700
+        b=P4Wipi6RczUlLypYDmdUh3PDGMmhkXD3gawkq2eJ2iuaGMCrqxZLmvVNHIPESUT5Z
+         YLOqMDtaqEWrnwex+xY1CJduP4d6JvpSddMgFtPiJ17o3brTWii92pTZaJmjdIjNSM
+         CCadn+ZzJoJ2ydzFQbZSmWDkJW9Y+yHz2M2Gypyg=
+Date:   Mon, 18 Apr 2022 20:59:14 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-simplify-the-code-in-__compact_finished.patch added to -mm tree
-Message-Id: <20220419035917.0FF2AC385A5@smtp.kernel.org>
+Subject: + mm-compaction-make-compaction_zonelist_suitable-return-false-when-compact_success.patch added to -mm tree
+Message-Id: <20220419035915.3EBD8C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: simplify the code in __compact_finished
+     Subject: mm: compaction: make compaction_zonelist_suitable return false when COMPACT_SUCCESS
 has been added to the -mm tree.  Its filename is
-     mm-compaction-simplify-the-code-in-__compact_finished.patch
+     mm-compaction-make-compaction_zonelist_suitable-return-false-when-compact_success.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-simplify-the-code-in-__compact_finished.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-make-compaction_zonelist_suitable-return-false-when-compact_success.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-simplify-the-code-in-__compact_finished.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-make-compaction_zonelist_suitable-return-false-when-compact_success.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,17 +64,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: simplify the code in __compact_finished
+Subject: mm: compaction: make compaction_zonelist_suitable return false when COMPACT_SUCCESS
 
-Since commit efe771c7603b ("mm, compaction: always finish scanning of a
-full pageblock"), compaction will always finish scanning a pageblock.  And
-migrate_pfn is assured to align with pageblock_nr_pages when we reach
-here.  So we will always return COMPACT_SUCCESS if a suitable fallback is
-found due to the below IS_ALIGNED check of migrate_pfn.  Simplify the code
-to make this clear and improve the readability.  No functional change
-intended.
+When compact_result indicates that the allocation should now succeed, i.e.
+compact_result = COMPACT_SUCCESS, compaction_zonelist_suitable should
+return false because there is no need to do compaction now.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-12-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-11-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,49 +79,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-simplify-the-code-in-__compact_finished
+--- a/mm/compaction.c~mm-compaction-make-compaction_zonelist_suitable-return-false-when-compact_success
 +++ a/mm/compaction.c
-@@ -2134,29 +2134,16 @@ static enum compact_result __compact_fin
- 		 * other migratetype buddy lists.
- 		 */
- 		if (find_suitable_fallback(area, order, migratetype,
--						true, &can_steal) != -1) {
--
--			/* movable pages are OK in any pageblock */
--			if (migratetype == MIGRATE_MOVABLE)
--				return COMPACT_SUCCESS;
--
-+						true, &can_steal) != -1)
- 			/*
--			 * We are stealing for a non-movable allocation. Make
--			 * sure we finish compacting the current pageblock
--			 * first so it is as free as possible and we won't
--			 * have to steal another one soon. This only applies
--			 * to sync compaction, as async compaction operates
--			 * on pageblocks of the same migratetype.
-+			 * Movable pages are OK in any pageblock. If we are
-+			 * stealing for a non-movable allocation, make sure
-+			 * we finish compacting the current pageblock first
-+			 * (which is assured by the above migrate_pfn align
-+			 * check) so it is as free as possible and we won't
-+			 * have to steal another one soon.
- 			 */
--			if (cc->mode == MIGRATE_ASYNC ||
--					IS_ALIGNED(cc->migrate_pfn,
--							pageblock_nr_pages)) {
--				return COMPACT_SUCCESS;
--			}
--
--			ret = COMPACT_CONTINUE;
--			break;
--		}
-+			return COMPACT_SUCCESS;
+@@ -2291,7 +2291,7 @@ bool compaction_zonelist_suitable(struct
+ 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
+ 		compact_result = __compaction_suitable(zone, order, alloc_flags,
+ 				ac->highest_zoneidx, available);
+-		if (compact_result != COMPACT_SKIPPED)
++		if (compact_result == COMPACT_CONTINUE)
+ 			return true;
  	}
  
- out:
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
