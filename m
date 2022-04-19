@@ -2,45 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7935C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F06EC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 00:26:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240670AbiDSA3P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Apr 2022 20:29:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58102 "EHLO
+        id S240753AbiDSA31 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Apr 2022 20:29:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240567AbiDSA3E (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:29:04 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEC2D23BC1;
-        Mon, 18 Apr 2022 17:26:11 -0700 (PDT)
+        with ESMTP id S240574AbiDSA3F (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Apr 2022 20:29:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E22C252AD;
+        Mon, 18 Apr 2022 17:26:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5D817B81123;
-        Tue, 19 Apr 2022 00:26:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0348EC385A1;
-        Tue, 19 Apr 2022 00:26:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 11CA061358;
+        Tue, 19 Apr 2022 00:26:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A2E4C385A1;
+        Tue, 19 Apr 2022 00:26:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650327969;
-        bh=VnfmwaBnePMmzI7hlp0gWsJ/Ki89Om1zdjwh5jAMssE=;
+        s=korg; t=1650327972;
+        bh=SX8vYiTfcK6YNPW5i5/fqXKLA3KAkWdwFjwI0+tZfDo=;
         h=Date:To:From:Subject:From;
-        b=g1BK38rbN+V2qJbxpOxyuw0P+U6AcBHeBlfW1hkqHFgqU7XBRr0tLpFXAmgbG6zAr
-         SDJB591oNBTCiBHlYM3e3bnCWjETfpoez7JLadQ+gHk3eUMeh/BekSoWf3RDGjZZIg
-         b7lEwPMksrfg0d+BLaLw6CLhgpRuS0wImOg9y/eI=
-Date:   Mon, 18 Apr 2022 17:26:08 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        surenb@google.com, stable@vger.kernel.org, sspatil@google.com,
-        songliubraving@fb.com, shuah@kernel.org, rppt@kernel.org,
-        rientjes@google.com, regressions@leemhuis.info,
-        ndesaulniers@google.com, mike.kravetz@oracle.com,
-        maskray@google.com, kirill.shutemov@linux.intel.com,
-        irogers@google.com, hughd@google.com, hjl.tools@gmail.com,
-        ckennelly@google.com, adobriyan@gmail.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=VgcNG99nHBzh+alJlNexPRU+XG0rK05yeQ2BGJVL2VZB6IrRpailopHjpBZL7isCE
+         AN6w1rN4jIepXHI14o2zUWKnoq43346Htsv5wdtGASxN9yRVMMTmbX0b8mf0YKmSb0
+         mWLMQFmEt3GwnmYnj1JJ2lSSKwd7EB6mB5tTBPu8=
+Date:   Mon, 18 Apr 2022 17:26:11 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        catalin.marinas@arm.com, patrick.wang.shcn@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders.patch removed from -mm tree
-Message-Id: <20220419002609.0348EC385A1@smtp.kernel.org>
+Subject: [merged] mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch removed from -mm tree
+Message-Id: <20220419002612.6A2E4C385A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,82 +42,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "fs/binfmt_elf: fix PT_LOAD p_align values for loaders"
+     Subject: mm: kmemleak: take a full lowmem check in kmemleak_*_phys()
 has been removed from the -mm tree.  Its filename was
-     revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders.patch
+     mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "fs/binfmt_elf: fix PT_LOAD p_align values for loaders"
+From: Patrick Wang <patrick.wang.shcn@gmail.com>
+Subject: mm: kmemleak: take a full lowmem check in kmemleak_*_phys()
 
-925346c129da11 ("fs/binfmt_elf: fix PT_LOAD p_align values for loaders")
-is an attempt to fix regressions due to 9630f0d60fec5f ("fs/binfmt_elf:
-use PT_LOAD p_align values for static PIE").
+The kmemleak_*_phys() apis do not check the address for lowmem's min
+boundary, while the caller may pass an address below lowmem, which will
+trigger an oops:
 
-But regressionss continue to be reported:
+# echo scan > /sys/kernel/debug/kmemleak
+[   54.888353] Unable to handle kernel paging request at virtual address ff5fffffffe00000
+[   54.888932] Oops [#1]
+[   54.889102] Modules linked in:
+[   54.889326] CPU: 2 PID: 134 Comm: bash Not tainted 5.18.0-rc1-next-20220407 #33
+[   54.889620] Hardware name: riscv-virtio,qemu (DT)
+[   54.889901] epc : scan_block+0x74/0x15c
+[   54.890215]  ra : scan_block+0x72/0x15c
+[   54.890390] epc : ffffffff801e5806 ra : ffffffff801e5804 sp : ff200000104abc30
+[   54.890607]  gp : ffffffff815cd4e8 tp : ff60000004cfa340 t0 : 0000000000000200
+[   54.890835]  t1 : 00aaaaaac23954cc t2 : 00000000000003ff s0 : ff200000104abc90
+[   54.891024]  s1 : ffffffff81b0ff28 a0 : 0000000000000000 a1 : ff5fffffffe01000
+[   54.891201]  a2 : ffffffff81b0ff28 a3 : 0000000000000002 a4 : 0000000000000001
+[   54.891377]  a5 : 0000000000000000 a6 : ff200000104abd7c a7 : 0000000000000005
+[   54.891552]  s2 : ff5fffffffe00ff9 s3 : ffffffff815cd998 s4 : ffffffff815d0e90
+[   54.891727]  s5 : ffffffff81b0ff28 s6 : 0000000000000020 s7 : ffffffff815d0eb0
+[   54.891903]  s8 : ffffffffffffffff s9 : ff5fffffffe00000 s10: ff5fffffffe01000
+[   54.892078]  s11: 0000000000000022 t3 : 00ffffffaa17db4c t4 : 000000000000000f
+[   54.892271]  t5 : 0000000000000001 t6 : 0000000000000000
+[   54.892408] status: 0000000000000100 badaddr: ff5fffffffe00000 cause: 000000000000000d
+[   54.892643] [<ffffffff801e5a1c>] scan_gray_list+0x12e/0x1a6
+[   54.892824] [<ffffffff801e5d3e>] kmemleak_scan+0x2aa/0x57e
+[   54.892961] [<ffffffff801e633c>] kmemleak_write+0x32a/0x40c
+[   54.893096] [<ffffffff803915ac>] full_proxy_write+0x56/0x82
+[   54.893235] [<ffffffff801ef456>] vfs_write+0xa6/0x2a6
+[   54.893362] [<ffffffff801ef880>] ksys_write+0x6c/0xe2
+[   54.893487] [<ffffffff801ef918>] sys_write+0x22/0x2a
+[   54.893609] [<ffffffff8000397c>] ret_from_syscall+0x0/0x2
+[   54.894183] ---[ end trace 0000000000000000 ]---
 
-https://lore.kernel.org/lkml/cb5b81bd-9882-e5dc-cd22-54bdbaaefbbc@leemhuis.info/
-https://bugzilla.kernel.org/show_bug.cgi?id=215720
-https://lkml.kernel.org/r/b685f3d0-da34-531d-1aa9-479accd3e21b@leemhuis.info
+The callers may not quite know the actual address they pass(e.g.  from
+devicetree).  So the kmemleak_*_phys() apis should guarantee the
+address they finally use is in lowmem range, so check the address for
+lowmem's min boundary.
 
-This patch reverts the fix, so the original can also be reverted.
-
-Fixes: 925346c129da11 ("fs/binfmt_elf: fix PT_LOAD p_align values for loaders")
-Cc: H.J. Lu <hjl.tools@gmail.com>
-Cc: Chris Kennelly <ckennelly@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sandeep Patil <sspatil@google.com>
-Cc: Fangrui Song <maskray@google.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20220413122925.33856-1-patrick.wang.shcn@gmail.com
+Signed-off-by: Patrick Wang <patrick.wang.shcn@gmail.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kmemleak.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/binfmt_elf.c~revert-fs-binfmt_elf-fix-pt_load-p_align-values-for-loaders
-+++ a/fs/binfmt_elf.c
-@@ -1118,7 +1118,7 @@ out_free_interp:
- 			 * without MAP_FIXED nor MAP_FIXED_NOREPLACE).
- 			 */
- 			alignment = maximum_alignment(elf_phdata, elf_ex->e_phnum);
--			if (interpreter || alignment > ELF_MIN_ALIGN) {
-+			if (alignment > ELF_MIN_ALIGN) {
- 				load_bias = ELF_ET_DYN_BASE;
- 				if (current->flags & PF_RANDOMIZE)
- 					load_bias += arch_mmap_rnd();
+--- a/mm/kmemleak.c~mm-kmemleak-take-a-full-lowmem-check-in-kmemleak__phys
++++ a/mm/kmemleak.c
+@@ -1132,7 +1132,7 @@ EXPORT_SYMBOL(kmemleak_no_scan);
+ void __ref kmemleak_alloc_phys(phys_addr_t phys, size_t size, int min_count,
+ 			       gfp_t gfp)
+ {
+-	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
++	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
+ 		kmemleak_alloc(__va(phys), size, min_count, gfp);
+ }
+ EXPORT_SYMBOL(kmemleak_alloc_phys);
+@@ -1146,7 +1146,7 @@ EXPORT_SYMBOL(kmemleak_alloc_phys);
+  */
+ void __ref kmemleak_free_part_phys(phys_addr_t phys, size_t size)
+ {
+-	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
++	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
+ 		kmemleak_free_part(__va(phys), size);
+ }
+ EXPORT_SYMBOL(kmemleak_free_part_phys);
+@@ -1158,7 +1158,7 @@ EXPORT_SYMBOL(kmemleak_free_part_phys);
+  */
+ void __ref kmemleak_not_leak_phys(phys_addr_t phys)
+ {
+-	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
++	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
+ 		kmemleak_not_leak(__va(phys));
+ }
+ EXPORT_SYMBOL(kmemleak_not_leak_phys);
+@@ -1170,7 +1170,7 @@ EXPORT_SYMBOL(kmemleak_not_leak_phys);
+  */
+ void __ref kmemleak_ignore_phys(phys_addr_t phys)
+ {
+-	if (!IS_ENABLED(CONFIG_HIGHMEM) || PHYS_PFN(phys) < max_low_pfn)
++	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
+ 		kmemleak_ignore(__va(phys));
+ }
+ EXPORT_SYMBOL(kmemleak_ignore_phys);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from patrick.wang.shcn@gmail.com are
 
-mm.patch
-kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix.patch
-mm-create-new-mm-swaph-header-file-fix.patch
-mm-shmem-make-shmem_init-return-void-fix.patch
-mm-khugepaged-introduce-khugepaged_enter_vma-helper-vs-maple-tree.patch
-mm-check-against-orig_pte-for-finish_fault-fix-checkpatch-fixes.patch
-mglru-vs-maple-tree.patch
-mm-vmscan-fix-comment-for-current_may_throttle-fix.patch
-ksm-count-ksm-merging-pages-for-each-process-fix.patch
-mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix.patch
-add-fat-messages-to-printk-index-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
 
