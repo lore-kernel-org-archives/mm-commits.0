@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C122C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 03:59:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FEB6C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 03:59:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348163AbiDSECF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Apr 2022 00:02:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58796 "EHLO
+        id S1347254AbiDSECG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Apr 2022 00:02:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347254AbiDSEBv (ORCPT
+        with ESMTP id S1347264AbiDSEBv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 00:01:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9A5521839
-        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 20:59:08 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D21921E0F
+        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 20:59:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8E02BB8118F
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 03:59:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A2CBC385A5;
-        Tue, 19 Apr 2022 03:59:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9273061167
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 03:59:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E47FDC385A5;
+        Tue, 19 Apr 2022 03:59:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650340746;
-        bh=fqT7y4IC9CPjosjt7ch5IiDoIt77ghMWwFY5QYoX0mI=;
+        s=korg; t=1650340748;
+        bh=hm+GhnQtXvEv4sxJPEAONm8Apgvmh2wJKHvDDUwVRTI=;
         h=Date:To:From:Subject:From;
-        b=FVQtj0cqeTPHGH5vYQesYGmIwox2dRiHElDLdsmmDArLQXg0wYVWEAKXG2QSIKIm1
-         OOB4Vs6bkyZ2humQdKUMZuMfZXQ0V2Azw5t9yTSudfzZ7VsFdyA4Aoolhk9kEtfRlp
-         jRe8qoqdkE2khRTDlq+McLl94D5O3mlIiIRXJBSc=
-Date:   Mon, 18 Apr 2022 20:59:05 -0700
+        b=cDHQyTQW9wpWQi+wKANUa+sVf4/Ed3mjW4PnJ4hPro9WcGVu9HIMXt0Pr7ifPRlYw
+         SkE0N5PSG6ViFfRsakKT1kUbXI6VRzh44FZoL+C9j8xCuM8k2EukjGxdhEtzwmXLhm
+         UUdACr8TLWrf50VDNnCCUNO5DJoauC2r+VZGlqhQ=
+Date:   Mon, 18 Apr 2022 20:59:07 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch added to -mm tree
-Message-Id: <20220419035906.2A2CBC385A5@smtp.kernel.org>
+Subject: + mm-compaction-use-compact_cluster_max-in-compactionc.patch added to -mm tree
+Message-Id: <20220419035907.E47FDC385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: clean up comment about suitable migration target recheck
+     Subject: mm: compaction: use COMPACT_CLUSTER_MAX in compaction.c
 has been added to the -mm tree.  Its filename is
-     mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch
+     mm-compaction-use-compact_cluster_max-in-compactionc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-use-compact_cluster_max-in-compactionc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-use-compact_cluster_max-in-compactionc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,14 +64,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: clean up comment about suitable migration target recheck
+Subject: mm: compaction: use COMPACT_CLUSTER_MAX in compaction.c
 
-checked_pageblock is already removed and suitable_migration_target is not
-rechecked under the zone lock since commit f8224aa5a0a4 ("mm, compaction:
-do not recheck suitable_migration_target under lock").  Correct the
-comment accordingly.
+Always use COMPACT_CLUSTER_MAX here as we're doing the compaction.  Minor
+improvements in readability.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-6-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-7-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -80,26 +78,47 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/compaction.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-clean-up-comment-about-suitable-migration-target-recheck
+--- a/mm/compaction.c~mm-compaction-use-compact_cluster_max-in-compactionc
 +++ a/mm/compaction.c
-@@ -599,13 +599,7 @@ static unsigned long isolate_freepages_b
- 		if (!PageBuddy(page))
- 			goto isolate_fail;
+@@ -573,7 +573,7 @@ static unsigned long isolate_freepages_b
+ 		 * contention, to give chance to IRQs. Abort if fatal signal
+ 		 * pending.
+ 		 */
+-		if (!(blockpfn % SWAP_CLUSTER_MAX)
++		if (!(blockpfn % COMPACT_CLUSTER_MAX)
+ 		    && compact_unlock_should_abort(&cc->zone->lock, flags,
+ 								&locked, cc))
+ 			break;
+@@ -862,7 +862,7 @@ isolate_migratepages_block(struct compac
+ 		 * contention, to give chance to IRQs. Abort completely if
+ 		 * a fatal signal is pending.
+ 		 */
+-		if (!(low_pfn % SWAP_CLUSTER_MAX)) {
++		if (!(low_pfn % COMPACT_CLUSTER_MAX)) {
+ 			if (locked) {
+ 				unlock_page_lruvec_irqrestore(locked, flags);
+ 				locked = NULL;
+@@ -1614,7 +1614,7 @@ static void isolate_freepages(struct com
+ 		 * This can iterate a massively long zone without finding any
+ 		 * suitable migration targets, so periodically check resched.
+ 		 */
+-		if (!(block_start_pfn % (SWAP_CLUSTER_MAX * pageblock_nr_pages)))
++		if (!(block_start_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
+ 			cond_resched();
  
--		/*
--		 * If we already hold the lock, we can skip some rechecking.
--		 * Note that if we hold the lock now, checked_pageblock was
--		 * already set in some previous iteration (or strict is true),
--		 * so it is correct to skip the suitable migration target
--		 * recheck as well.
--		 */
-+		/* If we already hold the lock, we can skip some rechecking. */
- 		if (!locked) {
- 			locked = compact_lock_irqsave(&cc->zone->lock,
- 								&flags, cc);
+ 		page = pageblock_pfn_to_page(block_start_pfn, block_end_pfn,
+@@ -1921,7 +1921,7 @@ static isolate_migrate_t isolate_migrate
+ 		 * many pageblocks unsuitable, so periodically check if we
+ 		 * need to schedule.
+ 		 */
+-		if (!(low_pfn % (SWAP_CLUSTER_MAX * pageblock_nr_pages)))
++		if (!(low_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
+ 			cond_resched();
+ 
+ 		page = pageblock_pfn_to_page(block_start_pfn,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
