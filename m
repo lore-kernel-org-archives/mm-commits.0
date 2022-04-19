@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0A39C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 04:18:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FC89C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Apr 2022 04:18:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347548AbiDSEUj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Apr 2022 00:20:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42364 "EHLO
+        id S241138AbiDSEVc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Apr 2022 00:21:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347491AbiDSEUj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 00:20:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C4BA2BB38
-        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 21:17:57 -0700 (PDT)
+        with ESMTP id S238655AbiDSEVb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Apr 2022 00:21:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B58CC2BB20
+        for <mm-commits@vger.kernel.org>; Mon, 18 Apr 2022 21:18:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 13330B810FD
-        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 04:17:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA559C385AA;
-        Tue, 19 Apr 2022 04:17:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 47FD261170
+        for <mm-commits@vger.kernel.org>; Tue, 19 Apr 2022 04:18:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95FD6C385AC;
+        Tue, 19 Apr 2022 04:18:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650341874;
-        bh=AIw6pHQfF3lLbcnJUsoUrR1Ky46etASQwv+BKCDCOI4=;
+        s=korg; t=1650341929;
+        bh=QV1+uvqDJQiXZ8jTEkyhNAtJLB4DThUPnMYyOD8jczY=;
         h=Date:To:From:Subject:From;
-        b=ckFzjWDVFPy8M8DbWKNiHraQSKkrOcItV1taMLCISsn2s3XPWOAAH8hUego/0wiok
-         zOB7mQnMTSevcnFRdUGARzgsrPrmDAjGmHp8PoJ2dUiojkt0XToqCDa2cAOgj8MiX4
-         yYdXoPYdkdfPHq4z5rO3DGqqrbbpJLvWdwg6MyZQ=
-Date:   Mon, 18 Apr 2022 21:17:54 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        surenb@google.com, sfr@canb.auug.org.au, rcampbell@nvidia.com,
-        peterx@redhat.com, neilb@suse.de, naoya.horiguchi@nec.com,
-        minchan@kernel.org, hughd@google.com, dhowells@redhat.com,
-        david@redhat.com, apopple@nvidia.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=r8pCOhYm1jamRpFDd/rnLtYEI4QRVGrj+WlMwfmdVWHp0o1GxChQSquojwkE8vzHg
+         xtp+ktMA9tKmdMUiHacDe908FUXoxngTLLSU4f+ph6N6Mdv/IKOIHNY8VW7S10ulmG
+         RKHQZPuPLLlnpE7Crm6SZLf6a69lYZIVObgNYJhA=
+Date:   Mon, 18 Apr 2022 21:18:48 -0700
+To:     mm-commits@vger.kernel.org, minchan@kernel.org,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch added to -mm tree
-Message-Id: <20220419041754.BA559C385AA@smtp.kernel.org>
+Subject: + mm-vmscan-fix-comment-for-isolate_lru_pages.patch added to -mm tree
+Message-Id: <20220419041849.95FD6C385AC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile: unuse_pte can map random data if swap read fails
+     Subject: mm/vmscan: fix comment for isolate_lru_pages
 has been added to the -mm tree.  Its filename is
-     mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
+     mm-vmscan-fix-comment-for-isolate_lru_pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-comment-for-isolate_lru_pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-comment-for-isolate_lru_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,124 +63,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile: unuse_pte can map random data if swap read fails
+Subject: mm/vmscan: fix comment for isolate_lru_pages
 
-There is a bug in unuse_pte(): when swap page happens to be unreadable,
-page filled with random data is mapped into user address space.  In case
-of error, a special swap entry indicating swap read fails is set to the
-page table.  So the swapcache page can be freed and the user won't end up
-with a permanently mounted swap because a sector is bad.  And if the page
-is accessed later, the user process will be killed so that corrupted data
-is never consumed.  On the other hand, if the page is never accessed, the
-user won't even notice it.
+Since commit 791b48b64232 ("mm: vmscan: scan until it finds eligible
+pages"), splicing any skipped pages to the tail of the LRU list won't put
+the system at risk of premature OOM but will waste lots of cpu cycles. 
+Correct the comment accordingly.
 
-Link: https://lkml.kernel.org/r/20220416030549.60559-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220416025231.8082-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Howells <dhowells@redhat.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h    |    7 ++++++-
- include/linux/swapops.h |   10 ++++++++++
- mm/memory.c             |    5 ++++-
- mm/swapfile.c           |   11 +++++++++++
- 4 files changed, 31 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/swap.h~mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails
-+++ a/include/linux/swap.h
-@@ -55,6 +55,10 @@ static inline int current_is_kswapd(void
-  * actions on faults.
-  */
- 
-+#define SWAP_READ_ERROR_NUM 1
-+#define SWAP_READ_ERROR     (MAX_SWAPFILES + SWP_HWPOISON_NUM + \
-+			     SWP_MIGRATION_NUM + SWP_DEVICE_NUM + \
-+			     SWP_PTE_MARKER_NUM)
- /*
-  * PTE markers are used to persist information onto PTEs that are mapped with
-  * file-backed memories.  As its name "PTE" hints, it should only be applied to
-@@ -120,7 +124,8 @@ static inline int current_is_kswapd(void
- 
- #define MAX_SWAPFILES \
- 	((1 << MAX_SWAPFILES_SHIFT) - SWP_DEVICE_NUM - \
--	SWP_MIGRATION_NUM - SWP_HWPOISON_NUM - SWP_PTE_MARKER_NUM)
-+	SWP_MIGRATION_NUM - SWP_HWPOISON_NUM - \
-+	SWP_PTE_MARKER_NUM - SWAP_READ_ERROR_NUM)
- 
- /*
-  * Magic header for a swap area. The first part of the union is
---- a/include/linux/swapops.h~mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails
-+++ a/include/linux/swapops.h
-@@ -108,6 +108,16 @@ static inline void *swp_to_radix_entry(s
- 	return xa_mk_value(entry.val);
- }
- 
-+static inline swp_entry_t make_swapin_error_entry(struct page *page)
-+{
-+	return swp_entry(SWAP_READ_ERROR, page_to_pfn(page));
-+}
-+
-+static inline int is_swapin_error_entry(swp_entry_t entry)
-+{
-+	return swp_type(entry) == SWAP_READ_ERROR;
-+}
-+
- #if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
- static inline swp_entry_t make_readable_device_private_entry(pgoff_t offset)
- {
---- a/mm/memory.c~mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails
-+++ a/mm/memory.c
-@@ -1485,7 +1485,8 @@ again:
- 			/* Only drop the uffd-wp marker if explicitly requested */
- 			if (!zap_drop_file_uffd_wp(details))
- 				continue;
--		} else if (is_hwpoison_entry(entry)) {
-+		} else if (is_hwpoison_entry(entry) ||
-+			   is_swapin_error_entry(entry)) {
- 			if (!should_zap_cows(details))
- 				continue;
- 		} else {
-@@ -3731,6 +3732,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 			ret = vmf->page->pgmap->ops->migrate_to_ram(vmf);
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
-+		} else if (is_swapin_error_entry(entry)) {
-+			ret = VM_FAULT_SIGBUS;
- 		} else if (is_pte_marker_entry(entry)) {
- 			ret = handle_pte_marker(vmf);
- 		} else {
---- a/mm/swapfile.c~mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails
-+++ a/mm/swapfile.c
-@@ -1797,6 +1797,17 @@ static int unuse_pte(struct vm_area_stru
- 		goto out;
- 	}
- 
-+	if (unlikely(!PageUptodate(page))) {
-+		pte_t pteval;
-+
-+		dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
-+		pteval = swp_entry_to_pte(make_swapin_error_entry(page));
-+		set_pte_at(vma->vm_mm, addr, pte, pteval);
-+		swap_free(entry);
-+		ret = 0;
-+		goto out;
-+	}
-+
- 	/* See do_swap_page() */
- 	BUG_ON(!PageAnon(page) && PageMappedToDisk(page));
- 	BUG_ON(PageAnon(page) && PageAnonExclusive(page));
+--- a/mm/vmscan.c~mm-vmscan-fix-comment-for-isolate_lru_pages
++++ a/mm/vmscan.c
+@@ -2152,8 +2152,8 @@ move:
+ 	 * Splice any skipped pages to the start of the LRU list. Note that
+ 	 * this disrupts the LRU order when reclaiming for lower zones but
+ 	 * we cannot splice to the tail. If we did then the SWAP_CLUSTER_MAX
+-	 * scanning would soon rescan the same pages to skip and put the
+-	 * system at risk of premature OOM.
++	 * scanning would soon rescan the same pages to skip and waste lots
++	 * of cpu cycles.
+ 	 */
+ 	if (!list_empty(&pages_skipped)) {
+ 		int zid;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -198,6 +105,7 @@ mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch
 mm-memory-failurec-dissolve-truncated-hugetlb-page.patch
 mm-vmscan-remove-obsolete-comment-in-get_scan_count.patch
 mm-vmscan-fix-comment-for-current_may_throttle.patch
+mm-vmscan-fix-comment-for-isolate_lru_pages.patch
 mm-z3fold-declare-z3fold_mount-with-__init.patch
 mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch
 mm-z3fold-minor-clean-up-for-z3fold_free.patch
