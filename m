@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CF30C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 20 Apr 2022 22:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EDA1C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 20 Apr 2022 22:28:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354616AbiDTWZv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 20 Apr 2022 18:25:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60098 "EHLO
+        id S234341AbiDTWau (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 20 Apr 2022 18:30:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35902 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237210AbiDTWZu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Apr 2022 18:25:50 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38FF53A5C2
-        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 15:23:02 -0700 (PDT)
+        with ESMTP id S1382826AbiDTWat (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Apr 2022 18:30:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87FF041FA2
+        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 15:28:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id F3E07B821C5
-        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 22:23:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92E2AC385A0;
-        Wed, 20 Apr 2022 22:22:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1C77561A2D
+        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 22:28:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F774C385A1;
+        Wed, 20 Apr 2022 22:28:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650493379;
-        bh=QzWyEauo1/thrj1+gD5Oelr3QZovdrWhlEMMOnWGKVQ=;
+        s=korg; t=1650493681;
+        bh=NVZ5NuK2OX53AFPObELJxFeZ03AGwvgvWRHblkvRC3A=;
         h=Date:To:From:Subject:From;
-        b=cx3CDCetVO4/vGfda5W3i0rttw2bkUnnRie85qth9T3nS4FJNszj9d8YpnqHiFg98
-         FUwX1zBw+Pab9gOcQIXyxNyFTIIGj80tZBA4PIs6jTLR1qjltawGJ5uw0HRndkZAqY
-         JEnhYDfwDdEocHyAu6bpdxHbmu+dbhb/TRo49oNo=
-Date:   Wed, 20 Apr 2022 15:22:58 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=ayxeW9+sbEuZv7/V6rfsvv6vz9LrY5WtVvH1d3ZxeOAvDI54ewe2lSBcPaGoes7TE
+         4t/GeFqPxWExIBdnLscyeQG/mh9f6on6q0skrr/nZIj34A2QzGl5BdZclC5YInPcAK
+         J9CiTovH3LYlMYzspQYngNJ6nuPpDrLVL8mQrg+0=
+Date:   Wed, 20 Apr 2022 15:28:00 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org, david@redhat.com,
+        catalin.marinas@arm.com, ardb@kernel.org,
+        anshuman.khandual@arm.com, mawupeng1@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-test-add-a-kunit-test-case-for-ops-registration.patch added to -mm tree
-Message-Id: <20220420222259.92E2AC385A0@smtp.kernel.org>
+Subject: + mm-calc-the-right-pfn-if-page-size-is-not-4k.patch added to -mm tree
+Message-Id: <20220420222801.6F774C385A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core-test: add a kunit test case for ops registration
+     Subject: mm/page_alloc.c: calc the right pfn if page size is not 4K
 has been added to the -mm tree.  Its filename is
-     mm-damon-core-test-add-a-kunit-test-case-for-ops-registration.patch
+     mm-calc-the-right-pfn-if-page-size-is-not-4k.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-core-test-add-a-kunit-test-case-for-ops-registration.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-calc-the-right-pfn-if-page-size-is-not-4k.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-core-test-add-a-kunit-test-case-for-ops-registration.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-calc-the-right-pfn-if-page-size-is-not-4k.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,75 +64,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core-test: add a kunit test case for ops registration
+From: Ma Wupeng <mawupeng1@huawei.com>
+Subject: mm/page_alloc.c: calc the right pfn if page size is not 4K
 
-This commit adds a simple kunit test case for DAMON operations
-registration feature.
+Previous 0x100000 is used to check the 4G limit in
+find_zone_movable_pfns_for_nodes().  This is right in x86 because the page
+size can only be 4K.  But 16K and 64K are available in arm64.  So replace
+it with PHYS_PFN(SZ_4G).
 
-Link: https://lkml.kernel.org/r/20220419122225.290518-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20220414101314.1250667-8-mawupeng1@huawei.com
+Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Ard Biesheuvel <ardb@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core-test.h |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core-test.h~mm-damon-core-test-add-a-kunit-test-case-for-ops-registration
-+++ a/mm/damon/core-test.h
-@@ -232,6 +232,41 @@ static void damon_test_split_regions_of(
- 	damon_destroy_ctx(c);
- }
+--- a/mm/page_alloc.c~mm-calc-the-right-pfn-if-page-size-is-not-4k
++++ a/mm/page_alloc.c
+@@ -7870,7 +7870,7 @@ static void __init find_zone_movable_pfn
  
-+static void damon_test_ops_registration(struct kunit *test)
-+{
-+	struct damon_ctx *c = damon_new_ctx();
-+	struct damon_operations ops, bak;
-+
-+	/* DAMON_OPS_{V,P}ADDR are registered on subsys_initcall */
-+	KUNIT_EXPECT_EQ(test, damon_select_ops(c, DAMON_OPS_VADDR), 0);
-+	KUNIT_EXPECT_EQ(test, damon_select_ops(c, DAMON_OPS_PADDR), 0);
-+
-+	/* Double-registration is prohibited */
-+	ops.id = DAMON_OPS_VADDR;
-+	KUNIT_EXPECT_EQ(test, damon_register_ops(&ops), -EINVAL);
-+	ops.id = DAMON_OPS_PADDR;
-+	KUNIT_EXPECT_EQ(test, damon_register_ops(&ops), -EINVAL);
-+
-+	/* Unknown ops id cannot be registered */
-+	KUNIT_EXPECT_EQ(test, damon_select_ops(c, NR_DAMON_OPS), -EINVAL);
-+
-+	/* Registration should success after unregistration */
-+	mutex_lock(&damon_ops_lock);
-+	bak = damon_registered_ops[DAMON_OPS_VADDR];
-+	damon_registered_ops[DAMON_OPS_VADDR] = (struct damon_operations){};
-+	mutex_unlock(&damon_ops_lock);
-+
-+	ops.id = DAMON_OPS_VADDR;
-+	KUNIT_EXPECT_EQ(test, damon_register_ops(&ops), 0);
-+
-+	mutex_lock(&damon_ops_lock);
-+	damon_registered_ops[DAMON_OPS_VADDR] = bak;
-+	mutex_unlock(&damon_ops_lock);
-+
-+	/* Check double-registration failure again */
-+	KUNIT_EXPECT_EQ(test, damon_register_ops(&ops), -EINVAL);
-+}
-+
- static struct kunit_case damon_test_cases[] = {
- 	KUNIT_CASE(damon_test_target),
- 	KUNIT_CASE(damon_test_regions),
-@@ -240,6 +275,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_merge_two),
- 	KUNIT_CASE(damon_test_merge_regions_of),
- 	KUNIT_CASE(damon_test_split_regions_of),
-+	KUNIT_CASE(damon_test_ops_registration),
- 	{},
- };
+ 			usable_startpfn = memblock_region_memory_base_pfn(r);
  
+-			if (usable_startpfn < 0x100000) {
++			if (usable_startpfn < PHYS_PFN(SZ_4G)) {
+ 				mem_below_4gb_not_mirrored = true;
+ 				continue;
+ 			}
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
-mm-damon-core-test-add-a-kunit-test-case-for-ops-registration.patch
+mm-calc-the-right-pfn-if-page-size-is-not-4k.patch
 
