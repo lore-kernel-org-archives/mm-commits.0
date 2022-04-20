@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11086C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 20 Apr 2022 20:30:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4E8C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 20 Apr 2022 20:31:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382139AbiDTUdA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 20 Apr 2022 16:33:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50668 "EHLO
+        id S238088AbiDTUd5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 20 Apr 2022 16:33:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1382138AbiDTUc7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Apr 2022 16:32:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35918329B0
-        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 13:30:12 -0700 (PDT)
+        with ESMTP id S1348222AbiDTUd4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Apr 2022 16:33:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51818377C7
+        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 13:31:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C7359616CA
-        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 20:30:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ECD7C385A0;
-        Wed, 20 Apr 2022 20:30:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 04F3FB8215F
+        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 20:31:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEC2AC385A1;
+        Wed, 20 Apr 2022 20:31:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650486611;
-        bh=ph3a76iy4uauCmus4h60Ujwa3hMYf5nGwDOluxVpAUg=;
+        s=korg; t=1650486666;
+        bh=n5uFQ7VM7EgDdEKlciAiuZLm0nlb9GuKfAQ4MmYnmDY=;
         h=Date:To:From:Subject:From;
-        b=LKv7IHtnBB4aR8CuwBfomgaUzI3OMY1RQ0vnHTw5+qxTBg7DKvlTfq2LJG6sHLvzc
-         I4qMRBFCfvwCZ3H0WnA2s7W5L/tLOH+XvcwAgUydET5cHTwvwQh99bbTbUTvPv91zZ
-         YiDaF6Bm1OGuH78R1Zu4JV7F22eirg9BF5f9wYo8=
-Date:   Wed, 20 Apr 2022 13:30:10 -0700
-To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=KURwUrS/wWItOcQgsf6vzVqKCdHgTMGy1tUkQ0f3wuV10gZxBUbdSVIYMrTE24qAt
+         l9RAmXCisW/UfCD067UcMvLeHnpT7hKtEcp+qw2ElaTIGDPw8kphT3+5BIMIOW4QRt
+         xZM80mGg3NShc1BZ1nMFakp/3dpX7s24KBKDUrwE=
+Date:   Wed, 20 Apr 2022 13:31:05 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        Liam.Howlett@oracle.com, catalin.marinas@arm.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enable-pte-markers-by-default-fix.patch added to -mm tree
-Message-Id: <20220420203011.1ECD7C385A0@smtp.kernel.org>
+Subject: + arm64-change-elfcore-for_each_mte_vma-to-use-vma-iterator.patch added to -mm tree
+Message-Id: <20220420203106.AEC2AC385A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/uffd: hide PTE_MARKER option
+     Subject: arm64: change elfcore for_each_mte_vma() to use VMA iterator
 has been added to the -mm tree.  Its filename is
-     mm-enable-pte-markers-by-default-fix.patch
+     arm64-change-elfcore-for_each_mte_vma-to-use-vma-iterator.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-enable-pte-markers-by-default-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arm64-change-elfcore-for_each_mte_vma-to-use-vma-iterator.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-enable-pte-markers-by-default-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-change-elfcore-for_each_mte_vma-to-use-vma-iterator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,83 +63,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/uffd: hide PTE_MARKER option
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: arm64: change elfcore for_each_mte_vma() to use VMA iterator
 
-The PTE_MARKER option should not need to be exposed to the kernel builder,
-keep it internal and remove the prompt so it won't be seen.
+Rework for_each_mte_vma() to use a VMA iterator instead of an explicit
+linked-list.
 
-Instead, make the PTE_MARKER_UFFD_WP option to explicitly choose
-PTE_MARKER when necessary.
-
-While PTE_MARKER_UFFD_WP will still prompt to user, change the wording so
-that it'll not mention PTE_MARKER at all but renaming it to "Userfaultfd
-write protection support for shmem/hugetlbfs".
-
-Link: https://lkml.kernel.org/r/20220419202531.27415-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lore.kernel.org/r/20220218023650.672072-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220419192157.2jn6olj7lg6jvo5e@revolver
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Signed-off-by: Will Deacon <will@kernel.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm64/kernel/elfcore.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/mm/Kconfig~mm-enable-pte-markers-by-default-fix
-+++ a/mm/Kconfig
-@@ -910,16 +910,16 @@ config ANON_VMA_NAME
- 	  difference in their name.
+--- a/arch/arm64/kernel/elfcore.c~arm64-change-elfcore-for_each_mte_vma-to-use-vma-iterator
++++ a/arch/arm64/kernel/elfcore.c
+@@ -8,9 +8,9 @@
+ #include <asm/cpufeature.h>
+ #include <asm/mte.h>
  
- config PTE_MARKER
--	bool "Marker PTEs support"
--	default y
-+	bool
+-#define for_each_mte_vma(tsk, vma)					\
++#define for_each_mte_vma(vmi, vma)					\
+ 	if (system_supports_mte())					\
+-		for (vma = tsk->mm->mmap; vma; vma = vma->vm_next)	\
++		for_each_vma(vmi, vma)					\
+ 			if (vma->vm_flags & VM_MTE)
  
- 	help
- 	  Allows to create marker PTEs for file-backed memory.
+ static unsigned long mte_vma_tag_dump_size(struct vm_area_struct *vma)
+@@ -81,8 +81,9 @@ Elf_Half elf_core_extra_phdrs(void)
+ {
+ 	struct vm_area_struct *vma;
+ 	int vma_count = 0;
++	VMA_ITERATOR(vmi, current->mm, 0);
  
- config PTE_MARKER_UFFD_WP
--	bool "Marker PTEs support for userfaultfd write protection"
-+	bool "Userfaultfd write protection support for shmem/hugetlbfs"
- 	default y
--	depends on PTE_MARKER && HAVE_ARCH_USERFAULTFD_WP
-+	depends on HAVE_ARCH_USERFAULTFD_WP
-+	select PTE_MARKER
+-	for_each_mte_vma(current, vma)
++	for_each_mte_vma(vmi, vma)
+ 		vma_count++;
  
- 	help
- 	  Allows to create marker PTEs for userfaultfd write protection
+ 	return vma_count;
+@@ -91,8 +92,9 @@ Elf_Half elf_core_extra_phdrs(void)
+ int elf_core_write_extra_phdrs(struct coredump_params *cprm, loff_t offset)
+ {
+ 	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, current->mm, 0);
+ 
+-	for_each_mte_vma(current, vma) {
++	for_each_mte_vma(vmi, vma) {
+ 		struct elf_phdr phdr;
+ 
+ 		phdr.p_type = PT_ARM_MEMTAG_MTE;
+@@ -116,8 +118,9 @@ size_t elf_core_extra_data_size(void)
+ {
+ 	struct vm_area_struct *vma;
+ 	size_t data_size = 0;
++	VMA_ITERATOR(vmi, current->mm, 0);
+ 
+-	for_each_mte_vma(current, vma)
++	for_each_mte_vma(vmi, vma)
+ 		data_size += mte_vma_tag_dump_size(vma);
+ 
+ 	return data_size;
+@@ -126,8 +129,9 @@ size_t elf_core_extra_data_size(void)
+ int elf_core_write_extra_data(struct coredump_params *cprm)
+ {
+ 	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, current->mm, 0);
+ 
+-	for_each_mte_vma(current, vma) {
++	for_each_mte_vma(vmi, vma) {
+ 		if (vma->vm_flags & VM_DONTDUMP)
+ 			continue;
+ 
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-mm-remove-stub-for-non_swap_entry.patch
-mm-introduce-pte_marker-swap-entry.patch
-mm-introduce-pte_marker-swap-entry-fix.patch
-mm-teach-core-mm-about-pte-markers.patch
-mm-check-against-orig_pte-for-finish_fault.patch
-mm-check-against-orig_pte-for-finish_fault-fix.patch
-mm-uffd-pte_marker_uffd_wp.patch
-mm-uffd-pte_marker_uffd_wp-fix.patch
-mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
-mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
-mm-shmem-persist-uffd-wp-bit-across-zapping-for-file-backed.patch
-mm-shmem-allow-uffd-wr-protect-none-pte-for-file-backed-mem.patch
-mm-shmem-allows-file-back-mem-to-be-uffd-wr-protected-on-thps.patch
-mm-shmem-handle-uffd-wp-during-fork.patch
-mm-hugetlb-introduce-huge-pte-version-of-uffd-wp-helpers.patch
-mm-hugetlb-hook-page-faults-for-uffd-write-protection.patch
-mm-hugetlb-take-care-of-uffdio_copy_mode_wp.patch
-mm-hugetlb-handle-uffdio_writeprotect.patch
-mm-hugetlb-handle-pte-markers-in-page-faults.patch
-mm-hugetlb-allow-uffd-wr-protect-none-ptes.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
-mm-hugetlb-handle-uffd-wp-during-fork.patch
-mm-khugepaged-dont-recycle-vma-pgtable-if-uffd-wp-registered.patch
-mm-pagemap-recognize-uffd-wp-bit-for-shmem-hugetlbfs.patch
-mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
-mm-enable-pte-markers-by-default.patch
-mm-enable-pte-markers-by-default-fix.patch
-selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
+radix-tree-test-suite-add-lockdep_is_held-to-header.patch
+mips-rename-mt_init-to-mips_mt_init.patch
+maple-tree-add-new-data-structure-fix.patch
+lib-test_maple_tree-add-testing-for-maple-tree.patch
+mmap-change-zeroing-of-maple-tree-in-__vma_adjust.patch
+arm64-change-elfcore-for_each_mte_vma-to-use-vma-iterator.patch
+riscv-use-vma-iterator-for-vdso.patch
+mm-mmapc-pass-in-mapping-to-__vma_link_file.patch
+mglru-vs-maple-tree-fix.patch
 
