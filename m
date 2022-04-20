@@ -2,146 +2,143 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB86EC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 20 Apr 2022 09:12:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11086C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 20 Apr 2022 20:30:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239201AbiDTJPE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 20 Apr 2022 05:15:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45528 "EHLO
+        id S1382139AbiDTUdA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 20 Apr 2022 16:33:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237435AbiDTJPD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Apr 2022 05:15:03 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 344F01CFF4;
-        Wed, 20 Apr 2022 02:12:18 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S1382138AbiDTUc7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Apr 2022 16:32:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35918329B0
+        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 13:30:12 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id CE1E7210EB;
-        Wed, 20 Apr 2022 09:12:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1650445936; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=lY/g1frde4oX7eBXwM2/Tj1cBWBaluAIQ/i9m+pZh34=;
-        b=lKy38Wws2D85mw2BVvnN5XnZ85esLb81BMQSZFtV4+1CeP14CXJdRYLjhu2sgnesVFbntD
-        QPA3UUtf+bcOpYDeNIIngGXPeCtaUhHoWogi/wJImv4JdA4xLjfgk1IhOAyimxo8kJLnIf
-        eNIGI0/qu+U79zZxsjqNPpLBVH3oYuw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1650445936;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=lY/g1frde4oX7eBXwM2/Tj1cBWBaluAIQ/i9m+pZh34=;
-        b=wXJD6PTIhaCbjlZ3F8g+UVtB1S+XpSUrxx2yIdePp7ozF5nRfQbaAHE/29lzRBgrZUEq/n
-        gQ7D8Is1aS3UJxCw==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id AE6EE13AD5;
-        Wed, 20 Apr 2022 09:12:16 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id 5sizKXDOX2KgCgAAMHmgww
-        (envelope-from <vbabka@suse.cz>); Wed, 20 Apr 2022 09:12:16 +0000
-Message-ID: <c3195d8a-2931-0749-973a-1d04e4baec94@suse.cz>
-Date:   Wed, 20 Apr 2022 11:12:16 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: + mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix.patch
- added to -mm tree
-Content-Language: en-US
-To:     linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
-        david@redhat.com, akpm@linux-foundation.org
-References: <20220413213339.1A60DC385A3@smtp.kernel.org>
-From:   Vlastimil Babka <vbabka@suse.cz>
-In-Reply-To: <20220413213339.1A60DC385A3@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C7359616CA
+        for <mm-commits@vger.kernel.org>; Wed, 20 Apr 2022 20:30:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ECD7C385A0;
+        Wed, 20 Apr 2022 20:30:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1650486611;
+        bh=ph3a76iy4uauCmus4h60Ujwa3hMYf5nGwDOluxVpAUg=;
+        h=Date:To:From:Subject:From;
+        b=LKv7IHtnBB4aR8CuwBfomgaUzI3OMY1RQ0vnHTw5+qxTBg7DKvlTfq2LJG6sHLvzc
+         I4qMRBFCfvwCZ3H0WnA2s7W5L/tLOH+XvcwAgUydET5cHTwvwQh99bbTbUTvPv91zZ
+         YiDaF6Bm1OGuH78R1Zu4JV7F22eirg9BF5f9wYo8=
+Date:   Wed, 20 Apr 2022 13:30:10 -0700
+To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org, peterx@redhat.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-enable-pte-markers-by-default-fix.patch added to -mm tree
+Message-Id: <20220420203011.1ECD7C385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 4/13/22 23:33, Andrew Morton wrote:
-> The patch titled
->      Subject: mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix
-> has been added to the -mm tree.  Its filename is
->      mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix.patch
-> 
-> This patch should soon appear at
->     https://ozlabs.org/~akpm/mmots/broken-out/mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix.patch
-> and later at
->     https://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix.patch
 
-It seems to have disappeared? Also doesn't appear to be squashed in the
-original patch?
+The patch titled
+     Subject: mm/uffd: hide PTE_MARKER option
+has been added to the -mm tree.  Its filename is
+     mm-enable-pte-markers-by-default-fix.patch
 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
-> 
-> ------------------------------------------------------
-> From: David Hildenbrand <david@redhat.com>
-> Subject: mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix
-> 
-> Link: https://lkml.kernel.org/r/ac725bcb-313a-4fff-250a-68ba9a8f85fb@redhat.com
-> 
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
-> 
-> --- a/mm/memory.c~mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix
-> +++ a/mm/memory.c
-> @@ -3747,7 +3747,7 @@ vm_fault_t do_swap_page(struct vm_fault
->  			 */
->  			exclusive = true;
->  		} else if (exclusive && PageWriteback(page) &&
-> -			   !(swp_swap_info(entry)->flags & SWP_STABLE_WRITES)) {
-> +			  (swp_swap_info(entry)->flags & SWP_STABLE_WRITES)) {
->  			/*
->  			 * This is tricky: not all swap backends support
->  			 * concurrent page modifications while under writeback.
-> _
-> 
-> Patches currently in -mm which might be from david@redhat.com are
-> 
-> mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
-> mm-hugetlb-take-src_mm-write_protect_seq-in-copy_hugetlb_page_range.patch
-> mm-memory-slightly-simplify-copy_present_pte.patch
-> mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap.patch
-> mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type.patch
-> mm-rmap-remove-do_page_add_anon_rmap.patch
-> mm-rmap-pass-rmap-flags-to-hugepage_add_anon_rmap.patch
-> mm-rmap-drop-compound-parameter-from-page_add_new_anon_rmap.patch
-> mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively.patch
-> mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page.patch
-> mm-page-flags-reuse-pg_mappedtodisk-as-pg_anon_exclusive-for-pageanon-pages.patch
-> mm-remember-exclusively-mapped-anonymous-pages-with-pg_anon_exclusive.patch
-> mm-gup-disallow-follow_pagefoll_pin.patch
-> mm-support-gup-triggered-unsharing-of-anonymous-pages.patch
-> mm-gup-trigger-fault_flag_unshare-when-r-o-pinning-a-possibly-shared-anonymous-page.patch
-> mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning.patch
-> mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit.patch
-> mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix.patch
-> mm-debug_vm_pgtable-add-tests-for-__have_arch_pte_swp_exclusive.patch
-> x86-pgtable-support-__have_arch_pte_swp_exclusive.patch
-> arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch
-> s390-pgtable-cleanup-description-of-swp-pte-layout.patch
-> s390-pgtable-support-__have_arch_pte_swp_exclusive.patch
-> powerpc-pgtable-remove-_page_bit_swap_type-for-book3s.patch
-> powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s.patch
-> 
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-enable-pte-markers-by-default-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-enable-pte-markers-by-default-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/uffd: hide PTE_MARKER option
+
+The PTE_MARKER option should not need to be exposed to the kernel builder,
+keep it internal and remove the prompt so it won't be seen.
+
+Instead, make the PTE_MARKER_UFFD_WP option to explicitly choose
+PTE_MARKER when necessary.
+
+While PTE_MARKER_UFFD_WP will still prompt to user, change the wording so
+that it'll not mention PTE_MARKER at all but renaming it to "Userfaultfd
+write protection support for shmem/hugetlbfs".
+
+Link: https://lkml.kernel.org/r/20220419202531.27415-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/Kconfig |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- a/mm/Kconfig~mm-enable-pte-markers-by-default-fix
++++ a/mm/Kconfig
+@@ -910,16 +910,16 @@ config ANON_VMA_NAME
+ 	  difference in their name.
+ 
+ config PTE_MARKER
+-	bool "Marker PTEs support"
+-	default y
++	bool
+ 
+ 	help
+ 	  Allows to create marker PTEs for file-backed memory.
+ 
+ config PTE_MARKER_UFFD_WP
+-	bool "Marker PTEs support for userfaultfd write protection"
++	bool "Userfaultfd write protection support for shmem/hugetlbfs"
+ 	default y
+-	depends on PTE_MARKER && HAVE_ARCH_USERFAULTFD_WP
++	depends on HAVE_ARCH_USERFAULTFD_WP
++	select PTE_MARKER
+ 
+ 	help
+ 	  Allows to create marker PTEs for userfaultfd write protection
+_
+
+Patches currently in -mm which might be from peterx@redhat.com are
+
+mm-remove-stub-for-non_swap_entry.patch
+mm-introduce-pte_marker-swap-entry.patch
+mm-introduce-pte_marker-swap-entry-fix.patch
+mm-teach-core-mm-about-pte-markers.patch
+mm-check-against-orig_pte-for-finish_fault.patch
+mm-check-against-orig_pte-for-finish_fault-fix.patch
+mm-uffd-pte_marker_uffd_wp.patch
+mm-uffd-pte_marker_uffd_wp-fix.patch
+mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
+mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
+mm-shmem-persist-uffd-wp-bit-across-zapping-for-file-backed.patch
+mm-shmem-allow-uffd-wr-protect-none-pte-for-file-backed-mem.patch
+mm-shmem-allows-file-back-mem-to-be-uffd-wr-protected-on-thps.patch
+mm-shmem-handle-uffd-wp-during-fork.patch
+mm-hugetlb-introduce-huge-pte-version-of-uffd-wp-helpers.patch
+mm-hugetlb-hook-page-faults-for-uffd-write-protection.patch
+mm-hugetlb-take-care-of-uffdio_copy_mode_wp.patch
+mm-hugetlb-handle-uffdio_writeprotect.patch
+mm-hugetlb-handle-pte-markers-in-page-faults.patch
+mm-hugetlb-allow-uffd-wr-protect-none-ptes.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
+mm-hugetlb-handle-uffd-wp-during-fork.patch
+mm-khugepaged-dont-recycle-vma-pgtable-if-uffd-wp-registered.patch
+mm-pagemap-recognize-uffd-wp-bit-for-shmem-hugetlbfs.patch
+mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
+mm-enable-pte-markers-by-default.patch
+mm-enable-pte-markers-by-default-fix.patch
+selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
 
