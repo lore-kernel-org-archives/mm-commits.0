@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE0DC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 20:11:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB279C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 20:14:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232919AbiDUUNy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Apr 2022 16:13:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38980 "EHLO
+        id S237575AbiDUURH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Apr 2022 16:17:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232918AbiDUUNx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 16:13:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 648A45F79
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 13:11:03 -0700 (PDT)
+        with ESMTP id S232966AbiDUURF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 16:17:05 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B385763C8
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 13:14:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 00E3961D2A
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 20:11:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 568C9C385A5;
-        Thu, 21 Apr 2022 20:11:02 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 0379FCE25E6
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 20:14:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EF63C385A5;
+        Thu, 21 Apr 2022 20:14:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650571862;
-        bh=zwiFvaoO+4Ds/FpgYgbSCG2JItd6yb3nQL+kJlfiiNo=;
+        s=korg; t=1650572051;
+        bh=jA3qgLNstBe08XP0zNgvxHwwqYyD/fcDnOIZzNG2DfY=;
         h=Date:To:From:Subject:From;
-        b=k1mbswKs/qMwarSIVagNoA8ZU2lyU8O/15iYFp76AZXED5k1LWjhiAqxABYNiP5Xy
-         SuVm3bC+KdD2aUt5HObwOOikzGrXeL8iyw582ZcHC6dhojQe+7ugTmABeoNKuUceUX
-         aA1L/wBQpYVzM5wyQWc9vE+mluXfDO01MR+zldj8=
-Date:   Thu, 21 Apr 2022 13:11:01 -0700
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        peterx@redhat.com, lkp@intel.com, lkft@linaro.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=R4l91kTU3+glgrn+1a8bmbqBY2iEY/2qmR73AessgOr5xj/TMwckbxuEEyXdFy/B1
+         NF3KdpcQvHjieCneYB0Y6o1d60+RfO6DCD6X8fNmb6pL3gqDltw7cLeSnUTtP45Fgp
+         pCCBSOrV4tH1xCXOkSFjuApugFl1PgDcG6J2a5tg=
+Date:   Thu, 21 Apr 2022 13:14:10 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch added to -mm tree
-Message-Id: <20220421201102.568C9C385A5@smtp.kernel.org>
+Subject: + mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix.patch added to -mm tree
+Message-Id: <20220421201411.2EF63C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix
+     Subject: mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
+     mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,58 +62,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix
 
-move zap_flags_t from mm.h to mm_types.h to fix build issues
+s/VM_BUG_ON/VM_BUG_ON_PAGE/, per Vlastimil
 
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/31b37b7c-a969-eec2-bdff-a7e4dca9b770@redhat.com
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    2 --
- include/linux/mm_types.h |    2 ++
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/gup.c         |    4 ++--
+ mm/huge_memory.c |    4 ++--
+ mm/hugetlb.c     |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/mm.h~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix
-+++ a/include/linux/mm.h
-@@ -3431,8 +3431,6 @@ madvise_set_anon_name(struct mm_struct *
- }
- #endif
+--- a/mm/gup.c~mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix
++++ a/mm/gup.c
+@@ -564,8 +564,8 @@ retry:
+ 		goto out;
+ 	}
  
--typedef unsigned int __bitwise zap_flags_t;
--
- /*
-  * Whether to drop the pte markers, for example, the uffd-wp information for
-  * file-backed memory.  This should only be specified when we will completely
---- a/include/linux/mm_types.h~mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix
-+++ a/include/linux/mm_types.h
-@@ -850,4 +850,6 @@ enum fault_flag {
- 	FAULT_FLAG_ORIG_PTE_VALID =	1 << 11,
- };
+-	VM_BUG_ON((flags & FOLL_PIN) && PageAnon(page) &&
+-		  !PageAnonExclusive(page));
++	VM_BUG_ON_PAGE((flags & FOLL_PIN) && PageAnon(page) &&
++			!PageAnonExclusive(page), page);
  
-+typedef unsigned int __bitwise zap_flags_t;
-+
- #endif /* _LINUX_MM_TYPES_H */
+ 	/* try_grab_page() does nothing unless FOLL_GET or FOLL_PIN is set. */
+ 	if (unlikely(!try_grab_page(page, flags))) {
+--- a/mm/huge_memory.c~mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix
++++ a/mm/huge_memory.c
+@@ -1392,8 +1392,8 @@ struct page *follow_trans_huge_pmd(struc
+ 	if (!pmd_write(*pmd) && gup_must_unshare(flags, page))
+ 		return ERR_PTR(-EMLINK);
+ 
+-	VM_BUG_ON((flags & FOLL_PIN) && PageAnon(page) &&
+-		  !PageAnonExclusive(page));
++	VM_BUG_ON_PAGE((flags & FOLL_PIN) && PageAnon(page) &&
++			!PageAnonExclusive(page), page);
+ 
+ 	if (!try_grab_page(page, flags))
+ 		return ERR_PTR(-ENOMEM);
+--- a/mm/hugetlb.c~mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix
++++ a/mm/hugetlb.c
+@@ -6100,8 +6100,8 @@ long follow_hugetlb_page(struct mm_struc
+ 		pfn_offset = (vaddr & ~huge_page_mask(h)) >> PAGE_SHIFT;
+ 		page = pte_page(huge_ptep_get(pte));
+ 
+-		VM_BUG_ON((flags & FOLL_PIN) && PageAnon(page) &&
+-			  !PageAnonExclusive(page));
++		VM_BUG_ON_PAGE((flags & FOLL_PIN) && PageAnon(page) &&
++				!PageAnonExclusive(page), page);
+ 
+ 		/*
+ 		 * If subpage information not requested, update counters
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm.patch
-kasan-fix-sleeping-function-called-from-invalid-context-on-rt-kernel-fix.patch
-mm-create-new-mm-swaph-header-file-fix.patch
-mm-shmem-make-shmem_init-return-void-fix.patch
-mm-check-against-orig_pte-for-finish_fault-fix-checkpatch-fixes.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
-mm-vmscan-fix-comment-for-current_may_throttle-fix.patch
-ksm-count-ksm-merging-pages-for-each-process-fix.patch
-mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix.patch
-add-fat-messages-to-printk-index-checkpatch-fixes.patch
-linux-next-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
+mm-hugetlb-take-src_mm-write_protect_seq-in-copy_hugetlb_page_range.patch
+mm-memory-slightly-simplify-copy_present_pte.patch
+mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap.patch
+mm-rmap-convert-rmap-flags-to-a-proper-distinct-rmap_t-type.patch
+mm-rmap-remove-do_page_add_anon_rmap.patch
+mm-rmap-pass-rmap-flags-to-hugepage_add_anon_rmap.patch
+mm-rmap-drop-compound-parameter-from-page_add_new_anon_rmap.patch
+mm-rmap-use-page_move_anon_rmap-when-reusing-a-mapped-pageanon-page-exclusively.patch
+mm-huge_memory-remove-outdated-vm_warn_on_once_page-from-unmap_page.patch
+mm-page-flags-reuse-pg_mappedtodisk-as-pg_anon_exclusive-for-pageanon-pages.patch
+mm-remember-exclusively-mapped-anonymous-pages-with-pg_anon_exclusive.patch
+mm-gup-disallow-follow_pagefoll_pin.patch
+mm-support-gup-triggered-unsharing-of-anonymous-pages.patch
+mm-support-gup-triggered-unsharing-of-anonymous-pages-fix.patch
+mm-gup-trigger-fault_flag_unshare-when-r-o-pinning-a-possibly-shared-anonymous-page.patch
+mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning.patch
+mm-gup-sanity-check-with-config_debug_vm-that-anonymous-pages-are-exclusive-when-unpinning-fix.patch
+mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit.patch
+mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit-fix.patch
+mm-debug_vm_pgtable-add-tests-for-__have_arch_pte_swp_exclusive.patch
+x86-pgtable-support-__have_arch_pte_swp_exclusive.patch
+x86-pgtable-support-__have_arch_pte_swp_exclusive-fix.patch
+arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch
+s390-pgtable-cleanup-description-of-swp-pte-layout.patch
+s390-pgtable-support-__have_arch_pte_swp_exclusive.patch
+powerpc-pgtable-remove-_page_bit_swap_type-for-book3s.patch
+powerpc-pgtable-support-__have_arch_pte_swp_exclusive-for-book3s.patch
 
