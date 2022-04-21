@@ -2,184 +2,139 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC26FC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 23:35:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4E52C4321E
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 23:35:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442586AbiDUXiq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Apr 2022 19:38:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40344 "EHLO
+        id S1442587AbiDUXir (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Apr 2022 19:38:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442587AbiDUXil (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 19:38:41 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0D814615F;
-        Thu, 21 Apr 2022 16:35:49 -0700 (PDT)
+        with ESMTP id S1442588AbiDUXim (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 19:38:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1747647044
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 16:35:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 79FCBB829A7;
-        Thu, 21 Apr 2022 23:35:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16372C385A5;
-        Thu, 21 Apr 2022 23:35:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9F1A461EB9
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 23:35:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2D34C385A7;
+        Thu, 21 Apr 2022 23:35:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650584147;
-        bh=o9AmBZ97xph/P353g6OX4XLQm6BehR5eRzobhAKu0NY=;
+        s=korg; t=1650584150;
+        bh=jEX6oGkjPnokPyiiCeNv+6w1fLQkDgMbOZS5HSm4XnA=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=GzGCXdJr1ALTj67BkvEvaT15IiVvYNyw1wHHWBoMG0hw5bMJ6lVZxewdDHH4vrByY
-         lW5edXABeh9Rt41DqI1Gy0EYfznzsexOhtEuaOORXajZvVXsHe6HVKhmQkiyyMrkOc
-         k99vfHvz3fqMJtPHMKoqIwZpHdTwAPx/GwoYG0fU=
-Date:   Thu, 21 Apr 2022 16:35:46 -0700
-To:     will.deacon@arm.com, steve.capper@arm.com, stable@vger.kernel.org,
-        catalin.marinas@arm.com, christophe.leroy@csgroup.eu,
+        b=ihS8SOPygXy8lxXmcwfZZdl/YraysyI7OGe8Wf1G+4/nXTsWqNIgqSWmFen564aJH
+         TTlD4IJ46Rd1SYmPVdaJ1aEUoRN4sWtkGHg+T7z8Oc+pdlHO6QTW9p4pfJQj2dDIO7
+         xjgYrAY0iOCD3CEFIsfsFIewFkvtJJrB51G+Gvk8=
+Date:   Thu, 21 Apr 2022 16:35:49 -0700
+To:     skhan@linuxfoundation.org, sidhartha.kumar@oracle.com,
         akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220421163508.66028a9ac2d9fb6ea05b1342@linux-foundation.org>
-Subject: [patch 05/13] mm, hugetlb: allow for "high" userspace addresses
-Message-Id: <20220421233547.16372C385A5@smtp.kernel.org>
+Subject: [patch 06/13] selftest/vm: verify mmap addr in mremap_test
+Message-Id: <20220421233549.F2D34C385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm, hugetlb: allow for "high" userspace addresses
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: selftest/vm: verify mmap addr in mremap_test
 
-This is a fix for commit f6795053dac8 ("mm: mmap: Allow for "high"
-userspace addresses") for hugetlb.
+Avoid calling mmap with requested addresses that are less than the
+system's mmap_min_addr.  When run as root, mmap returns EACCES when trying
+to map addresses < mmap_min_addr.  This is not one of the error codes for
+the condition to retry the mmap in the test.  Rather than arbitrarily
+retrying on EACCES, don't attempt an mmap until addr > vm.mmap_min_addr.
 
-This patch adds support for "high" userspace addresses that are optionally
-supported on the system and have to be requested via a hint mechanism
-("high" addr parameter to mmap).
+Add a munmap call after an alignment check as the mappings are retained
+after the retry and can reach the vm.max_map_count sysctl.
 
-Architectures such as powerpc and x86 achieve this by making changes to
-their architectural versions of hugetlb_get_unmapped_area() function. 
-However, arm64 uses the generic version of that function.
-
-So take into account arch_get_mmap_base() and arch_get_mmap_end() in
-hugetlb_get_unmapped_area().  To allow that, move those two macros out of
-mm/mmap.c into include/linux/sched/mm.h
-
-If these macros are not defined in architectural code then they default to
-(TASK_SIZE) and (base) so should not introduce any behavioural changes to
-architectures that do not define them.
-
-For the time being, only ARM64 is affected by this change.
-
-Catalin (ARM64) said
-
-: We should have fixed hugetlb_get_unmapped_area() as well when we added
-: support for 52-bit VA.  The reason for commit f6795053dac8 was to prevent
-: normal mmap() from returning addresses above 48-bit by default as some
-: user-space had hard assumptions about this.
-: 
-: It's a slight ABI change if you do this for hugetlb_get_unmapped_area()
-: but I doubt anyone would notice.  It's more likely that the current
-: behaviour would cause issues, so I'd rather have them consistent.
-:
-: Basically when arm64 gained support for 52-bit addresses we did not
-: want user-space calling mmap() to suddenly get such high addresses,
-: otherwise we could have inadvertently broken some programs (similar
-: behaviour to x86 here).  Hence we added commit f6795053dac8.  But we
-: missed hugetlbfs which could still get such high mmap() addresses.  So
-: in theory that's a potential regression that should have bee addressed
-: at the same time as commit f6795053dac8 (and before arm64 enabled
-: 52-bit addresses).
-
-Link: https://lkml.kernel.org/r/ab847b6edb197bffdfe189e70fb4ac76bfe79e0d.1650033747.git.christophe.leroy@csgroup.eu
-Fixes: f6795053dac8 ("mm: mmap: Allow for "high" userspace addresses")
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: <stable@vger.kernel.org>	[5.0.x]
+Link: https://lkml.kernel.org/r/20220420215721.4868-1-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c     |    9 +++++----
- include/linux/sched/mm.h |    8 ++++++++
- mm/mmap.c                |    8 --------
- 3 files changed, 13 insertions(+), 12 deletions(-)
+ tools/testing/selftests/vm/mremap_test.c |   41 ++++++++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
 
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-allow-for-high-userspace-addresses
-+++ a/fs/hugetlbfs/inode.c
-@@ -206,7 +206,7 @@ hugetlb_get_unmapped_area_bottomup(struc
- 	info.flags = 0;
- 	info.length = len;
- 	info.low_limit = current->mm->mmap_base;
--	info.high_limit = TASK_SIZE;
-+	info.high_limit = arch_get_mmap_end(addr);
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
- 	info.align_offset = 0;
- 	return vm_unmapped_area(&info);
-@@ -222,7 +222,7 @@ hugetlb_get_unmapped_area_topdown(struct
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
- 	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
--	info.high_limit = current->mm->mmap_base;
-+	info.high_limit = arch_get_mmap_base(addr, current->mm->mmap_base);
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
- 	info.align_offset = 0;
- 	addr = vm_unmapped_area(&info);
-@@ -237,7 +237,7 @@ hugetlb_get_unmapped_area_topdown(struct
- 		VM_BUG_ON(addr != -ENOMEM);
- 		info.flags = 0;
- 		info.low_limit = current->mm->mmap_base;
--		info.high_limit = TASK_SIZE;
-+		info.high_limit = arch_get_mmap_end(addr);
- 		addr = vm_unmapped_area(&info);
- 	}
+--- a/tools/testing/selftests/vm/mremap_test.c~selftest-vm-verify-mmap-addr-in-mremap_test
++++ a/tools/testing/selftests/vm/mremap_test.c
+@@ -6,6 +6,7 @@
  
-@@ -251,6 +251,7 @@ hugetlb_get_unmapped_area(struct file *f
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 	struct hstate *h = hstate_file(file);
-+	const unsigned long mmap_end = arch_get_mmap_end(addr);
- 
- 	if (len & ~huge_page_mask(h))
- 		return -EINVAL;
-@@ -266,7 +267,7 @@ hugetlb_get_unmapped_area(struct file *f
- 	if (addr) {
- 		addr = ALIGN(addr, huge_page_size(h));
- 		vma = find_vma(mm, addr);
--		if (TASK_SIZE - len >= addr &&
-+		if (mmap_end - len >= addr &&
- 		    (!vma || addr + len <= vm_start_gap(vma)))
- 			return addr;
- 	}
---- a/include/linux/sched/mm.h~mm-hugetlbfs-allow-for-high-userspace-addresses
-+++ a/include/linux/sched/mm.h
-@@ -136,6 +136,14 @@ static inline void mm_update_next_owner(
- #endif /* CONFIG_MEMCG */
- 
- #ifdef CONFIG_MMU
-+#ifndef arch_get_mmap_end
-+#define arch_get_mmap_end(addr)	(TASK_SIZE)
-+#endif
-+
-+#ifndef arch_get_mmap_base
-+#define arch_get_mmap_base(addr, base) (base)
-+#endif
-+
- extern void arch_pick_mmap_layout(struct mm_struct *mm,
- 				  struct rlimit *rlim_stack);
- extern unsigned long
---- a/mm/mmap.c~mm-hugetlbfs-allow-for-high-userspace-addresses
-+++ a/mm/mmap.c
-@@ -2117,14 +2117,6 @@ unsigned long vm_unmapped_area(struct vm
- 	return addr;
+ #include <errno.h>
+ #include <stdlib.h>
++#include <stdio.h>
+ #include <string.h>
+ #include <sys/mman.h>
+ #include <time.h>
+@@ -63,6 +64,35 @@ enum {
+ 	.expect_failure = should_fail				\
  }
  
--#ifndef arch_get_mmap_end
--#define arch_get_mmap_end(addr)	(TASK_SIZE)
--#endif
--
--#ifndef arch_get_mmap_base
--#define arch_get_mmap_base(addr, base) (base)
--#endif
--
- /* Get an address range which is currently unmapped.
-  * For shmat() with addr=0.
-  *
++/* Returns mmap_min_addr sysctl tunable from procfs */
++static unsigned long long get_mmap_min_addr(void)
++{
++	FILE *fp;
++	int n_matched;
++	static unsigned long long addr;
++
++	if (addr)
++		return addr;
++
++	fp = fopen("/proc/sys/vm/mmap_min_addr", "r");
++	if (fp == NULL) {
++		ksft_print_msg("Failed to open /proc/sys/vm/mmap_min_addr: %s\n",
++			strerror(errno));
++		exit(KSFT_SKIP);
++	}
++
++	n_matched = fscanf(fp, "%llu", &addr);
++	if (n_matched != 1) {
++		ksft_print_msg("Failed to read /proc/sys/vm/mmap_min_addr: %s\n",
++			strerror(errno));
++		fclose(fp);
++		exit(KSFT_SKIP);
++	}
++
++	fclose(fp);
++	return addr;
++}
++
+ /*
+  * Returns the start address of the mapping on success, else returns
+  * NULL on failure.
+@@ -71,8 +101,15 @@ static void *get_source_mapping(struct c
+ {
+ 	unsigned long long addr = 0ULL;
+ 	void *src_addr = NULL;
++	unsigned long long mmap_min_addr;
++
++	mmap_min_addr = get_mmap_min_addr();
++
+ retry:
+ 	addr += c.src_alignment;
++	if (addr < mmap_min_addr)
++		goto retry;
++
+ 	src_addr = mmap((void *) addr, c.region_size, PROT_READ | PROT_WRITE,
+ 			MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_SHARED,
+ 			-1, 0);
+@@ -90,8 +127,10 @@ retry:
+ 	 * alignment in the tests.
+ 	 */
+ 	if (((unsigned long long) src_addr & (c.src_alignment - 1)) ||
+-			!((unsigned long long) src_addr & c.src_alignment))
++			!((unsigned long long) src_addr & c.src_alignment)) {
++		munmap(src_addr, c.region_size);
+ 		goto retry;
++	}
+ 
+ 	if (!src_addr)
+ 		goto error;
 _
