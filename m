@@ -2,44 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABDE6C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 20:36:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7085EC43217
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 20:36:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1392427AbiDUUj0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Apr 2022 16:39:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51856 "EHLO
+        id S1392429AbiDUUj1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Apr 2022 16:39:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1392429AbiDUUjZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 16:39:25 -0400
+        with ESMTP id S1392409AbiDUUjW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 16:39:22 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92B744DF6A
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 13:36:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B63CE4DF68
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 13:36:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2EE6261D7F
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 20:36:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 872C4C385A5;
-        Thu, 21 Apr 2022 20:36:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 55A3361D7F
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 20:36:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A61FAC385A7;
+        Thu, 21 Apr 2022 20:36:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650573392;
-        bh=q9bk+b9LrCsUjVXyeoL04E92+HETVAguG83BxWyjSvA=;
+        s=korg; t=1650573390;
+        bh=T49BKFriIBKSSCQ5xv8ZiSx2G2tENRCRegtPm7f4SSc=;
         h=Date:To:From:Subject:From;
-        b=p8IkIBQXa/vH7YgKn0WEYns18W9aTdzSU4DYJI2v7X2OiSHC+OxUUnLkkey2JouwN
-         onmSQy1BLOzQCIn21i4QoSa8dMwaFyIuUwIzjSF3ZU6+wtd7+xmmXqTYkGOzA9uXc6
-         YGdBVhXYwXYBj/yhW/BS0EfIDs/zItMIzq0MHHYY=
-Date:   Thu, 21 Apr 2022 13:36:31 -0700
+        b=fdaH61UHjdSVEYWNAzs3PNBrS7h8QSiKrllt770xcvjjYsQlUXEnHF36kyOzZslF1
+         z9CGEEONTb26Vc3/yzMtN0KHiC+cXmK6OkusWF2LQxRdNJTDjAFbtFHF5rei2FAMoL
+         ZmHgiCzIB0SfI2jLsE16R2+kk0TatsY+PH/hbYEc=
+Date:   Thu, 21 Apr 2022 13:36:29 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
-        tongtiangen@huawei.com, tglx@linutronix.de,
-        paul.walmsley@sifive.com, pasha.tatashin@soleen.com,
-        palmer@dabbelt.com, mingo@redhat.com, hpa@zytor.com,
-        guohanjun@huawei.com, dave.hansen@linux.intel.com,
+        wangkefeng.wang@huawei.com, tglx@linutronix.de,
+        paul.walmsley@sifive.com, palmer@dabbelt.com, mingo@redhat.com,
+        hpa@zytor.com, guohanjun@huawei.com, dave.hansen@linux.intel.com,
         catalin.marinas@arm.com, bp@alien8.de, aou@eecs.berkeley.edu,
-        anshuman.khandual@arm.com, wangkefeng.wang@huawei.com,
+        anshuman.khandual@arm.com, tongtiangen@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_table_check-move-pxx_user_accessible_page-into-x86.patch added to -mm tree
-Message-Id: <20220421203632.872C4C385A5@smtp.kernel.org>
+Subject: + mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch added to -mm tree
+Message-Id: <20220421203630.A61FAC385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_table_check: move pxx_user_accessible_page into x86
+     Subject: mm: page_table_check: use PxD_SIZE instead of PxD_PAGE_SIZE
 has been added to the -mm tree.  Its filename is
-     mm-page_table_check-move-pxx_user_accessible_page-into-x86.patch
+     mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_table_check-move-pxx_user_accessible_page-into-x86.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_table_check-move-pxx_user_accessible_page-into-x86.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,93 +67,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: page_table_check: move pxx_user_accessible_page into x86
+From: Tong Tiangen <tongtiangen@huawei.com>
+Subject: mm: page_table_check: use PxD_SIZE instead of PxD_PAGE_SIZE
 
-The pxx_user_accessible_page() check the PTE bit, it's
-architecture-specific code, move them into x86's pgtable.h,
+Patch series "mm: page_table_check: add support on arm64 and riscv", v5.
 
-Link: https://lkml.kernel.org/r/20220421082042.1167967-3-tongtiangen@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Page table check performs extra verifications at the time when new pages
+become accessible from the userspace by getting their page table entries
+(PTEs PMDs etc.) added into the table.  It is supported on X86[1].
+
+This patchset made some simple changes and make it easier to support new
+architecture, then we support this feature on ARM64 and RISCV.
+
+[1]https://lore.kernel.org/lkml/20211123214814.3756047-1-pasha.tatashin@soleen.com/
+
+
+This patch (of 5):
+
+Macro PUD_SIZE/PMD_SIZE is more general in various architectures.  Using
+PUD_SIZE/PMD_SIZE instead of PUD_PAGE_SIZE/PMD_PAGE_SIZE can better
+support page table check in architectures other than x86 and it is no
+functional impact on x86.
+
+Link: https://lkml.kernel.org/r/20220421082042.1167967-1-tongtiangen@huawei.com
+Link: https://lkml.kernel.org/r/20220421082042.1167967-2-tongtiangen@huawei.com
 Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
-Acked-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Guohanjun <guohanjun@huawei.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Suggested-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Guohanjun <guohanjun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |   19 +++++++++++++++++++
- mm/page_table_check.c          |   17 -----------------
- 2 files changed, 19 insertions(+), 17 deletions(-)
+ mm/page_table_check.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-move-pxx_user_accessible_page-into-x86
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1430,6 +1430,25 @@ static inline bool arch_faults_on_old_pt
- 	return false;
- }
- 
-+#ifdef CONFIG_PAGE_TABLE_CHECK
-+static inline bool pte_user_accessible_page(pte_t pte)
-+{
-+	return (pte_val(pte) & _PAGE_PRESENT) && (pte_val(pte) & _PAGE_USER);
-+}
-+
-+static inline bool pmd_user_accessible_page(pmd_t pmd)
-+{
-+	return pmd_leaf(pmd) && (pmd_val(pmd) & _PAGE_PRESENT) &&
-+		(pmd_val(pmd) & _PAGE_USER);
-+}
-+
-+static inline bool pud_user_accessible_page(pud_t pud)
-+{
-+	return pud_leaf(pud) && (pud_val(pud) & _PAGE_PRESENT) &&
-+		(pud_val(pud) & _PAGE_USER);
-+}
-+#endif
-+
- #endif	/* __ASSEMBLY__ */
- 
- #endif /* _ASM_X86_PGTABLE_H */
---- a/mm/page_table_check.c~mm-page_table_check-move-pxx_user_accessible_page-into-x86
+--- a/mm/page_table_check.c~mm-page_table_check-using-pxd_size-instead-of-pxd_page_size
 +++ a/mm/page_table_check.c
-@@ -52,23 +52,6 @@ static struct page_table_check *get_page
- 	return (void *)(page_ext) + page_table_check_ops.offset;
- }
+@@ -177,7 +177,7 @@ void __page_table_check_pmd_clear(struct
  
--static inline bool pte_user_accessible_page(pte_t pte)
--{
--	return (pte_val(pte) & _PAGE_PRESENT) && (pte_val(pte) & _PAGE_USER);
--}
--
--static inline bool pmd_user_accessible_page(pmd_t pmd)
--{
--	return pmd_leaf(pmd) && (pmd_val(pmd) & _PAGE_PRESENT) &&
--		(pmd_val(pmd) & _PAGE_USER);
--}
--
--static inline bool pud_user_accessible_page(pud_t pud)
--{
--	return pud_leaf(pud) && (pud_val(pud) & _PAGE_PRESENT) &&
--		(pud_val(pud) & _PAGE_USER);
--}
--
- /*
-  * An enty is removed from the page table, decrement the counters for that page
-  * verify that it is of correct type and counters do not become negative.
+ 	if (pmd_user_accessible_page(pmd)) {
+ 		page_table_check_clear(mm, addr, pmd_pfn(pmd),
+-				       PMD_PAGE_SIZE >> PAGE_SHIFT);
++				       PMD_SIZE >> PAGE_SHIFT);
+ 	}
+ }
+ EXPORT_SYMBOL(__page_table_check_pmd_clear);
+@@ -190,7 +190,7 @@ void __page_table_check_pud_clear(struct
+ 
+ 	if (pud_user_accessible_page(pud)) {
+ 		page_table_check_clear(mm, addr, pud_pfn(pud),
+-				       PUD_PAGE_SIZE >> PAGE_SHIFT);
++				       PUD_SIZE >> PAGE_SHIFT);
+ 	}
+ }
+ EXPORT_SYMBOL(__page_table_check_pud_clear);
+@@ -219,7 +219,7 @@ void __page_table_check_pmd_set(struct m
+ 	__page_table_check_pmd_clear(mm, addr, *pmdp);
+ 	if (pmd_user_accessible_page(pmd)) {
+ 		page_table_check_set(mm, addr, pmd_pfn(pmd),
+-				     PMD_PAGE_SIZE >> PAGE_SHIFT,
++				     PMD_SIZE >> PAGE_SHIFT,
+ 				     pmd_write(pmd));
+ 	}
+ }
+@@ -234,7 +234,7 @@ void __page_table_check_pud_set(struct m
+ 	__page_table_check_pud_clear(mm, addr, *pudp);
+ 	if (pud_user_accessible_page(pud)) {
+ 		page_table_check_set(mm, addr, pud_pfn(pud),
+-				     PUD_PAGE_SIZE >> PAGE_SHIFT,
++				     PUD_SIZE >> PAGE_SHIFT,
+ 				     pud_write(pud));
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from tongtiangen@huawei.com are
 
-mm-page_table_check-move-pxx_user_accessible_page-into-x86.patch
-arm64-mm-add-support-for-page-table-check.patch
+mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch
+mm-page_table_check-add-hooks-to-public-helpers.patch
+riscv-mm-add-support-for-page-table-check.patch
 
