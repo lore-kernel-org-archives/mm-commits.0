@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7FB6C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 20:02:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE0DC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 20:11:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1392160AbiDUUFW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Apr 2022 16:05:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33136 "EHLO
+        id S232919AbiDUUNy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Apr 2022 16:13:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1392168AbiDUUFW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 16:05:22 -0400
+        with ESMTP id S232918AbiDUUNx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 16:13:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09B014A921
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 13:02:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 648A45F79
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 13:11:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A32261CC4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 20:02:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3CA8C385A5;
-        Thu, 21 Apr 2022 20:02:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 00E3961D2A
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 20:11:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 568C9C385A5;
+        Thu, 21 Apr 2022 20:11:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650571350;
-        bh=SB7qhGG1lqUi07hLnrbWeVjD2GdlVOO9FC4DPD8R+Mw=;
+        s=korg; t=1650571862;
+        bh=zwiFvaoO+4Ds/FpgYgbSCG2JItd6yb3nQL+kJlfiiNo=;
         h=Date:To:From:Subject:From;
-        b=d0J1gUxhO05pi+aZK6YwANfBjvwjzVgF3hpdCmPCpl7B5YSlsNXp98XM9msTiXQxW
-         F1UeJPezTZnzM4gqR3yAUzFyktUrtdIlYtbEItnQXDDGXBt/ZaUTODEQOUhxrMCYzm
-         uj+n01aL3NLU67LzbZ+jlSSaKCbxBogEsmNs4F48=
-Date:   Thu, 21 Apr 2022 13:02:29 -0700
-To:     mm-commits@vger.kernel.org, peterx@redhat.com, lkp@intel.com,
+        b=k1mbswKs/qMwarSIVagNoA8ZU2lyU8O/15iYFp76AZXED5k1LWjhiAqxABYNiP5Xy
+         SuVm3bC+KdD2aUt5HObwOOikzGrXeL8iyw582ZcHC6dhojQe+7ugTmABeoNKuUceUX
+         aA1L/wBQpYVzM5wyQWc9vE+mluXfDO01MR+zldj8=
+Date:   Thu, 21 Apr 2022 13:11:01 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        peterx@redhat.com, lkp@intel.com, lkft@linaro.org,
         akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch added to -mm tree
-Message-Id: <20220421200229.F3CA8C385A5@smtp.kernel.org>
+Message-Id: <20220421201102.568C9C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -68,7 +69,9 @@ Subject: mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix
 move zap_flags_t from mm.h to mm_types.h to fix build issues
 
 Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
