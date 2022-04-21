@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B8B0C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 20:39:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EA7EC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 21:33:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353740AbiDUUmF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Apr 2022 16:42:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53510 "EHLO
+        id S1387065AbiDUVgk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Apr 2022 17:36:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243661AbiDUUmE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 16:42:04 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B221E4E38C
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 13:39:13 -0700 (PDT)
+        with ESMTP id S231443AbiDUVgk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 17:36:40 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7411C49FA2
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 14:33:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 64561B82916
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 20:39:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F12C9C385A1;
-        Thu, 21 Apr 2022 20:39:10 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id D15C7CE268D
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 21:33:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07715C385AA;
+        Thu, 21 Apr 2022 21:33:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650573551;
-        bh=5R3UpHmcYOmlJXdlEBoNWF5nNUJspapnNwBpmABj0po=;
+        s=korg; t=1650576826;
+        bh=chYBLQGyoSkWy7KUq7UqEgStVE+n5CEeV75NpxrqEdY=;
         h=Date:To:From:Subject:From;
-        b=LLpPA64zhczv/IprrG8ir0CBE48vN8JAdvyJ5+7fHiPZfBjjnGRbh9BwdMB6kDytt
-         dXUO2BUhAw/uGF3i8ugmEY8nTTdHL277jdXhspJUyKbGhp+Uit/olsp3+wRL3kemZl
-         uPqrNQlNmWm+7Mzk6AiR2m7wCemgHkkWe1jOtzOQ=
-Date:   Thu, 21 Apr 2022 13:39:10 -0700
-To:     mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
-        anshuman.khandual@arm.com, akpm@linux-foundation.org
+        b=t8p0VJnZX24OVEXoHnMXBtVRm9O7pCuxjkrpRY6yFKZm/4GIoSQBD3U/+Trpu9f9W
+         CvxpiT9wXTdYBxK+kycC0jsOH246wCJnsHrlTZDUfsaDrLSMjZlbcVtlHhTChPHjHZ
+         fChh/G5BBWbMr5xiSQuoHtC092NVlaP5ltVaJtLw=
+Date:   Thu, 21 Apr 2022 14:33:45 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sfr@canb.auug.org.au, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_table_check-drop-all-redundant-export_symbol.patch added to -mm tree
-Message-Id: <20220421203910.F12C9C385A1@smtp.kernel.org>
+Subject: [alternative-merged] mm-munlock-remove-fields-to-fix-htmldocs-warnings.patch removed from -mm tree
+Message-Id: <20220421213346.07715C385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,97 +41,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_table_check: drop all redundant EXPORT_SYMBOL()
-has been added to the -mm tree.  Its filename is
-     mm-page_table_check-drop-all-redundant-export_symbol.patch
+     Subject: mm/munlock: remove fields to fix htmldocs warnings
+has been removed from the -mm tree.  Its filename was
+     mm-munlock-remove-fields-to-fix-htmldocs-warnings.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_table_check-drop-all-redundant-export_symbol.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_table_check-drop-all-redundant-export_symbol.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/page_table_check: drop all redundant EXPORT_SYMBOL()
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/munlock: remove fields to fix htmldocs warnings
 
-Function definitions need not be exported via EXPORT_SYMBOL() mechanism. 
-In this case these functions just get called only inside their wrappers. 
-Even __page_table_check_zero() gets called without such an export.  Just
-drop all these redundant EXPORT_SYMBOL()s.
+Stephen reports that 'make htmldocs' currently issues two warnings:
 
-Link: https://lkml.kernel.org/r/20220421070631.1273879-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+include/linux/mm_types.h:275: warning: Function parameter or member
+'__filler' not described in 'folio'
+include/linux/mm_types.h:275: warning: Function parameter or member
+'mlock_count' not described in 'folio'
+
+Certainly __filler doesn't want documenting there, and all but one use of
+mlock_count is through page->mlock_count at present: so I think it's best
+just to remove them both from struct folio for now, and sort out the right
+way to document folio->mlock_count once that is the one true way.
+
+Link: https://lkml.kernel.org/r/d2c8f66d-be8e-7c91-b0c8-b2f7ffb08bec@google.com
+Fixes: 07ca76067308 ("mm/munlock: maintain page->mlock_count while unevictable")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_table_check.c |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/mm_types.h |    8 +-------
+ mm/swap.c                |    4 ++--
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
---- a/mm/page_table_check.c~mm-page_table_check-drop-all-redundant-export_symbol
-+++ a/mm/page_table_check.c
-@@ -150,7 +150,6 @@ void __page_table_check_pte_clear(struct
- 				       PAGE_SIZE >> PAGE_SHIFT);
+--- a/include/linux/mm_types.h~mm-munlock-remove-fields-to-fix-htmldocs-warnings
++++ a/include/linux/mm_types.h
+@@ -253,13 +253,7 @@ struct folio {
+ 		struct {
+ 	/* public: */
+ 			unsigned long flags;
+-			union {
+-				struct list_head lru;
+-				struct {
+-					void *__filler;
+-					unsigned int mlock_count;
+-				};
+-			};
++			struct list_head lru;
+ 			struct address_space *mapping;
+ 			pgoff_t index;
+ 			void *private;
+--- a/mm/swap.c~mm-munlock-remove-fields-to-fix-htmldocs-warnings
++++ a/mm/swap.c
+@@ -1028,13 +1028,13 @@ static void __pagevec_lru_add_fn(struct
+ 		folio_clear_active(folio);
+ 		folio_set_unevictable(folio);
+ 		/*
+-		 * folio->mlock_count = !!folio_test_mlocked(folio)?
++		 * page->mlock_count = !!PageMlocked(page)?
+ 		 * But that leaves __mlock_page() in doubt whether another
+ 		 * actor has already counted the mlock or not.  Err on the
+ 		 * safe side, underestimate, let page reclaim fix it, rather
+ 		 * than leaving a page on the unevictable LRU indefinitely.
+ 		 */
+-		folio->mlock_count = 0;
++		folio_page(folio, 0)->mlock_count = 0;
+ 		if (!was_unevictable)
+ 			__count_vm_events(UNEVICTABLE_PGCULLED, nr_pages);
  	}
- }
--EXPORT_SYMBOL(__page_table_check_pte_clear);
- 
- void __page_table_check_pmd_clear(struct mm_struct *mm, unsigned long addr,
- 				  pmd_t pmd)
-@@ -163,7 +162,6 @@ void __page_table_check_pmd_clear(struct
- 				       PMD_SIZE >> PAGE_SHIFT);
- 	}
- }
--EXPORT_SYMBOL(__page_table_check_pmd_clear);
- 
- void __page_table_check_pud_clear(struct mm_struct *mm, unsigned long addr,
- 				  pud_t pud)
-@@ -176,7 +174,6 @@ void __page_table_check_pud_clear(struct
- 				       PUD_SIZE >> PAGE_SHIFT);
- 	}
- }
--EXPORT_SYMBOL(__page_table_check_pud_clear);
- 
- void __page_table_check_pte_set(struct mm_struct *mm, unsigned long addr,
- 				pte_t *ptep, pte_t pte)
-@@ -206,7 +203,6 @@ void __page_table_check_pmd_set(struct m
- 				     pmd_write(pmd));
- 	}
- }
--EXPORT_SYMBOL(__page_table_check_pmd_set);
- 
- void __page_table_check_pud_set(struct mm_struct *mm, unsigned long addr,
- 				pud_t *pudp, pud_t pud)
-@@ -221,7 +217,6 @@ void __page_table_check_pud_set(struct m
- 				     pud_write(pud));
- 	}
- }
--EXPORT_SYMBOL(__page_table_check_pud_set);
- 
- void __page_table_check_pte_clear_range(struct mm_struct *mm,
- 					unsigned long addr,
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-page_table_check-drop-all-redundant-export_symbol.patch
-mm-debug_vm_pgtable-drop-protection_map-usage.patch
-mm-mmap-clarify-protection_map-indices.patch
-mm-mmap-add-new-config-arch_has_vm_get_page_prot.patch
-powerpc-mm-enable-arch_has_vm_get_page_prot.patch
-arm64-mm-enable-arch_has_vm_get_page_prot.patch
-sparc-mm-enable-arch_has_vm_get_page_prot.patch
-mm-mmap-drop-arch_filter_pgprot.patch
-mm-mmap-drop-arch_vm_get_page_pgprot.patch
 
