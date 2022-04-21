@@ -2,103 +2,184 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49948C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC26FC433F5
 	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 23:35:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442585AbiDUXiq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1442586AbiDUXiq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 21 Apr 2022 19:38:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40310 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442583AbiDUXih (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 19:38:37 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 724891260A
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 16:35:46 -0700 (PDT)
+        with ESMTP id S1442587AbiDUXil (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 19:38:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0D814615F;
+        Thu, 21 Apr 2022 16:35:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 22FB5B829A7
-        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 23:35:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADE25C385A5;
-        Thu, 21 Apr 2022 23:35:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 79FCBB829A7;
+        Thu, 21 Apr 2022 23:35:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16372C385A5;
+        Thu, 21 Apr 2022 23:35:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650584143;
-        bh=9JrhIuldGcG+bMHN5M/dS6f6EI/wfPeIxpjhrcP2TPk=;
+        s=korg; t=1650584147;
+        bh=o9AmBZ97xph/P353g6OX4XLQm6BehR5eRzobhAKu0NY=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=O4bThR3t0/Ni9wo8SZHZgSbSzGynagqkRTNXiXoFsfTNjbgEzn8xTTREOQmhyrGW7
-         70ic6pdny/bKtdfjxPvQOIXi4Ryj+xnz9cB81Bt/HDUHeiWPFPpmstIE3C1fo0uDyA
-         9mOBegFHYLsBGbK8ec9sFleGkn0Sj1fXISP94nfw=
-Date:   Thu, 21 Apr 2022 16:35:43 -0700
-To:     rppt@linux.vnet.ibm.com, peterx@redhat.com,
-        axelrasmussen@google.com, aarcange@redhat.com, namit@vmware.com,
+        b=GzGCXdJr1ALTj67BkvEvaT15IiVvYNyw1wHHWBoMG0hw5bMJ6lVZxewdDHH4vrByY
+         lW5edXABeh9Rt41DqI1Gy0EYfznzsexOhtEuaOORXajZvVXsHe6HVKhmQkiyyMrkOc
+         k99vfHvz3fqMJtPHMKoqIwZpHdTwAPx/GwoYG0fU=
+Date:   Thu, 21 Apr 2022 16:35:46 -0700
+To:     will.deacon@arm.com, steve.capper@arm.com, stable@vger.kernel.org,
+        catalin.marinas@arm.com, christophe.leroy@csgroup.eu,
         akpm@linux-foundation.org, patches@lists.linux.dev,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220421163508.66028a9ac2d9fb6ea05b1342@linux-foundation.org>
-Subject: [patch 04/13] userfaultfd: mark uffd_wp regardless of VM_WRITE flag
-Message-Id: <20220421233543.ADE25C385A5@smtp.kernel.org>
+Subject: [patch 05/13] mm, hugetlb: allow for "high" userspace addresses
+Message-Id: <20220421233547.16372C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nadav Amit <namit@vmware.com>
-Subject: userfaultfd: mark uffd_wp regardless of VM_WRITE flag
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: mm, hugetlb: allow for "high" userspace addresses
 
-When a PTE is set by UFFD operations such as UFFDIO_COPY, the PTE is
-currently only marked as write-protected if the VMA has VM_WRITE flag set.
-This seems incorrect or at least would be unexpected by the users.
+This is a fix for commit f6795053dac8 ("mm: mmap: Allow for "high"
+userspace addresses") for hugetlb.
 
-Consider the following sequence of operations that are being performed on
-a certain page:
+This patch adds support for "high" userspace addresses that are optionally
+supported on the system and have to be requested via a hint mechanism
+("high" addr parameter to mmap).
 
-	mprotect(PROT_READ)
-	UFFDIO_COPY(UFFDIO_COPY_MODE_WP)
-	mprotect(PROT_READ|PROT_WRITE)
+Architectures such as powerpc and x86 achieve this by making changes to
+their architectural versions of hugetlb_get_unmapped_area() function. 
+However, arm64 uses the generic version of that function.
 
-At this point the user would expect to still get UFFD notification when
-the page is accessed for write, but the user would not get one, since the
-PTE was not marked as UFFD_WP during UFFDIO_COPY.
+So take into account arch_get_mmap_base() and arch_get_mmap_end() in
+hugetlb_get_unmapped_area().  To allow that, move those two macros out of
+mm/mmap.c into include/linux/sched/mm.h
 
-Fix it by always marking PTEs as UFFD_WP regardless on the
-write-permission in the VMA flags.
+If these macros are not defined in architectural code then they default to
+(TASK_SIZE) and (base) so should not introduce any behavioural changes to
+architectures that do not define them.
 
-Link: https://lkml.kernel.org/r/20220217211602.2769-1-namit@vmware.com
-Fixes: 292924b26024 ("userfaultfd: wp: apply _PAGE_UFFD_WP bit")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+For the time being, only ARM64 is affected by this change.
+
+Catalin (ARM64) said
+
+: We should have fixed hugetlb_get_unmapped_area() as well when we added
+: support for 52-bit VA.  The reason for commit f6795053dac8 was to prevent
+: normal mmap() from returning addresses above 48-bit by default as some
+: user-space had hard assumptions about this.
+: 
+: It's a slight ABI change if you do this for hugetlb_get_unmapped_area()
+: but I doubt anyone would notice.  It's more likely that the current
+: behaviour would cause issues, so I'd rather have them consistent.
+:
+: Basically when arm64 gained support for 52-bit addresses we did not
+: want user-space calling mmap() to suddenly get such high addresses,
+: otherwise we could have inadvertently broken some programs (similar
+: behaviour to x86 here).  Hence we added commit f6795053dac8.  But we
+: missed hugetlbfs which could still get such high mmap() addresses.  So
+: in theory that's a potential regression that should have bee addressed
+: at the same time as commit f6795053dac8 (and before arm64 enabled
+: 52-bit addresses).
+
+Link: https://lkml.kernel.org/r/ab847b6edb197bffdfe189e70fb4ac76bfe79e0d.1650033747.git.christophe.leroy@csgroup.eu
+Fixes: f6795053dac8 ("mm: mmap: Allow for "high" userspace addresses")
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: <stable@vger.kernel.org>	[5.0.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ fs/hugetlbfs/inode.c     |    9 +++++----
+ include/linux/sched/mm.h |    8 ++++++++
+ mm/mmap.c                |    8 --------
+ 3 files changed, 13 insertions(+), 12 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag
-+++ a/mm/userfaultfd.c
-@@ -72,12 +72,15 @@ int mfill_atomic_install_pte(struct mm_s
- 	_dst_pte = pte_mkdirty(_dst_pte);
- 	if (page_in_cache && !vm_shared)
- 		writable = false;
--	if (writable) {
--		if (wp_copy)
--			_dst_pte = pte_mkuffd_wp(_dst_pte);
--		else
--			_dst_pte = pte_mkwrite(_dst_pte);
--	}
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-allow-for-high-userspace-addresses
++++ a/fs/hugetlbfs/inode.c
+@@ -206,7 +206,7 @@ hugetlb_get_unmapped_area_bottomup(struc
+ 	info.flags = 0;
+ 	info.length = len;
+ 	info.low_limit = current->mm->mmap_base;
+-	info.high_limit = TASK_SIZE;
++	info.high_limit = arch_get_mmap_end(addr);
+ 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+ 	return vm_unmapped_area(&info);
+@@ -222,7 +222,7 @@ hugetlb_get_unmapped_area_topdown(struct
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
+ 	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
+-	info.high_limit = current->mm->mmap_base;
++	info.high_limit = arch_get_mmap_base(addr, current->mm->mmap_base);
+ 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+ 	addr = vm_unmapped_area(&info);
+@@ -237,7 +237,7 @@ hugetlb_get_unmapped_area_topdown(struct
+ 		VM_BUG_ON(addr != -ENOMEM);
+ 		info.flags = 0;
+ 		info.low_limit = current->mm->mmap_base;
+-		info.high_limit = TASK_SIZE;
++		info.high_limit = arch_get_mmap_end(addr);
+ 		addr = vm_unmapped_area(&info);
+ 	}
+ 
+@@ -251,6 +251,7 @@ hugetlb_get_unmapped_area(struct file *f
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	struct hstate *h = hstate_file(file);
++	const unsigned long mmap_end = arch_get_mmap_end(addr);
+ 
+ 	if (len & ~huge_page_mask(h))
+ 		return -EINVAL;
+@@ -266,7 +267,7 @@ hugetlb_get_unmapped_area(struct file *f
+ 	if (addr) {
+ 		addr = ALIGN(addr, huge_page_size(h));
+ 		vma = find_vma(mm, addr);
+-		if (TASK_SIZE - len >= addr &&
++		if (mmap_end - len >= addr &&
+ 		    (!vma || addr + len <= vm_start_gap(vma)))
+ 			return addr;
+ 	}
+--- a/include/linux/sched/mm.h~mm-hugetlbfs-allow-for-high-userspace-addresses
++++ a/include/linux/sched/mm.h
+@@ -136,6 +136,14 @@ static inline void mm_update_next_owner(
+ #endif /* CONFIG_MEMCG */
+ 
+ #ifdef CONFIG_MMU
++#ifndef arch_get_mmap_end
++#define arch_get_mmap_end(addr)	(TASK_SIZE)
++#endif
 +
-+	/*
-+	 * Always mark a PTE as write-protected when needed, regardless of
-+	 * VM_WRITE, which the user might change.
-+	 */
-+	if (wp_copy)
-+		_dst_pte = pte_mkuffd_wp(_dst_pte);
-+	else if (writable)
-+		_dst_pte = pte_mkwrite(_dst_pte);
++#ifndef arch_get_mmap_base
++#define arch_get_mmap_base(addr, base) (base)
++#endif
++
+ extern void arch_pick_mmap_layout(struct mm_struct *mm,
+ 				  struct rlimit *rlim_stack);
+ extern unsigned long
+--- a/mm/mmap.c~mm-hugetlbfs-allow-for-high-userspace-addresses
++++ a/mm/mmap.c
+@@ -2117,14 +2117,6 @@ unsigned long vm_unmapped_area(struct vm
+ 	return addr;
+ }
  
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
- 
+-#ifndef arch_get_mmap_end
+-#define arch_get_mmap_end(addr)	(TASK_SIZE)
+-#endif
+-
+-#ifndef arch_get_mmap_base
+-#define arch_get_mmap_base(addr, base) (base)
+-#endif
+-
+ /* Get an address range which is currently unmapped.
+  * For shmat() with addr=0.
+  *
 _
