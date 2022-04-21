@@ -2,167 +2,103 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 037C5C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 23:35:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49948C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 21 Apr 2022 23:35:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442581AbiDUXif (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Apr 2022 19:38:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40296 "EHLO
+        id S1442585AbiDUXiq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Apr 2022 19:38:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442583AbiDUXie (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 19:38:34 -0400
+        with ESMTP id S1442583AbiDUXih (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2022 19:38:37 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FFD24617E;
-        Thu, 21 Apr 2022 16:35:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 724891260A
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 16:35:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 18236B829AB;
-        Thu, 21 Apr 2022 23:35:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA29DC385AB;
-        Thu, 21 Apr 2022 23:35:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 22FB5B829A7
+        for <mm-commits@vger.kernel.org>; Thu, 21 Apr 2022 23:35:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADE25C385A5;
+        Thu, 21 Apr 2022 23:35:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650584140;
-        bh=nY8N0bNibmYZKD4dAvsEBjoo8JN1MQlNzfXmO/adiPc=;
+        s=korg; t=1650584143;
+        bh=9JrhIuldGcG+bMHN5M/dS6f6EI/wfPeIxpjhrcP2TPk=;
         h=Date:To:From:In-Reply-To:Subject:From;
-        b=QdxtCKIMgLb90C8APyRvSx3rYIBuEGW4RqChtuDZcj0EZslFVheNMVc44iKsFsxrM
-         QLuZRCUzsH5Rv47xX7+lqmn0zA8GkIYoJV3fhUE8U8Mcvyi5cf+tYhBcqBK1ryy28Z
-         L6Rtlp7YCX0N6EHaV08IMNR44iqRg49uqbROo0hg=
-Date:   Thu, 21 Apr 2022 16:35:40 -0700
-To:     stable@vger.kernel.org, roman.gushchin@linux.dev, mkoutny@suse.com,
-        mhocko@suse.com, ivan@cloudflare.com, hannes@cmpxchg.org,
-        fhofmann@cloudflare.com, dqminh@cloudflare.com,
-        shakeelb@google.com, akpm@linux-foundation.org,
-        patches@lists.linux.dev, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=O4bThR3t0/Ni9wo8SZHZgSbSzGynagqkRTNXiXoFsfTNjbgEzn8xTTREOQmhyrGW7
+         70ic6pdny/bKtdfjxPvQOIXi4Ryj+xnz9cB81Bt/HDUHeiWPFPpmstIE3C1fo0uDyA
+         9mOBegFHYLsBGbK8ec9sFleGkn0Sj1fXISP94nfw=
+Date:   Thu, 21 Apr 2022 16:35:43 -0700
+To:     rppt@linux.vnet.ibm.com, peterx@redhat.com,
+        axelrasmussen@google.com, aarcange@redhat.com, namit@vmware.com,
+        akpm@linux-foundation.org, patches@lists.linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 In-Reply-To: <20220421163508.66028a9ac2d9fb6ea05b1342@linux-foundation.org>
-Subject: [patch 03/13] memcg: sync flush only if periodic flush is delayed
-Message-Id: <20220421233540.AA29DC385AB@smtp.kernel.org>
+Subject: [patch 04/13] userfaultfd: mark uffd_wp regardless of VM_WRITE flag
+Message-Id: <20220421233543.ADE25C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: sync flush only if periodic flush is delayed
+From: Nadav Amit <namit@vmware.com>
+Subject: userfaultfd: mark uffd_wp regardless of VM_WRITE flag
 
-Daniel Dao has reported [1] a regression on workloads that may trigger a
-lot of refaults (anon and file).  The underlying issue is that flushing
-rstat is expensive.  Although rstat flush are batched with (nr_cpus *
-MEMCG_BATCH) stat updates, it seems like there are workloads which
-genuinely do stat updates larger than batch value within short amount of
-time.  Since the rstat flush can happen in the performance critical
-codepaths like page faults, such workload can suffer greatly.
+When a PTE is set by UFFD operations such as UFFDIO_COPY, the PTE is
+currently only marked as write-protected if the VMA has VM_WRITE flag set.
+This seems incorrect or at least would be unexpected by the users.
 
-This patch fixes this regression by making the rstat flushing conditional
-in the performance critical codepaths.  More specifically, the kernel
-relies on the async periodic rstat flusher to flush the stats and only if
-the periodic flusher is delayed by more than twice the amount of its
-normal time window then the kernel allows rstat flushing from the
-performance critical codepaths.
+Consider the following sequence of operations that are being performed on
+a certain page:
 
-Now the question: what are the side-effects of this change?  The worst
-that can happen is the refault codepath will see 4sec old lruvec stats and
-may cause false (or missed) activations of the refaulted page which may
-under-or-overestimate the workingset size.  Though that is not very
-concerning as the kernel can already miss or do false activations.
+	mprotect(PROT_READ)
+	UFFDIO_COPY(UFFDIO_COPY_MODE_WP)
+	mprotect(PROT_READ|PROT_WRITE)
 
-There are two more codepaths whose flushing behavior is not changed by
-this patch and we may need to come to them in future.  One is the
-writeback stats used by dirty throttling and second is the deactivation
-heuristic in the reclaim.  For now keeping an eye on them and if there is
-report of regression due to these codepaths, we will reevaluate then.
+At this point the user would expect to still get UFFD notification when
+the page is accessed for write, but the user would not get one, since the
+PTE was not marked as UFFD_WP during UFFDIO_COPY.
 
-Link: https://lore.kernel.org/all/CA+wXwBSyO87ZX5PVwdHm-=dBjZYECGmfnydUicUyrQqndgX2MQ@mail.gmail.com [1]
-Link: https://lkml.kernel.org/r/20220304184040.1304781-1-shakeelb@google.com
-Fixes: 1f828223b799 ("memcg: flush lruvec stats in the refault")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reported-by: Daniel Dao <dqminh@cloudflare.com>
-Tested-by: Ivan Babrou <ivan@cloudflare.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Frank Hofmann <fhofmann@cloudflare.com>
-Cc: <stable@vger.kernel.org>
+Fix it by always marking PTEs as UFFD_WP regardless on the
+write-permission in the VMA flags.
+
+Link: https://lkml.kernel.org/r/20220217211602.2769-1-namit@vmware.com
+Fixes: 292924b26024 ("userfaultfd: wp: apply _PAGE_UFFD_WP bit")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 +++++
- mm/memcontrol.c            |   12 +++++++++++-
- mm/workingset.c            |    2 +-
- 3 files changed, 17 insertions(+), 2 deletions(-)
+ mm/userfaultfd.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-sync-flush-only-if-periodic-flush-is-delayed
-+++ a/include/linux/memcontrol.h
-@@ -1012,6 +1012,7 @@ static inline unsigned long lruvec_page_
- }
- 
- void mem_cgroup_flush_stats(void);
-+void mem_cgroup_flush_stats_delayed(void);
- 
- void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
- 			      int val);
-@@ -1455,6 +1456,10 @@ static inline void mem_cgroup_flush_stat
- {
- }
- 
-+static inline void mem_cgroup_flush_stats_delayed(void)
-+{
-+}
+--- a/mm/userfaultfd.c~userfaultfd-mark-uffd_wp-regardless-of-vm_write-flag
++++ a/mm/userfaultfd.c
+@@ -72,12 +72,15 @@ int mfill_atomic_install_pte(struct mm_s
+ 	_dst_pte = pte_mkdirty(_dst_pte);
+ 	if (page_in_cache && !vm_shared)
+ 		writable = false;
+-	if (writable) {
+-		if (wp_copy)
+-			_dst_pte = pte_mkuffd_wp(_dst_pte);
+-		else
+-			_dst_pte = pte_mkwrite(_dst_pte);
+-	}
 +
- static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
- 					    enum node_stat_item idx, int val)
- {
---- a/mm/memcontrol.c~memcg-sync-flush-only-if-periodic-flush-is-delayed
-+++ a/mm/memcontrol.c
-@@ -587,6 +587,9 @@ static DECLARE_DEFERRABLE_WORK(stats_flu
- static DEFINE_SPINLOCK(stats_flush_lock);
- static DEFINE_PER_CPU(unsigned int, stats_updates);
- static atomic_t stats_flush_threshold = ATOMIC_INIT(0);
-+static u64 flush_next_time;
-+
-+#define FLUSH_TIME (2UL*HZ)
++	/*
++	 * Always mark a PTE as write-protected when needed, regardless of
++	 * VM_WRITE, which the user might change.
++	 */
++	if (wp_copy)
++		_dst_pte = pte_mkuffd_wp(_dst_pte);
++	else if (writable)
++		_dst_pte = pte_mkwrite(_dst_pte);
  
- /*
-  * Accessors to ensure that preemption is disabled on PREEMPT_RT because it can
-@@ -637,6 +640,7 @@ static void __mem_cgroup_flush_stats(voi
- 	if (!spin_trylock_irqsave(&stats_flush_lock, flag))
- 		return;
+ 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
  
-+	flush_next_time = jiffies_64 + 2*FLUSH_TIME;
- 	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
- 	atomic_set(&stats_flush_threshold, 0);
- 	spin_unlock_irqrestore(&stats_flush_lock, flag);
-@@ -648,10 +652,16 @@ void mem_cgroup_flush_stats(void)
- 		__mem_cgroup_flush_stats();
- }
- 
-+void mem_cgroup_flush_stats_delayed(void)
-+{
-+	if (time_after64(jiffies_64, flush_next_time))
-+		mem_cgroup_flush_stats();
-+}
-+
- static void flush_memcg_stats_dwork(struct work_struct *w)
- {
- 	__mem_cgroup_flush_stats();
--	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, 2UL*HZ);
-+	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
- }
- 
- /**
---- a/mm/workingset.c~memcg-sync-flush-only-if-periodic-flush-is-delayed
-+++ a/mm/workingset.c
-@@ -355,7 +355,7 @@ void workingset_refault(struct folio *fo
- 
- 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats_delayed();
- 	/*
- 	 * Compare the distance to the existing workingset size. We
- 	 * don't activate pages that couldn't stay resident even if
 _
