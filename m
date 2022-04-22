@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A89BC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90656C4332F
 	for <mm-commits@archiver.kernel.org>; Fri, 22 Apr 2022 18:26:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231241AbiDVS3A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Apr 2022 14:29:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41704 "EHLO
+        id S231252AbiDVS3C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 22 Apr 2022 14:29:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231891AbiDVS17 (ORCPT
+        with ESMTP id S231873AbiDVS17 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2022 14:27:59 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93FA810521D
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 11:25:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48933105231;
+        Fri, 22 Apr 2022 11:25:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4798A617FE
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 18:24:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C336C385A9;
-        Fri, 22 Apr 2022 18:24:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 146D961820;
+        Fri, 22 Apr 2022 18:24:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 683BAC385A0;
+        Fri, 22 Apr 2022 18:24:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650651892;
-        bh=X5RiNeEJ9XGn+jqU8qFkpTO+01SOMdTyz5DFkbZDnmQ=;
+        s=korg; t=1650651898;
+        bh=r8MKl2pL4Spbnm26Y1THPv8vNAXf8hPy/gZl2qySPk4=;
         h=Date:To:From:Subject:From;
-        b=HX/syqGMYZFuY4hpyzCIAQVKkwsF7ADDFXxLLq4d2p7qAAJHyW7awle2Waoov9Ab0
-         kfg7GujDIgj49WiPNQwL4pg4qbv+I/rpms/gERAp+i2I9yR2yHBc484wMjO2PdSNzF
-         yed/TTBG1myKY04P32sFVRS2oVlSJwI1mddUfcXY=
-Date:   Fri, 22 Apr 2022 11:24:52 -0700
-To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=mm0gGOEva8YX3WLA0jcrKkjRY4x0ftPa1ILrcjefOrxxqv3zK3ua+8dYSr2hDk0DA
+         q3JNPYyMo7yM37x/C0P5L/mDwWRm49LWLGF8iK/UKwwzVVAzmFhnNhzUd9goQV28/S
+         Maj9t2Vvj7tz2IVHrfcoemranX8IC39IvMIJNojI=
+Date:   Fri, 22 Apr 2022 11:24:57 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        rcampbell@nvidia.com, jhubbard@nvidia.com, jgg@nvidia.com,
+        christian.koenig@amd.com, apopple@nvidia.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] selftest-vm-support-xfail-in-mremap_test.patch removed from -mm tree
-Message-Id: <20220422182452.9C336C385A9@smtp.kernel.org>
+Subject: [merged] mm-mmu_notifierc-fix-race-in-mmu_interval_notifier_remove.patch removed from -mm tree
+Message-Id: <20220422182458.683BAC385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,41 +43,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/vm: support xfail in mremap_test
+     Subject: mm/mmu_notifier.c: fix race in mmu_interval_notifier_remove()
 has been removed from the -mm tree.  Its filename was
-     selftest-vm-support-xfail-in-mremap_test.patch
+     mm-mmu_notifierc-fix-race-in-mmu_interval_notifier_remove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: selftest/vm: support xfail in mremap_test
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/mmu_notifier.c: fix race in mmu_interval_notifier_remove()
 
-Use ksft_test_result_xfail for the tests which are expected to fail.
+In some cases it is possible for mmu_interval_notifier_remove() to race
+with mn_tree_inv_end() allowing it to return while the notifier data
+structure is still in use.  Consider the following sequence:
 
-Link: https://lkml.kernel.org/r/20220420215721.4868-3-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+CPU0 - mn_tree_inv_end()            CPU1 - mmu_interval_notifier_remove()
+----------------------------------- ------------------------------------
+                                    spin_lock(subscriptions->lock);
+                                    seq = subscriptions->invalidate_seq;
+spin_lock(subscriptions->lock);     spin_unlock(subscriptions->lock);
+subscriptions->invalidate_seq++;
+                                    wait_event(invalidate_seq != seq);
+                                    return;
+interval_tree_remove(interval_sub); kfree(interval_sub);
+spin_unlock(subscriptions->lock);
+wake_up_all();
+
+As the wait_event() condition is true it will return immediately.  This
+can lead to use-after-free type errors if the caller frees the data
+structure containing the interval notifier subscription while it is still
+on a deferred list.  Fix this by taking the appropriate lock when reading
+invalidate_seq to ensure proper synchronisation.
+
+I observed this whilst running stress testing during some development. 
+You do have to be pretty unlucky, but it leads to the usual problems of
+use-after-free (memory corruption, kernel crash, difficult to diagnose
+WARN_ON, etc).
+
+Link: https://lkml.kernel.org/r/20220420043734.476348-1-apopple@nvidia.com
+Fixes: 99cb252f5e68 ("mm/mmu_notifier: add an interval tree notifier")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mremap_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmu_notifier.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/mremap_test.c~selftest-vm-support-xfail-in-mremap_test
-+++ a/tools/testing/selftests/vm/mremap_test.c
-@@ -268,7 +268,7 @@ static void run_mremap_test_case(struct
+--- a/mm/mmu_notifier.c~mm-mmu_notifierc-fix-race-in-mmu_interval_notifier_remove
++++ a/mm/mmu_notifier.c
+@@ -1036,6 +1036,18 @@ int mmu_interval_notifier_insert_locked(
+ }
+ EXPORT_SYMBOL_GPL(mmu_interval_notifier_insert_locked);
  
- 	if (remap_time < 0) {
- 		if (test_case.expect_failure)
--			ksft_test_result_pass("%s\n\tExpected mremap failure\n",
-+			ksft_test_result_xfail("%s\n\tExpected mremap failure\n",
- 					      test_case.name);
- 		else {
- 			ksft_test_result_fail("%s\n", test_case.name);
++static bool
++mmu_interval_seq_released(struct mmu_notifier_subscriptions *subscriptions,
++			  unsigned long seq)
++{
++	bool ret;
++
++	spin_lock(&subscriptions->lock);
++	ret = subscriptions->invalidate_seq != seq;
++	spin_unlock(&subscriptions->lock);
++	return ret;
++}
++
+ /**
+  * mmu_interval_notifier_remove - Remove a interval notifier
+  * @interval_sub: Interval subscription to unregister
+@@ -1083,7 +1095,7 @@ void mmu_interval_notifier_remove(struct
+ 	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
+ 	if (seq)
+ 		wait_event(subscriptions->wq,
+-			   READ_ONCE(subscriptions->invalidate_seq) != seq);
++			   mmu_interval_seq_released(subscriptions, seq));
+ 
+ 	/* pairs with mmgrab in mmu_interval_notifier_insert() */
+ 	mmdrop(mm);
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-selftest-vm-clarify-error-statement-in-gup_test.patch
+mm-add-selftests-for-migration-entries.patch
 
