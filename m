@@ -2,38 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D972C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Apr 2022 22:28:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA5A9C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Apr 2022 22:44:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231720AbiDVWa6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Apr 2022 18:30:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38768 "EHLO
+        id S233695AbiDVWrP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 22 Apr 2022 18:47:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233080AbiDVWaT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2022 18:30:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EB90338274
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 14:56:15 -0700 (PDT)
+        with ESMTP id S233268AbiDVWqp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2022 18:46:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6501017B9A0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 14:37:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9F025B83272
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 21:56:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AA2AC385A0;
-        Fri, 22 Apr 2022 21:56:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E4C3B61F5E
+        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 21:37:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43168C385A4;
+        Fri, 22 Apr 2022 21:37:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650664572;
-        bh=Yf3Mvz/hub8txMv8Jag8RMHmxwS6PAxUblNaeumU0cc=;
+        s=korg; t=1650663470;
+        bh=VNvC6Iq5SnMdmm6KzlRGHiNkdoeqDjUv2El7jsq7Tbk=;
         h=Date:To:From:Subject:From;
-        b=qijCXsAVytvZGzeAzIbjlV81MNGZ3v2lYpx1Gy/7BDtXQmHtFyVa3M0jH52ic8qDQ
-         lRxsvCMlz9btMc33Wz25r7o+jRBuPlrQ3S5G/YlfR48mQsZyXy8T1+F+/y89I4U8hh
-         qAiRPnyD5cBlA9J4BBPiEdC1zj7VeJOfurj5BOCI=
-Date:   Fri, 22 Apr 2022 14:56:11 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org,
-        axelrasmussen@google.com, akpm@linux-foundation.org
+        b=P/kzzUgrZFWRmDnFeuLC0jekeM3LTdJ/Iw+fwZWHsCKFGiwW6OMKuJ5cc9vE6ZDwG
+         0epBsq8GvzcOtIC/SzRyFO0ESb87/xqKgMFUEWxLatzhijpb2ueoSc00loEfoDhMSO
+         j8dw4Nascq7OLWtEa5UbMnr9y8D1wNTpv6oJIOHA=
+Date:   Fri, 22 Apr 2022 14:37:49 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, weixugc@google.com,
+        vaibhav@linux.ibm.com, tj@kernel.org, tim.c.chen@linux.intel.com,
+        shuah@kernel.org, shakeelb@google.com, schatzberg.dan@gmail.com,
+        roman.gushchin@linux.dev, rientjes@google.com, mkoutny@suse.com,
+        mhocko@suse.com, lizefan.x@bytedance.com, hannes@cmpxchg.org,
+        gthelen@google.com, dave.hansen@linux.intel.com, corbet@lwn.net,
+        chenwandun@huawei.com, yosryahmed@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate.patch added to -mm tree
-Message-Id: <20220422215612.3AA2AC385A0@smtp.kernel.org>
+Subject: + selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch added to -mm tree
+Message-Id: <20220422213750.43168C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: refactor run_vmtests.sh to reduce boilerplate
+     Subject: selftests: cgroup: return -errno from cg_read()/cg_write() on failure
 has been added to the -mm tree.  Its filename is
-     selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate.patch
+     selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,586 +68,150 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: selftests: vm: refactor run_vmtests.sh to reduce boilerplate
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: selftests: cgroup: return -errno from cg_read()/cg_write() on failure
 
-Previously, each test printed out its own header, dealt with its own
-return code, etc.  By just putting this standard stuff in a function, we
-can delete > 300 lines from the script.
+Currently, cg_read()/cg_write() returns 0 on success and -1 on failure. 
+Modify them to return the -errno on failure.
 
-This also makes adding future tests easier. And, it gets rid of various
-inconsistencies that already exist:
-
-- Some tests correctly deal with ksft_skip, but others don't.
-- Some tests just print the executable name, others print arguments, and
-  yet others print some comment in the header.
-- Most tests print out a header with two separator lines, but not the
-  HMM smoke test or the memfd_secret test, which only print one.
-- We had a redundant "exit" at the end, with all the boilerplate it's an
-  easy oversight.
-
-Link: https://lkml.kernel.org/r/20220421224928.1848230-1-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Link: https://lkml.kernel.org/r/20220421234426.3494842-3-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Chen Wandun <chenwandun@huawei.com>
+Cc: Dan Schatzberg <schatzberg.dan@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Michal Koutný" <mkoutny@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/run_vmtests.sh |  509 +++-----------------
- 1 file changed, 79 insertions(+), 430 deletions(-)
+ tools/testing/selftests/cgroup/cgroup_util.c |   44 +++++++----------
+ 1 file changed, 19 insertions(+), 25 deletions(-)
 
---- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -66,467 +66,116 @@ fi
- VADDR64=0
- echo "$ARCH64STR" | grep $ARCH && VADDR64=1
+--- a/tools/testing/selftests/cgroup/cgroup_util.c~selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure
++++ a/tools/testing/selftests/cgroup/cgroup_util.c
+@@ -19,6 +19,7 @@
+ #include "cgroup_util.h"
+ #include "../clone3/clone3_selftests.h"
  
-+# Usage: run_test [test binary] [arbitrary test arguments...]
-+run_test() {
-+	local title="running $*"
-+	local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
-+	printf "%s\n%s\n%s\n" "$sep" "$title" "$sep"
-+
-+	"$@"
-+	local ret=$?
-+	if [ $ret -eq 0 ]; then
-+		echo "[PASS]"
-+	elif [ $ret -eq $ksft_skip ]; then
-+		echo "[SKIP]"
-+		exitcode=$ksft_skip
-+	else
-+		echo "[FAIL]"
-+		exitcode=1
-+	fi
-+}
-+
- mkdir $mnt
- mount -t hugetlbfs none $mnt
++/* Returns read len on success, or -errno on failure. */
+ static ssize_t read_text(const char *path, char *buf, size_t max_len)
+ {
+ 	ssize_t len;
+@@ -26,35 +27,29 @@ static ssize_t read_text(const char *pat
  
--echo "---------------------"
--echo "running hugepage-mmap"
--echo "---------------------"
--./hugepage-mmap
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
-+run_test ./hugepage-mmap
+ 	fd = open(path, O_RDONLY);
+ 	if (fd < 0)
+-		return fd;
++		return -errno;
  
- shmmax=`cat /proc/sys/kernel/shmmax`
- shmall=`cat /proc/sys/kernel/shmall`
- echo 268435456 > /proc/sys/kernel/shmmax
- echo 4194304 > /proc/sys/kernel/shmall
--echo "--------------------"
--echo "running hugepage-shm"
--echo "--------------------"
--./hugepage-shm
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
-+run_test ./hugepage-shm
- echo $shmmax > /proc/sys/kernel/shmmax
- echo $shmall > /proc/sys/kernel/shmall
+ 	len = read(fd, buf, max_len - 1);
+-	if (len < 0)
+-		goto out;
  
--echo "-------------------"
--echo "running map_hugetlb"
--echo "-------------------"
--./map_hugetlb
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "-----------------------"
--echo "running hugepage-mremap"
--echo "-----------------------"
--./hugepage-mremap $mnt/huge_mremap
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
-+run_test ./map_hugetlb
+-	buf[len] = 0;
+-out:
++	if (len >= 0)
++		buf[len] = 0;
 +
-+run_test ./hugepage-mremap $mnt/huge_mremap
- rm -f $mnt/huge_mremap
+ 	close(fd);
+-	return len;
++	return len < 0 ? -errno : len;
+ }
  
--echo "------------------------"
--echo "running hugepage-vmemmap"
--echo "------------------------"
--./hugepage-vmemmap
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "-----------------------"
--echo "running hugetlb-madvise"
--echo "-----------------------"
--./hugetlb-madvise $mnt/madvise-test
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
-+run_test ./hugepage-vmemmap
-+
-+run_test ./hugetlb-madvise $mnt/madvise-test
- rm -f $mnt/madvise-test
++/* Returns written len on success, or -errno on failure. */
+ static ssize_t write_text(const char *path, char *buf, ssize_t len)
+ {
+ 	int fd;
  
- echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
- echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
- echo "      hugetlb regression testing."
+ 	fd = open(path, O_WRONLY | O_APPEND);
+ 	if (fd < 0)
+-		return fd;
++		return -errno;
  
--echo "---------------------------"
--echo "running map_fixed_noreplace"
--echo "---------------------------"
--./map_fixed_noreplace
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
+ 	len = write(fd, buf, len);
+-	if (len < 0) {
+-		close(fd);
+-		return len;
+-	}
 -
--echo "------------------------------------------------------"
--echo "running: gup_test -u # get_user_pages_fast() benchmark"
--echo "------------------------------------------------------"
--./gup_test -u
--ret_val=$?
+ 	close(fd);
 -
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "------------------------------------------------------"
--echo "running: gup_test -a # pin_user_pages_fast() benchmark"
--echo "------------------------------------------------------"
--./gup_test -a
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "------------------------------------------------------------"
--echo "# Dump pages 0, 19, and 4096, using pin_user_pages:"
--echo "running: gup_test -ct -F 0x1 0 19 0x1000 # dump_page() test"
--echo "------------------------------------------------------------"
--./gup_test -ct -F 0x1 0 19 0x1000
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "-------------------"
--echo "running userfaultfd"
--echo "-------------------"
--./userfaultfd anon 20 16
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "---------------------------"
--echo "running userfaultfd_hugetlb"
--echo "---------------------------"
-+run_test ./map_fixed_noreplace
-+
-+# get_user_pages_fast() benchmark
-+run_test ./gup_test -u
-+# pin_user_pages_fast() benchmark
-+run_test ./gup_test -a
-+# Dump pages 0, 19, and 4096, using pin_user_pages:
-+run_test ./gup_test -ct -F 0x1 0 19 0x1000
-+
-+run_test ./userfaultfd anon 20 16
- # Test requires source and destination huge pages.  Size of source
- # (half_ufd_size_MB) is passed as argument to test.
--./userfaultfd hugetlb $half_ufd_size_MB 32
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "-------------------------"
--echo "running userfaultfd_shmem"
--echo "-------------------------"
--./userfaultfd shmem 20 16
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
-+run_test ./userfaultfd hugetlb $half_ufd_size_MB 32
-+run_test ./userfaultfd shmem 20 16
+-	return len;
++	return len < 0 ? -errno : len;
+ }
  
- #cleanup
- umount $mnt
- rm -rf $mnt
- echo $nr_hugepgs > /proc/sys/vm/nr_hugepages
+ char *cg_name(const char *root, const char *name)
+@@ -87,16 +82,16 @@ char *cg_control(const char *cgroup, con
+ 	return ret;
+ }
  
--echo "-----------------------"
--echo "running compaction_test"
--echo "-----------------------"
--./compaction_test
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "----------------------"
--echo "running on-fault-limit"
--echo "----------------------"
--sudo -u nobody ./on-fault-limit
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "--------------------"
--echo "running map_populate"
--echo "--------------------"
--./map_populate
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "-------------------------"
--echo "running mlock-random-test"
--echo "-------------------------"
--./mlock-random-test
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "--------------------"
--echo "running mlock2-tests"
--echo "--------------------"
--./mlock2-tests
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "-------------------"
--echo "running mremap_test"
--echo "-------------------"
--./mremap_test
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "-----------------"
--echo "running thuge-gen"
--echo "-----------------"
--./thuge-gen
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
-+run_test ./compaction_test
-+
-+run_test sudo -u nobody ./on-fault-limit
-+
-+run_test ./map_populate
-+
-+run_test ./mlock-random-test
-+
-+run_test ./mlock2-tests
-+
-+run_test ./mremap_test
-+
-+run_test ./thuge-gen
++/* Returns 0 on success, or -errno on failure. */
+ int cg_read(const char *cgroup, const char *control, char *buf, size_t len)
+ {
+ 	char path[PATH_MAX];
++	ssize_t ret;
  
- if [ $VADDR64 -ne 0 ]; then
--echo "-----------------------------"
--echo "running virtual_address_range"
--echo "-----------------------------"
--./virtual_address_range
--if [ $? -ne 0 ]; then
--	echo "[FAIL]"
--	exitcode=1
--else
--	echo "[PASS]"
--fi
--
--echo "-----------------------------"
--echo "running virtual address 128TB switch test"
--echo "-----------------------------"
--./va_128TBswitch
--if [ $? -ne 0 ]; then
--    echo "[FAIL]"
--    exitcode=1
--else
--    echo "[PASS]"
--fi
-+	run_test ./virtual_address_range
-+
-+	# virtual address 128TB switch test
-+	run_test ./va_128TBswitch
- fi # VADDR64
+ 	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
  
--echo "------------------------------------"
--echo "running vmalloc stability smoke test"
--echo "------------------------------------"
--./test_vmalloc.sh smoke
--ret_val=$?
+-	if (read_text(path, buf, len) >= 0)
+-		return 0;
 -
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "------------------------------------"
--echo "running MREMAP_DONTUNMAP smoke test"
--echo "------------------------------------"
--./mremap_dontunmap
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "running HMM smoke test"
--echo "------------------------------------"
--./test_hmm.sh smoke
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	echo "[SKIP]"
--	exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "--------------------------------------------------------"
--echo "running MADV_POPULATE_READ and MADV_POPULATE_WRITE tests"
--echo "--------------------------------------------------------"
--./madv_populate
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	echo "[SKIP]"
--	exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "running memfd_secret test"
--echo "------------------------------------"
--./memfd_secret
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	echo "[SKIP]"
--	exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "-------------------------------------------------------"
--echo "running KSM MADV_MERGEABLE test with 10 identical pages"
--echo "-------------------------------------------------------"
--./ksm_tests -M -p 10
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "------------------------"
--echo "running KSM unmerge test"
--echo "------------------------"
--./ksm_tests -U
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "----------------------------------------------------------"
--echo "running KSM test with 10 zero pages and use_zero_pages = 0"
--echo "----------------------------------------------------------"
--./ksm_tests -Z -p 10 -z 0
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "----------------------------------------------------------"
--echo "running KSM test with 10 zero pages and use_zero_pages = 1"
--echo "----------------------------------------------------------"
--./ksm_tests -Z -p 10 -z 1
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "-------------------------------------------------------------"
--echo "running KSM test with 2 NUMA nodes and merge_across_nodes = 1"
--echo "-------------------------------------------------------------"
--./ksm_tests -N -m 1
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
--
--echo "-------------------------------------------------------------"
--echo "running KSM test with 2 NUMA nodes and merge_across_nodes = 0"
--echo "-------------------------------------------------------------"
--./ksm_tests -N -m 0
--ret_val=$?
--
--if [ $ret_val -eq 0 ]; then
--	echo "[PASS]"
--elif [ $ret_val -eq $ksft_skip ]; then
--	 echo "[SKIP]"
--	 exitcode=$ksft_skip
--else
--	echo "[FAIL]"
--	exitcode=1
--fi
-+# vmalloc stability smoke test
-+run_test ./test_vmalloc.sh smoke
+-	return -1;
++	ret = read_text(path, buf, len);
++	return ret >= 0 ? 0 : ret;
+ }
  
--exit $exitcode
-+run_test ./mremap_dontunmap
-+
-+run_test ./test_hmm.sh smoke
-+
-+# MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
-+run_test ./madv_populate
-+
-+run_test ./memfd_secret
-+
-+# KSM MADV_MERGEABLE test with 10 identical pages
-+run_test ./ksm_tests -M -p 10
-+# KSM unmerge test
-+run_test ./ksm_tests -U
-+# KSM test with 10 zero pages and use_zero_pages = 0
-+run_test ./ksm_tests -Z -p 10 -z 0
-+# KSM test with 10 zero pages and use_zero_pages = 1
-+run_test ./ksm_tests -Z -p 10 -z 1
-+# KSM test with 2 NUMA nodes and merge_across_nodes = 1
-+run_test ./ksm_tests -N -m 1
-+# KSM test with 2 NUMA nodes and merge_across_nodes = 0
-+run_test ./ksm_tests -N -m 0
+ int cg_read_strcmp(const char *cgroup, const char *control,
+@@ -177,17 +172,15 @@ long cg_read_lc(const char *cgroup, cons
+ 	return cnt;
+ }
  
- exit $exitcode
++/* Returns 0 on success, or -errno on failure. */
+ int cg_write(const char *cgroup, const char *control, char *buf)
+ {
+ 	char path[PATH_MAX];
+-	ssize_t len = strlen(buf);
++	ssize_t len = strlen(buf), ret;
+ 
+ 	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
+-
+-	if (write_text(path, buf, len) == len)
+-		return 0;
+-
+-	return -1;
++	ret = write_text(path, buf, len);
++	return ret == len ? 0 : ret;
+ }
+ 
+ int cg_find_unified_root(char *root, size_t len)
+@@ -557,7 +550,8 @@ ssize_t proc_read_text(int pid, bool thr
+ 	else
+ 		snprintf(path, sizeof(path), "/proc/%d/%s", pid, item);
+ 
+-	return read_text(path, buf, size);
++	size = read_text(path, buf, size);
++	return size < 0 ? -1 : size;
+ }
+ 
+ int proc_read_strstr(int pid, bool thread, const char *item, const char *needle)
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate.patch
-selftests-vm-fix-shellcheck-warnings-in-run_vmtestssh.patch
+selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch
+selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch
+selftests-cgroup-add-a-selftest-for-memoryreclaim.patch
 
