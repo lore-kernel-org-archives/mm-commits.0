@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 982D7C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Apr 2022 18:26:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56EEDC43219
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Apr 2022 18:26:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231317AbiDVS3E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Apr 2022 14:29:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42868 "EHLO
+        id S231371AbiDVS3F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 22 Apr 2022 14:29:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43360 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233772AbiDVS20 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2022 14:28:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44E75C7E93
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 11:25:28 -0700 (PDT)
+        with ESMTP id S234314AbiDVS2e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2022 14:28:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B540D8166E
+        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 11:25:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DCB696181B
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 18:24:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B93CC385A0;
-        Fri, 22 Apr 2022 18:24:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AB4BAB81F56
+        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 18:24:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CAB0C385A9;
+        Fri, 22 Apr 2022 18:24:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650651896;
-        bh=dVtrEp8ekS0mEaqbt7hS3CArdLjSvYyYKU4joiYiWmY=;
+        s=korg; t=1650651897;
+        bh=b3qVteJNgT83kl77ceWiBLp+SRfTo2C0lX6uByAqUbE=;
         h=Date:To:From:Subject:From;
-        b=bIzjp7/rarsbdZDxGtPBSizk38CJyJlumhL5nq88ygW++A+T5gjL+E2xIRzHnhuBX
-         LBh1fq2Zb8DFmpDtywF8gKEND0xoY00rN9hiLfJFNOrQkEZddU2s/ENpLKfSMjjk24
-         wJfUJycXpw7ozUfNK1kuVr3Sq+eNtu3R0ID1xOhk=
-Date:   Fri, 22 Apr 2022 11:24:55 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        glider@google.com, dvyukov@google.com, andreyknvl@gmail.com,
-        vincenzo.frascino@arm.com, akpm@linux-foundation.org
+        b=IR7U7Bx8iaH7otVs9Mim5WLVr+0WgjWQ303DSO03wY/yMWpkW0h9KqWjasvnqrOLJ
+         mKBmVnYskCVd1GyBau0TMc+qO7LzvpBPnpRE4m4zwz4Lqi3pbwQTYTDVq1X8RcNpp3
+         69ceHgXlKNNGEGMNRY0Ugomph8980OVBtlNjolck=
+Date:   Fri, 22 Apr 2022 11:24:56 -0700
+To:     mm-commits@vger.kernel.org, tarasmadan@google.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        bigeasy@linutronix.de, andreyknvl@gmail.com, nogikh@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] maintainers-add-vincenzo-frascino-to-kasan-reviewers.patch removed from -mm tree
-Message-Id: <20220422182456.3B93CC385A0@smtp.kernel.org>
+Subject: [merged] kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch removed from -mm tree
+Message-Id: <20220422182457.4CAB0C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,43 +43,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add Vincenzo Frascino to KASAN reviewers
+     Subject: kcov: don't generate a warning on vm_insert_page()'s failure
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-vincenzo-frascino-to-kasan-reviewers.patch
+     kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: MAINTAINERS: add Vincenzo Frascino to KASAN reviewers
+From: Aleksandr Nogikh <nogikh@google.com>
+Subject: kcov: don't generate a warning on vm_insert_page()'s failure
 
-Add my email address to KASAN reviewers list to make sure that I am Cc'ed
-in all the KASAN changes that may affect arm64 MTE.
+vm_insert_page()'s failure is not an unexpected condition, so don't do
+WARN_ONCE() in such a case.
 
-Link: https://lkml.kernel.org/r/20220419170640.21404-1-vincenzo.frascino@arm.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Instead, print a kernel message and just return an error code.
+
+This flaw has been reported under an OOM condition by sysbot
+(https://lkml.kernel.org/r/Ylkr2xrVbhQYwNLf@elver.google.com).
+
+The message is mainly for the benefit of the test log, in this case the
+fuzzer's log so that humans inspecting the log can figure out what was
+going on. KCOV is a testing tool, so I think being a little more chatty
+when KCOV unexpectedly is about to fail will save someone debugging
+time.
+
+We don't want the WARN, because it's not a kernel bug that syzbot should
+report, and failure can happen if the fuzzer tries hard enough (as
+above).
+
+Link: https://lkml.kernel.org/r/20220401182512.249282-1-nogikh@google.com
+Fixes: b3d7fe86fbd0 ("kcov: properly handle subsequent mmap calls"),
+Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Taras Madan <tarasmadan@google.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kcov.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-vincenzo-frascino-to-kasan-reviewers
-+++ a/MAINTAINERS
-@@ -10549,6 +10549,7 @@ M:	Andrey Ryabinin <ryabinin.a.a@gmail.c
- R:	Alexander Potapenko <glider@google.com>
- R:	Andrey Konovalov <andreyknvl@gmail.com>
- R:	Dmitry Vyukov <dvyukov@google.com>
-+R:	Vincenzo Frascino <vincenzo.frascino@arm.com>
- L:	kasan-dev@googlegroups.com
- S:	Maintained
- F:	Documentation/dev-tools/kasan.rst
+--- a/kernel/kcov.c~kcov-dont-generate-a-warning-on-vm_insert_pages-failure
++++ a/kernel/kcov.c
+@@ -475,8 +475,11 @@ static int kcov_mmap(struct file *filep,
+ 	vma->vm_flags |= VM_DONTEXPAND;
+ 	for (off = 0; off < size; off += PAGE_SIZE) {
+ 		page = vmalloc_to_page(kcov->area + off);
+-		if (vm_insert_page(vma, vma->vm_start + off, page))
+-			WARN_ONCE(1, "vm_insert_page() failed");
++		res = vm_insert_page(vma, vma->vm_start + off, page);
++		if (res) {
++			pr_warn_once("kcov: vm_insert_page() failed\n");
++			return res;
++		}
+ 	}
+ 	return 0;
+ exit:
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from nogikh@google.com are
 
 
