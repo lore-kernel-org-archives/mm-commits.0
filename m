@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56EEDC43219
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Apr 2022 18:26:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 218EBC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Apr 2022 21:34:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231371AbiDVS3F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Apr 2022 14:29:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43360 "EHLO
+        id S229969AbiDVVhi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 22 Apr 2022 17:37:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234314AbiDVS2e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2022 14:28:34 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B540D8166E
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 11:25:38 -0700 (PDT)
+        with ESMTP id S229936AbiDVVhh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2022 17:37:37 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0640D400EF3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 13:38:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AB4BAB81F56
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 18:24:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CAB0C385A9;
-        Fri, 22 Apr 2022 18:24:57 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id BF92FCE2875
+        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 20:37:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06EDCC385A4;
+        Fri, 22 Apr 2022 20:37:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650651897;
-        bh=b3qVteJNgT83kl77ceWiBLp+SRfTo2C0lX6uByAqUbE=;
+        s=korg; t=1650659851;
+        bh=4yRqnUbgPpL+O4i5xV4zb2vowTBdtWdpmfr1eLnhtK8=;
         h=Date:To:From:Subject:From;
-        b=IR7U7Bx8iaH7otVs9Mim5WLVr+0WgjWQ303DSO03wY/yMWpkW0h9KqWjasvnqrOLJ
-         mKBmVnYskCVd1GyBau0TMc+qO7LzvpBPnpRE4m4zwz4Lqi3pbwQTYTDVq1X8RcNpp3
-         69ceHgXlKNNGEGMNRY0Ugomph8980OVBtlNjolck=
-Date:   Fri, 22 Apr 2022 11:24:56 -0700
-To:     mm-commits@vger.kernel.org, tarasmadan@google.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        bigeasy@linutronix.de, andreyknvl@gmail.com, nogikh@google.com,
+        b=A9WHPKusdx+QQpatvd6lsT5GOdQK2nuNP8ISdxNV/ksDZlLhfxRp+vfMAs+YORgi8
+         TU2iu84PIX4I6SJec5aBBiuDvY/nkK78Ojq0ZZqvP87N8Yl41c06G1SnSW9Y1cJRYP
+         c0DtAIZ0xqv/+dr71vab11bwx2jNl5pPII2RM5BM=
+Date:   Fri, 22 Apr 2022 13:37:30 -0700
+To:     mm-commits@vger.kernel.org, sudarsana.kalluru@qlogic.com,
+        martin.petersen@oracle.com, jejb@linux.ibm.com,
+        anil.gurumurthy@qlogic.com, wangqing@vivo.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch removed from -mm tree
-Message-Id: <20220422182457.4CAB0C385A9@smtp.kernel.org>
+Subject: + scsi-bfa-use-time_is_before_jiffies-instead-of-open-coding-it.patch added to -mm tree
+Message-Id: <20220422203731.06EDCC385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,67 +43,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: don't generate a warning on vm_insert_page()'s failure
-has been removed from the -mm tree.  Its filename was
-     kcov-dont-generate-a-warning-on-vm_insert_pages-failure.patch
+     Subject: scsi: bfa: use time_is_before_jiffies() instead of open coding it
+has been added to the -mm tree.  Its filename is
+     scsi-bfa-use-time_is_before_jiffies-instead-of-open-coding-it.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/scsi-bfa-use-time_is_before_jiffies-instead-of-open-coding-it.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/scsi-bfa-use-time_is_before_jiffies-instead-of-open-coding-it.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Aleksandr Nogikh <nogikh@google.com>
-Subject: kcov: don't generate a warning on vm_insert_page()'s failure
+From: Wang Qing <wangqing@vivo.com>
+Subject: scsi: bfa: use time_is_before_jiffies() instead of open coding it
 
-vm_insert_page()'s failure is not an unexpected condition, so don't do
-WARN_ONCE() in such a case.
+Use the helper function time_is_{before,after}_jiffies() to improve code
+readability.
 
-Instead, print a kernel message and just return an error code.
-
-This flaw has been reported under an OOM condition by sysbot
-(https://lkml.kernel.org/r/Ylkr2xrVbhQYwNLf@elver.google.com).
-
-The message is mainly for the benefit of the test log, in this case the
-fuzzer's log so that humans inspecting the log can figure out what was
-going on. KCOV is a testing tool, so I think being a little more chatty
-when KCOV unexpectedly is about to fail will save someone debugging
-time.
-
-We don't want the WARN, because it's not a kernel bug that syzbot should
-report, and failure can happen if the fuzzer tries hard enough (as
-above).
-
-Link: https://lkml.kernel.org/r/20220401182512.249282-1-nogikh@google.com
-Fixes: b3d7fe86fbd0 ("kcov: properly handle subsequent mmap calls"),
-Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Taras Madan <tarasmadan@google.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Link: https://lkml.kernel.org/r/1650621172-66967-9-git-send-email-wangqing@vivo.com
+Signed-off-by: Wang Qing <wangqing@vivo.com>
+Cc: Anil Gurumurthy <anil.gurumurthy@qlogic.com>
+Cc: Sudarsana Kalluru <sudarsana.kalluru@qlogic.com>
+Cc: "James E.J. Bottomley" <jejb@linux.ibm.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/scsi/bfa/bfad_im.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/kernel/kcov.c~kcov-dont-generate-a-warning-on-vm_insert_pages-failure
-+++ a/kernel/kcov.c
-@@ -475,8 +475,11 @@ static int kcov_mmap(struct file *filep,
- 	vma->vm_flags |= VM_DONTEXPAND;
- 	for (off = 0; off < size; off += PAGE_SIZE) {
- 		page = vmalloc_to_page(kcov->area + off);
--		if (vm_insert_page(vma, vma->vm_start + off, page))
--			WARN_ONCE(1, "vm_insert_page() failed");
-+		res = vm_insert_page(vma, vma->vm_start + off, page);
-+		if (res) {
-+			pr_warn_once("kcov: vm_insert_page() failed\n");
-+			return res;
-+		}
- 	}
- 	return 0;
- exit:
+--- a/drivers/scsi/bfa/bfad_im.c~scsi-bfa-use-time_is_before_jiffies-instead-of-open-coding-it
++++ a/drivers/scsi/bfa/bfad_im.c
+@@ -13,6 +13,7 @@
+  */
+ 
+ #include <linux/export.h>
++#include <linux/jiffies.h>
+ 
+ #include "bfad_drv.h"
+ #include "bfad_im.h"
+@@ -871,9 +872,9 @@ bfad_ramp_up_qdepth(struct bfad_itnim_s
+ {
+ 	struct scsi_device *tmp_sdev;
+ 
+-	if (((jiffies - itnim->last_ramp_up_time) >
++	if (time_is_before_jiffies(itnim->last_ramp_up_time +
+ 		BFA_QUEUE_FULL_RAMP_UP_TIME * HZ) &&
+-		((jiffies - itnim->last_queue_full_time) >
++		time_is_before_jiffies(itnim->last_queue_full_time +
+ 		BFA_QUEUE_FULL_RAMP_UP_TIME * HZ)) {
+ 		shost_for_each_device(tmp_sdev, sdev->host) {
+ 			if (bfa_lun_queue_depth > tmp_sdev->queue_depth) {
 _
 
-Patches currently in -mm which might be from nogikh@google.com are
+Patches currently in -mm which might be from wangqing@vivo.com are
 
+block-xen-use-time_is_before_eq_jiffies-instead-of-open-coding-it.patch
+gpu-drm-i915-use-time_is_after_jiffies-instead-of-open-coding-it.patch
+gpu-drm-radeon-use-time_is_before_jiffies-instead-of-open-coding-it.patch
+hid-use-time_is_after_jiffies-instead-of-open-coding-it.patch
+md-use-time_is_before_eq_jiffies-instead-of-open-coding-it.patch
+net-wireless-marvell-use-time_is_before_jiffies-instead-of-open-coding-it.patch
+scsi-bfa-use-time_is_before_jiffies-instead-of-open-coding-it.patch
+timekeeping-use-time_is_before_jiffies-instead-of-open-coding-it.patch
+net-decnet-use-time_is_before_jiffies-instead-of-open-coding-it.patch
 
