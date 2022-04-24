@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99C16C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Apr 2022 20:34:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3428C433FE
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Apr 2022 20:34:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239578AbiDXUhJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S239580AbiDXUhJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 24 Apr 2022 16:37:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37140 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239580AbiDXUhF (ORCPT
+        with ESMTP id S239581AbiDXUhF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 24 Apr 2022 16:37:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 311B6156E2B
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62E6D156E2E
         for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 13:34:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DA294B80EB6
-        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 20:34:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93351C385A9;
-        Sun, 24 Apr 2022 20:34:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F406F612B4
+        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 20:34:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55EDEC385A7;
+        Sun, 24 Apr 2022 20:34:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650832441;
-        bh=yhkk09AOGda22dF8x2wNhCpsZp4jo9Ti22kBSMvx6OE=;
+        s=korg; t=1650832443;
+        bh=cma6a7LfRraO8A3Ds5GeRRuej5damAJ4ZsKlhtMJE4s=;
         h=Date:To:From:Subject:From;
-        b=tytphPIFNEhOi+kFLnDby7+o30JDIO6B3qaOJGogZfC5Q4FP3so0roBJdri7F25x/
-         Rozv5qAzoS9F9d+4Sv/sDnOoEzzgOfH3b51+3mN4tUPptDPyeWQHREMoByGBOeu0MJ
-         PodRFS+fTxANPM6VhzJvzzeIM6kHhlXXys1Gy/os=
-Date:   Sun, 24 Apr 2022 13:34:00 -0700
+        b=YwGAbjYfCixu3DqXLc9m8TJNi1wZITyBeVSX1kYOfjaV1wcBMrUXmBztzASj+93yL
+         /iCbnYe3lw82O+E09WwOR309wkaZZhi64WZXN7UXmgiNRxzW4Zu4SiTAXolcjaH48T
+         Gq17IDjkgBp1oW7s6liqv8DvRyi4lIB+iNw9jjOc=
+Date:   Sun, 24 Apr 2022 13:34:02 -0700
 To:     mm-commits@vger.kernel.org, tj@kernel.org, shakeelb@google.com,
         roman.gushchin@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
         void@manifault.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-removing-racy-check-in-test_memcg_sock.patch added to -mm tree
-Message-Id: <20220424203401.93351C385A9@smtp.kernel.org>
+Subject: + cgroup-fix-racy-check-in-alloc_pagecache_max_30m-helper-function.patch added to -mm tree
+Message-Id: <20220424203403.55EDEC385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: remove racy check in test_memcg_sock()
+     Subject: cgroup: fix racy check in alloc_pagecache_max_30M() helper function
 has been added to the -mm tree.  Its filename is
-     cgroup-removing-racy-check-in-test_memcg_sock.patch
+     cgroup-fix-racy-check-in-alloc_pagecache_max_30m-helper-function.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/cgroup-removing-racy-check-in-test_memcg_sock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/cgroup-fix-racy-check-in-alloc_pagecache_max_30m-helper-function.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/cgroup-removing-racy-check-in-test_memcg_sock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/cgroup-fix-racy-check-in-alloc_pagecache_max_30m-helper-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,25 +64,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Vernet <void@manifault.com>
-Subject: cgroup: remove racy check in test_memcg_sock()
+Subject: cgroup: fix racy check in alloc_pagecache_max_30M() helper function
 
-test_memcg_sock() in the cgroup memcg tests, verifies expected memory
-accounting for sockets.  The test forks a process which functions as a TCP
-server, and sends large buffers back and forth between itself (as the TCP
-client) and the forked TCP server.  While doing so, it verifies that
-memory.current and memory.stat.sock look correct.
+alloc_pagecache_max_30M() in the cgroup memcg tests performs a 50MB
+pagecache allocation, which it expects to be capped at 30MB due to the
+calling process having a memory.high setting of 30MB.  After the
+allocation, the function contains a check that verifies that MB(29) <
+memory.current <= MB(30).  This check can actually fail
+non-deterministically.
 
-There is currently a check in tcp_client() which asserts memory.current >=
-memory.stat.sock.  This check is racy, as between memory.current and
-memory.stat.sock being queried, a packet could come in which causes
-mem_cgroup_charge_skmem() to be invoked.  This could cause
-memory.stat.sock to exceed memory.current.  Reversing the order of
-querying doesn't address the problem either, as memory may be reclaimed
-between the two calls.  Instead, this patch just removes that assertion
-altogether, and instead relies on the values_close() check that follows to
-validate the expected accounting.
+The testcases that use this function are test_memcg_high() and
+test_memcg_max(), which set memory.min and memory.max to 30MB respectively
+for the cgroup under test.  The allocation can slightly exceed this number
+in both cases, and for memory.max, the process performing the allocation
+will not have the OOM killer invoked as it's performing a pagecache
+allocation.  This patchset therefore updates the above check to instead
+use the verify_close() helper function.
 
-Link: https://lkml.kernel.org/r/20220423155619.3669555-5-void@manifault.com
+Link: https://lkml.kernel.org/r/20220423155619.3669555-6-void@manifault.com
 Signed-off-by: David Vernet <void@manifault.com>
 Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -92,21 +91,36 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |    3 ---
- 1 file changed, 3 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~cgroup-removing-racy-check-in-test_memcg_sock
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~cgroup-fix-racy-check-in-alloc_pagecache_max_30m-helper-function
 +++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -1082,9 +1082,6 @@ static int tcp_client(const char *cgroup
- 		if (current < 0 || sock < 0)
- 			goto close_sk;
+@@ -568,9 +568,14 @@ static int alloc_pagecache_max_30M(const
+ {
+ 	size_t size = MB(50);
+ 	int ret = -1;
+-	long current;
++	long current, high, max;
+ 	int fd;
  
--		if (current < sock)
--			goto close_sk;
--
- 		if (values_close(current, sock, 10)) {
- 			ret = KSFT_PASS;
- 			break;
++	high = cg_read_long(cgroup, "memory.high");
++	max = cg_read_long(cgroup, "memory.max");
++	if (high != MB(30) && max != MB(30))
++		goto cleanup;
++
+ 	fd = get_temp_fd();
+ 	if (fd < 0)
+ 		return -1;
+@@ -579,7 +584,7 @@ static int alloc_pagecache_max_30M(const
+ 		goto cleanup;
+ 
+ 	current = cg_read_long(cgroup, "memory.current");
+-	if (current <= MB(29) || current > MB(30))
++	if (!values_close(current, MB(30), 5))
+ 		goto cleanup;
+ 
+ 	ret = 0;
 _
 
 Patches currently in -mm which might be from void@manifault.com are
