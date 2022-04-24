@@ -2,147 +2,166 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83B7DC433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Apr 2022 19:37:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDFC7C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Apr 2022 19:52:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239461AbiDXTkZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 24 Apr 2022 15:40:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59194 "EHLO
+        id S235219AbiDXTz4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 24 Apr 2022 15:55:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238900AbiDXTkY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 24 Apr 2022 15:40:24 -0400
-Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBCC03CFDB
-        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 12:37:18 -0700 (PDT)
-Received: from zn.tnic (p5de8eeb4.dip0.t-ipconnect.de [93.232.238.180])
+        with ESMTP id S230098AbiDXTzz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 24 Apr 2022 15:55:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 745588CCD7
+        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 12:52:53 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 728951EC01E0;
-        Sun, 24 Apr 2022 21:37:12 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1650829032;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=fL82ZKQc3hrQtDRzDMEXgqYgRbV7q9sKsKHgTS/BWb4=;
-        b=rmZlYipIsNkTCIzEPZmdYebyhkh1f0Z4iAtavKM5tXYAkFUnLRI8NAMiCjCDLVJPgnlk0A
-        l/2t3rE9If18WB7NByS8W8hlucCvIVr+S5Xmm+f5DhNzM2BtbAJFu5YVw3ZM85VLJvsWfW
-        bN877xHSWxzav+agmUKtMYCGjqZ0aPs=
-Date:   Sun, 24 Apr 2022 21:37:08 +0200
-From:   Borislav Petkov <bp@alien8.de>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Mark Hemment <markhemm@googlemail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
-        Lukas Czerner <lczerner@redhat.com>,
-        Christoph Hellwig <hch@lst.de>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
-Subject: Re: [patch 02/14] tmpfs: fix regressions from wider use of ZERO_PAGE
-Message-ID: <YmWm5AXdwgwu57KZ@zn.tnic>
-References: <YlxtTNFP58TcUHZQ@zn.tnic>
- <CAHk-=wiB8GXu84rChFvUZoZDfp6LnTuLruc0xoxj=mStmK-b1Q@mail.gmail.com>
- <Yl06PWVgeZplboXV@zn.tnic>
- <CAHk-=wh3ZFnUs+k0w3yTth8Kiy8xK45jo2VaT7x_-VFFMBVZiw@mail.gmail.com>
- <Yl5+DCfQmG5C3BHf@zn.tnic>
- <CAHk-=wi1iQXd3SSoyWZebdxdK3gFCVGq9q=4pwq3rON3BYZJkA@mail.gmail.com>
- <Yl7146AZDgfLviVv@zn.tnic>
- <YmFy8DEqvX4FlnuB@zn.tnic>
- <CAHk-=wgf2C9nFiC+3UFG4k7XVTQq5aV6fasSYuT_nQeo_Yew6A@mail.gmail.com>
- <CAHk-=wi69odFRCuYbhVFmaiaj4UcRDv74XeeksjFAdV0wBg2Ow@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAHk-=wi69odFRCuYbhVFmaiaj4UcRDv74XeeksjFAdV0wBg2Ow@mail.gmail.com>
+        by ams.source.kernel.org (Postfix) with ESMTPS id 19C78B80EE9
+        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 19:52:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C534BC385A9;
+        Sun, 24 Apr 2022 19:52:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1650829970;
+        bh=NzUTBLAox+XudZbb/3BImo4516AZC+usyuHI1yycDlc=;
+        h=Date:To:From:Subject:From;
+        b=UH1eOHI4V8spnrFZbSUpru1STgk1O8RlZ64YHEbvCktO22mg4z5jjrEEPhqeWP/HY
+         eyi+jFnDBVr90yG4mRskhQ70+bPwjU0+5WXYGSVjUN9qX/JwGdMihixDF0PDQkuRVx
+         5hIv4UL6xwVHrJT8hmbsROcZG3pmQZ5JI/s/53BI=
+Date:   Sun, 24 Apr 2022 12:52:49 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        surenb@google.com, sfr@canb.auug.org.au, peterx@redhat.com,
+        neilb@suse.de, naoya.horiguchi@nec.com, minchan@kernel.org,
+        dhowells@redhat.com, david@redhat.com, apopple@nvidia.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch added to -mm tree
+Message-Id: <20220424195250.C534BC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Apr 21, 2022 at 10:22:32AM -0700, Linus Torvalds wrote:
-> I think 'copy_{to,from}_user()' actually does go to the effort to try
-> to do byte-exact results, though.
 
-Yeah, we have had headaches with this byte-exact copying, wrt MCEs.
+The patch titled
+     Subject: mm/madvise: free hwpoison and swapin error entry in madvise_free_pte_range
+has been added to the -mm tree.  Its filename is
+     mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch
 
-> In particular, see copy_user_handle_tail in arch/x86/lib/copy_user_64.S.
-> 
-> But I think that we long ago ended up deciding it really wasn't worth
-> doing it, and x86 ends up just going to unnecessary lengths for this
-> case.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch
 
-You could give me some more details but AFAIU, you mean, that
-fallback to byte-sized reads is unnecessary and I can get rid of
-copy_user_handle_tail? Because that would be a nice cleanup.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Anyway, I ran your short prog and it all looks like you predicted it:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-fsrm:
-----
-openat(AT_FDCWD, "/dev/zero", O_RDONLY) = 3
-mmap(NULL, 196608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fafd78fe000
-munmap(0x7fafd790e000, 65536)           = 0
-read(3, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 65536) = 17
-exit_group(17)                          = ?
-+++ exited with 17 +++
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-erms:
------
-openat(AT_FDCWD, "/dev/zero", O_RDONLY) = 3
-mmap(NULL, 196608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fe0b5321000
-munmap(0x7fe0b5331000, 65536)           = 0
-read(3, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 65536) = 17
-exit_group(17)                          = ?
-+++ exited with 17 +++
+------------------------------------------------------
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/madvise: free hwpoison and swapin error entry in madvise_free_pte_range
 
-rep_good:
----------
-openat(AT_FDCWD, "/dev/zero", O_RDONLY) = 3
-mmap(NULL, 196608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f0b5f0c7000
-munmap(0x7f0b5f0d7000, 65536)           = 0
-read(3, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 65536) = 16
-exit_group(16)                          = ?
-+++ exited with 16 +++
+Once the MADV_FREE operation has succeeded, callers can expect they might
+get zero-fill pages if accessing the memory again.  Therefore it should be
+safe to delete the hwpoison entry and swapin error entry.  There is no
+reason to kill the process if it has called MADV_FREE on the range.
 
-original:
----------
-openat(AT_FDCWD, "/dev/zero", O_RDONLY) = 3
-mmap(NULL, 196608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3ff61c6000
-munmap(0x7f3ff61d6000, 65536)           = 0
-read(3, strace: umoven: short read (17 < 33) @0x7f3ff61d5fef
-0x7f3ff61d5fef, 65536)          = 3586
-exit_group(3586)                        = ?
-+++ exited with 2 +++
+Link: https://lkml.kernel.org/r/20220424091105.48374-4-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Suggested-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Howells <dhowells@redhat.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-that "umoven: short read" is strace spitting out something about the
-address space of the tracee being unaccessible. But the 17 bytes short
-read is still there.
+ mm/madvise.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-From strace sources:
+--- a/mm/madvise.c~mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range
++++ a/mm/madvise.c
+@@ -624,11 +624,14 @@ static int madvise_free_pte_range(pmd_t
+ 			swp_entry_t entry;
+ 
+ 			entry = pte_to_swp_entry(ptent);
+-			if (non_swap_entry(entry))
+-				continue;
+-			nr_swap--;
+-			free_swap_and_cache(entry);
+-			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			if (!non_swap_entry(entry)) {
++				nr_swap--;
++				free_swap_and_cache(entry);
++				pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			} else if (is_hwpoison_entry(entry) ||
++				   is_swapin_error_entry(entry)) {
++				pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			}
+ 			continue;
+ 		}
+ 
+_
 
-/* legacy method of copying from tracee */
-static int
-umoven_peekdata(const int pid, kernel_ulong_t addr, unsigned int len,
-		void *laddr)
-{
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-	...
+mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
+mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
+mm-shmem-make-shmem_init-return-void.patch
+mm-memcg-remove-unneeded-nr_scanned.patch
+mm-mmapc-use-helper-mlock_future_check.patch
+mm-mremap-use-helper-mlock_future_check.patch
+mm-mremap-avoid-unneeded-do_munmap-call.patch
+mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch
+mm-memory-failurec-dissolve-truncated-hugetlb-page.patch
+mm-vmscan-remove-obsolete-comment-in-get_scan_count.patch
+mm-vmscan-fix-comment-for-current_may_throttle.patch
+mm-vmscan-fix-comment-for-isolate_lru_pages.patch
+mm-z3fold-declare-z3fold_mount-with-__init.patch
+mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch
+mm-z3fold-minor-clean-up-for-z3fold_free.patch
+mm-z3fold-remove-unneeded-page_mapcount_reset-and-clearpageprivate.patch
+mm-z3fold-remove-confusing-local-variable-l-reassignment.patch
+mm-z3fold-move-decrement-of-pool-pages_nr-into-__release_z3fold_page.patch
+mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free.patch
+mm-z3fold-remove-unneeded-page_headless-check-in-free_handle.patch
+mm-compaction-use-helper-isolation_suitable.patch
+drivers-base-nodec-fix-compaction-sysfs-file-leak.patch
+mm-mempolicy-clean-up-the-code-logic-in-queue_pages_pte_range.patch
+mm-migration-remove-unneeded-local-variable-mapping_locked.patch
+mm-migration-remove-unneeded-local-variable-page_lru.patch
+mm-migration-use-helper-function-vma_lookup-in-add_page_for_migration.patch
+mm-migration-use-helper-macro-min-in-do_pages_stat.patch
+mm-migration-avoid-unneeded-nodemask_t-initialization.patch
+mm-migration-remove-some-duplicated-codes-in-migrate_pages.patch
+mm-migration-fix-potential-page-refcounts-leak-in-migrate_pages.patch
+mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch
+mm-migration-fix-possible-do_pages_stat_array-racing-with-memory-offline.patch
+mm-madvise-fix-potential-pte_unmap_unlock-pte-error.patch
+mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch
+mm-compaction-remove-unneeded-return-value-of-kcompactd_run.patch
+mm-compaction-remove-unneeded-pfn-update.patch
+mm-compaction-remove-unneeded-assignment-to-isolate_start_pfn.patch
+mm-compaction-clean-up-comment-for-sched-contention.patch
+mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch
+mm-compaction-use-compact_cluster_max-in-compactionc.patch
+mm-compaction-use-helper-compound_nr-in-isolate_migratepages_block.patch
+mm-compaction-clean-up-comment-about-async-compaction-in-isolate_migratepages.patch
+mm-compaction-avoid-possible-null-pointer-dereference-in-kcompactd_cpu_online.patch
+mm-compaction-make-compaction_zonelist_suitable-return-false-when-compact_success.patch
+mm-compaction-simplify-the-code-in-__compact_finished.patch
+mm-compaction-make-sure-highest-is-above-the-min_pfn.patch
 
-	switch (errno) {
-			case EFAULT: case EIO: case EPERM:
-				/* address space is inaccessible */
-				if (nread) {
-					perror_msg("umoven: short read (%u < %u) @0x%" PRI_klx,
-						   nread, nread + len, addr - nread);
-				}
-				return -1;
-
--- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
