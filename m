@@ -2,172 +2,147 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9856C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Apr 2022 23:02:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83B7DC433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Apr 2022 19:37:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233933AbiDVXFM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Apr 2022 19:05:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36310 "EHLO
+        id S239461AbiDXTkZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 24 Apr 2022 15:40:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234261AbiDVXEm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2022 19:04:42 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF10913FB53
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 15:33:39 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        with ESMTP id S238900AbiDXTkY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 24 Apr 2022 15:40:24 -0400
+Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBCC03CFDB
+        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 12:37:18 -0700 (PDT)
+Received: from zn.tnic (p5de8eeb4.dip0.t-ipconnect.de [93.232.238.180])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 064C1CE2D8D
-        for <mm-commits@vger.kernel.org>; Fri, 22 Apr 2022 22:33:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DCA3C385A0;
-        Fri, 22 Apr 2022 22:33:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650666816;
-        bh=1/arZm9wIts5GSpxmhmld05CnCH5wsS71jsMafpXKbM=;
-        h=Date:To:From:Subject:From;
-        b=MxrMTyJM6V8GRTY37aaL9tExq5/WdwPSj+16jmBdiRGskx0+8OzoVocHlSbYqdyPQ
-         pqLWoLpvyNfJgrz/miD1Z4rdqIfq0oDaigyEi/QQMV7Y2Jr1gxlakbJi1Cns56gk6k
-         7yCC+H1BXDy/Om8+t4X/my/jLURqnZ0PL0NiHxTg=
-Date:   Fri, 22 Apr 2022 15:33:35 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
-        robin.murphy@arm.com, npiggin@gmail.com, mark.rutland@arm.com,
-        linux@armlinux.org.uk, dingtianhong@huawei.com,
-        catalin.marinas@arm.com, anshuman.khandual@arm.com,
-        aklimov@redhat.com, yury.norov@gmail.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmap-dont-allow-invalid-pages.patch added to -mm tree
-Message-Id: <20220422223336.0DCA3C385A0@smtp.kernel.org>
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 728951EC01E0;
+        Sun, 24 Apr 2022 21:37:12 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1650829032;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=fL82ZKQc3hrQtDRzDMEXgqYgRbV7q9sKsKHgTS/BWb4=;
+        b=rmZlYipIsNkTCIzEPZmdYebyhkh1f0Z4iAtavKM5tXYAkFUnLRI8NAMiCjCDLVJPgnlk0A
+        l/2t3rE9If18WB7NByS8W8hlucCvIVr+S5Xmm+f5DhNzM2BtbAJFu5YVw3ZM85VLJvsWfW
+        bN877xHSWxzav+agmUKtMYCGjqZ0aPs=
+Date:   Sun, 24 Apr 2022 21:37:08 +0200
+From:   Borislav Petkov <bp@alien8.de>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Mark Hemment <markhemm@googlemail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
+        Lukas Czerner <lczerner@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
+Subject: Re: [patch 02/14] tmpfs: fix regressions from wider use of ZERO_PAGE
+Message-ID: <YmWm5AXdwgwu57KZ@zn.tnic>
+References: <YlxtTNFP58TcUHZQ@zn.tnic>
+ <CAHk-=wiB8GXu84rChFvUZoZDfp6LnTuLruc0xoxj=mStmK-b1Q@mail.gmail.com>
+ <Yl06PWVgeZplboXV@zn.tnic>
+ <CAHk-=wh3ZFnUs+k0w3yTth8Kiy8xK45jo2VaT7x_-VFFMBVZiw@mail.gmail.com>
+ <Yl5+DCfQmG5C3BHf@zn.tnic>
+ <CAHk-=wi1iQXd3SSoyWZebdxdK3gFCVGq9q=4pwq3rON3BYZJkA@mail.gmail.com>
+ <Yl7146AZDgfLviVv@zn.tnic>
+ <YmFy8DEqvX4FlnuB@zn.tnic>
+ <CAHk-=wgf2C9nFiC+3UFG4k7XVTQq5aV6fasSYuT_nQeo_Yew6A@mail.gmail.com>
+ <CAHk-=wi69odFRCuYbhVFmaiaj4UcRDv74XeeksjFAdV0wBg2Ow@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAHk-=wi69odFRCuYbhVFmaiaj4UcRDv74XeeksjFAdV0wBg2Ow@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, Apr 21, 2022 at 10:22:32AM -0700, Linus Torvalds wrote:
+> I think 'copy_{to,from}_user()' actually does go to the effort to try
+> to do byte-exact results, though.
 
-The patch titled
-     Subject: vmap(): don't allow invalid pages
-has been added to the -mm tree.  Its filename is
-     vmap-dont-allow-invalid-pages.patch
+Yeah, we have had headaches with this byte-exact copying, wrt MCEs.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/vmap-dont-allow-invalid-pages.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/vmap-dont-allow-invalid-pages.patch
+> In particular, see copy_user_handle_tail in arch/x86/lib/copy_user_64.S.
+> 
+> But I think that we long ago ended up deciding it really wasn't worth
+> doing it, and x86 ends up just going to unnecessary lengths for this
+> case.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+You could give me some more details but AFAIU, you mean, that
+fallback to byte-sized reads is unnecessary and I can get rid of
+copy_user_handle_tail? Because that would be a nice cleanup.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Anyway, I ran your short prog and it all looks like you predicted it:
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+fsrm:
+----
+openat(AT_FDCWD, "/dev/zero", O_RDONLY) = 3
+mmap(NULL, 196608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fafd78fe000
+munmap(0x7fafd790e000, 65536)           = 0
+read(3, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 65536) = 17
+exit_group(17)                          = ?
++++ exited with 17 +++
 
-------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: vmap(): don't allow invalid pages
+erms:
+-----
+openat(AT_FDCWD, "/dev/zero", O_RDONLY) = 3
+mmap(NULL, 196608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fe0b5321000
+munmap(0x7fe0b5331000, 65536)           = 0
+read(3, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 65536) = 17
+exit_group(17)                          = ?
++++ exited with 17 +++
 
-vmap() takes struct page *pages as one of arguments, and user may provide
-an invalid pointer which may lead to corrupted translation table.
+rep_good:
+---------
+openat(AT_FDCWD, "/dev/zero", O_RDONLY) = 3
+mmap(NULL, 196608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f0b5f0c7000
+munmap(0x7f0b5f0d7000, 65536)           = 0
+read(3, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 65536) = 16
+exit_group(16)                          = ?
++++ exited with 16 +++
 
-An example of such behaviour is erroneous usage of virt_to_page():
+original:
+---------
+openat(AT_FDCWD, "/dev/zero", O_RDONLY) = 3
+mmap(NULL, 196608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3ff61c6000
+munmap(0x7f3ff61d6000, 65536)           = 0
+read(3, strace: umoven: short read (17 < 33) @0x7f3ff61d5fef
+0x7f3ff61d5fef, 65536)          = 3586
+exit_group(3586)                        = ?
++++ exited with 2 +++
 
-	vaddr1 = dma_alloc_coherent()
-	page = virt_to_page()	// Wrong here
+that "umoven: short read" is strace spitting out something about the
+address space of the tracee being unaccessible. But the 17 bytes short
+read is still there.
+
+From strace sources:
+
+/* legacy method of copying from tracee */
+static int
+umoven_peekdata(const int pid, kernel_ulong_t addr, unsigned int len,
+		void *laddr)
+{
+
 	...
-	vaddr2 = vmap(page)
-	memset(vaddr2)		// Faulting here
 
-virt_to_page() returns a wrong pointer if vaddr1 is not a linear kernel
-address.  The problem is that vmap() populates pte with bad pfn
-successfully, and it's much harder to debug at memory access time.  This
-case should be caught by DEBUG_VIRTUAL being that enabled, but it's not
-enabled in popular distros.
+	switch (errno) {
+			case EFAULT: case EIO: case EPERM:
+				/* address space is inaccessible */
+				if (nread) {
+					perror_msg("umoven: short read (%u < %u) @0x%" PRI_klx,
+						   nread, nread + len, addr - nread);
+				}
+				return -1;
 
-Kernel already checks the pages against NULL.  In the case mentioned
-above, however, the address is not NULL, and it's big enough so that the
-hardware generated Address Size Abort on arm64:
+-- 
+Regards/Gruss,
+    Boris.
 
-	[  665.484101] Unhandled fault at 0xffff8000252cd000
-	[  665.488807] Mem abort info:
-	[  665.491617]   ESR = 0x96000043
-	[  665.494675]   EC = 0x25: DABT (current EL), IL = 32 bits
-	[  665.499985]   SET = 0, FnV = 0
-	[  665.503039]   EA = 0, S1PTW = 0
-	[  665.506167] Data abort info:
-	[  665.509047]   ISV = 0, ISS = 0x00000043
-	[  665.512882]   CM = 0, WnR = 1
-	[  665.515851] swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000000818cb000
-	[  665.522550] [ffff8000252cd000] pgd=000000affcfff003, pud=000000affcffe003, pmd=0000008fad8c3003, pte=00688000a5217713
-	[  665.533160] Internal error: level 3 address size fault: 96000043 [#1] SMP
-	[  665.539936] Modules linked in: [...]
-	[  665.616212] CPU: 178 PID: 13199 Comm: test Tainted: P           OE 5.4.0-84-generic #94~18.04.1-Ubuntu
-	[  665.626806] Hardware name: HPE Apollo 70             /C01_APACHE_MB , BIOS L50_5.13_1.0.6 07/10/2018
-	[  665.636618] pstate: 80400009 (Nzcv daif +PAN -UAO)
-	[  665.641407] pc : __memset+0x38/0x188
-	[  665.645146] lr : test+0xcc/0x3f8
-	[  665.650184] sp : ffff8000359bb840
-	[  665.653486] x29: ffff8000359bb840 x28: 0000000000000000
-	[  665.658785] x27: 0000000000000000 x26: 0000000000231000
-	[  665.664083] x25: ffff00ae660f6110 x24: ffff00ae668cb800
-	[  665.669382] x23: 0000000000000001 x22: ffff00af533e5000
-	[  665.674680] x21: 0000000000001000 x20: 0000000000000000
-	[  665.679978] x19: ffff00ae66950000 x18: ffffffffffffffff
-	[  665.685276] x17: 00000000588636a5 x16: 0000000000000013
-	[  665.690574] x15: ffffffffffffffff x14: 000000000007ffff
-	[  665.695872] x13: 0000000080000000 x12: 0140000000000000
-	[  665.701170] x11: 0000000000000041 x10: ffff8000652cd000
-	[  665.706468] x9 : ffff8000252cf000 x8 : ffff8000252cd000
-	[  665.711767] x7 : 0303030303030303 x6 : 0000000000001000
-	[  665.717065] x5 : ffff8000252cd000 x4 : 0000000000000000
-	[  665.722363] x3 : ffff8000252cdfff x2 : 0000000000000001
-	[  665.727661] x1 : 0000000000000003 x0 : ffff8000252cd000
-	[  665.732960] Call trace:
-	[  665.735395]  __memset+0x38/0x188
-	[...]
-
-Interestingly, this abort happens even if copy_from_kernel_nofault() is
-used, which is quite inconvenient for debugging purposes.
-
-This patch adds a pfn_valid() check into vmap() path, so that invalid
-mapping will not be created; WARN_ON() is used to let client code know
-that something goes wrong, and it's not a regular EINVAL situation.
-
-Link: https://lkml.kernel.org/r/20220422220410.1308706-1-yury.norov@gmail.com
-Signed-off-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
-Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Alexey Klimov <aklimov@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ding Tianhong <dingtianhong@huawei.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Will Deacon <will@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/vmalloc.c |    3 +++
- 1 file changed, 3 insertions(+)
-
---- a/mm/vmalloc.c~vmap-dont-allow-invalid-pages
-+++ a/mm/vmalloc.c
-@@ -478,6 +478,9 @@ static int vmap_pages_pte_range(pmd_t *p
- 			return -EBUSY;
- 		if (WARN_ON(!page))
- 			return -ENOMEM;
-+		if (WARN_ON(!pfn_valid(page_to_pfn(page))))
-+			return -EINVAL;
-+
- 		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
- 		(*nr)++;
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
-_
-
-Patches currently in -mm which might be from yury.norov@gmail.com are
-
-mm-gup-fix-comments-to-pin_user_pages_.patch
-vmap-dont-allow-invalid-pages.patch
-
+https://people.kernel.org/tglx/notes-about-netiquette
