@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57702C433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Apr 2022 20:27:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26F3DC433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 24 Apr 2022 20:29:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237016AbiDXUai (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 24 Apr 2022 16:30:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42182 "EHLO
+        id S237999AbiDXUcv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 24 Apr 2022 16:32:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232991AbiDXUah (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 24 Apr 2022 16:30:37 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 613BC156E23
-        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 13:27:36 -0700 (PDT)
+        with ESMTP id S232991AbiDXUcu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 24 Apr 2022 16:32:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94BCF156E23
+        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 13:29:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1DD63B80E46
-        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 20:27:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD4A5C385A7;
-        Sun, 24 Apr 2022 20:27:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 395F660ED7
+        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 20:29:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D843C385A9;
+        Sun, 24 Apr 2022 20:29:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650832053;
-        bh=OCM7Ee04Y+x6JkYnpa4GC43F7zMcdB6QwFg6m6Obm98=;
+        s=korg; t=1650832187;
+        bh=m2cPg3DGscx3I2MNYVJ7Yq3AzB6QEdeBs4RcjkSdp3o=;
         h=Date:To:From:Subject:From;
-        b=m+EpEKrQ3+bnkfuJRtoM8qmsJBkfDX3qthHOGafB1hfgJXw7Ho87XyM+P2Db4sFtL
-         1OHI4h74fxT4ifum5dSE46jROMp46bk4o1R8d7NjjhO6U2qhrsYqa+MOvb1NWfutYA
-         WEBYgtzD2lFLDj0OrFMxGmdPCOQ+Gw365G+RB9hY=
-Date:   Sun, 24 Apr 2022 13:27:33 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        peterx@redhat.com, mike.kravetz@oracle.com,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
+        b=GIEDDDJ/YhfQy+hrcfgKOdLLp/Zfjwa8ri+b4Tl7KjrD3alls37gEKWLFhF3pU6HD
+         GKZusrVPNKPTZUaDX+uDCv6iT1hwC0/e1rnRsmT3cRe0ZLtyyK4ol4mgbBrdViiAU/
+         FxpxnIRBU6zTRopMVBziLkxeI6aMmZtYAB7mgtQg=
+Date:   Sun, 24 Apr 2022 13:29:46 -0700
+To:     mm-commits@vger.kernel.org, lkp@intel.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-add-missing-cache-flushing-in-hugetlb_unshare_all_pmds.patch added to -mm tree
-Message-Id: <20220424202733.AD4A5C385A7@smtp.kernel.org>
+Subject: + mm-teach-core-mm-about-pte-markers-fix.patch added to -mm tree
+Message-Id: <20220424202947.8D843C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: add missing cache flushing in hugetlb_unshare_all_pmds()
+     Subject: fixup! mm: Teach core mm about pte markers
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-missing-cache-flushing-in-hugetlb_unshare_all_pmds.patch
+     mm-teach-core-mm-about-pte-markers-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-missing-cache-flushing-in-hugetlb_unshare_all_pmds.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-teach-core-mm-about-pte-markers-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-missing-cache-flushing-in-hugetlb_unshare_all_pmds.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-teach-core-mm-about-pte-markers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,40 +62,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: hugetlb: add missing cache flushing in hugetlb_unshare_all_pmds()
+From: Peter Xu <peterx@redhat.com>
+Subject: fixup! mm: Teach core mm about pte markers
 
-Missed calling flush_cache_range() before removing the sharing PMD
-entrires, otherwise data consistence issue may be occurred on some
-architectures whose caches are strict and require a virtual–>physical
-translation to exist for a virtual address.  Thus add it.
+userfaultfd.c needs swapops.h
 
-Link: https://lkml.kernel.org/r/419b0e777c9e6d1454dcd906e0f5b752a736d335.1650781755.git.baolin.wang@linux.alibaba.com
-Fixes: 6dfeaff93be1 ("hugetlb/userfaultfd: unshare all pmds for hugetlbfs when register wp")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/YmRlVj3cdizYJsr0@xz-m1.local
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
+ fs/userfaultfd.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-add-missing-cache-flushing-in-hugetlb_unshare_all_pmds
-+++ a/mm/hugetlb.c
-@@ -6941,6 +6941,7 @@ void hugetlb_unshare_all_pmds(struct vm_
- 	if (start >= end)
- 		return;
+--- a/fs/userfaultfd.c~mm-teach-core-mm-about-pte-markers-fix
++++ a/fs/userfaultfd.c
+@@ -29,6 +29,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/security.h>
+ #include <linux/hugetlb.h>
++#include <linux/swapops.h>
  
-+	flush_cache_range(vma, start, end);
- 	/*
- 	 * No need to call adjust_range_if_pmd_sharing_possible(), because
- 	 * we have already done the PUD_SIZE alignment.
+ int sysctl_unprivileged_userfaultfd __read_mostly;
+ 
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-hugetlb-add-missing-cache-flushing-in-hugetlb_unshare_all_pmds.patch
-mm-migrate-simplify-the-refcount-validation-when-migrating-hugetlb-mapping.patch
+mm-remove-stub-for-non_swap_entry.patch
+mm-introduce-pte_marker-swap-entry.patch
+mm-introduce-pte_marker-swap-entry-fix.patch
+mm-teach-core-mm-about-pte-markers.patch
+mm-teach-core-mm-about-pte-markers-fix.patch
+mm-check-against-orig_pte-for-finish_fault.patch
+mm-check-against-orig_pte-for-finish_fault-fix.patch
+mm-uffd-pte_marker_uffd_wp.patch
+mm-uffd-pte_marker_uffd_wp-fix.patch
+mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
+mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
+mm-shmem-persist-uffd-wp-bit-across-zapping-for-file-backed.patch
+mm-shmem-allow-uffd-wr-protect-none-pte-for-file-backed-mem.patch
+mm-shmem-allows-file-back-mem-to-be-uffd-wr-protected-on-thps.patch
+mm-shmem-handle-uffd-wp-during-fork.patch
+mm-hugetlb-introduce-huge-pte-version-of-uffd-wp-helpers.patch
+mm-hugetlb-hook-page-faults-for-uffd-write-protection.patch
+mm-hugetlb-take-care-of-uffdio_copy_mode_wp.patch
+mm-hugetlb-handle-uffdio_writeprotect.patch
+mm-hugetlb-handle-pte-markers-in-page-faults.patch
+mm-hugetlb-allow-uffd-wr-protect-none-ptes.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix.patch
+mm-hugetlb-handle-uffd-wp-during-fork.patch
+mm-khugepaged-dont-recycle-vma-pgtable-if-uffd-wp-registered.patch
+mm-pagemap-recognize-uffd-wp-bit-for-shmem-hugetlbfs.patch
+mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
+mm-enable-pte-markers-by-default.patch
+mm-enable-pte-markers-by-default-fix.patch
+selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
+mm-uffd-move-userfaultfd-configs-into-mm.patch
 
