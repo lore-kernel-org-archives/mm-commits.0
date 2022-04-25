@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF51C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 20:18:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0C7CC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 20:18:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237389AbiDYUVm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Apr 2022 16:21:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56436 "EHLO
+        id S245172AbiDYUVw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Apr 2022 16:21:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239808AbiDYUVm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 16:21:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 951F93134E
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 13:18:37 -0700 (PDT)
+        with ESMTP id S239808AbiDYUVq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 16:21:46 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4413F3134E
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 13:18:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 30EB860F01
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 20:18:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84392C385A4;
-        Mon, 25 Apr 2022 20:18:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0BE3AB81A40
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 20:18:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FB2EC385A7;
+        Mon, 25 Apr 2022 20:18:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650917916;
-        bh=l7Jy3CB5aFORS3VXaJDWqafAVdvrywIWTNiHetb8Rl8=;
+        s=korg; t=1650917918;
+        bh=RAt+SWSYT7+8hFEQXCpdA3UNrp7EEzaHFNegSz2h2D4=;
         h=Date:To:From:Subject:From;
-        b=vf7NXw4SLniwVtv5WrxfLRluBPUyVlFNJOSQFOVms3NQcJfsuCP5HwinE+lVUaGl1
-         1FQDO/rlgNtjdgft0ENxHwVnXhaxFACwtTBqng586msPcZo081UPu5u/zgZezDdLYk
-         RkHm/WozsPY7UXv7dBklTeEwElup7lxrTvxREmG8=
-Date:   Mon, 25 Apr 2022 13:18:35 -0700
+        b=ylpBKUqi+2iHdPxGUguuQKQrtzWC50duUJ1RdbCKynwLyH9NjljWWOS9ZUiypboHN
+         qM7YUIGk6MT3Lj8Q2F8KuviBy4Zb/fk2UsqwHcp1zVtufflwikexyNiCDScH75ozR8
+         4o5XXGrxl9QHuQ8/RjnROAJQmatrokD/2gG+t+Yw=
+Date:   Mon, 25 Apr 2022 13:18:37 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, weixugc@google.com,
         vaibhav@linux.ibm.com, tj@kernel.org, tim.c.chen@linux.intel.com,
         shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, yuzhao@google.com, weixugc@google.com,
         dave.hansen@linux.intel.com, corbet@lwn.net, chenwandun@huawei.com,
         yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch added to -mm tree
-Message-Id: <20220425201836.84392C385A4@smtp.kernel.org>
+Subject: + selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch added to -mm tree
+Message-Id: <20220425201838.8FB2EC385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: cgroup: return -errno from cg_read()/cg_write() on failure
+     Subject: selftests: cgroup: fix alloc_anon_noexit() instantly freeing memory
 has been added to the -mm tree.  Its filename is
-     selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch
+     selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,13 +68,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: selftests: cgroup: return -errno from cg_read()/cg_write() on failure
+Subject: selftests: cgroup: fix alloc_anon_noexit() instantly freeing memory
 
-Currently, cg_read()/cg_write() returns 0 on success and -1 on failure.
-Modify them to return the -errno on failure.
+Currently, alloc_anon_noexit() calls alloc_anon() which instantly frees
+the allocated memory. alloc_anon_noexit() is usually used with
+cg_run_nowait() to run a process in the background that allocates
+memory. It makes sense for the background process to keep the memory
+allocated and not instantly free it (otherwise there is no point of
+running it in the background).
 
-Link: https://lkml.kernel.org/r/20220425190040.2475377-3-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20220425190040.2475377-4-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Acked-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Cc: Chen Wandun <chenwandun@huawei.com>
@@ -84,7 +89,6 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: "Michal Koutn" <mkoutny@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Tim Chen <tim.c.chen@linux.intel.com>
@@ -95,116 +99,31 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/cgroup_util.c |   44 +++++++----------
- 1 file changed, 19 insertions(+), 25 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/cgroup/cgroup_util.c~selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure
-+++ a/tools/testing/selftests/cgroup/cgroup_util.c
-@@ -19,6 +19,7 @@
- #include "cgroup_util.h"
- #include "../clone3/clone3_selftests.h"
- 
-+/* Returns read len on success, or -errno on failure. */
- static ssize_t read_text(const char *path, char *buf, size_t max_len)
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -214,13 +214,17 @@ static int alloc_pagecache_50M_noexit(co
+ static int alloc_anon_noexit(const char *cgroup, void *arg)
  {
- 	ssize_t len;
-@@ -26,35 +27,29 @@ static ssize_t read_text(const char *pat
+ 	int ppid = getppid();
++	size_t size = (unsigned long)arg;
++	char *buf, *ptr;
  
- 	fd = open(path, O_RDONLY);
- 	if (fd < 0)
--		return fd;
-+		return -errno;
+-	if (alloc_anon(cgroup, arg))
+-		return -1;
++	buf = malloc(size);
++	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
++		*ptr = 0;
  
- 	len = read(fd, buf, max_len - 1);
--	if (len < 0)
--		goto out;
+ 	while (getppid() == ppid)
+ 		sleep(1);
  
--	buf[len] = 0;
--out:
-+	if (len >= 0)
-+		buf[len] = 0;
-+
- 	close(fd);
--	return len;
-+	return len < 0 ? -errno : len;
++	free(buf);
+ 	return 0;
  }
  
-+/* Returns written len on success, or -errno on failure. */
- static ssize_t write_text(const char *path, char *buf, ssize_t len)
- {
- 	int fd;
- 
- 	fd = open(path, O_WRONLY | O_APPEND);
- 	if (fd < 0)
--		return fd;
-+		return -errno;
- 
- 	len = write(fd, buf, len);
--	if (len < 0) {
--		close(fd);
--		return len;
--	}
--
- 	close(fd);
--
--	return len;
-+	return len < 0 ? -errno : len;
- }
- 
- char *cg_name(const char *root, const char *name)
-@@ -87,16 +82,16 @@ char *cg_control(const char *cgroup, con
- 	return ret;
- }
- 
-+/* Returns 0 on success, or -errno on failure. */
- int cg_read(const char *cgroup, const char *control, char *buf, size_t len)
- {
- 	char path[PATH_MAX];
-+	ssize_t ret;
- 
- 	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
- 
--	if (read_text(path, buf, len) >= 0)
--		return 0;
--
--	return -1;
-+	ret = read_text(path, buf, len);
-+	return ret >= 0 ? 0 : ret;
- }
- 
- int cg_read_strcmp(const char *cgroup, const char *control,
-@@ -177,17 +172,15 @@ long cg_read_lc(const char *cgroup, cons
- 	return cnt;
- }
- 
-+/* Returns 0 on success, or -errno on failure. */
- int cg_write(const char *cgroup, const char *control, char *buf)
- {
- 	char path[PATH_MAX];
--	ssize_t len = strlen(buf);
-+	ssize_t len = strlen(buf), ret;
- 
- 	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
--
--	if (write_text(path, buf, len) == len)
--		return 0;
--
--	return -1;
-+	ret = write_text(path, buf, len);
-+	return ret == len ? 0 : ret;
- }
- 
- int cg_find_unified_root(char *root, size_t len)
-@@ -557,7 +550,8 @@ ssize_t proc_read_text(int pid, bool thr
- 	else
- 		snprintf(path, sizeof(path), "/proc/%d/%s", pid, item);
- 
--	return read_text(path, buf, size);
-+	size = read_text(path, buf, size);
-+	return size < 0 ? -1 : size;
- }
- 
- int proc_read_strstr(int pid, bool thread, const char *item, const char *needle)
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
