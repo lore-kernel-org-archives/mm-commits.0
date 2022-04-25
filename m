@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CFDAC433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 19:02:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98BA0C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 19:02:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243765AbiDYTFd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236446AbiDYTFd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 25 Apr 2022 15:05:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55008 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244844AbiDYTFc (ORCPT
+        with ESMTP id S244845AbiDYTFc (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 15:05:32 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34A4412C8D4
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 12:02:16 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FF4012C8DF
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 12:02:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 549C5B819E8
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 19:02:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 140EFC385A4;
-        Mon, 25 Apr 2022 19:02:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 29BF46170C
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 19:02:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80A26C385A7;
+        Mon, 25 Apr 2022 19:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650913334;
-        bh=eiukYcyvUz/4ohbTqokckiGcwn1alp8vxlabWYK3B5k=;
+        s=korg; t=1650913336;
+        bh=Wio5EEHaz834SX7dCvDp8E/f6HDW+71s0Jc0WcAekl0=;
         h=Date:To:From:Subject:From;
-        b=cBLqq68moUrRYs+iR7zNYW2SIFFN2c5Pka6jGzIpzAQcsLQqYG4UqJT1hYrjaL/oa
-         5QhFvhJgqIAyvsFEZLzpjpcHcA5BPdNYZzEf1ZXEj7extIkchOAEr3imO7TRlNsKLl
-         r1KbCFdaYziyDKmj0BQEVuyzGsCFPxh/UXoORguc=
-Date:   Mon, 25 Apr 2022 12:02:13 -0700
+        b=1F9OEio6x6+OsVGQxxmT2WwaF+kHs5La+Y5fSDVguc3r/QvadnJruOYFiRyX0glXu
+         dPbYkQ5jWBCL6ynA9+CFJWeHhx9Wzwtf5xHQAV216CZMWwhwTbR9Xa7H5YSPMXaTnV
+         m9TNFu2geijH+445OLesLsTzBwtk3gHLU4wsE/Y8=
+Date:   Mon, 25 Apr 2022 12:02:15 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@linux.ibm.com,
         renzhengeek@gmail.com, osalvador@suse.de, minchan@kernel.org,
         mgorman@techsingularity.net, lkp@intel.com, david@redhat.com,
         christophe.leroy@csgroup.eu, ziy@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-use-pageblock_order-as-the-single-alignment.patch added to -mm tree
-Message-Id: <20220425190214.140EFC385A4@smtp.kernel.org>
+Subject: + drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch added to -mm tree
+Message-Id: <20220425190216.80A26C385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: use pageblock_order as the single alignment
+     Subject: drivers: virtio_mem: use pageblock size as the minimum virtio_mem size.
 has been added to the -mm tree.  Its filename is
-     mm-cma-use-pageblock_order-as-the-single-alignment.patch
+     drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-use-pageblock_order-as-the-single-alignment.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-use-pageblock_order-as-the-single-alignment.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,13 +66,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm: cma: use pageblock_order as the single alignment
+Subject: drivers: virtio_mem: use pageblock size as the minimum virtio_mem size.
 
-Now alloc_contig_range() works at pageblock granularity.  Change CMA
-allocation, which uses alloc_contig_range(), to use pageblock_nr_pages
-alignment.
+alloc_contig_range() now only needs to be aligned to pageblock_nr_pages,
+drop virtio_mem size requirement that it needs to be MAX_ORDER_NR_PAGES.
 
-Link: https://lkml.kernel.org/r/20220425143118.2850746-6-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20220425143118.2850746-7-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: David Hildenbrand <david@redhat.com>
@@ -86,54 +85,25 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h    |    4 ++--
- include/linux/mmzone.h |    5 +----
- mm/page_alloc.c        |    4 ++--
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ drivers/virtio/virtio_mem.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/cma.h~mm-cma-use-pageblock_order-as-the-single-alignment
-+++ a/include/linux/cma.h
-@@ -17,11 +17,11 @@
- #define CMA_MAX_NAME 64
+--- a/drivers/virtio/virtio_mem.c~drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size
++++ a/drivers/virtio/virtio_mem.c
+@@ -2476,10 +2476,10 @@ static int virtio_mem_init_hotplug(struc
+ 				      VIRTIO_MEM_DEFAULT_OFFLINE_THRESHOLD);
  
- /*
-- * TODO: once the buddy -- especially pageblock merging and alloc_contig_range()
-+ *  the buddy -- especially pageblock merging and alloc_contig_range()
-  * -- can deal with only some pageblocks of a higher-order page being
-  *  MIGRATE_CMA, we can use pageblock_nr_pages.
-  */
--#define CMA_MIN_ALIGNMENT_PAGES MAX_ORDER_NR_PAGES
-+#define CMA_MIN_ALIGNMENT_PAGES pageblock_nr_pages
- #define CMA_MIN_ALIGNMENT_BYTES (PAGE_SIZE * CMA_MIN_ALIGNMENT_PAGES)
- 
- struct cma;
---- a/include/linux/mmzone.h~mm-cma-use-pageblock_order-as-the-single-alignment
-+++ a/include/linux/mmzone.h
-@@ -54,10 +54,7 @@ enum migratetype {
- 	 *
- 	 * The way to use it is to change migratetype of a range of
- 	 * pageblocks to MIGRATE_CMA which can be done by
--	 * __free_pageblock_cma() function.  What is important though
--	 * is that a range of pageblocks must be aligned to
--	 * MAX_ORDER_NR_PAGES should biggest page be bigger than
--	 * a single pageblock.
-+	 * __free_pageblock_cma() function.
+ 	/*
+-	 * TODO: once alloc_contig_range() works reliably with pageblock
+-	 * granularity on ZONE_NORMAL, use pageblock_nr_pages instead.
++	 * alloc_contig_range() works reliably with pageblock
++	 * granularity on ZONE_NORMAL, use pageblock_nr_pages.
  	 */
- 	MIGRATE_CMA,
- #endif
---- a/mm/page_alloc.c~mm-cma-use-pageblock_order-as-the-single-alignment
-+++ a/mm/page_alloc.c
-@@ -9014,8 +9014,8 @@ int __alloc_contig_migrate_range(struct
-  *			be either of the two.
-  * @gfp_mask:	GFP mask to use during compaction
-  *
-- * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-- * aligned.  The PFN range must belong to a single zone.
-+ * The PFN range does not have to be pageblock aligned. The PFN range must
-+ * belong to a single zone.
-  *
-  * The first thing this routine does is attempt to MIGRATE_ISOLATE all
-  * pageblocks in the range.  Once isolated, the pageblocks should not
+-	sb_size = PAGE_SIZE * MAX_ORDER_NR_PAGES;
++	sb_size = PAGE_SIZE * pageblock_nr_pages;
+ 	sb_size = max_t(uint64_t, vm->device_block_size, sb_size);
+ 
+ 	if (sb_size < memory_block_size_bytes() && !force_bbm) {
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
