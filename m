@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24831C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 21:11:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D530BC433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 21:11:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243756AbiDYVO1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Apr 2022 17:14:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34196 "EHLO
+        id S241160AbiDYVO2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Apr 2022 17:14:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241160AbiDYVO0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 17:14:26 -0400
+        with ESMTP id S243536AbiDYVO1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 17:14:27 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C690B7CDF5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 14:11:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA5977CDF3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 14:11:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7DA5EB81ACD
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 21:11:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E139C385A7;
-        Mon, 25 Apr 2022 21:11:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4C4CBB81AD1
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 21:11:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E90D9C385A4;
+        Mon, 25 Apr 2022 21:11:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650921077;
-        bh=gTEHMKINQaY+vLXXLRlx+dgU7nnSYto9TyERpXFKr78=;
+        s=korg; t=1650921079;
+        bh=mba2r6O39VLtettQwj2H1+RRBjz0I5zta9Uu7XeGaz4=;
         h=Date:To:From:Subject:From;
-        b=fCXT2ydc1uRqDyqm2HqIsUlQIRYrdQFQl0guDkchX7Nz/irYi91A1d4nTwfev8XqA
-         Obbyp+aVC6wz4SvJRkkH0oZbKyC83mCgWf3+ZTn4znFQHz9upLLBaeOO12xvKag1MD
-         qAr4kt6WrXcywH1+VW9TKsyJc15wWer+IXG6Wztk=
-Date:   Mon, 25 Apr 2022 14:11:16 -0700
+        b=VF2K8xZULvXHahznB1EXFm88UQxO9x4+3DMSCo3vZGoVe9lyT0f9yhzeGqc3310Q5
+         7fycMSTixXZQwBX2IAURb4I6HWLBpqcCwwwoMaHWYOz2hlDSfjkxtGJrBgerpeOsbW
+         BkcAvZ3OdnEcCZECNhFDWS18EgzoqsGQMH0AZJ/8=
+Date:   Mon, 25 Apr 2022 14:11:18 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         osalvador@suse.de, iamjoonsoo.kim@lge.com, hch@lst.de,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch added to -mm tree
-Message-Id: <20220425211117.1E139C385A7@smtp.kernel.org>
+Subject: + mm-vmscan-introduce-helper-function-reclaim_page_list.patch added to -mm tree
+Message-Id: <20220425211118.E90D9C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: add a comment about MADV_FREE pages check in folio_check_dirty_writeback
+     Subject: mm/vmscan: introduce helper function reclaim_page_list()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
+     mm-vmscan-introduce-helper-function-reclaim_page_list.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-introduce-helper-function-reclaim_page_list.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-introduce-helper-function-reclaim_page_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,47 +64,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmscan: add a comment about MADV_FREE pages check in folio_check_dirty_writeback
+Subject: mm/vmscan: introduce helper function reclaim_page_list()
 
-Patch series "A few cleanup and fixup patches for vmscan
+Introduce helper function reclaim_page_list() to eliminate the duplicated
+code of doing shrink_page_list() and putback_lru_page.  Also we can
+separate node reclaim from node page list operation this way.  No
+functional change intended.
 
-This series contains a few patches to remove obsolete comment, introduce
-helper to remove duplicated code and so no.  Also we take all base pages
-of THP into account in rare race condition.  More details can be found in
-the respective changelogs.
-
-
-This patch (of 6):
-
-The MADV_FREE pages check in folio_check_dirty_writeback is a bit hard to
-follow.  Add a comment to make the code clear.
-
-Link: https://lkml.kernel.org/r/20220425111232.23182-2-linmiaohe@huawei.com
-Suggested-by: Huang, Ying <ying.huang@intel.com>
+Link: https://lkml.kernel.org/r/20220425111232.23182-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Huang, Ying <ying.huang@intel.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   50 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback
+--- a/mm/vmscan.c~mm-vmscan-introduce-helper-function-reclaim_page_list
 +++ a/mm/vmscan.c
-@@ -1435,7 +1435,10 @@ static void folio_check_dirty_writeback(
+@@ -2536,14 +2536,12 @@ static void shrink_active_list(unsigned
+ 			nr_deactivate, nr_rotated, sc->priority, file);
+ }
  
- 	/*
- 	 * Anonymous pages are not handled by flushers and must be written
--	 * from reclaim context. Do not stall reclaim based on them
-+	 * from reclaim context. Do not stall reclaim based on them.
-+	 * MADV_FREE anonymous pages are put into inactive file list too.
-+	 * They could be mistakenly treated as file lru. So further anon
-+	 * test is needed.
- 	 */
- 	if (!folio_is_file_lru(folio) ||
- 	    (folio_test_anon(folio) && !folio_test_swapbacked(folio))) {
+-unsigned long reclaim_pages(struct list_head *page_list)
++static unsigned int reclaim_page_list(struct list_head *page_list,
++				      struct pglist_data *pgdat)
+ {
+-	int nid = NUMA_NO_NODE;
+-	unsigned int nr_reclaimed = 0;
+-	LIST_HEAD(node_page_list);
+ 	struct reclaim_stat dummy_stat;
+-	struct page *page;
+-	unsigned int noreclaim_flag;
++	unsigned int nr_reclaimed;
++	struct folio *folio;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 		.may_writepage = 1,
+@@ -2552,6 +2550,24 @@ unsigned long reclaim_pages(struct list_
+ 		.no_demotion = 1,
+ 	};
+ 
++	nr_reclaimed = shrink_page_list(page_list, pgdat, &sc, &dummy_stat, false);
++	while (!list_empty(page_list)) {
++		folio = lru_to_folio(page_list);
++		list_del(&folio->lru);
++		folio_putback_lru(folio);
++	}
++
++	return nr_reclaimed;
++}
++
++unsigned long reclaim_pages(struct list_head *page_list)
++{
++	int nid = NUMA_NO_NODE;
++	unsigned int nr_reclaimed = 0;
++	LIST_HEAD(node_page_list);
++	struct page *page;
++	unsigned int noreclaim_flag;
++
+ 	noreclaim_flag = memalloc_noreclaim_save();
+ 
+ 	while (!list_empty(page_list)) {
+@@ -2567,28 +2583,12 @@ unsigned long reclaim_pages(struct list_
+ 			continue;
+ 		}
+ 
+-		nr_reclaimed += shrink_page_list(&node_page_list,
+-						NODE_DATA(nid),
+-						&sc, &dummy_stat, false);
+-		while (!list_empty(&node_page_list)) {
+-			page = lru_to_page(&node_page_list);
+-			list_del(&page->lru);
+-			putback_lru_page(page);
+-		}
+-
++		nr_reclaimed += reclaim_page_list(&node_page_list, NODE_DATA(nid));
+ 		nid = NUMA_NO_NODE;
+ 	}
+ 
+-	if (!list_empty(&node_page_list)) {
+-		nr_reclaimed += shrink_page_list(&node_page_list,
+-						NODE_DATA(nid),
+-						&sc, &dummy_stat, false);
+-		while (!list_empty(&node_page_list)) {
+-			page = lru_to_page(&node_page_list);
+-			list_del(&page->lru);
+-			putback_lru_page(page);
+-		}
+-	}
++	if (!list_empty(&node_page_list))
++		nr_reclaimed += reclaim_page_list(&node_page_list, NODE_DATA(nid));
+ 
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
