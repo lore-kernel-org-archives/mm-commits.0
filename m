@@ -2,94 +2,106 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AD45C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 24 Apr 2022 21:53:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAE48C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 08:37:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237265AbiDXV4C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 24 Apr 2022 17:56:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38204 "EHLO
+        id S231161AbiDYIkd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Apr 2022 04:40:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239690AbiDXVz6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 24 Apr 2022 17:55:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19C813FDB5
-        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 14:52:56 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A38896135C
-        for <mm-commits@vger.kernel.org>; Sun, 24 Apr 2022 21:52:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED5F1C385A9;
-        Sun, 24 Apr 2022 21:52:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650837175;
-        bh=ms3wyMAXgfHFhkCwEZPqZ6Ltxs29URnwsC7FltANNR4=;
-        h=Date:To:From:Subject:From;
-        b=ar1tYB53lA13wAjaSLq1SksRJe2BpOEEmGsxVZJ9kwwKuDENpE4yygWivoDDBrVmk
-         BoKrlbo1bxEDJlG5Ryh6DhcYadrRJt55ICqaJUJN9AyqpV2we4upLxPiqME5zON4UE
-         RRSdM0BLszzVNpb8IysFEVwiEa8n25WotTj5kcq0=
-Date:   Sun, 24 Apr 2022 14:52:54 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        linmiaohe@huawei.com, hughd@google.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-shmem-make-shmem_init-return-void-fix.patch removed from -mm tree
-Message-Id: <20220424215254.ED5F1C385A9@smtp.kernel.org>
+        with ESMTP id S231917AbiDYIkc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 04:40:32 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 216DD6A03A
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 01:37:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=LyiGOHkn8ewqfiHfAcRDUVz9K3dHfRuS7M+KepzK9NY=; b=PArCvLYQYdch8TkYlnndDs9iGQ
+        bUSxBVwkNA87ubXg/2xrDAlFfPgrEi+1oz3rJ23kKTBK8ukKDawtIqrgZd9RLNhRBXRcHVu40yKCc
+        vlkKAgflty8j1vKvLv4vW7na8Y1RIMeNzdVrQs5jUw7Tc+xVPetD6t/gYdcyMvf7iAQ+ZnG2YNMMQ
+        OGFqR2T66efwXuSQYQocW58dr/ZqWjj5105gc3xW0edf1U8saZ8dj6qJhfeCJUuqDKoGa8yxqXLED
+        D92gLoiPa6RhHVxmFfmjmEZrOYLx4qdlcCOuebbsPk2zUI5VYNhR1BKAkRq8qFi8jIma6FAa7kVXa
+        telsGmCw==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=worktop.programming.kicks-ass.net)
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1niuDj-008V8X-NB; Mon, 25 Apr 2022 08:37:23 +0000
+Received: by worktop.programming.kicks-ass.net (Postfix, from userid 1000)
+        id 4D51B980BF1; Mon, 25 Apr 2022 10:37:23 +0200 (CEST)
+Date:   Mon, 25 Apr 2022 10:37:23 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, axboe@kernel.dk, chenwandun@huawei.com
+Subject: Re: +
+ mm-rework-calculation-of-bdi_min_ratio-in-bdi_set_min_ratio.patch added to
+ -mm tree
+Message-ID: <20220425083723.GB2731@worktop.programming.kicks-ass.net>
+References: <20220422205413.C4DF4C385A0@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220422205413.C4DF4C385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Fri, Apr 22, 2022 at 01:54:13PM -0700, Andrew Morton wrote:
 
-The patch titled
-     Subject: mm-shmem-make-shmem_init-return-void-fix
-has been removed from the -mm tree.  Its filename was
-     mm-shmem-make-shmem_init-return-void-fix.patch
+> From: Chen Wandun <chenwandun@huawei.com>
+> Subject: mm: rework calculation of bdi_min_ratio in bdi_set_min_ratio
+> 
+> In function bdi_set_min_ratio, min_ratio is unsigned int, it will
+> result underflow when setting min_ratio below bdi->min_ratio, it
+> is confusing. Rework it, no functional change.
+> 
+> Link: https://lkml.kernel.org/r/20220422095159.2858305-1-chenwandun@huawei.com
+> Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Jens Axboe <axboe@kernel.dk>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/page-writeback.c |   17 ++++++++++++-----
+>  1 file changed, 12 insertions(+), 5 deletions(-)
+> 
+> --- a/mm/page-writeback.c~mm-rework-calculation-of-bdi_min_ratio-in-bdi_set_min_ratio
+> +++ a/mm/page-writeback.c
+> @@ -650,18 +650,25 @@ static unsigned int bdi_min_ratio;
+>  
+>  int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio)
+>  {
+> +	unsigned int delta;
+>  	int ret = 0;
+>  
+>  	spin_lock_bh(&bdi_lock);
+>  	if (min_ratio > bdi->max_ratio) {
+>  		ret = -EINVAL;
+>  	} else {
 
-This patch was dropped because it was folded into mm-shmem-make-shmem_init-return-void.patch
+> -		min_ratio -= bdi->min_ratio;
+> -		if (bdi_min_ratio + min_ratio < 100) {
+> -			bdi_min_ratio += min_ratio;
+> -			bdi->min_ratio += min_ratio;
+>  		} else {
+> -			ret = -EINVAL;
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-shmem-make-shmem_init-return-void-fix
+I really don't see the why we're doing this, code gets to be worse, for
+no actual gain.
 
-remove `return;' from void-returning function, per Muchun Song
+> +		if (min_ratio < bdi->min_ratio) {
+> +			delta = bdi->min_ratio - min_ratio;
+> +			bdi_min_ratio -= delta;
+> +			bdi->min_ratio = min_ratio;
+>  		} else {
+> +			delta = min_ratio - bdi->min_ratio;
+> +			if (bdi_min_ratio + delta < 100) {
+> +				bdi_min_ratio += delta;
+> +				bdi->min_ratio = min_ratio;
+> +			} else {
+> +				ret = -EINVAL;
+> +			}
+>  		}
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/shmem.c |    2 --
- 1 file changed, 2 deletions(-)
-
---- a/mm/shmem.c~mm-shmem-make-shmem_init-return-void-fix
-+++ a/mm/shmem.c
-@@ -4004,8 +4004,6 @@ void __init shmem_init(void)
- 
- 	shm_mnt = kern_mount(&shmem_fs_type);
- 	BUG_ON(IS_ERR(shm_mnt));
--
--	return;
- }
- 
- int shmem_unuse(unsigned int type)
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm.patch
-mm-create-new-mm-swaph-header-file-fix.patch
-mm-shmem-make-shmem_init-return-void.patch
-mm-check-against-orig_pte-for-finish_fault-fix-checkpatch-fixes.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
-mm-vmscan-fix-comment-for-current_may_throttle-fix.patch
-ksm-count-ksm-merging-pages-for-each-process-fix.patch
-mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node-checkpatch-fixes.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body-fix.patch
-add-fat-messages-to-printk-index-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-
+>  	}
