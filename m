@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 840A8C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 19:02:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 187E1C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 19:02:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244810AbiDYTFW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Apr 2022 15:05:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54034 "EHLO
+        id S244833AbiDYTFb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Apr 2022 15:05:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243635AbiDYTFO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 15:05:14 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91E4F12C411
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 12:02:08 -0700 (PDT)
+        with ESMTP id S243765AbiDYTFP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 15:05:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6292F12C43C
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 12:02:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5E22FB81A0D
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 19:02:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E72BC385AC;
-        Mon, 25 Apr 2022 19:02:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E07FD61722
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 19:02:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44E33C385A7;
+        Mon, 25 Apr 2022 19:02:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650913326;
-        bh=3bLEZUmLcidqhAtwZKz0JLaX+AvNU2io9SqabMAeRfI=;
+        s=korg; t=1650913328;
+        bh=T1+MJyAJB5vomG7zYmQcH3JadbcR4l7kVXB+CyMKOzg=;
         h=Date:To:From:Subject:From;
-        b=Vk8fH6PjP8UzMLoxn/pKHgR6eDprYApZXZa8BEPBA4U8sQRSvUQolwy0wobvGjOYa
-         R+fp0+e5U+kiKQzPGDASFESAHF9u4L2QSa6d9Hy/88+EO9HfOoilLPNg1AMFQCdA7z
-         M6oCO5ML4NBBMVY+7hzSApyRET4afpyYR0/kXZYU=
-Date:   Mon, 25 Apr 2022 12:02:05 -0700
+        b=eSTkk65yPek6u6lSvRLYpLaL3B7pw8HXE+vuk+Y43M7oKQIRy7wNLkjttRmeImqHL
+         2JZA9UyMi8MEviatZj2XGHjtIrJAFb13fC66wm+qxYiQ7BAUhB2OGuXeqsUKPJa+yh
+         cqX0Xuc4aNm4m0YYGobvjAYVkZNjbTxoj0LquIC0=
+Date:   Mon, 25 Apr 2022 12:02:07 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@linux.ibm.com,
         renzhengeek@gmail.com, osalvador@suse.de, minchan@kernel.org,
         mgorman@techsingularity.net, lkp@intel.com, david@redhat.com,
         christophe.leroy@csgroup.eu, ziy@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_isolation-check-specified-range-for-unmovable-pages.patch added to -mm tree
-Message-Id: <20220425190206.1E72BC385AC@smtp.kernel.org>
+Subject: + mm-make-alloc_contig_range-work-at-pageblock-granularity.patch added to -mm tree
+Message-Id: <20220425190208.44E33C385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_isolation: check specified range for unmovable pages
+     Subject: mm: make alloc_contig_range work at pageblock granularity
 has been added to the -mm tree.  Its filename is
-     mm-page_isolation-check-specified-range-for-unmovable-pages.patch
+     mm-make-alloc_contig_range-work-at-pageblock-granularity.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-check-specified-range-for-unmovable-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-make-alloc_contig_range-work-at-pageblock-granularity.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-check-specified-range-for-unmovable-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-make-alloc_contig_range-work-at-pageblock-granularity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,27 +66,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm: page_isolation: check specified range for unmovable pages
+Subject: mm: make alloc_contig_range work at pageblock granularity
 
-Enable set_migratetype_isolate() to check specified range for unmovable
-pages during isolation to prepare arbitrary range page isolation.  The
-functionality will take effect in upcoming commits by adjusting the
-callers of start_isolate_page_range(), which uses
-set_migratetype_isolate().
+alloc_contig_range() worked at MAX_ORDER_NR_PAGES granularity to avoid
+merging pageblocks with different migratetypes.  It might unnecessarily
+convert extra pageblocks at the beginning and at the end of the range. 
+Change alloc_contig_range() to work at pageblock granularity.
 
-For example, alloc_contig_range(), which calls start_isolate_page_range(),
-accepts unaligned ranges, but because page isolation is currently done at
-MAX_ORDER_NR_PAEGS granularity, pages that are out of the specified range
-but withint MAX_ORDER_NR_PAEGS alignment might be attempted for isolation
-and the failure of isolating these unrelated pages fails the whole
-operation undesirably.
+Special handling is needed for free pages and in-use pages across the
+boundaries of the range specified by alloc_contig_range().  Because these
+partially isolated pages causes free page accounting issues.  The free
+pages will be split and freed into separate migratetype lists; the in-use
+pages will be migrated then the freed pages will be handled in the
+aforementioned way.
 
-Link: https://lkml.kernel.org/r/20220425143118.2850746-3-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20220425143118.2850746-4-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Eric Ren <renzhengeek@gmail.com>
-Cc: kernel test robot <lkp@intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -95,120 +94,409 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |   47 ++++++++++++++++++++++++++++++------------
- 1 file changed, 34 insertions(+), 13 deletions(-)
+ include/linux/page-isolation.h |    4 
+ mm/internal.h                  |    6 +
+ mm/memory_hotplug.c            |    3 
+ mm/page_alloc.c                |   54 +++++++--
+ mm/page_isolation.c            |  184 ++++++++++++++++++++++++++++++-
+ 5 files changed, 233 insertions(+), 18 deletions(-)
 
---- a/mm/page_isolation.c~mm-page_isolation-check-specified-range-for-unmovable-pages
-+++ a/mm/page_isolation.c
-@@ -16,7 +16,9 @@
- #include <trace/events/page_isolation.h>
+--- a/include/linux/page-isolation.h~mm-make-alloc_contig_range-work-at-pageblock-granularity
++++ a/include/linux/page-isolation.h
+@@ -42,7 +42,7 @@ int move_freepages_block(struct zone *zo
+  */
+ int
+ start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
+-			 unsigned migratetype, int flags);
++			 int migratetype, int flags, gfp_t gfp_flags);
  
  /*
-- * This function checks whether pageblock includes unmovable pages or not.
-+ * This function checks whether the range [start_pfn, end_pfn) includes
-+ * unmovable pages or not. The range must fall into a single pageblock and
-+ * consequently belong to a single zone.
-  *
-  * PageLRU check without isolation or lru_lock could race so that
-  * MIGRATE_MOVABLE block might include unmovable pages. And __PageMovable
-@@ -28,12 +30,15 @@
-  * cannot get removed (e.g., via memory unplug) concurrently.
-  *
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+@@ -50,7 +50,7 @@ start_isolate_page_range(unsigned long s
   */
--static struct page *has_unmovable_pages(struct zone *zone, struct page *page,
--				 int migratetype, int flags)
-+static struct page *has_unmovable_pages(unsigned long start_pfn, unsigned long end_pfn,
-+				int migratetype, int flags)
- {
--	unsigned long iter = 0;
--	unsigned long pfn = page_to_pfn(page);
--	unsigned long offset = pfn % pageblock_nr_pages;
-+	struct page *page = pfn_to_page(start_pfn);
-+	struct zone *zone = page_zone(page);
-+	unsigned long pfn;
+ void
+ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
+-			unsigned migratetype);
++			int migratetype);
+ 
+ /*
+  * Test all pages in [start_pfn, end_pfn) are isolated or not.
+--- a/mm/internal.h~mm-make-alloc_contig_range-work-at-pageblock-granularity
++++ a/mm/internal.h
+@@ -359,6 +359,9 @@ extern void *memmap_alloc(phys_addr_t si
+ 			  phys_addr_t min_addr,
+ 			  int nid, bool exact_nid);
+ 
++void split_free_page(struct page *free_page,
++				int order, unsigned long split_pfn_offset);
 +
-+	VM_BUG_ON(ALIGN_DOWN(start_pfn, pageblock_nr_pages) !=
-+		  ALIGN_DOWN(end_pfn - 1, pageblock_nr_pages));
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
  
- 	if (is_migrate_cma_page(page)) {
- 		/*
-@@ -47,8 +52,8 @@ static struct page *has_unmovable_pages(
- 		return page;
- 	}
- 
--	for (; iter < pageblock_nr_pages - offset; iter++) {
--		page = pfn_to_page(pfn + iter);
-+	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
-+		page = pfn_to_page(pfn);
- 
- 		/*
- 		 * Both, bootmem allocations and memory holes are marked
-@@ -85,7 +90,7 @@ static struct page *has_unmovable_pages(
- 			}
- 
- 			skip_pages = compound_nr(head) - (page - head);
--			iter += skip_pages - 1;
-+			pfn += skip_pages - 1;
- 			continue;
- 		}
- 
-@@ -97,7 +102,7 @@ static struct page *has_unmovable_pages(
- 		 */
- 		if (!page_ref_count(page)) {
- 			if (PageBuddy(page))
--				iter += (1 << buddy_order(page)) - 1;
-+				pfn += (1 << buddy_order(page)) - 1;
- 			continue;
- 		}
- 
-@@ -134,11 +139,18 @@ static struct page *has_unmovable_pages(
- 	return NULL;
+ /*
+@@ -422,6 +425,9 @@ isolate_freepages_range(struct compact_c
+ int
+ isolate_migratepages_range(struct compact_control *cc,
+ 			   unsigned long low_pfn, unsigned long end_pfn);
++
++int __alloc_contig_migrate_range(struct compact_control *cc,
++					unsigned long start, unsigned long end);
+ #endif
+ int find_suitable_fallback(struct free_area *area, unsigned int order,
+ 			int migratetype, bool only_stealable, bool *can_steal);
+--- a/mm/memory_hotplug.c~mm-make-alloc_contig_range-work-at-pageblock-granularity
++++ a/mm/memory_hotplug.c
+@@ -1845,7 +1845,8 @@ int __ref offline_pages(unsigned long st
+ 	/* set above range as isolated */
+ 	ret = start_isolate_page_range(start_pfn, end_pfn,
+ 				       MIGRATE_MOVABLE,
+-				       MEMORY_OFFLINE | REPORT_FAILURE);
++				       MEMORY_OFFLINE | REPORT_FAILURE,
++				       GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL);
+ 	if (ret) {
+ 		reason = "failure to isolate range";
+ 		goto failed_removal_pcplists_disabled;
+--- a/mm/page_alloc.c~mm-make-alloc_contig_range-work-at-pageblock-granularity
++++ a/mm/page_alloc.c
+@@ -1094,6 +1094,43 @@ done_merging:
+ 		page_reporting_notify_free(order);
  }
  
--static int set_migratetype_isolate(struct page *page, int migratetype, int isol_flags)
-+/*
-+ * This function set pageblock migratetype to isolate if no unmovable page is
-+ * present in [start_pfn, end_pfn). The pageblock must intersect with
-+ * [start_pfn, end_pfn).
++/**
++ * split_free_page() -- split a free page at split_pfn_offset
++ * @free_page:		the original free page
++ * @order:		the order of the page
++ * @split_pfn_offset:	split offset within the page
++ *
++ * It is used when the free page crosses two pageblocks with different migratetypes
++ * at split_pfn_offset within the page. The split free page will be put into
++ * separate migratetype lists afterwards. Otherwise, the function achieves
++ * nothing.
 + */
-+static int set_migratetype_isolate(struct page *page, int migratetype, int isol_flags,
-+			unsigned long start_pfn, unsigned long end_pfn)
- {
- 	struct zone *zone = page_zone(page);
- 	struct page *unmovable;
- 	unsigned long flags;
-+	unsigned long check_unmovable_start, check_unmovable_end;
- 
- 	spin_lock_irqsave(&zone->lock, flags);
- 
-@@ -155,8 +167,16 @@ static int set_migratetype_isolate(struc
- 	/*
- 	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
- 	 * We just check MOVABLE pages.
-+	 *
-+	 * Pass the intersection of [start_pfn, end_pfn) and the page's pageblock
-+	 * to avoid redundant checks.
- 	 */
--	unmovable = has_unmovable_pages(zone, page, migratetype, isol_flags);
-+	check_unmovable_start = max(page_to_pfn(page), start_pfn);
-+	check_unmovable_end = min(ALIGN(page_to_pfn(page) + 1, pageblock_nr_pages),
-+				  end_pfn);
++void split_free_page(struct page *free_page,
++				int order, unsigned long split_pfn_offset)
++{
++	struct zone *zone = page_zone(free_page);
++	unsigned long free_page_pfn = page_to_pfn(free_page);
++	unsigned long pfn;
++	unsigned long flags;
++	int free_page_order;
 +
-+	unmovable = has_unmovable_pages(check_unmovable_start, check_unmovable_end,
-+			migratetype, isol_flags);
- 	if (!unmovable) {
- 		unsigned long nr_pages;
- 		int mt = get_pageblock_migratetype(page);
-@@ -313,7 +333,8 @@ int start_isolate_page_range(unsigned lo
- 	     pfn < end_pfn;
++	spin_lock_irqsave(&zone->lock, flags);
++	del_page_from_free_list(free_page, zone, order);
++	for (pfn = free_page_pfn;
++	     pfn < free_page_pfn + (1UL << order);) {
++		int mt = get_pfnblock_migratetype(pfn_to_page(pfn), pfn);
++
++		free_page_order = ffs(split_pfn_offset) - 1;
++		__free_one_page(pfn_to_page(pfn), pfn, zone, free_page_order,
++				mt, FPI_NONE);
++		pfn += 1UL << free_page_order;
++		split_pfn_offset -= (1UL << free_page_order);
++		/* we have done the first part, now switch to second part */
++		if (split_pfn_offset == 0)
++			split_pfn_offset = (1UL << order) - (pfn - free_page_pfn);
++	}
++	spin_unlock_irqrestore(&zone->lock, flags);
++}
+ /*
+  * A bad page could be due to a number of fields. Instead of multiple branches,
+  * try and check multiple fields with one check. The caller must do a detailed
+@@ -8919,7 +8956,7 @@ static inline void alloc_contig_dump_pag
+ #endif
+ 
+ /* [start, end) must belong to a single zone. */
+-static int __alloc_contig_migrate_range(struct compact_control *cc,
++int __alloc_contig_migrate_range(struct compact_control *cc,
+ 					unsigned long start, unsigned long end)
+ {
+ 	/* This function is based on compact_zone() from compaction.c. */
+@@ -9002,7 +9039,7 @@ int alloc_contig_range(unsigned long sta
+ 		       unsigned migratetype, gfp_t gfp_mask)
+ {
+ 	unsigned long outer_start, outer_end;
+-	unsigned int order;
++	int order;
+ 	int ret = 0;
+ 
+ 	struct compact_control cc = {
+@@ -9021,14 +9058,11 @@ int alloc_contig_range(unsigned long sta
+ 	 * What we do here is we mark all pageblocks in range as
+ 	 * MIGRATE_ISOLATE.  Because pageblock and max order pages may
+ 	 * have different sizes, and due to the way page allocator
+-	 * work, we align the range to biggest of the two pages so
+-	 * that page allocator won't try to merge buddies from
+-	 * different pageblocks and change MIGRATE_ISOLATE to some
+-	 * other migration type.
++	 * work, start_isolate_page_range() has special handlings for this.
+ 	 *
+ 	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
+ 	 * migrate the pages from an unaligned range (ie. pages that
+-	 * we are interested in).  This will put all the pages in
++	 * we are interested in). This will put all the pages in
+ 	 * range back to page allocator as MIGRATE_ISOLATE.
+ 	 *
+ 	 * When this is done, we take the pages in range from page
+@@ -9042,9 +9076,9 @@ int alloc_contig_range(unsigned long sta
+ 	 */
+ 
+ 	ret = start_isolate_page_range(pfn_max_align_down(start),
+-				       pfn_max_align_up(end), migratetype, 0);
++				pfn_max_align_up(end), migratetype, 0, gfp_mask);
+ 	if (ret)
+-		return ret;
++		goto done;
+ 
+ 	drain_all_pages(cc.zone);
+ 
+@@ -9064,7 +9098,7 @@ int alloc_contig_range(unsigned long sta
+ 	ret = 0;
+ 
+ 	/*
+-	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
++	 * Pages from [start, end) are within a pageblock_nr_pages
+ 	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
+ 	 * more, all pages in [start, end) are free in page allocator.
+ 	 * What we are going to do is to allocate all pages from
+--- a/mm/page_isolation.c~mm-make-alloc_contig_range-work-at-pageblock-granularity
++++ a/mm/page_isolation.c
+@@ -203,7 +203,7 @@ static int set_migratetype_isolate(struc
+ 	return -EBUSY;
+ }
+ 
+-static void unset_migratetype_isolate(struct page *page, unsigned migratetype)
++static void unset_migratetype_isolate(struct page *page, int migratetype)
+ {
+ 	struct zone *zone;
+ 	unsigned long flags, nr_pages;
+@@ -280,6 +280,157 @@ __first_valid_page(unsigned long pfn, un
+ }
+ 
+ /**
++ * isolate_single_pageblock() -- tries to isolate a pageblock that might be
++ * within a free or in-use page.
++ * @boundary_pfn:		pageblock-aligned pfn that a page might cross
++ * @gfp_flags:			GFP flags used for migrating pages
++ * @isolate_before:	isolate the pageblock before the boundary_pfn
++ *
++ * Free and in-use pages can be as big as MAX_ORDER-1 and contain more than one
++ * pageblock. When not all pageblocks within a page are isolated at the same
++ * time, free page accounting can go wrong. For example, in the case of
++ * MAX_ORDER-1 = pageblock_order + 1, a MAX_ORDER-1 page has two pagelbocks.
++ * [         MAX_ORDER-1         ]
++ * [  pageblock0  |  pageblock1  ]
++ * When either pageblock is isolated, if it is a free page, the page is not
++ * split into separate migratetype lists, which is supposed to; if it is an
++ * in-use page and freed later, __free_one_page() does not split the free page
++ * either. The function handles this by splitting the free page or migrating
++ * the in-use page then splitting the free page.
++ */
++static int isolate_single_pageblock(unsigned long boundary_pfn, gfp_t gfp_flags,
++			bool isolate_before)
++{
++	unsigned char saved_mt;
++	unsigned long start_pfn;
++	unsigned long isolate_pageblock;
++	unsigned long pfn;
++	struct zone *zone;
++
++	VM_BUG_ON(!IS_ALIGNED(boundary_pfn, pageblock_nr_pages));
++
++	if (isolate_before)
++		isolate_pageblock = boundary_pfn - pageblock_nr_pages;
++	else
++		isolate_pageblock = boundary_pfn;
++
++	/*
++	 * scan at the beginning of MAX_ORDER_NR_PAGES aligned range to avoid
++	 * only isolating a subset of pageblocks from a bigger than pageblock
++	 * free or in-use page. Also make sure all to-be-isolated pageblocks
++	 * are within the same zone.
++	 */
++	zone  = page_zone(pfn_to_page(isolate_pageblock));
++	start_pfn  = max(ALIGN_DOWN(isolate_pageblock, MAX_ORDER_NR_PAGES),
++				      zone->zone_start_pfn);
++
++	saved_mt = get_pageblock_migratetype(pfn_to_page(isolate_pageblock));
++	set_pageblock_migratetype(pfn_to_page(isolate_pageblock), MIGRATE_ISOLATE);
++
++	/*
++	 * Bail out early when the to-be-isolated pageblock does not form
++	 * a free or in-use page across boundary_pfn:
++	 *
++	 * 1. isolate before boundary_pfn: the page after is not online
++	 * 2. isolate after boundary_pfn: the page before is not online
++	 *
++	 * This also ensures correctness. Without it, when isolate after
++	 * boundary_pfn and [start_pfn, boundary_pfn) are not online,
++	 * __first_valid_page() will return unexpected NULL in the for loop
++	 * below.
++	 */
++	if (isolate_before) {
++		if (!pfn_to_online_page(boundary_pfn))
++			return 0;
++	} else {
++		if (!pfn_to_online_page(boundary_pfn - 1))
++			return 0;
++	}
++
++	for (pfn = start_pfn; pfn < boundary_pfn;) {
++		struct page *page = __first_valid_page(pfn, boundary_pfn - pfn);
++
++		VM_BUG_ON(!page);
++		pfn = page_to_pfn(page);
++		/*
++		 * start_pfn is MAX_ORDER_NR_PAGES aligned, if there is any
++		 * free pages in [start_pfn, boundary_pfn), its head page will
++		 * always be in the range.
++		 */
++		if (PageBuddy(page)) {
++			int order = buddy_order(page);
++
++			if (pfn + (1UL << order) > boundary_pfn)
++				split_free_page(page, order, boundary_pfn - pfn);
++			pfn += (1UL << order);
++			continue;
++		}
++		/*
++		 * migrate compound pages then let the free page handling code
++		 * above do the rest. If migration is not enabled, just fail.
++		 */
++		if (PageHuge(page) || PageTransCompound(page)) {
++#if defined CONFIG_COMPACTION || defined CONFIG_CMA
++			unsigned long nr_pages = compound_nr(page);
++			int order = compound_order(page);
++			struct page *head = compound_head(page);
++			unsigned long head_pfn = page_to_pfn(head);
++			int ret;
++			struct compact_control cc = {
++				.nr_migratepages = 0,
++				.order = -1,
++				.zone = page_zone(pfn_to_page(head_pfn)),
++				.mode = MIGRATE_SYNC,
++				.ignore_skip_hint = true,
++				.no_set_skip_hint = true,
++				.gfp_mask = gfp_flags,
++				.alloc_contig = true,
++			};
++			INIT_LIST_HEAD(&cc.migratepages);
++
++			if (head_pfn + nr_pages < boundary_pfn) {
++				pfn += nr_pages;
++				continue;
++			}
++
++			ret = __alloc_contig_migrate_range(&cc, head_pfn,
++						head_pfn + nr_pages);
++
++			if (ret)
++				goto failed;
++			/*
++			 * reset pfn, let the free page handling code above
++			 * split the free page to the right migratetype list.
++			 *
++			 * head_pfn is not used here as a hugetlb page order
++			 * can be bigger than MAX_ORDER-1, but after it is
++			 * freed, the free page order is not. Use pfn within
++			 * the range to find the head of the free page and
++			 * reset order to 0 if a hugetlb page with
++			 * >MAX_ORDER-1 order is encountered.
++			 */
++			if (order > MAX_ORDER-1)
++				order = 0;
++			while (!PageBuddy(pfn_to_page(pfn))) {
++				order++;
++				pfn &= ~0UL << order;
++			}
++			continue;
++#else
++			goto failed;
++#endif
++		}
++
++		pfn++;
++	}
++	return 0;
++failed:
++	/* restore the original migratetype */
++	set_pageblock_migratetype(pfn_to_page(isolate_pageblock), saved_mt);
++	return -EBUSY;
++}
++
++/**
+  * start_isolate_page_range() - make page-allocation-type of range of pages to
+  * be MIGRATE_ISOLATE.
+  * @start_pfn:		The lower PFN of the range to be isolated.
+@@ -293,6 +444,8 @@ __first_valid_page(unsigned long pfn, un
+  *					 and PageOffline() pages.
+  *			REPORT_FAILURE - report details about the failure to
+  *			isolate the range
++ * @gfp_flags:		GFP flags used for migrating pages that sit across the
++ *			range boundaries.
+  *
+  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
+  * the range will never be allocated. Any free pages and pages freed in the
+@@ -301,6 +454,10 @@ __first_valid_page(unsigned long pfn, un
+  * pages in the range finally, the caller have to free all pages in the range.
+  * test_page_isolated() can be used for test it.
+  *
++ * The function first tries to isolate the pageblocks at the beginning and end
++ * of the range, since there might be pages across the range boundaries.
++ * Afterwards, it isolates the rest of the range.
++ *
+  * There is no high level synchronization mechanism that prevents two threads
+  * from trying to isolate overlapping ranges. If this happens, one thread
+  * will notice pageblocks in the overlapping range already set to isolate.
+@@ -321,21 +478,38 @@ __first_valid_page(unsigned long pfn, un
+  * Return: 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+ int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
+-			     unsigned migratetype, int flags)
++			     int migratetype, int flags, gfp_t gfp_flags)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
++	int ret;
+ 
+ 	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
+ 	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
+ 
+-	for (pfn = start_pfn;
+-	     pfn < end_pfn;
++	/* isolate [start_pfn, start_pfn + pageblock_nr_pages) pageblock */
++	ret = isolate_single_pageblock(start_pfn, gfp_flags, false);
++	if (ret)
++		return ret;
++
++	/* isolate [end_pfn - pageblock_nr_pages, end_pfn) pageblock */
++	ret = isolate_single_pageblock(end_pfn, gfp_flags, true);
++	if (ret) {
++		unset_migratetype_isolate(pfn_to_page(start_pfn), migratetype);
++		return ret;
++	}
++
++	/* skip isolated pageblocks at the beginning and end */
++	for (pfn = start_pfn + pageblock_nr_pages;
++	     pfn < end_pfn - pageblock_nr_pages;
  	     pfn += pageblock_nr_pages) {
  		page = __first_valid_page(pfn, pageblock_nr_pages);
--		if (page && set_migratetype_isolate(page, migratetype, flags)) {
-+		if (page && set_migratetype_isolate(page, migratetype, flags,
-+					start_pfn, end_pfn)) {
+ 		if (page && set_migratetype_isolate(page, migratetype, flags,
+ 					start_pfn, end_pfn)) {
  			undo_isolate_page_range(start_pfn, pfn, migratetype);
++			unset_migratetype_isolate(
++				pfn_to_page(end_pfn - pageblock_nr_pages),
++				migratetype);
  			return -EBUSY;
  		}
+ 	}
+@@ -346,7 +520,7 @@ int start_isolate_page_range(unsigned lo
+  * Make isolated pages available again.
+  */
+ void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
+-			    unsigned migratetype)
++			    int migratetype)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
