@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98BA0C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 19:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D80C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 19:02:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236446AbiDYTFd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Apr 2022 15:05:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55010 "EHLO
+        id S244829AbiDYTFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Apr 2022 15:05:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244845AbiDYTFc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 15:05:32 -0400
+        with ESMTP id S238545AbiDYTFb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 15:05:31 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FF4012C8DF
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 12:02:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA20E12C6B0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 12:02:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 29BF46170C
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 19:02:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80A26C385A7;
-        Mon, 25 Apr 2022 19:02:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5D25161720
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 19:02:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5695C385A7;
+        Mon, 25 Apr 2022 19:02:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650913336;
-        bh=Wio5EEHaz834SX7dCvDp8E/f6HDW+71s0Jc0WcAekl0=;
+        s=korg; t=1650913331;
+        bh=eeo9GqUfmfy7Rfb+G/0l6MxFY7U6wjLIDaK9fwjzkrQ=;
         h=Date:To:From:Subject:From;
-        b=1F9OEio6x6+OsVGQxxmT2WwaF+kHs5La+Y5fSDVguc3r/QvadnJruOYFiRyX0glXu
-         dPbYkQ5jWBCL6ynA9+CFJWeHhx9Wzwtf5xHQAV216CZMWwhwTbR9Xa7H5YSPMXaTnV
-         m9TNFu2geijH+445OLesLsTzBwtk3gHLU4wsE/Y8=
-Date:   Mon, 25 Apr 2022 12:02:15 -0700
+        b=EOLIZValVj6PpasjHimqJFcuB4F9430a7I/CamRfqp6goUrxNV6fkxACbfu9ZWBrR
+         Y7bT04cCMnfCGL5x332XYfMA3vmRDOZwZZgr86S1q+bUXSQtrlkPMuBpZVa3W7v9wI
+         c7X0Q5WZYahpzhVefMI2+/w1sB8zWR5smhap2+Pg=
+Date:   Mon, 25 Apr 2022 12:02:11 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@linux.ibm.com,
         renzhengeek@gmail.com, osalvador@suse.de, minchan@kernel.org,
         mgorman@techsingularity.net, lkp@intel.com, david@redhat.com,
         christophe.leroy@csgroup.eu, ziy@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch added to -mm tree
-Message-Id: <20220425190216.80A26C385A7@smtp.kernel.org>
+Subject: + mm-page_isolation-enable-arbitrary-range-page-isolation.patch added to -mm tree
+Message-Id: <20220425190211.B5695C385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers: virtio_mem: use pageblock size as the minimum virtio_mem size.
+     Subject: mm: page_isolation: enable arbitrary range page isolation.
 has been added to the -mm tree.  Its filename is
-     drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch
+     mm-page_isolation-enable-arbitrary-range-page-isolation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-enable-arbitrary-range-page-isolation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-enable-arbitrary-range-page-isolation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,12 +66,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: drivers: virtio_mem: use pageblock size as the minimum virtio_mem size.
+Subject: mm: page_isolation: enable arbitrary range page isolation.
 
-alloc_contig_range() now only needs to be aligned to pageblock_nr_pages,
-drop virtio_mem size requirement that it needs to be MAX_ORDER_NR_PAGES.
+Now start_isolate_page_range() is ready to handle arbitrary range
+isolation, so move the alignment check/adjustment into the function body. 
+Do the same for its counterpart undo_isolate_page_range(). 
+alloc_contig_range(), its caller, can pass an arbitrary range instead of a
+MAX_ORDER_NR_PAGES aligned one.
 
-Link: https://lkml.kernel.org/r/20220425143118.2850746-7-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20220425143118.2850746-5-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: David Hildenbrand <david@redhat.com>
@@ -85,25 +88,122 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_mem.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c     |   16 ++--------------
+ mm/page_isolation.c |   33 ++++++++++++++++-----------------
+ 2 files changed, 18 insertions(+), 31 deletions(-)
 
---- a/drivers/virtio/virtio_mem.c~drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size
-+++ a/drivers/virtio/virtio_mem.c
-@@ -2476,10 +2476,10 @@ static int virtio_mem_init_hotplug(struc
- 				      VIRTIO_MEM_DEFAULT_OFFLINE_THRESHOLD);
+--- a/mm/page_alloc.c~mm-page_isolation-enable-arbitrary-range-page-isolation
++++ a/mm/page_alloc.c
+@@ -8924,16 +8924,6 @@ void *__init alloc_large_system_hash(con
+ }
  
- 	/*
--	 * TODO: once alloc_contig_range() works reliably with pageblock
--	 * granularity on ZONE_NORMAL, use pageblock_nr_pages instead.
-+	 * alloc_contig_range() works reliably with pageblock
-+	 * granularity on ZONE_NORMAL, use pageblock_nr_pages.
+ #ifdef CONFIG_CONTIG_ALLOC
+-static unsigned long pfn_max_align_down(unsigned long pfn)
+-{
+-	return ALIGN_DOWN(pfn, MAX_ORDER_NR_PAGES);
+-}
+-
+-static unsigned long pfn_max_align_up(unsigned long pfn)
+-{
+-	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
+-}
+-
+ #if defined(CONFIG_DYNAMIC_DEBUG) || \
+ 	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ /* Usage: See admin-guide/dynamic-debug-howto.rst */
+@@ -9075,8 +9065,7 @@ int alloc_contig_range(unsigned long sta
+ 	 * put back to page allocator so that buddy can use them.
  	 */
--	sb_size = PAGE_SIZE * MAX_ORDER_NR_PAGES;
-+	sb_size = PAGE_SIZE * pageblock_nr_pages;
- 	sb_size = max_t(uint64_t, vm->device_block_size, sb_size);
  
- 	if (sb_size < memory_block_size_bytes() && !force_bbm) {
+-	ret = start_isolate_page_range(pfn_max_align_down(start),
+-				pfn_max_align_up(end), migratetype, 0, gfp_mask);
++	ret = start_isolate_page_range(start, end, migratetype, 0, gfp_mask);
+ 	if (ret)
+ 		goto done;
+ 
+@@ -9157,8 +9146,7 @@ int alloc_contig_range(unsigned long sta
+ 		free_contig_range(end, outer_end - end);
+ 
+ done:
+-	undo_isolate_page_range(pfn_max_align_down(start),
+-				pfn_max_align_up(end), migratetype);
++	undo_isolate_page_range(start, end, migratetype);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(alloc_contig_range);
+--- a/mm/page_isolation.c~mm-page_isolation-enable-arbitrary-range-page-isolation
++++ a/mm/page_isolation.c
+@@ -435,7 +435,6 @@ failed:
+  * be MIGRATE_ISOLATE.
+  * @start_pfn:		The lower PFN of the range to be isolated.
+  * @end_pfn:		The upper PFN of the range to be isolated.
+- *			start_pfn/end_pfn must be aligned to pageblock_order.
+  * @migratetype:	Migrate type to set in error recovery.
+  * @flags:		The following flags are allowed (they can be combined in
+  *			a bit mask)
+@@ -482,33 +481,33 @@ int start_isolate_page_range(unsigned lo
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
++	/* isolation is done at page block granularity */
++	unsigned long isolate_start = ALIGN_DOWN(start_pfn, pageblock_nr_pages);
++	unsigned long isolate_end = ALIGN(end_pfn, pageblock_nr_pages);
+ 	int ret;
+ 
+-	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
+-	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
+-
+-	/* isolate [start_pfn, start_pfn + pageblock_nr_pages) pageblock */
+-	ret = isolate_single_pageblock(start_pfn, gfp_flags, false);
++	/* isolate [isolate_start, isolate_start + pageblock_nr_pages) pageblock */
++	ret = isolate_single_pageblock(isolate_start, gfp_flags, false);
+ 	if (ret)
+ 		return ret;
+ 
+-	/* isolate [end_pfn - pageblock_nr_pages, end_pfn) pageblock */
+-	ret = isolate_single_pageblock(end_pfn, gfp_flags, true);
++	/* isolate [isolate_end - pageblock_nr_pages, isolate_end) pageblock */
++	ret = isolate_single_pageblock(isolate_end, gfp_flags, true);
+ 	if (ret) {
+-		unset_migratetype_isolate(pfn_to_page(start_pfn), migratetype);
++		unset_migratetype_isolate(pfn_to_page(isolate_start), migratetype);
+ 		return ret;
+ 	}
+ 
+ 	/* skip isolated pageblocks at the beginning and end */
+-	for (pfn = start_pfn + pageblock_nr_pages;
+-	     pfn < end_pfn - pageblock_nr_pages;
++	for (pfn = isolate_start + pageblock_nr_pages;
++	     pfn < isolate_end - pageblock_nr_pages;
+ 	     pfn += pageblock_nr_pages) {
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (page && set_migratetype_isolate(page, migratetype, flags,
+ 					start_pfn, end_pfn)) {
+-			undo_isolate_page_range(start_pfn, pfn, migratetype);
++			undo_isolate_page_range(isolate_start, pfn, migratetype);
+ 			unset_migratetype_isolate(
+-				pfn_to_page(end_pfn - pageblock_nr_pages),
++				pfn_to_page(isolate_end - pageblock_nr_pages),
+ 				migratetype);
+ 			return -EBUSY;
+ 		}
+@@ -524,12 +523,12 @@ void undo_isolate_page_range(unsigned lo
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
++	unsigned long isolate_start = ALIGN_DOWN(start_pfn, pageblock_nr_pages);
++	unsigned long isolate_end = ALIGN(end_pfn, pageblock_nr_pages);
+ 
+-	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
+-	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
+ 
+-	for (pfn = start_pfn;
+-	     pfn < end_pfn;
++	for (pfn = isolate_start;
++	     pfn < isolate_end;
+ 	     pfn += pageblock_nr_pages) {
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || !is_migrate_isolate_page(page))
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
