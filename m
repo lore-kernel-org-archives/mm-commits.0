@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51EB3C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 21:11:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08F6BC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 21:11:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245676AbiDYVOe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Apr 2022 17:14:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34348 "EHLO
+        id S244788AbiDYVOk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Apr 2022 17:14:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243536AbiDYVOb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 17:14:31 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 663BC7CDF5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 14:11:23 -0700 (PDT)
+        with ESMTP id S244837AbiDYVOd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 17:14:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D39C7DA81
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 14:11:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B3B8B81ACD
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 21:11:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D01FFC385A7;
-        Mon, 25 Apr 2022 21:11:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F0826142A
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 21:11:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60DEDC385A7;
+        Mon, 25 Apr 2022 21:11:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650921080;
-        bh=Afcpb1C0q27v03v8u4poQSIsgofJeSfKLmR17bBs9qs=;
+        s=korg; t=1650921086;
+        bh=2VyzFhsieyYB5bg0M4k0FQCxOGlte5by3dmZIaACiys=;
         h=Date:To:From:Subject:From;
-        b=ZDT6EKMzPt47c9FGtvjeIsLyr0+y+n1ttMNp4fcvyooCQtI55UQxXopCz4FVLqvmt
-         zEHAnEpMM+qodxnK9usgQWpC4ThDXEZ+80LnUDYU4HpKVeo8bBwC6WJPTaRHeJkXc+
-         G3BsfVw30rrqBZD97bTAWBJ6usulZUYurkYCO6FU=
-Date:   Mon, 25 Apr 2022 14:11:20 -0700
+        b=YlhtjZF4VNUh2NRCZv6AYXT6zLT+JnAii2ZQ076Kk+MO/DFqhZ2KsEyyoRrs0WD7O
+         2YX+mBoRb0HCk35Y1LqZfx0VEgN+bguSYDUv7L682O7fRHc3njQeHPhknthW4ZDPZ8
+         1shzed1jcvuxuQYfKD5JahJ6PYc9iOxu76vgh3fw=
+Date:   Mon, 25 Apr 2022 14:11:25 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         osalvador@suse.de, iamjoonsoo.kim@lge.com, hch@lst.de,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-activate-swap-backed-executable-folios-after-first-usage.patch added to -mm tree
-Message-Id: <20220425211120.D01FFC385A7@smtp.kernel.org>
+Subject: + mm-vmscan-use-helper-folio_is_file_lru.patch added to -mm tree
+Message-Id: <20220425211126.60DEDC385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: activate swap-backed executable folios after first usage
+     Subject: mm/vmscan: use helper folio_is_file_lru()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-activate-swap-backed-executable-folios-after-first-usage.patch
+     mm-vmscan-use-helper-folio_is_file_lru.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-activate-swap-backed-executable-folios-after-first-usage.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-use-helper-folio_is_file_lru.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-activate-swap-backed-executable-folios-after-first-usage.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-use-helper-folio_is_file_lru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,38 +64,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmscan: activate swap-backed executable folios after first usage
+Subject: mm/vmscan: use helper folio_is_file_lru()
 
-We should activate swap-backed executable folios (e.g.  tmpfs) after first
-usage so that executable code gets yet better chance to stay in memory.
+Use helper folio_is_file_lru() to check whether folio is file lru.  Minor
+readability improvement.
 
-Link: https://lkml.kernel.org/r/20220425111232.23182-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220425111232.23182-7-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Suggested-by: Huang, Ying <ying.huang@intel.com>
-Reviewed-by: Huang, Ying <ying.huang@intel.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Huang, Ying <ying.huang@intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-activate-swap-backed-executable-folios-after-first-usage
+--- a/mm/vmscan.c~mm-vmscan-use-helper-folio_is_file_lru
 +++ a/mm/vmscan.c
-@@ -1412,9 +1412,9 @@ static enum page_references folio_check_
- 			return PAGEREF_ACTIVATE;
+@@ -1421,7 +1421,7 @@ static enum page_references folio_check_
+ 	}
  
- 		/*
--		 * Activate file-backed executable folios after first usage.
-+		 * Activate executable folios after first usage.
- 		 */
--		if ((vm_flags & VM_EXEC) && !folio_test_swapbacked(folio))
-+		if (vm_flags & VM_EXEC)
- 			return PAGEREF_ACTIVATE;
+ 	/* Reclaim if clean, defer dirty folios to writeback */
+-	if (referenced_folio && !folio_test_swapbacked(folio))
++	if (referenced_folio && folio_is_file_lru(folio))
+ 		return PAGEREF_RECLAIM_CLEAN;
  
- 		return PAGEREF_KEEP;
+ 	return PAGEREF_RECLAIM;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
