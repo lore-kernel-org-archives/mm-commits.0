@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52DCBC433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 19:10:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EAADC433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Apr 2022 19:11:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244885AbiDYTN6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Apr 2022 15:13:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58666 "EHLO
+        id S244871AbiDYTOI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Apr 2022 15:14:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244891AbiDYTN4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 15:13:56 -0400
+        with ESMTP id S244886AbiDYTN6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2022 15:13:58 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 441FC2ED46
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 12:10:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 857CE2F381
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 12:10:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 647B6B81A03
-        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 19:10:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F235FC385A7;
-        Mon, 25 Apr 2022 19:10:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2D694B81A28
+        for <mm-commits@vger.kernel.org>; Mon, 25 Apr 2022 19:10:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D545FC385A9;
+        Mon, 25 Apr 2022 19:10:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1650913848;
-        bh=Ns+sKmDacydjQk6ZLzSs29fzwH0UlC8KXYiSUUTdj4k=;
+        s=korg; t=1650913849;
+        bh=L7iSd120R70OPH4SIHQq9lTKOk6qU/PAOtXZKkIW7zE=;
         h=Date:To:From:Subject:From;
-        b=H7NVO2GO18sTdUxpfd6HCfYs75JC6Q1xvA9JZHT1NyU1MORg22Ezmk/TH7JTePUXB
-         nfVryx/O117pFcpRw1snzHGI3bEpx4ok8W3NrqKTdWcD11d1JIm9pxvrxBJoKtiVfI
-         QXueVIXI8nykLbBj3zHhwgUGF07D2a6XpGhvx9II=
-Date:   Mon, 25 Apr 2022 12:10:47 -0700
+        b=1RrpU6jpZeA2akbg/7yBpInycGWZSvU+m3Aylrf5/UhMH6vTQcg7a/K8csvVNIU9a
+         nenlAllaGR4kUD5Q4Q0U8lZDISQbrPOWHyRWMaVYuKC7OBBK1TY3PRO2ArZPnfmTEr
+         /XmpOLTxJCIVnituyQ/pHNaqaMOuLU+P/Zs0dtBM=
+Date:   Mon, 25 Apr 2022 12:10:49 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         songmuchun@bytedance.com, naoya.horiguchi@nec.com,
         mike.kravetz@oracle.com, mgorman@techsingularity.net, hch@lst.de,
         dhowells@redhat.com, david@redhat.com, cl@linux.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migration-reduce-the-rcu-lock-duration.patch added to -mm tree
-Message-Id: <20220425191047.F235FC385A7@smtp.kernel.org>
+Subject: + mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch added to -mm tree
+Message-Id: <20220425191049.D545FC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migration: reduce the rcu lock duration
+     Subject: mm/migration: remove unneeded lock page and PageMovable check
 has been added to the -mm tree.  Its filename is
-     mm-migration-reduce-the-rcu-lock-duration.patch
+     mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migration-reduce-the-rcu-lock-duration.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-reduce-the-rcu-lock-duration.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,61 +66,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/migration: reduce the rcu lock duration
+Subject: mm/migration: remove unneeded lock page and PageMovable check
 
-Patch series "A few cleanup and fixup patches for migration", v2.
+When non-lru movable page was freed from under us, __ClearPageMovable must
+have been done.  Even if it's not done, ClearPageIsolated here won't hurt
+as page will be freed anyway.  So we can thus remove unneeded lock page
+and PageMovable check here.
 
-This series contains a few patches to remove unneeded lock page and
-PageMovable check, reduce the rcu lock duration.  Also we fix potential
-pte_unmap on an not mapped pte.  More details can be found in the
-respective changelogs.
-
-
-This patch (of 4):
-
-rcu_read_lock is required by grabbing the task refcount but it's not
-needed for ptrace_may_access.  So we could release the rcu lock after task
-refcount is successfully grabbed to reduce the rcu holding time.
-
-Link: https://lkml.kernel.org/r/20220425132723.34824-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220425132723.34824-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220425132723.34824-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: David Howells <dhowells@redhat.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/migrate.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migration-reduce-the-rcu-lock-duration
+--- a/mm/migrate.c~mm-migration-remove-unneeded-lock-page-and-pagemovable-check
 +++ a/mm/migrate.c
-@@ -1902,17 +1902,16 @@ static struct mm_struct *find_mm_struct(
- 		return ERR_PTR(-ESRCH);
- 	}
- 	get_task_struct(task);
-+	rcu_read_unlock();
- 
- 	/*
- 	 * Check if this process has the right to modify the specified
- 	 * process. Use the regular "ptrace_may_access()" checks.
- 	 */
- 	if (!ptrace_may_access(task, PTRACE_MODE_READ_REALCREDS)) {
--		rcu_read_unlock();
- 		mm = ERR_PTR(-EPERM);
+@@ -1093,12 +1093,8 @@ static int unmap_and_move(new_page_t get
+ 		/* page was freed from under us. So we are done. */
+ 		ClearPageActive(page);
+ 		ClearPageUnevictable(page);
+-		if (unlikely(__PageMovable(page))) {
+-			lock_page(page);
+-			if (!PageMovable(page))
+-				ClearPageIsolated(page);
+-			unlock_page(page);
+-		}
++		if (unlikely(__PageMovable(page)))
++			ClearPageIsolated(page);
  		goto out;
  	}
--	rcu_read_unlock();
  
- 	mm = ERR_PTR(security_task_movememory(task));
- 	if (IS_ERR(mm))
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
