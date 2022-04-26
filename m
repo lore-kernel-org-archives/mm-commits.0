@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 684EFC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Apr 2022 20:58:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B59B5C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Apr 2022 20:58:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355202AbiDZVBd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1355192AbiDZVBd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 26 Apr 2022 17:01:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53500 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355200AbiDZVBa (ORCPT
+        with ESMTP id S1355201AbiDZVBa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2022 17:01:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75F7248E7F
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B47214926B
         for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 13:58:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 36186B82353
-        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 20:58:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3AA2C385A4;
-        Tue, 26 Apr 2022 20:58:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E1FF61602
+        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 20:58:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8AB7C385A0;
+        Tue, 26 Apr 2022 20:58:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651006698;
-        bh=MDVjZBPXsKrtCpc9bCs1t2utCJasdBj5MS7wQoKtndI=;
+        s=korg; t=1651006699;
+        bh=J3XJqZ2PcPrfnbj8HpQkTCUdw55Nx4/FnHImzQixhfw=;
         h=Date:To:From:Subject:From;
-        b=2sHjDO5rDfhF6Fh/tb1bWpWM/FEFy7ayb0++X/Rek2pkeKFSi6oSA9VJ+XvYXEsvG
-         lMHrKseVZHHTnETbe2pV/dATYdqPxiMs1Msr4DJPDjaD8nCuoGrHTF/McURkA90As1
-         a2ie3tC6C20GJNdGoGj4PXnoyneaVlcIi+cPV2gA=
-Date:   Tue, 26 Apr 2022 13:58:17 -0700
+        b=Jt32FRjMV+KN1jEkM0+W3KZK5T9ZRRShUM8Nmn/xbw2c6wDmL+QlXNp4vy+c3LggF
+         HmX56nIEs0xm5xC74HD5Akp/14bK3xA8H8WnFg9qaUOR/1gwkYmnP2gbOgaEHlftLk
+         1IJkUk2dYDZnY6YuhP9krJJiI1x3L9T46uB6Q8Tw=
+Date:   Tue, 26 Apr 2022 13:58:19 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops.patch added to -mm tree
-Message-Id: <20220426205817.E3AA2C385A4@smtp.kernel.org>
+Subject: + selftets-damon-sysfs-test-existence-and-permission-of-avail_operations.patch added to -mm tree
+Message-Id: <20220426205819.A8AB7C385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs: add a file for listing available monitoring ops
+     Subject: selftets/damon/sysfs: test existence and permission of avail_operations
 has been added to the -mm tree.  Its filename is
-     mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops.patch
+     selftets-damon-sysfs-test-existence-and-permission-of-avail_operations.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftets-damon-sysfs-test-existence-and-permission-of-avail_operations.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftets-damon-sysfs-test-existence-and-permission-of-avail_operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,62 +63,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: add a file for listing available monitoring ops
+Subject: selftets/damon/sysfs: test existence and permission of avail_operations
 
-DAMON programming interface users can know if specific monitoring ops set
-is registered or not using 'damon_is_registered_ops()', but there is no
-such method for the user space.  To help the case, this commit adds a new
-DAMON sysfs file called 'avail_operations' under each context directory
-for listing available monitoring ops.  Reading the file will list each
-registered monitoring ops on each line.
+This commit adds a selftest test case for ensuring the existence and the
+permission (read-only) of the 'avail_oprations' DAMON sysfs file.
 
-Link: https://lkml.kernel.org/r/20220426203843.45238-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220426203843.45238-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ tools/testing/selftests/damon/sysfs.sh |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops
-+++ a/mm/damon/sysfs.c
-@@ -1810,6 +1810,21 @@ static void damon_sysfs_context_rm_dirs(
- 	kobject_put(&context->schemes->kobj);
- }
- 
-+static ssize_t avail_operations_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	enum damon_ops_id id;
-+	int len = 0;
-+
-+	for (id = 0; id < NR_DAMON_OPS; id++) {
-+		if (!damon_is_registered_ops(id))
-+			continue;
-+		len += sysfs_emit_at(buf, len, "%s\n",
-+				damon_sysfs_ops_strs[id]);
-+	}
-+	return len;
-+}
-+
- static ssize_t operations_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
+--- a/tools/testing/selftests/damon/sysfs.sh~selftets-damon-sysfs-test-existence-and-permission-of-avail_operations
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -231,6 +231,7 @@ test_context()
  {
-@@ -1840,10 +1855,14 @@ static void damon_sysfs_context_release(
- 	kfree(container_of(kobj, struct damon_sysfs_context, kobj));
- }
- 
-+static struct kobj_attribute damon_sysfs_context_avail_operations_attr =
-+		__ATTR_RO_MODE(avail_operations, 0400);
-+
- static struct kobj_attribute damon_sysfs_context_operations_attr =
- 		__ATTR_RW_MODE(operations, 0600);
- 
- static struct attribute *damon_sysfs_context_attrs[] = {
-+	&damon_sysfs_context_avail_operations_attr.attr,
- 	&damon_sysfs_context_operations_attr.attr,
- 	NULL,
- };
+ 	context_dir=$1
+ 	ensure_dir "$context_dir" "exist"
++	ensure_file "$context_dir/avail_operations" "exit" 400
+ 	ensure_file "$context_dir/operations" "exist" 600
+ 	test_monitoring_attrs "$context_dir/monitoring_attrs"
+ 	test_targets "$context_dir/targets"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
