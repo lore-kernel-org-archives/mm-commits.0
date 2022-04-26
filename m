@@ -2,143 +2,106 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CF7FC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Apr 2022 21:18:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1664FC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Apr 2022 21:48:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355329AbiDZVVb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Apr 2022 17:21:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48780 "EHLO
+        id S237074AbiDZVvS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Apr 2022 17:51:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355336AbiDZVVa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2022 17:21:30 -0400
-Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C64FBC8676
-        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 14:18:21 -0700 (PDT)
-Received: by mail-pg1-x533.google.com with SMTP id s137so17072265pgs.5
-        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 14:18:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=4wpDWrAiyVwaLwgVD2UTFMv3kWLHoVa/Eh2YuwuZuMo=;
-        b=YD5AbAwJM2HmILQx2FMs8lkfGHNHuMC6gc8fUpgiyr6+60HnRwQezLbprcDiq0Rr9l
-         TCdm62iXqWlF2/bFPvZe1EcCVmB6ylkclBN/BWcpWizwZDOn8jVgRSxOgX0chBrCmkc8
-         F0URaXS7mdA12qFrwUfw/Jo5qShtzDgqI8WC4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=4wpDWrAiyVwaLwgVD2UTFMv3kWLHoVa/Eh2YuwuZuMo=;
-        b=4bVkQiFpetWCbfXB2huX3k1shrHz2QC2vvLW3gDDIYJ9Kt8DVMRceOrePKaiamjv6I
-         ZmknPDXm1pj7MQMumqM46Mp3ewvw/gijj8fA8FZ0KQynvvTJifqZbFXUjriaBlcLOUHa
-         l4ihMslfjrDmgpW6T38O8XvxqKzH9xguuHPVmgWQB7TRsnOb8f0wN1mFB7zNisTkoEfc
-         81NpY3JdHQ0+4A+BOA8Js8kyfKo+fua/17CPbMnGl2jz1NSEdsn6yv3BBXubqjDC9sG3
-         2troLx3jxnwYiQ9JfPQh4FSYbPovX8vK8DWMV0+BSHnYNphhBcucSibEIyOPfT50Rw2v
-         KV8A==
-X-Gm-Message-State: AOAM532eKapth38Ea9ejzcAf5YrEpSSkcpjscJQd0uJpU02C2lDysmxB
-        wUA8FymTYiatwSPiJex1mCHKhg==
-X-Google-Smtp-Source: ABdhPJzcxRg9Seek6FcEFVmYdF+fgH4OX0DHY+CW78zJSWMqp5K5uXXQ8q3ufVlOhcVb4wTI8HG89g==
-X-Received: by 2002:a05:6a00:a85:b0:4e0:57a7:2d5d with SMTP id b5-20020a056a000a8500b004e057a72d5dmr26364433pfl.81.1651007901273;
-        Tue, 26 Apr 2022 14:18:21 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id h14-20020a63384e000000b00366ba5335e7sm13663256pgn.72.2022.04.26.14.18.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Apr 2022 14:18:20 -0700 (PDT)
-Date:   Tue, 26 Apr 2022 14:18:20 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, will@kernel.org, luto@kernel.org,
-        catalin.marinas@arm.com, alex.popov@linux.com, mark.rutland@arm.com
-Subject: Re: + arm64-entry-use-stackleak_erase_on_task_stack.patch added to
- -mm tree
-Message-ID: <202204261417.41B52508@keescook>
-References: <20220426205142.13A38C385A0@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220426205142.13A38C385A0@smtp.kernel.org>
+        with ESMTP id S235052AbiDZVvS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2022 17:51:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 436AC689A2
+        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 14:48:08 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CB93C61773
+        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 21:48:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C4C0C385A4;
+        Tue, 26 Apr 2022 21:48:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1651009687;
+        bh=UHdQnZRuFJEAmqrRSkCnJ0RxaREGaFJjpLp8/kUZ8D4=;
+        h=Date:To:From:Subject:From;
+        b=Jh1FeIEsrgIt1sT4flrFJaTzOMINdNHtLl6riQoLXzB4xd7LG/VQNKmEsiDYz0hBk
+         0d+/+m8qTZ4kJ0Mt59W2dkRv/SY91GPSyTCvwAO6qs8NqXbqq8lEwC/ATD8kP2GmLE
+         C9xcaWlLaQesEghxiAbRYTmTXvdKp7w1VortUtB8=
+Date:   Tue, 26 Apr 2022 14:48:06 -0700
+To:     mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration.patch added to -mm tree
+Message-Id: <20220426214807.2C4C0C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi,
 
-I don't think these should be applied to -mm. They would normally go via
-my hardening tree (with other gcc plugins), but also Mark is going to be
-spinning a v2...
+The patch titled
+     Subject: mm/vmscan: not necessary to re-init the list for each iteration
+has been added to the -mm tree.  Its filename is
+     mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration.patch
 
--Kees
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration.patch
 
-On Tue, Apr 26, 2022 at 01:51:41PM -0700, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: arm64: entry: use stackleak_erase_on_task_stack()
-> has been added to the -mm tree.  Its filename is
->      arm64-entry-use-stackleak_erase_on_task_stack.patch
-> 
-> This patch should soon appear at
->     https://ozlabs.org/~akpm/mmots/broken-out/arm64-entry-use-stackleak_erase_on_task_stack.patch
-> and later at
->     https://ozlabs.org/~akpm/mmotm/broken-out/arm64-entry-use-stackleak_erase_on_task_stack.patch
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
-> 
-> ------------------------------------------------------
-> From: Mark Rutland <mark.rutland@arm.com>
-> Subject: arm64: entry: use stackleak_erase_on_task_stack()
-> 
-> On arm64 we always call stackleak_erase() on a task stack, and never call
-> it on another stack.  We can avoid some redundant work by using
-> stackleak_erase_on_task_stack(), telling the stackleak code that it's
-> being called on a task stack.
-> 
-> Link: https://lkml.kernel.org/r/20220425115603.781311-9-mark.rutland@arm.com
-> Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-> Cc: Alexander Popov <alex.popov@linux.com>
-> Cc: Andy Lutomirski <luto@kernel.org>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: Will Deacon <will@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  arch/arm64/kernel/entry.S |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- a/arch/arm64/kernel/entry.S~arm64-entry-use-stackleak_erase_on_task_stack
-> +++ a/arch/arm64/kernel/entry.S
-> @@ -596,7 +596,7 @@ SYM_CODE_START_LOCAL(ret_to_user)
->  	ldr	x19, [tsk, #TSK_TI_FLAGS]	// re-check for single-step
->  	enable_step_tsk x19, x2
->  #ifdef CONFIG_GCC_PLUGIN_STACKLEAK
-> -	bl	stackleak_erase
-> +	bl	stackleak_erase_on_task_stack
->  #endif
->  	kernel_exit 0
->  SYM_CODE_END(ret_to_user)
-> _
-> 
-> Patches currently in -mm which might be from mark.rutland@arm.com are
-> 
-> arm64-stackleak-fix-current_top_of_stack.patch
-> stackleak-move-skip_erasing-check-earlier.patch
-> stackleak-rework-stack-low-bound-handling.patch
-> stackleak-clarify-variable-names.patch
-> stackleak-rework-stack-high-bound-handling.patch
-> stackleak-remove-redundant-check.patch
-> stackleak-add-on-off-stack-variants.patch
-> arm64-entry-use-stackleak_erase_on_task_stack.patch
-> 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
--- 
-Kees Cook
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/vmscan: not necessary to re-init the list for each iteration
+
+node_page_list is defined with LIST_HEAD and be cleaned until
+list_empty.
+
+So it is not necessary to re-init it again.
+
+Link: https://lkml.kernel.org/r/20220426021743.21007-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/mm/vmscan.c~mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration
++++ a/mm/vmscan.c
+@@ -2574,7 +2574,6 @@ unsigned long reclaim_pages(struct list_
+ 		page = lru_to_page(page_list);
+ 		if (nid == NUMA_NO_NODE) {
+ 			nid = page_to_nid(page);
+-			INIT_LIST_HEAD(&node_page_list);
+ 		}
+ 
+ 		if (nid == page_to_nid(page)) {
+_
+
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
+
+mm-memcg-mz-already-removed-from-rb_tree-if-not-null.patch
+mm-memcg-set-memcg-after-css-verified-and-got-reference.patch
+mm-memcg-set-pos-explicitly-for-reclaim-and-reclaim.patch
+mm-memcg-move-generation-assignment-and-comparison-together.patch
+mm-memcg-non-hierarchical-mode-is-deprecated.patch
+mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order-v3.patch
+mm-vmscan-reclaim-only-affects-managed_zones.patch
+mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone.patch
+mm-vmscan-make-sure-wakeup_kswapd-with-managed-zone-v2.patch
+mm-vmscan-sc-reclaim_idx-must-be-a-valid-zone-index.patch
+mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration.patch
+
