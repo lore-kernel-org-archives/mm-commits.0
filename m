@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A456C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Apr 2022 20:52:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D34C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Apr 2022 20:58:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355149AbiDZUzS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Apr 2022 16:55:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56800 "EHLO
+        id S1355187AbiDZVB0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Apr 2022 17:01:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355145AbiDZUzR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2022 16:55:17 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD03F48887
-        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 13:52:07 -0700 (PDT)
+        with ESMTP id S1355181AbiDZVBZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2022 17:01:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAF1648311
+        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 13:58:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 96641B822AF
-        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 20:52:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 484AEC385A0;
-        Tue, 26 Apr 2022 20:52:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6FBD961586
+        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 20:58:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C23DBC385A4;
+        Tue, 26 Apr 2022 20:58:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651006325;
-        bh=I9zAGlyNBtvWqgAFddRvfdeDaAIm0Nz4PvfHhvmrqTc=;
+        s=korg; t=1651006695;
+        bh=uFoHyThAuptxRZQyy7/qUyK99lSmqIT1L9y1DRuI438=;
         h=Date:To:From:Subject:From;
-        b=BXY/WC/aKR501yUmYrCwe+PYOcUqlVxuAREFbMCeug4Msr0KNLMB5luevvY4BoytG
-         wYLVH/QxzMH8IZQJLEtVyXqQCQsNvpHYX5I5IQwYNk91N2X67WHhW/7EBwMBlsfZOT
-         RPuVYij+/lJDYtUvy+IOY5uAXeuHxcFYmqcbl0LU=
-Date:   Tue, 26 Apr 2022 13:52:04 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org, luto@kernel.org,
-        keescook@chromium.org, catalin.marinas@arm.com,
-        alex.popov@linux.com, mark.rutland@arm.com,
+        b=k+p7+6sQ2Pk5EE4nmvim0FRZ+0tvx1i8oiIr7cBvEBVJgq5IKN3fqz+8bsZneW89M
+         ku0QfpELc20SdrSY0uOzNfcBtdsBgTE+xmlHQCTKJNykX1ey8xPjCHNOyiR/i0HPyJ
+         70+kh3ZCGGJpmvrSgtEK5PFf/krBSylyR3OPwohc=
+Date:   Tue, 26 Apr 2022 13:58:14 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-stackleak-fix-current_top_of_stack.patch added to -mm tree
-Message-Id: <20220426205205.484AEC385A0@smtp.kernel.org>
+Subject: + mm-damon-core-add-a-function-for-damon_operations-registration-checks.patch added to -mm tree
+Message-Id: <20220426205815.C23DBC385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: stackleak: fix current_top_of_stack()
+     Subject: mm/damon/core: add a function for damon_operations registration checks
 has been added to the -mm tree.  Its filename is
-     arm64-stackleak-fix-current_top_of_stack.patch
+     mm-damon-core-add-a-function-for-damon_operations-registration-checks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-stackleak-fix-current_top_of_stack.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-core-add-a-function-for-damon_operations-registration-checks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-stackleak-fix-current_top_of_stack.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-core-add-a-function-for-damon_operations-registration-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,174 +62,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: arm64: stackleak: fix current_top_of_stack()
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: add a function for damon_operations registration checks
 
-Patch series "stackleak: fixes and rework".
+Patch series "mm/damon: allow users know which monitoring ops are available".
 
-This series reworks the stackleak code.  The first patch fixes some latent
-issues on arm64, and the subsequent patches improve the code to improve
-clarity and permit better code generation.
+DAMON users can configure it for vaious address spaces including virtual
+address spaces and the physical address space by setting its monitoring
+operations set with appropriate one for their purpose.  However, there is
+no celan and simple way to know exactly which monitoring operations sets
+are available on the currently running kernel.
 
-I started working on this as a tangent from rework to arm64's stacktrace
-code.  Looking at users of the `on_*_stack()` helpers I noticed that the
-assembly generated for stackleak was particularly awful as it performed a
-lot of redundant work and also called instrumentable code, which isn't
-sound.
-
-The first patch fixes the major issues on arm64, and is Cc'd to stable for
-backporting.
-
-The second patch is a trivial optimization for when stackleak is
-dynamically disabled.
-
-The subsequent patches rework the way stackleak manipulates the stack
-boundary values.  This is partically for clarity (e.g.  with separate
-'low' and 'high' boundary variables), and also permits the compiler to
-generate more optimal assembly by generating the high and low bounds from
-the same base.
-
-Patch 5 changes the way that `current->lowest_stack` is reset prior to
-return to userspace.  The existing code uses an undocumented offset
-relative to the top of the stack which doesn't make much sense (as thie
-sometimes falls within the task's pt_regs, or sometimes adds 600+ bytes to
-erase upon the next exit to userspace).  For now I've removed the offset
-entirely.
-
-Patch 7 adds stackleak_erase_on_task_stack() and
-stackleak_erase_off_task_stack() that can be used when a caller knows
-they're always on or off the task stack respectively, avoiding redundant
-logic to check this and generate the high boundary value.  On arm64 we
-always call stackleak_erase() while on the task stack, so this is used in
-patch 8.
-
-Testing the series on arm64 with a QEMU HVF VM on an M1 Macbook Pro with a
-few microbenchmarks shows a small but measureable improvement when
-stackleak is enabled (relative to v5.18-rc1):
-
-* Calling getpid 1^22 times in a loop (avg 50 runs)
-  
-  Before: 0.652099387 seconds ( +-  0.13% )
-  After:  0.641005661 seconds ( +-  0.13% )
-
-  ~1.7% time decrease
-
-* perf bench sched pipe (single run)
-
-  Before: 2.138 seconds total
-  After:  2.118 seconds total
-
-  ~0.93% time decrease
-
-I also tested "perf bench sched messaging" but the noise outweighed the
-difference.
-
-While the improvement is small, I think the improvement to clarity and
-code generation is a win regardless.
+This patchset adds functions for the purpose on DAMON's kernel API
+('damon_is_registered_ops()') and sysfs interface ('avail_operations' file
+under each context directory).
 
 
-This patch (of 8):
+This patch (of 4):
 
-Due to some historical confusion, arm64's current_top_of_stack() isn't
-what the stackleak code expects.  This could in theory result in a number
-of problems, and practically results in an unnecessary performance hit. 
-We can avoid this by aligning the arm64 implementation with the x86
-implementation.
+To know if a specific 'damon_operations' is registered, users need to
+check the kernel config or try 'damon_select_ops()' with the ops of the
+question, and then see if it successes.  In the latter case, the user
+should also revert the change.  To make the process simple and convenient,
+this commit adds a function for checking if a specific 'damon_operations'
+is registered or not.
 
-The arm64 implementation of current_top_of_stack() was added specifically
-for stackleak in commit:
-
-  0b3e336601b82c6a ("arm64: Add support for STACKLEAK gcc plugin")
-
-This was intended to be equivalent to the x86 implementation, but the
-implementation, semantics, and performance characteristics differ wildly:
-
-* On x86, current_top_of_stack() returns the top of the current task's
-  task stack, regardless of which stack is in active use.
-
-  The implementation accesses a percpu variable which the x86 entry code
-  maintains, and returns the location immediately above the pt_regs on
-  the task stack (above which x86 has some padding).
-
-* On arm64 current_top_of_stack() returns the top of the stack in active
-  use (i.e. the one which is currently being used).
-
-  The implementation checks the SP against a number of
-  potentially-accessible stacks, and will BUG() if no stack is found.
-
-The core stackleak_erase() code determines the upper bound of stack to
-erase with:
-
-| if (on_thread_stack())
-|         boundary = current_stack_pointer;
-| else
-|         boundary = current_top_of_stack();
-
-On arm64 stackleak_erase() is always called on a task stack, and
-on_thread_stack() should always be true.  On x86, stackleak_erase() is
-mostly called on a trampoline stack, and is sometimes called on a task
-stack.
-
-Currently, this results in a lot of unnecessary code being generated for
-arm64 for the impossible !on_thread_stack() case.  Some of this is
-inlined, bloating stackleak_erase(), while portions of this are left
-out-of-line and permitted to be instrumented (which would be a functional
-problem if that code were reachable).
-
-As a first step towards improving this, this patch aligns arm64's
-implementation of current_top_of_stack() with x86's, always returning the
-top of the current task's stack.  With GCC 11.1.0 this results in the bulk
-of the unnecessary code being removed, including all of the out-of-line
-instrumentable code.
-
-While I don't believe there's a functional problem in practice I've marked
-this as a fix since the semantic was clearly wrong, the fix itself is
-simple, and other code might rely upon this in future.
-
-Link: https://lkml.kernel.org/r/20220425115603.781311-1-mark.rutland@arm.com
-Link: https://lkml.kernel.org/r/20220425115603.781311-2-mark.rutland@arm.com
-Fixes: 0b3e336601b82c6a ("arm64: Add support for STACKLEAK gcc plugin")
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Alexander Popov <alex.popov@linux.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20220426203843.45238-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220426203843.45238-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/processor.h |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ include/linux/damon.h |    1 +
+ mm/damon/core.c       |   24 +++++++++++++++++++++---
+ 2 files changed, 22 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/processor.h~arm64-stackleak-fix-current_top_of_stack
-+++ a/arch/arm64/include/asm/processor.h
-@@ -381,12 +381,10 @@ long get_tagged_addr_ctrl(struct task_st
-  * of header definitions for the use of task_stack_page.
-  */
+--- a/include/linux/damon.h~mm-damon-core-add-a-function-for-damon_operations-registration-checks
++++ a/include/linux/damon.h
+@@ -509,6 +509,7 @@ int damon_set_attrs(struct damon_ctx *ct
+ int damon_set_schemes(struct damon_ctx *ctx,
+ 			struct damos **schemes, ssize_t nr_schemes);
+ int damon_nr_running_ctxs(void);
++bool damon_is_registered_ops(enum damon_ops_id id);
+ int damon_register_ops(struct damon_operations *ops);
+ int damon_select_ops(struct damon_ctx *ctx, enum damon_ops_id id);
  
--#define current_top_of_stack()								\
--({											\
--	struct stack_info _info;							\
--	BUG_ON(!on_accessible_stack(current, current_stack_pointer, 1, &_info));	\
--	_info.high;									\
--})
-+/*
-+ * The top of the current task's task stack
+--- a/mm/damon/core.c~mm-damon-core-add-a-function-for-damon_operations-registration-checks
++++ a/mm/damon/core.c
+@@ -30,7 +30,7 @@ static DEFINE_MUTEX(damon_ops_lock);
+ static struct damon_operations damon_registered_ops[NR_DAMON_OPS];
+ 
+ /* Should be called under damon_ops_lock with id smaller than NR_DAMON_OPS */
+-static bool damon_registered_ops_id(enum damon_ops_id id)
++static bool __damon_is_registered_ops(enum damon_ops_id id)
+ {
+ 	struct damon_operations empty_ops = {};
+ 
+@@ -40,6 +40,24 @@ static bool damon_registered_ops_id(enum
+ }
+ 
+ /**
++ * damon_is_registered_ops() - Check if a given damon_operations is registered.
++ * @id:	Id of the damon_operations to check if registered.
++ *
++ * Return: true if the ops is set, false otherwise.
 + */
-+#define current_top_of_stack()	((unsigned long)current->stack + THREAD_SIZE)
- #define on_thread_stack()	(on_task_stack(current, current_stack_pointer, 1, NULL))
++bool damon_is_registered_ops(enum damon_ops_id id)
++{
++	bool registered;
++
++	if (id >= NR_DAMON_OPS)
++		return false;
++	mutex_lock(&damon_ops_lock);
++	registered = __damon_is_registered_ops(id);
++	mutex_unlock(&damon_ops_lock);
++	return registered;
++}
++
++/**
+  * damon_register_ops() - Register a monitoring operations set to DAMON.
+  * @ops:	monitoring operations set to register.
+  *
+@@ -56,7 +74,7 @@ int damon_register_ops(struct damon_oper
+ 		return -EINVAL;
+ 	mutex_lock(&damon_ops_lock);
+ 	/* Fail for already registered ops */
+-	if (damon_registered_ops_id(ops->id)) {
++	if (__damon_is_registered_ops(ops->id)) {
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+@@ -84,7 +102,7 @@ int damon_select_ops(struct damon_ctx *c
+ 		return -EINVAL;
  
- #endif /* __ASSEMBLY__ */
+ 	mutex_lock(&damon_ops_lock);
+-	if (!damon_registered_ops_id(id))
++	if (!__damon_is_registered_ops(id))
+ 		err = -EINVAL;
+ 	else
+ 		ctx->ops = damon_registered_ops[id];
 _
 
-Patches currently in -mm which might be from mark.rutland@arm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-arm64-stackleak-fix-current_top_of_stack.patch
-stackleak-move-skip_erasing-check-earlier.patch
-stackleak-rework-stack-low-bound-handling.patch
-stackleak-clarify-variable-names.patch
-stackleak-rework-stack-high-bound-handling.patch
-stackleak-remove-redundant-check.patch
-stackleak-add-on-off-stack-variants.patch
-arm64-entry-use-stackleak_erase_on_task_stack.patch
+mm-damon-core-test-add-a-kunit-test-case-for-ops-registration.patch
+mm-damon-core-add-a-function-for-damon_operations-registration-checks.patch
+mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops.patch
+selftets-damon-sysfs-test-existence-and-permission-of-avail_operations.patch
+docs-abiadmin-guide-damon-document-avail_operations-sysfs-file.patch
 
