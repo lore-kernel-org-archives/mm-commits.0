@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 861C0C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Apr 2022 20:44:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C84B7C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Apr 2022 20:44:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355118AbiDZUrT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Apr 2022 16:47:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59414 "EHLO
+        id S1355105AbiDZUr2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Apr 2022 16:47:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355027AbiDZUrT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2022 16:47:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A93C1A15FD
-        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 13:44:10 -0700 (PDT)
+        with ESMTP id S1355122AbiDZUrY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2022 16:47:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C275E1A861E
+        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 13:44:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F55A6155F
-        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 20:44:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82819C385A0;
-        Tue, 26 Apr 2022 20:44:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5B4496158A
+        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 20:44:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3ED5C385A0;
+        Tue, 26 Apr 2022 20:44:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651005849;
-        bh=qQj6o5n/yj5FxQQ8qlMW7OQKkEF4gOOc8JUujRConhY=;
+        s=korg; t=1651005853;
+        bh=hfBlGafySDK/uspIRHxorR8L5L/wB7rLtVB5hLfMaGI=;
         h=Date:To:From:Subject:From;
-        b=AGbVP8iTSwf9y07mO57O6ZN06TU8mRCKCxlnWBIFcu2a9lx/d3u6Rj2kJnzqPpne2
-         A0RC92oE96uSMtDrZZBkcOFhYtZUiyeklZtmfwbhRgNGPQIDBfnIQy9on+GWVv7tst
-         hVh3a+1Aw+Luvs4zGB9Rak+Boyd+uUyD5U0MDzUo=
-Date:   Tue, 26 Apr 2022 13:44:08 -0700
+        b=g2/lpVteRFIaAlFLvNSZtPzajTZIGPy7H3MZugLIWeeYPi2jS4dEaHJ6lFtSl/K9K
+         vbOWFDAl8jaR9xeXDjl4Ug4lily6mKpUOgG6QAnlBOhtoJz8nZhuroTQwftt8wf2fW
+         5ReCuEpEksAVcB4MHDrUIb4Zg2Zowoa48bsOiLSM=
+Date:   Tue, 26 Apr 2022 13:44:13 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, mwilck@suse.com,
         christian.brauner@ubuntu.com, ddiss@suse.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + initramfs-make-dir_entryname-a-flexible-array-member.patch added to -mm tree
-Message-Id: <20220426204409.82819C385A0@smtp.kernel.org>
+Subject: + gen_init_cpio-fix-short-read-file-handling.patch added to -mm tree
+Message-Id: <20220426204413.B3ED5C385A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initramfs: make dir_entry.name a flexible array member
+     Subject: gen_init_cpio: fix short read file handling
 has been added to the -mm tree.  Its filename is
-     initramfs-make-dir_entryname-a-flexible-array-member.patch
+     gen_init_cpio-fix-short-read-file-handling.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/initramfs-make-dir_entryname-a-flexible-array-member.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/gen_init_cpio-fix-short-read-file-handling.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/initramfs-make-dir_entryname-a-flexible-array-member.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/gen_init_cpio-fix-short-read-file-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,57 +65,120 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Disseldorp <ddiss@suse.de>
-Subject: initramfs: make dir_entry.name a flexible array member
+Subject: gen_init_cpio: fix short read file handling
 
-dir_entry.name is currently allocated via a separate kstrdup().  Change it
-to a flexible array member and allocate it along with struct dir_entry.
+When processing a "file" entry, gen_init_cpio attempts to allocate a
+buffer large enough to stage the entire contents of the source file.  It
+then attempts to fill the buffer via a single read() call and subsequently
+writes out the entire buffer length, without checking that read() returned
+the full length, potentially writing uninitialized buffer memory.
 
-Link: https://lkml.kernel.org/r/20220404093429.27570-3-ddiss@suse.de
+Fix this by breaking up file I/O into 64k chunks and only writing the
+length returned by the prior read() call.
+
+Link: https://lkml.kernel.org/r/20220404093429.27570-5-ddiss@suse.de
 Signed-off-by: David Disseldorp <ddiss@suse.de>
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Reviewed-by: Martin Wilck <mwilck@suse.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Martin Wilck <mwilck@suse.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ usr/gen_init_cpio.c |   44 +++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
---- a/init/initramfs.c~initramfs-make-dir_entryname-a-flexible-array-member
-+++ a/init/initramfs.c
-@@ -130,17 +130,20 @@ static long __init do_utime(char *filena
- static __initdata LIST_HEAD(dir_list);
- struct dir_entry {
- 	struct list_head list;
--	char *name;
- 	time64_t mtime;
-+	char name[];
- };
+--- a/usr/gen_init_cpio.c~gen_init_cpio-fix-short-read-file-handling
++++ a/usr/gen_init_cpio.c
+@@ -20,6 +20,7 @@
  
- static void __init dir_add(const char *name, time64_t mtime)
+ #define xstr(s) #s
+ #define str(s) xstr(s)
++#define MIN(a, b) ((a) < (b) ? (a) : (b))
+ 
+ static unsigned int offset;
+ static unsigned int ino = 721;
+@@ -297,9 +298,8 @@ static int cpio_mkfile(const char *name,
+ 			unsigned int nlinks)
  {
--	struct dir_entry *de = kmalloc(sizeof(struct dir_entry), GFP_KERNEL);
-+	size_t nlen = strlen(name) + 1;
-+	struct dir_entry *de;
-+
-+	de = kmalloc(sizeof(struct dir_entry) + nlen, GFP_KERNEL);
- 	if (!de)
- 		panic_show_mem("can't allocate dir_entry buffer");
- 	INIT_LIST_HEAD(&de->list);
--	de->name = kstrdup(name, GFP_KERNEL);
-+	strscpy(de->name, name, nlen);
- 	de->mtime = mtime;
- 	list_add(&de->list, &dir_list);
- }
-@@ -151,7 +154,6 @@ static void __init dir_utime(void)
- 	list_for_each_entry_safe(de, tmp, &dir_list, list) {
- 		list_del(&de->list);
- 		do_utime(de->name, de->mtime);
--		kfree(de->name);
- 		kfree(de);
+ 	char s[256];
+-	char *filebuf = NULL;
+ 	struct stat buf;
+-	long size;
++	unsigned long size;
+ 	int file = -1;
+ 	int retval;
+ 	int rc = -1;
+@@ -326,22 +326,17 @@ static int cpio_mkfile(const char *name,
+ 		buf.st_mtime = 0xffffffff;
  	}
+ 
+-	filebuf = malloc(buf.st_size);
+-	if (!filebuf) {
+-		fprintf (stderr, "out of memory\n");
+-		goto error;
+-	}
+-
+-	retval = read (file, filebuf, buf.st_size);
+-	if (retval < 0) {
+-		fprintf (stderr, "Can not read %s file\n", location);
++	if (buf.st_size > 0xffffffff) {
++		fprintf(stderr, "%s: Size exceeds maximum cpio file size\n",
++			location);
+ 		goto error;
+ 	}
+ 
+ 	size = 0;
+ 	for (i = 1; i <= nlinks; i++) {
+ 		/* data goes on last link */
+-		if (i == nlinks) size = buf.st_size;
++		if (i == nlinks)
++			size = buf.st_size;
+ 
+ 		if (name[0] == '/')
+ 			name++;
+@@ -366,23 +361,34 @@ static int cpio_mkfile(const char *name,
+ 		push_string(name);
+ 		push_pad();
+ 
+-		if (size) {
+-			if (fwrite(filebuf, size, 1, stdout) != 1) {
++		while (size) {
++			unsigned char filebuf[65536];
++			ssize_t this_read;
++			size_t this_size = MIN(size, sizeof(filebuf));
++
++			this_read = read(file, filebuf, this_size);
++			if (this_read <= 0 || this_read > this_size) {
++				fprintf(stderr, "Can not read %s file\n", location);
++				goto error;
++			}
++
++			if (fwrite(filebuf, this_read, 1, stdout) != 1) {
+ 				fprintf(stderr, "writing filebuf failed\n");
+ 				goto error;
+ 			}
+-			offset += size;
+-			push_pad();
++			offset += this_read;
++			size -= this_read;
+ 		}
++		push_pad();
+ 
+ 		name += namesize;
+ 	}
+ 	ino++;
+ 	rc = 0;
+-	
++
+ error:
+-	if (filebuf) free(filebuf);
+-	if (file >= 0) close(file);
++	if (file >= 0)
++		close(file);
+ 	return rc;
  }
+ 
 _
 
 Patches currently in -mm which might be from ddiss@suse.de are
