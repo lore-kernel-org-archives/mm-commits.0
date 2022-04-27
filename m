@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C92BC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 17:48:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D12A3C41535
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 18:51:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233232AbiD0Rv7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Apr 2022 13:51:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45516 "EHLO
+        id S231449AbiD0SzF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Apr 2022 14:55:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233858AbiD0Rv7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 13:51:59 -0400
+        with ESMTP id S233992AbiD0Syq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 14:54:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEA3F3B292
-        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 10:48:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D9628BE21
+        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 11:41:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0886161E9A
-        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 17:48:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 557F5C385AC;
-        Wed, 27 Apr 2022 17:48:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2D52361EEC
+        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 18:41:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73E42C385AA;
+        Wed, 27 Apr 2022 18:41:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651081725;
-        bh=AWWpstmJTAG2a3b6vbr8pWM35IePDTuJ4qhprctE/zk=;
+        s=korg; t=1651084881;
+        bh=qxOey8StLdFns/hakRHwe/V3t503Ine9l/XFmyFPEdU=;
         h=Date:To:From:Subject:From;
-        b=QWLYp5L7LCY3ccOlQl0cYy4nu4785VYeb28ZhMxOW5cZoUPQAMQNSd909UHGpCGgU
-         hIby2jwzUbRk5FOF5DoX6AC1HzgBqHm/KKo2CDJUGnvlvjdIahnVZ/vKwYq7/9whXE
-         cgfZrBIEtmdGfiiQkOlpT1CFM2ty1EdmabQB8W/g=
-Date:   Wed, 27 Apr 2022 10:48:44 -0700
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        quic_qiancai@quicinc.com, Liam.Howlett@oracle.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
+        b=b9uzrvnkKsz7U6ItlmP501k7ikvPKCYdINlxO7KMR2NVxQ7+lhTEmmUlHhx6Jlw7A
+         Ifg6+07WOYRmlLH1sxFc/dpCBY+axZkVDsPTdplIIE0sSQJNWsSx8VAVvn+y6WIgsX
+         LecfaV3YVrPyabMY9NXFG6x46/pB8PkFoePVQdUc=
+Date:   Wed, 27 Apr 2022 11:41:20 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, almasrymina@google.com,
+        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mlock-use-vma-iterator-and-instead-of-vma-linked-list-fix.patch added to -mm tree
-Message-Id: <20220427174845.557F5C385AC@smtp.kernel.org>
+Subject: + mm-rmap-use-flush_cache_range-to-flush-cache-for-hugetlb-pages.patch added to -mm tree
+Message-Id: <20220427184121.73E42C385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mlock: use maple state in apply_mlockall_flags()
+     Subject: mm: rmap: use flush_cache_range() to flush cache for hugetlb pages
 has been added to the -mm tree.  Its filename is
-     mm-mlock-use-vma-iterator-and-instead-of-vma-linked-list-fix.patch
+     mm-rmap-use-flush_cache_range-to-flush-cache-for-hugetlb-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-use-vma-iterator-and-instead-of-vma-linked-list-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-use-flush_cache_range-to-flush-cache-for-hugetlb-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-use-vma-iterator-and-instead-of-vma-linked-list-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-use-flush_cache_range-to-flush-cache-for-hugetlb-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,58 +63,158 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/mlock: use maple state in apply_mlockall_flags()
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: rmap: use flush_cache_range() to flush cache for hugetlb pages
 
-The vma iterator is for simple cases.  Since mlock_fixup() can cause the
-tree to change and thus requires the maple state to be reset,
-apply_mlockall_flags() is not a simple case.  Use a maple state and call
-mas_pause() instead.
+Now we will use flush_cache_page() to flush cache for anonymous hugetlb
+pages when unmapping or migrating a hugetlb page mapping, but the
+flush_cache_page() only handles a PAGE_SIZE range on some architectures
+(like arm32, arc and so on), which will cause potential cache issues. 
+Thus change to use flush_cache_range() to cover the whole size of a
+hugetlb page.
 
-Link: https://lkml.kernel.org/r/20220427165139.5s3qcj2u5vqrvwlc@revolver
-Fixes: 0d43186b36c1 (mm/mlock: use vma iterator and instead of vma linked list)
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Qian Cai <quic_qiancai@quicinc.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/dc903b378d1e2d26bbbe85409ab9d009631f175c.1651056365.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/rmap.c |   90 +++++++++++++++++++++++++++-------------------------
+ 1 file changed, 48 insertions(+), 42 deletions(-)
 
---- a/mm/mlock.c~mm-mlock-use-vma-iterator-and-instead-of-vma-linked-list-fix
-+++ a/mm/mlock.c
-@@ -660,7 +660,7 @@ SYSCALL_DEFINE2(munlock, unsigned long,
-  */
- static int apply_mlockall_flags(int flags)
- {
--	VMA_ITERATOR(vmi, current->mm, 0);
-+	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
- 	struct vm_area_struct *vma, *prev = NULL;
- 	vm_flags_t to_add = 0;
+--- a/mm/rmap.c~mm-rmap-use-flush_cache_range-to-flush-cache-for-hugetlb-pages
++++ a/mm/rmap.c
+@@ -1528,13 +1528,7 @@ static bool try_to_unmap_one(struct foli
+ 		anon_exclusive = folio_test_anon(folio) &&
+ 				 PageAnonExclusive(subpage);
  
-@@ -681,7 +681,7 @@ static int apply_mlockall_flags(int flag
- 			to_add |= VM_LOCKONFAULT;
- 	}
+-		if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
+-			/*
+-			 * To call huge_pmd_unshare, i_mmap_rwsem must be
+-			 * held in write mode.  Caller needs to explicitly
+-			 * do this outside rmap routines.
+-			 */
+-			VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
++		if (folio_test_hugetlb(folio)) {
+ 			/*
+ 			 * huge_pmd_unshare may unmap an entire PMD page.
+ 			 * There is no way of knowing exactly which PMDs may
+@@ -1544,22 +1538,31 @@ static bool try_to_unmap_one(struct foli
+ 			 */
+ 			flush_cache_range(vma, range.start, range.end);
  
--	for_each_vma(vmi, vma) {
-+	mas_for_each(&mas, vma, ULONG_MAX) {
- 		vm_flags_t newflags;
+-			if (huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
+-				flush_tlb_range(vma, range.start, range.end);
+-				mmu_notifier_invalidate_range(mm, range.start,
+-							      range.end);
+-
++			if (!folio_test_anon(folio)) {
+ 				/*
+-				 * The ref count of the PMD page was dropped
+-				 * which is part of the way map counting
+-				 * is done for shared PMDs.  Return 'true'
+-				 * here.  When there is no other sharing,
+-				 * huge_pmd_unshare returns false and we will
+-				 * unmap the actual page and drop map count
+-				 * to zero.
++				 * To call huge_pmd_unshare, i_mmap_rwsem must be
++				 * held in write mode.  Caller needs to explicitly
++				 * do this outside rmap routines.
+ 				 */
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
++
++				if (huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
++					flush_tlb_range(vma, range.start, range.end);
++					mmu_notifier_invalidate_range(mm, range.start,
++								      range.end);
++
++					/*
++					 * The ref count of the PMD page was dropped
++					 * which is part of the way map counting
++					 * is done for shared PMDs.  Return 'true'
++					 * here.  When there is no other sharing,
++					 * huge_pmd_unshare returns false and we will
++					 * unmap the actual page and drop map count
++					 * to zero.
++					 */
++					page_vma_mapped_walk_done(&pvmw);
++					break;
++				}
+ 			}
+ 		} else {
+ 			flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
+@@ -1885,13 +1888,7 @@ static bool try_to_migrate_one(struct fo
+ 		anon_exclusive = folio_test_anon(folio) &&
+ 				 PageAnonExclusive(subpage);
  
- 		newflags = vma->vm_flags & VM_LOCKED_CLEAR_MASK;
-@@ -689,6 +689,7 @@ static int apply_mlockall_flags(int flag
+-		if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
+-			/*
+-			 * To call huge_pmd_unshare, i_mmap_rwsem must be
+-			 * held in write mode.  Caller needs to explicitly
+-			 * do this outside rmap routines.
+-			 */
+-			VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
++		if (folio_test_hugetlb(folio)) {
+ 			/*
+ 			 * huge_pmd_unshare may unmap an entire PMD page.
+ 			 * There is no way of knowing exactly which PMDs may
+@@ -1901,22 +1898,31 @@ static bool try_to_migrate_one(struct fo
+ 			 */
+ 			flush_cache_range(vma, range.start, range.end);
  
- 		/* Ignore errors */
- 		mlock_fixup(vma, &prev, vma->vm_start, vma->vm_end, newflags);
-+		mas_pause(&mas);
- 		cond_resched();
- 	}
- out:
+-			if (huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
+-				flush_tlb_range(vma, range.start, range.end);
+-				mmu_notifier_invalidate_range(mm, range.start,
+-							      range.end);
+-
++			if (!folio_test_anon(folio)) {
+ 				/*
+-				 * The ref count of the PMD page was dropped
+-				 * which is part of the way map counting
+-				 * is done for shared PMDs.  Return 'true'
+-				 * here.  When there is no other sharing,
+-				 * huge_pmd_unshare returns false and we will
+-				 * unmap the actual page and drop map count
+-				 * to zero.
++				 * To call huge_pmd_unshare, i_mmap_rwsem must be
++				 * held in write mode.  Caller needs to explicitly
++				 * do this outside rmap routines.
+ 				 */
+-				page_vma_mapped_walk_done(&pvmw);
+-				break;
++				VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
++
++				if (huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
++					flush_tlb_range(vma, range.start, range.end);
++					mmu_notifier_invalidate_range(mm, range.start,
++								      range.end);
++
++					/*
++					 * The ref count of the PMD page was dropped
++					 * which is part of the way map counting
++					 * is done for shared PMDs.  Return 'true'
++					 * here.  When there is no other sharing,
++					 * huge_pmd_unshare returns false and we will
++					 * unmap the actual page and drop map count
++					 * to zero.
++					 */
++					page_vma_mapped_walk_done(&pvmw);
++					break;
++				}
+ 			}
+ 		} else {
+ 			flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-maple-tree-add-new-data-structure-fix.patch
-userfaultfd-use-maple-tree-iterator-to-iterate-vmas-fix.patch
-mm-mlock-use-vma-iterator-and-instead-of-vma-linked-list-fix.patch
+mm-migrate-simplify-the-refcount-validation-when-migrating-hugetlb-mapping.patch
+mm-hugetlb-add-missing-cache-flushing-in-hugetlb_unshare_all_pmds.patch
+mm-hugetlb-considering-pmd-sharing-when-flushing-cache-tlbs.patch
+mm-rmap-move-the-cache-flushing-to-the-correct-place-for-hugetlb-pmd-sharing.patch
+mm-rmap-use-flush_cache_range-to-flush-cache-for-hugetlb-pages.patch
 
