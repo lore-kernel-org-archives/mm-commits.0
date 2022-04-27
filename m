@@ -2,182 +2,191 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EB50C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 06:41:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93209C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 10:59:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358213AbiD0Gor (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Apr 2022 02:44:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55088 "EHLO
+        id S231926AbiD0LCz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Apr 2022 07:02:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352922AbiD0Gop (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 02:44:45 -0400
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7D833DA41
-        for <mm-commits@vger.kernel.org>; Tue, 26 Apr 2022 23:41:33 -0700 (PDT)
-Received: from canpemm500002.china.huawei.com (unknown [172.30.72.54])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Kp8Jj6JSnz1JBhG;
-        Wed, 27 Apr 2022 14:40:37 +0800 (CST)
-Received: from [10.174.177.76] (10.174.177.76) by
- canpemm500002.china.huawei.com (7.192.104.244) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Wed, 27 Apr 2022 14:41:31 +0800
-Subject: Re: [nacked]
- mm-vmscan-activate-swap-backed-executable-folios-after-first-usage.patch
- removed from -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>
-References: <20220427062533.80485C385A7@smtp.kernel.org>
-CC:     <mm-commits@vger.kernel.org>, <ying.huang@intel.com>,
-        <osalvador@suse.de>, <iamjoonsoo.kim@lge.com>, <hch@lst.de>
-From:   Miaohe Lin <linmiaohe@huawei.com>
-Message-ID: <2e567a92-171e-26d5-2830-927c7f2f68a9@huawei.com>
-Date:   Wed, 27 Apr 2022 14:41:30 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.6.0
+        with ESMTP id S232013AbiD0LCl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 07:02:41 -0400
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 571063C9D7A
+        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 03:41:19 -0700 (PDT)
+Received: from zn.tnic (p5de8eeb4.dip0.t-ipconnect.de [93.232.238.180])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 7991D1EC04A9;
+        Wed, 27 Apr 2022 12:41:13 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1651056073;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=LBbpFhl+1CZpRJA7Wg/EqdjikZnQoYyXLdtwSFhoF0s=;
+        b=JVTy9o8PY7XDCKPgwKAOrxhHNp4/y0PRV+/J1rJQD9GfLT3M91LFvm3J8BGvBtRNSw/8U7
+        4udhq17K3+Osn7tcHudmG6tHs5p8MnhSA+85VaU+V9UTmyuK4Qb4r9WEELLDR0GEkfY/vA
+        7SmDfx/PiDkn1lnyLxxEjvml74774Ss=
+Date:   Wed, 27 Apr 2022 12:41:09 +0200
+From:   Borislav Petkov <bp@alien8.de>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Mark Hemment <markhemm@googlemail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
+        Lukas Czerner <lczerner@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
+Subject: Re: [patch 02/14] tmpfs: fix regressions from wider use of ZERO_PAGE
+Message-ID: <YmkdxaKdc2w/3I7o@zn.tnic>
+References: <Yl5+DCfQmG5C3BHf@zn.tnic>
+ <CAHk-=wi1iQXd3SSoyWZebdxdK3gFCVGq9q=4pwq3rON3BYZJkA@mail.gmail.com>
+ <Yl7146AZDgfLviVv@zn.tnic>
+ <YmFy8DEqvX4FlnuB@zn.tnic>
+ <CAHk-=wgf2C9nFiC+3UFG4k7XVTQq5aV6fasSYuT_nQeo_Yew6A@mail.gmail.com>
+ <CAHk-=wi69odFRCuYbhVFmaiaj4UcRDv74XeeksjFAdV0wBg2Ow@mail.gmail.com>
+ <YmWm5AXdwgwu57KZ@zn.tnic>
+ <CAHk-=wgFnTbbeR0NAsGGsoBBThXt9Zh5_acN47r4CF0PdgSNeA@mail.gmail.com>
+ <YmiK7Bos+zLAvL0t@zn.tnic>
+ <CAHk-=winO-QozwEEKeZJsT9Cux+JbihocPWhjm3m1RGTQwViDg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20220427062533.80485C385A7@smtp.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.174.177.76]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- canpemm500002.china.huawei.com (7.192.104.244)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAHk-=winO-QozwEEKeZJsT9Cux+JbihocPWhjm3m1RGTQwViDg@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 2022/4/27 14:25, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: mm/vmscan: activate swap-backed executable folios after first usage
-> has been removed from the -mm tree.  Its filename was
->      mm-vmscan-activate-swap-backed-executable-folios-after-first-usage.patch
-> 
-> This patch was dropped because it was nacked
+On Tue, Apr 26, 2022 at 06:29:16PM -0700, Linus Torvalds wrote:
+> Yeah, yeah, you could also use that _ASM_EXTABLE_TYPE_REG thing for
+> the second exception point, and keep %rcx as zero, and keep it in
+> %eax, and depend on that whole "%rcx = 8*%rcx+%rax" fixing it up, and
+> knowing that if an exception does *not* happen, %rcx will be zero from
+> the word-size loop.
 
-Hi Andrew,
+Exactly!
 
-Since this patch is nacked, should I resend the whole series with this patch dropped?
-And I'd like to change this patch to use the helper folio_is_file_lru too, something like below:
+> But that really seems much too subtle for me - why not just keep
+> things in %rcx, and try to make this look as much as possible like the
+> "rep stosq + rep stosb" case?
+> 
+> And finally: I still think that those fancy exception table things are
+> *much* too fancy, and much too subtle, and much too complicated.
 
-diff --git a/mm/vmscan.c b/mm/vmscan.c
-index ed484a0e9cd0..60ccbebec4c8 100644
---- a/mm/vmscan.c
-+++ b/mm/vmscan.c
-@@ -1412,9 +1412,9 @@ static enum page_references folio_check_references(struct folio *folio,
-                        return PAGEREF_ACTIVATE;
+This whole confusion goes to show that this really is too subtle. ;-\
 
-                /*
--                * Activate executable folios after first usage.
-+                * Activate file-backed executable folios after first usage.
-                 */
--               if (vm_flags & VM_EXEC)
-+               if ((vm_flags & VM_EXEC) && folio_is_file_lru(folio))
-                        return PAGEREF_ACTIVATE;
+I mean, it is probably fine for some simple asm where you want to have
+the register fixup out of the way. But for something like that where
+I wanted the asm to be optimal but not tricky at the same time, that
+tricky "hidden fixup" might turn out to be not such a good idea.
 
-                return PAGEREF_KEEP;
+And sure, yeah, we can make this work this way now and all but after
+time passes, swapping all that tricky stuff back in is going to be a
+pain. That's why I'm leaving breadcrumbs everywhere I can.
 
-Should I send this patch separately or resend the whole series with this new change attached?
+> So I'd actually prefer to get rid of them entirely, and make the code
+> use the "no register changes" exception, and make the exception
+> handler do a proper site-specific fixup. At that point, you can get
+> rid of all the "mask bits early" logic, get rid of all the extraneous
+> 'test' instructions, and make it all look something like below.
 
-Many thanks!
+Yap, and the named labels make it even clearer.
 
-> 
-> ------------------------------------------------------
-> From: Miaohe Lin <linmiaohe@huawei.com>
-> Subject: mm/vmscan: activate swap-backed executable folios after first usage
-> 
-> We should activate swap-backed executable folios (e.g.  tmpfs) after first
-> usage so that executable code gets yet better chance to stay in memory.
-> 
-> Link: https://lkml.kernel.org/r/20220425111232.23182-4-linmiaohe@huawei.com
-> Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-> Suggested-by: Huang, Ying <ying.huang@intel.com>
-> Reviewed-by: Huang, Ying <ying.huang@intel.com>
-> Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Oscar Salvador <osalvador@suse.de>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  mm/vmscan.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> --- a/mm/vmscan.c~mm-vmscan-activate-swap-backed-executable-folios-after-first-usage
-> +++ a/mm/vmscan.c
-> @@ -1412,9 +1412,9 @@ static enum page_references folio_check_
->  			return PAGEREF_ACTIVATE;
->  
->  		/*
-> -		 * Activate file-backed executable folios after first usage.
-> +		 * Activate executable folios after first usage.
->  		 */
-> -		if ((vm_flags & VM_EXEC) && !folio_test_swapbacked(folio))
-> +		if (vm_flags & VM_EXEC)
->  			return PAGEREF_ACTIVATE;
->  
->  		return PAGEREF_KEEP;
-> _
-> 
-> Patches currently in -mm which might be from linmiaohe@huawei.com are
-> 
-> mm-shmem-make-shmem_init-return-void.patch
-> mm-memcg-remove-unneeded-nr_scanned.patch
-> mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch
-> mm-memory-failurec-dissolve-truncated-hugetlb-page.patch
-> mm-vmscan-remove-obsolete-comment-in-get_scan_count.patch
-> mm-vmscan-fix-comment-for-current_may_throttle.patch
-> mm-vmscan-fix-comment-for-isolate_lru_pages.patch
-> mm-z3fold-declare-z3fold_mount-with-__init.patch
-> mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch
-> mm-z3fold-minor-clean-up-for-z3fold_free.patch
-> mm-z3fold-remove-unneeded-page_mapcount_reset-and-clearpageprivate.patch
-> mm-z3fold-remove-confusing-local-variable-l-reassignment.patch
-> mm-z3fold-move-decrement-of-pool-pages_nr-into-__release_z3fold_page.patch
-> mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free.patch
-> mm-z3fold-remove-unneeded-page_headless-check-in-free_handle.patch
-> mm-compaction-use-helper-isolation_suitable.patch
-> drivers-base-nodec-fix-compaction-sysfs-file-leak.patch
-> mm-mempolicy-clean-up-the-code-logic-in-queue_pages_pte_range.patch
-> mm-migration-remove-unneeded-local-variable-mapping_locked.patch
-> mm-migration-remove-unneeded-local-variable-page_lru.patch
-> mm-migration-use-helper-function-vma_lookup-in-add_page_for_migration.patch
-> mm-migration-use-helper-macro-min-in-do_pages_stat.patch
-> mm-migration-avoid-unneeded-nodemask_t-initialization.patch
-> mm-migration-remove-some-duplicated-codes-in-migrate_pages.patch
-> mm-migration-fix-potential-page-refcounts-leak-in-migrate_pages.patch
-> mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch
-> mm-migration-fix-possible-do_pages_stat_array-racing-with-memory-offline.patch
-> mm-madvise-fix-potential-pte_unmap_unlock-pte-error.patch
-> mm-mmapc-use-helper-mlock_future_check.patch
-> mm-mremap-use-helper-mlock_future_check.patch
-> mm-mremap-avoid-unneeded-do_munmap-call.patch
-> mm-compaction-remove-unneeded-return-value-of-kcompactd_run.patch
-> mm-compaction-remove-unneeded-pfn-update.patch
-> mm-compaction-remove-unneeded-assignment-to-isolate_start_pfn.patch
-> mm-compaction-clean-up-comment-for-sched-contention.patch
-> mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch
-> mm-compaction-use-compact_cluster_max-in-compactionc.patch
-> mm-compaction-use-helper-compound_nr-in-isolate_migratepages_block.patch
-> mm-compaction-clean-up-comment-about-async-compaction-in-isolate_migratepages.patch
-> mm-compaction-avoid-possible-null-pointer-dereference-in-kcompactd_cpu_online.patch
-> mm-compaction-make-compaction_zonelist_suitable-return-false-when-compact_success.patch
-> mm-compaction-simplify-the-code-in-__compact_finished.patch
-> mm-compaction-make-sure-highest-is-above-the-min_pfn.patch
-> mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
-> mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
-> mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch
-> mm-migration-reduce-the-rcu-lock-duration.patch
-> mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-> mm-migration-return-errno-when-isolate_huge_page-failed.patch
-> mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-> mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
-> mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
-> mm-vmscan-introduce-helper-function-reclaim_page_list.patch
-> mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
-> mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
-> mm-vmscan-use-helper-folio_is_file_lru.patch
-> 
-> .
-> 
+> NOTE! I've intentionally kept the %eax thing using 32-bit instructions
+> - smaller encoding, and only the low three bits matter, so why
+> move/mask full 64 bits?
 
+Some notes below.
+
+> NOTE2! Entirely untested.
+
+I'll poke at it.
+
+> But I tried to make the normal code do minimal work, and then fix
+> things up in the exception case more.
+
+Yap.
+
+> So it just keeps the original count in the 32 bits in %eax until it
+> wants to test it, and then uses the 'andl' to both mask and test. And
+> the exception case knows that, so it masks there too.
+
+Sure.
+
+> I dunno. But I really think that whole new _ASM_EXTABLE_TYPE_REG and
+> EX_TYPE_UCOPY_LEN8 was unnecessary.
+
+I've pointed this out to Mr. Z. He likes them as complex as possible.
+:-P
+
+> SYM_FUNC_START(clear_user_original)
+>         movl %ecx,%eax
+
+I'll add a comment here along the lines of us only needing the 32-bit
+quantity of the size as we're dealing with the rest bytes and so we save
+a REX byte in the opcode.
+
+>         shrq $3,%rcx             # qwords
+
+Any particular reason for the explicit "q" suffix? The register already
+denotes the opsize and the generated opcode is the same.
+
+>         jz .Lrest_bytes
+> 
+>         # do the qwords first
+>         .p2align 4
+> .Lqwords:
+>         movq $0,(%rdi)
+>         lea 8(%rdi),%rdi
+>         dec %rcx
+
+Like here, for example.
+
+I guess you wanna be explicit as to the operation width...
+
+>         jnz .Lqwords
+> 
+> .Lrest_bytes:
+>         andl $7,%eax             # rest bytes
+>         jz .Lexit
+> 
+>         # now do the rest bytes
+> .Lbytes:
+>         movb $0,(%rdi)
+>         inc %rdi
+>         decl %eax
+>         jnz .Lbytes
+> 
+> .Lexit:
+>         xorl %eax,%eax
+>         RET
+> 
+> .Lqwords_exception:
+>         # convert qwords back into bytes to return to caller
+>         shlq $3, %rcx
+>         andl $7, %eax
+>         addq %rax,%rcx
+>         jmp .Lexit
+> 
+> .Lbytes_exception:
+>         movl %eax,%ecx
+>         jmp .Lexit
+> 
+>         _ASM_EXTABLE_UA(.Lqwords, .Lqwords_exception)
+>         _ASM_EXTABLE_UA(.Lbytes, .Lbytes_exception)
+
+Yap, I definitely like this one more. Straightforward.
+
+Thx!
+
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
