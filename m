@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3F4AC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 18:56:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C0F4C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 19:08:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229698AbiD0S7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Apr 2022 14:59:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38656 "EHLO
+        id S230034AbiD0TLc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Apr 2022 15:11:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232034AbiD0S6v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 14:58:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5751C89CCC
-        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 11:44:31 -0700 (PDT)
+        with ESMTP id S232710AbiD0TLY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 15:11:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64D558878D;
+        Wed, 27 Apr 2022 12:00:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0B3F9B8267E
-        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 18:44:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBA33C385A7;
-        Wed, 27 Apr 2022 18:44:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B93E46151B;
+        Wed, 27 Apr 2022 19:00:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 190CDC385AA;
+        Wed, 27 Apr 2022 19:00:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651085068;
-        bh=qEdrIc/DA9dfjq2klPhSnRUP81H6mMq6FKFKUNh2H14=;
+        s=korg; t=1651086034;
+        bh=K5V0L7D8p5Nd59qPZJYkX5jCCAx0iW2BP5NHSFGCtnE=;
         h=Date:To:From:Subject:From;
-        b=Eqfjlq2gzvorvmqpw3gn03l4fqdQVQvc56UHQ4qd/qDDuctjg8Kgnrn2kHdq2H2tN
-         e628nhcJPZ92h1+QV1eSxZl2vH9Py+qS9K0/DllT7Ayg9s/8aYubZcZNoCbjcr38Us
-         yfKRpVbeX8YS2gueURGfuUVb1WHo0HEI3XPbhqPY=
-Date:   Wed, 27 Apr 2022 11:44:28 -0700
-To:     mm-commits@vger.kernel.org, wanjiabing@vivo.com,
-        akpm@linux-foundation.org
+        b=wfUk1XNZxWkfhnkV/3IkJ9roOKlSmASn+CuIa7fs9zRyrbUMHc/poCZpf1CotrJe0
+         mn3X5H5g1Ricb0FBE/r9TAbKC9nyJ5pMEoDvFk3vR2TkCz+qjryoj4nBdWU1UFFrSC
+         R7iztaEuUXZZTOOelQsKv0whsVjRO6OMHXkmRtKI=
+Date:   Wed, 27 Apr 2022 12:00:33 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        shy828301@gmail.com, naoya.horiguchi@nec.com,
+        xuyu@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-remove-duplicate-include-in-memoryc.patch added to -mm tree
-Message-Id: <20220427184428.BBA33C385A7@smtp.kernel.org>
+Subject: + revert-mm-memory-failurec-skip-huge_zero_page-in-memory_failure.patch added to -mm tree
+Message-Id: <20220427190034.190CDC385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: remove duplicate include in memory.c
+     Subject: Revert "mm/memory-failure.c: skip huge_zero_page in memory_failure()"
 has been added to the -mm tree.  Its filename is
-     mm-shmem-remove-duplicate-include-in-memoryc.patch
+     revert-mm-memory-failurec-skip-huge_zero_page-in-memory_failure.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-remove-duplicate-include-in-memoryc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/revert-mm-memory-failurec-skip-huge_zero_page-in-memory_failure.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-remove-duplicate-include-in-memoryc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-memory-failurec-skip-huge_zero_page-in-memory_failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,35 +63,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wan Jiabing <wanjiabing@vivo.com>
-Subject: mm/shmem: remove duplicate include in memory.c
+From: Xu Yu <xuyu@linux.alibaba.com>
+Subject: Revert "mm/memory-failure.c: skip huge_zero_page in memory_failure()"
 
-Fix following checkincludes.pl warning:
-mm/memory.c: linux/mm_inline.h is included more than once.
+Patch series "mm/memory-failure: rework fix on huge_zero_page splitting".
 
-The include is in line 44. Remove the duplicated here.
 
-Link: https://lkml.kernel.org/r/20220427064717.803019-1-wanjiabing@vivo.com
-Signed-off-by: Wan Jiabing <wanjiabing@vivo.com>
+This patch (of 2):
+
+This reverts commit d173d5417fb67411e623d394aab986d847e47dad.
+
+The commit d173d5417fb6 ("mm/memory-failure.c: skip huge_zero_page in
+memory_failure()") explicitly skips huge_zero_page in memory_failure(), in
+order to avoid triggering VM_BUG_ON_PAGE on huge_zero_page in
+split_huge_page_to_list().
+
+This works, but Yang Shi thinks that,
+
+    Raising BUG is overkilling for splitting huge_zero_page. The
+    huge_zero_page can't be met from normal paths other than memory
+    failure, but memory failure is a valid caller. So I tend to replace
+    the BUG to WARN + returning -EBUSY. If we don't care about the
+    reason code in memory failure, we don't have to touch memory
+    failure.
+
+And for the issue that huge_zero_page will be set PG_has_hwpoisoned,
+Yang Shi comments that,
+
+    The anonymous page fault doesn't check if the page is poisoned or
+    not since it typically gets a fresh allocated page and assumes the
+    poisoned page (isolated successfully) can't be reallocated again.
+    But huge zero page and base zero page are reused every time. So no
+    matter what fix we pick, the issue is always there.
+
+Finally, Yang, David, Anshuman and Naoya all agree to fix the bug, i.e.,
+to split huge_zero_page, in split_huge_page_to_list().
+
+This reverts the commit d173d5417fb6 ("mm/memory-failure.c: skip
+huge_zero_page in memory_failure()"), and the original bug will be fixed
+by the next patch.
+
+Link: https://lkml.kernel.org/r/872cefb182ba1dd686b0e7db1e6b2ebe5a4fff87.1651039624.git.xuyu@linux.alibaba.com
+Fixes: d173d5417fb ("mm/memory-failure.c: skip huge_zero_page in memory_failure()")
+Fixes: 6a46079cf57a ("HWPOISON: The high level memory error handler in the VM v7")
+Signed-off-by: Xu Yu <xuyu@linux.alibaba.com>
+Suggested-by: Yang Shi <shy828301@gmail.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memory-failure.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
---- a/mm/memory.c~mm-shmem-remove-duplicate-include-in-memoryc
-+++ a/mm/memory.c
-@@ -74,7 +74,6 @@
- #include <linux/perf_event.h>
- #include <linux/ptrace.h>
- #include <linux/vmalloc.h>
--#include <linux/mm_inline.h>
+--- a/mm/memory-failure.c~revert-mm-memory-failurec-skip-huge_zero_page-in-memory_failure
++++ a/mm/memory-failure.c
+@@ -1861,19 +1861,6 @@ try_again:
  
- #include <trace/events/kmem.h>
- 
+ 	if (PageTransHuge(hpage)) {
+ 		/*
+-		 * Bail out before SetPageHasHWPoisoned() if hpage is
+-		 * huge_zero_page, although PG_has_hwpoisoned is not
+-		 * checked in set_huge_zero_page().
+-		 *
+-		 * TODO: Handle memory failure of huge_zero_page thoroughly.
+-		 */
+-		if (is_huge_zero_page(hpage)) {
+-			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
+-			res = -EBUSY;
+-			goto unlock_mutex;
+-		}
+-
+-		/*
+ 		 * The flag must be set after the refcount is bumped
+ 		 * otherwise it may race with THP split.
+ 		 * And the flag can't be set in get_hwpoison_page() since
 _
 
-Patches currently in -mm which might be from wanjiabing@vivo.com are
+Patches currently in -mm which might be from xuyu@linux.alibaba.com are
 
-mm-shmem-remove-duplicate-include-in-memoryc.patch
+revert-mm-memory-failurec-skip-huge_zero_page-in-memory_failure.patch
+mm-huge_memory-do-not-overkill-when-splitting-huge_zero_page.patch
 
