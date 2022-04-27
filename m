@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2113FC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 19:17:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE2FC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 19:21:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233168AbiD0TUN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Apr 2022 15:20:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53294 "EHLO
+        id S229742AbiD0TYp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Apr 2022 15:24:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44230 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230212AbiD0TTx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 15:19:53 -0400
+        with ESMTP id S234459AbiD0TYW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 15:24:22 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96DA791563;
-        Wed, 27 Apr 2022 12:14:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9B04E0E0
+        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 12:19:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 33E96619E1;
-        Wed, 27 Apr 2022 19:14:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D506C385AA;
-        Wed, 27 Apr 2022 19:14:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C2BE6199D
+        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 19:19:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C5FC385A7;
+        Wed, 27 Apr 2022 19:19:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651086866;
-        bh=wK5s5NErBjAKg6T5TsoURBgP5kKXmle9rTlIl06jgLc=;
+        s=korg; t=1651087147;
+        bh=B4z0uvrit6hgDDCvKWK203/Cl7T1ImNGB4kluEeI7Ok=;
         h=Date:To:From:Subject:From;
-        b=ogQKxma7CKFX0Mu0vepKLZVAMn44YvZU19yOUxzEUGRB935tY3kOo15ohpmGkRMMU
-         81txuQ0Ms/b8Q2fqdLzt4lrcdAb2RU3EZyRAZpRfCOqmm8sn94MQQ+KBqvHGaQhlkV
-         R8Yft4lYAZtd5hGtewg2V6l7QRq1xd2thGYnhiKs=
-Date:   Wed, 27 Apr 2022 12:14:25 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        william.kucharski@oracle.com, stable@vger.kernel.org,
-        linmiaohe@huawei.com, jhubbard@nvidia.com, jgg@nvidia.com,
-        hch@infradead.org, naoya.horiguchi@nec.com,
+        b=r18C7waQgj01XJs2Ap/1vBObPgeJC4Me95wiqCvmZlxZm2zt8WC5B21cxbFFecaKH
+         wdZBvBvZ5wjHb4hVakaxlAS8AJ9SE9gs8cllNjl4Z78tOdifospJ/xSrVceqR3pJBK
+         RPwIdQ0AP3Qr436tHentgcIahYtyPK3+ycDyVD2c=
+Date:   Wed, 27 Apr 2022 12:19:07 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-use-pr_err-instead-of-dump_page-in-get_any_page.patch added to -mm tree
-Message-Id: <20220427191426.8D506C385AA@smtp.kernel.org>
+Subject: + docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch added to -mm tree
+Message-Id: <20220427191907.C4C5FC385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: use pr_err() instead of dump_page() in get_any_page()
+     Subject: Docs/{ABI,admin-guide}/damon: update for fixed virtual address ranges monitoring
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-use-pr_err-instead-of-dump_page-in-get_any_page.patch
+     docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-use-pr_err-instead-of-dump_page-in-get_any_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-use-pr_err-instead-of-dump_page-in-get_any_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,99 +62,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: use pr_err() instead of dump_page() in get_any_page()
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/{ABI,admin-guide}/damon: update for fixed virtual address ranges monitoring
 
-The following VM_BUG_ON_FOLIO() is triggered when memory error event
-happens on the (thp/folio) pages which are about to be freed:
+This commit documents the user space support of the newly added monitoring
+operations set for fixed virtual address ranges monitoring, namely
+'fvaddr', on the ABI and usage documents for DAMON.
 
-  [ 1160.232771] page:00000000b36a8a0f refcount:1 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x16a000
-  [ 1160.236916] page:00000000b36a8a0f refcount:0 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x16a000
-  [ 1160.240684] flags: 0x57ffffc0800000(hwpoison|node=1|zone=2|lastcpupid=0x1fffff)
-  [ 1160.243458] raw: 0057ffffc0800000 dead000000000100 dead000000000122 0000000000000000
-  [ 1160.246268] raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
-  [ 1160.249197] page dumped because: VM_BUG_ON_FOLIO(!folio_test_large(folio))
-  [ 1160.251815] ------------[ cut here ]------------
-  [ 1160.253438] kernel BUG at include/linux/mm.h:788!
-  [ 1160.256162] invalid opcode: 0000 [#1] PREEMPT SMP PTI
-  [ 1160.258172] CPU: 2 PID: 115368 Comm: mceinj.sh Tainted: G            E     5.18.0-rc1-v5.18-rc1-220404-2353-005-g83111+ #3
-  [ 1160.262049] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1.fc35 04/01/2014
-  [ 1160.265103] RIP: 0010:dump_page.cold+0x27e/0x2bd
-  [ 1160.266757] Code: fe ff ff 48 c7 c6 81 f1 5a 98 e9 4c fe ff ff 48 c7 c6 a1 95 59 98 e9 40 fe ff ff 48 c7 c6 50 bf 5a 98 48 89 ef e8 9d 04 6d ff <0f> 0b 41 f7 c4 ff 0f 00 00 0f 85 9f fd ff ff 49 8b 04 24 a9 00 00
-  [ 1160.273180] RSP: 0018:ffffaa2c4d59fd18 EFLAGS: 00010292
-  [ 1160.274969] RAX: 000000000000003e RBX: 0000000000000001 RCX: 0000000000000000
-  [ 1160.277263] RDX: 0000000000000001 RSI: ffffffff985995a1 RDI: 00000000ffffffff
-  [ 1160.279571] RBP: ffffdc9c45a80000 R08: 0000000000000000 R09: 00000000ffffdfff
-  [ 1160.281794] R10: ffffaa2c4d59fb08 R11: ffffffff98940d08 R12: ffffdc9c45a80000
-  [ 1160.283920] R13: ffffffff985b6f94 R14: 0000000000000000 R15: ffffdc9c45a80000
-  [ 1160.286641] FS:  00007eff54ce1740(0000) GS:ffff99c67bd00000(0000) knlGS:0000000000000000
-  [ 1160.289498] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  [ 1160.291106] CR2: 00005628381a5f68 CR3: 0000000104712003 CR4: 0000000000170ee0
-  [ 1160.293031] Call Trace:
-  [ 1160.293724]  <TASK>
-  [ 1160.294334]  get_hwpoison_page+0x47d/0x570
-  [ 1160.295474]  memory_failure+0x106/0xaa0
-  [ 1160.296474]  ? security_capable+0x36/0x50
-  [ 1160.297524]  hard_offline_page_store+0x43/0x80
-  [ 1160.298684]  kernfs_fop_write_iter+0x11c/0x1b0
-  [ 1160.299829]  new_sync_write+0xf9/0x160
-  [ 1160.300810]  vfs_write+0x209/0x290
-  [ 1160.301835]  ksys_write+0x4f/0xc0
-  [ 1160.302718]  do_syscall_64+0x3b/0x90
-  [ 1160.303664]  entry_SYSCALL_64_after_hwframe+0x44/0xae
-  [ 1160.304981] RIP: 0033:0x7eff54b018b7
-
-As shown in the RIP address, this VM_BUG_ON in folio_entire_mapcount() is
-called from dump_page("hwpoison: unhandlable page") in get_any_page().
-The below explains the mechanism of the race:
-
-  CPU 0                                       CPU 1
-
-    memory_failure
-      get_hwpoison_page
-        get_any_page
-          dump_page
-            compound = PageCompound
-                                                free_pages_prepare
-                                                  page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP
-            folio_entire_mapcount
-              VM_BUG_ON_FOLIO(!folio_test_large(folio))
-
-So replace dump_page() with safer one, pr_err().
-
-Link: https://lkml.kernel.org/r/20220427053220.719866-1-naoya.horiguchi@linux.dev
-Fixes: 74e8ee4708a8 ("mm: Turn head_compound_mapcount() into folio_entire_mapcount()")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220426231750.48822-4-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |   14 ++++++++------
+ Documentation/admin-guide/mm/damon/usage.rst    |   14 +++++++++++---
+ 2 files changed, 19 insertions(+), 9 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-use-pr_err-instead-of-dump_page-in-get_any_page
-+++ a/mm/memory-failure.c
-@@ -1274,7 +1274,7 @@ try_again:
- 	}
- out:
- 	if (ret == -EIO)
--		dump_page(p, "hwpoison: unhandlable page");
-+		pr_err("Memory failure: %#lx: unhandlable page.\n", page_to_pfn(p));
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -50,12 +50,14 @@ What:		/sys/kernel/mm/damon/admin/kdamon
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Writing a keyword for a monitoring operations set ('vaddr' for
+-		virtual address spaces monitoring, and 'paddr' for the physical
+-		address space monitoring) to this file makes the context to use
+-		the operations set.  Reading the file returns the keyword for
+-		the operations set the context is set to use.  Note that only
+-		the operations sets that listed in 'avail_operations' file are
+-		valid inputs.
++		virtual address spaces monitoring, 'fvaddr' for fixed virtual
++		address ranges monitoring, and 'paddr' for the physical address
++		space monitoring) to this file makes the context to use the
++		operations set.  Reading the file returns the keyword for the
++		operations set the context is set to use.
++
++		Note that only the operations sets that listed in
++		'avail_operations' file are valid inputs.
  
- 	return ret;
- }
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/sample_us
+ Date:		Mar 2022
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -154,8 +154,13 @@ available monitoring operations set on t
+ list some or all of below keywords.
+ 
+  - vaddr: Monitor virtual address spaces of specific processes
++ - fvaddr: Monitor fixed virtual address ranges
+  - paddr: Monitor the physical address space of the system
+ 
++Please refer to :ref:`regions sysfs directory <sysfs_regions>` for detailed
++differences between the operations sets in terms of the monitoring target
++regions.
++
+ You can set and get what type of monitoring operations DAMON will use for the
+ context by writing one of the keywords listed in ``avail_operations`` file and
+ reading from the ``operations`` file.
+@@ -198,6 +203,8 @@ If you wrote ``vaddr`` to the ``contexts
+ be a process.  You can specify the process to DAMON by writing the pid of the
+ process to the ``pid_target`` file.
+ 
++.. _sysfs_regions:
++
+ targets/<N>/regions
+ -------------------
+ 
+@@ -208,9 +215,10 @@ can be covered.  However, users could wa
+ to specific address ranges.
+ 
+ In contrast, DAMON do not automatically sets and updates the monitoring target
+-regions when ``paddr`` monitoring operations set is being used (``paddr`` is
+-written to the ``contexts/<N>/operations``).  Therefore, users should set the
+-monitoring target regions by themselves in the case.
++regions when ``fvaddr`` or ``paddr`` monitoring operations sets are being used
++(``fvaddr`` or ``paddr`` have written to the ``contexts/<N>/operations``).
++Therefore, users should set the monitoring target regions by themselves in the
++cases.
+ 
+ For such cases, users can explicitly set the initial monitoring target regions
+ as they want, by writing proper values to the files under this directory.
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-hwpoison-use-pr_err-instead-of-dump_page-in-get_any_page.patch
-mm-hwpoison-put-page-in-already-hwpoisoned-case-with-mf_count_increased.patch
-revert-mm-memory-failurec-fix-race-with-changing-page-compound-again.patch
-mm-hugetlb-hwpoison-separate-branch-for-free-and-in-use-hugepage.patch
+mm-damon-core-test-add-a-kunit-test-case-for-ops-registration.patch
+mm-damon-core-add-a-function-for-damon_operations-registration-checks.patch
+mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops.patch
+selftets-damon-sysfs-test-existence-and-permission-of-avail_operations.patch
+docs-abiadmin-guide-damon-document-avail_operations-sysfs-file.patch
+mm-damon-vaddr-register-a-damon_operations-for-fixed-virtual-address-ranges-monitoring.patch
+mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring.patch
+docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
 
