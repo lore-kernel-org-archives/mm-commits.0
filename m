@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE2FC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 19:21:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94765C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Apr 2022 19:21:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229742AbiD0TYp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Apr 2022 15:24:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44230 "EHLO
+        id S234444AbiD0TYq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Apr 2022 15:24:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234459AbiD0TYW (ORCPT
+        with ESMTP id S234417AbiD0TYW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2022 15:24:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9B04E0E0
-        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 12:19:34 -0700 (PDT)
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96E7DDAFD1
+        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 12:19:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C2BE6199D
-        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 19:19:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C5FC385A7;
-        Wed, 27 Apr 2022 19:19:07 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id CBCF8CE26AE
+        for <mm-commits@vger.kernel.org>; Wed, 27 Apr 2022 19:19:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1027CC385A9;
+        Wed, 27 Apr 2022 19:19:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651087147;
-        bh=B4z0uvrit6hgDDCvKWK203/Cl7T1ImNGB4kluEeI7Ok=;
+        s=korg; t=1651087146;
+        bh=fkAu0GAmacmLG6oKp+COM4sY80+6MjPZkZj8b90whaQ=;
         h=Date:To:From:Subject:From;
-        b=r18C7waQgj01XJs2Ap/1vBObPgeJC4Me95wiqCvmZlxZm2zt8WC5B21cxbFFecaKH
-         wdZBvBvZ5wjHb4hVakaxlAS8AJ9SE9gs8cllNjl4Z78tOdifospJ/xSrVceqR3pJBK
-         RPwIdQ0AP3Qr436tHentgcIahYtyPK3+ycDyVD2c=
-Date:   Wed, 27 Apr 2022 12:19:07 -0700
+        b=06IxAFUOykkbFNbz8VbR/rsY+7F1+LUyXB9Dbq6bo0hZw0S3dxgvriK6jSMNt8o6H
+         0IaSI6RmDDDJUykgHzAMu+2vVMFoBJWAu0AsxAhe6ag8FpweXCKmeiM8z4tN7YB7fs
+         4XqffWdYE21+76MYh8P9L4Q622dWul+TSwP5EW/Y=
+Date:   Wed, 27 Apr 2022 12:19:05 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch added to -mm tree
-Message-Id: <20220427191907.C4C5FC385A7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring.patch added to -mm tree
+Message-Id: <20220427191906.1027CC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/{ABI,admin-guide}/damon: update for fixed virtual address ranges monitoring
+     Subject: mm/damon/sysfs: support fixed virtual address ranges monitoring
 has been added to the -mm tree.  Its filename is
-     docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
+     mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,83 +63,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/{ABI,admin-guide}/damon: update for fixed virtual address ranges monitoring
+Subject: mm/damon/sysfs: support fixed virtual address ranges monitoring
 
-This commit documents the user space support of the newly added monitoring
-operations set for fixed virtual address ranges monitoring, namely
-'fvaddr', on the ABI and usage documents for DAMON.
+This commit makes DAMON sysfs interface to support the fixed virtual
+address ranges monitoring.  After this commit, writing 'fvaddr' to the
+'operations' DAMON sysfs file makes DAMON uses the monitoring operations
+set for fixed virtual address ranges, so that users can monitor accesses
+to only interested virtual address ranges.
 
-Link: https://lkml.kernel.org/r/20220426231750.48822-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220426231750.48822-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |   14 ++++++++------
- Documentation/admin-guide/mm/damon/usage.rst    |   14 +++++++++++---
- 2 files changed, 19 insertions(+), 9 deletions(-)
+ mm/damon/sysfs.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -50,12 +50,14 @@ What:		/sys/kernel/mm/damon/admin/kdamon
- Date:		Mar 2022
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing a keyword for a monitoring operations set ('vaddr' for
--		virtual address spaces monitoring, and 'paddr' for the physical
--		address space monitoring) to this file makes the context to use
--		the operations set.  Reading the file returns the keyword for
--		the operations set the context is set to use.  Note that only
--		the operations sets that listed in 'avail_operations' file are
--		valid inputs.
-+		virtual address spaces monitoring, 'fvaddr' for fixed virtual
-+		address ranges monitoring, and 'paddr' for the physical address
-+		space monitoring) to this file makes the context to use the
-+		operations set.  Reading the file returns the keyword for the
-+		operations set the context is set to use.
-+
-+		Note that only the operations sets that listed in
-+		'avail_operations' file are valid inputs.
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring
++++ a/mm/damon/sysfs.c
+@@ -1694,7 +1694,7 @@ static struct kobj_type damon_sysfs_attr
+ /* This should match with enum damon_ops_id */
+ static const char * const damon_sysfs_ops_strs[] = {
+ 	"vaddr",
+-	"unsupported",	/* fvaddr is not supported by sysfs yet */
++	"fvaddr",
+ 	"paddr",
+ };
  
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/sample_us
- Date:		Mar 2022
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -154,8 +154,13 @@ available monitoring operations set on t
- list some or all of below keywords.
+@@ -1844,9 +1844,6 @@ static ssize_t operations_store(struct k
  
-  - vaddr: Monitor virtual address spaces of specific processes
-+ - fvaddr: Monitor fixed virtual address ranges
-  - paddr: Monitor the physical address space of the system
- 
-+Please refer to :ref:`regions sysfs directory <sysfs_regions>` for detailed
-+differences between the operations sets in terms of the monitoring target
-+regions.
-+
- You can set and get what type of monitoring operations DAMON will use for the
- context by writing one of the keywords listed in ``avail_operations`` file and
- reading from the ``operations`` file.
-@@ -198,6 +203,8 @@ If you wrote ``vaddr`` to the ``contexts
- be a process.  You can specify the process to DAMON by writing the pid of the
- process to the ``pid_target`` file.
- 
-+.. _sysfs_regions:
-+
- targets/<N>/regions
- -------------------
- 
-@@ -208,9 +215,10 @@ can be covered.  However, users could wa
- to specific address ranges.
- 
- In contrast, DAMON do not automatically sets and updates the monitoring target
--regions when ``paddr`` monitoring operations set is being used (``paddr`` is
--written to the ``contexts/<N>/operations``).  Therefore, users should set the
--monitoring target regions by themselves in the case.
-+regions when ``fvaddr`` or ``paddr`` monitoring operations sets are being used
-+(``fvaddr`` or ``paddr`` have written to the ``contexts/<N>/operations``).
-+Therefore, users should set the monitoring target regions by themselves in the
-+cases.
- 
- For such cases, users can explicitly set the initial monitoring target regions
- as they want, by writing proper values to the files under this directory.
+ 	for (id = 0; id < NR_DAMON_OPS; id++) {
+ 		if (sysfs_streq(buf, damon_sysfs_ops_strs[id])) {
+-			/* fvaddr is not supported by sysfs yet */
+-			if (id == DAMON_OPS_FVADDR)
+-				return -EINVAL;
+ 			context->ops_id = id;
+ 			return count;
+ 		}
+@@ -2136,7 +2133,8 @@ static int damon_sysfs_set_targets(struc
+ 			damon_sysfs_destroy_targets(ctx);
+ 			return -ENOMEM;
+ 		}
+-		if (ctx->ops.id == DAMON_OPS_VADDR) {
++		if (ctx->ops.id == DAMON_OPS_VADDR ||
++				ctx->ops.id == DAMON_OPS_FVADDR) {
+ 			t->pid = find_get_pid(sys_target->pid);
+ 			if (!t->pid) {
+ 				damon_sysfs_destroy_targets(ctx);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
