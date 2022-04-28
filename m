@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FCACC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Apr 2022 21:51:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BE6C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Apr 2022 21:59:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346309AbiD1Vyz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Apr 2022 17:54:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53680 "EHLO
+        id S236058AbiD1WCy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Apr 2022 18:02:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352711AbiD1Vyt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2022 17:54:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D695F57145
-        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 14:51:23 -0700 (PDT)
+        with ESMTP id S235816AbiD1WCx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2022 18:02:53 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C36E580EA
+        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 14:59:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5C6AE62007
-        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 21:51:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6614C385A9;
-        Thu, 28 Apr 2022 21:51:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2A4B1B83076
+        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 21:59:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D012DC385A9;
+        Thu, 28 Apr 2022 21:59:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651182682;
-        bh=q+P1NMKKpUdnTKb8I+La1BaHCMM9o3Mx4qI8aPNvYio=;
+        s=korg; t=1651183174;
+        bh=XTxtQFR11j6hFKAWyIj6UZ354hGPUGzxPMh8nWPUEwg=;
         h=Date:To:From:Subject:From;
-        b=jugzpSHJm60uE/ajqjIY0T94LKK85RAK5nMHsl0JaEyo7sIZOy8k+Z7EtsCyXF8++
-         bbVy3/n6lQ+Wdin45ERzVYH+eHyAurDSMMa9DBbUzEr8IqHriqS9Z2Sosl85qFK9Qg
-         4GyNL3FbQ8NmYky5T/q6mXGmw6i+zlFyUqSUaiVY=
-Date:   Thu, 28 Apr 2022 14:51:22 -0700
-To:     mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
-        mhocko@kernel.org, linmiaohe@huawei.com, david@redhat.com,
-        osalvador@suse.de, akpm@linux-foundation.org
+        b=2JDjsD/Vh+5dxKVxAy8JH/+SzVojZHzCkq98POAm23DUB5gliqqhNUfVy1TuB2cMu
+         0Fu7wDl7nVE2I7yokoZkcvh6kEZJXHcyYh1sPKBDoMxv1qjC8XyUfwdAhLeiIwRrca
+         IkC+WApHdu5f2zDFo0v0KfspbmchLWJ6X/H6YU/c=
+Date:   Thu, 28 Apr 2022 14:59:34 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, heming.zhao@suse.com, ghe@suse.com,
+        gechangwei@live.cn, ocfs2-devel@oss.oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node.patch removed from -mm tree
-Message-Id: <20220428215122.B6614C385A9@smtp.kernel.org>
+Subject: + ocfs2-fix-mounting-crash-if-journal-is-not-alloced.patch added to -mm tree
+Message-Id: <20220428215934.D012DC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,117 +44,237 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: refactor hotadd_init_pgdat and try_online_node
-has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node.patch
+     Subject: ocfs2: fix mounting crash if journal is not alloced
+has been added to the -mm tree.  Its filename is
+     ocfs2-fix-mounting-crash-if-journal-is-not-alloced.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-mounting-crash-if-journal-is-not-alloced.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-mounting-crash-if-journal-is-not-alloced.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm/memory_hotplug: refactor hotadd_init_pgdat and try_online_node
+From: Heming Zhao via Ocfs2-devel <ocfs2-devel@oss.oracle.com>
+Subject: ocfs2: fix mounting crash if journal is not alloced
 
-Since we pre-allocate all nodes now, hotadd_init_pgdat() does not need to
-return a pgdat struct, as that was meant for __try_online_node() to check
-whether the node was successfully allocated.
+Patch series "rewrite error handling during mounting stage".
 
-Also get rid of the __ref as all functions hotadd_init_pgdat() calls fall
-within the same section.
 
-Also try to make more clear the return codes from __try_online_node(). 
-__try_online_node() can return either 0, 1 or -errno (the latter not
-really as the BUG_ON() would catch it before we return) but depending on
-the caller that has different meanings.
+This patch (of 5):
 
-For add_memory_resource(), when __try_online_node() returns non-zero, it
-means that the node was already allocated and it does not need to bring it
-up.  It is fine not to check for -errno values because we do not get to
-call register_one_node() when !set_node_online.  For those who call
-try_online_node(), so set_node_online is true, a value other than zero
-means a failure (e.g: cpu_up() or find_and_online_cpu_nid()).
+After commit da5e7c87827e8 ("ocfs2: cleanup journal init and shutdown"),
+journal init later than before, it makes NULL pointer access in free
+routine.
 
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/20220307150725.6810-4-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Crash flow:
+
+ocfs2_fill_super
+ + ocfs2_mount_volume
+ |  + ocfs2_dlm_init //fail & return, osb->journal is NULL.
+ |  + ...
+ |  + ocfs2_check_volume //no chance to init osb->journal
+ |
+ + ...
+ + ocfs2_dismount_volume
+    ocfs2_release_system_inodes
+      ...
+       evict
+        ...
+         ocfs2_clear_inode
+          ocfs2_checkpoint_inode
+           ocfs2_ci_fully_checkpointed
+            time_after(journal->j_trans_id, ci->ci_last_trans)
+             + journal is empty, crash!
+
+For fixing, there are three solutions:
+
+1> Partly revert commit da5e7c87827e8
+
+   For avoiding kernel crash, this make sense for us.  We only
+   concerned whether there has any non-system inode access before dlm
+   init.  The answer is NO.  And all journal replay/recovery handling
+   happen after dlm & journal init done.  So this method is not graceful
+   but workable.
+
+2> Add osb->journal check in free inode routine (eg ocfs2_clear_inode)
+
+   The fix code is special for mounting phase, but it will continue
+   working after mounting stage.  In another word, this method adds
+   useless code in normal inode free flow.
+
+3> Do directly free inode in mounting phase
+
+   This method is brutal/complex and may introduce unsafe code,
+   currently maintainer didn't like.
+
+At last, we chose method <1> and did partly reverted job.  We reverted
+journal init codes, and kept cleanup codes flow.
+
+Link: https://lkml.kernel.org/r/20220424130952.2436-1-heming.zhao@suse.com
+Link: https://lkml.kernel.org/r/20220424130952.2436-2-heming.zhao@suse.com
+Fixes: da5e7c87827e8 ("ocfs2: cleanup journal init and shutdown")
+Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   37 +++++++++++++++----------------------
- 1 file changed, 15 insertions(+), 22 deletions(-)
+ fs/ocfs2/inode.c   |    4 ++--
+ fs/ocfs2/journal.c |   33 +++++++++++++++++++++++----------
+ fs/ocfs2/journal.h |    2 ++
+ fs/ocfs2/super.c   |   15 +++++++++++++++
+ 4 files changed, 42 insertions(+), 12 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-refactor-hotadd_init_pgdat-and-try_online_node
-+++ a/mm/memory_hotplug.c
-@@ -1146,8 +1146,7 @@ failed_addition:
- 	return ret;
- }
+--- a/fs/ocfs2/inode.c~ocfs2-fix-mounting-crash-if-journal-is-not-alloced
++++ a/fs/ocfs2/inode.c
+@@ -125,6 +125,7 @@ struct inode *ocfs2_iget(struct ocfs2_su
+ 	struct inode *inode = NULL;
+ 	struct super_block *sb = osb->sb;
+ 	struct ocfs2_find_inode_args args;
++	journal_t *journal = osb->journal->j_journal;
  
--/* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
--static pg_data_t __ref *hotadd_init_pgdat(int nid)
-+static void hotadd_init_pgdat(int nid)
- {
- 	struct pglist_data *pgdat = NODE_DATA(nid);
- 
-@@ -1167,8 +1166,6 @@ static pg_data_t __ref *hotadd_init_pgda
- 	 * to access not-initialized zonelist, build here.
+ 	trace_ocfs2_iget_begin((unsigned long long)blkno, flags,
+ 			       sysfile_type);
+@@ -171,11 +172,10 @@ struct inode *ocfs2_iget(struct ocfs2_su
+ 	 * part of the transaction - the inode could have been reclaimed and
+ 	 * now it is reread from disk.
  	 */
- 	build_all_zonelists(pgdat);
--
--	return pgdat;
+-	if (osb->journal) {
++	if (journal) {
+ 		transaction_t *transaction;
+ 		tid_t tid;
+ 		struct ocfs2_inode_info *oi = OCFS2_I(inode);
+-		journal_t *journal = osb->journal->j_journal;
+ 
+ 		read_lock(&journal->j_state_lock);
+ 		if (journal->j_running_transaction)
+--- a/fs/ocfs2/journal.c~ocfs2-fix-mounting-crash-if-journal-is-not-alloced
++++ a/fs/ocfs2/journal.c
+@@ -810,22 +810,20 @@ void ocfs2_set_journal_params(struct ocf
+ 	write_unlock(&journal->j_state_lock);
  }
  
- /*
-@@ -1178,31 +1175,27 @@ static pg_data_t __ref *hotadd_init_pgda
-  * called by cpu_up() to online a node without onlined memory.
-  *
-  * Returns:
-- * 1 -> a new node has been allocated
-- * 0 -> the node is already online
-- * -ENOMEM -> the node could not be allocated
-+ * 1 -> The node has been initialized.
-+ * 0 -> Either the node was already online, or we successfully registered a new
-+ *      one.
-+ * -errno -> register_one_node() failed.
-  */
- static int __try_online_node(int nid, bool set_node_online)
+-int ocfs2_journal_init(struct ocfs2_super *osb, int *dirty)
++/*
++ * alloc & initialize skeleton for journal structure.
++ * ocfs2_journal_init() will make fs have journal ability.
++ */
++int ocfs2_journal_alloc(struct ocfs2_super *osb)
  {
--	pg_data_t *pgdat;
--	int ret = 1;
-+	int ret;
+-	int status = -1;
+-	struct inode *inode = NULL; /* the journal inode */
+-	journal_t *j_journal = NULL;
+-	struct ocfs2_journal *journal = NULL;
+-	struct ocfs2_dinode *di = NULL;
+-	struct buffer_head *bh = NULL;
+-	int inode_lock = 0;
++	int status = 0;
++	struct ocfs2_journal *journal;
  
- 	if (node_online(nid))
- 		return 0;
+-	/* initialize our journal structure */
+ 	journal = kzalloc(sizeof(struct ocfs2_journal), GFP_KERNEL);
+ 	if (!journal) {
+ 		mlog(ML_ERROR, "unable to alloc journal\n");
+ 		status = -ENOMEM;
+-		goto done;
++		goto bail;
+ 	}
+ 	osb->journal = journal;
+ 	journal->j_osb = osb;
+@@ -839,6 +837,21 @@ int ocfs2_journal_init(struct ocfs2_supe
+ 	INIT_WORK(&journal->j_recovery_work, ocfs2_complete_recovery);
+ 	journal->j_state = OCFS2_JOURNAL_FREE;
  
--	pgdat = hotadd_init_pgdat(nid);
--	if (!pgdat) {
--		pr_err("Cannot online node %d due to NULL pgdat\n", nid);
--		ret = -ENOMEM;
--		goto out;
--	}
--
--	if (set_node_online) {
--		node_set_online(nid);
--		ret = register_one_node(nid);
--		BUG_ON(ret);
--	}
--out:
-+	hotadd_init_pgdat(nid);
++bail:
++	return status;
++}
 +
-+	if (!set_node_online)
-+		return 1;
++int ocfs2_journal_init(struct ocfs2_super *osb, int *dirty)
++{
++	int status = -1;
++	struct inode *inode = NULL; /* the journal inode */
++	journal_t *j_journal = NULL;
++	struct ocfs2_journal *journal = osb->journal;
++	struct ocfs2_dinode *di = NULL;
++	struct buffer_head *bh = NULL;
++	int inode_lock = 0;
 +
-+	node_set_online(nid);
-+	ret = register_one_node(nid);
-+	BUG_ON(ret);
-+
- 	return ret;
- }
++	BUG_ON(!journal);
+ 	/* already have the inode for our journal */
+ 	inode = ocfs2_get_system_file_inode(osb, JOURNAL_SYSTEM_INODE,
+ 					    osb->slot_num);
+--- a/fs/ocfs2/journal.h~ocfs2-fix-mounting-crash-if-journal-is-not-alloced
++++ a/fs/ocfs2/journal.h
+@@ -154,6 +154,7 @@ int ocfs2_compute_replay_slots(struct oc
+  *  Journal Control:
+  *  Initialize, Load, Shutdown, Wipe a journal.
+  *
++ *  ocfs2_journal_alloc    - Initialize skeleton for journal structure.
+  *  ocfs2_journal_init     - Initialize journal structures in the OSB.
+  *  ocfs2_journal_load     - Load the given journal off disk. Replay it if
+  *                          there's transactions still in there.
+@@ -167,6 +168,7 @@ int ocfs2_compute_replay_slots(struct oc
+  *  ocfs2_start_checkpoint - Kick the commit thread to do a checkpoint.
+  */
+ void   ocfs2_set_journal_params(struct ocfs2_super *osb);
++int    ocfs2_journal_alloc(struct ocfs2_super *osb);
+ int    ocfs2_journal_init(struct ocfs2_super *osb, int *dirty);
+ void   ocfs2_journal_shutdown(struct ocfs2_super *osb);
+ int    ocfs2_journal_wipe(struct ocfs2_journal *journal,
+--- a/fs/ocfs2/super.c~ocfs2-fix-mounting-crash-if-journal-is-not-alloced
++++ a/fs/ocfs2/super.c
+@@ -2195,6 +2195,15 @@ static int ocfs2_initialize_super(struct
  
+ 	get_random_bytes(&osb->s_next_generation, sizeof(u32));
+ 
++	/*
++	 * FIXME
++	 * This should be done in ocfs2_journal_init(), but any inode
++	 * writes back operation will cause the filesystem to crash.
++	 */
++	status = ocfs2_journal_alloc(osb);
++	if (status < 0)
++		goto bail;
++
+ 	INIT_WORK(&osb->dquot_drop_work, ocfs2_drop_dquot_refs);
+ 	init_llist_head(&osb->dquot_drop_list);
+ 
+@@ -2483,6 +2492,12 @@ static void ocfs2_delete_osb(struct ocfs
+ 
+ 	kfree(osb->osb_orphan_wipes);
+ 	kfree(osb->slot_recovery_generations);
++	/* FIXME
++	 * This belongs in journal shutdown, but because we have to
++	 * allocate osb->journal at the middle of ocfs2_initialize_super(),
++	 * we free it here.
++	 */
++	kfree(osb->journal);
+ 	kfree(osb->local_alloc_copy);
+ 	kfree(osb->uuid_str);
+ 	kfree(osb->vol_label);
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
 
+ocfs2-fix-mounting-crash-if-journal-is-not-alloced.patch
+ocfs2-change-return-type-of-ocfs2_resmap_init.patch
+ocfs2-ocfs2_initialize_super-does-cleanup-job-before-return-error.patch
+ocfs2-ocfs2_mount_volume-does-cleanup-job-before-return-error.patch
+ocfs2-rewrite-error-handling-of-ocfs2_fill_super.patch
 
