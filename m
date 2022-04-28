@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E71E0C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Apr 2022 23:21:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BD59C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Apr 2022 23:24:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353253AbiD1XZB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Apr 2022 19:25:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57344 "EHLO
+        id S235485AbiD1X1V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Apr 2022 19:27:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234016AbiD1XZA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2022 19:25:00 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65C86BC870
-        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 16:21:44 -0700 (PDT)
+        with ESMTP id S234016AbiD1X1U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2022 19:27:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B209BC870
+        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 16:24:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id C9C04CE2F77
-        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 23:21:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 148B6C385AD;
-        Thu, 28 Apr 2022 23:21:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 862F7620C6
+        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 23:24:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB021C385AD;
+        Thu, 28 Apr 2022 23:24:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651188101;
-        bh=1sNROCMgP7St0ohWU6vLYklCVx+HcNgMBIVRPwIXpvw=;
+        s=korg; t=1651188243;
+        bh=jn+23m+f4BmD+9DOg9iBwR++adqoVapI+7t2WbgMlKM=;
         h=Date:To:From:Subject:From;
-        b=A8be0sDtc6X6GPoyh9a27n3r3l4JgOPqF0X/gfZQCs2mq+Lsq2aRPTT+m/i73i+O2
-         lV1XfBdKiSgDrbsFL1VGKymuaxgmXN7/31jTC1A2p5gbt+vdBKvaRBc52cExlb5txF
-         fzwjPGQpKJsO6DEjJhUXVaPO/yxDxhNF3MvVGWYE=
-Date:   Thu, 28 Apr 2022 16:21:40 -0700
-To:     mm-commits@vger.kernel.org, ahuang12@lenovo.com,
+        b=AXs5Vc3cTsWaQulD6VTveCdvXyXHzVdfYWdP7tBwAQTu6U7PeLdZ+wKI4UaYMnrji
+         Dys3RTb3zKMA15UDSVi7FzSF5wGr4RCRywRP1FV7ATTgXd6tB2p4atROjnNcxR4Lwj
+         YhPF0rEZF4IC49UfYOxS6k4lydahxJ+dRe6GNCnA=
+Date:   Thu, 28 Apr 2022 16:24:03 -0700
+To:     mm-commits@vger.kernel.org, paul.gortmaker@windriver.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-fix-typos-in-comments.patch added to -mm tree
-Message-Id: <20220428232141.148B6C385AD@smtp.kernel.org>
+Subject: + scripts-bloat-o-meter-filter-out-vermagic-as-it-is-not-relevant.patch added to -mm tree
+Message-Id: <20220428232403.DB021C385AD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: Fix typos in comments
+     Subject: scripts/bloat-o-meter: filter out vermagic as it is not relevant
 has been added to the -mm tree.  Its filename is
-     mm-rmap-fix-typos-in-comments.patch
+     scripts-bloat-o-meter-filter-out-vermagic-as-it-is-not-relevant.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-typos-in-comments.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/scripts-bloat-o-meter-filter-out-vermagic-as-it-is-not-relevant.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-typos-in-comments.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-bloat-o-meter-filter-out-vermagic-as-it-is-not-relevant.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,42 +62,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Adrian Huang <ahuang12@lenovo.com>
-Subject: mm/rmap: Fix typos in comments
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: scripts/bloat-o-meter: filter out vermagic as it is not relevant
 
-Fix spelling/grammar mistakes in comments.
+Seeing it as a false positive increase at the top is just noise:
 
-Link: https://lkml.kernel.org/r/20220428061522.666-1-adrianhuang0701@gmail.com
-Signed-off-by: Adrian Huang <ahuang12@lenovo.com>
+   linux-head$./scripts/bloat-o-meter ../pre/vmlinux ../post/vmlinux
+   add/remove: 0/571 grow/shrink: 1/9 up/down: 20/-64662 (-64642)
+   Function                                     old     new   delta
+   vermagic                                      49      69     +20
+
+Since it really doesn't "grow", it makes sense to filter it out.
+
+Link: https://lkml.kernel.org/r/20220428035824.7934-1-paul.gortmaker@windriver.com
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/bloat-o-meter |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/rmap.c~mm-rmap-fix-typos-in-comments
-+++ a/mm/rmap.c
-@@ -299,7 +299,7 @@ int anon_vma_clone(struct vm_area_struct
- 		 * Reuse existing anon_vma if its degree lower than two,
- 		 * that means it has no vma and only one anon_vma child.
- 		 *
--		 * Do not chose parent anon_vma, otherwise first child
-+		 * Do not choose parent anon_vma, otherwise first child
- 		 * will always reuse it. Root anon_vma is never reused:
- 		 * it has self-parent reference and at least one child.
- 		 */
-@@ -2257,7 +2257,7 @@ static bool folio_make_device_exclusive(
- 
- /**
-  * make_device_exclusive_range() - Mark a range for exclusive use by a device
-- * @mm: mm_struct of assoicated target process
-+ * @mm: mm_struct of associated target process
-  * @start: start of the region to mark for exclusive device access
-  * @end: end address of region
-  * @pages: returns the pages which were successfully marked for exclusive access
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-filter-out-vermagic-as-it-is-not-relevant
++++ a/scripts/bloat-o-meter
+@@ -36,6 +36,7 @@ def getsizes(file, format):
+                 if name.startswith("__se_compat_sys"): continue
+                 if name.startswith("__addressable_"): continue
+                 if name == "linux_banner": continue
++                if name == "vermagic": continue
+                 # statics and some other optimizations adds random .NUMBER
+                 name = re_NUMBER.sub('', name)
+                 sym[name] = sym.get(name, 0) + int(size, 16)
 _
 
-Patches currently in -mm which might be from ahuang12@lenovo.com are
+Patches currently in -mm which might be from paul.gortmaker@windriver.com are
 
-mm-rmap-fix-typos-in-comments.patch
+scripts-bloat-o-meter-filter-out-vermagic-as-it-is-not-relevant.patch
 
