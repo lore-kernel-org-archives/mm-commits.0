@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8A28C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 07:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 131F5C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 07:04:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235497AbiD2HHt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 03:07:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45046 "EHLO
+        id S1354921AbiD2HHz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 03:07:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354920AbiD2HHs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 03:07:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22CEFBE9C4
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 00:04:29 -0700 (PDT)
+        with ESMTP id S1354852AbiD2HHv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 03:07:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66C8DBE9C3
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 00:04:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CF6C3B832F4
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 07:04:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80F85C385A4;
-        Fri, 29 Apr 2022 07:04:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C67161F5B
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 07:04:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F39FAC385A7;
+        Fri, 29 Apr 2022 07:04:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651215866;
-        bh=91oSkxZNvWLSRWg7ZoBgoxDubUUuqnzuszXw7CNol4Q=;
+        s=korg; t=1651215872;
+        bh=MxWP2gk53WOEyPxftN/DlkvKoQYcJF3/irz6wi5DSWk=;
         h=Date:To:From:Subject:From;
-        b=oSjbND/SarkjxFwcAXB849LR4e7Tzin9fUzS/txMOlE742kL+jWlJZofC/hkWe/Ci
-         WYqf0E1vAiP4405l94b401BAdlNFEi/7diiVB//HBrjiiGsGkVRQQH+v98ilWC+mn0
-         w0X50GHZY0VsIRB0QKnSkgwTmh9Tnft3Ap1ZX4e4=
-Date:   Fri, 29 Apr 2022 00:04:25 -0700
+        b=pwGHJ113IIKKQBUM0j+HIulyWULkDtekDljwNkOg6ugPBJHo6BEhdCSeAJ2tQgI96
+         Zek9m8QZbesCYvA1QMpND4qUZNrWm2Fu8RNkx4kSl6md8GNnRoGsLNIqtSqxBOiM9Y
+         mQHDCOFVE4enFQgd6TPGHQfNd4rR0L2Stx8rMDc8=
+Date:   Fri, 29 Apr 2022 00:04:31 -0700
 To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch added to mm-unstable branch
-Message-Id: <20220429070426.80F85C385A4@smtp.kernel.org>
+Subject: + mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch added to mm-unstable branch
+Message-Id: <20220429070431.F39FAC385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/z3fold: throw warning on failure of trylock_page in z3fold_alloc
+     Subject: mm/z3fold: always clear PAGE_CLAIMED under z3fold page lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
+     mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,38 +62,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: throw warning on failure of trylock_page in z3fold_alloc
+Subject: mm/z3fold: always clear PAGE_CLAIMED under z3fold page lock
 
-If trylock_page fails, the page won't be non-lru movable page.  When this
-page is freed via free_z3fold_page, it will trigger bug on PageMovable
-check in __ClearPageMovable.  Throw warning on failure of trylock_page to
-guard against such rare case just as what zsmalloc does.
+Think about the below race window:
 
-Link: https://lkml.kernel.org/r/20220429064051.61552-5-linmiaohe@huawei.com
+CPU1				CPU2
+z3fold_reclaim_page		z3fold_free
+ test_and_set_bit PAGE_CLAIMED
+ failed to reclaim page
+ z3fold_page_lock(zhdr);
+ add back to the lru list;
+ z3fold_page_unlock(zhdr);
+				 get_z3fold_header
+				 page_claimed=test_and_set_bit PAGE_CLAIMED
+
+ clear_bit(PAGE_CLAIMED, &page->private);
+
+				 if (!page_claimed) /* it's false true */
+				  free_handle is not called
+
+free_handle won't be called in this case. So z3fold_buddy_slots will leak.
+Fix it by always clear PAGE_CLAIMED under z3fold page lock.
+
+Link: https://lkml.kernel.org/r/20220429064051.61552-8-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/z3fold.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc
+--- a/mm/z3fold.c~mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock
 +++ a/mm/z3fold.c
-@@ -1122,10 +1122,9 @@ retry:
- 		__SetPageMovable(page, pool->inode->i_mapping);
- 		unlock_page(page);
- 	} else {
--		if (trylock_page(page)) {
--			__SetPageMovable(page, pool->inode->i_mapping);
--			unlock_page(page);
--		}
-+		WARN_ON(!trylock_page(page));
-+		__SetPageMovable(page, pool->inode->i_mapping);
-+		unlock_page(page);
+@@ -1221,8 +1221,8 @@ static void z3fold_free(struct z3fold_po
+ 		return;
  	}
- 	z3fold_page_lock(zhdr);
+ 	if (test_and_set_bit(NEEDS_COMPACTING, &page->private)) {
+-		put_z3fold_header(zhdr);
+ 		clear_bit(PAGE_CLAIMED, &page->private);
++		put_z3fold_header(zhdr);
+ 		return;
+ 	}
+ 	if (zhdr->cpu < 0 || !cpu_online(zhdr->cpu)) {
+@@ -1424,8 +1424,8 @@ next:
+ 			spin_unlock(&pool->lock);
+ 			if (list_empty(&zhdr->buddy))
+ 				add_to_unbuddied(pool, zhdr);
+-			z3fold_page_unlock(zhdr);
+ 			clear_bit(PAGE_CLAIMED, &page->private);
++			z3fold_page_unlock(zhdr);
+ 		}
  
+ 		/* We started off locked to we need to lock the pool back */
+@@ -1577,8 +1577,8 @@ static int z3fold_page_migrate(struct ad
+ 	if (!z3fold_page_trylock(zhdr))
+ 		return -EAGAIN;
+ 	if (zhdr->mapped_count != 0 || zhdr->foreign_handles != 0) {
+-		z3fold_page_unlock(zhdr);
+ 		clear_bit(PAGE_CLAIMED, &page->private);
++		z3fold_page_unlock(zhdr);
+ 		return -EBUSY;
+ 	}
+ 	if (work_pending(&zhdr->work)) {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
