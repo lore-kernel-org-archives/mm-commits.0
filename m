@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78C23C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0BB1C433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 20:10:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1380571AbiD2UOQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1380563AbiD2UOQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 29 Apr 2022 16:14:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54838 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380563AbiD2UOC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 16:14:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A1B815A23
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 13:10:33 -0700 (PDT)
+        with ESMTP id S1380551AbiD2UNr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 16:13:47 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B9D314011
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 13:10:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2718D6168B
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 20:10:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 821DAC385A7;
-        Fri, 29 Apr 2022 20:10:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4EC21B8377B
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 20:10:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02462C385A4;
+        Fri, 29 Apr 2022 20:10:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651263032;
-        bh=feKWRb9o62kgyegBKy1kmsvibq+VoDH8q8VcnBps0Is=;
+        s=korg; t=1651263025;
+        bh=KxnoGtYupBjLfMEuqBZzx5X14GIb2SRjjP/e/xI/dQw=;
         h=Date:To:From:Subject:From;
-        b=mrJD7xHtizG6JqZv/yFWSEpAiGE3jA3u/jsFYNdAgTxKSwod3DnGenKHyROpEV77h
-         mvhf5HVfC4wI2hGths9uiHQpz34yxO8wQP4VJhrQpXdE2NtWkC53rXuaOZ4G3jmmlr
-         0U8n0KOThKvp9kO2A/RpaYjZiM8Yi8kn30kVrrOQ=
-Date:   Fri, 29 Apr 2022 13:10:31 -0700
+        b=poKP6kMKxNv5wCCOrjPWpP2xvgr/A5JMgMXEuxuVBA7gjQT7m+9ertblwK2PeH0uj
+         Enh0uriOSiKuvDVVFIIJ/1Y/HJnka0Z6nwRCwIs1hOqCkJl/af3VbVpRX94lQn6+i5
+         yTz32hy85oozyEmtDVmYfZ0G7bTocpWguoL57Gd0=
+Date:   Fri, 29 Apr 2022 13:10:24 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmscan-convert-the-activate_locked-portion-of-shrink_page_list-to-folios.patch added to mm-unstable branch
-Message-Id: <20220429201032.821DAC385A7@smtp.kernel.org>
+Subject: + vmscan-convert-dirty-page-handling-to-folios.patch added to mm-unstable branch
+Message-Id: <20220429201025.02462C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: convert the activate_locked portion of shrink_page_list to folios
+     Subject: vmscan: convert dirty page handling to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     vmscan-convert-the-activate_locked-portion-of-shrink_page_list-to-folios.patch
+     vmscan-convert-dirty-page-handling-to-folios.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,45 +62,109 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: vmscan: convert the activate_locked portion of shrink_page_list to folios
+Subject: vmscan: convert dirty page handling to folios
 
-This accounts the number of pages activated correctly for large folios.
+Mostly this just eliminates calls to compound_head(), but
+NR_VMSCAN_IMMEDIATE was being incremented by 1 instead of by nr_pages.
 
-Link: https://lkml.kernel.org/r/20220429192329.3034378-13-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220429192329.3034378-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/vmscan.c |   48 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 26 insertions(+), 22 deletions(-)
 
---- a/mm/vmscan.c~vmscan-convert-the-activate_locked-portion-of-shrink_page_list-to-folios
+--- a/mm/vmscan.c~vmscan-convert-dirty-page-handling-to-folios
 +++ a/mm/vmscan.c
-@@ -1946,15 +1946,16 @@ activate_locked_split:
+@@ -1787,28 +1787,31 @@ retry:
+ 			}
  		}
- activate_locked:
- 		/* Not a candidate for swapping, so reclaim swap space. */
--		if (PageSwapCache(page) && (mem_cgroup_swap_full(page) ||
--						PageMlocked(page)))
--			try_to_free_swap(page);
--		VM_BUG_ON_PAGE(PageActive(page), page);
--		if (!PageMlocked(page)) {
--			int type = page_is_file_lru(page);
--			SetPageActive(page);
-+		if (folio_test_swapcache(folio) &&
-+		    (mem_cgroup_swap_full(&folio->page) ||
-+		     folio_test_mlocked(folio)))
-+			try_to_free_swap(&folio->page);
-+		VM_BUG_ON_FOLIO(folio_test_active(folio), folio);
-+		if (!folio_test_mlocked(folio)) {
-+			int type = folio_is_file_lru(folio);
-+			folio_set_active(folio);
- 			stat->nr_activate[type] += nr_pages;
--			count_memcg_page_event(page, PGACTIVATE);
-+			count_memcg_folio_events(folio, PGACTIVATE, nr_pages);
+ 
+-		if (PageDirty(page)) {
++		if (folio_test_dirty(folio)) {
+ 			/*
+-			 * Only kswapd can writeback filesystem pages
++			 * Only kswapd can writeback filesystem folios
+ 			 * to avoid risk of stack overflow. But avoid
+-			 * injecting inefficient single-page IO into
++			 * injecting inefficient single-folio I/O into
+ 			 * flusher writeback as much as possible: only
+-			 * write pages when we've encountered many
+-			 * dirty pages, and when we've already scanned
+-			 * the rest of the LRU for clean pages and see
+-			 * the same dirty pages again (PageReclaim).
++			 * write folios when we've encountered many
++			 * dirty folios, and when we've already scanned
++			 * the rest of the LRU for clean folios and see
++			 * the same dirty folios again (with the reclaim
++			 * flag set).
+ 			 */
+-			if (page_is_file_lru(page) &&
+-			    (!current_is_kswapd() || !PageReclaim(page) ||
++			if (folio_is_file_lru(folio) &&
++			    (!current_is_kswapd() ||
++			     !folio_test_reclaim(folio) ||
+ 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+-				 * Similar in principal to deactivate_page()
+-				 * except we already have the page isolated
++				 * Similar in principle to deactivate_page()
++				 * except we already have the folio isolated
+ 				 * and know it's dirty
+ 				 */
+-				inc_node_page_state(page, NR_VMSCAN_IMMEDIATE);
+-				SetPageReclaim(page);
++				node_stat_mod_folio(folio, NR_VMSCAN_IMMEDIATE,
++						nr_pages);
++				folio_set_reclaim(folio);
+ 
+ 				goto activate_locked;
+ 			}
+@@ -1821,8 +1824,8 @@ retry:
+ 				goto keep_locked;
+ 
+ 			/*
+-			 * Page is dirty. Flush the TLB if a writable entry
+-			 * potentially exists to avoid CPU writes after IO
++			 * Folio is dirty. Flush the TLB if a writable entry
++			 * potentially exists to avoid CPU writes after I/O
+ 			 * starts and then write it out here.
+ 			 */
+ 			try_to_unmap_flush_dirty();
+@@ -1834,23 +1837,24 @@ retry:
+ 			case PAGE_SUCCESS:
+ 				stat->nr_pageout += nr_pages;
+ 
+-				if (PageWriteback(page))
++				if (folio_test_writeback(folio))
+ 					goto keep;
+-				if (PageDirty(page))
++				if (folio_test_dirty(folio))
+ 					goto keep;
+ 
+ 				/*
+ 				 * A synchronous write - probably a ramdisk.  Go
+-				 * ahead and try to reclaim the page.
++				 * ahead and try to reclaim the folio.
+ 				 */
+-				if (!trylock_page(page))
++				if (!folio_trylock(folio))
+ 					goto keep;
+-				if (PageDirty(page) || PageWriteback(page))
++				if (folio_test_dirty(folio) ||
++				    folio_test_writeback(folio))
+ 					goto keep_locked;
+-				mapping = page_mapping(page);
++				mapping = folio_mapping(folio);
+ 				fallthrough;
+ 			case PAGE_CLEAN:
+-				; /* try to free the page below */
++				; /* try to free the folio below */
+ 			}
  		}
- keep_locked:
- 		unlock_page(page);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
