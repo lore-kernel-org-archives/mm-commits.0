@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A9A0C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:25:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5D81C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:26:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379050AbiD2Q3N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 12:29:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43080 "EHLO
+        id S1379057AbiD2Q3R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 12:29:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379052AbiD2Q3M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 12:29:12 -0400
+        with ESMTP id S1379048AbiD2Q3Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 12:29:16 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B825BD4C8C
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:25:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0795D5C654
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:25:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4663BB8369A
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:25:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8FCEC385AE;
-        Fri, 29 Apr 2022 16:25:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B373DB83697
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:25:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6029CC385A4;
+        Fri, 29 Apr 2022 16:25:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651249551;
-        bh=LN+d7lXaEBG4lqoHnTShB/kyxorDZRPOmeSWOMLEvb0=;
+        s=korg; t=1651249553;
+        bh=gpF9KRg/lasvXqVZf/a0WH0ho64UtDK0SGqx/st7ajQ=;
         h=Date:To:From:Subject:From;
-        b=iMuEwS33Xqj0ARqfC/lYxuw2jXZxAs/6eSXwvXAd4jQGDGatS8LcxxxfFs7a34stw
-         4SHtfLZUYoddIZG0yqestoW7+Jp6K1wQ0NOoICaeKqZZ4B4HGoZGQ9YBHnmZH5rwFT
-         /kxvEdXE+A0okWwxxX1ESHAy8vOJkonfTop/NvN0=
-Date:   Fri, 29 Apr 2022 09:25:50 -0700
+        b=ONNOAi8ORz+qFrqHU/5JlyDV/VPnRG7Aj1bHOX5xzJ8ouo/A7kn4kRs0D7jGusipD
+         E+ewlEeuMaW/cxqZW1gn3OQtcUq1e552yUAdTh4MCfX12XO0igBk1m7h3kRUEd//yH
+         qglyX/iWcKRHrQcStpIe0U3MYgdwAVleEnQYHjrI=
+Date:   Fri, 29 Apr 2022 09:25:52 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-add-a-new-callback-for-watermarks-checks.patch added to mm-unstable branch
-Message-Id: <20220429162550.D8FCEC385AE@smtp.kernel.org>
+Subject: + mm-damon-core-finish-kdamond-as-soon-as-any-callback-returns-an-error.patch added to mm-unstable branch
+Message-Id: <20220429162553.6029CC385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: add a new callback for watermarks checks
+     Subject: mm/damon/core: finish kdamond as soon as any callback returns an error
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-add-a-new-callback-for-watermarks-checks.patch
+     mm-damon-core-finish-kdamond-as-soon-as-any-callback-returns-an-error.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,123 +62,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: add a new callback for watermarks checks
+Subject: mm/damon/core: finish kdamond as soon as any callback returns an error
 
-Patch series "mm/damon: Support online tuning".
+When 'after_sampling()' or 'after_aggregation()' DAMON callbacks return an
+error, kdamond continues the remaining loop once.  It makes no much sense
+to run the remaining part while something wrong already happened.  The
+context might be corrupted or having invalid data.  This commit therefore
+makes kdamond skips the remaining works and immediately finish in the
+cases.
 
-Effects of DAMON and DAMON-based Operation Schemes highly depends on the
-configurations.  Wrong configurations could even result in unexpected
-efficiency degradations.  For finding a best configuration, repeating
-incremental configuration changes and results measurements, in other
-words, online tuning, could be helpful.
-
-Nevertheless, DAMON kernel API supports only restrictive online tuning. 
-Worse yet, the sysfs-based DAMON user interface doesn't support online
-tuning at all.  DAMON_RECLAIM also doesn't support online tuning.
-
-This patchset makes the DAMON kernel API, DAMON sysfs interface, and
-DAMON_RECLAIM supports online tuning.
-
-Sequence of patches
--------------------
-
-First two patches enhance DAMON online tuning for kernel API users. 
-Specifically, patch 1 let kernel API users to be able to do DAMON online
-tuning without a restriction, and patch 2 makes error handling easier.
-
-Following seven patches (patches 3-9) refactor code for better readability
-and easier reuse of code fragments that will be useful for online tuning
-support.
-
-Patch 10 introduces DAMON callback based user request handling structure
-for DAMON sysfs interface, and patch 11 enables DAMON online tuning via
-DAMON sysfs interface.  Documentation patch (patch 12) for usage of it
-follows.
-
-Patch 13 enables online tuning of DAMON_RECLAIM and finally patch 14
-documents the DAMON_RECLAIM online tuning usage.
-
-
-This patch (of 14):
-
-For updating input parameters for running DAMON contexts, DAMON kernel API
-users can use the contexts' callbacks, as it is the safe place for context
-internal data accesses.  When the context has DAMON-based operation
-schemes and all schemes are deactivated due to their watermarks, however,
-DAMON does nothing but only watermarks checks.  As a result, no callbacks
-will be called back, and therefore the kernel API users cannot update the
-input parameters including monitoring attributes, DAMON-based operation
-schemes, and watermarks.
-
-To let users easily update such DAMON input parameters in such a case,
-this commit adds a new callback, 'after_wmarks_check()'.  It will be
-called after each watermarks check.  Users can do the online input
-parameters update in the callback even under the schemes deactivated case.
-
-Link: https://lkml.kernel.org/r/20220429160606.127307-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220429160606.127307-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    7 +++++++
- mm/damon/core.c       |    8 +++++++-
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ mm/damon/core.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-add-a-new-callback-for-watermarks-checks
-+++ a/include/linux/damon.h
-@@ -343,6 +343,7 @@ struct damon_operations {
-  * struct damon_callback - Monitoring events notification callbacks.
-  *
-  * @before_start:	Called before starting the monitoring.
-+ * @after_wmarks_check:	Called after each schemes' watermarks check.
-  * @after_sampling:	Called after each sampling.
-  * @after_aggregation:	Called after each aggregation.
-  * @before_terminate:	Called before terminating the monitoring.
-@@ -353,6 +354,11 @@ struct damon_operations {
-  * respectively.  Therefore, those are good places for installing and cleaning
-  * @private.
-  *
-+ * The monitoring thread calls @after_wmarks_check after each DAMON-based
-+ * operation schemes' watermarks check.  If users need to make changes to the
-+ * attributes of the monitoring context while it's deactivated due to the
-+ * watermarks, this is the good place to do.
-+ *
-  * The monitoring thread calls @after_sampling and @after_aggregation for each
-  * of the sampling intervals and aggregation intervals, respectively.
-  * Therefore, users can safely access the monitoring results without additional
-@@ -365,6 +371,7 @@ struct damon_callback {
- 	void *private;
- 
- 	int (*before_start)(struct damon_ctx *context);
-+	int (*after_wmarks_check)(struct damon_ctx *context);
- 	int (*after_sampling)(struct damon_ctx *context);
- 	int (*after_aggregation)(struct damon_ctx *context);
- 	void (*before_terminate)(struct damon_ctx *context);
---- a/mm/damon/core.c~mm-damon-core-add-a-new-callback-for-watermarks-checks
+--- a/mm/damon/core.c~mm-damon-core-finish-kdamond-as-soon-as-any-callback-returns-an-error
 +++ a/mm/damon/core.c
-@@ -1051,6 +1051,10 @@ static int kdamond_wait_activation(struc
- 			return 0;
- 
- 		kdamond_usleep(min_wait_time);
-+
-+		if (ctx->callback.after_wmarks_check &&
-+				ctx->callback.after_wmarks_check(ctx))
-+			break;
- 	}
- 	return -EBUSY;
- }
-@@ -1077,8 +1081,10 @@ static int kdamond_fn(void *data)
- 	sz_limit = damon_region_sz_limit(ctx);
- 
- 	while (!kdamond_need_stop(ctx) && !done) {
--		if (kdamond_wait_activation(ctx))
-+		if (kdamond_wait_activation(ctx)) {
-+			done = true;
- 			continue;
-+		}
- 
+@@ -1089,8 +1089,10 @@ static int kdamond_fn(void *data)
  		if (ctx->ops.prepare_access_checks)
  			ctx->ops.prepare_access_checks(ctx);
+ 		if (ctx->callback.after_sampling &&
+-				ctx->callback.after_sampling(ctx))
++				ctx->callback.after_sampling(ctx)) {
+ 			done = true;
++			continue;
++		}
+ 
+ 		kdamond_usleep(ctx->sample_interval);
+ 
+@@ -1102,8 +1104,10 @@ static int kdamond_fn(void *data)
+ 					max_nr_accesses / 10,
+ 					sz_limit);
+ 			if (ctx->callback.after_aggregation &&
+-					ctx->callback.after_aggregation(ctx))
++					ctx->callback.after_aggregation(ctx)) {
+ 				done = true;
++				continue;
++			}
+ 			kdamond_apply_schemes(ctx);
+ 			kdamond_reset_aggregated(ctx);
+ 			kdamond_split_regions(ctx);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
