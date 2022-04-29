@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B583C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Apr 2022 23:50:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A937BC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 01:26:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234921AbiD1Xxa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Apr 2022 19:53:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43262 "EHLO
+        id S1353953AbiD2B3b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Apr 2022 21:29:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353424AbiD1Xxa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2022 19:53:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50CA3DF14
-        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 16:50:12 -0700 (PDT)
+        with ESMTP id S1353909AbiD2B3b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2022 21:29:31 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5673D30F42
+        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 18:26:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2718FB831C2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 23:50:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2B45C385AD;
-        Thu, 28 Apr 2022 23:50:09 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 88266CE2F98
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 01:26:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B06F4C385AA;
+        Fri, 29 Apr 2022 01:26:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651189809;
-        bh=GL8R0SLAnfAXkVP4nG/4CmH+3+w6tcGt30eprZErtho=;
+        s=korg; t=1651195570;
+        bh=zE5DI8Yvdf87lFsdnon6FZxPgrv96VyW7Re3a10rm8M=;
         h=Date:To:From:Subject:From;
-        b=c7QW/jGqmhEtB4T5g8lGsrc5v5gl7RFduIQHHvyoyOjiZXEhKTfMIHzJeyWyNW54i
-         DuUeGYJVEs5Xhf70QS4AUj1GB577FLymyUBd4ztwWkE1qTmTlG9DsPe4TXXRS+yioW
-         S/mPde3GA2eruJCkimc+ilNCUlRgY5C1MObZu0Oc=
-Date:   Thu, 28 Apr 2022 16:50:09 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        manfred@colorfullife.com, dave@stgolabs.net,
-        prakash.sangappa@oracle.com, akpm@linux-foundation.org
+        b=xhIke37ttg/kWb+L8B+gpYFBXseEEvcvZpPCE/HvKoFqGNYekg8Fhn/taex3P/QtA
+         Me8HYYtcXRIevnTlG3NBsAFn2RHzCcGMiCGDmo1Qi+hXEdfmBbgoWuJnnLsTb5f3wB
+         MHxXHByBHA/Xa3DWQutO0aHGNmBKYCqAeOnaJ0WU=
+Date:   Thu, 28 Apr 2022 18:26:09 -0700
+To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
+        mgorman@techsingularity.net, linmiaohe@huawei.com,
+        hughd@google.com, hch@lst.de, geert+renesas@glider.be,
+        dhowells@redhat.com, neilb@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-update-semtimedop-to-use-hrtimer.patch added to -mm tree
-Message-Id: <20220428235009.D2B45C385AD@smtp.kernel.org>
+Subject: + nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch added to -mm tree
+Message-Id: <20220429012610.B06F4C385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: update semtimedop() to use hrtimer
+     Subject: nfs: rename nfs_direct_IO and use as ->swap_rw
 has been added to the -mm tree.  Its filename is
-     ipc-update-semtimedop-to-use-hrtimer.patch
+     nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ipc-update-semtimedop-to-use-hrtimer.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ipc-update-semtimedop-to-use-hrtimer.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,81 +64,121 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Prakash Sangappa <prakash.sangappa@oracle.com>
-Subject: ipc: update semtimedop() to use hrtimer
+From: NeilBrown <neilb@suse.de>
+Subject: nfs: rename nfs_direct_IO and use as ->swap_rw
 
-semtimedop() should be converted to use hrtimer like it has been done for
-most of the system calls with timeouts.  This system call already takes a
-struct timespec as an argument and can therefore provide finer granularity
-timed wait.
+The nfs_direct_IO() exists to support SWAP IO, but hasn't worked for a
+while.  We now need a ->swap_rw function which behaves slightly
+differently, returning zero for success rather than a byte count.
 
-Link: https://lkml.kernel.org/r/1651187881-2858-1-git-send-email-prakash.sangappa@oracle.com
-Signed-off-by: Prakash Sangappa <prakash.sangappa@oracle.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+So modify nfs_direct_IO accordingly, rename it, and use it as the
+->swap_rw function.
+
+Link: https://lkml.kernel.org/r/165119301493.15698.7491285551903597618.stgit@noble.brown
+Signed-off-by: NeilBrown <neilb@suse.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Geert Uytterhoeven <geert+renesas@glider.be> (on Renesas RSK+RZA1 with 32 MiB of SDRAM)
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ fs/nfs/direct.c        |   23 ++++++++++-------------
+ fs/nfs/file.c          |    5 +----
+ include/linux/nfs_fs.h |    2 +-
+ 3 files changed, 12 insertions(+), 18 deletions(-)
 
---- a/ipc/sem.c~ipc-update-semtimedop-to-use-hrtimer
-+++ a/ipc/sem.c
-@@ -1993,7 +1993,9 @@ long __do_semtimedop(int semid, struct s
- 	int max, locknum;
- 	bool undos = false, alter = false, dupsop = false;
- 	struct sem_queue queue;
--	unsigned long dup = 0, jiffies_left = 0;
-+	unsigned long dup = 0;
-+	ktime_t expires, *exp = NULL;
-+	bool timed_out = false;
+--- a/fs/nfs/direct.c~nfs-rename-nfs_direct_io-and-use-as-swap_rw
++++ a/fs/nfs/direct.c
+@@ -153,28 +153,25 @@ nfs_direct_count_bytes(struct nfs_direct
+ }
  
- 	if (nsops < 1 || semid < 0)
- 		return -EINVAL;
-@@ -2001,12 +2003,11 @@ long __do_semtimedop(int semid, struct s
- 		return -E2BIG;
+ /**
+- * nfs_direct_IO - NFS address space operation for direct I/O
++ * nfs_swap_rw - NFS address space operation for swap I/O
+  * @iocb: target I/O control block
+  * @iter: I/O buffer
+  *
+- * The presence of this routine in the address space ops vector means
+- * the NFS client supports direct I/O. However, for most direct IO, we
+- * shunt off direct read and write requests before the VFS gets them,
+- * so this method is only ever called for swap.
++ * Perform IO to the swap-file.  This is much like direct IO.
+  */
+-ssize_t nfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
++int nfs_swap_rw(struct kiocb *iocb, struct iov_iter *iter)
+ {
+-	struct inode *inode = iocb->ki_filp->f_mapping->host;
+-
+-	/* we only support swap file calling nfs_direct_IO */
+-	if (!IS_SWAPFILE(inode))
+-		return 0;
++	ssize_t ret;
  
- 	if (timeout) {
--		if (timeout->tv_sec < 0 || timeout->tv_nsec < 0 ||
--			timeout->tv_nsec >= 1000000000L) {
--			error = -EINVAL;
--			goto out;
--		}
--		jiffies_left = timespec64_to_jiffies(timeout);
-+		if (!timespec64_valid(timeout))
-+			return -EINVAL;
-+		expires = ktime_add_safe(ktime_get(),
-+				timespec64_to_ktime(*timeout));
-+		exp = &expires;
- 	}
+ 	VM_BUG_ON(iov_iter_count(iter) != PAGE_SIZE);
  
+ 	if (iov_iter_rw(iter) == READ)
+-		return nfs_file_direct_read(iocb, iter, true);
+-	return nfs_file_direct_write(iocb, iter, true);
++		ret = nfs_file_direct_read(iocb, iter, true);
++	else
++		ret = nfs_file_direct_write(iocb, iter, true);
++	if (ret < 0)
++		return ret;
++	return 0;
+ }
  
-@@ -2164,10 +2165,8 @@ long __do_semtimedop(int semid, struct s
- 		sem_unlock(sma, locknum);
- 		rcu_read_unlock();
+ static void nfs_direct_release_pages(struct page **pages, unsigned int npages)
+--- a/fs/nfs/file.c~nfs-rename-nfs_direct_io-and-use-as-swap_rw
++++ a/fs/nfs/file.c
+@@ -488,10 +488,6 @@ static int nfs_swap_activate(struct swap
+ 	struct rpc_clnt *clnt = NFS_CLIENT(inode);
+ 	struct nfs_client *cl = NFS_SERVER(inode)->nfs_client;
  
--		if (timeout)
--			jiffies_left = schedule_timeout(jiffies_left);
--		else
--			schedule();
-+		timed_out = !schedule_hrtimeout_range(exp,
-+				current->timer_slack_ns, HRTIMER_MODE_ABS);
+-	if (!file->f_mapping->a_ops->swap_rw)
+-		/* Cannot support swap */
+-		return -EINVAL;
+-
+ 	spin_lock(&inode->i_lock);
+ 	blocks = inode->i_blocks;
+ 	isize = inode->i_size;
+@@ -549,6 +545,7 @@ const struct address_space_operations nf
+ 	.error_remove_page = generic_error_remove_page,
+ 	.swap_activate = nfs_swap_activate,
+ 	.swap_deactivate = nfs_swap_deactivate,
++	.swap_rw = nfs_swap_rw,
+ };
  
- 		/*
- 		 * fastpath: the semop has completed, either successfully or
-@@ -2208,7 +2207,7 @@ long __do_semtimedop(int semid, struct s
- 		/*
- 		 * If an interrupt occurred we have to clean up the queue.
- 		 */
--		if (timeout && jiffies_left == 0)
-+		if (timed_out)
- 			error = -EAGAIN;
- 	} while (error == -EINTR && !signal_pending(current)); /* spurious */
- 
+ /*
+--- a/include/linux/nfs_fs.h~nfs-rename-nfs_direct_io-and-use-as-swap_rw
++++ a/include/linux/nfs_fs.h
+@@ -507,7 +507,7 @@ static inline const struct cred *nfs_fil
+ /*
+  * linux/fs/nfs/direct.c
+  */
+-extern ssize_t nfs_direct_IO(struct kiocb *, struct iov_iter *);
++int nfs_swap_rw(struct kiocb *iocb, struct iov_iter *iter);
+ ssize_t nfs_file_direct_read(struct kiocb *iocb,
+ 			     struct iov_iter *iter, bool swap);
+ ssize_t nfs_file_direct_write(struct kiocb *iocb,
 _
 
-Patches currently in -mm which might be from prakash.sangappa@oracle.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-ipc-update-semtimedop-to-use-hrtimer.patch
+mm-create-new-mm-swaph-header-file.patch
+mm-drop-swap_dirty_folio.patch
+mm-move-responsibility-for-setting-swp_fs_ops-to-swap_activate.patch
+mm-reclaim-mustnt-enter-fs-for-swp_fs_ops-swap-space.patch
+mm-introduce-swap_rw-and-use-it-for-reads-from-swp_fs_ops-swap-space.patch
+nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch
+mm-perform-async-writes-to-swp_fs_ops-swap-space-using-swap_rw.patch
+doc-update-documentation-for-swap_activate-and-swap_rw.patch
+mm-submit-multipage-reads-for-swp_fs_ops-swap-space.patch
+mm-submit-multipage-write-for-swp_fs_ops-swap-space.patch
+mm-handle-thp-in-swap_page_fs.patch
+vfs-add-fmode_can_odirect-file-flag.patch
+mm-discard-__gfp_atomic.patch
 
