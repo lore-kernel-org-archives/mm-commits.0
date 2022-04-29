@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A937BC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 01:26:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E8BCC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 01:26:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353953AbiD2B3b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Apr 2022 21:29:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41348 "EHLO
+        id S1353955AbiD2B3m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Apr 2022 21:29:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353909AbiD2B3b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2022 21:29:31 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5673D30F42
-        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 18:26:14 -0700 (PDT)
+        with ESMTP id S1353909AbiD2B3m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2022 21:29:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C5F5B6D3D
+        for <mm-commits@vger.kernel.org>; Thu, 28 Apr 2022 18:26:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 88266CE2F98
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 01:26:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B06F4C385AA;
-        Fri, 29 Apr 2022 01:26:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A78A9621FC
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 01:26:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09727C385A9;
+        Fri, 29 Apr 2022 01:26:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651195570;
-        bh=zE5DI8Yvdf87lFsdnon6FZxPgrv96VyW7Re3a10rm8M=;
+        s=korg; t=1651195584;
+        bh=OPxNZd1MxgA5Mvn/hJNXznJl867CxkoB9pBH+NI0xCM=;
         h=Date:To:From:Subject:From;
-        b=xhIke37ttg/kWb+L8B+gpYFBXseEEvcvZpPCE/HvKoFqGNYekg8Fhn/taex3P/QtA
-         Me8HYYtcXRIevnTlG3NBsAFn2RHzCcGMiCGDmo1Qi+hXEdfmBbgoWuJnnLsTb5f3wB
-         MHxXHByBHA/Xa3DWQutO0aHGNmBKYCqAeOnaJ0WU=
-Date:   Thu, 28 Apr 2022 18:26:09 -0700
+        b=zBPkWY/Om8VWWdp16zMTemSg5DH67nVeB2riQHnEMlyd73AfjcE6HErT/OEiy5pJ2
+         k5nDE9/Gc47pX/usPR6z30ct0Nq/1tqZCbGQmh2y4p6rCoRHlKneqUjLYJzyfh31jk
+         ntXwvsLtq+7t16osDhVQdM9GT+mogtEYIVw3uE9E=
+Date:   Thu, 28 Apr 2022 18:26:23 -0700
 To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
         mgorman@techsingularity.net, linmiaohe@huawei.com,
         hughd@google.com, hch@lst.de, geert+renesas@glider.be,
         dhowells@redhat.com, neilb@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch added to -mm tree
-Message-Id: <20220429012610.B06F4C385AA@smtp.kernel.org>
+Subject: + mm-handle-thp-in-swap_page_fs.patch added to -mm tree
+Message-Id: <20220429012624.09727C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nfs: rename nfs_direct_IO and use as ->swap_rw
+     Subject: mm: handle THP in swap_*page_fs()
 has been added to the -mm tree.  Its filename is
-     nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch
+     mm-handle-thp-in-swap_page_fs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-handle-thp-in-swap_page_fs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-handle-thp-in-swap_page_fs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,105 +65,127 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: NeilBrown <neilb@suse.de>
-Subject: nfs: rename nfs_direct_IO and use as ->swap_rw
+Subject: mm: handle THP in swap_*page_fs()
 
-The nfs_direct_IO() exists to support SWAP IO, but hasn't worked for a
-while.  We now need a ->swap_rw function which behaves slightly
-differently, returning zero for success rather than a byte count.
+Pages passed to swap_readpage()/swap_writepage() are not necessarily all
+the same size - there may be transparent-huge-pages involves.
 
-So modify nfs_direct_IO accordingly, rename it, and use it as the
-->swap_rw function.
+The BIO paths of swap_*page() handle this correctly, but the SWP_FS_OPS
+path does not.
 
-Link: https://lkml.kernel.org/r/165119301493.15698.7491285551903597618.stgit@noble.brown
+So we need to use thp_size() to find the size, not just assume PAGE_SIZE,
+and we need to track the total length of the request, not just assume it
+is "page * PAGE_SIZE".
+
+Link: https://lkml.kernel.org/r/165119301488.15698.9457662928942765453.stgit@noble.brown
 Signed-off-by: NeilBrown <neilb@suse.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Geert Uytterhoeven <geert+renesas@glider.be> (on Renesas RSK+RZA1 with 32 MiB of SDRAM)
+Reported-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/direct.c        |   23 ++++++++++-------------
- fs/nfs/file.c          |    5 +----
- include/linux/nfs_fs.h |    2 +-
- 3 files changed, 12 insertions(+), 18 deletions(-)
+ mm/page_io.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
---- a/fs/nfs/direct.c~nfs-rename-nfs_direct_io-and-use-as-swap_rw
-+++ a/fs/nfs/direct.c
-@@ -153,28 +153,25 @@ nfs_direct_count_bytes(struct nfs_direct
- }
- 
- /**
-- * nfs_direct_IO - NFS address space operation for direct I/O
-+ * nfs_swap_rw - NFS address space operation for swap I/O
-  * @iocb: target I/O control block
-  * @iter: I/O buffer
-  *
-- * The presence of this routine in the address space ops vector means
-- * the NFS client supports direct I/O. However, for most direct IO, we
-- * shunt off direct read and write requests before the VFS gets them,
-- * so this method is only ever called for swap.
-+ * Perform IO to the swap-file.  This is much like direct IO.
-  */
--ssize_t nfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
-+int nfs_swap_rw(struct kiocb *iocb, struct iov_iter *iter)
- {
--	struct inode *inode = iocb->ki_filp->f_mapping->host;
--
--	/* we only support swap file calling nfs_direct_IO */
--	if (!IS_SWAPFILE(inode))
--		return 0;
-+	ssize_t ret;
- 
- 	VM_BUG_ON(iov_iter_count(iter) != PAGE_SIZE);
- 
- 	if (iov_iter_rw(iter) == READ)
--		return nfs_file_direct_read(iocb, iter, true);
--	return nfs_file_direct_write(iocb, iter, true);
-+		ret = nfs_file_direct_read(iocb, iter, true);
-+	else
-+		ret = nfs_file_direct_write(iocb, iter, true);
-+	if (ret < 0)
-+		return ret;
-+	return 0;
- }
- 
- static void nfs_direct_release_pages(struct page **pages, unsigned int npages)
---- a/fs/nfs/file.c~nfs-rename-nfs_direct_io-and-use-as-swap_rw
-+++ a/fs/nfs/file.c
-@@ -488,10 +488,6 @@ static int nfs_swap_activate(struct swap
- 	struct rpc_clnt *clnt = NFS_CLIENT(inode);
- 	struct nfs_client *cl = NFS_SERVER(inode)->nfs_client;
- 
--	if (!file->f_mapping->a_ops->swap_rw)
--		/* Cannot support swap */
--		return -EINVAL;
--
- 	spin_lock(&inode->i_lock);
- 	blocks = inode->i_blocks;
- 	isize = inode->i_size;
-@@ -549,6 +545,7 @@ const struct address_space_operations nf
- 	.error_remove_page = generic_error_remove_page,
- 	.swap_activate = nfs_swap_activate,
- 	.swap_deactivate = nfs_swap_deactivate,
-+	.swap_rw = nfs_swap_rw,
+--- a/mm/page_io.c~mm-handle-thp-in-swap_page_fs
++++ a/mm/page_io.c
+@@ -239,6 +239,7 @@ struct swap_iocb {
+ 	struct kiocb		iocb;
+ 	struct bio_vec		bvec[SWAP_CLUSTER_MAX];
+ 	int			pages;
++	int			len;
  };
+ static mempool_t *sio_pool;
  
- /*
---- a/include/linux/nfs_fs.h~nfs-rename-nfs_direct_io-and-use-as-swap_rw
-+++ a/include/linux/nfs_fs.h
-@@ -507,7 +507,7 @@ static inline const struct cred *nfs_fil
- /*
-  * linux/fs/nfs/direct.c
-  */
--extern ssize_t nfs_direct_IO(struct kiocb *, struct iov_iter *);
-+int nfs_swap_rw(struct kiocb *iocb, struct iov_iter *iter);
- ssize_t nfs_file_direct_read(struct kiocb *iocb,
- 			     struct iov_iter *iter, bool swap);
- ssize_t nfs_file_direct_write(struct kiocb *iocb,
+@@ -261,7 +262,7 @@ static void sio_write_complete(struct ki
+ 	struct page *page = sio->bvec[0].bv_page;
+ 	int p;
+ 
+-	if (ret != PAGE_SIZE * sio->pages) {
++	if (ret != sio->len) {
+ 		/*
+ 		 * In the case of swap-over-nfs, this can be a
+ 		 * temporary failure if the system has limited
+@@ -301,7 +302,7 @@ static int swap_writepage_fs(struct page
+ 		sio = *wbc->swap_plug;
+ 	if (sio) {
+ 		if (sio->iocb.ki_filp != swap_file ||
+-		    sio->iocb.ki_pos + sio->pages * PAGE_SIZE != pos) {
++		    sio->iocb.ki_pos + sio->len != pos) {
+ 			swap_write_unplug(sio);
+ 			sio = NULL;
+ 		}
+@@ -312,10 +313,12 @@ static int swap_writepage_fs(struct page
+ 		sio->iocb.ki_complete = sio_write_complete;
+ 		sio->iocb.ki_pos = pos;
+ 		sio->pages = 0;
++		sio->len = 0;
+ 	}
+ 	sio->bvec[sio->pages].bv_page = page;
+-	sio->bvec[sio->pages].bv_len = PAGE_SIZE;
++	sio->bvec[sio->pages].bv_len = thp_size(page);
+ 	sio->bvec[sio->pages].bv_offset = 0;
++	sio->len += thp_size(page);
+ 	sio->pages += 1;
+ 	if (sio->pages == ARRAY_SIZE(sio->bvec) || !wbc->swap_plug) {
+ 		swap_write_unplug(sio);
+@@ -371,8 +374,7 @@ void swap_write_unplug(struct swap_iocb
+ 	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
+ 	int ret;
+ 
+-	iov_iter_bvec(&from, WRITE, sio->bvec, sio->pages,
+-		      PAGE_SIZE * sio->pages);
++	iov_iter_bvec(&from, WRITE, sio->bvec, sio->pages, sio->len);
+ 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
+ 	if (ret != -EIOCBQUEUED)
+ 		sio_write_complete(&sio->iocb, ret);
+@@ -383,7 +385,7 @@ static void sio_read_complete(struct kio
+ 	struct swap_iocb *sio = container_of(iocb, struct swap_iocb, iocb);
+ 	int p;
+ 
+-	if (ret == PAGE_SIZE * sio->pages) {
++	if (ret == sio->len) {
+ 		for (p = 0; p < sio->pages; p++) {
+ 			struct page *page = sio->bvec[p].bv_page;
+ 
+@@ -415,7 +417,7 @@ static void swap_readpage_fs(struct page
+ 		sio = *plug;
+ 	if (sio) {
+ 		if (sio->iocb.ki_filp != sis->swap_file ||
+-		    sio->iocb.ki_pos + sio->pages * PAGE_SIZE != pos) {
++		    sio->iocb.ki_pos + sio->len != pos) {
+ 			swap_read_unplug(sio);
+ 			sio = NULL;
+ 		}
+@@ -426,10 +428,12 @@ static void swap_readpage_fs(struct page
+ 		sio->iocb.ki_pos = pos;
+ 		sio->iocb.ki_complete = sio_read_complete;
+ 		sio->pages = 0;
++		sio->len = 0;
+ 	}
+ 	sio->bvec[sio->pages].bv_page = page;
+-	sio->bvec[sio->pages].bv_len = PAGE_SIZE;
++	sio->bvec[sio->pages].bv_len = thp_size(page);
+ 	sio->bvec[sio->pages].bv_offset = 0;
++	sio->len += thp_size(page);
+ 	sio->pages += 1;
+ 	if (sio->pages == ARRAY_SIZE(sio->bvec) || !plug) {
+ 		swap_read_unplug(sio);
+@@ -521,8 +525,7 @@ void __swap_read_unplug(struct swap_iocb
+ 	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
+ 	int ret;
+ 
+-	iov_iter_bvec(&from, READ, sio->bvec, sio->pages,
+-		      PAGE_SIZE * sio->pages);
++	iov_iter_bvec(&from, READ, sio->bvec, sio->pages, sio->len);
+ 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
+ 	if (ret != -EIOCBQUEUED)
+ 		sio_read_complete(&sio->iocb, ret);
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
