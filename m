@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4D08C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:26:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F92C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:26:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379104AbiD2Q3f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 12:29:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44090 "EHLO
+        id S1379064AbiD2Q3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 12:29:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379075AbiD2Q30 (ORCPT
+        with ESMTP id S1379076AbiD2Q30 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 12:29:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE2CDD95E3
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:26:04 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 258F1D95E7
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:26:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 43BE0B83697
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:26:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D79E1C385B0;
-        Fri, 29 Apr 2022 16:26:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 64D896231F
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:26:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6D44C385AE;
+        Fri, 29 Apr 2022 16:26:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651249561;
-        bh=Y30CsO3rCcvNi5pBNhMWef4hH4zTONejh5hA9OUw3qU=;
+        s=korg; t=1651249563;
+        bh=QcA01Qjbxot//oNsz2kBmNp9Lg/8fGHEiZ02CBYB65c=;
         h=Date:To:From:Subject:From;
-        b=zTBRB3TXEaeGzrtP5FwZO60dEgTWwuiL4jOH2afphRZH+6LGT5pVTp/SfXkUd89VP
-         bLIIyfOW5cP4cBsyedH+f+nivOGaLk17NHMFWDvm4xumwLsudYS7SmX1Hcamna9x1D
-         1PvPNXgTo/blQJ8c/FLSvk7ha+nEx81nyr/o/iLA=
-Date:   Fri, 29 Apr 2022 09:26:01 -0700
+        b=EepzBDFId6FeEfb6/PZpTujKf4fxqOcfNVQtUGmtt0JuFe9V9SaJ5sSG5hQSPHX2z
+         XwAMJvTlnsFrr5EKXziELX0tksuo2BGKefXqcM6I9WpGJSJAQjs3hdX+5Nd6qV7xBM
+         9WD0u9CrPmGyfwCKn1vzzuNAol0umU8i6vnc8M54=
+Date:   Fri, 29 Apr 2022 09:26:03 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-prohibit-multiple-physical-address-space-monitoring-targets.patch added to mm-unstable branch
-Message-Id: <20220429162601.D79E1C385B0@smtp.kernel.org>
+Subject: + mm-damon-sysfs-move-targets-setup-code-to-a-separated-function.patch added to mm-unstable branch
+Message-Id: <20220429162603.B6D44C385AE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs: prohibit multiple physical address space monitoring targets
+     Subject: mm/damon/sysfs: move targets setup code to a separated function
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-prohibit-multiple-physical-address-space-monitoring-targets.patch
+     mm-damon-sysfs-move-targets-setup-code-to-a-separated-function.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,34 +62,85 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: prohibit multiple physical address space monitoring targets
+Subject: mm/damon/sysfs: move targets setup code to a separated function
 
-Having multiple targets for physical address space monitoring makes no
-sense.  This commit prohibits such a ridiculous DAMON context setup my
-making the DAMON context build function to check and return an error for
-the case.
+This commit separates DAMON sysfs interface's monitoring context targets
+setup code to a new function for better readability.
 
-Link: https://lkml.kernel.org/r/20220429160606.127307-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220429160606.127307-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/damon/sysfs.c |   49 +++++++++++++++++++++++++--------------------
+ 1 file changed, 28 insertions(+), 21 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-prohibit-multiple-physical-address-space-monitoring-targets
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-move-targets-setup-code-to-a-separated-function
 +++ a/mm/damon/sysfs.c
-@@ -2124,6 +2124,10 @@ static int damon_sysfs_set_targets(struc
- {
- 	int i, err;
+@@ -2119,6 +2119,31 @@ static int damon_sysfs_set_regions(struc
+ 	return 0;
+ }
  
-+	/* Multiple physical address space monitoring targets makes no sense */
-+	if (ctx->ops.id == DAMON_OPS_PADDR && sysfs_targets->nr > 1)
-+		return -EINVAL;
++static int damon_sysfs_add_target(struct damon_sysfs_target *sys_target,
++		struct damon_ctx *ctx)
++{
++	struct damon_target *t = damon_new_target();
++	int err = -EINVAL;
 +
++	if (!t)
++		return -ENOMEM;
++	if (ctx->ops.id == DAMON_OPS_VADDR ||
++			ctx->ops.id == DAMON_OPS_FVADDR) {
++		t->pid = find_get_pid(sys_target->pid);
++		if (!t->pid)
++			goto destroy_targets_out;
++	}
++	damon_add_target(ctx, t);
++	err = damon_sysfs_set_regions(t, sys_target->regions);
++	if (err)
++		goto destroy_targets_out;
++	return 0;
++
++destroy_targets_out:
++	damon_sysfs_destroy_targets(ctx);
++	return err;
++}
++
+ static int damon_sysfs_set_targets(struct damon_ctx *ctx,
+ 		struct damon_sysfs_targets *sysfs_targets)
+ {
+@@ -2129,28 +2154,10 @@ static int damon_sysfs_set_targets(struc
+ 		return -EINVAL;
+ 
  	for (i = 0; i < sysfs_targets->nr; i++) {
- 		struct damon_sysfs_target *sys_target =
- 			sysfs_targets->targets_arr[i];
+-		struct damon_sysfs_target *sys_target =
+-			sysfs_targets->targets_arr[i];
+-		struct damon_target *t = damon_new_target();
+-
+-		if (!t) {
+-			damon_sysfs_destroy_targets(ctx);
+-			return -ENOMEM;
+-		}
+-		if (ctx->ops.id == DAMON_OPS_VADDR ||
+-				ctx->ops.id == DAMON_OPS_FVADDR) {
+-			t->pid = find_get_pid(sys_target->pid);
+-			if (!t->pid) {
+-				damon_sysfs_destroy_targets(ctx);
+-				return -EINVAL;
+-			}
+-		}
+-		damon_add_target(ctx, t);
+-		err = damon_sysfs_set_regions(t, sys_target->regions);
+-		if (err) {
+-			damon_sysfs_destroy_targets(ctx);
++		err = damon_sysfs_add_target(
++				sysfs_targets->targets_arr[i], ctx);
++		if (err)
+ 			return err;
+-		}
+ 	}
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
