@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84143C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 20:49:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DE4BC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 20:49:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356882AbiD2Uww (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 16:52:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33814 "EHLO
+        id S1379674AbiD2UxP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 16:53:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347507AbiD2Uwu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 16:52:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91870852D4
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 13:49:31 -0700 (PDT)
+        with ESMTP id S1347507AbiD2UxN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 16:53:13 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 434B3852D4
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 13:49:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 343EC62048
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 20:49:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87586C385A4;
-        Fri, 29 Apr 2022 20:49:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E414BB837B8
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 20:49:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1017C385A4;
+        Fri, 29 Apr 2022 20:49:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651265370;
-        bh=mBh1RDyfuLN6xTZcVmRBy6qhqNyv3Ufo27Wmag9UkRM=;
+        s=korg; t=1651265391;
+        bh=OAoFzg9l3K1OJbSJB69CHRieaTY9ojEdRYyngzc2bJ0=;
         h=Date:To:From:Subject:From;
-        b=TYQyHaZr04bTQKxaX0wu13XtXRssAp9ALVDmZiAVBRUcfrkZcSCXlUT1IdUabMSXF
-         IIbuKbjM84+s57cQPb/D53dHnUq/2mTcATHA2vlOzBIdLJXljx0gedw6QVH1hZexNm
-         ExitRNgDjJFft4ymwONN9MocKoaQjujKZBOvDFE0=
-Date:   Fri, 29 Apr 2022 13:49:29 -0700
-To:     mm-commits@vger.kernel.org, jof@thejof.com,
-        hirofumi@mail.parknet.co.jp, akpm@linux-foundation.org,
+        b=w7lhq7mSz/rRpVWwLMuJUXQ+fx2j9TqXAJkxOpOmSeZzqUAe9OzrJ3BuPlm8ilQk9
+         PmZA2T+b8R4z0h6V2SDBISGleykEnwgh1ukwc0nc9yQ/64x1cWtzZ5W4JjkXhOTje1
+         eT7lHmCHWTJz8I1FJFcE0i2OLoiLUl7gLUx4xF6M=
+Date:   Fri, 29 Apr 2022 13:49:51 -0700
+To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
+        xu.xin16@zte.com.cn, ismael@iodev.co.uk, ebiederm@xmission.com,
+        bsingharora@gmail.com, thomas.orgis@uni-hamburg.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] add-fat-messages-to-printk-index-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20220429204930.87586C385A4@smtp.kernel.org>
+Subject: [folded-merged] taskstats-version-12-with-thread-group-and-exe-info-fix.patch removed from -mm tree
+Message-Id: <20220429204951.A1017C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,70 +43,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: add-fat-messages-to-printk-index-checkpatch-fixes
+     Subject: taskstats-version-12-with-thread-group-and-exe-info-fix
 has been removed from the -mm tree.  Its filename was
-     add-fat-messages-to-printk-index-checkpatch-fixes.patch
+     taskstats-version-12-with-thread-group-and-exe-info-fix.patch
 
-This patch was dropped because it was folded into add-fat-messages-to-printk-index.patch
+This patch was dropped because it was folded into taskstats-version-12-with-thread-group-and-exe-info.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: add-fat-messages-to-printk-index-checkpatch-fixes
+From: "Dr. Thomas Orgis" <thomas.orgis@uni-hamburg.de>
+Subject: taskstats-version-12-with-thread-group-and-exe-info-fix
 
-WARNING: 'changable' may be misspelled - perhaps 'changeable'?
-#7: 
-changable ad-hoc format strings (as they always have; no change of
-^^^^^^^^^
+fix version number in comment
 
-ERROR: space required before the open parenthesis '('
-#41: FILE: fs/fat/fat.h:442:
-+} while(0)
-
-total: 1 errors, 1 warnings, 43 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/add-fat-messages-to-printk-index.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jonathan Lassoff <jof@thejof.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Link: https://lkml.kernel.org/r/20220405003601.7a5f6008@plasteblaster
+Signed-off-by: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
+Reviewed-by: Ismael Luceno <ismael@iodev.co.uk>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fat.h |    2 +-
+ include/uapi/linux/taskstats.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/fat/fat.h~add-fat-messages-to-printk-index-checkpatch-fixes
-+++ a/fs/fat/fat.h
-@@ -439,7 +439,7 @@ void __fat_fs_error(struct super_block *
- do {									\
- 	printk_index_subsys_emit(FAT_PRINTK_PREFIX, level, fmt, ##args);\
- 	_fat_msg(sb, level, fmt, ##args);				\
--} while(0)
-+} while (0)
- __printf(3, 4) __cold
- void _fat_msg(struct super_block *sb, const char *level, const char *fmt, ...);
- #define fat_msg_ratelimit(sb, level, fmt, args...)	\
+--- a/include/uapi/linux/taskstats.h~taskstats-version-12-with-thread-group-and-exe-info-fix
++++ a/include/uapi/linux/taskstats.h
+@@ -49,7 +49,7 @@ struct taskstats {
+ 
+ 	/* The accounting flags of a task as defined in <linux/acct.h>
+ 	 * Defined values are AFORK, ASU, ACOMPAT, ACORE, AXSIG, and AGROUP.
+-	 * (AGROUP since version 11).
++	 * (AGROUP since version 12).
+ 	 */
+ 	__u8	ac_flag;		/* Record flags */
+ 	__u8	ac_nice;		/* task_nice */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from thomas.orgis@uni-hamburg.de are
 
-mm-create-new-mm-swaph-header-file-fix.patch
-mm-check-against-orig_pte-for-finish_fault-fix-checkpatch-fixes.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
-kfence-enable-check-kfence-canary-on-panic-via-boot-param-fix.patch
-lib-kstrtoxc-add-false-true-support-to-kstrtobool-fix.patch
-mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration-fix.patch
-mm-make-minimum-slab-alignment-a-runtime-property-fix.patch
-add-fat-messages-to-printk-index.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+taskstats-version-12-with-thread-group-and-exe-info.patch
 
