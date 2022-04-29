@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16085C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D169C433FE
 	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 20:11:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350046AbiD2UOS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 16:14:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55796 "EHLO
+        id S1380576AbiD2UOT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 16:14:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380579AbiD2UOD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 16:14:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08B7A18E29
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 13:10:41 -0700 (PDT)
+        with ESMTP id S1380559AbiD2UOC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 16:14:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16557140C0
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 13:10:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B90861BFD
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 20:10:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFE2CC385A4;
-        Fri, 29 Apr 2022 20:10:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 48FA160EDC
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 20:10:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DBAAC385A4;
+        Fri, 29 Apr 2022 20:10:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651263040;
-        bh=brTDEOv5UQHgWBKO/CIq9u0vBh5puXWeTi1TVlL65cE=;
+        s=korg; t=1651263028;
+        bh=8/q8jPVjJUGUACO9x0YPLAAGaIB2jnXQeXztHAwSvxo=;
         h=Date:To:From:Subject:From;
-        b=AD1YIC85b+ojetSQ8MWFX5KSKuGf53KcyVcFMFM+EH5h+XiFOJW7nDIbQPXBrQtNu
-         JBDRjdI3S1lPqNpDKf5tBncBnfD86JALxiUcgQv16sK10wWiS5Z+OQeTnxMkLUxD2L
-         URwFvXCoDefzDn1BC86PMqYlMK2JxgwE+REKFcrQ=
-Date:   Fri, 29 Apr 2022 13:10:39 -0700
+        b=Z+QhfYsWGTt9bJWk6Aw8+kCqYhzPouLmxkbtMaR5YkwajbaivliPqa22m+4sNMVjK
+         yTTe0xpvszCYiuliK33bss7Ya5TZZd/w6Wvd2C2rtWMYMU47uqSM25gSumveYviIcH
+         uy5wuxJhhUpHrKhuvl1ncn4Ly4LV2Bza7a51akmQ=
+Date:   Fri, 29 Apr 2022 13:10:28 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-convert-shmem_add_to_page_cache-to-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20220429201039.DFE2CC385A4@smtp.kernel.org>
+Subject: + vmscan-convert-lazy-freeing-to-folios.patch added to mm-unstable branch
+Message-Id: <20220429201028.9DBAAC385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: convert shmem_add_to_page_cache to take a folio
+     Subject: vmscan: convert lazy freeing to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-convert-shmem_add_to_page_cache-to-take-a-folio.patch
+     vmscan-convert-lazy-freeing-to-folios.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,162 +62,83 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/shmem: convert shmem_add_to_page_cache to take a folio
+Subject: vmscan: convert lazy freeing to folios
 
-Shrinks shmem_add_to_page_cache() by 16 bytes.  All the callers grow, but
-this is temporary as they will all be converted to folios soon.
+Remove a hidden call to compound_head(), and account nr_pages instead of a
+single page.  This matches the code in lru_lazyfree_fn() that accounts
+nr_pages to PGLAZYFREE.
 
-Link: https://lkml.kernel.org/r/20220429192329.3034378-17-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220429192329.3034378-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   59 +++++++++++++++++++++++++++------------------------
- 1 file changed, 32 insertions(+), 27 deletions(-)
+ include/linux/memcontrol.h |   14 ++++++++++++++
+ mm/vmscan.c                |   18 +++++++++---------
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-convert-shmem_add_to_page_cache-to-take-a-folio
-+++ a/mm/shmem.c
-@@ -696,36 +696,35 @@ static unsigned long shmem_unused_huge_s
- /*
-  * Like add_to_page_cache_locked, but error if expected item has gone.
-  */
--static int shmem_add_to_page_cache(struct page *page,
-+static int shmem_add_to_page_cache(struct folio *folio,
- 				   struct address_space *mapping,
- 				   pgoff_t index, void *expected, gfp_t gfp,
- 				   struct mm_struct *charge_mm)
- {
--	XA_STATE_ORDER(xas, &mapping->i_pages, index, compound_order(page));
--	unsigned long nr = compound_nr(page);
-+	XA_STATE_ORDER(xas, &mapping->i_pages, index, folio_order(folio));
-+	long nr = folio_nr_pages(folio);
- 	int error;
- 
--	VM_BUG_ON_PAGE(PageTail(page), page);
--	VM_BUG_ON_PAGE(index != round_down(index, nr), page);
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
--	VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
--	VM_BUG_ON(expected && PageTransHuge(page));
--
--	page_ref_add(page, nr);
--	page->mapping = mapping;
--	page->index = index;
-+	VM_BUG_ON_FOLIO(index != round_down(index, nr), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_swapbacked(folio), folio);
-+	VM_BUG_ON(expected && folio_test_large(folio));
-+
-+	folio_ref_add(folio, nr);
-+	folio->mapping = mapping;
-+	folio->index = index;
- 
--	if (!PageSwapCache(page)) {
--		error = mem_cgroup_charge(page_folio(page), charge_mm, gfp);
-+	if (!folio_test_swapcache(folio)) {
-+		error = mem_cgroup_charge(folio, charge_mm, gfp);
- 		if (error) {
--			if (PageTransHuge(page)) {
-+			if (folio_test_large(folio)) {
- 				count_vm_event(THP_FILE_FALLBACK);
- 				count_vm_event(THP_FILE_FALLBACK_CHARGE);
- 			}
- 			goto error;
- 		}
- 	}
--	cgroup_throttle_swaprate(page, gfp);
-+	folio_throttle_swaprate(folio, gfp);
- 
- 	do {
- 		xas_lock_irq(&xas);
-@@ -737,16 +736,16 @@ static int shmem_add_to_page_cache(struc
- 			xas_set_err(&xas, -EEXIST);
- 			goto unlock;
- 		}
--		xas_store(&xas, page);
-+		xas_store(&xas, folio);
- 		if (xas_error(&xas))
- 			goto unlock;
--		if (PageTransHuge(page)) {
-+		if (folio_test_large(folio)) {
- 			count_vm_event(THP_FILE_ALLOC);
--			__mod_lruvec_page_state(page, NR_SHMEM_THPS, nr);
-+			__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
- 		}
- 		mapping->nrpages += nr;
--		__mod_lruvec_page_state(page, NR_FILE_PAGES, nr);
--		__mod_lruvec_page_state(page, NR_SHMEM, nr);
-+		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
-+		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr);
- unlock:
- 		xas_unlock_irq(&xas);
- 	} while (xas_nomem(&xas, gfp));
-@@ -758,8 +757,8 @@ unlock:
- 
- 	return 0;
- error:
--	page->mapping = NULL;
--	page_ref_sub(page, nr);
-+	folio->mapping = NULL;
-+	folio_ref_sub(folio, nr);
- 	return error;
+--- a/include/linux/memcontrol.h~vmscan-convert-lazy-freeing-to-folios
++++ a/include/linux/memcontrol.h
+@@ -1057,6 +1057,15 @@ static inline void count_memcg_page_even
+ 		count_memcg_events(memcg, idx, 1);
  }
  
-@@ -1691,7 +1690,8 @@ static int shmem_swapin_page(struct inod
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct mm_struct *charge_mm = vma ? vma->vm_mm : NULL;
--	struct page *page;
-+	struct page *page = NULL;
-+	struct folio *folio;
- 	swp_entry_t swap;
- 	int error;
++static inline void count_memcg_folio_events(struct folio *folio,
++		enum vm_event_item idx, unsigned long nr)
++{
++	struct mem_cgroup *memcg = folio_memcg(folio);
++
++	if (memcg)
++		count_memcg_events(memcg, idx, nr);
++}
++
+ static inline void count_memcg_event_mm(struct mm_struct *mm,
+ 					enum vm_event_item idx)
+ {
+@@ -1494,6 +1503,11 @@ static inline void count_memcg_page_even
+ {
+ }
  
-@@ -1741,7 +1741,8 @@ static int shmem_swapin_page(struct inod
- 			goto failed;
- 	}
++static inline void count_memcg_folio_events(struct folio *folio,
++		enum vm_event_item idx, unsigned long nr)
++{
++}
++
+ static inline
+ void count_memcg_event_mm(struct mm_struct *mm, enum vm_event_item idx)
+ {
+--- a/mm/vmscan.c~vmscan-convert-lazy-freeing-to-folios
++++ a/mm/vmscan.c
+@@ -1902,20 +1902,20 @@ retry:
+ 			}
+ 		}
  
--	error = shmem_add_to_page_cache(page, mapping, index,
-+	folio = page_folio(page);
-+	error = shmem_add_to_page_cache(folio, mapping, index,
- 					swp_to_radix_entry(swap), gfp,
- 					charge_mm);
- 	if (error)
-@@ -1792,6 +1793,7 @@ static int shmem_getpage_gfp(struct inod
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo;
- 	struct mm_struct *charge_mm;
-+	struct folio *folio;
- 	struct page *page;
- 	pgoff_t hindex = index;
- 	gfp_t huge_gfp;
-@@ -1906,7 +1908,8 @@ alloc_nohuge:
- 	if (sgp == SGP_WRITE)
- 		__SetPageReferenced(page);
- 
--	error = shmem_add_to_page_cache(page, mapping, hindex,
-+	folio = page_folio(page);
-+	error = shmem_add_to_page_cache(folio, mapping, hindex,
- 					NULL, gfp & GFP_RECLAIM_MASK,
- 					charge_mm);
- 	if (error)
-@@ -2328,6 +2331,7 @@ int shmem_mfill_atomic_pte(struct mm_str
- 	gfp_t gfp = mapping_gfp_mask(mapping);
- 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
- 	void *page_kaddr;
-+	struct folio *folio;
- 	struct page *page;
- 	int ret;
- 	pgoff_t max_off;
-@@ -2386,7 +2390,8 @@ int shmem_mfill_atomic_pte(struct mm_str
- 	if (unlikely(pgoff >= max_off))
- 		goto out_release;
- 
--	ret = shmem_add_to_page_cache(page, mapping, pgoff, NULL,
-+	folio = page_folio(page);
-+	ret = shmem_add_to_page_cache(folio, mapping, pgoff, NULL,
- 				      gfp & GFP_RECLAIM_MASK, dst_mm);
- 	if (ret)
- 		goto out_release;
+-		if (PageAnon(page) && !PageSwapBacked(page)) {
++		if (folio_test_anon(folio) && !folio_test_swapbacked(folio)) {
+ 			/* follow __remove_mapping for reference */
+-			if (!page_ref_freeze(page, 1))
++			if (!folio_ref_freeze(folio, 1))
+ 				goto keep_locked;
+ 			/*
+-			 * The page has only one reference left, which is
++			 * The folio has only one reference left, which is
+ 			 * from the isolation. After the caller puts the
+-			 * page back on lru and drops the reference, the
+-			 * page will be freed anyway. It doesn't matter
+-			 * which lru it goes. So we don't bother checking
+-			 * PageDirty here.
++			 * folio back on the lru and drops the reference, the
++			 * folio will be freed anyway. It doesn't matter
++			 * which lru it goes on. So we don't bother checking
++			 * the dirty flag here.
+ 			 */
+-			count_vm_event(PGLAZYFREED);
+-			count_memcg_page_event(page, PGLAZYFREED);
++			count_vm_events(PGLAZYFREED, nr_pages);
++			count_memcg_folio_events(folio, PGLAZYFREED, nr_pages);
+ 		} else if (!mapping || !__remove_mapping(mapping, folio, true,
+ 							 sc->target_mem_cgroup))
+ 			goto keep_locked;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
