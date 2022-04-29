@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29A59C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 07:04:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FA73C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 07:04:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354844AbiD2HH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 03:07:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44800 "EHLO
+        id S236404AbiD2HHn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 03:07:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236404AbiD2HH1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 03:07:27 -0400
+        with ESMTP id S1354852AbiD2HHm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 03:07:42 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CF22BE9C8
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 00:04:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2FC0BE9C2
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 00:04:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A81B361F5B
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 07:04:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09C66C385A7;
-        Fri, 29 Apr 2022 07:04:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D2A061F5A
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 07:04:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C183BC385A7;
+        Fri, 29 Apr 2022 07:04:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651215849;
-        bh=1xWdXAbsD5ujvngU/BApCkvJYnoNfrk0EUFlOVtQRYo=;
+        s=korg; t=1651215864;
+        bh=0u69y41E6Md06ydLj2mdPePgnM0yhHlMPixxoByrGZc=;
         h=Date:To:From:Subject:From;
-        b=WwUYDDFa8gdhcNFU3cO4UhQcaNuXrvMCGb7ukazOaJDTmivbB9ok3KlfdFursZiVs
-         yMyYKknAgklcw6FH0Q0cmno+Ha6Qh3TY3FqsZCEshaWFHirti6qgXaIaPA33P3G6SO
-         k1o41SrnqffuBlkZbWOZb0OrC5MyFBnzLRN0vBnQ=
-Date:   Fri, 29 Apr 2022 00:04:08 -0700
+        b=ZKxRUqhvSaQrM56L1k0YV91Z9nsqgFY8az2csKtHKvDd8plOzzBZ//k5RSzXEwOVu
+         md5DjzvVolyqofCHgVD1tNE/GJDaZZM03ylzWHPJZaerZaNpEDBFezCJUtASJNPG2s
+         ojKww3Li/XBlLXOaQh4LkDV9g2N0Waij9luX/qLc=
+Date:   Fri, 29 Apr 2022 00:04:24 -0700
 To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-z3fold-fix-sheduling-while-atomic.patch added to mm-unstable branch
-Message-Id: <20220429070409.09C66C385A7@smtp.kernel.org>
+Subject: + mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch added to mm-unstable branch
+Message-Id: <20220429070424.C183BC385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/z3fold: fix sheduling while atomic
+     Subject: mm/z3fold: remove buggy use of stale list for allocation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-z3fold-fix-sheduling-while-atomic.patch
+     mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,42 +62,59 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: fix sheduling while atomic
+Subject: mm/z3fold: remove buggy use of stale list for allocation
 
-Patch series "A few fixup patches for z3fold".
+Currently if z3fold couldn't find an unbuddied page it would first try to
+pull a page off the stale list.  But this approach is problematic.  If
+init z3fold page fails later, the page should be freed via
+free_z3fold_page to clean up the relevant resource instead of using
+__free_page directly.  And if page is successfully reused, it will BUG_ON
+later in __SetPageMovable because it's already non-lru movable page, i.e. 
+PAGE_MAPPING_MOVABLE is already set in page->mapping.  In order to fix all
+of these issues, we can simply remove the buggy use of stale list for
+allocation because can_sleep should always be false and we never really
+hit the reusing code path now.
 
-This series contains a few fixup patches to fix sheduling while atomic,
-fix possible null pointer dereferencing, fix various race conditions and
-so on. More details can be found in the respective changelogs.
-
-
-This patch (of 9):
-
-z3fold's page_lock is always held when calling alloc_slots.  So gfp should
-be GFP_ATOMIC to avoid "scheduling while atomic" bug.
-
-Link: https://lkml.kernel.org/r/20220429064051.61552-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220429064051.61552-2-linmiaohe@huawei.com
-Fixes: fc5488651c7d ("z3fold: simplify freeing slots")
+Link: https://lkml.kernel.org/r/20220429064051.61552-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/z3fold.c |   23 +----------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-fix-sheduling-while-atomic
+--- a/mm/z3fold.c~mm-z3fold-remove-buggy-use-of-stale-list-for-allocation
 +++ a/mm/z3fold.c
-@@ -941,8 +941,7 @@ lookup:
+@@ -1102,28 +1102,7 @@ retry:
+ 		bud = FIRST;
  	}
  
- 	if (zhdr && !zhdr->slots)
--		zhdr->slots = alloc_slots(pool,
--					can_sleep ? GFP_NOIO : GFP_ATOMIC);
-+		zhdr->slots = alloc_slots(pool, GFP_ATOMIC);
- 	return zhdr;
- }
+-	page = NULL;
+-	if (can_sleep) {
+-		spin_lock(&pool->stale_lock);
+-		zhdr = list_first_entry_or_null(&pool->stale,
+-						struct z3fold_header, buddy);
+-		/*
+-		 * Before allocating a page, let's see if we can take one from
+-		 * the stale pages list. cancel_work_sync() can sleep so we
+-		 * limit this case to the contexts where we can sleep
+-		 */
+-		if (zhdr) {
+-			list_del(&zhdr->buddy);
+-			spin_unlock(&pool->stale_lock);
+-			cancel_work_sync(&zhdr->work);
+-			page = virt_to_page(zhdr);
+-		} else {
+-			spin_unlock(&pool->stale_lock);
+-		}
+-	}
+-	if (!page)
+-		page = alloc_page(gfp);
+-
++	page = alloc_page(gfp);
+ 	if (!page)
+ 		return -ENOMEM;
  
 _
 
