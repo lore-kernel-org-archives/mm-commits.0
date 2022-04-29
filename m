@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C039C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:46:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D549C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:46:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379275AbiD2Qtu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 12:49:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34926 "EHLO
+        id S1379278AbiD2Qt5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 12:49:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379277AbiD2Qtt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 12:49:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EF14D557D
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:46:30 -0700 (PDT)
+        with ESMTP id S1378833AbiD2Qtu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 12:49:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3462D5E91
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:46:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B9F662380
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:46:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEC9BC385AE;
-        Fri, 29 Apr 2022 16:46:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7F48062372
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:46:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D70E4C385A7;
+        Fri, 29 Apr 2022 16:46:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651250789;
-        bh=wBVwVqxMUk2rWVmm/Xuks70q3p3+7ePAP32xFzEKd2E=;
+        s=korg; t=1651250790;
+        bh=vyUYE+dH50DNZxowa0jmO9Nn8Hc9G8bQujRUmBCYSUA=;
         h=Date:To:From:Subject:From;
-        b=ILb1zMXQZaP+jia6XoXfu85I+/ODvIMMgDP+r2fxtu8pEe4atUAk+zgBAh7hXrW/h
-         UnZiZ7ogrj+ilZrjog+K9S9Y9VknMsyGrZOHwHQ7OQHXa7Q9aBcPclP9oQt9Q1VjLu
-         T+lcQPFo0/gGrvWumjNNPX83AmVbh3OMeneHJlf8=
-Date:   Fri, 29 Apr 2022 09:46:28 -0700
+        b=YNJT4WFFlaUXrJ2x0KPAJ4IkzQvpHFJWPILZtv2jh01QHrI+H5Lr4JTDS3foeUDJQ
+         yuJBRIcA50E2opFpu3qkZGbexLLiH1Ci3rZKBS4MgRL3d7tQfO6Q9DejR/PJtsMqbO
+         RW2OG9/XuVfVs+GoxxSWLa6+X8Ljti1+Wsespu0I=
+Date:   Fri, 29 Apr 2022 09:46:30 -0700
 To:     mm-commits@vger.kernel.org, yzaikin@google.com, osalvador@suse.de,
         mike.kravetz@oracle.com, mcgrof@kernel.org, masahiroy@kernel.org,
         keescook@chromium.org, duanxiongchun@bytedance.com,
         david@redhat.com, corbet@lwn.net, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-override-memmap_on_memory-when-hugetlb_free_vmemmap=on.patch added to mm-unstable branch
-Message-Id: <20220429164628.DEC9BC385AE@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-use-kstrtobool-for-hugetlb_vmemmap-param-parsing.patch added to mm-unstable branch
+Message-Id: <20220429164630.D70E4C385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,9 +44,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory_hotplug: override memmap_on_memory when hugetlb_free_vmemmap=on
+     Subject: mm: hugetlb_vmemmap: use kstrtobool for hugetlb_vmemmap param parsing
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-override-memmap_on_memory-when-hugetlb_free_vmemmap=on.patch
+     mm-hugetlb_vmemmap-use-kstrtobool-for-hugetlb_vmemmap-param-parsing.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,27 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memory_hotplug: override memmap_on_memory when hugetlb_free_vmemmap=on
+Subject: mm: hugetlb_vmemmap: use kstrtobool for hugetlb_vmemmap param parsing
 
-When "hugetlb_free_vmemmap=on" and "memory_hotplug.memmap_on_memory" are
-both passed to boot cmdline, the variable of "memmap_on_memory" will be
-set to 1 even if the vmemmap pages will not be allocated from the hotadded
-memory since the former takes precedence over the latter.  In the next
-patch, we want to enable or disable the feature of freeing vmemmap pages
-of HugeTLB via sysctl.  We need a way to know if the feature of
-memory_hotplug.memmap_on_memory is enabled when enabling the feature of
-freeing vmemmap pages since those two features are not compatible,
-however, the variable of "memmap_on_memory" cannot indicate this nowadays.
-Do not set "memmap_on_memory" to 1 when both parameters are passed to
-cmdline, in this case, "memmap_on_memory" could indicate if this feature
-is enabled by the users.
+Use kstrtobool rather than open coding "on" and "off" parsing in
+mm/hugetlb_vmemmap.c, which is more powerful to handle all kinds of
+parameters like 'Yy1Nn0' or [oO][NnFf] for "on" and "off".
 
-Also introduce mhp_memmap_on_memory() helper to move the definition of
-"memmap_on_memory" to the scope of CONFIG_MHP_MEMMAP_ON_MEMORY.  In the
-next patch, mhp_memmap_on_memory() will also be exported to be used in
-hugetlb_vmemmap.c.
-
-Link: https://lkml.kernel.org/r/20220429121816.37541-3-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220429121816.37541-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Iurii Zaikin <yzaikin@google.com>
@@ -99,70 +85,49 @@ Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   32 ++++++++++++++++++++++++++------
- 1 file changed, 26 insertions(+), 6 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    6 +++---
+ mm/hugetlb_vmemmap.c                            |   10 +++++-----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-override-memmap_on_memory-when-hugetlb_free_vmemmap=on
-+++ a/mm/memory_hotplug.c
-@@ -42,14 +42,36 @@
- #include "internal.h"
- #include "shuffle.h"
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb_vmemmap-use-kstrtobool-for-hugetlb_vmemmap-param-parsing
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1664,10 +1664,10 @@
+ 			enabled.
+ 			Allows heavy hugetlb users to free up some more
+ 			memory (7 * PAGE_SIZE for each 2MB hugetlb page).
+-			Format: { on | off (default) }
++			Format: { [oO][Nn]/Y/y/1 | [oO][Ff]/N/n/0 (default) }
  
-+#ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
-+static int memmap_on_memory_set(const char *val, const struct kernel_param *kp)
-+{
-+	if (hugetlb_optimize_vmemmap_enabled())
-+		return 0;
-+	return param_set_bool(val, kp);
-+}
+-			on:  enable the feature
+-			off: disable the feature
++			[oO][Nn]/Y/y/1: enable the feature
++			[oO][Ff]/N/n/0: disable the feature
+ 
+ 			Built with CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON=y,
+ 			the default is on.
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-use-kstrtobool-for-hugetlb_vmemmap-param-parsing
++++ a/mm/hugetlb_vmemmap.c
+@@ -28,15 +28,15 @@ EXPORT_SYMBOL(hugetlb_optimize_vmemmap_k
+ 
+ static int __init hugetlb_vmemmap_early_param(char *buf)
+ {
+-	if (!buf)
++	bool enable;
 +
-+static const struct kernel_param_ops memmap_on_memory_ops = {
-+	.flags	= KERNEL_PARAM_OPS_FL_NOARG,
-+	.set	= memmap_on_memory_set,
-+	.get	= param_get_bool,
-+};
++	if (kstrtobool(buf, &enable))
+ 		return -EINVAL;
  
- /*
-  * memory_hotplug.memmap_on_memory parameter
-  */
- static bool memmap_on_memory __ro_after_init;
--#ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
--module_param(memmap_on_memory, bool, 0444);
-+module_param_cb(memmap_on_memory, &memmap_on_memory_ops, &memmap_on_memory, 0444);
- MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug");
-+
-+static inline bool mhp_memmap_on_memory(void)
-+{
-+	return memmap_on_memory;
-+}
-+#else
-+static inline bool mhp_memmap_on_memory(void)
-+{
-+	return false;
-+}
- #endif
+-	if (!strcmp(buf, "on"))
++	if (enable)
+ 		static_branch_enable(&hugetlb_optimize_vmemmap_key);
+-	else if (!strcmp(buf, "off"))
+-		static_branch_disable(&hugetlb_optimize_vmemmap_key);
+ 	else
+-		return -EINVAL;
++		static_branch_disable(&hugetlb_optimize_vmemmap_key);
  
- enum {
-@@ -1289,9 +1311,7 @@ bool mhp_supports_memmap_on_memory(unsig
- 	 *       altmap as an alternative source of memory, and we do not exactly
- 	 *       populate a single PMD.
- 	 */
--	return memmap_on_memory &&
--	       !hugetlb_optimize_vmemmap_enabled() &&
--	       IS_ENABLED(CONFIG_MHP_MEMMAP_ON_MEMORY) &&
-+	return mhp_memmap_on_memory() &&
- 	       size == memory_block_size_bytes() &&
- 	       IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
- 	       IS_ALIGNED(remaining_size, (pageblock_nr_pages << PAGE_SHIFT));
-@@ -2076,7 +2096,7 @@ static int __ref try_remove_memory(u64 s
- 	 * We only support removing memory added with MHP_MEMMAP_ON_MEMORY in
- 	 * the same granularity it was added - a single memory block.
- 	 */
--	if (memmap_on_memory) {
-+	if (mhp_memmap_on_memory()) {
- 		nr_vmemmap_pages = walk_memory_blocks(start, size, NULL,
- 						      get_nr_vmemmap_pages_cb);
- 		if (nr_vmemmap_pages) {
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
