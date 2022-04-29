@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FA73C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 07:04:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E02E1C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 07:04:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236404AbiD2HHn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 03:07:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44992 "EHLO
+        id S1354866AbiD2HHt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 03:07:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354852AbiD2HHm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 03:07:42 -0400
+        with ESMTP id S1354893AbiD2HHr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 03:07:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2FC0BE9C2
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 00:04:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 667BFBE9C6
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 00:04:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D2A061F5A
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 07:04:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C183BC385A7;
-        Fri, 29 Apr 2022 07:04:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F389761F5A
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 07:04:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D1A0C385A4;
+        Fri, 29 Apr 2022 07:04:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651215864;
-        bh=0u69y41E6Md06ydLj2mdPePgnM0yhHlMPixxoByrGZc=;
+        s=korg; t=1651215868;
+        bh=vEulgyr4GfnleqZtURILRHj82UMz+Lft0OUP90e2k1s=;
         h=Date:To:From:Subject:From;
-        b=ZKxRUqhvSaQrM56L1k0YV91Z9nsqgFY8az2csKtHKvDd8plOzzBZ//k5RSzXEwOVu
-         md5DjzvVolyqofCHgVD1tNE/GJDaZZM03ylzWHPJZaerZaNpEDBFezCJUtASJNPG2s
-         ojKww3Li/XBlLXOaQh4LkDV9g2N0Waij9luX/qLc=
-Date:   Fri, 29 Apr 2022 00:04:24 -0700
+        b=on3pQkJIqLCSqdTz6wRRXqCInJ0HlPKMOFuWj11I83fO01CI8KBKW6dummC9D3F/4
+         HzWXs3lturzEQaBnwiYW4gM20mrNx8VuHeO4e9M0zFKXTzqdxtAvCKdq8HHExGM97g
+         fnxIB6hPy8HLP9xy11bHgw4btVYLxF206zVZahag=
+Date:   Fri, 29 Apr 2022 00:04:27 -0700
 To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch added to mm-unstable branch
-Message-Id: <20220429070424.C183BC385A7@smtp.kernel.org>
+Subject: + revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch added to mm-unstable branch
+Message-Id: <20220429070428.5D1A0C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/z3fold: remove buggy use of stale list for allocation
+     Subject: revert "mm/z3fold.c: allow __GFP_HIGHMEM in z3fold_alloc"
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
+     revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,60 +62,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: remove buggy use of stale list for allocation
+Subject: revert "mm/z3fold.c: allow __GFP_HIGHMEM in z3fold_alloc"
 
-Currently if z3fold couldn't find an unbuddied page it would first try to
-pull a page off the stale list.  But this approach is problematic.  If
-init z3fold page fails later, the page should be freed via
-free_z3fold_page to clean up the relevant resource instead of using
-__free_page directly.  And if page is successfully reused, it will BUG_ON
-later in __SetPageMovable because it's already non-lru movable page, i.e. 
-PAGE_MAPPING_MOVABLE is already set in page->mapping.  In order to fix all
-of these issues, we can simply remove the buggy use of stale list for
-allocation because can_sleep should always be false and we never really
-hit the reusing code path now.
+Revert commit f1549cb5ab2b ("mm/z3fold.c: allow __GFP_HIGHMEM in
+z3fold_alloc").
 
-Link: https://lkml.kernel.org/r/20220429064051.61552-4-linmiaohe@huawei.com
+z3fold can't support GFP_HIGHMEM page now.  page_address is used directly
+at all places.  Moreover, z3fold_header is on per cpu unbuddied list which
+could be access anytime.  So we should rid the support of GFP_HIGHMEM
+allocation for z3fold.
+
+Link: https://lkml.kernel.org/r/20220429064051.61552-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   23 +----------------------
- 1 file changed, 1 insertion(+), 22 deletions(-)
+ mm/z3fold.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-remove-buggy-use-of-stale-list-for-allocation
+--- a/mm/z3fold.c~revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc
 +++ a/mm/z3fold.c
-@@ -1102,28 +1102,7 @@ retry:
- 		bud = FIRST;
- 	}
- 
--	page = NULL;
--	if (can_sleep) {
--		spin_lock(&pool->stale_lock);
--		zhdr = list_first_entry_or_null(&pool->stale,
--						struct z3fold_header, buddy);
--		/*
--		 * Before allocating a page, let's see if we can take one from
--		 * the stale pages list. cancel_work_sync() can sleep so we
--		 * limit this case to the contexts where we can sleep
--		 */
--		if (zhdr) {
--			list_del(&zhdr->buddy);
--			spin_unlock(&pool->stale_lock);
--			cancel_work_sync(&zhdr->work);
--			page = virt_to_page(zhdr);
--		} else {
--			spin_unlock(&pool->stale_lock);
--		}
--	}
--	if (!page)
--		page = alloc_page(gfp);
+@@ -212,10 +212,8 @@ static int size_to_chunks(size_t size)
+ static inline struct z3fold_buddy_slots *alloc_slots(struct z3fold_pool *pool,
+ 							gfp_t gfp)
+ {
+-	struct z3fold_buddy_slots *slots;
 -
-+	page = alloc_page(gfp);
- 	if (!page)
- 		return -ENOMEM;
+-	slots = kmem_cache_zalloc(pool->c_handle,
+-				 (gfp & ~(__GFP_HIGHMEM | __GFP_MOVABLE)));
++	struct z3fold_buddy_slots *slots = kmem_cache_zalloc(pool->c_handle,
++							     gfp);
  
+ 	if (slots) {
+ 		/* It will be freed separately in free_handle(). */
+@@ -1075,7 +1073,7 @@ static int z3fold_alloc(struct z3fold_po
+ 	enum buddy bud;
+ 	bool can_sleep = gfpflags_allow_blocking(gfp);
+ 
+-	if (!size)
++	if (!size || (gfp & __GFP_HIGHMEM))
+ 		return -EINVAL;
+ 
+ 	if (size > PAGE_SIZE)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
