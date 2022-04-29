@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5D81C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:26:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C233FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:26:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379057AbiD2Q3R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Apr 2022 12:29:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43326 "EHLO
+        id S1379060AbiD2Q3S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Apr 2022 12:29:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379048AbiD2Q3Q (ORCPT
+        with ESMTP id S1379058AbiD2Q3Q (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 12:29:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0795D5C654
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:25:56 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D247167D7
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:25:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B373DB83697
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:25:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6029CC385A4;
-        Fri, 29 Apr 2022 16:25:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DDE706231C
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:25:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 420DAC385AE;
+        Fri, 29 Apr 2022 16:25:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651249553;
-        bh=gpF9KRg/lasvXqVZf/a0WH0ho64UtDK0SGqx/st7ajQ=;
+        s=korg; t=1651249557;
+        bh=qpSSn5hoK69rTOa3zFrYtXjrGhqq9CBDaGgqwt55O9U=;
         h=Date:To:From:Subject:From;
-        b=ONNOAi8ORz+qFrqHU/5JlyDV/VPnRG7Aj1bHOX5xzJ8ouo/A7kn4kRs0D7jGusipD
-         E+ewlEeuMaW/cxqZW1gn3OQtcUq1e552yUAdTh4MCfX12XO0igBk1m7h3kRUEd//yH
-         qglyX/iWcKRHrQcStpIe0U3MYgdwAVleEnQYHjrI=
-Date:   Fri, 29 Apr 2022 09:25:52 -0700
+        b=YnmvFmLSldtsKvnPd0xZCe4VWEDsfIqM7P5k8s3NZBPMBkAJbZ5EGaCywT7L9tMEs
+         pjb0fEhZ3kjdY4RZ3gBSavGptZbb0YxdhXxcfeDFlguhFp8d17rKK+HOOB1Z39bfNV
+         VY4DIrXoHZBF98vdXvSiSPbZTy+t/GudrWIs1Pm4=
+Date:   Fri, 29 Apr 2022 09:25:56 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-finish-kdamond-as-soon-as-any-callback-returns-an-error.patch added to mm-unstable branch
-Message-Id: <20220429162553.6029CC385A4@smtp.kernel.org>
+Subject: + mm-damon-vaddr-move-damon_set_regions-to-core.patch added to mm-unstable branch
+Message-Id: <20220429162557.420DAC385AE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: finish kdamond as soon as any callback returns an error
+     Subject: mm/damon/vaddr: move 'damon_set_regions()' to core
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-finish-kdamond-as-soon-as-any-callback-returns-an-error.patch
+     mm-damon-vaddr-move-damon_set_regions-to-core.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,49 +62,196 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: finish kdamond as soon as any callback returns an error
+Subject: mm/damon/vaddr: move 'damon_set_regions()' to core
 
-When 'after_sampling()' or 'after_aggregation()' DAMON callbacks return an
-error, kdamond continues the remaining loop once.  It makes no much sense
-to run the remaining part while something wrong already happened.  The
-context might be corrupted or having invalid data.  This commit therefore
-makes kdamond skips the remaining works and immediately finish in the
-cases.
+This commit moves 'damon_set_regions()' from vaddr to core, as it is aimed
+to be used by not only 'vaddr' but also other parts of DAMON.
 
-Link: https://lkml.kernel.org/r/20220429160606.127307-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220429160606.127307-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/damon.h |    2 +
+ mm/damon/core.c       |   73 ++++++++++++++++++++++++++++++++++++++++
+ mm/damon/vaddr.c      |   73 ----------------------------------------
+ 3 files changed, 75 insertions(+), 73 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-finish-kdamond-as-soon-as-any-callback-returns-an-error
+--- a/include/linux/damon.h~mm-damon-vaddr-move-damon_set_regions-to-core
++++ a/include/linux/damon.h
+@@ -494,6 +494,8 @@ static inline void damon_insert_region(s
+ 
+ void damon_add_region(struct damon_region *r, struct damon_target *t);
+ void damon_destroy_region(struct damon_region *r, struct damon_target *t);
++int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
++		unsigned int nr_ranges);
+ 
+ struct damos *damon_new_scheme(
+ 		unsigned long min_sz_region, unsigned long max_sz_region,
+--- a/mm/damon/core.c~mm-damon-vaddr-move-damon_set_regions-to-core
 +++ a/mm/damon/core.c
-@@ -1089,8 +1089,10 @@ static int kdamond_fn(void *data)
- 		if (ctx->ops.prepare_access_checks)
- 			ctx->ops.prepare_access_checks(ctx);
- 		if (ctx->callback.after_sampling &&
--				ctx->callback.after_sampling(ctx))
-+				ctx->callback.after_sampling(ctx)) {
- 			done = true;
-+			continue;
+@@ -157,6 +157,79 @@ void damon_destroy_region(struct damon_r
+ 	damon_free_region(r);
+ }
+ 
++/*
++ * Check whether a region is intersecting an address range
++ *
++ * Returns true if it is.
++ */
++static bool damon_intersect(struct damon_region *r,
++		struct damon_addr_range *re)
++{
++	return !(r->ar.end <= re->start || re->end <= r->ar.start);
++}
++
++/*
++ * damon_set_regions() - Set regions of a target for given address ranges.
++ * @t:		the given target.
++ * @ranges:	array of new monitoring target ranges.
++ * @nr_ranges:	length of @ranges.
++ *
++ * This function adds new regions to, or modify existing regions of a
++ * monitoring target to fit in specific ranges.
++ *
++ * Return: 0 if success, or negative error code otherwise.
++ */
++int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
++		unsigned int nr_ranges)
++{
++	struct damon_region *r, *next;
++	unsigned int i;
++
++	/* Remove regions which are not in the new ranges */
++	damon_for_each_region_safe(r, next, t) {
++		for (i = 0; i < nr_ranges; i++) {
++			if (damon_intersect(r, &ranges[i]))
++				break;
 +		}
- 
- 		kdamond_usleep(ctx->sample_interval);
- 
-@@ -1102,8 +1104,10 @@ static int kdamond_fn(void *data)
- 					max_nr_accesses / 10,
- 					sz_limit);
- 			if (ctx->callback.after_aggregation &&
--					ctx->callback.after_aggregation(ctx))
-+					ctx->callback.after_aggregation(ctx)) {
- 				done = true;
-+				continue;
++		if (i == nr_ranges)
++			damon_destroy_region(r, t);
++	}
++
++	/* Add new regions or resize existing regions to fit in the ranges */
++	for (i = 0; i < nr_ranges; i++) {
++		struct damon_region *first = NULL, *last, *newr;
++		struct damon_addr_range *range;
++
++		range = &ranges[i];
++		/* Get the first/last regions intersecting with the range */
++		damon_for_each_region(r, t) {
++			if (damon_intersect(r, range)) {
++				if (!first)
++					first = r;
++				last = r;
 +			}
- 			kdamond_apply_schemes(ctx);
- 			kdamond_reset_aggregated(ctx);
- 			kdamond_split_regions(ctx);
++			if (r->ar.start >= range->end)
++				break;
++		}
++		if (!first) {
++			/* no region intersects with this range */
++			newr = damon_new_region(
++					ALIGN_DOWN(range->start,
++						DAMON_MIN_REGION),
++					ALIGN(range->end, DAMON_MIN_REGION));
++			if (!newr)
++				return -ENOMEM;
++			damon_insert_region(newr, damon_prev_region(r), r, t);
++		} else {
++			/* resize intersecting regions to fit in this range */
++			first->ar.start = ALIGN_DOWN(range->start,
++					DAMON_MIN_REGION);
++			last->ar.end = ALIGN(range->end, DAMON_MIN_REGION);
++		}
++	}
++	return 0;
++}
++
+ struct damos *damon_new_scheme(
+ 		unsigned long min_sz_region, unsigned long max_sz_region,
+ 		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-move-damon_set_regions-to-core
++++ a/mm/damon/vaddr.c
+@@ -286,79 +286,6 @@ static void damon_va_init(struct damon_c
+  */
+ 
+ /*
+- * Check whether a region is intersecting an address range
+- *
+- * Returns true if it is.
+- */
+-static bool damon_intersect(struct damon_region *r,
+-		struct damon_addr_range *re)
+-{
+-	return !(r->ar.end <= re->start || re->end <= r->ar.start);
+-}
+-
+-/*
+- * damon_set_regions() - Set regions of a target for given address ranges.
+- * @t:		the given target.
+- * @ranges:	array of new monitoring target ranges.
+- * @nr_ranges:	length of @ranges.
+- *
+- * This function adds new regions to, or modify existing regions of a
+- * monitoring target to fit in specific ranges.
+- *
+- * Return: 0 if success, or negative error code otherwise.
+- */
+-static int damon_set_regions(struct damon_target *t,
+-		struct damon_addr_range *ranges, unsigned int nr_ranges)
+-{
+-	struct damon_region *r, *next;
+-	unsigned int i;
+-
+-	/* Remove regions which are not in the new ranges */
+-	damon_for_each_region_safe(r, next, t) {
+-		for (i = 0; i < nr_ranges; i++) {
+-			if (damon_intersect(r, &ranges[i]))
+-				break;
+-		}
+-		if (i == nr_ranges)
+-			damon_destroy_region(r, t);
+-	}
+-
+-	/* Add new regions or resize existing regions to fit in the ranges */
+-	for (i = 0; i < nr_ranges; i++) {
+-		struct damon_region *first = NULL, *last, *newr;
+-		struct damon_addr_range *range;
+-
+-		range = &ranges[i];
+-		/* Get the first/last regions intersecting with the range */
+-		damon_for_each_region(r, t) {
+-			if (damon_intersect(r, range)) {
+-				if (!first)
+-					first = r;
+-				last = r;
+-			}
+-			if (r->ar.start >= range->end)
+-				break;
+-		}
+-		if (!first) {
+-			/* no region intersects with this range */
+-			newr = damon_new_region(
+-					ALIGN_DOWN(range->start,
+-						DAMON_MIN_REGION),
+-					ALIGN(range->end, DAMON_MIN_REGION));
+-			if (!newr)
+-				return -ENOMEM;
+-			damon_insert_region(newr, damon_prev_region(r), r, t);
+-		} else {
+-			/* resize intersecting regions to fit in this range */
+-			first->ar.start = ALIGN_DOWN(range->start,
+-					DAMON_MIN_REGION);
+-			last->ar.end = ALIGN(range->end, DAMON_MIN_REGION);
+-		}
+-	}
+-	return 0;
+-}
+-
+-/*
+  * Update damon regions for the three big regions of the given target
+  *
+  * t		the given target
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
