@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F92C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:26:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76425C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Apr 2022 16:26:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379064AbiD2Q3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1379068AbiD2Q3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 29 Apr 2022 12:29:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44096 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379076AbiD2Q30 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 12:29:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 258F1D95E7
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:26:05 -0700 (PDT)
+        with ESMTP id S1379066AbiD2Q3e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2022 12:29:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87377D4C4E
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 09:26:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 64D896231F
-        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:26:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6D44C385AE;
-        Fri, 29 Apr 2022 16:26:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CFC962241
+        for <mm-commits@vger.kernel.org>; Fri, 29 Apr 2022 16:26:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74D69C385A7;
+        Fri, 29 Apr 2022 16:26:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651249563;
-        bh=QcA01Qjbxot//oNsz2kBmNp9Lg/8fGHEiZ02CBYB65c=;
+        s=korg; t=1651249567;
+        bh=KS6FcZjo2JDXlhak/1ANOeAJevt/JKeddhmkprzLnoo=;
         h=Date:To:From:Subject:From;
-        b=EepzBDFId6FeEfb6/PZpTujKf4fxqOcfNVQtUGmtt0JuFe9V9SaJ5sSG5hQSPHX2z
-         XwAMJvTlnsFrr5EKXziELX0tksuo2BGKefXqcM6I9WpGJSJAQjs3hdX+5Nd6qV7xBM
-         9WD0u9CrPmGyfwCKn1vzzuNAol0umU8i6vnc8M54=
-Date:   Fri, 29 Apr 2022 09:26:03 -0700
+        b=vUPjVFgu7m7fLoF0m9HR86KUUzTkqmbQMZg9A8bEeIlY8Kjs1Hoa2g/Zu+j4jkr/J
+         vZ4AO/Iruop/Sh21r9qDTb2SRVI9n3u3RMKh/01QYRaJOk28zpDObqMXWi7tU1/OtN
+         pt/Blsqy4/ysaLI5YIUchSn7NJYWTZk8JbOiWRMA=
+Date:   Fri, 29 Apr 2022 09:26:06 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-move-targets-setup-code-to-a-separated-function.patch added to mm-unstable branch
-Message-Id: <20220429162603.B6D44C385AE@smtp.kernel.org>
+Subject: + mm-damon-sysfs-use-enum-for-state-input-handling.patch added to mm-unstable branch
+Message-Id: <20220429162607.74D69C385A7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs: move targets setup code to a separated function
+     Subject: mm/damon/sysfs: use enum for 'state' input handling
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-move-targets-setup-code-to-a-separated-function.patch
+     mm-damon-sysfs-use-enum-for-state-input-handling.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,85 +62,127 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: move targets setup code to a separated function
+Subject: mm/damon/sysfs: use enum for 'state' input handling
 
-This commit separates DAMON sysfs interface's monitoring context targets
-setup code to a new function for better readability.
+DAMON sysfs 'state' file handling code is using string literals in both
+'state_show()' and 'state_store()'.  This makes the code error prone and
+inflexible for future extensions.
 
-Link: https://lkml.kernel.org/r/20220429160606.127307-8-sj@kernel.org
+To improve the situation, this commit defines possible input strings and
+'enum' for identifying each input keyword only once, and refactors the
+code to reuse those.
+
+Link: https://lkml.kernel.org/r/20220429160606.127307-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   49 +++++++++++++++++++++++++--------------------
- 1 file changed, 28 insertions(+), 21 deletions(-)
+ mm/damon/sysfs.c |   72 ++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 62 insertions(+), 10 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-move-targets-setup-code-to-a-separated-function
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-use-enum-for-state-input-handling
 +++ a/mm/damon/sysfs.c
-@@ -2119,6 +2119,31 @@ static int damon_sysfs_set_regions(struc
+@@ -2053,6 +2053,32 @@ static bool damon_sysfs_ctx_running(stru
+ 	return running;
+ }
+ 
++/*
++ * enum damon_sysfs_cmd - Commands for a specific kdamond.
++ */
++enum damon_sysfs_cmd {
++	/* @DAMON_SYSFS_CMD_ON: Turn the kdamond on. */
++	DAMON_SYSFS_CMD_ON,
++	/* @DAMON_SYSFS_CMD_OFF: Turn the kdamond off. */
++	DAMON_SYSFS_CMD_OFF,
++	/*
++	 * @DAMON_SYSFS_CMD_UPDATE_SCHEMES_STATS: Update scheme stats sysfs
++	 * files.
++	 */
++	DAMON_SYSFS_CMD_UPDATE_SCHEMES_STATS,
++	/*
++	 * @NR_DAMON_SYSFS_CMDS: Total number of DAMON sysfs commands.
++	 */
++	NR_DAMON_SYSFS_CMDS,
++};
++
++/* Should match with enum damon_sysfs_cmd */
++static const char * const damon_sysfs_cmd_strs[] = {
++	"on",
++	"off",
++	"update_schemes_stats",
++};
++
+ static ssize_t state_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 		char *buf)
+ {
+@@ -2066,7 +2092,9 @@ static ssize_t state_show(struct kobject
+ 	else
+ 		running = damon_sysfs_ctx_running(ctx);
+ 
+-	return sysfs_emit(buf, "%s\n", running ? "on" : "off");
++	return sysfs_emit(buf, "%s\n", running ?
++			damon_sysfs_cmd_strs[DAMON_SYSFS_CMD_ON] :
++			damon_sysfs_cmd_strs[DAMON_SYSFS_CMD_OFF]);
+ }
+ 
+ static int damon_sysfs_set_attrs(struct damon_ctx *ctx,
+@@ -2324,23 +2352,47 @@ static int damon_sysfs_update_schemes_st
  	return 0;
  }
  
-+static int damon_sysfs_add_target(struct damon_sysfs_target *sys_target,
-+		struct damon_ctx *ctx)
++/*
++ * damon_sysfs_handle_cmd() - Handle a command for a specific kdamond.
++ * @cmd:	The command to handle.
++ * @kdamond:	The kobject wrapper for the associated kdamond.
++ *
++ * This function handles a DAMON sysfs command for a kdamond.
++ *
++ * Return: 0 on success, negative error code otherwise.
++ */
++static int damon_sysfs_handle_cmd(enum damon_sysfs_cmd cmd,
++		struct damon_sysfs_kdamond *kdamond)
 +{
-+	struct damon_target *t = damon_new_target();
-+	int err = -EINVAL;
-+
-+	if (!t)
-+		return -ENOMEM;
-+	if (ctx->ops.id == DAMON_OPS_VADDR ||
-+			ctx->ops.id == DAMON_OPS_FVADDR) {
-+		t->pid = find_get_pid(sys_target->pid);
-+		if (!t->pid)
-+			goto destroy_targets_out;
++	switch (cmd) {
++	case DAMON_SYSFS_CMD_ON:
++		return damon_sysfs_turn_damon_on(kdamond);
++	case DAMON_SYSFS_CMD_OFF:
++		return damon_sysfs_turn_damon_off(kdamond);
++	case DAMON_SYSFS_CMD_UPDATE_SCHEMES_STATS:
++		return damon_sysfs_update_schemes_stats(kdamond);
++	default:
++		break;
 +	}
-+	damon_add_target(ctx, t);
-+	err = damon_sysfs_set_regions(t, sys_target->regions);
-+	if (err)
-+		goto destroy_targets_out;
-+	return 0;
-+
-+destroy_targets_out:
-+	damon_sysfs_destroy_targets(ctx);
-+	return err;
++	return -EINVAL;
 +}
 +
- static int damon_sysfs_set_targets(struct damon_ctx *ctx,
- 		struct damon_sysfs_targets *sysfs_targets)
+ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 		const char *buf, size_t count)
  {
-@@ -2129,28 +2154,10 @@ static int damon_sysfs_set_targets(struc
- 		return -EINVAL;
+ 	struct damon_sysfs_kdamond *kdamond = container_of(kobj,
+ 			struct damon_sysfs_kdamond, kobj);
+-	ssize_t ret;
++	enum damon_sysfs_cmd cmd;
++	ssize_t ret = -EINVAL;
  
- 	for (i = 0; i < sysfs_targets->nr; i++) {
--		struct damon_sysfs_target *sys_target =
--			sysfs_targets->targets_arr[i];
--		struct damon_target *t = damon_new_target();
--
--		if (!t) {
--			damon_sysfs_destroy_targets(ctx);
--			return -ENOMEM;
--		}
--		if (ctx->ops.id == DAMON_OPS_VADDR ||
--				ctx->ops.id == DAMON_OPS_FVADDR) {
--			t->pid = find_get_pid(sys_target->pid);
--			if (!t->pid) {
--				damon_sysfs_destroy_targets(ctx);
--				return -EINVAL;
--			}
--		}
--		damon_add_target(ctx, t);
--		err = damon_sysfs_set_regions(t, sys_target->regions);
--		if (err) {
--			damon_sysfs_destroy_targets(ctx);
-+		err = damon_sysfs_add_target(
-+				sysfs_targets->targets_arr[i], ctx);
-+		if (err)
- 			return err;
--		}
- 	}
- 	return 0;
- }
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return -EBUSY;
+-	if (sysfs_streq(buf, "on"))
+-		ret = damon_sysfs_turn_damon_on(kdamond);
+-	else if (sysfs_streq(buf, "off"))
+-		ret = damon_sysfs_turn_damon_off(kdamond);
+-	else if (sysfs_streq(buf, "update_schemes_stats"))
+-		ret = damon_sysfs_update_schemes_stats(kdamond);
+-	else
+-		ret = -EINVAL;
++	for (cmd = 0; cmd < NR_DAMON_SYSFS_CMDS; cmd++) {
++		if (sysfs_streq(buf, damon_sysfs_cmd_strs[cmd])) {
++			ret = damon_sysfs_handle_cmd(cmd, kdamond);
++			break;
++		}
++	}
+ 	mutex_unlock(&damon_sysfs_lock);
+ 	if (!ret)
+ 		ret = count;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
