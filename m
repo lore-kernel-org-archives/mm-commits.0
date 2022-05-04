@@ -2,96 +2,73 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93CF4C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  4 May 2022 14:46:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC2A3C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  4 May 2022 18:56:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234113AbiEDOu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 May 2022 10:50:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36540 "EHLO
+        id S1377419AbiEDS7v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 May 2022 14:59:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233712AbiEDOuX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2022 10:50:23 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC2CC13EBE
-        for <mm-commits@vger.kernel.org>; Wed,  4 May 2022 07:46:47 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S1377402AbiEDS7v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2022 14:59:51 -0400
+Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53DFD23162
+        for <mm-commits@vger.kernel.org>; Wed,  4 May 2022 11:56:12 -0700 (PDT)
+Received: from zn.tnic (p5de8eeb4.dip0.t-ipconnect.de [93.232.238.180])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 970EA210E4;
-        Wed,  4 May 2022 14:46:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1651675606; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=RK7D4WZN/DMM/8qU9WxLp6CVN1WWgcM9OG5OfoCwKJs=;
-        b=VJsjv9Zh0Rhz9M2XD7wlxexVmUT3bfzmZh3LlCNLotQWHxOmnzbT0aQeB4X52RlwJtRiu4
-        wSKZpSHTCttZkeAz8mmJHMFo36P3jletGspet72NFbKtcCnUwX528ATtmZ2DVHgWQ7ZDwj
-        4Aqs4+IMg5s7faAfS+rwCn2mJ8EoJ+E=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1651675606;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=RK7D4WZN/DMM/8qU9WxLp6CVN1WWgcM9OG5OfoCwKJs=;
-        b=jVM4x+CNOLrjyiTMEp7ioScQ0sIdIxID6WdSJSq5iUzGzyKZaXiFrEX/m27/frO+aFBGLJ
-        /7DH/jYuL7ez9CDQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 6BF90131BD;
-        Wed,  4 May 2022 14:46:46 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id iIQkGdaRcmJiHgAAMHmgww
-        (envelope-from <ddiss@suse.de>); Wed, 04 May 2022 14:46:46 +0000
-Date:   Wed, 4 May 2022 16:46:45 +0200
-From:   David Disseldorp <ddiss@suse.de>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, Martin Wilck <mwilck@suse.com>
-Subject: Re: + initramfs-add-initramfs_preserve_mtime-kconfig-option.patch
- added to -mm tree
-Message-ID: <20220504164645.15fd6577@suse.de>
-In-Reply-To: <20220426204411.83DF7C385A0@smtp.kernel.org>
-References: <20220426204411.83DF7C385A0@smtp.kernel.org>
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 7B81B1EC01D2;
+        Wed,  4 May 2022 20:56:06 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1651690566;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=sw+OI0Er0l5/BOulKRGNtQGf2zsYwmnM85FAEE2CZ/w=;
+        b=Xx2aPuPbwQsa5qNARmMrZYUBCVorY/BeGPamcXC7ujloWocabGgP4ZpkJKEQvjFSnXQzpw
+        kcNdqDwsCRmDZIjhKsl4hLiWwcZIwuJ4yavGqGzLxxrlEK/6sV3iQnLLSIIDjo+/8z4qSc
+        sA1DH8FcIz5XksTe6r0K6j5BlEoLlI4=
+Date:   Wed, 4 May 2022 20:56:09 +0200
+From:   Borislav Petkov <bp@alien8.de>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Mark Hemment <markhemm@googlemail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
+        Lukas Czerner <lczerner@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org
+Subject: Re: [patch 02/14] tmpfs: fix regressions from wider use of ZERO_PAGE
+Message-ID: <YnLMSWbz6BNfsBME@zn.tnic>
+References: <Yl7146AZDgfLviVv@zn.tnic>
+ <YmFy8DEqvX4FlnuB@zn.tnic>
+ <CAHk-=wgf2C9nFiC+3UFG4k7XVTQq5aV6fasSYuT_nQeo_Yew6A@mail.gmail.com>
+ <CAHk-=wi69odFRCuYbhVFmaiaj4UcRDv74XeeksjFAdV0wBg2Ow@mail.gmail.com>
+ <YmWm5AXdwgwu57KZ@zn.tnic>
+ <CAHk-=wgFnTbbeR0NAsGGsoBBThXt9Zh5_acN47r4CF0PdgSNeA@mail.gmail.com>
+ <YmiK7Bos+zLAvL0t@zn.tnic>
+ <CAHk-=winO-QozwEEKeZJsT9Cux+JbihocPWhjm3m1RGTQwViDg@mail.gmail.com>
+ <YmkdxaKdc2w/3I7o@zn.tnic>
+ <CAHk-=wg=D9eaDHU5yHpqf_G7zTBcv6yU1kkNzV6KKb5jttNxvA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAHk-=wg=D9eaDHU5yHpqf_G7zTBcv6yU1kkNzV6KKb5jttNxvA@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Andrew,
+Just to update folks here: I haven't forgotten about this - Mel and I
+are running some benchmarks first and staring at results to see whether
+all the hoopla is even worth it.
 
-A couple of minor comments regarding the -mm tree commit message
-reformatting...
+-- 
+Regards/Gruss,
+    Boris.
 
-On Tue, 26 Apr 2022 13:44:10 -0700, Andrew Morton wrote:
-
-...
-> Benchmarks with a one million directory cpio archive extracted 20 times
-> demonstrated: mean extraction time (s) std dev INITRAMFS_PRESERVE_MTIME=y
-> 3.808 0.006 INITRAMFS_PRESERVE_MTIME unset 3.056 0.004
-
-The benchmark table above has been collapsed, making it mostly
-incomprehensible.
-
-> The above extraction times were measured using ftrace (initcall_finish -
-> initcall_start) values for populate_rootfs() with initramfs_async
-> disabled.
-> 
-> [ddiss@suse.de: rebase atop dir_entry.name flexible array member and drop  separate initramfs_mtime.h header]
-> Link: https://lkml.org/lkml/2008/9/3/424
-> Link: https://lkml.kernel.org/r/20220404093429.27570-4-ddiss@suse.de
-> Signed-off-by: David Disseldorp <ddiss@suse.de>
-> Reviewed-by: Martin Wilck <mwilck@suse.com>
-
-The reordering of the tags above is also somewhat confusing - I added
-the [ddiss@suse.de: rebase atop ...] to reflect minor changes that I
-made to the patch *after* Martin had provided his Reviewed-by tag.
-
-Cheers, David
+https://people.kernel.org/tglx/notes-about-netiquette
