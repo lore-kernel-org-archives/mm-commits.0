@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC051C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B561C4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387955AbiEFBgn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 May 2022 21:36:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54600 "EHLO
+        id S1387953AbiEFBgo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 May 2022 21:36:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387953AbiEFBgj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C9386210F
-        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:32:57 -0700 (PDT)
+        with ESMTP id S1387951AbiEFBgk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DE195D5C1
+        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:32:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AD52B62003
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:32:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1023DC385A8;
-        Fri,  6 May 2022 01:32:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 268C76201E
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:32:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79F33C385A4;
+        Fri,  6 May 2022 01:32:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651800776;
-        bh=FTIVFKgkpgTccoimyuVGUQ7pV3jsqxqOIRDkKBr+YRI=;
+        s=korg; t=1651800778;
+        bh=ciOcn+ygy4D3PrR+7cdgAn85ofTxC0LoHPQDlnR2Ai8=;
         h=Date:To:From:Subject:From;
-        b=sjL5u81PhRLtws1ldO5sRcktbDz5KyJ312wxxNdzsYwYRao/vYWheqtwGc6mqTYPj
-         2TyqGG44fLp+o6FXZls9gmJzRg83NVeQDhWw9h1+YN6BtwBex5JuRRq6OCaDSmGW6X
-         Z0/PZofvX07nZFVtiMu+x7/IRlfsBBZ1WeiM/KyI=
-Date:   Thu, 05 May 2022 18:32:55 -0700
+        b=YUVugC1Y8iNR7Op0NuusdvJJXCGqODUj2oqRELyIy/iTFRfqGz8hMfOqcd5/Z5Qms
+         3SKMDE2N8NfDtk+T0D45d50GvLe+hG0x9rDGjULVZ00WS5dwlkSmLlbuuaJWT49b4l
+         rF80qNWxk0WYdpj7NkE1t7AkaJTUNV5sCv5fsXeo=
+Date:   Thu, 05 May 2022 18:32:57 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + swap-convert-add_to_swap-to-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20220506013256.1023DC385A8@smtp.kernel.org>
+Subject: + vmscan-convert-dirty-page-handling-to-folios.patch added to mm-unstable branch
+Message-Id: <20220506013258.79F33C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap: convert add_to_swap() to take a folio
+     Subject: vmscan: convert dirty page handling to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     swap-convert-add_to_swap-to-take-a-folio.patch
+     vmscan-convert-dirty-page-handling-to-folios.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,149 +62,109 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: swap: convert add_to_swap() to take a folio
+Subject: vmscan: convert dirty page handling to folios
 
-The only caller already has a folio available, so this saves a conversion.
-Also convert the return type to boolean.
+Mostly this just eliminates calls to compound_head(), but
+NR_VMSCAN_IMMEDIATE was being incremented by 1 instead of by nr_pages.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.h       |    6 ++---
- mm/swap_state.c |   47 ++++++++++++++++++++++++----------------------
- mm/vmscan.c     |    6 ++---
- 3 files changed, 31 insertions(+), 28 deletions(-)
+ mm/vmscan.c |   48 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 26 insertions(+), 22 deletions(-)
 
---- a/mm/swap.h~swap-convert-add_to_swap-to-take-a-folio
-+++ a/mm/swap.h
-@@ -32,7 +32,7 @@ extern struct address_space *swapper_spa
- 		>> SWAP_ADDRESS_SPACE_SHIFT])
- 
- void show_swap_cache_info(void);
--int add_to_swap(struct page *page);
-+bool add_to_swap(struct folio *folio);
- void *get_shadow_from_swap_cache(swp_entry_t entry);
- int add_to_swap_cache(struct page *page, swp_entry_t entry,
- 		      gfp_t gfp, void **shadowp);
-@@ -119,9 +119,9 @@ struct page *find_get_incore_page(struct
- 	return find_get_page(mapping, index);
- }
- 
--static inline int add_to_swap(struct page *page)
-+static inline bool add_to_swap(struct folio *folio)
- {
--	return 0;
-+	return false;
- }
- 
- static inline void *get_shadow_from_swap_cache(swp_entry_t entry)
---- a/mm/swap_state.c~swap-convert-add_to_swap-to-take-a-folio
-+++ a/mm/swap_state.c
-@@ -176,24 +176,26 @@ void __delete_from_swap_cache(struct pag
- }
- 
- /**
-- * add_to_swap - allocate swap space for a page
-- * @page: page we want to move to swap
-+ * add_to_swap - allocate swap space for a folio
-+ * @folio: folio we want to move to swap
-  *
-- * Allocate swap space for the page and add the page to the
-- * swap cache.  Caller needs to hold the page lock. 
-+ * Allocate swap space for the folio and add the folio to the
-+ * swap cache.
-+ *
-+ * Context: Caller needs to hold the folio lock.
-+ * Return: Whether the folio was added to the swap cache.
-  */
--int add_to_swap(struct page *page)
-+bool add_to_swap(struct folio *folio)
- {
--	struct folio *folio = page_folio(page);
- 	swp_entry_t entry;
- 	int err;
- 
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
--	VM_BUG_ON_PAGE(!PageUptodate(page), page);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_uptodate(folio), folio);
- 
- 	entry = folio_alloc_swap(folio);
- 	if (!entry.val)
--		return 0;
-+		return false;
- 
- 	/*
- 	 * XArray node allocations from PF_MEMALLOC contexts could
-@@ -206,7 +208,7 @@ int add_to_swap(struct page *page)
- 	/*
- 	 * Add it to the swap cache.
- 	 */
--	err = add_to_swap_cache(page, entry,
-+	err = add_to_swap_cache(&folio->page, entry,
- 			__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN, NULL);
- 	if (err)
- 		/*
-@@ -215,22 +217,23 @@ int add_to_swap(struct page *page)
- 		 */
- 		goto fail;
- 	/*
--	 * Normally the page will be dirtied in unmap because its pte should be
--	 * dirty. A special case is MADV_FREE page. The page's pte could have
--	 * dirty bit cleared but the page's SwapBacked bit is still set because
--	 * clearing the dirty bit and SwapBacked bit has no lock protected. For
--	 * such page, unmap will not set dirty bit for it, so page reclaim will
--	 * not write the page out. This can cause data corruption when the page
--	 * is swap in later. Always setting the dirty bit for the page solves
--	 * the problem.
-+	 * Normally the folio will be dirtied in unmap because its
-+	 * pte should be dirty. A special case is MADV_FREE page. The
-+	 * page's pte could have dirty bit cleared but the folio's
-+	 * SwapBacked flag is still set because clearing the dirty bit
-+	 * and SwapBacked flag has no lock protected. For such folio,
-+	 * unmap will not set dirty bit for it, so folio reclaim will
-+	 * not write the folio out. This can cause data corruption when
-+	 * the folio is swapped in later. Always setting the dirty flag
-+	 * for the folio solves the problem.
- 	 */
--	set_page_dirty(page);
-+	folio_mark_dirty(folio);
- 
--	return 1;
-+	return true;
- 
- fail:
--	put_swap_page(page, entry);
--	return 0;
-+	put_swap_page(&folio->page, entry);
-+	return false;
- }
- 
- /*
---- a/mm/vmscan.c~swap-convert-add_to_swap-to-take-a-folio
+--- a/mm/vmscan.c~vmscan-convert-dirty-page-handling-to-folios
 +++ a/mm/vmscan.c
-@@ -1731,8 +1731,8 @@ retry:
- 								page_list))
- 						goto activate_locked;
- 				}
--				if (!add_to_swap(page)) {
--					if (!PageTransHuge(page))
-+				if (!add_to_swap(folio)) {
-+					if (!folio_test_large(folio))
- 						goto activate_locked_split;
- 					/* Fallback to swap normal pages */
- 					if (split_folio_to_list(folio,
-@@ -1741,7 +1741,7 @@ retry:
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 					count_vm_event(THP_SWPOUT_FALLBACK);
- #endif
--					if (!add_to_swap(page))
-+					if (!add_to_swap(folio))
- 						goto activate_locked_split;
- 				}
+@@ -1787,28 +1787,31 @@ retry:
+ 			}
+ 		}
+ 
+-		if (PageDirty(page)) {
++		if (folio_test_dirty(folio)) {
+ 			/*
+-			 * Only kswapd can writeback filesystem pages
++			 * Only kswapd can writeback filesystem folios
+ 			 * to avoid risk of stack overflow. But avoid
+-			 * injecting inefficient single-page IO into
++			 * injecting inefficient single-folio I/O into
+ 			 * flusher writeback as much as possible: only
+-			 * write pages when we've encountered many
+-			 * dirty pages, and when we've already scanned
+-			 * the rest of the LRU for clean pages and see
+-			 * the same dirty pages again (PageReclaim).
++			 * write folios when we've encountered many
++			 * dirty folios, and when we've already scanned
++			 * the rest of the LRU for clean folios and see
++			 * the same dirty folios again (with the reclaim
++			 * flag set).
+ 			 */
+-			if (page_is_file_lru(page) &&
+-			    (!current_is_kswapd() || !PageReclaim(page) ||
++			if (folio_is_file_lru(folio) &&
++			    (!current_is_kswapd() ||
++			     !folio_test_reclaim(folio) ||
+ 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+-				 * Similar in principal to deactivate_page()
+-				 * except we already have the page isolated
++				 * Similar in principle to deactivate_page()
++				 * except we already have the folio isolated
+ 				 * and know it's dirty
+ 				 */
+-				inc_node_page_state(page, NR_VMSCAN_IMMEDIATE);
+-				SetPageReclaim(page);
++				node_stat_mod_folio(folio, NR_VMSCAN_IMMEDIATE,
++						nr_pages);
++				folio_set_reclaim(folio);
+ 
+ 				goto activate_locked;
+ 			}
+@@ -1821,8 +1824,8 @@ retry:
+ 				goto keep_locked;
+ 
+ 			/*
+-			 * Page is dirty. Flush the TLB if a writable entry
+-			 * potentially exists to avoid CPU writes after IO
++			 * Folio is dirty. Flush the TLB if a writable entry
++			 * potentially exists to avoid CPU writes after I/O
+ 			 * starts and then write it out here.
+ 			 */
+ 			try_to_unmap_flush_dirty();
+@@ -1834,23 +1837,24 @@ retry:
+ 			case PAGE_SUCCESS:
+ 				stat->nr_pageout += nr_pages;
+ 
+-				if (PageWriteback(page))
++				if (folio_test_writeback(folio))
+ 					goto keep;
+-				if (PageDirty(page))
++				if (folio_test_dirty(folio))
+ 					goto keep;
+ 
+ 				/*
+ 				 * A synchronous write - probably a ramdisk.  Go
+-				 * ahead and try to reclaim the page.
++				 * ahead and try to reclaim the folio.
+ 				 */
+-				if (!trylock_page(page))
++				if (!folio_trylock(folio))
+ 					goto keep;
+-				if (PageDirty(page) || PageWriteback(page))
++				if (folio_test_dirty(folio) ||
++				    folio_test_writeback(folio))
+ 					goto keep_locked;
+-				mapping = page_mapping(page);
++				mapping = folio_mapping(folio);
+ 				fallthrough;
+ 			case PAGE_CLEAN:
+-				; /* try to free the page below */
++				; /* try to free the folio below */
+ 			}
+ 		}
  
 _
 
