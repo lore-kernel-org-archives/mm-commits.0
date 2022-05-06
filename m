@@ -2,117 +2,186 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A5BC433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  4 May 2022 21:17:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4A10C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 00:47:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230497AbiEDVUj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 May 2022 17:20:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35168 "EHLO
+        id S1387619AbiEFAu4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 May 2022 20:50:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357423AbiEDVUh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2022 17:20:37 -0400
-Received: from mail-lf1-x131.google.com (mail-lf1-x131.google.com [IPv6:2a00:1450:4864:20::131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15C8B4A900
-        for <mm-commits@vger.kernel.org>; Wed,  4 May 2022 14:17:00 -0700 (PDT)
-Received: by mail-lf1-x131.google.com with SMTP id bu29so4503413lfb.0
-        for <mm-commits@vger.kernel.org>; Wed, 04 May 2022 14:16:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=BzzdOhDCt7eGrJ7xSteppF2rocbVTzQejsLnteplBXw=;
-        b=G/uHV4KHjrOdCRN0Bt8mqA4pguX8W1qcHv0gGuAd97wP/QslpB2qDFxa7IfUIT5J3t
-         mUbsems5znzgRkH9P2ZlZb46huiEXWv6fSYf2SgGQ0krbAOm/yiILUWx0tq9SyUOIvIX
-         jZcvCaQ1+6pvBACBzKU8inDQoZxGLDjiJD0uI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=BzzdOhDCt7eGrJ7xSteppF2rocbVTzQejsLnteplBXw=;
-        b=Uwskmu31FqaLE8J6BlFl0pjFDZ7kWNSf7S7pOJQcbSqajRV8/DCvWqfhodh36CJAUg
-         DdauA3xsgqY90P9cxHEEGwRnzW7L+Bwl1ubavTx3CtCV4ZPnh2d9dHji6xY2HPiaf/CE
-         T7qX3OSyH2fTrSujOfu7miFmloBhIjLAZeiiaObjqc+VLwnd/vUM5u54GG2T8XGi38fr
-         nWs45AD42C42ILNO6wUt9VrCwf0XCKgLuR9raWaGgiGJrIuQieEkUIptEHlIGdcExZ21
-         ANUuRlCGq7bZvo3bDRDir71FcVpYIJP/fdphvFGLf/V1V4fWAWIl47jBMQe5tkcYDNW3
-         G9JA==
-X-Gm-Message-State: AOAM531RThW5ZhvercqBp9qgFj8RtVG0ys47eqOHSOgz1spVNk6reTTj
-        yMqgzHDcI5FT6JwMehmplli3V9IGXQH++RGg8q0=
-X-Google-Smtp-Source: ABdhPJwL/lx3519Yq6ydkjN6vCiZ8laiGYLr7liLGIYd1SxVdeUFCjRS0Zs2G8J1ZfuuYLRGLB+7jw==
-X-Received: by 2002:a05:6512:3403:b0:448:5f92:7b0c with SMTP id i3-20020a056512340300b004485f927b0cmr14740437lfr.237.1651699018220;
-        Wed, 04 May 2022 14:16:58 -0700 (PDT)
-Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com. [209.85.208.182])
-        by smtp.gmail.com with ESMTPSA id w24-20020ac24438000000b0047255d21189sm1300174lfl.184.2022.05.04.14.16.57
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 04 May 2022 14:16:58 -0700 (PDT)
-Received: by mail-lj1-f182.google.com with SMTP id m23so3264317ljb.8
-        for <mm-commits@vger.kernel.org>; Wed, 04 May 2022 14:16:57 -0700 (PDT)
-X-Received: by 2002:a05:6512:b12:b0:44a:ba81:f874 with SMTP id
- w18-20020a0565120b1200b0044aba81f874mr15971597lfu.449.1651698608781; Wed, 04
- May 2022 14:10:08 -0700 (PDT)
-MIME-Version: 1.0
-References: <YmWm5AXdwgwu57KZ@zn.tnic> <CAHk-=wgFnTbbeR0NAsGGsoBBThXt9Zh5_acN47r4CF0PdgSNeA@mail.gmail.com>
- <YmiK7Bos+zLAvL0t@zn.tnic> <CAHk-=winO-QozwEEKeZJsT9Cux+JbihocPWhjm3m1RGTQwViDg@mail.gmail.com>
- <YmkdxaKdc2w/3I7o@zn.tnic> <CAHk-=wg=D9eaDHU5yHpqf_G7zTBcv6yU1kkNzV6KKb5jttNxvA@mail.gmail.com>
- <YnLMSWbz6BNfsBME@zn.tnic> <CAHk-=wh_62HBCz1g_6mKP71XOvJAs3JwBz0=jve2mg1DGWPq5g@mail.gmail.com>
- <YnLfl6lupN2nq7+t@zn.tnic> <CAHk-=wiGbrJMim6EWncZUQBzguqy-vtNd+grfNizm5L8Vcmu+w@mail.gmail.com>
- <YnLplKy0Y66SsvQw@zn.tnic>
-In-Reply-To: <YnLplKy0Y66SsvQw@zn.tnic>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 4 May 2022 14:09:52 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjUX5DGNSiBYvPC8fQJGRe5_RWR8NW=gYF4=UpPiwCE8A@mail.gmail.com>
-Message-ID: <CAHk-=wjUX5DGNSiBYvPC8fQJGRe5_RWR8NW=gYF4=UpPiwCE8A@mail.gmail.com>
-Subject: Re: [patch 02/14] tmpfs: fix regressions from wider use of ZERO_PAGE
-To:     Borislav Petkov <bp@alien8.de>
-Cc:     Mark Hemment <markhemm@googlemail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
-        Lukas Czerner <lczerner@redhat.com>,
-        Christoph Hellwig <hch@lst.de>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Mel Gorman <mgorman@suse.de>
-Content-Type: text/plain; charset="UTF-8"
+        with ESMTP id S1387616AbiEFAu4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 20:50:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8014E15A3F
+        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 17:47:14 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id ABD4CB82E11
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 00:47:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EB98C385A8;
+        Fri,  6 May 2022 00:47:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1651798031;
+        bh=/jGIubs5MXaH6XVi7GlK9MwbLBvlqx9yzi06ynuQ//E=;
+        h=Date:To:From:Subject:From;
+        b=g2dv9hFt3qsC3SawALsySXJqDbvNGpYpglImhe5ibAJD7VQwrjxCmw9fJ9t11hNLL
+         J6DRnpe8oDjztu5KNvrjDvuKaZ3BBqnBzSCZAKayPYSvUxzLC2ft068rznX+ej2bNO
+         8be6fl4Rys6ETobNgFNEXxkXv3DmBHTb6RtnjEZ0=
+Date:   Thu, 05 May 2022 17:47:10 -0700
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de, corbet@lwn.net,
+        dmoulding@me.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + init-add-hostname-kernel-parameter.patch added to mm-nonmm-unstable branch
+Message-Id: <20220506004711.4EB98C385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, May 4, 2022 at 2:01 PM Borislav Petkov <bp@alien8.de> wrote:
->
-> I could try to do a perf probe or whatever fancy new thing we do now on
-> clear_user to get some numbers of how many times it gets called during
-> the benchmark run. Or do you wanna know the callers too?
 
-One of the non-performance reasons I like inlined memcpy is actually
-that when you do a regular 'perf record' run, the cost of the memcpy
-gets associated with the call-site.
+The patch titled
+     Subject: init: add "hostname" kernel parameter
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     init-add-hostname-kernel-parameter.patch
 
-Which is universally what I want for those things. I used to love our
-inlined spinlocks for the same reason back when we did them.
+This patch should soon appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Yeah, yeah, you can do it with callchain magic, but then you get it
-all - and I really consider memcpy/memset to be a special case.
-Normally I want the "oh, that leaf function is expensive", but not for
-memcpy and memset (and not for spinlocks, but we'll never go back to
-the old trivial spinlocks)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-I don't tend to particularly care about "how many times has this been
-called" kind of trace profiles. It's the actual expense in CPU cycles
-I tend to care about.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-That said, I cared deeply about those kinds of CPU profiles when I was
-working with Al on the RCU path lookup code and looking for where the
-problem spots were.
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-That was years ago.
+------------------------------------------------------
+From: Dan Moulding <dmoulding@me.com>
+Subject: init: add "hostname" kernel parameter
 
-I haven't really done serious profiling work for a while (which is
-just as well, because it's one of the things that went backwards when
-I switch to the Zen 2 threadripper for my main machine)
+The gethostname system call returns the hostname for the current machine. 
+However, the kernel has no mechanism to initially set the current
+machine's name in such a way as to guarantee that the first userspace
+process to call gethostname will receive a meaningful result.  It relies
+on some unspecified userspace process to first call sethostname before
+gethostname can produce a meaningful name.
 
-                  Linus
+Traditionally the machine's hostname is set from userspace by the init
+system.  The init system, in turn, often relies on a configuration file
+(say, /etc/hostname) to provide the value that it will supply in the call
+to sethostname.  Consequently, the file system containing /etc/hostname
+usually must be available before the hostname will be set.  There may,
+however, be earlier userspace processes that could call gethostname before
+the file system containing /etc/hostname is mounted.  Such a process will
+get some other, likely meaningless, name from gethostname (such as
+"(none)", "localhost", or "darkstar").
+
+A real-world example where this can happen, and lead to undesirable
+results, is with mdadm.  When assembling arrays, mdadm distinguishes
+between "local" arrays and "foreign" arrays.  A local array is one that
+properly belongs to the current machine, and a foreign array is one that
+is (possibly temporarily) attached to the current machine, but properly
+belongs to some other machine.  To determine if an array is local or
+foreign, mdadm may compare the "homehost" recorded on the array with the
+current hostname.  If mdadm is run before the root file system is mounted,
+perhaps because the root file system itself resides on an md-raid array,
+then /etc/hostname isn't yet available and the init system will not yet
+have called sethostname, causing mdadm to incorrectly conclude that all of
+the local arrays are foreign.
+
+Solving this problem *could* be delegated to the init system.  It could be
+left up to the init system (including any init system that starts within
+an initramfs, if one is in use) to ensure that sethostname is called
+before any other userspace process could possibly call gethostname. 
+However, it may not always be obvious which processes could call
+gethostname (for example, udev itself might not call gethostname, but it
+could via udev rules invoke processes that do).  Additionally, the init
+system has to ensure that the hostname configuration value is stored in
+some place where it will be readily accessible during early boot. 
+Unfortunately, every init system will attempt to (or has already attempted
+to) solve this problem in a different, possibly incorrect, way.  This
+makes getting consistently working configurations harder for users.
+
+I believe it is better for the kernel to provide the means by which the
+hostname may be set early, rather than making this a problem for the init
+system to solve.  The option to set the hostname during early startup, via
+a kernel parameter, provides a simple, reliable way to solve this problem.
+It also could make system configuration easier for some embedded systems.
+
+Link: https://lkml.kernel.org/r/20220505180651.22849-2-dmoulding@me.com
+Signed-off-by: Dan Moulding <dmoulding@me.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/admin-guide/kernel-parameters.txt |   13 ++++++++++
+ init/version.c                                  |   17 ++++++++++++++
+ 2 files changed, 30 insertions(+)
+
+--- a/Documentation/admin-guide/kernel-parameters.txt~init-add-hostname-kernel-parameter
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1615,6 +1615,19 @@
+ 			Valid parameters: "on", "off"
+ 			Default: "on"
+ 
++	hostname=	[KNL] Set the hostname (aka UTS nodename).
++			Format: <string>
++			This allows setting the system's hostname during early
++			startup. This sets the name returned by gethostname.
++			Using this parameter to set the hostname makes it
++			possible to ensure the hostname is correctly set before
++			any userspace processes run, avoiding the possibility
++			that a process may call gethostname before the hostname
++			has been explicitly set, resulting in the calling
++			process getting an incorrect result. The string must
++			not exceed the maximum allowed hostname length (usually
++			64 characters) and will be truncated otherwise.
++
+ 	hlt		[BUGS=ARM,SH]
+ 
+ 	hpet=		[X86-32,HPET] option to control HPET usage
+--- a/init/version.c~init-add-hostname-kernel-parameter
++++ a/init/version.c
+@@ -11,6 +11,8 @@
+ #include <linux/build-salt.h>
+ #include <linux/elfnote-lto.h>
+ #include <linux/export.h>
++#include <linux/init.h>
++#include <linux/printk.h>
+ #include <linux/uts.h>
+ #include <linux/utsname.h>
+ #include <generated/utsrelease.h>
+@@ -35,6 +37,21 @@ struct uts_namespace init_uts_ns = {
+ };
+ EXPORT_SYMBOL_GPL(init_uts_ns);
+ 
++static int __init early_hostname(char *arg)
++{
++	size_t bufsize = sizeof(init_uts_ns.name.nodename);
++	size_t maxlen  = bufsize - 1;
++
++	strncpy(init_uts_ns.name.nodename, arg, bufsize);
++	if (strlen(arg) > maxlen) {
++		pr_warn("hostname parameter exceeds %zd characters and will be truncated",
++			maxlen);
++		init_uts_ns.name.nodename[maxlen] = '\0';
++	}
++	return 0;
++}
++early_param("hostname", early_hostname);
++
+ /* FIXED STRINGS! Don't touch! */
+ const char linux_banner[] =
+ 	"Linux version " UTS_RELEASE " (" LINUX_COMPILE_BY "@"
+_
+
+Patches currently in -mm which might be from dmoulding@me.com are
+
+init-add-hostname-kernel-parameter.patch
+
