@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D693C43217
-	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 953E1C4321E
+	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387970AbiEFBhI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1387973AbiEFBhI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 5 May 2022 21:37:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54778 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387973AbiEFBhB (ORCPT
+        with ESMTP id S1387977AbiEFBhB (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:37:01 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A6E862135
-        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:33:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EED7562A00
+        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:33:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D89F962020
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:33:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C0F2C385A8;
-        Fri,  6 May 2022 01:33:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E1FA6201F
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:33:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4614C385A4;
+        Fri,  6 May 2022 01:33:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651800795;
-        bh=n68NPBBCyBrqzdxqYlNdKQYRh1FQ5oAWzPCTMclCVqk=;
+        s=korg; t=1651800799;
+        bh=bTtfOSdmrw5Z8j1QRj7w1/UZn9ipbOGv/UPz24pSKW0=;
         h=Date:To:From:Subject:From;
-        b=EoUFiKoM/BCGDE0m4efyPvSbotiuqz/fKG23BoVsa1huTRji2G5Vsu7QF0d8Fik4U
-         djtPmVosUrst9Rcv5GPZJYBrsVlUhBVQdBzJ366mXYRBnbUmuoGkPS1NtaurOL8btB
-         kse0AGIrLt5HMBETlw9sIfzNBc1UFeIyfYiXtOjA=
-Date:   Thu, 05 May 2022 18:33:14 -0700
+        b=R8ORMGy2xzMyq6ZydkyXuM7UosLUn7n1ZWAEVi7a0KUkeUCIsZpMgM+bZJz1oji8p
+         D3sBTDzttnZmouhxU4rcCMS614Dpp0RRB5+sOeYa0RDbMF2iaYU4hJ0uLIHRgklIao
+         Az56EFG8JDpxWq3072iYXZ4smF8dd7sz0lruh0iY=
+Date:   Thu, 05 May 2022 18:33:18 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-convert-shmem_add_to_page_cache-to-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20220506013315.3C0F2C385A8@smtp.kernel.org>
+Subject: + mm-shmem-add-shmem_alloc_folio.patch added to mm-unstable branch
+Message-Id: <20220506013318.E4614C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: convert shmem_add_to_page_cache to take a folio
+     Subject: mm/shmem: add shmem_alloc_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-convert-shmem_add_to_page_cache-to-take-a-folio.patch
+     mm-shmem-add-shmem_alloc_folio.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,163 +62,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/shmem: convert shmem_add_to_page_cache to take a folio
+Subject: mm/shmem: add shmem_alloc_folio()
 
-Shrinks shmem_add_to_page_cache() by 16 bytes.  All the callers grow,
-but this is temporary as they will all be converted to folios soon.
+Call vma_alloc_folio() directly instead of alloc_page_vma().  Add a
+shmem_alloc_page() wrapper to avoid changing the callers.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-19-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-21-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   59 +++++++++++++++++++++++++++------------------------
- 1 file changed, 32 insertions(+), 27 deletions(-)
+ mm/shmem.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-convert-shmem_add_to_page_cache-to-take-a-folio
+--- a/mm/shmem.c~mm-shmem-add-shmem_alloc_folio
 +++ a/mm/shmem.c
-@@ -696,36 +696,35 @@ static unsigned long shmem_unused_huge_s
- /*
-  * Like add_to_page_cache_locked, but error if expected item has gone.
-  */
--static int shmem_add_to_page_cache(struct page *page,
-+static int shmem_add_to_page_cache(struct folio *folio,
- 				   struct address_space *mapping,
- 				   pgoff_t index, void *expected, gfp_t gfp,
- 				   struct mm_struct *charge_mm)
- {
--	XA_STATE_ORDER(xas, &mapping->i_pages, index, compound_order(page));
--	unsigned long nr = compound_nr(page);
-+	XA_STATE_ORDER(xas, &mapping->i_pages, index, folio_order(folio));
-+	long nr = folio_nr_pages(folio);
- 	int error;
- 
--	VM_BUG_ON_PAGE(PageTail(page), page);
--	VM_BUG_ON_PAGE(index != round_down(index, nr), page);
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
--	VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
--	VM_BUG_ON(expected && PageTransHuge(page));
--
--	page_ref_add(page, nr);
--	page->mapping = mapping;
--	page->index = index;
-+	VM_BUG_ON_FOLIO(index != round_down(index, nr), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_swapbacked(folio), folio);
-+	VM_BUG_ON(expected && folio_test_large(folio));
-+
-+	folio_ref_add(folio, nr);
-+	folio->mapping = mapping;
-+	folio->index = index;
- 
--	if (!PageSwapCache(page)) {
--		error = mem_cgroup_charge(page_folio(page), charge_mm, gfp);
-+	if (!folio_test_swapcache(folio)) {
-+		error = mem_cgroup_charge(folio, charge_mm, gfp);
- 		if (error) {
--			if (PageTransHuge(page)) {
-+			if (folio_test_pmd_mappable(folio)) {
- 				count_vm_event(THP_FILE_FALLBACK);
- 				count_vm_event(THP_FILE_FALLBACK_CHARGE);
- 			}
- 			goto error;
- 		}
- 	}
--	cgroup_throttle_swaprate(page, gfp);
-+	folio_throttle_swaprate(folio, gfp);
- 
- 	do {
- 		xas_lock_irq(&xas);
-@@ -737,16 +736,16 @@ static int shmem_add_to_page_cache(struc
- 			xas_set_err(&xas, -EEXIST);
- 			goto unlock;
- 		}
--		xas_store(&xas, page);
-+		xas_store(&xas, folio);
- 		if (xas_error(&xas))
- 			goto unlock;
--		if (PageTransHuge(page)) {
-+		if (folio_test_pmd_mappable(folio)) {
- 			count_vm_event(THP_FILE_ALLOC);
--			__mod_lruvec_page_state(page, NR_SHMEM_THPS, nr);
-+			__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
- 		}
- 		mapping->nrpages += nr;
--		__mod_lruvec_page_state(page, NR_FILE_PAGES, nr);
--		__mod_lruvec_page_state(page, NR_SHMEM, nr);
-+		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
-+		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr);
- unlock:
- 		xas_unlock_irq(&xas);
- 	} while (xas_nomem(&xas, gfp));
-@@ -758,8 +757,8 @@ unlock:
- 
- 	return 0;
- error:
--	page->mapping = NULL;
--	page_ref_sub(page, nr);
-+	folio->mapping = NULL;
-+	folio_ref_sub(folio, nr);
- 	return error;
+@@ -1544,17 +1544,23 @@ static struct page *shmem_alloc_hugepage
+ 	return &folio->page;
  }
  
-@@ -1691,7 +1690,8 @@ static int shmem_swapin_page(struct inod
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct mm_struct *charge_mm = vma ? vma->vm_mm : NULL;
+-static struct page *shmem_alloc_page(gfp_t gfp,
++static struct folio *shmem_alloc_folio(gfp_t gfp,
+ 			struct shmem_inode_info *info, pgoff_t index)
+ {
+ 	struct vm_area_struct pvma;
 -	struct page *page;
-+	struct page *page = NULL;
 +	struct folio *folio;
- 	swp_entry_t swap;
- 	int error;
  
-@@ -1741,7 +1741,8 @@ static int shmem_swapin_page(struct inod
- 			goto failed;
- 	}
+ 	shmem_pseudo_vma_init(&pvma, info, index);
+-	page = alloc_page_vma(gfp, &pvma, 0);
++	folio = vma_alloc_folio(gfp, 0, &pvma, 0, false);
+ 	shmem_pseudo_vma_destroy(&pvma);
  
--	error = shmem_add_to_page_cache(page, mapping, index,
-+	folio = page_folio(page);
-+	error = shmem_add_to_page_cache(folio, mapping, index,
- 					swp_to_radix_entry(swap), gfp,
- 					charge_mm);
- 	if (error)
-@@ -1792,6 +1793,7 @@ static int shmem_getpage_gfp(struct inod
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo;
- 	struct mm_struct *charge_mm;
-+	struct folio *folio;
- 	struct page *page;
- 	pgoff_t hindex = index;
- 	gfp_t huge_gfp;
-@@ -1906,7 +1908,8 @@ alloc_nohuge:
- 	if (sgp == SGP_WRITE)
- 		__SetPageReferenced(page);
+-	return page;
++	return folio;
++}
++
++static struct page *shmem_alloc_page(gfp_t gfp,
++			struct shmem_inode_info *info, pgoff_t index)
++{
++	return &shmem_alloc_folio(gfp, info, index)->page;
+ }
  
--	error = shmem_add_to_page_cache(page, mapping, hindex,
-+	folio = page_folio(page);
-+	error = shmem_add_to_page_cache(folio, mapping, hindex,
- 					NULL, gfp & GFP_RECLAIM_MASK,
- 					charge_mm);
- 	if (error)
-@@ -2328,6 +2331,7 @@ int shmem_mfill_atomic_pte(struct mm_str
- 	gfp_t gfp = mapping_gfp_mask(mapping);
- 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
- 	void *page_kaddr;
-+	struct folio *folio;
- 	struct page *page;
- 	int ret;
- 	pgoff_t max_off;
-@@ -2386,7 +2390,8 @@ int shmem_mfill_atomic_pte(struct mm_str
- 	if (unlikely(pgoff >= max_off))
- 		goto out_release;
- 
--	ret = shmem_add_to_page_cache(page, mapping, pgoff, NULL,
-+	folio = page_folio(page);
-+	ret = shmem_add_to_page_cache(folio, mapping, pgoff, NULL,
- 				      gfp & GFP_RECLAIM_MASK, dst_mm);
- 	if (ret)
- 		goto out_release;
+ static struct page *shmem_alloc_and_acct_page(gfp_t gfp,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
