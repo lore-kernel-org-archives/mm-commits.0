@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BD84C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 00:50:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D27C7C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:32:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233468AbiEFAyT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 May 2022 20:54:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54520 "EHLO
+        id S1387952AbiEFBgY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 May 2022 21:36:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54360 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387654AbiEFAyT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 20:54:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2042227B16
-        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 17:50:36 -0700 (PDT)
+        with ESMTP id S1387950AbiEFBgX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B1096160C
+        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:32:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 796FB61FE3
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 00:50:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4993C385AE;
-        Fri,  6 May 2022 00:50:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E802362017
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:32:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BD10C385A4;
+        Fri,  6 May 2022 01:32:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651798235;
-        bh=W4VXSiR39ECBolwmnGUeB9o40RHdh/VmgIA9+plYKd8=;
+        s=korg; t=1651800761;
+        bh=LpkUl/REb6BCXlK1xzOpkJghLFbvdlAVRU1rsqRPmEY=;
         h=Date:To:From:Subject:From;
-        b=OdhyNn0+YlRhdaz8PO1JoVU2dQeXl9B2VfJwNwy256lNGdJd12WfKEwqCr3RndOGF
-         7X0Qxr8GCIjAd7lDChvzWg5YqwEv761uYfnUV+M3kFAsJSx7WrSgVUY4Vg40s6F5wS
-         M//RxI27JVOyME51mLvQOg7LNgiS86u/JR2IRJD0=
-Date:   Thu, 05 May 2022 17:50:35 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        42.hyeyoo@gmail.com, akpm@linux-foundation.org
+        b=GSl+cOvgPhsbLx9DxyG2ah82O8TfGlXP93NhieCZCzW9zFh9nn6wuVcXtS8e34d0D
+         rdXES2AX3OU8QEd+HNL0EhfaZP8ynjwGOcAIOtNLhENlLYzAH2+2PT2ru2Atk1t/2R
+         NMrfguwjlFqK0V/vH3ZurPHbp0c4FHI5U4B3MWHs=
+Date:   Thu, 05 May 2022 18:32:40 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, hch@lst.de,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220506005035.C4993C385AE@smtp.kernel.org>
+Subject: + shmem-convert-shmem_alloc_hugepage-to-use-vma_alloc_folio.patch added to mm-unstable branch
+Message-Id: <20220506013241.4BD10C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,11 +41,11 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kfence: reset PG_slab and memcg_data before freeing __kfence_pool
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool.patch
+     Subject: shmem: convert shmem_alloc_hugepage() to use vma_alloc_folio()
+has been added to the -mm mm-unstable branch.  Its filename is
+     shmem-convert-shmem_alloc_hugepage-to-use-vma_alloc_folio.patch
 
-This patch should soon appear in the mm-hotfixes-unstable branch at
+This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -62,78 +61,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/kfence: reset PG_slab and memcg_data before freeing __kfence_pool
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: shmem: convert shmem_alloc_hugepage() to use vma_alloc_folio()
 
-When kfence fails to initialize kfence pool, it frees the pool.  But it
-does not reset memcg_data and PG_slab flag.
+Patch series "Folio patches for 5.19", v2.
 
-Below is a BUG because of this. Let's fix it by resetting memcg_data
-and PG_slab flag before free.
 
-[    0.089149] BUG: Bad page state in process swapper/0  pfn:3d8e06
-[    0.089149] page:ffffea46cf638180 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x3d8e06
-[    0.089150] memcg:ffffffff94a475d1
-[    0.089150] flags: 0x17ffffc0000200(slab|node=0|zone=2|lastcpupid=0x1fffff)
-[    0.089151] raw: 0017ffffc0000200 ffffea46cf638188 ffffea46cf638188 0000000000000000
-[    0.089152] raw: 0000000000000000 0000000000000000 00000000ffffffff ffffffff94a475d1
-[    0.089152] page dumped because: page still charged to cgroup
-[    0.089153] Modules linked in:
-[    0.089153] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G    B   W         5.18.0-rc1+ #965
-[    0.089154] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-[    0.089154] Call Trace:
-[    0.089155]  <TASK>
-[    0.089155]  dump_stack_lvl+0x49/0x5f
-[    0.089157]  dump_stack+0x10/0x12
-[    0.089158]  bad_page.cold+0x63/0x94
-[    0.089159]  check_free_page_bad+0x66/0x70
-[    0.089160]  __free_pages_ok+0x423/0x530
-[    0.089161]  __free_pages_core+0x8e/0xa0
-[    0.089162]  memblock_free_pages+0x10/0x12
-[    0.089164]  memblock_free_late+0x8f/0xb9
-[    0.089165]  kfence_init+0x68/0x92
-[    0.089166]  start_kernel+0x789/0x992
-[    0.089167]  x86_64_start_reservations+0x24/0x26
-[    0.089168]  x86_64_start_kernel+0xa9/0xaf
-[    0.089170]  secondary_startup_64_no_verify+0xd5/0xdb
-[    0.089171]  </TASK>
+This patch (of 26):
 
-Link: https://lkml.kernel.org/r/YnPG3pQrqfcgOlVa@hyeyoo
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Fixes: 8f0b36497303 ("mm: kfence: fix objcgs vector allocation")
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+For now, return the head page of the folio, but remove use of the old
+alloc_pages_vma() API.
+
+Link: https://lkml.kernel.org/r/20220504182857.4013401-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/shmem.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool
-+++ a/mm/kfence/core.c
-@@ -621,6 +621,16 @@ static bool __init kfence_init_pool_earl
- 	 * fails for the first page, and therefore expect addr==__kfence_pool in
- 	 * most failure cases.
- 	 */
-+	for (char *p = (char *)addr; p < __kfence_pool + KFENCE_POOL_SIZE; p += PAGE_SIZE) {
-+		struct slab *slab = virt_to_slab(p);
-+
-+		if (!slab)
-+			continue;
-+#ifdef CONFIG_MEMCG
-+		slab->memcg_data = 0;
-+#endif
-+		__folio_clear_slab(slab_folio(slab));
-+	}
- 	memblock_free_late(__pa(addr), KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool));
- 	__kfence_pool = NULL;
- 	return false;
+--- a/mm/shmem.c~shmem-convert-shmem_alloc_hugepage-to-use-vma_alloc_folio
++++ a/mm/shmem.c
+@@ -1528,7 +1528,7 @@ static struct page *shmem_alloc_hugepage
+ 	struct vm_area_struct pvma;
+ 	struct address_space *mapping = info->vfs_inode.i_mapping;
+ 	pgoff_t hindex;
+-	struct page *page;
++	struct folio *folio;
+ 
+ 	hindex = round_down(index, HPAGE_PMD_NR);
+ 	if (xa_find(&mapping->i_pages, &hindex, hindex + HPAGE_PMD_NR - 1,
+@@ -1536,13 +1536,11 @@ static struct page *shmem_alloc_hugepage
+ 		return NULL;
+ 
+ 	shmem_pseudo_vma_init(&pvma, info, hindex);
+-	page = alloc_pages_vma(gfp, HPAGE_PMD_ORDER, &pvma, 0, true);
++	folio = vma_alloc_folio(gfp, HPAGE_PMD_ORDER, &pvma, 0, true);
+ 	shmem_pseudo_vma_destroy(&pvma);
+-	if (page)
+-		prep_transhuge_page(page);
+-	else
++	if (!folio)
+ 		count_vm_event(THP_FILE_FALLBACK);
+-	return page;
++	return &folio->page;
+ }
+ 
+ static struct page *shmem_alloc_page(gfp_t gfp,
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool.patch
+shmem-convert-shmem_alloc_hugepage-to-use-vma_alloc_folio.patch
+mm-huge_memory-convert-do_huge_pmd_anonymous_page-to-use-vma_alloc_folio.patch
+alpha-fix-alloc_zeroed_user_highpage_movable.patch
+mm-remove-alloc_pages_vma.patch
+vmscan-use-folio_mapped-in-shrink_page_list.patch
+vmscan-convert-the-writeback-handling-in-shrink_page_list-to-folios.patch
+swap-turn-get_swap_page-into-folio_alloc_swap.patch
+swap-convert-add_to_swap-to-take-a-folio.patch
+vmscan-convert-dirty-page-handling-to-folios.patch
+vmscan-convert-page-buffer-handling-to-use-folios.patch
+vmscan-convert-lazy-freeing-to-folios.patch
+vmscan-move-initialisation-of-mapping-down.patch
+vmscan-convert-the-activate_locked-portion-of-shrink_page_list-to-folios.patch
+mm-allow-can_split_folio-to-be-called-when-thp-are-disabled.patch
+vmscan-remove-remaining-uses-of-page-in-shrink_page_list.patch
+mm-shmem-use-a-folio-in-shmem_unused_huge_shrink.patch
+mm-swap-add-folio_throttle_swaprate.patch
+mm-shmem-convert-shmem_add_to_page_cache-to-take-a-folio.patch
+mm-shmem-turn-shmem_should_replace_page-into-shmem_should_replace_folio.patch
+mm-shmem-add-shmem_alloc_folio.patch
+mm-shmem-convert-shmem_alloc_and_acct_page-to-use-a-folio.patch
+mm-shmem-convert-shmem_getpage_gfp-to-use-a-folio.patch
+mm-shmem-convert-shmem_swapin_page-to-shmem_swapin_folio.patch
+mm-add-folio_mapping_flags.patch
+mm-add-folio_test_movable.patch
+mm-migrate-convert-move_to_new_page-into-move_to_new_folio.patch
 
