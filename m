@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E6A6C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88761C433EF
 	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:32:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351319AbiEFBg3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 May 2022 21:36:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54486 "EHLO
+        id S1387949AbiEFBga (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 May 2022 21:36:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387955AbiEFBg3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:29 -0400
+        with ESMTP id S1387950AbiEFBgZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:25 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D06F5D5C1
-        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:32:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47F876160C
+        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:32:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C5EA6201D
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:32:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF69CC385A4;
-        Fri,  6 May 2022 01:32:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D0BD26201D
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:32:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EFF4C385A4;
+        Fri,  6 May 2022 01:32:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651800765;
-        bh=6zBNhxpVYwK0sfBOUWSeuno0iMcpCYT8KTTN/nxK4w8=;
+        s=korg; t=1651800763;
+        bh=WNPPGXVy8f2vG9U4/DUyushQ9ptjd+bzlDlXZ3hNrMo=;
         h=Date:To:From:Subject:From;
-        b=GbSFIBZmDPBasi4CRR4sjhrI5N0SKdVNasZWTLA7cohYVvqFQ2vQThhNq1aCkPdhJ
-         67cqWNEtYjtrwnsRZdKmBeEc5NQ7/70WS7EBQTv5Akweq4S0MYmUAk2BgyySTXM80l
-         pk97/lYxdTis28DVWx1irg39asPYVBnhUaUmdtZE=
-Date:   Thu, 05 May 2022 18:32:44 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, hch@lst.de,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=X6yFao4y7Ehx7OsKuZG2kK7TeRmnD0hZrmjIo3D1p8PblPFi72iE7t58iiePlQe5O
+         Nw9xbYQyx62wmV9oWsDyaG2DCqlFVihkEIFKp4yqV1VbAAx1FgTiQOB0Huy2AWQdyK
+         XP3SPyoXK/U2qmSSujlMW6OP5hun9JhOCCFOdUbQ=
+Date:   Thu, 05 May 2022 18:32:42 -0700
+To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + alpha-fix-alloc_zeroed_user_highpage_movable.patch added to mm-unstable branch
-Message-Id: <20220506013244.EF69CC385A4@smtp.kernel.org>
+Subject: + mm-huge_memory-convert-do_huge_pmd_anonymous_page-to-use-vma_alloc_folio.patch added to mm-unstable branch
+Message-Id: <20220506013243.2EFF4C385A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: fix alloc_zeroed_user_highpage_movable()
+     Subject: mm/huge_memory: convert do_huge_pmd_anonymous_page() to use  vma_alloc_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     alpha-fix-alloc_zeroed_user_highpage_movable.patch
+     mm-huge_memory-convert-do_huge_pmd_anonymous_page-to-use-vma_alloc_folio.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,33 +62,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: alpha: fix alloc_zeroed_user_highpage_movable()
+Subject: mm/huge_memory: convert do_huge_pmd_anonymous_page() to use  vma_alloc_folio()
 
-Due to a typo, the final argument to alloc_page_vma() didn't refer to a
-real variable.  This only affected CONFIG_NUMA, which was marked BROKEN in
-2006 and removed from alpha in 2021.  Found due to a refactoring patch.
+Remove the use of this old API, eliminating a call to
+prep_transhuge_page().
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: kernel test robot <lkp@intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/page.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/arch/alpha/include/asm/page.h~alpha-fix-alloc_zeroed_user_highpage_movable
-+++ a/arch/alpha/include/asm/page.h
-@@ -18,7 +18,7 @@ extern void clear_page(void *page);
- #define clear_user_page(page, vaddr, pg)	clear_page(page)
+--- a/mm/huge_memory.c~mm-huge_memory-convert-do_huge_pmd_anonymous_page-to-use-vma_alloc_folio
++++ a/mm/huge_memory.c
+@@ -726,7 +726,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	gfp_t gfp;
+-	struct page *page;
++	struct folio *folio;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
  
- #define alloc_zeroed_user_highpage_movable(vma, vaddr) \
--	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vmaddr)
-+	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr)
- #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
+ 	if (!transhuge_vma_suitable(vma, haddr))
+@@ -775,13 +775,12 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 		return ret;
+ 	}
+ 	gfp = vma_thp_gfp_mask(vma);
+-	page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
+-	if (unlikely(!page)) {
++	folio = vma_alloc_folio(gfp, HPAGE_PMD_ORDER, vma, haddr, true);
++	if (unlikely(!folio)) {
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	prep_transhuge_page(page);
+-	return __do_huge_pmd_anonymous_page(vmf, page, gfp);
++	return __do_huge_pmd_anonymous_page(vmf, &folio->page, gfp);
+ }
  
- extern void copy_page(void * _to, void * _from);
+ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
