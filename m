@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B561C4332F
-	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9AA4C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387953AbiEFBgo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 May 2022 21:36:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54614 "EHLO
+        id S1387959AbiEFBhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 May 2022 21:37:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387951AbiEFBgk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DE195D5C1
-        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:32:59 -0700 (PDT)
+        with ESMTP id S1387963AbiEFBgo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:44 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F03786210C
+        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:33:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 268C76201E
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:32:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79F33C385A4;
-        Fri,  6 May 2022 01:32:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A5860B82E5D
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:33:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F685C385A8;
+        Fri,  6 May 2022 01:33:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651800778;
-        bh=ciOcn+ygy4D3PrR+7cdgAn85ofTxC0LoHPQDlnR2Ai8=;
+        s=korg; t=1651800780;
+        bh=a2LIsxhMtZi42PphDWPvBtOTW+MCaAupuYuC0h4A95s=;
         h=Date:To:From:Subject:From;
-        b=YUVugC1Y8iNR7Op0NuusdvJJXCGqODUj2oqRELyIy/iTFRfqGz8hMfOqcd5/Z5Qms
-         3SKMDE2N8NfDtk+T0D45d50GvLe+hG0x9rDGjULVZ00WS5dwlkSmLlbuuaJWT49b4l
-         rF80qNWxk0WYdpj7NkE1t7AkaJTUNV5sCv5fsXeo=
-Date:   Thu, 05 May 2022 18:32:57 -0700
+        b=pChu8ZimffGOUKZ1t1JYwei2mrZ5j+oR4NGQiEhH+43g3cYqquy60noVl6+kMEN2t
+         tqBAU6rS5fnXz1NVS2fIZ/YbAdTnwnqoBle0myutCnCJHj5oRWybGqCS4lfiPAx6tO
+         dQOikX5YbphiBrHpNnEGBlkWLLuXxuNsKC/nNEp0=
+Date:   Thu, 05 May 2022 18:32:59 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmscan-convert-dirty-page-handling-to-folios.patch added to mm-unstable branch
-Message-Id: <20220506013258.79F33C385A4@smtp.kernel.org>
+Subject: + vmscan-convert-page-buffer-handling-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20220506013300.5F685C385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: convert dirty page handling to folios
+     Subject: vmscan: convert page buffer handling to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     vmscan-convert-dirty-page-handling-to-folios.patch
+     vmscan-convert-page-buffer-handling-to-use-folios.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,110 +62,86 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: vmscan: convert dirty page handling to folios
+Subject: vmscan: convert page buffer handling to use folios
 
-Mostly this just eliminates calls to compound_head(), but
-NR_VMSCAN_IMMEDIATE was being incremented by 1 instead of by nr_pages.
+This mostly just removes calls to compound_head() although nr_reclaimed
+should be incremented by the number of pages, not just 1.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   48 ++++++++++++++++++++++++++----------------------
- 1 file changed, 26 insertions(+), 22 deletions(-)
+ mm/vmscan.c |   48 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 25 insertions(+), 23 deletions(-)
 
---- a/mm/vmscan.c~vmscan-convert-dirty-page-handling-to-folios
+--- a/mm/vmscan.c~vmscan-convert-page-buffer-handling-to-use-folios
 +++ a/mm/vmscan.c
-@@ -1787,28 +1787,31 @@ retry:
- 			}
+@@ -1859,38 +1859,40 @@ retry:
  		}
  
--		if (PageDirty(page)) {
-+		if (folio_test_dirty(folio)) {
- 			/*
--			 * Only kswapd can writeback filesystem pages
-+			 * Only kswapd can writeback filesystem folios
- 			 * to avoid risk of stack overflow. But avoid
--			 * injecting inefficient single-page IO into
-+			 * injecting inefficient single-folio I/O into
- 			 * flusher writeback as much as possible: only
--			 * write pages when we've encountered many
--			 * dirty pages, and when we've already scanned
--			 * the rest of the LRU for clean pages and see
--			 * the same dirty pages again (PageReclaim).
-+			 * write folios when we've encountered many
-+			 * dirty folios, and when we've already scanned
-+			 * the rest of the LRU for clean folios and see
-+			 * the same dirty folios again (with the reclaim
-+			 * flag set).
- 			 */
--			if (page_is_file_lru(page) &&
--			    (!current_is_kswapd() || !PageReclaim(page) ||
-+			if (folio_is_file_lru(folio) &&
-+			    (!current_is_kswapd() ||
-+			     !folio_test_reclaim(folio) ||
- 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
- 				/*
- 				 * Immediately reclaim when written back.
--				 * Similar in principal to deactivate_page()
--				 * except we already have the page isolated
-+				 * Similar in principle to deactivate_page()
-+				 * except we already have the folio isolated
- 				 * and know it's dirty
- 				 */
--				inc_node_page_state(page, NR_VMSCAN_IMMEDIATE);
--				SetPageReclaim(page);
-+				node_stat_mod_folio(folio, NR_VMSCAN_IMMEDIATE,
-+						nr_pages);
-+				folio_set_reclaim(folio);
- 
+ 		/*
+-		 * If the page has buffers, try to free the buffer mappings
+-		 * associated with this page. If we succeed we try to free
+-		 * the page as well.
++		 * If the folio has buffers, try to free the buffer
++		 * mappings associated with this folio. If we succeed
++		 * we try to free the folio as well.
+ 		 *
+-		 * We do this even if the page is PageDirty().
+-		 * try_to_release_page() does not perform I/O, but it is
+-		 * possible for a page to have PageDirty set, but it is actually
+-		 * clean (all its buffers are clean).  This happens if the
+-		 * buffers were written out directly, with submit_bh(). ext3
+-		 * will do this, as well as the blockdev mapping.
+-		 * try_to_release_page() will discover that cleanness and will
+-		 * drop the buffers and mark the page clean - it can be freed.
++		 * We do this even if the folio is dirty.
++		 * filemap_release_folio() does not perform I/O, but it
++		 * is possible for a folio to have the dirty flag set,
++		 * but it is actually clean (all its buffers are clean).
++		 * This happens if the buffers were written out directly,
++		 * with submit_bh(). ext3 will do this, as well as
++		 * the blockdev mapping.  filemap_release_folio() will
++		 * discover that cleanness and will drop the buffers
++		 * and mark the folio clean - it can be freed.
+ 		 *
+-		 * Rarely, pages can have buffers and no ->mapping.  These are
+-		 * the pages which were not successfully invalidated in
+-		 * truncate_cleanup_page().  We try to drop those buffers here
+-		 * and if that worked, and the page is no longer mapped into
+-		 * process address space (page_count == 1) it can be freed.
+-		 * Otherwise, leave the page on the LRU so it is swappable.
++		 * Rarely, folios can have buffers and no ->mapping.
++		 * These are the folios which were not successfully
++		 * invalidated in truncate_cleanup_folio().  We try to
++		 * drop those buffers here and if that worked, and the
++		 * folio is no longer mapped into process address space
++		 * (refcount == 1) it can be freed.  Otherwise, leave
++		 * the folio on the LRU so it is swappable.
+ 		 */
+-		if (page_has_private(page)) {
+-			if (!try_to_release_page(page, sc->gfp_mask))
++		if (folio_has_private(folio)) {
++			if (!filemap_release_folio(folio, sc->gfp_mask))
  				goto activate_locked;
- 			}
-@@ -1821,8 +1824,8 @@ retry:
- 				goto keep_locked;
- 
- 			/*
--			 * Page is dirty. Flush the TLB if a writable entry
--			 * potentially exists to avoid CPU writes after IO
-+			 * Folio is dirty. Flush the TLB if a writable entry
-+			 * potentially exists to avoid CPU writes after I/O
- 			 * starts and then write it out here.
- 			 */
- 			try_to_unmap_flush_dirty();
-@@ -1834,23 +1837,24 @@ retry:
- 			case PAGE_SUCCESS:
- 				stat->nr_pageout += nr_pages;
- 
--				if (PageWriteback(page))
-+				if (folio_test_writeback(folio))
- 					goto keep;
--				if (PageDirty(page))
-+				if (folio_test_dirty(folio))
- 					goto keep;
- 
- 				/*
- 				 * A synchronous write - probably a ramdisk.  Go
--				 * ahead and try to reclaim the page.
-+				 * ahead and try to reclaim the folio.
- 				 */
--				if (!trylock_page(page))
-+				if (!folio_trylock(folio))
- 					goto keep;
--				if (PageDirty(page) || PageWriteback(page))
-+				if (folio_test_dirty(folio) ||
-+				    folio_test_writeback(folio))
- 					goto keep_locked;
--				mapping = page_mapping(page);
-+				mapping = folio_mapping(folio);
- 				fallthrough;
- 			case PAGE_CLEAN:
--				; /* try to free the page below */
-+				; /* try to free the folio below */
- 			}
- 		}
- 
+-			if (!mapping && page_count(page) == 1) {
+-				unlock_page(page);
+-				if (put_page_testzero(page))
++			if (!mapping && folio_ref_count(folio) == 1) {
++				folio_unlock(folio);
++				if (folio_put_testzero(folio))
+ 					goto free_it;
+ 				else {
+ 					/*
+ 					 * rare race with speculative reference.
+ 					 * the speculative reference will free
+-					 * this page shortly, so we may
++					 * this folio shortly, so we may
+ 					 * increment nr_reclaimed here (and
+ 					 * leave it off the LRU).
+ 					 */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
