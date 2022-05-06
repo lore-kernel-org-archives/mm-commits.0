@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DB2EC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DE9EC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387954AbiEFBgk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 May 2022 21:36:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54598 "EHLO
+        id S1387956AbiEFBgm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 May 2022 21:36:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387958AbiEFBgj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4351A61616
-        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:32:55 -0700 (PDT)
+        with ESMTP id S1387955AbiEFBgd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:36:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 848305D5C1
+        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:32:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0588DB82E5C
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:32:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4725C385A8;
-        Fri,  6 May 2022 01:32:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 330ECB831CD
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:32:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD7E6C385A8;
+        Fri,  6 May 2022 01:32:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651800772;
-        bh=eS8/hZyfTkllZvHrx+zkm4YtQu8S/LVCq+q/m9EFqjI=;
+        s=korg; t=1651800769;
+        bh=vPdW6sPeGPxs8c2viL5t9iQ+MfwWqIMNS6qk8D2welI=;
         h=Date:To:From:Subject:From;
-        b=zhdlsTrAyjQTQuYdtl8R/P5bzGP/rLRXoE86TCBY7mdK3KxIazP3dXRZNl6Njh1I1
-         drObfs4BMMGDXsYagd4Oe0Lu4VClBa93WHcPMrM97B6e1olOUXOUrRLMKcXp6vpOK6
-         iqbRrEi62Fe3Kwt036FILVkVv1JXbRanJMmmpkzk=
-Date:   Thu, 05 May 2022 18:32:52 -0700
+        b=uywyw+v3/5XGq2iTalT6eWp8yzGl5kkQaLGuuoklVdFUigqLkXVrxF5wmZX6pQK7Z
+         yMUAxbhjBnNBIuLEnC1izzChZ05jlF8EN3PA49DL0lKuBTncLQFd+YrdgAU9TGcx6i
+         jvBnNQOn8lKm8Gy7qsRSb9GzteB+a5MFcjhL4USQ=
+Date:   Thu, 05 May 2022 18:32:48 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + swap-turn-get_swap_page-into-folio_alloc_swap.patch added to mm-unstable branch
-Message-Id: <20220506013252.B4725C385A8@smtp.kernel.org>
+Subject: + vmscan-use-folio_mapped-in-shrink_page_list.patch added to mm-unstable branch
+Message-Id: <20220506013248.DD7E6C385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap: turn get_swap_page() into folio_alloc_swap()
+     Subject: vmscan: use folio_mapped() in shrink_page_list()
 has been added to the -mm mm-unstable branch.  Its filename is
-     swap-turn-get_swap_page-into-folio_alloc_swap.patch
+     vmscan-use-folio_mapped-in-shrink_page_list.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,246 +62,59 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: swap: turn get_swap_page() into folio_alloc_swap()
+Subject: vmscan: use folio_mapped() in shrink_page_list()
 
-This removes an assumption that a large folio is HPAGE_PMD_NR pages
-in size.
+Remove some legacy function calls.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-8-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   13 +++++++------
- mm/memcontrol.c      |   16 ++++++++--------
- mm/shmem.c           |    3 ++-
- mm/swap_slots.c      |   14 +++++++-------
- mm/swap_state.c      |    3 ++-
- mm/swapfile.c        |   17 +++++++++--------
- 6 files changed, 35 insertions(+), 31 deletions(-)
+ mm/vmscan.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/include/linux/swap.h~swap-turn-get_swap_page-into-folio_alloc_swap
-+++ a/include/linux/swap.h
-@@ -475,7 +475,7 @@ static inline long get_nr_swap_pages(voi
- }
+--- a/mm/vmscan.c~vmscan-use-folio_mapped-in-shrink_page_list
++++ a/mm/vmscan.c
+@@ -1572,7 +1572,7 @@ retry:
+ 		if (unlikely(!page_evictable(page)))
+ 			goto activate_locked;
  
- extern void si_swapinfo(struct sysinfo *);
--extern swp_entry_t get_swap_page(struct page *page);
-+swp_entry_t folio_alloc_swap(struct folio *folio);
- extern void put_swap_page(struct page *page, swp_entry_t entry);
- extern swp_entry_t get_swap_page_of_type(int);
- extern int get_swap_pages(int n, swp_entry_t swp_entries[], int entry_size);
-@@ -588,7 +588,7 @@ static inline int try_to_free_swap(struc
- 	return 0;
- }
+-		if (!sc->may_unmap && page_mapped(page))
++		if (!sc->may_unmap && folio_mapped(folio))
+ 			goto keep_locked;
  
--static inline swp_entry_t get_swap_page(struct page *page)
-+static inline swp_entry_t folio_alloc_swap(struct folio *folio)
- {
- 	swp_entry_t entry;
- 	entry.val = 0;
-@@ -648,12 +648,13 @@ static inline void cgroup_throttle_swapr
+ 		/*
+@@ -1761,21 +1761,21 @@ retry:
+ 		}
  
- #ifdef CONFIG_MEMCG_SWAP
- void mem_cgroup_swapout(struct folio *folio, swp_entry_t entry);
--extern int __mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
--static inline int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
-+int __mem_cgroup_try_charge_swap(struct folio *folio, swp_entry_t entry);
-+static inline int mem_cgroup_try_charge_swap(struct folio *folio,
-+		swp_entry_t entry)
- {
- 	if (mem_cgroup_disabled())
- 		return 0;
--	return __mem_cgroup_try_charge_swap(page, entry);
-+	return __mem_cgroup_try_charge_swap(folio, entry);
- }
+ 		/*
+-		 * The page is mapped into the page tables of one or more
++		 * The folio is mapped into the page tables of one or more
+ 		 * processes. Try to unmap it here.
+ 		 */
+-		if (page_mapped(page)) {
++		if (folio_mapped(folio)) {
+ 			enum ttu_flags flags = TTU_BATCH_FLUSH;
+-			bool was_swapbacked = PageSwapBacked(page);
++			bool was_swapbacked = folio_test_swapbacked(folio);
  
- extern void __mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages);
-@@ -671,7 +672,7 @@ static inline void mem_cgroup_swapout(st
- {
- }
+-			if (PageTransHuge(page) &&
+-					thp_order(page) >= HPAGE_PMD_ORDER)
++			if (folio_test_pmd_mappable(folio))
+ 				flags |= TTU_SPLIT_HUGE_PMD;
  
--static inline int mem_cgroup_try_charge_swap(struct page *page,
-+static inline int mem_cgroup_try_charge_swap(struct folio *folio,
- 					     swp_entry_t entry)
- {
- 	return 0;
---- a/mm/memcontrol.c~swap-turn-get_swap_page-into-folio_alloc_swap
-+++ a/mm/memcontrol.c
-@@ -7162,17 +7162,17 @@ void mem_cgroup_swapout(struct folio *fo
- }
- 
- /**
-- * __mem_cgroup_try_charge_swap - try charging swap space for a page
-- * @page: page being added to swap
-+ * __mem_cgroup_try_charge_swap - try charging swap space for a folio
-+ * @folio: folio being added to swap
-  * @entry: swap entry to charge
-  *
-- * Try to charge @page's memcg for the swap space at @entry.
-+ * Try to charge @folio's memcg for the swap space at @entry.
-  *
-  * Returns 0 on success, -ENOMEM on failure.
-  */
--int __mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
-+int __mem_cgroup_try_charge_swap(struct folio *folio, swp_entry_t entry)
- {
--	unsigned int nr_pages = thp_nr_pages(page);
-+	unsigned int nr_pages = folio_nr_pages(folio);
- 	struct page_counter *counter;
- 	struct mem_cgroup *memcg;
- 	unsigned short oldid;
-@@ -7180,9 +7180,9 @@ int __mem_cgroup_try_charge_swap(struct
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		return 0;
- 
--	memcg = page_memcg(page);
-+	memcg = folio_memcg(folio);
- 
--	VM_WARN_ON_ONCE_PAGE(!memcg, page);
-+	VM_WARN_ON_ONCE_FOLIO(!memcg, folio);
- 	if (!memcg)
- 		return 0;
- 
-@@ -7205,7 +7205,7 @@ int __mem_cgroup_try_charge_swap(struct
- 	if (nr_pages > 1)
- 		mem_cgroup_id_get_many(memcg, nr_pages - 1);
- 	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg), nr_pages);
--	VM_BUG_ON_PAGE(oldid, page);
-+	VM_BUG_ON_FOLIO(oldid, folio);
- 	mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
- 
- 	return 0;
---- a/mm/shmem.c~swap-turn-get_swap_page-into-folio_alloc_swap
-+++ a/mm/shmem.c
-@@ -1313,6 +1313,7 @@ int shmem_unuse(unsigned int type)
-  */
- static int shmem_writepage(struct page *page, struct writeback_control *wbc)
- {
-+	struct folio *folio = page_folio(page);
- 	struct shmem_inode_info *info;
- 	struct address_space *mapping;
- 	struct inode *inode;
-@@ -1386,7 +1387,7 @@ static int shmem_writepage(struct page *
- 		SetPageUptodate(page);
- 	}
- 
--	swap = get_swap_page(page);
-+	swap = folio_alloc_swap(folio);
- 	if (!swap.val)
- 		goto redirty;
- 
---- a/mm/swapfile.c~swap-turn-get_swap_page-into-folio_alloc_swap
-+++ a/mm/swapfile.c
-@@ -77,9 +77,9 @@ static PLIST_HEAD(swap_active_head);
- /*
-  * all available (active, not full) swap_info_structs
-  * protected with swap_avail_lock, ordered by priority.
-- * This is used by get_swap_page() instead of swap_active_head
-+ * This is used by folio_alloc_swap() instead of swap_active_head
-  * because swap_active_head includes all swap_info_structs,
-- * but get_swap_page() doesn't need to look at full ones.
-+ * but folio_alloc_swap() doesn't need to look at full ones.
-  * This uses its own lock instead of swap_lock because when a
-  * swap_info_struct changes between not-full/full, it needs to
-  * add/remove itself to/from this list, but the swap_info_struct->lock
-@@ -2124,11 +2124,12 @@ retry:
- 	 * Under global memory pressure, swap entries can be reinserted back
- 	 * into process space after the mmlist loop above passes over them.
- 	 *
--	 * Limit the number of retries? No: when mmget_not_zero() above fails,
--	 * that mm is likely to be freeing swap from exit_mmap(), which proceeds
--	 * at its own independent pace; and even shmem_writepage() could have
--	 * been preempted after get_swap_page(), temporarily hiding that swap.
--	 * It's easy and robust (though cpu-intensive) just to keep retrying.
-+	 * Limit the number of retries? No: when mmget_not_zero()
-+	 * above fails, that mm is likely to be freeing swap from
-+	 * exit_mmap(), which proceeds at its own independent pace;
-+	 * and even shmem_writepage() could have been preempted after
-+	 * folio_alloc_swap(), temporarily hiding that swap.  It's easy
-+	 * and robust (though cpu-intensive) just to keep retrying.
- 	 */
- 	if (READ_ONCE(si->inuse_pages)) {
- 		if (!signal_pending(current))
-@@ -2342,7 +2343,7 @@ static void _enable_swap_info(struct swa
- 	 * which on removal of any swap_info_struct with an auto-assigned
- 	 * (i.e. negative) priority increments the auto-assigned priority
- 	 * of any lower-priority swap_info_structs.
--	 * swap_avail_head needs to be priority ordered for get_swap_page(),
-+	 * swap_avail_head needs to be priority ordered for folio_alloc_swap(),
- 	 * which allocates swap pages from the highest available priority
- 	 * swap_info_struct.
- 	 */
---- a/mm/swap_slots.c~swap-turn-get_swap_page-into-folio_alloc_swap
-+++ a/mm/swap_slots.c
-@@ -117,7 +117,7 @@ static int alloc_swap_slot_cache(unsigne
- 
- 	/*
- 	 * Do allocation outside swap_slots_cache_mutex
--	 * as kvzalloc could trigger reclaim and get_swap_page,
-+	 * as kvzalloc could trigger reclaim and folio_alloc_swap,
- 	 * which can lock swap_slots_cache_mutex.
- 	 */
- 	slots = kvcalloc(SWAP_SLOTS_CACHE_SIZE, sizeof(swp_entry_t),
-@@ -213,7 +213,7 @@ static void __drain_swap_slots_cache(uns
- 	 * this function can be invoked in the cpu
- 	 * hot plug path:
- 	 * cpu_up -> lock cpu_hotplug -> cpu hotplug state callback
--	 *   -> memory allocation -> direct reclaim -> get_swap_page
-+	 *   -> memory allocation -> direct reclaim -> folio_alloc_swap
- 	 *   -> drain_swap_slots_cache
- 	 *
- 	 * Hence the loop over current online cpu below could miss cpu that
-@@ -301,16 +301,16 @@ direct_free:
- 	return 0;
- }
- 
--swp_entry_t get_swap_page(struct page *page)
-+swp_entry_t folio_alloc_swap(struct folio *folio)
- {
- 	swp_entry_t entry;
- 	struct swap_slots_cache *cache;
- 
- 	entry.val = 0;
- 
--	if (PageTransHuge(page)) {
-+	if (folio_test_large(folio)) {
- 		if (IS_ENABLED(CONFIG_THP_SWAP))
--			get_swap_pages(1, &entry, HPAGE_PMD_NR);
-+			get_swap_pages(1, &entry, folio_nr_pages(folio));
- 		goto out;
- 	}
- 
-@@ -344,8 +344,8 @@ repeat:
- 
- 	get_swap_pages(1, &entry, 1);
- out:
--	if (mem_cgroup_try_charge_swap(page, entry)) {
--		put_swap_page(page, entry);
-+	if (mem_cgroup_try_charge_swap(folio, entry)) {
-+		put_swap_page(&folio->page, entry);
- 		entry.val = 0;
- 	}
- 	return entry;
---- a/mm/swap_state.c~swap-turn-get_swap_page-into-folio_alloc_swap
-+++ a/mm/swap_state.c
-@@ -184,13 +184,14 @@ void __delete_from_swap_cache(struct pag
-  */
- int add_to_swap(struct page *page)
- {
-+	struct folio *folio = page_folio(page);
- 	swp_entry_t entry;
- 	int err;
- 
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(!PageUptodate(page), page);
- 
--	entry = get_swap_page(page);
-+	entry = folio_alloc_swap(folio);
- 	if (!entry.val)
- 		return 0;
- 
+ 			try_to_unmap(folio, flags);
+-			if (page_mapped(page)) {
++			if (folio_mapped(folio)) {
+ 				stat->nr_unmap_fail += nr_pages;
+-				if (!was_swapbacked && PageSwapBacked(page))
++				if (!was_swapbacked &&
++				    folio_test_swapbacked(folio))
+ 					stat->nr_lazyfree_fail += nr_pages;
+ 				goto activate_locked;
+ 			}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
