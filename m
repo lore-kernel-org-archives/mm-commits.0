@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C92CC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05051C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387974AbiEFBhQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 May 2022 21:37:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54680 "EHLO
+        id S1387975AbiEFBhR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 May 2022 21:37:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387975AbiEFBhF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:37:05 -0400
+        with ESMTP id S1387980AbiEFBhG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:37:06 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F04D61623
-        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:33:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C0F662121
+        for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:33:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 08C55B83211
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:33:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B92C0C385A4;
-        Fri,  6 May 2022 01:33:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DC8F2B83200
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:33:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 964F8C385A8;
+        Fri,  6 May 2022 01:33:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651800800;
-        bh=TViXk98fz5O0kH1xy5mJwmBasTl2llUZWw4Nm8eN8ac=;
+        s=korg; t=1651800802;
+        bh=07EjHV0TIfUefSoyzSi/vEKv/RwKs8LFa3+ORESztzE=;
         h=Date:To:From:Subject:From;
-        b=zqBcLlgWIXJ5PUphWmJWjGj14iMjCb1FlHNRouxcbaswLta1EUNnxaGg4y7v5fVaO
-         Cw7mjELiuU2P2n3/LV6hiLbB8ngU6SSBz+JZl4W4X257lptGqn8y0qIcuTtPw8ks3A
-         0w4nGhsqUOrakAakiW3KohwX8fojXiT+OG/8dzgc=
-Date:   Thu, 05 May 2022 18:33:20 -0700
+        b=p/LamjbxNjV5oig4FZU5xNc4sIhAi4yprlVMzlDKtE+JkCXoJ5NGpvEf+gClyK1oL
+         aqMHg8kcQBxsZNCumUuSpRYxN2KCPS5NYJ7qMF4QAaJr5dkGrPILTtlD46wjg3cN6V
+         EyshYWGTIPeA/lyxg5ctVzYDMsl9/p5rHa6jxd+4=
+Date:   Thu, 05 May 2022 18:33:21 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-convert-shmem_alloc_and_acct_page-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20220506013320.B92C0C385A4@smtp.kernel.org>
+Subject: + mm-shmem-convert-shmem_getpage_gfp-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20220506013322.964F8C385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: convert shmem_alloc_and_acct_page to use a folio
+     Subject: mm/shmem: convert shmem_getpage_gfp to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-convert-shmem_alloc_and_acct_page-to-use-a-folio.patch
+     mm-shmem-convert-shmem_getpage_gfp-to-use-a-folio.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,70 +62,226 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/shmem: convert shmem_alloc_and_acct_page to use a folio
+Subject: mm/shmem: convert shmem_getpage_gfp to use a folio
 
-Convert shmem_alloc_hugepage() to return the folio that it uses and use a
-folio throughout shmem_alloc_and_acct_page().  Continue to return a page
-from shmem_alloc_and_acct_page() for now.
+Rename shmem_alloc_and_acct_page() to shmem_alloc_and_acct_folio() and
+have it return a folio, then use a folio throuughout shmem_getpage_gfp(). 
+It continues to return a struct page.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-22-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-23-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/shmem.c |   95 +++++++++++++++++++++++----------------------------
+ 1 file changed, 43 insertions(+), 52 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-convert-shmem_alloc_and_acct_page-to-use-a-folio
+--- a/mm/shmem.c~mm-shmem-convert-shmem_getpage_gfp-to-use-a-folio
 +++ a/mm/shmem.c
-@@ -1523,7 +1523,7 @@ static gfp_t limit_gfp_mask(gfp_t huge_g
- 	return result;
+@@ -1563,8 +1563,7 @@ static struct page *shmem_alloc_page(gfp
+ 	return &shmem_alloc_folio(gfp, info, index)->page;
  }
  
--static struct page *shmem_alloc_hugepage(gfp_t gfp,
-+static struct folio *shmem_alloc_hugefolio(gfp_t gfp,
- 		struct shmem_inode_info *info, pgoff_t index)
- {
- 	struct vm_area_struct pvma;
-@@ -1541,7 +1541,7 @@ static struct page *shmem_alloc_hugepage
- 	shmem_pseudo_vma_destroy(&pvma);
- 	if (!folio)
- 		count_vm_event(THP_FILE_FALLBACK);
--	return &folio->page;
-+	return folio;
- }
- 
- static struct folio *shmem_alloc_folio(gfp_t gfp,
-@@ -1568,7 +1568,7 @@ static struct page *shmem_alloc_and_acct
+-static struct page *shmem_alloc_and_acct_page(gfp_t gfp,
+-		struct inode *inode,
++static struct folio *shmem_alloc_and_acct_folio(gfp_t gfp, struct inode *inode,
  		pgoff_t index, bool huge)
  {
  	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct page *page;
-+	struct folio *folio;
- 	int nr;
- 	int err = -ENOSPC;
- 
-@@ -1580,13 +1580,13 @@ static struct page *shmem_alloc_and_acct
- 		goto failed;
- 
- 	if (huge)
--		page = shmem_alloc_hugepage(gfp, info, index);
-+		folio = shmem_alloc_hugefolio(gfp, info, index);
- 	else
--		page = shmem_alloc_page(gfp, info, index);
--	if (page) {
--		__SetPageLocked(page);
--		__SetPageSwapBacked(page);
--		return page;
-+		folio = shmem_alloc_folio(gfp, info, index);
-+	if (folio) {
-+		__folio_set_locked(folio);
-+		__folio_set_swapbacked(folio);
-+		return &folio->page;
+@@ -1586,7 +1585,7 @@ static struct page *shmem_alloc_and_acct
+ 	if (folio) {
+ 		__folio_set_locked(folio);
+ 		__folio_set_swapbacked(folio);
+-		return &folio->page;
++		return folio;
  	}
  
  	err = -ENOMEM;
+@@ -1800,7 +1799,6 @@ static int shmem_getpage_gfp(struct inod
+ 	struct shmem_sb_info *sbinfo;
+ 	struct mm_struct *charge_mm;
+ 	struct folio *folio;
+-	struct page *page;
+ 	pgoff_t hindex = index;
+ 	gfp_t huge_gfp;
+ 	int error;
+@@ -1818,19 +1816,18 @@ repeat:
+ 	sbinfo = SHMEM_SB(inode->i_sb);
+ 	charge_mm = vma ? vma->vm_mm : NULL;
+ 
+-	page = pagecache_get_page(mapping, index,
+-					FGP_ENTRY | FGP_HEAD | FGP_LOCK, 0);
+-
+-	if (page && vma && userfaultfd_minor(vma)) {
+-		if (!xa_is_value(page)) {
+-			unlock_page(page);
+-			put_page(page);
++	folio = __filemap_get_folio(mapping, index, FGP_ENTRY | FGP_LOCK, 0);
++	if (folio && vma && userfaultfd_minor(vma)) {
++		if (!xa_is_value(folio)) {
++			folio_unlock(folio);
++			folio_put(folio);
+ 		}
+ 		*fault_type = handle_userfault(vmf, VM_UFFD_MINOR);
+ 		return 0;
+ 	}
+ 
+-	if (xa_is_value(page)) {
++	if (xa_is_value(folio)) {
++		struct page *page = &folio->page;
+ 		error = shmem_swapin_page(inode, index, &page,
+ 					  sgp, gfp, vma, fault_type);
+ 		if (error == -EEXIST)
+@@ -1840,17 +1837,17 @@ repeat:
+ 		return error;
+ 	}
+ 
+-	if (page) {
+-		hindex = page->index;
++	if (folio) {
++		hindex = folio->index;
+ 		if (sgp == SGP_WRITE)
+-			mark_page_accessed(page);
+-		if (PageUptodate(page))
++			folio_mark_accessed(folio);
++		if (folio_test_uptodate(folio))
+ 			goto out;
+ 		/* fallocated page */
+ 		if (sgp != SGP_READ)
+ 			goto clear;
+-		unlock_page(page);
+-		put_page(page);
++		folio_unlock(folio);
++		folio_put(folio);
+ 	}
+ 
+ 	/*
+@@ -1877,17 +1874,16 @@ repeat:
+ 
+ 	huge_gfp = vma_thp_gfp_mask(vma);
+ 	huge_gfp = limit_gfp_mask(huge_gfp, gfp);
+-	page = shmem_alloc_and_acct_page(huge_gfp, inode, index, true);
+-	if (IS_ERR(page)) {
++	folio = shmem_alloc_and_acct_folio(huge_gfp, inode, index, true);
++	if (IS_ERR(folio)) {
+ alloc_nohuge:
+-		page = shmem_alloc_and_acct_page(gfp, inode,
+-						 index, false);
++		folio = shmem_alloc_and_acct_folio(gfp, inode, index, false);
+ 	}
+-	if (IS_ERR(page)) {
++	if (IS_ERR(folio)) {
+ 		int retry = 5;
+ 
+-		error = PTR_ERR(page);
+-		page = NULL;
++		error = PTR_ERR(folio);
++		folio = NULL;
+ 		if (error != -ENOSPC)
+ 			goto unlock;
+ 		/*
+@@ -1906,30 +1902,26 @@ alloc_nohuge:
+ 		goto unlock;
+ 	}
+ 
+-	if (PageTransHuge(page))
+-		hindex = round_down(index, HPAGE_PMD_NR);
+-	else
+-		hindex = index;
++	hindex = round_down(index, folio_nr_pages(folio));
+ 
+ 	if (sgp == SGP_WRITE)
+-		__SetPageReferenced(page);
++		__folio_set_referenced(folio);
+ 
+-	folio = page_folio(page);
+ 	error = shmem_add_to_page_cache(folio, mapping, hindex,
+ 					NULL, gfp & GFP_RECLAIM_MASK,
+ 					charge_mm);
+ 	if (error)
+ 		goto unacct;
+-	lru_cache_add(page);
++	folio_add_lru(folio);
+ 
+ 	spin_lock_irq(&info->lock);
+-	info->alloced += compound_nr(page);
+-	inode->i_blocks += BLOCKS_PER_PAGE << compound_order(page);
++	info->alloced += folio_nr_pages(folio);
++	inode->i_blocks += BLOCKS_PER_PAGE << folio_order(folio);
+ 	shmem_recalc_inode(inode);
+ 	spin_unlock_irq(&info->lock);
+ 	alloced = true;
+ 
+-	if (PageTransHuge(page) &&
++	if (folio_test_pmd_mappable(folio) &&
+ 	    DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE) <
+ 			hindex + HPAGE_PMD_NR - 1) {
+ 		/*
+@@ -1960,22 +1952,21 @@ clear:
+ 	 * but SGP_FALLOC on a page fallocated earlier must initialize
+ 	 * it now, lest undo on failure cancel our earlier guarantee.
+ 	 */
+-	if (sgp != SGP_WRITE && !PageUptodate(page)) {
+-		int i;
++	if (sgp != SGP_WRITE && !folio_test_uptodate(folio)) {
++		long i, n = folio_nr_pages(folio);
+ 
+-		for (i = 0; i < compound_nr(page); i++) {
+-			clear_highpage(page + i);
+-			flush_dcache_page(page + i);
+-		}
+-		SetPageUptodate(page);
++		for (i = 0; i < n; i++)
++			clear_highpage(folio_page(folio, i));
++		flush_dcache_folio(folio);
++		folio_mark_uptodate(folio);
+ 	}
+ 
+ 	/* Perhaps the file has been truncated since we checked */
+ 	if (sgp <= SGP_CACHE &&
+ 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
+ 		if (alloced) {
+-			ClearPageDirty(page);
+-			delete_from_page_cache(page);
++			folio_clear_dirty(folio);
++			filemap_remove_folio(folio);
+ 			spin_lock_irq(&info->lock);
+ 			shmem_recalc_inode(inode);
+ 			spin_unlock_irq(&info->lock);
+@@ -1984,24 +1975,24 @@ clear:
+ 		goto unlock;
+ 	}
+ out:
+-	*pagep = page + index - hindex;
++	*pagep = folio_page(folio, index - hindex);
+ 	return 0;
+ 
+ 	/*
+ 	 * Error recovery.
+ 	 */
+ unacct:
+-	shmem_inode_unacct_blocks(inode, compound_nr(page));
++	shmem_inode_unacct_blocks(inode, folio_nr_pages(folio));
+ 
+-	if (PageTransHuge(page)) {
+-		unlock_page(page);
+-		put_page(page);
++	if (folio_test_large(folio)) {
++		folio_unlock(folio);
++		folio_put(folio);
+ 		goto alloc_nohuge;
+ 	}
+ unlock:
+-	if (page) {
+-		unlock_page(page);
+-		put_page(page);
++	if (folio) {
++		folio_unlock(folio);
++		folio_put(folio);
+ 	}
+ 	if (error == -ENOSPC && !once++) {
+ 		spin_lock_irq(&info->lock);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
