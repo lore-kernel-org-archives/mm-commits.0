@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AD73C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 074B7C4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 01:33:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387968AbiEFBhR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 May 2022 21:37:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55106 "EHLO
+        id S1387972AbiEFBhS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 May 2022 21:37:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387987AbiEFBhL (ORCPT
+        with ESMTP id S1387988AbiEFBhL (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2022 21:37:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1BBA62A0F
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D708A62A0D
         for <mm-commits@vger.kernel.org>; Thu,  5 May 2022 18:33:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 599C062031
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:33:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5222C385A8;
-        Fri,  6 May 2022 01:33:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 45838B83200
+        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 01:33:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00C14C385A8;
+        Fri,  6 May 2022 01:33:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651800808;
-        bh=MWRKEhW13W4UKp95KFFwksK2IIbEdpHSErx2WKnw5+w=;
+        s=korg; t=1651800807;
+        bh=VNW3GItPSfGfTYAgu5zrg/Oei1Men+fHxUjSAilLhMo=;
         h=Date:To:From:Subject:From;
-        b=U5ebhXuQBlT4ww/iZ3vrnFsI+qypd37W1k6L+U5DSCI62vyffS8k1jrKPk/qwTB+U
-         DZn5jtu4fjjMM2FzrfRA0/7fwOr/eOFKAAurZbblHx5fklvb70DMc8gqELOBK6SyQS
-         PFR+Rae+0qn3u9te0YH26S3L7PKgL9eVr00Ne5kM=
-Date:   Thu, 05 May 2022 18:33:28 -0700
+        b=b0tZ9PfjxbI15dfCUva1cv84gFJ1B5sTc63+bO+7TBGgw/aXKhDo036wRn9KhG1gv
+         hWuo6OFzkjhIKwwNemxr8zLycMB7H6LXPWwmbZQyyrJNsLp+DAN7G7uUmYcKHeQHiX
+         C16vT8sEzV3fRqgiwP89s0GTqbPp+1+ktYnFEYV8=
+Date:   Thu, 05 May 2022 18:33:26 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-folio_test_movable.patch added to mm-unstable branch
-Message-Id: <20220506013328.B5222C385A8@smtp.kernel.org>
+Subject: + mm-add-folio_mapping_flags.patch added to mm-unstable branch
+Message-Id: <20220506013327.00C14C385A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add folio_test_movable()
+     Subject: mm: add folio_mapping_flags()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-folio_test_movable.patch
+     mm-add-folio_mapping_flags.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,34 +62,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add folio_test_movable()
+Subject: mm: add folio_mapping_flags()
 
-This is the folio equivalent of PageMovable() which is needed to
-convert mm/migrate.c to folios.
+This is the equivalent of PageMappingFlags and is needed for converting
+mm/migrate.c to folios.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-26-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-25-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    5 +++++
+ include/linux/page-flags.h |    5 +++++
  1 file changed, 5 insertions(+)
 
---- a/include/linux/migrate.h~mm-add-folio_test_movable
-+++ a/include/linux/migrate.h
-@@ -105,6 +105,11 @@ static inline void __ClearPageMovable(st
- }
- #endif
+--- a/include/linux/page-flags.h~mm-add-folio_mapping_flags
++++ a/include/linux/page-flags.h
+@@ -650,6 +650,11 @@ __PAGEFLAG(Reported, reported, PF_NO_COM
+ #define PAGE_MAPPING_KSM	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
+ #define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
  
-+static inline bool folio_test_movable(struct folio *folio)
++static __always_inline bool folio_mapping_flags(struct folio *folio)
 +{
-+	return PageMovable(&folio->page);
++	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) != 0;
 +}
 +
- #ifdef CONFIG_NUMA_BALANCING
- extern int migrate_misplaced_page(struct page *page,
- 				  struct vm_area_struct *vma, int node);
+ static __always_inline int PageMappingFlags(struct page *page)
+ {
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) != 0;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
