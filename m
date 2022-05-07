@@ -2,64 +2,51 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F93DC433F5
-	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 22:49:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 771D1C433EF
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 23:00:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344671AbiEGWxD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 May 2022 18:53:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33498 "EHLO
+        id S1344491AbiEGXEN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 19:04:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231174AbiEGWxC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 18:53:02 -0400
+        with ESMTP id S231258AbiEGXEM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 19:04:12 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B142E1EC42
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 15:49:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32DB21011
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 16:00:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 554B8B80CCC
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 22:49:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE440C385A5;
-        Sat,  7 May 2022 22:49:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A7B0DB8015B
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 23:00:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39880C385AF;
+        Sat,  7 May 2022 23:00:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651963752;
-        bh=mYCGLA1xwcE2/eM3lLD32EISLuQKjo1bbpIwPEzaysc=;
+        s=korg; t=1651964420;
+        bh=OBXcRU+3Fd0x3plMzDSYCg2/sTu1IyYM8s6nmF7MhfI=;
         h=Date:To:From:Subject:From;
-        b=pzUalElbbWclMlYKMLmama4X8FjN7HUQWIXmM5rzgNdQcm+GteC2HOAFa0HeosNWi
-         uPoBuPt5o1VKBuAGOULQbvco1gSD43Zyn1ZURATNAJMTvgOcn6Sc+sZgiF1o+TEFvO
-         nNRXz84rDk05sAHPUueJUjWj5B91jNmNz7RTLuks=
-Date:   Sat, 07 May 2022 15:49:11 -0700
+        b=v4PgjT1SDOCSPHpmxcfPK1R8Kc0uNwghJObAu5jCcjPDxoC8MXYsGg3IR93QZuuuj
+         1yyIF9+IKcCzQ50hMxhZ56wVdfkFe1ZVfWMbx/P7cTuJ3awF6GFDSdnN68FaDQHkNa
+         m/ei6267HkXFyH16Ekfse9voIALe9QMu6jDVt6/8=
+Date:   Sat, 07 May 2022 16:00:19 -0700
 To:     mm-commits@vger.kernel.org, vvs@openvz.org, rostedt@goodmis.org,
         mingo@redhat.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tracing-incorrect-gfp_t-conversion-fix.patch added to mm-unstable branch
-Message-Id: <20220507224911.EE440C385A5@smtp.kernel.org>
+Subject: [withdrawn] tracing-incorrect-gfp_t-conversion-fix.patch removed from -mm tree
+Message-Id: <20220507230020.39880C385AF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
+The quilt patch titled
      Subject: tracing-incorrect-gfp_t-conversion-fix
-has been added to the -mm mm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      tracing-incorrect-gfp_t-conversion-fix.patch
 
-This patch should soon appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -188,7 +175,6 @@ kfence-enable-check-kfence-canary-on-panic-via-boot-param-fix.patch
 lib-kstrtoxc-add-false-true-support-to-kstrtobool-fix.patch
 mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration-fix.patch
 mm-make-minimum-slab-alignment-a-runtime-property-fix.patch
-tracing-incorrect-gfp_t-conversion-fix.patch
 proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
