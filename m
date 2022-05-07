@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6017CC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  6 May 2022 22:38:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77AE9C433EF
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 17:50:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355278AbiEFWmm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 May 2022 18:42:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49730 "EHLO
+        id S1386718AbiEGRyS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 13:54:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348461AbiEFWml (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2022 18:42:41 -0400
+        with ESMTP id S244094AbiEGRyQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 13:54:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79CEE5AA48
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 15:38:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D0F5227
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 10:50:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1426861766
-        for <mm-commits@vger.kernel.org>; Fri,  6 May 2022 22:38:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 657B8C385A9;
-        Fri,  6 May 2022 22:38:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E4A0161370
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 17:50:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38900C385A6;
+        Sat,  7 May 2022 17:50:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651876736;
-        bh=Z0oJFNjkG0DVRzmC3BRjYyiU3sSpt+/WCRGi3Qdxisg=;
+        s=korg; t=1651945827;
+        bh=NrSLFP71spoTAv4JiXCKzJ7YESsqqQQrNiDFWsOknl8=;
         h=Date:To:From:Subject:From;
-        b=BkFoUodAqNT4ly5NC1IevvlyAZ+6HUm3RHXRSJ+RGrDrEsQFogpIF5FOucN2XbH0w
-         nu0jNeQn3okdhGzYsCF8Vd5fRGx0DMXlM4Gxs+3Yw2ztt6rZEBlFd2/a7jK60PpOQy
-         ffHixph90aou7CaskduXFNV0Zt45IC/BlTT3nrAM=
-Date:   Fri, 06 May 2022 15:38:55 -0700
-To:     mm-commits@vger.kernel.org, dmoulding@me.com,
-        akpm@linux-foundation.org
+        b=z4xlTiI6iuGzGQT3k97NS19Q0RP2TJH/UF+CfPRX8bszJVqb2YtN83ONVbrXMp1gU
+         UcxDzN0Cllvxp9tFBM7XiLC8iD8TvuDBbN+USeC8b5H4oNfy/xFoW+D/rJtO60qtAx
+         I5ycF/bSa5Y+Y5t4eCHi6pjLatjzNo5sCC6mNu9o=
+Date:   Sat, 07 May 2022 10:50:26 -0700
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+        peterz@infradead.org, mingo@redhat.com, luto@kernel.org,
+        hpa@zytor.com, dave.hansen@linux.intel.com, bp@alien8.de,
+        kunyu@nfschina.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-add-hostname-kernel-parameter-v2.patch added to mm-nonmm-unstable branch
-Message-Id: <20220506223856.657B8C385A9@smtp.kernel.org>
+Subject: + mm-functions-may-simplify-the-use-of-return-values.patch added to mm-unstable branch
+Message-Id: <20220507175027.38900C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,11 +43,11 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init-add-hostname-kernel-parameter-v2
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     init-add-hostname-kernel-parameter-v2.patch
+     Subject: mm: functions may simplify the use of return values
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-functions-may-simplify-the-use-of-return-values.patch
 
-This patch should soon appear in the mm-nonmm-unstable branch at
+This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,60 +63,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Moulding <dmoulding@me.com>
-Subject: init-add-hostname-kernel-parameter-v2
+From: Li kunyu <kunyu@nfschina.com>
+Subject: mm: functions may simplify the use of return values
 
-Link: https://lkml.kernel.org/r/20220506060310.7495-2-dmoulding@me.com
-Signed-off-by: Dan Moulding <dmoulding@me.com>
+p4d_clear_huge may be optimized for void return type and function usage. 
+vunmap_p4d_range function saves a few steps here.
+
+Link: https://lkml.kernel.org/r/20220507150630.90399-1-kunyu@nfschina.com
+Signed-off-by: Li kunyu <kunyu@nfschina.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    4 ++--
- init/version.c                                  |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/x86/mm/pgtable.c   |    3 +--
+ include/linux/pgtable.h |   12 +++---------
+ mm/vmalloc.c            |    7 ++-----
+ 3 files changed, 6 insertions(+), 16 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~init-add-hostname-kernel-parameter-v2
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1615,6 +1615,8 @@
- 			Valid parameters: "on", "off"
- 			Default: "on"
- 
-+	hlt		[BUGS=ARM,SH]
-+
- 	hostname=	[KNL] Set the hostname (aka UTS nodename).
- 			Format: <string>
- 			This allows setting the system's hostname during early
-@@ -1628,8 +1630,6 @@
- 			not exceed the maximum allowed hostname length (usually
- 			64 characters) and will be truncated otherwise.
- 
--	hlt		[BUGS=ARM,SH]
--
- 	hpet=		[X86-32,HPET] option to control HPET usage
- 			Format: { enable (default) | disable | force |
- 				verbose }
---- a/init/version.c~init-add-hostname-kernel-parameter-v2
-+++ a/init/version.c
-@@ -41,12 +41,12 @@ static int __init early_hostname(char *a
+--- a/arch/x86/mm/pgtable.c~mm-functions-may-simplify-the-use-of-return-values
++++ a/arch/x86/mm/pgtable.c
+@@ -686,9 +686,8 @@ int p4d_set_huge(p4d_t *p4d, phys_addr_t
+  *
+  * No 512GB pages yet -- always return 0
+  */
+-int p4d_clear_huge(p4d_t *p4d)
++void p4d_clear_huge(p4d_t *p4d)
  {
- 	size_t bufsize = sizeof(init_uts_ns.name.nodename);
- 	size_t maxlen  = bufsize - 1;
-+	size_t arglen;
+-	return 0;
+ }
+ #endif
  
--	strncpy(init_uts_ns.name.nodename, arg, bufsize);
--	if (strlen(arg) > maxlen) {
-+	arglen = strlcpy(init_uts_ns.name.nodename, arg, bufsize);
-+	if (arglen > maxlen) {
- 		pr_warn("hostname parameter exceeds %zd characters and will be truncated",
- 			maxlen);
--		init_uts_ns.name.nodename[maxlen] = '\0';
- 	}
+--- a/include/linux/pgtable.h~mm-functions-may-simplify-the-use-of-return-values
++++ a/include/linux/pgtable.h
+@@ -1443,16 +1443,13 @@ static inline int pmd_protnone(pmd_t pmd
+ 
+ #ifndef __PAGETABLE_P4D_FOLDED
+ int p4d_set_huge(p4d_t *p4d, phys_addr_t addr, pgprot_t prot);
+-int p4d_clear_huge(p4d_t *p4d);
++void p4d_clear_huge(p4d_t *p4d);
+ #else
+ static inline int p4d_set_huge(p4d_t *p4d, phys_addr_t addr, pgprot_t prot)
+ {
  	return 0;
  }
+-static inline int p4d_clear_huge(p4d_t *p4d)
+-{
+-	return 0;
+-}
++static inline void p4d_clear_huge(p4d_t *p4d) { }
+ #endif /* !__PAGETABLE_P4D_FOLDED */
+ 
+ int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
+@@ -1475,10 +1472,7 @@ static inline int pmd_set_huge(pmd_t *pm
+ {
+ 	return 0;
+ }
+-static inline int p4d_clear_huge(p4d_t *p4d)
+-{
+-	return 0;
+-}
++static inline void p4d_clear_huge(p4d_t *p4d) { }
+ static inline int pud_clear_huge(pud_t *pud)
+ {
+ 	return 0;
+--- a/mm/vmalloc.c~mm-functions-may-simplify-the-use-of-return-values
++++ a/mm/vmalloc.c
+@@ -389,18 +389,15 @@ static void vunmap_p4d_range(pgd_t *pgd,
+ {
+ 	p4d_t *p4d;
+ 	unsigned long next;
+-	int cleared;
+ 
+ 	p4d = p4d_offset(pgd, addr);
+ 	do {
+ 		next = p4d_addr_end(addr, end);
+ 
+-		cleared = p4d_clear_huge(p4d);
+-		if (cleared || p4d_bad(*p4d))
++		p4d_clear_huge(p4d);
++		if (p4d_bad(*p4d))
+ 			*mask |= PGTBL_P4D_MODIFIED;
+ 
+-		if (cleared)
+-			continue;
+ 		if (p4d_none_or_clear_bad(p4d))
+ 			continue;
+ 		vunmap_pud_range(p4d, addr, next, mask);
 _
 
-Patches currently in -mm which might be from dmoulding@me.com are
+Patches currently in -mm which might be from kunyu@nfschina.com are
 
-init-add-hostname-kernel-parameter.patch
-init-add-hostname-kernel-parameter-v2.patch
+mm-functions-may-simplify-the-use-of-return-values.patch
 
