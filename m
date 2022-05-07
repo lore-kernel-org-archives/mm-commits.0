@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77AE9C433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 17:50:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC2E9C433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 17:55:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1386718AbiEGRyS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 May 2022 13:54:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37828 "EHLO
+        id S1386543AbiEGR7o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 13:59:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244094AbiEGRyQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 13:54:16 -0400
+        with ESMTP id S237053AbiEGR7n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 13:59:43 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D0F5227
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 10:50:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C7A113E32
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 10:55:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E4A0161370
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 17:50:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38900C385A6;
-        Sat,  7 May 2022 17:50:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 99FC7611A9
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 17:55:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC323C385A6;
+        Sat,  7 May 2022 17:55:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651945827;
-        bh=NrSLFP71spoTAv4JiXCKzJ7YESsqqQQrNiDFWsOknl8=;
+        s=korg; t=1651946155;
+        bh=6Qnl+LC2cM49a9dtEjMZ9Tiy5oJmI27wwdzcbJdM3/E=;
         h=Date:To:From:Subject:From;
-        b=z4xlTiI6iuGzGQT3k97NS19Q0RP2TJH/UF+CfPRX8bszJVqb2YtN83ONVbrXMp1gU
-         UcxDzN0Cllvxp9tFBM7XiLC8iD8TvuDBbN+USeC8b5H4oNfy/xFoW+D/rJtO60qtAx
-         I5ycF/bSa5Y+Y5t4eCHi6pjLatjzNo5sCC6mNu9o=
-Date:   Sat, 07 May 2022 10:50:26 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        peterz@infradead.org, mingo@redhat.com, luto@kernel.org,
-        hpa@zytor.com, dave.hansen@linux.intel.com, bp@alien8.de,
-        kunyu@nfschina.com, akpm@linux-foundation.org
+        b=UdPyyPkkNJQxOMlDMs/ma1TXgXHFkclsQ2D0gURPm17HeXSn73YBPYiRTH0h5WlGs
+         +y8pwbmK9c7/goWYrkEErJc9p/3qQvQLZlMjKh7mAd3r9LXIrH+NuJRXhDuIxHuxdR
+         TvUoTA8+phpHYvnUglYAW7Zq/Kfq5gfq0OYhsM/8=
+Date:   Sat, 07 May 2022 10:55:54 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        wangkefeng.wang@huawei.com, paul.walmsley@sifive.com,
+        pasha.tatashin@soleen.com, palmer@dabbelt.com, mingo@redhat.com,
+        hpa@zytor.com, dave.hansen@linux.intel.com,
+        catalin.marinas@arm.com, bp@alien8.de, anshuman.khandual@arm.com,
+        tongtiangen@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-functions-may-simplify-the-use-of-return-values.patch added to mm-unstable branch
-Message-Id: <20220507175027.38900C385A6@smtp.kernel.org>
+Subject: + mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch added to mm-unstable branch
+Message-Id: <20220507175554.DC323C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,9 +45,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: functions may simplify the use of return values
+     Subject: mm: page_table_check: using PxD_SIZE instead of PxD_PAGE_SIZE
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-functions-may-simplify-the-use-of-return-values.patch
+     mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,101 +65,94 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li kunyu <kunyu@nfschina.com>
-Subject: mm: functions may simplify the use of return values
+From: Tong Tiangen <tongtiangen@huawei.com>
+Subject: mm: page_table_check: using PxD_SIZE instead of PxD_PAGE_SIZE
 
-p4d_clear_huge may be optimized for void return type and function usage. 
-vunmap_p4d_range function saves a few steps here.
+Patch series "mm: page_table_check: add support on arm64 and riscv", v7.
 
-Link: https://lkml.kernel.org/r/20220507150630.90399-1-kunyu@nfschina.com
-Signed-off-by: Li kunyu <kunyu@nfschina.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Page table check performs extra verifications at the time when new pages
+become accessible from the userspace by getting their page table entries
+(PTEs PMDs etc.) added into the table.  It is supported on X86[1].
+
+This patchset made some simple changes and make it easier to support new
+architecture, then we support this feature on ARM64 and RISCV.
+
+[1]https://lore.kernel.org/lkml/20211123214814.3756047-1-pasha.tatashin@soleen.com/
+
+
+This patch (of 6):
+
+Compared with PxD_PAGE_SIZE, which is defined and used only on X86,
+PxD_SIZE is more common in each architecture.  Therefore, it is more
+reasonable to use PxD_SIZE instead of PxD_PAGE_SIZE in page_table_check.c.
+At the same time, it is easier to support page table check in other
+architectures.  The substitution has no functional impact on the x86.
+
+Link: https://lkml.kernel.org/r/20220507110114.4128854-1-tongtiangen@huawei.com
+Link: https://lkml.kernel.org/r/20220507110114.4128854-2-tongtiangen@huawei.com
+Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
+Suggested-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable.c   |    3 +--
- include/linux/pgtable.h |   12 +++---------
- mm/vmalloc.c            |    7 ++-----
- 3 files changed, 6 insertions(+), 16 deletions(-)
+ mm/page_table_check.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/x86/mm/pgtable.c~mm-functions-may-simplify-the-use-of-return-values
-+++ a/arch/x86/mm/pgtable.c
-@@ -686,9 +686,8 @@ int p4d_set_huge(p4d_t *p4d, phys_addr_t
-  *
-  * No 512GB pages yet -- always return 0
-  */
--int p4d_clear_huge(p4d_t *p4d)
-+void p4d_clear_huge(p4d_t *p4d)
- {
--	return 0;
+--- a/mm/page_table_check.c~mm-page_table_check-using-pxd_size-instead-of-pxd_page_size
++++ a/mm/page_table_check.c
+@@ -177,7 +177,7 @@ void __page_table_check_pmd_clear(struct
+ 
+ 	if (pmd_user_accessible_page(pmd)) {
+ 		page_table_check_clear(mm, addr, pmd_pfn(pmd),
+-				       PMD_PAGE_SIZE >> PAGE_SHIFT);
++				       PMD_SIZE >> PAGE_SHIFT);
+ 	}
  }
- #endif
+ EXPORT_SYMBOL(__page_table_check_pmd_clear);
+@@ -190,7 +190,7 @@ void __page_table_check_pud_clear(struct
  
---- a/include/linux/pgtable.h~mm-functions-may-simplify-the-use-of-return-values
-+++ a/include/linux/pgtable.h
-@@ -1443,16 +1443,13 @@ static inline int pmd_protnone(pmd_t pmd
- 
- #ifndef __PAGETABLE_P4D_FOLDED
- int p4d_set_huge(p4d_t *p4d, phys_addr_t addr, pgprot_t prot);
--int p4d_clear_huge(p4d_t *p4d);
-+void p4d_clear_huge(p4d_t *p4d);
- #else
- static inline int p4d_set_huge(p4d_t *p4d, phys_addr_t addr, pgprot_t prot)
- {
- 	return 0;
+ 	if (pud_user_accessible_page(pud)) {
+ 		page_table_check_clear(mm, addr, pud_pfn(pud),
+-				       PUD_PAGE_SIZE >> PAGE_SHIFT);
++				       PUD_SIZE >> PAGE_SHIFT);
+ 	}
  }
--static inline int p4d_clear_huge(p4d_t *p4d)
--{
--	return 0;
--}
-+static inline void p4d_clear_huge(p4d_t *p4d) { }
- #endif /* !__PAGETABLE_P4D_FOLDED */
- 
- int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
-@@ -1475,10 +1472,7 @@ static inline int pmd_set_huge(pmd_t *pm
- {
- 	return 0;
+ EXPORT_SYMBOL(__page_table_check_pud_clear);
+@@ -219,7 +219,7 @@ void __page_table_check_pmd_set(struct m
+ 	__page_table_check_pmd_clear(mm, addr, *pmdp);
+ 	if (pmd_user_accessible_page(pmd)) {
+ 		page_table_check_set(mm, addr, pmd_pfn(pmd),
+-				     PMD_PAGE_SIZE >> PAGE_SHIFT,
++				     PMD_SIZE >> PAGE_SHIFT,
+ 				     pmd_write(pmd));
+ 	}
  }
--static inline int p4d_clear_huge(p4d_t *p4d)
--{
--	return 0;
--}
-+static inline void p4d_clear_huge(p4d_t *p4d) { }
- static inline int pud_clear_huge(pud_t *pud)
- {
- 	return 0;
---- a/mm/vmalloc.c~mm-functions-may-simplify-the-use-of-return-values
-+++ a/mm/vmalloc.c
-@@ -389,18 +389,15 @@ static void vunmap_p4d_range(pgd_t *pgd,
- {
- 	p4d_t *p4d;
- 	unsigned long next;
--	int cleared;
- 
- 	p4d = p4d_offset(pgd, addr);
- 	do {
- 		next = p4d_addr_end(addr, end);
- 
--		cleared = p4d_clear_huge(p4d);
--		if (cleared || p4d_bad(*p4d))
-+		p4d_clear_huge(p4d);
-+		if (p4d_bad(*p4d))
- 			*mask |= PGTBL_P4D_MODIFIED;
- 
--		if (cleared)
--			continue;
- 		if (p4d_none_or_clear_bad(p4d))
- 			continue;
- 		vunmap_pud_range(p4d, addr, next, mask);
+@@ -234,7 +234,7 @@ void __page_table_check_pud_set(struct m
+ 	__page_table_check_pud_clear(mm, addr, *pudp);
+ 	if (pud_user_accessible_page(pud)) {
+ 		page_table_check_set(mm, addr, pud_pfn(pud),
+-				     PUD_PAGE_SIZE >> PAGE_SHIFT,
++				     PUD_SIZE >> PAGE_SHIFT,
+ 				     pud_write(pud));
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from kunyu@nfschina.com are
+Patches currently in -mm which might be from tongtiangen@huawei.com are
 
-mm-functions-may-simplify-the-use-of-return-values.patch
+mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch
+mm-page_table_check-add-hooks-to-public-helpers.patch
+mm-remove-__have_arch_ptep_clear-in-pgtableh.patch
+riscv-mm-enable-arch_supports_page_table_check.patch
 
