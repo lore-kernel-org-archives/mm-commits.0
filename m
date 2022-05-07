@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB792C433F5
-	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 18:57:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63BABC433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 19:38:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379034AbiEGTBg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 May 2022 15:01:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54200 "EHLO
+        id S1348896AbiEGTls (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 15:41:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238531AbiEGTBf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 15:01:35 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9576C62E2
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 11:57:47 -0700 (PDT)
+        with ESMTP id S1346517AbiEGTlr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 15:41:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E718420BE4
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 12:37:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 45B0CB80C6D
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 18:57:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D14CBC385A6;
-        Sat,  7 May 2022 18:57:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 847EE60A6D
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 19:37:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9173C385A5;
+        Sat,  7 May 2022 19:37:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651949864;
-        bh=csW+3nmxV3sla/Rdda+XGfc9kor0+qc8/dZhNXc4Td4=;
+        s=korg; t=1651952279;
+        bh=vICoDT4Qwm1fvq41QZq27Tb25Adh1ARM3rgr3acdN1c=;
         h=Date:To:From:Subject:From;
-        b=d6L2PRBY0OVt4f05lTC2OrKALJUeL7FDc9+vpcF1uixRVrjj+Q01uRj81hoW6NJ6T
-         +pyEaklpsyKDBH2Kj9BQUNILuj4vYprBZgVefKX8SAyc4Ul8zp7oJleFEFyBxTGfw+
-         ZeJfck6MOKzQJ+wVGGIORdGSfzWIYYyHlfS0o8os=
-Date:   Sat, 07 May 2022 11:57:44 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, ddrokosov@sberdevices.ru,
-        avromanov@sberdevices.ru, akpm@linux-foundation.org
+        b=MmIBqdUAkQa5hGLrEoGBAqeMBGInM9fSCXEt5IqNkWhxSf9hqpq+rdYPLYMKLqpC+
+         mwJmpNQMDlxi9z46Yhkb4bU/094U81IzJ3ji+Y/YZURXJ6pyHOvmItbxplnvPh8Nbh
+         Jjldc/30TGSTHNqOcPMVkQmaYzNpQUXEQbD7ragg=
+Date:   Sat, 07 May 2022 12:37:58 -0700
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, mingo@redhat.com,
+        vvs@openvz.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-double-compression-logic.patch added to mm-unstable branch
-Message-Id: <20220507185744.D14CBC385A6@smtp.kernel.org>
+Subject: + tracing-incorrect-gfp_t-conversion.patch added to mm-unstable branch
+Message-Id: <20220507193758.D9173C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove double compression logic
+     Subject: tracing: incorrect gfp_t conversion
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-remove-double-compression-logic.patch
+     tracing-incorrect-gfp_t-conversion.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,131 +61,307 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Romanov <avromanov@sberdevices.ru>
-Subject: zram: remove double compression logic
+From: Vasily Averin <vvs@openvz.org>
+Subject: tracing: incorrect gfp_t conversion
 
-The 2nd trial allocation under per-cpu presumption has been used to
-prevent regression of allocation failure.  However, it makes trouble for
-maintenance without significant benefit.  The slowpath branch is executed
-extremely rarely: getting there is problematic.  Therefore, we delete this
-branch.
+Fixes the following sparse warnings:
 
-Since b09ab054b69b ("zram: support BDI_CAP_STABLE_WRITES"), zram has used
-QUEUE_FLAG_STABLE_WRITES to prevent buffer change between 1st and 2nd
-memory allocations.  Since we remove second trial memory allocation logic,
-we could remove the STABLE_WRITES flag because there is no change buffer
-to be modified under us.
+include/trace/events/*: sparse: cast to restricted gfp_t
+include/trace/events/*: sparse: restricted gfp_t degrades to integer
 
-Link: https://lkml.kernel.org/r/20220505094443.11728-1-avromanov@sberdevices.ru
-Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
-Signed-off-by: Dmitry Rokosov <ddrokosov@sberdevices.ru>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+gfp_t type is bitwise and requires __force attributes for any casts.
+
+Link: https://lkml.kernel.org/r/331d88fe-f4f7-657c-02a2-d977f15fbff6@openvz.org
+Signed-off-by: Vasily Averin <vvs@openvz.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   42 +++++++-------------------------
- drivers/block/zram/zram_drv.h |    1 
- 2 files changed, 10 insertions(+), 33 deletions(-)
+ include/linux/gfp.h               |    2 
+ include/trace/events/btrfs.h      |    4 -
+ include/trace/events/compaction.h |    4 -
+ include/trace/events/kmem.h       |   12 ++--
+ include/trace/events/mmflags.h    |   78 ++++++++++++++--------------
+ include/trace/events/vmscan.h     |   16 ++---
+ mm/compaction.c                   |    2 
+ 7 files changed, 59 insertions(+), 59 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-double-compression-logic
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1144,15 +1144,14 @@ static ssize_t bd_stat_show(struct devic
- static ssize_t debug_stat_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+--- a/include/linux/gfp.h~tracing-incorrect-gfp_t-conversion
++++ a/include/linux/gfp.h
+@@ -367,7 +367,7 @@ static inline int gfp_migratetype(const
+ 		return MIGRATE_UNMOVABLE;
+ 
+ 	/* Group based on mobility */
+-	return (gfp_flags & GFP_MOVABLE_MASK) >> GFP_MOVABLE_SHIFT;
++	return (__force unsigned long)(gfp_flags & GFP_MOVABLE_MASK) >> GFP_MOVABLE_SHIFT;
+ }
+ #undef GFP_MOVABLE_MASK
+ #undef GFP_MOVABLE_SHIFT
+--- a/include/trace/events/btrfs.h~tracing-incorrect-gfp_t-conversion
++++ a/include/trace/events/btrfs.h
+@@ -1344,13 +1344,13 @@ TRACE_EVENT(alloc_extent_state,
+ 
+ 	TP_STRUCT__entry(
+ 		__field(const struct extent_state *, state)
+-		__field(gfp_t, mask)
++		__field(unsigned long, mask)
+ 		__field(const void*, ip)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->state	= state,
+-		__entry->mask	= mask,
++		__entry->mask	= (__force unsigned long)mask,
+ 		__entry->ip	= (const void *)IP
+ 	),
+ 
+--- a/include/trace/events/compaction.h~tracing-incorrect-gfp_t-conversion
++++ a/include/trace/events/compaction.h
+@@ -162,13 +162,13 @@ TRACE_EVENT(mm_compaction_try_to_compact
+ 
+ 	TP_STRUCT__entry(
+ 		__field(int, order)
+-		__field(gfp_t, gfp_mask)
++		__field(unsigned long, gfp_mask)
+ 		__field(int, prio)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->order = order;
+-		__entry->gfp_mask = gfp_mask;
++		__entry->gfp_mask = (__force unsigned long)gfp_mask;
+ 		__entry->prio = prio;
+ 	),
+ 
+--- a/include/trace/events/kmem.h~tracing-incorrect-gfp_t-conversion
++++ a/include/trace/events/kmem.h
+@@ -24,7 +24,7 @@ DECLARE_EVENT_CLASS(kmem_alloc,
+ 		__field(	const void *,	ptr		)
+ 		__field(	size_t,		bytes_req	)
+ 		__field(	size_t,		bytes_alloc	)
+-		__field(	gfp_t,		gfp_flags	)
++		__field(	unsigned long,	gfp_flags	)
+ 	),
+ 
+ 	TP_fast_assign(
+@@ -32,7 +32,7 @@ DECLARE_EVENT_CLASS(kmem_alloc,
+ 		__entry->ptr		= ptr;
+ 		__entry->bytes_req	= bytes_req;
+ 		__entry->bytes_alloc	= bytes_alloc;
+-		__entry->gfp_flags	= gfp_flags;
++		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+ 	),
+ 
+ 	TP_printk("call_site=%pS ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s",
+@@ -75,7 +75,7 @@ DECLARE_EVENT_CLASS(kmem_alloc_node,
+ 		__field(	const void *,	ptr		)
+ 		__field(	size_t,		bytes_req	)
+ 		__field(	size_t,		bytes_alloc	)
+-		__field(	gfp_t,		gfp_flags	)
++		__field(	unsigned long,	gfp_flags	)
+ 		__field(	int,		node		)
+ 	),
+ 
+@@ -84,7 +84,7 @@ DECLARE_EVENT_CLASS(kmem_alloc_node,
+ 		__entry->ptr		= ptr;
+ 		__entry->bytes_req	= bytes_req;
+ 		__entry->bytes_alloc	= bytes_alloc;
+-		__entry->gfp_flags	= gfp_flags;
++		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+ 		__entry->node		= node;
+ 	),
+ 
+@@ -208,14 +208,14 @@ TRACE_EVENT(mm_page_alloc,
+ 	TP_STRUCT__entry(
+ 		__field(	unsigned long,	pfn		)
+ 		__field(	unsigned int,	order		)
+-		__field(	gfp_t,		gfp_flags	)
++		__field(	unsigned long,	gfp_flags	)
+ 		__field(	int,		migratetype	)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->pfn		= page ? page_to_pfn(page) : -1UL;
+ 		__entry->order		= order;
+-		__entry->gfp_flags	= gfp_flags;
++		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+ 		__entry->migratetype	= migratetype;
+ 	),
+ 
+--- a/include/trace/events/mmflags.h~tracing-incorrect-gfp_t-conversion
++++ a/include/trace/events/mmflags.h
+@@ -14,48 +14,48 @@
+  */
+ 
+ #define __def_gfpflag_names						\
+-	{(unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
+-	{(unsigned long)GFP_TRANSHUGE_LIGHT,	"GFP_TRANSHUGE_LIGHT"}, \
+-	{(unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"},\
+-	{(unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
+-	{(unsigned long)GFP_USER,		"GFP_USER"},		\
+-	{(unsigned long)GFP_KERNEL_ACCOUNT,	"GFP_KERNEL_ACCOUNT"},	\
+-	{(unsigned long)GFP_KERNEL,		"GFP_KERNEL"},		\
+-	{(unsigned long)GFP_NOFS,		"GFP_NOFS"},		\
+-	{(unsigned long)GFP_ATOMIC,		"GFP_ATOMIC"},		\
+-	{(unsigned long)GFP_NOIO,		"GFP_NOIO"},		\
+-	{(unsigned long)GFP_NOWAIT,		"GFP_NOWAIT"},		\
+-	{(unsigned long)GFP_DMA,		"GFP_DMA"},		\
+-	{(unsigned long)__GFP_HIGHMEM,		"__GFP_HIGHMEM"},	\
+-	{(unsigned long)GFP_DMA32,		"GFP_DMA32"},		\
+-	{(unsigned long)__GFP_HIGH,		"__GFP_HIGH"},		\
+-	{(unsigned long)__GFP_ATOMIC,		"__GFP_ATOMIC"},	\
+-	{(unsigned long)__GFP_IO,		"__GFP_IO"},		\
+-	{(unsigned long)__GFP_FS,		"__GFP_FS"},		\
+-	{(unsigned long)__GFP_NOWARN,		"__GFP_NOWARN"},	\
+-	{(unsigned long)__GFP_RETRY_MAYFAIL,	"__GFP_RETRY_MAYFAIL"},	\
+-	{(unsigned long)__GFP_NOFAIL,		"__GFP_NOFAIL"},	\
+-	{(unsigned long)__GFP_NORETRY,		"__GFP_NORETRY"},	\
+-	{(unsigned long)__GFP_COMP,		"__GFP_COMP"},		\
+-	{(unsigned long)__GFP_ZERO,		"__GFP_ZERO"},		\
+-	{(unsigned long)__GFP_NOMEMALLOC,	"__GFP_NOMEMALLOC"},	\
+-	{(unsigned long)__GFP_MEMALLOC,		"__GFP_MEMALLOC"},	\
+-	{(unsigned long)__GFP_HARDWALL,		"__GFP_HARDWALL"},	\
+-	{(unsigned long)__GFP_THISNODE,		"__GFP_THISNODE"},	\
+-	{(unsigned long)__GFP_RECLAIMABLE,	"__GFP_RECLAIMABLE"},	\
+-	{(unsigned long)__GFP_MOVABLE,		"__GFP_MOVABLE"},	\
+-	{(unsigned long)__GFP_ACCOUNT,		"__GFP_ACCOUNT"},	\
+-	{(unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
+-	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
+-	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
+-	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
+-	{(unsigned long)__GFP_ZEROTAGS,		"__GFP_ZEROTAGS"}	\
++	{(__force unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
++	{(__force unsigned long)GFP_TRANSHUGE_LIGHT,	"GFP_TRANSHUGE_LIGHT"}, \
++	{(__force unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"},\
++	{(__force unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
++	{(__force unsigned long)GFP_USER,		"GFP_USER"},		\
++	{(__force unsigned long)GFP_KERNEL_ACCOUNT,	"GFP_KERNEL_ACCOUNT"},	\
++	{(__force unsigned long)GFP_KERNEL,		"GFP_KERNEL"},		\
++	{(__force unsigned long)GFP_NOFS,		"GFP_NOFS"},		\
++	{(__force unsigned long)GFP_ATOMIC,		"GFP_ATOMIC"},		\
++	{(__force unsigned long)GFP_NOIO,		"GFP_NOIO"},		\
++	{(__force unsigned long)GFP_NOWAIT,		"GFP_NOWAIT"},		\
++	{(__force unsigned long)GFP_DMA,		"GFP_DMA"},		\
++	{(__force unsigned long)__GFP_HIGHMEM,		"__GFP_HIGHMEM"},	\
++	{(__force unsigned long)GFP_DMA32,		"GFP_DMA32"},		\
++	{(__force unsigned long)__GFP_HIGH,		"__GFP_HIGH"},		\
++	{(__force unsigned long)__GFP_ATOMIC,		"__GFP_ATOMIC"},	\
++	{(__force unsigned long)__GFP_IO,		"__GFP_IO"},		\
++	{(__force unsigned long)__GFP_FS,		"__GFP_FS"},		\
++	{(__force unsigned long)__GFP_NOWARN,		"__GFP_NOWARN"},	\
++	{(__force unsigned long)__GFP_RETRY_MAYFAIL,	"__GFP_RETRY_MAYFAIL"},	\
++	{(__force unsigned long)__GFP_NOFAIL,		"__GFP_NOFAIL"},	\
++	{(__force unsigned long)__GFP_NORETRY,		"__GFP_NORETRY"},	\
++	{(__force unsigned long)__GFP_COMP,		"__GFP_COMP"},		\
++	{(__force unsigned long)__GFP_ZERO,		"__GFP_ZERO"},		\
++	{(__force unsigned long)__GFP_NOMEMALLOC,	"__GFP_NOMEMALLOC"},	\
++	{(__force unsigned long)__GFP_MEMALLOC,		"__GFP_MEMALLOC"},	\
++	{(__force unsigned long)__GFP_HARDWALL,		"__GFP_HARDWALL"},	\
++	{(__force unsigned long)__GFP_THISNODE,		"__GFP_THISNODE"},	\
++	{(__force unsigned long)__GFP_RECLAIMABLE,	"__GFP_RECLAIMABLE"},	\
++	{(__force unsigned long)__GFP_MOVABLE,		"__GFP_MOVABLE"},	\
++	{(__force unsigned long)__GFP_ACCOUNT,		"__GFP_ACCOUNT"},	\
++	{(__force unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
++	{(__force unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
++	{(__force unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
++	{(__force unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
++	{(__force unsigned long)__GFP_ZEROTAGS,		"__GFP_ZEROTAGS"}	\
+ 
+ #ifdef CONFIG_KASAN_HW_TAGS
+ #define __def_gfpflag_names_kasan ,					       \
+-	{(unsigned long)__GFP_SKIP_ZERO,	   "__GFP_SKIP_ZERO"},	       \
+-	{(unsigned long)__GFP_SKIP_KASAN_POISON,   "__GFP_SKIP_KASAN_POISON"}, \
+-	{(unsigned long)__GFP_SKIP_KASAN_UNPOISON, "__GFP_SKIP_KASAN_UNPOISON"}
++	{(__force unsigned long)__GFP_SKIP_ZERO,	   "__GFP_SKIP_ZERO"},	       \
++	{(__force unsigned long)__GFP_SKIP_KASAN_POISON,   "__GFP_SKIP_KASAN_POISON"}, \
++	{(__force unsigned long)__GFP_SKIP_KASAN_UNPOISON, "__GFP_SKIP_KASAN_UNPOISON"}
+ #else
+ #define __def_gfpflag_names_kasan
+ #endif
+--- a/include/trace/events/vmscan.h~tracing-incorrect-gfp_t-conversion
++++ a/include/trace/events/vmscan.h
+@@ -96,14 +96,14 @@ TRACE_EVENT(mm_vmscan_wakeup_kswapd,
+ 		__field(	int,	nid		)
+ 		__field(	int,	zid		)
+ 		__field(	int,	order		)
+-		__field(	gfp_t,	gfp_flags	)
++		__field(	unsigned long,	gfp_flags	)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->nid		= nid;
+ 		__entry->zid		= zid;
+ 		__entry->order		= order;
+-		__entry->gfp_flags	= gfp_flags;
++		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+ 	),
+ 
+ 	TP_printk("nid=%d order=%d gfp_flags=%s",
+@@ -120,12 +120,12 @@ DECLARE_EVENT_CLASS(mm_vmscan_direct_rec
+ 
+ 	TP_STRUCT__entry(
+ 		__field(	int,	order		)
+-		__field(	gfp_t,	gfp_flags	)
++		__field(	unsigned long,	gfp_flags	)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->order		= order;
+-		__entry->gfp_flags	= gfp_flags;
++		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+ 	),
+ 
+ 	TP_printk("order=%d gfp_flags=%s",
+@@ -210,7 +210,7 @@ TRACE_EVENT(mm_shrink_slab_start,
+ 		__field(void *, shrink)
+ 		__field(int, nid)
+ 		__field(long, nr_objects_to_shrink)
+-		__field(gfp_t, gfp_flags)
++		__field(unsigned long, gfp_flags)
+ 		__field(unsigned long, cache_items)
+ 		__field(unsigned long long, delta)
+ 		__field(unsigned long, total_scan)
+@@ -222,7 +222,7 @@ TRACE_EVENT(mm_shrink_slab_start,
+ 		__entry->shrink = shr->scan_objects;
+ 		__entry->nid = sc->nid;
+ 		__entry->nr_objects_to_shrink = nr_objects_to_shrink;
+-		__entry->gfp_flags = sc->gfp_mask;
++		__entry->gfp_flags = (__force unsigned long)sc->gfp_mask;
+ 		__entry->cache_items = cache_items;
+ 		__entry->delta = delta;
+ 		__entry->total_scan = total_scan;
+@@ -446,13 +446,13 @@ TRACE_EVENT(mm_vmscan_node_reclaim_begin
+ 	TP_STRUCT__entry(
+ 		__field(int, nid)
+ 		__field(int, order)
+-		__field(gfp_t, gfp_flags)
++		__field(unsigned long, gfp_flags)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->nid = nid;
+ 		__entry->order = order;
+-		__entry->gfp_flags = gfp_flags;
++		__entry->gfp_flags = (__force unsigned long)gfp_flags;
+ 	),
+ 
+ 	TP_printk("nid=%d order=%d gfp_flags=%s",
+--- a/mm/compaction.c~tracing-incorrect-gfp_t-conversion
++++ a/mm/compaction.c
+@@ -2569,7 +2569,7 @@ enum compact_result try_to_compact_pages
+ 		unsigned int alloc_flags, const struct alloc_context *ac,
+ 		enum compact_priority prio, struct page **capture)
  {
--	int version = 1;
-+	int version = 2;
- 	struct zram *zram = dev_to_zram(dev);
- 	ssize_t ret;
- 
- 	down_read(&zram->init_lock);
- 	ret = scnprintf(buf, PAGE_SIZE,
--			"version: %d\n%8llu %8llu\n",
-+			"version: %d\n%8llu\n",
- 			version,
--			(u64)atomic64_read(&zram->stats.writestall),
- 			(u64)atomic64_read(&zram->stats.miss_free));
- 	up_read(&zram->init_lock);
- 
-@@ -1368,7 +1367,6 @@ static int __zram_bvec_write(struct zram
- 	}
- 	kunmap_atomic(mem);
- 
--compress_again:
- 	zstrm = zcomp_stream_get(zram->comp);
- 	src = kmap_atomic(page);
- 	ret = zcomp_compress(zstrm, src, &comp_len);
-@@ -1377,39 +1375,20 @@ compress_again:
- 	if (unlikely(ret)) {
- 		zcomp_stream_put(zram->comp);
- 		pr_err("Compression failed! err=%d\n", ret);
--		zs_free(zram->mem_pool, handle);
- 		return ret;
- 	}
- 
- 	if (comp_len >= huge_class_size)
- 		comp_len = PAGE_SIZE;
--	/*
--	 * handle allocation has 2 paths:
--	 * a) fast path is executed with preemption disabled (for
--	 *  per-cpu streams) and has __GFP_DIRECT_RECLAIM bit clear,
--	 *  since we can't sleep;
--	 * b) slow path enables preemption and attempts to allocate
--	 *  the page with __GFP_DIRECT_RECLAIM bit set. we have to
--	 *  put per-cpu compression stream and, thus, to re-do
--	 *  the compression once handle is allocated.
--	 *
--	 * if we have a 'non-null' handle here then we are coming
--	 * from the slow path and handle has already been allocated.
--	 */
--	if (!handle)
--		handle = zs_malloc(zram->mem_pool, comp_len,
--				__GFP_KSWAPD_RECLAIM |
--				__GFP_NOWARN |
--				__GFP_HIGHMEM |
--				__GFP_MOVABLE);
--	if (!handle) {
-+
-+	handle = zs_malloc(zram->mem_pool, comp_len,
-+			__GFP_KSWAPD_RECLAIM |
-+			__GFP_NOWARN |
-+			__GFP_HIGHMEM |
-+			__GFP_MOVABLE);
-+
-+	if (unlikely(!handle)) {
- 		zcomp_stream_put(zram->comp);
--		atomic64_inc(&zram->stats.writestall);
--		handle = zs_malloc(zram->mem_pool, comp_len,
--				GFP_NOIO | __GFP_HIGHMEM |
--				__GFP_MOVABLE);
--		if (handle)
--			goto compress_again;
- 		return -ENOMEM;
- 	}
- 
-@@ -1967,7 +1946,6 @@ static int zram_add(void)
- 	if (ZRAM_LOGICAL_BLOCK_SIZE == PAGE_SIZE)
- 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
- 
--	blk_queue_flag_set(QUEUE_FLAG_STABLE_WRITES, zram->disk->queue);
- 	ret = device_add_disk(NULL, zram->disk, zram_disk_groups);
- 	if (ret)
- 		goto out_cleanup_disk;
---- a/drivers/block/zram/zram_drv.h~zram-remove-double-compression-logic
-+++ a/drivers/block/zram/zram_drv.h
-@@ -81,7 +81,6 @@ struct zram_stats {
- 	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
--	atomic64_t writestall;		/* no. of write slow paths */
- 	atomic64_t miss_free;		/* no. of missed free */
- #ifdef	CONFIG_ZRAM_WRITEBACK
- 	atomic64_t bd_count;		/* no. of pages in backing device */
+-	int may_perform_io = gfp_mask & __GFP_IO;
++	int may_perform_io = (__force int)(gfp_mask & __GFP_IO);
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	enum compact_result rc = COMPACT_SKIPPED;
 _
 
-Patches currently in -mm which might be from avromanov@sberdevices.ru are
+Patches currently in -mm which might be from vvs@openvz.org are
 
-zram-remove-double-compression-logic.patch
+percpu-improve-percpu_alloc_percpu-event-trace.patch
+tracing-incorrect-gfp_t-conversion.patch
 
