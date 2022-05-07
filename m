@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D262C433F5
-	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 21:11:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 246D0C433EF
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 21:17:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387192AbiEGVPU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 May 2022 17:15:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34672 "EHLO
+        id S1387452AbiEGVVN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 17:21:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376407AbiEGVPT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 17:15:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B28C912608
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 14:11:31 -0700 (PDT)
+        with ESMTP id S245719AbiEGVVM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 17:21:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19D542725
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 14:17:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4BAEF60E0B
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 21:11:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4E13C385A5;
-        Sat,  7 May 2022 21:11:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BF36FB80CB3
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 21:17:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D6FEC385A6;
+        Sat,  7 May 2022 21:17:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651957890;
-        bh=qd2+wShb+AqdK92nstbFLcLUH836BSQoQJI3l7gZMDI=;
+        s=korg; t=1651958242;
+        bh=urpxzGD6VW/QOOWdg+cZ16ALR88kWaPd5bUw3X4HWs4=;
         h=Date:To:From:Subject:From;
-        b=fO+HZ8dx8yk+ZvAujhLcpsPaV4hbkqMQ4FlJp25G5FVDr8exsQC2bG+qxQP6tMIIS
-         mOodpxEVex2hTGkBDp0+/uTocK3c4EcpD+aMCMoSqhZ26mCclD/FGuhEYn3DG1X+W5
-         dnCR/yZng413lnVuhd3oR6ofCC046OdnopsY3M5s=
-Date:   Sat, 07 May 2022 14:11:29 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=MPK0FD9/QVBeOVaHPDGKu9ufk2R8un3bin2YVXXdRQbjl5hG/bp6EC2LfkWHRx+pn
+         f9C0ToW2hvxQYWlneATTQOfOy2vxqOTwzTN9D8+p1LqvGBC0tD6TrlLXQGmXWGKkBX
+         jZq21cjvt5Ez2UChycV9n5QdHbFnG6VZOxrMEC2w=
+Date:   Sat, 07 May 2022 14:17:21 -0700
+To:     mm-commits@vger.kernel.org, mail@florommel.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-a-mailing-list-for-damon-development.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220507211130.A4E13C385A5@smtp.kernel.org>
+Subject: + mmap-locking-api-fix-missed-mmap_sem-references-in-comments.patch added to mm-unstable branch
+Message-Id: <20220507211722.5D6FEC385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,11 +41,11 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add a mailing list for DAMON development
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-a-mailing-list-for-damon-development.patch
+     Subject: mmap locking API: fix missed mmap_sem references in comments
+has been added to the -mm mm-unstable branch.  Its filename is
+     mmap-locking-api-fix-missed-mmap_sem-references-in-comments.patch
 
-This patch should soon appear in the mm-hotfixes-unstable branch at
+This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,54 +61,80 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: MAINTAINERS: add a mailing list for DAMON development
+From: Florian Rommel <mail@florommel.de>
+Subject: mmap locking API: fix missed mmap_sem references in comments
 
-This commit adds an open mailing list for DAMON in MAINTAINERS file.
+Commit c1e8d7c6a7a6 ("mmap locking API: convert mmap_sem comments") missed
+replacing some references of mmap_sem by mmap_lock due to misspelling
+(mm_sem instead of mmap_sem).
 
-Link: https://lkml.kernel.org/r/20220503180741.137079-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20220503113333.214124-1-mail@florommel.de
+Signed-off-by: Florian Rommel <mail@florommel.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v7.c |    2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v8.c |    2 +-
+ drivers/gpu/drm/ttm/ttm_bo_vm.c                   |    2 +-
+ mm/mmap.c                                         |    4 ++--
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-a-mailing-list-for-damon-development
-+++ a/MAINTAINERS
-@@ -5438,6 +5438,7 @@ F:	net/ax25/sysctl_net_ax25.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v7.c~mmap-locking-api-fix-missed-mmap_sem-references-in-comments
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v7.c
+@@ -184,7 +184,7 @@ static int kgd_hqd_load(struct amdgpu_de
  
- DATA ACCESS MONITOR
- M:	SeongJae Park <sj@kernel.org>
-+L:	damon@lists.linux.dev
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	Documentation/ABI/testing/sysfs-kernel-mm-damon
+ 	/* read_user_ptr may take the mm->mmap_lock.
+ 	 * release srbm_mutex to avoid circular dependency between
+-	 * srbm_mutex->mm_sem->reservation_ww_class_mutex->srbm_mutex.
++	 * srbm_mutex->mmap_lock->reservation_ww_class_mutex->srbm_mutex.
+ 	 */
+ 	release_queue(adev);
+ 	valid_wptr = read_user_wptr(mm, wptr, wptr_val);
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v8.c~mmap-locking-api-fix-missed-mmap_sem-references-in-comments
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v8.c
+@@ -208,7 +208,7 @@ static int kgd_hqd_load(struct amdgpu_de
+ 
+ 	/* read_user_ptr may take the mm->mmap_lock.
+ 	 * release srbm_mutex to avoid circular dependency between
+-	 * srbm_mutex->mm_sem->reservation_ww_class_mutex->srbm_mutex.
++	 * srbm_mutex->mmap_lock->reservation_ww_class_mutex->srbm_mutex.
+ 	 */
+ 	release_queue(adev);
+ 	valid_wptr = read_user_wptr(mm, wptr, wptr_val);
+--- a/drivers/gpu/drm/ttm/ttm_bo_vm.c~mmap-locking-api-fix-missed-mmap_sem-references-in-comments
++++ a/drivers/gpu/drm/ttm/ttm_bo_vm.c
+@@ -110,7 +110,7 @@ static unsigned long ttm_bo_io_mem_pfn(s
+  * @bo: The buffer object
+  * @vmf: The fault structure handed to the callback
+  *
+- * vm callbacks like fault() and *_mkwrite() allow for the mm_sem to be dropped
++ * vm callbacks like fault() and *_mkwrite() allow for the mmap_lock to be dropped
+  * during long waits, and after the wait the callback will be restarted. This
+  * is to allow other threads using the same virtual memory space concurrent
+  * access to map(), unmap() completely unrelated buffer objects. TTM buffer
+--- a/mm/mmap.c~mmap-locking-api-fix-missed-mmap_sem-references-in-comments
++++ a/mm/mmap.c
+@@ -1285,7 +1285,7 @@ static int anon_vma_compatible(struct vm
+  * the same as 'old', the other will be the new one that is trying
+  * to share the anon_vma.
+  *
+- * NOTE! This runs with mm_sem held for reading, so it is possible that
++ * NOTE! This runs with mmap_lock held for reading, so it is possible that
+  * the anon_vma of 'old' is concurrently in the process of being set up
+  * by another page fault trying to merge _that_. But that's ok: if it
+  * is being set up, that automatically means that it will be a singleton
+@@ -1299,7 +1299,7 @@ static int anon_vma_compatible(struct vm
+  *
+  * We also make sure that the two vma's are compatible (adjacent,
+  * and with the same memory policies). That's all stable, even with just
+- * a read lock on the mm_sem.
++ * a read lock on the mmap_lock.
+  */
+ static struct anon_vma *reusable_anon_vma(struct vm_area_struct *old, struct vm_area_struct *a, struct vm_area_struct *b)
+ {
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from mail@florommel.de are
 
-maintainers-add-a-mailing-list-for-damon-development.patch
-mm-damon-core-add-a-function-for-damon_operations-registration-checks.patch
-mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops.patch
-selftets-damon-sysfs-test-existence-and-permission-of-avail_operations.patch
-docs-abiadmin-guide-damon-document-avail_operations-sysfs-file.patch
-mm-damon-vaddr-register-a-damon_operations-for-fixed-virtual-address-ranges-monitoring.patch
-mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring.patch
-mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring-fix.patch
-docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
-mm-damon-core-add-a-new-callback-for-watermarks-checks.patch
-mm-damon-core-finish-kdamond-as-soon-as-any-callback-returns-an-error.patch
-mm-damon-vaddr-generalize-damon_va_apply_three_regions.patch
-mm-damon-vaddr-move-damon_set_regions-to-core.patch
-mm-damon-vaddr-remove-damon_va_apply_three_regions.patch
-mm-damon-sysfs-prohibit-multiple-physical-address-space-monitoring-targets.patch
-mm-damon-sysfs-move-targets-setup-code-to-a-separated-function.patch
-mm-damon-sysfs-reuse-damon_set_regions-for-regions-setting.patch
-mm-damon-sysfs-use-enum-for-state-input-handling.patch
-mm-damon-sysfs-update-schemes-stat-in-the-kdamond-context.patch
-mm-damon-sysfs-support-online-inputs-update.patch
-docs-abiadmin-guide-damon-update-for-state-sysfs-file-input-keyword-commit.patch
-mm-damon-reclaim-support-online-inputs-update.patch
-docs-admin-guide-mm-damon-reclaim-document-commit_inputs-parameter.patch
+mmap-locking-api-fix-missed-mmap_sem-references-in-comments.patch
 
