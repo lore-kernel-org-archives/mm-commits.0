@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4D22C433F5
-	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 17:56:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A1D0C433EF
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 17:56:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1386774AbiEGSAC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 May 2022 14:00:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40638 "EHLO
+        id S1386785AbiEGSAD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 14:00:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1386662AbiEGR7x (ORCPT
+        with ESMTP id S1386744AbiEGR7x (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 13:59:53 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF45262C5
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 10:56:05 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7BC562DE
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 10:56:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 90724B80B59
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 17:56:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33E43C385A5;
-        Sat,  7 May 2022 17:56:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 447D461363
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 17:56:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 995C0C385A5;
+        Sat,  7 May 2022 17:56:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651946163;
-        bh=LhChLDGKpsTv+91nVo5+qzkiaO5F8WkCViebRPnmbvI=;
+        s=korg; t=1651946165;
+        bh=COno9Z3X3Mla54NhQdAgZAvqZZpfxZ81yH12IPv2ev0=;
         h=Date:To:From:Subject:From;
-        b=jtnumNa4Oks5SLDJFbasu8VxJ/6k/ljbnXcoCCuxEhy4AaUg6fAbpVxYxS/C4ZF27
-         +MiFvK7tcGTe2wo3mHIVEcsBd2iGLbSWOG+j3dof1vFxQ9RDhzE/N/VoE+3RMXgtDn
-         EhKReocVxygrd21UoaCD4GbsIKpjyXiMn0MIy99Y=
-Date:   Sat, 07 May 2022 10:56:02 -0700
+        b=H3+lCf2qss3Bv0apdp7lq8w4JVT3UoUiDfOdviZ6jjq8tdM6ttrX/ovnSPCP6e8W5
+         g94J4V/uun9e+kpj/x4Ck2uYcZP9McXe8s75bm4fkU7lyxoBNdfHXuXTL4EGa1CC9W
+         UDy5dLe2JTFFKhJ13RgXUCFnfrFKHe8V27M/MPjY=
+Date:   Sat, 07 May 2022 10:56:04 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
-        tongtiangen@huawei.com, paul.walmsley@sifive.com,
+        wangkefeng.wang@huawei.com, paul.walmsley@sifive.com,
         pasha.tatashin@soleen.com, palmer@dabbelt.com, mingo@redhat.com,
         hpa@zytor.com, dave.hansen@linux.intel.com,
         catalin.marinas@arm.com, bp@alien8.de, anshuman.khandual@arm.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        tongtiangen@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-enable-arch_supports_page_table_check.patch added to mm-unstable branch
-Message-Id: <20220507175603.33E43C385A5@smtp.kernel.org>
+Subject: + riscv-mm-enable-arch_supports_page_table_check.patch added to mm-unstable branch
+Message-Id: <20220507175605.995C0C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,9 +45,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK
+     Subject: riscv/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-enable-arch_supports_page_table_check.patch
+     riscv-mm-enable-arch_supports_page_table_check.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,17 +65,16 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: arm64/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK
+From: Tong Tiangen <tongtiangen@huawei.com>
+Subject: riscv/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK
 
 As commit d283d422c6c4 ("x86: mm: add x86_64 support for page table
-check") , enable ARCH_SUPPORTS_PAGE_TABLE_CHECK on arm64.
+check"), enable ARCH_SUPPORTS_PAGE_TABLE_CHECK on riscv.
 
 Add additional page table check stubs for page table helpers, these stubs
 can be used to check the existing page table entries.
 
-Link: https://lkml.kernel.org/r/20220507110114.4128854-6-tongtiangen@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20220507110114.4128854-7-tongtiangen@huawei.com
 Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -84,163 +83,186 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig               |    1 
- arch/arm64/include/asm/pgtable.h |   61 ++++++++++++++++++++++++++---
- 2 files changed, 56 insertions(+), 6 deletions(-)
+ arch/riscv/Kconfig               |    1 
+ arch/riscv/include/asm/pgtable.h |   71 ++++++++++++++++++++++++++---
+ 2 files changed, 66 insertions(+), 6 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-enable-arch_supports_page_table_check
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -33,6 +33,7 @@
- #include <linux/mmdebug.h>
- #include <linux/mm_types.h>
- #include <linux/sched.h>
+--- a/arch/riscv/include/asm/pgtable.h~riscv-mm-enable-arch_supports_page_table_check
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -114,6 +114,8 @@
+ #include <asm/pgtable-32.h>
+ #endif /* CONFIG_64BIT */
+ 
 +#include <linux/page_table_check.h>
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- #define __HAVE_ARCH_FLUSH_PMD_TLB_RANGE
-@@ -96,6 +97,7 @@ static inline pteval_t __phys_to_pte_val
- #define pte_young(pte)		(!!(pte_val(pte) & PTE_AF))
- #define pte_special(pte)	(!!(pte_val(pte) & PTE_SPECIAL))
- #define pte_write(pte)		(!!(pte_val(pte) & PTE_WRITE))
-+#define pte_user(pte)		(!!(pte_val(pte) & PTE_USER))
- #define pte_user_exec(pte)	(!(pte_val(pte) & PTE_UXN))
- #define pte_cont(pte)		(!!(pte_val(pte) & PTE_CONT))
- #define pte_devmap(pte)		(!!(pte_val(pte) & PTE_DEVMAP))
-@@ -312,8 +314,8 @@ static inline void __check_racy_pte_upda
- 		     __func__, pte_val(old_pte), pte_val(pte));
++
+ #ifdef CONFIG_XIP_KERNEL
+ #define XIP_FIXUP(addr) ({							\
+ 	uintptr_t __a = (uintptr_t)(addr);					\
+@@ -315,6 +317,11 @@ static inline int pte_exec(pte_t pte)
+ 	return pte_val(pte) & _PAGE_EXEC;
  }
  
--static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
--			      pte_t *ptep, pte_t pte)
-+static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
-+				pte_t *ptep, pte_t pte)
++static inline int pte_user(pte_t pte)
++{
++	return pte_val(pte) & _PAGE_USER;
++}
++
+ static inline int pte_huge(pte_t pte)
  {
- 	if (pte_present(pte) && pte_user_exec(pte) && !pte_special(pte))
- 		__sync_icache_dcache(pte);
-@@ -343,6 +345,13 @@ static inline void set_pte_at(struct mm_
- 	set_pte(ptep, pte);
+ 	return pte_present(pte) && (pte_val(pte) & _PAGE_LEAF);
+@@ -446,7 +453,7 @@ static inline void set_pte(pte_t *ptep,
+ 
+ void flush_icache_pte(pte_t pte);
+ 
+-static inline void set_pte_at(struct mm_struct *mm,
++static inline void __set_pte_at(struct mm_struct *mm,
+ 	unsigned long addr, pte_t *ptep, pte_t pteval)
+ {
+ 	if (pte_present(pteval) && pte_exec(pteval))
+@@ -455,10 +462,17 @@ static inline void set_pte_at(struct mm_
+ 	set_pte(ptep, pteval);
  }
  
-+static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-+			      pte_t *ptep, pte_t pte)
++static inline void set_pte_at(struct mm_struct *mm,
++	unsigned long addr, pte_t *ptep, pte_t pteval)
 +{
-+	page_table_check_pte_set(mm, addr, ptep, pte);
-+	return __set_pte_at(mm, addr, ptep, pte);
++	page_table_check_pte_set(mm, addr, ptep, pteval);
++	__set_pte_at(mm, addr, ptep, pteval);
 +}
 +
- /*
-  * Huge pte definitions.
-  */
-@@ -454,6 +463,8 @@ static inline int pmd_trans_huge(pmd_t p
- #define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
- #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
- #define pmd_valid(pmd)		pte_valid(pmd_pte(pmd))
-+#define pmd_user(pmd)		pte_user(pmd_pte(pmd))
-+#define pmd_user_exec(pmd)	pte_user_exec(pmd_pte(pmd))
- #define pmd_cont(pmd)		pte_cont(pmd_pte(pmd))
- #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
- #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
-@@ -501,8 +512,19 @@ static inline pmd_t pmd_mkdevmap(pmd_t p
- #define pud_pfn(pud)		((__pud_to_phys(pud) & PUD_MASK) >> PAGE_SHIFT)
- #define pfn_pud(pfn,prot)	__pud(__phys_to_pud_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
- 
--#define set_pmd_at(mm, addr, pmdp, pmd)	set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd))
--#define set_pud_at(mm, addr, pudp, pud)	set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud))
-+static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
-+			      pmd_t *pmdp, pmd_t pmd)
-+{
-+	page_table_check_pmd_set(mm, addr, pmdp, pmd);
-+	return __set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd));
-+}
-+
-+static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
-+			      pud_t *pudp, pud_t pud)
-+{
-+	page_table_check_pud_set(mm, addr, pudp, pud);
-+	return __set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud));
-+}
- 
- #define __p4d_to_phys(p4d)	__pte_to_phys(p4d_pte(p4d))
- #define __phys_to_p4d_val(phys)	__phys_to_pte_val(phys)
-@@ -643,6 +665,24 @@ static inline unsigned long pmd_page_vad
- #define pud_present(pud)	pte_present(pud_pte(pud))
- #define pud_leaf(pud)		(pud_present(pud) && !pud_table(pud))
- #define pud_valid(pud)		pte_valid(pud_pte(pud))
-+#define pud_user(pud)		pte_user(pud_pte(pud))
-+
-+#ifdef CONFIG_PAGE_TABLE_CHECK
-+static inline bool pte_user_accessible_page(pte_t pte)
-+{
-+	return pte_present(pte) && (pte_user(pte) || pte_user_exec(pte));
-+}
-+
-+static inline bool pmd_user_accessible_page(pmd_t pmd)
-+{
-+	return pmd_present(pmd) && (pmd_user(pmd) || pmd_user_exec(pmd));
-+}
-+
-+static inline bool pud_user_accessible_page(pud_t pud)
-+{
-+	return pud_present(pud) && pud_user(pud);
-+}
-+#endif
- 
- static inline void set_pud(pud_t *pudp, pud_t pud)
+ static inline void pte_clear(struct mm_struct *mm,
+ 	unsigned long addr, pte_t *ptep)
  {
-@@ -876,7 +916,11 @@ static inline int pmdp_test_and_clear_yo
+-	set_pte_at(mm, addr, ptep, __pte(0));
++	__set_pte_at(mm, addr, ptep, __pte(0));
+ }
+ 
+ #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+@@ -479,7 +493,11 @@ static inline int ptep_set_access_flags(
  static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
  				       unsigned long address, pte_t *ptep)
  {
--	return __pte(xchg_relaxed(&pte_val(*ptep), 0));
-+	pte_t pte = __pte(xchg_relaxed(&pte_val(*ptep), 0));
+-	return __pte(atomic_long_xchg((atomic_long_t *)ptep, 0));
++	pte_t pte = __pte(atomic_long_xchg((atomic_long_t *)ptep, 0));
 +
 +	page_table_check_pte_clear(mm, address, pte);
 +
 +	return pte;
  }
  
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+@@ -546,6 +564,13 @@ static inline unsigned long pmd_pfn(pmd_
+ 	return ((__pmd_to_phys(pmd) & PMD_MASK) >> PAGE_SHIFT);
+ }
+ 
++#define __pud_to_phys(pud)  (pud_val(pud) >> _PAGE_PFN_SHIFT << PAGE_SHIFT)
++
++static inline unsigned long pud_pfn(pud_t pud)
++{
++	return ((__pud_to_phys(pud) & PUD_MASK) >> PAGE_SHIFT);
++}
++
+ static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
+ {
+ 	return pte_pmd(pte_modify(pmd_pte(pmd), newprot));
+@@ -567,6 +592,11 @@ static inline int pmd_young(pmd_t pmd)
+ 	return pte_young(pmd_pte(pmd));
+ }
+ 
++static inline int pmd_user(pmd_t pmd)
++{
++	return pte_user(pmd_pte(pmd));
++}
++
+ static inline pmd_t pmd_mkold(pmd_t pmd)
+ {
+ 	return pte_pmd(pte_mkold(pmd_pte(pmd)));
+@@ -600,15 +630,39 @@ static inline pmd_t pmd_mkdirty(pmd_t pm
+ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 				pmd_t *pmdp, pmd_t pmd)
+ {
+-	return set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd));
++	page_table_check_pmd_set(mm, addr, pmdp, pmd);
++	return __set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd));
++}
++
++static inline int pud_user(pud_t pud)
++{
++	return pte_user(pud_pte(pud));
+ }
+ 
+ static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+ 				pud_t *pudp, pud_t pud)
+ {
+-	return set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud));
++	page_table_check_pud_set(mm, addr, pudp, pud);
++	return __set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud));
++}
++
++#ifdef CONFIG_PAGE_TABLE_CHECK
++static inline bool pte_user_accessible_page(pte_t pte)
++{
++	return pte_present(pte) && pte_user(pte);
++}
++
++static inline bool pmd_user_accessible_page(pmd_t pmd)
++{
++	return pmd_leaf(pmd) && pmd_user(pmd);
+ }
+ 
++static inline bool pud_user_accessible_page(pud_t pud)
++{
++	return pud_leaf(pud) && pud_user(pud);
++}
++#endif
++
  #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -884,7 +928,11 @@ static inline pte_t ptep_get_and_clear(s
+ static inline int pmd_trans_huge(pmd_t pmd)
+ {
+@@ -634,7 +688,11 @@ static inline int pmdp_test_and_clear_yo
  static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
- 					    unsigned long address, pmd_t *pmdp)
+ 					unsigned long address, pmd_t *pmdp)
  {
 -	return pte_pmd(ptep_get_and_clear(mm, address, (pte_t *)pmdp));
-+	pmd_t pmd = __pmd(xchg_relaxed(&pmd_val(*pmdp), 0));
++	pmd_t pmd = __pmd(atomic_long_xchg((atomic_long_t *)pmdp, 0));
 +
 +	page_table_check_pmd_clear(mm, address, pmd);
 +
 +	return pmd;
  }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
-@@ -918,6 +966,7 @@ static inline void pmdp_set_wrprotect(st
+ #define __HAVE_ARCH_PMDP_SET_WRPROTECT
+@@ -648,6 +706,7 @@ static inline void pmdp_set_wrprotect(st
  static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
- 		unsigned long address, pmd_t *pmdp, pmd_t pmd)
+ 				unsigned long address, pmd_t *pmdp, pmd_t pmd)
  {
 +	page_table_check_pmd_set(vma->vm_mm, address, pmdp, pmd);
- 	return __pmd(xchg_relaxed(&pmd_val(*pmdp), pmd_val(pmd)));
+ 	return __pmd(atomic_long_xchg((atomic_long_t *)pmdp, pmd_val(pmd)));
  }
- #endif
---- a/arch/arm64/Kconfig~arm64-mm-enable-arch_supports_page_table_check
-+++ a/arch/arm64/Kconfig
-@@ -92,6 +92,7 @@ config ARM64
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+--- a/arch/riscv/Kconfig~riscv-mm-enable-arch_supports_page_table_check
++++ a/arch/riscv/Kconfig
+@@ -38,6 +38,7 @@ config RISCV
  	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128
- 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC if MMU
+ 	select ARCH_SUPPORTS_HUGETLBFS if MMU
 +	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION if COMPAT
- 	select ARCH_WANT_DEFAULT_BPF_JIT
- 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
+ 	select ARCH_USE_MEMTEST
+ 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT if MMU
+ 	select ARCH_WANT_FRAME_POINTERS
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from tongtiangen@huawei.com are
 
-mm-page_table_check-move-pxx_user_accessible_page-into-x86.patch
-arm64-mm-enable-arch_supports_page_table_check.patch
+mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch
+mm-page_table_check-add-hooks-to-public-helpers.patch
+mm-remove-__have_arch_ptep_clear-in-pgtableh.patch
+riscv-mm-enable-arch_supports_page_table_check.patch
 
