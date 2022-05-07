@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CD85C433F5
-	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 21:52:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F62C433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 21:55:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387529AbiEGV4W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 May 2022 17:56:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55358 "EHLO
+        id S1354984AbiEGV7T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 17:59:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387528AbiEGV4U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 17:56:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D30EFD10;
-        Sat,  7 May 2022 14:52:33 -0700 (PDT)
+        with ESMTP id S1350158AbiEGV7S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 17:59:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15202FD03
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 14:55:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A3C4860F2D;
-        Sat,  7 May 2022 21:52:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 065C6C385A6;
-        Sat,  7 May 2022 21:52:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B65A60F22
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 21:55:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE0B0C385A5;
+        Sat,  7 May 2022 21:55:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651960352;
-        bh=1I4TKssy6yHtJB0DOLvoU/YN0ZUywf5dO/iYT5pJTTo=;
+        s=korg; t=1651960528;
+        bh=7aPOyFk3EKRJSIMegInqL8cCxdLc0RGTAPFCawhBX+k=;
         h=Date:To:From:Subject:From;
-        b=Gh1jcRFxVeCZSBIEIWnFuhczU68nJUtL4y0VZAwJKnYJIPz4vHmeVZKuu5PvrSvpq
-         rzWsPa/OevXv1//F7wddJcKxrT6RwfGgsQ2SiJ0SNH2Rixhq2fjyD981BW20KR+A6m
-         A1naD9dCxPQFtE3gZ+X4D3dhgYEeUXcIcP1zvBis=
-Date:   Sat, 07 May 2022 14:52:31 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        stable@vger.kernel.org, avagin@gmail.com, akpm@linux-foundation.org
+        b=tpsJD4NH05mWouF2PeifZv+gCL/c2BDkFTYcF4jHNwsC64haVrMlfVvJRSyYjD+HG
+         MV9Ld23IgkwVf0O+wHFFhPeGmt1ejlz1L2VrsEkXRuA18CTDSs17He0zCvQDUOxR9F
+         n1diDg+nVpJAXlQk0qiuCRFhiC2MLrQsQWIcFuu0=
+Date:   Sat, 07 May 2022 14:55:28 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        willy@infradead.org, shy828301@gmail.com, linmiaohe@huawei.com,
+        hch@lst.de, geert+renesas@glider.be, neilb@suse.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-sendfile-handles-o_nonblock-of-out_fd.patch added to mm-nonmm-unstable branch
-Message-Id: <20220507215232.065C6C385A6@smtp.kernel.org>
+Subject: + mm-handle-thp-in-swap_page_fs-count_vm_events.patch added to mm-unstable branch
+Message-Id: <20220507215528.DE0B0C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,11 +43,11 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: sendfile handles O_NONBLOCK of out_fd
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-sendfile-handles-o_nonblock-of-out_fd.patch
+     Subject: MM: handle THP in swap_*page_fs() - count_vm_events()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-handle-thp-in-swap_page_fs-count_vm_events.patch
 
-This patch should soon appear in the mm-nonmm-unstable branch at
+This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,74 +63,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@gmail.com>
-Subject: fs: sendfile handles O_NONBLOCK of out_fd
+From: "NeilBrown" <neilb@suse.de>
+Subject: MM: handle THP in swap_*page_fs() - count_vm_events()
 
-sendfile has to return EAGAIN if out_fd is nonblocking and the write into
-it would block.
+We need to use count_swpout_vm_event() for sio_write_complete() to get
+correct counting.
 
-Here is a small reproducer for the problem:
+Note that THP swap in (if it ever happens) is current accounted 1 for each
+page, whether HUGE or normal.  This is different from swap-out accounting.
 
-#define _GNU_SOURCE /* See feature_test_macros(7) */
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/sendfile.h>
+This patch should be squashed into
+    MM: handle THP in swap_*page_fs()
 
-
-#define FILE_SIZE (1UL << 30)
-int main(int argc, char **argv) {
-        int p[2], fd;
-
-        if (pipe2(p, O_NONBLOCK))
-                return 1;
-
-        fd = open(argv[1], O_RDWR | O_TMPFILE, 0666);
-        if (fd < 0)
-                return 1;
-        ftruncate(fd, FILE_SIZE);
-
-        if (sendfile(p[1], fd, 0, FILE_SIZE) == -1) {
-                fprintf(stderr, "FAIL\n");
-        }
-        if (sendfile(p[1], fd, 0, FILE_SIZE) != -1 || errno != EAGAIN) {
-                fprintf(stderr, "FAIL\n");
-        }
-        return 0;
-}
-
-It worked before b964bf53e540, it is stuck after b964bf53e540, and it
-works again with this fix.
-
-Link: https://lkml.kernel.org/r/20220415005015.525191-1-avagin@gmail.com
-Fixes: b964bf53e540 ("teach sendfile(2) to handle send-to-pipe directly")
-Signed-off-by: Andrei Vagin <avagin@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/165146948934.24404.5909750610552745025@noble.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.de>
+Reported-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_io.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/fs/read_write.c~fs-sendfile-handles-o_nonblock-of-out_fd
-+++ a/fs/read_write.c
-@@ -1247,6 +1247,9 @@ static ssize_t do_sendfile(int out_fd, i
- 					  count, fl);
- 		file_end_write(out.file);
- 	} else {
-+		if (out.file->f_flags & O_NONBLOCK)
-+			fl |= SPLICE_F_NONBLOCK;
-+
- 		retval = splice_file_to_pipe(in.file, opipe, &pos, count, fl);
- 	}
+--- a/mm/page_io.c~mm-handle-thp-in-swap_page_fs-count_vm_events
++++ a/mm/page_io.c
+@@ -280,8 +280,10 @@ static void sio_write_complete(struct ki
+ 			set_page_dirty(page);
+ 			ClearPageReclaim(page);
+ 		}
+-	} else
+-		count_vm_events(PSWPOUT, sio->pages);
++	} else {
++		for (p = 0; p < sio->pages; p++)
++			count_swpout_vm_event(sio->bvec[p].bv_page);
++	}
  
+ 	for (p = 0; p < sio->pages; p++)
+ 		end_page_writeback(sio->bvec[p].bv_page);
 _
 
-Patches currently in -mm which might be from avagin@gmail.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-fs-sendfile-handles-o_nonblock-of-out_fd.patch
+mm-create-new-mm-swaph-header-file.patch
+mm-drop-swap_dirty_folio.patch
+mm-move-responsibility-for-setting-swp_fs_ops-to-swap_activate.patch
+mm-reclaim-mustnt-enter-fs-for-swp_fs_ops-swap-space.patch
+mm-introduce-swap_rw-and-use-it-for-reads-from-swp_fs_ops-swap-space.patch
+nfs-rename-nfs_direct_io-and-use-as-swap_rw.patch
+mm-perform-async-writes-to-swp_fs_ops-swap-space-using-swap_rw.patch
+doc-update-documentation-for-swap_activate-and-swap_rw.patch
+mm-submit-multipage-reads-for-swp_fs_ops-swap-space.patch
+mm-submit-multipage-write-for-swp_fs_ops-swap-space.patch
+mm-handle-thp-in-swap_page_fs.patch
+mm-handle-thp-in-swap_page_fs-count_vm_events.patch
+vfs-add-fmode_can_odirect-file-flag.patch
+mm-discard-__gfp_atomic.patch
 
