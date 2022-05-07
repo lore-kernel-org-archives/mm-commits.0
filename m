@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC2E9C433F5
-	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 17:55:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3DCDC433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 17:56:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1386543AbiEGR7o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 May 2022 13:59:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40536 "EHLO
+        id S1386727AbiEGR7u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 13:59:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40584 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237053AbiEGR7n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 13:59:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C7A113E32
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 10:55:56 -0700 (PDT)
+        with ESMTP id S237053AbiEGR7u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 13:59:50 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4BD920F64
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 10:56:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 99FC7611A9
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 17:55:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC323C385A6;
-        Sat,  7 May 2022 17:55:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8170DB80B59
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 17:56:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21A16C385A6;
+        Sat,  7 May 2022 17:55:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651946155;
-        bh=6Qnl+LC2cM49a9dtEjMZ9Tiy5oJmI27wwdzcbJdM3/E=;
+        s=korg; t=1651946159;
+        bh=sqSMoZLH1lvSdDVjX7l58IkfeNi0yRX/8hJfvjyDTpk=;
         h=Date:To:From:Subject:From;
-        b=UdPyyPkkNJQxOMlDMs/ma1TXgXHFkclsQ2D0gURPm17HeXSn73YBPYiRTH0h5WlGs
-         +y8pwbmK9c7/goWYrkEErJc9p/3qQvQLZlMjKh7mAd3r9LXIrH+NuJRXhDuIxHuxdR
-         TvUoTA8+phpHYvnUglYAW7Zq/Kfq5gfq0OYhsM/8=
-Date:   Sat, 07 May 2022 10:55:54 -0700
+        b=SKxJUJvQvgjG+80+uT8dKPaY26VW4Gz95cRvck3/+4B4zFpOLNRHCbB0lYMsNHgJc
+         0283abF8wKUdMOv2/J3gjQreV/M5x+mG7FEmbbgWcy0k5Tgbg8uK6CFlGzsh2YS6Pv
+         PjfHr2s9xoyQsQMPjBtIlbUZonNtmGAfZmtfP5Os=
+Date:   Sat, 07 May 2022 10:55:58 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         wangkefeng.wang@huawei.com, paul.walmsley@sifive.com,
         pasha.tatashin@soleen.com, palmer@dabbelt.com, mingo@redhat.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         catalin.marinas@arm.com, bp@alien8.de, anshuman.khandual@arm.com,
         tongtiangen@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch added to mm-unstable branch
-Message-Id: <20220507175554.DC323C385A6@smtp.kernel.org>
+Subject: + mm-page_table_check-add-hooks-to-public-helpers.patch added to mm-unstable branch
+Message-Id: <20220507175559.21A16C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,9 +45,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_table_check: using PxD_SIZE instead of PxD_PAGE_SIZE
+     Subject: mm: page_table_check: add hooks to public helpers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_table_check-using-pxd_size-instead-of-pxd_page_size.patch
+     mm-page_table_check-add-hooks-to-public-helpers.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,87 +66,128 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Tong Tiangen <tongtiangen@huawei.com>
-Subject: mm: page_table_check: using PxD_SIZE instead of PxD_PAGE_SIZE
+Subject: mm: page_table_check: add hooks to public helpers
 
-Patch series "mm: page_table_check: add support on arm64 and riscv", v7.
+Move ptep_clear() to the include/linux/pgtable.h and add page table check
+relate hooks to some helpers, it's prepare for support page table check
+feature on new architecture.
 
-Page table check performs extra verifications at the time when new pages
-become accessible from the userspace by getting their page table entries
-(PTEs PMDs etc.) added into the table.  It is supported on X86[1].
+Optimize the implementation of ptep_clear(), page table hooks added page
+table check stubs, the interface control should be at stubs, there is no
+rationale for doing a IS_ENABLED() check here.
 
-This patchset made some simple changes and make it easier to support new
-architecture, then we support this feature on ARM64 and RISCV.
+For architectures that do not enable CONFIG_PAGE_TABLE_CHECK, they will
+call a fallback page table check stubs[1] when getting their page table
+helpers[2] in include/linux/pgtable.h.
 
-[1]https://lore.kernel.org/lkml/20211123214814.3756047-1-pasha.tatashin@soleen.com/
+[1] page table check stubs defined in include/linux/page_table_check.h
+[2] ptep_clear() ptep_get_and_clear()  pmdp_huge_get_and_clear()
+pudp_huge_get_and_clear()
 
-
-This patch (of 6):
-
-Compared with PxD_PAGE_SIZE, which is defined and used only on X86,
-PxD_SIZE is more common in each architecture.  Therefore, it is more
-reasonable to use PxD_SIZE instead of PxD_PAGE_SIZE in page_table_check.c.
-At the same time, it is easier to support page table check in other
-architectures.  The substitution has no functional impact on the x86.
-
-Link: https://lkml.kernel.org/r/20220507110114.4128854-1-tongtiangen@huawei.com
-Link: https://lkml.kernel.org/r/20220507110114.4128854-2-tongtiangen@huawei.com
+Link: https://lkml.kernel.org/r/20220507110114.4128854-4-tongtiangen@huawei.com
 Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
-Suggested-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Acked-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_table_check.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/pgtable.h |   10 ----------
+ include/linux/pgtable.h        |   23 +++++++++++++++--------
+ 2 files changed, 15 insertions(+), 18 deletions(-)
 
---- a/mm/page_table_check.c~mm-page_table_check-using-pxd_size-instead-of-pxd_page_size
-+++ a/mm/page_table_check.c
-@@ -177,7 +177,7 @@ void __page_table_check_pmd_clear(struct
+--- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-add-hooks-to-public-helpers
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1072,16 +1072,6 @@ static inline pte_t ptep_get_and_clear_f
+ 	return pte;
+ }
  
- 	if (pmd_user_accessible_page(pmd)) {
- 		page_table_check_clear(mm, addr, pmd_pfn(pmd),
--				       PMD_PAGE_SIZE >> PAGE_SHIFT);
-+				       PMD_SIZE >> PAGE_SHIFT);
- 	}
- }
- EXPORT_SYMBOL(__page_table_check_pmd_clear);
-@@ -190,7 +190,7 @@ void __page_table_check_pud_clear(struct
+-#define __HAVE_ARCH_PTEP_CLEAR
+-static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
+-			      pte_t *ptep)
+-{
+-	if (IS_ENABLED(CONFIG_PAGE_TABLE_CHECK))
+-		ptep_get_and_clear(mm, addr, ptep);
+-	else
+-		pte_clear(mm, addr, ptep);
+-}
+-
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ static inline void ptep_set_wrprotect(struct mm_struct *mm,
+ 				      unsigned long addr, pte_t *ptep)
+--- a/include/linux/pgtable.h~mm-page_table_check-add-hooks-to-public-helpers
++++ a/include/linux/pgtable.h
+@@ -12,6 +12,7 @@
+ #include <linux/bug.h>
+ #include <linux/errno.h>
+ #include <asm-generic/pgtable_uffd.h>
++#include <linux/page_table_check.h>
  
- 	if (pud_user_accessible_page(pud)) {
- 		page_table_check_clear(mm, addr, pud_pfn(pud),
--				       PUD_PAGE_SIZE >> PAGE_SHIFT);
-+				       PUD_SIZE >> PAGE_SHIFT);
- 	}
+ #if 5 - defined(__PAGETABLE_P4D_FOLDED) - defined(__PAGETABLE_PUD_FOLDED) - \
+ 	defined(__PAGETABLE_PMD_FOLDED) != CONFIG_PGTABLE_LEVELS
+@@ -259,14 +260,6 @@ static inline int pmdp_clear_flush_young
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
+ 
+-#ifndef __HAVE_ARCH_PTEP_CLEAR
+-static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
+-			      pte_t *ptep)
+-{
+-	pte_clear(mm, addr, ptep);
+-}
+-#endif
+-
+ #ifndef __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long address,
+@@ -274,10 +267,19 @@ static inline pte_t ptep_get_and_clear(s
+ {
+ 	pte_t pte = *ptep;
+ 	pte_clear(mm, address, ptep);
++	page_table_check_pte_clear(mm, address, pte);
+ 	return pte;
  }
- EXPORT_SYMBOL(__page_table_check_pud_clear);
-@@ -219,7 +219,7 @@ void __page_table_check_pmd_set(struct m
- 	__page_table_check_pmd_clear(mm, addr, *pmdp);
- 	if (pmd_user_accessible_page(pmd)) {
- 		page_table_check_set(mm, addr, pmd_pfn(pmd),
--				     PMD_PAGE_SIZE >> PAGE_SHIFT,
-+				     PMD_SIZE >> PAGE_SHIFT,
- 				     pmd_write(pmd));
- 	}
+ #endif
+ 
++#ifndef __HAVE_ARCH_PTEP_CLEAR
++static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
++			      pte_t *ptep)
++{
++	ptep_get_and_clear(mm, addr, ptep);
++}
++#endif
++
+ #ifndef __HAVE_ARCH_PTEP_GET
+ static inline pte_t ptep_get(pte_t *ptep)
+ {
+@@ -347,7 +349,10 @@ static inline pmd_t pmdp_huge_get_and_cl
+ 					    pmd_t *pmdp)
+ {
+ 	pmd_t pmd = *pmdp;
++
+ 	pmd_clear(pmdp);
++	page_table_check_pmd_clear(mm, address, pmd);
++
+ 	return pmd;
  }
-@@ -234,7 +234,7 @@ void __page_table_check_pud_set(struct m
- 	__page_table_check_pud_clear(mm, addr, *pudp);
- 	if (pud_user_accessible_page(pud)) {
- 		page_table_check_set(mm, addr, pud_pfn(pud),
--				     PUD_PAGE_SIZE >> PAGE_SHIFT,
-+				     PUD_SIZE >> PAGE_SHIFT,
- 				     pud_write(pud));
- 	}
+ #endif /* __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR */
+@@ -359,6 +364,8 @@ static inline pud_t pudp_huge_get_and_cl
+ 	pud_t pud = *pudp;
+ 
+ 	pud_clear(pudp);
++	page_table_check_pud_clear(mm, address, pud);
++
+ 	return pud;
  }
+ #endif /* __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR */
 _
 
 Patches currently in -mm which might be from tongtiangen@huawei.com are
