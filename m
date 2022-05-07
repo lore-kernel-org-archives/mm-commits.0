@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 246D0C433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 21:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6694EC433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  7 May 2022 21:34:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387452AbiEGVVN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 May 2022 17:21:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37702 "EHLO
+        id S1348322AbiEGViC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 May 2022 17:38:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245719AbiEGVVM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 17:21:12 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19D542725
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 14:17:25 -0700 (PDT)
+        with ESMTP id S235745AbiEGViB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 7 May 2022 17:38:01 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB4591F639
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 14:34:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BF36FB80CB3
-        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 21:17:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D6FEC385A6;
-        Sat,  7 May 2022 21:17:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 820D660F2C
+        for <mm-commits@vger.kernel.org>; Sat,  7 May 2022 21:34:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6B32C385A6;
+        Sat,  7 May 2022 21:34:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1651958242;
-        bh=urpxzGD6VW/QOOWdg+cZ16ALR88kWaPd5bUw3X4HWs4=;
+        s=korg; t=1651959252;
+        bh=De8mBkXSUQ6oyYwYq83d+OiIy8mBXP2JcIfjYi2Q17c=;
         h=Date:To:From:Subject:From;
-        b=MPK0FD9/QVBeOVaHPDGKu9ufk2R8un3bin2YVXXdRQbjl5hG/bp6EC2LfkWHRx+pn
-         f9C0ToW2hvxQYWlneATTQOfOy2vxqOTwzTN9D8+p1LqvGBC0tD6TrlLXQGmXWGKkBX
-         jZq21cjvt5Ez2UChycV9n5QdHbFnG6VZOxrMEC2w=
-Date:   Sat, 07 May 2022 14:17:21 -0700
-To:     mm-commits@vger.kernel.org, mail@florommel.de,
+        b=gxEnYqAUFBh3/K6E+vDds/0SSbb/oBYtcqx9g3Ja+xbxDRxQnK5FWEbZZXvcvDzz/
+         eUokVdLRb1Fev6cQevaLeWATQPaDSiWmxC9RhtcEqJaFr4QSyHBq8uTIgb9vLV7iD5
+         F0E6jTTips60uDtTIQSM2AzVDLp20Elw//hrni+U=
+Date:   Sat, 07 May 2022 14:34:12 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, linkinjeon@kernel.org,
+        kari.argillander@stargateuniverse.net,
+        almaz.alexandrovich@paragon-software.com, rdunlap@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmap-locking-api-fix-missed-mmap_sem-references-in-comments.patch added to mm-unstable branch
-Message-Id: <20220507211722.5D6FEC385A6@smtp.kernel.org>
+Subject: + fs-ntfs3-validate-boot-sectors_per_clusters.patch added to mm-nonmm-unstable branch
+Message-Id: <20220507213412.C6B32C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,11 +44,11 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap locking API: fix missed mmap_sem references in comments
-has been added to the -mm mm-unstable branch.  Its filename is
-     mmap-locking-api-fix-missed-mmap_sem-references-in-comments.patch
+     Subject: fs/ntfs3: validate BOOT sectors_per_clusters
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-ntfs3-validate-boot-sectors_per_clusters.patch
 
-This patch should soon appear in the mm-unstable branch at
+This patch should soon appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,80 +64,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Florian Rommel <mail@florommel.de>
-Subject: mmap locking API: fix missed mmap_sem references in comments
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: fs/ntfs3: validate BOOT sectors_per_clusters
 
-Commit c1e8d7c6a7a6 ("mmap locking API: convert mmap_sem comments") missed
-replacing some references of mmap_sem by mmap_lock due to misspelling
-(mm_sem instead of mmap_sem).
+When the NTFS BOOT sectors_per_clusters field is > 0x80, it represents a
+shift value.  Make sure that the shift value is not too large before using
+it (NTFS max cluster size is 2MB).  Return -EVINVAL if it too large.
 
-Link: https://lkml.kernel.org/r/20220503113333.214124-1-mail@florommel.de
-Signed-off-by: Florian Rommel <mail@florommel.de>
+This prevents negative shift values and shift values that are larger than
+the field size.
+
+Prevents this UBSAN error:
+
+ UBSAN: shift-out-of-bounds in ../fs/ntfs3/super.c:673:16
+ shift exponent -192 is negative
+
+Link: https://lkml.kernel.org/r/20220502175342.20296-1-rdunlap@infradead.org
+Fixes: 82cae269cfa9 ("fs/ntfs3: Add initialization of super block")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: syzbot+1631f09646bc214d2e76@syzkaller.appspotmail.com
+Reviewed-by: Namjae Jeon <linkinjeon@kernel.org>
+Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Kari Argillander <kari.argillander@stargateuniverse.net>
+Cc: Namjae Jeon <linkinjeon@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v7.c |    2 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v8.c |    2 +-
- drivers/gpu/drm/ttm/ttm_bo_vm.c                   |    2 +-
- mm/mmap.c                                         |    4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ fs/ntfs3/super.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v7.c~mmap-locking-api-fix-missed-mmap_sem-references-in-comments
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v7.c
-@@ -184,7 +184,7 @@ static int kgd_hqd_load(struct amdgpu_de
+--- a/fs/ntfs3/super.c~fs-ntfs3-validate-boot-sectors_per_clusters
++++ a/fs/ntfs3/super.c
+@@ -668,9 +668,11 @@ static u32 format_size_gb(const u64 byte
  
- 	/* read_user_ptr may take the mm->mmap_lock.
- 	 * release srbm_mutex to avoid circular dependency between
--	 * srbm_mutex->mm_sem->reservation_ww_class_mutex->srbm_mutex.
-+	 * srbm_mutex->mmap_lock->reservation_ww_class_mutex->srbm_mutex.
- 	 */
- 	release_queue(adev);
- 	valid_wptr = read_user_wptr(mm, wptr, wptr_val);
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v8.c~mmap-locking-api-fix-missed-mmap_sem-references-in-comments
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v8.c
-@@ -208,7 +208,7 @@ static int kgd_hqd_load(struct amdgpu_de
- 
- 	/* read_user_ptr may take the mm->mmap_lock.
- 	 * release srbm_mutex to avoid circular dependency between
--	 * srbm_mutex->mm_sem->reservation_ww_class_mutex->srbm_mutex.
-+	 * srbm_mutex->mmap_lock->reservation_ww_class_mutex->srbm_mutex.
- 	 */
- 	release_queue(adev);
- 	valid_wptr = read_user_wptr(mm, wptr, wptr_val);
---- a/drivers/gpu/drm/ttm/ttm_bo_vm.c~mmap-locking-api-fix-missed-mmap_sem-references-in-comments
-+++ a/drivers/gpu/drm/ttm/ttm_bo_vm.c
-@@ -110,7 +110,7 @@ static unsigned long ttm_bo_io_mem_pfn(s
-  * @bo: The buffer object
-  * @vmf: The fault structure handed to the callback
-  *
-- * vm callbacks like fault() and *_mkwrite() allow for the mm_sem to be dropped
-+ * vm callbacks like fault() and *_mkwrite() allow for the mmap_lock to be dropped
-  * during long waits, and after the wait the callback will be restarted. This
-  * is to allow other threads using the same virtual memory space concurrent
-  * access to map(), unmap() completely unrelated buffer objects. TTM buffer
---- a/mm/mmap.c~mmap-locking-api-fix-missed-mmap_sem-references-in-comments
-+++ a/mm/mmap.c
-@@ -1285,7 +1285,7 @@ static int anon_vma_compatible(struct vm
-  * the same as 'old', the other will be the new one that is trying
-  * to share the anon_vma.
-  *
-- * NOTE! This runs with mm_sem held for reading, so it is possible that
-+ * NOTE! This runs with mmap_lock held for reading, so it is possible that
-  * the anon_vma of 'old' is concurrently in the process of being set up
-  * by another page fault trying to merge _that_. But that's ok: if it
-  * is being set up, that automatically means that it will be a singleton
-@@ -1299,7 +1299,7 @@ static int anon_vma_compatible(struct vm
-  *
-  * We also make sure that the two vma's are compatible (adjacent,
-  * and with the same memory policies). That's all stable, even with just
-- * a read lock on the mm_sem.
-+ * a read lock on the mmap_lock.
-  */
- static struct anon_vma *reusable_anon_vma(struct vm_area_struct *old, struct vm_area_struct *a, struct vm_area_struct *b)
+ static u32 true_sectors_per_clst(const struct NTFS_BOOT *boot)
  {
+-	return boot->sectors_per_clusters <= 0x80
+-		       ? boot->sectors_per_clusters
+-		       : (1u << (0 - boot->sectors_per_clusters));
++	if (boot->sectors_per_clusters <= 0x80)
++		return boot->sectors_per_clusters;
++	if (boot->sectors_per_clusters >= 0xf4) /* limit shift to 2MB max */
++		return 1U << (0 - boot->sectors_per_clusters);
++	return -EINVAL;
+ }
+ 
+ /*
+@@ -713,6 +715,8 @@ static int ntfs_init_from_boot(struct su
+ 
+ 	/* cluster size: 512, 1K, 2K, 4K, ... 2M */
+ 	sct_per_clst = true_sectors_per_clst(boot);
++	if ((int)sct_per_clst < 0)
++		goto out;
+ 	if (!is_power_of_2(sct_per_clst))
+ 		goto out;
+ 
 _
 
-Patches currently in -mm which might be from mail@florommel.de are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mmap-locking-api-fix-missed-mmap_sem-references-in-comments.patch
+fs-ntfs3-validate-boot-sectors_per_clusters.patch
 
