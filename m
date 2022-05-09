@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB1FC433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A01C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230100AbiEIVVX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 17:21:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40746 "EHLO
+        id S230094AbiEIVVZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 17:21:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230094AbiEIVVP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA42F20CD98
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:20 -0700 (PDT)
+        with ESMTP id S230107AbiEIVVV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E652120F9F7
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 66EB1616FE
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEA27C385BA;
-        Mon,  9 May 2022 21:17:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A277DB8197F
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A389C385BB;
+        Mon,  9 May 2022 21:17:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652131039;
-        bh=9NJEiIp6a5ckCouzE1Eoaf63MtQHdFDBjGeSxSZqW40=;
+        s=korg; t=1652131042;
+        bh=dMAzBgLv6b/j4vkNTRA8L6tKb/uHAFE3uhkoA9AX+x0=;
         h=Date:To:From:Subject:From;
-        b=JJlQDypL36JPP/9knpAoo+hSVer4QJSsH+b4YhpuzriR8swxUNzcmXs+9IW7l9Yq1
-         914POEjPAaoh2LAzi9ZCvp1P04NkCyU3zFKqvRgn8TLoX7u9xtvjR9VH8V3v+tAy7V
-         njR1G0ekb6z8i7wyQDMvyQcQfPj4FkgsqG+RHntQ=
-Date:   Mon, 09 May 2022 14:17:19 -0700
+        b=rPi3E0uil9mGv6uipzp6udt1HBvZUdKNqR5y6DVYSp4oXxFHoqzK3DdPU8IruftAU
+         4R3cgAOfrxBDc8f921GzX14di5/GrMkZJSVKyIxCkrpE1MyqHFOOf9jQTJMes23lqk
+         YCbY/IrKFLsFa+TmrSN3eN0N2WazfZ0K8SNLKPsA=
+Date:   Mon, 09 May 2022 14:17:21 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, neilb@suse.de,
         naoya.horiguchi@nec.com, dhowells@redhat.com, david@redhat.com,
         apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch added to mm-unstable branch
-Message-Id: <20220509211719.BEA27C385BA@smtp.kernel.org>
+Subject: + mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch added to mm-unstable branch
+Message-Id: <20220509211722.3A389C385BB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,9 +43,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: make page_swapcount and __lru_add_drain_all
+     Subject: mm/swap: avoid calling swp_swap_info when try to check SWP_STABLE_WRITES
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
+     mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,12 +64,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: make page_swapcount and __lru_add_drain_all
+Subject: mm/swap: avoid calling swp_swap_info when try to check SWP_STABLE_WRITES
 
-Make page_swapcount and __lru_add_drain_all static.  They are only used
-within the file now.
+Use flags of si directly to check SWP_STABLE_WRITES to avoid possible
+READ_ONCE and thus save some cpu cycles.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-9-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-10-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,56 +83,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    7 -------
- mm/swap.c            |    2 +-
- mm/swapfile.c        |    2 +-
- 3 files changed, 2 insertions(+), 9 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-swap-make-page_swapcount-and-__lru_add_drain_all
-+++ a/include/linux/swap.h
-@@ -490,7 +490,6 @@ int swap_type_of(dev_t device, sector_t
- int find_first_swap(dev_t *device);
- extern unsigned int count_swap_pages(int, int);
- extern sector_t swapdev_block(int, pgoff_t);
--extern int page_swapcount(struct page *);
- extern int __swap_count(swp_entry_t entry);
- extern int __swp_swapcount(swp_entry_t entry);
- extern int swp_swapcount(swp_entry_t entry);
-@@ -562,12 +561,6 @@ static inline void put_swap_page(struct
- {
- }
- 
--
--static inline int page_swapcount(struct page *page)
--{
--	return 0;
--}
--
- static inline int __swap_count(swp_entry_t entry)
- {
- 	return 0;
---- a/mm/swap.c~mm-swap-make-page_swapcount-and-__lru_add_drain_all
-+++ a/mm/swap.c
-@@ -748,7 +748,7 @@ static void lru_add_drain_per_cpu(struct
-  * Calling this function with cpu hotplug locks held can actually lead
-  * to obscure indirect dependencies via WQ context.
-  */
--inline void __lru_add_drain_all(bool force_all_cpus)
-+static inline void __lru_add_drain_all(bool force_all_cpus)
- {
- 	/*
- 	 * lru_drain_gen - Global pages generation number
---- a/mm/swapfile.c~mm-swap-make-page_swapcount-and-__lru_add_drain_all
-+++ a/mm/swapfile.c
-@@ -1429,7 +1429,7 @@ void swapcache_free_entries(swp_entry_t
-  * This does not give an exact answer when swap count is continued,
-  * but does include the high COUNT_CONTINUED flag to allow for that.
-  */
--int page_swapcount(struct page *page)
-+static int page_swapcount(struct page *page)
- {
- 	int count = 0;
- 	struct swap_info_struct *p;
+--- a/mm/memory.c~mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes
++++ a/mm/memory.c
+@@ -3907,7 +3907,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			 */
+ 			exclusive = true;
+ 		} else if (exclusive && PageWriteback(page) &&
+-			  (swp_swap_info(entry)->flags & SWP_STABLE_WRITES)) {
++			  (si->flags & SWP_STABLE_WRITES)) {
+ 			/*
+ 			 * This is tricky: not all swap backends support
+ 			 * concurrent page modifications while under writeback.
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
