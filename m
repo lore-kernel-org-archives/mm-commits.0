@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A01C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24E82C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230094AbiEIVVZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 17:21:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41262 "EHLO
+        id S230107AbiEIVV0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 17:21:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41264 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230107AbiEIVVV (ORCPT
+        with ESMTP id S230091AbiEIVVV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:21 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E652120F9F7
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:24 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 411EC213322
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A277DB8197F
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A389C385BB;
-        Mon,  9 May 2022 21:17:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C56426171A
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 249FCC385BB;
+        Mon,  9 May 2022 21:17:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652131042;
-        bh=dMAzBgLv6b/j4vkNTRA8L6tKb/uHAFE3uhkoA9AX+x0=;
+        s=korg; t=1652131044;
+        bh=qvTw91H8zp6XISflUGJwJOnQ1lfttkrFiTvXt4f8oWs=;
         h=Date:To:From:Subject:From;
-        b=rPi3E0uil9mGv6uipzp6udt1HBvZUdKNqR5y6DVYSp4oXxFHoqzK3DdPU8IruftAU
-         4R3cgAOfrxBDc8f921GzX14di5/GrMkZJSVKyIxCkrpE1MyqHFOOf9jQTJMes23lqk
-         YCbY/IrKFLsFa+TmrSN3eN0N2WazfZ0K8SNLKPsA=
-Date:   Mon, 09 May 2022 14:17:21 -0700
+        b=U/PEzboIMhNLhQ8rXYrAhIot56v3vn//16IqElTwXQnatJcLQeifUrfmXPsnWDvSB
+         ODojmGto9ISV1mTHH1pMIqgTedafDM4yD/vYNRPEyLzMunuUgvZ4Jqc6PtZEnhKIRe
+         UonwBGECPCU4/EzjBdNCfXEib4bZqlZf9vkWofwI=
+Date:   Mon, 09 May 2022 14:17:23 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, neilb@suse.de,
         naoya.horiguchi@nec.com, dhowells@redhat.com, david@redhat.com,
         apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch added to mm-unstable branch
-Message-Id: <20220509211722.3A389C385BB@smtp.kernel.org>
+Subject: + mm-swap-add-helper-swap_offset_available.patch added to mm-unstable branch
+Message-Id: <20220509211724.249FCC385BB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,9 +43,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: avoid calling swp_swap_info when try to check SWP_STABLE_WRITES
+     Subject: mm/swap: add helper swap_offset_available()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
+     mm-swap-add-helper-swap_offset_available.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,12 +64,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: avoid calling swp_swap_info when try to check SWP_STABLE_WRITES
+Subject: mm/swap: add helper swap_offset_available()
 
-Use flags of si directly to check SWP_STABLE_WRITES to avoid possible
-READ_ONCE and thus save some cpu cycles.
+Add helper swap_offset_available() to remove some duplicated codes.  Minor
+readability improvement.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-10-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-12-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,20 +83,67 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
---- a/mm/memory.c~mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes
-+++ a/mm/memory.c
-@@ -3907,7 +3907,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 			 */
- 			exclusive = true;
- 		} else if (exclusive && PageWriteback(page) &&
--			  (swp_swap_info(entry)->flags & SWP_STABLE_WRITES)) {
-+			  (si->flags & SWP_STABLE_WRITES)) {
- 			/*
- 			 * This is tricky: not all swap backends support
- 			 * concurrent page modifications while under writeback.
+--- a/mm/swapfile.c~mm-swap-add-helper-swap_offset_available
++++ a/mm/swapfile.c
+@@ -775,6 +775,21 @@ static void set_cluster_next(struct swap
+ 	this_cpu_write(*si->cluster_next_cpu, next);
+ }
+ 
++static inline bool swap_offset_available(struct swap_info_struct *si, unsigned long offset)
++{
++	if (data_race(!si->swap_map[offset])) {
++		spin_lock(&si->lock);
++		return true;
++	}
++
++	if (vm_swap_full() && READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
++		spin_lock(&si->lock);
++		return true;
++	}
++
++	return false;
++}
++
+ static int scan_swap_map_slots(struct swap_info_struct *si,
+ 			       unsigned char usage, int nr,
+ 			       swp_entry_t slots[])
+@@ -952,15 +967,8 @@ done:
+ scan:
+ 	spin_unlock(&si->lock);
+ 	while (++offset <= READ_ONCE(si->highest_bit)) {
+-		if (data_race(!si->swap_map[offset])) {
+-			spin_lock(&si->lock);
+-			goto checks;
+-		}
+-		if (vm_swap_full() &&
+-		    READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
+-			spin_lock(&si->lock);
++		if (swap_offset_available(si, offset))
+ 			goto checks;
+-		}
+ 		if (unlikely(--latency_ration < 0)) {
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
+@@ -969,15 +977,8 @@ scan:
+ 	}
+ 	offset = si->lowest_bit;
+ 	while (offset < scan_base) {
+-		if (data_race(!si->swap_map[offset])) {
+-			spin_lock(&si->lock);
++		if (swap_offset_available(si, offset))
+ 			goto checks;
+-		}
+-		if (vm_swap_full() &&
+-		    READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
+-			spin_lock(&si->lock);
+-			goto checks;
+-		}
+ 		if (unlikely(--latency_ration < 0)) {
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
