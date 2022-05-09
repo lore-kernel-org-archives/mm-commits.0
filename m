@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1FB9C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 20:22:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3E23C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229587AbiEIU0n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 16:26:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46506 "EHLO
+        id S230080AbiEIVVD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 17:21:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229673AbiEIU0I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 16:26:08 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 617D05909D
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 13:09:47 -0700 (PDT)
+        with ESMTP id S229589AbiEIVVC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 189F150076
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id AD59FCE1B5B
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 20:09:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5074C385BA;
-        Mon,  9 May 2022 20:09:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A5CB261702
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06496C385BB;
+        Mon,  9 May 2022 21:17:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652126983;
-        bh=WRq3vV1A4xWMsp5BVlz58vg+Ob2m/8tNIEh7Vp1FTeI=;
+        s=korg; t=1652131026;
+        bh=FlrQ+ueQnBWl4ZconFaKT6fXExHiErNgFcuYBCfw8Qg=;
         h=Date:To:From:Subject:From;
-        b=NunyiPK9cyw35oUjPwjSZdv62+RDVOq1A+/G6VD/2jcGu8G2yGfwaQD/rou4V+rEh
-         BDq65nzoDHOxxquFTO63eF8BhDZ1qwyB4ZTwldWGeSm/7XhhyiVdJMOYLlwCG8BZGn
-         OUosmPEG0JuXaB31JZGe2FR9XcNl+9PHezB99cFU=
-Date:   Mon, 09 May 2022 13:09:43 -0700
-To:     mm-commits@vger.kernel.org, syzkaller@googlegroups.com,
-        shakeelb@google.com, longman@redhat.com, edumazet@google.com,
-        akpm@linux-foundation.org
+        b=NRqZdWC171yKnlmVSp6nvUQ2DUOIlg/WXh7w/Vb6eEp4rG5ZH+8ZU60aYdKZb4vt9
+         NftpRERNLU0qa6IIe6Q6lrKfv7bba8Amu9O45zTlk0QF4eQXCsOLUSr4/qwih+DoIv
+         9miZFm+s3Ysclb0NIE3STn0zsr7bbvjbSafYJYOs=
+Date:   Mon, 09 May 2022 14:17:05 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        surenb@google.com, peterx@redhat.com, neilb@suse.de,
+        naoya.horiguchi@nec.com, dhowells@redhat.com, david@redhat.com,
+        apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-use-strscpy-instead-of-strlcpy.patch added to mm-unstable branch
-Message-Id: <20220509200943.B5074C385BA@smtp.kernel.org>
+Subject: + mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch added to mm-unstable branch
+Message-Id: <20220509211706.06496C385BB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,9 +43,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: use strscpy() instead of strlcpy()
+     Subject: mm/swap: use helper is_swap_pte() in swap_vma_readahead
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-use-strscpy-instead-of-strlcpy.patch
+     mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,81 +63,91 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: mm/page_owner: use strscpy() instead of strlcpy()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swap: use helper is_swap_pte() in swap_vma_readahead
 
-current->comm[] is not a string (no guarantee for a zero byte in it).
+Patch series "A few cleanup patches for swap".
 
-strlcpy(s1, s2, l) is calling strlen(s2), potentially
-causing out-of-bound access, as reported by syzbot:
+This series contains a few patches to fix the comment, remove unneeded
+return value, use some helpers and so on.  More details can be found in
+the respective changelogs.
 
-detected buffer overflow in __fortify_strlen
-------------[ cut here ]------------
-kernel BUG at lib/string_helpers.c:980!
-invalid opcode: 0000 [#1] PREEMPT SMP KASAN
-CPU: 0 PID: 4087 Comm: dhcpcd-run-hooks Not tainted 5.18.0-rc3-syzkaller-01537-g20b87e7c29df #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:fortify_panic+0x18/0x1a lib/string_helpers.c:980
-Code: 8c e8 c5 ba e1 fa e9 23 0f bf fa e8 0b 5d 8c f8 eb db 55 48 89 fd e8 e0 49 40 f8 48 89 ee 48 c7 c7 80 f5 26 8a e8 99 09 f1 ff <0f> 0b e8 ca 49 40 f8 48 8b 54 24 18 4c 89 f1 48 c7 c7 00 00 27 8a
-RSP: 0018:ffffc900000074a8 EFLAGS: 00010286
 
-RAX: 000000000000002c RBX: ffff88801226b728 RCX: 0000000000000000
-RDX: ffff8880198e0000 RSI: ffffffff81600458 RDI: fffff52000000e87
-RBP: ffffffff89da2aa0 R08: 000000000000002c R09: 0000000000000000
-R10: ffffffff815fae2e R11: 0000000000000000 R12: ffff88801226b700
-R13: ffff8880198e0830 R14: 0000000000000000 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f5876ad6ff8 CR3: 000000001a48c000 CR4: 00000000003506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
-Call Trace:
- <IRQ>
- __fortify_strlen include/linux/fortify-string.h:128 [inline]
- strlcpy include/linux/fortify-string.h:143 [inline]
- __set_page_owner_handle+0x2b1/0x3e0 mm/page_owner.c:171
- __set_page_owner+0x3e/0x50 mm/page_owner.c:190
- prep_new_page mm/page_alloc.c:2441 [inline]
- get_page_from_freelist+0xba2/0x3e00 mm/page_alloc.c:4182
- __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5408
- alloc_pages+0x1aa/0x310 mm/mempolicy.c:2272
- alloc_slab_page mm/slub.c:1799 [inline]
- allocate_slab+0x26c/0x3c0 mm/slub.c:1944
- new_slab mm/slub.c:2004 [inline]
- ___slab_alloc+0x8df/0xf20 mm/slub.c:3005
- __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3092
- slab_alloc_node mm/slub.c:3183 [inline]
- slab_alloc mm/slub.c:3225 [inline]
- __kmem_cache_alloc_lru mm/slub.c:3232 [inline]
- kmem_cache_alloc+0x360/0x3b0 mm/slub.c:3242
- dst_alloc+0x146/0x1f0 net/core/dst.c:92
+This patch (of 15):
 
-Link: https://lkml.kernel.org/r/20220509145949.265184-1-eric.dumazet@gmail.com
-Fixes: 865ed6a32786 ("mm/page_owner: record task command name")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Acked-by: Waiman Long <longman@redhat.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
+Use helper is_swap_pte() to check whether pte is swap entry to make code
+more clear.  Minor readability improvement.
+
+Link: https://lkml.kernel.org/r/20220509131416.17553-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Howells <dhowells@redhat.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap_state.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-use-strscpy-instead-of-strlcpy
-+++ a/mm/page_owner.c
-@@ -168,7 +168,7 @@ static inline void __set_page_owner_hand
- 		page_owner->pid = current->pid;
- 		page_owner->tgid = current->tgid;
- 		page_owner->ts_nsec = local_clock();
--		strlcpy(page_owner->comm, current->comm,
-+		strscpy(page_owner->comm, current->comm,
- 			sizeof(page_owner->comm));
- 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
- 		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
+--- a/mm/swap_state.c~mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead
++++ a/mm/swap_state.c
+@@ -818,9 +818,7 @@ static struct page *swap_vma_readahead(s
+ 	for (i = 0, pte = ra_info.ptes; i < ra_info.nr_pte;
+ 	     i++, pte++) {
+ 		pentry = *pte;
+-		if (pte_none(pentry))
+-			continue;
+-		if (pte_present(pentry))
++		if (!is_swap_pte(pentry))
+ 			continue;
+ 		entry = pte_to_swp_entry(pentry);
+ 		if (unlikely(non_swap_entry(entry)))
 _
 
-Patches currently in -mm which might be from edumazet@google.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-page_owner-use-strscpy-instead-of-strlcpy.patch
+mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
+mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
+mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch
+mm-migration-reduce-the-rcu-lock-duration.patch
+mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
+mm-migration-return-errno-when-isolate_huge_page-failed.patch
+mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
+mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
+mm-vmscan-introduce-helper-function-reclaim_page_list.patch
+mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
+mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
+mm-vmscan-use-helper-folio_is_file_lru.patch
+mm-vmscan-use-helper-folio_is_file_lru-fix.patch
+mm-z3fold-fix-sheduling-while-atomic.patch
+mm-z3fold-fix-possible-null-pointer-dereferencing.patch
+mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
+mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
+revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
+mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
+mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
+mm-z3fold-fix-z3fold_reclaim_page-races-with-z3fold_free.patch
+mm-z3fold-fix-z3fold_page_migrate-races-with-z3fold_map.patch
+mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
+mm-swap-use-helper-macro-__attr_rw.patch
+mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
+mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
+mm-swap-print-bad-swap-offset-entry-in-get_swap_device.patch
+mm-swap-remove-buggy-cache-nr-check-in-refill_swap_slots_cache.patch
+mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
+mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
+mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
+mm-swap-add-helper-swap_offset_available.patch
+mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
+mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
+mm-swap-fix-the-comment-of-get_kernel_pages.patch
+mm-swap-fix-comment-about-swap-extent.patch
 
