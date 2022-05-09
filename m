@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A7DAC433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0193C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230118AbiEIVVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 17:21:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41614 "EHLO
+        id S229476AbiEIVVj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 17:21:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230115AbiEIVV1 (ORCPT
+        with ESMTP id S230117AbiEIVV1 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84A05216071
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C855021607A
         for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 41A94B8197F
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D286AC385BB;
-        Mon,  9 May 2022 21:17:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 661C7616FE
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEAC8C385BB;
+        Mon,  9 May 2022 21:17:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652131049;
-        bh=BXuYzp5iE4JDhEGkqRPYFRptmhfWSaOVhN1nUbfBheg=;
+        s=korg; t=1652131051;
+        bh=p9UgZjKgmwOi5tgeW59tgN/BDusV8J2DiV2nM9olkdg=;
         h=Date:To:From:Subject:From;
-        b=EDBrH9cKGbnrXte/P7SsZBbYquesiBiXyibAOyYTtM4XmOl7z9jS6hbAern6S8bmL
-         +ib7JKzkbu6dTFLnyzbQkmxL6RPfWKim03bWyigqYfFnOdIcszpbMJeKHYcQSSheEc
-         wtQDzey2o9YJkEObwt0aECe7qAJ3R6913BUkDDx8=
-Date:   Mon, 09 May 2022 14:17:29 -0700
+        b=DHqT1G1I4Gpcf8uqYMpUL8LEQ1YCK8E9ejU4Dd0mc2YTWkn9V7Ic4T0zYoubMb6+V
+         nYVcva8Nwd35LsIKEoucVICV+zsgvy9Dv/lyhbFhZvqhRkV+JK7kraTPUjZBQ6BLuS
+         12lcSuj/DEO5o4ZNSKne7dvUQPV5O73oWYvy8cC8=
+Date:   Mon, 09 May 2022 14:17:31 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, neilb@suse.de,
         naoya.horiguchi@nec.com, dhowells@redhat.com, david@redhat.com,
         apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-the-comment-of-get_kernel_pages.patch added to mm-unstable branch
-Message-Id: <20220509211729.D286AC385BB@smtp.kernel.org>
+Subject: + mm-swap-fix-comment-about-swap-extent.patch added to mm-unstable branch
+Message-Id: <20220509211731.BEAC8C385BB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,9 +43,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: fix the comment of get_kernel_pages
+     Subject: mm/swap: fix comment about swap extent
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-fix-the-comment-of-get_kernel_pages.patch
+     mm-swap-fix-comment-about-swap-extent.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,12 +64,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: fix the comment of get_kernel_pages
+Subject: mm/swap: fix comment about swap extent
 
-If no pages were pinned, 0 is returned in fact.  Fix the corresponding
-comment.
+Since commit 4efaceb1c5f8 ("mm, swap: use rbtree for swap_extent"), rbtree
+is used for swap extent.  Also curr_swap_extent is removed at that time. 
+Update the corresponding comment.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-15-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-16-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,22 +84,64 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    4 ++--
+ mm/swapfile.c        |   15 ++++++---------
+ 2 files changed, 8 insertions(+), 11 deletions(-)
 
---- a/mm/swap.c~mm-swap-fix-the-comment-of-get_kernel_pages
-+++ a/mm/swap.c
-@@ -168,8 +168,8 @@ EXPORT_SYMBOL(put_pages_list);
+--- a/include/linux/swap.h~mm-swap-fix-comment-about-swap-extent
++++ a/include/linux/swap.h
+@@ -173,8 +173,8 @@ struct zone;
+ 
+ /*
+  * A swap extent maps a range of a swapfile's PAGE_SIZE pages onto a range of
+- * disk blocks.  A list of swap extents maps the entire swapfile.  (Where the
+- * term `swapfile' refers to either a blockdevice or an IS_REG file.  Apart
++ * disk blocks.  A rbtree of swap extents maps the entire swapfile (Where the
++ * term `swapfile' refers to either a blockdevice or an IS_REG file). Apart
+  * from setup, they're handled identically.
   *
-  * Returns number of pages pinned. This may be fewer than the number
-  * requested. If nr_pages is 0 or negative, returns 0. If no pages
-- * were pinned, returns -errno. Each page returned must be released
-- * with a put_page() call when it is finished with.
-+ * were pinned, returns 0. Each page returned must be released with
-+ * a put_page() call when it is finished with.
+  * We always assume that blocks are of size PAGE_SIZE.
+--- a/mm/swapfile.c~mm-swap-fix-comment-about-swap-extent
++++ a/mm/swapfile.c
+@@ -2224,8 +2224,8 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
+ 
+ /*
+  * A `swap extent' is a simple thing which maps a contiguous range of pages
+- * onto a contiguous range of disk blocks.  An ordered list of swap extents
+- * is built at swapon time and is then used at swap_writepage/swap_readpage
++ * onto a contiguous range of disk blocks.  A rbtree of swap extents is
++ * built at swapon time and is then used at swap_writepage/swap_readpage
+  * time for locating where on disk a page belongs.
+  *
+  * If the swapfile is an S_ISBLK block device, a single extent is installed.
+@@ -2233,12 +2233,12 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
+  * swap files identically.
+  *
+  * Whether the swapdev is an S_ISREG file or an S_ISBLK blockdev, the swap
+- * extent list operates in PAGE_SIZE disk blocks.  Both S_ISREG and S_ISBLK
++ * extent rbtree operates in PAGE_SIZE disk blocks.  Both S_ISREG and S_ISBLK
+  * swapfiles are handled *identically* after swapon time.
+  *
+  * For S_ISREG swapfiles, setup_swap_extents() will walk all the file's blocks
+- * and will parse them into an ordered extent list, in PAGE_SIZE chunks.  If
+- * some stray blocks are found which do not fall within the PAGE_SIZE alignment
++ * and will parse them into a rbtree, in PAGE_SIZE chunks.  If some stray
++ * blocks are found which do not fall within the PAGE_SIZE alignment
+  * requirements, they are simply tossed out - we will never use those blocks
+  * for swapping.
+  *
+@@ -2247,10 +2247,7 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
+  *
+  * The amount of disk space which a single swap extent represents varies.
+  * Typically it is in the 1-4 megabyte range.  So we can have hundreds of
+- * extents in the list.  To avoid much list walking, we cache the previous
+- * search location in `curr_swap_extent', and start new searches from there.
+- * This is extremely effective.  The average number of iterations in
+- * map_swap_page() has been measured at about 0.3 per page.  - akpm.
++ * extents in the rbtree. - akpm.
   */
- int get_kernel_pages(const struct kvec *kiov, int nr_segs, int write,
- 		struct page **pages)
+ static int setup_swap_extents(struct swap_info_struct *sis, sector_t *span)
+ {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
