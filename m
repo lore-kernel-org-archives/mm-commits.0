@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0193C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79AA8C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 23:19:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229476AbiEIVVj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 17:21:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41612 "EHLO
+        id S232331AbiEIXW6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 19:22:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230117AbiEIVV1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C855021607A
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:32 -0700 (PDT)
+        with ESMTP id S232279AbiEIXW5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 19:22:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 264AD1F35E0
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 16:19:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 661C7616FE
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEAC8C385BB;
-        Mon,  9 May 2022 21:17:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF4976120C
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 23:19:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12F15C385B3;
+        Mon,  9 May 2022 23:19:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652131051;
-        bh=p9UgZjKgmwOi5tgeW59tgN/BDusV8J2DiV2nM9olkdg=;
+        s=korg; t=1652138341;
+        bh=wfxNo09T9DQs+oHumQ0YSh0hMJO1W/Gitknq+dLGEIw=;
         h=Date:To:From:Subject:From;
-        b=DHqT1G1I4Gpcf8uqYMpUL8LEQ1YCK8E9ejU4Dd0mc2YTWkn9V7Ic4T0zYoubMb6+V
-         nYVcva8Nwd35LsIKEoucVICV+zsgvy9Dv/lyhbFhZvqhRkV+JK7kraTPUjZBQ6BLuS
-         12lcSuj/DEO5o4ZNSKne7dvUQPV5O73oWYvy8cC8=
-Date:   Mon, 09 May 2022 14:17:31 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        surenb@google.com, peterx@redhat.com, neilb@suse.de,
-        naoya.horiguchi@nec.com, dhowells@redhat.com, david@redhat.com,
-        apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=1B3MovdxcQApVKfVH0yb9mp32P7cx9l1Ba2+UaPLXi8RY9dFFNVW8Sc48I9b2/d5k
+         513Jj43W20ReQRgm+eblmcYpOC8wcWh++VFi3kPU08R5qzW7YrA9bnGd+0CLr9eZZh
+         7p/Je73LhJMxYkduc8w8MGx2eqSDgGdESPM/eFGo=
+Date:   Mon, 09 May 2022 16:19:00 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        pizhenwei@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-comment-about-swap-extent.patch added to mm-unstable branch
-Message-Id: <20220509211731.BEAC8C385BB@smtp.kernel.org>
+Subject: + mm-memory-failurec-move-clear_hwpoisoned_pages.patch added to mm-unstable branch
+Message-Id: <20220509231901.12F15C385B3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,9 +41,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: fix comment about swap extent
+     Subject: mm/memory-failure.c: move clear_hwpoisoned_pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-fix-comment-about-swap-extent.patch
+     mm-memory-failurec-move-clear_hwpoisoned_pages.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,124 +61,160 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: fix comment about swap extent
+From: zhenwei pi <pizhenwei@bytedance.com>
+Subject: mm/memory-failure.c: move clear_hwpoisoned_pages
 
-Since commit 4efaceb1c5f8 ("mm, swap: use rbtree for swap_extent"), rbtree
-is used for swap extent.  Also curr_swap_extent is removed at that time. 
-Update the corresponding comment.
+Patch series "memory-failure: fix hwpoison_filter", v2.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-16-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+As well known, the memory failure mechanism handles memory corrupted
+event, and try to send SIGBUS to the user process which uses this
+corrupted page.
+
+For the virtualization case, QEMU catches SIGBUS and tries to inject MCE
+into the guest, and the guest handles memory failure again.  Thus the
+guest gets the minimal effect from hardware memory corruption.
+
+The further step I'm working on:
+
+1, try to modify code to decrease poisoned pages in a single place
+   (mm/memofy-failure.c: simplify num_poisoned_pages_dec in this series).
+
+2, try to use page_handle_poison() to handle SetPageHWPoison() and
+   num_poisoned_pages_inc() together.  It would be best to call
+   num_poisoned_pages_inc() in a single place too.
+
+3, introduce memory failure notifier list in memory-failure.c: notify
+   the corrupted PFN to someone who registers this list.  If I can
+   complete [1] and [2] part, [3] will be quite easy(just call notifier
+   list after increasing poisoned page).
+
+4, introduce memory recover VQ for memory balloon device, and registers
+   memory failure notifier list.  During the guest kernel handles memory
+   failure, balloon device gets notified by memory failure notifier list,
+   and tells the host to recover the corrupted PFN(GPA) by the new VQ.
+
+5, host side remaps the corrupted page(HVA), and tells the guest side
+   to unpoison the PFN(GPA).  Then the guest fixes the corrupted page(GPA)
+   dynamically.
+
+
+This patch (of 5):
+
+clear_hwpoisoned_pages() clears HWPoison flag and decreases the number of
+poisoned pages, this actually works as part of memory failure.
+
+Move this function from sparse.c to memory-failure.c, finally there is no
+CONFIG_MEMORY_FAILURE in sparse.c.
+
+Link: https://lkml.kernel.org/r/20220509105641.491313-1-pizhenwei@bytedance.com
+Link: https://lkml.kernel.org/r/20220509105641.491313-2-pizhenwei@bytedance.com
+Signed-off-by: zhenwei pi <pizhenwei@bytedance.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 ++--
- mm/swapfile.c        |   15 ++++++---------
- 2 files changed, 8 insertions(+), 11 deletions(-)
+ mm/internal.h       |   11 +++++++++++
+ mm/memory-failure.c |   21 +++++++++++++++++++++
+ mm/sparse.c         |   27 ---------------------------
+ 3 files changed, 32 insertions(+), 27 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-fix-comment-about-swap-extent
-+++ a/include/linux/swap.h
-@@ -173,8 +173,8 @@ struct zone;
+--- a/mm/internal.h~mm-memory-failurec-move-clear_hwpoisoned_pages
++++ a/mm/internal.h
+@@ -709,6 +709,9 @@ static inline int find_next_best_node(in
+ }
+ #endif
  
- /*
-  * A swap extent maps a range of a swapfile's PAGE_SIZE pages onto a range of
-- * disk blocks.  A list of swap extents maps the entire swapfile.  (Where the
-- * term `swapfile' refers to either a blockdevice or an IS_REG file.  Apart
-+ * disk blocks.  A rbtree of swap extents maps the entire swapfile (Where the
-+ * term `swapfile' refers to either a blockdevice or an IS_REG file). Apart
-  * from setup, they're handled identically.
-  *
-  * We always assume that blocks are of size PAGE_SIZE.
---- a/mm/swapfile.c~mm-swap-fix-comment-about-swap-extent
-+++ a/mm/swapfile.c
-@@ -2224,8 +2224,8 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
++/*
++ * mm/memory-failure.c
++ */
+ extern int hwpoison_filter(struct page *p);
  
- /*
-  * A `swap extent' is a simple thing which maps a contiguous range of pages
-- * onto a contiguous range of disk blocks.  An ordered list of swap extents
-- * is built at swapon time and is then used at swap_writepage/swap_readpage
-+ * onto a contiguous range of disk blocks.  A rbtree of swap extents is
-+ * built at swapon time and is then used at swap_writepage/swap_readpage
-  * time for locating where on disk a page belongs.
-  *
-  * If the swapfile is an S_ISBLK block device, a single extent is installed.
-@@ -2233,12 +2233,12 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
-  * swap files identically.
-  *
-  * Whether the swapdev is an S_ISREG file or an S_ISBLK blockdev, the swap
-- * extent list operates in PAGE_SIZE disk blocks.  Both S_ISREG and S_ISBLK
-+ * extent rbtree operates in PAGE_SIZE disk blocks.  Both S_ISREG and S_ISBLK
-  * swapfiles are handled *identically* after swapon time.
-  *
-  * For S_ISREG swapfiles, setup_swap_extents() will walk all the file's blocks
-- * and will parse them into an ordered extent list, in PAGE_SIZE chunks.  If
-- * some stray blocks are found which do not fall within the PAGE_SIZE alignment
-+ * and will parse them into a rbtree, in PAGE_SIZE chunks.  If some stray
-+ * blocks are found which do not fall within the PAGE_SIZE alignment
-  * requirements, they are simply tossed out - we will never use those blocks
-  * for swapping.
-  *
-@@ -2247,10 +2247,7 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
-  *
-  * The amount of disk space which a single swap extent represents varies.
-  * Typically it is in the 1-4 megabyte range.  So we can have hundreds of
-- * extents in the list.  To avoid much list walking, we cache the previous
-- * search location in `curr_swap_extent', and start new searches from there.
-- * This is extremely effective.  The average number of iterations in
-- * map_swap_page() has been measured at about 0.3 per page.  - akpm.
-+ * extents in the rbtree. - akpm.
-  */
- static int setup_swap_extents(struct swap_info_struct *sis, sector_t *span)
- {
+ extern u32 hwpoison_filter_dev_major;
+@@ -718,6 +721,14 @@ extern u64 hwpoison_filter_flags_value;
+ extern u64 hwpoison_filter_memcg;
+ extern u32 hwpoison_filter_enable;
+ 
++#ifdef CONFIG_MEMORY_FAILURE
++void clear_hwpoisoned_pages(struct page *memmap, int nr_pages);
++#else
++static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
++{
++}
++#endif
++
+ extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
+         unsigned long, unsigned long,
+         unsigned long, unsigned long);
+--- a/mm/memory-failure.c~mm-memory-failurec-move-clear_hwpoisoned_pages
++++ a/mm/memory-failure.c
+@@ -2379,3 +2379,24 @@ retry:
+ 
+ 	return ret;
+ }
++
++void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
++{
++	int i;
++
++	/*
++	 * A further optimization is to have per section refcounted
++	 * num_poisoned_pages.  But that would need more space per memmap, so
++	 * for now just do a quick global check to speed up this routine in the
++	 * absence of bad pages.
++	 */
++	if (atomic_long_read(&num_poisoned_pages) == 0)
++		return;
++
++	for (i = 0; i < nr_pages; i++) {
++		if (PageHWPoison(&memmap[i])) {
++			num_poisoned_pages_dec();
++			ClearPageHWPoison(&memmap[i]);
++		}
++	}
++}
+--- a/mm/sparse.c~mm-memory-failurec-move-clear_hwpoisoned_pages
++++ a/mm/sparse.c
+@@ -922,33 +922,6 @@ int __meminit sparse_add_section(int nid
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_MEMORY_FAILURE
+-static void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
+-{
+-	int i;
+-
+-	/*
+-	 * A further optimization is to have per section refcounted
+-	 * num_poisoned_pages.  But that would need more space per memmap, so
+-	 * for now just do a quick global check to speed up this routine in the
+-	 * absence of bad pages.
+-	 */
+-	if (atomic_long_read(&num_poisoned_pages) == 0)
+-		return;
+-
+-	for (i = 0; i < nr_pages; i++) {
+-		if (PageHWPoison(&memmap[i])) {
+-			num_poisoned_pages_dec();
+-			ClearPageHWPoison(&memmap[i]);
+-		}
+-	}
+-}
+-#else
+-static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
+-{
+-}
+-#endif
+-
+ void sparse_remove_section(struct mem_section *ms, unsigned long pfn,
+ 		unsigned long nr_pages, unsigned long map_offset,
+ 		struct vmem_altmap *altmap)
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from pizhenwei@bytedance.com are
 
-mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
-mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
-mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch
-mm-migration-reduce-the-rcu-lock-duration.patch
-mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-mm-migration-return-errno-when-isolate_huge_page-failed.patch
-mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
-mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
-mm-vmscan-introduce-helper-function-reclaim_page_list.patch
-mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
-mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
-mm-vmscan-use-helper-folio_is_file_lru.patch
-mm-vmscan-use-helper-folio_is_file_lru-fix.patch
-mm-z3fold-fix-sheduling-while-atomic.patch
-mm-z3fold-fix-possible-null-pointer-dereferencing.patch
-mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
-mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
-revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
-mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
-mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
-mm-z3fold-fix-z3fold_reclaim_page-races-with-z3fold_free.patch
-mm-z3fold-fix-z3fold_page_migrate-races-with-z3fold_map.patch
-mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
-mm-swap-use-helper-macro-__attr_rw.patch
-mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
-mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
-mm-swap-print-bad-swap-offset-entry-in-get_swap_device.patch
-mm-swap-remove-buggy-cache-nr-check-in-refill_swap_slots_cache.patch
-mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
-mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
-mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
-mm-swap-add-helper-swap_offset_available.patch
-mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
-mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
-mm-swap-fix-the-comment-of-get_kernel_pages.patch
-mm-swap-fix-comment-about-swap-extent.patch
+mm-memory-failurec-move-clear_hwpoisoned_pages.patch
+mm-memory-failurec-simplify-num_poisoned_pages_dec.patch
+mm-memory-failurec-add-hwpoison_filter-for-soft-offline.patch
+mm-hwpoison-disable-hwpoison-filter-during-removing.patch
+mm-memory-failurec-simplify-num_poisoned_pages_inc-dec.patch
 
