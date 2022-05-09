@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA6DFC433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 20:21:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1FB9C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 20:22:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229495AbiEIUZI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 16:25:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46198 "EHLO
+        id S229587AbiEIU0n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 16:26:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229714AbiEIUYg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 16:24:36 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6177624DC56
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 13:08:04 -0700 (PDT)
+        with ESMTP id S229673AbiEIU0I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 16:26:08 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 617D05909D
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 13:09:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AD933B818D0
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 20:08:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B1E6C385B2;
-        Mon,  9 May 2022 20:08:01 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id AD59FCE1B5B
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 20:09:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5074C385BA;
+        Mon,  9 May 2022 20:09:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652126881;
-        bh=LLczYTr8C8HzSedBohUQ2nKRx9ew/DFDFornYv+/NKc=;
+        s=korg; t=1652126983;
+        bh=WRq3vV1A4xWMsp5BVlz58vg+Ob2m/8tNIEh7Vp1FTeI=;
         h=Date:To:From:Subject:From;
-        b=i8qMO8mtOTO4iy9KOKiZRCPeSK3+RZm5JaC+wZQiy7b7MNejMnDwAparlE+uD9+g3
-         0NB/vIv7/R50dbjwlZ26f8pyKrTsIwOZImnvRO1vPoeKRERkQ1HywYrXAmss0C+qSi
-         IvVFv06zBQr2fH/yZOj7bssfQSvw0F7BXzBa4h6o=
-Date:   Mon, 09 May 2022 13:08:00 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=NunyiPK9cyw35oUjPwjSZdv62+RDVOq1A+/G6VD/2jcGu8G2yGfwaQD/rou4V+rEh
+         BDq65nzoDHOxxquFTO63eF8BhDZ1qwyB4ZTwldWGeSm/7XhhyiVdJMOYLlwCG8BZGn
+         OUosmPEG0JuXaB31JZGe2FR9XcNl+9PHezB99cFU=
+Date:   Mon, 09 May 2022 13:09:43 -0700
+To:     mm-commits@vger.kernel.org, syzkaller@googlegroups.com,
+        shakeelb@google.com, longman@redhat.com, edumazet@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-update-documentation.patch added to mm-unstable branch
-Message-Id: <20220509200801.4B1E6C385B2@smtp.kernel.org>
+Subject: + mm-page_owner-use-strscpy-instead-of-strlcpy.patch added to mm-unstable branch
+Message-Id: <20220509200943.B5074C385BA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,9 +42,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: update documentation
+     Subject: mm/page_owner: use strscpy() instead of strlcpy()
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-update-documentation.patch
+     mm-page_owner-use-strscpy-instead-of-strlcpy.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,295 +62,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: update documentation
+From: Eric Dumazet <edumazet@google.com>
+Subject: mm/page_owner: use strscpy() instead of strlcpy()
 
-Do assorted clean-ups and improvements to KASAN documentation, including:
+current->comm[] is not a string (no guarantee for a zero byte in it).
 
-- Describe each mode in a dedicated paragraph.
-- Split out a Support section that describes in details which compilers,
-  architectures and memory types each mode requires/supports.
-- Capitalize the first letter in the names of each KASAN mode.
+strlcpy(s1, s2, l) is calling strlen(s2), potentially
+causing out-of-bound access, as reported by syzbot:
 
-Link: https://lkml.kernel.org/r/5bd58ebebf066593ce0e1d265d60278b5f5a1874.1652123204.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
+detected buffer overflow in __fortify_strlen
+------------[ cut here ]------------
+kernel BUG at lib/string_helpers.c:980!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 4087 Comm: dhcpcd-run-hooks Not tainted 5.18.0-rc3-syzkaller-01537-g20b87e7c29df #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:fortify_panic+0x18/0x1a lib/string_helpers.c:980
+Code: 8c e8 c5 ba e1 fa e9 23 0f bf fa e8 0b 5d 8c f8 eb db 55 48 89 fd e8 e0 49 40 f8 48 89 ee 48 c7 c7 80 f5 26 8a e8 99 09 f1 ff <0f> 0b e8 ca 49 40 f8 48 8b 54 24 18 4c 89 f1 48 c7 c7 00 00 27 8a
+RSP: 0018:ffffc900000074a8 EFLAGS: 00010286
+
+RAX: 000000000000002c RBX: ffff88801226b728 RCX: 0000000000000000
+RDX: ffff8880198e0000 RSI: ffffffff81600458 RDI: fffff52000000e87
+RBP: ffffffff89da2aa0 R08: 000000000000002c R09: 0000000000000000
+R10: ffffffff815fae2e R11: 0000000000000000 R12: ffff88801226b700
+R13: ffff8880198e0830 R14: 0000000000000000 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f5876ad6ff8 CR3: 000000001a48c000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ <IRQ>
+ __fortify_strlen include/linux/fortify-string.h:128 [inline]
+ strlcpy include/linux/fortify-string.h:143 [inline]
+ __set_page_owner_handle+0x2b1/0x3e0 mm/page_owner.c:171
+ __set_page_owner+0x3e/0x50 mm/page_owner.c:190
+ prep_new_page mm/page_alloc.c:2441 [inline]
+ get_page_from_freelist+0xba2/0x3e00 mm/page_alloc.c:4182
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5408
+ alloc_pages+0x1aa/0x310 mm/mempolicy.c:2272
+ alloc_slab_page mm/slub.c:1799 [inline]
+ allocate_slab+0x26c/0x3c0 mm/slub.c:1944
+ new_slab mm/slub.c:2004 [inline]
+ ___slab_alloc+0x8df/0xf20 mm/slub.c:3005
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3092
+ slab_alloc_node mm/slub.c:3183 [inline]
+ slab_alloc mm/slub.c:3225 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3232 [inline]
+ kmem_cache_alloc+0x360/0x3b0 mm/slub.c:3242
+ dst_alloc+0x146/0x1f0 net/core/dst.c:92
+
+Link: https://lkml.kernel.org/r/20220509145949.265184-1-eric.dumazet@gmail.com
+Fixes: 865ed6a32786 ("mm/page_owner: record task command name")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Acked-by: Waiman Long <longman@redhat.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |  153 ++++++++++++++++------------
- 1 file changed, 92 insertions(+), 61 deletions(-)
+ mm/page_owner.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -4,39 +4,76 @@ The Kernel Address Sanitizer (KASAN)
- Overview
- --------
- 
--KernelAddressSANitizer (KASAN) is a dynamic memory safety error detector
--designed to find out-of-bound and use-after-free bugs. KASAN has three modes:
-+Kernel Address Sanitizer (KASAN) is a dynamic memory safety error detector
-+designed to find out-of-bounds and use-after-free bugs.
- 
--1. generic KASAN (similar to userspace ASan),
--2. software tag-based KASAN (similar to userspace HWASan),
--3. hardware tag-based KASAN (based on hardware memory tagging).
--
--Generic KASAN is mainly used for debugging due to a large memory overhead.
--Software tag-based KASAN can be used for dogfood testing as it has a lower
--memory overhead that allows using it with real workloads. Hardware tag-based
--KASAN comes with low memory and performance overheads and, therefore, can be
--used in production. Either as an in-field memory bug detector or as a security
--mitigation.
--
--Software KASAN modes (#1 and #2) use compile-time instrumentation to insert
--validity checks before every memory access and, therefore, require a compiler
--version that supports that.
--
--Generic KASAN is supported in GCC and Clang. With GCC, it requires version
--8.3.0 or later. Any supported Clang version is compatible, but detection of
--out-of-bounds accesses for global variables is only supported since Clang 11.
--
--Software tag-based KASAN mode is only supported in Clang.
--
--The hardware KASAN mode (#3) relies on hardware to perform the checks but
--still requires a compiler version that supports memory tagging instructions.
--This mode is supported in GCC 10+ and Clang 12+.
-+KASAN has three modes:
- 
--Both software KASAN modes work with SLUB and SLAB memory allocators,
--while the hardware tag-based KASAN currently only supports SLUB.
-+1. Generic KASAN
-+2. Software Tag-Based KASAN
-+3. Hardware Tag-Based KASAN
- 
--Currently, generic KASAN is supported for the x86_64, arm, arm64, xtensa, s390,
--and riscv architectures, and tag-based KASAN modes are supported only for arm64.
-+Generic KASAN, enabled with CONFIG_KASAN_GENERIC, is the mode intended for
-+debugging, similar to userspace ASan. This mode is supported on many CPU
-+architectures, but it has significant performance and memory overheads.
-+
-+Software Tag-Based KASAN or SW_TAGS KASAN, enabled with CONFIG_KASAN_SW_TAGS,
-+can be used for both debugging and dogfood testing, similar to userspace HWASan.
-+This mode is only supported for arm64, but its moderate memory overhead allows
-+using it for testing on memory-restricted devices with real workloads.
-+
-+Hardware Tag-Based KASAN or HW_TAGS KASAN, enabled with CONFIG_KASAN_HW_TAGS,
-+is the mode intended to be used as an in-field memory bug detector or as a
-+security mitigation. This mode only works on arm64 CPUs that support MTE
-+(Memory Tagging Extension), but it has low memory and performance overheads and
-+thus can be used in production.
-+
-+For details about the memory and performance impact of each KASAN mode, see the
-+descriptions of the corresponding Kconfig options.
-+
-+The Generic and the Software Tag-Based modes are commonly referred to as the
-+software modes. The Software Tag-Based and the Hardware Tag-Based modes are
-+referred to as the tag-based modes.
-+
-+Support
-+-------
-+
-+Architectures
-+~~~~~~~~~~~~~
-+
-+Generic KASAN is supported on x86_64, arm, arm64, powerpc, riscv, s390, and
-+xtensa, and the tag-based KASAN modes are supported only on arm64.
-+
-+Compilers
-+~~~~~~~~~
-+
-+Software KASAN modes use compile-time instrumentation to insert validity checks
-+before every memory access and thus require a compiler version that provides
-+support for that. The Hardware Tag-Based mode relies on hardware to perform
-+these checks but still requires a compiler version that supports the memory
-+tagging instructions.
-+
-+Generic KASAN requires GCC version 8.3.0 or later
-+or any Clang version supported by the kernel.
-+
-+Software Tag-Based KASAN requires GCC 11+
-+or any Clang version supported by the kernel.
-+
-+Hardware Tag-Based KASAN requires GCC 10+ or Clang 12+.
-+
-+Memory types
-+~~~~~~~~~~~~
-+
-+Generic KASAN supports finding bugs in all of slab, page_alloc, vmap, vmalloc,
-+stack, and global memory.
-+
-+Software Tag-Based KASAN supports slab, page_alloc, vmalloc, and stack memory.
-+
-+Hardware Tag-Based KASAN supports slab, page_alloc, and non-executable vmalloc
-+memory.
-+
-+For slab, both software KASAN modes support SLUB and SLAB allocators, while
-+Hardware Tag-Based KASAN only supports SLUB.
- 
- Usage
- -----
-@@ -45,13 +82,13 @@ To enable KASAN, configure the kernel wi
- 
- 	  CONFIG_KASAN=y
- 
--and choose between ``CONFIG_KASAN_GENERIC`` (to enable generic KASAN),
--``CONFIG_KASAN_SW_TAGS`` (to enable software tag-based KASAN), and
--``CONFIG_KASAN_HW_TAGS`` (to enable hardware tag-based KASAN).
-+and choose between ``CONFIG_KASAN_GENERIC`` (to enable Generic KASAN),
-+``CONFIG_KASAN_SW_TAGS`` (to enable Software Tag-Based KASAN), and
-+``CONFIG_KASAN_HW_TAGS`` (to enable Hardware Tag-Based KASAN).
- 
--For software modes, also choose between ``CONFIG_KASAN_OUTLINE`` and
-+For the software modes, also choose between ``CONFIG_KASAN_OUTLINE`` and
- ``CONFIG_KASAN_INLINE``. Outline and inline are compiler instrumentation types.
--The former produces a smaller binary while the latter is 1.1-2 times faster.
-+The former produces a smaller binary while the latter is up to 2 times faster.
- 
- To include alloc and free stack traces of affected slab objects into reports,
- enable ``CONFIG_STACKTRACE``. To include alloc and free stack traces of affected
-@@ -146,7 +183,7 @@ is either 8 or 16 aligned bytes dependin
- memory state section of the report shows the state of one of the memory
- granules that surround the accessed address.
- 
--For generic KASAN, the size of each memory granule is 8. The state of each
-+For Generic KASAN, the size of each memory granule is 8. The state of each
- granule is encoded in one shadow byte. Those 8 bytes can be accessible,
- partially accessible, freed, or be a part of a redzone. KASAN uses the following
- encoding for each shadow byte: 00 means that all 8 bytes of the corresponding
-@@ -181,14 +218,14 @@ By default, KASAN prints a bug report on
- With ``kasan_multi_shot``, KASAN prints a report on every invalid access. This
- effectively disables ``panic_on_warn`` for KASAN reports.
- 
--Alternatively, independent of ``panic_on_warn`` the ``kasan.fault=`` boot
-+Alternatively, independent of ``panic_on_warn``, the ``kasan.fault=`` boot
- parameter can be used to control panic and reporting behaviour:
- 
- - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
-   report or also panic the kernel (default: ``report``). The panic happens even
-   if ``kasan_multi_shot`` is enabled.
- 
--Hardware tag-based KASAN mode (see the section about various modes below) is
-+Hardware Tag-Based KASAN mode (see the section about various modes below) is
- intended for use in production as a security mitigation. Therefore, it supports
- additional boot parameters that allow disabling KASAN or controlling features:
- 
-@@ -250,49 +287,46 @@ outline-instrumented kernel.
- Generic KASAN is the only mode that delays the reuse of freed objects via
- quarantine (see mm/kasan/quarantine.c for implementation).
- 
--Software tag-based KASAN
-+Software Tag-Based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
- 
--Software tag-based KASAN uses a software memory tagging approach to checking
-+Software Tag-Based KASAN uses a software memory tagging approach to checking
- access validity. It is currently only implemented for the arm64 architecture.
- 
--Software tag-based KASAN uses the Top Byte Ignore (TBI) feature of arm64 CPUs
-+Software Tag-Based KASAN uses the Top Byte Ignore (TBI) feature of arm64 CPUs
- to store a pointer tag in the top byte of kernel pointers. It uses shadow memory
- to store memory tags associated with each 16-byte memory cell (therefore, it
- dedicates 1/16th of the kernel memory for shadow memory).
- 
--On each memory allocation, software tag-based KASAN generates a random tag, tags
-+On each memory allocation, Software Tag-Based KASAN generates a random tag, tags
- the allocated memory with this tag, and embeds the same tag into the returned
- pointer.
- 
--Software tag-based KASAN uses compile-time instrumentation to insert checks
-+Software Tag-Based KASAN uses compile-time instrumentation to insert checks
- before each memory access. These checks make sure that the tag of the memory
- that is being accessed is equal to the tag of the pointer that is used to access
--this memory. In case of a tag mismatch, software tag-based KASAN prints a bug
-+this memory. In case of a tag mismatch, Software Tag-Based KASAN prints a bug
- report.
- 
--Software tag-based KASAN also has two instrumentation modes (outline, which
-+Software Tag-Based KASAN also has two instrumentation modes (outline, which
- emits callbacks to check memory accesses; and inline, which performs the shadow
- memory checks inline). With outline instrumentation mode, a bug report is
- printed from the function that performs the access check. With inline
- instrumentation, a ``brk`` instruction is emitted by the compiler, and a
- dedicated ``brk`` handler is used to print bug reports.
- 
--Software tag-based KASAN uses 0xFF as a match-all pointer tag (accesses through
-+Software Tag-Based KASAN uses 0xFF as a match-all pointer tag (accesses through
- pointers with the 0xFF pointer tag are not checked). The value 0xFE is currently
- reserved to tag freed memory regions.
- 
--Software tag-based KASAN currently only supports tagging of slab, page_alloc,
--and vmalloc memory.
--
--Hardware tag-based KASAN
-+Hardware Tag-Based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
- 
--Hardware tag-based KASAN is similar to the software mode in concept but uses
-+Hardware Tag-Based KASAN is similar to the software mode in concept but uses
- hardware memory tagging support instead of compiler instrumentation and
- shadow memory.
- 
--Hardware tag-based KASAN is currently only implemented for arm64 architecture
-+Hardware Tag-Based KASAN is currently only implemented for arm64 architecture
- and based on both arm64 Memory Tagging Extension (MTE) introduced in ARMv8.5
- Instruction Set Architecture and Top Byte Ignore (TBI).
- 
-@@ -302,21 +336,18 @@ access, hardware makes sure that the tag
- equal to the tag of the pointer that is used to access this memory. In case of a
- tag mismatch, a fault is generated, and a report is printed.
- 
--Hardware tag-based KASAN uses 0xFF as a match-all pointer tag (accesses through
-+Hardware Tag-Based KASAN uses 0xFF as a match-all pointer tag (accesses through
- pointers with the 0xFF pointer tag are not checked). The value 0xFE is currently
- reserved to tag freed memory regions.
- 
--Hardware tag-based KASAN currently only supports tagging of slab, page_alloc,
--and VM_ALLOC-based vmalloc memory.
--
--If the hardware does not support MTE (pre ARMv8.5), hardware tag-based KASAN
-+If the hardware does not support MTE (pre ARMv8.5), Hardware Tag-Based KASAN
- will not be enabled. In this case, all KASAN boot parameters are ignored.
- 
- Note that enabling CONFIG_KASAN_HW_TAGS always results in in-kernel TBI being
- enabled. Even when ``kasan.mode=off`` is provided or when the hardware does not
- support MTE (but supports TBI).
- 
--Hardware tag-based KASAN only reports the first found bug. After that, MTE tag
-+Hardware Tag-Based KASAN only reports the first found bug. After that, MTE tag
- checking gets disabled.
- 
- Shadow memory
-@@ -414,15 +445,15 @@ generic ``noinstr`` one.
- Note that disabling compiler instrumentation (either on a per-file or a
- per-function basis) makes KASAN ignore the accesses that happen directly in
- that code for software KASAN modes. It does not help when the accesses happen
--indirectly (through calls to instrumented functions) or with the hardware
--tag-based mode that does not use compiler instrumentation.
-+indirectly (through calls to instrumented functions) or with Hardware
-+Tag-Based KASAN, which does not use compiler instrumentation.
- 
- For software KASAN modes, to disable KASAN reports in a part of the kernel code
- for the current task, annotate this part of the code with a
- ``kasan_disable_current()``/``kasan_enable_current()`` section. This also
- disables the reports for indirect accesses that happen through function calls.
- 
--For tag-based KASAN modes (include the hardware one), to disable access
-+For tag-based KASAN modes (include the Hardware one), to disable access
- checking, use ``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that
- temporarily disabling access checking via ``page_kasan_tag_reset()`` requires
- saving and restoring the per-page KASAN tag via
+--- a/mm/page_owner.c~mm-page_owner-use-strscpy-instead-of-strlcpy
++++ a/mm/page_owner.c
+@@ -168,7 +168,7 @@ static inline void __set_page_owner_hand
+ 		page_owner->pid = current->pid;
+ 		page_owner->tgid = current->tgid;
+ 		page_owner->ts_nsec = local_clock();
+-		strlcpy(page_owner->comm, current->comm,
++		strscpy(page_owner->comm, current->comm,
+ 			sizeof(page_owner->comm));
+ 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+ 		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from edumazet@google.com are
 
-kasan-clean-up-comments-in-internal-kasanh.patch
-kasan-use-tabs-to-align-shadow-values.patch
-kasan-give-better-names-to-shadow-values.patch
-kasan-update-documentation.patch
-kasan-move-boot-parameters-section-in-documentation.patch
-kasan-clean-up-kconfig-options-descriptions.patch
+mm-page_owner-use-strscpy-instead-of-strlcpy.patch
 
