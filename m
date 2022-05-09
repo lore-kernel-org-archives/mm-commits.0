@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57B14C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0720C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230089AbiEIVVF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 17:21:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40006 "EHLO
+        id S230092AbiEIVVI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 17:21:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229589AbiEIVVE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06FB450076
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:09 -0700 (PDT)
+        with ESMTP id S229589AbiEIVVI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A125920CD95
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 94B696171A
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5DB2C385BA;
-        Mon,  9 May 2022 21:17:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4D063B8197F
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D54C3C385BA;
+        Mon,  9 May 2022 21:17:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652131028;
-        bh=swGCkRui86141lU722yfSUWdwZXwRup/rfwOBJD7IEQ=;
+        s=korg; t=1652131029;
+        bh=uIe4cTRqRY3kSQOWW9mgkyHGhZ7CUT0cdNH8XOtUztA=;
         h=Date:To:From:Subject:From;
-        b=dvLnGZgB0tBv9qCf3Vsu3VT6iVMG2h40F+YJ18+TLu8Sp9CWoA8qCx465GMedfklt
-         ShPySv7H9dh3oZ0ZOwmjrR3VlI8eg+eGi1+0WxaxzA/NDsl8wmMQtxjU00FHdDpB32
-         x1FGGMDnbafde6+HiD8DEQEyzm6fnuSsc2aP+svw=
-Date:   Mon, 09 May 2022 14:17:07 -0700
+        b=feG7ASdInhh6Ut4iNQapcpM9ZpsOfD42vqsYTfIpkxkmn/8MvLaL/NFG8vvU9fGEi
+         U2dmoibTQIXkbaWeEzScchj6uVqdAVlGHoY7iXJsiiqsx2NuzAajzHGuZmvSmBlpdN
+         e9j0rRQp7sx0Qbj6V5rSad0jt9ldopiM5co8CJyo=
+Date:   Mon, 09 May 2022 14:17:09 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, neilb@suse.de,
         naoya.horiguchi@nec.com, dhowells@redhat.com, david@redhat.com,
         apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-use-helper-macro-__attr_rw.patch added to mm-unstable branch
-Message-Id: <20220509211707.E5DB2C385BA@smtp.kernel.org>
+Subject: + mm-swap-fold-__swap_info_get-into-its-sole-caller.patch added to mm-unstable branch
+Message-Id: <20220509211709.D54C3C385BA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,9 +43,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: use helper macro __ATTR_RW
+     Subject: mm/swap: fold __swap_info_get() into its sole caller
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-use-helper-macro-__attr_rw.patch
+     mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,12 +64,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: use helper macro __ATTR_RW
+Subject: mm/swap: fold __swap_info_get() into its sole caller
 
-Use helper macro __ATTR_RW to define vma_ra_enabled_attr to make code more
-clear.  Minor readability improvement.
+Fold __swap_info_get() into its sole caller to make code more clear. 
+Minor readability improvement.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,22 +83,58 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/swapfile.c |   24 ++++++------------------
+ 1 file changed, 6 insertions(+), 18 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-use-helper-macro-__attr_rw
-+++ a/mm/swap_state.c
-@@ -881,9 +881,7 @@ static ssize_t vma_ra_enabled_store(stru
- 
- 	return count;
+--- a/mm/swapfile.c~mm-swap-fold-__swap_info_get-into-its-sole-caller
++++ a/mm/swapfile.c
+@@ -1122,7 +1122,7 @@ noswap:
+ 	return n_ret;
  }
--static struct kobj_attribute vma_ra_enabled_attr =
--	__ATTR(vma_ra_enabled, 0644, vma_ra_enabled_show,
--	       vma_ra_enabled_store);
-+static struct kobj_attribute vma_ra_enabled_attr = __ATTR_RW(vma_ra_enabled);
  
- static struct attribute *swap_attrs[] = {
- 	&vma_ra_enabled_attr.attr,
+-static struct swap_info_struct *__swap_info_get(swp_entry_t entry)
++static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
+ {
+ 	struct swap_info_struct *p;
+ 	unsigned long offset;
+@@ -1137,8 +1137,13 @@ static struct swap_info_struct *__swap_i
+ 	offset = swp_offset(entry);
+ 	if (offset >= p->max)
+ 		goto bad_offset;
++	if (data_race(!p->swap_map[swp_offset(entry)]))
++		goto bad_free;
+ 	return p;
+ 
++bad_free:
++	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
++	goto out;
+ bad_offset:
+ 	pr_err("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
+ 	goto out;
+@@ -1150,23 +1155,6 @@ bad_nofile:
+ out:
+ 	return NULL;
+ }
+-
+-static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
+-{
+-	struct swap_info_struct *p;
+-
+-	p = __swap_info_get(entry);
+-	if (!p)
+-		goto out;
+-	if (data_race(!p->swap_map[swp_offset(entry)]))
+-		goto bad_free;
+-	return p;
+-
+-bad_free:
+-	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
+-out:
+-	return NULL;
+-}
+ 
+ static struct swap_info_struct *swap_info_get_cont(swp_entry_t entry,
+ 					struct swap_info_struct *q)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
