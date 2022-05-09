@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25374C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A7DAC433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230102AbiEIVV2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 17:21:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41524 "EHLO
+        id S230118AbiEIVVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 17:21:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230108AbiEIVV0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:26 -0400
+        with ESMTP id S230115AbiEIVV1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:27 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A073020F9F7
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84A05216071
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5F8D0B8190E
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFBDDC385BA;
-        Mon,  9 May 2022 21:17:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 41A94B8197F
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D286AC385BB;
+        Mon,  9 May 2022 21:17:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652131048;
-        bh=HCoVULgoVxuGrXhWjNMZxmWJXhy2kcK40+r63EajW10=;
+        s=korg; t=1652131049;
+        bh=BXuYzp5iE4JDhEGkqRPYFRptmhfWSaOVhN1nUbfBheg=;
         h=Date:To:From:Subject:From;
-        b=KfIiZKBzFQ3luc33a99d91gIEbsV8Z7JFKW79c/b1pHca7gVA45BL/GgzRMLI14sg
-         PIIFH9erXje8u9RE6chAA1syKiD8IIDf5L0sc3gWyClquT+Mrjhc1D2ugiH4D/nFM5
-         pSF4eB2xQP19+T5vz5Q2Fk8yUIFENRUJGqisAyMg=
-Date:   Mon, 09 May 2022 14:17:27 -0700
+        b=EDBrH9cKGbnrXte/P7SsZBbYquesiBiXyibAOyYTtM4XmOl7z9jS6hbAern6S8bmL
+         +ib7JKzkbu6dTFLnyzbQkmxL6RPfWKim03bWyigqYfFnOdIcszpbMJeKHYcQSSheEc
+         wtQDzey2o9YJkEObwt0aECe7qAJ3R6913BUkDDx8=
+Date:   Mon, 09 May 2022 14:17:29 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, neilb@suse.de,
         naoya.horiguchi@nec.com, dhowells@redhat.com, david@redhat.com,
         apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch added to mm-unstable branch
-Message-Id: <20220509211727.EFBDDC385BA@smtp.kernel.org>
+Subject: + mm-swap-fix-the-comment-of-get_kernel_pages.patch added to mm-unstable branch
+Message-Id: <20220509211729.D286AC385BB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,9 +43,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: clean up the comment of find_next_to_unuse
+     Subject: mm/swap: fix the comment of get_kernel_pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
+     mm-swap-fix-the-comment-of-get_kernel_pages.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,12 +64,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: clean up the comment of find_next_to_unuse
+Subject: mm/swap: fix the comment of get_kernel_pages
 
-Since commit 10a9c496789f ("mm: simplify try_to_unuse"), frontswap
-parameter is removed.  Update the corresponding comment.
+If no pages were pinned, 0 is returned in fact.  Fix the corresponding
+comment.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-14-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-15-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,24 +83,22 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/swap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-clean-up-the-comment-of-find_next_to_unuse
-+++ a/mm/swapfile.c
-@@ -2006,9 +2006,9 @@ static int unuse_mm(struct mm_struct *mm
- }
- 
- /*
-- * Scan swap_map (or frontswap_map if frontswap parameter is true)
-- * from current position to next entry still in use. Return 0
-- * if there are no inuse entries after prev till end of the map.
-+ * Scan swap_map from current position to next entry still in use.
-+ * Return 0 if there are no inuse entries after prev till end of
-+ * the map.
+--- a/mm/swap.c~mm-swap-fix-the-comment-of-get_kernel_pages
++++ a/mm/swap.c
+@@ -168,8 +168,8 @@ EXPORT_SYMBOL(put_pages_list);
+  *
+  * Returns number of pages pinned. This may be fewer than the number
+  * requested. If nr_pages is 0 or negative, returns 0. If no pages
+- * were pinned, returns -errno. Each page returned must be released
+- * with a put_page() call when it is finished with.
++ * were pinned, returns 0. Each page returned must be released with
++ * a put_page() call when it is finished with.
   */
- static unsigned int find_next_to_unuse(struct swap_info_struct *si,
- 					unsigned int prev)
+ int get_kernel_pages(const struct kvec *kiov, int nr_segs, int write,
+ 		struct page **pages)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
