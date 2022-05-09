@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ABC8C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 17:34:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4202C433F5
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 18:48:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239733AbiEIRig (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 13:38:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50358 "EHLO
+        id S240354AbiEISwV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 14:52:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239693AbiEIRig (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 13:38:36 -0400
+        with ESMTP id S240328AbiEISwT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 14:52:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7E782415E9;
-        Mon,  9 May 2022 10:34:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0717A202B13
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 11:48:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A90861594;
-        Mon,  9 May 2022 17:34:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 911E2C385B2;
-        Mon,  9 May 2022 17:34:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 912AB61657
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 18:48:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB1A8C385B6;
+        Mon,  9 May 2022 18:48:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652117680;
-        bh=K0Xa/ePGixBjtV19iXDf76f9F1aE0pPc6HJseapHjfo=;
+        s=korg; t=1652122104;
+        bh=9PmWXByLz5locluvKEMd44o2TxIgb8HPdUCCqSJrDfI=;
         h=Date:To:From:Subject:From;
-        b=GeI3EluaUBXDzYRA24S0OhDciyi3M9PnP2buAo1f3E5BVLhyUNBXSqcy+kTBXdkiJ
-         O9WK5a3D4BVmYC5wJsa3OejR/H+CdEMjWtiNcfoAgsaSviFvwpDlC0QcmKqVn4D/C3
-         GX5ApFpJLAAU2R9wOFR9lxmyr+88M4XkQWsyywXw=
-Date:   Mon, 09 May 2022 10:34:39 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
-        m.szyprowski@samsung.com, minchan@kernel.org,
-        lecopzer.chen@mediatek.com, david@redhat.com, aisheng.dong@nxp.com,
-        akpm@linux-foundation.org
+        b=N0igYpX2hmlZAcJApxoHYobYXVTgo12xbgrpmSPBE+rNE0H1AHJ64Tg3qh3Vv5jBX
+         TuGSccxWxZ73h18zUeu+IvPuAYiGNxrr1sKlfaDXFGPWGnoOJOPaTHEyIGfeEVf0Z9
+         Zng3z0iHzNCTX9FMCzgjexqifbTbP1AQH4gA5/pA=
+Date:   Mon, 09 May 2022 11:48:23 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-cmac-remove-redundant-cma_mutex-lock.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220509173440.911E2C385B2@smtp.kernel.org>
+Subject: + kasan-clean-up-comments-in-internal-kasanh.patch added to mm-unstable branch
+Message-Id: <20220509184823.EB1A8C385B6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,11 +42,11 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm/cma.c: remove redundant cma_mutex lock"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-mm-cmac-remove-redundant-cma_mutex-lock.patch
+     Subject: kasan: clean up comments in internal kasan.h
+has been added to the -mm mm-unstable branch.  Its filename is
+     kasan-clean-up-comments-in-internal-kasanh.patch
 
-This patch should soon appear in the mm-hotfixes-unstable branch at
+This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -63,100 +62,207 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dong Aisheng <aisheng.dong@nxp.com>
-Subject: Revert "mm/cma.c: remove redundant cma_mutex lock"
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: clean up comments in internal kasan.h
 
-This reverts commit a4efc174b382fcdb which introduced a regression issue
-that when there're multiple processes allocating dma memory in parallel by
-calling dma_alloc_coherent(), it may fail sometimes as follows:
+Clean up comments in mm/kasan/kasan.h: clarify, unify styles, fix
+punctuation, etc.
 
-Error log:
-cma: cma_alloc: linux,cma: alloc failed, req-size: 148 pages, ret: -16
-cma: number of available pages:
-3@125+20@172+12@236+4@380+32@736+17@2287+23@2473+20@36076+99@40477+108@40852+44@41108+20@41196+108@41364+108@41620+
-108@42900+108@43156+483@44061+1763@45341+1440@47712+20@49324+20@49388+5076@49452+2304@55040+35@58141+20@58220+20@58284+
-7188@58348+84@66220+7276@66452+227@74525+6371@75549=> 33161 free of 81920 total pages
-
-When issue happened, we saw there were still 33161 pages (129M) free CMA
-memory and a lot available free slots for 148 pages in CMA bitmap that we
-want to allocate.
-
-When dumping memory info, we found that there was also ~342M normal
-memory, but only 1352K CMA memory left in buddy system while a lot of
-pageblocks were isolated.
-
-Memory info log:
-Normal free:351096kB min:30000kB low:37500kB high:45000kB reserved_highatomic:0KB
-	    active_anon:98060kB inactive_anon:98948kB active_file:60864kB inactive_file:31776kB
-	    unevictable:0kB writepending:0kB present:1048576kB managed:1018328kB mlocked:0kB
-	    bounce:0kB free_pcp:220kB local_pcp:192kB free_cma:1352kB lowmem_reserve[]: 0 0 0
-Normal: 78*4kB (UECI) 1772*8kB (UMECI) 1335*16kB (UMECI) 360*32kB (UMECI) 65*64kB (UMCI)
-	36*128kB (UMECI) 16*256kB (UMCI) 6*512kB (EI) 8*1024kB (UEI) 4*2048kB (MI) 8*4096kB (EI)
-	8*8192kB (UI) 3*16384kB (EI) 8*32768kB (M) = 489288kB
-
-The root cause of this issue is that since commit a4efc174b382 ("mm/cma.c:
-remove redundant cma_mutex lock"), CMA supports concurrent memory
-allocation.  It's possible that the memory range process A trying to alloc
-has already been isolated by the allocation of process B during memory
-migration.
-
-The problem here is that the memory range isolated during one allocation
-by start_isolate_page_range() could be much bigger than the real size we
-want to alloc due to the range is aligned to MAX_ORDER_NR_PAGES.
-
-Taking an ARMv7 platform with 1G memory as an example, when
-MAX_ORDER_NR_PAGES is big (e.g.  32M with max_order 14) and CMA memory is
-relatively small (e.g.  128M), there're only 4 MAX_ORDER slot, then it's
-very easy that all CMA memory may have already been isolated by other
-processes when one trying to allocate memory using dma_alloc_coherent(). 
-Since current CMA code will only scan one time of whole available CMA
-memory, then dma_alloc_coherent() may easy fail due to contention with
-other processes.
-
-This patch simply falls back to the original method that using cma_mutex
-to make alloc_contig_range() run sequentially to avoid the issue.
-
-Link: https://lkml.kernel.org/r/20220509094551.3596244-1-aisheng.dong@nxp.com
-Link: https://lore.kernel.org/all/20220315144521.3810298-2-aisheng.dong@nxp.com/
-Fixes: a4efc174b382 ("mm/cma.c: remove redundant cma_mutex lock")
-Signed-off-by: Dong Aisheng <aisheng.dong@nxp.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[5.11+]
+Link: https://lkml.kernel.org/r/a0680ff30035b56cb7bdd5f59fd400e71712ceb5.1652111464.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/kasan/kasan.h |   74 ++++++++++++++++++++-------------------------
+ 1 file changed, 33 insertions(+), 41 deletions(-)
 
---- a/mm/cma.c~revert-mm-cmac-remove-redundant-cma_mutex-lock
-+++ a/mm/cma.c
-@@ -37,6 +37,7 @@
- 
- struct cma cma_areas[MAX_CMA_AREAS];
- unsigned cma_area_count;
-+static DEFINE_MUTEX(cma_mutex);
- 
- phys_addr_t cma_get_base(const struct cma *cma)
+--- a/mm/kasan/kasan.h~kasan-clean-up-comments-in-internal-kasanh
++++ a/mm/kasan/kasan.h
+@@ -42,6 +42,7 @@ static inline bool kasan_sync_fault_poss
  {
-@@ -468,9 +469,10 @@ struct page *cma_alloc(struct cma *cma,
- 		spin_unlock_irq(&cma->lock);
+ 	return kasan_mode == KASAN_MODE_SYNC || kasan_mode == KASAN_MODE_ASYMM;
+ }
++
+ #else
  
- 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
-+		mutex_lock(&cma_mutex);
- 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
- 				     GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0));
--
-+		mutex_unlock(&cma_mutex);
- 		if (ret == 0) {
- 			page = pfn_to_page(pfn);
- 			break;
+ static inline bool kasan_stack_collection_enabled(void)
+@@ -73,47 +74,41 @@ static inline bool kasan_sync_fault_poss
+ #define KASAN_MEMORY_PER_SHADOW_PAGE	(KASAN_GRANULE_SIZE << PAGE_SHIFT)
+ 
+ #ifdef CONFIG_KASAN_GENERIC
+-#define KASAN_FREE_PAGE         0xFF  /* page was freed */
+-#define KASAN_PAGE_REDZONE      0xFE  /* redzone for kmalloc_large allocations */
+-#define KASAN_KMALLOC_REDZONE   0xFC  /* redzone inside slub object */
+-#define KASAN_KMALLOC_FREE      0xFB  /* object was freed (kmem_cache_free/kfree) */
+-#define KASAN_VMALLOC_INVALID   0xF8  /* unallocated space in vmapped page */
++#define KASAN_FREE_PAGE         0xFF  /* freed page */
++#define KASAN_PAGE_REDZONE      0xFE  /* redzone for kmalloc_large allocation */
++#define KASAN_KMALLOC_REDZONE   0xFC  /* redzone for slab object */
++#define KASAN_KMALLOC_FREE      0xFB  /* freed slab object */
++#define KASAN_VMALLOC_INVALID   0xF8  /* inaccessible space in vmap area */
+ #else
+ #define KASAN_FREE_PAGE         KASAN_TAG_INVALID
+ #define KASAN_PAGE_REDZONE      KASAN_TAG_INVALID
+ #define KASAN_KMALLOC_REDZONE   KASAN_TAG_INVALID
+ #define KASAN_KMALLOC_FREE      KASAN_TAG_INVALID
+-#define KASAN_VMALLOC_INVALID   KASAN_TAG_INVALID /* only for SW_TAGS */
++#define KASAN_VMALLOC_INVALID   KASAN_TAG_INVALID /* only used for SW_TAGS */
+ #endif
+ 
+ #ifdef CONFIG_KASAN_GENERIC
+ 
+-#define KASAN_KMALLOC_FREETRACK 0xFA  /* object was freed and has free track set */
++#define KASAN_KMALLOC_FREETRACK 0xFA  /* freed slab object with free track */
+ #define KASAN_GLOBAL_REDZONE    0xF9  /* redzone for global variable */
+ 
+-/*
+- * Stack redzone shadow values
+- * (Those are compiler's ABI, don't change them)
+- */
++/* Stack redzone shadow values. Compiler ABI, do not change. */
+ #define KASAN_STACK_LEFT        0xF1
+ #define KASAN_STACK_MID         0xF2
+ #define KASAN_STACK_RIGHT       0xF3
+ #define KASAN_STACK_PARTIAL     0xF4
+ 
+-/*
+- * alloca redzone shadow values
+- */
++/* alloca redzone shadow values. */
+ #define KASAN_ALLOCA_LEFT	0xCA
+ #define KASAN_ALLOCA_RIGHT	0xCB
+ 
++/* alloca redzone size. Compiler ABI, do not change. */
+ #define KASAN_ALLOCA_REDZONE_SIZE	32
+ 
+-/*
+- * Stack frame marker (compiler ABI).
+- */
++/* Stack frame marker. Compiler ABI, do not change. */
+ #define KASAN_CURRENT_STACK_FRAME_MAGIC 0x41B58AB3
+ 
+-/* Don't break randconfig/all*config builds */
++/* Dummy value to avoid breaking randconfig/all*config builds. */
+ #ifndef KASAN_ABI_VERSION
+ #define KASAN_ABI_VERSION 1
+ #endif
+@@ -141,21 +136,21 @@ struct kasan_report_info {
+ 	unsigned long ip;
+ };
+ 
+-/* The layout of struct dictated by compiler */
++/* Do not change the struct layout: compiler ABI. */
+ struct kasan_source_location {
+ 	const char *filename;
+ 	int line_no;
+ 	int column_no;
+ };
+ 
+-/* The layout of struct dictated by compiler */
++/* Do not change the struct layout: compiler ABI. */
+ struct kasan_global {
+ 	const void *beg;		/* Address of the beginning of the global variable. */
+ 	size_t size;			/* Size of the global variable. */
+-	size_t size_with_redzone;	/* Size of the variable + size of the red zone. 32 bytes aligned */
++	size_t size_with_redzone;	/* Size of the variable + size of the redzone. 32 bytes aligned. */
+ 	const void *name;
+ 	const void *module_name;	/* Name of the module where the global variable is declared. */
+-	unsigned long has_dynamic_init;	/* This needed for C++ */
++	unsigned long has_dynamic_init;	/* This is needed for C++. */
+ #if KASAN_ABI_VERSION >= 4
+ 	struct kasan_source_location *location;
+ #endif
+@@ -164,9 +159,7 @@ struct kasan_global {
+ #endif
+ };
+ 
+-/**
+- * Structures to keep alloc and free tracks *
+- */
++/* Structures for keeping alloc and free tracks. */
+ 
+ #define KASAN_STACK_DEPTH 64
+ 
+@@ -183,11 +176,8 @@ struct kasan_track {
+ 
+ struct kasan_alloc_meta {
+ 	struct kasan_track alloc_track;
++	/* Generic mode stores free track in kasan_free_meta. */
+ #ifdef CONFIG_KASAN_GENERIC
+-	/*
+-	 * The auxiliary stack is stored into struct kasan_alloc_meta.
+-	 * The free stack is stored into struct kasan_free_meta.
+-	 */
+ 	depot_stack_handle_t aux_stack[2];
+ #else
+ 	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
+@@ -203,18 +193,18 @@ struct qlist_node {
+ };
+ 
+ /*
+- * Generic mode either stores free meta in the object itself or in the redzone
+- * after the object. In the former case free meta offset is 0, in the latter
+- * case it has some sane value smaller than INT_MAX. Use INT_MAX as free meta
+- * offset when free meta isn't present.
++ * Free meta is stored either in the object itself or in the redzone after the
++ * object. In the former case, free meta offset is 0. In the latter case, the
++ * offset is between 0 and INT_MAX. INT_MAX marks that free meta is not present.
+  */
+ #define KASAN_NO_FREE_META INT_MAX
+ 
++/*
++ * Free meta is only used by Generic mode while the object is in quarantine.
++ * After that, slab allocator stores the freelist pointer in the object.
++ */
+ struct kasan_free_meta {
+ #ifdef CONFIG_KASAN_GENERIC
+-	/* This field is used while the object is in the quarantine.
+-	 * Otherwise it might be used for the allocator freelist.
+-	 */
+ 	struct qlist_node quarantine_link;
+ 	struct kasan_track free_track;
+ #endif
+@@ -417,9 +407,10 @@ static inline void kasan_unpoison(const
+ 		return;
+ 	/*
+ 	 * Explicitly initialize the memory with the precise object size to
+-	 * avoid overwriting the SLAB redzone. This disables initialization in
+-	 * the arch code and may thus lead to performance penalty. The penalty
+-	 * is accepted since SLAB redzones aren't enabled in production builds.
++	 * avoid overwriting the slab redzone. This disables initialization in
++	 * the arch code and may thus lead to performance penalty. This penalty
++	 * does not affect production builds, as slab redzones are not enabled
++	 * there.
+ 	 */
+ 	if (__slub_debug_enabled() &&
+ 	    init && ((unsigned long)size & KASAN_GRANULE_MASK)) {
+@@ -503,8 +494,9 @@ void kasan_restore_multi_shot(bool enabl
+ 
+ /*
+  * Exported functions for interfaces called from assembly or from generated
+- * code. Declarations here to avoid warning about missing declarations.
++ * code. Declared here to avoid warnings about missing declarations.
+  */
++
+ asmlinkage void kasan_unpoison_task_stack_below(const void *watermark);
+ void __asan_register_globals(struct kasan_global *globals, size_t size);
+ void __asan_unregister_globals(struct kasan_global *globals, size_t size);
+@@ -573,4 +565,4 @@ void __hwasan_storeN_noabort(unsigned lo
+ 
+ void __hwasan_tag_memory(unsigned long addr, u8 tag, unsigned long size);
+ 
+-#endif
++#endif /* __MM_KASAN_KASAN_H */
 _
 
-Patches currently in -mm which might be from aisheng.dong@nxp.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-revert-mm-cmac-remove-redundant-cma_mutex-lock.patch
+kasan-clean-up-comments-in-internal-kasanh.patch
+kasan-use-tabs-to-align-shadow-values.patch
+kasan-give-better-names-to-shadow-values.patch
 
