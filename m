@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24E82C4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2CEAC433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 21:17:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230107AbiEIVV0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 17:21:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41264 "EHLO
+        id S230091AbiEIVV2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 17:21:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230091AbiEIVVV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 411EC213322
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:25 -0700 (PDT)
+        with ESMTP id S230102AbiEIVVY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 17:21:24 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9975450076
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 14:17:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C56426171A
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 249FCC385BB;
-        Mon,  9 May 2022 21:17:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 56D7EB8197F
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16C2BC385BB;
+        Mon,  9 May 2022 21:17:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652131044;
-        bh=qvTw91H8zp6XISflUGJwJOnQ1lfttkrFiTvXt4f8oWs=;
+        s=korg; t=1652131046;
+        bh=Xhd8mpoudrVYif5slOwBvXEDe+gVe+3oM2ZVmE3MgUM=;
         h=Date:To:From:Subject:From;
-        b=U/PEzboIMhNLhQ8rXYrAhIot56v3vn//16IqElTwXQnatJcLQeifUrfmXPsnWDvSB
-         ODojmGto9ISV1mTHH1pMIqgTedafDM4yD/vYNRPEyLzMunuUgvZ4Jqc6PtZEnhKIRe
-         UonwBGECPCU4/EzjBdNCfXEib4bZqlZf9vkWofwI=
-Date:   Mon, 09 May 2022 14:17:23 -0700
+        b=mt4rRATI7VqDv++NyDyeOSHhqSaVz5w5kLtQFH3jWTPNXfJpvThXglE1Twj6QSxOF
+         2Q2ubafqT+XK/3JUrotXXEQkOEv93TfKrWMchcRziNl2KKxC69xBPRpVerOJQhWtHc
+         oLYG8rvT3CBIZi3sUc/VPpB3NMz8bJpq7yI7bUv4=
+Date:   Mon, 09 May 2022 14:17:25 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, neilb@suse.de,
         naoya.horiguchi@nec.com, dhowells@redhat.com, david@redhat.com,
         apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-add-helper-swap_offset_available.patch added to mm-unstable branch
-Message-Id: <20220509211724.249FCC385BB@smtp.kernel.org>
+Subject: + mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch added to mm-unstable branch
+Message-Id: <20220509211726.16C2BC385BB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,9 +43,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: add helper swap_offset_available()
+     Subject: mm/swap: fix the obsolete comment for SWP_TYPE_SHIFT
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-add-helper-swap_offset_available.patch
+     mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
 
 This patch should soon appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,12 +64,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: add helper swap_offset_available()
+Subject: mm/swap: fix the obsolete comment for SWP_TYPE_SHIFT
 
-Add helper swap_offset_available() to remove some duplicated codes.  Minor
-readability improvement.
+Since commit 3159f943aafd ("xarray: Replace exceptional entries"), there
+is only one bit of 'type' can be shifted up.  Update the corresponding
+comment.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-12-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-13-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,67 +84,24 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ include/linux/swapops.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-add-helper-swap_offset_available
-+++ a/mm/swapfile.c
-@@ -775,6 +775,21 @@ static void set_cluster_next(struct swap
- 	this_cpu_write(*si->cluster_next_cpu, next);
- }
- 
-+static inline bool swap_offset_available(struct swap_info_struct *si, unsigned long offset)
-+{
-+	if (data_race(!si->swap_map[offset])) {
-+		spin_lock(&si->lock);
-+		return true;
-+	}
-+
-+	if (vm_swap_full() && READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
-+		spin_lock(&si->lock);
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
- static int scan_swap_map_slots(struct swap_info_struct *si,
- 			       unsigned char usage, int nr,
- 			       swp_entry_t slots[])
-@@ -952,15 +967,8 @@ done:
- scan:
- 	spin_unlock(&si->lock);
- 	while (++offset <= READ_ONCE(si->highest_bit)) {
--		if (data_race(!si->swap_map[offset])) {
--			spin_lock(&si->lock);
--			goto checks;
--		}
--		if (vm_swap_full() &&
--		    READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
--			spin_lock(&si->lock);
-+		if (swap_offset_available(si, offset))
- 			goto checks;
--		}
- 		if (unlikely(--latency_ration < 0)) {
- 			cond_resched();
- 			latency_ration = LATENCY_LIMIT;
-@@ -969,15 +977,8 @@ scan:
- 	}
- 	offset = si->lowest_bit;
- 	while (offset < scan_base) {
--		if (data_race(!si->swap_map[offset])) {
--			spin_lock(&si->lock);
-+		if (swap_offset_available(si, offset))
- 			goto checks;
--		}
--		if (vm_swap_full() &&
--		    READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
--			spin_lock(&si->lock);
--			goto checks;
--		}
- 		if (unlikely(--latency_ration < 0)) {
- 			cond_resched();
- 			latency_ration = LATENCY_LIMIT;
+--- a/include/linux/swapops.h~mm-swap-fix-the-obsolete-comment-for-swp_type_shift
++++ a/include/linux/swapops.h
+@@ -13,10 +13,10 @@
+  * get good packing density in that tree, so the index should be dense in
+  * the low-order bits.
+  *
+- * We arrange the `type' and `offset' fields so that `type' is at the seven
++ * We arrange the `type' and `offset' fields so that `type' is at the six
+  * high-order bits of the swp_entry_t and `offset' is right-aligned in the
+  * remaining bits.  Although `type' itself needs only five bits, we allow for
+- * shmem/tmpfs to shift it all up a further two bits: see swp_to_radix_entry().
++ * shmem/tmpfs to shift it all up a further one bit: see swp_to_radix_entry().
+  *
+  * swp_entry_t's are *never* stored anywhere in their arch-dependent format.
+  */
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
