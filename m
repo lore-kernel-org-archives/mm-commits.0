@@ -2,86 +2,99 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7A52C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 03:12:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D473BC433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  9 May 2022 07:43:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229588AbiEIDPg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 8 May 2022 23:15:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60602 "EHLO
+        id S229895AbiEIHpn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 03:45:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231338AbiEIDNX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 8 May 2022 23:13:23 -0400
-Received: from mail-pg1-x535.google.com (mail-pg1-x535.google.com [IPv6:2607:f8b0:4864:20::535])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A8D48C7EF
-        for <mm-commits@vger.kernel.org>; Sun,  8 May 2022 20:09:30 -0700 (PDT)
-Received: by mail-pg1-x535.google.com with SMTP id x12so10902053pgj.7
-        for <mm-commits@vger.kernel.org>; Sun, 08 May 2022 20:09:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=DnsPFd9/6WaxQ+yoZdpy61wZB3xLCRhaq2vZ2AURGmc=;
-        b=fDLY5GxKThu7zDFU9m4zT/ABeWAfVP7fu2TD/9UfjUFUqWO+2ehrswh63AfQXjTHla
-         6kYBOKTyvCm32/AxfBilo2jdNYdOyXSRXf9dQuyQjyQti2LD4ipCO0tXZJFXxqMSvrUf
-         QlSHWjvPKG0wqsaAYbAIukVgscymHYXWHP6L8=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=DnsPFd9/6WaxQ+yoZdpy61wZB3xLCRhaq2vZ2AURGmc=;
-        b=XVFrSCykkYHorsrNF062k/QUN3BPbabjmNBuyCVDg9QvL9aDm/nPn9vLjLmlwtHrGQ
-         5HJRXV+YW83TG3Y3LBNBsbYPUR5LQdAkJ0JtB7K8xmKm9O01zttClAvHOEGiTBgXIhhM
-         d75Z+1XRrg05ThAsiA2t+kp0ubImcuTe/sP9WcWuwfJsFTR3tYwF8FHJr4Lezb8ycHxm
-         CI+zdI+dp7IqR4xGrwMnmdaREB/HjtgqMccVlcby7d/iy3fKajJ0rHUdMKSlu70gb5P5
-         bhTbDN5WdDTHKDQL5jEXOPkWrnaCcBJBD8VK2YQB71HuwlUaAcdNu/5L+ygBmpRFlT+l
-         5ssw==
-X-Gm-Message-State: AOAM531kXXK2FxqB+KkyhAGPASW4pGTshuyQSaFt3Yo7ea7+LAn7l4/P
-        qP3XlyzIp2DHz9T1/usIehYZmw==
-X-Google-Smtp-Source: ABdhPJwzC4rBdQxO3FnPsTDH1gFwKBBE7NwQWAQisaLaauHzx1F6januPqPSxYkFZyUYHZnZbfzsrw==
-X-Received: by 2002:a05:6a00:e0e:b0:50a:cb86:883c with SMTP id bq14-20020a056a000e0e00b0050acb86883cmr13993118pfb.11.1652065770193;
-        Sun, 08 May 2022 20:09:30 -0700 (PDT)
-Received: from google.com ([240f:75:7537:3187:8dff:f22e:e044:2857])
-        by smtp.gmail.com with ESMTPSA id r7-20020a17090b050700b001d2bff34228sm11422203pjz.9.2022.05.08.20.09.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 08 May 2022 20:09:29 -0700 (PDT)
-Date:   Mon, 9 May 2022 12:09:25 +0900
-From:   Sergey Senozhatsky <senozhatsky@chromium.org>
+        with ESMTP id S231616AbiEIHY5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 03:24:57 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9BAA1B7A5
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 00:20:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=pZMYYA0Jpqzjhy1jrjTcrtnHTOMhTQ3hu1C8xJIUIeI=; b=HXFdJ3eR80rO90++/kw7JE2kUk
+        ohqxlyPB280VWJSeh0zc/hXaoZUCKFUFMTOIepAxTNy6Vr8S228m1jKouM25qvD4KI5SI1GLbxZeN
+        kQdhSmfB9A5+gDVN5l9PdBFGpN4DjCis6mlvb2v3sVfEtYK44jbBA1Dh9l/Gzm/wvLie/ldF+5Mfs
+        LRK1ai45w0V6awe1XVtoHxU14b+qZPKpviTSIoeicFsPLlHjKea/ARaGFzvwYvdB9+WcLDIlFzGxT
+        GCScrmdX9F8yLgXtRvdYqKg+LxLYQXAmceLVfsKjEwBVpJgfheM8osgroPSZCkV+pI9HAlt0V2K7c
+        w3W20scg==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=worktop.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nnxh6-003E79-Ny; Mon, 09 May 2022 07:20:36 +0000
+Received: by worktop.programming.kicks-ass.net (Postfix, from userid 1000)
+        id D619C980E93; Mon,  9 May 2022 09:20:35 +0200 (CEST)
+Date:   Mon, 9 May 2022 09:20:35 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, ddrokosov@sberdevices.ru,
-        avromanov@sberdevices.ru
-Subject: Re: + zram-remove-double-compression-logic.patch added to
- mm-unstable branch
-Message-ID: <YniF5R+WksISXTN3@google.com>
-References: <20220507185744.D14CBC385A6@smtp.kernel.org>
+Cc:     mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        luto@kernel.org, hpa@zytor.com, dave.hansen@linux.intel.com,
+        bp@alien8.de, kunyu@nfschina.com
+Subject: Re: + mm-functions-may-simplify-the-use-of-return-values.patch added
+ to mm-unstable branch
+Message-ID: <20220509072035.GG76023@worktop.programming.kicks-ass.net>
+References: <20220507175027.38900C385A6@smtp.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220507185744.D14CBC385A6@smtp.kernel.org>
+In-Reply-To: <20220507175027.38900C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On (22/05/07 11:57), Andrew Morton wrote:
-> The 2nd trial allocation under per-cpu presumption has been used to
-> prevent regression of allocation failure.  However, it makes trouble for
-> maintenance without significant benefit.  The slowpath branch is executed
-> extremely rarely: getting there is problematic.  Therefore, we delete this
-> branch.
+On Sat, May 07, 2022 at 10:50:26AM -0700, Andrew Morton wrote:
 > 
-> Since b09ab054b69b ("zram: support BDI_CAP_STABLE_WRITES"), zram has used
-> QUEUE_FLAG_STABLE_WRITES to prevent buffer change between 1st and 2nd
-> memory allocations.  Since we remove second trial memory allocation logic,
-> we could remove the STABLE_WRITES flag because there is no change buffer
-> to be modified under us.
+> The patch titled
+>      Subject: mm: functions may simplify the use of return values
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-functions-may-simplify-the-use-of-return-values.patch
 > 
-> Link: https://lkml.kernel.org/r/20220505094443.11728-1-avromanov@sberdevices.ru
-> Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
-> Signed-off-by: Dmitry Rokosov <ddrokosov@sberdevices.ru>
-> Acked-by: Minchan Kim <minchan@kernel.org>
-> Cc: Nitin Gupta <ngupta@vflare.org>
-> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+> This patch should soon appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Li kunyu <kunyu@nfschina.com>
+> Subject: mm: functions may simplify the use of return values
+> 
+> p4d_clear_huge may be optimized for void return type and function usage. 
+> vunmap_p4d_range function saves a few steps here.
+> 
+> Link: https://lkml.kernel.org/r/20220507150630.90399-1-kunyu@nfschina.com
+> Signed-off-by: Li kunyu <kunyu@nfschina.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Please, no:
+
+arch/x86/mm/pgtable.c: * p4d_clear_huge - clear kernel P4D mapping when it is set
+arch/x86/mm/pgtable.c:int p4d_clear_huge(p4d_t *p4d)
+arch/x86/mm/pgtable.c: * pud_clear_huge - clear kernel PUD mapping when it is set
+arch/x86/mm/pgtable.c:int pud_clear_huge(pud_t *pud)
+arch/x86/mm/pgtable.c: * pmd_clear_huge - clear kernel PMD mapping when it is set
+arch/x86/mm/pgtable.c:int pmd_clear_huge(pmd_t *pmd)
+
+why would the p4d one need to be different from the rest?
