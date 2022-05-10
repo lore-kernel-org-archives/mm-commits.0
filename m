@@ -2,40 +2,50 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C769FC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F7B0C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236091AbiEJEVh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236085AbiEJEVh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 10 May 2022 00:21:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48326 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236085AbiEJEUd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2BE82AC6FD
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:11 -0700 (PDT)
+        with ESMTP id S236080AbiEJEUb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 278032AC6EE
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 502D26176D
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A78B3C385A6;
-        Tue, 10 May 2022 04:15:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B8A4461766
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17F79C385A6;
+        Tue, 10 May 2022 04:15:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156110;
-        bh=FkIUdOBKblIoL7y/LZxRwdiRprS2kDt/6DfOME2KQWE=;
+        s=korg; t=1652156104;
+        bh=gjPVtEr8UwVpHAXE/sm2CDnH1cZN6USC+740ey26I88=;
         h=Date:To:From:Subject:From;
-        b=yKPtfah17/LZ68hguvDEHiQluJIXncr+3M+pf0bpA/JZVDdeYAqhnC5KquH0HAW5n
-         STFr/oiEo9fw1OK6YJLsd5rcY1H1HyKwFTpTVGzUcVfDsHcENTSpaZSgV7NI+l7a/G
-         zeHU5kZnjy0OeBfQcIhIGSHpz987J7fBmuqDce1U=
-Date:   Mon, 09 May 2022 21:15:10 -0700
-To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
-        mgorman@techsingularity.net, linmiaohe@huawei.com,
-        hughd@google.com, hch@lst.de, geert+renesas@glider.be,
-        dhowells@redhat.com, neilb@suse.de, akpm@linux-foundation.org
+        b=D83viNFHpfXatPWdQSxnLBxVQQ20c4KesWg3KyOTRozjiOboGbbt+4xGO9LvMF9uh
+         vsLlrdpis94FJnBfG5u4jugKbMFkJM87hVWkdXpgMSfw/wfxN6I29eN5kCV9lzBc8K
+         MpU8BX8HmoXLpOJiRXSDI8l+xd2zStNKNdd0ZzYQ=
+Date:   Mon, 09 May 2022 21:15:03 -0700
+To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
+        willy@infradead.org, will@kernel.org, vbabka@suse.cz,
+        tglx@linutronix.de, shakeelb@google.com, rppt@linux.ibm.com,
+        riel@surriel.com, peterx@redhat.com, pedrodemargomes@gmail.com,
+        paulus@samba.org, oleg@redhat.com, oded.gabbay@gmail.com,
+        namit@vmware.com, mpe@ellerman.id.au, mingo@redhat.com,
+        mike.kravetz@oracle.com, mhocko@kernel.org,
+        kirill.shutemov@linux.intel.com, jhubbard@nvidia.com,
+        jgg@nvidia.com, jannh@google.com, jack@suse.cz, hughd@google.com,
+        hch@lst.de, hca@linux.ibm.com, guro@fb.com, gor@linux.ibm.com,
+        gerald.schaefer@linux.ibm.com, ddutile@redhat.com,
+        dave.hansen@linux.intel.com, catalin.marinas@arm.com, bp@alien8.de,
+        benh@kernel.crashing.org, aarcange@redhat.com, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-responsibility-for-setting-swp_fs_ops-to-swap_activate.patch removed from -mm tree
-Message-Id: <20220510041510.A78B3C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] powerpc-pgtable-remove-_page_bit_swap_type-for-book3s.patch removed from -mm tree
+Message-Id: <20220510041504.17F79C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,136 +53,112 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: move responsibility for setting SWP_FS_OPS to ->swap_activate
+     Subject: powerpc/pgtable: remove _PAGE_BIT_SWAP_TYPE for book3s
 has been removed from the -mm tree.  Its filename was
-     mm-move-responsibility-for-setting-swp_fs_ops-to-swap_activate.patch
+     powerpc-pgtable-remove-_page_bit_swap_type-for-book3s.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: mm: move responsibility for setting SWP_FS_OPS to ->swap_activate
+From: David Hildenbrand <david@redhat.com>
+Subject: powerpc/pgtable: remove _PAGE_BIT_SWAP_TYPE for book3s
 
-If a filesystem wishes to handle all swap IO itself (via ->direct_IO and
-->readpage), rather than just providing devices addresses for
-submit_bio(), SWP_FS_OPS must be set.
+The swap type is simply stored in bits 0x1f of the swap pte.  Let's
+simplify by just getting rid of _PAGE_BIT_SWAP_TYPE.  It's not like that
+we can simply change it: _PAGE_SWP_SOFT_DIRTY would suddenly fall into
+_RPAGE_RSV1, which isn't possible and would make the
+BUILD_BUG_ON(_PAGE_HPTEFLAGS & _PAGE_SWP_SOFT_DIRTY) angry.
 
-Currently the protocol for setting this it to have ->swap_activate return
-zero.  In that case SWP_FS_OPS is set, and add_swap_extent() is called for
-the entire file.
+While at it, make it clearer which bit we're actually using for
+_PAGE_SWP_SOFT_DIRTY by just using the proper define and introduce and use
+SWP_TYPE_MASK.
 
-This is a little clumsy as different return values for ->swap_activate
-have quite different meanings, and it makes it hard to search for which
-filesystems require SWP_FS_OPS to be set.
-
-So remove the special meaning of a zero return, and require the filesystem
-to set SWP_FS_OPS if it so desires, and to always call add_swap_extent()
-as required.
-
-Currently only NFS and CIFS return zero for add_swap_extent().
-
-Link: https://lkml.kernel.org/r/164859778123.29473.17908205846599043598.stgit@noble.brown
-Signed-off-by: NeilBrown <neilb@suse.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: David Howells <dhowells@redhat.com>
-Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Link: https://lkml.kernel.org/r/20220329164329.208407-8-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Don Dutile <ddutile@redhat.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Liang Zhang <zhangliang5@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/file.c       |    3 ++-
- fs/nfs/file.c        |   14 ++++++++++++--
- include/linux/swap.h |    6 ++++++
- mm/swapfile.c        |   10 +++-------
- 4 files changed, 23 insertions(+), 10 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/fs/cifs/file.c~mm-move-responsibility-for-setting-swp_fs_ops-to-swap_activate
-+++ a/fs/cifs/file.c
-@@ -4933,7 +4933,8 @@ static int cifs_swap_activate(struct swa
- 	 * from reading or writing the file
- 	 */
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-pgtable-remove-_page_bit_swap_type-for-book3s
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -13,7 +13,6 @@
+ /*
+  * Common bits between hash and Radix page table
+  */
+-#define _PAGE_BIT_SWAP_TYPE	0
  
--	return 0;
-+	sis->flags |= SWP_FS_OPS;
-+	return add_swap_extent(sis, 0, sis->max, 0);
- }
+ #define _PAGE_EXEC		0x00001 /* execute permission */
+ #define _PAGE_WRITE		0x00002 /* write access allowed */
+@@ -751,17 +750,16 @@ static inline pte_t pte_modify(pte_t pte
+ 	 * Don't have overlapping bits with _PAGE_HPTEFLAGS	\
+ 	 * We filter HPTEFLAGS on set_pte.			\
+ 	 */							\
+-	BUILD_BUG_ON(_PAGE_HPTEFLAGS & (0x1f << _PAGE_BIT_SWAP_TYPE)); \
++	BUILD_BUG_ON(_PAGE_HPTEFLAGS & SWP_TYPE_MASK); \
+ 	BUILD_BUG_ON(_PAGE_HPTEFLAGS & _PAGE_SWP_SOFT_DIRTY);	\
+ 	} while (0)
  
- static void cifs_swap_deactivate(struct file *file)
---- a/fs/nfs/file.c~mm-move-responsibility-for-setting-swp_fs_ops-to-swap_activate
-+++ a/fs/nfs/file.c
-@@ -483,6 +483,7 @@ static int nfs_swap_activate(struct swap
- {
- 	unsigned long blocks;
- 	long long isize;
-+	int ret;
- 	struct inode *inode = file_inode(file);
- 	struct rpc_clnt *clnt = NFS_CLIENT(inode);
- 	struct nfs_client *cl = NFS_SERVER(inode)->nfs_client;
-@@ -496,13 +497,22 @@ static int nfs_swap_activate(struct swap
- 		return -EINVAL;
- 	}
+ #define SWP_TYPE_BITS 5
+-#define __swp_type(x)		(((x).val >> _PAGE_BIT_SWAP_TYPE) \
+-				& ((1UL << SWP_TYPE_BITS) - 1))
++#define SWP_TYPE_MASK		((1UL << SWP_TYPE_BITS) - 1)
++#define __swp_type(x)		((x).val & SWP_TYPE_MASK)
+ #define __swp_offset(x)		(((x).val & PTE_RPN_MASK) >> PAGE_SHIFT)
+ #define __swp_entry(type, offset)	((swp_entry_t) { \
+-				((type) << _PAGE_BIT_SWAP_TYPE) \
+-				| (((offset) << PAGE_SHIFT) & PTE_RPN_MASK)})
++				(type) | (((offset) << PAGE_SHIFT) & PTE_RPN_MASK)})
+ /*
+  * swp_entry_t must be independent of pte bits. We build a swp_entry_t from
+  * swap type and offset we get from swap and convert that to pte to find a
+@@ -774,7 +772,7 @@ static inline pte_t pte_modify(pte_t pte
+ #define __swp_entry_to_pmd(x)	(pte_pmd(__swp_entry_to_pte(x)))
  
--	*span = sis->pages;
-+	ret = rpc_clnt_swap_activate(clnt);
-+	if (ret)
-+		return ret;
-+	ret = add_swap_extent(sis, 0, sis->max, 0);
-+	if (ret < 0) {
-+		rpc_clnt_swap_deactivate(clnt);
-+		return ret;
-+	}
- 
-+	*span = sis->pages;
- 
- 	if (cl->rpc_ops->enable_swap)
- 		cl->rpc_ops->enable_swap(inode);
- 
--	return rpc_clnt_swap_activate(clnt);
-+	sis->flags |= SWP_FS_OPS;
-+	return ret;
- }
- 
- static void nfs_swap_deactivate(struct file *file)
---- a/include/linux/swap.h~mm-move-responsibility-for-setting-swp_fs_ops-to-swap_activate
-+++ a/include/linux/swap.h
-@@ -577,6 +577,12 @@ static inline swp_entry_t get_swap_page(
- 	return entry;
- }
- 
-+static inline int add_swap_extent(struct swap_info_struct *sis,
-+				  unsigned long start_page,
-+				  unsigned long nr_pages, sector_t start_block)
-+{
-+	return -EINVAL;
-+}
- #endif /* CONFIG_SWAP */
- 
- #ifdef CONFIG_THP_SWAP
---- a/mm/swapfile.c~mm-move-responsibility-for-setting-swp_fs_ops-to-swap_activate
-+++ a/mm/swapfile.c
-@@ -2259,13 +2259,9 @@ static int setup_swap_extents(struct swa
- 
- 	if (mapping->a_ops->swap_activate) {
- 		ret = mapping->a_ops->swap_activate(sis, swap_file, span);
--		if (ret >= 0)
--			sis->flags |= SWP_ACTIVATED;
--		if (!ret) {
--			sis->flags |= SWP_FS_OPS;
--			ret = add_swap_extent(sis, 0, sis->max, 0);
--			*span = sis->pages;
--		}
-+		if (ret < 0)
-+			return ret;
-+		sis->flags |= SWP_ACTIVATED;
- 		return ret;
- 	}
- 
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+-#define _PAGE_SWP_SOFT_DIRTY   (1UL << (SWP_TYPE_BITS + _PAGE_BIT_SWAP_TYPE))
++#define _PAGE_SWP_SOFT_DIRTY	_PAGE_NON_IDEMPOTENT
+ #else
+ #define _PAGE_SWP_SOFT_DIRTY	0UL
+ #endif /* CONFIG_MEM_SOFT_DIRTY */
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-discard-__gfp_atomic.patch
 
