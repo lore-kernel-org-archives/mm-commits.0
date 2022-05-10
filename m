@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A611DC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7B2AC433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235827AbiEJEPd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:15:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44584 "EHLO
+        id S236107AbiEJEPe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:15:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235978AbiEJEOv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:14:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A5411FCC6
+        with ESMTP id S235984AbiEJEOw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:14:52 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E023322BCC
         for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:10:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id F234AB817CC
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:10:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F8D9C385A6;
-        Tue, 10 May 2022 04:10:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 77B7161735
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:10:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C62EEC385C2;
+        Tue, 10 May 2022 04:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155852;
-        bh=/40YuqPpXWfyv8jm0gbv1IHstteeY3saSFGW/Uw4Keg=;
+        s=korg; t=1652155854;
+        bh=fguhxRmUPqZeURWGQCIjynVMcipR1yFUalfigi2UA50=;
         h=Date:To:From:Subject:From;
-        b=boJN3MADJZzAdQbFZXV9nk0NYGBGnv+dEkJy57f88LlHHQlYrNK+8MNUMwrZmZObU
-         zP6s83dEhOhKc5xhSbs/vZkAnAPUsENWWPEsAVm3svori6TwXEp7QQD5t7fncL/Et9
-         NMFaiJGxEsTn7ki/Smeca/wOZV6yOAkM89YeAKo0=
-Date:   Mon, 09 May 2022 21:10:52 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rientjes@google.com,
-        osalvador@suse.de, mhocko@suse.com, krupa.ramakrishnan@amd.com,
-        kamezawa.hiroyu@jp.fujitsu.com, david@redhat.com,
-        richard.weiyang@gmail.com, akpm@linux-foundation.org
+        b=vN/ybHmWp+D+2rpiAyjfTKAgR3DJi1gd+aFUNpkKVrqbM83vyJpm/lTM2uVVh2WEt
+         3AJRuj8FIkBv11Enh5s7gVpQa+yNlJGrAomD730c1JOk9Iu8Mp5Zp597XSonlHySdp
+         f6YjZRZLk5MmsGdaiwhCfQJ8rNRjJtK5QmEcTCMA=
+Date:   Mon, 09 May 2022 21:10:54 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        torvalds@linux-foundation.org, rppt@kernel.org,
+        rostedt@goodmis.org, osalvador@suse.de,
+        mgorman@techsingularity.net, david@redhat.com, ziy@nvidia.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch removed from -mm tree
-Message-Id: <20220510041052.9F8D9C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-wrap-__find_buddy_pfn-with-a-necessary-buddy-page-validation.patch removed from -mm tree
+Message-Id: <20220510041054.C62EEC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,100 +44,296 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: adding same penalty is enough to get round-robin order
+     Subject: mm: wrap __find_buddy_pfn() with a necessary buddy page validation
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+     mm-wrap-__find_buddy_pfn-with-a-necessary-buddy-page-validation.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc: adding same penalty is enough to get round-robin order
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: wrap __find_buddy_pfn() with a necessary buddy page validation
 
-To make node order in round-robin in the same distance group, we add a
-penalty to the first node we got in each round.
+Whenever the buddy of a page is found from __find_buddy_pfn(),
+page_is_buddy() should be used to check its validity.  Add a helper
+function find_buddy_page_pfn() to find the buddy page and do the check
+together.
 
-To get a round-robin order in the same distance group, we don't need to
-decrease the penalty since:
-
-  * find_next_best_node() always iterates node in the same order
-  * distance matters more then penalty in find_next_best_node()
-  * in nodes with the same distance, the first one would be picked up
-
-So it is fine to increase same penalty when we get the first node in the
-same distance group.  Since we just increase a constance of 1 to node
-penalty, it is not necessary to multiply MAX_NODE_LOAD for preference.
-
-[richard.weiyang@gmail.com: remove remove MAX_NODE_LOAD, per Vlastimil]
-  Link: https://lkml.kernel.org/r/20220412001319.7462-1-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20220123013537.20491-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+[ziy@nvidia.com: updates per David]
+Link: https://lkml.kernel.org/r/20220401230804.1658207-2-zi.yan@sent.com
+Link: https://lore.kernel.org/linux-mm/CAHk-=wji_AmYygZMTsPMdJ7XksMt7kOur8oDfDdniBRMjm4VkQ@mail.gmail.com/
+Link: https://lkml.kernel.org/r/7236E7CA-B5F1-4C04-AB85-E86FA3E9A54B@nvidia.com
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Krupa Ramakrishnan <krupa.ramakrishnan@amd.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/internal.h       |  117 ++++++++++++++++++++++++++++++++----------
+ mm/page_alloc.c     |   52 ++----------------
+ mm/page_isolation.c |    9 +--
+ 3 files changed, 101 insertions(+), 77 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order
-+++ a/mm/page_alloc.c
-@@ -6171,7 +6171,6 @@ int numa_zonelist_order_handler(struct c
+--- a/mm/internal.h~mm-wrap-__find_buddy_pfn-with-a-necessary-buddy-page-validation
++++ a/mm/internal.h
+@@ -212,6 +212,67 @@ struct alloc_context {
+ };
+ 
+ /*
++ * This function returns the order of a free page in the buddy system. In
++ * general, page_zone(page)->lock must be held by the caller to prevent the
++ * page from being allocated in parallel and returning garbage as the order.
++ * If a caller does not hold page_zone(page)->lock, it must guarantee that the
++ * page cannot be allocated or merged in parallel. Alternatively, it must
++ * handle invalid values gracefully, and use buddy_order_unsafe() below.
++ */
++static inline unsigned int buddy_order(struct page *page)
++{
++	/* PageBuddy() must be checked by the caller */
++	return page_private(page);
++}
++
++/*
++ * Like buddy_order(), but for callers who cannot afford to hold the zone lock.
++ * PageBuddy() should be checked first by the caller to minimize race window,
++ * and invalid values must be handled gracefully.
++ *
++ * READ_ONCE is used so that if the caller assigns the result into a local
++ * variable and e.g. tests it for valid range before using, the compiler cannot
++ * decide to remove the variable and inline the page_private(page) multiple
++ * times, potentially observing different values in the tests and the actual
++ * use of the result.
++ */
++#define buddy_order_unsafe(page)	READ_ONCE(page_private(page))
++
++/*
++ * This function checks whether a page is free && is the buddy
++ * we can coalesce a page and its buddy if
++ * (a) the buddy is not in a hole (check before calling!) &&
++ * (b) the buddy is in the buddy system &&
++ * (c) a page and its buddy have the same order &&
++ * (d) a page and its buddy are in the same zone.
++ *
++ * For recording whether a page is in the buddy system, we set PageBuddy.
++ * Setting, clearing, and testing PageBuddy is serialized by zone->lock.
++ *
++ * For recording page's order, we use page_private(page).
++ */
++static inline bool page_is_buddy(struct page *page, struct page *buddy,
++				 unsigned int order)
++{
++	if (!page_is_guard(buddy) && !PageBuddy(buddy))
++		return false;
++
++	if (buddy_order(buddy) != order)
++		return false;
++
++	/*
++	 * zone check is done late to avoid uselessly calculating
++	 * zone/node ids for pages that could never merge.
++	 */
++	if (page_zone_id(page) != page_zone_id(buddy))
++		return false;
++
++	VM_BUG_ON_PAGE(page_count(buddy) != 0, buddy);
++
++	return true;
++}
++
++/*
+  * Locate the struct page for both the matching buddy in our
+  * pair (buddy1) and the combined O(n+1) page they form (page).
+  *
+@@ -234,6 +295,35 @@ __find_buddy_pfn(unsigned long page_pfn,
+ 	return page_pfn ^ (1 << order);
  }
  
++/*
++ * Find the buddy of @page and validate it.
++ * @page: The input page
++ * @pfn: The pfn of the page, it saves a call to page_to_pfn() when the
++ *       function is used in the performance-critical __free_one_page().
++ * @order: The order of the page
++ * @buddy_pfn: The output pointer to the buddy pfn, it also saves a call to
++ *             page_to_pfn().
++ *
++ * The found buddy can be a non PageBuddy, out of @page's zone, or its order is
++ * not the same as @page. The validation is necessary before use it.
++ *
++ * Return: the found buddy page or NULL if not found.
++ */
++static inline struct page *find_buddy_page_pfn(struct page *page,
++			unsigned long pfn, unsigned int order, unsigned long *buddy_pfn)
++{
++	unsigned long __buddy_pfn = __find_buddy_pfn(pfn, order);
++	struct page *buddy;
++
++	buddy = page + (__buddy_pfn - pfn);
++	if (buddy_pfn)
++		*buddy_pfn = __buddy_pfn;
++
++	if (page_is_buddy(page, buddy, order))
++		return buddy;
++	return NULL;
++}
++
+ extern struct page *__pageblock_pfn_to_page(unsigned long start_pfn,
+ 				unsigned long end_pfn, struct zone *zone);
  
--#define MAX_NODE_LOAD (nr_online_nodes)
- static int node_load[MAX_NUMNODES];
+@@ -337,33 +427,6 @@ int find_suitable_fallback(struct free_a
+ 			int migratetype, bool only_stealable, bool *can_steal);
  
- /**
-@@ -6218,7 +6217,7 @@ int find_next_best_node(int node, nodema
- 			val += PENALTY_FOR_NODE_WITH_CPUS;
+ /*
+- * This function returns the order of a free page in the buddy system. In
+- * general, page_zone(page)->lock must be held by the caller to prevent the
+- * page from being allocated in parallel and returning garbage as the order.
+- * If a caller does not hold page_zone(page)->lock, it must guarantee that the
+- * page cannot be allocated or merged in parallel. Alternatively, it must
+- * handle invalid values gracefully, and use buddy_order_unsafe() below.
+- */
+-static inline unsigned int buddy_order(struct page *page)
+-{
+-	/* PageBuddy() must be checked by the caller */
+-	return page_private(page);
+-}
+-
+-/*
+- * Like buddy_order(), but for callers who cannot afford to hold the zone lock.
+- * PageBuddy() should be checked first by the caller to minimize race window,
+- * and invalid values must be handled gracefully.
+- *
+- * READ_ONCE is used so that if the caller assigns the result into a local
+- * variable and e.g. tests it for valid range before using, the compiler cannot
+- * decide to remove the variable and inline the page_private(page) multiple
+- * times, potentially observing different values in the tests and the actual
+- * use of the result.
+- */
+-#define buddy_order_unsafe(page)	READ_ONCE(page_private(page))
+-
+-/*
+  * These three helpers classifies VMAs for virtual memory accounting.
+  */
  
- 		/* Slight preference for less loaded node */
--		val *= (MAX_NODE_LOAD*MAX_NUMNODES);
-+		val *= MAX_NUMNODES;
- 		val += node_load[n];
+--- a/mm/page_alloc.c~mm-wrap-__find_buddy_pfn-with-a-necessary-buddy-page-validation
++++ a/mm/page_alloc.c
+@@ -867,40 +867,6 @@ static inline void set_buddy_order(struc
+ 	__SetPageBuddy(page);
+ }
  
- 		if (val < min_val) {
-@@ -6284,13 +6283,12 @@ static void build_thisnode_zonelists(pg_
- static void build_zonelists(pg_data_t *pgdat)
+-/*
+- * This function checks whether a page is free && is the buddy
+- * we can coalesce a page and its buddy if
+- * (a) the buddy is not in a hole (check before calling!) &&
+- * (b) the buddy is in the buddy system &&
+- * (c) a page and its buddy have the same order &&
+- * (d) a page and its buddy are in the same zone.
+- *
+- * For recording whether a page is in the buddy system, we set PageBuddy.
+- * Setting, clearing, and testing PageBuddy is serialized by zone->lock.
+- *
+- * For recording page's order, we use page_private(page).
+- */
+-static inline bool page_is_buddy(struct page *page, struct page *buddy,
+-							unsigned int order)
+-{
+-	if (!page_is_guard(buddy) && !PageBuddy(buddy))
+-		return false;
+-
+-	if (buddy_order(buddy) != order)
+-		return false;
+-
+-	/*
+-	 * zone check is done late to avoid uselessly calculating
+-	 * zone/node ids for pages that could never merge.
+-	 */
+-	if (page_zone_id(page) != page_zone_id(buddy))
+-		return false;
+-
+-	VM_BUG_ON_PAGE(page_count(buddy) != 0, buddy);
+-
+-	return true;
+-}
+-
+ #ifdef CONFIG_COMPACTION
+ static inline struct capture_control *task_capc(struct zone *zone)
  {
- 	static int node_order[MAX_NUMNODES];
--	int node, load, nr_nodes = 0;
-+	int node, nr_nodes = 0;
- 	nodemask_t used_mask = NODE_MASK_NONE;
- 	int local_node, prev_node;
+@@ -1009,18 +975,17 @@ static inline bool
+ buddy_merge_likely(unsigned long pfn, unsigned long buddy_pfn,
+ 		   struct page *page, unsigned int order)
+ {
+-	struct page *higher_page, *higher_buddy;
+-	unsigned long combined_pfn;
++	unsigned long higher_page_pfn;
++	struct page *higher_page;
  
- 	/* NUMA-aware ordering of nodes */
- 	local_node = pgdat->node_id;
--	load = nr_online_nodes;
- 	prev_node = local_node;
+ 	if (order >= MAX_ORDER - 2)
+ 		return false;
  
- 	memset(node_order, 0, sizeof(node_order));
-@@ -6302,11 +6300,10 @@ static void build_zonelists(pg_data_t *p
- 		 */
- 		if (node_distance(local_node, node) !=
- 		    node_distance(local_node, prev_node))
--			node_load[node] += load;
-+			node_load[node] += 1;
+-	combined_pfn = buddy_pfn & pfn;
+-	higher_page = page + (combined_pfn - pfn);
+-	buddy_pfn = __find_buddy_pfn(combined_pfn, order + 1);
+-	higher_buddy = higher_page + (buddy_pfn - combined_pfn);
++	higher_page_pfn = buddy_pfn & pfn;
++	higher_page = page + (higher_page_pfn - pfn);
  
- 		node_order[nr_nodes++] = node;
- 		prev_node = node;
--		load--;
- 	}
+-	return page_is_buddy(higher_page, higher_buddy, order + 1);
++	return find_buddy_page_pfn(higher_page, higher_page_pfn, order + 1,
++			NULL) != NULL;
+ }
  
- 	build_zonelists_in_node_order(pgdat, node_order, nr_nodes);
+ /*
+@@ -1074,10 +1039,9 @@ static inline void __free_one_page(struc
+ 								migratetype);
+ 			return;
+ 		}
+-		buddy_pfn = __find_buddy_pfn(pfn, order);
+-		buddy = page + (buddy_pfn - pfn);
+ 
+-		if (!page_is_buddy(page, buddy, order))
++		buddy = find_buddy_page_pfn(page, pfn, order, &buddy_pfn);
++		if (!buddy)
+ 			goto done_merging;
+ 
+ 		if (unlikely(order >= pageblock_order)) {
+--- a/mm/page_isolation.c~mm-wrap-__find_buddy_pfn-with-a-necessary-buddy-page-validation
++++ a/mm/page_isolation.c
+@@ -70,7 +70,6 @@ static void unset_migratetype_isolate(st
+ 	unsigned long flags, nr_pages;
+ 	bool isolated_page = false;
+ 	unsigned int order;
+-	unsigned long pfn, buddy_pfn;
+ 	struct page *buddy;
+ 
+ 	zone = page_zone(page);
+@@ -89,11 +88,9 @@ static void unset_migratetype_isolate(st
+ 	if (PageBuddy(page)) {
+ 		order = buddy_order(page);
+ 		if (order >= pageblock_order && order < MAX_ORDER - 1) {
+-			pfn = page_to_pfn(page);
+-			buddy_pfn = __find_buddy_pfn(pfn, order);
+-			buddy = page + (buddy_pfn - pfn);
+-
+-			if (!is_migrate_isolate_page(buddy)) {
++			buddy = find_buddy_page_pfn(page, page_to_pfn(page),
++						    order, NULL);
++			if (buddy && !is_migrate_isolate_page(buddy)) {
+ 				isolated_page = !!__isolate_free_page(page, order);
+ 				/*
+ 				 * Isolating a free page in an isolated pageblock
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration.patch
-mm-vmscan-filter-empty-page_list-at-the-beginning.patch
-mm-vmscan-not-use-numa_no_node-as-indicator-of-page-on-different-node.patch
+mm-page_isolation-move-has_unmovable_pages-to-mm-page_isolationc.patch
+mm-page_isolation-check-specified-range-for-unmovable-pages.patch
+mm-make-alloc_contig_range-work-at-pageblock-granularity.patch
+mm-make-alloc_contig_range-work-at-pageblock-granularity-fix.patch
+mm-page_isolation-enable-arbitrary-range-page-isolation.patch
+mm-cma-use-pageblock_order-as-the-single-alignment.patch
+drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch
 
