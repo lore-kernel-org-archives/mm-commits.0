@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 972CAC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 19:13:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D1F9C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 19:22:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349106AbiEJTN5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 15:13:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47488 "EHLO
+        id S234119AbiEJTWg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 15:22:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245139AbiEJTNt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 15:13:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF77B4B439
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 12:13:48 -0700 (PDT)
+        with ESMTP id S238831AbiEJTWe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 15:22:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5196940E6F
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 12:22:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 49F4A61143
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 19:13:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B95EC385C8;
-        Tue, 10 May 2022 19:13:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D3524612C4
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 19:22:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24C1DC385C2;
+        Tue, 10 May 2022 19:22:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652210027;
-        bh=9Guoha0r5JV5ZfPv8XZTQvDHHakXx3XiRj4O7TE4sE0=;
+        s=korg; t=1652210551;
+        bh=QU01Zrc90P30n38+CIx3R40frEfZ3IZnpq5N8mKnh1M=;
         h=Date:To:From:Subject:From;
-        b=FeVgQpkMEiYbVNvMfnhH3k3Pfw6ILcwXJOf+xVZUfi7PSD+QQvZ+Rld9dYTMshf17
-         aUUbme9Eqb0B0C+pI4dSpa3UK5TcYb44r2AEpka4bGty0PZk+C59XAWYXt6Z2xtKiv
-         BWX5R0JYW4U0ROoK2eL+X/D8Gr4uGW3s7UCPXCWE=
-Date:   Tue, 10 May 2022 12:13:47 -0700
+        b=Ilwrs5rizYXgrfAHBSXkBlFg+4fFLfuYmkFjAAtM0SmQCODkpPhktk4+nfcZwXzQJ
+         mLYUZLLtclI6ARpLa1xM2hPrR939DTvSkLp+69YKUJ5uxYmyPFJrJYPJUy/bj1Dl2Q
+         +dZA4rXDBXqLY+cfyGqDA1N7tMJUVEbZaEqq3nLM=
+Date:   Tue, 10 May 2022 12:22:30 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
-        vbabka@suse.cz, sj@kernel.org, Liam.Howlett@Oracle.com,
-        dhowells@redhat.com, dave@stgolabs.net, catalin.marinas@arm.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        vbabka@suse.cz, tglx@linutronix.de, rppt@linux.ibm.com,
+        peterz@infradead.org, pcc@google.com, ira.weiny@intel.com,
+        corbet@lwn.net, catalin.marinas@arm.com, bigeasy@linutronix.de,
+        fmdefrancesco@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch added to mm-unstable branch
-Message-Id: <20220510191347.9B95EC385C8@smtp.kernel.org>
+Subject: + mm-highmem-fix-kernel-doc-warnings-in-highmemh.patch added to mm-unstable branch
+Message-Id: <20220510192231.24C1DC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix
+     Subject: mm/highmem: fix kernel-doc warnings in highmem*.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch
+     mm-highmem-fix-kernel-doc-warnings-in-highmemh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-highmem-fix-kernel-doc-warnings-in-highmemh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,45 +67,145 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix
+From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Subject: mm/highmem: fix kernel-doc warnings in highmem*.h
 
-vaddr-test.h no longer needs internal.h
+Patch series "Extend and reorganize Highmem's documentation", v4.
 
+This series has the purpose to extend and reorganize Highmem's
+documentation.
+
+This is a work in progress because some information should still be moved
+from highmem.rst to highmem.h and highmem-internal.h.  Specifically I'm
+talking about moving the "how to" information to the relevant headers, as
+it as been suggested by Ira Weiny (Intel).
+
+Also, this is a work in progress because some kdocs in highmem.h and
+highmem-internal.h should be improved.
+
+
+This patch (of 4):
+
+`scripts/kernel-doc -v -none include/linux/highmem*` reports the following
+warnings:
+
+include/linux/highmem.h:160: warning: expecting prototype for kunmap_atomic(). Prototype was for nr_free_highpages() instead
+include/linux/highmem.h:204: warning: No description found for return value of 'alloc_zeroed_user_highpage_movable'
+include/linux/highmem-internal.h:256: warning: Function parameter or member '__addr' not described in 'kunmap_atomic'
+include/linux/highmem-internal.h:256: warning: Excess function parameter 'addr' description in 'kunmap_atomic'
+
+Fix these warnings by (1) moving the kernel-doc comments from highmem.h to
+highmem-internal.h (which is the file were the kunmap_atomic() macro is
+actually defined), (2) extending and merging it with the comment which was
+already in highmem-internal.h, and (3) using correct parameter names (4)
+correcting a few technical inaccuracies in comments, and (5) adding a
+deprecation notice in kunmap_atomic() for consistency with kmap_atomic().
+
+Link: https://lkml.kernel.org/r/20220428212455.892-1-fmdefrancesco@gmail.com
+Link: https://lkml.kernel.org/r/20220428212455.892-2-fmdefrancesco@gmail.com
+Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr-test.h |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/highmem-internal.h |   18 +++++++++++++++---
+ include/linux/highmem.h          |   22 ++++++++--------------
+ 2 files changed, 23 insertions(+), 17 deletions(-)
 
---- a/mm/damon/vaddr-test.h~damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix
-+++ a/mm/damon/vaddr-test.h
-@@ -13,7 +13,6 @@
- #define _DAMON_VADDR_TEST_H
+--- a/include/linux/highmem.h~mm-highmem-fix-kernel-doc-warnings-in-highmemh
++++ a/include/linux/highmem.h
+@@ -37,7 +37,7 @@ static inline void *kmap(struct page *pa
  
- #include <kunit/test.h>
--#include "../../mm/internal.h"
+ /**
+  * kunmap - Unmap the virtual address mapped by kmap()
+- * @addr:	Virtual address to be unmapped
++ * @page:	Pointer to the page which was mapped by kmap()
+  *
+  * Counterpart to kmap(). A NOOP for CONFIG_HIGHMEM=n and for mappings of
+  * pages in the low memory area.
+@@ -138,24 +138,16 @@ static inline void *kmap_local_folio(str
+  *
+  * Returns: The virtual address of the mapping
+  *
+- * Effectively a wrapper around kmap_local_page() which disables pagefaults
+- * and preemption.
++ * In fact a wrapper around kmap_local_page() which also disables pagefaults
++ * and, depending on PREEMPT_RT configuration, also CPU migration and
++ * preemption. Therefore users should not count on the latter two side effects.
++ *
++ * Mappings should always be released by kunmap_atomic().
+  *
+  * Do not use in new code. Use kmap_local_page() instead.
+  */
+ static inline void *kmap_atomic(struct page *page);
  
- static void __link_vmas(struct maple_tree *mt, struct vm_area_struct *vmas,
- 			ssize_t nr_vmas)
+-/**
+- * kunmap_atomic - Unmap the virtual address mapped by kmap_atomic()
+- * @addr:	Virtual address to be unmapped
+- *
+- * Counterpart to kmap_atomic().
+- *
+- * Effectively a wrapper around kunmap_local() which additionally undoes
+- * the side effects of kmap_atomic(), i.e. reenabling pagefaults and
+- * preemption.
+- */
+-
+ /* Highmem related interfaces for management code */
+ static inline unsigned int nr_free_highpages(void);
+ static inline unsigned long totalhigh_pages(void);
+@@ -191,6 +183,8 @@ static inline void clear_user_highpage(s
+  * @vma: The VMA the page is to be allocated for
+  * @vaddr: The virtual address the page will be inserted into
+  *
++ * Returns: The allocated and zeroed HIGHMEM page
++ *
+  * This function will allocate a page for a VMA that the caller knows will
+  * be able to migrate in the future using move_pages() or reclaimed
+  *
+--- a/include/linux/highmem-internal.h~mm-highmem-fix-kernel-doc-warnings-in-highmemh
++++ a/include/linux/highmem-internal.h
+@@ -236,9 +236,21 @@ static inline unsigned long totalhigh_pa
+ 
+ #endif /* CONFIG_HIGHMEM */
+ 
+-/*
+- * Prevent people trying to call kunmap_atomic() as if it were kunmap()
+- * kunmap_atomic() should get the return value of kmap_atomic, not the page.
++/**
++ * kunmap_atomic - Unmap the virtual address mapped by kmap_atomic() - deprecated!
++ * @__addr:       Virtual address to be unmapped
++ *
++ * Unmaps an address previously mapped by kmap_atomic() and re-enables
++ * pagefaults. Depending on PREEMP_RT configuration, re-enables also
++ * migration and preemption. Users should not count on these side effects.
++ *
++ * Mappings should be unmapped in the reverse order that they were mapped.
++ * See kmap_local_page() for details on nesting.
++ *
++ * @__addr can be any address within the mapped page, so there is no need
++ * to subtract any offset that has been added. In contrast to kunmap(),
++ * this function takes the address returned from kmap_atomic(), not the
++ * page passed to it. The compiler will warn you if you pass the page.
+  */
+ #define kunmap_atomic(__addr)					\
+ do {								\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fmdefrancesco@gmail.com are
 
-mm-check-against-orig_pte-for-finish_fault-fix-checkpatch-fixes.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
-lib-kstrtoxc-add-false-true-support-to-kstrtobool-fix.patch
-mm-start-tracking-vmas-with-maple-tree-fix.patch
-damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+mm-highmem-fix-kernel-doc-warnings-in-highmemh.patch
+documentation-vm-include-kdocs-from-highmemh-into-highmemrst.patch
+documentation-vm-move-using-kmap-atomic-to-highmemh.patch
+documentation-vm-rework-temporary-virtual-mappings-section.patch
 
