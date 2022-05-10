@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3338AC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 21:10:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5883C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 21:10:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230423AbiEJVK1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 17:10:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56022 "EHLO
+        id S231508AbiEJVKe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 17:10:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56050 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231134AbiEJVKZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 17:10:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFF70294495
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 14:10:23 -0700 (PDT)
+        with ESMTP id S229658AbiEJVK2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 17:10:28 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F4A9293B67
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 14:10:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7EEDB6170E
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 21:10:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA5E1C385CD;
-        Tue, 10 May 2022 21:10:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 13AB6B81FE8
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 21:10:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C388FC385CA;
+        Tue, 10 May 2022 21:10:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652217022;
-        bh=chbXX/e2Z0iFrZKdlX8uOXTXztVV2FJ7qZtJ6NhwfAY=;
+        s=korg; t=1652217024;
+        bh=5hKtgwPI1Q7sKhwudo/lzh3YB3g2NyqsNEJemDz+2Yo=;
         h=Date:To:From:Subject:From;
-        b=U37s/kebQfPVXwBuOrg5uUCidD+ud3uJBLkpFhp96zWjI0W+psxlRW3GAYaOJ53CF
-         NM9x1qRCUs2CtC6d4ojtNzyWKG1H+ZvlDw+rFaGyQ+vMWiqenNoEiUsewOBPlFdvbp
-         AJ2qF4fx+gpgOK1MWLJzbxL8LmdYC25HzYo4BvpU=
-Date:   Tue, 10 May 2022 14:10:22 -0700
+        b=ck522nLeFEiQyP1uN2JG4+XiTEfXbV8SDrQlD+9BpE7kDE8R6tOotqjp0L4oOff+j
+         JEFyUmDjfsy6WuA0BRBviqGXCEkqEiXFG2WL+dtNkXiu/zvxGQgeSWht/Gu9ryrqwi
+         GJTTShiDTtYCCQ/jbTfT6DaGDQgAl2UddJdlJWms=
+Date:   Tue, 10 May 2022 14:10:24 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tytso@mit.edu, songliubraving@fb.com,
         song@kernel.org, riel@surriel.com, linmiaohe@huawei.com,
         kirill.shutemov@linux.intel.com, shy828301@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged.patch added to mm-unstable branch
-Message-Id: <20220510211022.DA5E1C385CD@smtp.kernel.org>
+Subject: + mm-khugepaged-skip-dax-vma.patch added to mm-unstable branch
+Message-Id: <20220510211024.C388FC385CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: remove redundant check for VM_NO_KHUGEPAGED
+     Subject: mm: khugepaged: skip DAX vma
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged.patch
+     mm-khugepaged-skip-dax-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-skip-dax-vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,16 +68,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: khugepaged: remove redundant check for VM_NO_KHUGEPAGED
+Subject: mm: khugepaged: skip DAX vma
 
-The hugepage_vma_check() called by khugepaged_enter_vma_merge() does check
-VM_NO_KHUGEPAGED.  Remove the check from caller and move the check in
-hugepage_vma_check() up.
+The DAX vma may be seen by khugepaged when the mm has other khugepaged
+suitable vmas.  So khugepaged may try to collapse THP for DAX vma, but it
+will fail due to page sanity check, for example, page is not on LRU.
 
-More checks may be run for VM_NO_KHUGEPAGED vmas, but MADV_HUGEPAGE is
-definitely not a hot path, so cleaner code does outweigh.
+So it is not harmful, but it is definitely pointless to run khugepaged
+against DAX vma, so skip it in early check.
 
-Link: https://lkml.kernel.org/r/20220510203222.24246-3-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20220510203222.24246-4-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Song Liu <song@kernel.org>
@@ -91,41 +91,22 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/khugepaged.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged
+--- a/mm/khugepaged.c~mm-khugepaged-skip-dax-vma
 +++ a/mm/khugepaged.c
-@@ -365,8 +365,7 @@ int hugepage_madvise(struct vm_area_stru
- 		 * register it here without waiting a page fault that
- 		 * may not happen any time soon.
- 		 */
--		if (!(*vm_flags & VM_NO_KHUGEPAGED) &&
--				khugepaged_enter_vma_merge(vma, *vm_flags))
-+		if (khugepaged_enter_vma_merge(vma, *vm_flags))
- 			return -ENOMEM;
- 		break;
- 	case MADV_NOHUGEPAGE:
-@@ -445,6 +444,9 @@ static bool hugepage_vma_check(struct vm
- 	if (!transhuge_vma_enabled(vma, vm_flags))
+@@ -447,6 +447,10 @@ static bool hugepage_vma_check(struct vm
+ 	if (vm_flags & VM_NO_KHUGEPAGED)
  		return false;
  
-+	if (vm_flags & VM_NO_KHUGEPAGED)
++	/* Don't run khugepaged against DAX vma */
++	if (vma_is_dax(vma))
 +		return false;
 +
  	if (vma->vm_file && !IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) -
  				vma->vm_pgoff, HPAGE_PMD_NR))
  		return false;
-@@ -470,7 +472,8 @@ static bool hugepage_vma_check(struct vm
- 		return false;
- 	if (vma_is_temporary_stack(vma))
- 		return false;
--	return !(vm_flags & VM_NO_KHUGEPAGED);
-+
-+	return true;
- }
- 
- int __khugepaged_enter(struct mm_struct *mm)
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
