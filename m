@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47E0EC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C10C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236064AbiEJESF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:18:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44680 "EHLO
+        id S236035AbiEJESG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:18:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236035AbiEJERA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 585B42438DA
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:24 -0700 (PDT)
+        with ESMTP id S229782AbiEJEQ7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 969BC243133
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 966EB61737
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED71BC385C5;
-        Tue, 10 May 2022 04:12:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3C6EAB81B07
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1430C385C2;
+        Tue, 10 May 2022 04:12:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155943;
-        bh=FrDU5a3SS36u5BrUFs/3HaiLVjzIwjmAeKSoPmJAilU=;
+        s=korg; t=1652155939;
+        bh=eiv1EEVJJ/ieJn3zGJZdI1XdmwvNaYH+u1EFwVJMsSg=;
         h=Date:To:From:Subject:From;
-        b=Usg5euNiu5LV/4PyIgYdAp3QKESpbjO9XzFc2z20e71WJDBO7xPHB8OU5ogSYL8q3
-         aASw/s8ZolxWSZqZOSHk5jgOgUUo9wdv8qgC239ryeZUp07/Uw50BroH6ooefoU5jw
-         Jzg+lLpLjyjqUQ3tjhwf/VMf/Ue1d6j+plns+Apw=
-Date:   Mon, 09 May 2022 21:12:22 -0700
+        b=IlZc0k12nRKLaNxfiz4bqW0ZImj6Rfk4cFnblG9UPOfCDo5Gut1YV7OKj0mkhFP5c
+         kDC23ft1G+ac5uZqZV0qtc8hRKpk/SPJsJBQuyDcc/40F0b0YBZ6PqYMESBR4GsMBC
+         r2vld2GIXvVtQjK+YkOzvTB1pZ5ZolST1Inta37o=
+Date:   Mon, 09 May 2022 21:12:18 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-use-compact_cluster_max-in-compactionc.patch removed from -mm tree
-Message-Id: <20220510041222.ED71BC385C5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-remove-unneeded-pfn-update.patch removed from -mm tree
+Message-Id: <20220510041218.E1430C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,20 +42,19 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: use COMPACT_CLUSTER_MAX in compaction.c
+     Subject: mm: compaction: remove unneeded pfn update
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-use-compact_cluster_max-in-compactionc.patch
+     mm-compaction-remove-unneeded-pfn-update.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: use COMPACT_CLUSTER_MAX in compaction.c
+Subject: mm: compaction: remove unneeded pfn update
 
-Always use COMPACT_CLUSTER_MAX here as we're doing the compaction.  Minor
-improvements in readability.
+pfn is unused in this do while loop. Remove the unneeded pfn update.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-7-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -64,47 +63,19 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/compaction.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-use-compact_cluster_max-in-compactionc
+--- a/mm/compaction.c~mm-compaction-remove-unneeded-pfn-update
 +++ a/mm/compaction.c
-@@ -573,7 +573,7 @@ static unsigned long isolate_freepages_b
- 		 * contention, to give chance to IRQs. Abort if fatal signal
- 		 * pending.
- 		 */
--		if (!(blockpfn % SWAP_CLUSTER_MAX)
-+		if (!(blockpfn % COMPACT_CLUSTER_MAX)
- 		    && compact_unlock_should_abort(&cc->zone->lock, flags,
- 								&locked, cc))
- 			break;
-@@ -862,7 +862,7 @@ isolate_migratepages_block(struct compac
- 		 * contention, to give chance to IRQs. Abort completely if
- 		 * a fatal signal is pending.
- 		 */
--		if (!(low_pfn % SWAP_CLUSTER_MAX)) {
-+		if (!(low_pfn % COMPACT_CLUSTER_MAX)) {
- 			if (locked) {
- 				unlock_page_lruvec_irqrestore(locked, flags);
- 				locked = NULL;
-@@ -1614,7 +1614,7 @@ static void isolate_freepages(struct com
- 		 * This can iterate a massively long zone without finding any
- 		 * suitable migration targets, so periodically check resched.
- 		 */
--		if (!(block_start_pfn % (SWAP_CLUSTER_MAX * pageblock_nr_pages)))
-+		if (!(block_start_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
- 			cond_resched();
+@@ -317,7 +317,6 @@ __reset_isolation_pfn(struct zone *zone,
+ 		}
  
- 		page = pageblock_pfn_to_page(block_start_pfn, block_end_pfn,
-@@ -1921,7 +1921,7 @@ static isolate_migrate_t isolate_migrate
- 		 * many pageblocks unsuitable, so periodically check if we
- 		 * need to schedule.
- 		 */
--		if (!(low_pfn % (SWAP_CLUSTER_MAX * pageblock_nr_pages)))
-+		if (!(low_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
- 			cond_resched();
+ 		page += (1 << PAGE_ALLOC_COSTLY_ORDER);
+-		pfn += (1 << PAGE_ALLOC_COSTLY_ORDER);
+ 	} while (page <= end_page);
  
- 		page = pageblock_pfn_to_page(block_start_pfn,
+ 	return false;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
