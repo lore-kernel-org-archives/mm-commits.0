@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33050C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CE04C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235960AbiEJEP5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:15:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47318 "EHLO
+        id S235968AbiEJEP7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:15:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236081AbiEJEPd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABCC545796
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:11 -0700 (PDT)
+        with ESMTP id S236023AbiEJEPm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:42 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 534A05BE60
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 27F2C61738
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 811E9C385A6;
-        Tue, 10 May 2022 04:11:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BBF77B81AEF
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6708FC385A6;
+        Tue, 10 May 2022 04:11:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155870;
-        bh=fg//3thdrDYjb1Z0L6WYD8z0UqPMyafkYdSZfpeq9KQ=;
+        s=korg; t=1652155876;
+        bh=7Xm6wdpXtfX7znIM+4gmOEWfqkgYD9sW0AjOWNwijhI=;
         h=Date:To:From:Subject:From;
-        b=mn/9v0RzRYTRKz1231TfoyNXgbhNscMaW9CjqyOsI+M3ltwgYaOwHmDwVpwYpGChD
-         D2VDpLtut4RSywitEzc15+FKJgTPHk68j4sdMnEqBqJ4rhrLQwK+htNts4cDLPKSo8
-         MEyGks85KuHFRcsWHSVLRJfL3SCpVjJZe8w362hk=
-Date:   Mon, 09 May 2022 21:11:09 -0700
-To:     mm-commits@vger.kernel.org, minchan@kernel.org,
+        b=1nMdNSoXE0Jl4xKU7Xg5nZbyUKOnAwBJMxu1pedYZaVWHWsY6zO3hpe27gPu5t+1Q
+         zhZI7APB/kEpL95Yk6rc8Go8zKfqwL7Z4WIrHz7K01CeZBQFmVMBK/xRKvudJB0O5C
+         Hd3RYywg4wwJIp1zGU7qhif61hThuGEVa5zeFSu4=
+Date:   Mon, 09 May 2022 21:11:15 -0700
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-fix-comment-for-isolate_lru_pages.patch removed from -mm tree
-Message-Id: <20220510041110.811E9C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-z3fold-remove-confusing-local-variable-l-reassignment.patch removed from -mm tree
+Message-Id: <20220510041116.6708FC385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,43 +41,38 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: fix comment for isolate_lru_pages
+     Subject: mm/z3fold: remove confusing local variable l reassignment
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-comment-for-isolate_lru_pages.patch
+     mm-z3fold-remove-confusing-local-variable-l-reassignment.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmscan: fix comment for isolate_lru_pages
+Subject: mm/z3fold: remove confusing local variable l reassignment
 
-Since commit 791b48b64232 ("mm: vmscan: scan until it finds eligible
-pages"), splicing any skipped pages to the tail of the LRU list won't put
-the system at risk of premature OOM but will waste lots of cpu cycles. 
-Correct the comment accordingly.
+The local variable l holds the address of unbuddied[i] which won't change
+after we take the pool lock.  Remove it to avoid confusion.
 
-Link: https://lkml.kernel.org/r/20220416025231.8082-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220308134311.59086-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/z3fold.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-comment-for-isolate_lru_pages
-+++ a/mm/vmscan.c
-@@ -2117,8 +2117,8 @@ move:
- 	 * Splice any skipped pages to the start of the LRU list. Note that
- 	 * this disrupts the LRU order when reclaiming for lower zones but
- 	 * we cannot splice to the tail. If we did then the SWAP_CLUSTER_MAX
--	 * scanning would soon rescan the same pages to skip and put the
--	 * system at risk of premature OOM.
-+	 * scanning would soon rescan the same pages to skip and waste lots
-+	 * of cpu cycles.
- 	 */
- 	if (!list_empty(&pages_skipped)) {
- 		int zid;
+--- a/mm/z3fold.c~mm-z3fold-remove-confusing-local-variable-l-reassignment
++++ a/mm/z3fold.c
+@@ -876,7 +876,6 @@ lookup:
+ 
+ 		/* Re-check under lock. */
+ 		spin_lock(&pool->lock);
+-		l = &unbuddied[i];
+ 		if (unlikely(zhdr != list_first_entry(READ_ONCE(l),
+ 						struct z3fold_header, buddy)) ||
+ 		    !z3fold_page_trylock(zhdr)) {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
