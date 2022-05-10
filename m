@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B713C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47E0EC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236057AbiEJESA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:18:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40026 "EHLO
+        id S236064AbiEJESF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:18:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236120AbiEJERD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:03 -0400
+        with ESMTP id S236035AbiEJERA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E5A6205E5
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 585B42438DA
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9E4CD615E8
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0182C385C2;
-        Tue, 10 May 2022 04:12:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 966EB61737
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED71BC385C5;
+        Tue, 10 May 2022 04:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155946;
-        bh=8KOHkFUljBcwPaSsLry0vk6d6Ebuo8FK1ZqkMglhtso=;
+        s=korg; t=1652155943;
+        bh=FrDU5a3SS36u5BrUFs/3HaiLVjzIwjmAeKSoPmJAilU=;
         h=Date:To:From:Subject:From;
-        b=J0qXHvyWSCLQfq4PLZYxAXpw7qQgxm9M4KTvQ3YWwKGTvBHVgbNWyuLdSRkuy+zhh
-         MMFBFM0GbNz89TNAx0oDfuw5WxYabCoQWGGTDpZD7UI8lNaGDqowUVCCNI5BPzca7s
-         EiQ7+gCALa+MzFoGOLiP7P4CLp4RLzCBXHJxMOH0=
-Date:   Mon, 09 May 2022 21:12:25 -0700
+        b=Usg5euNiu5LV/4PyIgYdAp3QKESpbjO9XzFc2z20e71WJDBO7xPHB8OU5ogSYL8q3
+         aASw/s8ZolxWSZqZOSHk5jgOgUUo9wdv8qgC239ryeZUp07/Uw50BroH6ooefoU5jw
+         Jzg+lLpLjyjqUQ3tjhwf/VMf/Ue1d6j+plns+Apw=
+Date:   Mon, 09 May 2022 21:12:22 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-avoid-possible-null-pointer-dereference-in-kcompactd_cpu_online.patch removed from -mm tree
-Message-Id: <20220510041225.F0182C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-use-compact_cluster_max-in-compactionc.patch removed from -mm tree
+Message-Id: <20220510041222.ED71BC385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,21 +42,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: avoid possible NULL pointer dereference in kcompactd_cpu_online
+     Subject: mm: compaction: use COMPACT_CLUSTER_MAX in compaction.c
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-avoid-possible-null-pointer-dereference-in-kcompactd_cpu_online.patch
+     mm-compaction-use-compact_cluster_max-in-compactionc.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: avoid possible NULL pointer dereference in kcompactd_cpu_online
+Subject: mm: compaction: use COMPACT_CLUSTER_MAX in compaction.c
 
-It's possible that kcompactd_run could fail to run kcompactd for a hot
-added node and leave pgdat->kcompactd as NULL.  So pgdat->kcompactd should
-be checked here to avoid possible NULL pointer dereference.
+Always use COMPACT_CLUSTER_MAX here as we're doing the compaction.  Minor
+improvements in readability.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-10-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-7-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -65,21 +64,47 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/compaction.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-avoid-possible-null-pointer-dereference-in-kcompactd_cpu_online
+--- a/mm/compaction.c~mm-compaction-use-compact_cluster_max-in-compactionc
 +++ a/mm/compaction.c
-@@ -3052,7 +3052,8 @@ static int kcompactd_cpu_online(unsigned
+@@ -573,7 +573,7 @@ static unsigned long isolate_freepages_b
+ 		 * contention, to give chance to IRQs. Abort if fatal signal
+ 		 * pending.
+ 		 */
+-		if (!(blockpfn % SWAP_CLUSTER_MAX)
++		if (!(blockpfn % COMPACT_CLUSTER_MAX)
+ 		    && compact_unlock_should_abort(&cc->zone->lock, flags,
+ 								&locked, cc))
+ 			break;
+@@ -862,7 +862,7 @@ isolate_migratepages_block(struct compac
+ 		 * contention, to give chance to IRQs. Abort completely if
+ 		 * a fatal signal is pending.
+ 		 */
+-		if (!(low_pfn % SWAP_CLUSTER_MAX)) {
++		if (!(low_pfn % COMPACT_CLUSTER_MAX)) {
+ 			if (locked) {
+ 				unlock_page_lruvec_irqrestore(locked, flags);
+ 				locked = NULL;
+@@ -1614,7 +1614,7 @@ static void isolate_freepages(struct com
+ 		 * This can iterate a massively long zone without finding any
+ 		 * suitable migration targets, so periodically check resched.
+ 		 */
+-		if (!(block_start_pfn % (SWAP_CLUSTER_MAX * pageblock_nr_pages)))
++		if (!(block_start_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
+ 			cond_resched();
  
- 		if (cpumask_any_and(cpu_online_mask, mask) < nr_cpu_ids)
- 			/* One of our CPUs online: restore mask */
--			set_cpus_allowed_ptr(pgdat->kcompactd, mask);
-+			if (pgdat->kcompactd)
-+				set_cpus_allowed_ptr(pgdat->kcompactd, mask);
- 	}
- 	return 0;
- }
+ 		page = pageblock_pfn_to_page(block_start_pfn, block_end_pfn,
+@@ -1921,7 +1921,7 @@ static isolate_migrate_t isolate_migrate
+ 		 * many pageblocks unsuitable, so periodically check if we
+ 		 * need to schedule.
+ 		 */
+-		if (!(low_pfn % (SWAP_CLUSTER_MAX * pageblock_nr_pages)))
++		if (!(low_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
+ 			cond_resched();
+ 
+ 		page = pageblock_pfn_to_page(block_start_pfn,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
