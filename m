@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3994C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A88AC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236033AbiEJER6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236039AbiEJER6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 10 May 2022 00:17:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44238 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236130AbiEJERD (ORCPT
+        with ESMTP id S236091AbiEJERD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:03 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 092615DA45
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B182246D8C
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 98B5861746
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F338EC385C2;
-        Tue, 10 May 2022 04:12:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9619061737
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFEFEC385C5;
+        Tue, 10 May 2022 04:12:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155948;
-        bh=RWzmoBKfGT7fiulGflqenu7gN1R8tKxsUhRtScMXe6I=;
+        s=korg; t=1652155945;
+        bh=A0ATw3VU1PD6UOs8tQMSexZmgsyMoyZn93ahpF6Ix4c=;
         h=Date:To:From:Subject:From;
-        b=i19hDuLUD91ZJgKmlPpWViLSFiR1JzJbpTxK8x2YNrnxaH4xz0Y5i928nLgS9Zifb
-         LRRm6tWTEPCpYNDqyS0marMpG248ir/gRRmant8qEnVwKHHLGWFTPDJdIubHsLuJnb
-         8U34v0YwPJJAXPYbuoX2AcSVIgFtk3OJZ1pOLbug=
-Date:   Mon, 09 May 2022 21:12:27 -0700
+        b=o+MykPrQWaTqJObwnNRZq1NxWyobh/6+euYPra5cuYeETp0fl78HeZtLpFnA9ju7l
+         cHEWRKVaoJCrWAD6jU8VIxW5wTf5j2qT4tQowfEZEkNcOX0anpv/OSFeW614nna2Qh
+         MG5EZaR/P2GqRPFPaOwOt3D/fYMMh1l5VLRkf4jw=
+Date:   Mon, 09 May 2022 21:12:24 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-simplify-the-code-in-__compact_finished.patch removed from -mm tree
-Message-Id: <20220510041227.F338EC385C2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-clean-up-comment-about-async-compaction-in-isolate_migratepages.patch removed from -mm tree
+Message-Id: <20220510041224.EFEFEC385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,25 +42,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: simplify the code in __compact_finished
+     Subject: mm: compaction: clean up comment about async compaction in isolate_migratepages
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-simplify-the-code-in-__compact_finished.patch
+     mm-compaction-clean-up-comment-about-async-compaction-in-isolate_migratepages.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: simplify the code in __compact_finished
+Subject: mm: compaction: clean up comment about async compaction in isolate_migratepages
 
-Since commit efe771c7603b ("mm, compaction: always finish scanning of a
-full pageblock"), compaction will always finish scanning a pageblock.  And
-migrate_pfn is assured to align with pageblock_nr_pages when we reach
-here.  So we will always return COMPACT_SUCCESS if a suitable fallback is
-found due to the below IS_ALIGNED check of migrate_pfn.  Simplify the code
-to make this clear and improve the readability.  No functional change
-intended.
+Since commit 282722b0d258 ("mm, compaction: restrict async compaction to
+pageblocks of same migratetype"), async direct compaction is restricted to
+scan the pageblocks of same migratetype.  Correct the comment accordingly.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-12-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-9-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -69,49 +65,30 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ mm/compaction.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-simplify-the-code-in-__compact_finished
+--- a/mm/compaction.c~mm-compaction-clean-up-comment-about-async-compaction-in-isolate_migratepages
 +++ a/mm/compaction.c
-@@ -2134,29 +2134,16 @@ static enum compact_result __compact_fin
- 		 * other migratetype buddy lists.
- 		 */
- 		if (find_suitable_fallback(area, order, migratetype,
--						true, &can_steal) != -1) {
--
--			/* movable pages are OK in any pageblock */
--			if (migratetype == MIGRATE_MOVABLE)
--				return COMPACT_SUCCESS;
--
-+						true, &can_steal) != -1)
- 			/*
--			 * We are stealing for a non-movable allocation. Make
--			 * sure we finish compacting the current pageblock
--			 * first so it is as free as possible and we won't
--			 * have to steal another one soon. This only applies
--			 * to sync compaction, as async compaction operates
--			 * on pageblocks of the same migratetype.
-+			 * Movable pages are OK in any pageblock. If we are
-+			 * stealing for a non-movable allocation, make sure
-+			 * we finish compacting the current pageblock first
-+			 * (which is assured by the above migrate_pfn align
-+			 * check) so it is as free as possible and we won't
-+			 * have to steal another one soon.
- 			 */
--			if (cc->mode == MIGRATE_ASYNC ||
--					IS_ALIGNED(cc->migrate_pfn,
--							pageblock_nr_pages)) {
--				return COMPACT_SUCCESS;
--			}
--
--			ret = COMPACT_CONTINUE;
--			break;
--		}
-+			return COMPACT_SUCCESS;
- 	}
+@@ -1941,12 +1941,12 @@ static isolate_migrate_t isolate_migrate
+ 			continue;
  
- out:
+ 		/*
+-		 * For async compaction, also only scan in MOVABLE blocks
+-		 * without huge pages. Async compaction is optimistic to see
+-		 * if the minimum amount of work satisfies the allocation.
+-		 * The cached PFN is updated as it's possible that all
+-		 * remaining blocks between source and target are unsuitable
+-		 * and the compaction scanners fail to meet.
++		 * For async direct compaction, only scan the pageblocks of the
++		 * same migratetype without huge pages. Async direct compaction
++		 * is optimistic to see if the minimum amount of work satisfies
++		 * the allocation. The cached PFN is updated as it's possible
++		 * that all remaining blocks between source and target are
++		 * unsuitable and the compaction scanners fail to meet.
+ 		 */
+ 		if (!suitable_migration_source(cc, page)) {
+ 			update_cached_migrate(cc, block_end_pfn);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
