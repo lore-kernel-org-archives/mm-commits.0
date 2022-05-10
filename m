@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4735DC433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56079C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236213AbiEJEQa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:16:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45066 "EHLO
+        id S236224AbiEJEQc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:16:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236148AbiEJEPq (ORCPT
+        with ESMTP id S236140AbiEJEPq (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 015BDA6222
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:28 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C75A7986DD
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5393F615DA
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A870CC385C5;
-        Tue, 10 May 2022 04:11:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E1701B81AEF
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89A2BC385C2;
+        Tue, 10 May 2022 04:11:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155887;
-        bh=3xLDrjKuqjpCqyOUHtfrRgPfFndwxOp5i5bXj2HjMYQ=;
+        s=korg; t=1652155884;
+        bh=JUu+a/S681+7rcLcS5xQoNqS+W1jWF1tOAYm/FebLeA=;
         h=Date:To:From:Subject:From;
-        b=wgl1eTpVtE7/Nkw6YtgoeB0Qbaa759bMB1eAwpv3LlrGLNg0WD+bKfBMpYSg3WgYW
-         7KuOQSlUJzMaEdQr9smlpZQHUwLDt/GPrBjuvHLK0AqOBTuFCmws/IEBJT66oX2Y2O
-         aZa2/1UROurEfHaGpAYarIYDEn/gwYJuUZCdNSBE=
-Date:   Mon, 09 May 2022 21:11:27 -0700
+        b=eeRGDkcfIxp84VnscbT2TG9Re2BEq8kZmkS5z7iqFs8hiiLsfciGdA7OELrfRz5t6
+         UcmtXwx2j1wJ6WcYBf5eRDDNSXD60aWLJYaOsS9HGXBgdIeBSpcfMhK0Nyk2v6PvDi
+         0xhEsh8qnkRg9bpWApyOkUiHokL1+enF/fzH1WeM=
+Date:   Mon, 09 May 2022 21:11:23 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         songmuchun@bytedance.com, baolin.wang@linux.alibaba.com,
         apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migration-use-helper-macro-min-in-do_pages_stat.patch removed from -mm tree
-Message-Id: <20220510041127.A870CC385C5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migration-remove-unneeded-local-variable-mapping_locked.patch removed from -mm tree
+Message-Id: <20220510041124.89A2BC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,53 +42,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/migration: use helper macro min in do_pages_stat
+     Subject: mm/migration: remove unneeded local variable mapping_locked
 has been removed from the -mm tree.  Its filename was
-     mm-migration-use-helper-macro-min-in-do_pages_stat.patch
+     mm-migration-remove-unneeded-local-variable-mapping_locked.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/migration: use helper macro min in do_pages_stat
+Subject: mm/migration: remove unneeded local variable mapping_locked
 
-We could use helper macro min to help set the chunk_nr to simplify the
-code.
+Patch series "A few cleanup and fixup patches for migration", v2.
 
-Link: https://lkml.kernel.org/r/20220318111709.60311-7-linmiaohe@huawei.com
+This series contains a few patches to remove unneeded variables, jump
+label and use helper to simplify the code.  Also we fix some bugs such as
+page refcounts leak , invalid node access and so on.  More details can be
+found in the respective changelogs.
+
+
+This patch (of 11):
+
+When mapping_locked is true, TTU_RMAP_LOCKED is always set to ttu.  We can
+check ttu instead so mapping_locked can be removed.  And ttu is either 0
+or TTU_RMAP_LOCKED now.  Change '|=' to '=' to reflect this.
+
+Link: https://lkml.kernel.org/r/20220318111709.60311-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220318111709.60311-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/migrate.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/migrate.c~mm-migration-use-helper-macro-min-in-do_pages_stat
+--- a/mm/migrate.c~mm-migration-remove-unneeded-local-variable-mapping_locked
 +++ a/mm/migrate.c
-@@ -1842,16 +1842,12 @@ static int do_pages_stat(struct mm_struc
- 			 const void __user * __user *pages,
- 			 int __user *status)
- {
--#define DO_PAGES_STAT_CHUNK_NR 16
-+#define DO_PAGES_STAT_CHUNK_NR 16UL
- 	const void __user *chunk_pages[DO_PAGES_STAT_CHUNK_NR];
- 	int chunk_status[DO_PAGES_STAT_CHUNK_NR];
+@@ -1230,7 +1230,6 @@ static int unmap_and_move_huge_page(new_
+ 		goto put_anon;
  
- 	while (nr_pages) {
--		unsigned long chunk_nr;
--
--		chunk_nr = nr_pages;
--		if (chunk_nr > DO_PAGES_STAT_CHUNK_NR)
--			chunk_nr = DO_PAGES_STAT_CHUNK_NR;
-+		unsigned long chunk_nr = min(nr_pages, DO_PAGES_STAT_CHUNK_NR);
+ 	if (page_mapped(hpage)) {
+-		bool mapping_locked = false;
+ 		enum ttu_flags ttu = 0;
  
- 		if (in_compat_syscall()) {
- 			if (get_compat_pages_array(chunk_pages, pages,
+ 		if (!PageAnon(hpage)) {
+@@ -1244,14 +1243,13 @@ static int unmap_and_move_huge_page(new_
+ 			if (unlikely(!mapping))
+ 				goto unlock_put_anon;
+ 
+-			mapping_locked = true;
+-			ttu |= TTU_RMAP_LOCKED;
++			ttu = TTU_RMAP_LOCKED;
+ 		}
+ 
+ 		try_to_migrate(src, ttu);
+ 		page_was_mapped = 1;
+ 
+-		if (mapping_locked)
++		if (ttu & TTU_RMAP_LOCKED)
+ 			i_mmap_unlock_write(mapping);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
