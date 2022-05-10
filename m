@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 395ADC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:18:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A9B6C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:18:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236281AbiEJEWH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:22:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37614 "EHLO
+        id S236283AbiEJEWI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:22:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236283AbiEJEUe (ORCPT
+        with ESMTP id S236285AbiEJEUe (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:34 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FB272B09C4
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE1D42AD773
         for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 39814B81B10
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0D94C385C8;
-        Tue, 10 May 2022 04:15:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 892F06176C
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE237C385A6;
+        Tue, 10 May 2022 04:15:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156125;
-        bh=k+KkQ2iaqrpQswhPNTwEI4zxIGKkiO7xdmZS6TD3AA4=;
+        s=korg; t=1652156128;
+        bh=vvxghYXCLrH4IKI3D5jZiwkL0RW7gnJNeLR/cgjhj6U=;
         h=Date:To:From:Subject:From;
-        b=llVdLbMRiCVYwMN21sDKs6L98IuFPfQX5sTaatHqOMscJFZRgXmpbBYGoWTdUM9IB
-         r2RKpFtpI33ySL8kN4WFDD8wJwmSDe92y0fx96hDAKmnzgicmb1JCyUuSp5zxWV9xj
-         NTugKtZZSY2srCw5wFvfOF1+3AfAtYQxRtvmSHCk=
-Date:   Mon, 09 May 2022 21:15:25 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
-        tglx@linutronix.de, peterz@infradead.org, peterx@redhat.com,
-        npiggin@gmail.com, luto@kernel.org, dave.hansen@linux.intel.com,
-        andrew.cooper3@citrix.com, aarcange@redhat.com, namit@vmware.com,
-        akpm@linux-foundation.org
+        b=bsZm4t44h4rECxuOLsOPTr+lHXgJpZoAB8Wh8dHMzREeUYiGW5EWiWwwGGLjdyqZU
+         piyhFc95Iwnrk4tcTEWjiMDbGZjDJKVoGnmZKofm83lcwDO0oTZUTOSmQdKDjarlnx
+         /3amYxjIt7pkJPev/I0uW6je1txVEejjbBwmgcqQ=
+Date:   Mon, 09 May 2022 21:15:27 -0700
+To:     mm-commits@vger.kernel.org, zhongjubin@huawei.com,
+        wangbing6@huawei.com, nixiaoming@huawei.com, glider@google.com,
+        elver@google.com, dvyukov@google.com, chenzefeng2@huawei.com,
+        huangshaobo6@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-avoid-unnecessary-flush-on-change_huge_pmd.patch removed from -mm tree
-Message-Id: <20220510041525.D0D94C385C8@smtp.kernel.org>
+Subject: [merged mm-stable] kfence-enable-check-kfence-canary-on-panic-via-boot-param.patch removed from -mm tree
+Message-Id: <20220510041527.DE237C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,149 +43,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: avoid unnecessary flush on change_huge_pmd()
+     Subject: kfence: enable check kfence canary on panic via boot param
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-unnecessary-flush-on-change_huge_pmd.patch
+     kfence-enable-check-kfence-canary-on-panic-via-boot-param.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: mm: avoid unnecessary flush on change_huge_pmd()
+From: huangshaobo <huangshaobo6@huawei.com>
+Subject: kfence: enable check kfence canary on panic via boot param
 
-Calls to change_protection_range() on THP can trigger, at least on x86,
-two TLB flushes for one page: one immediately, when pmdp_invalidate() is
-called by change_huge_pmd(), and then another one later (that can be
-batched) when change_protection_range() finishes.
+Out-of-bounds accesses that aren't caught by a guard page will result in
+corruption of canary memory.  In pathological cases, where an object has
+certain alignment requirements, an out-of-bounds access might never be
+caught by the guard page.  Such corruptions, however, are only detected on
+kfree() normally.  If the bug causes the kernel to panic before kfree(),
+KFENCE has no opportunity to report the issue.  Such corruptions may also
+indicate failing memory or other faults.
 
-The first TLB flush is only necessary to prevent the dirty bit (and with a
-lesser importance the access bit) from changing while the PTE is modified.
-However, this is not necessary as the x86 CPUs set the dirty-bit
-atomically with an additional check that the PTE is (still) present.  One
-caveat is Intel's Knights Landing that has a bug and does not do so.
+To provide some more information in such cases, add the option to check
+canary bytes on panic.  This might help narrow the search for the panic
+cause; but, due to only having the allocation stack trace, such reports
+are difficult to use to diagnose an issue alone.  In most cases, such
+reports are inactionable, and is therefore an opt-in feature (disabled by
+default).
 
-Leverage this behavior to eliminate the unnecessary TLB flush in
-change_huge_pmd().  Introduce a new arch specific pmdp_invalidate_ad()
-that only invalidates the access and dirty bit from further changes.
-
-Link: https://lkml.kernel.org/r/20220401180821.1986781-4-namit@vmware.com
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Cooper <andrew.cooper3@citrix.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Nick Piggin <npiggin@gmail.com>
+[akpm@linux-foundation.org: add __read_mostly, per Marco]
+Link: https://lkml.kernel.org/r/20220425022456.44300-1-huangshaobo6@huawei.com
+Signed-off-by: huangshaobo <huangshaobo6@huawei.com>
+Suggested-by: chenzefeng <chenzefeng2@huawei.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
+Cc: Wangbing <wangbing6@huawei.com>
+Cc: Jubin Zhong <zhongjubin@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    5 +++++
- arch/x86/mm/pgtable.c          |   10 ++++++++++
- include/linux/pgtable.h        |   20 ++++++++++++++++++++
- mm/huge_memory.c               |    4 ++--
- mm/pgtable-generic.c           |    8 ++++++++
- 5 files changed, 45 insertions(+), 2 deletions(-)
+ mm/kfence/core.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
---- a/arch/x86/include/asm/pgtable.h~mm-avoid-unnecessary-flush-on-change_huge_pmd
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1168,6 +1168,11 @@ static inline pmd_t pmdp_establish(struc
- 	}
- }
- #endif
-+
-+#define __HAVE_ARCH_PMDP_INVALIDATE_AD
-+extern pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma,
-+				unsigned long address, pmd_t *pmdp);
-+
- /*
-  * Page table pages are page-aligned.  The lower half of the top
-  * level is used for userspace and the top half for the kernel.
---- a/arch/x86/mm/pgtable.c~mm-avoid-unnecessary-flush-on-change_huge_pmd
-+++ a/arch/x86/mm/pgtable.c
-@@ -608,6 +608,16 @@ int pmdp_clear_flush_young(struct vm_are
+--- a/mm/kfence/core.c~kfence-enable-check-kfence-canary-on-panic-via-boot-param
++++ a/mm/kfence/core.c
+@@ -21,6 +21,8 @@
+ #include <linux/log2.h>
+ #include <linux/memblock.h>
+ #include <linux/moduleparam.h>
++#include <linux/notifier.h>
++#include <linux/panic_notifier.h>
+ #include <linux/random.h>
+ #include <linux/rcupdate.h>
+ #include <linux/sched/clock.h>
+@@ -99,6 +101,10 @@ module_param_named(skip_covered_thresh,
+ static bool kfence_deferrable __read_mostly = IS_ENABLED(CONFIG_KFENCE_DEFERRABLE);
+ module_param_named(deferrable, kfence_deferrable, bool, 0444);
  
- 	return young;
- }
++/* If true, check all canary bytes on panic. */
++static bool kfence_check_on_panic __read_mostly;
++module_param_named(check_on_panic, kfence_check_on_panic, bool, 0444);
 +
-+pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma, unsigned long address,
-+			 pmd_t *pmdp)
+ /* The pool of pages used for guard pages and objects. */
+ char *__kfence_pool __read_mostly;
+ EXPORT_SYMBOL(__kfence_pool); /* Export for test modules. */
+@@ -727,6 +733,31 @@ static int __init kfence_debugfs_init(vo
+ 
+ late_initcall(kfence_debugfs_init);
+ 
++/* === Panic Notifier ====================================================== */
++
++static void kfence_check_all_canary(void)
 +{
-+	/*
-+	 * No flush is necessary. Once an invalid PTE is established, the PTE's
-+	 * access and dirty bits cannot be updated.
-+	 */
-+	return pmdp_establish(vma, address, pmdp, pmd_mkinvalid(*pmdp));
++	int i;
++
++	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
++		struct kfence_metadata *meta = &kfence_metadata[i];
++
++		if (meta->state == KFENCE_OBJECT_ALLOCATED)
++			for_each_canary(meta, check_canary_byte);
++	}
 +}
- #endif
- 
- /**
---- a/include/linux/pgtable.h~mm-avoid-unnecessary-flush-on-change_huge_pmd
-+++ a/include/linux/pgtable.h
-@@ -570,6 +570,26 @@ extern pmd_t pmdp_invalidate(struct vm_a
- 			    pmd_t *pmdp);
- #endif
- 
-+#ifndef __HAVE_ARCH_PMDP_INVALIDATE_AD
 +
-+/*
-+ * pmdp_invalidate_ad() invalidates the PMD while changing a transparent
-+ * hugepage mapping in the page tables. This function is similar to
-+ * pmdp_invalidate(), but should only be used if the access and dirty bits would
-+ * not be cleared by the software in the new PMD value. The function ensures
-+ * that hardware changes of the access and dirty bits updates would not be lost.
-+ *
-+ * Doing so can allow in certain architectures to avoid a TLB flush in most
-+ * cases. Yet, another TLB flush might be necessary later if the PMD update
-+ * itself requires such flush (e.g., if protection was set to be stricter). Yet,
-+ * even when a TLB flush is needed because of the update, the caller may be able
-+ * to batch these TLB flushing operations, so fewer TLB flush operations are
-+ * needed.
-+ */
-+extern pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma,
-+				unsigned long address, pmd_t *pmdp);
-+#endif
-+
- #ifndef __HAVE_ARCH_PTE_SAME
- static inline int pte_same(pte_t pte_a, pte_t pte_b)
- {
---- a/mm/huge_memory.c~mm-avoid-unnecessary-flush-on-change_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -1801,10 +1801,10 @@ int change_huge_pmd(struct mmu_gather *t
- 	 * The race makes MADV_DONTNEED miss the huge pmd and don't clear it
- 	 * which may break userspace.
- 	 *
--	 * pmdp_invalidate() is required to make sure we don't miss
-+	 * pmdp_invalidate_ad() is required to make sure we don't miss
- 	 * dirty/young flags set by hardware.
- 	 */
--	oldpmd = pmdp_invalidate(vma, addr, pmd);
-+	oldpmd = pmdp_invalidate_ad(vma, addr, pmd);
- 
- 	entry = pmd_modify(oldpmd, newprot);
- 	if (preserve_write)
---- a/mm/pgtable-generic.c~mm-avoid-unnecessary-flush-on-change_huge_pmd
-+++ a/mm/pgtable-generic.c
-@@ -201,6 +201,14 @@ pmd_t pmdp_invalidate(struct vm_area_str
- }
- #endif
- 
-+#ifndef __HAVE_ARCH_PMDP_INVALIDATE_AD
-+pmd_t pmdp_invalidate_ad(struct vm_area_struct *vma, unsigned long address,
-+			 pmd_t *pmdp)
++static int kfence_check_canary_callback(struct notifier_block *nb,
++					unsigned long reason, void *arg)
 +{
-+	return pmdp_invalidate(vma, address, pmdp);
++	kfence_check_all_canary();
++	return NOTIFY_OK;
 +}
-+#endif
 +
- #ifndef pmdp_collapse_flush
- pmd_t pmdp_collapse_flush(struct vm_area_struct *vma, unsigned long address,
- 			  pmd_t *pmdp)
++static struct notifier_block kfence_check_canary_notifier = {
++	.notifier_call = kfence_check_canary_callback,
++};
++
+ /* === Allocation Gate Timer ================================================ */
+ 
+ static struct delayed_work kfence_timer;
+@@ -804,6 +835,9 @@ static void kfence_init_enable(void)
+ 	else
+ 		INIT_DELAYED_WORK(&kfence_timer, toggle_allocation_gate);
+ 
++	if (kfence_check_on_panic)
++		atomic_notifier_chain_register(&panic_notifier_list, &kfence_check_canary_notifier);
++
+ 	WRITE_ONCE(kfence_enabled, true);
+ 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
+ 
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from huangshaobo6@huawei.com are
 
 
