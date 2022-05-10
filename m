@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6F4DC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A611DC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235351AbiEJEPb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:15:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40700 "EHLO
+        id S235827AbiEJEPd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:15:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44584 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235974AbiEJEOv (ORCPT
+        with ESMTP id S235978AbiEJEOv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:14:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6AB9205F0
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:10:54 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A5411FCC6
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:10:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6039761738
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:10:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0F61C385C5;
-        Tue, 10 May 2022 04:10:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F234AB817CC
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:10:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F8D9C385A6;
+        Tue, 10 May 2022 04:10:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155853;
-        bh=TX4j/x73IdY0Z07JIZvHhgX2ldK4FCMcYKtpXOFZYfw=;
+        s=korg; t=1652155852;
+        bh=/40YuqPpXWfyv8jm0gbv1IHstteeY3saSFGW/Uw4Keg=;
         h=Date:To:From:Subject:From;
-        b=TKPPslWObjbBTKrH7G52BHvewsdeCM4hq6FF8RmzgR5Rx67ZfqpJEIUf5UqeB0dq2
-         z9HgJBrhwGtp+pzwEb9aVzx6BCg5l+JyFkOU3h6m2SDx7yaIvmlNiRF41bmIDLIEWZ
-         v/KYzbrY5gS0LLQxL4s8f27TVe9IqcqPig8a2SxE=
-Date:   Mon, 09 May 2022 21:10:53 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        torvalds@linux-foundation.org, rppt@kernel.org,
-        rostedt@goodmis.org, osalvador@suse.de,
-        mgorman@techsingularity.net, david@redhat.com, ziy@nvidia.com,
-        akpm@linux-foundation.org
+        b=boJN3MADJZzAdQbFZXV9nk0NYGBGnv+dEkJy57f88LlHHQlYrNK+8MNUMwrZmZObU
+         zP6s83dEhOhKc5xhSbs/vZkAnAPUsENWWPEsAVm3svori6TwXEp7QQD5t7fncL/Et9
+         NMFaiJGxEsTn7ki/Smeca/wOZV6yOAkM89YeAKo0=
+Date:   Mon, 09 May 2022 21:10:52 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rientjes@google.com,
+        osalvador@suse.de, mhocko@suse.com, krupa.ramakrishnan@amd.com,
+        kamezawa.hiroyu@jp.fujitsu.com, david@redhat.com,
+        richard.weiyang@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page.patch removed from -mm tree
-Message-Id: <20220510041053.B0F61C385C5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch removed from -mm tree
+Message-Id: <20220510041052.9F8D9C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,121 +43,100 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: simplify pageblock migratetype check in __free_one_page()
+     Subject: mm/page_alloc: adding same penalty is enough to get round-robin order
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page.patch
+     mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm: page_alloc: simplify pageblock migratetype check in __free_one_page()
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/page_alloc: adding same penalty is enough to get round-robin order
 
-Move pageblock migratetype check code in the while loop to simplify the
-logic. It also saves redundant buddy page checking code.
+To make node order in round-robin in the same distance group, we add a
+penalty to the first node we got in each round.
 
-Link: https://lkml.kernel.org/r/20220401230804.1658207-1-zi.yan@sent.com
-Link: https://lore.kernel.org/linux-mm/27ff69f9-60c5-9e59-feb2-295250077551@suse.cz/
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+To get a round-robin order in the same distance group, we don't need to
+decrease the penalty since:
+
+  * find_next_best_node() always iterates node in the same order
+  * distance matters more then penalty in find_next_best_node()
+  * in nodes with the same distance, the first one would be picked up
+
+So it is fine to increase same penalty when we get the first node in the
+same distance group.  Since we just increase a constance of 1 to node
+penalty, it is not necessary to multiply MAX_NODE_LOAD for preference.
+
+[richard.weiyang@gmail.com: remove remove MAX_NODE_LOAD, per Vlastimil]
+  Link: https://lkml.kernel.org/r/20220412001319.7462-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20220123013537.20491-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Krupa Ramakrishnan <krupa.ramakrishnan@amd.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   46 +++++++++++++++++-----------------------------
- 1 file changed, 17 insertions(+), 29 deletions(-)
+ mm/page_alloc.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-simplify-pageblock-migratetype-check-in-__free_one_page
+--- a/mm/page_alloc.c~mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order
 +++ a/mm/page_alloc.c
-@@ -1053,7 +1053,6 @@ static inline void __free_one_page(struc
- 		int migratetype, fpi_t fpi_flags)
+@@ -6171,7 +6171,6 @@ int numa_zonelist_order_handler(struct c
+ }
+ 
+ 
+-#define MAX_NODE_LOAD (nr_online_nodes)
+ static int node_load[MAX_NUMNODES];
+ 
+ /**
+@@ -6218,7 +6217,7 @@ int find_next_best_node(int node, nodema
+ 			val += PENALTY_FOR_NODE_WITH_CPUS;
+ 
+ 		/* Slight preference for less loaded node */
+-		val *= (MAX_NODE_LOAD*MAX_NUMNODES);
++		val *= MAX_NUMNODES;
+ 		val += node_load[n];
+ 
+ 		if (val < min_val) {
+@@ -6284,13 +6283,12 @@ static void build_thisnode_zonelists(pg_
+ static void build_zonelists(pg_data_t *pgdat)
  {
- 	struct capture_control *capc = task_capc(zone);
--	unsigned int max_order = pageblock_order;
- 	unsigned long buddy_pfn;
- 	unsigned long combined_pfn;
- 	struct page *buddy;
-@@ -1069,8 +1068,7 @@ static inline void __free_one_page(struc
- 	VM_BUG_ON_PAGE(pfn & ((1 << order) - 1), page);
- 	VM_BUG_ON_PAGE(bad_range(zone, page), page);
+ 	static int node_order[MAX_NUMNODES];
+-	int node, load, nr_nodes = 0;
++	int node, nr_nodes = 0;
+ 	nodemask_t used_mask = NODE_MASK_NONE;
+ 	int local_node, prev_node;
  
--continue_merging:
--	while (order < max_order) {
-+	while (order < MAX_ORDER - 1) {
- 		if (compaction_capture(capc, page, order, migratetype)) {
- 			__mod_zone_freepage_state(zone, -(1 << order),
- 								migratetype);
-@@ -1081,6 +1079,22 @@ continue_merging:
+ 	/* NUMA-aware ordering of nodes */
+ 	local_node = pgdat->node_id;
+-	load = nr_online_nodes;
+ 	prev_node = local_node;
  
- 		if (!page_is_buddy(page, buddy, order))
- 			goto done_merging;
-+
-+		if (unlikely(order >= pageblock_order)) {
-+			/*
-+			 * We want to prevent merge between freepages on pageblock
-+			 * without fallbacks and normal pageblock. Without this,
-+			 * pageblock isolation could cause incorrect freepage or CMA
-+			 * accounting or HIGHATOMIC accounting.
-+			 */
-+			int buddy_mt = get_pageblock_migratetype(buddy);
-+
-+			if (migratetype != buddy_mt
-+					&& (!migratetype_is_mergeable(migratetype) ||
-+						!migratetype_is_mergeable(buddy_mt)))
-+				goto done_merging;
-+		}
-+
- 		/*
- 		 * Our buddy is free or it is CONFIG_DEBUG_PAGEALLOC guard page,
- 		 * merge with it and move up one order.
-@@ -1094,32 +1108,6 @@ continue_merging:
- 		pfn = combined_pfn;
- 		order++;
+ 	memset(node_order, 0, sizeof(node_order));
+@@ -6302,11 +6300,10 @@ static void build_zonelists(pg_data_t *p
+ 		 */
+ 		if (node_distance(local_node, node) !=
+ 		    node_distance(local_node, prev_node))
+-			node_load[node] += load;
++			node_load[node] += 1;
+ 
+ 		node_order[nr_nodes++] = node;
+ 		prev_node = node;
+-		load--;
  	}
--	if (order < MAX_ORDER - 1) {
--		/* If we are here, it means order is >= pageblock_order.
--		 * We want to prevent merge between freepages on pageblock
--		 * without fallbacks and normal pageblock. Without this,
--		 * pageblock isolation could cause incorrect freepage or CMA
--		 * accounting or HIGHATOMIC accounting.
--		 *
--		 * We don't want to hit this code for the more frequent
--		 * low-order merging.
--		 */
--		int buddy_mt;
--
--		buddy_pfn = __find_buddy_pfn(pfn, order);
--		buddy = page + (buddy_pfn - pfn);
--
--		if (!page_is_buddy(page, buddy, order))
--			goto done_merging;
--		buddy_mt = get_pageblock_migratetype(buddy);
--
--		if (migratetype != buddy_mt
--				&& (!migratetype_is_mergeable(migratetype) ||
--					!migratetype_is_mergeable(buddy_mt)))
--			goto done_merging;
--		max_order = order + 1;
--		goto continue_merging;
--	}
  
- done_merging:
- 	set_buddy_order(page, order);
+ 	build_zonelists_in_node_order(pgdat, node_order, nr_nodes);
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-page_isolation-move-has_unmovable_pages-to-mm-page_isolationc.patch
-mm-page_isolation-check-specified-range-for-unmovable-pages.patch
-mm-make-alloc_contig_range-work-at-pageblock-granularity.patch
-mm-make-alloc_contig_range-work-at-pageblock-granularity-fix.patch
-mm-page_isolation-enable-arbitrary-range-page-isolation.patch
-mm-cma-use-pageblock_order-as-the-single-alignment.patch
-drivers-virtio_mem-use-pageblock-size-as-the-minimum-virtio_mem-size.patch
+mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration.patch
+mm-vmscan-filter-empty-page_list-at-the-beginning.patch
+mm-vmscan-not-use-numa_no_node-as-indicator-of-page-on-different-node.patch
 
