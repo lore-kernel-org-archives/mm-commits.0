@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79945C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9985BC433EF
 	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233226AbiEJEPu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236189AbiEJEPu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 10 May 2022 00:15:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44040 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236099AbiEJEPd (ORCPT
+        with ESMTP id S236078AbiEJEPd (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A47FD483A9
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:13 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4265341630
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2D81C61735
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8254FC385A6;
-        Tue, 10 May 2022 04:11:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DC601B81AF7
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EB04C385A6;
+        Tue, 10 May 2022 04:11:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155872;
-        bh=QQYacQqTA3CRG/IDQAoPTwv5BQ7qhTvY46he9sx6KUc=;
+        s=korg; t=1652155868;
+        bh=lTRucyZEVO//60EpKeSgUei86igt+KGu2fgEKwZiEaY=;
         h=Date:To:From:Subject:From;
-        b=P+n5bsPsa82valGl9MqopTg8OxAJRPuC8wP7GFj+sCRToSb+X5AyYIhmFt23SKNUO
-         fr7141FmHdVSDO2GS9RT68R7a9sEXS0k0Cotzo7Ip4whkAh2OwNotg2kjUedGpyyyt
-         Gn584UPoitD/3AZh6X7zQT2oPrqHaCiab3Qm9C84=
-Date:   Mon, 09 May 2022 21:11:11 -0700
-To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=TazZmXv7PPKS5IBfUqbg0PFcmXKxasy20At2WzEUGhVE53GAoNcGcvsfVt3Lzpfv8
+         8VX8FlabWWywldsnzRmnkDHptSHK1ADofbJfOkmz4JP7pb2RoqaaGJ6wofFGnYDaVB
+         6Nrd85vQn6J3DONaWwzlEKtTO+CWd1hKqVJ8npqA=
+Date:   Mon, 09 May 2022 21:11:07 -0700
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-z3fold-declare-z3fold_mount-with-__init.patch removed from -mm tree
-Message-Id: <20220510041112.8254FC385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-remove-obsolete-comment-in-get_scan_count.patch removed from -mm tree
+Message-Id: <20220510041108.8EB04C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,49 +41,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/z3fold: declare z3fold_mount with __init
+     Subject: mm/vmscan: remove obsolete comment in get_scan_count
 has been removed from the -mm tree.  Its filename was
-     mm-z3fold-declare-z3fold_mount-with-__init.patch
+     mm-vmscan-remove-obsolete-comment-in-get_scan_count.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: declare z3fold_mount with __init
+Subject: mm/vmscan: remove obsolete comment in get_scan_count
 
-Patch series "A few cleanup patches for z3fold", v2.
+Since commit 1431d4d11abb ("mm: base LRU balancing on an explicit cost
+model"), the relative value of each set of LRU lists is based on cost
+model instead of rotated/scanned ratio.  Cleanup the relevant comment.
 
-This series contains a few patches to simplify the code, remove unneeded
-code, fix obsolete comment and so on.  More details can be found in the
-respective changelogs.
-
-
-This patch (of 8):
-
-z3fold_mount is only called during init.  So we should declare it with
-__init.
-
-Link: https://lkml.kernel.org/r/20220308134311.59086-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220308134311.59086-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220409030245.61211-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-declare-z3fold_mount-with-__init
-+++ a/mm/z3fold.c
-@@ -345,7 +345,7 @@ static struct file_system_type z3fold_fs
- };
+--- a/mm/vmscan.c~mm-vmscan-remove-obsolete-comment-in-get_scan_count
++++ a/mm/vmscan.c
+@@ -2646,9 +2646,7 @@ enum scan_balance {
  
- static struct vfsmount *z3fold_mnt;
--static int z3fold_mount(void)
-+static int __init z3fold_mount(void)
- {
- 	int ret = 0;
- 
+ /*
+  * Determine how aggressively the anon and file LRU lists should be
+- * scanned.  The relative value of each set of LRU lists is determined
+- * by looking at the fraction of the pages scanned we did rotate back
+- * onto the active list instead of evict.
++ * scanned.
+  *
+  * nr[0] = anon inactive pages to scan; nr[1] = anon active pages to scan
+  * nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
