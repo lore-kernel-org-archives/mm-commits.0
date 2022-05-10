@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABFA7C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15D14C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235876AbiEJEPj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:15:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45068 "EHLO
+        id S235931AbiEJEPl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:15:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236017AbiEJEO7 (ORCPT
+        with ESMTP id S236019AbiEJEO7 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:14:59 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BBCC27FC1
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:01 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1529729CBA
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2D04FB817CC
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA6CDC385A6;
-        Tue, 10 May 2022 04:10:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9505161726
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F7DC385C8;
+        Tue, 10 May 2022 04:11:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155858;
-        bh=8TsMM1HMacSMCy8nBZEWyTy5Rqhp1r2uRu+ZsJ+UYPc=;
+        s=korg; t=1652155861;
+        bh=Ai4nNioh7CiNBmjlcBfFiU6eHJoVqNGU/AMHE0lkoJ8=;
         h=Date:To:From:Subject:From;
-        b=LByBxi17jpM9spJz2JeOE6/vW5lpjiC0Vl6rCstSVoe7MbaSTHbyimTv1ngAwNxMt
-         z0apjuvaSehX5OikVzvdUf9dCZK7MPzmUhsXF0QlihTH0Z+5fRkc9qg+nZKW+btMg3
-         ye610DACPwMf2rS6pDuYiZiTePE8Kr+leiYNF/Hw=
-Date:   Mon, 09 May 2022 21:10:58 -0700
-To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
-        naoya.horiguchi@nec.com, david@redhat.com, linmiaohe@huawei.com,
+        b=lkQ2NQ/YRMH5uGcIpFpUzkdKZgFQRyN5IRmYTOyt04zCE8M9jVrMkRqcdXdqNPk/2
+         8S3Y/DEeJrP1Jd4b2wtyxXqu9lsGzcPjoU5XKlzE8mbnAA0O87mmAVrNpO3uZMmC7n
+         B+zX9DLQQVOqefAatsSVXm1kH3vQOzoLSj6CaXlo=
+Date:   Mon, 09 May 2022 21:11:00 -0700
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        linmiaohe@huawei.com, naoya.horiguchi@nec.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch removed from -mm tree
-Message-Id: <20220510041058.CA6CDC385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-hwpoison-separate-branch-for-free-and-in-use-hugepage.patch removed from -mm tree
+Message-Id: <20220510041100.E8F7DC385C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,97 +42,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memory-failure.c: minor cleanup for HWPoisonHandlable
+     Subject: mm, hugetlb, hwpoison: separate branch for free and in-use hugepage
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable.patch
+     mm-hugetlb-hwpoison-separate-branch-for-free-and-in-use-hugepage.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure.c: minor cleanup for HWPoisonHandlable
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm, hugetlb, hwpoison: separate branch for free and in-use hugepage
 
-Patch series "A few fixup and cleanup patches for memory failure", v2.
+We know that HPageFreed pages should have page refcount 0, so
+get_page_unless_zero() always fails and returns 0.  So explicitly separate
+the branch based on page state for minor optimization and better
+readability.
 
-This series contains a patch to clean up the HWPoisonHandlable and another
-one to dissolve truncated hugetlb page.  More details can be found in the
-respective changelogs.
-
-
-This patch (of 2):
-
-The local variable movable can be removed by returning true directly. Also
-fix typo 'mirgate'. No functional change intended.
-
-Link: https://lkml.kernel.org/r/20220414114941.11223-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220414114941.11223-2-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20220415041848.GA3034499@ik1-406-35019.vs.sakura.ne.jp
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/hugetlb.c        |    4 +++-
+ mm/memory-failure.c |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failurec-minor-cleanup-for-hwpoisonhandlable
+--- a/mm/hugetlb.c~mm-hugetlb-hwpoison-separate-branch-for-free-and-in-use-hugepage
++++ a/mm/hugetlb.c
+@@ -6776,7 +6776,9 @@ int get_hwpoison_huge_page(struct page *
+ 	spin_lock_irq(&hugetlb_lock);
+ 	if (PageHeadHuge(page)) {
+ 		*hugetlb = true;
+-		if (HPageFreed(page) || HPageMigratable(page))
++		if (HPageFreed(page))
++			ret = 0;
++		else if (HPageMigratable(page))
+ 			ret = get_page_unless_zero(page);
+ 		else
+ 			ret = -EBUSY;
+--- a/mm/memory-failure.c~mm-hugetlb-hwpoison-separate-branch-for-free-and-in-use-hugepage
 +++ a/mm/memory-failure.c
-@@ -1178,13 +1178,11 @@ void ClearPageHWPoisonTakenOff(struct pa
-  */
- static inline bool HWPoisonHandlable(struct page *page, unsigned long flags)
- {
--	bool movable = false;
--
--	/* Soft offline could mirgate non-LRU movable pages */
-+	/* Soft offline could migrate non-LRU movable pages */
- 	if ((flags & MF_SOFT_OFFLINE) && __PageMovable(page))
--		movable = true;
-+		return true;
- 
--	return movable || PageLRU(page) || is_free_buddy_page(page);
-+	return PageLRU(page) || is_free_buddy_page(page);
- }
- 
- static int __get_hwpoison_page(struct page *page, unsigned long flags)
+@@ -1517,7 +1517,9 @@ int __get_huge_page_for_hwpoison(unsigne
+ 	if (flags & MF_COUNT_INCREASED) {
+ 		ret = 1;
+ 		count_increased = true;
+-	} else if (HPageFreed(head) || HPageMigratable(head)) {
++	} else if (HPageFreed(head)) {
++		ret = 0;
++	} else if (HPageMigratable(head)) {
+ 		ret = get_page_unless_zero(head);
+ 		if (ret)
+ 			count_increased = true;
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
-mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
-mm-migration-reduce-the-rcu-lock-duration.patch
-mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-mm-migration-return-errno-when-isolate_huge_page-failed.patch
-mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
-mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
-mm-vmscan-introduce-helper-function-reclaim_page_list.patch
-mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
-mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
-mm-vmscan-use-helper-folio_is_file_lru.patch
-mm-vmscan-use-helper-folio_is_file_lru-fix.patch
-mm-z3fold-fix-sheduling-while-atomic.patch
-mm-z3fold-fix-possible-null-pointer-dereferencing.patch
-mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
-mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
-revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
-mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
-mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
-mm-z3fold-fix-z3fold_reclaim_page-races-with-z3fold_free.patch
-mm-z3fold-fix-z3fold_page_migrate-races-with-z3fold_map.patch
-mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
-mm-swap-use-helper-macro-__attr_rw.patch
-mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
-mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
-mm-swap-print-bad-swap-offset-entry-in-get_swap_device.patch
-mm-swap-remove-buggy-cache-nr-check-in-refill_swap_slots_cache.patch
-mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
-mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
-mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
-mm-swap-add-helper-swap_offset_available.patch
-mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
-mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
-mm-swap-fix-the-comment-of-get_kernel_pages.patch
-mm-swap-fix-comment-about-swap-extent.patch
 
