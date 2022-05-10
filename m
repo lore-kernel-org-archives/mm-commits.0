@@ -2,43 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BAF0C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:16:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16456C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:16:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235843AbiEJEUe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:20:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46248 "EHLO
+        id S236130AbiEJEUg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:20:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236100AbiEJESg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:18:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B19BD246DBA
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:25 -0700 (PDT)
+        with ESMTP id S236096AbiEJESb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:18:31 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C01C72438DB
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E46061744
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DAEBC385C2;
-        Tue, 10 May 2022 04:14:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7043EB81AF2
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19C8BC385A6;
+        Tue, 10 May 2022 04:14:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156064;
-        bh=QcR2CBgMebEu0LG8TcOyJoFLOS8em0ZIt7eACa1AYK4=;
+        s=korg; t=1652156062;
+        bh=8Jzqc/UqMgnJ/FKaA8idhn0sS4vMFB3I6h4KjQCtTQE=;
         h=Date:To:From:Subject:From;
-        b=A4WWa1KdY+7Hw74rXoJfks29p2y6Vy9Xnrs+NfHiDmOkg4xfar0fYA96h3k4eK9Ob
-         kmkJYSoDlLSO1Lz21arvc4yyF/zvk19iGjfZl1vB3A7SrWzfxXOKrVr7Bgc3OwcSjL
-         JYpcpegH+3Z9n/VN/A03Bfir+fnGiV1eE2ipQosY=
-Date:   Mon, 09 May 2022 21:14:24 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, weixugc@google.com,
-        vaibhav@linux.ibm.com, tj@kernel.org, tim.c.chen@linux.intel.com,
-        shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
-        rientjes@google.com, mkoutny@suse.com, mhocko@suse.com,
-        lizefan.x@bytedance.com, hannes@cmpxchg.org, gthelen@google.com,
-        dave.hansen@linux.intel.com, corbet@lwn.net, chenwandun@huawei.com,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=OsnQnzncGYLMNsPcP7/f7j+YKksQ3xnyqTfT2MsFDbkgaLlwxAkCONDQW3sUHw9wv
+         99D/MpNvAO9kG/ZOXRhJznIsUTBSV/8pvIhrkv6COT8gh1WLi3EIDsth7BJyJTviJ3
+         Z5T63D4KPS9uDv9vykYvGiyJkZfdXDvArzBMzJB8=
+Date:   Mon, 09 May 2022 21:14:21 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        yosryahmed@google.com, weixugc@google.com, vaibhav@linux.ibm.com,
+        tj@kernel.org, tim.c.chen@linux.intel.com, shuah@kernel.org,
+        roman.gushchin@linux.dev, rientjes@google.com, mkoutny@suse.com,
+        mhocko@suse.com, lizefan.x@bytedance.com, hannes@cmpxchg.org,
+        gthelen@google.com, dave@stgolabs.net, dave.hansen@linux.intel.com,
+        corbet@lwn.net, chenwandun@huawei.com, shakeelb@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch removed from -mm tree
-Message-Id: <20220510041424.9DAEBC385C2@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-introduce-per-memcg-reclaim-interface.patch removed from -mm tree
+Message-Id: <20220510041422.19C8BC385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,72 +47,242 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests: cgroup: fix alloc_anon_noexit() instantly freeing memory
+     Subject: memcg: introduce per-memcg reclaim interface
 has been removed from the -mm tree.  Its filename was
-     selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch
+     memcg-introduce-per-memcg-reclaim-interface.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: selftests: cgroup: fix alloc_anon_noexit() instantly freeing memory
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: introduce per-memcg reclaim interface
 
-Currently, alloc_anon_noexit() calls alloc_anon() which instantly frees
-the allocated memory. alloc_anon_noexit() is usually used with
-cg_run_nowait() to run a process in the background that allocates
-memory. It makes sense for the background process to keep the memory
-allocated and not instantly free it (otherwise there is no point of
-running it in the background).
+This patch series adds a memory.reclaim proactive reclaim interface.
+The rationale behind the interface and how it works are in the first
+patch.
 
-Link: https://lkml.kernel.org/r/20220425190040.2475377-4-yosryahmed@google.com
+
+This patch (of 4):
+
+Introduce a memcg interface to trigger memory reclaim on a memory cgroup.
+
+Use case: Proactive Reclaim
+---------------------------
+
+A userspace proactive reclaimer can continuously probe the memcg to
+reclaim a small amount of memory.  This gives more accurate and up-to-date
+workingset estimation as the LRUs are continuously sorted and can
+potentially provide more deterministic memory overcommit behavior.  The
+memory overcommit controller can provide more proactive response to the
+changing behavior of the running applications instead of being reactive.
+
+A userspace reclaimer's purpose in this case is not a complete replacement
+for kswapd or direct reclaim, it is to proactively identify memory savings
+opportunities and reclaim some amount of cold pages set by the policy to
+free up the memory for more demanding jobs or scheduling new jobs.
+
+A user space proactive reclaimer is used in Google data centers. 
+Additionally, Meta's TMO paper recently referenced a very similar
+interface used for user space proactive reclaim:
+https://dl.acm.org/doi/pdf/10.1145/3503222.3507731
+
+Benefits of a user space reclaimer:
+-----------------------------------
+
+1) More flexible on who should be charged for the cpu of the memory
+   reclaim.  For proactive reclaim, it makes more sense to be centralized.
+
+2) More flexible on dedicating the resources (like cpu).  The memory
+   overcommit controller can balance the cost between the cpu usage and
+   the memory reclaimed.
+
+3) Provides a way to the applications to keep their LRUs sorted, so,
+   under memory pressure better reclaim candidates are selected.  This
+   also gives more accurate and uptodate notion of working set for an
+   application.
+
+Why memory.high is not enough?
+------------------------------
+
+- memory.high can be used to trigger reclaim in a memcg and can
+  potentially be used for proactive reclaim.  However there is a big
+  downside in using memory.high.  It can potentially introduce high
+  reclaim stalls in the target application as the allocations from the
+  processes or the threads of the application can hit the temporary
+  memory.high limit.
+
+- Userspace proactive reclaimers usually use feedback loops to decide
+  how much memory to proactively reclaim from a workload.  The metrics
+  used for this are usually either refaults or PSI, and these metrics will
+  become messy if the application gets throttled by hitting the high
+  limit.
+
+- memory.high is a stateful interface, if the userspace proactive
+  reclaimer crashes for any reason while triggering reclaim it can leave
+  the application in a bad state.
+
+- If a workload is rapidly expanding, setting memory.high to proactively
+  reclaim memory can result in actually reclaiming more memory than
+  intended.
+
+The benefits of such interface and shortcomings of existing interface were
+further discussed in this RFC thread:
+https://lore.kernel.org/linux-mm/5df21376-7dd1-bf81-8414-32a73cea45dd@google.com/
+
+Interface:
+----------
+
+Introducing a very simple memcg interface 'echo 10M > memory.reclaim' to
+trigger reclaim in the target memory cgroup.
+
+The interface is introduced as a nested-keyed file to allow for future
+optional arguments to be easily added to configure the behavior of
+reclaim.
+
+Possible Extensions:
+--------------------
+
+- This interface can be extended with an additional parameter or flags
+  to allow specifying one or more types of memory to reclaim from (e.g.
+  file, anon, ..).
+
+- The interface can also be extended with a node mask to reclaim from
+  specific nodes. This has use cases for reclaim-based demotion in memory
+  tiering systens.
+
+- A similar per-node interface can also be added to support proactive
+  reclaim and reclaim-based demotion in systems without memcg.
+
+- Add a timeout parameter to make it easier for user space to call the
+  interface without worrying about being blocked for an undefined amount
+  of time.
+
+For now, let's keep things simple by adding the basic functionality.
+
+[yosryahmed@google.com: worked on versions v2 onwards, refreshed to
+current master, updated commit message based on recent
+discussions and use cases]
+Link: https://lkml.kernel.org/r/20220425190040.2475377-1-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20220425190040.2475377-2-yosryahmed@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Co-developed-by: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Wei Xu <weixugc@google.com>
 Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: David Rientjes <rientjes@google.com>
-Cc: Chen Wandun <chenwandun@huawei.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Michal Koutn" <mkoutny@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Chen Wandun <chenwandun@huawei.com>
 Cc: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: "Michal Koutn" <mkoutny@suse.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |   21 ++++++++++
+ mm/memcontrol.c                         |   45 ++++++++++++++++++++++
+ 2 files changed, 66 insertions(+)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -211,13 +211,17 @@ static int alloc_pagecache_50M_noexit(co
- static int alloc_anon_noexit(const char *cgroup, void *arg)
- {
- 	int ppid = getppid();
-+	size_t size = (unsigned long)arg;
-+	char *buf, *ptr;
+--- a/Documentation/admin-guide/cgroup-v2.rst~memcg-introduce-per-memcg-reclaim-interface
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1208,6 +1208,27 @@ PAGE_SIZE multiple when read back.
+ 	high limit is used and monitored properly, this limit's
+ 	utility is limited to providing the final safety net.
  
--	if (alloc_anon(cgroup, arg))
--		return -1;
-+	buf = malloc(size);
-+	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
-+		*ptr = 0;
- 
- 	while (getppid() == ppid)
- 		sleep(1);
- 
-+	free(buf);
- 	return 0;
++  memory.reclaim
++	A write-only nested-keyed file which exists for all cgroups.
++
++	This is a simple interface to trigger memory reclaim in the
++	target cgroup.
++
++	This file accepts a single key, the number of bytes to reclaim.
++	No nested keys are currently supported.
++
++	Example::
++
++	  echo "1G" > memory.reclaim
++
++	The interface can be later extended with nested keys to
++	configure the reclaim behavior. For example, specify the
++	type of memory to reclaim from (anon, file, ..).
++
++	Please note that the kernel can over or under reclaim from
++	the target cgroup. If less bytes are reclaimed than the
++	specified amount, -EAGAIN is returned.
++
+   memory.oom.group
+ 	A read-write single value file which exists on non-root
+ 	cgroups.  The default value is "0".
+--- a/mm/memcontrol.c~memcg-introduce-per-memcg-reclaim-interface
++++ a/mm/memcontrol.c
+@@ -6355,6 +6355,46 @@ static ssize_t memory_oom_group_write(st
+ 	return nbytes;
  }
+ 
++static ssize_t memory_reclaim(struct kernfs_open_file *of, char *buf,
++			      size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
++	unsigned long nr_to_reclaim, nr_reclaimed = 0;
++	int err;
++
++	buf = strstrip(buf);
++	err = page_counter_memparse(buf, "", &nr_to_reclaim);
++	if (err)
++		return err;
++
++	while (nr_reclaimed < nr_to_reclaim) {
++		unsigned long reclaimed;
++
++		if (signal_pending(current))
++			return -EINTR;
++
++		/*
++		 * This is the final attempt, drain percpu lru caches in the
++		 * hope of introducing more evictable pages for
++		 * try_to_free_mem_cgroup_pages().
++		 */
++		if (!nr_retries)
++			lru_add_drain_all();
++
++		reclaimed = try_to_free_mem_cgroup_pages(memcg,
++						nr_to_reclaim - nr_reclaimed,
++						GFP_KERNEL, true);
++
++		if (!reclaimed && !nr_retries--)
++			return -EAGAIN;
++
++		nr_reclaimed += reclaimed;
++	}
++
++	return nbytes;
++}
++
+ static struct cftype memory_files[] = {
+ 	{
+ 		.name = "current",
+@@ -6413,6 +6453,11 @@ static struct cftype memory_files[] = {
+ 		.seq_show = memory_oom_group_show,
+ 		.write = memory_oom_group_write,
+ 	},
++	{
++		.name = "reclaim",
++		.flags = CFTYPE_NS_DELEGATABLE,
++		.write = memory_reclaim,
++	},
+ 	{ }	/* terminate */
+ };
  
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
 
