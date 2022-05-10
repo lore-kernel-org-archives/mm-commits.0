@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78E04C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 21:10:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EF0BC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 21:10:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233846AbiEJVKx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 17:10:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56128 "EHLO
+        id S229895AbiEJVKy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 17:10:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229895AbiEJVKg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 17:10:36 -0400
+        with ESMTP id S231718AbiEJVKx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 17:10:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ACD8293B67
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 14:10:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 623903CA4C
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 14:10:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 06BB66176A
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 21:10:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E3FFC385CA;
-        Tue, 10 May 2022 21:10:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EF91D61783
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 21:10:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FA2BC385CA;
+        Tue, 10 May 2022 21:10:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652217034;
-        bh=8FswODgLv4SlSIp9mTfiNVGayYyoyl5n2/c++4/cpvc=;
+        s=korg; t=1652217042;
+        bh=jQM7engwByQb3IUfIpngIBWyJdLHCx3zIlLcSqxxePs=;
         h=Date:To:From:Subject:From;
-        b=bMzG8PjcVkGq19xYjuuQJUJwSLVyrTEir0vg21SX9sp3P/UVPOrCNif96bMZszzTu
-         3AXHrFAvkwZ7Hbtx9UrQWpFufQR2el/bN+Z/1UGnzqeIHZpUVIbYgFkUOTk6De8SBs
-         xw2wW48i/rhxcTZBmdpNoTCZb/57VFoOFd70g7HQ=
-Date:   Tue, 10 May 2022 14:10:33 -0700
+        b=LNCxUq2VkMs4jYQSDqW9Ej/dmtFl1vsjrwbJox2c2JnjICT6mqjPCXlRIvHyT746U
+         LpTXsu2Q/lxT6/IWuWv7V7MLOhTA4MzoPniaEuK3Tm6CSeTKWMYQMooFIApSlQWNnh
+         aX2U8nDlGdXghQv1woFWLjO4oIM7p7K1rBgrbXXI=
+Date:   Tue, 10 May 2022 14:10:41 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tytso@mit.edu, songliubraving@fb.com,
         song@kernel.org, riel@surriel.com, linmiaohe@huawei.com,
         kirill.shutemov@linux.intel.com, shy828301@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-introduce-khugepaged_enter_vma-helper.patch added to mm-unstable branch
-Message-Id: <20220510211034.5E3FFC385CA@smtp.kernel.org>
+Subject: + mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged.patch added to mm-unstable branch
+Message-Id: <20220510211042.4FA2BC385CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: introduce khugepaged_enter_vma() helper
+     Subject: mm: mmap: register suitable readonly file vmas for khugepaged
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-introduce-khugepaged_enter_vma-helper.patch
+     mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-introduce-khugepaged_enter_vma-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,162 +68,89 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: khugepaged: introduce khugepaged_enter_vma() helper
+Subject: mm: mmap: register suitable readonly file vmas for khugepaged
 
-The khugepaged_enter_vma_merge() actually does as the same thing as the
-khugepaged_enter() section called by shmem_mmap(), so consolidate them
-into one helper and rename it to khugepaged_enter_vma().
+The readonly FS THP relies on khugepaged to collapse THP for suitable
+vmas.  But the behavior is inconsistent for "always" mode
+(https://lore.kernel.org/linux-mm/00f195d4-d039-3cf2-d3a1-a2c88de397a0@suse.cz/).
 
-Link: https://lkml.kernel.org/r/20220510203222.24246-8-shy828301@gmail.com
+The "always" mode means THP allocation should be tried all the time and
+khugepaged should try to collapse THP all the time.  Of course the
+allocation and collapse may fail due to other factors and conditions.
+
+Currently file THP may not be collapsed by khugepaged even though all the
+conditions are met.  That does break the semantics of "always" mode.
+
+So make sure readonly FS vmas are registered to khugepaged to fix the
+break.
+
+Register suitable vmas in common mmap path, that could cover both readonly
+FS vmas and shmem vmas, so remove the khugepaged calls in shmem.c.
+
+Still need to keep the khugepaged call in vma_merge() since vma_merge() is
+called in a lot of places, for example, madvise, mprotect, etc.
+
+Link: https://lkml.kernel.org/r/20220510203222.24246-9-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Vlastmil Babka <vbabka@suse.cz>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Song Liu <song@kernel.org>
 Cc: Song Liu <songliubraving@fb.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Song Liu <song@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/khugepaged.h |    8 ++++----
- mm/khugepaged.c            |    6 +++---
- mm/mmap.c                  |   12 ++++++------
- mm/shmem.c                 |   12 ++----------
- 4 files changed, 15 insertions(+), 23 deletions(-)
+ mm/mmap.c  |    6 ++++++
+ mm/shmem.c |    4 ----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/linux/khugepaged.h~mm-khugepaged-introduce-khugepaged_enter_vma-helper
-+++ a/include/linux/khugepaged.h
-@@ -14,8 +14,8 @@ extern bool hugepage_vma_check(struct vm
- 			       unsigned long vm_flags);
- extern void __khugepaged_enter(struct mm_struct *mm);
- extern void __khugepaged_exit(struct mm_struct *mm);
--extern void khugepaged_enter_vma_merge(struct vm_area_struct *vma,
--				       unsigned long vm_flags);
-+extern void khugepaged_enter_vma(struct vm_area_struct *vma,
-+				 unsigned long vm_flags);
- extern void khugepaged_min_free_kbytes_update(void);
- #ifdef CONFIG_SHMEM
- extern void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr);
-@@ -72,8 +72,8 @@ static inline void khugepaged_enter(stru
- 				    unsigned long vm_flags)
- {
- }
--static inline void khugepaged_enter_vma_merge(struct vm_area_struct *vma,
--					      unsigned long vm_flags)
-+static inline void khugepaged_enter_vma(struct vm_area_struct *vma,
-+					unsigned long vm_flags)
- {
- }
- static inline void collapse_pte_mapped_thp(struct mm_struct *mm,
---- a/mm/khugepaged.c~mm-khugepaged-introduce-khugepaged_enter_vma-helper
-+++ a/mm/khugepaged.c
-@@ -365,7 +365,7 @@ int hugepage_madvise(struct vm_area_stru
- 		 * register it here without waiting a page fault that
- 		 * may not happen any time soon.
- 		 */
--		khugepaged_enter_vma_merge(vma, *vm_flags);
-+		khugepaged_enter_vma(vma, *vm_flags);
- 		break;
- 	case MADV_NOHUGEPAGE:
- 		*vm_flags &= ~VM_HUGEPAGE;
-@@ -505,8 +505,8 @@ void __khugepaged_enter(struct mm_struct
- 		wake_up_interruptible(&khugepaged_wait);
- }
- 
--void khugepaged_enter_vma_merge(struct vm_area_struct *vma,
--			       unsigned long vm_flags)
-+void khugepaged_enter_vma(struct vm_area_struct *vma,
-+			  unsigned long vm_flags)
- {
- 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
- 	    khugepaged_enabled() &&
---- a/mm/mmap.c~mm-khugepaged-introduce-khugepaged_enter_vma-helper
+--- a/mm/mmap.c~mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged
 +++ a/mm/mmap.c
-@@ -1122,7 +1122,7 @@ struct vm_area_struct *vma_merge(struct
- 					 end, prev->vm_pgoff, NULL, prev);
- 		if (err)
- 			return NULL;
--		khugepaged_enter_vma_merge(prev, vm_flags);
-+		khugepaged_enter_vma(prev, vm_flags);
- 		return prev;
+@@ -2745,6 +2745,12 @@ cannot_expand:
+ 		i_mmap_unlock_write(vma->vm_file->f_mapping);
  	}
  
-@@ -1149,7 +1149,7 @@ struct vm_area_struct *vma_merge(struct
- 		}
- 		if (err)
- 			return NULL;
--		khugepaged_enter_vma_merge(area, vm_flags);
-+		khugepaged_enter_vma(area, vm_flags);
- 		return area;
- 	}
- 
-@@ -2046,7 +2046,7 @@ int expand_upwards(struct vm_area_struct
- 		}
- 	}
- 	anon_vma_unlock_write(vma->anon_vma);
--	khugepaged_enter_vma_merge(vma, vma->vm_flags);
++	/*
++	 * vma_merge() calls khugepaged_enter_vma() either, the below
++	 * call covers the non-merge case.
++	 */
 +	khugepaged_enter_vma(vma, vma->vm_flags);
- 	return error;
- }
- #endif /* CONFIG_STACK_GROWSUP || CONFIG_IA64 */
-@@ -2127,7 +2127,7 @@ int expand_downwards(struct vm_area_stru
- 		}
- 	}
- 	anon_vma_unlock_write(vma->anon_vma);
--	khugepaged_enter_vma_merge(vma, vma->vm_flags);
-+	khugepaged_enter_vma(vma, vma->vm_flags);
- 	return error;
- }
- 
-@@ -2635,7 +2635,7 @@ unsigned long mmap_region(struct file *f
- 	/* Actually expand, if possible */
- 	if (vma &&
- 	    !vma_expand(&mas, vma, merge_start, merge_end, vm_pgoff, next)) {
--		khugepaged_enter_vma_merge(vma, vm_flags);
-+		khugepaged_enter_vma(vma, vm_flags);
- 		goto expanded;
- 	}
- 
-@@ -3051,7 +3051,7 @@ static int do_brk_flags(struct ma_state
- 			anon_vma_interval_tree_post_update_vma(vma);
- 			anon_vma_unlock_write(vma->anon_vma);
- 		}
--		khugepaged_enter_vma_merge(vma, flags);
-+		khugepaged_enter_vma(vma, flags);
- 		goto out;
- 	}
- 
---- a/mm/shmem.c~mm-khugepaged-introduce-khugepaged_enter_vma-helper
++
+ 	/* Once vma denies write, undo our temporary denial count */
+ unmap_writable:
+ 	if (file && vm_flags & VM_SHARED)
+--- a/mm/shmem.c~mm-mmap-register-suitable-readonly-file-vmas-for-khugepaged
 +++ a/mm/shmem.c
-@@ -2232,11 +2232,7 @@ static int shmem_mmap(struct file *file,
+@@ -34,7 +34,6 @@
+ #include <linux/export.h>
+ #include <linux/swap.h>
+ #include <linux/uio.h>
+-#include <linux/khugepaged.h>
+ #include <linux/hugetlb.h>
+ #include <linux/fs_parser.h>
+ #include <linux/swapfile.h>
+@@ -2232,7 +2231,6 @@ static int shmem_mmap(struct file *file,
  
  	file_accessed(file);
  	vma->vm_ops = &shmem_vm_ops;
--	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--			((vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK) <
--			(vma->vm_end & HPAGE_PMD_MASK)) {
--		khugepaged_enter(vma, vma->vm_flags);
--	}
-+	khugepaged_enter_vma(vma, vma->vm_flags);
+-	khugepaged_enter_vma(vma, vma->vm_flags);
  	return 0;
  }
  
-@@ -4137,11 +4133,7 @@ int shmem_zero_setup(struct vm_area_stru
+@@ -4133,8 +4131,6 @@ int shmem_zero_setup(struct vm_area_stru
  	vma->vm_file = file;
  	vma->vm_ops = &shmem_vm_ops;
  
--	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--			((vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK) <
--			(vma->vm_end & HPAGE_PMD_MASK)) {
--		khugepaged_enter(vma, vma->vm_flags);
--	}
-+	khugepaged_enter_vma(vma, vma->vm_flags);
- 
+-	khugepaged_enter_vma(vma, vma->vm_flags);
+-
  	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
