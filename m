@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9696C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDB76C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235978AbiEJEQt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:16:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47152 "EHLO
+        id S233985AbiEJEQu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:16:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236130AbiEJEPq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:46 -0400
+        with ESMTP id S236049AbiEJEPp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:45 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 116CE939EE
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D247D6212B
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C3594B817CC
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75415C385A6;
-        Tue, 10 May 2022 04:11:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8D6D5B81AF4
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 498D8C385A6;
+        Tue, 10 May 2022 04:11:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155883;
-        bh=JjQX38tCl0D9N4E4dOKUirbjZTKb3I+1nFY8pJr1FpY=;
+        s=korg; t=1652155880;
+        bh=KgBKBBeBdaglefi3RxPBNMwrVRKAPqRM1NRQ+eSiJqk=;
         h=Date:To:From:Subject:From;
-        b=gyVNEaq/l6AXBVROBktth4xSoqixVjiFY7Tkr8OKeFxi2LUR8vWrWJ7mtLZM0qmSb
-         /UZXkj3aiycIsGVt5gYS6oZlQPsgU7vPtGgGcJrEosj0FkainqwQP8t8HpCZk/afoB
-         AvR43Nv4Z/4QSyQjfrY6+ayJluu14EL9P/iCX77k=
-Date:   Mon, 09 May 2022 21:11:22 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tglx@linutronix.de, songmuchun@bytedance.com, shuah@kernel.org,
-        rcampbell@nvidia.com, kirill.shutemov@linux.intel.com,
-        jhubbard@nvidia.com, jack@suse.cz, hughd@google.com,
-        bigeasy@linutronix.de, apopple@nvidia.com,
+        b=0Blwz5iDXFZBIyzkoyme+c6sGsHO/ulVi/VILFHU66iHhSrqJAYAAUDGbkcRwGuEl
+         e060VKDaN2Gxg5qDY9YPj6K6Kb6upf3mP83ke1MtAeUTvqvqxeuWuTYOn3fLL7p35w
+         38kgIUIYGTdUag6kejkfHy21YERvpTLFdSRU23QE=
+Date:   Mon, 09 May 2022 21:11:19 -0700
+To:     mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        akpm@linux-foundation.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-selftests-for-migration-entries.patch removed from -mm tree
-Message-Id: <20220510041123.75415C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-use-helper-isolation_suitable.patch removed from -mm tree
+Message-Id: <20220510041120.498D8C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,255 +42,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add selftests for migration entries
+     Subject: mm: compaction: use helper isolation_suitable()
 has been removed from the -mm tree.  Its filename was
-     mm-add-selftests-for-migration-entries.patch
+     mm-compaction-use-helper-isolation_suitable.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm: add selftests for migration entries
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm: compaction: use helper isolation_suitable()
 
-Add some basic migration tests and in particular tests that will
-stress both the pte and pmd migration entry wait paths.
+Use helper isolation_suitable() to check whether page is suitable to
+isolate to simplify the code.  Minor readability improvement.
 
-Link: https://lkml.kernel.org/r/20220324014349.229253-1-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20220322110750.60311-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile    |    3 
- tools/testing/selftests/vm/migration.c |  193 +++++++++++++++++++++++
- 2 files changed, 196 insertions(+)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/Makefile~mm-add-selftests-for-migration-entries
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -41,6 +41,7 @@ TEST_GEN_FILES += map_fixed_noreplace
- TEST_GEN_FILES += map_hugetlb
- TEST_GEN_FILES += map_populate
- TEST_GEN_FILES += memfd_secret
-+TEST_GEN_FILES += migration
- TEST_GEN_FILES += mlock-random-test
- TEST_GEN_FILES += mlock2-tests
- TEST_GEN_FILES += mremap_dontunmap
-@@ -149,6 +150,8 @@ $(OUTPUT)/hmm-tests: LDLIBS += $(HMM_EXT
- 
- $(OUTPUT)/ksm_tests: LDLIBS += -lnuma
- 
-+$(OUTPUT)/migration: LDLIBS += -lnuma
-+
- local_config.mk local_config.h: check_config.sh
- 	/bin/sh ./check_config.sh $(CC)
- 
---- /dev/null
-+++ a/tools/testing/selftests/vm/migration.c
-@@ -0,0 +1,193 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * The main purpose of the tests here is to exercise the migration entry code
-+ * paths in the kernel.
-+ */
-+
-+#include "../kselftest_harness.h"
-+#include <strings.h>
-+#include <pthread.h>
-+#include <numa.h>
-+#include <numaif.h>
-+#include <sys/mman.h>
-+#include <sys/types.h>
-+#include <signal.h>
-+#include <time.h>
-+
-+#define TWOMEG (2<<20)
-+#define RUNTIME (60)
-+
-+#define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
-+
-+FIXTURE(migration)
-+{
-+	pthread_t *threads;
-+	pid_t *pids;
-+	int nthreads;
-+	int n1;
-+	int n2;
-+};
-+
-+FIXTURE_SETUP(migration)
-+{
-+	int n;
-+
-+	ASSERT_EQ(numa_available(), 0);
-+	self->nthreads = numa_num_task_cpus() - 1;
-+	self->n1 = -1;
-+	self->n2 = -1;
-+
-+	for (n = 0; n < numa_max_possible_node(); n++)
-+		if (numa_bitmask_isbitset(numa_all_nodes_ptr, n)) {
-+			if (self->n1 == -1) {
-+				self->n1 = n;
-+			} else {
-+				self->n2 = n;
-+				break;
-+			}
-+		}
-+
-+	self->threads = malloc(self->nthreads * sizeof(*self->threads));
-+	ASSERT_NE(self->threads, NULL);
-+	self->pids = malloc(self->nthreads * sizeof(*self->pids));
-+	ASSERT_NE(self->pids, NULL);
-+};
-+
-+FIXTURE_TEARDOWN(migration)
-+{
-+	free(self->threads);
-+	free(self->pids);
-+}
-+
-+int migrate(uint64_t *ptr, int n1, int n2)
-+{
-+	int ret, tmp;
-+	int status = 0;
-+	struct timespec ts1, ts2;
-+
-+	if (clock_gettime(CLOCK_MONOTONIC, &ts1))
-+		return -1;
-+
-+	while (1) {
-+		if (clock_gettime(CLOCK_MONOTONIC, &ts2))
-+			return -1;
-+
-+		if (ts2.tv_sec - ts1.tv_sec >= RUNTIME)
-+			return 0;
-+
-+		ret = move_pages(0, 1, (void **) &ptr, &n2, &status,
-+				MPOL_MF_MOVE_ALL);
-+		if (ret) {
-+			if (ret > 0)
-+				printf("Didn't migrate %d pages\n", ret);
-+			else
-+				perror("Couldn't migrate pages");
-+			return -2;
-+		}
-+
-+		tmp = n2;
-+		n2 = n1;
-+		n1 = tmp;
-+	}
-+
-+	return 0;
-+}
-+
-+void *access_mem(void *ptr)
-+{
-+	uint64_t y = 0;
-+	volatile uint64_t *x = ptr;
-+
-+	while (1) {
-+		pthread_testcancel();
-+		y += *x;
-+	}
-+
-+	return NULL;
-+}
-+
-+/*
-+ * Basic migration entry testing. One thread will move pages back and forth
-+ * between nodes whilst other threads try and access them triggering the
-+ * migration entry wait paths in the kernel.
-+ */
-+TEST_F_TIMEOUT(migration, private_anon, 2*RUNTIME)
-+{
-+	uint64_t *ptr;
-+	int i;
-+
-+	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
-+		SKIP(return, "Not enough threads or NUMA nodes available");
-+
-+	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
-+		MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	memset(ptr, 0xde, TWOMEG);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		if (pthread_create(&self->threads[i], NULL, access_mem, ptr))
-+			perror("Couldn't create thread");
-+
-+	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		ASSERT_EQ(pthread_cancel(self->threads[i]), 0);
-+}
-+
-+/*
-+ * Same as the previous test but with shared memory.
-+ */
-+TEST_F_TIMEOUT(migration, shared_anon, 2*RUNTIME)
-+{
-+	pid_t pid;
-+	uint64_t *ptr;
-+	int i;
-+
-+	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
-+		SKIP(return, "Not enough threads or NUMA nodes available");
-+
-+	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
-+		MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	memset(ptr, 0xde, TWOMEG);
-+	for (i = 0; i < self->nthreads - 1; i++) {
-+		pid = fork();
-+		if (!pid)
-+			access_mem(ptr);
-+		else
-+			self->pids[i] = pid;
-+	}
-+
-+	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
-+}
-+
-+/*
-+ * Tests the pmd migration entry paths.
-+ */
-+TEST_F_TIMEOUT(migration, private_anon_thp, 2*RUNTIME)
-+{
-+	uint64_t *ptr;
-+	int i;
-+
-+	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
-+		SKIP(return, "Not enough threads or NUMA nodes available");
-+
-+	ptr = mmap(NULL, 2*TWOMEG, PROT_READ | PROT_WRITE,
-+		MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	ptr = (uint64_t *) ALIGN((uintptr_t) ptr, TWOMEG);
-+	ASSERT_EQ(madvise(ptr, TWOMEG, MADV_HUGEPAGE), 0);
-+	memset(ptr, 0xde, TWOMEG);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		if (pthread_create(&self->threads[i], NULL, access_mem, ptr))
-+			perror("Couldn't create thread");
-+
-+	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		ASSERT_EQ(pthread_cancel(self->threads[i]), 0);
-+}
-+
-+TEST_HARNESS_MAIN
+--- a/mm/compaction.c~mm-compaction-use-helper-isolation_suitable
++++ a/mm/compaction.c
+@@ -899,7 +899,7 @@ isolate_migratepages_block(struct compac
+ 		 * not falsely conclude that the block should be skipped.
+ 		 */
+ 		if (!valid_page && IS_ALIGNED(low_pfn, pageblock_nr_pages)) {
+-			if (!cc->ignore_skip_hint && get_pageblock_skip(page)) {
++			if (!isolation_suitable(cc, page)) {
+ 				low_pfn = end_pfn;
+ 				page = NULL;
+ 				goto isolate_abort;
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
+mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
+mm-migration-reduce-the-rcu-lock-duration.patch
+mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
+mm-migration-return-errno-when-isolate_huge_page-failed.patch
+mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
+mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
+mm-vmscan-introduce-helper-function-reclaim_page_list.patch
+mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
+mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
+mm-vmscan-use-helper-folio_is_file_lru.patch
+mm-vmscan-use-helper-folio_is_file_lru-fix.patch
+mm-z3fold-fix-sheduling-while-atomic.patch
+mm-z3fold-fix-possible-null-pointer-dereferencing.patch
+mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
+mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
+revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
+mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
+mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
+mm-z3fold-fix-z3fold_reclaim_page-races-with-z3fold_free.patch
+mm-z3fold-fix-z3fold_page_migrate-races-with-z3fold_map.patch
+mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
+mm-swap-use-helper-macro-__attr_rw.patch
+mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
+mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
+mm-swap-print-bad-swap-offset-entry-in-get_swap_device.patch
+mm-swap-remove-buggy-cache-nr-check-in-refill_swap_slots_cache.patch
+mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
+mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
+mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
+mm-swap-add-helper-swap_offset_available.patch
+mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
+mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
+mm-swap-fix-the-comment-of-get_kernel_pages.patch
+mm-swap-fix-comment-about-swap-extent.patch
 
