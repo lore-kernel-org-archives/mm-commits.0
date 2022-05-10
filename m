@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35DA0C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EBACC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232772AbiEJEQ0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:16:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44628 "EHLO
+        id S236103AbiEJEQ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:16:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236044AbiEJEPp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72EAE70918
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:23 -0700 (PDT)
+        with ESMTP id S236136AbiEJEPq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A48F19859D
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0FF9561736
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61ED6C385A6;
-        Tue, 10 May 2022 04:11:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3F1596172E
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 955C5C385A6;
+        Tue, 10 May 2022 04:11:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155882;
-        bh=IEcLdH5+bwrLDPsy7BIkDBd5sjoTmDyl2oQoShrtrfo=;
+        s=korg; t=1652155885;
+        bh=8q5phtC4esHfEBt6m7omS45ywPFRvtO4lRC1BCoSOw4=;
         h=Date:To:From:Subject:From;
-        b=omEp6336HF/D7LNX8kUQebNR1GX4f8rRj+pb9nDbjDvaiXtzw9+0LFKX9b82zBebN
-         mE1uVZIWdAN0r6eicg/dRGy/DE80SX0zrshFUiig9GBj2tVwwBDH/kfOBKi7SMaA9v
-         8wC/5vuZcF61Yl15vfh1Z1vWgCskseALIqI3w95M=
-Date:   Mon, 09 May 2022 21:11:21 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, shy828301@gmail.com,
-        rientjes@google.com, mhocko@suse.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=WPpvc6CpwTH9U11SSlK4v2M+CiOIOuUqQ2BmiqDHMCEGwYumVpiVH1WrlOqnvN6tH
+         Wt0wpEVFWKwHvKXVPfAxA4yKKhzWXZWgqcRM/m3/y9OjqpD8kPG7vVJYI57IqVfJGj
+         9VQIrnKtvFJUspcxT1JaDAV8H4QM7SoJP7sqDeIk=
+Date:   Mon, 09 May 2022 21:11:25 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
+        songmuchun@bytedance.com, baolin.wang@linux.alibaba.com,
+        apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mempolicy-clean-up-the-code-logic-in-queue_pages_pte_range.patch removed from -mm tree
-Message-Id: <20220510041122.61ED6C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migration-remove-unneeded-local-variable-page_lru.patch removed from -mm tree
+Message-Id: <20220510041125.955C5C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,70 +42,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: clean up the code logic in queue_pages_pte_range
+     Subject: mm/migration: remove unneeded local variable page_lru
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-clean-up-the-code-logic-in-queue_pages_pte_range.patch
+     mm-migration-remove-unneeded-local-variable-page_lru.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mempolicy: clean up the code logic in queue_pages_pte_range
+Subject: mm/migration: remove unneeded local variable page_lru
 
-Since commit e5947d23edd8 ("mm: mempolicy: don't have to split pmd for
-huge zero page"), THP is never splited in queue_pages_pmd.  Thus 2 is
-never returned now.  We can remove such unnecessary ret != 2 check and
-clean up the relevant comment.  Minor improvements in readability.
+We can use page_is_file_lru() directly to help account the isolated pages
+to simplify the code a bit.
 
-Link: https://lkml.kernel.org/r/20220419122234.45083-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220318111709.60311-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/migrate.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-clean-up-the-code-logic-in-queue_pages_pte_range
-+++ a/mm/mempolicy.c
-@@ -440,12 +440,11 @@ static inline bool queue_pages_required(
- }
+--- a/mm/migrate.c~mm-migration-remove-unneeded-local-variable-page_lru
++++ a/mm/migrate.c
+@@ -2013,7 +2013,6 @@ static struct page *alloc_misplaced_dst_
  
- /*
-- * queue_pages_pmd() has four possible return values:
-+ * queue_pages_pmd() has three possible return values:
-  * 0 - pages are placed on the right node or queued successfully, or
-  *     special page is met, i.e. huge zero page.
-  * 1 - there is unmovable page, and MPOL_MF_MOVE* & MPOL_MF_STRICT were
-  *     specified.
-- * 2 - THP was split.
-  * -EIO - is migration entry or only MPOL_MF_STRICT was specified and an
-  *        existing page was already on a node that does not follow the
-  *        policy.
-@@ -507,18 +506,13 @@ static int queue_pages_pte_range(pmd_t *
- 	struct page *page;
- 	struct queue_pages *qp = walk->private;
- 	unsigned long flags = qp->flags;
--	int ret;
- 	bool has_unmovable = false;
- 	pte_t *pte, *mapped_pte;
- 	spinlock_t *ptl;
+ static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
+ {
+-	int page_lru;
+ 	int nr_pages = thp_nr_pages(page);
+ 	int order = compound_order(page);
  
- 	ptl = pmd_trans_huge_lock(pmd, vma);
--	if (ptl) {
--		ret = queue_pages_pmd(pmd, ptl, addr, end, walk);
--		if (ret != 2)
--			return ret;
--	}
--	/* THP was split, fall through to pte walk */
-+	if (ptl)
-+		return queue_pages_pmd(pmd, ptl, addr, end, walk);
- 
- 	if (pmd_trans_unstable(pmd))
+@@ -2040,8 +2039,7 @@ static int numamigrate_isolate_page(pg_d
+ 	if (isolate_lru_page(page))
  		return 0;
+ 
+-	page_lru = page_is_file_lru(page);
+-	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_lru,
++	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_is_file_lru(page),
+ 			    nr_pages);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
