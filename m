@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A3EDC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 18:48:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CEC6C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 18:55:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349093AbiEJSr5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 14:47:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59472 "EHLO
+        id S232566AbiEJSzZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 14:55:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349094AbiEJSqu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 14:46:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19D293B038
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 11:46:48 -0700 (PDT)
+        with ESMTP id S1349084AbiEJSzY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 14:55:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3AFC12FC08
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 11:55:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 979A060FE4
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 18:46:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1FFFC385C8;
-        Tue, 10 May 2022 18:46:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3DA9161036
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 18:55:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9077EC385C2;
+        Tue, 10 May 2022 18:55:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652208407;
-        bh=oQCKDzXnl/spQqv+z7KXYbyKYHvKh5DV8cOYtEXk+Pc=;
+        s=korg; t=1652208920;
+        bh=XXd318IDNzL7CJGgaDvy3e55HUdr3HhYabMlV1CHCao=;
         h=Date:To:From:Subject:From;
-        b=o9Czcy1oNS1fSOB75ePFaG5jkmObUF0+cqJpcJF6191Z8A2aZHhUOhdHrtOQy97tX
-         z/D9SDGEAmwJ29cFwxgBQXlgtuPMhAaYBM/U1ixqy31NtC/hL3OP6oywQQ0LYd2CIh
-         QN4CJ3mHQaK9tVnlx+8F6a/J7aKjFip1wPWFHzFI=
-Date:   Tue, 10 May 2022 11:46:46 -0700
-To:     mm-commits@vger.kernel.org, sjenning@redhat.com,
-        shakeelb@google.com, minchan@kernel.org, mhocko@suse.com,
-        guro@fb.com, ddstreet@ieee.org, hannes@cmpxchg.org,
+        b=k5aAixFG8VV1RObvZlqqHlkcKzGZh0lf4Hf4qW8piqAZJlnes9QeAz092jCaIGxer
+         T/L2ei5Jf/Z3pfEdB4sJCzuf38fDZtfJXmp8E7NSZbV5jlS3Xmf3fyRUT5/NcJRYdm
+         VO0n/ae8LIk29bVOXnsf1FBGxDlN54Yd4Rk+NSH4=
+Date:   Tue, 10 May 2022 11:55:19 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rostedt@goodmis.org,
+        jirislaby@kernel.org, gregkh@linuxfoundation.org,
+        akinobu.mita@gmail.com, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zswap-memcg-accounting.patch added to mm-unstable branch
-Message-Id: <20220510184646.E1FFFC385C8@smtp.kernel.org>
+Subject: + tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch added to mm-nonmm-unstable branch
+Message-Id: <20220510185520.9077EC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: memcg accounting
-has been added to the -mm mm-unstable branch.  Its filename is
-     zswap-memcg-accounting.patch
+     Subject: tty: fix deadlock caused by calling printk() under tty_port->lock
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-memcg-accounting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,546 +66,160 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: zswap: memcg accounting
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: tty: fix deadlock caused by calling printk() under tty_port->lock
 
-Applications can currently escape their cgroup memory containment when
-zswap is enabled.  This patch adds per-cgroup tracking and limiting of
-zswap backend memory to rectify this.
+The pty_write() invokes kmalloc() which may invoke a normal printk() to
+print failure message.  This can cause a deadlock in the scenario reported
+by syz-bot below:
 
-The existing cgroup2 memory.stat file is extended to show zswap statistics
-analogous to what's in meminfo and vmstat.  Furthermore, two new control
-files, memory.zswap.current and memory.zswap.max, are added to allow
-tuning zswap usage on a per-workload basis.  This is important since not
-all workloads benefit from zswap equally; some even suffer compared to
-disk swap when memory contents don't compress well.  The optimal size of
-the zswap pool, and the threshold for writeback, also depends on the size
-of the workload's warm set.
+       CPU0              CPU1                    CPU2
+       ----              ----                    ----
+                         lock(console_owner);
+                                                 lock(&port_lock_key);
+  lock(&port->lock);
+                         lock(&port_lock_key);
+                                                 lock(&port->lock);
+  lock(console_owner);
 
-The implementation doesn't use a traditional page_counter transaction. 
-zswap is unconventional as a memory consumer in that we only know the
-amount of memory to charge once expensive compression has occurred.  If
-zwap is disabled or the limit is already exceeded we obviously don't want
-to compress page upon page only to reject them all.  Instead, the limit is
-checked against current usage, then we compress and charge.  This allows
-some limit overrun, but not enough to matter in practice.
+As commit dbdda842fe96 ("printk: Add console owner and waiter logic to
+load balance console writes") said, such deadlock can be prevented by
+using printk_deferred() in kmalloc() (which is invoked in the section
+guarded by the port->lock).  But there are too many printk() on the
+kmalloc() path, and kmalloc() can be called from anywhere, so changing
+printk() to printk_deferred() is too complicated and inelegant.
 
-Link: https://lkml.kernel.org/r/20220510152847.230957-7-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Therefore, this patch chooses to specify __GFP_NOWARN to kmalloc(), so
+that printk() will not be called, and this deadlock problem can be
+avoided.
+
+Syz-bot reported the following lockdep error:
+
+======================================================
+WARNING: possible circular locking dependency detected
+5.4.143-00237-g08ccc19a-dirty #10 Not tainted
+------------------------------------------------------
+syz-executor.4/29420 is trying to acquire lock:
+ffffffff8aedb2a0 (console_owner){....}-{0:0}, at: console_trylock_spinning kernel/printk/printk.c:1752 [inline]
+ffffffff8aedb2a0 (console_owner){....}-{0:0}, at: vprintk_emit+0x2ca/0x470 kernel/printk/printk.c:2023
+
+but task is already holding lock:
+ffff8880119c9158 (&port->lock){-.-.}-{2:2}, at: pty_write+0xf4/0x1f0 drivers/tty/pty.c:120
+
+which lock already depends on the new lock.
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&port->lock){-.-.}-{2:2}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x35/0x50 kernel/locking/spinlock.c:159
+       tty_port_tty_get drivers/tty/tty_port.c:288 [inline]          		<-- lock(&port->lock);
+       tty_port_default_wakeup+0x1d/0xb0 drivers/tty/tty_port.c:47
+       serial8250_tx_chars+0x530/0xa80 drivers/tty/serial/8250/8250_port.c:1767
+       serial8250_handle_irq.part.0+0x31f/0x3d0 drivers/tty/serial/8250/8250_port.c:1854
+       serial8250_handle_irq drivers/tty/serial/8250/8250_port.c:1827 [inline] 	<-- lock(&port_lock_key);
+       serial8250_default_handle_irq+0xb2/0x220 drivers/tty/serial/8250/8250_port.c:1870
+       serial8250_interrupt+0xfd/0x200 drivers/tty/serial/8250/8250_core.c:126
+       __handle_irq_event_percpu+0x109/0xa50 kernel/irq/handle.c:156
+       handle_irq_event_percpu+0x76/0x170 kernel/irq/handle.c:196
+       handle_irq_event+0xa1/0x130 kernel/irq/handle.c:213
+       handle_edge_irq+0x261/0xd00 kernel/irq/chip.c:833
+       generic_handle_irq_desc include/linux/irqdesc.h:156 [inline]
+       do_IRQ+0xf2/0x2e0 arch/x86/kernel/irq.c:250
+       ret_from_intr+0x0/0x19
+       native_safe_halt arch/x86/include/asm/irqflags.h:60 [inline]
+       arch_safe_halt arch/x86/include/asm/irqflags.h:103 [inline]
+       default_idle+0x2c/0x1a0 arch/x86/kernel/process.c:572
+       cpuidle_idle_call kernel/sched/idle.c:184 [inline]
+       do_idle+0x44c/0x590 kernel/sched/idle.c:294
+       cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:386
+       start_secondary+0x2d1/0x3e0 arch/x86/kernel/smpboot.c:264
+       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
+
+-> #1 (&port_lock_key){-.-.}-{2:2}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x35/0x50 kernel/locking/spinlock.c:159
+       serial8250_console_write+0x184/0xa40 drivers/tty/serial/8250/8250_port.c:3198
+										<-- lock(&port_lock_key);
+       call_console_drivers kernel/printk/printk.c:1819 [inline]
+       console_unlock+0x8cb/0xd00 kernel/printk/printk.c:2504
+       vprintk_emit+0x1b5/0x470 kernel/printk/printk.c:2024			<-- lock(console_owner);
+       vprintk_func+0x8d/0x250 kernel/printk/printk_safe.c:394
+       printk+0xba/0xed kernel/printk/printk.c:2084
+       register_console+0x8b3/0xc10 kernel/printk/printk.c:2829
+       univ8250_console_init+0x3a/0x46 drivers/tty/serial/8250/8250_core.c:681
+       console_init+0x49d/0x6d3 kernel/printk/printk.c:2915
+       start_kernel+0x5e9/0x879 init/main.c:713
+       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
+
+-> #0 (console_owner){....}-{0:0}:
+       check_prev_add kernel/locking/lockdep.c:2600 [inline]
+       check_prevs_add kernel/locking/lockdep.c:2705 [inline]
+       validate_chain kernel/locking/lockdep.c:3095 [inline]
+       __lock_acquire+0x27e6/0x4cc0 kernel/locking/lockdep.c:4200
+       lock_acquire+0x127/0x340 kernel/locking/lockdep.c:4734
+       console_trylock_spinning kernel/printk/printk.c:1773 [inline]		<-- lock(console_owner);
+       vprintk_emit+0x307/0x470 kernel/printk/printk.c:2023
+       vprintk_func+0x8d/0x250 kernel/printk/printk_safe.c:394
+       printk+0xba/0xed kernel/printk/printk.c:2084
+       fail_dump lib/fault-inject.c:45 [inline]
+       should_fail+0x67b/0x7c0 lib/fault-inject.c:144
+       __should_failslab+0x152/0x1c0 mm/failslab.c:33
+       should_failslab+0x5/0x10 mm/slab_common.c:1224
+       slab_pre_alloc_hook mm/slab.h:468 [inline]
+       slab_alloc_node mm/slub.c:2723 [inline]
+       slab_alloc mm/slub.c:2807 [inline]
+       __kmalloc+0x72/0x300 mm/slub.c:3871
+       kmalloc include/linux/slab.h:582 [inline]
+       tty_buffer_alloc+0x23f/0x2a0 drivers/tty/tty_buffer.c:175
+       __tty_buffer_request_room+0x156/0x2a0 drivers/tty/tty_buffer.c:273
+       tty_insert_flip_string_fixed_flag+0x93/0x250 drivers/tty/tty_buffer.c:318
+       tty_insert_flip_string include/linux/tty_flip.h:37 [inline]
+       pty_write+0x126/0x1f0 drivers/tty/pty.c:122				<-- lock(&port->lock);
+       n_tty_write+0xa7a/0xfc0 drivers/tty/n_tty.c:2356
+       do_tty_write drivers/tty/tty_io.c:961 [inline]
+       tty_write+0x512/0x930 drivers/tty/tty_io.c:1045
+       __vfs_write+0x76/0x100 fs/read_write.c:494
+       vfs_write+0x268/0x5c0 fs/read_write.c:558
+       ksys_write+0x12d/0x250 fs/read_write.c:611
+       do_syscall_64+0xd7/0x380 arch/x86/entry/common.c:291
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  console_owner --> &port_lock_key --> &port->lock
+
+Link: https://lkml.kernel.org/r/20220510113809.80626-2-zhengqi.arch@bytedance.com
+Fixes: b6da31b2c07c ("tty: Fix data race in tty_insert_flip_string_fixed_flag")
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   21 ++
- include/linux/memcontrol.h              |   54 ++++++
- mm/memcontrol.c                         |  196 +++++++++++++++++++++-
- mm/zswap.c                              |   37 +++-
- 4 files changed, 293 insertions(+), 15 deletions(-)
+ drivers/tty/tty_buffer.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~zswap-memcg-accounting
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1347,6 +1347,12 @@ PAGE_SIZE multiple when read back.
- 		Amount of cached filesystem data that is swap-backed,
- 		such as tmpfs, shm segments, shared anonymous mmap()s
+--- a/drivers/tty/tty_buffer.c~tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock
++++ a/drivers/tty/tty_buffer.c
+@@ -175,7 +175,8 @@ static struct tty_buffer *tty_buffer_all
+ 	 */
+ 	if (atomic_read(&port->buf.mem_used) > port->buf.mem_limit)
+ 		return NULL;
+-	p = kmalloc(sizeof(struct tty_buffer) + 2 * size, GFP_ATOMIC);
++	p = kmalloc(sizeof(struct tty_buffer) + 2 * size,
++		    GFP_ATOMIC | __GFP_NOWARN);
+ 	if (p == NULL)
+ 		return NULL;
  
-+	  zswap
-+		Amount of memory consumed by the zswap compression backend.
-+
-+	  zswapped
-+		Amount of application memory swapped out to zswap.
-+
- 	  file_mapped
- 		Amount of cached filesystem data mapped with mmap()
- 
-@@ -1537,6 +1543,21 @@ PAGE_SIZE multiple when read back.
- 	higher than the limit for an extended period of time.  This
- 	reduces the impact on the workload and memory management.
- 
-+  memory.zswap.current
-+	A read-only single value file which exists on non-root
-+	cgroups.
-+
-+	The total amount of memory consumed by the zswap compression
-+	backend.
-+
-+  memory.zswap.max
-+	A read-write single value file which exists on non-root
-+	cgroups.  The default is "max".
-+
-+	Zswap usage hard limit. If a cgroup's zswap pool reaches this
-+	limit, it will refuse to take any more stores before existing
-+	entries fault back in or are written out to disk.
-+
-   memory.pressure
- 	A read-only nested-keyed file.
- 
---- a/include/linux/memcontrol.h~zswap-memcg-accounting
-+++ a/include/linux/memcontrol.h
-@@ -35,6 +35,8 @@ enum memcg_stat_item {
- 	MEMCG_PERCPU_B,
- 	MEMCG_VMALLOC,
- 	MEMCG_KMEM,
-+	MEMCG_ZSWAP_B,
-+	MEMCG_ZSWAPPED,
- 	MEMCG_NR_STAT,
- };
- 
-@@ -252,6 +254,10 @@ struct mem_cgroup {
- 	/* Range enforcement for interrupt charges */
- 	struct work_struct high_work;
- 
-+#ifdef CONFIG_ZSWAP
-+	unsigned long zswap_max;
-+#endif
-+
- 	unsigned long soft_limit;
- 
- 	/* vmpressure notifications */
-@@ -1273,6 +1279,10 @@ struct mem_cgroup *mem_cgroup_from_css(s
- 	return NULL;
- }
- 
-+static inline void obj_cgroup_put(struct obj_cgroup *objcg)
-+{
-+}
-+
- static inline void mem_cgroup_put(struct mem_cgroup *memcg)
- {
- }
-@@ -1694,6 +1704,7 @@ int __memcg_kmem_charge_page(struct page
- void __memcg_kmem_uncharge_page(struct page *page, int order);
- 
- struct obj_cgroup *get_obj_cgroup_from_current(void);
-+struct obj_cgroup *get_obj_cgroup_from_page(struct page *page);
- 
- int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size);
- void obj_cgroup_uncharge(struct obj_cgroup *objcg, size_t size);
-@@ -1730,6 +1741,20 @@ static inline int memcg_kmem_id(struct m
- 
- struct mem_cgroup *mem_cgroup_from_obj(void *p);
- 
-+static inline void count_objcg_event(struct obj_cgroup *objcg,
-+				     enum vm_event_item idx)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	if (mem_cgroup_kmem_disabled())
-+		return;
-+
-+	rcu_read_lock();
-+	memcg = obj_cgroup_memcg(objcg);
-+	count_memcg_events(memcg, idx, 1);
-+	rcu_read_unlock();
-+}
-+
- #else
- static inline bool mem_cgroup_kmem_disabled(void)
- {
-@@ -1756,6 +1781,11 @@ static inline void __memcg_kmem_uncharge
- {
- }
- 
-+static inline struct obj_cgroup *get_obj_cgroup_from_page(struct page *page)
-+{
-+	return NULL;
-+}
-+
- static inline bool memcg_kmem_enabled(void)
- {
- 	return false;
-@@ -1771,6 +1801,30 @@ static inline struct mem_cgroup *mem_cgr
-        return NULL;
- }
- 
-+static inline void count_objcg_event(struct obj_cgroup *objcg,
-+				     enum vm_event_item idx)
-+{
-+}
-+
- #endif /* CONFIG_MEMCG_KMEM */
- 
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
-+void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
-+void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size);
-+#else
-+static inline bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
-+{
-+	return true;
-+}
-+static inline void obj_cgroup_charge_zswap(struct obj_cgroup *objcg,
-+					   size_t size)
-+{
-+}
-+static inline void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg,
-+					     size_t size)
-+{
-+}
-+#endif
-+
- #endif /* _LINUX_MEMCONTROL_H */
---- a/mm/memcontrol.c~zswap-memcg-accounting
-+++ a/mm/memcontrol.c
-@@ -1398,6 +1398,10 @@ static const struct memory_stat memory_s
- 	{ "sock",			MEMCG_SOCK			},
- 	{ "vmalloc",			MEMCG_VMALLOC			},
- 	{ "shmem",			NR_SHMEM			},
-+#ifdef CONFIG_ZSWAP
-+	{ "zswap",			MEMCG_ZSWAP_B			},
-+	{ "zswapped",			MEMCG_ZSWAPPED			},
-+#endif
- 	{ "file_mapped",		NR_FILE_MAPPED			},
- 	{ "file_dirty",			NR_FILE_DIRTY			},
- 	{ "file_writeback",		NR_WRITEBACK			},
-@@ -1432,6 +1436,7 @@ static int memcg_page_state_unit(int ite
- {
- 	switch (item) {
- 	case MEMCG_PERCPU_B:
-+	case MEMCG_ZSWAP_B:
- 	case NR_SLAB_RECLAIMABLE_B:
- 	case NR_SLAB_UNRECLAIMABLE_B:
- 	case WORKINGSET_REFAULT_ANON:
-@@ -1512,6 +1517,13 @@ static char *memory_stat_format(struct m
- 	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGLAZYFREED),
- 		       memcg_events(memcg, PGLAZYFREED));
- 
-+#ifdef CONFIG_ZSWAP
-+	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPIN),
-+		       memcg_events(memcg, ZSWPIN));
-+	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPOUT),
-+		       memcg_events(memcg, ZSWPOUT));
-+#endif
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	seq_buf_printf(&s, "%s %lu\n", vm_event_name(THP_FAULT_ALLOC),
- 		       memcg_events(memcg, THP_FAULT_ALLOC));
-@@ -2883,6 +2895,19 @@ struct mem_cgroup *mem_cgroup_from_obj(v
- 	return page_memcg_check(folio_page(folio, 0));
- }
- 
-+static struct obj_cgroup *__get_obj_cgroup_from_memcg(struct mem_cgroup *memcg)
-+{
-+	struct obj_cgroup *objcg = NULL;
-+
-+	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg)) {
-+		objcg = rcu_dereference(memcg->objcg);
-+		if (objcg && obj_cgroup_tryget(objcg))
-+			break;
-+		objcg = NULL;
-+	}
-+	return objcg;
-+}
-+
- __always_inline struct obj_cgroup *get_obj_cgroup_from_current(void)
- {
- 	struct obj_cgroup *objcg = NULL;
-@@ -2896,15 +2921,32 @@ __always_inline struct obj_cgroup *get_o
- 		memcg = active_memcg();
- 	else
- 		memcg = mem_cgroup_from_task(current);
--
--	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg)) {
--		objcg = rcu_dereference(memcg->objcg);
--		if (objcg && obj_cgroup_tryget(objcg))
--			break;
--		objcg = NULL;
--	}
-+	objcg = __get_obj_cgroup_from_memcg(memcg);
- 	rcu_read_unlock();
-+	return objcg;
-+}
-+
-+struct obj_cgroup *get_obj_cgroup_from_page(struct page *page)
-+{
-+	struct obj_cgroup *objcg;
-+
-+	if (!memcg_kmem_enabled() || memcg_kmem_bypass())
-+		return NULL;
- 
-+	if (PageMemcgKmem(page)) {
-+		objcg = __folio_objcg(page_folio(page));
-+		obj_cgroup_get(objcg);
-+	} else {
-+		struct mem_cgroup *memcg;
-+
-+		rcu_read_lock();
-+		memcg = __folio_memcg(page_folio(page));
-+		if (memcg)
-+			objcg = __get_obj_cgroup_from_memcg(memcg);
-+		else
-+			objcg = NULL;
-+		rcu_read_unlock();
-+	}
- 	return objcg;
- }
- 
-@@ -5142,6 +5184,9 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 
- 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
- 	memcg->soft_limit = PAGE_COUNTER_MAX;
-+#ifdef CONFIG_ZSWAP
-+	memcg->zswap_max = PAGE_COUNTER_MAX;
-+#endif
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	if (parent) {
- 		memcg->swappiness = mem_cgroup_swappiness(parent);
-@@ -7406,6 +7451,139 @@ static struct cftype memsw_files[] = {
- 	{ },	/* terminate */
- };
- 
-+#ifdef CONFIG_ZSWAP
-+/**
-+ * obj_cgroup_may_zswap - check if this cgroup can zswap
-+ * @objcg: the object cgroup
-+ *
-+ * Check if the hierarchical zswap limit has been reached.
-+ *
-+ * This doesn't check for specific headroom, and it is not atomic
-+ * either. But with zswap, the size of the allocation is only known
-+ * once compression has occured, and this optimistic pre-check avoids
-+ * spending cycles on compression when there is already no room left
-+ * or zswap is disabled altogether somewhere in the hierarchy.
-+ */
-+bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
-+{
-+	struct mem_cgroup *memcg, *original_memcg;
-+	bool ret = true;
-+
-+	original_memcg = get_mem_cgroup_from_objcg(objcg);
-+	for (memcg = original_memcg; memcg != root_mem_cgroup;
-+	     memcg = parent_mem_cgroup(memcg)) {
-+		unsigned long max = READ_ONCE(memcg->zswap_max);
-+		unsigned long pages;
-+
-+		if (max == PAGE_COUNTER_MAX)
-+			continue;
-+		if (max == 0) {
-+			ret = false;
-+			break;
-+		}
-+
-+		cgroup_rstat_flush(memcg->css.cgroup);
-+		pages = memcg_page_state(memcg, MEMCG_ZSWAP_B) / PAGE_SIZE;
-+		if (pages < max)
-+			continue;
-+		ret = false;
-+		break;
-+	}
-+	mem_cgroup_put(original_memcg);
-+	return ret;
-+}
-+
-+/**
-+ * obj_cgroup_charge_zswap - charge compression backend memory
-+ * @objcg: the object cgroup
-+ * @size: size of compressed object
-+ *
-+ * This forces the charge after obj_cgroup_may_swap() allowed
-+ * compression and storage in zwap for this cgroup to go ahead.
-+ */
-+void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	VM_WARN_ON_ONCE(!(current->flags & PF_MEMALLOC));
-+
-+	/* PF_MEMALLOC context, charging must succeed */
-+	if (obj_cgroup_charge(objcg, GFP_KERNEL, size))
-+		VM_WARN_ON_ONCE(1);
-+
-+	rcu_read_lock();
-+	memcg = obj_cgroup_memcg(objcg);
-+	mod_memcg_state(memcg, MEMCG_ZSWAP_B, size);
-+	mod_memcg_state(memcg, MEMCG_ZSWAPPED, 1);
-+	rcu_read_unlock();
-+}
-+
-+/**
-+ * obj_cgroup_uncharge_zswap - uncharge compression backend memory
-+ * @objcg: the object cgroup
-+ * @size: size of compressed object
-+ *
-+ * Uncharges zswap memory on page in.
-+ */
-+void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	obj_cgroup_uncharge(objcg, size);
-+
-+	rcu_read_lock();
-+	memcg = obj_cgroup_memcg(objcg);
-+	mod_memcg_state(memcg, MEMCG_ZSWAP_B, -size);
-+	mod_memcg_state(memcg, MEMCG_ZSWAPPED, -1);
-+	rcu_read_unlock();
-+}
-+
-+static u64 zswap_current_read(struct cgroup_subsys_state *css,
-+			      struct cftype *cft)
-+{
-+	cgroup_rstat_flush(css->cgroup);
-+	return memcg_page_state(mem_cgroup_from_css(css), MEMCG_ZSWAP_B);
-+}
-+
-+static int zswap_max_show(struct seq_file *m, void *v)
-+{
-+	return seq_puts_memcg_tunable(m,
-+		READ_ONCE(mem_cgroup_from_seq(m)->zswap_max));
-+}
-+
-+static ssize_t zswap_max_write(struct kernfs_open_file *of,
-+			       char *buf, size_t nbytes, loff_t off)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	unsigned long max;
-+	int err;
-+
-+	buf = strstrip(buf);
-+	err = page_counter_memparse(buf, "max", &max);
-+	if (err)
-+		return err;
-+
-+	xchg(&memcg->zswap_max, max);
-+
-+	return nbytes;
-+}
-+
-+static struct cftype zswap_files[] = {
-+	{
-+		.name = "zswap.current",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.read_u64 = zswap_current_read,
-+	},
-+	{
-+		.name = "zswap.max",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.seq_show = zswap_max_show,
-+		.write = zswap_max_write,
-+	},
-+	{ }	/* terminate */
-+};
-+#endif /* CONFIG_ZSWAP */
-+
- /*
-  * If mem_cgroup_swap_init() is implemented as a subsys_initcall()
-  * instead of a core_initcall(), this could mean cgroup_memory_noswap still
-@@ -7424,7 +7602,9 @@ static int __init mem_cgroup_swap_init(v
- 
- 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
- 	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
--
-+#ifdef CONFIG_ZSWAP
-+	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, zswap_files));
-+#endif
- 	return 0;
- }
- core_initcall(mem_cgroup_swap_init);
---- a/mm/zswap.c~zswap-memcg-accounting
-+++ a/mm/zswap.c
-@@ -188,6 +188,7 @@ struct zswap_entry {
- 		unsigned long handle;
- 		unsigned long value;
- 	};
-+	struct obj_cgroup *objcg;
- };
- 
- struct zswap_header {
-@@ -359,6 +360,10 @@ static void zswap_rb_erase(struct rb_roo
-  */
- static void zswap_free_entry(struct zswap_entry *entry)
- {
-+	if (entry->objcg) {
-+		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
-+		obj_cgroup_put(entry->objcg);
-+	}
- 	if (!entry->length)
- 		atomic_dec(&zswap_same_filled_pages);
- 	else {
-@@ -1096,6 +1101,8 @@ static int zswap_frontswap_store(unsigne
- 	struct zswap_entry *entry, *dupentry;
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
-+	struct obj_cgroup *objcg = NULL;
-+	struct zswap_pool *pool;
- 	int ret;
- 	unsigned int hlen, dlen = PAGE_SIZE;
- 	unsigned long handle, value;
-@@ -1115,17 +1122,15 @@ static int zswap_frontswap_store(unsigne
- 		goto reject;
- 	}
- 
-+	objcg = get_obj_cgroup_from_page(page);
-+	if (objcg && !obj_cgroup_may_zswap(objcg))
-+		goto shrink;
-+
- 	/* reclaim space if needed */
- 	if (zswap_is_full()) {
--		struct zswap_pool *pool;
--
- 		zswap_pool_limit_hit++;
- 		zswap_pool_reached_full = true;
--		pool = zswap_pool_last_get();
--		if (pool)
--			queue_work(shrink_wq, &pool->shrink_work);
--		ret = -ENOMEM;
--		goto reject;
-+		goto shrink;
- 	}
- 
- 	if (zswap_pool_reached_full) {
-@@ -1227,6 +1232,13 @@ static int zswap_frontswap_store(unsigne
- 	entry->length = dlen;
- 
- insert_entry:
-+	entry->objcg = objcg;
-+	if (objcg) {
-+		obj_cgroup_charge_zswap(objcg, entry->length);
-+		/* Account before objcg ref is moved to tree */
-+		count_objcg_event(objcg, ZSWPOUT);
-+	}
-+
- 	/* map */
- 	spin_lock(&tree->lock);
- 	do {
-@@ -1253,7 +1265,16 @@ put_dstmem:
- freepage:
- 	zswap_entry_cache_free(entry);
- reject:
-+	if (objcg)
-+		obj_cgroup_put(objcg);
- 	return ret;
-+
-+shrink:
-+	pool = zswap_pool_last_get();
-+	if (pool)
-+		queue_work(shrink_wq, &pool->shrink_work);
-+	ret = -ENOMEM;
-+	goto reject;
- }
- 
- /*
-@@ -1326,6 +1347,8 @@ static int zswap_frontswap_load(unsigned
- 	BUG_ON(ret);
- stats:
- 	count_vm_event(ZSWPIN);
-+	if (entry->objcg)
-+		count_objcg_event(entry->objcg, ZSWPIN);
- freeentry:
- 	spin_lock(&tree->lock);
- 	zswap_entry_put(tree, entry);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-documentation-filesystems-proc-update-meminfo-section.patch
-mm-kconfig-move-swap-and-slab-config-options-to-the-mm-section.patch
-mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus.patch
-mm-kconfig-simplify-zswap-configuration.patch
-mm-zswap-add-basic-meminfo-and-vmstat-coverage.patch
-zswap-memcg-accounting.patch
+mm-fix-missing-handler-for-__gfp_nowarn.patch
+tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch
 
