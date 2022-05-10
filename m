@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7927BC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:10:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD3EC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:10:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235929AbiEJENv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:13:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39852 "EHLO
+        id S235939AbiEJEOA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:14:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235914AbiEJENc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:13:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 043E020956E
+        with ESMTP id S235915AbiEJENd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:13:33 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0448120CA6C
         for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:09:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6774D615E8
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:09:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA2E8C385A6;
-        Tue, 10 May 2022 04:09:35 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 3325ACE1BF7
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:09:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8951AC385A6;
+        Tue, 10 May 2022 04:09:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155775;
-        bh=IbKOOObgkSPLTZU1TJXFzgZ+qCHj//CE/JFPvdDVnvA=;
+        s=korg; t=1652155773;
+        bh=iOvGxRiahu5uoh8TBIzrLJk2USLhvElBMWZ4ydzmW5I=;
         h=Date:To:From:Subject:From;
-        b=2rEv6gaUPpiQlgI+AEwxD2HKoUhU7+Fe4bTEPo9RKXsn2NKhBPtc0rZ0laV4gZe2i
-         6RVxzkzHC6FtIQ13FWnVnlyRRIuypnDZTMAq8vzRqQRlxNtW2+5KFx8zmdB+A7htn3
-         wXGXvdfE4r3fBNrOe5mmdORTgKSR1ON/w5g2DY2A=
-Date:   Mon, 09 May 2022 21:09:35 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
-        akpm@linux-foundation.org
+        b=gnKPsJGRaWQGxgCexDJAEMIIXAh5AtD6zfizUgPyFIae6sieVUAq4E+dt8mHrvVB4
+         knTxWeFVQ6RpWtCqCta5S75a/9f/O85wA5uKjS24DJU90v+IgtyUFH9zXt9bnTCSok
+         rbqF2B/VSHaPxW7kqTtPWNaocOIBtGgfUzEV4oEQ=
+Date:   Mon, 09 May 2022 21:09:32 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        42.hyeyoo@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-a-mailing-list-for-damon-development.patch removed from -mm tree
-Message-Id: <20220510040935.BA2E8C385A6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool.patch removed from -mm tree
+Message-Id: <20220510040933.8951AC385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,38 +42,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add a mailing list for DAMON development
+     Subject: mm/kfence: reset PG_slab and memcg_data before freeing __kfence_pool
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-a-mailing-list-for-damon-development.patch
+     mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool.patch
 
 This patch was dropped because it was merged into mm-hotfixes-stable
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: MAINTAINERS: add a mailing list for DAMON development
+From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Subject: mm/kfence: reset PG_slab and memcg_data before freeing __kfence_pool
 
-This commit adds an open mailing list for DAMON in MAINTAINERS file.
+When kfence fails to initialize kfence pool, it frees the pool.  But it
+does not reset memcg_data and PG_slab flag.
 
-Link: https://lkml.kernel.org/r/20220503180741.137079-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Below is a BUG because of this. Let's fix it by resetting memcg_data
+and PG_slab flag before free.
+
+[    0.089149] BUG: Bad page state in process swapper/0  pfn:3d8e06
+[    0.089149] page:ffffea46cf638180 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x3d8e06
+[    0.089150] memcg:ffffffff94a475d1
+[    0.089150] flags: 0x17ffffc0000200(slab|node=0|zone=2|lastcpupid=0x1fffff)
+[    0.089151] raw: 0017ffffc0000200 ffffea46cf638188 ffffea46cf638188 0000000000000000
+[    0.089152] raw: 0000000000000000 0000000000000000 00000000ffffffff ffffffff94a475d1
+[    0.089152] page dumped because: page still charged to cgroup
+[    0.089153] Modules linked in:
+[    0.089153] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G    B   W         5.18.0-rc1+ #965
+[    0.089154] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+[    0.089154] Call Trace:
+[    0.089155]  <TASK>
+[    0.089155]  dump_stack_lvl+0x49/0x5f
+[    0.089157]  dump_stack+0x10/0x12
+[    0.089158]  bad_page.cold+0x63/0x94
+[    0.089159]  check_free_page_bad+0x66/0x70
+[    0.089160]  __free_pages_ok+0x423/0x530
+[    0.089161]  __free_pages_core+0x8e/0xa0
+[    0.089162]  memblock_free_pages+0x10/0x12
+[    0.089164]  memblock_free_late+0x8f/0xb9
+[    0.089165]  kfence_init+0x68/0x92
+[    0.089166]  start_kernel+0x789/0x992
+[    0.089167]  x86_64_start_reservations+0x24/0x26
+[    0.089168]  x86_64_start_kernel+0xa9/0xaf
+[    0.089170]  secondary_startup_64_no_verify+0xd5/0xdb
+[    0.089171]  </TASK>
+
+Link: https://lkml.kernel.org/r/YnPG3pQrqfcgOlVa@hyeyoo
+Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
+Fixes: 8f0b36497303 ("mm: kfence: fix objcgs vector allocation")
+Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kfence/core.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-a-mailing-list-for-damon-development
-+++ a/MAINTAINERS
-@@ -5438,6 +5438,7 @@ F:	net/ax25/sysctl_net_ax25.c
- 
- DATA ACCESS MONITOR
- M:	SeongJae Park <sj@kernel.org>
-+L:	damon@lists.linux.dev
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	Documentation/ABI/testing/sysfs-kernel-mm-damon
+--- a/mm/kfence/core.c~mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool
++++ a/mm/kfence/core.c
+@@ -621,6 +621,16 @@ static bool __init kfence_init_pool_earl
+ 	 * fails for the first page, and therefore expect addr==__kfence_pool in
+ 	 * most failure cases.
+ 	 */
++	for (char *p = (char *)addr; p < __kfence_pool + KFENCE_POOL_SIZE; p += PAGE_SIZE) {
++		struct slab *slab = virt_to_slab(p);
++
++		if (!slab)
++			continue;
++#ifdef CONFIG_MEMCG
++		slab->memcg_data = 0;
++#endif
++		__folio_clear_slab(slab_folio(slab));
++	}
+ 	memblock_free_late(__pa(addr), KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool));
+ 	__kfence_pool = NULL;
+ 	return false;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
 
 
