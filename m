@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9985BC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A932AC4332F
 	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236189AbiEJEPu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:15:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44822 "EHLO
+        id S235993AbiEJEPv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:15:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236078AbiEJEPd (ORCPT
+        with ESMTP id S236100AbiEJEPd (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:33 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4265341630
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:11 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8036E4FC47
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DC601B81AF7
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EB04C385A6;
-        Tue, 10 May 2022 04:11:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 14A92615DA
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D5E0C385D5;
+        Tue, 10 May 2022 04:11:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155868;
-        bh=lTRucyZEVO//60EpKeSgUei86igt+KGu2fgEKwZiEaY=;
+        s=korg; t=1652155874;
+        bh=qkVzE4CsNboYFKFvEcqnkh905STaos6qFnx4MwadVWU=;
         h=Date:To:From:Subject:From;
-        b=TazZmXv7PPKS5IBfUqbg0PFcmXKxasy20At2WzEUGhVE53GAoNcGcvsfVt3Lzpfv8
-         8VX8FlabWWywldsnzRmnkDHptSHK1ADofbJfOkmz4JP7pb2RoqaaGJ6wofFGnYDaVB
-         6Nrd85vQn6J3DONaWwzlEKtTO+CWd1hKqVJ8npqA=
-Date:   Mon, 09 May 2022 21:11:07 -0700
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=oLTA+lixy0JBvXTp4IOvL4S09KTnQDioI1ie+cRPiJk0JzgekBGM2uAlM3dZts6DO
+         G4pX/oNZW/4YcPJ03PxTYPNpT57/DYVt9vRaPr/Cf09xOUGsflg5iGfi3btU96Ms9L
+         oFZHeVQ87TqK+RHRjjDN8BuPms/wsdsyA17MW0xg=
+Date:   Mon, 09 May 2022 21:11:13 -0700
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-remove-obsolete-comment-in-get_scan_count.patch removed from -mm tree
-Message-Id: <20220510041108.8EB04C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-z3fold-minor-clean-up-for-z3fold_free.patch removed from -mm tree
+Message-Id: <20220510041114.6D5E0C385D5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,41 +41,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: remove obsolete comment in get_scan_count
+     Subject: mm/z3fold: minor clean up for z3fold_free
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-obsolete-comment-in-get_scan_count.patch
+     mm-z3fold-minor-clean-up-for-z3fold_free.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmscan: remove obsolete comment in get_scan_count
+Subject: mm/z3fold: minor clean up for z3fold_free
 
-Since commit 1431d4d11abb ("mm: base LRU balancing on an explicit cost
-model"), the relative value of each set of LRU lists is based on cost
-model instead of rotated/scanned ratio.  Cleanup the relevant comment.
+Use put_z3fold_header() to pair with get_z3fold_header.  Also fix the
+wrong comments.  Minor readability improvement.
 
-Link: https://lkml.kernel.org/r/20220409030245.61211-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220308134311.59086-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/z3fold.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-obsolete-comment-in-get_scan_count
-+++ a/mm/vmscan.c
-@@ -2646,9 +2646,7 @@ enum scan_balance {
- 
- /*
-  * Determine how aggressively the anon and file LRU lists should be
-- * scanned.  The relative value of each set of LRU lists is determined
-- * by looking at the fraction of the pages scanned we did rotate back
-- * onto the active list instead of evict.
-+ * scanned.
+--- a/mm/z3fold.c~mm-z3fold-minor-clean-up-for-z3fold_free
++++ a/mm/z3fold.c
+@@ -1187,9 +1187,9 @@ headless:
+  * @handle:	handle associated with the allocation returned by z3fold_alloc()
   *
-  * nr[0] = anon inactive pages to scan; nr[1] = anon active pages to scan
-  * nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
+  * In the case that the z3fold page in which the allocation resides is under
+- * reclaim, as indicated by the PG_reclaim flag being set, this function
+- * only sets the first|last_chunks to 0.  The page is actually freed
+- * once both buddies are evicted (see z3fold_reclaim_page() below).
++ * reclaim, as indicated by the PAGE_CLAIMED flag being set, this function
++ * only sets the first|middle|last_chunks to 0.  The page is actually freed
++ * once all buddies are evicted (see z3fold_reclaim_page() below).
+  */
+ static void z3fold_free(struct z3fold_pool *pool, unsigned long handle)
+ {
+@@ -1247,7 +1247,7 @@ static void z3fold_free(struct z3fold_po
+ 	}
+ 	if (page_claimed) {
+ 		/* the page has not been claimed by us */
+-		z3fold_page_unlock(zhdr);
++		put_z3fold_header(zhdr);
+ 		return;
+ 	}
+ 	if (test_and_set_bit(NEEDS_COMPACTING, &page->private)) {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
