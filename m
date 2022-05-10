@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29DF0C43219
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:18:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 669E0C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:18:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236405AbiEJEWS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:22:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48268 "EHLO
+        id S236386AbiEJEWR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:22:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236303AbiEJEUj (ORCPT
+        with ESMTP id S236156AbiEJEUj (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17A3E2F012
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:47 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23A432F393
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AAA3D61770
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C4E3C385C2;
-        Tue, 10 May 2022 04:15:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B385261773
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12988C385A6;
+        Tue, 10 May 2022 04:15:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156146;
-        bh=m1oWM8/VjV/IywBJZzD9T06d4I4R7SuWFJwIvtF+beY=;
+        s=korg; t=1652156147;
+        bh=BhC6w1ZPTv4RafqX6H9ssVWpqGcIUPUkLLXV8i1Z+qE=;
         h=Date:To:From:Subject:From;
-        b=FCFUYxpPZfCduYNoKgIwcYSQ1/JOVNw+lQUYiSaS33qAi8xcxdmzSyqOwLuzT0JP0
-         pDgm2EOX/dOwgi4jBXqauCulaJQsHny4gQ/pWtpAj2nUG2SUsQnt4OnSK/gu+JY1RN
-         5btHWjQITv/pvipx/lc4eyy7r2yesvtSzVLc68FI=
-Date:   Mon, 09 May 2022 21:15:45 -0700
-To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
-        almasrymina@google.com, dossche.niels@gmail.com,
+        b=DI1J0i2xtV2wZb+yIyfDtrwmj6Ya2zFOxsk2g/2RewyOIwERyRm/MzsLo97BQXS6l
+         1StILt2hXlZtd22KFZJAF2wCfgrzboQIKwlTAp8p3kTMICswxwR2uD80g8OliCIKHv
+         Q7yOBLngpLICHei7JMNNYLhNGdCGcoGyThVINCjI=
+Date:   Mon, 09 May 2022 21:15:46 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftest-vm-test-that-mremap-fails-on-non-existent-vma.patch removed from -mm tree
-Message-Id: <20220510041546.0C4E3C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-add-a-new-callback-for-watermarks-checks.patch removed from -mm tree
+Message-Id: <20220510041547.12988C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,46 +41,133 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftest/vm: test that mremap fails on non-existent vma
+     Subject: mm/damon/core: add a new callback for watermarks checks
 has been removed from the -mm tree.  Its filename was
-     selftest-vm-test-that-mremap-fails-on-non-existent-vma.patch
+     mm-damon-core-add-a-new-callback-for-watermarks-checks.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Niels Dossche <dossche.niels@gmail.com>
-Subject: selftest/vm: test that mremap fails on non-existent vma
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: add a new callback for watermarks checks
 
-Add a regression test that validates that mremap fails for vma's that
-don't exist.
+Patch series "mm/damon: Support online tuning".
 
-Link: https://lkml.kernel.org/r/20220427224439.23828-3-dossche.niels@gmail.com
-Signed-off-by: Niels Dossche <dossche.niels@gmail.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Effects of DAMON and DAMON-based Operation Schemes highly depends on the
+configurations.  Wrong configurations could even result in unexpected
+efficiency degradations.  For finding a best configuration, repeating
+incremental configuration changes and results measurements, in other
+words, online tuning, could be helpful.
+
+Nevertheless, DAMON kernel API supports only restrictive online tuning. 
+Worse yet, the sysfs-based DAMON user interface doesn't support online
+tuning at all.  DAMON_RECLAIM also doesn't support online tuning.
+
+This patchset makes the DAMON kernel API, DAMON sysfs interface, and
+DAMON_RECLAIM supports online tuning.
+
+Sequence of patches
+-------------------
+
+First two patches enhance DAMON online tuning for kernel API users. 
+Specifically, patch 1 let kernel API users to be able to do DAMON online
+tuning without a restriction, and patch 2 makes error handling easier.
+
+Following seven patches (patches 3-9) refactor code for better readability
+and easier reuse of code fragments that will be useful for online tuning
+support.
+
+Patch 10 introduces DAMON callback based user request handling structure
+for DAMON sysfs interface, and patch 11 enables DAMON online tuning via
+DAMON sysfs interface.  Documentation patch (patch 12) for usage of it
+follows.
+
+Patch 13 enables online tuning of DAMON_RECLAIM and finally patch 14
+documents the DAMON_RECLAIM online tuning usage.
+
+
+This patch (of 14):
+
+For updating input parameters for running DAMON contexts, DAMON kernel API
+users can use the contexts' callbacks, as it is the safe place for context
+internal data accesses.  When the context has DAMON-based operation
+schemes and all schemes are deactivated due to their watermarks, however,
+DAMON does nothing but only watermarks checks.  As a result, no callbacks
+will be called back, and therefore the kernel API users cannot update the
+input parameters including monitoring attributes, DAMON-based operation
+schemes, and watermarks.
+
+To let users easily update such DAMON input parameters in such a case,
+this commit adds a new callback, 'after_wmarks_check()'.  It will be
+called after each watermarks check.  Users can do the online input
+parameters update in the callback even under the schemes deactivated case.
+
+Link: https://lkml.kernel.org/r/20220429160606.127307-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugepage-mremap.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/damon.h |    7 +++++++
+ mm/damon/core.c       |    8 +++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/hugepage-mremap.c~selftest-vm-test-that-mremap-fails-on-non-existent-vma
-+++ a/tools/testing/selftests/vm/hugepage-mremap.c
-@@ -178,6 +178,12 @@ int main(int argc, char *argv[])
+--- a/include/linux/damon.h~mm-damon-core-add-a-new-callback-for-watermarks-checks
++++ a/include/linux/damon.h
+@@ -343,6 +343,7 @@ struct damon_operations {
+  * struct damon_callback - Monitoring events notification callbacks.
+  *
+  * @before_start:	Called before starting the monitoring.
++ * @after_wmarks_check:	Called after each schemes' watermarks check.
+  * @after_sampling:	Called after each sampling.
+  * @after_aggregation:	Called after each aggregation.
+  * @before_terminate:	Called before terminating the monitoring.
+@@ -353,6 +354,11 @@ struct damon_operations {
+  * respectively.  Therefore, those are good places for installing and cleaning
+  * @private.
+  *
++ * The monitoring thread calls @after_wmarks_check after each DAMON-based
++ * operation schemes' watermarks check.  If users need to make changes to the
++ * attributes of the monitoring context while it's deactivated due to the
++ * watermarks, this is the good place to do.
++ *
+  * The monitoring thread calls @after_sampling and @after_aggregation for each
+  * of the sampling intervals and aggregation intervals, respectively.
+  * Therefore, users can safely access the monitoring results without additional
+@@ -365,6 +371,7 @@ struct damon_callback {
+ 	void *private;
  
- 	munmap(addr, length);
+ 	int (*before_start)(struct damon_ctx *context);
++	int (*after_wmarks_check)(struct damon_ctx *context);
+ 	int (*after_sampling)(struct damon_ctx *context);
+ 	int (*after_aggregation)(struct damon_ctx *context);
+ 	void (*before_terminate)(struct damon_ctx *context);
+--- a/mm/damon/core.c~mm-damon-core-add-a-new-callback-for-watermarks-checks
++++ a/mm/damon/core.c
+@@ -1051,6 +1051,10 @@ static int kdamond_wait_activation(struc
+ 			return 0;
  
-+	addr = mremap(addr, length, length, 0);
-+	if (addr != MAP_FAILED) {
-+		printf("mremap: Expected failure, but call succeeded\n");
-+		exit(1);
-+	}
+ 		kdamond_usleep(min_wait_time);
 +
- 	close(fd);
- 	unlink(argv[argc-1]);
++		if (ctx->callback.after_wmarks_check &&
++				ctx->callback.after_wmarks_check(ctx))
++			break;
+ 	}
+ 	return -EBUSY;
+ }
+@@ -1077,8 +1081,10 @@ static int kdamond_fn(void *data)
+ 	sz_limit = damon_region_sz_limit(ctx);
  
+ 	while (!kdamond_need_stop(ctx) && !done) {
+-		if (kdamond_wait_activation(ctx))
++		if (kdamond_wait_activation(ctx)) {
++			done = true;
+ 			continue;
++		}
+ 
+ 		if (ctx->ops.prepare_access_checks)
+ 			ctx->ops.prepare_access_checks(ctx);
 _
 
-Patches currently in -mm which might be from dossche.niels@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
