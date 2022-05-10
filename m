@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B86DC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F2C7C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236058AbiEJERD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:17:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47152 "EHLO
+        id S236029AbiEJERF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:17:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236030AbiEJEQZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 920F214FCA4
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:54 -0700 (PDT)
+        with ESMTP id S235991AbiEJEQX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:23 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07A9A38BE1
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 37B826173E
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E055C385A6;
-        Tue, 10 May 2022 04:11:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B5A0CB81AE7
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71006C385C2;
+        Tue, 10 May 2022 04:11:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155913;
-        bh=N2JOYQrpSliKQdgfqMi7dBUEVoiSIiVhiHhdQyAPqAA=;
+        s=korg; t=1652155908;
+        bh=yH9tLxZZeq074eKFzUdIkJnYXOoAMJqXn8nX+YbD+eU=;
         h=Date:To:From:Subject:From;
-        b=Mj+X2MezXtMmfbM+mu44ZuVzKvoE36CRmgtPl5nVVL6+kFQ91Y5LjICU/0ppOO6cY
-         eac/0e8TZVApZ9taF0lvrbS/A3mAjDiyNprcUPvKr9qLL9C9X7uD5Z+PPEJ1wAsg1+
-         qTKpbH6++VsoI9lXkxEkNxG3OwWvWdX5FOCY2ln0=
-Date:   Mon, 09 May 2022 21:11:52 -0700
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=aE4K8zDohp66VMPrf3Cr2U7EsMJrFr3So65bvp0XJhpYQQfwjqVzgTplcEQFXLf9G
+         XOPL/rmTXgkms0eLeDdH6rYcJf6GgJHGHuYLAK4RHfAqJv4+o8/HidgOCdReyUoJUL
+         NgA5p1XvVBM84fFsE1tucuvu63aiu7Lxd9qNSO3g=
+Date:   Mon, 09 May 2022 21:11:47 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmapc-use-helper-mlock_future_check.patch removed from -mm tree
-Message-Id: <20220510041153.8E055C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-fix-shellcheck-warnings-in-run_vmtestssh.patch removed from -mm tree
+Message-Id: <20220510041148.71006C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,85 +41,162 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mmap.c: use helper mlock_future_check()
+     Subject: selftests: vm: fix shellcheck warnings in run_vmtests.sh
 has been removed from the -mm tree.  Its filename was
-     mm-mmapc-use-helper-mlock_future_check.patch
+     selftests-vm-fix-shellcheck-warnings-in-run_vmtestssh.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mmap.c: use helper mlock_future_check()
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: selftests: vm: fix shellcheck warnings in run_vmtests.sh
 
-Use helper mlock_future_check() to check whether it's safe to enlarge the
-locked_vm to simplify the code.  Minor readability improvement.
+These might not be issues yet, but they make the script more fragile. 
+Also by fixing them we give a better example to future readers, who might
+copy/paste or otherwise re-use snippets from our script.
 
-Link: https://lkml.kernel.org/r/20220402032231.64974-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+- Use "read -r", since we don't ever want read to be interpreting '\'
+  characters as escape sequences...
+- Quote variables, to deal with spaces properly.
+- Use $() instead of the older and harder-to-nest ``.
+- Get rid of superfluous "$" prefixes inside arithmetic $(()).
+
+Link: https://lkml.kernel.org/r/20220421224928.1848230-2-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ tools/testing/selftests/vm/run_vmtests.sh |   55 +++++++++-----------
+ 1 file changed, 27 insertions(+), 28 deletions(-)
 
---- a/mm/mmap.c~mm-mmapc-use-helper-mlock_future_check
-+++ a/mm/mmap.c
-@@ -2354,15 +2354,8 @@ static int acct_stack_growth(struct vm_a
- 		return -ENOMEM;
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-fix-shellcheck-warnings-in-run_vmtestssh
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -9,12 +9,12 @@ mnt=./huge
+ exitcode=0
  
- 	/* mlock limit tests */
--	if (vma->vm_flags & VM_LOCKED) {
--		unsigned long locked;
--		unsigned long limit;
--		locked = mm->locked_vm + grow;
--		limit = rlimit(RLIMIT_MEMLOCK);
--		limit >>= PAGE_SHIFT;
--		if (locked > limit && !capable(CAP_IPC_LOCK))
--			return -ENOMEM;
--	}
-+	if (mlock_future_check(mm, vma->vm_flags, grow << PAGE_SHIFT))
-+		return -ENOMEM;
+ #get huge pagesize and freepages from /proc/meminfo
+-while read name size unit; do
++while read -r name size unit; do
+ 	if [ "$name" = "HugePages_Free:" ]; then
+-		freepgs=$size
++		freepgs="$size"
+ 	fi
+ 	if [ "$name" = "Hugepagesize:" ]; then
+-		hpgsize_KB=$size
++		hpgsize_KB="$size"
+ 	fi
+ done < /proc/meminfo
  
- 	/* Check to ensure the stack will not grow into a hugetlb-only region */
- 	new_start = (vma->vm_flags & VM_GROWSUP) ? vma->vm_start :
+@@ -30,27 +30,26 @@ needmem_KB=$((half_ufd_size_MB * 2 * 102
+ 
+ #set proper nr_hugepages
+ if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
+-	nr_hugepgs=`cat /proc/sys/vm/nr_hugepages`
++	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+ 	needpgs=$((needmem_KB / hpgsize_KB))
+ 	tries=2
+-	while [ $tries -gt 0 ] && [ $freepgs -lt $needpgs ]; do
+-		lackpgs=$(( $needpgs - $freepgs ))
++	while [ "$tries" -gt 0 ] && [ "$freepgs" -lt "$needpgs" ]; do
++		lackpgs=$((needpgs - freepgs))
+ 		echo 3 > /proc/sys/vm/drop_caches
+-		echo $(( $lackpgs + $nr_hugepgs )) > /proc/sys/vm/nr_hugepages
+-		if [ $? -ne 0 ]; then
++		if ! echo $((lackpgs + nr_hugepgs)) > /proc/sys/vm/nr_hugepages; then
+ 			echo "Please run this test as root"
+ 			exit $ksft_skip
+ 		fi
+-		while read name size unit; do
++		while read -r name size unit; do
+ 			if [ "$name" = "HugePages_Free:" ]; then
+ 				freepgs=$size
+ 			fi
+ 		done < /proc/meminfo
+ 		tries=$((tries - 1))
+ 	done
+-	if [ $freepgs -lt $needpgs ]; then
++	if [ "$freepgs" -lt "$needpgs" ]; then
+ 		printf "Not enough huge pages available (%d < %d)\n" \
+-		       $freepgs $needpgs
++		       "$freepgs" "$needpgs"
+ 		exit 1
+ 	fi
+ else
+@@ -60,11 +59,11 @@ fi
+ 
+ #filter 64bit architectures
+ ARCH64STR="arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64"
+-if [ -z $ARCH ]; then
+-  ARCH=`uname -m 2>/dev/null | sed -e 's/aarch64.*/arm64/'`
++if [ -z "$ARCH" ]; then
++	ARCH=$(uname -m 2>/dev/null | sed -e 's/aarch64.*/arm64/')
+ fi
+ VADDR64=0
+-echo "$ARCH64STR" | grep $ARCH && VADDR64=1
++echo "$ARCH64STR" | grep "$ARCH" && VADDR64=1
+ 
+ # Usage: run_test [test binary] [arbitrary test arguments...]
+ run_test() {
+@@ -85,28 +84,28 @@ run_test() {
+ 	fi
+ }
+ 
+-mkdir $mnt
+-mount -t hugetlbfs none $mnt
++mkdir "$mnt"
++mount -t hugetlbfs none "$mnt"
+ 
+ run_test ./hugepage-mmap
+ 
+-shmmax=`cat /proc/sys/kernel/shmmax`
+-shmall=`cat /proc/sys/kernel/shmall`
++shmmax=$(cat /proc/sys/kernel/shmmax)
++shmall=$(cat /proc/sys/kernel/shmall)
+ echo 268435456 > /proc/sys/kernel/shmmax
+ echo 4194304 > /proc/sys/kernel/shmall
+ run_test ./hugepage-shm
+-echo $shmmax > /proc/sys/kernel/shmmax
+-echo $shmall > /proc/sys/kernel/shmall
++echo "$shmmax" > /proc/sys/kernel/shmmax
++echo "$shmall" > /proc/sys/kernel/shmall
+ 
+ run_test ./map_hugetlb
+ 
+-run_test ./hugepage-mremap $mnt/huge_mremap
+-rm -f $mnt/huge_mremap
++run_test ./hugepage-mremap "$mnt"/huge_mremap
++rm -f "$mnt"/huge_mremap
+ 
+ run_test ./hugepage-vmemmap
+ 
+-run_test ./hugetlb-madvise $mnt/madvise-test
+-rm -f $mnt/madvise-test
++run_test ./hugetlb-madvise "$mnt"/madvise-test
++rm -f "$mnt"/madvise-test
+ 
+ echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
+ echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
+@@ -124,13 +123,13 @@ run_test ./gup_test -ct -F 0x1 0 19 0x10
+ run_test ./userfaultfd anon 20 16
+ # Test requires source and destination huge pages.  Size of source
+ # (half_ufd_size_MB) is passed as argument to test.
+-run_test ./userfaultfd hugetlb $half_ufd_size_MB 32
++run_test ./userfaultfd hugetlb "$half_ufd_size_MB" 32
+ run_test ./userfaultfd shmem 20 16
+ 
+ #cleanup
+-umount $mnt
+-rm -rf $mnt
+-echo $nr_hugepgs > /proc/sys/vm/nr_hugepages
++umount "$mnt"
++rm -rf "$mnt"
++echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
+ 
+ run_test ./compaction_test
+ 
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
-mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
-mm-migration-reduce-the-rcu-lock-duration.patch
-mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-mm-migration-return-errno-when-isolate_huge_page-failed.patch
-mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
-mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
-mm-vmscan-introduce-helper-function-reclaim_page_list.patch
-mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
-mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
-mm-vmscan-use-helper-folio_is_file_lru.patch
-mm-vmscan-use-helper-folio_is_file_lru-fix.patch
-mm-z3fold-fix-sheduling-while-atomic.patch
-mm-z3fold-fix-possible-null-pointer-dereferencing.patch
-mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
-mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
-revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
-mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
-mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
-mm-z3fold-fix-z3fold_reclaim_page-races-with-z3fold_free.patch
-mm-z3fold-fix-z3fold_page_migrate-races-with-z3fold_map.patch
-mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
-mm-swap-use-helper-macro-__attr_rw.patch
-mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
-mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
-mm-swap-print-bad-swap-offset-entry-in-get_swap_device.patch
-mm-swap-remove-buggy-cache-nr-check-in-refill_swap_slots_cache.patch
-mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
-mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
-mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
-mm-swap-add-helper-swap_offset_available.patch
-mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
-mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
-mm-swap-fix-the-comment-of-get_kernel_pages.patch
-mm-swap-fix-comment-about-swap-extent.patch
 
