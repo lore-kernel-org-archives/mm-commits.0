@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D744C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:19:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D946C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:19:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236180AbiEJEXN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:23:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37320 "EHLO
+        id S236048AbiEJEXP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:23:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236306AbiEJEWC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:22:02 -0400
+        with ESMTP id S236410AbiEJEWn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:22:43 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBD701B4358
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E7B21C12C3
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A56661766
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:17:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CCFCC385C2;
-        Tue, 10 May 2022 04:17:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 26D2F61766
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:17:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77E41C385C2;
+        Tue, 10 May 2022 04:17:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156253;
-        bh=7+T4rsFaNM2xM5WYSvsOnV+sT/WuNlXaaJq++l0/L5Y=;
+        s=korg; t=1652156261;
+        bh=iayh7hcuBiFr/3R3jUsTZBvt13e8aJ2aiXF8w7f1f44=;
         h=Date:To:From:Subject:From;
-        b=i0zTmbV7BF+0sOWLdA1Iy1pkVj96eGTm22X5u8TffSg0kmUXsAJZYoI3cQxYyoWrQ
-         aMBuTesYv1PLKz9+SeK8Hr80AP1tInW+pfUizZIvnqoH7BtgYMdRN9guq/x9BuD2jP
-         fu+W7kz3FLBTDMw08D+XpaGr2N51eFQKQeWlIyaE=
-Date:   Mon, 09 May 2022 21:17:32 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, osalvador@suse.de,
-        h.j.bos@vu.nl, david@redhat.com, c.giuffrida@vu.nl,
-        bjohannesmeyer@gmail.com, adobriyan@gmail.com,
-        jakobkoschel@gmail.com, akpm@linux-foundation.org
+        b=hjCaaFta6Frsqkv3VOoTY6sdfs5krV9gHXQ9KLnlUnm+1eB5TgThM7sGEBwrKRS7v
+         /2Bat01BllnSYagNZB96BExkhiYw/s/DbrPH3RuxyTOqkDODcZca+IVd/ENd/NNla1
+         LjviQ9faiN3WZJd7S8O2EIITqrD4bK/OZuyAxyqg=
+Date:   Mon, 09 May 2022 21:17:40 -0700
+To:     mm-commits@vger.kernel.org, masahiroy@kernel.org,
+        keescook@chromium.org, linux@rasmusvillemoes.dk,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body.patch removed from -mm tree
-Message-Id: <20220510041733.5CCFCC385C2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-kconfigdebug-remove-more-config__value-indirections.patch removed from -mm tree
+Message-Id: <20220510041741.77E41C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,81 +42,108 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs/proc/kcore.c: remove check of list iterator against head past the loop body
+     Subject: lib/Kconfig.debug: remove more CONFIG_..._VALUE indirections
 has been removed from the -mm tree.  Its filename was
-     fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body.patch
+     lib-kconfigdebug-remove-more-config__value-indirections.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jakob Koschel <jakobkoschel@gmail.com>
-Subject: fs/proc/kcore.c: remove check of list iterator against head past the loop body
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/Kconfig.debug: remove more CONFIG_..._VALUE indirections
 
-When list_for_each_entry() completes the iteration over the whole list
-without breaking the loop, the iterator value will be a bogus pointer
-computed based on the head element.
+As in "kernel/panic.c: remove CONFIG_PANIC_ON_OOPS_VALUE indirection",
+use the IS_ENABLED() helper rather than having a hidden config option.
 
-While it is safe to use the pointer to determine if it was computed based
-on the head element, either with list_entry_is_head() or &pos->member ==
-head, using the iterator variable after the loop should be avoided.
-
-In preparation to limit the scope of a list iterator to the list traversal
-loop, use a dedicated pointer to point to the found element [1].
-
-[akpm@linux-foundation.org: reduce scope of `iter']
-Link: https://lore.kernel.org/all/CAHk-=wgRr_D8CB-D9Kg-c=EHreAsk5SqXPwr9Y7k9sA6cWXJ6w@mail.gmail.com/ [1]
-Link: https://lkml.kernel.org/r/20220331223700.902556-1-jakobkoschel@gmail.com
-Signed-off-by: Jakob Koschel <jakobkoschel@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Brian Johannesmeyer" <bjohannesmeyer@gmail.com>
-Cc: Cristiano Giuffrida <c.giuffrida@vu.nl>
-Cc: "Bos, H.J." <h.j.bos@vu.nl>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/20220321121301.1389693-1-linux@rasmusvillemoes.dk
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ kernel/hung_task.c |    2 +-
+ kernel/watchdog.c  |    4 ++--
+ lib/Kconfig.debug  |   21 ---------------------
+ 3 files changed, 3 insertions(+), 24 deletions(-)
 
---- a/fs/proc/kcore.c~fs-proc-kcorec-remove-check-of-list-iterator-against-head-past-the-loop-body
-+++ a/fs/proc/kcore.c
-@@ -479,10 +479,15 @@ read_kcore(struct file *file, char __use
- 		 * the previous entry, search for a matching entry.
- 		 */
- 		if (!m || start < m->addr || start >= m->addr + m->size) {
--			list_for_each_entry(m, &kclist_head, list) {
--				if (start >= m->addr &&
--				    start < m->addr + m->size)
-+			struct kcore_list *iter;
-+
-+			m = NULL;
-+			list_for_each_entry(iter, &kclist_head, list) {
-+				if (start >= iter->addr &&
-+				    start < iter->addr + iter->size) {
-+					m = iter;
- 					break;
-+				}
- 			}
- 		}
+--- a/kernel/hung_task.c~lib-kconfigdebug-remove-more-config__value-indirections
++++ a/kernel/hung_task.c
+@@ -73,7 +73,7 @@ static unsigned int __read_mostly sysctl
+  * hung task is detected:
+  */
+ unsigned int __read_mostly sysctl_hung_task_panic =
+-				CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE;
++				IS_ENABLED(CONFIG_BOOTPARAM_HUNG_TASK_PANIC);
  
-@@ -492,12 +497,11 @@ read_kcore(struct file *file, char __use
- 			page_offline_freeze();
- 		}
+ static int
+ hung_task_panic(struct notifier_block *this, unsigned long event, void *ptr)
+--- a/kernel/watchdog.c~lib-kconfigdebug-remove-more-config__value-indirections
++++ a/kernel/watchdog.c
+@@ -57,7 +57,7 @@ int __read_mostly sysctl_hardlockup_all_
+  * Should we panic when a soft-lockup or hard-lockup occurs:
+  */
+ unsigned int __read_mostly hardlockup_panic =
+-			CONFIG_BOOTPARAM_HARDLOCKUP_PANIC_VALUE;
++			IS_ENABLED(CONFIG_BOOTPARAM_HARDLOCKUP_PANIC);
+ /*
+  * We may not want to enable hard lockup detection by default in all cases,
+  * for example when running the kernel as a guest on a hypervisor. In these
+@@ -168,7 +168,7 @@ static struct cpumask watchdog_allowed_m
  
--		if (&m->list == &kclist_head) {
-+		if (!m) {
- 			if (clear_user(buffer, tsz)) {
- 				ret = -EFAULT;
- 				goto out;
- 			}
--			m = NULL;	/* skip the list anchor */
- 			goto skip;
- 		}
+ /* Global variables, exported for sysctl */
+ unsigned int __read_mostly softlockup_panic =
+-			CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE;
++			IS_ENABLED(CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC);
  
+ static bool softlockup_initialized __read_mostly;
+ static u64 __read_mostly sample_period;
+--- a/lib/Kconfig.debug~lib-kconfigdebug-remove-more-config__value-indirections
++++ a/lib/Kconfig.debug
+@@ -1071,13 +1071,6 @@ config BOOTPARAM_SOFTLOCKUP_PANIC
+ 
+ 	  Say N if unsure.
+ 
+-config BOOTPARAM_SOFTLOCKUP_PANIC_VALUE
+-	int
+-	depends on SOFTLOCKUP_DETECTOR
+-	range 0 1
+-	default 0 if !BOOTPARAM_SOFTLOCKUP_PANIC
+-	default 1 if BOOTPARAM_SOFTLOCKUP_PANIC
+-
+ config HARDLOCKUP_DETECTOR_PERF
+ 	bool
+ 	select SOFTLOCKUP_DETECTOR
+@@ -1119,13 +1112,6 @@ config BOOTPARAM_HARDLOCKUP_PANIC
+ 
+ 	  Say N if unsure.
+ 
+-config BOOTPARAM_HARDLOCKUP_PANIC_VALUE
+-	int
+-	depends on HARDLOCKUP_DETECTOR
+-	range 0 1
+-	default 0 if !BOOTPARAM_HARDLOCKUP_PANIC
+-	default 1 if BOOTPARAM_HARDLOCKUP_PANIC
+-
+ config DETECT_HUNG_TASK
+ 	bool "Detect Hung Tasks"
+ 	depends on DEBUG_KERNEL
+@@ -1173,13 +1159,6 @@ config BOOTPARAM_HUNG_TASK_PANIC
+ 
+ 	  Say N if unsure.
+ 
+-config BOOTPARAM_HUNG_TASK_PANIC_VALUE
+-	int
+-	depends on DETECT_HUNG_TASK
+-	range 0 1
+-	default 0 if !BOOTPARAM_HUNG_TASK_PANIC
+-	default 1 if BOOTPARAM_HUNG_TASK_PANIC
+-
+ config WQ_WATCHDOG
+ 	bool "Detect Workqueue Stalls"
+ 	depends on DEBUG_KERNEL
 _
 
-Patches currently in -mm which might be from jakobkoschel@gmail.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 
