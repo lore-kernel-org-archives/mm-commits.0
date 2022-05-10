@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD3EC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:10:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 026D8C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:10:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235939AbiEJEOA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:14:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40026 "EHLO
+        id S233220AbiEJEOj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:14:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235915AbiEJENd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:13:33 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0448120CA6C
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:09:36 -0700 (PDT)
+        with ESMTP id S235966AbiEJEOe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:14:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D690322A8BC
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:10:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 3325ACE1BF7
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:09:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8951AC385A6;
-        Tue, 10 May 2022 04:09:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 84A21B81AE7
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:10:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42C36C385C2;
+        Tue, 10 May 2022 04:10:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155773;
-        bh=iOvGxRiahu5uoh8TBIzrLJk2USLhvElBMWZ4ydzmW5I=;
+        s=korg; t=1652155828;
+        bh=RnN84NWHO8zo35AUqspngDe5xH0TOP1/3+D/KyaKK20=;
         h=Date:To:From:Subject:From;
-        b=gnKPsJGRaWQGxgCexDJAEMIIXAh5AtD6zfizUgPyFIae6sieVUAq4E+dt8mHrvVB4
-         knTxWeFVQ6RpWtCqCta5S75a/9f/O85wA5uKjS24DJU90v+IgtyUFH9zXt9bnTCSok
-         rbqF2B/VSHaPxW7kqTtPWNaocOIBtGgfUzEV4oEQ=
-Date:   Mon, 09 May 2022 21:09:32 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        42.hyeyoo@gmail.com, akpm@linux-foundation.org
+        b=tq46KmJEdKbycMJE5kLc0cOiutaz+Q7ceQxFV1Eajo4Dk8RkthRGsWCP3ceC6ciLR
+         zlCMFZ8J2CGLuBmpT+gV2h4qGSA+S1FeVrd7z65u6uJbkKXZF1Gps30eCqclSj27ml
+         HpVm0OiShdey/yqCtfjFQw3w/GsAcuuQPr8BgvhE=
+Date:   Mon, 09 May 2022 21:10:27 -0700
+To:     mm-commits@vger.kernel.org, zhaochongxi2019@email.szu.edu.cn,
+        zhangyinan2019@email.szu.edu.cn, yuhongf@szu.edu.cn,
+        seanga2@gmail.com, liuyongqiang13@huawei.com,
+        hanshenghong2019@email.szu.edu.cn, caoyixuan2019@email.szu.edu.cn,
+        baihaowen@meizu.com, yejiajian2018@email.szu.edu.cn,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool.patch removed from -mm tree
-Message-Id: <20220510040933.8951AC385A6@smtp.kernel.org>
+Subject: [merged mm-stable] tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr.patch removed from -mm tree
+Message-Id: <20220510041028.42C36C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,84 +45,175 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/kfence: reset PG_slab and memcg_data before freeing __kfence_pool
+     Subject: tools/vm/page_owner_sort.c: use fprintf() to send error messages to stderr
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool.patch
+     tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr.patch
 
-This patch was dropped because it was merged into mm-hotfixes-stable
+This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/kfence: reset PG_slab and memcg_data before freeing __kfence_pool
+From: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Subject: tools/vm/page_owner_sort.c: use fprintf() to send error messages to stderr
 
-When kfence fails to initialize kfence pool, it frees the pool.  But it
-does not reset memcg_data and PG_slab flag.
+Error messages should be send to stderr using fprintf() instead of
+printf().
 
-Below is a BUG because of this. Let's fix it by resetting memcg_data
-and PG_slab flag before free.
+This work is coauthored by
+        Yixuan Cao
+        Shenghong Han
+        Yinan Zhang
+        Chongxi Zhao
+        Yuhong Feng
+        Yongqiang Liu
 
-[    0.089149] BUG: Bad page state in process swapper/0  pfn:3d8e06
-[    0.089149] page:ffffea46cf638180 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x3d8e06
-[    0.089150] memcg:ffffffff94a475d1
-[    0.089150] flags: 0x17ffffc0000200(slab|node=0|zone=2|lastcpupid=0x1fffff)
-[    0.089151] raw: 0017ffffc0000200 ffffea46cf638188 ffffea46cf638188 0000000000000000
-[    0.089152] raw: 0000000000000000 0000000000000000 00000000ffffffff ffffffff94a475d1
-[    0.089152] page dumped because: page still charged to cgroup
-[    0.089153] Modules linked in:
-[    0.089153] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G    B   W         5.18.0-rc1+ #965
-[    0.089154] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-[    0.089154] Call Trace:
-[    0.089155]  <TASK>
-[    0.089155]  dump_stack_lvl+0x49/0x5f
-[    0.089157]  dump_stack+0x10/0x12
-[    0.089158]  bad_page.cold+0x63/0x94
-[    0.089159]  check_free_page_bad+0x66/0x70
-[    0.089160]  __free_pages_ok+0x423/0x530
-[    0.089161]  __free_pages_core+0x8e/0xa0
-[    0.089162]  memblock_free_pages+0x10/0x12
-[    0.089164]  memblock_free_late+0x8f/0xb9
-[    0.089165]  kfence_init+0x68/0x92
-[    0.089166]  start_kernel+0x789/0x992
-[    0.089167]  x86_64_start_reservations+0x24/0x26
-[    0.089168]  x86_64_start_kernel+0xa9/0xaf
-[    0.089170]  secondary_startup_64_no_verify+0xd5/0xdb
-[    0.089171]  </TASK>
-
-Link: https://lkml.kernel.org/r/YnPG3pQrqfcgOlVa@hyeyoo
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Fixes: 8f0b36497303 ("mm: kfence: fix objcgs vector allocation")
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/20220401024856.767-1-yejiajian2018@email.szu.edu.cn
+Signed-off-by: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Cc: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
+Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Cc: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Cc: Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>
+Cc: Yuhong Feng <yuhongf@szu.edu.cn>
+Cc: Yongqiang Liu <liuyongqiang13@huawei.com>
+Cc: Haowen Bai <baihaowen@meizu.com>
+Cc: Sean Anderson <seanga2@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ tools/vm/page_owner_sort.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-reset-pg_slab-and-memcg_data-before-freeing-__kfence_pool
-+++ a/mm/kfence/core.c
-@@ -621,6 +621,16 @@ static bool __init kfence_init_pool_earl
- 	 * fails for the first page, and therefore expect addr==__kfence_pool in
- 	 * most failure cases.
- 	 */
-+	for (char *p = (char *)addr; p < __kfence_pool + KFENCE_POOL_SIZE; p += PAGE_SIZE) {
-+		struct slab *slab = virt_to_slab(p);
-+
-+		if (!slab)
-+			continue;
-+#ifdef CONFIG_MEMCG
-+		slab->memcg_data = 0;
-+#endif
-+		__folio_clear_slab(slab_folio(slab));
-+	}
- 	memblock_free_late(__pa(addr), KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool));
- 	__kfence_pool = NULL;
- 	return false;
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-use-fprintf-to-send-error-messages-to-stderr
++++ a/tools/vm/page_owner_sort.c
+@@ -186,7 +186,7 @@ static int search_pattern(regex_t *patte
+ 
+ 	err = regexec(pattern, buf, 2, pmatch, REG_NOTBOL);
+ 	if (err != 0 || pmatch[1].rm_so == -1) {
+-		printf("no matching pattern in %s\n", buf);
++		fprintf(stderr, "no matching pattern in %s\n", buf);
+ 		return -1;
+ 	}
+ 	val_len = pmatch[1].rm_eo - pmatch[1].rm_so;
+@@ -202,7 +202,7 @@ static void check_regcomp(regex_t *patte
+ 
+ 	err = regcomp(pattern, regex, REG_EXTENDED | REG_NEWLINE);
+ 	if (err != 0 || pattern->re_nsub != 1) {
+-		printf("Invalid pattern %s code %d\n", regex, err);
++		fprintf(stderr, "Invalid pattern %s code %d\n", regex, err);
+ 		exit(1);
+ 	}
+ }
+@@ -251,7 +251,7 @@ static int get_page_num(char *buf)
+ 	errno = 0;
+ 	order_val = strtol(order_str, &endptr, 10);
+ 	if (order_val > 64 || errno != 0 || endptr == order_str || *endptr != '\0') {
+-		printf("wrong order in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong order in follow buf:\n%s\n", buf);
+ 		return 0;
+ 	}
+ 
+@@ -268,7 +268,7 @@ static pid_t get_pid(char *buf)
+ 	errno = 0;
+ 	pid = strtol(pid_str, &endptr, 10);
+ 	if (errno != 0 || endptr == pid_str || *endptr != '\0') {
+-		printf("wrong/invalid pid in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong/invalid pid in follow buf:\n%s\n", buf);
+ 		return -1;
+ 	}
+ 
+@@ -286,7 +286,7 @@ static pid_t get_tgid(char *buf)
+ 	errno = 0;
+ 	tgid = strtol(tgid_str, &endptr, 10);
+ 	if (errno != 0 || endptr == tgid_str || *endptr != '\0') {
+-		printf("wrong/invalid tgid in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong/invalid tgid in follow buf:\n%s\n", buf);
+ 		return -1;
+ 	}
+ 
+@@ -304,7 +304,7 @@ static __u64 get_ts_nsec(char *buf)
+ 	errno = 0;
+ 	ts_nsec = strtoull(ts_nsec_str, &endptr, 10);
+ 	if (errno != 0 || endptr == ts_nsec_str || *endptr != '\0') {
+-		printf("wrong ts_nsec in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong ts_nsec in follow buf:\n%s\n", buf);
+ 		return -1;
+ 	}
+ 
+@@ -321,7 +321,7 @@ static __u64 get_free_ts_nsec(char *buf)
+ 	errno = 0;
+ 	free_ts_nsec = strtoull(free_ts_nsec_str, &endptr, 10);
+ 	if (errno != 0 || endptr == free_ts_nsec_str || *endptr != '\0') {
+-		printf("wrong free_ts_nsec in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong free_ts_nsec in follow buf:\n%s\n", buf);
+ 		return -1;
+ 	}
+ 
+@@ -337,7 +337,7 @@ static char *get_comm(char *buf)
+ 	search_pattern(&comm_pattern, comm_str, buf);
+ 	errno = 0;
+ 	if (errno != 0) {
+-		printf("wrong comm in follow buf:\n%s\n", buf);
++		fprintf(stderr, "wrong comm in follow buf:\n%s\n", buf);
+ 		return NULL;
+ 	}
+ 
+@@ -373,7 +373,7 @@ static void add_list(char *buf, int len)
+ 		return;
+ 	}
+ 	if (list_size == max_size) {
+-		printf("max_size too small??\n");
++		fprintf(stderr, "max_size too small??\n");
+ 		exit(1);
+ 	}
+ 	if (!is_need(buf))
+@@ -383,7 +383,7 @@ static void add_list(char *buf, int len)
+ 	list[list_size].comm = get_comm(buf);
+ 	list[list_size].txt = malloc(len+1);
+ 	if (!list[list_size].txt) {
+-		printf("Out of memory\n");
++		fprintf(stderr, "Out of memory\n");
+ 		exit(1);
+ 	}
+ 	memcpy(list[list_size].txt, buf, len);
+@@ -499,7 +499,8 @@ int main(int argc, char **argv)
+ 			errno = 0;
+ 			fc.pid = strtol(optarg, &endptr, 10);
+ 			if (errno != 0 || endptr == optarg || *endptr != '\0') {
+-				printf("wrong/invalid pid in from the command line:%s\n", optarg);
++				fprintf(stderr, "wrong/invalid pid in from the command line:%s\n",
++						optarg);
+ 				exit(1);
+ 			}
+ 			break;
+@@ -508,7 +509,8 @@ int main(int argc, char **argv)
+ 			errno = 0;
+ 			fc.tgid = strtol(optarg, &endptr, 10);
+ 			if (errno != 0 || endptr == optarg || *endptr != '\0') {
+-				printf("wrong/invalid tgid in from the command line:%s\n", optarg);
++				fprintf(stderr, "wrong/invalid tgid in from the command line:%s\n",
++						optarg);
+ 				exit(1);
+ 			}
+ 			break;
+@@ -519,7 +521,7 @@ int main(int argc, char **argv)
+ 			break;
+ 		case 4:
+ 			if (!parse_cull_args(optarg)) {
+-				printf("wrong argument after --cull in from the command line:%s\n",
++				fprintf(stderr, "wrong argument after --cull option:%s\n",
+ 						optarg);
+ 				exit(1);
+ 			}
+@@ -554,7 +556,7 @@ int main(int argc, char **argv)
+ 	list = malloc(max_size * sizeof(*list));
+ 	buf = malloc(BUF_SIZE);
+ 	if (!list || !buf) {
+-		printf("Out of memory\n");
++		fprintf(stderr, "Out of memory\n");
+ 		exit(1);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from yejiajian2018@email.szu.edu.cn are
 
 
