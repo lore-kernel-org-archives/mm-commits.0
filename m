@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80E21C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0CADC4321E
 	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236319AbiEJEUx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:20:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48220 "EHLO
+        id S236354AbiEJEVB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:21:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236186AbiEJEUA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8DBD2AC6D2
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:50 -0700 (PDT)
+        with ESMTP id S236148AbiEJETu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:19:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCD0E2AC0EC
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 61831B817CC
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1635CC385C5;
-        Tue, 10 May 2022 04:14:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E364361745
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D2E1C385C2;
+        Tue, 10 May 2022 04:14:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156088;
-        bh=hbIiOAooz0FfrAHV0CGMjJYfnzrKhFIep0Li3PuO80A=;
+        s=korg; t=1652156071;
+        bh=Ze4xaYvV6vLzYQ7PYaRjmSkMUrrCXsFpGZKYzInli4g=;
         h=Date:To:From:Subject:From;
-        b=aSEIVTLeX1HYlVeqMwgRc50Xz/UaJzVvfsi0L5wxGSOwMX+N4Es46Xl/jT30qST5a
-         rrosH5KykptVhVQnHFEdS4oJXdBHjIJi8xAUyLTRMLx58JObwRYqjE2c4AR2qeCpi8
-         NGQl7KEd4669H8hOn0HNwt1BnYr0BxSVD2qAeJjY=
-Date:   Mon, 09 May 2022 21:14:47 -0700
+        b=RvChhLLqxeilUH78dP1565kUynXeyN+cUeYgKuDJmZtlJ+f8zuf1ZFUQZPDS1d+GQ
+         P89qZo0KQ2bE9bzNhQJGbyyoXtswgyqwCGRRR8bnC+NdUKoVeBSIFRqpw7HSUdqXKe
+         AZpAvF30pF/xBtWbtJgUyUWGrhKpnNe7AEvV7ihQ=
+Date:   Mon, 09 May 2022 21:14:30 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
         shakeelb@google.com, rppt@linux.ibm.com, rientjes@google.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         ddutile@redhat.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-fail-try_to_migrate-early-when-setting-a-pmd-migration-entry-fails.patch removed from -mm tree
-Message-Id: <20220510041448.1635CC385C5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch removed from -mm tree
+Message-Id: <20220510041431.3D2E1C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,131 +50,163 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/rmap: fail try_to_migrate() early when setting a PMD migration entry fails
+     Subject: mm/rmap: fix missing swap_free() in try_to_unmap() after arch_unmap_one() failed
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-fail-try_to_migrate-early-when-setting-a-pmd-migration-entry-fails.patch
+     mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: fail try_to_migrate() early when setting a PMD migration entry fails
+Subject: mm/rmap: fix missing swap_free() in try_to_unmap() after arch_unmap_one() failed
 
-Let's fail right away in case we cannot clear PG_anon_exclusive because
-the anon THP may be pinned.  Right now, we continue trying to install
-migration entries and the caller of try_to_migrate() will realize that the
-page is still mapped and has to restore the migration entries.  Let's just
-fail fast just like for PTE migration entries.
+Patch series "mm: COW fixes part 2: reliable GUP pins of anonymous pages", v4.
 
-Link: https://lkml.kernel.org/r/20220428083441.37290-14-david@redhat.com
+This series is the result of the discussion on the previous approach [2]. 
+More information on the general COW issues can be found there.  It is
+based on latest linus/master (post v5.17, with relevant core-MM changes
+for v5.18-rc1).
+
+This series fixes memory corruptions when a GUP pin (FOLL_PIN) was taken
+on an anonymous page and COW logic fails to detect exclusivity of the page
+to then replacing the anonymous page by a copy in the page table: The GUP
+pin lost synchronicity with the pages mapped into the page tables.
+
+This issue, including other related COW issues, has been summarized in [3]
+under 3):
+"
+  3. Intra Process Memory Corruptions due to Wrong COW (FOLL_PIN)
+
+  page_maybe_dma_pinned() is used to check if a page may be pinned for
+  DMA (using FOLL_PIN instead of FOLL_GET).  While false positives are
+  tolerable, false negatives are problematic: pages that are pinned for
+  DMA must not be added to the swapcache.  If it happens, the (now pinned)
+  page could be faulted back from the swapcache into page tables
+  read-only.  Future write-access would detect the pinning and COW the
+  page, losing synchronicity.  For the interested reader, this is nicely
+  documented in feb889fb40fa ("mm: don't put pinned pages into the swap
+  cache").
+
+  Peter reports [8] that page_maybe_dma_pinned() as used is racy in some
+  cases and can result in a violation of the documented semantics: giving
+  false negatives because of the race.
+
+  There are cases where we call it without properly taking a per-process
+  sequence lock, turning the usage of page_maybe_dma_pinned() racy.  While
+  one case (clear_refs SOFTDIRTY tracking, see below) seems to be easy to
+  handle, there is especially one rmap case (shrink_page_list) that's hard
+  to fix: in the rmap world, we're not limited to a single process.
+
+  The shrink_page_list() issue is really subtle.  If we race with
+  someone pinning a page, we can trigger the same issue as in the FOLL_GET
+  case.  See the detail section at the end of this mail on a discussion
+  how bad this can bite us with VFIO or other FOLL_PIN user.
+
+  It's harder to reproduce, but I managed to modify the O_DIRECT
+  reproducer to use io_uring fixed buffers [15] instead, which ends up
+  using FOLL_PIN | FOLL_WRITE | FOLL_LONGTERM to pin buffer pages and can
+  similarly trigger a loss of synchronicity and consequently a memory
+  corruption.
+
+  Again, the root issue is that a write-fault on a page that has
+  additional references results in a COW and thereby a loss of
+  synchronicity and consequently a memory corruption if two parties
+  believe they are referencing the same page.
+"
+
+This series makes GUP pins (R/O and R/W) on anonymous pages fully
+reliable, especially also taking care of concurrent pinning via GUP-fast,
+for example, also fully fixing an issue reported regarding NUMA balancing
+[4] recently.  While doing that, it further reduces "unnecessary COWs",
+especially when we don't fork()/KSM and don't swapout, and fixes the COW
+security for hugetlb for FOLL_PIN.
+
+In summary, we track via a pageflag (PG_anon_exclusive) whether a mapped
+anonymous page is exclusive.  Exclusive anonymous pages that are mapped
+R/O can directly be mapped R/W by the COW logic in the write fault
+handler.  Exclusive anonymous pages that want to be shared (fork(), KSM)
+first have to be marked shared -- which will fail if there are GUP pins on
+the page.  GUP is only allowed to take a pin on anonymous pages that are
+exclusive.  The PT lock is the primary mechanism to synchronize
+modifications of PG_anon_exclusive.  We synchronize against GUP-fast
+either via the src_mm->write_protect_seq (during fork()) or via
+clear/invalidate+flush of the relevant page table entry.
+
+Special care has to be taken about swap, migration, and THPs (whereby a
+PMD-mapping can be converted to a PTE mapping and we have to track
+information for subpages).  Besides these, we let the rmap code handle
+most magic.  For reliable R/O pins of anonymous pages, we need
+FAULT_FLAG_UNSHARE logic as part of our previous approach [2], however,
+it's now 100% mapcount free and I further simplified it a bit.
+
+  #1 is a fix
+  #3-#10 are mostly rmap preparations for PG_anon_exclusive handling
+  #11 introduces PG_anon_exclusive
+  #12 uses PG_anon_exclusive and make R/W pins of anonymous pages
+   reliable
+  #13 is a preparation for reliable R/O pins
+  #14 and #15 is reused/modified GUP-triggered unsharing for R/O GUP pins
+   make R/O pins of anonymous pages reliable
+  #16 adds sanity check when (un)pinning anonymous pages
+
+[1] https://lkml.kernel.org/r/20220131162940.210846-1-david@redhat.com
+[2] https://lkml.kernel.org/r/20211217113049.23850-1-david@redhat.com
+[3] https://lore.kernel.org/r/3ae33b08-d9ef-f846-56fb-645e3b9b4c66@redhat.com
+[4] https://bugzilla.kernel.org/show_bug.cgi?id=215616
+
+
+This patch (of 17):
+
+In case arch_unmap_one() fails, we already did a swap_duplicate().  let's
+undo that properly via swap_free().
+
+Link: https://lkml.kernel.org/r/20220428083441.37290-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20220428083441.37290-2-david@redhat.com
+Fixes: ca827d55ebaa ("mm, swap: Add infrastructure for saving page metadata on swap")
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Don Dutile <ddutile@redhat.com>
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Liang Zhang <zhangliang5@huawei.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Nadav Amit <namit@vmware.com>
-Cc: Oded Gabbay <oded.gabbay@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Don Dutile <ddutile@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Liang Zhang <zhangliang5@huawei.com>
+Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    4 ++--
- mm/huge_memory.c        |    8 +++++---
- mm/rmap.c               |    6 +++++-
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ mm/rmap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/swapops.h~mm-rmap-fail-try_to_migrate-early-when-setting-a-pmd-migration-entry-fails
-+++ a/include/linux/swapops.h
-@@ -299,7 +299,7 @@ static inline bool is_pfn_swap_entry(swp
- struct page_vma_mapped_walk;
- 
- #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
--extern void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
-+extern int set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
- 		struct page *page);
- 
- extern void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
-@@ -332,7 +332,7 @@ static inline int is_pmd_migration_entry
- 	return !pmd_present(pmd) && is_migration_entry(pmd_to_swp_entry(pmd));
- }
- #else
--static inline void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
-+static inline int set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
- 		struct page *page)
- {
- 	BUILD_BUG();
---- a/mm/huge_memory.c~mm-rmap-fail-try_to_migrate-early-when-setting-a-pmd-migration-entry-fails
-+++ a/mm/huge_memory.c
-@@ -3071,7 +3071,7 @@ late_initcall(split_huge_pages_debugfs);
- #endif
- 
- #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
--void set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
-+int set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
- 		struct page *page)
- {
- 	struct vm_area_struct *vma = pvmw->vma;
-@@ -3083,7 +3083,7 @@ void set_pmd_migration_entry(struct page
- 	pmd_t pmdswp;
- 
- 	if (!(pvmw->pmd && !pvmw->pte))
--		return;
-+		return 0;
- 
- 	flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
- 	pmdval = pmdp_invalidate(vma, address, pvmw->pmd);
-@@ -3091,7 +3091,7 @@ void set_pmd_migration_entry(struct page
- 	anon_exclusive = PageAnon(page) && PageAnonExclusive(page);
- 	if (anon_exclusive && page_try_share_anon_rmap(page)) {
- 		set_pmd_at(mm, address, pvmw->pmd, pmdval);
--		return;
-+		return -EBUSY;
- 	}
- 
- 	if (pmd_dirty(pmdval))
-@@ -3109,6 +3109,8 @@ void set_pmd_migration_entry(struct page
- 	page_remove_rmap(page, vma, true);
- 	put_page(page);
- 	trace_set_migration_pmd(address, pmd_val(pmdswp));
-+
-+	return 0;
- }
- 
- void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
---- a/mm/rmap.c~mm-rmap-fail-try_to_migrate-early-when-setting-a-pmd-migration-entry-fails
+--- a/mm/rmap.c~mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed
 +++ a/mm/rmap.c
-@@ -1856,7 +1856,11 @@ static bool try_to_migrate_one(struct fo
- 			VM_BUG_ON_FOLIO(folio_test_hugetlb(folio) ||
- 					!folio_test_pmd_mappable(folio), folio);
- 
--			set_pmd_migration_entry(&pvmw, subpage);
-+			if (set_pmd_migration_entry(&pvmw, subpage)) {
-+				ret = false;
-+				page_vma_mapped_walk_done(&pvmw);
-+				break;
-+			}
- 			continue;
- 		}
- #endif
+@@ -1681,6 +1681,7 @@ static bool try_to_unmap_one(struct foli
+ 				break;
+ 			}
+ 			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
++				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				ret = false;
+ 				page_vma_mapped_walk_done(&pvmw);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
