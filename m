@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1127C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4167C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236114AbiEJERm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:17:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48220 "EHLO
+        id S235980AbiEJERq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:17:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236212AbiEJEQa (ORCPT
+        with ESMTP id S236085AbiEJEQa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 998B523E287
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:09 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99D2223E28D
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A70361746
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1362C385A6;
-        Tue, 10 May 2022 04:12:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E8540B81AFB
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A069C385C2;
+        Tue, 10 May 2022 04:12:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155928;
-        bh=jo9iKSgVe3ThTUP1NylEauiYbWlm8y2AhfH2+kQDD2M=;
+        s=korg; t=1652155927;
+        bh=K2PTTnBjlPGLlIrn5Y8lYTVj/QNTVBCsNsyeUt/J2N8=;
         h=Date:To:From:Subject:From;
-        b=k18bK4O6d765AcSwzJEbXHHSzCLsm2IyUWPqnYdvqY39GQK3skOXE5lJj7QhfmsLT
-         uRxNtPu7oyEO+B7VfCUJ5ybcn8NJDHaZxO+LZEm14Q7rdRjOOl74j/O6N2XegkT/eC
-         OeptiRYhyZcNjwIwfq1PDIcjvk4Jx7UlETO88ci8=
-Date:   Mon, 09 May 2022 21:12:08 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.l.verma@intel.com, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, jgg@ziepe.ca, jane.chu@oracle.com,
-        hch@lst.de, dan.j.williams@intel.com, corbet@lwn.net,
-        joao.m.martins@oracle.com, akpm@linux-foundation.org
+        b=Fw0SFYc43Dl6vtMu88NvTDm1awhVT8bpC0KXDAs26SnVDDhdq6OrQr6+ClKqJ5IRR
+         cXPMlr6yZ2sGFpd6PJQj6IWT3Epp1GBnc5nY14GvQL4/ycQHK/p/+ykDOu/6yeyaF1
+         Rj21GHx/YPnyuMC4tXN8KKlc3xNw2g8MnHCP2+Q0=
+Date:   Mon, 09 May 2022 21:12:07 -0700
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        david@redhat.com, songmuchun@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch removed from -mm tree
-Message-Id: <20220510041208.D1362C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch removed from -mm tree
+Message-Id: <20220510041207.9A069C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,282 +42,268 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: add a pgmap argument to section activation
+     Subject: mm: hugetlb_vmemmap: cleanup CONFIG_HUGETLB_PAGE_FREE_VMEMMAP*
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation.patch
+     mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/sparse-vmemmap: add a pgmap argument to section activation
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: hugetlb_vmemmap: cleanup CONFIG_HUGETLB_PAGE_FREE_VMEMMAP*
 
-Patch series "sparse-vmemmap: memory savings for compound devmaps (device-dax)", v9.
+The word of "free" is not expressive enough to express the feature of
+optimizing vmemmap pages associated with each HugeTLB, rename this keywork
+to "optimize".  In this patch , cheanup configs to make code more
+expressive.
 
-This series minimizes 'struct page' overhead by pursuing a similar
-approach as Muchun Song series "Free some vmemmap pages of hugetlb page"
-(now merged since v5.14), but applied to devmap with @vmemmap_shift
-(device-dax).  
-
-The vmemmap dedpulication original idea (already used in HugeTLB) is to
-reuse/deduplicate tail page vmemmap areas, particular the area which only
-describes tail pages.  So a vmemmap page describes 64 struct pages, and
-the first page for a given ZONE_DEVICE vmemmap would contain the head page
-and 63 tail pages.  The second vmemmap page would contain only tail pages,
-and that's what gets reused across the rest of the subsection/section. 
-The bigger the page size, the bigger the savings (2M hpage -> save 6
-vmemmap pages; 1G hpage -> save 4094 vmemmap pages).  
-
-This is done for PMEM /specifically only/ on device-dax configured
-namespaces, not fsdax.  In other words, a devmap with a @vmemmap_shift.
-
-In terms of savings, per 1Tb of memory, the struct page cost would go down
-with compound devmap:
-
-* with 2M pages we lose 4G instead of 16G (0.39% instead of 1.5% of
-  total memory)
-
-* with 1G pages we lose 40MB instead of 16G (0.0014% instead of 1.5% of
-  total memory)
-
-The series is mostly summed up by patch 4, and to summarize what the
-series does:
-
-Patches 1 - 3: Minor cleanups in preparation for patch 4.  Move the very
-nice docs of hugetlb_vmemmap.c into a Documentation/vm/ entry.
-
-Patch 4: Patch 4 is the one that takes care of the struct page savings
-(also referred to here as tail-page/vmemmap deduplication).  Much like
-Muchun series, we reuse the second PTE tail page vmemmap areas across a
-given @vmemmap_shift On important difference though, is that contrary to
-the hugetlbfs series, there's no vmemmap for the area because we are
-late-populating it as opposed to remapping a system-ram range.  IOW no
-freeing of pages of already initialized vmemmap like the case for
-hugetlbfs, which greatly simplifies the logic (besides not being
-arch-specific).  altmap case unchanged and still goes via the
-vmemmap_populate().  Also adjust the newly added docs to the device-dax
-case.
-
-[Note that device-dax is still a little behind HugeTLB in terms of
-savings.  I have an additional simple patch that reuses the head vmemmap
-page too, as a follow-up.  That will double the savings and namespaces
-initialization.]
-
-Patch 5: Initialize fewer struct pages depending on the page size with
-DRAM backed struct pages -- because fewer pages are unique and most tail
-pages (with bigger vmemmap_shift).
-
-    NVDIMM namespace bootstrap improves from ~268-358 ms to
-    ~80-110/<1ms on 128G NVDIMMs with 2M and 1G respectivally.  And struct
-    page needed capacity will be 3.8x / 1071x smaller for 2M and 1G
-    respectivelly.  Tested on x86 with 1.5Tb of pmem (including pinning,
-    and RDMA registration/deregistration scalability with 2M MRs)
-
-
-This patch (of 5):
-
-In support of using compound pages for devmap mappings, plumb the pgmap
-down to the vmemmap_populate implementation.  Note that while altmap is
-retrievable from pgmap the memory hotplug code passes altmap without
-pgmap[*], so both need to be independently plumbed.
-
-So in addition to @altmap, pass @pgmap to sparse section populate
-functions namely:
-
-	sparse_add_section
-	  section_activate
-	    populate_section_memmap
-   	      __populate_section_memmap
-
-Passing @pgmap allows __populate_section_memmap() to both fetch the
-vmemmap_shift in which memmap metadata is created for and also to let
-sparse-vmemmap fetch pgmap ranges to co-relate to a given section and pick
-whether to just reuse tail pages from past onlined sections.
-
-While at it, fix the kdoc for @altmap for sparse_add_section().
-
-[*] https://lore.kernel.org/linux-mm/20210319092635.6214-1-osalvador@suse.de/
-
-Link: https://lkml.kernel.org/r/20220420155310.9712-1-joao.m.martins@oracle.com
-Link: https://lkml.kernel.org/r/20220420155310.9712-2-joao.m.martins@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jane Chu <jane.chu@oracle.com>
+Link: https://lkml.kernel.org/r/20220404074652.68024-4-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    5 ++++-
- include/linux/mm.h             |    3 ++-
- mm/memory_hotplug.c            |    3 ++-
- mm/sparse-vmemmap.c            |    3 ++-
- mm/sparse.c                    |   26 ++++++++++++++++----------
- 5 files changed, 26 insertions(+), 14 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    4 +--
+ Documentation/admin-guide/mm/hugetlbpage.rst    |    2 -
+ arch/arm64/Kconfig                              |    2 -
+ arch/arm64/mm/flush.c                           |    2 -
+ arch/x86/Kconfig                                |    2 -
+ arch/x86/mm/init_64.c                           |    2 -
+ fs/Kconfig                                      |   16 +++++++-------
+ include/linux/hugetlb.h                         |    2 -
+ include/linux/mm.h                              |    2 -
+ include/linux/page-flags.h                      |    6 ++---
+ mm/Makefile                                     |    2 -
+ mm/hugetlb_vmemmap.c                            |    4 +--
+ mm/hugetlb_vmemmap.h                            |    4 +--
+ mm/sparse-vmemmap.c                             |    4 +--
+ 14 files changed, 27 insertions(+), 27 deletions(-)
 
---- a/include/linux/memory_hotplug.h~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
-+++ a/include/linux/memory_hotplug.h
-@@ -15,6 +15,7 @@ struct memory_block;
- struct memory_group;
- struct resource;
- struct vmem_altmap;
-+struct dev_pagemap;
+--- a/arch/arm64/Kconfig~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/arch/arm64/Kconfig
+@@ -97,7 +97,7 @@ config ARM64
+ 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
+ 	select ARCH_WANT_FRAME_POINTERS
+ 	select ARCH_WANT_HUGE_PMD_SHARE if ARM64_4K_PAGES || (ARM64_16K_PAGES && !ARM64_VA_BITS_36)
+-	select ARCH_WANT_HUGETLB_PAGE_FREE_VMEMMAP
++	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	select ARCH_WANT_LD_ORPHAN_WARN
+ 	select ARCH_WANTS_NO_INSTR
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+--- a/arch/arm64/mm/flush.c~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/arch/arm64/mm/flush.c
+@@ -78,7 +78,7 @@ void flush_dcache_page(struct page *page
+ 	/*
+ 	 * Only the head page's flags of HugeTLB can be cleared since the tail
+ 	 * vmemmap pages associated with each HugeTLB page are mapped with
+-	 * read-only when CONFIG_HUGETLB_PAGE_FREE_VMEMMAP is enabled (more
++	 * read-only when CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP is enabled (more
+ 	 * details can refer to vmemmap_remap_pte()).  Although
+ 	 * __sync_icache_dcache() only set PG_dcache_clean flag on the head
+ 	 * page struct, there is more than one page struct with PG_dcache_clean
+--- a/arch/x86/Kconfig~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/arch/x86/Kconfig
+@@ -121,7 +121,7 @@ config X86
+ 	select ARCH_WANTS_NO_INSTR
+ 	select ARCH_WANT_GENERAL_HUGETLB
+ 	select ARCH_WANT_HUGE_PMD_SHARE
+-	select ARCH_WANT_HUGETLB_PAGE_FREE_VMEMMAP	if X86_64
++	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP	if X86_64
+ 	select ARCH_WANT_LD_ORPHAN_WARN
+ 	select ARCH_WANTS_THP_SWAP		if X86_64
+ 	select ARCH_HAS_PARANOID_L1D_FLUSH
+--- a/arch/x86/mm/init_64.c~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/arch/x86/mm/init_64.c
+@@ -1269,7 +1269,7 @@ static struct kcore_list kcore_vsyscall;
  
- #ifdef CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
- /*
-@@ -122,6 +123,7 @@ typedef int __bitwise mhp_t;
- struct mhp_params {
- 	struct vmem_altmap *altmap;
- 	pgprot_t pgprot;
-+	struct dev_pagemap *pgmap;
- };
+ static void __init register_page_bootmem_info(void)
+ {
+-#if defined(CONFIG_NUMA) || defined(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP)
++#if defined(CONFIG_NUMA) || defined(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP)
+ 	int i;
  
- bool mhp_range_allowed(u64 start, u64 size, bool need_mapping);
-@@ -333,7 +335,8 @@ extern void remove_pfn_range_from_zone(s
- 				       unsigned long nr_pages);
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern int sparse_add_section(int nid, unsigned long pfn,
--		unsigned long nr_pages, struct vmem_altmap *altmap);
-+		unsigned long nr_pages, struct vmem_altmap *altmap,
-+		struct dev_pagemap *pgmap);
- extern void sparse_remove_section(struct mem_section *ms,
- 		unsigned long pfn, unsigned long nr_pages,
- 		unsigned long map_offset, struct vmem_altmap *altmap);
---- a/include/linux/mm.h~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
+ 	for_each_online_node(i)
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1660,7 +1660,7 @@
+ 			Format: size[KMG]
+ 
+ 	hugetlb_free_vmemmap=
+-			[KNL] Reguires CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
++			[KNL] Reguires CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 			enabled.
+ 			Allows heavy hugetlb users to free up some more
+ 			memory (7 * PAGE_SIZE for each 2MB hugetlb page).
+@@ -1669,7 +1669,7 @@
+ 			on:  enable the feature
+ 			off: disable the feature
+ 
+-			Built with CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON=y,
++			Built with CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON=y,
+ 			the default is on.
+ 
+ 			This is not compatible with memory_hotplug.memmap_on_memory.
+--- a/Documentation/admin-guide/mm/hugetlbpage.rst~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/Documentation/admin-guide/mm/hugetlbpage.rst
+@@ -164,7 +164,7 @@ default_hugepagesz
+ 	will all result in 256 2M huge pages being allocated.  Valid default
+ 	huge page size is architecture dependent.
+ hugetlb_free_vmemmap
+-	When CONFIG_HUGETLB_PAGE_FREE_VMEMMAP is set, this enables freeing
++	When CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP is set, this enables optimizing
+ 	unused vmemmap pages associated with each HugeTLB page.
+ 
+ When multiple huge page sizes are supported, ``/proc/sys/vm/nr_hugepages``
+--- a/fs/Kconfig~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/fs/Kconfig
+@@ -250,22 +250,22 @@ config HUGETLB_PAGE
+ # to enable the feature of minimizing overhead of struct page associated with
+ # each HugeTLB page.
+ #
+-config ARCH_WANT_HUGETLB_PAGE_FREE_VMEMMAP
++config ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	bool
+ 
+-config HUGETLB_PAGE_FREE_VMEMMAP
++config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	def_bool HUGETLB_PAGE
+-	depends on ARCH_WANT_HUGETLB_PAGE_FREE_VMEMMAP
++	depends on ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	depends on SPARSEMEM_VMEMMAP
+ 
+-config HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON
+-	bool "Default freeing vmemmap pages of HugeTLB to on"
++config HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON
++	bool "Default optimizing vmemmap pages of HugeTLB to on"
+ 	default n
+-	depends on HUGETLB_PAGE_FREE_VMEMMAP
++	depends on HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	help
+-	  When using HUGETLB_PAGE_FREE_VMEMMAP, the freeing unused vmemmap
++	  When using HUGETLB_PAGE_OPTIMIZE_VMEMMAP, the optimizing unused vmemmap
+ 	  pages associated with each HugeTLB page is default off. Say Y here
+-	  to enable freeing vmemmap pages of HugeTLB by default. It can then
++	  to enable optimizing vmemmap pages of HugeTLB by default. It can then
+ 	  be disabled on the command line via hugetlb_free_vmemmap=off.
+ 
+ config MEMFD_CREATE
+--- a/include/linux/hugetlb.h~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/include/linux/hugetlb.h
+@@ -623,7 +623,7 @@ struct hstate {
+ 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int free_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+-#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	unsigned int optimize_vmemmap_pages;
+ #endif
+ #ifdef CONFIG_CGROUP_HUGETLB
+--- a/include/linux/mm.h~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
 +++ a/include/linux/mm.h
-@@ -3154,7 +3154,8 @@ int vmemmap_remap_alloc(unsigned long st
+@@ -3145,7 +3145,7 @@ static inline void print_vma_addr(char *
+ }
+ #endif
  
- void *sparse_buffer_alloc(unsigned long size);
- struct page * __populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap);
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-+		struct dev_pagemap *pgmap);
- pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
- p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
---- a/mm/memory_hotplug.c~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
-+++ a/mm/memory_hotplug.c
-@@ -328,7 +328,8 @@ int __ref __add_pages(int nid, unsigned
- 		/* Select all remaining pages up to the next section boundary */
- 		cur_nr_pages = min(end_pfn - pfn,
- 				   SECTION_ALIGN_UP(pfn + 1) - pfn);
--		err = sparse_add_section(nid, pfn, cur_nr_pages, altmap);
-+		err = sparse_add_section(nid, pfn, cur_nr_pages, altmap,
-+					 params->pgmap);
- 		if (err)
- 			break;
- 		cond_resched();
---- a/mm/sparse.c~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
-+++ a/mm/sparse.c
-@@ -427,7 +427,8 @@ static unsigned long __init section_map_
+-#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ int vmemmap_remap_free(unsigned long start, unsigned long end,
+ 		       unsigned long reuse);
+ int vmemmap_remap_alloc(unsigned long start, unsigned long end,
+--- a/include/linux/page-flags.h~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/include/linux/page-flags.h
+@@ -190,13 +190,13 @@ enum pageflags {
+ 
+ #ifndef __GENERATING_BOUNDS_H
+ 
+-#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
+-DECLARE_STATIC_KEY_MAYBE(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON,
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++DECLARE_STATIC_KEY_MAYBE(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON,
+ 			 hugetlb_optimize_vmemmap_key);
+ 
+ static __always_inline bool hugetlb_optimize_vmemmap_enabled(void)
+ {
+-	return static_branch_maybe(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON,
++	return static_branch_maybe(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON,
+ 				   &hugetlb_optimize_vmemmap_key);
  }
  
- struct page __init *__populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-+		struct dev_pagemap *pgmap)
- {
- 	unsigned long size = section_map_size();
- 	struct page *map = sparse_buffer_alloc(size);
-@@ -524,7 +525,7 @@ static void __init sparse_init_nid(int n
- 			break;
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/mm/hugetlb_vmemmap.c
+@@ -188,7 +188,7 @@
+ #define RESERVE_VMEMMAP_NR		1U
+ #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
  
- 		map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
--				nid, NULL);
-+				nid, NULL, NULL);
- 		if (!map) {
- 			pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
- 			       __func__, nid);
-@@ -629,9 +630,10 @@ void offline_mem_sections(unsigned long
+-DEFINE_STATIC_KEY_MAYBE(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON,
++DEFINE_STATIC_KEY_MAYBE(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON,
+ 			hugetlb_optimize_vmemmap_key);
+ EXPORT_SYMBOL(hugetlb_optimize_vmemmap_key);
  
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- static struct page * __meminit populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-+		struct dev_pagemap *pgmap)
+@@ -276,7 +276,7 @@ void __init hugetlb_vmemmap_init(struct
+ 
+ 	/*
+ 	 * There are only (RESERVE_VMEMMAP_SIZE / sizeof(struct page)) struct
+-	 * page structs that can be used when CONFIG_HUGETLB_PAGE_FREE_VMEMMAP,
++	 * page structs that can be used when CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP,
+ 	 * so add a BUILD_BUG_ON to catch invalid usage of the tail struct page.
+ 	 */
+ 	BUILD_BUG_ON(__NR_USED_SUBPAGE >=
+--- a/mm/hugetlb_vmemmap.h~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/mm/hugetlb_vmemmap.h
+@@ -10,7 +10,7 @@
+ #define _LINUX_HUGETLB_VMEMMAP_H
+ #include <linux/hugetlb.h>
+ 
+-#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ int hugetlb_vmemmap_alloc(struct hstate *h, struct page *head);
+ void hugetlb_vmemmap_free(struct hstate *h, struct page *head);
+ void hugetlb_vmemmap_init(struct hstate *h);
+@@ -41,5 +41,5 @@ static inline unsigned int hugetlb_optim
  {
--	return __populate_section_memmap(pfn, nr_pages, nid, altmap);
-+	return __populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
+ 	return 0;
  }
- 
- static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
-@@ -700,7 +702,8 @@ static int fill_subsection_map(unsigned
- }
- #else
- struct page * __meminit populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-+		struct dev_pagemap *pgmap)
- {
- 	return kvmalloc_node(array_size(sizeof(struct page),
- 					PAGES_PER_SECTION), GFP_KERNEL, nid);
-@@ -823,7 +826,8 @@ static void section_deactivate(unsigned
- }
- 
- static struct page * __meminit section_activate(int nid, unsigned long pfn,
--		unsigned long nr_pages, struct vmem_altmap *altmap)
-+		unsigned long nr_pages, struct vmem_altmap *altmap,
-+		struct dev_pagemap *pgmap)
- {
- 	struct mem_section *ms = __pfn_to_section(pfn);
- 	struct mem_section_usage *usage = NULL;
-@@ -855,7 +859,7 @@ static struct page * __meminit section_a
- 	if (nr_pages < PAGES_PER_SECTION && early_section(ms))
- 		return pfn_to_page(pfn);
- 
--	memmap = populate_section_memmap(pfn, nr_pages, nid, altmap);
-+	memmap = populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
- 	if (!memmap) {
- 		section_deactivate(pfn, nr_pages, altmap);
- 		return ERR_PTR(-ENOMEM);
-@@ -869,7 +873,8 @@ static struct page * __meminit section_a
-  * @nid: The node to add section on
-  * @start_pfn: start pfn of the memory range
-  * @nr_pages: number of pfns to add in the section
-- * @altmap: device page map
-+ * @altmap: alternate pfns to allocate the memmap backing store
-+ * @pgmap: alternate compound page geometry for devmap mappings
-  *
-  * This is only intended for hotplug.
-  *
-@@ -883,7 +888,8 @@ static struct page * __meminit section_a
-  * * -ENOMEM	- Out of memory.
-  */
- int __meminit sparse_add_section(int nid, unsigned long start_pfn,
--		unsigned long nr_pages, struct vmem_altmap *altmap)
-+		unsigned long nr_pages, struct vmem_altmap *altmap,
-+		struct dev_pagemap *pgmap)
- {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
- 	struct mem_section *ms;
-@@ -894,7 +900,7 @@ int __meminit sparse_add_section(int nid
- 	if (ret < 0)
- 		return ret;
- 
--	memmap = section_activate(nid, start_pfn, nr_pages, altmap);
-+	memmap = section_activate(nid, start_pfn, nr_pages, altmap, pgmap);
- 	if (IS_ERR(memmap))
- 		return PTR_ERR(memmap);
- 
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-add-a-pgmap-argument-to-section-activation
+-#endif /* CONFIG_HUGETLB_PAGE_FREE_VMEMMAP */
++#endif /* CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP */
+ #endif /* _LINUX_HUGETLB_VMEMMAP_H */
+--- a/mm/Makefile~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
++++ a/mm/Makefile
+@@ -77,7 +77,7 @@ obj-$(CONFIG_FRONTSWAP)	+= frontswap.o
+ obj-$(CONFIG_ZSWAP)	+= zswap.o
+ obj-$(CONFIG_HAS_DMA)	+= dmapool.o
+ obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
+-obj-$(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP)	+= hugetlb_vmemmap.o
++obj-$(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP)	+= hugetlb_vmemmap.o
+ obj-$(CONFIG_NUMA) 	+= mempolicy.o
+ obj-$(CONFIG_SPARSEMEM)	+= sparse.o
+ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += sparse-vmemmap.o
+--- a/mm/sparse-vmemmap.c~mm-hugetlb_vmemmap-cleanup-config_hugetlb_page_free_vmemmap
 +++ a/mm/sparse-vmemmap.c
-@@ -641,7 +641,8 @@ int __meminit vmemmap_populate_basepages
- }
+@@ -34,7 +34,7 @@
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
  
- struct page * __meminit __populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-+		struct dev_pagemap *pgmap)
- {
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
+-#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ /**
+  * struct vmemmap_remap_walk - walk vmemmap page table
+  *
+@@ -420,7 +420,7 @@ int vmemmap_remap_alloc(unsigned long st
+ 
+ 	return 0;
+ }
+-#endif /* CONFIG_HUGETLB_PAGE_FREE_VMEMMAP */
++#endif /* CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP */
+ 
+ /*
+  * Allocate a block of memory to be used to back the virtual memory map
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-hugetlb_vmemmap-disable-hugetlb_optimize_vmemmap-when-struct-page-crosses-page-boundaries.patch
+mm-memory_hotplug-override-memmap_on_memory-when-hugetlb_free_vmemmap=on.patch
+mm-hugetlb_vmemmap-use-kstrtobool-for-hugetlb_vmemmap-param-parsing.patch
+mm-hugetlb_vmemmap-add-hugetlb_optimize_vmemmap-sysctl.patch
 
