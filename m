@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE860C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09474C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235970AbiEJEQA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235974AbiEJEQA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 10 May 2022 00:16:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44528 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236015AbiEJEPm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92E901159
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:19 -0700 (PDT)
+        with ESMTP id S235710AbiEJEPl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B174651E64
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0219C615DA
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AD2EC385A6;
-        Tue, 10 May 2022 04:11:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CE200B81AE7
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A5FAC385C2;
+        Tue, 10 May 2022 04:11:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155878;
-        bh=87P1X0dWJoYtmWnt8YwOheEwG3M6ectaZ/lFUeQhPCQ=;
+        s=korg; t=1652155873;
+        bh=MT45jXBxuDqmxtkGvy8ExaZLj4BY7TMx1KFrdtKi3GI=;
         h=Date:To:From:Subject:From;
-        b=Bh0VusqFFqsut41CsEVo7ozzvUuLGphNq/xfCc12S/MjXv8DBYsNNVnKVjj1WeGUj
-         doyMX2NwBxIC5U1GkahswdrETSBa9In15Ad89EZB1R1MheQRnnhzHL/6zFm/HqEpoU
-         4rpxCH3oQlGAV4SZCmsyfm0h3UKetqm5U9A3470g=
-Date:   Mon, 09 May 2022 21:11:17 -0700
+        b=IqGZWcyvBZc+zL0yj/nTqcnVeU5XP4uMmfszglWAqIXgp8qK78jKFgxLbrbsbA0rb
+         tBGQhxGI0H37jcy332E0wYwsQ1+cLTgOp27AMt94MZGL5P4ESuV3wQBDkcYiXaxrNG
+         6Xpyq7I750R/bINgpKpyF2soS2lyaI6k5gRzchRw=
+Date:   Mon, 09 May 2022 21:11:12 -0700
 To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free.patch removed from -mm tree
-Message-Id: <20220510041118.5AD2EC385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch removed from -mm tree
+Message-Id: <20220510041113.7A5FAC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,20 +41,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/z3fold: remove redundant list_del_init of zhdr->buddy in z3fold_free
+     Subject: mm/z3fold: remove obsolete comment in z3fold_alloc
 has been removed from the -mm tree.  Its filename was
-     mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free.patch
+     mm-z3fold-remove-obsolete-comment-in-z3fold_alloc.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: remove redundant list_del_init of zhdr->buddy in z3fold_free
+Subject: mm/z3fold: remove obsolete comment in z3fold_alloc
 
-do_compact_page() will do list_del_init(&zhdr->buddy) for us.  Remove this
-extra one to save some possible cpu cycles.
+The highmem pages are supported since commit f1549cb5ab2b ("mm/z3fold.c:
+allow __GFP_HIGHMEM in z3fold_alloc").  Remove the residual comment.
 
-Link: https://lkml.kernel.org/r/20220308134311.59086-8-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220308134311.59086-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -63,18 +63,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/z3fold.c |    3 ---
  1 file changed, 3 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-remove-redundant-list_del_init-of-zhdr-buddy-in-z3fold_free
+--- a/mm/z3fold.c~mm-z3fold-remove-obsolete-comment-in-z3fold_alloc
 +++ a/mm/z3fold.c
-@@ -1244,9 +1244,6 @@ static void z3fold_free(struct z3fold_po
- 		return;
- 	}
- 	if (zhdr->cpu < 0 || !cpu_online(zhdr->cpu)) {
--		spin_lock(&pool->lock);
--		list_del_init(&zhdr->buddy);
--		spin_unlock(&pool->lock);
- 		zhdr->cpu = -1;
- 		kref_get(&zhdr->refcount);
- 		clear_bit(PAGE_CLAIMED, &page->private);
+@@ -1064,9 +1064,6 @@ static void z3fold_destroy_pool(struct z
+  * performed first. If no suitable free region is found, then a new page is
+  * allocated and added to the pool to satisfy the request.
+  *
+- * gfp should not set __GFP_HIGHMEM as highmem pages cannot be used
+- * as z3fold pool pages.
+- *
+  * Return: 0 if success and handle is set, otherwise -EINVAL if the size or
+  * gfp arguments are invalid or -ENOMEM if the pool was unable to allocate
+  * a new page.
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
