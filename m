@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D21EC433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBDEBC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235932AbiEJEPQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:15:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44274 "EHLO
+        id S235962AbiEJEPR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:15:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235964AbiEJEOq (ORCPT
+        with ESMTP id S235960AbiEJEOq (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:14:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB83A1FA5F
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A83B1EECB
         for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:10:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9CE34B817CC
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EBB98615DA
         for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:10:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 570D8C385C2;
-        Tue, 10 May 2022 04:10:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A6B9C385C5;
+        Tue, 10 May 2022 04:10:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155848;
-        bh=D9MXBOaXyWYz+VPFK9kYRQyaxRfE3Z49yTlVhf46030=;
+        s=korg; t=1652155849;
+        bh=uqSHvzoV1DwW9ycxE1gcDbtEj9lyqdxxXLe4ZKFuiu4=;
         h=Date:To:From:Subject:From;
-        b=q1nASgNguOOSJ6mWbAa+jCHRgzwKIKBaAKR84iOVF9inlBAbJN98csctOuYLxyRjR
-         T2lza2Z9RUb4dufMqZSL5R7L3ROpLcEa2LIwEDGfsO6xEmZBOjLgwUSya8CvU+f1fK
-         ymK4MtNn/s6Ooi3XQRF6vqjbI7+lYJAIgOD4ELHA=
-Date:   Mon, 09 May 2022 21:10:47 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
-        lujialin4@huawei.com, akpm@linux-foundation.org
+        b=c+eEsl8Ht7Gypi83RxpzgjL82NzBVAZFmS9T9n+5aqduCYvT+Wa4CMUONcoDIqUjZ
+         BoIS9dElIFhRkr6Bpu8IE8D33i2URHGpGQwZSHWlH8saeVmdxF0NnuQEIabUYgGkpx
+         hnbWWS4NykIaH3XosRJvkn6OsibXyGY5yjmDEOOQ=
+Date:   Mon, 09 May 2022 21:10:48 -0700
+To:     mm-commits@vger.kernel.org, caoyixuan2019@email.szu.edu.cn,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrolc-remove-unused-private-flag-of-memoryoom_control.patch removed from -mm tree
-Message-Id: <20220510041048.570D8C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-fix-a-comment.patch removed from -mm tree
+Message-Id: <20220510041049.4A6B9C385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,60 +41,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memcontrol.c: remove unused private flag of memory.oom_control
+     Subject: mm/vmalloc: fix a comment
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrolc-remove-unused-private-flag-of-memoryoom_control.patch
+     mm-vmalloc-fix-a-comment.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Lu Jialin <lujialin4@huawei.com>
-Subject: mm/memcontrol.c: remove unused private flag of memory.oom_control
+From: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Subject: mm/vmalloc: fix a comment
 
-There is no use for the private value, __OOM_TYPE and OOM notifier
-OOM_CONTROL.  Therefore remove them to make the code clean.
+The sentence
+"but the mempolcy want to alloc memory by interleaving"
+should be rephrased with
+"but the mempolicy wants to alloc memory by interleaving"
+where "mempolicy" is a struct name.
 
-Link: https://lkml.kernel.org/r/20220421122755.40899-1-lujialin4@huawei.com
-Signed-off-by: Lu Jialin <lujialin4@huawei.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
+This work is coauthored by
+Yinan Zhang
+Jiajian Ye
+Shenghong Han
+Chongxi Zhao
+Yuhong Feng
+Yongqiang Liu
+
+Link: https://lkml.kernel.org/r/20220401064543.4447-1-caoyixuan2019@email.szu.edu.cn
+Signed-off-by: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrolc-remove-unused-private-flag-of-memoryoom_control
-+++ a/mm/memcontrol.c
-@@ -209,7 +209,6 @@ static struct move_charge_struct {
- enum res_type {
- 	_MEM,
- 	_MEMSWAP,
--	_OOM_TYPE,
- 	_KMEM,
- 	_TCP,
- };
-@@ -217,8 +216,6 @@ enum res_type {
- #define MEMFILE_PRIVATE(x, val)	((x) << 16 | (val))
- #define MEMFILE_TYPE(val)	((val) >> 16 & 0xffff)
- #define MEMFILE_ATTR(val)	((val) & 0xffff)
--/* Used for OOM notifier */
--#define OOM_CONTROL		(0)
- 
- /*
-  * Iteration constructs for visiting all cgroups (under a tree).  If
-@@ -4887,7 +4884,6 @@ static struct cftype mem_cgroup_legacy_f
- 		.name = "oom_control",
- 		.seq_show = mem_cgroup_oom_control_read,
- 		.write_u64 = mem_cgroup_oom_control_write,
--		.private = MEMFILE_PRIVATE(_OOM_TYPE, OOM_CONTROL),
- 	},
- 	{
- 		.name = "pressure_level",
+--- a/mm/vmalloc.c~mm-vmalloc-fix-a-comment
++++ a/mm/vmalloc.c
+@@ -2895,7 +2895,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			/* memory allocation should consider mempolicy, we can't
+ 			 * wrongly use nearest node when nid == NUMA_NO_NODE,
+ 			 * otherwise memory may be allocated in only one node,
+-			 * but mempolcy want to alloc memory by interleaving.
++			 * but mempolicy wants to alloc memory by interleaving.
+ 			 */
+ 			if (IS_ENABLED(CONFIG_NUMA) && nid == NUMA_NO_NODE)
+ 				nr = alloc_pages_bulk_array_mempolicy(bulk_gfp,
 _
 
-Patches currently in -mm which might be from lujialin4@huawei.com are
+Patches currently in -mm which might be from caoyixuan2019@email.szu.edu.cn are
 
 
