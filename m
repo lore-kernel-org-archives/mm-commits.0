@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2031C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04A56C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236199AbiEJERt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:17:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44376 "EHLO
+        id S236083AbiEJERu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:17:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236218AbiEJEQc (ORCPT
+        with ESMTP id S236219AbiEJEQc (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:32 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 975B123EB47
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:12 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E06123EB70
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 561C9B81AE7
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03298C385C5;
-        Tue, 10 May 2022 04:12:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1988161740
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66376C385C5;
+        Tue, 10 May 2022 04:12:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155930;
-        bh=86cDlrpTF0ZJdOCPphgStzL1Fq2uNNgg9qtjDlPr7S0=;
+        s=korg; t=1652155932;
+        bh=/xtHHezp0AdNR8EdlSpvWc4MHG1VICpp+/u5xIngFgQ=;
         h=Date:To:From:Subject:From;
-        b=LYrr+UBjBetaEvtOHNSoBgY83Sn83LgfDGy+DEpKRFUc6CKaKS2Pr0WIGH+PMVrqh
-         kAzxkYNRDqynWTn65YxwhGii6+yi5Sl2jTRtZEvs0+5q7RtTUrB+rAowI2FCk6bKiO
-         F7XWYC2cSEKLAYHZWrH8Iu2lKFl1q8gTglZiAqKU=
-Date:   Mon, 09 May 2022 21:12:09 -0700
+        b=bMk1d4MgK4vF2ZJmW0I55tu+a8JLqwr0MIk1nBd2247b3JiSP0pjtwkRAjUKKps5k
+         iGyjtD+JEevxSNgmHFDb+Bq9ecammlL808NuD44VYLvPjh1FUD2d3CBn420vQU3DVR
+         rnlFo9HwZC1aM3/wk1dv0w05EONvytATd0whj48M=
+Date:   Mon, 09 May 2022 21:12:11 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.l.verma@intel.com, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, jgg@ziepe.ca, jane.chu@oracle.com,
         hch@lst.de, dan.j.williams@intel.com, corbet@lwn.net,
         joao.m.martins@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-vmemmap-refactor-core-of-vmemmap_populate_basepages-to-helper.patch removed from -mm tree
-Message-Id: <20220510041210.03298C385C5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch removed from -mm tree
+Message-Id: <20220510041212.66376C385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,25 +44,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: refactor core of vmemmap_populate_basepages() to helper
+     Subject: mm/sparse-vmemmap: improve memory savings for compound devmaps
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-refactor-core-of-vmemmap_populate_basepages-to-helper.patch
+     mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/sparse-vmemmap: refactor core of vmemmap_populate_basepages() to helper
+Subject: mm/sparse-vmemmap: improve memory savings for compound devmaps
 
-In preparation for describing a memmap with compound pages, move the
-actual pte population logic into a separate function
-vmemmap_populate_address() and have a new helper vmemmap_populate_range()
-walk through all base pages it needs to populate.
+A compound devmap is a dev_pagemap with @vmemmap_shift > 0 and it means
+that pages are mapped at a given huge page alignment and utilize uses
+compound pages as opposed to order-0 pages.
 
-While doing that, change the helper to use a pte_t* as return value,
-rather than an hardcoded errno of 0 or -ENOMEM.
+Take advantage of the fact that most tail pages look the same (except the
+first two) to minimize struct page overhead.  Allocate a separate page for
+the vmemmap area which contains the head page and separate for the next 64
+pages.  The rest of the subsections then reuse this tail vmemmap page to
+initialize the rest of the tail pages.
 
-Link: https://lkml.kernel.org/r/20220420155310.9712-3-joao.m.martins@oracle.com
+Sections are arch-dependent (e.g.  on x86 it's 64M, 128M or 512M) and when
+initializing compound devmap with big enough @vmemmap_shift (e.g.  1G PUD)
+it may cross multiple sections.  The vmemmap code needs to consult @pgmap
+so that multiple sections that all map the same tail data can refer back
+to the first copy of that data for a given gigantic page.
+
+On compound devmaps with 2M align, this mechanism lets 6 pages be saved
+out of the 8 necessary PFNs necessary to set the subsection's 512 struct
+pages being mapped.  On a 1G compound devmap it saves 4094 pages.
+
+Altmap isn't supported yet, given various restrictions in altmap pfn
+allocator, thus fallback to the already in use vmemmap_populate().  It is
+worth noting that altmap for devmap mappings was there to relieve the
+pressure of inordinate amounts of memmap space to map terabytes of pmem. 
+With compound pages the motivation for altmaps for pmem gets reduced.
+
+Link: https://lkml.kernel.org/r/20220420155310.9712-5-joao.m.martins@oracle.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -76,86 +94,293 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |   53 ++++++++++++++++++++++++++++--------------
- 1 file changed, 36 insertions(+), 17 deletions(-)
+ Documentation/vm/vmemmap_dedup.rst |   56 ++++++++++-
+ include/linux/mm.h                 |    2 
+ mm/memremap.c                      |    1 
+ mm/sparse-vmemmap.c                |  132 ++++++++++++++++++++++++---
+ 4 files changed, 177 insertions(+), 14 deletions(-)
 
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-refactor-core-of-vmemmap_populate_basepages-to-helper
+--- a/Documentation/vm/vmemmap_dedup.rst~mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps
++++ a/Documentation/vm/vmemmap_dedup.rst
+@@ -1,8 +1,11 @@
+ .. SPDX-License-Identifier: GPL-2.0
+ 
+-==================================
+-Free some vmemmap pages of HugeTLB
+-==================================
++=========================================
++A vmemmap diet for HugeTLB and Device DAX
++=========================================
++
++HugeTLB
++=======
+ 
+ The struct page structures (page structs) are used to describe a physical
+ page frame. By default, there is a one-to-one mapping from a page frame to
+@@ -171,3 +174,50 @@ tail vmemmap pages are mapped to the hea
+ more than one struct page struct with PG_head (e.g. 8 per 2 MB HugeTLB page)
+ associated with each HugeTLB page. The compound_head() can handle this
+ correctly (more details refer to the comment above compound_head()).
++
++Device DAX
++==========
++
++The device-dax interface uses the same tail deduplication technique explained
++in the previous chapter, except when used with the vmemmap in
++the device (altmap).
++
++The following page sizes are supported in DAX: PAGE_SIZE (4K on x86_64),
++PMD_SIZE (2M on x86_64) and PUD_SIZE (1G on x86_64).
++
++The differences with HugeTLB are relatively minor.
++
++It only use 3 page structs for storing all information as opposed
++to 4 on HugeTLB pages.
++
++There's no remapping of vmemmap given that device-dax memory is not part of
++System RAM ranges initialized at boot. Thus the tail page deduplication
++happens at a later stage when we populate the sections. HugeTLB reuses the
++the head vmemmap page representing, whereas device-dax reuses the tail
++vmemmap page. This results in only half of the savings compared to HugeTLB.
++
++Deduplicated tail pages are not mapped read-only.
++
++Here's how things look like on device-dax after the sections are populated::
++
++ +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
++ |           |                     |     0     | -------------> |     0     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     1     | -------------> |     1     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
++ |           |                     +-----------+                   | | | | |
++ |           |                     |     3     | ------------------+ | | | |
++ |           |                     +-----------+                     | | | |
++ |           |                     |     4     | --------------------+ | | |
++ |    PMD    |                     +-----------+                       | | |
++ |   level   |                     |     5     | ----------------------+ | |
++ |  mapping  |                     +-----------+                         | |
++ |           |                     |     6     | ------------------------+ |
++ |           |                     +-----------+                           |
++ |           |                     |     7     | --------------------------+
++ |           |                     +-----------+
++ |           |
++ |           |
++ |           |
++ +-----------+
+--- a/include/linux/mm.h~mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps
++++ a/include/linux/mm.h
+@@ -3161,7 +3161,7 @@ p4d_t *vmemmap_p4d_populate(pgd_t *pgd,
+ pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+ pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
+ pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-			    struct vmem_altmap *altmap);
++			    struct vmem_altmap *altmap, struct page *reuse);
+ void *vmemmap_alloc_block(unsigned long size, int node);
+ struct vmem_altmap;
+ void *vmemmap_alloc_block_buf(unsigned long size, int node,
+--- a/mm/memremap.c~mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps
++++ a/mm/memremap.c
+@@ -287,6 +287,7 @@ void *memremap_pages(struct dev_pagemap
+ {
+ 	struct mhp_params params = {
+ 		.altmap = pgmap_altmap(pgmap),
++		.pgmap = pgmap,
+ 		.pgprot = PAGE_KERNEL,
+ 	};
+ 	const int nr_range = pgmap->nr_range;
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-improve-memory-savings-for-compound-devmaps
 +++ a/mm/sparse-vmemmap.c
-@@ -608,38 +608,57 @@ pgd_t * __meminit vmemmap_pgd_populate(u
- 	return pgd;
+@@ -533,16 +533,31 @@ void __meminit vmemmap_verify(pte_t *pte
  }
  
--int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
--					 int node, struct vmem_altmap *altmap)
-+static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
-+					      struct vmem_altmap *altmap)
+ pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-				       struct vmem_altmap *altmap)
++				       struct vmem_altmap *altmap,
++				       struct page *reuse)
  {
--	unsigned long addr = start;
+ 	pte_t *pte = pte_offset_kernel(pmd, addr);
+ 	if (pte_none(*pte)) {
+ 		pte_t entry;
+ 		void *p;
+ 
+-		p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
+-		if (!p)
+-			return NULL;
++		if (!reuse) {
++			p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
++			if (!p)
++				return NULL;
++		} else {
++			/*
++			 * When a PTE/PMD entry is freed from the init_mm
++			 * there's a a free_pages() call to this page allocated
++			 * above. Thus this get_page() is paired with the
++			 * put_page_testzero() on the freeing path.
++			 * This can only called by certain ZONE_DEVICE path,
++			 * and through vmemmap_populate_compound_pages() when
++			 * slab is available.
++			 */
++			get_page(reuse);
++			p = page_to_virt(reuse);
++		}
+ 		entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
+ 		set_pte_at(&init_mm, addr, pte, entry);
+ 	}
+@@ -609,7 +624,8 @@ pgd_t * __meminit vmemmap_pgd_populate(u
+ }
+ 
+ static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
+-					      struct vmem_altmap *altmap)
++					      struct vmem_altmap *altmap,
++					      struct page *reuse)
+ {
  	pgd_t *pgd;
  	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
+@@ -629,7 +645,7 @@ static pte_t * __meminit vmemmap_populat
+ 	pmd = vmemmap_pmd_populate(pud, addr, node);
+ 	if (!pmd)
+ 		return NULL;
+-	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
++	pte = vmemmap_pte_populate(pmd, addr, node, altmap, reuse);
+ 	if (!pte)
+ 		return NULL;
+ 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+@@ -639,13 +655,14 @@ static pte_t * __meminit vmemmap_populat
+ 
+ static int __meminit vmemmap_populate_range(unsigned long start,
+ 					    unsigned long end, int node,
+-					    struct vmem_altmap *altmap)
++					    struct vmem_altmap *altmap,
++					    struct page *reuse)
+ {
+ 	unsigned long addr = start;
  	pte_t *pte;
  
-+	pgd = vmemmap_pgd_populate(addr, node);
-+	if (!pgd)
-+		return NULL;
-+	p4d = vmemmap_p4d_populate(pgd, addr, node);
-+	if (!p4d)
-+		return NULL;
-+	pud = vmemmap_pud_populate(p4d, addr, node);
-+	if (!pud)
-+		return NULL;
-+	pmd = vmemmap_pmd_populate(pud, addr, node);
-+	if (!pmd)
-+		return NULL;
-+	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
+ 	for (; addr < end; addr += PAGE_SIZE) {
+-		pte = vmemmap_populate_address(addr, node, altmap);
++		pte = vmemmap_populate_address(addr, node, altmap, reuse);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 	}
+@@ -656,7 +673,95 @@ static int __meminit vmemmap_populate_ra
+ int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ 					 int node, struct vmem_altmap *altmap)
+ {
+-	return vmemmap_populate_range(start, end, node, altmap);
++	return vmemmap_populate_range(start, end, node, altmap, NULL);
++}
++
++/*
++ * For compound pages bigger than section size (e.g. x86 1G compound
++ * pages with 2M subsection size) fill the rest of sections as tail
++ * pages.
++ *
++ * Note that memremap_pages() resets @nr_range value and will increment
++ * it after each range successful onlining. Thus the value or @nr_range
++ * at section memmap populate corresponds to the in-progress range
++ * being onlined here.
++ */
++static bool __meminit reuse_compound_section(unsigned long start_pfn,
++					     struct dev_pagemap *pgmap)
++{
++	unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
++	unsigned long offset = start_pfn -
++		PHYS_PFN(pgmap->ranges[pgmap->nr_range].start);
++
++	return !IS_ALIGNED(offset, nr_pages) && nr_pages > PAGES_PER_SUBSECTION;
++}
++
++static pte_t * __meminit compound_section_tail_page(unsigned long addr)
++{
++	pte_t *pte;
++
++	addr -= PAGE_SIZE;
++
++	/*
++	 * Assuming sections are populated sequentially, the previous section's
++	 * page data can be reused.
++	 */
++	pte = pte_offset_kernel(pmd_off_k(addr), addr);
 +	if (!pte)
 +		return NULL;
-+	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
 +
 +	return pte;
 +}
 +
-+static int __meminit vmemmap_populate_range(unsigned long start,
-+					    unsigned long end, int node,
-+					    struct vmem_altmap *altmap)
++static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
++						     unsigned long start,
++						     unsigned long end, int node,
++						     struct dev_pagemap *pgmap)
 +{
-+	unsigned long addr = start;
++	unsigned long size, addr;
 +	pte_t *pte;
++	int rc;
 +
- 	for (; addr < end; addr += PAGE_SIZE) {
--		pgd = vmemmap_pgd_populate(addr, node);
--		if (!pgd)
--			return -ENOMEM;
--		p4d = vmemmap_p4d_populate(pgd, addr, node);
--		if (!p4d)
--			return -ENOMEM;
--		pud = vmemmap_pud_populate(p4d, addr, node);
--		if (!pud)
--			return -ENOMEM;
--		pmd = vmemmap_pmd_populate(pud, addr, node);
--		if (!pmd)
--			return -ENOMEM;
--		pte = vmemmap_pte_populate(pmd, addr, node, altmap);
-+		pte = vmemmap_populate_address(addr, node, altmap);
- 		if (!pte)
- 			return -ENOMEM;
--		vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
- 	}
- 
- 	return 0;
++	if (reuse_compound_section(start_pfn, pgmap)) {
++		pte = compound_section_tail_page(start);
++		if (!pte)
++			return -ENOMEM;
++
++		/*
++		 * Reuse the page that was populated in the prior iteration
++		 * with just tail struct pages.
++		 */
++		return vmemmap_populate_range(start, end, node, NULL,
++					      pte_page(*pte));
++	}
++
++	size = min(end - start, pgmap_vmemmap_nr(pgmap) * sizeof(struct page));
++	for (addr = start; addr < end; addr += size) {
++		unsigned long next = addr, last = addr + size;
++
++		/* Populate the head page vmemmap page */
++		pte = vmemmap_populate_address(addr, node, NULL, NULL);
++		if (!pte)
++			return -ENOMEM;
++
++		/* Populate the tail pages vmemmap page */
++		next = addr + PAGE_SIZE;
++		pte = vmemmap_populate_address(next, node, NULL, NULL);
++		if (!pte)
++			return -ENOMEM;
++
++		/*
++		 * Reuse the previous page for the rest of tail pages
++		 * See layout diagram in Documentation/vm/vmemmap_dedup.rst
++		 */
++		next += PAGE_SIZE;
++		rc = vmemmap_populate_range(next, last, node, NULL,
++					    pte_page(*pte));
++		if (rc)
++			return -ENOMEM;
++	}
++
++	return 0;
  }
  
-+int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
-+					 int node, struct vmem_altmap *altmap)
-+{
-+	return vmemmap_populate_range(start, end, node, altmap);
-+}
-+
  struct page * __meminit __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap)
+@@ -665,12 +770,19 @@ struct page * __meminit __populate_secti
+ {
+ 	unsigned long start = (unsigned long) pfn_to_page(pfn);
+ 	unsigned long end = start + nr_pages * sizeof(struct page);
++	int r;
+ 
+ 	if (WARN_ON_ONCE(!IS_ALIGNED(pfn, PAGES_PER_SUBSECTION) ||
+ 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
+ 		return NULL;
+ 
+-	if (vmemmap_populate(start, end, nid, altmap))
++	if (is_power_of_2(sizeof(struct page)) &&
++	    pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
++		r = vmemmap_populate_compound_pages(pfn, start, end, nid, pgmap);
++	else
++		r = vmemmap_populate(start, end, nid, altmap);
++
++	if (r < 0)
+ 		return NULL;
+ 
+ 	return pfn_to_page(pfn);
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
