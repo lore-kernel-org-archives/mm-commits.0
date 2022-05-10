@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EBACC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4735DC433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236103AbiEJEQ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:16:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44776 "EHLO
+        id S236213AbiEJEQa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:16:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236136AbiEJEPq (ORCPT
+        with ESMTP id S236148AbiEJEPq (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A48F19859D
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:26 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 015BDA6222
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3F1596172E
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 955C5C385A6;
-        Tue, 10 May 2022 04:11:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5393F615DA
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A870CC385C5;
+        Tue, 10 May 2022 04:11:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155885;
-        bh=8q5phtC4esHfEBt6m7omS45ywPFRvtO4lRC1BCoSOw4=;
+        s=korg; t=1652155887;
+        bh=3xLDrjKuqjpCqyOUHtfrRgPfFndwxOp5i5bXj2HjMYQ=;
         h=Date:To:From:Subject:From;
-        b=WPpvc6CpwTH9U11SSlK4v2M+CiOIOuUqQ2BmiqDHMCEGwYumVpiVH1WrlOqnvN6tH
-         Wt0wpEVFWKwHvKXVPfAxA4yKKhzWXZWgqcRM/m3/y9OjqpD8kPG7vVJYI57IqVfJGj
-         9VQIrnKtvFJUspcxT1JaDAV8H4QM7SoJP7sqDeIk=
-Date:   Mon, 09 May 2022 21:11:25 -0700
+        b=wgl1eTpVtE7/Nkw6YtgoeB0Qbaa759bMB1eAwpv3LlrGLNg0WD+bKfBMpYSg3WgYW
+         7KuOQSlUJzMaEdQr9smlpZQHUwLDt/GPrBjuvHLK0AqOBTuFCmws/IEBJT66oX2Y2O
+         aZa2/1UROurEfHaGpAYarIYDEn/gwYJuUZCdNSBE=
+Date:   Mon, 09 May 2022 21:11:27 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         songmuchun@bytedance.com, baolin.wang@linux.alibaba.com,
         apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migration-remove-unneeded-local-variable-page_lru.patch removed from -mm tree
-Message-Id: <20220510041125.955C5C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migration-use-helper-macro-min-in-do_pages_stat.patch removed from -mm tree
+Message-Id: <20220510041127.A870CC385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,52 +42,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/migration: remove unneeded local variable page_lru
+     Subject: mm/migration: use helper macro min in do_pages_stat
 has been removed from the -mm tree.  Its filename was
-     mm-migration-remove-unneeded-local-variable-page_lru.patch
+     mm-migration-use-helper-macro-min-in-do_pages_stat.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/migration: remove unneeded local variable page_lru
+Subject: mm/migration: use helper macro min in do_pages_stat
 
-We can use page_is_file_lru() directly to help account the isolated pages
-to simplify the code a bit.
+We could use helper macro min to help set the chunk_nr to simplify the
+code.
 
-Link: https://lkml.kernel.org/r/20220318111709.60311-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220318111709.60311-7-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/migrate.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migration-remove-unneeded-local-variable-page_lru
+--- a/mm/migrate.c~mm-migration-use-helper-macro-min-in-do_pages_stat
 +++ a/mm/migrate.c
-@@ -2013,7 +2013,6 @@ static struct page *alloc_misplaced_dst_
- 
- static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
+@@ -1842,16 +1842,12 @@ static int do_pages_stat(struct mm_struc
+ 			 const void __user * __user *pages,
+ 			 int __user *status)
  {
--	int page_lru;
- 	int nr_pages = thp_nr_pages(page);
- 	int order = compound_order(page);
+-#define DO_PAGES_STAT_CHUNK_NR 16
++#define DO_PAGES_STAT_CHUNK_NR 16UL
+ 	const void __user *chunk_pages[DO_PAGES_STAT_CHUNK_NR];
+ 	int chunk_status[DO_PAGES_STAT_CHUNK_NR];
  
-@@ -2040,8 +2039,7 @@ static int numamigrate_isolate_page(pg_d
- 	if (isolate_lru_page(page))
- 		return 0;
+ 	while (nr_pages) {
+-		unsigned long chunk_nr;
+-
+-		chunk_nr = nr_pages;
+-		if (chunk_nr > DO_PAGES_STAT_CHUNK_NR)
+-			chunk_nr = DO_PAGES_STAT_CHUNK_NR;
++		unsigned long chunk_nr = min(nr_pages, DO_PAGES_STAT_CHUNK_NR);
  
--	page_lru = page_is_file_lru(page);
--	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_lru,
-+	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_is_file_lru(page),
- 			    nr_pages);
- 
- 	/*
+ 		if (in_compat_syscall()) {
+ 			if (get_compat_pages_array(chunk_pages, pages,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
