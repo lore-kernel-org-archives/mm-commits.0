@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A48CC433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 101FFC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235914AbiEJEQg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:16:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48248 "EHLO
+        id S235996AbiEJEQi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:16:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236179AbiEJEPu (ORCPT
+        with ESMTP id S236173AbiEJEPu (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5547101161
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:41 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C70522408E
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 720F661738
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6D82C385C5;
-        Tue, 10 May 2022 04:11:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7A767B81AF4
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D7C8C385A6;
+        Tue, 10 May 2022 04:11:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155900;
-        bh=E9pKlp8LpAru+/5NPfTew3hsnsxKsGVrvAY6xn0gQLI=;
+        s=korg; t=1652155897;
+        bh=cI9yBz7TSCcf1bprrz5ECU18EHsQbZGAIxxFvXfoicM=;
         h=Date:To:From:Subject:From;
-        b=UZ1KWkJl8NDLlr6jmTIxlqCbOuKjyjUCT2ItV2+KNjqzs3+IQ3ozz5D9SzZ4Ra5A+
-         w4/YEn2AVo366bOAUMwTB+qy5t2FAN6AeFip5O7cDpTfptuoNOnCvKWAqgNFRAQVWd
-         GeW8K3t3QVTQLaajbWXdy5M5sTZ2FnnDgV7uT6DY=
-Date:   Mon, 09 May 2022 21:11:40 -0700
+        b=bKkLxoH99F5RTvDHMJuBijBWDfikUCTFRRbE5yfFuWuAsD1d6fCXxnMO6bBTmDGmW
+         cqJ36o6DEUoHO19MvYk3jGbTfZJ+JdOhnqe1GLalDv3mIpSTjUVxxKv99gig2yOAGh
+         KhHZj9yIhS6ts0hE0MHjUxrCFXAPgZWPf6xd0FcI=
+Date:   Mon, 09 May 2022 21:11:36 -0700
 To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         xiyuyang19@fudan.edu.cn, willy@infradead.org,
         viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
         apopple@nvidia.com, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pvmw-add-support-for-walking-devmap-pages.patch removed from -mm tree
-Message-Id: <20220510041140.C6D82C385C5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-fix-cache-flush-on-thp-pages.patch removed from -mm tree
+Message-Id: <20220510041137.2D7C8C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,76 +46,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: pvmw: add support for walking devmap pages
+     Subject: mm: rmap: fix cache flush on THP pages
 has been removed from the -mm tree.  Its filename was
-     mm-pvmw-add-support-for-walking-devmap-pages.patch
+     mm-rmap-fix-cache-flush-on-thp-pages.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: pvmw: add support for walking devmap pages
+Subject: mm: rmap: fix cache flush on THP pages
 
-The devmap pages can not use page_vma_mapped_walk() to check if a huge
-devmap page is mapped into a vma.  Add support for walking huge devmap
-pages so that DAX can use it in the next patch.
+Patch series "Fix some bugs related to ramp and dax", v7.
 
-Link: https://lkml.kernel.org/r/20220403053957.10770-5-songmuchun@bytedance.com
+Patch 1-2 fix a cache flush bug, because subsequent patches depend on
+those on those changes, there are placed in this series.  Patch 3-4 are
+preparation for fixing a dax bug in patch 5.  Patch 6 is code cleanup
+since the previous patch removes the usage of follow_invalidate_pte().
+
+
+This patch (of 6):
+
+The flush_cache_page() only remove a PAGE_SIZE sized range from the cache.
+However, it does not cover the full pages in a THP except a head page. 
+Replace it with flush_cache_range() to fix this issue.  At least, no
+problems were found due to this.  Maybe because the architectures that
+have virtual indexed caches is less.
+
+Link: https://lkml.kernel.org/r/20220403053957.10770-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220403053957.10770-2-songmuchun@bytedance.com
+Fixes: f27176cfc363 ("mm: convert page_mkclean_one() to use page_vma_mapped_walk()")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Ross Zwisler <zwisler@kernel.org>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/rmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page_vma_mapped.c~mm-pvmw-add-support-for-walking-devmap-pages
-+++ a/mm/page_vma_mapped.c
-@@ -210,16 +210,10 @@ restart:
- 		 */
- 		pmde = READ_ONCE(*pvmw->pmd);
+--- a/mm/rmap.c~mm-rmap-fix-cache-flush-on-thp-pages
++++ a/mm/rmap.c
+@@ -970,7 +970,8 @@ static bool page_mkclean_one(struct foli
+ 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
+ 				continue;
  
--		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
-+		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde) ||
-+		    (pmd_present(pmde) && pmd_devmap(pmde))) {
- 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
- 			pmde = *pvmw->pmd;
--			if (likely(pmd_trans_huge(pmde))) {
--				if (pvmw->flags & PVMW_MIGRATION)
--					return not_found(pvmw);
--				if (!check_pmd(pmd_pfn(pmde), pvmw))
--					return not_found(pvmw);
--				return true;
--			}
- 			if (!pmd_present(pmde)) {
- 				swp_entry_t entry;
- 
-@@ -232,6 +226,13 @@ restart:
- 					return not_found(pvmw);
- 				return true;
- 			}
-+			if (likely(pmd_trans_huge(pmde) || pmd_devmap(pmde))) {
-+				if (pvmw->flags & PVMW_MIGRATION)
-+					return not_found(pvmw);
-+				if (!check_pmd(pmd_pfn(pmde), pvmw))
-+					return not_found(pvmw);
-+				return true;
-+			}
- 			/* THP pmd was split under us: handle on pte level */
- 			spin_unlock(pvmw->ptl);
- 			pvmw->ptl = NULL;
+-			flush_cache_page(vma, address, folio_pfn(folio));
++			flush_cache_range(vma, address,
++					  address + HPAGE_PMD_SIZE);
+ 			entry = pmdp_invalidate(vma, address, pmd);
+ 			entry = pmd_wrprotect(entry);
+ 			entry = pmd_mkclean(entry);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
