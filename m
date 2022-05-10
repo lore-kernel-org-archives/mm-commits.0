@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB43EC433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C4F8C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235971AbiEJESK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:18:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44678 "EHLO
+        id S236183AbiEJESN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:18:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236023AbiEJEQz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:55 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A765B243108
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:19 -0700 (PDT)
+        with ESMTP id S232987AbiEJERR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 566BB7C247
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 366B1B81AE7
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5E0BC385A6;
-        Tue, 10 May 2022 04:12:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 98AC861737
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 010B9C385A6;
+        Tue, 10 May 2022 04:12:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155938;
-        bh=tOQTMSLL2hH0vo9Vvj3sFS1xT3CeK/1RISuURcRKt/A=;
+        s=korg; t=1652155949;
+        bh=0UBSMRg6Km6iJ69W+or6cODJVXBvfT9y8SCEVg8bbTU=;
         h=Date:To:From:Subject:From;
-        b=dlaW2c1Qsw+959cmd7zIGkxxBGbkFbnmuArOirLcRFkdA2sfzabdt6UUoRVKVn/XX
-         lQE27tyJGNRszNX6+tYXzx/dKQPesCgEm3fbR35MX53g7bsUeGFwIqh/de7K65HJyf
-         3WlAQXUgBrsevgyvHl6V5gh/6pR+tiELHadjh2nc=
-Date:   Mon, 09 May 2022 21:12:17 -0700
+        b=k3Axn3atAfrZ7bs//V3naIZfb2fw1ciVFSSOiGk9PNPp786gepFGC7u7ElxVmZNaF
+         My9xJGILT9PdAMij4z494SSXg+AkVcRAQ6EQ1frU8kStBu97YVCzDLJCcczkmVlLB0
+         1NrIKzz9OF3DE0jIZyXMvnV/hJJ+lKacceDwJ07E=
+Date:   Mon, 09 May 2022 21:12:28 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-remove-unneeded-return-value-of-kcompactd_run.patch removed from -mm tree
-Message-Id: <20220510041217.E5E0BC385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-make-sure-highest-is-above-the-min_pfn.patch removed from -mm tree
+Message-Id: <20220510041229.010B9C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,91 +42,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: remove unneeded return value of kcompactd_run
+     Subject: mm: compaction: make sure highest is above the min_pfn
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-remove-unneeded-return-value-of-kcompactd_run.patch
+     mm-compaction-make-sure-highest-is-above-the-min_pfn.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: remove unneeded return value of kcompactd_run
+Subject: mm: compaction: make sure highest is above the min_pfn
 
-Patch series "A few cleanup and fixup patches for compaction".
+It's not guaranteed that highest will be above the min_pfn.  If highest is
+below the min_pfn, migrate_pfn and free_pfn can meet prematurely and lead
+to some useless work.  Make sure highest is above min_pfn to avoid making
+a futile effort.
 
-This series contains a few patches to clean up some obsolete comment,
-remove unneeded return value and so on.  Also we fix the possible NULL
-pointer dereference.  More details can be found in the respective
-changelogs.
-
-
-This patch (of 12):
-
-The return value of kcompactd_run() is unused now.  Clean it up.
-
-Link: https://lkml.kernel.org/r/20220418141253.24298-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220418141253.24298-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-13-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc; Mel Gorman <mgorman@techsingularity.net>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Pintu Kumar <pintu@codeaurora.org>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Pintu Kumar <pintu@codeaurora.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    5 ++---
- mm/compaction.c            |    7 ++-----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/compaction.h~mm-compaction-remove-unneeded-return-value-of-kcompactd_run
-+++ a/include/linux/compaction.h
-@@ -177,7 +177,7 @@ static inline bool compaction_withdrawn(
- bool compaction_zonelist_suitable(struct alloc_context *ac, int order,
- 					int alloc_flags);
- 
--extern int kcompactd_run(int nid);
-+extern void kcompactd_run(int nid);
- extern void kcompactd_stop(int nid);
- extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int highest_zoneidx);
- 
-@@ -212,9 +212,8 @@ static inline bool compaction_withdrawn(
- 	return true;
- }
- 
--static inline int kcompactd_run(int nid)
-+static inline void kcompactd_run(int nid)
- {
--	return 0;
- }
- static inline void kcompactd_stop(int nid)
- {
---- a/mm/compaction.c~mm-compaction-remove-unneeded-return-value-of-kcompactd_run
+--- a/mm/compaction.c~mm-compaction-make-sure-highest-is-above-the-min_pfn
 +++ a/mm/compaction.c
-@@ -3016,21 +3016,18 @@ static int kcompactd(void *p)
-  * This kcompactd start function will be called by init and node-hot-add.
-  * On node-hot-add, kcompactd will moved to proper cpus if cpus are hot-added.
-  */
--int kcompactd_run(int nid)
-+void kcompactd_run(int nid)
- {
- 	pg_data_t *pgdat = NODE_DATA(nid);
--	int ret = 0;
- 
- 	if (pgdat->kcompactd)
--		return 0;
-+		return;
- 
- 	pgdat->kcompactd = kthread_run(kcompactd, pgdat, "kcompactd%d", nid);
- 	if (IS_ERR(pgdat->kcompactd)) {
- 		pr_err("Failed to start kcompactd on node %d\n", nid);
--		ret = PTR_ERR(pgdat->kcompactd);
- 		pgdat->kcompactd = NULL;
- 	}
--	return ret;
- }
- 
- /*
+@@ -1532,7 +1532,7 @@ fast_isolate_freepages(struct compact_co
+ 			 * not found, be pessimistic for direct compaction
+ 			 * and use the min mark.
+ 			 */
+-			if (highest) {
++			if (highest >= min_pfn) {
+ 				page = pfn_to_page(highest);
+ 				cc->free_pfn = highest;
+ 			} else {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
