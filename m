@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA02C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BC5C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235273AbiEJEVc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:21:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35674 "EHLO
+        id S236007AbiEJEVd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:21:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236188AbiEJEUC (ORCPT
+        with ESMTP id S236212AbiEJEUC (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 582792AC6E7
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7664B2AC6E9
         for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E76B961766
+        by ams.source.kernel.org (Postfix) with ESMTPS id 28B38B81AF1
         for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ADE1C385C8;
-        Tue, 10 May 2022 04:15:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF0A3C385C2;
+        Tue, 10 May 2022 04:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156101;
-        bh=FQmdpLMEqyuYWLp076R2bTQOvWLi3vDoRYddNfqqPDQ=;
+        s=korg; t=1652156099;
+        bh=eQxfEnV4tu9kPVsk9UU+ELYZrr/rwmyJvbRbwEhrBHY=;
         h=Date:To:From:Subject:From;
-        b=tg8bS8Tn/fC7iPLGHX3YuguzmttVvgW3K31QjObkwS0q687es26QAd7t5B63QczR8
-         TOl0iRkyl74li57qZrHLQYi+lKamfAR7PaNCKA4yKa87t4afNlJ5WmexrKg9NEH5nz
-         dnl+hl1oCwjAs01bk/Q8kXyGifTmh6ZwSHcQPR28=
-Date:   Mon, 09 May 2022 21:15:00 -0700
+        b=rJLY6/Yd1Tbqr1vNTpqkP885VlS7z3q5YOqspBjFT0hQhzTgYJ8IdXZXdPC61BdDi
+         1LqqpgH4cU2BjqN+N0V0kw0egjxiwoExsUAcEa3gjGYuHO+QD3Okld5AGaqD7PaMym
+         6sPjuxOaJ5iJ4dIxsrt4bWn9FIR/NuTsZeB5+VAA=
+Date:   Mon, 09 May 2022 21:14:59 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         tglx@linutronix.de, shakeelb@google.com, rppt@linux.ibm.com,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
         benh@kernel.crashing.org, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] s390-pgtable-cleanup-description-of-swp-pte-layout.patch removed from -mm tree
-Message-Id: <20220510041501.3ADE1C385C8@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch removed from -mm tree
+Message-Id: <20220510041459.BF0A3C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,28 +53,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: s390/pgtable: cleanup description of swp pte layout
+     Subject: arm64/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 has been removed from the -mm tree.  Its filename was
-     s390-pgtable-cleanup-description-of-swp-pte-layout.patch
+     arm64-pgtable-support-__have_arch_pte_swp_exclusive.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: s390/pgtable: cleanup description of swp pte layout
+Subject: arm64/pgtable: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 
-Bit 52 and bit 55 don't have to be zero: they only trigger a
-translation-specifiation exception if the PTE is marked as valid, which is
-not the case for swap ptes.
+Let's use one of the type bits: core-mm only supports 5, so there is no
+need to consume 6.
 
-Document which bits are used for what, and which ones are unused.
+Note that we might be able to reuse bit 1, but reusing bit 1 turned out
+problematic in the past for PROT_NONE handling; so let's play safe and use
+another bit.
 
-Link: https://lkml.kernel.org/r/20220329164329.208407-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20220329164329.208407-5-david@redhat.com
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Don Dutile <ddutile@redhat.com>
@@ -109,38 +110,62 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ arch/arm64/include/asm/pgtable-prot.h |    1 +
+ arch/arm64/include/asm/pgtable.h      |   23 ++++++++++++++++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
---- a/arch/s390/include/asm/pgtable.h~s390-pgtable-cleanup-description-of-swp-pte-layout
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1712,18 +1712,17 @@ static inline int has_transparent_hugepa
- /*
-  * 64 bit swap entry format:
-  * A page-table entry has some bits we have to treat in a special way.
-- * Bits 52 and bit 55 have to be zero, otherwise a specification
-- * exception will occur instead of a page translation exception. The
-- * specification exception has the bad habit not to store necessary
-- * information in the lowcore.
-- * Bits 54 and 63 are used to indicate the page type.
-+ * Bits 54 and 63 are used to indicate the page type. Bit 53 marks the pte
-+ * as invalid.
-  * A swap pte is indicated by bit pattern (pte & 0x201) == 0x200
-- * This leaves the bits 0-51 and bits 56-62 to store type and offset.
-- * We use the 5 bits from 57-61 for the type and the 52 bits from 0-51
-- * for the offset.
-- * |			  offset			|01100|type |00|
-+ * |			  offset			|X11XX|type |S0|
-  * |0000000000111111111122222222223333333333444444444455|55555|55566|66|
-  * |0123456789012345678901234567890123456789012345678901|23456|78901|23|
-+ *
-+ * Bits 0-51 store the offset.
-+ * Bits 57-61 store the type.
-+ * Bit 62 (S) is used for softdirty tracking.
-+ * Bits 52, 55 and 56 (X) are unused.
-  */
+--- a/arch/arm64/include/asm/pgtable.h~arm64-pgtable-support-__have_arch_pte_swp_exclusive
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -402,6 +402,22 @@ static inline pgprot_t mk_pmd_sect_prot(
+ 	return __pgprot((pgprot_val(prot) & ~PMD_TABLE_BIT) | PMD_TYPE_SECT);
+ }
  
- #define __SWP_OFFSET_MASK	((1UL << 52) - 1)
++#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
++static inline pte_t pte_swp_mkexclusive(pte_t pte)
++{
++	return set_pte_bit(pte, __pgprot(PTE_SWP_EXCLUSIVE));
++}
++
++static inline int pte_swp_exclusive(pte_t pte)
++{
++	return pte_val(pte) & PTE_SWP_EXCLUSIVE;
++}
++
++static inline pte_t pte_swp_clear_exclusive(pte_t pte)
++{
++	return clear_pte_bit(pte, __pgprot(PTE_SWP_EXCLUSIVE));
++}
++
+ #ifdef CONFIG_NUMA_BALANCING
+ /*
+  * See the comment in include/linux/pgtable.h
+@@ -909,12 +925,13 @@ static inline pmd_t pmdp_establish(struc
+ /*
+  * Encode and decode a swap entry:
+  *	bits 0-1:	present (must be zero)
+- *	bits 2-7:	swap type
++ *	bits 2:		remember PG_anon_exclusive
++ *	bits 3-7:	swap type
+  *	bits 8-57:	swap offset
+  *	bit  58:	PTE_PROT_NONE (must be zero)
+  */
+-#define __SWP_TYPE_SHIFT	2
+-#define __SWP_TYPE_BITS		6
++#define __SWP_TYPE_SHIFT	3
++#define __SWP_TYPE_BITS		5
+ #define __SWP_OFFSET_BITS	50
+ #define __SWP_TYPE_MASK		((1 << __SWP_TYPE_BITS) - 1)
+ #define __SWP_OFFSET_SHIFT	(__SWP_TYPE_BITS + __SWP_TYPE_SHIFT)
+--- a/arch/arm64/include/asm/pgtable-prot.h~arm64-pgtable-support-__have_arch_pte_swp_exclusive
++++ a/arch/arm64/include/asm/pgtable-prot.h
+@@ -14,6 +14,7 @@
+  * Software defined PTE bits definition.
+  */
+ #define PTE_WRITE		(PTE_DBM)		 /* same as DBM (51) */
++#define PTE_SWP_EXCLUSIVE	(_AT(pteval_t, 1) << 2)	 /* only for swp ptes */
+ #define PTE_DIRTY		(_AT(pteval_t, 1) << 55)
+ #define PTE_SPECIAL		(_AT(pteval_t, 1) << 56)
+ #define PTE_DEVMAP		(_AT(pteval_t, 1) << 57)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
