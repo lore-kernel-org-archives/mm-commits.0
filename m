@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F0DDC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 23:18:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EB1DC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 23:30:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234860AbiEJXSB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 19:18:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54576 "EHLO
+        id S238219AbiEJXaa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 19:30:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229714AbiEJXSA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 19:18:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1F0D25A7A8
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 16:17:59 -0700 (PDT)
+        with ESMTP id S237015AbiEJXa1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 19:30:27 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D335A13D15A
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 16:30:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 84D95B82014
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 23:17:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29DD4C385CC;
-        Tue, 10 May 2022 23:17:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 816A9B81FCF
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 23:30:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22A21C385CC;
+        Tue, 10 May 2022 23:30:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652224677;
-        bh=/H/xvQk1l/TSZMWNzIW2pd0ekxsETNdkLl1eM2EaEYE=;
+        s=korg; t=1652225423;
+        bh=Dos8nCuISa8ojs34Thw9S4BQT410gyyUN5+FqbSi3L0=;
         h=Date:To:From:Subject:From;
-        b=NjI7Qndg1umTfDVhLPJ5sGxKopUklTvyGsKwQ9/IRPNYFiWyJ2BRyai2GNd2AxP4B
-         YPOvnUGLbojYwZZ4LiCKuBdVqZZaxT+OT9eAYPEPNeEisGwxtuE8h0tYIxurAFwOEA
-         +F2yJ9qvz036A6RIVoU2QWrh+aNrEezGqJFwUPfY=
-Date:   Tue, 10 May 2022 16:17:56 -0700
+        b=LnNDe6tboxTgwLzCI6rvcVC6Acx7jZvMZfWAT1KqOVsSzfQL4W6jIBq87N1syiFMh
+         Bm17q9KRWn5tYvqc2zPfZcwXtqC71LIQzozAoKtfUuO8iHtY0Izlb5pZ4BpvDMDjbt
+         DwXSHj16Or6VwFkBjaI7zXvv31mWGXOhli1Yv2FU=
+Date:   Tue, 10 May 2022 16:30:22 -0700
 To:     mm-commits@vger.kernel.org, baolin.wang@linux.alibaba.com,
         akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-rmap-fix-cont-pte-pmd-size-hugetlb-issue-when-migration-fix.patch added to mm-unstable branch
-Message-Id: <20220510231757.29DD4C385CC@smtp.kernel.org>
+Message-Id: <20220510233023.22A21C385CC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -73,26 +73,24 @@ Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   11 -----------
- 1 file changed, 11 deletions(-)
+ include/linux/hugetlb.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
 --- a/include/linux/hugetlb.h~mm-rmap-fix-cont-pte-pmd-size-hugetlb-issue-when-migration-fix
 +++ a/include/linux/hugetlb.h
-@@ -1093,17 +1093,6 @@ static inline void set_huge_swap_pte_at(
- 					pte_t *ptep, pte_t pte, unsigned long sz)
+@@ -1094,6 +1094,7 @@ static inline void set_huge_swap_pte_at(
  {
  }
--
--static inline pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
--					  unsigned long addr, pte_t *ptep)
--{
--	return ptep_get(ptep);
--}
--
--static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
--				   pte_t *ptep, pte_t pte)
--{
--}
+ 
++#ifdef CONFIG_MMU
+ static inline pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 					  unsigned long addr, pte_t *ptep)
+ {
+@@ -1104,6 +1105,7 @@ static inline void set_huge_pte_at(struc
+ 				   pte_t *ptep, pte_t pte)
+ {
+ }
++#endif
  #endif	/* CONFIG_HUGETLB_PAGE */
  
  static inline spinlock_t *huge_pte_lock(struct hstate *h,
