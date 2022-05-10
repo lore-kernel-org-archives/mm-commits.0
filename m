@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B094DC433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5390FC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232829AbiEJEQv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:16:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48416 "EHLO
+        id S235949AbiEJEQ5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:16:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236120AbiEJEPo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A92A160A96
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:22 -0700 (PDT)
+        with ESMTP id S235971AbiEJEQW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:22 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FCAF13DD13
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 02C6D61739
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58F34C385C2;
-        Tue, 10 May 2022 04:11:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C18D2B81AFA
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D25EC385A6;
+        Tue, 10 May 2022 04:11:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155881;
-        bh=6rRGXn5ZD6r+/qcU+PHn+Oza18XBuflbILZRo27QMMw=;
+        s=korg; t=1652155907;
+        bh=imHMVmT+QmMLCZ5ExL2CI73Ukf55+IzGB+GcfMjIz+Y=;
         h=Date:To:From:Subject:From;
-        b=vOy9Kqhk5J9E8aCfIT9Y6iNSL0IDOf4XPPYw+xu8ne5lfqUS2WwRGUvjZYQsfhH8a
-         gSunDZHhVj5WBhpnn7pHVZNtLZIlcwCs3cJPeEYQePZN4kFZ5LPgHLn1tZnG4JF4MC
-         UpzJbpMir5B1Fx2U/JKVndH01mObN0faEu9z/Scg=
-Date:   Mon, 09 May 2022 21:11:20 -0700
-To:     mm-commits@vger.kernel.org, rafael@kernel.org,
-        minchan.kim@gmail.com, mel@csn.ul.ie,
-        kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com,
-        gregkh@linuxfoundation.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=0fnoFXf6StvgWfnftn0jXLU21mrlyHcb4+efLqVyQo+7o/rS/A3XPYru+6dYirV3V
+         pSCBodDgv0f0AMqXUKUBI+QgINgE4+QJ+aF4ah61IYShMxLiMYApMMncJKNLSFzkxv
+         dDRayRFF6Iqhr8tG9BVuLUj3SsI6EDsl3GuG1HX0=
+Date:   Mon, 09 May 2022 21:11:46 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] drivers-base-nodec-fix-compaction-sysfs-file-leak.patch removed from -mm tree
-Message-Id: <20220510041121.58F34C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate.patch removed from -mm tree
+Message-Id: <20220510041147.6D25EC385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,84 +41,591 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: drivers/base/node.c: fix compaction sysfs file leak
+     Subject: selftests: vm: refactor run_vmtests.sh to reduce boilerplate
 has been removed from the -mm tree.  Its filename was
-     drivers-base-nodec-fix-compaction-sysfs-file-leak.patch
+     selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: drivers/base/node.c: fix compaction sysfs file leak
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: selftests: vm: refactor run_vmtests.sh to reduce boilerplate
 
-Compaction sysfs file is created via compaction_register_node in
-register_node.  But we forgot to remove it in unregister_node.  Thus
-compaction sysfs file is leaked.  Using compaction_unregister_node to fix
-this issue.
+Previously, each test printed out its own header, dealt with its own
+return code, etc.  By just putting this standard stuff in a function, we
+can delete > 300 lines from the script.
 
-Link: https://lkml.kernel.org/r/20220401070905.43679-1-linmiaohe@huawei.com
-Fixes: ed4a6d7f0676 ("mm: compaction: add /sys trigger for per-node memory compaction")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+This also makes adding future tests easier. And, it gets rid of various
+inconsistencies that already exist:
+
+- Some tests correctly deal with ksft_skip, but others don't.
+- Some tests just print the executable name, others print arguments, and
+  yet others print some comment in the header.
+- Most tests print out a header with two separator lines, but not the
+  HMM smoke test or the memfd_secret test, which only print one.
+- We had a redundant "exit" at the end, with all the boilerplate it's an
+  easy oversight.
+
+Link: https://lkml.kernel.org/r/20220421224928.1848230-1-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/vm/run_vmtests.sh |  509 +++-----------------
+ 1 file changed, 79 insertions(+), 430 deletions(-)
 
---- a/drivers/base/node.c~drivers-base-nodec-fix-compaction-sysfs-file-leak
-+++ a/drivers/base/node.c
-@@ -682,6 +682,7 @@ static int register_node(struct node *no
-  */
- void unregister_node(struct node *node)
- {
-+	compaction_unregister_node(node);
- 	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
- 	node_remove_accesses(node);
- 	node_remove_caches(node);
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-refactor-run_vmtestssh-to-reduce-boilerplate
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -66,467 +66,116 @@ fi
+ VADDR64=0
+ echo "$ARCH64STR" | grep $ARCH && VADDR64=1
+ 
++# Usage: run_test [test binary] [arbitrary test arguments...]
++run_test() {
++	local title="running $*"
++	local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
++	printf "%s\n%s\n%s\n" "$sep" "$title" "$sep"
++
++	"$@"
++	local ret=$?
++	if [ $ret -eq 0 ]; then
++		echo "[PASS]"
++	elif [ $ret -eq $ksft_skip ]; then
++		echo "[SKIP]"
++		exitcode=$ksft_skip
++	else
++		echo "[FAIL]"
++		exitcode=1
++	fi
++}
++
+ mkdir $mnt
+ mount -t hugetlbfs none $mnt
+ 
+-echo "---------------------"
+-echo "running hugepage-mmap"
+-echo "---------------------"
+-./hugepage-mmap
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
++run_test ./hugepage-mmap
+ 
+ shmmax=`cat /proc/sys/kernel/shmmax`
+ shmall=`cat /proc/sys/kernel/shmall`
+ echo 268435456 > /proc/sys/kernel/shmmax
+ echo 4194304 > /proc/sys/kernel/shmall
+-echo "--------------------"
+-echo "running hugepage-shm"
+-echo "--------------------"
+-./hugepage-shm
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
++run_test ./hugepage-shm
+ echo $shmmax > /proc/sys/kernel/shmmax
+ echo $shmall > /proc/sys/kernel/shmall
+ 
+-echo "-------------------"
+-echo "running map_hugetlb"
+-echo "-------------------"
+-./map_hugetlb
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-----------------------"
+-echo "running hugepage-mremap"
+-echo "-----------------------"
+-./hugepage-mremap $mnt/huge_mremap
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
++run_test ./map_hugetlb
++
++run_test ./hugepage-mremap $mnt/huge_mremap
+ rm -f $mnt/huge_mremap
+ 
+-echo "------------------------"
+-echo "running hugepage-vmemmap"
+-echo "------------------------"
+-./hugepage-vmemmap
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-----------------------"
+-echo "running hugetlb-madvise"
+-echo "-----------------------"
+-./hugetlb-madvise $mnt/madvise-test
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
++run_test ./hugepage-vmemmap
++
++run_test ./hugetlb-madvise $mnt/madvise-test
+ rm -f $mnt/madvise-test
+ 
+ echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
+ echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
+ echo "      hugetlb regression testing."
+ 
+-echo "---------------------------"
+-echo "running map_fixed_noreplace"
+-echo "---------------------------"
+-./map_fixed_noreplace
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "------------------------------------------------------"
+-echo "running: gup_test -u # get_user_pages_fast() benchmark"
+-echo "------------------------------------------------------"
+-./gup_test -u
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "------------------------------------------------------"
+-echo "running: gup_test -a # pin_user_pages_fast() benchmark"
+-echo "------------------------------------------------------"
+-./gup_test -a
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "------------------------------------------------------------"
+-echo "# Dump pages 0, 19, and 4096, using pin_user_pages:"
+-echo "running: gup_test -ct -F 0x1 0 19 0x1000 # dump_page() test"
+-echo "------------------------------------------------------------"
+-./gup_test -ct -F 0x1 0 19 0x1000
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "-------------------"
+-echo "running userfaultfd"
+-echo "-------------------"
+-./userfaultfd anon 20 16
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "---------------------------"
+-echo "running userfaultfd_hugetlb"
+-echo "---------------------------"
++run_test ./map_fixed_noreplace
++
++# get_user_pages_fast() benchmark
++run_test ./gup_test -u
++# pin_user_pages_fast() benchmark
++run_test ./gup_test -a
++# Dump pages 0, 19, and 4096, using pin_user_pages:
++run_test ./gup_test -ct -F 0x1 0 19 0x1000
++
++run_test ./userfaultfd anon 20 16
+ # Test requires source and destination huge pages.  Size of source
+ # (half_ufd_size_MB) is passed as argument to test.
+-./userfaultfd hugetlb $half_ufd_size_MB 32
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-------------------------"
+-echo "running userfaultfd_shmem"
+-echo "-------------------------"
+-./userfaultfd shmem 20 16
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
++run_test ./userfaultfd hugetlb $half_ufd_size_MB 32
++run_test ./userfaultfd shmem 20 16
+ 
+ #cleanup
+ umount $mnt
+ rm -rf $mnt
+ echo $nr_hugepgs > /proc/sys/vm/nr_hugepages
+ 
+-echo "-----------------------"
+-echo "running compaction_test"
+-echo "-----------------------"
+-./compaction_test
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "----------------------"
+-echo "running on-fault-limit"
+-echo "----------------------"
+-sudo -u nobody ./on-fault-limit
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "--------------------"
+-echo "running map_populate"
+-echo "--------------------"
+-./map_populate
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-------------------------"
+-echo "running mlock-random-test"
+-echo "-------------------------"
+-./mlock-random-test
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "--------------------"
+-echo "running mlock2-tests"
+-echo "--------------------"
+-./mlock2-tests
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-------------------"
+-echo "running mremap_test"
+-echo "-------------------"
+-./mremap_test
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "-----------------"
+-echo "running thuge-gen"
+-echo "-----------------"
+-./thuge-gen
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
++run_test ./compaction_test
++
++run_test sudo -u nobody ./on-fault-limit
++
++run_test ./map_populate
++
++run_test ./mlock-random-test
++
++run_test ./mlock2-tests
++
++run_test ./mremap_test
++
++run_test ./thuge-gen
+ 
+ if [ $VADDR64 -ne 0 ]; then
+-echo "-----------------------------"
+-echo "running virtual_address_range"
+-echo "-----------------------------"
+-./virtual_address_range
+-if [ $? -ne 0 ]; then
+-	echo "[FAIL]"
+-	exitcode=1
+-else
+-	echo "[PASS]"
+-fi
+-
+-echo "-----------------------------"
+-echo "running virtual address 128TB switch test"
+-echo "-----------------------------"
+-./va_128TBswitch
+-if [ $? -ne 0 ]; then
+-    echo "[FAIL]"
+-    exitcode=1
+-else
+-    echo "[PASS]"
+-fi
++	run_test ./virtual_address_range
++
++	# virtual address 128TB switch test
++	run_test ./va_128TBswitch
+ fi # VADDR64
+ 
+-echo "------------------------------------"
+-echo "running vmalloc stability smoke test"
+-echo "------------------------------------"
+-./test_vmalloc.sh smoke
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "------------------------------------"
+-echo "running MREMAP_DONTUNMAP smoke test"
+-echo "------------------------------------"
+-./mremap_dontunmap
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "running HMM smoke test"
+-echo "------------------------------------"
+-./test_hmm.sh smoke
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	echo "[SKIP]"
+-	exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "--------------------------------------------------------"
+-echo "running MADV_POPULATE_READ and MADV_POPULATE_WRITE tests"
+-echo "--------------------------------------------------------"
+-./madv_populate
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	echo "[SKIP]"
+-	exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "running memfd_secret test"
+-echo "------------------------------------"
+-./memfd_secret
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	echo "[SKIP]"
+-	exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "-------------------------------------------------------"
+-echo "running KSM MADV_MERGEABLE test with 10 identical pages"
+-echo "-------------------------------------------------------"
+-./ksm_tests -M -p 10
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "------------------------"
+-echo "running KSM unmerge test"
+-echo "------------------------"
+-./ksm_tests -U
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "----------------------------------------------------------"
+-echo "running KSM test with 10 zero pages and use_zero_pages = 0"
+-echo "----------------------------------------------------------"
+-./ksm_tests -Z -p 10 -z 0
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "----------------------------------------------------------"
+-echo "running KSM test with 10 zero pages and use_zero_pages = 1"
+-echo "----------------------------------------------------------"
+-./ksm_tests -Z -p 10 -z 1
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "-------------------------------------------------------------"
+-echo "running KSM test with 2 NUMA nodes and merge_across_nodes = 1"
+-echo "-------------------------------------------------------------"
+-./ksm_tests -N -m 1
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
+-
+-echo "-------------------------------------------------------------"
+-echo "running KSM test with 2 NUMA nodes and merge_across_nodes = 0"
+-echo "-------------------------------------------------------------"
+-./ksm_tests -N -m 0
+-ret_val=$?
+-
+-if [ $ret_val -eq 0 ]; then
+-	echo "[PASS]"
+-elif [ $ret_val -eq $ksft_skip ]; then
+-	 echo "[SKIP]"
+-	 exitcode=$ksft_skip
+-else
+-	echo "[FAIL]"
+-	exitcode=1
+-fi
++# vmalloc stability smoke test
++run_test ./test_vmalloc.sh smoke
+ 
+-exit $exitcode
++run_test ./mremap_dontunmap
++
++run_test ./test_hmm.sh smoke
++
++# MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
++run_test ./madv_populate
++
++run_test ./memfd_secret
++
++# KSM MADV_MERGEABLE test with 10 identical pages
++run_test ./ksm_tests -M -p 10
++# KSM unmerge test
++run_test ./ksm_tests -U
++# KSM test with 10 zero pages and use_zero_pages = 0
++run_test ./ksm_tests -Z -p 10 -z 0
++# KSM test with 10 zero pages and use_zero_pages = 1
++run_test ./ksm_tests -Z -p 10 -z 1
++# KSM test with 2 NUMA nodes and merge_across_nodes = 1
++run_test ./ksm_tests -N -m 1
++# KSM test with 2 NUMA nodes and merge_across_nodes = 0
++run_test ./ksm_tests -N -m 0
+ 
+ exit $exitcode
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
-mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
-mm-migration-reduce-the-rcu-lock-duration.patch
-mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-mm-migration-return-errno-when-isolate_huge_page-failed.patch
-mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
-mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
-mm-vmscan-introduce-helper-function-reclaim_page_list.patch
-mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
-mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
-mm-vmscan-use-helper-folio_is_file_lru.patch
-mm-vmscan-use-helper-folio_is_file_lru-fix.patch
-mm-z3fold-fix-sheduling-while-atomic.patch
-mm-z3fold-fix-possible-null-pointer-dereferencing.patch
-mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
-mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
-revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
-mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
-mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
-mm-z3fold-fix-z3fold_reclaim_page-races-with-z3fold_free.patch
-mm-z3fold-fix-z3fold_page_migrate-races-with-z3fold_map.patch
-mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
-mm-swap-use-helper-macro-__attr_rw.patch
-mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
-mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
-mm-swap-print-bad-swap-offset-entry-in-get_swap_device.patch
-mm-swap-remove-buggy-cache-nr-check-in-refill_swap_slots_cache.patch
-mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
-mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
-mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
-mm-swap-add-helper-swap_offset_available.patch
-mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
-mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
-mm-swap-fix-the-comment-of-get_kernel_pages.patch
-mm-swap-fix-comment-about-swap-extent.patch
 
