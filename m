@@ -2,81 +2,82 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FA99C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 15:48:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 893E4C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 16:56:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346597AbiEJPwj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 11:52:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33102 "EHLO
+        id S244449AbiEJRAZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 13:00:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347193AbiEJPwE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 11:52:04 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56B0E28AB90
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 08:47:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=vNk+JXG6jDXFMFQJslsc7ZZEpVqFxXOCzCsxW4Shybk=; b=a9aUHllAugXn7pEv09yaFnTFdN
-        /vaEy4gAvGzpDD+0U7zU2c38IsAGQO+6ZkzCpw2tXjnb5BTB8x+8k9b+EsRgaeZ5zKe1at8fHAXg8
-        hU7gmOP3ncuE11kSnHN0acbzUHJFZq0sYX3O6XrXRxRDDDN0q+OKIOGDQwui2weRq6oSfzNzoBiph
-        LPDJVZu6x8fFiJXxT9W5+qTYmak1o4nYd05+OMdxtYtUnjQfmFvuTC1SEERrBHwZ+xQuqdWydAjtX
-        dUPD67hWT7spvQFQ1uGSQ8VTGNAW1YGBJAAuzp7RzBxSPjxBb/TBRJtGwibF3SE39dDuUFBagxc05
-        HIStHn9g==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1noS4u-004awa-Iy; Tue, 10 May 2022 15:47:12 +0000
-Date:   Tue, 10 May 2022 16:47:12 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, hch@lst.de
-Subject: Re: +
- vmscan-convert-the-writeback-handling-in-shrink_page_list-to-folios.patch
- added to mm-unstable branch
-Message-ID: <YnqJAGgV7S8b51fk@casper.infradead.org>
-References: <20220506013250.B5929C385A8@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220506013250.B5929C385A8@smtp.kernel.org>
+        with ESMTP id S1347747AbiEJRAX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 13:00:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EFC224642C
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 09:56:22 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DBC6F61673
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 16:56:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E2FDC385C9;
+        Tue, 10 May 2022 16:56:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1652201781;
+        bh=ZkcplmcD1pYQuaQz81mNUXMOrmx55eGRmAPByDfouno=;
+        h=Date:To:From:Subject:From;
+        b=TS3HGiOyhC0H317cogOi9lddYudYi3Ck7W9NJILMBEmB/Mz7wVyao0C+J26f6KsJQ
+         nk3GNSNgFWPnkkzz+6kxOwa9oTlo94AQeUvPHIFfyaQPFqCnBa8lFgejyDOQqHidMU
+         G5w4OuAx50pVtohzMk/bn6fwmaXC9ofnWppp6q4g=
+Date:   Tue, 10 May 2022 09:56:20 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        zhouchengming@bytedance.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] kselftest-vm-override-targets-from-arguments.patch removed from -mm tree
+Message-Id: <20220510165621.3E2FDC385C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, May 05, 2022 at 06:32:50PM -0700, Andrew Morton wrote:
-> +++ a/mm/vmscan.c
-> @@ -1598,40 +1598,42 @@ retry:
->  			stat->nr_congested += nr_pages;
->  
->  		/*
-> -		 * If a page at the tail of the LRU is under writeback, there
-> +		 * If a folio at the tail of the LRU is under writeback, there
->  		 * are three cases to consider.
->  		 *
-> -		 * 1) If reclaim is encountering an excessive number of pages
-> -		 *    under writeback and this page is both under writeback and
-> -		 *    PageReclaim then it indicates that pages are being queued
-> -		 *    for IO but are being recycled through the LRU before the
-> -		 *    IO can complete. Waiting on the page itself risks an
-> -		 *    indefinite stall if it is impossible to writeback the
-> -		 *    page due to IO error or disconnected storage so instead
-> -		 *    note that the LRU is being scanned too quickly and the
-> -		 *    caller can stall after page list has been processed.
-> +		 * 1) If reclaim is encountering an excessive number of folios
-> +		 *    under writeback and this folio is both under
-> +		 *    writeback and has the reclaim flag set then it
-> +		 *    indicates that folios are being queued for I/O but
-> +		 *    are being recycled through the LRU before the I/O
-> +		 *    can complete. Waiting on the folio itself risks an
-> +		 *    indefinite stall if it is impossible to writeback
-> +		 *    the folio due to I/O error or disconnected storage
-> +		 *    so instead note that the LRU is being scanned too
-> +		 *    quickly and the caller can stall after the folio
-> +		 *    list has been processed.
->  		 *
 
-At some point between this email being sent and what's currently in
-linux-next, the above asterisk changed to a hash (* -> #).  You may
-or may not want to fix that.
+The quilt patch titled
+     Subject: kselftest/vm: override TARGETS from arguments
+has been removed from the -mm tree.  Its filename was
+     kselftest-vm-override-targets-from-arguments.patch
+
+This patch was dropped because an updated version will be merged
+
+------------------------------------------------------
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: kselftest/vm: override TARGETS from arguments
+
+We can specify which testcases to build using TARGETS argument, for
+example: make -C tools/testing/selftests TARGETS=vm, cause the ordinary
+assignment of TARGETS in Makefile will be ignored.  So we need to use
+override directive to change that.
+
+Link: https://lkml.kernel.org/r/20220227055330.43087-1-zhouchengming@bytedance.com
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/vm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/tools/testing/selftests/vm/Makefile~kselftest-vm-override-targets-from-arguments
++++ a/tools/testing/selftests/vm/Makefile
+@@ -59,7 +59,7 @@ CAN_BUILD_I386 := $(shell ./../x86/check
+ CAN_BUILD_X86_64 := $(shell ./../x86/check_cc.sh "$(CC)" ../x86/trivial_64bit_program.c)
+ CAN_BUILD_WITH_NOPIE := $(shell ./../x86/check_cc.sh "$(CC)" ../x86/trivial_program.c -no-pie)
+ 
+-TARGETS := protection_keys
++override TARGETS := protection_keys
+ BINARIES_32 := $(TARGETS:%=%_32)
+ BINARIES_64 := $(TARGETS:%=%_64)
+ 
+_
+
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
+
 
