@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72131C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F20BC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235925AbiEJEPK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:15:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42700 "EHLO
+        id S236055AbiEJEPP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:15:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235937AbiEJEOm (ORCPT
+        with ESMTP id S235932AbiEJEOm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:14:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C22EE23
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:10:45 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB977766D
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:10:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CBA866172E
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:10:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 299B2C385C5;
-        Tue, 10 May 2022 04:10:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 72D0BB81AEF
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:10:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C1E2C385C2;
+        Tue, 10 May 2022 04:10:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155844;
-        bh=vfaa8LblQqgk2ZEF96Q9FbD+rSntnKhZ1wWC8fej7s4=;
+        s=korg; t=1652155843;
+        bh=P55EwZeA4PaWMvqMkegr3wtRRgyRuSUzMS2BZtrLNGg=;
         h=Date:To:From:Subject:From;
-        b=LSG9uihOWFxIKbfH688/IkWJrSi2LqDPYnJ3qtnjrh1hLZYNxsAu2OT6H8ag9j2ok
-         NQdHI7Cr2VccLhB6KR2oSsweY+qcDeKqiQv4Mqem9lsQTpOMb62lV9sI/x/kvckO+6
-         i1q2ISLImrSnaaJdkQczXdBJ+p50EBUmZeasGoMw=
-Date:   Mon, 09 May 2022 21:10:43 -0700
+        b=VR0RZjiiG9LDT6Lw2etBgpyKWvGDiITpuIcyNcCAPRyjW7oZ7mU1dFEgfK86jle3t
+         n8IwRMv2upJN9JQIIdMlYJZI3gX9aO3UE4Yupi14KosHiR8qKQwO4i5jsIYjZcl5lU
+         IkmUa3NDu1lYixfCvAgl14/ylsS2RmoNn0mO7nhQ=
+Date:   Mon, 09 May 2022 21:10:42 -0700
 To:     mm-commits@vger.kernel.org, void@manifault.com, tj@kernel.org,
         shakeelb@google.com, mhocko@kernel.org, lizefan.x@bytedance.com,
         hannes@cmpxchg.org, chris@chrisdown.name, roman.gushchin@linux.dev,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kselftests-memcg-speed-up-the-memoryhigh-test.patch removed from -mm tree
-Message-Id: <20220510041044.299B2C385C5@smtp.kernel.org>
+Subject: [merged mm-stable] kselftests-memcg-update-the-oom-group-leaf-events-test.patch removed from -mm tree
+Message-Id: <20220510041043.0C1E2C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,46 +43,35 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kselftests: memcg: speed up the memory.high test
+     Subject: kselftests: memcg: update the oom group leaf events test
 has been removed from the -mm tree.  Its filename was
-     kselftests-memcg-speed-up-the-memoryhigh-test.patch
+     kselftests-memcg-update-the-oom-group-leaf-events-test.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: kselftests: memcg: speed up the memory.high test
+Subject: kselftests: memcg: update the oom group leaf events test
 
-After commit 0e4b01df8659 ("mm, memcg: throttle allocators when failing
-reclaim over memory.high") allocating memory over memory.high became very
-time consuming.  But it's exactly what the memory.high test from cgroup
-kselftests is doing: it tries to allocate 100M with 30M memory.high value.
-It takes forever to complete.
+Patch series "mm: memcg kselftests fixes".
 
-In order to keep it passing (or failing) in a reasonable amount of time
-let's try to allocate only a little over 30M: 31M to be precise.
 
-With this change test_memcontrol finishes in a reasonable amount of
-time:
-  $ time ./test_memcontrol
-  ok 1 test_memcg_subtree_control
-  ok 2 test_memcg_current
-  ok 3 test_memcg_min
-  ok 4 test_memcg_low
-  ok 5 test_memcg_high
-  ok 6 test_memcg_max
-  ok 7 test_memcg_oom_events
-  ok 8 test_memcg_swap_max
-  ok 9 test_memcg_sock
-  ok 10 test_memcg_oom_group_leaf_events
-  ok 11 test_memcg_oom_group_parent_events
-  ok 12 test_memcg_oom_group_score_events
+This patch (of 4):
 
-  real	0m2.273s
-  user	0m0.064s
-  sys	0m0.739s
+Commit 9852ae3fe529 ("mm, memcg: consider subtrees in memory.events") made
+memory.events recursive: all events are propagated upwards by the tree. 
+It was a change in semantics.
 
-Link: https://lkml.kernel.org/r/20220415000133.3955987-3-roman.gushchin@linux.dev
+It broke the oom group leaf events test: it assumes that after an OOM the
+oom_kill counter is zero on parent's level.
+
+Let's adjust the test: it should have similar expectations for the child
+and parent levels.
+
+The test passes after this fix.
+
+Link: https://lkml.kernel.org/r/20220415000133.3955987-2-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20220415000133.3955987-1-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
 Reviewed-by: David Vernet <void@manifault.com>
 Cc: Chris Down <chris@chrisdown.name>
@@ -94,20 +83,30 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~kselftests-memcg-speed-up-the-memoryhigh-test
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~kselftests-memcg-update-the-oom-group-leaf-events-test
 +++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -607,7 +607,7 @@ static int test_memcg_high(const char *r
- 	if (cg_write(memcg, "memory.high", "30M"))
+@@ -1079,7 +1079,8 @@ cleanup:
+ /*
+  * This test disables swapping and tries to allocate anonymous memory
+  * up to OOM with memory.group.oom set. Then it checks that all
+- * processes in the leaf (but not the parent) were killed.
++ * processes in the leaf were killed. It also checks that oom_events
++ * were propagated to the parent level.
+  */
+ static int test_memcg_oom_group_leaf_events(const char *root)
+ {
+@@ -1122,7 +1123,7 @@ static int test_memcg_oom_group_leaf_eve
+ 	if (cg_read_key_long(child, "memory.events", "oom_kill ") <= 0)
  		goto cleanup;
  
--	if (cg_run(memcg, alloc_anon, (void *)MB(100)))
-+	if (cg_run(memcg, alloc_anon, (void *)MB(31)))
+-	if (cg_read_key_long(parent, "memory.events", "oom_kill ") != 0)
++	if (cg_read_key_long(parent, "memory.events", "oom_kill ") <= 0)
  		goto cleanup;
  
- 	if (!cg_run(memcg, alloc_pagecache_50M_check, NULL))
+ 	ret = KSFT_PASS;
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
