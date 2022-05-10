@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2745AC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 829C0C433FE
 	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236019AbiEJER4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:17:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44822 "EHLO
+        id S236028AbiEJER5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:17:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236033AbiEJERA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A9D02438C8
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:22 -0700 (PDT)
+        with ESMTP id S236039AbiEJERD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5846B2438CD
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B94F6173E
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3EF5C385C2;
-        Tue, 10 May 2022 04:12:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4F758B81AFB
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0D99C385A6;
+        Tue, 10 May 2022 04:12:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155941;
-        bh=vDV+3T686GaRofPe90ilbUtmVv7u9IKCoxSbKyEM8s4=;
+        s=korg; t=1652155942;
+        bh=UssZDz2bUDFh4B99SjFuFzM0nACqrjn7oCflmdxIHUQ=;
         h=Date:To:From:Subject:From;
-        b=nqav7UbeXVhPUDUOmLhl+3nS/iFl7BnWOBdiWBZF+MUlRggUVDjSNHvvJxt/dPW+l
-         rzBDMyV//qcbniuKzvSg5ePQLLZM8d5nDbkaogpPkGdaHgeoHn3bVx4KiZuux5dRdE
-         eqw5EErROA0UVsWU4482b9yjxSdmyLvHjQAqfZ0U=
-Date:   Mon, 09 May 2022 21:12:20 -0700
+        b=k/h89/j0wioKs1OHOcuG947ImblrS5vcZOzBIlYvtuMuGOwfmhSi/NU0rlKL+Cvp3
+         QdirG/0JBSLkwpLEK5k2jTFO/s+KDi+wk5TH8BV2TXyRBXmt/XApWvjjp2E1iCss39
+         Bio0QyKebaURjBIH0RLaZS/lBLGMST+2S0ZYQH7w=
+Date:   Mon, 09 May 2022 21:12:21 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-clean-up-comment-for-sched-contention.patch removed from -mm tree
-Message-Id: <20220510041220.F3EF5C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch removed from -mm tree
+Message-Id: <20220510041221.F0D99C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,21 +42,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: clean up comment for sched contention
+     Subject: mm: compaction: clean up comment about suitable migration target recheck
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-clean-up-comment-for-sched-contention.patch
+     mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: clean up comment for sched contention
+Subject: mm: compaction: clean up comment about suitable migration target recheck
 
-Since commit cf66f0700c8f ("mm, compaction: do not consider a need to
-reschedule as contention"), async compaction won't abort when scheduling
-is needed.  Correct the relevant comment accordingly.
+checked_pageblock is already removed and suitable_migration_target is not
+rechecked under the zone lock since commit f8224aa5a0a4 ("mm, compaction:
+do not recheck suitable_migration_target under lock").  Correct the
+comment accordingly.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -65,51 +66,26 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 ++++-------
- mm/internal.h   |    2 +-
- 2 files changed, 5 insertions(+), 8 deletions(-)
+ mm/compaction.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-clean-up-comment-for-sched-contention
+--- a/mm/compaction.c~mm-compaction-clean-up-comment-about-suitable-migration-target-recheck
 +++ a/mm/compaction.c
-@@ -513,15 +513,12 @@ static bool compact_lock_irqsave(spinloc
-  * very heavily contended. The lock should be periodically unlocked to avoid
-  * having disabled IRQs for a long time, even when there is nobody waiting on
-  * the lock. It might also be that allowing the IRQs will result in
-- * need_resched() becoming true. If scheduling is needed, async compaction
-- * aborts. Sync compaction schedules.
-+ * need_resched() becoming true. If scheduling is needed, compaction schedules.
-  * Either compaction type will also abort if a fatal signal is pending.
-  * In either case if the lock was locked, it is dropped and not regained.
-  *
-- * Returns true if compaction should abort due to fatal signal pending, or
-- *		async compaction due to need_resched()
-- * Returns false when compaction can continue (sync compaction might have
-- *		scheduled)
-+ * Returns true if compaction should abort due to fatal signal pending.
-+ * Returns false when compaction can continue.
-  */
- static bool compact_unlock_should_abort(spinlock_t *lock,
- 		unsigned long flags, bool *locked, struct compact_control *cc)
-@@ -574,7 +571,7 @@ static unsigned long isolate_freepages_b
- 		/*
- 		 * Periodically drop the lock (if held) regardless of its
- 		 * contention, to give chance to IRQs. Abort if fatal signal
--		 * pending or async compaction detects need_resched()
-+		 * pending.
- 		 */
- 		if (!(blockpfn % SWAP_CLUSTER_MAX)
- 		    && compact_unlock_should_abort(&cc->zone->lock, flags,
---- a/mm/internal.h~mm-compaction-clean-up-comment-for-sched-contention
-+++ a/mm/internal.h
-@@ -402,7 +402,7 @@ struct compact_control {
- 	bool direct_compaction;		/* False from kcompactd or /proc/... */
- 	bool proactive_compaction;	/* kcompactd proactive compaction */
- 	bool whole_zone;		/* Whole zone should/has been scanned */
--	bool contended;			/* Signal lock or sched contention */
-+	bool contended;			/* Signal lock contention */
- 	bool rescan;			/* Rescanning the same pageblock */
- 	bool alloc_contig;		/* alloc_contig_range allocation */
- };
+@@ -599,13 +599,7 @@ static unsigned long isolate_freepages_b
+ 		if (!PageBuddy(page))
+ 			goto isolate_fail;
+ 
+-		/*
+-		 * If we already hold the lock, we can skip some rechecking.
+-		 * Note that if we hold the lock now, checked_pageblock was
+-		 * already set in some previous iteration (or strict is true),
+-		 * so it is correct to skip the suitable migration target
+-		 * recheck as well.
+-		 */
++		/* If we already hold the lock, we can skip some rechecking. */
+ 		if (!locked) {
+ 			locked = compact_lock_irqsave(&cc->zone->lock,
+ 								&flags, cc);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
