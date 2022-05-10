@@ -2,79 +2,230 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 031D8C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 18:57:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EE2FC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 18:59:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229450AbiEJS5n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 14:57:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40886 "EHLO
+        id S232821AbiEJS7e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 14:59:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47340 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237248AbiEJS5l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 14:57:41 -0400
-Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C9F03E5EE
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 11:57:40 -0700 (PDT)
-Received: from zn.tnic (p5de8eeb4.dip0.t-ipconnect.de [93.232.238.180])
+        with ESMTP id S1344041AbiEJS7d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 14:59:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4831F56FBB
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 11:59:32 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 884281EC0453;
-        Tue, 10 May 2022 20:57:34 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1652209054;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=Mvbk6YXNHCDTVJq+TKolSmiEHwhVEhF+YCz4zXsQ9SA=;
-        b=rz+8C4O2/HNXAoQEQ7GBFLegjlEYasDQmB2H3uP36SCWB+dC0LP1vNlMYNW/+EeyzfrKWq
-        ohfHarSF9OIh2ZnlFf+KZUSfcf7KLb8Q01BBKsWOjzKGRXGufypJIGdqzm/sU77hvBiAu9
-        RjQO2JC9JUjTrjhCLOEIOagreFGuNWI=
-Date:   Tue, 10 May 2022 20:57:33 +0200
-From:   Borislav Petkov <bp@alien8.de>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Mark Hemment <markhemm@googlemail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
-        Lukas Czerner <lczerner@redhat.com>,
-        Christoph Hellwig <hch@lst.de>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Mel Gorman <mgorman@suse.de>
-Subject: Re: clear_user (was: [patch 02/14] tmpfs: fix regressions from wider
- use of ZERO_PAGE)
-Message-ID: <Ynq1nVpu1xCpjnXm@zn.tnic>
-References: <CAHk-=wg=D9eaDHU5yHpqf_G7zTBcv6yU1kkNzV6KKb5jttNxvA@mail.gmail.com>
- <YnLMSWbz6BNfsBME@zn.tnic>
- <CAHk-=wh_62HBCz1g_6mKP71XOvJAs3JwBz0=jve2mg1DGWPq5g@mail.gmail.com>
- <YnLfl6lupN2nq7+t@zn.tnic>
- <CAHk-=wiGbrJMim6EWncZUQBzguqy-vtNd+grfNizm5L8Vcmu+w@mail.gmail.com>
- <YnLplKy0Y66SsvQw@zn.tnic>
- <CAHk-=wjUX5DGNSiBYvPC8fQJGRe5_RWR8NW=gYF4=UpPiwCE8A@mail.gmail.com>
- <Ynow8F3G8Kl6V3gu@zn.tnic>
- <CAHk-=whCmmipbBDips0OJ=UiBUjZfgBGYruoOsqcq2TVd5kBSA@mail.gmail.com>
- <YnqqhmYv75p+xl73@zn.tnic>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <YnqqhmYv75p+xl73@zn.tnic>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D3C1C60C71
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 18:59:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34174C385A6;
+        Tue, 10 May 2022 18:59:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1652209171;
+        bh=SQXsYWtg++AItbOi7lsVtVAN0rxptKWR9XfOHI1zn4U=;
+        h=Date:To:From:Subject:From;
+        b=VGGvlnAN2FN+VxCb8SUsFIDSIbKYUpUfC8gvfcJHZKiIvjpA0pJybh7mKXUcdUxH7
+         D4yo4qmo14N6atRvdEiMjTXBGWylYUIChm3dN2muHr0nxOufafrR7KHfSoHgv2gFV7
+         iNdkYn10qr79DBnn9tdFH33cwv/TPb9gFyVtUYfs=
+Date:   Tue, 10 May 2022 11:59:30 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rostedt@goodmis.org,
+        jirislaby@kernel.org, gregkh@linuxfoundation.org,
+        akinobu.mita@gmail.com, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-fix-missing-handler-for-__gfp_nowarn.patch added to mm-unstable branch
+Message-Id: <20220510185931.34174C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, May 10, 2022 at 08:10:14PM +0200, Borislav Petkov wrote:
-> And when you think of all the crap stuff that got added in silicon
-> and *removed* *again* in the meantime... but I'm optimistic now that
-> Murphy's Law is not going to hold true anymore, we will finally start
-  ^^^^^^
 
-Dunno if this was a Freudian slip... :-)
+The patch titled
+     Subject: mm: fix missing handler for __GFP_NOWARN
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-missing-handler-for-__gfp_nowarn.patch
 
--- 
-Regards/Gruss,
-    Boris.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-missing-handler-for-__gfp_nowarn.patch
 
-https://people.kernel.org/tglx/notes-about-netiquette
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: fix missing handler for __GFP_NOWARN
+
+We expect no warnings to be issued when we specify __GFP_NOWARN, but
+currently in paths like alloc_pages() and kmalloc(), there are still some
+warnings printed, fix it.
+
+Link: https://lkml.kernel.org/r/20220510113809.80626-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/fault-inject.h |    2 ++
+ lib/fault-inject.c           |    3 +++
+ mm/failslab.c                |    3 +++
+ mm/internal.h                |   11 +++++++++++
+ mm/page_alloc.c              |   18 ++++++++++--------
+ 5 files changed, 29 insertions(+), 8 deletions(-)
+
+--- a/include/linux/fault-inject.h~mm-fix-missing-handler-for-__gfp_nowarn
++++ a/include/linux/fault-inject.h
+@@ -20,6 +20,7 @@ struct fault_attr {
+ 	atomic_t space;
+ 	unsigned long verbose;
+ 	bool task_filter;
++	bool no_warn;
+ 	unsigned long stacktrace_depth;
+ 	unsigned long require_start;
+ 	unsigned long require_end;
+@@ -39,6 +40,7 @@ struct fault_attr {
+ 		.ratelimit_state = RATELIMIT_STATE_INIT_DISABLED,	\
+ 		.verbose = 2,						\
+ 		.dname = NULL,						\
++		.no_warn = false,					\
+ 	}
+ 
+ #define DECLARE_FAULT_ATTR(name) struct fault_attr name = FAULT_ATTR_INITIALIZER
+--- a/lib/fault-inject.c~mm-fix-missing-handler-for-__gfp_nowarn
++++ a/lib/fault-inject.c
+@@ -41,6 +41,9 @@ EXPORT_SYMBOL_GPL(setup_fault_attr);
+ 
+ static void fail_dump(struct fault_attr *attr)
+ {
++	if (attr->no_warn)
++		return;
++
+ 	if (attr->verbose > 0 && __ratelimit(&attr->ratelimit_state)) {
+ 		printk(KERN_NOTICE "FAULT_INJECTION: forcing a failure.\n"
+ 		       "name %pd, interval %lu, probability %lu, "
+--- a/mm/failslab.c~mm-fix-missing-handler-for-__gfp_nowarn
++++ a/mm/failslab.c
+@@ -30,6 +30,9 @@ bool __should_failslab(struct kmem_cache
+ 	if (failslab.cache_filter && !(s->flags & SLAB_FAILSLAB))
+ 		return false;
+ 
++	if (gfpflags & __GFP_NOWARN)
++		failslab.attr.no_warn = true;
++
+ 	return should_fail(&failslab.attr, s->object_size);
+ }
+ 
+--- a/mm/internal.h~mm-fix-missing-handler-for-__gfp_nowarn
++++ a/mm/internal.h
+@@ -35,6 +35,17 @@ struct folio_batch;
+ /* Do not use these with a slab allocator */
+ #define GFP_SLAB_BUG_MASK (__GFP_DMA32|__GFP_HIGHMEM|~__GFP_BITS_MASK)
+ 
++#define WARN_ON_ONCE_GFP(cond, gfp)	({				\
++	static bool __section(".data.once") __warned;			\
++	int __ret_warn_once = !!(cond);					\
++									\
++	if (unlikely(!(gfp & __GFP_NOWARN) && __ret_warn_once && !__warned)) { \
++		__warned = true;					\
++		WARN_ON(1);						\
++	}								\
++	unlikely(__ret_warn_once);					\
++})
++
+ void page_writeback_init(void);
+ 
+ static inline void *folio_raw_mapping(struct folio *folio)
+--- a/mm/page_alloc.c~mm-fix-missing-handler-for-__gfp_nowarn
++++ a/mm/page_alloc.c
+@@ -3712,7 +3712,7 @@ struct page *rmqueue(struct zone *prefer
+ 	 * We most definitely don't want callers attempting to
+ 	 * allocate greater than order-1 page units with __GFP_NOFAIL.
+ 	 */
+-	WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
++	WARN_ON_ONCE_GFP((gfp_flags & __GFP_NOFAIL) && (order > 1), gfp_flags);
+ 
+ 	do {
+ 		page = NULL;
+@@ -3789,6 +3789,9 @@ static bool __should_fail_alloc_page(gfp
+ 			(gfp_mask & __GFP_DIRECT_RECLAIM))
+ 		return false;
+ 
++	if (gfp_mask & __GFP_NOWARN)
++		fail_page_alloc.attr.no_warn = true;
++
+ 	return should_fail(&fail_page_alloc.attr, 1 << order);
+ }
+ 
+@@ -4337,7 +4340,8 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	 */
+ 
+ 	/* Exhausted what can be done so it's blame time */
+-	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
++	if (out_of_memory(&oc) ||
++	    WARN_ON_ONCE_GFP(gfp_mask & __GFP_NOFAIL, gfp_mask)) {
+ 		*did_some_progress = 1;
+ 
+ 		/*
+@@ -5103,7 +5107,7 @@ nopage:
+ 		 * All existing users of the __GFP_NOFAIL are blockable, so warn
+ 		 * of any new users that actually require GFP_NOWAIT
+ 		 */
+-		if (WARN_ON_ONCE(!can_direct_reclaim))
++		if (WARN_ON_ONCE_GFP(!can_direct_reclaim, gfp_mask))
+ 			goto fail;
+ 
+ 		/*
+@@ -5111,7 +5115,7 @@ nopage:
+ 		 * because we cannot reclaim anything and only can loop waiting
+ 		 * for somebody to do a work for us
+ 		 */
+-		WARN_ON_ONCE(current->flags & PF_MEMALLOC);
++		WARN_ON_ONCE_GFP(current->flags & PF_MEMALLOC, gfp_mask);
+ 
+ 		/*
+ 		 * non failing costly orders are a hard requirement which we
+@@ -5119,7 +5123,7 @@ nopage:
+ 		 * so that we can identify them and convert them to something
+ 		 * else.
+ 		 */
+-		WARN_ON_ONCE(order > PAGE_ALLOC_COSTLY_ORDER);
++		WARN_ON_ONCE_GFP(order > PAGE_ALLOC_COSTLY_ORDER, gfp_mask);
+ 
+ 		/*
+ 		 * Help non-failing allocations by giving them access to memory
+@@ -5365,10 +5369,8 @@ struct page *__alloc_pages(gfp_t gfp, un
+ 	 * There are several places where we assume that the order value is sane
+ 	 * so bail out early if the request is out of bound.
+ 	 */
+-	if (unlikely(order >= MAX_ORDER)) {
+-		WARN_ON_ONCE(!(gfp & __GFP_NOWARN));
++	if (WARN_ON_ONCE_GFP(order >= MAX_ORDER, gfp))
+ 		return NULL;
+-	}
+ 
+ 	gfp &= gfp_allowed_mask;
+ 	/*
+_
+
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+
+mm-fix-missing-handler-for-__gfp_nowarn.patch
+tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch
+
