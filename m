@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B074AC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:16:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BAF0C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:16:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236259AbiEJEUe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235843AbiEJEUe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 10 May 2022 00:20:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48416 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236091AbiEJESb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:18:31 -0400
+        with ESMTP id S236100AbiEJESg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:18:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B99B72108A5
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B19BD246DBA
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 55CD36173F
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE1BEC385C7;
-        Tue, 10 May 2022 04:14:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E46061744
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DAEBC385C2;
+        Tue, 10 May 2022 04:14:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156060;
-        bh=nIHGKNdXjhroBmgQcj2kUBKumB1ooTCO/GkmFYLJ+Y0=;
+        s=korg; t=1652156064;
+        bh=QcR2CBgMebEu0LG8TcOyJoFLOS8em0ZIt7eACa1AYK4=;
         h=Date:To:From:Subject:From;
-        b=nkDHsbqhjsAIYK9RwfwF8p8VhWZGckCONRd/U6av9diwJ6SQCzHWsaLRkawoXancW
-         SRvjEyKKo3venIedgw/k3TE/865FmKT4sIYLGiXZKMrquCCJIZf4eWpVmqXdL68PHg
-         IYjUiuyUZYDsX0lYP/sFHSe+/sfgfHoq+Q4O0vvU=
-Date:   Mon, 09 May 2022 21:14:20 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, bgeffon@google.com,
-        akpm@linux-foundation.org
+        b=A4WWa1KdY+7Hw74rXoJfks29p2y6Vy9Xnrs+NfHiDmOkg4xfar0fYA96h3k4eK9Ob
+         kmkJYSoDlLSO1Lz21arvc4yyF/zvk19iGjfZl1vB3A7SrWzfxXOKrVr7Bgc3OwcSjL
+         JYpcpegH+3Z9n/VN/A03Bfir+fnGiV1eE2ipQosY=
+Date:   Mon, 09 May 2022 21:14:24 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, weixugc@google.com,
+        vaibhav@linux.ibm.com, tj@kernel.org, tim.c.chen@linux.intel.com,
+        shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
+        rientjes@google.com, mkoutny@suse.com, mhocko@suse.com,
+        lizefan.x@bytedance.com, hannes@cmpxchg.org, gthelen@google.com,
+        dave.hansen@linux.intel.com, corbet@lwn.net, chenwandun@huawei.com,
+        yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-add-a-huge_idle-writeback-mode.patch removed from -mm tree
-Message-Id: <20220510041420.AE1BEC385C7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch removed from -mm tree
+Message-Id: <20220510041424.9DAEBC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,99 +46,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zram: add a huge_idle writeback mode
+     Subject: selftests: cgroup: fix alloc_anon_noexit() instantly freeing memory
 has been removed from the -mm tree.  Its filename was
-     zram-add-a-huge_idle-writeback-mode.patch
+     selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Brian Geffon <bgeffon@google.com>
-Subject: zram: add a huge_idle writeback mode
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: selftests: cgroup: fix alloc_anon_noexit() instantly freeing memory
 
-Today it's only possible to write back as a page, idle, or huge.  A user
-might want to writeback pages which are huge and idle first as these idle
-pages do not require decompression and make a good first pass for
-writeback.
+Currently, alloc_anon_noexit() calls alloc_anon() which instantly frees
+the allocated memory. alloc_anon_noexit() is usually used with
+cg_run_nowait() to run a process in the background that allocates
+memory. It makes sense for the background process to keep the memory
+allocated and not instantly free it (otherwise there is no point of
+running it in the background).
 
-Idle writeback specifically has the advantage that a refault is unlikely
-given that the page has been swapped for some amount of time without being
-refaulted.
-
-Huge writeback has the advantage that you're guaranteed to get the maximum
-benefit from a single page writeback, that is, you're reclaiming one full
-page of memory.  Pages which are compressed in zram being written back
-result in some benefit which is always less than a page size because of
-the fact that it was compressed.
-
-The primary use of this is for minimizing refaults in situations where the
-device has to be sensitive to storage endurance.  On ChromeOS we have
-devices with slow eMMC and repeated writes and refaults can negatively
-affect performance and endurance.
-
-Link: https://lkml.kernel.org/r/20220322215821.1196994-1-bgeffon@google.com
-Signed-off-by: Brian Geffon <bgeffon@google.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20220425190040.2475377-4-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Chen Wandun <chenwandun@huawei.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Michal Koutn" <mkoutny@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    5 +++++
- drivers/block/zram/zram_drv.c               |   10 ++++++----
- 2 files changed, 11 insertions(+), 4 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-add-a-huge_idle-writeback-mode
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -343,6 +343,11 @@ Admin can request writeback of those idl
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-cgroup-fix-alloc_anon_noexit-instantly-freeing-memory
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -211,13 +211,17 @@ static int alloc_pagecache_50M_noexit(co
+ static int alloc_anon_noexit(const char *cgroup, void *arg)
+ {
+ 	int ppid = getppid();
++	size_t size = (unsigned long)arg;
++	char *buf, *ptr;
  
- With the command, zram will writeback idle pages from memory to the storage.
+-	if (alloc_anon(cgroup, arg))
+-		return -1;
++	buf = malloc(size);
++	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
++		*ptr = 0;
  
-+Additionally, if a user choose to writeback only huge and idle pages
-+this can be accomplished with::
-+
-+        echo huge_idle > /sys/block/zramX/writeback
-+
- If an admin wants to write a specific page in zram device to the backing device,
- they could write a page index into the interface.
+ 	while (getppid() == ppid)
+ 		sleep(1);
  
---- a/drivers/block/zram/zram_drv.c~zram-add-a-huge_idle-writeback-mode
-+++ a/drivers/block/zram/zram_drv.c
-@@ -639,8 +639,8 @@ static int read_from_bdev_async(struct z
- #define PAGE_WB_SIG "page_index="
++	free(buf);
+ 	return 0;
+ }
  
- #define PAGE_WRITEBACK 0
--#define HUGE_WRITEBACK 1
--#define IDLE_WRITEBACK 2
-+#define HUGE_WRITEBACK (1<<0)
-+#define IDLE_WRITEBACK (1<<1)
- 
- 
- static ssize_t writeback_store(struct device *dev,
-@@ -660,6 +660,8 @@ static ssize_t writeback_store(struct de
- 		mode = IDLE_WRITEBACK;
- 	else if (sysfs_streq(buf, "huge"))
- 		mode = HUGE_WRITEBACK;
-+	else if (sysfs_streq(buf, "huge_idle"))
-+		mode = IDLE_WRITEBACK | HUGE_WRITEBACK;
- 	else {
- 		if (strncmp(buf, PAGE_WB_SIG, sizeof(PAGE_WB_SIG) - 1))
- 			return -EINVAL;
-@@ -721,10 +723,10 @@ static ssize_t writeback_store(struct de
- 				zram_test_flag(zram, index, ZRAM_UNDER_WB))
- 			goto next;
- 
--		if (mode == IDLE_WRITEBACK &&
-+		if (mode & IDLE_WRITEBACK &&
- 			  !zram_test_flag(zram, index, ZRAM_IDLE))
- 			goto next;
--		if (mode == HUGE_WRITEBACK &&
-+		if (mode & HUGE_WRITEBACK &&
- 			  !zram_test_flag(zram, index, ZRAM_HUGE))
- 			goto next;
- 		/*
 _
 
-Patches currently in -mm which might be from bgeffon@google.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
 
