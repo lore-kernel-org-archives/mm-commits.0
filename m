@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8294C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 891B6C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236016AbiEJEQr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231707AbiEJEQr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 10 May 2022 00:16:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47336 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236057AbiEJEPs (ORCPT
+        with ESMTP id S236091AbiEJEPs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83AF3EAD28
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:33 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D801AFE219
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 29392B81AEF
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEFC0C385C2;
-        Tue, 10 May 2022 04:11:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A794261741
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01710C385C2;
+        Tue, 10 May 2022 04:11:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155891;
-        bh=MNQ/MhkbXY05cgGhpo4B0uIQ8eid8YB0u+eOr+DXJho=;
+        s=korg; t=1652155896;
+        bh=MvaXW9CKVxz5T3jxKeotvhWiUvGeTF49hL9dPquG4Dg=;
         h=Date:To:From:Subject:From;
-        b=FS8N1q1bsAiHFj9TSBnMf/ZBvRr7FpG88W206cx0HmlWIg/ss6d9FLqPz8PJsW3YS
-         m7WaNGOBuG5xA/efzFaVJJQilTTdZKBnlfO3F7WCixfct0c2iw7iunZIegitx3yQAr
-         gk0t3s5vfBWYE9pmgPrVBvHgHlYLqRGmARIGfxNs=
-Date:   Mon, 09 May 2022 21:11:31 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
-        songmuchun@bytedance.com, baolin.wang@linux.alibaba.com,
-        apopple@nvidia.com, linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=Ff6hRkdzYNRt60MJzuu6tE7/uU0FYR+juxA900drSWpE9uBk5invhyPf9zO9cNQYH
+         ZeFQH/E/a/Vh9n//hQBqjUyZdZFFRkESd99IfYUGGtJq4+QNyrr2DCYLL3oZpnT7+j
+         RLDCWGNAcCQ8SuDW48WnbzQzkJfkDeqTGsrk1EUA=
+Date:   Mon, 09 May 2022 21:11:35 -0700
+To:     mm-commits@vger.kernel.org, mhocko@suse.com, hughd@google.com,
+        hannes@cmpxchg.org, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch removed from -mm tree
-Message-Id: <20220510041131.CEFC0C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-fix-potential-pte_unmap_unlock-pte-error.patch removed from -mm tree
+Message-Id: <20220510041136.01710C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,50 +41,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/migration: fix potential invalid node access for reclaim-based migration
+     Subject: mm/madvise: fix potential pte_unmap_unlock pte error
 has been removed from the -mm tree.  Its filename was
-     mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration.patch
+     mm-madvise-fix-potential-pte_unmap_unlock-pte-error.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/migration: fix potential invalid node access for reclaim-based migration
+Subject: mm/madvise: fix potential pte_unmap_unlock pte error
 
-If we failed to setup hotplug state callbacks for mm/demotion:online in
-some corner cases, node_demotion will be left uninitialized.  Invalid node
-might be returned from the next_demotion_node() when doing reclaim-based
-migration.  Use kcalloc to allocate node_demotion to fix the issue.
+We can't assume pte_offset_map_lock will return same orig_pte value. So
+it's necessary to reacquire the orig_pte or pte_unmap_unlock will unmap
+the stale pte.
 
-Link: https://lkml.kernel.org/r/20220318111709.60311-11-linmiaohe@huawei.com
-Fixes: ac16ec835314 ("mm: migrate: support multiple target nodes demotion")
+Link: https://lkml.kernel.org/r/20220416081416.23304-1-linmiaohe@huawei.com
+Fixes: 9c276cc65a58 ("mm: introduce MADV_COLD")
+Fixes: 854e9ed09ded ("mm: support madvise(MADV_FREE)")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/madvise.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/migrate.c~mm-migration-fix-potential-invalid-node-access-for-reclaim-based-migration
-+++ a/mm/migrate.c
-@@ -2479,9 +2479,9 @@ static int __meminit migrate_on_reclaim_
- 
- void __init migrate_on_reclaim_init(void)
- {
--	node_demotion = kmalloc_array(nr_node_ids,
--				      sizeof(struct demotion_nodes),
--				      GFP_KERNEL);
-+	node_demotion = kcalloc(nr_node_ids,
-+				sizeof(struct demotion_nodes),
-+				GFP_KERNEL);
- 	WARN_ON(!node_demotion);
- 
- 	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
+--- a/mm/madvise.c~mm-madvise-fix-potential-pte_unmap_unlock-pte-error
++++ a/mm/madvise.c
+@@ -432,12 +432,12 @@ regular_page:
+ 			if (split_huge_page(page)) {
+ 				unlock_page(page);
+ 				put_page(page);
+-				pte_offset_map_lock(mm, pmd, addr, &ptl);
++				orig_pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 				break;
+ 			}
+ 			unlock_page(page);
+ 			put_page(page);
+-			pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++			orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 			pte--;
+ 			addr -= PAGE_SIZE;
+ 			continue;
+@@ -648,12 +648,12 @@ static int madvise_free_pte_range(pmd_t
+ 			if (split_huge_page(page)) {
+ 				unlock_page(page);
+ 				put_page(page);
+-				pte_offset_map_lock(mm, pmd, addr, &ptl);
++				orig_pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 				goto out;
+ 			}
+ 			unlock_page(page);
+ 			put_page(page);
+-			pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++			orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 			pte--;
+ 			addr -= PAGE_SIZE;
+ 			continue;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
