@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED26EC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 18:28:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7574C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 18:47:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348917AbiEJS2i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 14:28:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50070 "EHLO
+        id S229472AbiEJSrM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 14:47:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244905AbiEJS2i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 14:28:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38C4D546AE
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 11:28:37 -0700 (PDT)
+        with ESMTP id S241135AbiEJSqi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 14:46:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C88142ECD
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 11:46:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CA00661B0D
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 18:28:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 129E8C385A6;
-        Tue, 10 May 2022 18:28:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ECAD260F6B
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 18:46:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F7CEC385C2;
+        Tue, 10 May 2022 18:46:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652207316;
-        bh=Ui9TBZ/DYufMqqRMx09tUx870D2IEmUSYaegkZc9rcY=;
+        s=korg; t=1652208395;
+        bh=SomVIxq/3F1AQxKHahW3/6uIeoIC8klInb1Um5YWNUo=;
         h=Date:To:From:Subject:From;
-        b=nzphcx5BoEw8TEkmlNIPGN30yhLVGNhuQyldjZiAhVSOJR0Fpq/ht2MXLc/uFSCBH
-         sAdXpO8XHLyzTzVZVA35CdggKUaCJkU1Tdui3CUCclFn+DQCLFst4C7VtYpjNdgErL
-         GWveD94uo36VC27KnltlUoybSZHH97VLymU71EOY=
-Date:   Tue, 10 May 2022 11:28:35 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=IIMYBf+4DFRsJq14tvTbdP26/QLX2UOhA9d7NsP3npjxMY5gmxMpY9KFnRKeqq2up
+         /CgCrEF2qoH1TzlNSsDoCmzGumusUmy2FBY4Fu/+9pFxFZgb0gYa2oay4r2nvHgZSk
+         B058RdGS504AgNCZH0/ivVywlg2qYxIlFe6jUuvE=
+Date:   Tue, 10 May 2022 11:46:34 -0700
+To:     mm-commits@vger.kernel.org, sjenning@redhat.com,
+        shakeelb@google.com, minchan@kernel.org, mhocko@suse.com,
+        guro@fb.com, ddstreet@ieee.org, hannes@cmpxchg.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-update-documentation-v2.patch added to mm-unstable branch
-Message-Id: <20220510182836.129E8C385A6@smtp.kernel.org>
+Subject: + documentation-filesystems-proc-update-meminfo-section.patch added to mm-unstable branch
+Message-Id: <20220510184635.3F7CEC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: update documentation
+     Subject: Documentation: filesystems: proc: update meminfo section
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-update-documentation-v2.patch
+     documentation-filesystems-proc-update-meminfo-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-update-documentation-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-filesystems-proc-update-meminfo-section.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,50 +66,295 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: update documentation
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: Documentation: filesystems: proc: update meminfo section
 
-rewording, per Marco
+Patch series "zswap: accounting & cgroup control", v2.
 
-Link: https://lkml.kernel.org/r/896b2d914d6b50d677fd7b38f76967cc705c01ba.1652203271.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Zswap can consume nearly a quarter of RAM in the default configuration,
+yet it's neither listed in /proc/meminfo, nor is it accounted and
+manageable on a per-cgroup basis.
+
+This makes reasoning about the memory situation on a host in general
+rather difficult.  On shared/cgrouped hosts, the consequences are worse. 
+First, workloads can escape memory containment and cause resource priority
+inversions: a lo-pri group can fill the global zswap pool and force a
+hi-pri group out to disk.  Second, not all workloads benefit from zswap
+equally.  Some even suffer when memory contents compress poorly, and are
+better off going to disk swap directly.  On a host with mixed workloads,
+it's currently not possible to enable zswap for one workload but not for
+the other.
+
+This series implements the missing global accounting as well as cgroup
+tracking & control for zswap backing memory:
+
+- Patch 1 refreshes the very out-of-date meminfo documentation in
+  Documentation/filesystems/proc.rst.
+
+- Patches 2-4 clean up related and adjacent options in Kconfig. Not
+  actual dependencies, just things I noticed during development.
+
+- Patch 5 adds meminfo and vmstat coverage for zswap consumption and
+  activity.
+
+- Patch 6 implements per-cgroup tracking & control of zswap memory.
+
+
+This patch (of 6):
+
+Add new entries.  Minor corrections and cleanups.
+
+Link: https://lkml.kernel.org/r/20220510152847.230957-1-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20220510152847.230957-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ Documentation/filesystems/proc.rst |  155 +++++++++++++++++----------
+ 1 file changed, 99 insertions(+), 56 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation-v2
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -453,11 +453,10 @@ for the current task, annotate this part
- ``kasan_disable_current()``/``kasan_enable_current()`` section. This also
- disables the reports for indirect accesses that happen through function calls.
+--- a/Documentation/filesystems/proc.rst~documentation-filesystems-proc-update-meminfo-section
++++ a/Documentation/filesystems/proc.rst
+@@ -942,56 +942,71 @@ can be substantial.  In many cases there
+ additional memory using subsystem specific interfaces, for instance
+ /proc/net/sockstat for TCP memory allocations.
  
--For tag-based KASAN modes (include the Hardware one), to disable access
--checking, use ``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that
--temporarily disabling access checking via ``page_kasan_tag_reset()`` requires
--saving and restoring the per-page KASAN tag via
--``page_kasan_tag``/``page_kasan_tag_set``.
-+For tag-based KASAN modes, to disable access checking, use
-+``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that temporarily
-+disabling access checking via ``page_kasan_tag_reset()`` requires saving and
-+restoring the per-page KASAN tag via ``page_kasan_tag``/``page_kasan_tag_set``.
+-The following is from a 16GB PIII, which has highmem enabled.
+-You may not have all of these fields.
++Example output. You may not have all of these fields.
  
- Tests
- ~~~~~
+ ::
+ 
+     > cat /proc/meminfo
+ 
+-    MemTotal:     16344972 kB
+-    MemFree:      13634064 kB
+-    MemAvailable: 14836172 kB
+-    Buffers:          3656 kB
+-    Cached:        1195708 kB
+-    SwapCached:          0 kB
+-    Active:         891636 kB
+-    Inactive:      1077224 kB
+-    HighTotal:    15597528 kB
+-    HighFree:     13629632 kB
+-    LowTotal:       747444 kB
+-    LowFree:          4432 kB
+-    SwapTotal:           0 kB
+-    SwapFree:            0 kB
+-    Dirty:             968 kB
+-    Writeback:           0 kB
+-    AnonPages:      861800 kB
+-    Mapped:         280372 kB
+-    Shmem:             644 kB
+-    KReclaimable:   168048 kB
+-    Slab:           284364 kB
+-    SReclaimable:   159856 kB
+-    SUnreclaim:     124508 kB
+-    PageTables:      24448 kB
+-    NFS_Unstable:        0 kB
+-    Bounce:              0 kB
+-    WritebackTmp:        0 kB
+-    CommitLimit:   7669796 kB
+-    Committed_AS:   100056 kB
+-    VmallocTotal:   112216 kB
+-    VmallocUsed:       428 kB
+-    VmallocChunk:   111088 kB
+-    Percpu:          62080 kB
+-    HardwareCorrupted:   0 kB
+-    AnonHugePages:   49152 kB
+-    ShmemHugePages:      0 kB
+-    ShmemPmdMapped:      0 kB
++    MemTotal:       32858820 kB
++    MemFree:        21001236 kB
++    MemAvailable:   27214312 kB
++    Buffers:          581092 kB
++    Cached:          5587612 kB
++    SwapCached:            0 kB
++    Active:          3237152 kB
++    Inactive:        7586256 kB
++    Active(anon):      94064 kB
++    Inactive(anon):  4570616 kB
++    Active(file):    3143088 kB
++    Inactive(file):  3015640 kB
++    Unevictable:           0 kB
++    Mlocked:               0 kB
++    SwapTotal:             0 kB
++    SwapFree:              0 kB
++    Dirty:                12 kB
++    Writeback:             0 kB
++    AnonPages:       4654780 kB
++    Mapped:           266244 kB
++    Shmem:              9976 kB
++    KReclaimable:     517708 kB
++    Slab:             660044 kB
++    SReclaimable:     517708 kB
++    SUnreclaim:       142336 kB
++    KernelStack:       11168 kB
++    PageTables:        20540 kB
++    NFS_Unstable:          0 kB
++    Bounce:                0 kB
++    WritebackTmp:          0 kB
++    CommitLimit:    16429408 kB
++    Committed_AS:    7715148 kB
++    VmallocTotal:   34359738367 kB
++    VmallocUsed:       40444 kB
++    VmallocChunk:          0 kB
++    Percpu:            29312 kB
++    HardwareCorrupted:     0 kB
++    AnonHugePages:   4149248 kB
++    ShmemHugePages:        0 kB
++    ShmemPmdMapped:        0 kB
++    FileHugePages:         0 kB
++    FilePmdMapped:         0 kB
++    CmaTotal:              0 kB
++    CmaFree:               0 kB
++    HugePages_Total:       0
++    HugePages_Free:        0
++    HugePages_Rsvd:        0
++    HugePages_Surp:        0
++    Hugepagesize:       2048 kB
++    Hugetlb:               0 kB
++    DirectMap4k:      401152 kB
++    DirectMap2M:    10008576 kB
++    DirectMap1G:    24117248 kB
+ 
+ MemTotal
+               Total usable RAM (i.e. physical RAM minus a few reserved
+               bits and the kernel binary code)
+ MemFree
+-              The sum of LowFree+HighFree
++              Total free RAM. On highmem systems, the sum of LowFree+HighFree
+ MemAvailable
+               An estimate of how much memory is available for starting new
+               applications, without swapping. Calculated from MemFree,
+@@ -1005,8 +1020,9 @@ Buffers
+               Relatively temporary storage for raw disk blocks
+               shouldn't get tremendously large (20MB or so)
+ Cached
+-              in-memory cache for files read from the disk (the
+-              pagecache).  Doesn't include SwapCached
++              In-memory cache for files read from the disk (the
++              pagecache) as well as tmpfs & shmem.
++              Doesn't include SwapCached.
+ SwapCached
+               Memory that once was swapped out, is swapped back in but
+               still also is in the swapfile (if memory is needed it
+@@ -1018,6 +1034,11 @@ Active
+ Inactive
+               Memory which has been less recently used.  It is more
+               eligible to be reclaimed for other purposes
++Unevictable
++              Memory that cannot be reclaimed, such as mlocked pages,
++              ramfs backing pages, secret memfd pages etc.
++Mlocked
++              Memory locked with mlock().
+ HighTotal, HighFree
+               Highmem is all memory above ~860MB of physical memory.
+               Highmem areas are for use by userspace programs, or
+@@ -1040,20 +1061,10 @@ Writeback
+               Memory which is actively being written back to the disk
+ AnonPages
+               Non-file backed pages mapped into userspace page tables
+-HardwareCorrupted
+-              The amount of RAM/memory in KB, the kernel identifies as
+-	      corrupted.
+-AnonHugePages
+-              Non-file backed huge pages mapped into userspace page tables
+ Mapped
+               files which have been mmaped, such as libraries
+ Shmem
+               Total memory used by shared memory (shmem) and tmpfs
+-ShmemHugePages
+-              Memory used by shared memory (shmem) and tmpfs allocated
+-              with huge pages
+-ShmemPmdMapped
+-              Shared memory mapped into userspace with huge pages
+ KReclaimable
+               Kernel allocations that the kernel will attempt to reclaim
+               under memory pressure. Includes SReclaimable (below), and other
+@@ -1064,9 +1075,10 @@ SReclaimable
+               Part of Slab, that might be reclaimed, such as caches
+ SUnreclaim
+               Part of Slab, that cannot be reclaimed on memory pressure
++KernelStack
++              Memory consumed by the kernel stacks of all tasks
+ PageTables
+-              amount of memory dedicated to the lowest level of page
+-              tables.
++              Memory consumed by userspace page tables
+ NFS_Unstable
+               Always zero. Previous counted pages which had been written to
+               the server, but has not been committed to stable storage.
+@@ -1098,7 +1110,7 @@ Committed_AS
+               has been allocated by processes, even if it has not been
+               "used" by them as of yet. A process which malloc()'s 1G
+               of memory, but only touches 300M of it will show up as
+-	      using 1G. This 1G is memory which has been "committed" to
++              using 1G. This 1G is memory which has been "committed" to
+               by the VM and can be used at any time by the allocating
+               application. With strict overcommit enabled on the system
+               (mode 2 in 'vm.overcommit_memory'), allocations which would
+@@ -1107,7 +1119,7 @@ Committed_AS
+               not fail due to lack of memory once that memory has been
+               successfully allocated.
+ VmallocTotal
+-              total size of vmalloc memory area
++              total size of vmalloc virtual address space
+ VmallocUsed
+               amount of vmalloc area which is used
+ VmallocChunk
+@@ -1115,6 +1127,37 @@ VmallocChunk
+ Percpu
+               Memory allocated to the percpu allocator used to back percpu
+               allocations. This stat excludes the cost of metadata.
++HardwareCorrupted
++              The amount of RAM/memory in KB, the kernel identifies as
++              corrupted.
++AnonHugePages
++              Non-file backed huge pages mapped into userspace page tables
++ShmemHugePages
++              Memory used by shared memory (shmem) and tmpfs allocated
++              with huge pages
++ShmemPmdMapped
++              Shared memory mapped into userspace with huge pages
++FileHugePages
++              Memory used for filesystem data (page cache) allocated
++              with huge pages
++FilePmdMapped
++              Page cache mapped into userspace with huge pages
++CmaTotal
++              Memory reserved for the Contiguous Memory Allocator (CMA)
++CmaFree
++              Free remaining memory in the CMA reserves
++HugePages_Total
++HugePages_Free
++HugePages_Rsvd
++HugePages_Surp
++Hugepagesize
++Hugetlb
++              See Documentation/admin-guide/mm/hugetlbpage.rst.
++DirectMap4k
++DirectMap2M
++DirectMap1G
++              Breakdown of page table sizes used in the kernel's
++              identity mapping of RAM
+ 
+ vmallocinfo
+ ~~~~~~~~~~~
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-kasan-clean-up-comments-in-internal-kasanh.patch
-kasan-use-tabs-to-align-shadow-values.patch
-kasan-give-better-names-to-shadow-values.patch
-kasan-update-documentation.patch
-kasan-update-documentation-v2.patch
-kasan-move-boot-parameters-section-in-documentation.patch
-kasan-clean-up-kconfig-options-descriptions.patch
+documentation-filesystems-proc-update-meminfo-section.patch
+mm-kconfig-move-swap-and-slab-config-options-to-the-mm-section.patch
+mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus.patch
+mm-kconfig-simplify-zswap-configuration.patch
+mm-zswap-add-basic-meminfo-and-vmstat-coverage.patch
+zswap-memcg-accounting.patch
 
