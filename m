@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F2EC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 01:05:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17BF8C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 01:09:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233260AbiEJBJ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 May 2022 21:09:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33776 "EHLO
+        id S233853AbiEJBNd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 May 2022 21:13:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234133AbiEJBJ2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 21:09:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2E4C2992D2
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 18:05:25 -0700 (PDT)
+        with ESMTP id S233131AbiEJBNc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2022 21:13:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A3102BA9B4
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 18:09:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 794B16159A
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 01:05:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC72BC385C2;
-        Tue, 10 May 2022 01:05:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DBE6615AC
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 01:09:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70ADEC385C5;
+        Tue, 10 May 2022 01:09:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652144724;
-        bh=/FoQOmNyqySzVsP2Ej95QQHarWSw43L+a6rmNaYmFMs=;
+        s=korg; t=1652144975;
+        bh=luQbY2s6s/l7SKHLp/ponjjdMBCpelsmGRUqLZMl88Q=;
         h=Date:To:From:Subject:From;
-        b=hwLK60CkS8S4J6BE3NS4Ad+ZtApIb1SmU7UnKdBfDpTtwlT9hQ2099wzt+ZIVoouA
-         T2ulJ31a+4/cP6WvW1R9ZloSaJHbN63nBbCUwvxt4l83fj30W+VxSc8WJyt8SI9FGb
-         iu2jwcoHH5DggHy+XbuuICw3Kqusq/BlMISwX3Nw=
-Date:   Mon, 09 May 2022 18:05:24 -0700
-To:     mm-commits@vger.kernel.org, zhongjubin@huawei.com,
-        wangbing6@huawei.com, nixiaoming@huawei.com,
-        huangshaobo6@huawei.com, glider@google.com, elver@google.com,
-        dvyukov@google.com, chenzefeng2@huawei.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=B7mXt3fqvqVtGhQqtuXdGaGFEJpWhZuEAZVMwnb33yPRblJSTUlFhS0fwzkPsFVBW
+         XPLYdz+r6P4lln2mp6CagkhHno2IPK+ma4c26OU41SDlGcN07Ss41BjQKLCWI7dZSb
+         /2vDBz8Cj73K7fEYZCApkxK57Q+8tEK1FCDBW7PA=
+Date:   Mon, 09 May 2022 18:09:34 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kfence-enable-check-kfence-canary-on-panic-via-boot-param-fix.patch removed from -mm tree
-Message-Id: <20220510010524.CC72BC385C2@smtp.kernel.org>
+Subject: [folded-merged] mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring-fix.patch removed from -mm tree
+Message-Id: <20220510010935.70ADEC385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,55 +41,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kfence-enable-check-kfence-canary-on-panic-via-boot-param-fix
+     Subject: mm/damon/sysfs: fix pid leak under fvaddr ops use case
 has been removed from the -mm tree.  Its filename was
-     kfence-enable-check-kfence-canary-on-panic-via-boot-param-fix.patch
+     mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring-fix.patch
 
-This patch was dropped because it was folded into kfence-enable-check-kfence-canary-on-panic-via-boot-param.patch
+This patch was dropped because it was folded into mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kfence-enable-check-kfence-canary-on-panic-via-boot-param-fix
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: fix pid leak under fvaddr ops use case
 
-add __read_mostly, per Marco
+Commit c83136469313 ("mm/damon/sysfs: support fixed virtual address ranges
+monitoring") in 'mm-unstable' does not put the monitoring target pid when
+fvaddr ops is used.  This commit fixes it to put pid properly.
 
-Cc: Alexander Potapenko <glider@google.com>
-Cc: chenzefeng <chenzefeng2@huawei.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: huangshaobo <huangshaobo6@huawei.com>
-Cc: Jubin Zhong <zhongjubin@huawei.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Wangbing <wangbing6@huawei.com>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
+Link: https://lkml.kernel.org/r/20220503220531.45913-1-sj@kernel.org
+Fixes: c83136469313 ("mm/damon/sysfs: support fixed virtual address ranges monitoring")
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/sysfs.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/kfence/core.c~kfence-enable-check-kfence-canary-on-panic-via-boot-param-fix
-+++ a/mm/kfence/core.c
-@@ -102,7 +102,7 @@ static bool kfence_deferrable __read_mos
- module_param_named(deferrable, kfence_deferrable, bool, 0444);
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring-fix
++++ a/mm/damon/sysfs.c
+@@ -2086,7 +2086,8 @@ static void damon_sysfs_destroy_targets(
+ 	struct damon_target *t, *next;
  
- /* If true, check all canary bytes on panic. */
--static bool kfence_check_on_panic;
-+static bool kfence_check_on_panic __read_mostly;
- module_param_named(check_on_panic, kfence_check_on_panic, bool, 0444);
+ 	damon_for_each_target_safe(t, next, ctx) {
+-		if (ctx->ops.id == DAMON_OPS_VADDR)
++		if (ctx->ops.id == DAMON_OPS_VADDR ||
++				ctx->ops.id == DAMON_OPS_FVADDR)
+ 			put_pid(t->pid);
+ 		damon_destroy_target(t);
+ 	}
+@@ -2204,7 +2205,7 @@ static void damon_sysfs_before_terminate
+ {
+ 	struct damon_target *t, *next;
  
- /* The pool of pages used for guard pages and objects. */
+-	if (ctx->ops.id != DAMON_OPS_VADDR)
++	if (ctx->ops.id != DAMON_OPS_VADDR && ctx->ops.id != DAMON_OPS_FVADDR)
+ 		return;
+ 
+ 	mutex_lock(&ctx->kdamond_lock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-check-against-orig_pte-for-finish_fault-fix-checkpatch-fixes.patch
-mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
-kfence-enable-check-kfence-canary-on-panic-via-boot-param.patch
-lib-kstrtoxc-add-false-true-support-to-kstrtobool-fix.patch
-mm-vmscan-not-necessary-to-re-init-the-list-for-each-iteration-fix.patch
-mm-make-minimum-slab-alignment-a-runtime-property-fix.patch
-proc-fix-dentry-inode-overinstantiating-under-proc-pid-net-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+mm-damon-core-add-a-function-for-damon_operations-registration-checks.patch
+mm-damon-sysfs-add-a-file-for-listing-available-monitoring-ops.patch
+selftets-damon-sysfs-test-existence-and-permission-of-avail_operations.patch
+docs-abiadmin-guide-damon-document-avail_operations-sysfs-file.patch
+mm-damon-vaddr-register-a-damon_operations-for-fixed-virtual-address-ranges-monitoring.patch
+mm-damon-sysfs-support-fixed-virtual-address-ranges-monitoring.patch
+docs-abiadmin-guide-damon-update-for-fixed-virtual-address-ranges-monitoring.patch
+mm-damon-core-add-a-new-callback-for-watermarks-checks.patch
+mm-damon-core-finish-kdamond-as-soon-as-any-callback-returns-an-error.patch
+mm-damon-vaddr-generalize-damon_va_apply_three_regions.patch
+mm-damon-vaddr-move-damon_set_regions-to-core.patch
+mm-damon-vaddr-remove-damon_va_apply_three_regions.patch
+mm-damon-sysfs-prohibit-multiple-physical-address-space-monitoring-targets.patch
+mm-damon-sysfs-move-targets-setup-code-to-a-separated-function.patch
+mm-damon-sysfs-reuse-damon_set_regions-for-regions-setting.patch
+mm-damon-sysfs-use-enum-for-state-input-handling.patch
+mm-damon-sysfs-update-schemes-stat-in-the-kdamond-context.patch
+mm-damon-sysfs-support-online-inputs-update.patch
+docs-abiadmin-guide-damon-update-for-state-sysfs-file-input-keyword-commit.patch
+mm-damon-reclaim-support-online-inputs-update.patch
+docs-admin-guide-mm-damon-reclaim-document-commit_inputs-parameter.patch
 
