@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 940C1C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:19:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A993C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:19:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235833AbiEJEXE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:23:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39000 "EHLO
+        id S236157AbiEJEXH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:23:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236173AbiEJEUu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:50 -0400
+        with ESMTP id S236305AbiEJEUj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92C4D393D0
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0838340DF
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 608FB61766
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B630FC385A6;
-        Tue, 10 May 2022 04:15:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D41961770
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE492C385C2;
+        Tue, 10 May 2022 04:15:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156152;
-        bh=2cC6dn6D8vzBmxSt3z1embi5n3oFiNr3mA5OGFH4sF8=;
+        s=korg; t=1652156150;
+        bh=t0/aRxWVthmXRt0RepoZMwzm+lY6L3WraZ1BcgNTWvM=;
         h=Date:To:From:Subject:From;
-        b=MKfTZperZ5Uc0GdH17gbErHaMfFj41XP/9Fu9IPlCn5OjdHMhk9654GnM7VJlYfL5
-         9KhXGVioQBk0PpNTHU63BmFb81gkFZXZPFAB9Ws2u/VfFK5OYQ/X3tVqWSyR4OOASs
-         8Q6pfYOB5il6IJLxZlU1BuqPUXgkjsXnHV9dFcKE=
-Date:   Mon, 09 May 2022 21:15:52 -0700
+        b=ZE9GleQcN7zG+ICTmRFFNitjBZYHFH25q84+FiO5O4u8KWtRGhJpHWEOkFqOgpoE6
+         mrzmE/Zs/wbakbMfXxZG0ZPrUgR4/MgiWMUi08WTG0piuQaEs/rzZ/5c9RAIFmGo36
+         Oo0icnmZw1sC6qBE479kB3f+rIqP6ENoH2T0L8Z8=
+Date:   Mon, 09 May 2022 21:15:49 -0700
 To:     mm-commits@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-move-targets-setup-code-to-a-separated-function.patch removed from -mm tree
-Message-Id: <20220510041552.B630FC385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-move-damon_set_regions-to-core.patch removed from -mm tree
+Message-Id: <20220510041549.DE492C385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,93 +41,204 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: move targets setup code to a separated function
+     Subject: mm/damon/vaddr: move 'damon_set_regions()' to core
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-move-targets-setup-code-to-a-separated-function.patch
+     mm-damon-vaddr-move-damon_set_regions-to-core.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: move targets setup code to a separated function
+Subject: mm/damon/vaddr: move 'damon_set_regions()' to core
 
-This commit separates DAMON sysfs interface's monitoring context targets
-setup code to a new function for better readability.
+This commit moves 'damon_set_regions()' from vaddr to core, as it is aimed
+to be used by not only 'vaddr' but also other parts of DAMON.
 
-Link: https://lkml.kernel.org/r/20220429160606.127307-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220429160606.127307-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   49 +++++++++++++++++++++++++--------------------
- 1 file changed, 28 insertions(+), 21 deletions(-)
+ include/linux/damon.h |    2 +
+ mm/damon/core.c       |   73 ++++++++++++++++++++++++++++++++++++++++
+ mm/damon/vaddr.c      |   73 ----------------------------------------
+ 3 files changed, 75 insertions(+), 73 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-move-targets-setup-code-to-a-separated-function
-+++ a/mm/damon/sysfs.c
-@@ -2120,6 +2120,31 @@ static int damon_sysfs_set_regions(struc
- 	return 0;
+--- a/include/linux/damon.h~mm-damon-vaddr-move-damon_set_regions-to-core
++++ a/include/linux/damon.h
+@@ -494,6 +494,8 @@ static inline void damon_insert_region(s
+ 
+ void damon_add_region(struct damon_region *r, struct damon_target *t);
+ void damon_destroy_region(struct damon_region *r, struct damon_target *t);
++int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
++		unsigned int nr_ranges);
+ 
+ struct damos *damon_new_scheme(
+ 		unsigned long min_sz_region, unsigned long max_sz_region,
+--- a/mm/damon/core.c~mm-damon-vaddr-move-damon_set_regions-to-core
++++ a/mm/damon/core.c
+@@ -157,6 +157,79 @@ void damon_destroy_region(struct damon_r
+ 	damon_free_region(r);
  }
  
-+static int damon_sysfs_add_target(struct damon_sysfs_target *sys_target,
-+		struct damon_ctx *ctx)
++/*
++ * Check whether a region is intersecting an address range
++ *
++ * Returns true if it is.
++ */
++static bool damon_intersect(struct damon_region *r,
++		struct damon_addr_range *re)
 +{
-+	struct damon_target *t = damon_new_target();
-+	int err = -EINVAL;
-+
-+	if (!t)
-+		return -ENOMEM;
-+	if (ctx->ops.id == DAMON_OPS_VADDR ||
-+			ctx->ops.id == DAMON_OPS_FVADDR) {
-+		t->pid = find_get_pid(sys_target->pid);
-+		if (!t->pid)
-+			goto destroy_targets_out;
-+	}
-+	damon_add_target(ctx, t);
-+	err = damon_sysfs_set_regions(t, sys_target->regions);
-+	if (err)
-+		goto destroy_targets_out;
-+	return 0;
-+
-+destroy_targets_out:
-+	damon_sysfs_destroy_targets(ctx);
-+	return err;
++	return !(r->ar.end <= re->start || re->end <= r->ar.start);
 +}
 +
- static int damon_sysfs_set_targets(struct damon_ctx *ctx,
- 		struct damon_sysfs_targets *sysfs_targets)
- {
-@@ -2130,28 +2155,10 @@ static int damon_sysfs_set_targets(struc
- 		return -EINVAL;
++/*
++ * damon_set_regions() - Set regions of a target for given address ranges.
++ * @t:		the given target.
++ * @ranges:	array of new monitoring target ranges.
++ * @nr_ranges:	length of @ranges.
++ *
++ * This function adds new regions to, or modify existing regions of a
++ * monitoring target to fit in specific ranges.
++ *
++ * Return: 0 if success, or negative error code otherwise.
++ */
++int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
++		unsigned int nr_ranges)
++{
++	struct damon_region *r, *next;
++	unsigned int i;
++
++	/* Remove regions which are not in the new ranges */
++	damon_for_each_region_safe(r, next, t) {
++		for (i = 0; i < nr_ranges; i++) {
++			if (damon_intersect(r, &ranges[i]))
++				break;
++		}
++		if (i == nr_ranges)
++			damon_destroy_region(r, t);
++	}
++
++	/* Add new regions or resize existing regions to fit in the ranges */
++	for (i = 0; i < nr_ranges; i++) {
++		struct damon_region *first = NULL, *last, *newr;
++		struct damon_addr_range *range;
++
++		range = &ranges[i];
++		/* Get the first/last regions intersecting with the range */
++		damon_for_each_region(r, t) {
++			if (damon_intersect(r, range)) {
++				if (!first)
++					first = r;
++				last = r;
++			}
++			if (r->ar.start >= range->end)
++				break;
++		}
++		if (!first) {
++			/* no region intersects with this range */
++			newr = damon_new_region(
++					ALIGN_DOWN(range->start,
++						DAMON_MIN_REGION),
++					ALIGN(range->end, DAMON_MIN_REGION));
++			if (!newr)
++				return -ENOMEM;
++			damon_insert_region(newr, damon_prev_region(r), r, t);
++		} else {
++			/* resize intersecting regions to fit in this range */
++			first->ar.start = ALIGN_DOWN(range->start,
++					DAMON_MIN_REGION);
++			last->ar.end = ALIGN(range->end, DAMON_MIN_REGION);
++		}
++	}
++	return 0;
++}
++
+ struct damos *damon_new_scheme(
+ 		unsigned long min_sz_region, unsigned long max_sz_region,
+ 		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-move-damon_set_regions-to-core
++++ a/mm/damon/vaddr.c
+@@ -286,79 +286,6 @@ static void damon_va_init(struct damon_c
+  */
  
- 	for (i = 0; i < sysfs_targets->nr; i++) {
--		struct damon_sysfs_target *sys_target =
--			sysfs_targets->targets_arr[i];
--		struct damon_target *t = damon_new_target();
+ /*
+- * Check whether a region is intersecting an address range
+- *
+- * Returns true if it is.
+- */
+-static bool damon_intersect(struct damon_region *r,
+-		struct damon_addr_range *re)
+-{
+-	return !(r->ar.end <= re->start || re->end <= r->ar.start);
+-}
 -
--		if (!t) {
--			damon_sysfs_destroy_targets(ctx);
--			return -ENOMEM;
+-/*
+- * damon_set_regions() - Set regions of a target for given address ranges.
+- * @t:		the given target.
+- * @ranges:	array of new monitoring target ranges.
+- * @nr_ranges:	length of @ranges.
+- *
+- * This function adds new regions to, or modify existing regions of a
+- * monitoring target to fit in specific ranges.
+- *
+- * Return: 0 if success, or negative error code otherwise.
+- */
+-static int damon_set_regions(struct damon_target *t,
+-		struct damon_addr_range *ranges, unsigned int nr_ranges)
+-{
+-	struct damon_region *r, *next;
+-	unsigned int i;
+-
+-	/* Remove regions which are not in the new ranges */
+-	damon_for_each_region_safe(r, next, t) {
+-		for (i = 0; i < nr_ranges; i++) {
+-			if (damon_intersect(r, &ranges[i]))
+-				break;
 -		}
--		if (ctx->ops.id == DAMON_OPS_VADDR ||
--				ctx->ops.id == DAMON_OPS_FVADDR) {
--			t->pid = find_get_pid(sys_target->pid);
--			if (!t->pid) {
--				damon_sysfs_destroy_targets(ctx);
--				return -EINVAL;
+-		if (i == nr_ranges)
+-			damon_destroy_region(r, t);
+-	}
+-
+-	/* Add new regions or resize existing regions to fit in the ranges */
+-	for (i = 0; i < nr_ranges; i++) {
+-		struct damon_region *first = NULL, *last, *newr;
+-		struct damon_addr_range *range;
+-
+-		range = &ranges[i];
+-		/* Get the first/last regions intersecting with the range */
+-		damon_for_each_region(r, t) {
+-			if (damon_intersect(r, range)) {
+-				if (!first)
+-					first = r;
+-				last = r;
 -			}
+-			if (r->ar.start >= range->end)
+-				break;
 -		}
--		damon_add_target(ctx, t);
--		err = damon_sysfs_set_regions(t, sys_target->regions);
--		if (err) {
--			damon_sysfs_destroy_targets(ctx);
-+		err = damon_sysfs_add_target(
-+				sysfs_targets->targets_arr[i], ctx);
-+		if (err)
- 			return err;
+-		if (!first) {
+-			/* no region intersects with this range */
+-			newr = damon_new_region(
+-					ALIGN_DOWN(range->start,
+-						DAMON_MIN_REGION),
+-					ALIGN(range->end, DAMON_MIN_REGION));
+-			if (!newr)
+-				return -ENOMEM;
+-			damon_insert_region(newr, damon_prev_region(r), r, t);
+-		} else {
+-			/* resize intersecting regions to fit in this range */
+-			first->ar.start = ALIGN_DOWN(range->start,
+-					DAMON_MIN_REGION);
+-			last->ar.end = ALIGN(range->end, DAMON_MIN_REGION);
 -		}
- 	}
- 	return 0;
- }
+-	}
+-	return 0;
+-}
+-
+-/*
+  * Update damon regions for the three big regions of the given target
+  *
+  * t		the given target
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
