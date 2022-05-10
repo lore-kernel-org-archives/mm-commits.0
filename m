@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0239C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:18:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93051C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:18:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235412AbiEJEV4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:21:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37512 "EHLO
+        id S236257AbiEJEV5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:21:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236257AbiEJEUd (ORCPT
+        with ESMTP id S236076AbiEJEUd (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:33 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4F162B031E
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82AEF2AD760
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 81556B81B00
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34F6CC385A6;
-        Tue, 10 May 2022 04:15:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 45252B81B00
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E799BC385C2;
+        Tue, 10 May 2022 04:15:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156119;
-        bh=/PbndG/iwPYTCoqE3zP+/Ql6t8ZaTJJ5FdNyaWt5lDQ=;
+        s=korg; t=1652156116;
+        bh=FHJsXhjHlUhoZZ1r6VC2OCifiZ+Jw3xZhvn6GoYbuqc=;
         h=Date:To:From:Subject:From;
-        b=EQoom6GMYNqE0UxsfWsOg1Y2hOeDWrs6GSsihM9hxN/s8VXdpTugIleZr+igjBJIL
-         ZXHCovsbtj/GKDr5qyJTSbRB4YoI8WmtpaVn4aDEngcYb9T63l76pref8onLzVet13
-         4zvJisvlbg+9znphgdmd9groI3I3ha+3+PDyu7w4=
-Date:   Mon, 09 May 2022 21:15:18 -0700
+        b=e2pVizn4xLyJkQAKfgXYB+2h7MSGdiseyQhJ01Ww/Ft7Tge7qRNEFLU+TWPbpYOfu
+         GrYmZSFGtkMr00FL/ZjYhH/E6MXdzFmtD73AmpD7eErZe1uNqd5yEtYLbE9CE2LCjN
+         IiS4cRxCbkZT0EdaYt7DjL48sj+Qf6b2vpmM3/f8=
+Date:   Mon, 09 May 2022 21:15:15 -0700
 To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
         mgorman@techsingularity.net, linmiaohe@huawei.com,
         hughd@google.com, hch@lst.de, geert+renesas@glider.be,
         dhowells@redhat.com, neilb@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-handle-thp-in-swap_page_fs.patch removed from -mm tree
-Message-Id: <20220510041519.34F6CC385A6@smtp.kernel.org>
+Subject: [merged mm-stable] doc-update-documentation-for-swap_activate-and-swap_rw.patch removed from -mm tree
+Message-Id: <20220510041515.E799BC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,135 +43,121 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: handle THP in swap_*page_fs()
+     Subject: doc: update documentation for swap_activate and swap_rw
 has been removed from the -mm tree.  Its filename was
-     mm-handle-thp-in-swap_page_fs.patch
+     doc-update-documentation-for-swap_activate-and-swap_rw.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: NeilBrown <neilb@suse.de>
-Subject: mm: handle THP in swap_*page_fs()
+Subject: doc: update documentation for swap_activate and swap_rw
 
-Pages passed to swap_readpage()/swap_writepage() are not necessarily all
-the same size - there may be transparent-huge-pages involves.
+This documentation for ->swap_activate() has been out-of-date for a long
+time.  This patch updates it to match recent changes, and adds
+documentation for the associated ->swap_rw()
 
-The BIO paths of swap_*page() handle this correctly, but the SWP_FS_OPS
-path does not.
-
-So we need to use thp_size() to find the size, not just assume PAGE_SIZE,
-and we need to track the total length of the request, not just assume it
-is "page * PAGE_SIZE".
-
-Link: https://lkml.kernel.org/r/165119301488.15698.9457662928942765453.stgit@noble.brown
+Link: https://lkml.kernel.org/r/164859778126.29473.6778751233552859461.stgit@noble.brown
 Signed-off-by: NeilBrown <neilb@suse.de>
-Reported-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: David Howells <dhowells@redhat.com>
+Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ Documentation/filesystems/locking.rst |   18 ++++++++++++------
+ Documentation/filesystems/vfs.rst     |   17 ++++++++++++-----
+ 2 files changed, 24 insertions(+), 11 deletions(-)
 
---- a/mm/page_io.c~mm-handle-thp-in-swap_page_fs
-+++ a/mm/page_io.c
-@@ -239,6 +239,7 @@ struct swap_iocb {
- 	struct kiocb		iocb;
- 	struct bio_vec		bvec[SWAP_CLUSTER_MAX];
- 	int			pages;
-+	int			len;
- };
- static mempool_t *sio_pool;
+--- a/Documentation/filesystems/locking.rst~doc-update-documentation-for-swap_activate-and-swap_rw
++++ a/Documentation/filesystems/locking.rst
+@@ -258,8 +258,9 @@ prototypes::
+ 	int (*launder_folio)(struct folio *);
+ 	bool (*is_partially_uptodate)(struct folio *, size_t from, size_t count);
+ 	int (*error_remove_page)(struct address_space *, struct page *);
+-	int (*swap_activate)(struct file *);
++	int (*swap_activate)(struct swap_info_struct *sis, struct file *f, sector_t *span)
+ 	int (*swap_deactivate)(struct file *);
++	int (*swap_rw)(struct kiocb *iocb, struct iov_iter *iter);
  
-@@ -261,7 +262,7 @@ static void sio_write_complete(struct ki
- 	struct page *page = sio->bvec[0].bv_page;
- 	int p;
+ locking rules:
+ 	All except dirty_folio and freepage may block
+@@ -287,6 +288,7 @@ is_partially_uptodate:	yes
+ error_remove_page:	yes
+ swap_activate:		no
+ swap_deactivate:	no
++swap_rw:		yes, unlocks
+ ======================	======================== =========	===============
  
--	if (ret != PAGE_SIZE * sio->pages) {
-+	if (ret != sio->len) {
- 		/*
- 		 * In the case of swap-over-nfs, this can be a
- 		 * temporary failure if the system has limited
-@@ -301,7 +302,7 @@ static int swap_writepage_fs(struct page
- 		sio = *wbc->swap_plug;
- 	if (sio) {
- 		if (sio->iocb.ki_filp != swap_file ||
--		    sio->iocb.ki_pos + sio->pages * PAGE_SIZE != pos) {
-+		    sio->iocb.ki_pos + sio->len != pos) {
- 			swap_write_unplug(sio);
- 			sio = NULL;
- 		}
-@@ -312,10 +313,12 @@ static int swap_writepage_fs(struct page
- 		sio->iocb.ki_complete = sio_write_complete;
- 		sio->iocb.ki_pos = pos;
- 		sio->pages = 0;
-+		sio->len = 0;
- 	}
- 	sio->bvec[sio->pages].bv_page = page;
--	sio->bvec[sio->pages].bv_len = PAGE_SIZE;
-+	sio->bvec[sio->pages].bv_len = thp_size(page);
- 	sio->bvec[sio->pages].bv_offset = 0;
-+	sio->len += thp_size(page);
- 	sio->pages += 1;
- 	if (sio->pages == ARRAY_SIZE(sio->bvec) || !wbc->swap_plug) {
- 		swap_write_unplug(sio);
-@@ -371,8 +374,7 @@ void swap_write_unplug(struct swap_iocb
- 	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
- 	int ret;
+ ->write_begin(), ->write_end() and ->readpage() may be called from
+@@ -386,15 +388,19 @@ cleaned, or an error value if not. Note
+ getting mapped back in and redirtied, it needs to be kept locked
+ across the entire operation.
  
--	iov_iter_bvec(&from, WRITE, sio->bvec, sio->pages,
--		      PAGE_SIZE * sio->pages);
-+	iov_iter_bvec(&from, WRITE, sio->bvec, sio->pages, sio->len);
- 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
- 	if (ret != -EIOCBQUEUED)
- 		sio_write_complete(&sio->iocb, ret);
-@@ -383,7 +385,7 @@ static void sio_read_complete(struct kio
- 	struct swap_iocb *sio = container_of(iocb, struct swap_iocb, iocb);
- 	int p;
+-->swap_activate will be called with a non-zero argument on
+-files backing (non block device backed) swapfiles. A return value
+-of zero indicates success, in which case this file can be used for
+-backing swapspace. The swapspace operations will be proxied to the
+-address space operations.
++->swap_activate() will be called to prepare the given file for swap.  It
++should perform any validation and preparation necessary to ensure that
++writes can be performed with minimal memory allocation.  It should call
++add_swap_extent(), or the helper iomap_swapfile_activate(), and return
++the number of extents added.  If IO should be submitted through
++->swap_rw(), it should set SWP_FS_OPS, otherwise IO will be submitted
++directly to the block device ``sis->bdev``.
  
--	if (ret == PAGE_SIZE * sio->pages) {
-+	if (ret == sio->len) {
- 		for (p = 0; p < sio->pages; p++) {
- 			struct page *page = sio->bvec[p].bv_page;
+ ->swap_deactivate() will be called in the sys_swapoff()
+ path after ->swap_activate() returned success.
  
-@@ -415,7 +417,7 @@ static void swap_readpage_fs(struct page
- 		sio = *plug;
- 	if (sio) {
- 		if (sio->iocb.ki_filp != sis->swap_file ||
--		    sio->iocb.ki_pos + sio->pages * PAGE_SIZE != pos) {
-+		    sio->iocb.ki_pos + sio->len != pos) {
- 			swap_read_unplug(sio);
- 			sio = NULL;
- 		}
-@@ -426,10 +428,12 @@ static void swap_readpage_fs(struct page
- 		sio->iocb.ki_pos = pos;
- 		sio->iocb.ki_complete = sio_read_complete;
- 		sio->pages = 0;
-+		sio->len = 0;
- 	}
- 	sio->bvec[sio->pages].bv_page = page;
--	sio->bvec[sio->pages].bv_len = PAGE_SIZE;
-+	sio->bvec[sio->pages].bv_len = thp_size(page);
- 	sio->bvec[sio->pages].bv_offset = 0;
-+	sio->len += thp_size(page);
- 	sio->pages += 1;
- 	if (sio->pages == ARRAY_SIZE(sio->bvec) || !plug) {
- 		swap_read_unplug(sio);
-@@ -521,8 +525,7 @@ void __swap_read_unplug(struct swap_iocb
- 	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
- 	int ret;
++->swap_rw will be called for swap IO if SWP_FS_OPS was set by ->swap_activate().
++
+ file_lock_operations
+ ====================
  
--	iov_iter_bvec(&from, READ, sio->bvec, sio->pages,
--		      PAGE_SIZE * sio->pages);
-+	iov_iter_bvec(&from, READ, sio->bvec, sio->pages, sio->len);
- 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
- 	if (ret != -EIOCBQUEUED)
- 		sio_read_complete(&sio->iocb, ret);
+--- a/Documentation/filesystems/vfs.rst~doc-update-documentation-for-swap_activate-and-swap_rw
++++ a/Documentation/filesystems/vfs.rst
+@@ -749,8 +749,9 @@ cache in your filesystem.  The following
+ 					       size_t count);
+ 		void (*is_dirty_writeback) (struct page *, bool *, bool *);
+ 		int (*error_remove_page) (struct mapping *mapping, struct page *page);
+-		int (*swap_activate)(struct file *);
++		int (*swap_activate)(struct swap_info_struct *sis, struct file *f, sector_t *span)
+ 		int (*swap_deactivate)(struct file *);
++		int (*swap_rw)(struct kiocb *iocb, struct iov_iter *iter);
+ 	};
+ 
+ ``writepage``
+@@ -952,15 +953,21 @@ cache in your filesystem.  The following
+ 	unless you have them locked or reference counts increased.
+ 
+ ``swap_activate``
+-	Called when swapon is used on a file to allocate space if
+-	necessary and pin the block lookup information in memory.  A
+-	return value of zero indicates success, in which case this file
+-	can be used to back swapspace.
++
++	Called to prepare the given file for swap.  It should perform
++	any validation and preparation necessary to ensure that writes
++	can be performed with minimal memory allocation.  It should call
++	add_swap_extent(), or the helper iomap_swapfile_activate(), and
++	return the number of extents added.  If IO should be submitted
++	through ->swap_rw(), it should set SWP_FS_OPS, otherwise IO will
++	be submitted directly to the block device ``sis->bdev``.
+ 
+ ``swap_deactivate``
+ 	Called during swapoff on files where swap_activate was
+ 	successful.
+ 
++``swap_rw``
++	Called to read or write swap pages when SWP_FS_OPS is set.
+ 
+ The File Object
+ ===============
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
