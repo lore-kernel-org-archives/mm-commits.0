@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C10C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABB87C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236035AbiEJESG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:18:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48574 "EHLO
+        id S229782AbiEJESI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:18:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229782AbiEJEQ7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:59 -0400
+        with ESMTP id S235971AbiEJERA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:00 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 969BC243133
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1570243137
         for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3C6EAB81B07
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5F168B81B08
         for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1430C385C2;
-        Tue, 10 May 2022 04:12:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03914C385A6;
+        Tue, 10 May 2022 04:12:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155939;
-        bh=eiv1EEVJJ/ieJn3zGJZdI1XdmwvNaYH+u1EFwVJMsSg=;
+        s=korg; t=1652155940;
+        bh=+NJKLJNNemIWzV+CJjBvWrIrLwTxOsvsJ1C9h2Y+7PM=;
         h=Date:To:From:Subject:From;
-        b=IlZc0k12nRKLaNxfiz4bqW0ZImj6Rfk4cFnblG9UPOfCDo5Gut1YV7OKj0mkhFP5c
-         kDC23ft1G+ac5uZqZV0qtc8hRKpk/SPJsJBQuyDcc/40F0b0YBZ6PqYMESBR4GsMBC
-         r2vld2GIXvVtQjK+YkOzvTB1pZ5ZolST1Inta37o=
-Date:   Mon, 09 May 2022 21:12:18 -0700
+        b=lkCakPVBwmS5oGv82VI6DLYzeWFP0YCi8AJr2Uyc+i6taBPQJPOf6CGfsmQEoJk0k
+         gsgwGj+5DW+wGWO8ee8zdinbFwaCG4+wtYSL4gGGH4v2Hn5UFKPX5jcT4MHe9IYicb
+         Qu8NA9m2OhJiqDmqKHa5HT3BELwbSVF/Bpi6GmO0=
+Date:   Mon, 09 May 2022 21:12:19 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-remove-unneeded-pfn-update.patch removed from -mm tree
-Message-Id: <20220510041218.E1430C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-remove-unneeded-assignment-to-isolate_start_pfn.patch removed from -mm tree
+Message-Id: <20220510041220.03914C385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,19 +42,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: remove unneeded pfn update
+     Subject: mm: compaction: remove unneeded assignment to isolate_start_pfn
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-remove-unneeded-pfn-update.patch
+     mm-compaction-remove-unneeded-assignment-to-isolate_start_pfn.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: remove unneeded pfn update
+Subject: mm: compaction: remove unneeded assignment to isolate_start_pfn
 
-pfn is unused in this do while loop. Remove the unneeded pfn update.
+isolate_start_pfn is unused when cc->nr_freepages !  = 0.  Otherwise
+cc->free_pfn will overwrite it unconditionally.  So we should remove this
+unneeded and somewhat misleading assignment.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -63,19 +65,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-remove-unneeded-pfn-update
+--- a/mm/compaction.c~mm-compaction-remove-unneeded-assignment-to-isolate_start_pfn
 +++ a/mm/compaction.c
-@@ -317,7 +317,6 @@ __reset_isolation_pfn(struct zone *zone,
- 		}
+@@ -1586,7 +1586,7 @@ static void isolate_freepages(struct com
+ 	unsigned int stride;
  
- 		page += (1 << PAGE_ALLOC_COSTLY_ORDER);
--		pfn += (1 << PAGE_ALLOC_COSTLY_ORDER);
- 	} while (page <= end_page);
+ 	/* Try a small search of the free lists for a candidate */
+-	isolate_start_pfn = fast_isolate_freepages(cc);
++	fast_isolate_freepages(cc);
+ 	if (cc->nr_freepages)
+ 		goto splitmap;
  
- 	return false;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
