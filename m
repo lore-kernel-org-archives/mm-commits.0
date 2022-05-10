@@ -2,47 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0CADC4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E01BCC4167E
 	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236354AbiEJEVB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:21:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44676 "EHLO
+        id S236348AbiEJEU7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:20:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236148AbiEJETu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:19:50 -0400
+        with ESMTP id S236082AbiEJESb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:18:31 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCD0E2AC0EC
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7326A2438C8
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E364361745
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D2E1C385C2;
-        Tue, 10 May 2022 04:14:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0BB59615E8
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB5AC385C5;
+        Tue, 10 May 2022 04:14:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156071;
-        bh=Ze4xaYvV6vLzYQ7PYaRjmSkMUrrCXsFpGZKYzInli4g=;
+        s=korg; t=1652156063;
+        bh=nWlPjohFboaltEuSJD/Rgy18k6nN7HAsBjyC1cjB6tk=;
         h=Date:To:From:Subject:From;
-        b=RvChhLLqxeilUH78dP1565kUynXeyN+cUeYgKuDJmZtlJ+f8zuf1ZFUQZPDS1d+GQ
-         P89qZo0KQ2bE9bzNhQJGbyyoXtswgyqwCGRRR8bnC+NdUKoVeBSIFRqpw7HSUdqXKe
-         AZpAvF30pF/xBtWbtJgUyUWGrhKpnNe7AEvV7ihQ=
-Date:   Mon, 09 May 2022 21:14:30 -0700
-To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
-        willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
-        shakeelb@google.com, rppt@linux.ibm.com, rientjes@google.com,
-        riel@surriel.com, peterx@redhat.com, pedrodemargomes@gmail.com,
-        oleg@redhat.com, oded.gabbay@gmail.com, namit@vmware.com,
-        mike.kravetz@oracle.com, mhocko@kernel.org,
-        kirill.shutemov@linux.intel.com, khalid.aziz@oracle.com,
-        jhubbard@nvidia.com, jgg@nvidia.com, jannh@google.com,
-        jack@suse.cz, hughd@google.com, hch@lst.de, guro@fb.com,
-        ddutile@redhat.com, aarcange@redhat.com, david@redhat.com,
-        akpm@linux-foundation.org
+        b=Uj/2wuOtzkEPdi0EfDtM5sDE8TkFUahi14QlsGY0lLPQ8ywkZcVY5oNmfdmbCrya0
+         +X2sGvnTpOYsHWf3iFvbHW5jaaaQMrqsQDTTWcR1QQqCSdu8QrTcXp2WeKn/JSew/p
+         4k5RQ8EHnKM9c46NeklJjbNp/gCF0VmqWy5NJMQY=
+Date:   Mon, 09 May 2022 21:14:22 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, weixugc@google.com,
+        vaibhav@linux.ibm.com, tj@kernel.org, tim.c.chen@linux.intel.com,
+        shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
+        rientjes@google.com, mkoutny@suse.com, mhocko@suse.com,
+        lizefan.x@bytedance.com, hannes@cmpxchg.org, gthelen@google.com,
+        dave.hansen@linux.intel.com, corbet@lwn.net, chenwandun@huawei.com,
+        yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch removed from -mm tree
-Message-Id: <20220510041431.3D2E1C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch removed from -mm tree
+Message-Id: <20220510041423.5AB5AC385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,165 +46,153 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/rmap: fix missing swap_free() in try_to_unmap() after arch_unmap_one() failed
+     Subject: selftests: cgroup: return -errno from cg_read()/cg_write() on failure
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed.patch
+     selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: fix missing swap_free() in try_to_unmap() after arch_unmap_one() failed
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: selftests: cgroup: return -errno from cg_read()/cg_write() on failure
 
-Patch series "mm: COW fixes part 2: reliable GUP pins of anonymous pages", v4.
+Currently, cg_read()/cg_write() returns 0 on success and -1 on failure.
+Modify them to return the -errno on failure.
 
-This series is the result of the discussion on the previous approach [2]. 
-More information on the general COW issues can be found there.  It is
-based on latest linus/master (post v5.17, with relevant core-MM changes
-for v5.18-rc1).
-
-This series fixes memory corruptions when a GUP pin (FOLL_PIN) was taken
-on an anonymous page and COW logic fails to detect exclusivity of the page
-to then replacing the anonymous page by a copy in the page table: The GUP
-pin lost synchronicity with the pages mapped into the page tables.
-
-This issue, including other related COW issues, has been summarized in [3]
-under 3):
-"
-  3. Intra Process Memory Corruptions due to Wrong COW (FOLL_PIN)
-
-  page_maybe_dma_pinned() is used to check if a page may be pinned for
-  DMA (using FOLL_PIN instead of FOLL_GET).  While false positives are
-  tolerable, false negatives are problematic: pages that are pinned for
-  DMA must not be added to the swapcache.  If it happens, the (now pinned)
-  page could be faulted back from the swapcache into page tables
-  read-only.  Future write-access would detect the pinning and COW the
-  page, losing synchronicity.  For the interested reader, this is nicely
-  documented in feb889fb40fa ("mm: don't put pinned pages into the swap
-  cache").
-
-  Peter reports [8] that page_maybe_dma_pinned() as used is racy in some
-  cases and can result in a violation of the documented semantics: giving
-  false negatives because of the race.
-
-  There are cases where we call it without properly taking a per-process
-  sequence lock, turning the usage of page_maybe_dma_pinned() racy.  While
-  one case (clear_refs SOFTDIRTY tracking, see below) seems to be easy to
-  handle, there is especially one rmap case (shrink_page_list) that's hard
-  to fix: in the rmap world, we're not limited to a single process.
-
-  The shrink_page_list() issue is really subtle.  If we race with
-  someone pinning a page, we can trigger the same issue as in the FOLL_GET
-  case.  See the detail section at the end of this mail on a discussion
-  how bad this can bite us with VFIO or other FOLL_PIN user.
-
-  It's harder to reproduce, but I managed to modify the O_DIRECT
-  reproducer to use io_uring fixed buffers [15] instead, which ends up
-  using FOLL_PIN | FOLL_WRITE | FOLL_LONGTERM to pin buffer pages and can
-  similarly trigger a loss of synchronicity and consequently a memory
-  corruption.
-
-  Again, the root issue is that a write-fault on a page that has
-  additional references results in a COW and thereby a loss of
-  synchronicity and consequently a memory corruption if two parties
-  believe they are referencing the same page.
-"
-
-This series makes GUP pins (R/O and R/W) on anonymous pages fully
-reliable, especially also taking care of concurrent pinning via GUP-fast,
-for example, also fully fixing an issue reported regarding NUMA balancing
-[4] recently.  While doing that, it further reduces "unnecessary COWs",
-especially when we don't fork()/KSM and don't swapout, and fixes the COW
-security for hugetlb for FOLL_PIN.
-
-In summary, we track via a pageflag (PG_anon_exclusive) whether a mapped
-anonymous page is exclusive.  Exclusive anonymous pages that are mapped
-R/O can directly be mapped R/W by the COW logic in the write fault
-handler.  Exclusive anonymous pages that want to be shared (fork(), KSM)
-first have to be marked shared -- which will fail if there are GUP pins on
-the page.  GUP is only allowed to take a pin on anonymous pages that are
-exclusive.  The PT lock is the primary mechanism to synchronize
-modifications of PG_anon_exclusive.  We synchronize against GUP-fast
-either via the src_mm->write_protect_seq (during fork()) or via
-clear/invalidate+flush of the relevant page table entry.
-
-Special care has to be taken about swap, migration, and THPs (whereby a
-PMD-mapping can be converted to a PTE mapping and we have to track
-information for subpages).  Besides these, we let the rmap code handle
-most magic.  For reliable R/O pins of anonymous pages, we need
-FAULT_FLAG_UNSHARE logic as part of our previous approach [2], however,
-it's now 100% mapcount free and I further simplified it a bit.
-
-  #1 is a fix
-  #3-#10 are mostly rmap preparations for PG_anon_exclusive handling
-  #11 introduces PG_anon_exclusive
-  #12 uses PG_anon_exclusive and make R/W pins of anonymous pages
-   reliable
-  #13 is a preparation for reliable R/O pins
-  #14 and #15 is reused/modified GUP-triggered unsharing for R/O GUP pins
-   make R/O pins of anonymous pages reliable
-  #16 adds sanity check when (un)pinning anonymous pages
-
-[1] https://lkml.kernel.org/r/20220131162940.210846-1-david@redhat.com
-[2] https://lkml.kernel.org/r/20211217113049.23850-1-david@redhat.com
-[3] https://lore.kernel.org/r/3ae33b08-d9ef-f846-56fb-645e3b9b4c66@redhat.com
-[4] https://bugzilla.kernel.org/show_bug.cgi?id=215616
-
-
-This patch (of 17):
-
-In case arch_unmap_one() fails, we already did a swap_duplicate().  let's
-undo that properly via swap_free().
-
-Link: https://lkml.kernel.org/r/20220428083441.37290-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20220428083441.37290-2-david@redhat.com
-Fixes: ca827d55ebaa ("mm, swap: Add infrastructure for saving page metadata on swap")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Don Dutile <ddutile@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Liang Zhang <zhangliang5@huawei.com>
-Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Cc: Oded Gabbay <oded.gabbay@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20220425190040.2475377-3-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Chen Wandun <chenwandun@huawei.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Michal Koutn" <mkoutny@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/cgroup/cgroup_util.c |   44 +++++++----------
+ 1 file changed, 19 insertions(+), 25 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-fix-missing-swap_free-in-try_to_unmap-after-arch_unmap_one-failed
-+++ a/mm/rmap.c
-@@ -1681,6 +1681,7 @@ static bool try_to_unmap_one(struct foli
- 				break;
- 			}
- 			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
-+				swap_free(entry);
- 				set_pte_at(mm, address, pvmw.pte, pteval);
- 				ret = false;
- 				page_vma_mapped_walk_done(&pvmw);
+--- a/tools/testing/selftests/cgroup/cgroup_util.c~selftests-cgroup-return-errno-from-cg_read-cg_write-on-failure
++++ a/tools/testing/selftests/cgroup/cgroup_util.c
+@@ -19,6 +19,7 @@
+ #include "cgroup_util.h"
+ #include "../clone3/clone3_selftests.h"
+ 
++/* Returns read len on success, or -errno on failure. */
+ static ssize_t read_text(const char *path, char *buf, size_t max_len)
+ {
+ 	ssize_t len;
+@@ -26,35 +27,29 @@ static ssize_t read_text(const char *pat
+ 
+ 	fd = open(path, O_RDONLY);
+ 	if (fd < 0)
+-		return fd;
++		return -errno;
+ 
+ 	len = read(fd, buf, max_len - 1);
+-	if (len < 0)
+-		goto out;
+ 
+-	buf[len] = 0;
+-out:
++	if (len >= 0)
++		buf[len] = 0;
++
+ 	close(fd);
+-	return len;
++	return len < 0 ? -errno : len;
+ }
+ 
++/* Returns written len on success, or -errno on failure. */
+ static ssize_t write_text(const char *path, char *buf, ssize_t len)
+ {
+ 	int fd;
+ 
+ 	fd = open(path, O_WRONLY | O_APPEND);
+ 	if (fd < 0)
+-		return fd;
++		return -errno;
+ 
+ 	len = write(fd, buf, len);
+-	if (len < 0) {
+-		close(fd);
+-		return len;
+-	}
+-
+ 	close(fd);
+-
+-	return len;
++	return len < 0 ? -errno : len;
+ }
+ 
+ char *cg_name(const char *root, const char *name)
+@@ -87,16 +82,16 @@ char *cg_control(const char *cgroup, con
+ 	return ret;
+ }
+ 
++/* Returns 0 on success, or -errno on failure. */
+ int cg_read(const char *cgroup, const char *control, char *buf, size_t len)
+ {
+ 	char path[PATH_MAX];
++	ssize_t ret;
+ 
+ 	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
+ 
+-	if (read_text(path, buf, len) >= 0)
+-		return 0;
+-
+-	return -1;
++	ret = read_text(path, buf, len);
++	return ret >= 0 ? 0 : ret;
+ }
+ 
+ int cg_read_strcmp(const char *cgroup, const char *control,
+@@ -177,17 +172,15 @@ long cg_read_lc(const char *cgroup, cons
+ 	return cnt;
+ }
+ 
++/* Returns 0 on success, or -errno on failure. */
+ int cg_write(const char *cgroup, const char *control, char *buf)
+ {
+ 	char path[PATH_MAX];
+-	ssize_t len = strlen(buf);
++	ssize_t len = strlen(buf), ret;
+ 
+ 	snprintf(path, sizeof(path), "%s/%s", cgroup, control);
+-
+-	if (write_text(path, buf, len) == len)
+-		return 0;
+-
+-	return -1;
++	ret = write_text(path, buf, len);
++	return ret == len ? 0 : ret;
+ }
+ 
+ int cg_find_unified_root(char *root, size_t len)
+@@ -545,7 +538,8 @@ ssize_t proc_read_text(int pid, bool thr
+ 	else
+ 		snprintf(path, sizeof(path), "/proc/%d/%s", pid, item);
+ 
+-	return read_text(path, buf, size);
++	size = read_text(path, buf, size);
++	return size < 0 ? -1 : size;
+ }
+ 
+ int proc_read_strstr(int pid, bool thread, const char *item, const char *needle)
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
 
