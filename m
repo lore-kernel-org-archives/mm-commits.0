@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 829C0C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3994C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:14:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236028AbiEJER5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:17:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45066 "EHLO
+        id S236033AbiEJER6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:17:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236039AbiEJERD (ORCPT
+        with ESMTP id S236130AbiEJERD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:17:03 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5846B2438CD
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:23 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 092615DA45
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4F758B81AFB
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0D99C385A6;
-        Tue, 10 May 2022 04:12:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 98B5861746
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F338EC385C2;
+        Tue, 10 May 2022 04:12:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155942;
-        bh=UssZDz2bUDFh4B99SjFuFzM0nACqrjn7oCflmdxIHUQ=;
+        s=korg; t=1652155948;
+        bh=RWzmoBKfGT7fiulGflqenu7gN1R8tKxsUhRtScMXe6I=;
         h=Date:To:From:Subject:From;
-        b=k/h89/j0wioKs1OHOcuG947ImblrS5vcZOzBIlYvtuMuGOwfmhSi/NU0rlKL+Cvp3
-         QdirG/0JBSLkwpLEK5k2jTFO/s+KDi+wk5TH8BV2TXyRBXmt/XApWvjjp2E1iCss39
-         Bio0QyKebaURjBIH0RLaZS/lBLGMST+2S0ZYQH7w=
-Date:   Mon, 09 May 2022 21:12:21 -0700
+        b=i19hDuLUD91ZJgKmlPpWViLSFiR1JzJbpTxK8x2YNrnxaH4xz0Y5i928nLgS9Zifb
+         LRRm6tWTEPCpYNDqyS0marMpG248ir/gRRmant8qEnVwKHHLGWFTPDJdIubHsLuJnb
+         8U34v0YwPJJAXPYbuoX2AcSVIgFtk3OJZ1pOLbug=
+Date:   Mon, 09 May 2022 21:12:27 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, pintu@codeaurora.org,
         david@redhat.com, charante@codeaurora.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch removed from -mm tree
-Message-Id: <20220510041221.F0D99C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-simplify-the-code-in-__compact_finished.patch removed from -mm tree
+Message-Id: <20220510041227.F338EC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,22 +42,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: clean up comment about suitable migration target recheck
+     Subject: mm: compaction: simplify the code in __compact_finished
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-clean-up-comment-about-suitable-migration-target-recheck.patch
+     mm-compaction-simplify-the-code-in-__compact_finished.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: compaction: clean up comment about suitable migration target recheck
+Subject: mm: compaction: simplify the code in __compact_finished
 
-checked_pageblock is already removed and suitable_migration_target is not
-rechecked under the zone lock since commit f8224aa5a0a4 ("mm, compaction:
-do not recheck suitable_migration_target under lock").  Correct the
-comment accordingly.
+Since commit efe771c7603b ("mm, compaction: always finish scanning of a
+full pageblock"), compaction will always finish scanning a pageblock.  And
+migrate_pfn is assured to align with pageblock_nr_pages when we reach
+here.  So we will always return COMPACT_SUCCESS if a suitable fallback is
+found due to the below IS_ALIGNED check of migrate_pfn.  Simplify the code
+to make this clear and improve the readability.  No functional change
+intended.
 
-Link: https://lkml.kernel.org/r/20220418141253.24298-6-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220418141253.24298-12-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Charan Teja Kalla <charante@codeaurora.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -66,26 +69,49 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/compaction.c |   29 ++++++++---------------------
+ 1 file changed, 8 insertions(+), 21 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-clean-up-comment-about-suitable-migration-target-recheck
+--- a/mm/compaction.c~mm-compaction-simplify-the-code-in-__compact_finished
 +++ a/mm/compaction.c
-@@ -599,13 +599,7 @@ static unsigned long isolate_freepages_b
- 		if (!PageBuddy(page))
- 			goto isolate_fail;
+@@ -2134,29 +2134,16 @@ static enum compact_result __compact_fin
+ 		 * other migratetype buddy lists.
+ 		 */
+ 		if (find_suitable_fallback(area, order, migratetype,
+-						true, &can_steal) != -1) {
+-
+-			/* movable pages are OK in any pageblock */
+-			if (migratetype == MIGRATE_MOVABLE)
+-				return COMPACT_SUCCESS;
+-
++						true, &can_steal) != -1)
+ 			/*
+-			 * We are stealing for a non-movable allocation. Make
+-			 * sure we finish compacting the current pageblock
+-			 * first so it is as free as possible and we won't
+-			 * have to steal another one soon. This only applies
+-			 * to sync compaction, as async compaction operates
+-			 * on pageblocks of the same migratetype.
++			 * Movable pages are OK in any pageblock. If we are
++			 * stealing for a non-movable allocation, make sure
++			 * we finish compacting the current pageblock first
++			 * (which is assured by the above migrate_pfn align
++			 * check) so it is as free as possible and we won't
++			 * have to steal another one soon.
+ 			 */
+-			if (cc->mode == MIGRATE_ASYNC ||
+-					IS_ALIGNED(cc->migrate_pfn,
+-							pageblock_nr_pages)) {
+-				return COMPACT_SUCCESS;
+-			}
+-
+-			ret = COMPACT_CONTINUE;
+-			break;
+-		}
++			return COMPACT_SUCCESS;
+ 	}
  
--		/*
--		 * If we already hold the lock, we can skip some rechecking.
--		 * Note that if we hold the lock now, checked_pageblock was
--		 * already set in some previous iteration (or strict is true),
--		 * so it is correct to skip the suitable migration target
--		 * recheck as well.
--		 */
-+		/* If we already hold the lock, we can skip some rechecking. */
- 		if (!locked) {
- 			locked = compact_lock_irqsave(&cc->zone->lock,
- 								&flags, cc);
+ out:
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
