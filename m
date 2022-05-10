@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E723C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:21:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 803D0C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:21:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236515AbiEJEZI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:25:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37512 "EHLO
+        id S236184AbiEJEZK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:25:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236289AbiEJEXN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:23:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE26C53A77
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:17:59 -0700 (PDT)
+        with ESMTP id S236370AbiEJEXr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:23:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A1D81D4A3E
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:18:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4C783B81AFD
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:17:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01399C385C7;
-        Tue, 10 May 2022 04:17:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B564E6176A
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:18:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A639C385C5;
+        Tue, 10 May 2022 04:18:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156277;
-        bh=yX3Xr5Y6nFQyeyolQIMw8VqpySWr8lENEmDUT7NdI4g=;
+        s=korg; t=1652156286;
+        bh=79qhkbLhriymJWLel3GxZdjR6dTa7lBgCSYXkdRb6Vk=;
         h=Date:To:From:Subject:From;
-        b=z3F+714ss0jFrDoOhG2k3bFpUT67QYfB1OLFtF54/WWU60TRj4gufJrc/zqpRLS54
-         Tfe7iJXooxGevSDDsqOd/48TgHp2zXbOrNkoxc+pAYG/UQ2O3LQZMBC8WK2/2WznFM
-         h73DEz9R3v1COtWBBLL7VGYY7rFV0yR8fznnn/yU=
-Date:   Mon, 09 May 2022 21:17:56 -0700
-To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
-        xu.xin16@zte.com.cn, ismael@iodev.co.uk, ebiederm@xmission.com,
-        bsingharora@gmail.com, thomas.orgis@uni-hamburg.de,
+        b=KhW7KPzAp7PnylLYmCcnRPAB4re+Rf68deOciKKFmml4U4bydz4K/VELLGpSaaxBp
+         RelsAKUXdL2XeZf9aCEGq7PT9uxOClT+8OMWMy8De9bBiDSUREQ8NIoYc1QY6WOqAo
+         sbl1VQkalyqBsEgdRFJE9oc0QlSx7NRPN52+lJoU=
+Date:   Mon, 09 May 2022 21:18:05 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, mwilck@suse.com,
+        christian.brauner@ubuntu.com, ddiss@suse.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] taskstats-version-12-with-thread-group-and-exe-info.patch removed from -mm tree
-Message-Id: <20220510041757.01399C385C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] initramfs-support-cpio-extraction-with-file-checksums.patch removed from -mm tree
+Message-Id: <20220510041806.1A639C385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,676 +43,122 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: taskstats: version 12 with thread group and exe info
+     Subject: initramfs: support cpio extraction with file checksums
 has been removed from the -mm tree.  Its filename was
-     taskstats-version-12-with-thread-group-and-exe-info.patch
+     initramfs-support-cpio-extraction-with-file-checksums.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Dr. Thomas Orgis" <thomas.orgis@uni-hamburg.de>
-Subject: taskstats: version 12 with thread group and exe info
+From: David Disseldorp <ddiss@suse.de>
+Subject: initramfs: support cpio extraction with file checksums
 
-The task exit struct needs some crucial information to be able to provide
-an enhanced version of process and thread accounting.  This change
-provides:
+Add support for extraction of checksum-enabled "070702" cpio archives,
+specified in Documentation/driver-api/early-userspace/buffer-format.rst. 
+Fail extraction if the calculated file data checksum doesn't match the
+value carried in the header.
 
-1. ac_tgid in additon to ac_pid
-2. thread group execution walltime in ac_tgetime
-3. flag AGROUP in ac_flag to indicate the last task
-   in a thread group / process
-4. device ID and inode of task's /proc/self/exe in
-   ac_exe_dev and ac_exe_inode
-5. tools/accounting/procacct as demonstrator
-
-When a task exits, taskstats are reported to userspace including the
-task's pid and ppid, but without the id of the thread group this task is
-part of.  Without the tgid, the stats of single tasks cannot be correlated
-to each other as a thread group (process).
-
-The taskstats documentation suggests that on process exit a data set
-consisting of accumulated stats for the whole group is produced.  But such
-an additional set of stats is only produced for actually multithreaded
-processes, not groups that had only one thread, and also those stats only
-contain data about delay accounting and not the more basic information
-about CPU and memory resource usage.  Adding the AGROUP flag to be set
-when the last task of a group exited enables determination of process end
-also for single-threaded processes.
-
-My applicaton basically does enhanced process accounting with summed
-cputime, biggest maxrss, tasks per process.  The data is not available
-with the traditional BSD process accounting (which is not designed to be
-extensible) and the taskstats interface allows more efficient on-the-fly
-grouping and summing of the stats, anyway, without intermediate disk
-writes.
-
-Furthermore, I do carry statistics on which exact program binary is used
-how often with associated resources, getting a picture on how important
-which parts of a collection of installed scientific software in different
-versions are, and how well they put load on the machine.  This is enabled
-by providing information on /proc/self/exe for each task.  I assume the
-two 64-bit fields for device ID and inode are more appropriate than the
-possibly large resolved path to keep the data volume down.
-
-Add the tgid to the stats to complete task identification, the flag AGROUP
-to mark the last task of a group, the group wallclock time, and
-inode-based identification of the associated executable file.
-
-Add tools/accounting/procacct.c as a simplified fork of getdelays.c to
-demonstrate process and thread accounting.
-
-[thomas.orgis@uni-hamburg.de: fix version number in comment]
-  Link: https://lkml.kernel.org/r/20220405003601.7a5f6008@plasteblaster
-Link: https://lkml.kernel.org/r/20220331004106.64e5616b@plasteblaster
-Signed-off-by: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
-Reviewed-by: Ismael Luceno <ismael@iodev.co.uk>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lkml.kernel.org/r/20220404093429.27570-7-ddiss@suse.de
+Signed-off-by: David Disseldorp <ddiss@suse.de>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Martin Wilck <mwilck@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/acct.h      |    3 
- include/uapi/linux/taskstats.h |   24 +
- kernel/taskstats.c             |   23 +
- kernel/tsacct.c                |   10 
- tools/accounting/.gitignore    |    1 
- tools/accounting/Makefile      |    2 
- tools/accounting/procacct.c    |  417 +++++++++++++++++++++++++++++++
- 7 files changed, 473 insertions(+), 7 deletions(-)
+ init/initramfs.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
---- a/include/uapi/linux/acct.h~taskstats-version-12-with-thread-group-and-exe-info
-+++ a/include/uapi/linux/acct.h
-@@ -103,12 +103,13 @@ struct acct_v3
- /*
-  *  accounting flags
-  */
--				/* bit set when the process ... */
-+				/* bit set when the process/task ... */
- #define AFORK		0x01	/* ... executed fork, but did not exec */
- #define ASU		0x02	/* ... used super-user privileges */
- #define ACOMPAT		0x04	/* ... used compatibility mode (VAX only not used) */
- #define ACORE		0x08	/* ... dumped core */
- #define AXSIG		0x10	/* ... was killed by a signal */
-+#define AGROUP		0x20	/* ... was the last task of the process (task group) */
+--- a/init/initramfs.c~initramfs-support-cpio-extraction-with-file-checksums
++++ a/init/initramfs.c
+@@ -17,8 +17,11 @@
+ #include <linux/init_syscalls.h>
+ #include <linux/umh.h>
  
- #if defined(__BYTE_ORDER) ? __BYTE_ORDER == __BIG_ENDIAN : defined(__BIG_ENDIAN)
- #define ACCT_BYTEORDER	0x80	/* accounting file is big endian */
---- a/include/uapi/linux/taskstats.h~taskstats-version-12-with-thread-group-and-exe-info
-+++ a/include/uapi/linux/taskstats.h
-@@ -34,7 +34,7 @@
-  */
- 
- 
--#define TASKSTATS_VERSION	11
-+#define TASKSTATS_VERSION	12
- #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
- 					 * in linux/sched.h */
- 
-@@ -48,7 +48,8 @@ struct taskstats {
- 	__u32	ac_exitcode;		/* Exit status */
- 
- 	/* The accounting flags of a task as defined in <linux/acct.h>
--	 * Defined values are AFORK, ASU, ACOMPAT, ACORE, and AXSIG.
-+	 * Defined values are AFORK, ASU, ACOMPAT, ACORE, AXSIG, and AGROUP.
-+	 * (AGROUP since version 12).
- 	 */
- 	__u8	ac_flag;		/* Record flags */
- 	__u8	ac_nice;		/* task_nice */
-@@ -173,9 +174,26 @@ struct taskstats {
- 	/* v10: 64-bit btime to avoid overflow */
- 	__u64	ac_btime64;		/* 64-bit begin time */
- 
--	/* Delay waiting for memory compact */
-+	/* v11: Delay waiting for memory compact */
- 	__u64	compact_count;
- 	__u64	compact_delay_total;
+-static ssize_t __init xwrite(struct file *file, const char *p, size_t count,
+-		loff_t *pos)
++static __initdata bool csum_present;
++static __initdata u32 io_csum;
 +
-+	/* v12 begin */
-+	__u32   ac_tgid;	/* thread group ID */
-+	/* Thread group walltime up to now. This is total process walltime if
-+	 * AGROUP flag is set.
-+	 */
-+	__u64	ac_tgetime __attribute__((aligned(8)));
-+	/* Lightweight information to identify process binary files.
-+	 * This leaves userspace to match this to a file system path, using
-+	 * MAJOR() and MINOR() macros to identify a device and mount point,
-+	 * the inode to identify the executable file. This is /proc/self/exe
-+	 * at the end, so matching the most recent exec(). Values are zero
-+	 * for kernel threads.
-+	 */
-+	__u64   ac_exe_dev;     /* program binary device ID */
-+	__u64   ac_exe_inode;   /* program binary inode number */
-+	/* v12 end */
- };
- 
- 
---- a/kernel/taskstats.c~taskstats-version-12-with-thread-group-and-exe-info
-+++ a/kernel/taskstats.c
-@@ -9,6 +9,7 @@
- #include <linux/kernel.h>
- #include <linux/taskstats_kern.h>
- #include <linux/tsacct_kern.h>
-+#include <linux/acct.h>
- #include <linux/delayacct.h>
- #include <linux/cpumask.h>
- #include <linux/percpu.h>
-@@ -153,6 +154,23 @@ static void send_cpu_listeners(struct sk
- 	up_write(&listeners->sem);
- }
- 
-+static void exe_add_tsk(struct taskstats *stats, struct task_struct *tsk)
-+{
-+	/* No idea if I'm allowed to access that here, now. */
-+	struct file *exe_file = get_task_exe_file(tsk);
-+
-+	if (exe_file) {
-+		/* Following cp_new_stat64() in stat.c . */
-+		stats->ac_exe_dev =
-+			huge_encode_dev(exe_file->f_inode->i_sb->s_dev);
-+		stats->ac_exe_inode = exe_file->f_inode->i_ino;
-+		fput(exe_file);
-+	} else {
-+		stats->ac_exe_dev = 0;
-+		stats->ac_exe_inode = 0;
-+	}
-+}
-+
- static void fill_stats(struct user_namespace *user_ns,
- 		       struct pid_namespace *pid_ns,
- 		       struct task_struct *tsk, struct taskstats *stats)
-@@ -175,6 +193,9 @@ static void fill_stats(struct user_names
- 
- 	/* fill in extended acct fields */
- 	xacct_add_tsk(stats, tsk);
-+
-+	/* add executable info */
-+	exe_add_tsk(stats, tsk);
- }
- 
- static int fill_stats_for_pid(pid_t pid, struct taskstats *stats)
-@@ -620,6 +641,8 @@ void taskstats_exit(struct task_struct *
- 		goto err;
- 
- 	fill_stats(&init_user_ns, &init_pid_ns, tsk, stats);
-+	if (group_dead)
-+		stats->ac_flag |= AGROUP;
- 
- 	/*
- 	 * Doesn't matter if tsk is the leader or the last group member leaving
---- a/kernel/tsacct.c~taskstats-version-12-with-thread-group-and-exe-info
-+++ a/kernel/tsacct.c
-@@ -23,15 +23,20 @@ void bacct_add_tsk(struct user_namespace
++static ssize_t __init xwrite(struct file *file, const unsigned char *p,
++		size_t count, loff_t *pos)
  {
- 	const struct cred *tcred;
- 	u64 utime, stime, utimescaled, stimescaled;
--	u64 delta;
-+	u64 now_ns, delta;
- 	time64_t btime;
+ 	ssize_t out = 0;
  
- 	BUILD_BUG_ON(TS_COMM_LEN < TASK_COMM_LEN);
+@@ -33,6 +36,13 @@ static ssize_t __init xwrite(struct file
+ 		} else if (rv == 0)
+ 			break;
  
- 	/* calculate task elapsed time in nsec */
--	delta = ktime_get_ns() - tsk->start_time;
-+	now_ns = ktime_get_ns();
-+	/* store whole group time first */
-+	delta = now_ns - tsk->group_leader->start_time;
- 	/* Convert to micro seconds */
- 	do_div(delta, NSEC_PER_USEC);
-+	stats->ac_tgetime = delta;
-+	delta = now_ns - tsk->start_time;
-+	do_div(delta, NSEC_PER_USEC);
- 	stats->ac_etime = delta;
- 	/* Convert to seconds for btime (note y2106 limit) */
- 	btime = ktime_get_real_seconds() - div_u64(delta, USEC_PER_SEC);
-@@ -51,6 +56,7 @@ void bacct_add_tsk(struct user_namespace
- 	stats->ac_nice	 = task_nice(tsk);
- 	stats->ac_sched	 = tsk->policy;
- 	stats->ac_pid	 = task_pid_nr_ns(tsk, pid_ns);
-+	stats->ac_tgid   = task_tgid_nr_ns(tsk, pid_ns);
- 	rcu_read_lock();
- 	tcred = __task_cred(tsk);
- 	stats->ac_uid	 = from_kuid_munged(user_ns, tcred->uid);
---- a/tools/accounting/.gitignore~taskstats-version-12-with-thread-group-and-exe-info
-+++ a/tools/accounting/.gitignore
-@@ -1,2 +1,3 @@
- # SPDX-License-Identifier: GPL-2.0-only
- getdelays
-+procacct
---- a/tools/accounting/Makefile~taskstats-version-12-with-thread-group-and-exe-info
-+++ a/tools/accounting/Makefile
-@@ -2,7 +2,7 @@
- CC := $(CROSS_COMPILE)gcc
- CFLAGS := -I../../usr/include
++		if (csum_present) {
++			ssize_t i;
++
++			for (i = 0; i < rv; i++)
++				io_csum += p[i];
++		}
++
+ 		p += rv;
+ 		out += rv;
+ 		count -= rv;
+@@ -176,15 +186,16 @@ static __initdata unsigned long body_len
+ static __initdata uid_t uid;
+ static __initdata gid_t gid;
+ static __initdata unsigned rdev;
++static __initdata u32 hdr_csum;
  
--PROGS := getdelays
-+PROGS := getdelays procacct
+ static void __init parse_header(char *s)
+ {
+-	unsigned long parsed[12];
++	unsigned long parsed[13];
+ 	char buf[9];
+ 	int i;
  
- all: $(PROGS)
+ 	buf[8] = '\0';
+-	for (i = 0, s += 6; i < 12; i++, s += 8) {
++	for (i = 0, s += 6; i < 13; i++, s += 8) {
+ 		memcpy(buf, s, 8);
+ 		parsed[i] = simple_strtoul(buf, NULL, 16);
+ 	}
+@@ -199,6 +210,7 @@ static void __init parse_header(char *s)
+ 	minor = parsed[8];
+ 	rdev = new_encode_dev(MKDEV(parsed[9], parsed[10]));
+ 	name_len = parsed[11];
++	hdr_csum = parsed[12];
+ }
  
---- /dev/null
-+++ a/tools/accounting/procacct.c
-@@ -0,0 +1,417 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* procacct.c
-+ *
-+ * Demonstrator of fetching resource data on task exit, as a way
-+ * to accumulate accurate program resource usage statistics, without
-+ * prior identification of the programs. For that, the fields for
-+ * device and inode of the program executable binary file are also
-+ * extracted in addition to the command string.
-+ *
-+ * The TGID together with the PID and the AGROUP flag allow
-+ * identification of threads in a process and single-threaded processes.
-+ * The ac_tgetime field gives proper whole-process walltime.
-+ *
-+ * Written (changed) by Thomas Orgis, University of Hamburg in 2022
-+ *
-+ * This is a cheap derivation (inheriting the style) of getdelays.c:
-+ *
-+ * Utility to get per-pid and per-tgid delay accounting statistics
-+ * Also illustrates usage of the taskstats interface
-+ *
-+ * Copyright (C) Shailabh Nagar, IBM Corp. 2005
-+ * Copyright (C) Balbir Singh, IBM Corp. 2006
-+ * Copyright (c) Jay Lan, SGI. 2006
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <errno.h>
-+#include <unistd.h>
-+#include <poll.h>
-+#include <string.h>
-+#include <fcntl.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <sys/socket.h>
-+#include <sys/wait.h>
-+#include <signal.h>
-+
-+#include <linux/genetlink.h>
-+#include <linux/acct.h>
-+#include <linux/taskstats.h>
-+#include <linux/kdev_t.h>
-+
-+/*
-+ * Generic macros for dealing with netlink sockets. Might be duplicated
-+ * elsewhere. It is recommended that commercial grade applications use
-+ * libnl or libnetlink and use the interfaces provided by the library
-+ */
-+#define GENLMSG_DATA(glh)	((void *)(NLMSG_DATA(glh) + GENL_HDRLEN))
-+#define GENLMSG_PAYLOAD(glh)	(NLMSG_PAYLOAD(glh, 0) - GENL_HDRLEN)
-+#define NLA_DATA(na)		((void *)((char *)(na) + NLA_HDRLEN))
-+#define NLA_PAYLOAD(len)	(len - NLA_HDRLEN)
-+
-+#define err(code, fmt, arg...)			\
-+	do {					\
-+		fprintf(stderr, fmt, ##arg);	\
-+		exit(code);			\
-+	} while (0)
-+
-+int rcvbufsz;
-+char name[100];
-+int dbg;
-+int print_delays;
-+int print_io_accounting;
-+int print_task_context_switch_counts;
-+
-+#define PRINTF(fmt, arg...) {			\
-+		if (dbg) {			\
-+			printf(fmt, ##arg);	\
-+		}				\
-+	}
-+
-+/* Maximum size of response requested or message sent */
-+#define MAX_MSG_SIZE	1024
-+/* Maximum number of cpus expected to be specified in a cpumask */
-+#define MAX_CPUS	32
-+
-+struct msgtemplate {
-+	struct nlmsghdr n;
-+	struct genlmsghdr g;
-+	char buf[MAX_MSG_SIZE];
-+};
-+
-+char cpumask[100+6*MAX_CPUS];
-+
-+static void usage(void)
-+{
-+	fprintf(stderr, "procacct [-v] [-w logfile] [-r bufsize] [-m cpumask]\n");
-+	fprintf(stderr, "  -v: debug on\n");
-+}
-+
-+/*
-+ * Create a raw netlink socket and bind
-+ */
-+static int create_nl_socket(int protocol)
-+{
-+	int fd;
-+	struct sockaddr_nl local;
-+
-+	fd = socket(AF_NETLINK, SOCK_RAW, protocol);
-+	if (fd < 0)
-+		return -1;
-+
-+	if (rcvbufsz)
-+		if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF,
-+				&rcvbufsz, sizeof(rcvbufsz)) < 0) {
-+			fprintf(stderr, "Unable to set socket rcv buf size to %d\n",
-+				rcvbufsz);
-+			goto error;
-+		}
-+
-+	memset(&local, 0, sizeof(local));
-+	local.nl_family = AF_NETLINK;
-+
-+	if (bind(fd, (struct sockaddr *) &local, sizeof(local)) < 0)
-+		goto error;
-+
-+	return fd;
-+error:
-+	close(fd);
-+	return -1;
-+}
-+
-+
-+static int send_cmd(int sd, __u16 nlmsg_type, __u32 nlmsg_pid,
-+	     __u8 genl_cmd, __u16 nla_type,
-+	     void *nla_data, int nla_len)
-+{
-+	struct nlattr *na;
-+	struct sockaddr_nl nladdr;
-+	int r, buflen;
-+	char *buf;
-+
-+	struct msgtemplate msg;
-+
-+	msg.n.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
-+	msg.n.nlmsg_type = nlmsg_type;
-+	msg.n.nlmsg_flags = NLM_F_REQUEST;
-+	msg.n.nlmsg_seq = 0;
-+	msg.n.nlmsg_pid = nlmsg_pid;
-+	msg.g.cmd = genl_cmd;
-+	msg.g.version = 0x1;
-+	na = (struct nlattr *) GENLMSG_DATA(&msg);
-+	na->nla_type = nla_type;
-+	na->nla_len = nla_len + 1 + NLA_HDRLEN;
-+	memcpy(NLA_DATA(na), nla_data, nla_len);
-+	msg.n.nlmsg_len += NLMSG_ALIGN(na->nla_len);
-+
-+	buf = (char *) &msg;
-+	buflen = msg.n.nlmsg_len;
-+	memset(&nladdr, 0, sizeof(nladdr));
-+	nladdr.nl_family = AF_NETLINK;
-+	while ((r = sendto(sd, buf, buflen, 0, (struct sockaddr *) &nladdr,
-+			   sizeof(nladdr))) < buflen) {
-+		if (r > 0) {
-+			buf += r;
-+			buflen -= r;
-+		} else if (errno != EAGAIN)
-+			return -1;
-+	}
-+	return 0;
-+}
-+
-+
-+/*
-+ * Probe the controller in genetlink to find the family id
-+ * for the TASKSTATS family
-+ */
-+static int get_family_id(int sd)
-+{
-+	struct {
-+		struct nlmsghdr n;
-+		struct genlmsghdr g;
-+		char buf[256];
-+	} ans;
-+
-+	int id = 0, rc;
-+	struct nlattr *na;
-+	int rep_len;
-+
-+	strcpy(name, TASKSTATS_GENL_NAME);
-+	rc = send_cmd(sd, GENL_ID_CTRL, getpid(), CTRL_CMD_GETFAMILY,
-+			CTRL_ATTR_FAMILY_NAME, (void *)name,
-+			strlen(TASKSTATS_GENL_NAME)+1);
-+	if (rc < 0)
-+		return 0;	/* sendto() failure? */
-+
-+	rep_len = recv(sd, &ans, sizeof(ans), 0);
-+	if (ans.n.nlmsg_type == NLMSG_ERROR ||
-+	    (rep_len < 0) || !NLMSG_OK((&ans.n), rep_len))
-+		return 0;
-+
-+	na = (struct nlattr *) GENLMSG_DATA(&ans);
-+	na = (struct nlattr *) ((char *) na + NLA_ALIGN(na->nla_len));
-+	if (na->nla_type == CTRL_ATTR_FAMILY_ID)
-+		id = *(__u16 *) NLA_DATA(na);
-+
-+	return id;
-+}
-+
-+#define average_ms(t, c) (t / 1000000ULL / (c ? c : 1))
-+
-+static void print_procacct(struct taskstats *t)
-+{
-+	/* First letter: T is a mere thread, G the last in a group, U  unknown. */
-+	printf(
-+		"%c pid=%lu tgid=%lu uid=%lu wall=%llu gwall=%llu cpu=%llu vmpeak=%llu rsspeak=%llu dev=%lu:%lu inode=%llu comm=%s\n"
-+	,	t->version >= 12 ? (t->ac_flag & AGROUP ? 'P' : 'T') : '?'
-+	,	(unsigned long)t->ac_pid
-+	,	(unsigned long)(t->version >= 12 ? t->ac_tgid : 0)
-+	,	(unsigned long)t->ac_uid
-+	,	(unsigned long long)t->ac_etime
-+	,	(unsigned long long)(t->version >= 12 ? t->ac_tgetime : 0)
-+	,	(unsigned long long)(t->ac_utime+t->ac_stime)
-+	,	(unsigned long long)t->hiwater_vm
-+	,	(unsigned long long)t->hiwater_rss
-+	,	(unsigned long)(t->version >= 12 ? MAJOR(t->ac_exe_dev) : 0)
-+	,	(unsigned long)(t->version >= 12 ? MINOR(t->ac_exe_dev) : 0)
-+	,	(unsigned long long)(t->version >= 12 ? t->ac_exe_inode : 0)
-+	,	t->ac_comm
-+	);
-+}
-+
-+void handle_aggr(int mother, struct nlattr *na, int fd)
-+{
-+	int aggr_len = NLA_PAYLOAD(na->nla_len);
-+	int len2 = 0;
-+	pid_t rtid = 0;
-+
-+	na = (struct nlattr *) NLA_DATA(na);
-+	while (len2 < aggr_len) {
-+		switch (na->nla_type) {
-+		case TASKSTATS_TYPE_PID:
-+			rtid = *(int *) NLA_DATA(na);
-+			PRINTF("PID\t%d\n", rtid);
-+			break;
-+		case TASKSTATS_TYPE_TGID:
-+			rtid = *(int *) NLA_DATA(na);
-+			PRINTF("TGID\t%d\n", rtid);
-+			break;
-+		case TASKSTATS_TYPE_STATS:
-+			if (mother == TASKSTATS_TYPE_AGGR_PID)
-+				print_procacct((struct taskstats *) NLA_DATA(na));
-+			if (fd) {
-+				if (write(fd, NLA_DATA(na), na->nla_len) < 0)
-+					err(1, "write error\n");
-+			}
-+			break;
-+		case TASKSTATS_TYPE_NULL:
-+			break;
-+		default:
-+			fprintf(stderr, "Unknown nested nla_type %d\n",
-+				na->nla_type);
-+			break;
-+		}
-+		len2 += NLA_ALIGN(na->nla_len);
-+		na = (struct nlattr *)((char *)na +
-+						 NLA_ALIGN(na->nla_len));
-+	}
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int c, rc, rep_len, aggr_len, len2;
-+	int cmd_type = TASKSTATS_CMD_ATTR_UNSPEC;
-+	__u16 id;
-+	__u32 mypid;
-+
-+	struct nlattr *na;
-+	int nl_sd = -1;
-+	int len = 0;
-+	pid_t tid = 0;
-+
-+	int fd = 0;
-+	int write_file = 0;
-+	int maskset = 0;
-+	char *logfile = NULL;
-+	int containerset = 0;
-+	char *containerpath = NULL;
-+	int cfd = 0;
-+	int forking = 0;
-+	sigset_t sigset;
-+
-+	struct msgtemplate msg;
-+
-+	while (!forking) {
-+		c = getopt(argc, argv, "m:vr:");
-+		if (c < 0)
-+			break;
-+
-+		switch (c) {
-+		case 'w':
-+			logfile = strdup(optarg);
-+			printf("write to file %s\n", logfile);
-+			write_file = 1;
-+			break;
-+		case 'r':
-+			rcvbufsz = atoi(optarg);
-+			printf("receive buf size %d\n", rcvbufsz);
-+			if (rcvbufsz < 0)
-+				err(1, "Invalid rcv buf size\n");
-+			break;
-+		case 'm':
-+			strncpy(cpumask, optarg, sizeof(cpumask));
-+			cpumask[sizeof(cpumask) - 1] = '\0';
-+			maskset = 1;
-+			break;
-+		case 'v':
-+			printf("debug on\n");
-+			dbg = 1;
-+			break;
-+		default:
-+			usage();
-+			exit(-1);
-+		}
-+	}
-+	if (!maskset) {
-+		maskset = 1;
-+		strncpy(cpumask, "1", sizeof(cpumask));
-+		cpumask[sizeof(cpumask) - 1] = '\0';
-+	}
-+	printf("cpumask %s maskset %d\n", cpumask, maskset);
-+
-+	if (write_file) {
-+		fd = open(logfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-+		if (fd == -1) {
-+			perror("Cannot open output file\n");
-+			exit(1);
-+		}
-+	}
-+
-+	nl_sd = create_nl_socket(NETLINK_GENERIC);
-+	if (nl_sd < 0)
-+		err(1, "error creating Netlink socket\n");
-+
-+	mypid = getpid();
-+	id = get_family_id(nl_sd);
-+	if (!id) {
-+		fprintf(stderr, "Error getting family id, errno %d\n", errno);
-+		goto err;
-+	}
-+	PRINTF("family id %d\n", id);
-+
-+	if (maskset) {
-+		rc = send_cmd(nl_sd, id, mypid, TASKSTATS_CMD_GET,
-+			      TASKSTATS_CMD_ATTR_REGISTER_CPUMASK,
-+			      &cpumask, strlen(cpumask) + 1);
-+		PRINTF("Sent register cpumask, retval %d\n", rc);
-+		if (rc < 0) {
-+			fprintf(stderr, "error sending register cpumask\n");
-+			goto err;
-+		}
-+	}
-+
-+	do {
-+		rep_len = recv(nl_sd, &msg, sizeof(msg), 0);
-+		PRINTF("received %d bytes\n", rep_len);
-+
-+		if (rep_len < 0) {
-+			fprintf(stderr, "nonfatal reply error: errno %d\n",
-+				errno);
-+			continue;
-+		}
-+		if (msg.n.nlmsg_type == NLMSG_ERROR ||
-+		    !NLMSG_OK((&msg.n), rep_len)) {
-+			struct nlmsgerr *err = NLMSG_DATA(&msg);
-+
-+			fprintf(stderr, "fatal reply error,  errno %d\n",
-+				err->error);
-+			goto done;
-+		}
-+
-+		PRINTF("nlmsghdr size=%zu, nlmsg_len=%d, rep_len=%d\n",
-+		       sizeof(struct nlmsghdr), msg.n.nlmsg_len, rep_len);
-+
-+
-+		rep_len = GENLMSG_PAYLOAD(&msg.n);
-+
-+		na = (struct nlattr *) GENLMSG_DATA(&msg);
-+		len = 0;
-+		while (len < rep_len) {
-+			len += NLA_ALIGN(na->nla_len);
-+			int mother = na->nla_type;
-+
-+			PRINTF("mother=%i\n", mother);
-+			switch (na->nla_type) {
-+			case TASKSTATS_TYPE_AGGR_PID:
-+			case TASKSTATS_TYPE_AGGR_TGID:
-+				/* For nested attributes, na follows */
-+				handle_aggr(mother, na, fd);
-+				break;
-+			default:
-+				fprintf(stderr, "Unexpected nla_type %d\n",
-+					na->nla_type);
-+			case TASKSTATS_TYPE_NULL:
-+				break;
-+			}
-+			na = (struct nlattr *) (GENLMSG_DATA(&msg) + len);
-+		}
-+	} while (1);
-+done:
-+	if (maskset) {
-+		rc = send_cmd(nl_sd, id, mypid, TASKSTATS_CMD_GET,
-+			      TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK,
-+			      &cpumask, strlen(cpumask) + 1);
-+		printf("Sent deregister mask, retval %d\n", rc);
-+		if (rc < 0)
-+			err(rc, "error sending deregister cpumask\n");
-+	}
-+err:
-+	close(nl_sd);
-+	if (fd)
-+		close(fd);
-+	if (cfd)
-+		close(cfd);
-+	return 0;
-+}
+ /* FSM */
+@@ -267,7 +279,11 @@ static int __init do_collect(void)
+ 
+ static int __init do_header(void)
+ {
+-	if (memcmp(collected, "070701", 6)) {
++	if (!memcmp(collected, "070701", 6)) {
++		csum_present = false;
++	} else if (!memcmp(collected, "070702", 6)) {
++		csum_present = true;
++	} else {
+ 		if (memcmp(collected, "070707", 6) == 0)
+ 			error("incorrect cpio method used: use -H newc option");
+ 		else
+@@ -362,6 +378,7 @@ static int __init do_name(void)
+ 			if (IS_ERR(wfile))
+ 				return 0;
+ 			wfile_pos = 0;
++			io_csum = 0;
+ 
+ 			vfs_fchown(wfile, uid, gid);
+ 			vfs_fchmod(wfile, mode);
+@@ -394,6 +411,8 @@ static int __init do_copy(void)
+ 
+ 		do_utime_path(&wfile->f_path, mtime);
+ 		fput(wfile);
++		if (csum_present && io_csum != hdr_csum)
++			error("bad data checksum");
+ 		eat(body_len);
+ 		state = SkipIt;
+ 		return 0;
 _
 
-Patches currently in -mm which might be from thomas.orgis@uni-hamburg.de are
+Patches currently in -mm which might be from ddiss@suse.de are
 
 
