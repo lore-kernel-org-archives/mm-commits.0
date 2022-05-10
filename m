@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21989C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:16:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 362A6C43217
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:16:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235964AbiEJEUG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:20:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45064 "EHLO
+        id S236043AbiEJEUL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:20:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236219AbiEJESQ (ORCPT
+        with ESMTP id S236363AbiEJESQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:18:16 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21D18243106
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15573237C5
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C3233B81AE7
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70EA2C385C2;
-        Tue, 10 May 2022 04:14:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B5151B81AE7
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B55EC385A6;
+        Tue, 10 May 2022 04:14:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156055;
-        bh=RnmmPBG+mZQk+iA8ODA/T9hHBbT7GtEtoR5Rl+oV+9c=;
+        s=korg; t=1652156052;
+        bh=KIF96F8nVZzjMgSGrfn6mikuFwSh3+fn9od8KoQAsHg=;
         h=Date:To:From:Subject:From;
-        b=dQVILGUhHUr4LaolWKqzsQesTCTBhORqk0+rZYE2rT87wYDw6kNJnJ/qprZqoeHzB
-         LpiC1Uio7SUwyyPhioeNhiMtXkauKjF61cWGntCJBZyOMZRjjagPPYZ303ARwOmazv
-         gCVNekIVlXubDLzSzjuQc5Hlwruk/xpVTYb538RM=
-Date:   Mon, 09 May 2022 21:14:14 -0700
-To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
-        xu.xin16@zte.com.cn, akpm@linux-foundation.org
+        b=pygrJkc0yUHYdFWtc3oHHi+f4o0TEmT7sTLfV2Iag9m0w32Fxrr6ubq0zE1E/7ekL
+         Kl6vHq1WUQHtG701IIf7r3jvu1DA5qOWK7rqzGZU0UxwT5dwmvGJUwsHRjmhBo7Olg
+         2S3JlKeNQXC/wzkPAt9EUVkjnj718YWIYjBXoyDs=
+Date:   Mon, 09 May 2022 21:14:11 -0700
+To:     mm-commits@vger.kernel.org, yaozhenguo1@gmail.com,
+        wangkefeng.wang@huawei.com, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, liuyuntao10@huawei.com, david@redhat.com,
+        baolin.wang@linux.alibaba.com, liupeng256@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-use-vma_is_anonymous.patch removed from -mm tree
-Message-Id: <20220510041415.70EA2C385C2@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-fix-hugepages_setup-when-deal-with-pernode.patch removed from -mm tree
+Message-Id: <20220510041412.5B55EC385A6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,50 +44,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: use vma_is_anonymous
+     Subject: hugetlb: fix hugepages_setup when deal with pernode
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-use-vma_is_anonymous.patch
+     hugetlb-fix-hugepages_setup-when-deal-with-pernode.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: xu xin <xu.xin16@zte.com.cn>
-Subject: mm/khugepaged: use vma_is_anonymous
+From: Peng Liu <liupeng256@huawei.com>
+Subject: hugetlb: fix hugepages_setup when deal with pernode
 
-Clean up the vma->vm_ops usage.  Use vma_is_anonymous instead of
-vma->vm_ops to make it more understandable.
+Hugepages can be specified to pernode since "hugetlbfs: extend the
+definition of hugepages parameter to support node allocation", but the
+following problem is observed.
 
-Link: https://lkml.kernel.org/r/20220424071642.3234971-1-xu.xin16@zte.com.cn
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
+Confusing behavior is observed when both 1G and 2M hugepage is set
+after "numa=off".
+ cmdline hugepage settings:
+  hugepagesz=1G hugepages=0:3,1:3
+  hugepagesz=2M hugepages=0:1024,1:1024
+ results:
+  HugeTLB registered 1.00 GiB page size, pre-allocated 0 pages
+  HugeTLB registered 2.00 MiB page size, pre-allocated 1024 pages
+
+Furthermore, confusing behavior can be also observed when an invalid node
+behind a valid node.  To fix this, never allocate any typical hugepage
+when an invalid parameter is received.
+
+Link: https://lkml.kernel.org/r/20220413032915.251254-3-liupeng256@huawei.com
+Fixes: b5389086ad7b ("hugetlbfs: extend the definition of hugepages parameter to support node allocation")
+Signed-off-by: Peng Liu <liupeng256@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liu Yuntao <liuyuntao10@huawei.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-use-vma_is_anonymous
-+++ a/mm/khugepaged.c
-@@ -466,7 +466,7 @@ static bool hugepage_vma_check(struct vm
- 			S_ISREG(inode->i_mode);
- 	}
+--- a/mm/hugetlb.c~hugetlb-fix-hugepages_setup-when-deal-with-pernode
++++ a/mm/hugetlb.c
+@@ -4122,6 +4122,20 @@ bool __init __weak hugetlb_node_alloc_su
+ {
+ 	return true;
+ }
++
++static void __init hugepages_clear_pages_in_node(void)
++{
++	if (!hugetlb_max_hstate) {
++		default_hstate_max_huge_pages = 0;
++		memset(default_hugepages_in_node, 0,
++			MAX_NUMNODES * sizeof(unsigned int));
++	} else {
++		parsed_hstate->max_huge_pages = 0;
++		memset(parsed_hstate->max_huge_pages_node, 0,
++			MAX_NUMNODES * sizeof(unsigned int));
++	}
++}
++
+ /*
+  * hugepages command line processing
+  * hugepages normally follows a valid hugepagsz or default_hugepagsz
+@@ -4209,6 +4223,7 @@ static int __init hugepages_setup(char *
  
--	if (!vma->anon_vma || vma->vm_ops)
-+	if (!vma->anon_vma || !vma_is_anonymous(vma))
- 		return false;
- 	if (vma_is_temporary_stack(vma))
- 		return false;
-@@ -972,7 +972,7 @@ static int hugepage_vma_revalidate(struc
- 	if (!hugepage_vma_check(vma, vma->vm_flags))
- 		return SCAN_VMA_CHECK;
- 	/* Anon VMA expected */
--	if (!vma->anon_vma || vma->vm_ops)
-+	if (!vma->anon_vma || !vma_is_anonymous(vma))
- 		return SCAN_VMA_CHECK;
+ invalid:
+ 	pr_warn("HugeTLB: Invalid hugepages parameter %s\n", p);
++	hugepages_clear_pages_in_node();
  	return 0;
  }
+ __setup("hugepages=", hugepages_setup);
 _
 
-Patches currently in -mm which might be from xu.xin16@zte.com.cn are
+Patches currently in -mm which might be from liupeng256@huawei.com are
 
 
