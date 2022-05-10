@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D6DBC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF0D9C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:13:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236044AbiEJERR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:17:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44676 "EHLO
+        id S236165AbiEJERS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:17:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236081AbiEJEQ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D06081D3D59
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:00 -0700 (PDT)
+        with ESMTP id S236133AbiEJEQ3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B9F1222C09
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:12:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 87E75B81AFA
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38274C385A6;
-        Tue, 10 May 2022 04:11:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F54361735
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:12:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACC3FC385C2;
+        Tue, 10 May 2022 04:12:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155918;
-        bh=sSHzgP8RV10K2wHaFRX0VoIKsHTCmc8H9+gUKnoIQgY=;
+        s=korg; t=1652155923;
+        bh=HtZm24OUWW1D6cYtGfaAb/ZVdsHmzI8WVDmmit+0xKo=;
         h=Date:To:From:Subject:From;
-        b=KGQoQ9whLm0cOsvt6BGgEwJ7RyObiMDBplKqisCI8sFUJ4nL/MWLWj3xpUww8smuT
-         m9lCohQRTHDB0LiwHfsgCNIxPEFFgtVaI1zTphVLer+ZErYgOF+gtpK8DguFvdzJOS
-         nkKI9mNCqAqzbjU/XNtOuOySOEve32iYNCbOJTlU=
-Date:   Mon, 09 May 2022 21:11:57 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org, tglx@linutronix.de,
-        paulus@samba.org, mpe@ellerman.id.au, mingo@redhat.com,
-        khalid.aziz@oracle.com, hch@infradead.org, davem@davemloft.net,
-        christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
-        anshuman.khandual@arm.com, akpm@linux-foundation.org
+        b=KUZmaaVyRUddCtGJrKVORExn0RLp/jd29bXqB/FqdxzKiOvotPh255tvCxVW+R6ra
+         anrmdSzPZJ5SCWdWXMPqJ3PatMB8LWR2S2CnQ56OY/0m2vbIzj6jUqX5PRFfxJ1CTx
+         gVB7bKwnn4W9eeYOF+ohOzdQvFTStEqSjp75Ff6U=
+Date:   Mon, 09 May 2022 21:12:03 -0700
+To:     mm-commits@vger.kernel.org, david@redhat.com, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] sparc-mm-enable-arch_has_vm_get_page_prot.patch removed from -mm tree
-Message-Id: <20220510041158.38274C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mremap-avoid-unneeded-do_munmap-call.patch removed from -mm tree
+Message-Id: <20220510041203.ACC3FC385C2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,87 +41,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: sparc/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+     Subject: mm/mremap: avoid unneeded do_munmap call
 has been removed from the -mm tree.  Its filename was
-     sparc-mm-enable-arch_has_vm_get_page_prot.patch
+     mm-mremap-avoid-unneeded-do_munmap-call.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: sparc/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mremap: avoid unneeded do_munmap call
 
-This defines and exports a platform specific custom vm_get_page_prot() via
-subscribing ARCH_HAS_VM_GET_PAGE_PROT.  It localizes
-arch_vm_get_page_prot() as sparc_vm_get_page_prot() and moves near
-vm_get_page_prot().
+When old_len == new_len, do_munmap will return -EINVAL due to len == 0. 
+This errno will be simply ignored because of old_len != new_len check.  So
+it is unnecessary to call do_munmap when old_len == new_len because
+nothing is actually done.
 
-Link: https://lkml.kernel.org/r/20220414062125.609297-5-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20220401081023.37080-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig            |    1 +
- arch/sparc/include/asm/mman.h |    6 ------
- arch/sparc/mm/init_64.c       |   12 ++++++++++++
- 3 files changed, 13 insertions(+), 6 deletions(-)
+ mm/mremap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/sparc/include/asm/mman.h~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/include/asm/mman.h
-@@ -46,12 +46,6 @@ static inline unsigned long sparc_calc_v
+--- a/mm/mremap.c~mm-mremap-avoid-unneeded-do_munmap-call
++++ a/mm/mremap.c
+@@ -820,9 +820,9 @@ static unsigned long mremap_to(unsigned
+ 			goto out;
  	}
- }
  
--#define arch_vm_get_page_prot(vm_flags) sparc_vm_get_page_prot(vm_flags)
--static inline pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
--{
--	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
--}
--
- #define arch_validate_prot(prot, addr) sparc_validate_prot(prot, addr)
- static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
- {
---- a/arch/sparc/Kconfig~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/Kconfig
-@@ -84,6 +84,7 @@ config SPARC64
- 	select PERF_USE_VMALLOC
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_C_RECORDMCOUNT
-+	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
---- a/arch/sparc/mm/init_64.c~sparc-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/sparc/mm/init_64.c
-@@ -3184,3 +3184,15 @@ void copy_highpage(struct page *to, stru
+-	if (old_len >= new_len) {
++	if (old_len > new_len) {
+ 		ret = do_munmap(mm, addr+new_len, old_len - new_len, uf_unmap);
+-		if (ret && old_len != new_len)
++		if (ret)
+ 			goto out;
+ 		old_len = new_len;
  	}
- }
- EXPORT_SYMBOL(copy_highpage);
-+
-+pgprot_t vm_get_page_prot(unsigned long vm_flags)
-+{
-+	unsigned long prot = pgprot_val(protection_map[vm_flags &
-+					(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]);
-+
-+	if (vm_flags & VM_SPARC_ADI)
-+		prot |= _PAGE_MCD_4V;
-+
-+	return __pgprot(prot);
-+}
-+EXPORT_SYMBOL(vm_get_page_prot);
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
+mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
+mm-migration-reduce-the-rcu-lock-duration.patch
+mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
+mm-migration-return-errno-when-isolate_huge_page-failed.patch
+mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
+mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
+mm-vmscan-introduce-helper-function-reclaim_page_list.patch
+mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
+mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
+mm-vmscan-use-helper-folio_is_file_lru.patch
+mm-vmscan-use-helper-folio_is_file_lru-fix.patch
+mm-z3fold-fix-sheduling-while-atomic.patch
+mm-z3fold-fix-possible-null-pointer-dereferencing.patch
+mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
+mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
+revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
+mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
+mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
+mm-z3fold-fix-z3fold_reclaim_page-races-with-z3fold_free.patch
+mm-z3fold-fix-z3fold_page_migrate-races-with-z3fold_map.patch
+mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
+mm-swap-use-helper-macro-__attr_rw.patch
+mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
+mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
+mm-swap-print-bad-swap-offset-entry-in-get_swap_device.patch
+mm-swap-remove-buggy-cache-nr-check-in-refill_swap_slots_cache.patch
+mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
+mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
+mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
+mm-swap-add-helper-swap_offset_available.patch
+mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
+mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
+mm-swap-fix-the-comment-of-get_kernel_pages.patch
+mm-swap-fix-comment-about-swap-extent.patch
 
