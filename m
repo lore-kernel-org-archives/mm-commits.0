@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB2CC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7CAC433F5
 	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236110AbiEJEVs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:21:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35048 "EHLO
+        id S236245AbiEJEVt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:21:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236264AbiEJEUe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4E862B0330
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:24 -0700 (PDT)
+        with ESMTP id S236254AbiEJEUd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ED172AD75E
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 44DE961770
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C75C385A6;
-        Tue, 10 May 2022 04:15:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF6DA6176A
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F58CC385C5;
+        Tue, 10 May 2022 04:15:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156123;
-        bh=I7fmyc4r2zm2BVjCp6k44YFAUuzkjNxWQdjotxY/uq4=;
+        s=korg; t=1652156117;
+        bh=Z7JKkTSOPuFID8fYhqf4ssq/FATeGVfBdoi2KnqROc8=;
         h=Date:To:From:Subject:From;
-        b=1SIGSQcDz7XzFeidm35Oo+MiP8TCO7ePv04TFwYFwy0ATyFrYnKv7pYRGnwqu8ZaD
-         lG8HNuY9HfVfzzQiytoB23aVrW/G6fgxaT9rpcdTmTFCCZftDzL/q7Ru8dA1JpXOEM
-         RGNUi/xbgCeVK7fcsRSOfXe4WRasWcOOCxXoMkv8=
-Date:   Mon, 09 May 2022 21:15:23 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
-        tglx@linutronix.de, peterz@infradead.org, peterx@redhat.com,
-        npiggin@gmail.com, luto@kernel.org, dave.hansen@linux.intel.com,
-        andrew.cooper3@citrix.com, aarcange@redhat.com, namit@vmware.com,
-        akpm@linux-foundation.org
+        b=xCD6FvDeVcgaOOG38qLXbLFnOQjcflGpaomBMxRSMqmVN77Yz+1HxnXqpQM27q4Rp
+         d8ATcjQ7H1IVG06ajN3ThjMkGLw24P2X/eFACTGHoh+VS0gOYku3CFBkJ6M8zDr1v+
+         6yPSeJ1f6W5BgOjDXMNRG8SRni3z6tSmlT0u/UuM=
+Date:   Mon, 09 May 2022 21:15:16 -0700
+To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
+        mgorman@techsingularity.net, linmiaohe@huawei.com,
+        hughd@google.com, hch@lst.de, geert+renesas@glider.be,
+        dhowells@redhat.com, neilb@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mprotect-use-mmu_gather.patch removed from -mm tree
-Message-Id: <20220510041523.98C75C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-submit-multipage-reads-for-swp_fs_ops-swap-space.patch removed from -mm tree
+Message-Id: <20220510041517.0F58CC385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,529 +43,390 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mprotect: use mmu_gather
+     Subject: mm: submit multipage reads for SWP_FS_OPS swap-space
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-use-mmu_gather.patch
+     mm-submit-multipage-reads-for-swp_fs_ops-swap-space.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: mm/mprotect: use mmu_gather
+From: NeilBrown <neilb@suse.de>
+Subject: mm: submit multipage reads for SWP_FS_OPS swap-space
 
-Patch series "mm/mprotect: avoid unnecessary TLB flushes", v6.
+swap_readpage() is given one page at a time, but may be called repeatedly
+in succession.
 
-This patchset is intended to remove unnecessary TLB flushes during
-mprotect() syscalls.  Once this patch-set make it through, similar and
-further optimizations for MADV_COLD and userfaultfd would be possible.
+For block-device swap-space, the blk_plug functionality allows the
+multiple pages to be combined together at lower layers.  That cannot be
+used for SWP_FS_OPS as blk_plug may not exist - it is only active when
+CONFIG_BLOCK=y.  Consequently all swap reads over NFS are single page
+reads.
 
-Basically, there are 3 optimizations in this patch-set:
+With this patch we pass in a pointer-to-pointer when swap_readpage can
+store state between calls - much like the effect of blk_plug.  After
+calling swap_readpage() some number of times, the state will be passed to
+swap_read_unplug() which can submit the combined request.
 
-1. Use TLB batching infrastructure to batch flushes across VMAs and do
-   better/fewer flushes.  This would also be handy for later userfaultfd
-   enhancements.
-
-2. Avoid unnecessary TLB flushes.  This optimization is the one that
-   provides most of the performance benefits.  Unlike previous versions,
-   we now only avoid flushes that would not result in spurious
-   page-faults.
-
-3. Avoiding TLB flushes on change_huge_pmd() that are only needed to
-   prevent the A/D bits from changing.
-
-Andrew asked for some benchmark numbers.  I do not have an easy
-determinate macrobenchmark in which it is easy to show benefit.  I
-therefore ran a microbenchmark: a loop that does the following on
-anonymous memory, just as a sanity check to see that time is saved by
-avoiding TLB flushes.  The loop goes:
-
-	mprotect(p, PAGE_SIZE, PROT_READ)
-	mprotect(p, PAGE_SIZE, PROT_READ|PROT_WRITE)
-	*p = 0; // make the page writable
-
-The test was run in KVM guest with 1 or 2 threads (the second thread was
-busy-looping).  I measured the time (cycles) of each operation:
-
-		1 thread		2 threads
-		mmots	+patch		mmots	+patch
-PROT_READ	3494	2725 (-22%)	8630	7788 (-10%)
-PROT_READ|WRITE	3952	2724 (-31%)	9075	2865 (-68%)
-
-[ mmots = v5.17-rc6-mmots-2022-03-06-20-38 ]
-
-The exact numbers are really meaningless, but the benefit is clear.  There
-are 2 interesting results though.  
-
-(1) PROT_READ is cheaper, while one can expect it not to be affected. 
-This is presumably due to TLB miss that is saved
-
-(2) Without memory access (*p = 0), the speedup of the patch is even
-greater.  In that scenario mprotect(PROT_READ) also avoids the TLB flush. 
-As a result both operations on the patched kernel take roughly ~1500
-cycles (with either 1 or 2 threads), whereas on mmotm their cost is as
-high as presented in the table.
-
-
-This patch (of 3):
-
-change_pXX_range() currently does not use mmu_gather, but instead
-implements its own deferred TLB flushes scheme.  This both complicates the
-code, as developers need to be aware of different invalidation schemes,
-and prevents opportunities to avoid TLB flushes or perform them in finer
-granularity.
-
-The use of mmu_gather for modified PTEs has benefits in various scenarios
-even if pages are not released.  For instance, if only a single page needs
-to be flushed out of a range of many pages, only that page would be
-flushed.  If a THP page is flushed, on x86 a single TLB invlpg instruction
-can be used instead of 512 instructions (or a full TLB flush, which would
-Linux would actually use by default).  mprotect() over multiple VMAs
-requires a single flush.
-
-Use mmu_gather in change_pXX_range().  As the pages are not released, only
-record the flushed range using tlb_flush_pXX_range().
-
-Handle THP similarly and get rid of flush_cache_range() which becomes
-redundant since tlb_start_vma() calls it when needed.
-
-Link: https://lkml.kernel.org/r/20220401180821.1986781-1-namit@vmware.com
-Link: https://lkml.kernel.org/r/20220401180821.1986781-2-namit@vmware.com
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Cooper <andrew.cooper3@citrix.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Nick Piggin <npiggin@gmail.com>
+Link: https://lkml.kernel.org/r/164859778127.29473.14059420492644907783.stgit@noble.brown
+Signed-off-by: NeilBrown <neilb@suse.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: David Howells <dhowells@redhat.com>
+Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |    6 ++
- include/linux/huge_mm.h |    5 +-
- include/linux/mm.h      |    5 +-
- mm/huge_memory.c        |   10 +++-
- mm/mempolicy.c          |    9 +++
- mm/mprotect.c           |   92 ++++++++++++++++++++------------------
- mm/userfaultfd.c        |    6 ++
- 7 files changed, 82 insertions(+), 51 deletions(-)
+ mm/madvise.c    |    8 ++-
+ mm/memory.c     |    2 
+ mm/page_io.c    |  104 ++++++++++++++++++++++++++++++----------------
+ mm/swap.h       |   17 ++++++-
+ mm/swap_state.c |   20 ++++++--
+ 5 files changed, 104 insertions(+), 47 deletions(-)
 
---- a/fs/exec.c~mm-mprotect-use-mmu_gather
-+++ a/fs/exec.c
-@@ -758,6 +758,7 @@ int setup_arg_pages(struct linux_binprm
- 	unsigned long stack_size;
- 	unsigned long stack_expand;
- 	unsigned long rlim_stack;
-+	struct mmu_gather tlb;
+--- a/mm/madvise.c~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
++++ a/mm/madvise.c
+@@ -198,6 +198,7 @@ static int swapin_walk_pmd_entry(pmd_t *
+ 	pte_t *orig_pte;
+ 	struct vm_area_struct *vma = walk->private;
+ 	unsigned long index;
++	struct swap_iocb *splug = NULL;
  
- #ifdef CONFIG_STACK_GROWSUP
- 	/* Limit stack size */
-@@ -812,8 +813,11 @@ int setup_arg_pages(struct linux_binprm
- 	vm_flags |= mm->def_flags;
- 	vm_flags |= VM_STACK_INCOMPLETE_SETUP;
+ 	if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 		return 0;
+@@ -219,10 +220,11 @@ static int swapin_walk_pmd_entry(pmd_t *
+ 			continue;
  
--	ret = mprotect_fixup(vma, &prev, vma->vm_start, vma->vm_end,
-+	tlb_gather_mmu(&tlb, mm);
-+	ret = mprotect_fixup(&tlb, vma, &prev, vma->vm_start, vma->vm_end,
- 			vm_flags);
-+	tlb_finish_mmu(&tlb);
-+
- 	if (ret)
- 		goto out_unlock;
- 	BUG_ON(prev != vma);
---- a/include/linux/huge_mm.h~mm-mprotect-use-mmu_gather
-+++ a/include/linux/huge_mm.h
-@@ -36,8 +36,9 @@ int zap_huge_pud(struct mmu_gather *tlb,
- 		 unsigned long addr);
- bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 		   unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd);
--int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd, unsigned long addr,
--		    pgprot_t newprot, unsigned long cp_flags);
-+int change_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		    pmd_t *pmd, unsigned long addr, pgprot_t newprot,
-+		    unsigned long cp_flags);
- vm_fault_t vmf_insert_pfn_pmd_prot(struct vm_fault *vmf, pfn_t pfn,
- 				   pgprot_t pgprot, bool write);
- 
---- a/include/linux/mm.h~mm-mprotect-use-mmu_gather
-+++ a/include/linux/mm.h
-@@ -1967,10 +1967,11 @@ extern unsigned long move_page_tables(st
- #define  MM_CP_UFFD_WP_ALL                 (MM_CP_UFFD_WP | \
- 					    MM_CP_UFFD_WP_RESOLVE)
- 
--extern unsigned long change_protection(struct vm_area_struct *vma, unsigned long start,
-+extern unsigned long change_protection(struct mmu_gather *tlb,
-+			      struct vm_area_struct *vma, unsigned long start,
- 			      unsigned long end, pgprot_t newprot,
- 			      unsigned long cp_flags);
--extern int mprotect_fixup(struct vm_area_struct *vma,
-+extern int mprotect_fixup(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 			  struct vm_area_struct **pprev, unsigned long start,
- 			  unsigned long end, unsigned long newflags);
- 
---- a/mm/huge_memory.c~mm-mprotect-use-mmu_gather
-+++ a/mm/huge_memory.c
-@@ -1709,8 +1709,9 @@ bool move_huge_pmd(struct vm_area_struct
-  *      or if prot_numa but THP migration is not supported
-  *  - HPAGE_PMD_NR if protections changed and TLB flush necessary
-  */
--int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
--		unsigned long addr, pgprot_t newprot, unsigned long cp_flags)
-+int change_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		    pmd_t *pmd, unsigned long addr, pgprot_t newprot,
-+		    unsigned long cp_flags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	spinlock_t *ptl;
-@@ -1721,6 +1722,8 @@ int change_huge_pmd(struct vm_area_struc
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
- 
-+	tlb_change_page_size(tlb, HPAGE_PMD_SIZE);
-+
- 	if (prot_numa && !thp_migration_supported())
- 		return 1;
- 
-@@ -1819,6 +1822,9 @@ int change_huge_pmd(struct vm_area_struc
+ 		page = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
+-							vma, index, false);
++					     vma, index, false, &splug);
+ 		if (page)
+ 			put_page(page);
  	}
- 	ret = HPAGE_PMD_NR;
- 	set_pmd_at(mm, addr, pmd, entry);
-+
-+	tlb_flush_pmd_range(tlb, addr, HPAGE_PMD_SIZE);
-+
- 	BUG_ON(vma_is_anonymous(vma) && !preserve_write && pmd_write(entry));
- unlock:
- 	spin_unlock(ptl);
---- a/mm/mempolicy.c~mm-mprotect-use-mmu_gather
-+++ a/mm/mempolicy.c
-@@ -104,6 +104,7 @@
- #include <linux/swapops.h>
++	swap_read_unplug(splug);
  
- #include <asm/tlbflush.h>
-+#include <asm/tlb.h>
- #include <linux/uaccess.h>
- 
- #include "internal.h"
-@@ -630,12 +631,18 @@ unlock:
- unsigned long change_prot_numa(struct vm_area_struct *vma,
- 			unsigned long addr, unsigned long end)
- {
-+	struct mmu_gather tlb;
- 	int nr_updated;
- 
--	nr_updated = change_protection(vma, addr, end, PAGE_NONE, MM_CP_PROT_NUMA);
-+	tlb_gather_mmu(&tlb, vma->vm_mm);
-+
-+	nr_updated = change_protection(&tlb, vma, addr, end, PAGE_NONE,
-+				       MM_CP_PROT_NUMA);
- 	if (nr_updated)
- 		count_vm_numa_events(NUMA_PTE_UPDATES, nr_updated);
- 
-+	tlb_finish_mmu(&tlb);
-+
- 	return nr_updated;
- }
- #else
---- a/mm/mprotect.c~mm-mprotect-use-mmu_gather
-+++ a/mm/mprotect.c
-@@ -33,12 +33,13 @@
- #include <asm/cacheflush.h>
- #include <asm/mmu_context.h>
- #include <asm/tlbflush.h>
-+#include <asm/tlb.h>
- 
- #include "internal.h"
- 
--static unsigned long change_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
--		unsigned long addr, unsigned long end, pgprot_t newprot,
--		unsigned long cp_flags)
-+static unsigned long change_pte_range(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, pmd_t *pmd, unsigned long addr,
-+		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
- {
- 	pte_t *pte, oldpte;
- 	spinlock_t *ptl;
-@@ -49,6 +50,8 @@ static unsigned long change_pte_range(st
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
- 
-+	tlb_change_page_size(tlb, PAGE_SIZE);
-+
- 	/*
- 	 * Can be called with only the mmap_lock for reading by
- 	 * prot_numa so we must check the pmd isn't constantly
-@@ -149,6 +152,7 @@ static unsigned long change_pte_range(st
- 				ptent = pte_mkwrite(ptent);
- 			}
- 			ptep_modify_prot_commit(vma, addr, pte, oldpte, ptent);
-+			tlb_flush_pte_range(tlb, addr, PAGE_SIZE);
- 			pages++;
- 		} else if (is_swap_pte(oldpte)) {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
-@@ -234,9 +238,9 @@ static inline int pmd_none_or_clear_bad_
  	return 0;
  }
+@@ -238,6 +240,7 @@ static void force_shm_swapin_readahead(s
+ 	XA_STATE(xas, &mapping->i_pages, linear_page_index(vma, start));
+ 	pgoff_t end_index = linear_page_index(vma, end + PAGE_SIZE - 1);
+ 	struct page *page;
++	struct swap_iocb *splug = NULL;
  
--static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
--		pud_t *pud, unsigned long addr, unsigned long end,
--		pgprot_t newprot, unsigned long cp_flags)
-+static inline unsigned long change_pmd_range(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, pud_t *pud, unsigned long addr,
-+		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -276,8 +280,12 @@ static inline unsigned long change_pmd_r
- 			if (next - addr != HPAGE_PMD_SIZE) {
- 				__split_huge_pmd(vma, pmd, addr, false, NULL);
- 			} else {
--				int nr_ptes = change_huge_pmd(vma, pmd, addr,
--							      newprot, cp_flags);
-+				/*
-+				 * change_huge_pmd() does not defer TLB flushes,
-+				 * so no need to propagate the tlb argument.
-+				 */
-+				int nr_ptes = change_huge_pmd(tlb, vma, pmd,
-+						addr, newprot, cp_flags);
+ 	rcu_read_lock();
+ 	xas_for_each(&xas, page, end_index) {
+@@ -250,13 +253,14 @@ static void force_shm_swapin_readahead(s
  
- 				if (nr_ptes) {
- 					if (nr_ptes == HPAGE_PMD_NR) {
-@@ -291,8 +299,8 @@ static inline unsigned long change_pmd_r
- 			}
- 			/* fall through, the trans huge pmd just split */
- 		}
--		this_pages = change_pte_range(vma, pmd, addr, next, newprot,
--					      cp_flags);
-+		this_pages = change_pte_range(tlb, vma, pmd, addr, next,
-+					      newprot, cp_flags);
- 		pages += this_pages;
- next:
- 		cond_resched();
-@@ -306,9 +314,9 @@ next:
- 	return pages;
- }
+ 		swap = radix_to_swp_entry(page);
+ 		page = read_swap_cache_async(swap, GFP_HIGHUSER_MOVABLE,
+-							NULL, 0, false);
++					     NULL, 0, false, &splug);
+ 		if (page)
+ 			put_page(page);
  
--static inline unsigned long change_pud_range(struct vm_area_struct *vma,
--		p4d_t *p4d, unsigned long addr, unsigned long end,
--		pgprot_t newprot, unsigned long cp_flags)
-+static inline unsigned long change_pud_range(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, p4d_t *p4d, unsigned long addr,
-+		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
- {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -319,16 +327,16 @@ static inline unsigned long change_pud_r
- 		next = pud_addr_end(addr, end);
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
--		pages += change_pmd_range(vma, pud, addr, next, newprot,
-+		pages += change_pmd_range(tlb, vma, pud, addr, next, newprot,
- 					  cp_flags);
- 	} while (pud++, addr = next, addr != end);
- 
- 	return pages;
- }
- 
--static inline unsigned long change_p4d_range(struct vm_area_struct *vma,
--		pgd_t *pgd, unsigned long addr, unsigned long end,
--		pgprot_t newprot, unsigned long cp_flags)
-+static inline unsigned long change_p4d_range(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, pgd_t *pgd, unsigned long addr,
-+		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
- {
- 	p4d_t *p4d;
- 	unsigned long next;
-@@ -339,44 +347,40 @@ static inline unsigned long change_p4d_r
- 		next = p4d_addr_end(addr, end);
- 		if (p4d_none_or_clear_bad(p4d))
- 			continue;
--		pages += change_pud_range(vma, p4d, addr, next, newprot,
-+		pages += change_pud_range(tlb, vma, p4d, addr, next, newprot,
- 					  cp_flags);
- 	} while (p4d++, addr = next, addr != end);
- 
- 	return pages;
- }
- 
--static unsigned long change_protection_range(struct vm_area_struct *vma,
--		unsigned long addr, unsigned long end, pgprot_t newprot,
--		unsigned long cp_flags)
-+static unsigned long change_protection_range(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, unsigned long addr,
-+		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgd_t *pgd;
- 	unsigned long next;
--	unsigned long start = addr;
- 	unsigned long pages = 0;
- 
- 	BUG_ON(addr >= end);
- 	pgd = pgd_offset(mm, addr);
--	flush_cache_range(vma, addr, end);
--	inc_tlb_flush_pending(mm);
-+	tlb_start_vma(tlb, vma);
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
--		pages += change_p4d_range(vma, pgd, addr, next, newprot,
-+		pages += change_p4d_range(tlb, vma, pgd, addr, next, newprot,
- 					  cp_flags);
- 	} while (pgd++, addr = next, addr != end);
- 
--	/* Only flush the TLB if we actually modified any entries: */
--	if (pages)
--		flush_tlb_range(vma, start, end);
--	dec_tlb_flush_pending(mm);
-+	tlb_end_vma(tlb, vma);
- 
- 	return pages;
- }
- 
--unsigned long change_protection(struct vm_area_struct *vma, unsigned long start,
-+unsigned long change_protection(struct mmu_gather *tlb,
-+		       struct vm_area_struct *vma, unsigned long start,
- 		       unsigned long end, pgprot_t newprot,
- 		       unsigned long cp_flags)
- {
-@@ -387,7 +391,7 @@ unsigned long change_protection(struct v
- 	if (is_vm_hugetlb_page(vma))
- 		pages = hugetlb_change_protection(vma, start, end, newprot);
- 	else
--		pages = change_protection_range(vma, start, end, newprot,
-+		pages = change_protection_range(tlb, vma, start, end, newprot,
- 						cp_flags);
- 
- 	return pages;
-@@ -421,8 +425,9 @@ static const struct mm_walk_ops prot_non
- };
- 
- int
--mprotect_fixup(struct vm_area_struct *vma, struct vm_area_struct **pprev,
--	unsigned long start, unsigned long end, unsigned long newflags)
-+mprotect_fixup(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+	       struct vm_area_struct **pprev, unsigned long start,
-+	       unsigned long end, unsigned long newflags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long oldflags = vma->vm_flags;
-@@ -509,7 +514,7 @@ success:
- 	dirty_accountable = vma_wants_writenotify(vma, vma->vm_page_prot);
- 	vma_set_page_prot(vma);
- 
--	change_protection(vma, start, end, vma->vm_page_prot,
-+	change_protection(tlb, vma, start, end, vma->vm_page_prot,
- 			  dirty_accountable ? MM_CP_DIRTY_ACCT : 0);
- 
- 	/*
-@@ -543,6 +548,7 @@ static int do_mprotect_pkey(unsigned lon
- 	const int grows = prot & (PROT_GROWSDOWN|PROT_GROWSUP);
- 	const bool rier = (current->personality & READ_IMPLIES_EXEC) &&
- 				(prot & PROT_READ);
-+	struct mmu_gather tlb;
- 
- 	start = untagged_addr(start);
- 
-@@ -602,6 +608,7 @@ static int do_mprotect_pkey(unsigned lon
- 	else
- 		prev = vma->vm_prev;
- 
-+	tlb_gather_mmu(&tlb, current->mm);
- 	for (nstart = start ; ; ) {
- 		unsigned long mask_off_old_flags;
- 		unsigned long newflags;
-@@ -628,18 +635,18 @@ static int do_mprotect_pkey(unsigned lon
- 		/* newflags >> 4 shift VM_MAY% in place of VM_% */
- 		if ((newflags & ~(newflags >> 4)) & VM_ACCESS_FLAGS) {
- 			error = -EACCES;
--			goto out;
-+			break;
- 		}
- 
- 		/* Allow architectures to sanity-check the new flags */
- 		if (!arch_validate_flags(newflags)) {
- 			error = -EINVAL;
--			goto out;
-+			break;
- 		}
- 
- 		error = security_file_mprotect(vma, reqprot, prot);
- 		if (error)
--			goto out;
-+			break;
- 
- 		tmp = vma->vm_end;
- 		if (tmp > end)
-@@ -648,27 +655,28 @@ static int do_mprotect_pkey(unsigned lon
- 		if (vma->vm_ops && vma->vm_ops->mprotect) {
- 			error = vma->vm_ops->mprotect(vma, nstart, tmp, newflags);
- 			if (error)
--				goto out;
-+				break;
- 		}
- 
--		error = mprotect_fixup(vma, &prev, nstart, tmp, newflags);
-+		error = mprotect_fixup(&tlb, vma, &prev, nstart, tmp, newflags);
- 		if (error)
--			goto out;
-+			break;
- 
- 		nstart = tmp;
- 
- 		if (nstart < prev->vm_end)
- 			nstart = prev->vm_end;
- 		if (nstart >= end)
--			goto out;
-+			break;
- 
- 		vma = prev->vm_next;
- 		if (!vma || vma->vm_start != nstart) {
- 			error = -ENOMEM;
--			goto out;
-+			break;
- 		}
- 		prot = reqprot;
+ 		rcu_read_lock();
  	}
-+	tlb_finish_mmu(&tlb);
- out:
- 	mmap_write_unlock(current->mm);
- 	return error;
---- a/mm/userfaultfd.c~mm-mprotect-use-mmu_gather
-+++ a/mm/userfaultfd.c
-@@ -16,6 +16,7 @@
- #include <linux/hugetlb.h>
- #include <linux/shmem_fs.h>
- #include <asm/tlbflush.h>
-+#include <asm/tlb.h>
- #include "internal.h"
+ 	rcu_read_unlock();
++	swap_read_unplug(splug);
  
- static __always_inline
-@@ -687,6 +688,7 @@ int mwriteprotect_range(struct mm_struct
- 			atomic_t *mmap_changing)
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ }
+--- a/mm/memory.c~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
++++ a/mm/memory.c
+@@ -3633,7 +3633,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 
+ 				/* To provide entry to swap_readpage() */
+ 				set_page_private(page, entry.val);
+-				swap_readpage(page, true);
++				swap_readpage(page, true, NULL);
+ 				set_page_private(page, 0);
+ 			}
+ 		} else {
+--- a/mm/page_io.c~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
++++ a/mm/page_io.c
+@@ -237,7 +237,8 @@ static void bio_associate_blkg_from_page
+ 
+ struct swap_iocb {
+ 	struct kiocb		iocb;
+-	struct bio_vec		bvec;
++	struct bio_vec		bvec[SWAP_CLUSTER_MAX];
++	int			pages;
+ };
+ static mempool_t *sio_pool;
+ 
+@@ -257,7 +258,7 @@ int sio_pool_init(void)
+ static void sio_write_complete(struct kiocb *iocb, long ret)
  {
- 	struct vm_area_struct *dst_vma;
-+	struct mmu_gather tlb;
- 	pgprot_t newprot;
- 	int err;
+ 	struct swap_iocb *sio = container_of(iocb, struct swap_iocb, iocb);
+-	struct page *page = sio->bvec.bv_page;
++	struct page *page = sio->bvec[0].bv_page;
  
-@@ -728,8 +730,10 @@ int mwriteprotect_range(struct mm_struct
- 	else
- 		newprot = vm_get_page_prot(dst_vma->vm_flags);
+ 	if (ret != PAGE_SIZE) {
+ 		/*
+@@ -295,10 +296,10 @@ static int swap_writepage_fs(struct page
+ 	init_sync_kiocb(&sio->iocb, swap_file);
+ 	sio->iocb.ki_complete = sio_write_complete;
+ 	sio->iocb.ki_pos = page_file_offset(page);
+-	sio->bvec.bv_page = page;
+-	sio->bvec.bv_len = PAGE_SIZE;
+-	sio->bvec.bv_offset = 0;
+-	iov_iter_bvec(&from, WRITE, &sio->bvec, 1, PAGE_SIZE);
++	sio->bvec[0].bv_page = page;
++	sio->bvec[0].bv_len = PAGE_SIZE;
++	sio->bvec[0].bv_offset = 0;
++	iov_iter_bvec(&from, WRITE, &sio->bvec[0], 1, PAGE_SIZE);
+ 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
+ 	if (ret != -EIOCBQUEUED)
+ 		sio_write_complete(&sio->iocb, ret);
+@@ -346,46 +347,66 @@ int __swap_writepage(struct page *page,
+ static void sio_read_complete(struct kiocb *iocb, long ret)
+ {
+ 	struct swap_iocb *sio = container_of(iocb, struct swap_iocb, iocb);
+-	struct page *page = sio->bvec.bv_page;
++	int p;
  
--	change_protection(dst_vma, start, start + len, newprot,
-+	tlb_gather_mmu(&tlb, dst_mm);
-+	change_protection(&tlb, dst_vma, start, start + len, newprot,
- 			  enable_wp ? MM_CP_UFFD_WP : MM_CP_UFFD_WP_RESOLVE);
-+	tlb_finish_mmu(&tlb);
+-	if (ret != 0 && ret != PAGE_SIZE) {
+-		SetPageError(page);
+-		ClearPageUptodate(page);
+-		pr_alert_ratelimited("Read-error on swap-device\n");
++	if (ret == PAGE_SIZE * sio->pages) {
++		for (p = 0; p < sio->pages; p++) {
++			struct page *page = sio->bvec[p].bv_page;
++
++			SetPageUptodate(page);
++			unlock_page(page);
++		}
++		count_vm_events(PSWPIN, sio->pages);
+ 	} else {
+-		SetPageUptodate(page);
+-		count_vm_event(PSWPIN);
++		for (p = 0; p < sio->pages; p++) {
++			struct page *page = sio->bvec[p].bv_page;
++
++			SetPageError(page);
++			ClearPageUptodate(page);
++			unlock_page(page);
++		}
++		pr_alert_ratelimited("Read-error on swap-device\n");
+ 	}
+-	unlock_page(page);
+ 	mempool_free(sio, sio_pool);
+ }
  
- 	err = 0;
- out_unlock:
+-static int swap_readpage_fs(struct page *page)
++static void swap_readpage_fs(struct page *page,
++			     struct swap_iocb **plug)
+ {
+ 	struct swap_info_struct *sis = page_swap_info(page);
+-	struct file *swap_file = sis->swap_file;
+-	struct address_space *mapping = swap_file->f_mapping;
+-	struct iov_iter from;
+-	struct swap_iocb *sio;
++	struct swap_iocb *sio = NULL;
+ 	loff_t pos = page_file_offset(page);
+-	int ret;
+-
+-	sio = mempool_alloc(sio_pool, GFP_KERNEL);
+-	init_sync_kiocb(&sio->iocb, swap_file);
+-	sio->iocb.ki_pos = pos;
+-	sio->iocb.ki_complete = sio_read_complete;
+-	sio->bvec.bv_page = page;
+-	sio->bvec.bv_len = PAGE_SIZE;
+-	sio->bvec.bv_offset = 0;
+ 
+-	iov_iter_bvec(&from, READ, &sio->bvec, 1, PAGE_SIZE);
+-	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
+-	if (ret != -EIOCBQUEUED)
+-		sio_read_complete(&sio->iocb, ret);
+-	return ret;
++	if (plug)
++		sio = *plug;
++	if (sio) {
++		if (sio->iocb.ki_filp != sis->swap_file ||
++		    sio->iocb.ki_pos + sio->pages * PAGE_SIZE != pos) {
++			swap_read_unplug(sio);
++			sio = NULL;
++		}
++	}
++	if (!sio) {
++		sio = mempool_alloc(sio_pool, GFP_KERNEL);
++		init_sync_kiocb(&sio->iocb, sis->swap_file);
++		sio->iocb.ki_pos = pos;
++		sio->iocb.ki_complete = sio_read_complete;
++		sio->pages = 0;
++	}
++	sio->bvec[sio->pages].bv_page = page;
++	sio->bvec[sio->pages].bv_len = PAGE_SIZE;
++	sio->bvec[sio->pages].bv_offset = 0;
++	sio->pages += 1;
++	if (sio->pages == ARRAY_SIZE(sio->bvec) || !plug) {
++		swap_read_unplug(sio);
++		sio = NULL;
++	}
++	if (plug)
++		*plug = sio;
+ }
+ 
+-int swap_readpage(struct page *page, bool synchronous)
++int swap_readpage(struct page *page, bool synchronous,
++		  struct swap_iocb **plug)
+ {
+ 	struct bio *bio;
+ 	int ret = 0;
+@@ -413,7 +434,7 @@ int swap_readpage(struct page *page, boo
+ 	}
+ 
+ 	if (data_race(sis->flags & SWP_FS_OPS)) {
+-		ret = swap_readpage_fs(page);
++		swap_readpage_fs(page, plug);
+ 		goto out;
+ 	}
+ 
+@@ -459,3 +480,16 @@ out:
+ 	delayacct_swapin_end();
+ 	return ret;
+ }
++
++void __swap_read_unplug(struct swap_iocb *sio)
++{
++	struct iov_iter from;
++	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
++	int ret;
++
++	iov_iter_bvec(&from, READ, sio->bvec, sio->pages,
++		      PAGE_SIZE * sio->pages);
++	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
++	if (ret != -EIOCBQUEUED)
++		sio_read_complete(&sio->iocb, ret);
++}
+--- a/mm/swap.h~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
++++ a/mm/swap.h
+@@ -7,7 +7,15 @@
+ 
+ /* linux/mm/page_io.c */
+ int sio_pool_init(void);
+-int swap_readpage(struct page *page, bool do_poll);
++struct swap_iocb;
++int swap_readpage(struct page *page, bool do_poll,
++		  struct swap_iocb **plug);
++void __swap_read_unplug(struct swap_iocb *plug);
++static inline void swap_read_unplug(struct swap_iocb *plug)
++{
++	if (unlikely(plug))
++		__swap_read_unplug(plug);
++}
+ int swap_writepage(struct page *page, struct writeback_control *wbc);
+ void end_swap_bio_write(struct bio *bio);
+ int __swap_writepage(struct page *page, struct writeback_control *wbc,
+@@ -41,7 +49,8 @@ struct page *find_get_incore_page(struct
+ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+ 				   struct vm_area_struct *vma,
+ 				   unsigned long addr,
+-				   bool do_poll);
++				   bool do_poll,
++				   struct swap_iocb **plug);
+ struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+ 				     struct vm_area_struct *vma,
+ 				     unsigned long addr,
+@@ -56,7 +65,9 @@ static inline unsigned int page_swap_fla
+ 	return page_swap_info(page)->flags;
+ }
+ #else /* CONFIG_SWAP */
+-static inline int swap_readpage(struct page *page, bool do_poll)
++struct swap_iocb;
++static inline int swap_readpage(struct page *page, bool do_poll,
++				struct swap_iocb **plug)
+ {
+ 	return 0;
+ }
+--- a/mm/swap_state.c~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
++++ a/mm/swap_state.c
+@@ -520,14 +520,16 @@ fail_unlock:
+  * the swap entry is no longer in use.
+  */
+ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+-		struct vm_area_struct *vma, unsigned long addr, bool do_poll)
++				   struct vm_area_struct *vma,
++				   unsigned long addr, bool do_poll,
++				   struct swap_iocb **plug)
+ {
+ 	bool page_was_allocated;
+ 	struct page *retpage = __read_swap_cache_async(entry, gfp_mask,
+ 			vma, addr, &page_was_allocated);
+ 
+ 	if (page_was_allocated)
+-		swap_readpage(retpage, do_poll);
++		swap_readpage(retpage, do_poll, plug);
+ 
+ 	return retpage;
+ }
+@@ -621,6 +623,7 @@ struct page *swap_cluster_readahead(swp_
+ 	unsigned long mask;
+ 	struct swap_info_struct *si = swp_swap_info(entry);
+ 	struct blk_plug plug;
++	struct swap_iocb *splug = NULL;
+ 	bool do_poll = true, page_allocated;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	unsigned long addr = vmf->address;
+@@ -647,7 +650,7 @@ struct page *swap_cluster_readahead(swp_
+ 		if (!page)
+ 			continue;
+ 		if (page_allocated) {
+-			swap_readpage(page, false);
++			swap_readpage(page, false, &splug);
+ 			if (offset != entry_offset) {
+ 				SetPageReadahead(page);
+ 				count_vm_event(SWAP_RA);
+@@ -656,10 +659,12 @@ struct page *swap_cluster_readahead(swp_
+ 		put_page(page);
+ 	}
+ 	blk_finish_plug(&plug);
++	swap_read_unplug(splug);
+ 
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ skip:
+-	return read_swap_cache_async(entry, gfp_mask, vma, addr, do_poll);
++	/* The page was likely read above, so no need for plugging here */
++	return read_swap_cache_async(entry, gfp_mask, vma, addr, do_poll, NULL);
+ }
+ 
+ int init_swap_address_space(unsigned int type, unsigned long nr_pages)
+@@ -790,6 +795,7 @@ static struct page *swap_vma_readahead(s
+ 				       struct vm_fault *vmf)
+ {
+ 	struct blk_plug plug;
++	struct swap_iocb *splug = NULL;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page;
+ 	pte_t *pte, pentry;
+@@ -820,7 +826,7 @@ static struct page *swap_vma_readahead(s
+ 		if (!page)
+ 			continue;
+ 		if (page_allocated) {
+-			swap_readpage(page, false);
++			swap_readpage(page, false, &splug);
+ 			if (i != ra_info.offset) {
+ 				SetPageReadahead(page);
+ 				count_vm_event(SWAP_RA);
+@@ -829,10 +835,12 @@ static struct page *swap_vma_readahead(s
+ 		put_page(page);
+ 	}
+ 	blk_finish_plug(&plug);
++	swap_read_unplug(splug);
+ 	lru_add_drain();
+ skip:
++	/* The page was likely read above, so no need for plugging here */
+ 	return read_swap_cache_async(fentry, gfp_mask, vma, vmf->address,
+-				     ra_info.win == 1);
++				     ra_info.win == 1, NULL);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
+mm-discard-__gfp_atomic.patch
 
