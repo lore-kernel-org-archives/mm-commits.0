@@ -2,224 +2,79 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CEC6C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 18:55:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 031D8C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 18:57:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232566AbiEJSzZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 14:55:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33474 "EHLO
+        id S229450AbiEJS5n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 14:57:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349084AbiEJSzY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 14:55:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3AFC12FC08
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 11:55:21 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        with ESMTP id S237248AbiEJS5l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 14:57:41 -0400
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C9F03E5EE
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 11:57:40 -0700 (PDT)
+Received: from zn.tnic (p5de8eeb4.dip0.t-ipconnect.de [93.232.238.180])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3DA9161036
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 18:55:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9077EC385C2;
-        Tue, 10 May 2022 18:55:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652208920;
-        bh=XXd318IDNzL7CJGgaDvy3e55HUdr3HhYabMlV1CHCao=;
-        h=Date:To:From:Subject:From;
-        b=k5aAixFG8VV1RObvZlqqHlkcKzGZh0lf4Hf4qW8piqAZJlnes9QeAz092jCaIGxer
-         T/L2ei5Jf/Z3pfEdB4sJCzuf38fDZtfJXmp8E7NSZbV5jlS3Xmf3fyRUT5/NcJRYdm
-         VO0n/ae8LIk29bVOXnsf1FBGxDlN54Yd4Rk+NSH4=
-Date:   Tue, 10 May 2022 11:55:19 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rostedt@goodmis.org,
-        jirislaby@kernel.org, gregkh@linuxfoundation.org,
-        akinobu.mita@gmail.com, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch added to mm-nonmm-unstable branch
-Message-Id: <20220510185520.9077EC385C2@smtp.kernel.org>
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 884281EC0453;
+        Tue, 10 May 2022 20:57:34 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1652209054;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=Mvbk6YXNHCDTVJq+TKolSmiEHwhVEhF+YCz4zXsQ9SA=;
+        b=rz+8C4O2/HNXAoQEQ7GBFLegjlEYasDQmB2H3uP36SCWB+dC0LP1vNlMYNW/+EeyzfrKWq
+        ohfHarSF9OIh2ZnlFf+KZUSfcf7KLb8Q01BBKsWOjzKGRXGufypJIGdqzm/sU77hvBiAu9
+        RjQO2JC9JUjTrjhCLOEIOagreFGuNWI=
+Date:   Tue, 10 May 2022 20:57:33 +0200
+From:   Borislav Petkov <bp@alien8.de>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Mark Hemment <markhemm@googlemail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
+        Lukas Czerner <lczerner@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Mel Gorman <mgorman@suse.de>
+Subject: Re: clear_user (was: [patch 02/14] tmpfs: fix regressions from wider
+ use of ZERO_PAGE)
+Message-ID: <Ynq1nVpu1xCpjnXm@zn.tnic>
+References: <CAHk-=wg=D9eaDHU5yHpqf_G7zTBcv6yU1kkNzV6KKb5jttNxvA@mail.gmail.com>
+ <YnLMSWbz6BNfsBME@zn.tnic>
+ <CAHk-=wh_62HBCz1g_6mKP71XOvJAs3JwBz0=jve2mg1DGWPq5g@mail.gmail.com>
+ <YnLfl6lupN2nq7+t@zn.tnic>
+ <CAHk-=wiGbrJMim6EWncZUQBzguqy-vtNd+grfNizm5L8Vcmu+w@mail.gmail.com>
+ <YnLplKy0Y66SsvQw@zn.tnic>
+ <CAHk-=wjUX5DGNSiBYvPC8fQJGRe5_RWR8NW=gYF4=UpPiwCE8A@mail.gmail.com>
+ <Ynow8F3G8Kl6V3gu@zn.tnic>
+ <CAHk-=whCmmipbBDips0OJ=UiBUjZfgBGYruoOsqcq2TVd5kBSA@mail.gmail.com>
+ <YnqqhmYv75p+xl73@zn.tnic>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <YnqqhmYv75p+xl73@zn.tnic>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, May 10, 2022 at 08:10:14PM +0200, Borislav Petkov wrote:
+> And when you think of all the crap stuff that got added in silicon
+> and *removed* *again* in the meantime... but I'm optimistic now that
+> Murphy's Law is not going to hold true anymore, we will finally start
+  ^^^^^^
 
-The patch titled
-     Subject: tty: fix deadlock caused by calling printk() under tty_port->lock
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch
+Dunno if this was a Freudian slip... :-)
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch
+-- 
+Regards/Gruss,
+    Boris.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: tty: fix deadlock caused by calling printk() under tty_port->lock
-
-The pty_write() invokes kmalloc() which may invoke a normal printk() to
-print failure message.  This can cause a deadlock in the scenario reported
-by syz-bot below:
-
-       CPU0              CPU1                    CPU2
-       ----              ----                    ----
-                         lock(console_owner);
-                                                 lock(&port_lock_key);
-  lock(&port->lock);
-                         lock(&port_lock_key);
-                                                 lock(&port->lock);
-  lock(console_owner);
-
-As commit dbdda842fe96 ("printk: Add console owner and waiter logic to
-load balance console writes") said, such deadlock can be prevented by
-using printk_deferred() in kmalloc() (which is invoked in the section
-guarded by the port->lock).  But there are too many printk() on the
-kmalloc() path, and kmalloc() can be called from anywhere, so changing
-printk() to printk_deferred() is too complicated and inelegant.
-
-Therefore, this patch chooses to specify __GFP_NOWARN to kmalloc(), so
-that printk() will not be called, and this deadlock problem can be
-avoided.
-
-Syz-bot reported the following lockdep error:
-
-======================================================
-WARNING: possible circular locking dependency detected
-5.4.143-00237-g08ccc19a-dirty #10 Not tainted
-------------------------------------------------------
-syz-executor.4/29420 is trying to acquire lock:
-ffffffff8aedb2a0 (console_owner){....}-{0:0}, at: console_trylock_spinning kernel/printk/printk.c:1752 [inline]
-ffffffff8aedb2a0 (console_owner){....}-{0:0}, at: vprintk_emit+0x2ca/0x470 kernel/printk/printk.c:2023
-
-but task is already holding lock:
-ffff8880119c9158 (&port->lock){-.-.}-{2:2}, at: pty_write+0xf4/0x1f0 drivers/tty/pty.c:120
-
-which lock already depends on the new lock.
-
-the existing dependency chain (in reverse order) is:
-
--> #2 (&port->lock){-.-.}-{2:2}:
-       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
-       _raw_spin_lock_irqsave+0x35/0x50 kernel/locking/spinlock.c:159
-       tty_port_tty_get drivers/tty/tty_port.c:288 [inline]          		<-- lock(&port->lock);
-       tty_port_default_wakeup+0x1d/0xb0 drivers/tty/tty_port.c:47
-       serial8250_tx_chars+0x530/0xa80 drivers/tty/serial/8250/8250_port.c:1767
-       serial8250_handle_irq.part.0+0x31f/0x3d0 drivers/tty/serial/8250/8250_port.c:1854
-       serial8250_handle_irq drivers/tty/serial/8250/8250_port.c:1827 [inline] 	<-- lock(&port_lock_key);
-       serial8250_default_handle_irq+0xb2/0x220 drivers/tty/serial/8250/8250_port.c:1870
-       serial8250_interrupt+0xfd/0x200 drivers/tty/serial/8250/8250_core.c:126
-       __handle_irq_event_percpu+0x109/0xa50 kernel/irq/handle.c:156
-       handle_irq_event_percpu+0x76/0x170 kernel/irq/handle.c:196
-       handle_irq_event+0xa1/0x130 kernel/irq/handle.c:213
-       handle_edge_irq+0x261/0xd00 kernel/irq/chip.c:833
-       generic_handle_irq_desc include/linux/irqdesc.h:156 [inline]
-       do_IRQ+0xf2/0x2e0 arch/x86/kernel/irq.c:250
-       ret_from_intr+0x0/0x19
-       native_safe_halt arch/x86/include/asm/irqflags.h:60 [inline]
-       arch_safe_halt arch/x86/include/asm/irqflags.h:103 [inline]
-       default_idle+0x2c/0x1a0 arch/x86/kernel/process.c:572
-       cpuidle_idle_call kernel/sched/idle.c:184 [inline]
-       do_idle+0x44c/0x590 kernel/sched/idle.c:294
-       cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:386
-       start_secondary+0x2d1/0x3e0 arch/x86/kernel/smpboot.c:264
-       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
-
--> #1 (&port_lock_key){-.-.}-{2:2}:
-       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
-       _raw_spin_lock_irqsave+0x35/0x50 kernel/locking/spinlock.c:159
-       serial8250_console_write+0x184/0xa40 drivers/tty/serial/8250/8250_port.c:3198
-										<-- lock(&port_lock_key);
-       call_console_drivers kernel/printk/printk.c:1819 [inline]
-       console_unlock+0x8cb/0xd00 kernel/printk/printk.c:2504
-       vprintk_emit+0x1b5/0x470 kernel/printk/printk.c:2024			<-- lock(console_owner);
-       vprintk_func+0x8d/0x250 kernel/printk/printk_safe.c:394
-       printk+0xba/0xed kernel/printk/printk.c:2084
-       register_console+0x8b3/0xc10 kernel/printk/printk.c:2829
-       univ8250_console_init+0x3a/0x46 drivers/tty/serial/8250/8250_core.c:681
-       console_init+0x49d/0x6d3 kernel/printk/printk.c:2915
-       start_kernel+0x5e9/0x879 init/main.c:713
-       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
-
--> #0 (console_owner){....}-{0:0}:
-       check_prev_add kernel/locking/lockdep.c:2600 [inline]
-       check_prevs_add kernel/locking/lockdep.c:2705 [inline]
-       validate_chain kernel/locking/lockdep.c:3095 [inline]
-       __lock_acquire+0x27e6/0x4cc0 kernel/locking/lockdep.c:4200
-       lock_acquire+0x127/0x340 kernel/locking/lockdep.c:4734
-       console_trylock_spinning kernel/printk/printk.c:1773 [inline]		<-- lock(console_owner);
-       vprintk_emit+0x307/0x470 kernel/printk/printk.c:2023
-       vprintk_func+0x8d/0x250 kernel/printk/printk_safe.c:394
-       printk+0xba/0xed kernel/printk/printk.c:2084
-       fail_dump lib/fault-inject.c:45 [inline]
-       should_fail+0x67b/0x7c0 lib/fault-inject.c:144
-       __should_failslab+0x152/0x1c0 mm/failslab.c:33
-       should_failslab+0x5/0x10 mm/slab_common.c:1224
-       slab_pre_alloc_hook mm/slab.h:468 [inline]
-       slab_alloc_node mm/slub.c:2723 [inline]
-       slab_alloc mm/slub.c:2807 [inline]
-       __kmalloc+0x72/0x300 mm/slub.c:3871
-       kmalloc include/linux/slab.h:582 [inline]
-       tty_buffer_alloc+0x23f/0x2a0 drivers/tty/tty_buffer.c:175
-       __tty_buffer_request_room+0x156/0x2a0 drivers/tty/tty_buffer.c:273
-       tty_insert_flip_string_fixed_flag+0x93/0x250 drivers/tty/tty_buffer.c:318
-       tty_insert_flip_string include/linux/tty_flip.h:37 [inline]
-       pty_write+0x126/0x1f0 drivers/tty/pty.c:122				<-- lock(&port->lock);
-       n_tty_write+0xa7a/0xfc0 drivers/tty/n_tty.c:2356
-       do_tty_write drivers/tty/tty_io.c:961 [inline]
-       tty_write+0x512/0x930 drivers/tty/tty_io.c:1045
-       __vfs_write+0x76/0x100 fs/read_write.c:494
-       vfs_write+0x268/0x5c0 fs/read_write.c:558
-       ksys_write+0x12d/0x250 fs/read_write.c:611
-       do_syscall_64+0xd7/0x380 arch/x86/entry/common.c:291
-       entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-other info that might help us debug this:
-
-Chain exists of:
-  console_owner --> &port_lock_key --> &port->lock
-
-Link: https://lkml.kernel.org/r/20220510113809.80626-2-zhengqi.arch@bytedance.com
-Fixes: b6da31b2c07c ("tty: Fix data race in tty_insert_flip_string_fixed_flag")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/tty/tty_buffer.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/drivers/tty/tty_buffer.c~tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock
-+++ a/drivers/tty/tty_buffer.c
-@@ -175,7 +175,8 @@ static struct tty_buffer *tty_buffer_all
- 	 */
- 	if (atomic_read(&port->buf.mem_used) > port->buf.mem_limit)
- 		return NULL;
--	p = kmalloc(sizeof(struct tty_buffer) + 2 * size, GFP_ATOMIC);
-+	p = kmalloc(sizeof(struct tty_buffer) + 2 * size,
-+		    GFP_ATOMIC | __GFP_NOWARN);
- 	if (p == NULL)
- 		return NULL;
- 
-_
-
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
-
-mm-fix-missing-handler-for-__gfp_nowarn.patch
-tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch
-
+https://people.kernel.org/tglx/notes-about-netiquette
