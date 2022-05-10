@@ -2,50 +2,47 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24F2FC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A83CC4167D
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236314AbiEJEUu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:20:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48248 "EHLO
+        id S232656AbiEJEV2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:21:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236194AbiEJEUA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA0602AC6DA
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:56 -0700 (PDT)
+        with ESMTP id S236222AbiEJEUB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:01 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 157FF23AE5B
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:14:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3B5FB61766
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 861C3C385A6;
-        Tue, 10 May 2022 04:14:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A4FBFB81AE7
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:14:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FC99C385C7;
+        Tue, 10 May 2022 04:14:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156095;
-        bh=uYkFZ7EN5LZD/FCXdAtbtw1HlXEj2ZPLWcijCTAkQu4=;
+        s=korg; t=1652156075;
+        bh=D6rpwUR679NkbajtazEWFWnVF16mX0wJXo5jz+ykl8E=;
         h=Date:To:From:Subject:From;
-        b=Zh04BV/3ZFeA/qIcpib6Y5JDHoDxLE4mkzmGDT9DUo+lk0InbJWWb/9wRIjorpbd/
-         97p2Q5sNA29299+0qJF+daYhpy1QBE65iBBmeObtZWBtrrV1BZZt2zTwyzMKC4UZr3
-         A8DbovrgGcnvAdfPno3vfIdUAwggL90UhCn7BpgQ=
-Date:   Mon, 09 May 2022 21:14:54 -0700
+        b=QcCANqO/OaJZ/2SAbM4v/91zTKW2Z4SILcGNJBwWK2B7QpBWzjlMqn8xuWlLthA/u
+         451l6BtXMdzBc8ZPNMx2U6/doJTUOMu+maWjDxSJupUIF7bI09rJsNr7KAy4UJR0Hu
+         sRXVSv48iqjoFp4MH6C9Fhi//rz7lNSqhh6Nqzz4=
+Date:   Mon, 09 May 2022 21:14:34 -0700
 To:     mm-commits@vger.kernel.org, zhangliang5@huawei.com,
-        willy@infradead.org, will@kernel.org, vbabka@suse.cz,
-        tglx@linutronix.de, shakeelb@google.com, rppt@linux.ibm.com,
+        willy@infradead.org, vbabka@suse.cz, shy828301@gmail.com,
+        shakeelb@google.com, rppt@linux.ibm.com, rientjes@google.com,
         riel@surriel.com, peterx@redhat.com, pedrodemargomes@gmail.com,
-        paulus@samba.org, oleg@redhat.com, oded.gabbay@gmail.com,
-        namit@vmware.com, mpe@ellerman.id.au, mingo@redhat.com,
+        oleg@redhat.com, oded.gabbay@gmail.com, namit@vmware.com,
         mike.kravetz@oracle.com, mhocko@kernel.org,
-        kirill.shutemov@linux.intel.com, jhubbard@nvidia.com,
-        jgg@nvidia.com, jannh@google.com, jack@suse.cz, hughd@google.com,
-        hch@lst.de, hca@linux.ibm.com, guro@fb.com, gor@linux.ibm.com,
-        gerald.schaefer@linux.ibm.com, ddutile@redhat.com,
-        dave.hansen@linux.intel.com, catalin.marinas@arm.com, bp@alien8.de,
-        benh@kernel.crashing.org, aarcange@redhat.com, david@redhat.com,
+        kirill.shutemov@linux.intel.com, khalid.aziz@oracle.com,
+        jhubbard@nvidia.com, jgg@nvidia.com, jannh@google.com,
+        jack@suse.cz, hughd@google.com, hch@lst.de, guro@fb.com,
+        ddutile@redhat.com, aarcange@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit.patch removed from -mm tree
-Message-Id: <20220510041455.861C3C385A6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap.patch removed from -mm tree
+Message-Id: <20220510041435.4FC99C385C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,411 +50,315 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: remember PG_anon_exclusive via a swp pte bit
+     Subject: mm/rmap: split page_dup_rmap() into page_dup_file_rmap() and page_try_dup_anon_rmap()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit.patch
+     mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/swap: remember PG_anon_exclusive via a swp pte bit
+Subject: mm/rmap: split page_dup_rmap() into page_dup_file_rmap() and page_try_dup_anon_rmap()
 
-Patch series "mm: COW fixes part 3: reliable GUP R/W FOLL_GET of anonymous pages", v2.
+...  and move the special check for pinned pages into
+page_try_dup_anon_rmap() to prepare for tracking exclusive anonymous pages
+via a new pageflag, clearing it only after making sure that there are no
+GUP pins on the anonymous page.
 
-This series fixes memory corruptions when a GUP R/W reference (FOLL_WRITE
-| FOLL_GET) was taken on an anonymous page and COW logic fails to detect
-exclusivity of the page to then replacing the anonymous page by a copy in
-the page table: The GUP reference lost synchronicity with the pages mapped
-into the page tables.  This series focuses on x86, arm64, s390x and
-ppc64/book3s -- other architectures are fairly easy to support by
-implementing __HAVE_ARCH_PTE_SWP_EXCLUSIVE.
+We really only care about pins on anonymous pages, because they are prone
+to getting replaced in the COW handler once mapped R/O.  For !anon pages
+in cow-mappings (!VM_SHARED && VM_MAYWRITE) we shouldn't really care about
+that, at least not that I could come up with an example.
 
-This primarily fixes the O_DIRECT memory corruptions that can happen on
-concurrent swapout, whereby we lose DMA reads to a page (modifying the
-user page by writing to it).
+Let's drop the is_cow_mapping() check from page_needs_cow_for_dma(), as we
+know we're dealing with anonymous pages.  Also, drop the handling of
+pinned pages from copy_huge_pud() and add a comment if ever supporting
+anonymous pages on the PUD level.
 
-O_DIRECT currently uses FOLL_GET for short-term (!FOLL_LONGTERM) DMA
-from/to a user page.  In the long run, we want to convert it to properly
-use FOLL_PIN, and John is working on it, but that might take a while and
-might not be easy to backport.  In the meantime, let's restore what used
-to work before we started modifying our COW logic: make R/W FOLL_GET
-references reliable as long as there is no fork() after GUP involved.
+This is a preparation for tracking exclusivity of anonymous pages in the
+rmap code, and disallowing marking a page shared (-> failing to duplicate)
+if there are GUP pins on a page.
 
-This is just the natural follow-up of part 2, that will also further
-reduce "wrong COW" on the swapin path, for example, when we cannot remove
-a page from the swapcache due to concurrent writeback, or if we have two
-threads faulting on the same swapped-out page.  Fixing O_DIRECT is just a
-nice side-product
-
-This issue, including other related COW issues, has been summarized in [3]
-under 2):
-"
-  2. Intra Process Memory Corruptions due to Wrong COW (FOLL_GET)
-
-  It was discovered that we can create a memory corruption by reading a
-  file via O_DIRECT to a part (e.g., first 512 bytes) of a page,
-  concurrently writing to an unrelated part (e.g., last byte) of the same
-  page, and concurrently write-protecting the page via clear_refs
-  SOFTDIRTY tracking [6].
-
-  For the reproducer, the issue is that O_DIRECT grabs a reference of the
-  target page (via FOLL_GET) and clear_refs write-protects the relevant
-  page table entry. On successive write access to the page from the
-  process itself, we wrongly COW the page when resolving the write fault,
-  resulting in a loss of synchronicity and consequently a memory corruption.
-
-  While some people might think that using clear_refs in this combination
-  is a corner cases, it turns out to be a more generic problem unfortunately.
-
-  For example, it was just recently discovered that we can similarly
-  create a memory corruption without clear_refs, simply by concurrently
-  swapping out the buffer pages [7]. Note that we nowadays even use the
-  swap infrastructure in Linux without an actual swap disk/partition: the
-  prime example is zram which is enabled as default under Fedora [10].
-
-  The root issue is that a write-fault on a page that has additional
-  references results in a COW and thereby a loss of synchronicity
-  and consequently a memory corruption if two parties believe they are
-  referencing the same page.
-"
-
-We don't particularly care about R/O FOLL_GET references: they were never
-reliable and O_DIRECT doesn't expect to observe modifications from a page
-after DMA was started.
-
-Note that:
-* this only fixes the issue on x86, arm64, s390x and ppc64/book3s
-  ("enterprise architectures"). Other architectures have to implement
-  __HAVE_ARCH_PTE_SWP_EXCLUSIVE to achieve the same.
-* this does *not * consider any kind of fork() after taking the reference:
-  fork() after GUP never worked reliably with FOLL_GET.
-* Not losing PG_anon_exclusive during swapout was the last remaining
-  piece. KSM already makes sure that there are no other references on
-  a page before considering it for sharing. Page migration maintains
-  PG_anon_exclusive and simply fails when there are additional references
-  (freezing the refcount fails). Only swapout code dropped the
-  PG_anon_exclusive flag because it requires more work to remember +
-  restore it.
-
-With this series in place, most COW issues of [3] are fixed on said
-architectures. Other architectures can implement
-__HAVE_ARCH_PTE_SWP_EXCLUSIVE fairly easily.
-
-[1] https://lkml.kernel.org/r/20220329160440.193848-1-david@redhat.com
-[2] https://lkml.kernel.org/r/20211217113049.23850-1-david@redhat.com
-[3] https://lore.kernel.org/r/3ae33b08-d9ef-f846-56fb-645e3b9b4c66@redhat.com
-
-
-This patch (of 8):
-
-Currently, we clear PG_anon_exclusive in try_to_unmap() and forget about
-it.  We do this, to keep fork() logic on swap entries easy and efficient:
-for example, if we wouldn't clear it when unmapping, we'd have to lookup
-the page in the swapcache for each and every swap entry during fork() and
-clear PG_anon_exclusive if set.
-
-Instead, we want to store that information directly in the swap pte,
-protected by the page table lock, similarly to how we handle
-SWP_MIGRATION_READ_EXCLUSIVE for migration entries.  However, for actual
-swap entries, we don't want to mess with the swap type (e.g., still one
-bit) because it overcomplicates swap code.
-
-In try_to_unmap(), we already reject to unmap in case the page might be
-pinned, because we must not lose PG_anon_exclusive on pinned pages ever. 
-Checking if there are other unexpected references reliably *before*
-completely unmapping a page is unfortunately not really possible: THP
-heavily overcomplicate the situation.  Once fully unmapped it's easier --
-we, for example, make sure that there are no unexpected references *after*
-unmapping a page before starting writeback on that page.
-
-So, we currently might end up unmapping a page and clearing
-PG_anon_exclusive if that page has additional references, for example, due
-to a FOLL_GET.
-
-do_swap_page() has to re-determine if a page is exclusive, which will
-easily fail if there are other references on a page, most prominently GUP
-references via FOLL_GET.  This can currently result in memory corruptions
-when taking a FOLL_GET | FOLL_WRITE reference on a page even when fork()
-is never involved: try_to_unmap() will succeed, and when refaulting the
-page, it cannot be marked exclusive and will get replaced by a copy in the
-page tables on the next write access, resulting in writes via the GUP
-reference to the page being lost.
-
-In an ideal world, everybody that uses GUP and wants to modify page
-content, such as O_DIRECT, would properly use FOLL_PIN.  However, that
-conversion will take a while.  It's easier to fix what used to work in the
-past (FOLL_GET | FOLL_WRITE) remembering PG_anon_exclusive.  In addition,
-by remembering PG_anon_exclusive we can further reduce unnecessary COW in
-some cases, so it's the natural thing to do.
-
-So let's transfer the PG_anon_exclusive information to the swap pte and
-store it via an architecture-dependant pte bit; use that information when
-restoring the swap pte in do_swap_page() and unuse_pte().  During fork(),
-we simply have to clear the pte bit and are done.
-
-Of course, there is one corner case to handle: swap backends that don't
-support concurrent page modifications while the page is under writeback. 
-Special case these, and drop the exclusive marker.  Add a comment why that
-is just fine (also, reuse_swap_page() would have done the same in the
-past).
-
-In the future, we'll hopefully have all architectures support
-__HAVE_ARCH_PTE_SWP_EXCLUSIVE, such that we can get rid of the empty stubs
-and the define completely.  Then, we can also convert
-SWP_MIGRATION_READ_EXCLUSIVE.  For architectures it's fairly easy to
-support: either simply use a yet unused pte bit that can be used for swap
-entries, steal one from the arch type bits if they exceed 5, or steal one
-from the offset bits.
-
-Note: R/O FOLL_GET references were never really reliable, especially when
-taking one on a shared page and then writing to the page (e.g., GUP after
-fork()).  FOLL_GET, including R/W references, were never really reliable
-once fork was involved (e.g., GUP before fork(), GUP during fork()).  KSM
-steps back in case it stumbles over unexpected references and is,
-therefore, fine.
-
-[david@redhat.com: fix SWP_STABLE_WRITES test]
-  Link: https://lkml.kernel.org/r/ac725bcb-313a-4fff-250a-68ba9a8f85fb@redhat.comLink: https://lkml.kernel.org/r/20220329164329.208407-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20220329164329.208407-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20220428083441.37290-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Don Dutile <ddutile@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Liang Zhang <zhangliang5@huawei.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Nadav Amit <namit@vmware.com>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Roman Gushchin <guro@fb.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Don Dutile <ddutile@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Liang Zhang <zhangliang5@huawei.com>
-Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Cc: Oded Gabbay <oded.gabbay@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   29 ++++++++++++++++++++
- include/linux/swapops.h |    2 +
- mm/memory.c             |   55 +++++++++++++++++++++++++++++++++++---
- mm/rmap.c               |   19 +++++++------
- mm/swapfile.c           |   13 ++++++++
- 5 files changed, 105 insertions(+), 13 deletions(-)
+ include/linux/mm.h   |    5 ----
+ include/linux/rmap.h |   49 ++++++++++++++++++++++++++++++++++++++++-
+ mm/huge_memory.c     |   27 ++++++----------------
+ mm/hugetlb.c         |   16 +++++++------
+ mm/memory.c          |   17 ++++++++++----
+ mm/migrate.c         |    2 -
+ 6 files changed, 79 insertions(+), 37 deletions(-)
 
---- a/include/linux/pgtable.h~mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit
-+++ a/include/linux/pgtable.h
-@@ -1003,6 +1003,35 @@ static inline pgprot_t pgprot_modify(pgp
- #define arch_start_context_switch(prev)	do {} while (0)
- #endif
+--- a/include/linux/mm.h~mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap
++++ a/include/linux/mm.h
+@@ -1575,16 +1575,13 @@ static inline bool page_maybe_dma_pinned
  
-+/*
-+ * When replacing an anonymous page by a real (!non) swap entry, we clear
-+ * PG_anon_exclusive from the page and instead remember whether the flag was
-+ * set in the swp pte. During fork(), we have to mark the entry as !exclusive
-+ * (possibly shared). On swapin, we use that information to restore
-+ * PG_anon_exclusive, which is very helpful in cases where we might have
-+ * additional (e.g., FOLL_GET) references on a page and wouldn't be able to
-+ * detect exclusivity.
-+ *
-+ * These functions don't apply to non-swap entries (e.g., migration, hwpoison,
-+ * ...).
-+ */
-+#ifndef __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-+static inline pte_t pte_swp_mkexclusive(pte_t pte)
-+{
-+	return pte;
-+}
-+
-+static inline int pte_swp_exclusive(pte_t pte)
-+{
-+	return false;
-+}
-+
-+static inline pte_t pte_swp_clear_exclusive(pte_t pte)
-+{
-+	return pte;
-+}
-+#endif
-+
- #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- #ifndef CONFIG_ARCH_ENABLE_THP_MIGRATION
- static inline pmd_t pmd_swp_mksoft_dirty(pmd_t pmd)
---- a/include/linux/swapops.h~mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit
-+++ a/include/linux/swapops.h
-@@ -26,6 +26,8 @@
- /* Clear all flags but only keep swp_entry_t related information */
- static inline pte_t pte_swp_clear_flags(pte_t pte)
+ /*
+  * This should most likely only be called during fork() to see whether we
+- * should break the cow immediately for a page on the src mm.
++ * should break the cow immediately for an anon page on the src mm.
+  *
+  * The caller has to hold the PT lock and the vma->vm_mm->->write_protect_seq.
+  */
+ static inline bool page_needs_cow_for_dma(struct vm_area_struct *vma,
+ 					  struct page *page)
  {
-+	if (pte_swp_exclusive(pte))
-+		pte = pte_swp_clear_exclusive(pte);
- 	if (pte_swp_soft_dirty(pte))
- 		pte = pte_swp_clear_soft_dirty(pte);
- 	if (pte_swp_uffd_wp(pte))
---- a/mm/memory.c~mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit
-+++ a/mm/memory.c
-@@ -792,6 +792,11 @@ copy_nonpresent_pte(struct mm_struct *ds
- 						&src_mm->mmlist);
- 			spin_unlock(&mmlist_lock);
- 		}
-+		/* Mark the swap entry as shared. */
-+		if (pte_swp_exclusive(*src_pte)) {
-+			pte = pte_swp_clear_exclusive(*src_pte);
-+			set_pte_at(src_mm, addr, src_pte, pte);
-+		}
- 		rss[MM_SWAPENTS]++;
- 	} else if (is_migration_entry(entry)) {
- 		page = pfn_swap_entry_to_page(entry);
-@@ -3563,6 +3568,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 	struct page *page = NULL, *swapcache;
- 	struct swap_info_struct *si = NULL;
- 	rmap_t rmap_flags = RMAP_NONE;
-+	bool exclusive = false;
- 	swp_entry_t entry;
- 	pte_t pte;
- 	int locked;
-@@ -3729,6 +3735,46 @@ vm_fault_t do_swap_page(struct vm_fault
- 	BUG_ON(PageAnon(page) && PageAnonExclusive(page));
+-	if (!is_cow_mapping(vma->vm_flags))
+-		return false;
+-
+ 	VM_BUG_ON(!(raw_read_seqcount(&vma->vm_mm->write_protect_seq) & 1));
  
- 	/*
-+	 * Check under PT lock (to protect against concurrent fork() sharing
-+	 * the swap entry concurrently) for certainly exclusive pages.
-+	 */
-+	if (!PageKsm(page)) {
-+		/*
-+		 * Note that pte_swp_exclusive() == false for architectures
-+		 * without __HAVE_ARCH_PTE_SWP_EXCLUSIVE.
-+		 */
-+		exclusive = pte_swp_exclusive(vmf->orig_pte);
-+		if (page != swapcache) {
-+			/*
-+			 * We have a fresh page that is not exposed to the
-+			 * swapcache -> certainly exclusive.
-+			 */
-+			exclusive = true;
-+		} else if (exclusive && PageWriteback(page) &&
-+			  (swp_swap_info(entry)->flags & SWP_STABLE_WRITES)) {
-+			/*
-+			 * This is tricky: not all swap backends support
-+			 * concurrent page modifications while under writeback.
-+			 *
-+			 * So if we stumble over such a page in the swapcache
-+			 * we must not set the page exclusive, otherwise we can
-+			 * map it writable without further checks and modify it
-+			 * while still under writeback.
-+			 *
-+			 * For these problematic swap backends, simply drop the
-+			 * exclusive marker: this is perfectly fine as we start
-+			 * writeback only if we fully unmapped the page and
-+			 * there are no unexpected references on the page after
-+			 * unmapping succeeded. After fully unmapped, no
-+			 * further GUP references (FOLL_GET and FOLL_PIN) can
-+			 * appear, so dropping the exclusive marker and mapping
-+			 * it only R/O is fine.
-+			 */
-+			exclusive = false;
-+		}
-+	}
+ 	if (!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags))
+--- a/include/linux/rmap.h~mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap
++++ a/include/linux/rmap.h
+@@ -12,6 +12,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
++#include <linux/memremap.h>
+ 
+ /*
+  * The anon_vma heads a list of private "related" vmas, to scan if
+@@ -182,11 +183,57 @@ void hugepage_add_anon_rmap(struct page
+ void hugepage_add_new_anon_rmap(struct page *, struct vm_area_struct *,
+ 		unsigned long address);
+ 
+-static inline void page_dup_rmap(struct page *page, bool compound)
++static inline void __page_dup_rmap(struct page *page, bool compound)
+ {
+ 	atomic_inc(compound ? compound_mapcount_ptr(page) : &page->_mapcount);
+ }
+ 
++static inline void page_dup_file_rmap(struct page *page, bool compound)
++{
++	__page_dup_rmap(page, compound);
++}
++
++/**
++ * page_try_dup_anon_rmap - try duplicating a mapping of an already mapped
++ *			    anonymous page
++ * @page: the page to duplicate the mapping for
++ * @compound: the page is mapped as compound or as a small page
++ * @vma: the source vma
++ *
++ * The caller needs to hold the PT lock and the vma->vma_mm->write_protect_seq.
++ *
++ * Duplicating the mapping can only fail if the page may be pinned; device
++ * private pages cannot get pinned and consequently this function cannot fail.
++ *
++ * If duplicating the mapping succeeds, the page has to be mapped R/O into
++ * the parent and the child. It must *not* get mapped writable after this call.
++ *
++ * Returns 0 if duplicating the mapping succeeded. Returns -EBUSY otherwise.
++ */
++static inline int page_try_dup_anon_rmap(struct page *page, bool compound,
++					 struct vm_area_struct *vma)
++{
++	VM_BUG_ON_PAGE(!PageAnon(page), page);
 +
 +	/*
- 	 * Remove the swap entry and conditionally try to free up the swapcache.
- 	 * We're already holding a reference on the page but haven't mapped it
- 	 * yet.
-@@ -3742,11 +3788,12 @@ vm_fault_t do_swap_page(struct vm_fault
- 	pte = mk_pte(page, vma->vm_page_prot);
++	 * If this page may have been pinned by the parent process,
++	 * don't allow to duplicate the mapping but instead require to e.g.,
++	 * copy the page immediately for the child so that we'll always
++	 * guarantee the pinned page won't be randomly replaced in the
++	 * future on write faults.
++	 */
++	if (likely(!is_device_private_page(page) &&
++	    unlikely(page_needs_cow_for_dma(vma, page))))
++		return -EBUSY;
++
++	/*
++	 * It's okay to share the anon page between both processes, mapping
++	 * the page R/O into both processes.
++	 */
++	__page_dup_rmap(page, compound);
++	return 0;
++}
++
+ /*
+  * Called from mm/vmscan.c to handle paging out
+  */
+--- a/mm/huge_memory.c~mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap
++++ a/mm/huge_memory.c
+@@ -1097,23 +1097,16 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	src_page = pmd_page(pmd);
+ 	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
  
- 	/*
--	 * Same logic as in do_wp_page(); however, optimize for fresh pages
--	 * that are certainly not shared because we just allocated them without
--	 * exposing them to the swapcache.
-+	 * Same logic as in do_wp_page(); however, optimize for pages that are
-+	 * certainly not shared either because we just allocated them without
-+	 * exposing them to the swapcache or because the swap entry indicates
-+	 * exclusivity.
- 	 */
--	if (!PageKsm(page) && (page != swapcache || page_count(page) == 1)) {
-+	if (!PageKsm(page) && (exclusive || page_count(page) == 1)) {
- 		if (vmf->flags & FAULT_FLAG_WRITE) {
- 			pte = maybe_mkwrite(pte_mkdirty(pte), vma);
- 			vmf->flags &= ~FAULT_FLAG_WRITE;
---- a/mm/rmap.c~mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit
-+++ a/mm/rmap.c
-@@ -1698,14 +1698,15 @@ static bool try_to_unmap_one(struct foli
- 				break;
- 			}
+-	/*
+-	 * If this page is a potentially pinned page, split and retry the fault
+-	 * with smaller page size.  Normally this should not happen because the
+-	 * userspace should use MADV_DONTFORK upon pinned regions.  This is a
+-	 * best effort that the pinned pages won't be replaced by another
+-	 * random page during the coming copy-on-write.
+-	 */
+-	if (unlikely(page_needs_cow_for_dma(src_vma, src_page))) {
++	get_page(src_page);
++	if (unlikely(page_try_dup_anon_rmap(src_page, true, src_vma))) {
++		/* Page maybe pinned: split and retry the fault on PTEs. */
++		put_page(src_page);
+ 		pte_free(dst_mm, pgtable);
+ 		spin_unlock(src_ptl);
+ 		spin_unlock(dst_ptl);
+ 		__split_huge_pmd(src_vma, src_pmd, addr, false, NULL);
+ 		return -EAGAIN;
+ 	}
+-
+-	get_page(src_page);
+-	page_dup_rmap(src_page, true);
+ 	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+ out_zero_page:
+ 	mm_inc_nr_ptes(dst_mm);
+@@ -1217,14 +1210,10 @@ int copy_huge_pud(struct mm_struct *dst_
+ 		/* No huge zero pud yet */
+ 	}
+ 
+-	/* Please refer to comments in copy_huge_pmd() */
+-	if (unlikely(page_needs_cow_for_dma(vma, pud_page(pud)))) {
+-		spin_unlock(src_ptl);
+-		spin_unlock(dst_ptl);
+-		__split_huge_pud(vma, src_pud, addr);
+-		return -EAGAIN;
+-	}
+-
++	/*
++	 * TODO: once we support anonymous pages, use page_try_dup_anon_rmap()
++	 * and split if duplicating fails.
++	 */
+ 	pudp_set_wrprotect(src_mm, addr, src_pud);
+ 	pud = pud_mkold(pud_wrprotect(pud));
+ 	set_pud_at(dst_mm, addr, dst_pud, pud);
+--- a/mm/hugetlb.c~mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap
++++ a/mm/hugetlb.c
+@@ -4806,15 +4806,18 @@ again:
+ 			get_page(ptepage);
+ 
  			/*
--			 * Note: We *don't* remember yet if the page was mapped
--			 * exclusively in the swap entry, so swapin code has
--			 * to re-determine that manually and might detect the
--			 * page as possibly shared, for example, if there are
--			 * other references on the page or if the page is under
--			 * writeback. We made sure that there are no GUP pins
--			 * on the page that would rely on it, so for GUP pins
--			 * this is fine.
-+			 * Note: We *don't* remember if the page was mapped
-+			 * exclusively in the swap pte if the architecture
-+			 * doesn't support __HAVE_ARCH_PTE_SWP_EXCLUSIVE. In
-+			 * that case, swapin code has to re-determine that
-+			 * manually and might detect the page as possibly
-+			 * shared, for example, if there are other references on
-+			 * the page or if the page is under writeback. We made
-+			 * sure that there are no GUP pins on the page that
-+			 * would rely on it, so for GUP pins this is fine.
+-			 * This is a rare case where we see pinned hugetlb
+-			 * pages while they're prone to COW.  We need to do the
+-			 * COW earlier during fork.
++			 * Failing to duplicate the anon rmap is a rare case
++			 * where we see pinned hugetlb pages while they're
++			 * prone to COW. We need to do the COW earlier during
++			 * fork.
+ 			 *
+ 			 * When pre-allocating the page or copying data, we
+ 			 * need to be without the pgtable locks since we could
+ 			 * sleep during the process.
  			 */
- 			if (list_empty(&mm->mmlist)) {
- 				spin_lock(&mmlist_lock);
-@@ -1716,6 +1717,8 @@ static bool try_to_unmap_one(struct foli
- 			dec_mm_counter(mm, MM_ANONPAGES);
- 			inc_mm_counter(mm, MM_SWAPENTS);
- 			swp_pte = swp_entry_to_pte(entry);
-+			if (anon_exclusive)
-+				swp_pte = pte_swp_mkexclusive(swp_pte);
- 			if (pte_soft_dirty(pteval))
- 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
- 			if (pte_uffd_wp(pteval))
---- a/mm/swapfile.c~mm-swap-remember-pg_anon_exclusive-via-a-swp-pte-bit
-+++ a/mm/swapfile.c
-@@ -1804,7 +1804,18 @@ static int unuse_pte(struct vm_area_stru
- 	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
- 	get_page(page);
- 	if (page == swapcache) {
--		page_add_anon_rmap(page, vma, addr, RMAP_NONE);
-+		rmap_t rmap_flags = RMAP_NONE;
-+
-+		/*
-+		 * See do_swap_page(): PageWriteback() would be problematic.
-+		 * However, we do a wait_on_page_writeback() just before this
-+		 * call and have the page locked.
-+		 */
-+		VM_BUG_ON_PAGE(PageWriteback(page), page);
-+		if (pte_swp_exclusive(*pte))
-+			rmap_flags |= RMAP_EXCLUSIVE;
-+
-+		page_add_anon_rmap(page, vma, addr, rmap_flags);
- 	} else { /* ksm created a completely new copy */
- 		page_add_new_anon_rmap(page, vma, addr);
- 		lru_cache_add_inactive_or_unevictable(page, vma);
+-			if (unlikely(page_needs_cow_for_dma(vma, ptepage))) {
++			if (!PageAnon(ptepage)) {
++				page_dup_file_rmap(ptepage, true);
++			} else if (page_try_dup_anon_rmap(ptepage, true, vma)) {
+ 				pte_t src_pte_old = entry;
+ 				struct page *new;
+ 
+@@ -4861,7 +4864,6 @@ again:
+ 				entry = huge_pte_wrprotect(entry);
+ 			}
+ 
+-			page_dup_rmap(ptepage, true);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 			hugetlb_count_add(npages, dst);
+ 		}
+@@ -5541,7 +5543,7 @@ retry:
+ 		ClearHPageRestoreReserve(page);
+ 		hugepage_add_new_anon_rmap(page, vma, haddr);
+ 	} else
+-		page_dup_rmap(page, true);
++		page_dup_file_rmap(page, true);
+ 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
+ 				&& (vma->vm_flags & VM_SHARED)));
+ 	set_huge_pte_at(mm, haddr, ptep, new_pte);
+@@ -5902,7 +5904,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 		goto out_release_unlock;
+ 
+ 	if (vm_shared) {
+-		page_dup_rmap(page, true);
++		page_dup_file_rmap(page, true);
+ 	} else {
+ 		ClearHPageRestoreReserve(page);
+ 		hugepage_add_new_anon_rmap(page, dst_vma, dst_addr);
+--- a/mm/memory.c~mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap
++++ a/mm/memory.c
+@@ -825,7 +825,8 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 		 */
+ 		get_page(page);
+ 		rss[mm_counter(page)]++;
+-		page_dup_rmap(page, false);
++		/* Cannot fail as these pages cannot get pinned. */
++		BUG_ON(page_try_dup_anon_rmap(page, false, src_vma));
+ 
+ 		/*
+ 		 * We do not preserve soft-dirty information, because so
+@@ -921,18 +922,24 @@ copy_present_pte(struct vm_area_struct *
+ 	struct page *page;
+ 
+ 	page = vm_normal_page(src_vma, addr, pte);
+-	if (page && unlikely(page_needs_cow_for_dma(src_vma, page))) {
++	if (page && PageAnon(page)) {
+ 		/*
+ 		 * If this page may have been pinned by the parent process,
+ 		 * copy the page immediately for the child so that we'll always
+ 		 * guarantee the pinned page won't be randomly replaced in the
+ 		 * future.
+ 		 */
+-		return copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
+-					 addr, rss, prealloc, page);
++		get_page(page);
++		if (unlikely(page_try_dup_anon_rmap(page, false, src_vma))) {
++			/* Page maybe pinned, we have to copy. */
++			put_page(page);
++			return copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
++						 addr, rss, prealloc, page);
++		}
++		rss[mm_counter(page)]++;
+ 	} else if (page) {
+ 		get_page(page);
+-		page_dup_rmap(page, false);
++		page_dup_file_rmap(page, false);
+ 		rss[mm_counter(page)]++;
+ 	}
+ 
+--- a/mm/migrate.c~mm-rmap-split-page_dup_rmap-into-page_dup_file_rmap-and-page_try_dup_anon_rmap
++++ a/mm/migrate.c
+@@ -234,7 +234,7 @@ static bool remove_migration_pte(struct
+ 			if (folio_test_anon(folio))
+ 				hugepage_add_anon_rmap(new, vma, pvmw.address);
+ 			else
+-				page_dup_rmap(new, true);
++				page_dup_file_rmap(new, true);
+ 			set_huge_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
+ 		} else
+ #endif
 _
 
 Patches currently in -mm which might be from david@redhat.com are
