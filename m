@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7CAC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70449C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236245AbiEJEVt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 00:21:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48574 "EHLO
+        id S236246AbiEJEVv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 00:21:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236254AbiEJEUd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ED172AD75E
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:18 -0700 (PDT)
+        with ESMTP id S232637AbiEJEUe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:20:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AF952B0328
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:15:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AF6DA6176A
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F58CC385C5;
-        Tue, 10 May 2022 04:15:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0830C61766
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:15:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62DDCC385C5;
+        Tue, 10 May 2022 04:15:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652156117;
-        bh=Z7JKkTSOPuFID8fYhqf4ssq/FATeGVfBdoi2KnqROc8=;
+        s=korg; t=1652156122;
+        bh=oyMlPGzssMIWh6+FwRCBS60BbbShr7ZdIa826rU+qb4=;
         h=Date:To:From:Subject:From;
-        b=xCD6FvDeVcgaOOG38qLXbLFnOQjcflGpaomBMxRSMqmVN77Yz+1HxnXqpQM27q4Rp
-         d8ATcjQ7H1IVG06ajN3ThjMkGLw24P2X/eFACTGHoh+VS0gOYku3CFBkJ6M8zDr1v+
-         6yPSeJ1f6W5BgOjDXMNRG8SRni3z6tSmlT0u/UuM=
-Date:   Mon, 09 May 2022 21:15:16 -0700
-To:     mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
-        mgorman@techsingularity.net, linmiaohe@huawei.com,
-        hughd@google.com, hch@lst.de, geert+renesas@glider.be,
-        dhowells@redhat.com, neilb@suse.de, akpm@linux-foundation.org
+        b=nMU9EMJsGnbFpR0sWjqqgKhfG25cQCt9QJluXrEPMZ12bzk42kFo6plnmXIjn+3OD
+         0mp8eYOtNSmQHhi6A9pnO2CcUkRWbICHzX+Mle/IAN3p50yXVGOoWQsC2f4MUOUfW1
+         H/+sSUcHQ1O1p7CsXjSO5MJOPBk9JV/g393fpTHk=
+Date:   Mon, 09 May 2022 21:15:21 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        surenb@google.com, sfr@canb.auug.org.au, peterx@redhat.com,
+        neilb@suse.de, naoya.horiguchi@nec.com, minchan@kernel.org,
+        dhowells@redhat.com, david@redhat.com, apopple@nvidia.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-submit-multipage-reads-for-swp_fs_ops-swap-space.patch removed from -mm tree
-Message-Id: <20220510041517.0F58CC385C5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch removed from -mm tree
+Message-Id: <20220510041522.62DDCC385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,390 +44,100 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: submit multipage reads for SWP_FS_OPS swap-space
+     Subject: mm/madvise: free hwpoison and swapin error entry in madvise_free_pte_range
 has been removed from the -mm tree.  Its filename was
-     mm-submit-multipage-reads-for-swp_fs_ops-swap-space.patch
+     mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: mm: submit multipage reads for SWP_FS_OPS swap-space
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/madvise: free hwpoison and swapin error entry in madvise_free_pte_range
 
-swap_readpage() is given one page at a time, but may be called repeatedly
-in succession.
+Once the MADV_FREE operation has succeeded, callers can expect they might
+get zero-fill pages if accessing the memory again.  Therefore it should be
+safe to delete the hwpoison entry and swapin error entry.  There is no
+reason to kill the process if it has called MADV_FREE on the range.
 
-For block-device swap-space, the blk_plug functionality allows the
-multiple pages to be combined together at lower layers.  That cannot be
-used for SWP_FS_OPS as blk_plug may not exist - it is only active when
-CONFIG_BLOCK=y.  Consequently all swap reads over NFS are single page
-reads.
-
-With this patch we pass in a pointer-to-pointer when swap_readpage can
-store state between calls - much like the effect of blk_plug.  After
-calling swap_readpage() some number of times, the state will be passed to
-swap_read_unplug() which can submit the combined request.
-
-Link: https://lkml.kernel.org/r/164859778127.29473.14059420492644907783.stgit@noble.brown
-Signed-off-by: NeilBrown <neilb@suse.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: David Howells <dhowells@redhat.com>
-Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20220424091105.48374-4-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Suggested-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Howells <dhowells@redhat.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c    |    8 ++-
- mm/memory.c     |    2 
- mm/page_io.c    |  104 ++++++++++++++++++++++++++++++----------------
- mm/swap.h       |   17 ++++++-
- mm/swap_state.c |   20 ++++++--
- 5 files changed, 104 insertions(+), 47 deletions(-)
+ mm/madvise.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/madvise.c~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
+--- a/mm/madvise.c~mm-madvise-free-hwpoison-and-swapin-error-entry-in-madvise_free_pte_range
 +++ a/mm/madvise.c
-@@ -198,6 +198,7 @@ static int swapin_walk_pmd_entry(pmd_t *
- 	pte_t *orig_pte;
- 	struct vm_area_struct *vma = walk->private;
- 	unsigned long index;
-+	struct swap_iocb *splug = NULL;
+@@ -624,11 +624,14 @@ static int madvise_free_pte_range(pmd_t
+ 			swp_entry_t entry;
  
- 	if (pmd_none_or_trans_huge_or_clear_bad(pmd))
- 		return 0;
-@@ -219,10 +220,11 @@ static int swapin_walk_pmd_entry(pmd_t *
+ 			entry = pte_to_swp_entry(ptent);
+-			if (non_swap_entry(entry))
+-				continue;
+-			nr_swap--;
+-			free_swap_and_cache(entry);
+-			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			if (!non_swap_entry(entry)) {
++				nr_swap--;
++				free_swap_and_cache(entry);
++				pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			} else if (is_hwpoison_entry(entry) ||
++				   is_swapin_error_entry(entry)) {
++				pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			}
  			continue;
+ 		}
  
- 		page = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
--							vma, index, false);
-+					     vma, index, false, &splug);
- 		if (page)
- 			put_page(page);
- 	}
-+	swap_read_unplug(splug);
- 
- 	return 0;
- }
-@@ -238,6 +240,7 @@ static void force_shm_swapin_readahead(s
- 	XA_STATE(xas, &mapping->i_pages, linear_page_index(vma, start));
- 	pgoff_t end_index = linear_page_index(vma, end + PAGE_SIZE - 1);
- 	struct page *page;
-+	struct swap_iocb *splug = NULL;
- 
- 	rcu_read_lock();
- 	xas_for_each(&xas, page, end_index) {
-@@ -250,13 +253,14 @@ static void force_shm_swapin_readahead(s
- 
- 		swap = radix_to_swp_entry(page);
- 		page = read_swap_cache_async(swap, GFP_HIGHUSER_MOVABLE,
--							NULL, 0, false);
-+					     NULL, 0, false, &splug);
- 		if (page)
- 			put_page(page);
- 
- 		rcu_read_lock();
- 	}
- 	rcu_read_unlock();
-+	swap_read_unplug(splug);
- 
- 	lru_add_drain();	/* Push any new pages onto the LRU now */
- }
---- a/mm/memory.c~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
-+++ a/mm/memory.c
-@@ -3633,7 +3633,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 
- 				/* To provide entry to swap_readpage() */
- 				set_page_private(page, entry.val);
--				swap_readpage(page, true);
-+				swap_readpage(page, true, NULL);
- 				set_page_private(page, 0);
- 			}
- 		} else {
---- a/mm/page_io.c~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
-+++ a/mm/page_io.c
-@@ -237,7 +237,8 @@ static void bio_associate_blkg_from_page
- 
- struct swap_iocb {
- 	struct kiocb		iocb;
--	struct bio_vec		bvec;
-+	struct bio_vec		bvec[SWAP_CLUSTER_MAX];
-+	int			pages;
- };
- static mempool_t *sio_pool;
- 
-@@ -257,7 +258,7 @@ int sio_pool_init(void)
- static void sio_write_complete(struct kiocb *iocb, long ret)
- {
- 	struct swap_iocb *sio = container_of(iocb, struct swap_iocb, iocb);
--	struct page *page = sio->bvec.bv_page;
-+	struct page *page = sio->bvec[0].bv_page;
- 
- 	if (ret != PAGE_SIZE) {
- 		/*
-@@ -295,10 +296,10 @@ static int swap_writepage_fs(struct page
- 	init_sync_kiocb(&sio->iocb, swap_file);
- 	sio->iocb.ki_complete = sio_write_complete;
- 	sio->iocb.ki_pos = page_file_offset(page);
--	sio->bvec.bv_page = page;
--	sio->bvec.bv_len = PAGE_SIZE;
--	sio->bvec.bv_offset = 0;
--	iov_iter_bvec(&from, WRITE, &sio->bvec, 1, PAGE_SIZE);
-+	sio->bvec[0].bv_page = page;
-+	sio->bvec[0].bv_len = PAGE_SIZE;
-+	sio->bvec[0].bv_offset = 0;
-+	iov_iter_bvec(&from, WRITE, &sio->bvec[0], 1, PAGE_SIZE);
- 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
- 	if (ret != -EIOCBQUEUED)
- 		sio_write_complete(&sio->iocb, ret);
-@@ -346,46 +347,66 @@ int __swap_writepage(struct page *page,
- static void sio_read_complete(struct kiocb *iocb, long ret)
- {
- 	struct swap_iocb *sio = container_of(iocb, struct swap_iocb, iocb);
--	struct page *page = sio->bvec.bv_page;
-+	int p;
- 
--	if (ret != 0 && ret != PAGE_SIZE) {
--		SetPageError(page);
--		ClearPageUptodate(page);
--		pr_alert_ratelimited("Read-error on swap-device\n");
-+	if (ret == PAGE_SIZE * sio->pages) {
-+		for (p = 0; p < sio->pages; p++) {
-+			struct page *page = sio->bvec[p].bv_page;
-+
-+			SetPageUptodate(page);
-+			unlock_page(page);
-+		}
-+		count_vm_events(PSWPIN, sio->pages);
- 	} else {
--		SetPageUptodate(page);
--		count_vm_event(PSWPIN);
-+		for (p = 0; p < sio->pages; p++) {
-+			struct page *page = sio->bvec[p].bv_page;
-+
-+			SetPageError(page);
-+			ClearPageUptodate(page);
-+			unlock_page(page);
-+		}
-+		pr_alert_ratelimited("Read-error on swap-device\n");
- 	}
--	unlock_page(page);
- 	mempool_free(sio, sio_pool);
- }
- 
--static int swap_readpage_fs(struct page *page)
-+static void swap_readpage_fs(struct page *page,
-+			     struct swap_iocb **plug)
- {
- 	struct swap_info_struct *sis = page_swap_info(page);
--	struct file *swap_file = sis->swap_file;
--	struct address_space *mapping = swap_file->f_mapping;
--	struct iov_iter from;
--	struct swap_iocb *sio;
-+	struct swap_iocb *sio = NULL;
- 	loff_t pos = page_file_offset(page);
--	int ret;
--
--	sio = mempool_alloc(sio_pool, GFP_KERNEL);
--	init_sync_kiocb(&sio->iocb, swap_file);
--	sio->iocb.ki_pos = pos;
--	sio->iocb.ki_complete = sio_read_complete;
--	sio->bvec.bv_page = page;
--	sio->bvec.bv_len = PAGE_SIZE;
--	sio->bvec.bv_offset = 0;
- 
--	iov_iter_bvec(&from, READ, &sio->bvec, 1, PAGE_SIZE);
--	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
--	if (ret != -EIOCBQUEUED)
--		sio_read_complete(&sio->iocb, ret);
--	return ret;
-+	if (plug)
-+		sio = *plug;
-+	if (sio) {
-+		if (sio->iocb.ki_filp != sis->swap_file ||
-+		    sio->iocb.ki_pos + sio->pages * PAGE_SIZE != pos) {
-+			swap_read_unplug(sio);
-+			sio = NULL;
-+		}
-+	}
-+	if (!sio) {
-+		sio = mempool_alloc(sio_pool, GFP_KERNEL);
-+		init_sync_kiocb(&sio->iocb, sis->swap_file);
-+		sio->iocb.ki_pos = pos;
-+		sio->iocb.ki_complete = sio_read_complete;
-+		sio->pages = 0;
-+	}
-+	sio->bvec[sio->pages].bv_page = page;
-+	sio->bvec[sio->pages].bv_len = PAGE_SIZE;
-+	sio->bvec[sio->pages].bv_offset = 0;
-+	sio->pages += 1;
-+	if (sio->pages == ARRAY_SIZE(sio->bvec) || !plug) {
-+		swap_read_unplug(sio);
-+		sio = NULL;
-+	}
-+	if (plug)
-+		*plug = sio;
- }
- 
--int swap_readpage(struct page *page, bool synchronous)
-+int swap_readpage(struct page *page, bool synchronous,
-+		  struct swap_iocb **plug)
- {
- 	struct bio *bio;
- 	int ret = 0;
-@@ -413,7 +434,7 @@ int swap_readpage(struct page *page, boo
- 	}
- 
- 	if (data_race(sis->flags & SWP_FS_OPS)) {
--		ret = swap_readpage_fs(page);
-+		swap_readpage_fs(page, plug);
- 		goto out;
- 	}
- 
-@@ -459,3 +480,16 @@ out:
- 	delayacct_swapin_end();
- 	return ret;
- }
-+
-+void __swap_read_unplug(struct swap_iocb *sio)
-+{
-+	struct iov_iter from;
-+	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
-+	int ret;
-+
-+	iov_iter_bvec(&from, READ, sio->bvec, sio->pages,
-+		      PAGE_SIZE * sio->pages);
-+	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
-+	if (ret != -EIOCBQUEUED)
-+		sio_read_complete(&sio->iocb, ret);
-+}
---- a/mm/swap.h~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
-+++ a/mm/swap.h
-@@ -7,7 +7,15 @@
- 
- /* linux/mm/page_io.c */
- int sio_pool_init(void);
--int swap_readpage(struct page *page, bool do_poll);
-+struct swap_iocb;
-+int swap_readpage(struct page *page, bool do_poll,
-+		  struct swap_iocb **plug);
-+void __swap_read_unplug(struct swap_iocb *plug);
-+static inline void swap_read_unplug(struct swap_iocb *plug)
-+{
-+	if (unlikely(plug))
-+		__swap_read_unplug(plug);
-+}
- int swap_writepage(struct page *page, struct writeback_control *wbc);
- void end_swap_bio_write(struct bio *bio);
- int __swap_writepage(struct page *page, struct writeback_control *wbc,
-@@ -41,7 +49,8 @@ struct page *find_get_incore_page(struct
- struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
- 				   struct vm_area_struct *vma,
- 				   unsigned long addr,
--				   bool do_poll);
-+				   bool do_poll,
-+				   struct swap_iocb **plug);
- struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
- 				     struct vm_area_struct *vma,
- 				     unsigned long addr,
-@@ -56,7 +65,9 @@ static inline unsigned int page_swap_fla
- 	return page_swap_info(page)->flags;
- }
- #else /* CONFIG_SWAP */
--static inline int swap_readpage(struct page *page, bool do_poll)
-+struct swap_iocb;
-+static inline int swap_readpage(struct page *page, bool do_poll,
-+				struct swap_iocb **plug)
- {
- 	return 0;
- }
---- a/mm/swap_state.c~mm-submit-multipage-reads-for-swp_fs_ops-swap-space
-+++ a/mm/swap_state.c
-@@ -520,14 +520,16 @@ fail_unlock:
-  * the swap entry is no longer in use.
-  */
- struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
--		struct vm_area_struct *vma, unsigned long addr, bool do_poll)
-+				   struct vm_area_struct *vma,
-+				   unsigned long addr, bool do_poll,
-+				   struct swap_iocb **plug)
- {
- 	bool page_was_allocated;
- 	struct page *retpage = __read_swap_cache_async(entry, gfp_mask,
- 			vma, addr, &page_was_allocated);
- 
- 	if (page_was_allocated)
--		swap_readpage(retpage, do_poll);
-+		swap_readpage(retpage, do_poll, plug);
- 
- 	return retpage;
- }
-@@ -621,6 +623,7 @@ struct page *swap_cluster_readahead(swp_
- 	unsigned long mask;
- 	struct swap_info_struct *si = swp_swap_info(entry);
- 	struct blk_plug plug;
-+	struct swap_iocb *splug = NULL;
- 	bool do_poll = true, page_allocated;
- 	struct vm_area_struct *vma = vmf->vma;
- 	unsigned long addr = vmf->address;
-@@ -647,7 +650,7 @@ struct page *swap_cluster_readahead(swp_
- 		if (!page)
- 			continue;
- 		if (page_allocated) {
--			swap_readpage(page, false);
-+			swap_readpage(page, false, &splug);
- 			if (offset != entry_offset) {
- 				SetPageReadahead(page);
- 				count_vm_event(SWAP_RA);
-@@ -656,10 +659,12 @@ struct page *swap_cluster_readahead(swp_
- 		put_page(page);
- 	}
- 	blk_finish_plug(&plug);
-+	swap_read_unplug(splug);
- 
- 	lru_add_drain();	/* Push any new pages onto the LRU now */
- skip:
--	return read_swap_cache_async(entry, gfp_mask, vma, addr, do_poll);
-+	/* The page was likely read above, so no need for plugging here */
-+	return read_swap_cache_async(entry, gfp_mask, vma, addr, do_poll, NULL);
- }
- 
- int init_swap_address_space(unsigned int type, unsigned long nr_pages)
-@@ -790,6 +795,7 @@ static struct page *swap_vma_readahead(s
- 				       struct vm_fault *vmf)
- {
- 	struct blk_plug plug;
-+	struct swap_iocb *splug = NULL;
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct page *page;
- 	pte_t *pte, pentry;
-@@ -820,7 +826,7 @@ static struct page *swap_vma_readahead(s
- 		if (!page)
- 			continue;
- 		if (page_allocated) {
--			swap_readpage(page, false);
-+			swap_readpage(page, false, &splug);
- 			if (i != ra_info.offset) {
- 				SetPageReadahead(page);
- 				count_vm_event(SWAP_RA);
-@@ -829,10 +835,12 @@ static struct page *swap_vma_readahead(s
- 		put_page(page);
- 	}
- 	blk_finish_plug(&plug);
-+	swap_read_unplug(splug);
- 	lru_add_drain();
- skip:
-+	/* The page was likely read above, so no need for plugging here */
- 	return read_swap_cache_async(fentry, gfp_mask, vma, vmf->address,
--				     ra_info.win == 1);
-+				     ra_info.win == 1, NULL);
- }
- 
- /**
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-discard-__gfp_atomic.patch
+mm-swapfile-unuse_pte-can-map-random-data-if-swap-read-fails.patch
+mm-swapfile-fix-lost-swap-bits-in-unuse_pte.patch
+mm-migration-reduce-the-rcu-lock-duration.patch
+mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
+mm-migration-return-errno-when-isolate_huge_page-failed.patch
+mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-vmscan-take-min_slab_pages-into-account-when-try-to-call-shrink_node.patch
+mm-vmscan-add-a-comment-about-madv_free-pages-check-in-folio_check_dirty_writeback.patch
+mm-vmscan-introduce-helper-function-reclaim_page_list.patch
+mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
+mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
+mm-vmscan-use-helper-folio_is_file_lru.patch
+mm-vmscan-use-helper-folio_is_file_lru-fix.patch
+mm-z3fold-fix-sheduling-while-atomic.patch
+mm-z3fold-fix-possible-null-pointer-dereferencing.patch
+mm-z3fold-remove-buggy-use-of-stale-list-for-allocation.patch
+mm-z3fold-throw-warning-on-failure-of-trylock_page-in-z3fold_alloc.patch
+revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
+mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
+mm-z3fold-always-clear-page_claimed-under-z3fold-page-lock.patch
+mm-z3fold-fix-z3fold_reclaim_page-races-with-z3fold_free.patch
+mm-z3fold-fix-z3fold_page_migrate-races-with-z3fold_map.patch
+mm-swap-use-helper-is_swap_pte-in-swap_vma_readahead.patch
+mm-swap-use-helper-macro-__attr_rw.patch
+mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
+mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
+mm-swap-print-bad-swap-offset-entry-in-get_swap_device.patch
+mm-swap-remove-buggy-cache-nr-check-in-refill_swap_slots_cache.patch
+mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
+mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
+mm-swap-avoid-calling-swp_swap_info-when-try-to-check-swp_stable_writes.patch
+mm-swap-add-helper-swap_offset_available.patch
+mm-swap-fix-the-obsolete-comment-for-swp_type_shift.patch
+mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
+mm-swap-fix-the-comment-of-get_kernel_pages.patch
+mm-swap-fix-comment-about-swap-extent.patch
 
