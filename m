@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 182ACC43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C87E1C433FE
 	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 04:12:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236063AbiEJEQl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235710AbiEJEQl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 10 May 2022 00:16:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48326 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235710AbiEJEQW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:16:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 004063190F
-        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:48 -0700 (PDT)
+        with ESMTP id S236185AbiEJEPu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 00:15:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 209BE106A5E
+        for <mm-commits@vger.kernel.org>; Mon,  9 May 2022 21:11:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AF4C6B81AF8
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DFEDC385C2;
-        Tue, 10 May 2022 04:11:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B05BB6173E
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 04:11:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11973C385C5;
+        Tue, 10 May 2022 04:11:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652155906;
-        bh=6IuwfLIbQUOhMJ9K3mbIhcZbL3XChCmRLgZnbRpY9Aw=;
+        s=korg; t=1652155902;
+        bh=qy16qVZeo/x/NpFy4fRv5Ta4DdxpGOsnd5ocGnok4Zs=;
         h=Date:To:From:Subject:From;
-        b=XnXl+ey4Y0vRKqZvmokzr9CB2hAT+5K8jFOfL7sf0zZUFYJt+fLHb8OI5TpDp5teJ
-         8FvdJY1cv5AuG4hpsArUpV0vYusA0ZB/39Bwtrn5SNUTsjA8f1CSpzn+L2Xq6SoqFi
-         HTc07dO7jwO/QiC8qNdVAw6ovhtsNWyd9KZ1tLH4=
-Date:   Mon, 09 May 2022 21:11:45 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        usama.anjum@collabora.com, shuah@kernel.org, krisman@collabora.com,
+        b=HuoGem+PdSDAXJPz1dXNNbOx9VbBug0ym4dGZ5NoALuJtuRF2hk1L1KfonMYKddrR
+         JWZyN2dNlIkMEG1N4fxaZuFpsFV1xizQ4aMt+JSnPfpemO2raL5IRSdIFP/Qib5UN+
+         b7XYJWETPeOmr2Zz0JgXUDfmZZaxmAAb0K3CuqWs=
+Date:   Mon, 09 May 2022 21:11:41 -0700
+To:     mm-commits@vger.kernel.org, zwisler@kernel.org,
+        xiyuyang19@fudan.edu.cn, willy@infradead.org,
+        viro@zeniv.linux.org.uk, shy828301@gmail.com, rcampbell@nvidia.com,
+        kirill.shutemov@linux.intel.com, jack@suse.cz, hughd@google.com,
+        hch@lst.de, duanxiongchun@bytedance.com, dan.j.williams@intel.com,
+        apopple@nvidia.com, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-add-test-for-soft-dirty-pte-bit.patch removed from -mm tree
-Message-Id: <20220510041146.5DFEDC385C2@smtp.kernel.org>
+Subject: [merged mm-stable] dax-fix-missing-writeprotect-the-pte-entry.patch removed from -mm tree
+Message-Id: <20220510041142.11973C385C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,229 +46,193 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests: vm: add test for Soft-Dirty PTE bit
+     Subject: dax: fix missing writeprotect the pte entry
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-add-test-for-soft-dirty-pte-bit.patch
+     dax-fix-missing-writeprotect-the-pte-entry.patch
 
 This patch was dropped because it was merged into mm-stable
 
 ------------------------------------------------------
-From: Gabriel Krisman Bertazi <krisman@collabora.com>
-Subject: selftests: vm: add test for Soft-Dirty PTE bit
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: dax: fix missing writeprotect the pte entry
 
-This introduces three tests:
+Currently dax_mapping_entry_mkclean() fails to clean and write protect the
+pte entry within a DAX PMD entry during an *sync operation.  This can
+result in data loss in the following sequence:
 
-1) Sanity check soft dirty basic semantics: allocate area, clean,
-   dirty, check if the SD bit is flipped.
+  1) process A mmap write to DAX PMD, dirtying PMD radix tree entry and
+     making the pmd entry dirty and writeable.
+  2) process B mmap with the @offset (e.g. 4K) and @length (e.g. 4K)
+     write to the same file, dirtying PMD radix tree entry (already
+     done in 1)) and making the pte entry dirty and writeable.
+  3) fsync, flushing out PMD data and cleaning the radix tree entry. We
+     currently fail to mark the pte entry as clean and write protected
+     since the vma of process B is not covered in dax_entry_mkclean().
+  4) process B writes to the pte. These don't cause any page faults since
+     the pte entry is dirty and writeable. The radix tree entry remains
+     clean.
+  5) fsync, which fails to flush the dirty PMD data because the radix tree
+     entry was clean.
+  6) crash - dirty data that should have been fsync'd as part of 5) could
+     still have been in the processor cache, and is lost.
 
-2) Check VMA reuse: validate the VM_SOFTDIRTY usage
+Just to use pfn_mkclean_range() to clean the pfns to fix this issue.
 
-3) Check soft-dirty on huge pages
-
-This was motivated by Will Deacon's fix commit 912efa17e512 ("mm: proc:
-Invalidate TLB after clearing soft-dirty page state").  I was tracking the
-same issue that he fixed, and this test would have caught it.
-
-Link: https://lkml.kernel.org/r/20220420084036.4101604-2-usama.anjum@collabora.com
-Signed-off-by: Gabriel Krisman Bertazi <krisman@collabora.com>
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Co-developed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20220403053957.10770-6-songmuchun@bytedance.com
+Fixes: 4b4bb46d00b3 ("dax: clear dirty entry tags on cache flush")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore   |    1 
- tools/testing/selftests/vm/Makefile     |    2 
- tools/testing/selftests/vm/config       |    2 
- tools/testing/selftests/vm/soft-dirty.c |  145 ++++++++++++++++++++++
- 4 files changed, 150 insertions(+)
+ fs/dax.c |   99 ++++++-----------------------------------------------
+ 1 file changed, 12 insertions(+), 87 deletions(-)
 
---- a/tools/testing/selftests/vm/config~selftests-vm-add-test-for-soft-dirty-pte-bit
-+++ a/tools/testing/selftests/vm/config
-@@ -4,3 +4,5 @@ CONFIG_TEST_VMALLOC=m
- CONFIG_DEVICE_PRIVATE=y
- CONFIG_TEST_HMM=m
- CONFIG_GUP_TEST=y
-+CONFIG_TRANSPARENT_HUGEPAGE=y
-+CONFIG_MEM_SOFT_DIRTY=y
---- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-test-for-soft-dirty-pte-bit
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -29,5 +29,6 @@ write_to_hugetlbfs
- hmm-tests
- memfd_secret
- local_config.*
-+soft-dirty
- split_huge_page_test
- ksm_tests
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-test-for-soft-dirty-pte-bit
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -50,6 +50,7 @@ TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += userfaultfd
-+TEST_GEN_PROGS += soft-dirty
- TEST_GEN_PROGS += split_huge_page_test
- TEST_GEN_FILES += ksm_tests
+--- a/fs/dax.c~dax-fix-missing-writeprotect-the-pte-entry
++++ a/fs/dax.c
+@@ -24,6 +24,7 @@
+ #include <linux/sizes.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/iomap.h>
++#include <linux/rmap.h>
+ #include <asm/pgalloc.h>
  
-@@ -95,6 +96,7 @@ KSFT_KHDR_INSTALL := 1
- include ../lib.mk
+ #define CREATE_TRACE_POINTS
+@@ -789,96 +790,12 @@ static void *dax_insert_entry(struct xa_
+ 	return entry;
+ }
  
- $(OUTPUT)/madv_populate: vm_util.c
-+$(OUTPUT)/soft-dirty: vm_util.c
- $(OUTPUT)/split_huge_page_test: vm_util.c
+-static inline
+-unsigned long pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
+-{
+-	unsigned long address;
+-
+-	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+-	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
+-	return address;
+-}
+-
+-/* Walk all mappings of a given index of a file and writeprotect them */
+-static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
+-		unsigned long pfn)
+-{
+-	struct vm_area_struct *vma;
+-	pte_t pte, *ptep = NULL;
+-	pmd_t *pmdp = NULL;
+-	spinlock_t *ptl;
+-
+-	i_mmap_lock_read(mapping);
+-	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, index) {
+-		struct mmu_notifier_range range;
+-		unsigned long address;
+-
+-		cond_resched();
+-
+-		if (!(vma->vm_flags & VM_SHARED))
+-			continue;
+-
+-		address = pgoff_address(index, vma);
+-
+-		/*
+-		 * follow_invalidate_pte() will use the range to call
+-		 * mmu_notifier_invalidate_range_start() on our behalf before
+-		 * taking any lock.
+-		 */
+-		if (follow_invalidate_pte(vma->vm_mm, address, &range, &ptep,
+-					  &pmdp, &ptl))
+-			continue;
+-
+-		/*
+-		 * No need to call mmu_notifier_invalidate_range() as we are
+-		 * downgrading page table protection not changing it to point
+-		 * to a new page.
+-		 *
+-		 * See Documentation/vm/mmu_notifier.rst
+-		 */
+-		if (pmdp) {
+-#ifdef CONFIG_FS_DAX_PMD
+-			pmd_t pmd;
+-
+-			if (pfn != pmd_pfn(*pmdp))
+-				goto unlock_pmd;
+-			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
+-				goto unlock_pmd;
+-
+-			flush_cache_range(vma, address,
+-					  address + HPAGE_PMD_SIZE);
+-			pmd = pmdp_invalidate(vma, address, pmdp);
+-			pmd = pmd_wrprotect(pmd);
+-			pmd = pmd_mkclean(pmd);
+-			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+-unlock_pmd:
+-#endif
+-			spin_unlock(ptl);
+-		} else {
+-			if (pfn != pte_pfn(*ptep))
+-				goto unlock_pte;
+-			if (!pte_dirty(*ptep) && !pte_write(*ptep))
+-				goto unlock_pte;
+-
+-			flush_cache_page(vma, address, pfn);
+-			pte = ptep_clear_flush(vma, address, ptep);
+-			pte = pte_wrprotect(pte);
+-			pte = pte_mkclean(pte);
+-			set_pte_at(vma->vm_mm, address, ptep, pte);
+-unlock_pte:
+-			pte_unmap_unlock(ptep, ptl);
+-		}
+-
+-		mmu_notifier_invalidate_range_end(&range);
+-	}
+-	i_mmap_unlock_read(mapping);
+-}
+-
+ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
+ 		struct address_space *mapping, void *entry)
+ {
+-	unsigned long pfn, index, count;
++	unsigned long pfn, index, count, end;
+ 	long ret = 0;
++	struct vm_area_struct *vma;
  
- ifeq ($(MACHINE),x86_64)
---- /dev/null
-+++ a/tools/testing/selftests/vm/soft-dirty.c
-@@ -0,0 +1,145 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdbool.h>
-+#include <fcntl.h>
-+#include <stdint.h>
-+#include <malloc.h>
-+#include <sys/mman.h>
-+#include "../kselftest.h"
-+#include "vm_util.h"
+ 	/*
+ 	 * A page got tagged dirty in DAX mapping? Something is seriously
+@@ -936,8 +853,16 @@ static int dax_writeback_one(struct xa_s
+ 	pfn = dax_to_pfn(entry);
+ 	count = 1UL << dax_entry_order(entry);
+ 	index = xas->xa_index & ~(count - 1);
++	end = index + count - 1;
 +
-+#define PAGEMAP_FILE_PATH "/proc/self/pagemap"
-+#define TEST_ITERATIONS 10000
-+
-+static void test_simple(int pagemap_fd, int pagesize)
-+{
-+	int i;
-+	char *map;
-+
-+	map = aligned_alloc(pagesize, pagesize);
-+	if (!map)
-+		ksft_exit_fail_msg("mmap failed\n");
-+
-+	clear_softdirty();
-+
-+	for (i = 0 ; i < TEST_ITERATIONS; i++) {
-+		if (pagemap_is_softdirty(pagemap_fd, map) == 1) {
-+			ksft_print_msg("dirty bit was 1, but should be 0 (i=%d)\n", i);
-+			break;
-+		}
-+
-+		clear_softdirty();
-+		// Write something to the page to get the dirty bit enabled on the page
-+		map[0]++;
-+
-+		if (pagemap_is_softdirty(pagemap_fd, map) == 0) {
-+			ksft_print_msg("dirty bit was 0, but should be 1 (i=%d)\n", i);
-+			break;
-+		}
-+
-+		clear_softdirty();
++	/* Walk all mappings of a given index of a file and writeprotect them */
++	i_mmap_lock_read(mapping);
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, index, end) {
++		pfn_mkclean_range(pfn, count, index, vma);
++		cond_resched();
 +	}
-+	free(map);
-+
-+	ksft_test_result(i == TEST_ITERATIONS, "Test %s\n", __func__);
-+}
-+
-+static void test_vma_reuse(int pagemap_fd, int pagesize)
-+{
-+	char *map, *map2;
-+
-+	map = mmap(NULL, pagesize, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANON), -1, 0);
-+	if (map == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed");
-+
-+	// The kernel always marks new regions as soft dirty
-+	ksft_test_result(pagemap_is_softdirty(pagemap_fd, map) == 1,
-+			 "Test %s dirty bit of allocated page\n", __func__);
-+
-+	clear_softdirty();
-+	munmap(map, pagesize);
-+
-+	map2 = mmap(NULL, pagesize, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_ANON), -1, 0);
-+	if (map2 == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed");
-+
-+	// Dirty bit is set for new regions even if they are reused
-+	if (map == map2)
-+		ksft_test_result(pagemap_is_softdirty(pagemap_fd, map2) == 1,
-+				 "Test %s dirty bit of reused address page\n", __func__);
-+	else
-+		ksft_test_result_skip("Test %s dirty bit of reused address page\n", __func__);
-+
-+	munmap(map2, pagesize);
-+}
-+
-+static void test_hugepage(int pagemap_fd, int pagesize)
-+{
-+	char *map;
-+	int i, ret;
-+	size_t hpage_len = read_pmd_pagesize();
-+
-+	map = memalign(hpage_len, hpage_len);
-+	if (!map)
-+		ksft_exit_fail_msg("memalign failed\n");
-+
-+	ret = madvise(map, hpage_len, MADV_HUGEPAGE);
-+	if (ret)
-+		ksft_exit_fail_msg("madvise failed %d\n", ret);
-+
-+	for (i = 0; i < hpage_len; i++)
-+		map[i] = (char)i;
-+
-+	if (check_huge(map)) {
-+		ksft_test_result_pass("Test %s huge page allocation\n", __func__);
-+
-+		clear_softdirty();
-+		for (i = 0 ; i < TEST_ITERATIONS ; i++) {
-+			if (pagemap_is_softdirty(pagemap_fd, map) == 1) {
-+				ksft_print_msg("dirty bit was 1, but should be 0 (i=%d)\n", i);
-+				break;
-+			}
-+
-+			clear_softdirty();
-+			// Write something to the page to get the dirty bit enabled on the page
-+			map[0]++;
-+
-+			if (pagemap_is_softdirty(pagemap_fd, map) == 0) {
-+				ksft_print_msg("dirty bit was 0, but should be 1 (i=%d)\n", i);
-+				break;
-+			}
-+			clear_softdirty();
-+		}
-+
-+		ksft_test_result(i == TEST_ITERATIONS, "Test %s huge page dirty bit\n", __func__);
-+	} else {
-+		// hugepage allocation failed. skip these tests
-+		ksft_test_result_skip("Test %s huge page allocation\n", __func__);
-+		ksft_test_result_skip("Test %s huge page dirty bit\n", __func__);
-+	}
-+	free(map);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int pagemap_fd;
-+	int pagesize;
-+
-+	ksft_print_header();
-+	ksft_set_plan(5);
-+
-+	pagemap_fd = open(PAGEMAP_FILE_PATH, O_RDONLY);
-+	if (pagemap_fd < 0)
-+		ksft_exit_fail_msg("Failed to open %s\n", PAGEMAP_FILE_PATH);
-+
-+	pagesize = getpagesize();
-+
-+	test_simple(pagemap_fd, pagesize);
-+	test_vma_reuse(pagemap_fd, pagesize);
-+	test_hugepage(pagemap_fd, pagesize);
-+
-+	close(pagemap_fd);
-+
-+	return ksft_exit_pass();
-+}
++	i_mmap_unlock_read(mapping);
+ 
+-	dax_entry_mkclean(mapping, index, pfn);
+ 	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
+ 	/*
+ 	 * After we have flushed the cache, we can clear the dirty tag. There
 _
 
-Patches currently in -mm which might be from krisman@collabora.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-hugetlb_vmemmap-disable-hugetlb_optimize_vmemmap-when-struct-page-crosses-page-boundaries.patch
+mm-memory_hotplug-override-memmap_on_memory-when-hugetlb_free_vmemmap=on.patch
+mm-hugetlb_vmemmap-use-kstrtobool-for-hugetlb_vmemmap-param-parsing.patch
+mm-hugetlb_vmemmap-add-hugetlb_optimize_vmemmap-sysctl.patch
 
