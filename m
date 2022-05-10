@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D24BAC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 21:45:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E823FC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 May 2022 22:24:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229567AbiEJVpe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 May 2022 17:45:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42820 "EHLO
+        id S235916AbiEJWYL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 May 2022 18:24:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59958 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229493AbiEJVpd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 17:45:33 -0400
+        with ESMTP id S235671AbiEJWYG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2022 18:24:06 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBC5025D10F
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 14:45:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 697A628ED34
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 15:24:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4AA7E6173F
-        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 21:45:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90EAEC385CE;
-        Tue, 10 May 2022 21:45:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0077A61800
+        for <mm-commits@vger.kernel.org>; Tue, 10 May 2022 22:24:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F56CC385CF;
+        Tue, 10 May 2022 22:24:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652219131;
-        bh=zILtjXPLRiAp8fISsFXDeyYUYfHItbHsmvemGIf/9Jk=;
+        s=korg; t=1652221444;
+        bh=0WjUZ8SWsDvldaTg1LNmvpZ3Z39RWfo1B5J3rr9Oni4=;
         h=Date:To:From:Subject:From;
-        b=1So97LqDSe9fpAxgNoJ79kh/NqP+9/Kkz8/8M5vLP74R1xxdN+7s1/XcMugNR5vpC
-         DrtKJVt0hvIr/lCYXcl+HoLXXIC0xmr19xRvUJmtd/gZDQGZZcBUsMr6GJvtAZxQF2
-         n+/AVFpWwKN6YTCZ5pIkF2En1N6OZMrSfhHCsxes=
-Date:   Tue, 10 May 2022 14:45:30 -0700
-To:     mm-commits@vger.kernel.org, paulmck@kernel.org,
-        joaodias@google.com, jhubbard@nvidia.com, david@redhat.com,
-        minchan@kernel.org, akpm@linux-foundation.org
+        b=jRINyUJqsdhtiDSQXR2WEEe1mVd6ysI0rkc1dMb6L7bRy5L6dzucR0P2Jp3zKVH8u
+         4AXW/KXm3c3YDCMCasRhQB3u+cj+3NOQkXsEhlzbu3B2bqey2isVJ3dhjSyUbbGo3D
+         ikEAEs7aKG3s+kju2RLA9+kdpXFkAinjT56Cjf9Q=
+Date:   Tue, 10 May 2022 15:24:03 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
+        rganesan@arista.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-is_pinnable_page-against-on-cma-page.patch added to mm-unstable branch
-Message-Id: <20220510214531.90EAEC385CE@smtp.kernel.org>
+Subject: + mm-memcontrol-export-memcg-watermark-via-sysfs-for-v2-memcg.patch added to mm-unstable branch
+Message-Id: <20220510222404.4F56CC385CF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix is_pinnable_page against on cma page
+     Subject: mm/memcontrol: export memcg->watermark via sysfs for v2 memcg
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-is_pinnable_page-against-on-cma-page.patch
+     mm-memcontrol-export-memcg-watermark-via-sysfs-for-v2-memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-is_pinnable_page-against-on-cma-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-export-memcg-watermark-via-sysfs-for-v2-memcg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,86 +65,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fix is_pinnable_page against on cma page
+From: Ganesan Rajagopal <rganesan@arista.com>
+Subject: mm/memcontrol: export memcg->watermark via sysfs for v2 memcg
 
-Pages on CMA area could have MIGRATE_ISOLATE as well as MIGRATE_CMA so
-current is_pinnable_page could miss CMA pages which has MIGRATE_ ISOLATE. 
-It ends up pinning CMA pages as longterm at pin_user_pages APIs so CMA
-allocation keep failed until the pin is released.
+We run a lot of automated tests when building our software and run into
+OOM scenarios when the tests run unbounded.  v1 memcg exports
+memcg->watermark as "memory.max_usage_in_bytes" in sysfs.  We use this
+metric to heuristically limit the number of tests that can run in parallel
+based on per test historical data.
 
-     CPU 0                                   CPU 1 - Task B
+This metric is currently not exported for v2 memcg and there is no other
+easy way of getting this information.  getrusage() syscall returns
+"ru_maxrss" which can be used as an approximation but that's the max RSS
+of a single child process across all children instead of the aggregated
+max for all child processes.  The only work around is to periodically poll
+"memory.current" but that's not practical for short-lived one-off cgroups.
 
-cma_alloc
-alloc_contig_range
-					pin_user_pages_fast(FOLL_LONGTERM)
-change pageblock as MIGRATE_ISOLATE
-					internal_get_user_pages_fast
-                                        lockless_pages_from_mm
-                                        gup_pte_range
-                                        try_grab_folio
-                                        is_pinnable_page
-                                          return true;
-                                        So, pinned the page successfully.
-page migration failure with pinned page
-					..
-                                        .. After 30 sec
-					unpin_user_page(page)
+Hence, expose memcg->watermark as "memory.peak" for v2 memcg.
 
-CMA allocation succeeded after 30 sec.
-
-The CMA allocation path protects the migration type change race using
-zone->lock but what GUP path need to know is just whether the page is on
-CMA area or not rather than exact migration type.  Thus, we don't need
-zone->lock but just checks migration type in either of (MIGRATE_ISOLATE
-and MIGRATE_CMA).
-
-Adding the MIGRATE_ISOLATE check in is_pinnable_page could cause rejecting
-of pinning pages on MIGRATE_ISOLATE pageblocks even though it's neither
-CMA nor movable zone if the page is temporarily unmovable.  However, such
-a migration failure by unexpected temporary refcount holding is a general
-issue, not only coming from MIGRATE_ISOLATE and the MIGRATE_ISOLATE is
-also a transient state like other temporarily elevated refcount problem.
-
-Link: https://lkml.kernel.org/r/20220510211743.95831-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: John Dias <joaodias@google.com>
+Link: https://lkml.kernel.org/r/20220507050916.GA13577@us192.sjc.aristanetworks.com
+Signed-off-by: Ganesan Rajagopal <rganesan@arista.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |    7 +++++++
+ mm/memcontrol.c                         |   13 +++++++++++++
+ 2 files changed, 20 insertions(+)
 
---- a/include/linux/mm.h~mm-fix-is_pinnable_page-against-on-cma-page
-+++ a/include/linux/mm.h
-@@ -1625,8 +1625,19 @@ static inline bool page_needs_cow_for_dm
- #ifdef CONFIG_MIGRATION
- static inline bool is_pinnable_page(struct page *page)
- {
--	return !(is_zone_movable_page(page) || is_migrate_cma_page(page)) ||
--		is_zero_pfn(page_to_pfn(page));
-+#ifdef CONFIG_CMA
-+	/*
-+	 * use volatile to use local variable mt instead of
-+	 * refetching mt value.
-+	 */
-+	int __mt = get_pageblock_migratetype(page);
-+	int mt = __READ_ONCE(__mt);
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-export-memcg-watermark-via-sysfs-for-v2-memcg
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1229,6 +1229,13 @@ PAGE_SIZE multiple when read back.
+ 	the target cgroup. If less bytes are reclaimed than the
+ 	specified amount, -EAGAIN is returned.
+ 
++  memory.peak
++	A read-only single value file which exists on non-root
++	cgroups.
 +
-+	if (mt == MIGRATE_CMA || mt == MIGRATE_ISOLATE)
-+		return false;
-+#endif
++	The max memory usage recorded for the cgroup and its
++	descendants since the creation of the cgroup.
 +
-+	return !(is_zone_movable_page(page) || is_zero_pfn(page_to_pfn(page)));
+   memory.oom.group
+ 	A read-write single value file which exists on non-root
+ 	cgroups.  The default value is "0".
+--- a/mm/memcontrol.c~mm-memcontrol-export-memcg-watermark-via-sysfs-for-v2-memcg
++++ a/mm/memcontrol.c
+@@ -6146,6 +6146,14 @@ static u64 memory_current_read(struct cg
+ 	return (u64)page_counter_read(&memcg->memory) * PAGE_SIZE;
  }
- #else
- static inline bool is_pinnable_page(struct page *page)
+ 
++static u64 memory_peak_read(struct cgroup_subsys_state *css,
++			    struct cftype *cft)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++
++	return (u64)memcg->memory.watermark * PAGE_SIZE;
++}
++
+ static int memory_min_show(struct seq_file *m, void *v)
+ {
+ 	return seq_puts_memcg_tunable(m,
+@@ -6450,6 +6458,11 @@ static struct cftype memory_files[] = {
+ 		.read_u64 = memory_current_read,
+ 	},
+ 	{
++		.name = "peak",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.read_u64 = memory_peak_read,
++	},
++	{
+ 		.name = "min",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+ 		.seq_show = memory_min_show,
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from rganesan@arista.com are
 
-mm-fix-is_pinnable_page-against-on-cma-page.patch
+mm-memcontrol-export-memcg-watermark-via-sysfs-for-v2-memcg.patch
 
