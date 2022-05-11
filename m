@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26E73C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 11 May 2022 19:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58856C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 11 May 2022 19:23:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241347AbiEKTEW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 May 2022 15:04:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57670 "EHLO
+        id S1346757AbiEKTW7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 May 2022 15:22:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236747AbiEKTEV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 May 2022 15:04:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9303F61604
-        for <mm-commits@vger.kernel.org>; Wed, 11 May 2022 12:04:20 -0700 (PDT)
+        with ESMTP id S1346762AbiEKTW4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 May 2022 15:22:56 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 790E35DE5E
+        for <mm-commits@vger.kernel.org>; Wed, 11 May 2022 12:22:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2CC97610E7
-        for <mm-commits@vger.kernel.org>; Wed, 11 May 2022 19:04:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 814C9C340EE;
-        Wed, 11 May 2022 19:04:19 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id C62C1CE26F6
+        for <mm-commits@vger.kernel.org>; Wed, 11 May 2022 19:22:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 157AFC340EE;
+        Wed, 11 May 2022 19:22:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652295859;
-        bh=i4QgfR6ebTvW5tmlB6dkFQarjK5okOtOBaBZQ9FdB0s=;
+        s=korg; t=1652296971;
+        bh=/7htPNC7bHdTms/PDlQzcfGRLLG37SVokcKUEZxDXJY=;
         h=Date:To:From:Subject:From;
-        b=PuKyZoZGU84S1Byc7rHbKjKpCdv2pZHQIlGEEh1VALGmNs0UvDm7szASPvCjfWTnf
-         E9Nom15py4IAJr6JuOh2wiqHnpy8Ah1lvKbTv+DAYmHgZEOvcviKLEKZNpkx9/Xj1V
-         D93btzvvlpdZEo7Ix6gX6CfH2xswNl9sauVLKW34=
-Date:   Wed, 11 May 2022 12:04:18 -0700
-To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org,
+        b=Wg6CEaxZXlyG72tR53rsCbBYzebAZCKaGNSQHKVl1hkwOJgj9ma0cvlJfaNsiH6if
+         n0lwkpOT2X5Z/R+1exDQMvtGtOVT7GEz9E4uo0mKT7ISI80HJ1XY6B4njKit/sO9qG
+         WeCB4widoHNNJNWkehdvV2bRFNGQXtu08Iydx3fM=
+Date:   Wed, 11 May 2022 12:22:50 -0700
+To:     mm-commits@vger.kernel.org, sjenning@redhat.com,
+        shakeelb@google.com, sfr@canb.auug.org.au, minchan@kernel.org,
+        mhocko@suse.com, lkp@intel.com, hannes@cmpxchg.org, guro@fb.com,
+        ddstreet@ieee.org, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix.patch added to mm-unstable branch
-Message-Id: <20220511190419.814C9C340EE@smtp.kernel.org>
+Subject: + zswap-memcg-accounting-fix.patch added to mm-unstable branch
+Message-Id: <20220511192251.157AFC340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix
+     Subject: zswap-memcg-accounting-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix.patch
+     zswap-memcg-accounting-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-memcg-accounting-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,57 +67,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zswap-memcg-accounting-fix
 
-fix kbuild warnings
+fix build
 
-Link: https://lkml.kernel.org/r/YnvkSVivfnT57Vwh@cmpxchg.org
-
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/Kconfig~mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix
-+++ a/mm/Kconfig
-@@ -692,6 +692,12 @@ config NOMMU_INITIAL_TRIM_EXCESS
+--- a/mm/memcontrol.c~zswap-memcg-accounting-fix
++++ a/mm/memcontrol.c
+@@ -7451,7 +7451,7 @@ static struct cftype memsw_files[] = {
+ 	{ },	/* terminate */
+ };
  
- 	  See Documentation/admin-guide/mm/nommu-mmap.rst for more information.
+-#ifdef CONFIG_ZSWAP
++#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+ /**
+  * obj_cgroup_may_zswap - check if this cgroup can zswap
+  * @objcg: the object cgroup
+@@ -7582,7 +7582,7 @@ static struct cftype zswap_files[] = {
+ 	},
+ 	{ }	/* terminate */
+ };
+-#endif /* CONFIG_ZSWAP */
++#endif /* CONFIG_MEMCG_KMEM && CONFIG_ZSWAP */
  
-+config ARCH_WANT_GENERAL_HUGETLB
-+	bool
-+
-+config ARCH_WANTS_THP_SWAP
-+	def_bool n
-+
- menuconfig TRANSPARENT_HUGEPAGE
- 	bool "Transparent Hugepage Support"
- 	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE && !PREEMPT_RT
-@@ -733,12 +739,6 @@ choice
- 	  benefit.
- endchoice
+ /*
+  * If mem_cgroup_swap_init() is implemented as a subsys_initcall()
+@@ -7602,7 +7602,7 @@ static int __init mem_cgroup_swap_init(v
  
--config ARCH_WANT_GENERAL_HUGETLB
--	bool
--
--config ARCH_WANTS_THP_SWAP
--	def_bool n
--
- config THP_SWAP
- 	def_bool y
- 	depends on TRANSPARENT_HUGEPAGE && ARCH_WANTS_THP_SWAP && SWAP
+ 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
+ 	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
+-#ifdef CONFIG_ZSWAP
++#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+ 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, zswap_files));
+ #endif
+ 	return 0;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-documentation-filesystems-proc-update-meminfo-section.patch
-documentation-filesystems-proc-update-meminfo-section-fix.patch
-mm-kconfig-move-swap-and-slab-config-options-to-the-mm-section.patch
-mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus.patch
-mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix.patch
-mm-kconfig-simplify-zswap-configuration.patch
-mm-zswap-add-basic-meminfo-and-vmstat-coverage.patch
-zswap-memcg-accounting.patch
+mm-check-against-orig_pte-for-finish_fault-fix-checkpatch-fixes.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required-fix-fix.patch
+lib-kstrtoxc-add-false-true-support-to-kstrtobool-fix.patch
+mm-start-tracking-vmas-with-maple-tree-fix.patch
+damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch
+zswap-memcg-accounting-fix.patch
+mm-rmap-fix-cont-pte-pmd-size-hugetlb-issue-when-migration-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
 
