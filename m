@@ -2,112 +2,56 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B356FC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 12 May 2022 20:45:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B84FC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 12 May 2022 20:58:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358423AbiELUpO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 May 2022 16:45:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45820 "EHLO
+        id S1358617AbiELU6S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 May 2022 16:58:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358432AbiELUpN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 16:45:13 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0581A2300DC
-        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 13:45:09 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id E47C6CE2C9C
-        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 20:45:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 423D0C3411F;
-        Thu, 12 May 2022 20:45:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652388306;
-        bh=iPY0oGWhzyHYb9lhozTakMvFamT5AENlaEYtT4EuhcU=;
-        h=Date:To:From:Subject:From;
-        b=CYU6ub+Av+zqqJRnXWvQ67wM5HibaVPaglkHKqQpH9SPSq2+sdfUztWt3QhDIBYUC
-         aoETN4cZZ+p097FH36MwtXU+4VVwBx33Ks07SURvnMzh8xyiX9vpjpHtBgYq6kPIye
-         Oc3JMSnxRzqD/yUAXH+eWXhE/7nFedxXHXaec2Vc=
-Date:   Thu, 12 May 2022 13:45:05 -0700
-To:     mm-commits@vger.kernel.org, paulmck@kernel.org,
-        jhubbard@nvidia.com, david@redhat.com, minchan@kernel.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-is_pinnable_page-against-on-cma-page-v5.patch added to mm-unstable branch
-Message-Id: <20220512204506.423D0C3411F@smtp.kernel.org>
+        with ESMTP id S1358619AbiELU6G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 16:58:06 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E46286B65F
+        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 13:57:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=MGX+DzolvQY4QoFsJjHWb/MSe4z99c24k7/zqfFwCWU=; b=OixF6YJ7WcCet6yqqwXRCr4Tvs
+        GUX5FV0sQVkxy1nR4jurBvh9t7l7tGvZNNupxglmrKL+jWBQ4Ptk84Z1JYgZcJynxgIfc+yvB5/oC
+        rrvz0njHApNM1LhLOs7y7vXZ8YTNTLxs4jzdXMoae8zCyPfpoiOkLbQt6d0gHwaauebAWdamBnARS
+        Nc1Cs1k0Ipk13MauS2qiUsj+Qrt373HNzXSkoqX//9Vn7AncUp9e5wJohZsnQzpE2BJm1SFKJhL+F
+        MD2imqwK2ZrB0ubOMKO2hwp7YoWDkPdMmes0+CngvYkHIVDq7hHx9SWWnxQiF7b8375CY+//gRBBH
+        YcQKqZ5Q==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1npFsE-006k6T-KM; Thu, 12 May 2022 20:57:26 +0000
+Date:   Thu, 12 May 2022 21:57:26 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        zhang.yunkai@zte.com.cn, yang.yang29@zte.com.cn,
+        wang.yong12@zte.com.cn, ran.xiaokai@zte.com.cn,
+        ammarfaizi2@gnuweeb.org, xu.xin16@zte.com.cn
+Subject: Re: + mm-ksm-introduce-ksm_force-for-each-process.patch added to
+ mm-unstable branch
+Message-ID: <Yn10to1478Mu4p81@casper.infradead.org>
+References: <20220512204206.57AA6C385B8@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220512204206.57AA6C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, May 12, 2022 at 01:42:05PM -0700, Andrew Morton wrote:
+> The patch titled
+>      Subject: mm/ksm: introduce ksm_force for each process
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-ksm-introduce-ksm_force-for-each-process.patch
 
-The patch titled
-     Subject: mm-fix-is_pinnable_page-against-on-cma-page-v5
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-is_pinnable_page-against-on-cma-page-v5.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-is_pinnable_page-against-on-cma-page-v5.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm-fix-is_pinnable_page-against-on-cma-page-v5
-
-  * clarification why we need READ_ONCE - Paul
-  * Add a comment about READ_ONCE - John
-
-Link: https://lkml.kernel.org/r/20220512204143.3961150-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mm.h |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
---- a/include/linux/mm.h~mm-fix-is_pinnable_page-against-on-cma-page-v5
-+++ a/include/linux/mm.h
-@@ -1627,13 +1627,14 @@ static inline bool is_pinnable_page(stru
- {
- #ifdef CONFIG_CMA
- 	/*
--	 * use volatile to use local variable mt instead of
--	 * refetching mt value.
-+	 * Defend against future compiler LTO features, or code refactoring
-+	 * that inlines the above function, by forcing a single read. Because,
-+	 * this routine races with set_pageblock_migratetype(), and we want to
-+	 * avoid reading zero, when actually one or the other flags was set.
- 	 */
--	int __mt = get_pageblock_migratetype(page);
- 	int mt = __READ_ONCE(__mt);
- 
--	if (mt == MIGRATE_CMA || mt == MIGRATE_ISOLATE)
-+	if (mt & (MIGRATE_CMA | MIGRATE_ISOLATE))
- 		return false;
- #endif
- 
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-mm-fix-is_pinnable_page-against-on-cma-page.patch
-mm-fix-is_pinnable_page-against-on-cma-page-v5.patch
-mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch
-
+Oh.  I thought Oleksandr Natal's objections were enough to keep this
+out.  I have objections to its implementation, but I didn't bother
+after Oleksander went after the concept.
