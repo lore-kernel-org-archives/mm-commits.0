@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45315C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 11 May 2022 22:29:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 022DDC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 12 May 2022 02:09:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348754AbiEKW3b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 May 2022 18:29:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52464 "EHLO
+        id S237231AbiELCJu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 May 2022 22:09:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52562 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348752AbiEKW31 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 May 2022 18:29:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09E92227B78
-        for <mm-commits@vger.kernel.org>; Wed, 11 May 2022 15:29:25 -0700 (PDT)
+        with ESMTP id S237019AbiELCJt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 May 2022 22:09:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E2426D4E5;
+        Wed, 11 May 2022 19:09:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 41FC661D03
-        for <mm-commits@vger.kernel.org>; Wed, 11 May 2022 22:29:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9236CC340EE;
-        Wed, 11 May 2022 22:29:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F17DC60DB4;
+        Thu, 12 May 2022 02:09:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C39DC340EE;
+        Thu, 12 May 2022 02:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652308164;
-        bh=PmQ7HrGAH4zjmpu2ZV7GKftIu5mf0h7QArv0zaiJw7I=;
+        s=korg; t=1652321387;
+        bh=RhwVvAsOWJi9eexvPIZLTK3QhastGCm1ntCdCWggm94=;
         h=Date:To:From:Subject:From;
-        b=jrrdtWBLJoSoIRB/wUydqGEZoZp7a5w8wtj48oIVqHgiTKobG3pRJq2/agaM5IqMG
-         GfAAB7Gv+fBxH6xyyRiJCUzWzvevLM1J6sPQ02OoNpEwD5D7+H1+M0MuuMS6Jo5SWf
-         6IIRxE931jTU3dQHb0K6UaD2kGuMw3shfmHXH+ok=
-Date:   Wed, 11 May 2022 15:29:23 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vdavydov.dev@gmail.com, timmurray@google.com, surenb@google.com,
-        mhocko@suse.com, liumartin@google.com, joaodias@google.com,
-        hannes@cmpxchg.org, minchan@kernel.org, akpm@linux-foundation.org
+        b=oo6tedGG47mNfFLHO2dtMm5amsMQ9fMoPHCfMPN1uvo6jSqlHOKzDBwqnpdjmENLf
+         UQHCLPtfuns6yBlrSV+MAgneP+HR3WnIZmGMO15cGetFXt/5h1/8ocuPL0jUIdjeXb
+         5yp6hZpwgCJyXgDU/kNvz+NXXe9a0fnMxsgTeR/0=
+Date:   Wed, 11 May 2022 19:09:46 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        len.baker@gmx.com, gustavoars@kernel.org, dhowells@redhat.com,
+        stephen.s.brennan@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch added to mm-unstable branch
-Message-Id: <20220511222924.9236CC340EE@smtp.kernel.org>
+Subject: + assoc_array-fix-bug_on-during-garbage-collect.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220512020947.4C39DC340EE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't be stuck to rmap lock on reclaim path
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch
+     Subject: lib/assoc_array.c: fix BUG_ON during garbage collect
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     assoc_array-fix-bug_on-during-garbage-collect.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/assoc_array-fix-bug_on-during-garbage-collect.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,396 +65,153 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: don't be stuck to rmap lock on reclaim path
+From: Stephen Brennan <stephen.s.brennan@oracle.com>
+Subject: lib/assoc_array.c: fix BUG_ON during garbage collect
 
-The rmap locks(i_mmap_rwsem and anon_vma->root->rwsem) could be contended
-under memory pressure if processes keep working on their vmas(e.g., fork,
-mmap, munmap).  It makes reclaim path stuck.  In our real workload traces,
-we see kswapd is waiting the lock for 300ms+(worst case, a sec) and it
-makes other processes entering direct reclaim, which were also stuck on
-the lock.
+A rare BUG_ON triggered in assoc_array_gc:
 
-This patch makes lru aging path try_lock mode like shink_page_list so the
-reclaim context will keep working with next lru pages without being stuck.
-if it found the rmap lock contended, it rotates the page back to head of
-lru in both active/inactive lrus to make them consistent behavior, which
-is basic starting point rather than adding more heristic.
+    [3430308.818153] kernel BUG at lib/assoc_array.c:1609!
 
-Since this patch introduces a new "contended" field as out-param along
-with try_lock in-param in rmap_walk_control, it's not immutable any longer
-if the try_lock is set so remove const keywords on rmap related functions.
-Since rmap walking is already expensive operation, I doubt the const
-would help sizable benefit( And we didn't have it until 5.17).
+Which corresponded to the statement currently at line 1593 upstream:
 
-In a heavy app workload in Android, trace shows following statistics.  It
-almost removes rmap lock contention from reclaim path.
+    BUG_ON(assoc_array_ptr_is_meta(p));
 
->From Martin Liu
+Using the data from the core dump, I was able to generate a userspace
+reproducer[1] and determine the cause of the bug.
 
-Before:
+[1]: https://github.com/brenns10/kernel_stuff/tree/master/assoc_array_gc
 
-   max_dur(ms)  min_dur(ms)  max-min(dur)ms  avg_dur(ms)  sum_dur(ms)  count blocked_function
-         1632            0            1631   151.542173        31672    209  page_lock_anon_vma_read
-          601            0             601   145.544681        28817    198  rmap_walk_file
+After running the iterator on the entire branch, an internal tree node
+looked like the following:
 
-After:
+    NODE (nr_leaves_on_branch: 3)
+      SLOT [0] NODE (2 leaves)
+      SLOT [1] NODE (1 leaf)
+      SLOT [2..f] NODE (empty)
 
-   max_dur(ms)  min_dur(ms)  max-min(dur)ms  avg_dur(ms)  sum_dur(ms)  count blocked_function
-          NaN          NaN              NaN          NaN          NaN    0.0             NaN
-            0            0                0     0.127645            1     12  rmap_walk_file
+In the userspace reproducer, the pr_devel output when compressing this
+node was:
 
-Link: https://lkml.kernel.org/r/20220510215423.164547-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: John Dias <joaodias@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Martin Liu <liumartin@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+    -- compress node 0x5607cc089380 --
+    free=0, leaves=0
+    [0] retain node 2/1 [nx 0]
+    [1] fold node 1/1 [nx 0]
+    [2] fold node 0/1 [nx 2]
+    [3] fold node 0/2 [nx 2]
+    [4] fold node 0/3 [nx 2]
+    [5] fold node 0/4 [nx 2]
+    [6] fold node 0/5 [nx 2]
+    [7] fold node 0/6 [nx 2]
+    [8] fold node 0/7 [nx 2]
+    [9] fold node 0/8 [nx 2]
+    [10] fold node 0/9 [nx 2]
+    [11] fold node 0/10 [nx 2]
+    [12] fold node 0/11 [nx 2]
+    [13] fold node 0/12 [nx 2]
+    [14] fold node 0/13 [nx 2]
+    [15] fold node 0/14 [nx 2]
+    after: 3
+
+At slot 0, an internal node with 2 leaves could not be folded into the
+node, because there was only one available slot (slot 0).  Thus, the
+internal node was retained.  At slot 1, the node had one leaf, and was
+able to be folded in successfully.  The remaining nodes had no leaves, and
+so were removed.  By the end of the compression stage, there were 14 free
+slots, and only 3 leaf nodes.  The tree was ascended and then its parent
+node was compressed.  When this node was seen, it could not be folded, due
+to the internal node it contained.
+
+The invariant for compression in this function is: whenever
+nr_leaves_on_branch < ASSOC_ARRAY_FAN_OUT, the node should contain all
+leaf nodes.  The compression step currently cannot guarantee this, given
+the corner case shown above.
+
+To fix this issue, retry compression whenever we have retained a node, and
+yet nr_leaves_on_branch < ASSOC_ARRAY_FAN_OUT.  This second compression
+will then allow the node in slot 1 to be folded in, satisfying the
+invariant.  Below is the output of the reproducer once the fix is applied:
+
+    -- compress node 0x560e9c562380 --
+    free=0, leaves=0
+    [0] retain node 2/1 [nx 0]
+    [1] fold node 1/1 [nx 0]
+    [2] fold node 0/1 [nx 2]
+    [3] fold node 0/2 [nx 2]
+    [4] fold node 0/3 [nx 2]
+    [5] fold node 0/4 [nx 2]
+    [6] fold node 0/5 [nx 2]
+    [7] fold node 0/6 [nx 2]
+    [8] fold node 0/7 [nx 2]
+    [9] fold node 0/8 [nx 2]
+    [10] fold node 0/9 [nx 2]
+    [11] fold node 0/10 [nx 2]
+    [12] fold node 0/11 [nx 2]
+    [13] fold node 0/12 [nx 2]
+    [14] fold node 0/13 [nx 2]
+    [15] fold node 0/14 [nx 2]
+    internal nodes remain despite enough space, retrying
+    -- compress node 0x560e9c562380 --
+    free=14, leaves=1
+    [0] fold node 2/15 [nx 0]
+    after: 3
+
+Link: https://lkml.kernel.org/r/20220511225517.407935-1-stephen.s.brennan@oracle.com
+Fixes: 3cb989501c26 ("Add a generic associative array implementation.")
+Signed-off-by: Stephen Brennan <stephen.s.brennan@oracle.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Len Baker <len.baker@gmx.com>
+Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h   |    5 +++
- include/linux/ksm.h  |    4 +--
- include/linux/rmap.h |   28 +++++++++++++++-------
- mm/ksm.c             |   10 ++++++-
- mm/memory-failure.c  |    2 -
- mm/page_idle.c       |    7 +----
- mm/rmap.c            |   52 ++++++++++++++++++++++++++++++++---------
- mm/vmscan.c          |    7 ++++-
- 8 files changed, 85 insertions(+), 30 deletions(-)
+ lib/assoc_array.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/include/linux/fs.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/include/linux/fs.h
-@@ -477,6 +477,11 @@ static inline void i_mmap_unlock_write(s
- 	up_write(&mapping->i_mmap_rwsem);
- }
+--- a/lib/assoc_array.c~assoc_array-fix-bug_on-during-garbage-collect
++++ a/lib/assoc_array.c
+@@ -1462,6 +1462,7 @@ int assoc_array_gc(struct assoc_array *a
+ 	struct assoc_array_ptr *new_root, *new_parent, **new_ptr_pp;
+ 	unsigned long nr_leaves_on_tree;
+ 	int keylen, slot, nr_free, next_slot, i;
++	bool retained;
  
-+static inline int i_mmap_trylock_read(struct address_space *mapping)
-+{
-+	return down_read_trylock(&mapping->i_mmap_rwsem);
-+}
-+
- static inline void i_mmap_lock_read(struct address_space *mapping)
- {
- 	down_read(&mapping->i_mmap_rwsem);
---- a/include/linux/ksm.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/include/linux/ksm.h
-@@ -51,7 +51,7 @@ static inline void ksm_exit(struct mm_st
- struct page *ksm_might_need_to_copy(struct page *page,
- 			struct vm_area_struct *vma, unsigned long address);
+ 	pr_devel("-->%s()\n", __func__);
  
--void rmap_walk_ksm(struct folio *folio, const struct rmap_walk_control *rwc);
-+void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
- void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
- 
- #else  /* !CONFIG_KSM */
-@@ -79,7 +79,7 @@ static inline struct page *ksm_might_nee
- }
- 
- static inline void rmap_walk_ksm(struct folio *folio,
--			const struct rmap_walk_control *rwc)
-+			struct rmap_walk_control *rwc)
- {
- }
- 
---- a/include/linux/rmap.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/include/linux/rmap.h
-@@ -128,6 +128,11 @@ static inline void anon_vma_lock_read(st
- 	down_read(&anon_vma->root->rwsem);
- }
- 
-+static inline int anon_vma_trylock_read(struct anon_vma *anon_vma)
-+{
-+	return down_read_trylock(&anon_vma->root->rwsem);
-+}
-+
- static inline void anon_vma_unlock_read(struct anon_vma *anon_vma)
- {
- 	up_read(&anon_vma->root->rwsem);
-@@ -366,17 +371,14 @@ int pfn_mkclean_range(unsigned long pfn,
- 
- void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked);
- 
--/*
-- * Called by memory-failure.c to kill processes.
-- */
--struct anon_vma *folio_lock_anon_vma_read(struct folio *folio);
--void page_unlock_anon_vma_read(struct anon_vma *anon_vma);
- int page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
- 
- /*
-  * rmap_walk_control: To control rmap traversing for specific needs
-  *
-  * arg: passed to rmap_one() and invalid_vma()
-+ * try_lock: bail out if the rmap lock is contended
-+ * contended: indicate the rmap traversal bailed out due to lock contention
-  * rmap_one: executed on each vma where page is mapped
-  * done: for checking traversing termination condition
-  * anon_lock: for getting anon_lock by optimized way rather than default
-@@ -384,6 +386,8 @@ int page_mapped_in_vma(struct page *page
-  */
- struct rmap_walk_control {
- 	void *arg;
-+	bool try_lock;
-+	bool contended;
- 	/*
- 	 * Return false if page table scanning in rmap_walk should be stopped.
- 	 * Otherwise, return true.
-@@ -391,12 +395,20 @@ struct rmap_walk_control {
- 	bool (*rmap_one)(struct folio *folio, struct vm_area_struct *vma,
- 					unsigned long addr, void *arg);
- 	int (*done)(struct folio *folio);
--	struct anon_vma *(*anon_lock)(struct folio *folio);
-+	struct anon_vma *(*anon_lock)(struct folio *folio,
-+				      struct rmap_walk_control *rwc);
- 	bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
- };
- 
--void rmap_walk(struct folio *folio, const struct rmap_walk_control *rwc);
--void rmap_walk_locked(struct folio *folio, const struct rmap_walk_control *rwc);
-+void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc);
-+void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc);
-+
-+/*
-+ * Called by memory-failure.c to kill processes.
-+ */
-+struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
-+					  struct rmap_walk_control *rwc);
-+void page_unlock_anon_vma_read(struct anon_vma *anon_vma);
- 
- #else	/* !CONFIG_MMU */
- 
---- a/mm/ksm.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/ksm.c
-@@ -2614,7 +2614,7 @@ struct page *ksm_might_need_to_copy(stru
- 	return new_page;
- }
- 
--void rmap_walk_ksm(struct folio *folio, const struct rmap_walk_control *rwc)
-+void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc)
- {
- 	struct stable_node *stable_node;
- 	struct rmap_item *rmap_item;
-@@ -2638,7 +2638,13 @@ again:
- 		struct vm_area_struct *vma;
- 
- 		cond_resched();
--		anon_vma_lock_read(anon_vma);
-+		if (!anon_vma_trylock_read(anon_vma)) {
-+			if (rwc->try_lock) {
-+				rwc->contended = true;
-+				return;
-+			}
-+			anon_vma_lock_read(anon_vma);
-+		}
- 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
- 					       0, ULONG_MAX) {
- 			unsigned long addr;
---- a/mm/memory-failure.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/memory-failure.c
-@@ -485,7 +485,7 @@ static void collect_procs_anon(struct pa
- 	struct anon_vma *av;
- 	pgoff_t pgoff;
- 
--	av = folio_lock_anon_vma_read(folio);
-+	av = folio_lock_anon_vma_read(folio, NULL);
- 	if (av == NULL)	/* Not actually mapped anymore */
- 		return;
- 
---- a/mm/page_idle.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/page_idle.c
-@@ -86,11 +86,8 @@ static bool page_idle_clear_pte_refs_one
- static void page_idle_clear_pte_refs(struct page *page)
- {
- 	struct folio *folio = page_folio(page);
--	/*
--	 * Since rwc.arg is unused, rwc is effectively immutable, so we
--	 * can make it static const to save some cycles and stack.
--	 */
--	static const struct rmap_walk_control rwc = {
-+
-+	static struct rmap_walk_control rwc = {
- 		.rmap_one = page_idle_clear_pte_refs_one,
- 		.anon_lock = folio_lock_anon_vma_read,
- 	};
---- a/mm/rmap.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/rmap.c
-@@ -527,9 +527,11 @@ out:
-  *
-  * Its a little more complex as it tries to keep the fast path to a single
-  * atomic op -- the trylock. If we fail the trylock, we fall back to getting a
-- * reference like with page_get_anon_vma() and then block on the mutex.
-+ * reference like with page_get_anon_vma() and then block on the mutex
-+ * on !rwc->try_lock case.
-  */
--struct anon_vma *folio_lock_anon_vma_read(struct folio *folio)
-+struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
-+					  struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma = NULL;
- 	struct anon_vma *root_anon_vma;
-@@ -557,6 +559,12 @@ struct anon_vma *folio_lock_anon_vma_rea
- 		goto out;
+@@ -1536,6 +1537,7 @@ continue_node:
+ 		goto descend;
  	}
  
-+	if (rwc && rwc->try_lock) {
-+		anon_vma = NULL;
-+		rwc->contended = true;
-+		goto out;
-+	}
-+
- 	/* trylock failed, we got to sleep */
- 	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
- 		anon_vma = NULL;
-@@ -883,7 +891,8 @@ static bool invalid_folio_referenced_vma
-  *
-  * Quick test_and_clear_referenced for all mappings of a folio,
-  *
-- * Return: The number of mappings which referenced the folio.
-+ * Return: The number of mappings which referenced the folio. Return -1 if
-+ * the function bailed out due to rmap lock contention.
-  */
- int folio_referenced(struct folio *folio, int is_locked,
- 		     struct mem_cgroup *memcg, unsigned long *vm_flags)
-@@ -897,6 +906,7 @@ int folio_referenced(struct folio *folio
- 		.rmap_one = folio_referenced_one,
- 		.arg = (void *)&pra,
- 		.anon_lock = folio_lock_anon_vma_read,
-+		.try_lock = true,
- 	};
++retry_compress:
+ 	pr_devel("-- compress node %p --\n", new_n);
  
- 	*vm_flags = 0;
-@@ -927,7 +937,7 @@ int folio_referenced(struct folio *folio
- 	if (we_locked)
- 		folio_unlock(folio);
+ 	/* Count up the number of empty slots in this node and work out the
+@@ -1554,6 +1556,7 @@ continue_node:
  
--	return pra.referenced;
-+	return rwc.contended ? -1 : pra.referenced;
- }
- 
- static int page_vma_mkclean_one(struct page_vma_mapped_walk *pvmw)
-@@ -2336,12 +2346,12 @@ void __put_anon_vma(struct anon_vma *ano
- }
- 
- static struct anon_vma *rmap_walk_anon_lock(struct folio *folio,
--					const struct rmap_walk_control *rwc)
-+					    struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma;
- 
- 	if (rwc->anon_lock)
--		return rwc->anon_lock(folio);
-+		return rwc->anon_lock(folio, rwc);
- 
- 	/*
- 	 * Note: remove_migration_ptes() cannot use folio_lock_anon_vma_read()
-@@ -2353,7 +2363,17 @@ static struct anon_vma *rmap_walk_anon_l
- 	if (!anon_vma)
- 		return NULL;
- 
-+	if (anon_vma_trylock_read(anon_vma))
-+		goto out;
-+
-+	if (rwc->try_lock) {
-+		anon_vma = NULL;
-+		rwc->contended = true;
-+		goto out;
-+	}
-+
- 	anon_vma_lock_read(anon_vma);
-+out:
- 	return anon_vma;
- }
- 
-@@ -2367,7 +2387,7 @@ static struct anon_vma *rmap_walk_anon_l
-  * contained in the anon_vma struct it points to.
-  */
- static void rmap_walk_anon(struct folio *folio,
--		const struct rmap_walk_control *rwc, bool locked)
-+		struct rmap_walk_control *rwc, bool locked)
- {
- 	struct anon_vma *anon_vma;
- 	pgoff_t pgoff_start, pgoff_end;
-@@ -2415,7 +2435,7 @@ static void rmap_walk_anon(struct folio
-  * contained in the address_space struct it points to.
-  */
- static void rmap_walk_file(struct folio *folio,
--		const struct rmap_walk_control *rwc, bool locked)
-+		struct rmap_walk_control *rwc, bool locked)
- {
- 	struct address_space *mapping = folio_mapping(folio);
- 	pgoff_t pgoff_start, pgoff_end;
-@@ -2434,8 +2454,18 @@ static void rmap_walk_file(struct folio
- 
- 	pgoff_start = folio_pgoff(folio);
- 	pgoff_end = pgoff_start + folio_nr_pages(folio) - 1;
--	if (!locked)
-+	if (!locked) {
-+		if (i_mmap_trylock_read(mapping))
-+			goto lookup;
-+
-+		if (rwc->try_lock) {
-+			rwc->contended = true;
-+			return;
-+		}
-+
- 		i_mmap_lock_read(mapping);
-+	}
-+lookup:
- 	vma_interval_tree_foreach(vma, &mapping->i_mmap,
- 			pgoff_start, pgoff_end) {
- 		unsigned long address = vma_address(&folio->page, vma);
-@@ -2457,7 +2487,7 @@ done:
- 		i_mmap_unlock_read(mapping);
- }
- 
--void rmap_walk(struct folio *folio, const struct rmap_walk_control *rwc)
-+void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc)
- {
- 	if (unlikely(folio_test_ksm(folio)))
- 		rmap_walk_ksm(folio, rwc);
-@@ -2468,7 +2498,7 @@ void rmap_walk(struct folio *folio, cons
- }
- 
- /* Like rmap_walk, but caller holds relevant rmap lock */
--void rmap_walk_locked(struct folio *folio, const struct rmap_walk_control *rwc)
-+void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc)
- {
- 	/* no ksm support for now */
- 	VM_BUG_ON_FOLIO(folio_test_ksm(folio), folio);
---- a/mm/vmscan.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/vmscan.c
-@@ -1391,6 +1391,10 @@ static enum page_references folio_check_
- 	if (vm_flags & VM_LOCKED)
- 		return PAGEREF_ACTIVATE;
- 
-+	/* rmap lock contention: rotate */
-+	if (referenced_ptes == -1)
-+		return PAGEREF_KEEP;
-+
- 	if (referenced_ptes) {
- 		/*
- 		 * All mapped folios start out with page table
-@@ -2499,8 +2503,9 @@ static void shrink_active_list(unsigned
- 			}
+ 	/* See what we can fold in */
+ 	next_slot = 0;
++	retained = 0;
+ 	for (slot = 0; slot < ASSOC_ARRAY_FAN_OUT; slot++) {
+ 		struct assoc_array_shortcut *s;
+ 		struct assoc_array_node *child;
+@@ -1602,9 +1605,14 @@ continue_node:
+ 			pr_devel("[%d] retain node %lu/%d [nx %d]\n",
+ 				 slot, child->nr_leaves_on_branch, nr_free + 1,
+ 				 next_slot);
++			retained = true;
  		}
+ 	}
  
-+		/* Referenced or rmap lock contention: rotate */
- 		if (folio_referenced(folio, 0, sc->target_mem_cgroup,
--				     &vm_flags)) {
-+				     &vm_flags) != 0) {
- 			/*
- 			 * Identify referenced, file-backed active pages and
- 			 * give them one more trip around the active list. So
++	if (retained && new_n->nr_leaves_on_branch < ASSOC_ARRAY_FAN_OUT) {
++		pr_devel("internal nodes remain despite neough space, retrying\n");
++		goto retry_compress;
++	}
+ 	pr_devel("after: %lu\n", new_n->nr_leaves_on_branch);
+ 
+ 	nr_leaves_on_tree = new_n->nr_leaves_on_branch;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from stephen.s.brennan@oracle.com are
 
-mm-fix-is_pinnable_page-against-on-cma-page.patch
-mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch
+assoc_array-fix-bug_on-during-garbage-collect.patch
 
