@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70B5AC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 12 May 2022 23:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7423BC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 12 May 2022 23:21:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359382AbiELXO2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 May 2022 19:14:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34238 "EHLO
+        id S1359417AbiELXVp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 May 2022 19:21:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347549AbiELXOZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 19:14:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7245B13F91B
-        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 16:14:24 -0700 (PDT)
+        with ESMTP id S1351784AbiELXVm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 19:21:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 637286C0C7;
+        Thu, 12 May 2022 16:21:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 29231B82BA3
-        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 23:14:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD624C385B8;
-        Thu, 12 May 2022 23:14:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 09AFC62042;
+        Thu, 12 May 2022 23:21:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DC30C34113;
+        Thu, 12 May 2022 23:21:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652397261;
-        bh=6jz+LYZDnqwvfS7bsfmg7CJvjS76mdPyWao4S02q7IE=;
+        s=korg; t=1652397700;
+        bh=DZCX9HRFQMTnjiNzgTiFJVi29WM2WAZqp6RpQcAzPS8=;
         h=Date:To:From:Subject:From;
-        b=2WuJEbRjItXx8ZEU9JbniN34nfnR+7KvLhsIHjZbu7ptJEBfoLpxJmlq38ZmC21UC
-         4boxfi28w1PxoG/tA95dIUkN+TGR3fMf0fKiqkmQCBp+6AQB848eFMClnUu3dXULNn
-         dlWFV0DDWVZEt3wT7C72Z6Qbi6uwALCWRtU4IK7c=
-Date:   Thu, 12 May 2022 16:14:20 -0700
-To:     mm-commits@vger.kernel.org, len.baker@gmx.com,
-        gustavoars@kernel.org, dhowells@redhat.com,
-        stephen.s.brennan@oracle.com, akpm@linux-foundation.org
+        b=HF/Sfb4XeYvLhDAer4TxAhf7MwPSwyn43ZPeIFCEBKklcbiKvPzmTwp6ScW7PhRmN
+         4tV6e4R6AUKMyOEknikvr82t2C9C3Pk+KRAC+l2KlSWyg/ojBx7fgOqFXRZtmSjmQ0
+         pAPRW2EBIV9IRuUl7ZoFzZb/XZ6kjGiOLcUSaYJc=
+Date:   Thu, 12 May 2022 16:21:39 -0700
+To:     mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org,
+        linus.walleij@linaro.org, andy.shevchenko@gmail.com,
+        puyou.lu@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + assoc_array-fix-bug_on-during-garbage-collect-v2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220512231421.BD624C385B8@smtp.kernel.org>
+Subject: + lib-string_helpers-fix-not-adding-strarray-to-devices-resource-list.patch added to mm-nonmm-unstable branch
+Message-Id: <20220512232140.5DC30C34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: assoc_array: Fix BUG_ON during garbage collect
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     assoc_array-fix-bug_on-during-garbage-collect-v2.patch
+     Subject: lib/string_helpers: fix not adding strarray to device's resource list
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-string_helpers-fix-not-adding-strarray-to-devices-resource-list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/assoc_array-fix-bug_on-during-garbage-collect-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-string_helpers-fix-not-adding-strarray-to-devices-resource-list.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,38 +65,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stephen Brennan <stephen.s.brennan@oracle.com>
-Subject: assoc_array: Fix BUG_ON during garbage collect
+From: Puyou Lu <puyou.lu@gmail.com>
+Subject: lib/string_helpers: fix not adding strarray to device's resource list
 
-correct comparison to "<="
+Add allocated strarray to device's resource list. This is a must to
+automatically release strarray when the device disappears.
 
-Link: https://lkml.kernel.org/r/20220512215045.489140-1-stephen.s.brennan@oracle.com
-Fixes: 3cb989501c26 ("Add a generic associative array implementation.")
-Signed-off-by: Stephen Brennan <stephen.s.brennan@oracle.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Len Baker <len.baker@gmx.com>
-Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Without this fix we have a memory leak in the few drivers which use
+devm_kasprintf_strarray().
+
+Link: https://lkml.kernel.org/r/20220506044409.30066-1-puyou.lu@gmail.com
+Link: https://lkml.kernel.org/r/20220506073623.2679-1-puyou.lu@gmail.com
+Fixes: acdb89b6c87a ("lib/string_helpers: Introduce managed variant of kasprintf_strarray()")
+Signed-off-by: Puyou Lu <puyou.lu@gmail.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/assoc_array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/string_helpers.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/assoc_array.c~assoc_array-fix-bug_on-during-garbage-collect-v2
-+++ a/lib/assoc_array.c
-@@ -1609,7 +1609,7 @@ retry_compress:
- 		}
+--- a/lib/string_helpers.c~lib-string_helpers-fix-not-adding-strarray-to-devices-resource-list
++++ a/lib/string_helpers.c
+@@ -757,6 +757,9 @@ char **devm_kasprintf_strarray(struct de
+ 		return ERR_PTR(-ENOMEM);
  	}
  
--	if (retained && new_n->nr_leaves_on_branch < ASSOC_ARRAY_FAN_OUT) {
-+	if (retained && new_n->nr_leaves_on_branch <= ASSOC_ARRAY_FAN_OUT) {
- 		pr_devel("internal nodes remain despite enough space, retrying\n");
- 		goto retry_compress;
- 	}
++	ptr->n = n;
++	devres_add(dev, ptr);
++
+ 	return ptr->array;
+ }
+ EXPORT_SYMBOL_GPL(devm_kasprintf_strarray);
 _
 
-Patches currently in -mm which might be from stephen.s.brennan@oracle.com are
+Patches currently in -mm which might be from puyou.lu@gmail.com are
 
-assoc_array-fix-bug_on-during-garbage-collect.patch
-assoc_array-fix-bug_on-during-garbage-collect-v2.patch
+lib-string_helpers-fix-not-adding-strarray-to-devices-resource-list.patch
 
