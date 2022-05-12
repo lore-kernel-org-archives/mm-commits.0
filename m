@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0031C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 12 May 2022 19:44:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D373C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 12 May 2022 19:44:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356709AbiELToj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 May 2022 15:44:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49650 "EHLO
+        id S1358160AbiELTou (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 May 2022 15:44:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358154AbiELToh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 15:44:37 -0400
+        with ESMTP id S1358165AbiELTom (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 15:44:42 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31D8D2469C3
-        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 12:44:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE05427B312
+        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 12:44:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D6DECB825F1
-        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 19:44:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 899D2C385B8;
-        Thu, 12 May 2022 19:44:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 59596B82800
+        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 19:44:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09BD0C385B8;
+        Thu, 12 May 2022 19:44:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652384673;
-        bh=wB2XmvHfoE7Ogq80jcXHEtCm3z+9Imor7mzZqYEVdNA=;
+        s=korg; t=1652384678;
+        bh=3cn8eYq9rEtoemYI2Qam0csnAHQXCSAVHRyB7WKojE4=;
         h=Date:To:From:Subject:From;
-        b=bjTl7Pv2Vt33MmQRPDtuwU6F1vJ+TCaMBMJvx26GbGV6Ry9LL6mTuO+uzXfT3UMB4
-         XNwNYcWH4VJsnQuf1vlCMhslLkP1Y9PQCpccMyLrM4ijxiJwQtk1Ot9w4Vuac7qLRV
-         9ekGeXipz8ehZocEjB6UZ5YxcyX/Ee0zCZlnEGB4=
-Date:   Thu, 12 May 2022 12:44:32 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, nsaenzju@redhat.com,
-        mtosatti@redhat.com, minchan@kernel.org, mhocko@kernel.org,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        b=mmS4AywitpTj6DMuVh7hpzRcK6SwMmniFbpvKwigdUm6676trwHrklb4U3yu+NH7Y
+         Ps8r5S7/1yX0aQaQMgo/QnuutiNBJmuvXGdsMiu+OpgwES6raSaixmGoBw+fhOeBxq
+         Tnkc05Mg1e/RE6yXQOYLcEawj7oNUnd7bFXp8T20=
+Date:   Thu, 12 May 2022 12:44:37 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mtosatti@redhat.com,
+        minchan@kernel.org, mhocko@kernel.org, mgorman@techsingularity.net,
+        nsaenzju@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-unnecessary-page-==-null-check-in-rmqueue.patch added to mm-unstable branch
-Message-Id: <20220512194433.899D2C385B8@smtp.kernel.org>
+Subject: + mm-page_alloc-remotely-drain-per-cpu-lists.patch added to mm-unstable branch
+Message-Id: <20220512194438.09BD0C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: remove unnecessary page == NULL check in rmqueue
+     Subject: mm/page_alloc: remotely drain per-cpu lists
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-unnecessary-page-==-null-check-in-rmqueue.patch
+     mm-page_alloc-remotely-drain-per-cpu-lists.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-unnecessary-page-==-null-check-in-rmqueue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remotely-drain-per-cpu-lists.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,59 +65,186 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: remove unnecessary page == NULL check in rmqueue
+From: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+Subject: mm/page_alloc: remotely drain per-cpu lists
 
-The VM_BUG_ON check for a valid page can be avoided with a simple change
-in the flow.  The ZONE_BOOSTED_WATERMARK is unlikely in general and even
-more unlikely if the page allocation failed so mark the branch unlikely.
+Some setups, notably NOHZ_FULL CPUs, are too busy to handle the per-cpu
+drain work queued by __drain_all_pages().  So introduce a new mechanism to
+remotely drain the per-cpu lists.  It is made possible by remotely locking
+'struct per_cpu_pages' new per-cpu spinlocks.  A benefit of this new
+scheme is that drain operations are now migration safe.
 
-Link: https://lkml.kernel.org/r/20220512085043.5234-5-mgorman@techsingularity.net
+There was no observed performance degradation vs.  the previous scheme. 
+Both netperf and hackbench were run in parallel to triggering the
+__drain_all_pages(NULL, true) code path around ~100 times per second.  The
+new scheme performs a bit better (~5%), although the important point here
+is there are no performance regressions vs.  the previous mechanism. 
+Per-cpu lists draining happens only in slow paths.
+
+Minchan Kim tested this independently and reported;
+
+	My workload is not NOHZ CPUs but run apps under heavy memory
+	pressure so they goes to direct reclaim and be stuck on
+	drain_all_pages until work on workqueue run.
+
+	unit: nanosecond
+	max(dur)        avg(dur)                count(dur)
+	166713013       487511.77786438033      1283
+
+	From traces, system encountered the drain_all_pages 1283 times and
+	worst case was 166ms and avg was 487us.
+
+	The other problem was alloc_contig_range in CMA. The PCP draining
+	takes several hundred millisecond sometimes though there is no
+	memory pressure or a few of pages to be migrated out but CPU were
+	fully booked.
+
+	Your patch perfectly removed those wasted time.
+
+Link: https://lore.kernel.org/r/20211103170512.2745765-4-nsaenzju@redhat.com
+Link: https://lkml.kernel.org/r/20220512085043.5234-7-mgorman@techsingularity.net
+Signed-off-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Tested-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   59 +++-------------------------------------------
+ 1 file changed, 5 insertions(+), 54 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-unnecessary-page-==-null-check-in-rmqueue
+--- a/mm/page_alloc.c~mm-page_alloc-remotely-drain-per-cpu-lists
 +++ a/mm/page_alloc.c
-@@ -3755,17 +3755,18 @@ struct page *rmqueue(struct zone *prefer
+@@ -165,13 +165,7 @@ DEFINE_PER_CPU(int, _numa_mem_);		/* Ker
+ EXPORT_PER_CPU_SYMBOL(_numa_mem_);
+ #endif
  
- 	page = rmqueue_buddy(preferred_zone, zone, order, alloc_flags,
- 							migratetype);
--	if (unlikely(!page))
--		return NULL;
+-/* work_structs for global per-cpu drains */
+-struct pcpu_drain {
+-	struct zone *zone;
+-	struct work_struct work;
+-};
+ static DEFINE_MUTEX(pcpu_drain_mutex);
+-static DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
  
- out:
- 	/* Separate test+clear to avoid unnecessary atomics */
--	if (test_bit(ZONE_BOOSTED_WATERMARK, &zone->flags)) {
-+	if (unlikely(test_bit(ZONE_BOOSTED_WATERMARK, &zone->flags))) {
- 		clear_bit(ZONE_BOOSTED_WATERMARK, &zone->flags);
- 		wakeup_kswapd(zone, 0, 0, zone_idx(zone));
- 	}
+ #ifdef CONFIG_GCC_PLUGIN_LATENT_ENTROPY
+ volatile unsigned long latent_entropy __latent_entropy;
+@@ -3080,9 +3074,6 @@ static int rmqueue_bulk(struct zone *zon
+  * Called from the vmstat counter updater to drain pagesets of this
+  * currently executing processor on remote nodes after they have
+  * expired.
+- *
+- * Note that this function must be called with the thread pinned to
+- * a single processor.
+  */
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp)
+ {
+@@ -3107,10 +3098,6 @@ void drain_zone_pages(struct zone *zone,
  
--	VM_BUG_ON_PAGE(page && bad_range(zone, page), page);
-+	if (unlikely(!page))
-+		return NULL;
-+
-+	VM_BUG_ON_PAGE(bad_range(zone, page), page);
- 	return page;
+ /*
+  * Drain pcplists of the indicated processor and zone.
+- *
+- * The processor must either be the current processor and the
+- * thread pinned to the current processor or a processor that
+- * is not online.
+  */
+ static void drain_pages_zone(unsigned int cpu, struct zone *zone)
+ {
+@@ -3129,10 +3116,6 @@ static void drain_pages_zone(unsigned in
+ 
+ /*
+  * Drain pcplists of all zones on the indicated processor.
+- *
+- * The processor must either be the current processor and the
+- * thread pinned to the current processor or a processor that
+- * is not online.
+  */
+ static void drain_pages(unsigned int cpu)
+ {
+@@ -3145,9 +3128,6 @@ static void drain_pages(unsigned int cpu
+ 
+ /*
+  * Spill all of this CPU's per-cpu pages back into the buddy allocator.
+- *
+- * The CPU has to be pinned. When zone parameter is non-NULL, spill just
+- * the single zone's pages.
+  */
+ void drain_local_pages(struct zone *zone)
+ {
+@@ -3159,24 +3139,6 @@ void drain_local_pages(struct zone *zone
+ 		drain_pages(cpu);
  }
  
+-static void drain_local_pages_wq(struct work_struct *work)
+-{
+-	struct pcpu_drain *drain;
+-
+-	drain = container_of(work, struct pcpu_drain, work);
+-
+-	/*
+-	 * drain_all_pages doesn't use proper cpu hotplug protection so
+-	 * we can race with cpu offline when the WQ can move this from
+-	 * a cpu pinned worker to an unbound one. We can operate on a different
+-	 * cpu which is alright but we also have to make sure to not move to
+-	 * a different one.
+-	 */
+-	migrate_disable();
+-	drain_local_pages(drain->zone);
+-	migrate_enable();
+-}
+-
+ /*
+  * The implementation of drain_all_pages(), exposing an extra parameter to
+  * drain on all cpus.
+@@ -3198,13 +3160,6 @@ static void __drain_all_pages(struct zon
+ 	static cpumask_t cpus_with_pcps;
+ 
+ 	/*
+-	 * Make sure nobody triggers this path before mm_percpu_wq is fully
+-	 * initialized.
+-	 */
+-	if (WARN_ON_ONCE(!mm_percpu_wq))
+-		return;
+-
+-	/*
+ 	 * Do not drain if one is already in progress unless it's specific to
+ 	 * a zone. Such callers are primarily CMA and memory hotplug and need
+ 	 * the drain to be complete when the call returns.
+@@ -3253,14 +3208,12 @@ static void __drain_all_pages(struct zon
+ 	}
+ 
+ 	for_each_cpu(cpu, &cpus_with_pcps) {
+-		struct pcpu_drain *drain = per_cpu_ptr(&pcpu_drain, cpu);
+-
+-		drain->zone = zone;
+-		INIT_WORK(&drain->work, drain_local_pages_wq);
+-		queue_work_on(cpu, mm_percpu_wq, &drain->work);
++		if (zone) {
++			drain_pages_zone(cpu, zone);
++		} else {
++			drain_pages(cpu);
++		}
+ 	}
+-	for_each_cpu(cpu, &cpus_with_pcps)
+-		flush_work(&per_cpu_ptr(&pcpu_drain, cpu)->work);
+ 
+ 	mutex_unlock(&pcpu_drain_mutex);
+ }
+@@ -3269,8 +3222,6 @@ static void __drain_all_pages(struct zon
+  * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
+  *
+  * When zone parameter is non-NULL, spill just the single zone's pages.
+- *
+- * Note that this can be extremely slow as the draining happens in a workqueue.
+  */
+ void drain_all_pages(struct zone *zone)
+ {
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from nsaenzju@redhat.com are
 
-mm-page_alloc-add-page-buddy_list-and-page-pcp_list.patch
-mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
-mm-page_alloc-split-out-buddy-removal-code-from-rmqueue-into-separate-helper.patch
-mm-page_alloc-remove-unnecessary-page-==-null-check-in-rmqueue.patch
-mm-page_alloc-protect-pcp-lists-with-a-spinlock.patch
+mm-page_alloc-remotely-drain-per-cpu-lists.patch
 
