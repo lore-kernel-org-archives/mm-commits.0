@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 663A6C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BABE2C433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:25:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383868AbiEMTZJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:25:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44872 "EHLO
+        id S1383869AbiEMTZL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:25:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383882AbiEMTXQ (ORCPT
+        with ESMTP id S1383880AbiEMTXQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:23:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E02CA2ED75
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:19 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D85D42ED6E
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6851B60C2A
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBA08C34117;
-        Fri, 13 May 2022 19:22:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6240960A66
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B990CC34113;
+        Fri, 13 May 2022 19:22:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469738;
-        bh=XASH4O7kYoPoRW85nqgIc1BKM6WaMRuE3U9hCbKRTaA=;
+        s=korg; t=1652469737;
+        bh=g30qNg6dqHi0yYcXXBvr3K5IC+t3Ktb/b6mAkdNDfVQ=;
         h=Date:To:From:Subject:From;
-        b=2vT0ZtqPS6tXV1n9qI2+Q5mgIr2Y6ufNYIX8D3BTm7ELHXGEGTdjVBlimLiWYHB3U
-         mbFlozMMYLwxSpJjldszrr9V0+v+wWyI90mtjooAfOIN3XTxgRzPv5tOHMKseFs+Jt
-         qC2DmUy2Vn/dQFCESxTf9hCDmCy+V/TBqAchqjrE=
-Date:   Fri, 13 May 2022 12:22:18 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, ddrokosov@sberdevices.ru,
-        avromanov@sberdevices.ru, akpm@linux-foundation.org
+        b=C7gjmYtQE0lxidAVXJqjgxqqUvKMobViWL73QtH20hzhkKHnQPwT0rkSq68/SHugY
+         j4dN68XouFnJClFsfGerEcS91IcAj3wVqBm8X5NYnJmLyn74GcydKwdxXRqo3b89VR
+         nMrAo8Ss+j9kjTD0Lfwaf1Ng+81x0PDzPSYj9WoY=
+Date:   Fri, 13 May 2022 12:22:17 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tj@kernel.org,
+        shakeelb@google.com, rostedt@goodmis.org, roman.gushchin@linux.dev,
+        mingo@redhat.com, mhocko@suse.com, dennis@kernel.org, cl@linux.com,
+        vvs@openvz.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-remove-double-compression-logic.patch removed from -mm tree
-Message-Id: <20220513192218.BBA08C34117@smtp.kernel.org>
+Subject: [merged mm-stable] percpu-improve-percpu_alloc_percpu-event-trace.patch removed from -mm tree
+Message-Id: <20220513192217.B990CC34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,137 +43,147 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zram: remove double compression logic
+     Subject: percpu: improve percpu_alloc_percpu event trace
 has been removed from the -mm tree.  Its filename was
-     zram-remove-double-compression-logic.patch
+     percpu-improve-percpu_alloc_percpu-event-trace.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Romanov <avromanov@sberdevices.ru>
-Subject: zram: remove double compression logic
+From: Vasily Averin <vvs@openvz.org>
+Subject: percpu: improve percpu_alloc_percpu event trace
 
-The 2nd trial allocation under per-cpu presumption has been used to
-prevent regression of allocation failure.  However, it makes trouble for
-maintenance without significant benefit.  The slowpath branch is executed
-extremely rarely: getting there is problematic.  Therefore, we delete this
-branch.
+Add call_site, bytes_alloc and gfp_flags fields to the output of the
+percpu_alloc_percpu ftrace event:
 
-Since b09ab054b69b ("zram: support BDI_CAP_STABLE_WRITES"), zram has used
-QUEUE_FLAG_STABLE_WRITES to prevent buffer change between 1st and 2nd
-memory allocations.  Since we remove second trial memory allocation logic,
-we could remove the STABLE_WRITES flag because there is no change buffer
-to be modified under us.
+mkdir-4393  [001]   169.334788: percpu_alloc_percpu:
+ call_site=mem_cgroup_css_alloc+0xa6 reserved=0 is_atomic=0 size=2408 align=8
+  base_addr=0xffffc7117fc00000 off=402176 ptr=0x3dc867a62300 bytes_alloc=14448
+   gfp_flags=GFP_KERNEL_ACCOUNT
 
-Link: https://lkml.kernel.org/r/20220505094443.11728-1-avromanov@sberdevices.ru
-Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
-Signed-off-by: Dmitry Rokosov <ddrokosov@sberdevices.ru>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+This is required to track memcg-accounted percpu allocations.
+
+Link: https://lkml.kernel.org/r/a07be858-c8a3-7851-9086-e3262cbcf707@openvz.org
+Signed-off-by: Vasily Averin <vvs@openvz.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   42 +++++++-------------------------
- drivers/block/zram/zram_drv.h |    1 
- 2 files changed, 10 insertions(+), 33 deletions(-)
+ include/trace/events/percpu.h |   23 +++++++++++++++++------
+ mm/percpu-internal.h          |    8 ++++----
+ mm/percpu.c                   |    5 +++--
+ 3 files changed, 24 insertions(+), 12 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-double-compression-logic
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1144,15 +1144,14 @@ static ssize_t bd_stat_show(struct devic
- static ssize_t debug_stat_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+--- a/include/trace/events/percpu.h~percpu-improve-percpu_alloc_percpu-event-trace
++++ a/include/trace/events/percpu.h
+@@ -6,15 +6,20 @@
+ #define _TRACE_PERCPU_H
+ 
+ #include <linux/tracepoint.h>
++#include <trace/events/mmflags.h>
+ 
+ TRACE_EVENT(percpu_alloc_percpu,
+ 
+-	TP_PROTO(bool reserved, bool is_atomic, size_t size,
+-		 size_t align, void *base_addr, int off, void __percpu *ptr),
++	TP_PROTO(unsigned long call_site,
++		 bool reserved, bool is_atomic, size_t size,
++		 size_t align, void *base_addr, int off,
++		 void __percpu *ptr, size_t bytes_alloc, gfp_t gfp_flags),
+ 
+-	TP_ARGS(reserved, is_atomic, size, align, base_addr, off, ptr),
++	TP_ARGS(call_site, reserved, is_atomic, size, align, base_addr, off,
++		ptr, bytes_alloc, gfp_flags),
+ 
+ 	TP_STRUCT__entry(
++		__field(	unsigned long,		call_site	)
+ 		__field(	bool,			reserved	)
+ 		__field(	bool,			is_atomic	)
+ 		__field(	size_t,			size		)
+@@ -22,9 +27,11 @@ TRACE_EVENT(percpu_alloc_percpu,
+ 		__field(	void *,			base_addr	)
+ 		__field(	int,			off		)
+ 		__field(	void __percpu *,	ptr		)
++		__field(	size_t,			bytes_alloc	)
++		__field(	gfp_t,			gfp_flags	)
+ 	),
+-
+ 	TP_fast_assign(
++		__entry->call_site	= call_site;
+ 		__entry->reserved	= reserved;
+ 		__entry->is_atomic	= is_atomic;
+ 		__entry->size		= size;
+@@ -32,12 +39,16 @@ TRACE_EVENT(percpu_alloc_percpu,
+ 		__entry->base_addr	= base_addr;
+ 		__entry->off		= off;
+ 		__entry->ptr		= ptr;
++		__entry->bytes_alloc	= bytes_alloc;
++		__entry->gfp_flags	= gfp_flags;
+ 	),
+ 
+-	TP_printk("reserved=%d is_atomic=%d size=%zu align=%zu base_addr=%p off=%d ptr=%p",
++	TP_printk("call_site=%pS reserved=%d is_atomic=%d size=%zu align=%zu base_addr=%p off=%d ptr=%p bytes_alloc=%zu gfp_flags=%s",
++		  (void *)__entry->call_site,
+ 		  __entry->reserved, __entry->is_atomic,
+ 		  __entry->size, __entry->align,
+-		  __entry->base_addr, __entry->off, __entry->ptr)
++		  __entry->base_addr, __entry->off, __entry->ptr,
++		  __entry->bytes_alloc, show_gfp_flags(__entry->gfp_flags))
+ );
+ 
+ TRACE_EVENT(percpu_free_percpu,
+--- a/mm/percpu.c~percpu-improve-percpu_alloc_percpu-event-trace
++++ a/mm/percpu.c
+@@ -1884,8 +1884,9 @@ area_found:
+ 	ptr = __addr_to_pcpu_ptr(chunk->base_addr + off);
+ 	kmemleak_alloc_percpu(ptr, size, gfp);
+ 
+-	trace_percpu_alloc_percpu(reserved, is_atomic, size, align,
+-			chunk->base_addr, off, ptr);
++	trace_percpu_alloc_percpu(_RET_IP_, reserved, is_atomic, size, align,
++				  chunk->base_addr, off, ptr,
++				  pcpu_obj_full_size(size), gfp);
+ 
+ 	pcpu_memcg_post_alloc_hook(objcg, chunk, off, size);
+ 
+--- a/mm/percpu-internal.h~percpu-improve-percpu_alloc_percpu-event-trace
++++ a/mm/percpu-internal.h
+@@ -113,7 +113,6 @@ static inline int pcpu_chunk_map_bits(st
+ 	return pcpu_nr_pages_to_map_bits(chunk->nr_pages);
+ }
+ 
+-#ifdef CONFIG_MEMCG_KMEM
+ /**
+  * pcpu_obj_full_size - helper to calculate size of each accounted object
+  * @size: size of area to allocate in bytes
+@@ -123,13 +122,14 @@ static inline int pcpu_chunk_map_bits(st
+  */
+ static inline size_t pcpu_obj_full_size(size_t size)
  {
--	int version = 1;
-+	int version = 2;
- 	struct zram *zram = dev_to_zram(dev);
- 	ssize_t ret;
+-	size_t extra_size;
++	size_t extra_size = 0;
  
- 	down_read(&zram->init_lock);
- 	ret = scnprintf(buf, PAGE_SIZE,
--			"version: %d\n%8llu %8llu\n",
-+			"version: %d\n%8llu\n",
- 			version,
--			(u64)atomic64_read(&zram->stats.writestall),
- 			(u64)atomic64_read(&zram->stats.miss_free));
- 	up_read(&zram->init_lock);
+-	extra_size = size / PCPU_MIN_ALLOC_SIZE * sizeof(struct obj_cgroup *);
++#ifdef CONFIG_MEMCG_KMEM
++	extra_size += size / PCPU_MIN_ALLOC_SIZE * sizeof(struct obj_cgroup *);
++#endif
  
-@@ -1368,7 +1367,6 @@ static int __zram_bvec_write(struct zram
- 	}
- 	kunmap_atomic(mem);
+ 	return size * num_possible_cpus() + extra_size;
+ }
+-#endif /* CONFIG_MEMCG_KMEM */
  
--compress_again:
- 	zstrm = zcomp_stream_get(zram->comp);
- 	src = kmap_atomic(page);
- 	ret = zcomp_compress(zstrm, src, &comp_len);
-@@ -1377,39 +1375,20 @@ compress_again:
- 	if (unlikely(ret)) {
- 		zcomp_stream_put(zram->comp);
- 		pr_err("Compression failed! err=%d\n", ret);
--		zs_free(zram->mem_pool, handle);
- 		return ret;
- 	}
+ #ifdef CONFIG_PERCPU_STATS
  
- 	if (comp_len >= huge_class_size)
- 		comp_len = PAGE_SIZE;
--	/*
--	 * handle allocation has 2 paths:
--	 * a) fast path is executed with preemption disabled (for
--	 *  per-cpu streams) and has __GFP_DIRECT_RECLAIM bit clear,
--	 *  since we can't sleep;
--	 * b) slow path enables preemption and attempts to allocate
--	 *  the page with __GFP_DIRECT_RECLAIM bit set. we have to
--	 *  put per-cpu compression stream and, thus, to re-do
--	 *  the compression once handle is allocated.
--	 *
--	 * if we have a 'non-null' handle here then we are coming
--	 * from the slow path and handle has already been allocated.
--	 */
--	if (!handle)
--		handle = zs_malloc(zram->mem_pool, comp_len,
--				__GFP_KSWAPD_RECLAIM |
--				__GFP_NOWARN |
--				__GFP_HIGHMEM |
--				__GFP_MOVABLE);
--	if (!handle) {
-+
-+	handle = zs_malloc(zram->mem_pool, comp_len,
-+			__GFP_KSWAPD_RECLAIM |
-+			__GFP_NOWARN |
-+			__GFP_HIGHMEM |
-+			__GFP_MOVABLE);
-+
-+	if (unlikely(!handle)) {
- 		zcomp_stream_put(zram->comp);
--		atomic64_inc(&zram->stats.writestall);
--		handle = zs_malloc(zram->mem_pool, comp_len,
--				GFP_NOIO | __GFP_HIGHMEM |
--				__GFP_MOVABLE);
--		if (handle)
--			goto compress_again;
- 		return -ENOMEM;
- 	}
- 
-@@ -1967,7 +1946,6 @@ static int zram_add(void)
- 	if (ZRAM_LOGICAL_BLOCK_SIZE == PAGE_SIZE)
- 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
- 
--	blk_queue_flag_set(QUEUE_FLAG_STABLE_WRITES, zram->disk->queue);
- 	ret = device_add_disk(NULL, zram->disk, zram_disk_groups);
- 	if (ret)
- 		goto out_cleanup_disk;
---- a/drivers/block/zram/zram_drv.h~zram-remove-double-compression-logic
-+++ a/drivers/block/zram/zram_drv.h
-@@ -81,7 +81,6 @@ struct zram_stats {
- 	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
--	atomic64_t writestall;		/* no. of write slow paths */
- 	atomic64_t miss_free;		/* no. of missed free */
- #ifdef	CONFIG_ZRAM_WRITEBACK
- 	atomic64_t bd_count;		/* no. of pages in backing device */
 _
 
-Patches currently in -mm which might be from avromanov@sberdevices.ru are
+Patches currently in -mm which might be from vvs@openvz.org are
 
 
