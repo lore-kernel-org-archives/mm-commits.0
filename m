@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EF70C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5C4AC433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382529AbiEMTWj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:22:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40930 "EHLO
+        id S1383672AbiEMTWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:22:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383710AbiEMTWU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:22:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E90F3B3C4
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:47 -0700 (PDT)
+        with ESMTP id S1383817AbiEMTWT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:22:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE587344C6
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D35F46225E
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38F64C34100;
-        Fri, 13 May 2022 19:21:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 749F4B8315C
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22E6BC34100;
+        Fri, 13 May 2022 19:21:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469706;
-        bh=fiJxnM/0ko7gYyOl963sQnzsd6Zw4ZwmHxRjo6f5H4k=;
+        s=korg; t=1652469704;
+        bh=bPT3r1AXe1shDjRopVwHYTX0spy9w9zeWXXHWxzrpcs=;
         h=Date:To:From:Subject:From;
-        b=nnQuZ6zO57icqq/Mw5UFbs8g4dzrHw/OoaDzd5pDceJrFPwZhu792aXijfB+11ox1
-         o37PWZokd5sCT0qBDBDtL+jzSXYrtFWqElGjhAc8ZY+MAjyYLQ1l/q+RDG39zifIEl
-         51dvtZM/UMjoiIBC8vK4+q65xxeNkwA5AuVEcltY=
-Date:   Fri, 13 May 2022 12:21:45 -0700
+        b=raM9Dx0guHUWKUvisZNSj0YMENnGdIE/xd0nanymcSH3t6d8eCSrEEZnitvUJxwCG
+         WIRPvlpsVd3WyB/y/+4s26HWqdwU7KsdzO5ZUGDVRsbOhwUGa4TARUhxq7mZYCqOzs
+         AKqq0d/q2KThqedu7bRNsdAL4cXeqbEOe6ATxyv8=
+Date:   Fri, 13 May 2022 12:21:43 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] vmscan-convert-the-writeback-handling-in-shrink_page_list-to-folios.patch removed from -mm tree
-Message-Id: <20220513192146.38F64C34100@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-alloc_pages_vma.patch removed from -mm tree
+Message-Id: <20220513192144.22E6BC34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,151 +41,185 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: vmscan: convert the writeback handling in shrink_page_list() to folios
+     Subject: mm: remove alloc_pages_vma()
 has been removed from the -mm tree.  Its filename was
-     vmscan-convert-the-writeback-handling-in-shrink_page_list-to-folios.patch
+     mm-remove-alloc_pages_vma.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: vmscan: convert the writeback handling in shrink_page_list() to folios
+Subject: mm: remove alloc_pages_vma()
 
-Slightly more efficient due to fewer calls to compound_head().
+All callers have now been converted to use vma_alloc_folio(), so convert
+the body of alloc_pages_vma() to allocate folios instead.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   78 ++++++++++++++++++++++++++------------------------
- 1 file changed, 42 insertions(+), 36 deletions(-)
+ include/linux/gfp.h |   18 +++++---------
+ mm/mempolicy.c      |   51 ++++++++++++++++++++----------------------
+ 2 files changed, 32 insertions(+), 37 deletions(-)
 
---- a/mm/vmscan.c~vmscan-convert-the-writeback-handling-in-shrink_page_list-to-folios
-+++ a/mm/vmscan.c
-@@ -1598,40 +1598,42 @@ retry:
- 			stat->nr_congested += nr_pages;
+--- a/include/linux/gfp.h~mm-remove-alloc_pages_vma
++++ a/include/linux/gfp.h
+@@ -613,13 +613,8 @@ static inline struct page *alloc_pages_n
+ #ifdef CONFIG_NUMA
+ struct page *alloc_pages(gfp_t gfp, unsigned int order);
+ struct folio *folio_alloc(gfp_t gfp, unsigned order);
+-struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
+-			struct vm_area_struct *vma, unsigned long addr,
+-			bool hugepage);
+ struct folio *vma_alloc_folio(gfp_t gfp, int order, struct vm_area_struct *vma,
+ 		unsigned long addr, bool hugepage);
+-#define alloc_hugepage_vma(gfp_mask, vma, addr, order) \
+-	alloc_pages_vma(gfp_mask, order, vma, addr, true)
+ #else
+ static inline struct page *alloc_pages(gfp_t gfp_mask, unsigned int order)
+ {
+@@ -629,16 +624,17 @@ static inline struct folio *folio_alloc(
+ {
+ 	return __folio_alloc_node(gfp, order, numa_node_id());
+ }
+-#define alloc_pages_vma(gfp_mask, order, vma, addr, hugepage) \
+-	alloc_pages(gfp_mask, order)
+ #define vma_alloc_folio(gfp, order, vma, addr, hugepage)		\
+ 	folio_alloc(gfp, order)
+-#define alloc_hugepage_vma(gfp_mask, vma, addr, order) \
+-	alloc_pages(gfp_mask, order)
+ #endif
+ #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
+-#define alloc_page_vma(gfp_mask, vma, addr)			\
+-	alloc_pages_vma(gfp_mask, 0, vma, addr, false)
++static inline struct page *alloc_page_vma(gfp_t gfp,
++		struct vm_area_struct *vma, unsigned long addr)
++{
++	struct folio *folio = vma_alloc_folio(gfp, 0, vma, addr, false);
++
++	return &folio->page;
++}
  
- 		/*
--		 * If a page at the tail of the LRU is under writeback, there
-+		 * If a folio at the tail of the LRU is under writeback, there
- 		 * are three cases to consider.
- 		 *
--		 * 1) If reclaim is encountering an excessive number of pages
--		 *    under writeback and this page is both under writeback and
--		 *    PageReclaim then it indicates that pages are being queued
--		 *    for IO but are being recycled through the LRU before the
--		 *    IO can complete. Waiting on the page itself risks an
--		 *    indefinite stall if it is impossible to writeback the
--		 *    page due to IO error or disconnected storage so instead
--		 *    note that the LRU is being scanned too quickly and the
--		 *    caller can stall after page list has been processed.
-+		 * 1) If reclaim is encountering an excessive number of folios
-+		 *    under writeback and this folio is both under
-+		 *    writeback and has the reclaim flag set then it
-+		 *    indicates that folios are being queued for I/O but
-+		 *    are being recycled through the LRU before the I/O
-+		 *    can complete. Waiting on the folio itself risks an
-+		 *    indefinite stall if it is impossible to writeback
-+		 *    the folio due to I/O error or disconnected storage
-+		 *    so instead note that the LRU is being scanned too
-+		 *    quickly and the caller can stall after the folio
-+		 *    list has been processed.
- 		 *
--		 * 2) Global or new memcg reclaim encounters a page that is
-+		 * 2) Global or new memcg reclaim encounters a folio that is
- 		 *    not marked for immediate reclaim, or the caller does not
- 		 *    have __GFP_FS (or __GFP_IO if it's simply going to swap,
--		 *    not to fs). In this case mark the page for immediate
-+		 *    not to fs). In this case mark the folio for immediate
- 		 *    reclaim and continue scanning.
- 		 *
- 		 *    Require may_enter_fs() because we would wait on fs, which
--		 *    may not have submitted IO yet. And the loop driver might
--		 *    enter reclaim, and deadlock if it waits on a page for
-+		 *    may not have submitted I/O yet. And the loop driver might
-+		 *    enter reclaim, and deadlock if it waits on a folio for
- 		 *    which it is needed to do the write (loop masks off
- 		 *    __GFP_IO|__GFP_FS for this reason); but more thought
- 		 *    would probably show more reasons.
- 		 *
--		 * 3) Legacy memcg encounters a page that is already marked
--		 *    PageReclaim. memcg does not have any dirty pages
-+		 * 3) Legacy memcg encounters a folio that already has the
-+		 *    reclaim flag set. memcg does not have any dirty folio
- 		 *    throttling so we could easily OOM just because too many
--		 *    pages are in writeback and there is nothing else to
-+		 *    folios are in writeback and there is nothing else to
- 		 *    reclaim. Wait for the writeback to complete.
- 		 *
--		 * In cases 1) and 2) we activate the pages to get them out of
--		 * the way while we continue scanning for clean pages on the
-+		 * In cases 1) and 2) we activate the folios to get them out of
-+		 * the way while we continue scanning for clean folios on the
- 		 * inactive list and refilling from the active list. The
- 		 * observation here is that waiting for disk writes is more
- 		 * expensive than potentially causing reloads down the line.
-@@ -1639,38 +1641,42 @@ retry:
- 		 * memory pressure on the cache working set any longer than it
- 		 * takes to write them to disk.
- 		 */
--		if (PageWriteback(page)) {
-+		if (folio_test_writeback(folio)) {
- 			/* Case 1 above */
- 			if (current_is_kswapd() &&
--			    PageReclaim(page) &&
-+			    folio_test_reclaim(folio) &&
- 			    test_bit(PGDAT_WRITEBACK, &pgdat->flags)) {
- 				stat->nr_immediate += nr_pages;
- 				goto activate_locked;
+ extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
+ extern unsigned long get_zeroed_page(gfp_t gfp_mask);
+--- a/mm/mempolicy.c~mm-remove-alloc_pages_vma
++++ a/mm/mempolicy.c
+@@ -2136,44 +2136,55 @@ static struct page *alloc_pages_preferre
+ }
  
- 			/* Case 2 above */
- 			} else if (writeback_throttling_sane(sc) ||
--			    !PageReclaim(page) || !may_enter_fs(page, sc->gfp_mask)) {
-+			    !folio_test_reclaim(folio) ||
-+			    !may_enter_fs(page, sc->gfp_mask)) {
- 				/*
--				 * This is slightly racy - end_page_writeback()
--				 * might have just cleared PageReclaim, then
--				 * setting PageReclaim here end up interpreted
--				 * as PageReadahead - but that does not matter
--				 * enough to care.  What we do want is for this
--				 * page to have PageReclaim set next time memcg
--				 * reclaim reaches the tests above, so it will
--				 * then wait_on_page_writeback() to avoid OOM;
--				 * and it's also appropriate in global reclaim.
-+				 * This is slightly racy -
-+				 * folio_end_writeback() might have just
-+				 * cleared the reclaim flag, then setting
-+				 * reclaim here ends up interpreted as
-+				 * the readahead flag - but that does
-+				 * not matter enough to care.  What we
-+				 * do want is for this folio to have
-+				 * the reclaim flag set next time memcg
-+				 * reclaim reaches the tests above, so
-+				 * it will then folio_wait_writeback()
-+				 * to avoid OOM; and it's also appropriate
-+				 * in global reclaim.
- 				 */
--				SetPageReclaim(page);
-+				folio_set_reclaim(folio);
- 				stat->nr_writeback += nr_pages;
- 				goto activate_locked;
+ /**
+- * alloc_pages_vma - Allocate a page for a VMA.
++ * vma_alloc_folio - Allocate a folio for a VMA.
+  * @gfp: GFP flags.
+- * @order: Order of the GFP allocation.
++ * @order: Order of the folio.
+  * @vma: Pointer to VMA or NULL if not available.
+  * @addr: Virtual address of the allocation.  Must be inside @vma.
+  * @hugepage: For hugepages try only the preferred node if possible.
+  *
+- * Allocate a page for a specific address in @vma, using the appropriate
++ * Allocate a folio for a specific address in @vma, using the appropriate
+  * NUMA policy.  When @vma is not NULL the caller must hold the mmap_lock
+  * of the mm_struct of the VMA to prevent it from going away.  Should be
+- * used for all allocations for pages that will be mapped into user space.
++ * used for all allocations for folios that will be mapped into user space.
+  *
+- * Return: The page on success or NULL if allocation fails.
++ * Return: The folio on success or NULL if allocation fails.
+  */
+-struct page *alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
++struct folio *vma_alloc_folio(gfp_t gfp, int order, struct vm_area_struct *vma,
+ 		unsigned long addr, bool hugepage)
+ {
+ 	struct mempolicy *pol;
+ 	int node = numa_node_id();
+-	struct page *page;
++	struct folio *folio;
+ 	int preferred_nid;
+ 	nodemask_t *nmask;
  
- 			/* Case 3 above */
- 			} else {
--				unlock_page(page);
--				wait_on_page_writeback(page);
--				/* then go back and try same page again */
--				list_add_tail(&page->lru, page_list);
-+				folio_unlock(folio);
-+				folio_wait_writeback(folio);
-+				/* then go back and try same folio again */
-+				list_add_tail(&folio->lru, page_list);
- 				continue;
- 			}
+ 	pol = get_vma_policy(vma, addr);
+ 
+ 	if (pol->mode == MPOL_INTERLEAVE) {
++		struct page *page;
+ 		unsigned nid;
+ 
+ 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT + order);
+ 		mpol_cond_put(pol);
++		gfp |= __GFP_COMP;
+ 		page = alloc_page_interleave(gfp, order, nid);
++		if (page && order > 1)
++			prep_transhuge_page(page);
++		folio = (struct folio *)page;
+ 		goto out;
+ 	}
+ 
+ 	if (pol->mode == MPOL_PREFERRED_MANY) {
++		struct page *page;
++
+ 		node = policy_node(gfp, pol, node);
++		gfp |= __GFP_COMP;
+ 		page = alloc_pages_preferred_many(gfp, order, node, pol);
+ 		mpol_cond_put(pol);
++		if (page && order > 1)
++			prep_transhuge_page(page);
++		folio = (struct folio *)page;
+ 		goto out;
+ 	}
+ 
+@@ -2200,8 +2211,8 @@ struct page *alloc_pages_vma(gfp_t gfp,
+ 			 * First, try to allocate THP only on local node, but
+ 			 * don't reclaim unnecessarily, just compact.
+ 			 */
+-			page = __alloc_pages_node(hpage_node,
+-				gfp | __GFP_THISNODE | __GFP_NORETRY, order);
++			folio = __folio_alloc_node(gfp | __GFP_THISNODE |
++					__GFP_NORETRY, order, hpage_node);
+ 
+ 			/*
+ 			 * If hugepage allocations are configured to always
+@@ -2209,8 +2220,9 @@ struct page *alloc_pages_vma(gfp_t gfp,
+ 			 * to prefer hugepage backing, retry allowing remote
+ 			 * memory with both reclaim and compact as well.
+ 			 */
+-			if (!page && (gfp & __GFP_DIRECT_RECLAIM))
+-				page = __alloc_pages(gfp, order, hpage_node, nmask);
++			if (!folio && (gfp & __GFP_DIRECT_RECLAIM))
++				folio = __folio_alloc(gfp, order, hpage_node,
++						      nmask);
+ 
+ 			goto out;
  		}
+@@ -2218,25 +2230,12 @@ struct page *alloc_pages_vma(gfp_t gfp,
+ 
+ 	nmask = policy_nodemask(gfp, pol);
+ 	preferred_nid = policy_node(gfp, pol, node);
+-	page = __alloc_pages(gfp, order, preferred_nid, nmask);
++	folio = __folio_alloc(gfp, order, preferred_nid, nmask);
+ 	mpol_cond_put(pol);
+ out:
+-	return page;
+-}
+-EXPORT_SYMBOL(alloc_pages_vma);
+-
+-struct folio *vma_alloc_folio(gfp_t gfp, int order, struct vm_area_struct *vma,
+-		unsigned long addr, bool hugepage)
+-{
+-	struct folio *folio;
+-
+-	folio = (struct folio *)alloc_pages_vma(gfp, order, vma, addr,
+-			hugepage);
+-	if (folio && order > 1)
+-		prep_transhuge_page(&folio->page);
+-
+ 	return folio;
+ }
++EXPORT_SYMBOL(vma_alloc_folio);
+ 
+ /**
+  * alloc_pages - Allocate pages.
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
