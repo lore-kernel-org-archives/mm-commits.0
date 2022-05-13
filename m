@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8012EC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C90A2C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:23:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383821AbiEMTXE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:23:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40856 "EHLO
+        id S1383884AbiEMTXQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:23:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383824AbiEMTWU (ORCPT
+        with ESMTP id S1383828AbiEMTWU (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:22:20 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F9183B577
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95EF83BBD2
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F41DA62245
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51F43C34100;
-        Fri, 13 May 2022 19:21:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 113526225F
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B87DC34113;
+        Fri, 13 May 2022 19:21:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469709;
-        bh=SHQdJOrQNJEivOz+FzPLcgozNiSO6UuhAfTvH6Up4EI=;
+        s=korg; t=1652469711;
+        bh=RprJQycOQ2dxCt74aPxCWwUzT+ep+52/X9yoe4aGmDQ=;
         h=Date:To:From:Subject:From;
-        b=OdWjXipsXpFLiz8rAztUjwBZbW2zJJEOAY6w535xPTpnzL554d01ptftjzDFGGVXi
-         QFQrDLFSiisFWTizeVdNzCGyHfVawj3r3ZTqOEEJSnpzuRuc2Z1vx97zCxWbKFnnYv
-         kdmFKdQFe60ewg8dmgAww4Pj697WlfCQMkZkb6ts=
-Date:   Fri, 13 May 2022 12:21:48 -0700
+        b=GGMWBUTjln5V6W1P58YIKZlo9lxBEGOSj8rIJ4RtLXGz5vnauixv0s1A415o08gHk
+         DEaV3LdFQ6tYsWZQEeeo9yotIObkuQseHW7ltPeQhNAK0SnXdyW7zNQHZtA4FTI8/7
+         mpBVhG6hJ7n9wZ3w2rk6D9ebTry+LbHKNtb6MNaM=
+Date:   Fri, 13 May 2022 12:21:50 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] vmscan-convert-dirty-page-handling-to-folios.patch removed from -mm tree
-Message-Id: <20220513192149.51F43C34100@smtp.kernel.org>
+Subject: [merged mm-stable] vmscan-convert-lazy-freeing-to-folios.patch removed from -mm tree
+Message-Id: <20220513192151.6B87DC34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,118 +41,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: vmscan: convert dirty page handling to folios
+     Subject: vmscan: convert lazy freeing to folios
 has been removed from the -mm tree.  Its filename was
-     vmscan-convert-dirty-page-handling-to-folios.patch
+     vmscan-convert-lazy-freeing-to-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: vmscan: convert dirty page handling to folios
+Subject: vmscan: convert lazy freeing to folios
 
-Mostly this just eliminates calls to compound_head(), but
-NR_VMSCAN_IMMEDIATE was being incremented by 1 instead of by nr_pages.
+Remove a hidden call to compound_head(), and account nr_pages instead of a
+single page.  This matches the code in lru_lazyfree_fn() that accounts
+nr_pages to PGLAZYFREE.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   48 ++++++++++++++++++++++++++----------------------
- 1 file changed, 26 insertions(+), 22 deletions(-)
+ include/linux/memcontrol.h |   14 ++++++++++++++
+ mm/vmscan.c                |   18 +++++++++---------
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
---- a/mm/vmscan.c~vmscan-convert-dirty-page-handling-to-folios
+--- a/include/linux/memcontrol.h~vmscan-convert-lazy-freeing-to-folios
++++ a/include/linux/memcontrol.h
+@@ -1057,6 +1057,15 @@ static inline void count_memcg_page_even
+ 		count_memcg_events(memcg, idx, 1);
+ }
+ 
++static inline void count_memcg_folio_events(struct folio *folio,
++		enum vm_event_item idx, unsigned long nr)
++{
++	struct mem_cgroup *memcg = folio_memcg(folio);
++
++	if (memcg)
++		count_memcg_events(memcg, idx, nr);
++}
++
+ static inline void count_memcg_event_mm(struct mm_struct *mm,
+ 					enum vm_event_item idx)
+ {
+@@ -1494,6 +1503,11 @@ static inline void count_memcg_page_even
+ {
+ }
+ 
++static inline void count_memcg_folio_events(struct folio *folio,
++		enum vm_event_item idx, unsigned long nr)
++{
++}
++
+ static inline
+ void count_memcg_event_mm(struct mm_struct *mm, enum vm_event_item idx)
+ {
+--- a/mm/vmscan.c~vmscan-convert-lazy-freeing-to-folios
 +++ a/mm/vmscan.c
-@@ -1787,28 +1787,31 @@ retry:
+@@ -1902,20 +1902,20 @@ retry:
  			}
  		}
  
--		if (PageDirty(page)) {
-+		if (folio_test_dirty(folio)) {
- 			/*
--			 * Only kswapd can writeback filesystem pages
-+			 * Only kswapd can writeback filesystem folios
- 			 * to avoid risk of stack overflow. But avoid
--			 * injecting inefficient single-page IO into
-+			 * injecting inefficient single-folio I/O into
- 			 * flusher writeback as much as possible: only
--			 * write pages when we've encountered many
--			 * dirty pages, and when we've already scanned
--			 * the rest of the LRU for clean pages and see
--			 * the same dirty pages again (PageReclaim).
-+			 * write folios when we've encountered many
-+			 * dirty folios, and when we've already scanned
-+			 * the rest of the LRU for clean folios and see
-+			 * the same dirty folios again (with the reclaim
-+			 * flag set).
- 			 */
--			if (page_is_file_lru(page) &&
--			    (!current_is_kswapd() || !PageReclaim(page) ||
-+			if (folio_is_file_lru(folio) &&
-+			    (!current_is_kswapd() ||
-+			     !folio_test_reclaim(folio) ||
- 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
- 				/*
- 				 * Immediately reclaim when written back.
--				 * Similar in principal to deactivate_page()
--				 * except we already have the page isolated
-+				 * Similar in principle to deactivate_page()
-+				 * except we already have the folio isolated
- 				 * and know it's dirty
- 				 */
--				inc_node_page_state(page, NR_VMSCAN_IMMEDIATE);
--				SetPageReclaim(page);
-+				node_stat_mod_folio(folio, NR_VMSCAN_IMMEDIATE,
-+						nr_pages);
-+				folio_set_reclaim(folio);
- 
- 				goto activate_locked;
- 			}
-@@ -1821,8 +1824,8 @@ retry:
+-		if (PageAnon(page) && !PageSwapBacked(page)) {
++		if (folio_test_anon(folio) && !folio_test_swapbacked(folio)) {
+ 			/* follow __remove_mapping for reference */
+-			if (!page_ref_freeze(page, 1))
++			if (!folio_ref_freeze(folio, 1))
  				goto keep_locked;
- 
  			/*
--			 * Page is dirty. Flush the TLB if a writable entry
--			 * potentially exists to avoid CPU writes after IO
-+			 * Folio is dirty. Flush the TLB if a writable entry
-+			 * potentially exists to avoid CPU writes after I/O
- 			 * starts and then write it out here.
+-			 * The page has only one reference left, which is
++			 * The folio has only one reference left, which is
+ 			 * from the isolation. After the caller puts the
+-			 * page back on lru and drops the reference, the
+-			 * page will be freed anyway. It doesn't matter
+-			 * which lru it goes. So we don't bother checking
+-			 * PageDirty here.
++			 * folio back on the lru and drops the reference, the
++			 * folio will be freed anyway. It doesn't matter
++			 * which lru it goes on. So we don't bother checking
++			 * the dirty flag here.
  			 */
- 			try_to_unmap_flush_dirty();
-@@ -1834,23 +1837,24 @@ retry:
- 			case PAGE_SUCCESS:
- 				stat->nr_pageout += nr_pages;
- 
--				if (PageWriteback(page))
-+				if (folio_test_writeback(folio))
- 					goto keep;
--				if (PageDirty(page))
-+				if (folio_test_dirty(folio))
- 					goto keep;
- 
- 				/*
- 				 * A synchronous write - probably a ramdisk.  Go
--				 * ahead and try to reclaim the page.
-+				 * ahead and try to reclaim the folio.
- 				 */
--				if (!trylock_page(page))
-+				if (!folio_trylock(folio))
- 					goto keep;
--				if (PageDirty(page) || PageWriteback(page))
-+				if (folio_test_dirty(folio) ||
-+				    folio_test_writeback(folio))
- 					goto keep_locked;
--				mapping = page_mapping(page);
-+				mapping = folio_mapping(folio);
- 				fallthrough;
- 			case PAGE_CLEAN:
--				; /* try to free the page below */
-+				; /* try to free the folio below */
- 			}
- 		}
- 
+-			count_vm_event(PGLAZYFREED);
+-			count_memcg_page_event(page, PGLAZYFREED);
++			count_vm_events(PGLAZYFREED, nr_pages);
++			count_memcg_folio_events(folio, PGLAZYFREED, nr_pages);
+ 		} else if (!mapping || !__remove_mapping(mapping, folio, true,
+ 							 sc->target_mem_cgroup))
+ 			goto keep_locked;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
