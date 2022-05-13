@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 396B1C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:27:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8740FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383738AbiEMT1g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:27:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42844 "EHLO
+        id S1383743AbiEMT1h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:27:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383956AbiEMT0C (ORCPT
+        with ESMTP id S1383957AbiEMT0C (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:26:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C53FA3B022
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:23:45 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 180A53B01E;
+        Fri, 13 May 2022 12:23:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 620CB61654
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:23:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9AFEC34100;
-        Fri, 13 May 2022 19:23:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BE3E2B8315C;
+        Fri, 13 May 2022 19:23:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C8A0C34100;
+        Fri, 13 May 2022 19:23:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469824;
-        bh=ehZxlqRqtThKEWnx0VXbqEPLqZHZDd3AR+9gzpbzCgA=;
+        s=korg; t=1652469822;
+        bh=eNgrNyrzoHeF29y5MWq8fDP+ngWfj38kTgNrVtsUw+0=;
         h=Date:To:From:Subject:From;
-        b=iy/j0UcfSEzazHqMWEU0GfK3ZGwKi+HetvYDdCXxPgKToT0VsbNInxezBFr8bnWt+
-         Zhjwy2ShOktYspERzlpRwHamRQXleJtWQWeTcE+dMwn6rksPmPLGYszB293AP++v2V
-         3W3JH5Qx6A7DZNeRIufXHvgv6QSDi99qPXPEhwW0=
-Date:   Fri, 13 May 2022 12:23:44 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rostedt@goodmis.org,
-        jirislaby@kernel.org, gregkh@linuxfoundation.org,
-        akinobu.mita@gmail.com, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        b=pNuXuP2xm/vAaB2VePCsQ7hYpngcwwmMS2RYNxfEnUYargld9JSC6+kx79kkLJtPn
+         tSeucugGDUdLbK+mK2hZreebCSd5nnPm/+uhCvtXCV7EDmh/y0eMqj+eGuRDlyPZV2
+         1L8QFKxerrx7S1ZOzZHKxFGiJma51ETERyCzogX8=
+Date:   Fri, 13 May 2022 12:23:41 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        stable@vger.kernel.org, avagin@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch removed from -mm tree
-Message-Id: <20220513192344.B9AFEC34100@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fs-sendfile-handles-o_nonblock-of-out_fd.patch removed from -mm tree
+Message-Id: <20220513192342.7C8A0C34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,149 +41,128 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: tty: fix deadlock caused by calling printk() under tty_port->lock
+     Subject: fs: sendfile handles O_NONBLOCK of out_fd
 has been removed from the -mm tree.  Its filename was
-     tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock.patch
+     fs-sendfile-handles-o_nonblock-of-out_fd.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: tty: fix deadlock caused by calling printk() under tty_port->lock
+From: Andrei Vagin <avagin@gmail.com>
+Subject: fs: sendfile handles O_NONBLOCK of out_fd
 
-pty_write() invokes kmalloc() which may invoke a normal printk() to print
-failure message.  This can cause a deadlock in the scenario reported by
-syz-bot below:
+sendfile has to return EAGAIN if out_fd is nonblocking and the write into
+it would block.
 
-       CPU0              CPU1                    CPU2
-       ----              ----                    ----
-                         lock(console_owner);
-                                                 lock(&port_lock_key);
-  lock(&port->lock);
-                         lock(&port_lock_key);
-                                                 lock(&port->lock);
-  lock(console_owner);
+Here is a small reproducer for the problem:
 
-As commit dbdda842fe96 ("printk: Add console owner and waiter logic to
-load balance console writes") said, such deadlock can be prevented by
-using printk_deferred() in kmalloc() (which is invoked in the section
-guarded by the port->lock).  But there are too many printk() on the
-kmalloc() path, and kmalloc() can be called from anywhere, so changing
-printk() to printk_deferred() is too complicated and inelegant.
+#define _GNU_SOURCE /* See feature_test_macros(7) */
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/sendfile.h>
 
-Therefore, this patch chooses to specify __GFP_NOWARN to kmalloc(), so
-that printk() will not be called, and this deadlock problem can be
-avoided.
 
-Syzbot reported the following lockdep error:
+#define FILE_SIZE (1UL << 30)
+int main(int argc, char **argv) {
+        int p[2], fd;
 
-======================================================
-WARNING: possible circular locking dependency detected
-5.4.143-00237-g08ccc19a-dirty #10 Not tainted
-------------------------------------------------------
-syz-executor.4/29420 is trying to acquire lock:
-ffffffff8aedb2a0 (console_owner){....}-{0:0}, at: console_trylock_spinning kernel/printk/printk.c:1752 [inline]
-ffffffff8aedb2a0 (console_owner){....}-{0:0}, at: vprintk_emit+0x2ca/0x470 kernel/printk/printk.c:2023
+        if (pipe2(p, O_NONBLOCK))
+                return 1;
 
-but task is already holding lock:
-ffff8880119c9158 (&port->lock){-.-.}-{2:2}, at: pty_write+0xf4/0x1f0 drivers/tty/pty.c:120
+        fd = open(argv[1], O_RDWR | O_TMPFILE, 0666);
+        if (fd < 0)
+                return 1;
+        ftruncate(fd, FILE_SIZE);
 
-which lock already depends on the new lock.
+        if (sendfile(p[1], fd, 0, FILE_SIZE) == -1) {
+                fprintf(stderr, "FAIL\n");
+        }
+        if (sendfile(p[1], fd, 0, FILE_SIZE) != -1 || errno != EAGAIN) {
+                fprintf(stderr, "FAIL\n");
+        }
+        return 0;
+}
 
-the existing dependency chain (in reverse order) is:
+It worked before b964bf53e540, it is stuck after b964bf53e540, and it
+works again with this fix.
 
--> #2 (&port->lock){-.-.}-{2:2}:
-       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
-       _raw_spin_lock_irqsave+0x35/0x50 kernel/locking/spinlock.c:159
-       tty_port_tty_get drivers/tty/tty_port.c:288 [inline]          		<-- lock(&port->lock);
-       tty_port_default_wakeup+0x1d/0xb0 drivers/tty/tty_port.c:47
-       serial8250_tx_chars+0x530/0xa80 drivers/tty/serial/8250/8250_port.c:1767
-       serial8250_handle_irq.part.0+0x31f/0x3d0 drivers/tty/serial/8250/8250_port.c:1854
-       serial8250_handle_irq drivers/tty/serial/8250/8250_port.c:1827 [inline] 	<-- lock(&port_lock_key);
-       serial8250_default_handle_irq+0xb2/0x220 drivers/tty/serial/8250/8250_port.c:1870
-       serial8250_interrupt+0xfd/0x200 drivers/tty/serial/8250/8250_core.c:126
-       __handle_irq_event_percpu+0x109/0xa50 kernel/irq/handle.c:156
-       [...]
+This regression occurred because do_splice_direct() calls pipe_write
+that handles O_NONBLOCK.  Here is a trace log from the reproducer:
 
--> #1 (&port_lock_key){-.-.}-{2:2}:
-       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
-       _raw_spin_lock_irqsave+0x35/0x50 kernel/locking/spinlock.c:159
-       serial8250_console_write+0x184/0xa40 drivers/tty/serial/8250/8250_port.c:3198
-										<-- lock(&port_lock_key);
-       call_console_drivers kernel/printk/printk.c:1819 [inline]
-       console_unlock+0x8cb/0xd00 kernel/printk/printk.c:2504
-       vprintk_emit+0x1b5/0x470 kernel/printk/printk.c:2024			<-- lock(console_owner);
-       vprintk_func+0x8d/0x250 kernel/printk/printk_safe.c:394
-       printk+0xba/0xed kernel/printk/printk.c:2084
-       register_console+0x8b3/0xc10 kernel/printk/printk.c:2829
-       univ8250_console_init+0x3a/0x46 drivers/tty/serial/8250/8250_core.c:681
-       console_init+0x49d/0x6d3 kernel/printk/printk.c:2915
-       start_kernel+0x5e9/0x879 init/main.c:713
-       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
+ 1)               |  __x64_sys_sendfile64() {
+ 1)               |    do_sendfile() {
+ 1)               |      __fdget()
+ 1)               |      rw_verify_area()
+ 1)               |      __fdget()
+ 1)               |      rw_verify_area()
+ 1)               |      do_splice_direct() {
+ 1)               |        rw_verify_area()
+ 1)               |        splice_direct_to_actor() {
+ 1)               |          do_splice_to() {
+ 1)               |            rw_verify_area()
+ 1)               |            generic_file_splice_read()
+ 1) + 74.153 us   |          }
+ 1)               |          direct_splice_actor() {
+ 1)               |            iter_file_splice_write() {
+ 1)               |              __kmalloc()
+ 1)   0.148 us    |              pipe_lock();
+ 1)   0.153 us    |              splice_from_pipe_next.part.0();
+ 1)   0.162 us    |              page_cache_pipe_buf_confirm();
+... 16 times
+ 1)   0.159 us    |              page_cache_pipe_buf_confirm();
+ 1)               |              vfs_iter_write() {
+ 1)               |                do_iter_write() {
+ 1)               |                  rw_verify_area()
+ 1)               |                  do_iter_readv_writev() {
+ 1)               |                    pipe_write() {
+ 1)               |                      mutex_lock()
+ 1)   0.153 us    |                      mutex_unlock();
+ 1)   1.368 us    |                    }
+ 1)   1.686 us    |                  }
+ 1)   5.798 us    |                }
+ 1)   6.084 us    |              }
+ 1)   0.174 us    |              kfree();
+ 1)   0.152 us    |              pipe_unlock();
+ 1) + 14.461 us   |            }
+ 1) + 14.783 us   |          }
+ 1)   0.164 us    |          page_cache_pipe_buf_release();
+... 16 times
+ 1)   0.161 us    |          page_cache_pipe_buf_release();
+ 1)               |          touch_atime()
+ 1) + 95.854 us   |        }
+ 1) + 99.784 us   |      }
+ 1) ! 107.393 us  |    }
+ 1) ! 107.699 us  |  }
 
--> #0 (console_owner){....}-{0:0}:
-       [...]
-       lock_acquire+0x127/0x340 kernel/locking/lockdep.c:4734
-       console_trylock_spinning kernel/printk/printk.c:1773 [inline]		<-- lock(console_owner);
-       vprintk_emit+0x307/0x470 kernel/printk/printk.c:2023
-       vprintk_func+0x8d/0x250 kernel/printk/printk_safe.c:394
-       printk+0xba/0xed kernel/printk/printk.c:2084
-       fail_dump lib/fault-inject.c:45 [inline]
-       should_fail+0x67b/0x7c0 lib/fault-inject.c:144
-       __should_failslab+0x152/0x1c0 mm/failslab.c:33
-       should_failslab+0x5/0x10 mm/slab_common.c:1224
-       slab_pre_alloc_hook mm/slab.h:468 [inline]
-       slab_alloc_node mm/slub.c:2723 [inline]
-       slab_alloc mm/slub.c:2807 [inline]
-       __kmalloc+0x72/0x300 mm/slub.c:3871
-       kmalloc include/linux/slab.h:582 [inline]
-       tty_buffer_alloc+0x23f/0x2a0 drivers/tty/tty_buffer.c:175
-       __tty_buffer_request_room+0x156/0x2a0 drivers/tty/tty_buffer.c:273
-       tty_insert_flip_string_fixed_flag+0x93/0x250 drivers/tty/tty_buffer.c:318
-       tty_insert_flip_string include/linux/tty_flip.h:37 [inline]
-       pty_write+0x126/0x1f0 drivers/tty/pty.c:122				<-- lock(&port->lock);
-       n_tty_write+0xa7a/0xfc0 drivers/tty/n_tty.c:2356
-       do_tty_write drivers/tty/tty_io.c:961 [inline]
-       tty_write+0x512/0x930 drivers/tty/tty_io.c:1045
-       __vfs_write+0x76/0x100 fs/read_write.c:494
-       [...]
-
-other info that might help us debug this:
-
-Chain exists of:
-  console_owner --> &port_lock_key --> &port->lock
-
-Link: https://lkml.kernel.org/r/20220511061951.1114-2-zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/20220510113809.80626-2-zhengqi.arch@bytedance.com
-Fixes: b6da31b2c07c ("tty: Fix data race in tty_insert_flip_string_fixed_flag")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Jiri Slaby <jirislaby@kernel.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20220415005015.525191-1-avagin@gmail.com
+Fixes: b964bf53e540 ("teach sendfile(2) to handle send-to-pipe directly")
+Signed-off-by: Andrei Vagin <avagin@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/tty_buffer.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/read_write.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/drivers/tty/tty_buffer.c~tty-fix-deadlock-caused-by-calling-printk-under-tty_port-lock
-+++ a/drivers/tty/tty_buffer.c
-@@ -175,7 +175,8 @@ static struct tty_buffer *tty_buffer_all
- 	 */
- 	if (atomic_read(&port->buf.mem_used) > port->buf.mem_limit)
- 		return NULL;
--	p = kmalloc(sizeof(struct tty_buffer) + 2 * size, GFP_ATOMIC);
-+	p = kmalloc(sizeof(struct tty_buffer) + 2 * size,
-+		    GFP_ATOMIC | __GFP_NOWARN);
- 	if (p == NULL)
- 		return NULL;
+--- a/fs/read_write.c~fs-sendfile-handles-o_nonblock-of-out_fd
++++ a/fs/read_write.c
+@@ -1247,6 +1247,9 @@ static ssize_t do_sendfile(int out_fd, i
+ 					  count, fl);
+ 		file_end_write(out.file);
+ 	} else {
++		if (out.file->f_flags & O_NONBLOCK)
++			fl |= SPLICE_F_NONBLOCK;
++
+ 		retval = splice_file_to_pipe(in.file, opipe, &pos, count, fl);
+ 	}
  
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from avagin@gmail.com are
 
-mm-fix-missing-handler-for-__gfp_nowarn.patch
-mm-fix-missing-handler-for-__gfp_nowarn-v2.patch
 
