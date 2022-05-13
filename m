@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5C4AC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 653ABC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383672AbiEMTWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1383710AbiEMTWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 13 May 2022 15:22:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42888 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383817AbiEMTWT (ORCPT
+        with ESMTP id S1383814AbiEMTWT (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:22:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE587344C6
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F7EC33EB4
         for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 749F4B8315C
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C06A862245
         for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22E6BC34100;
-        Fri, 13 May 2022 19:21:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 273D0C34113;
+        Fri, 13 May 2022 19:21:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469704;
-        bh=bPT3r1AXe1shDjRopVwHYTX0spy9w9zeWXXHWxzrpcs=;
+        s=korg; t=1652469705;
+        bh=k8mA+rISScEJEiHvcbWwzc+bYkNhOF2hzon4MRuQ7K8=;
         h=Date:To:From:Subject:From;
-        b=raM9Dx0guHUWKUvisZNSj0YMENnGdIE/xd0nanymcSH3t6d8eCSrEEZnitvUJxwCG
-         WIRPvlpsVd3WyB/y/+4s26HWqdwU7KsdzO5ZUGDVRsbOhwUGa4TARUhxq7mZYCqOzs
-         AKqq0d/q2KThqedu7bRNsdAL4cXeqbEOe6ATxyv8=
-Date:   Fri, 13 May 2022 12:21:43 -0700
+        b=pnZv++TBSP/W5klbS6StHntUEYM7u50jM98CyvBfJGRivS+rEG1mwbKvuKpxfCKhl
+         OfnIgmEsThR0OeuHlGyTDG88Ovl+pR8HjhMbjEVM5PocDjeIgqIElW/NMgVO6QyRvt
+         K1NuSlafbymWNMMcSSX8IqDGR2lSkOx0b3DDpXuc=
+Date:   Fri, 13 May 2022 12:21:44 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-alloc_pages_vma.patch removed from -mm tree
-Message-Id: <20220513192144.22E6BC34100@smtp.kernel.org>
+Subject: [merged mm-stable] vmscan-use-folio_mapped-in-shrink_page_list.patch removed from -mm tree
+Message-Id: <20220513192145.273D0C34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,185 +41,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove alloc_pages_vma()
+     Subject: vmscan: use folio_mapped() in shrink_page_list()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-alloc_pages_vma.patch
+     vmscan-use-folio_mapped-in-shrink_page_list.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove alloc_pages_vma()
+Subject: vmscan: use folio_mapped() in shrink_page_list()
 
-All callers have now been converted to use vma_alloc_folio(), so convert
-the body of alloc_pages_vma() to allocate folios instead.
+Remove some legacy function calls.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   18 +++++---------
- mm/mempolicy.c      |   51 ++++++++++++++++++++----------------------
- 2 files changed, 32 insertions(+), 37 deletions(-)
+ mm/vmscan.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/include/linux/gfp.h~mm-remove-alloc_pages_vma
-+++ a/include/linux/gfp.h
-@@ -613,13 +613,8 @@ static inline struct page *alloc_pages_n
- #ifdef CONFIG_NUMA
- struct page *alloc_pages(gfp_t gfp, unsigned int order);
- struct folio *folio_alloc(gfp_t gfp, unsigned order);
--struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
--			struct vm_area_struct *vma, unsigned long addr,
--			bool hugepage);
- struct folio *vma_alloc_folio(gfp_t gfp, int order, struct vm_area_struct *vma,
- 		unsigned long addr, bool hugepage);
--#define alloc_hugepage_vma(gfp_mask, vma, addr, order) \
--	alloc_pages_vma(gfp_mask, order, vma, addr, true)
- #else
- static inline struct page *alloc_pages(gfp_t gfp_mask, unsigned int order)
- {
-@@ -629,16 +624,17 @@ static inline struct folio *folio_alloc(
- {
- 	return __folio_alloc_node(gfp, order, numa_node_id());
- }
--#define alloc_pages_vma(gfp_mask, order, vma, addr, hugepage) \
--	alloc_pages(gfp_mask, order)
- #define vma_alloc_folio(gfp, order, vma, addr, hugepage)		\
- 	folio_alloc(gfp, order)
--#define alloc_hugepage_vma(gfp_mask, vma, addr, order) \
--	alloc_pages(gfp_mask, order)
- #endif
- #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
--#define alloc_page_vma(gfp_mask, vma, addr)			\
--	alloc_pages_vma(gfp_mask, 0, vma, addr, false)
-+static inline struct page *alloc_page_vma(gfp_t gfp,
-+		struct vm_area_struct *vma, unsigned long addr)
-+{
-+	struct folio *folio = vma_alloc_folio(gfp, 0, vma, addr, false);
-+
-+	return &folio->page;
-+}
+--- a/mm/vmscan.c~vmscan-use-folio_mapped-in-shrink_page_list
++++ a/mm/vmscan.c
+@@ -1572,7 +1572,7 @@ retry:
+ 		if (unlikely(!page_evictable(page)))
+ 			goto activate_locked;
  
- extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
- extern unsigned long get_zeroed_page(gfp_t gfp_mask);
---- a/mm/mempolicy.c~mm-remove-alloc_pages_vma
-+++ a/mm/mempolicy.c
-@@ -2136,44 +2136,55 @@ static struct page *alloc_pages_preferre
- }
+-		if (!sc->may_unmap && page_mapped(page))
++		if (!sc->may_unmap && folio_mapped(folio))
+ 			goto keep_locked;
  
- /**
-- * alloc_pages_vma - Allocate a page for a VMA.
-+ * vma_alloc_folio - Allocate a folio for a VMA.
-  * @gfp: GFP flags.
-- * @order: Order of the GFP allocation.
-+ * @order: Order of the folio.
-  * @vma: Pointer to VMA or NULL if not available.
-  * @addr: Virtual address of the allocation.  Must be inside @vma.
-  * @hugepage: For hugepages try only the preferred node if possible.
-  *
-- * Allocate a page for a specific address in @vma, using the appropriate
-+ * Allocate a folio for a specific address in @vma, using the appropriate
-  * NUMA policy.  When @vma is not NULL the caller must hold the mmap_lock
-  * of the mm_struct of the VMA to prevent it from going away.  Should be
-- * used for all allocations for pages that will be mapped into user space.
-+ * used for all allocations for folios that will be mapped into user space.
-  *
-- * Return: The page on success or NULL if allocation fails.
-+ * Return: The folio on success or NULL if allocation fails.
-  */
--struct page *alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
-+struct folio *vma_alloc_folio(gfp_t gfp, int order, struct vm_area_struct *vma,
- 		unsigned long addr, bool hugepage)
- {
- 	struct mempolicy *pol;
- 	int node = numa_node_id();
--	struct page *page;
-+	struct folio *folio;
- 	int preferred_nid;
- 	nodemask_t *nmask;
- 
- 	pol = get_vma_policy(vma, addr);
- 
- 	if (pol->mode == MPOL_INTERLEAVE) {
-+		struct page *page;
- 		unsigned nid;
- 
- 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT + order);
- 		mpol_cond_put(pol);
-+		gfp |= __GFP_COMP;
- 		page = alloc_page_interleave(gfp, order, nid);
-+		if (page && order > 1)
-+			prep_transhuge_page(page);
-+		folio = (struct folio *)page;
- 		goto out;
- 	}
- 
- 	if (pol->mode == MPOL_PREFERRED_MANY) {
-+		struct page *page;
-+
- 		node = policy_node(gfp, pol, node);
-+		gfp |= __GFP_COMP;
- 		page = alloc_pages_preferred_many(gfp, order, node, pol);
- 		mpol_cond_put(pol);
-+		if (page && order > 1)
-+			prep_transhuge_page(page);
-+		folio = (struct folio *)page;
- 		goto out;
- 	}
- 
-@@ -2200,8 +2211,8 @@ struct page *alloc_pages_vma(gfp_t gfp,
- 			 * First, try to allocate THP only on local node, but
- 			 * don't reclaim unnecessarily, just compact.
- 			 */
--			page = __alloc_pages_node(hpage_node,
--				gfp | __GFP_THISNODE | __GFP_NORETRY, order);
-+			folio = __folio_alloc_node(gfp | __GFP_THISNODE |
-+					__GFP_NORETRY, order, hpage_node);
- 
- 			/*
- 			 * If hugepage allocations are configured to always
-@@ -2209,8 +2220,9 @@ struct page *alloc_pages_vma(gfp_t gfp,
- 			 * to prefer hugepage backing, retry allowing remote
- 			 * memory with both reclaim and compact as well.
- 			 */
--			if (!page && (gfp & __GFP_DIRECT_RECLAIM))
--				page = __alloc_pages(gfp, order, hpage_node, nmask);
-+			if (!folio && (gfp & __GFP_DIRECT_RECLAIM))
-+				folio = __folio_alloc(gfp, order, hpage_node,
-+						      nmask);
- 
- 			goto out;
+ 		/*
+@@ -1761,21 +1761,21 @@ retry:
  		}
-@@ -2218,25 +2230,12 @@ struct page *alloc_pages_vma(gfp_t gfp,
  
- 	nmask = policy_nodemask(gfp, pol);
- 	preferred_nid = policy_node(gfp, pol, node);
--	page = __alloc_pages(gfp, order, preferred_nid, nmask);
-+	folio = __folio_alloc(gfp, order, preferred_nid, nmask);
- 	mpol_cond_put(pol);
- out:
--	return page;
--}
--EXPORT_SYMBOL(alloc_pages_vma);
--
--struct folio *vma_alloc_folio(gfp_t gfp, int order, struct vm_area_struct *vma,
--		unsigned long addr, bool hugepage)
--{
--	struct folio *folio;
--
--	folio = (struct folio *)alloc_pages_vma(gfp, order, vma, addr,
--			hugepage);
--	if (folio && order > 1)
--		prep_transhuge_page(&folio->page);
--
- 	return folio;
- }
-+EXPORT_SYMBOL(vma_alloc_folio);
+ 		/*
+-		 * The page is mapped into the page tables of one or more
++		 * The folio is mapped into the page tables of one or more
+ 		 * processes. Try to unmap it here.
+ 		 */
+-		if (page_mapped(page)) {
++		if (folio_mapped(folio)) {
+ 			enum ttu_flags flags = TTU_BATCH_FLUSH;
+-			bool was_swapbacked = PageSwapBacked(page);
++			bool was_swapbacked = folio_test_swapbacked(folio);
  
- /**
-  * alloc_pages - Allocate pages.
+-			if (PageTransHuge(page) &&
+-					thp_order(page) >= HPAGE_PMD_ORDER)
++			if (folio_test_pmd_mappable(folio))
+ 				flags |= TTU_SPLIT_HUGE_PMD;
+ 
+ 			try_to_unmap(folio, flags);
+-			if (page_mapped(page)) {
++			if (folio_mapped(folio)) {
+ 				stat->nr_unmap_fail += nr_pages;
+-				if (!was_swapbacked && PageSwapBacked(page))
++				if (!was_swapbacked &&
++				    folio_test_swapbacked(folio))
+ 					stat->nr_lazyfree_fail += nr_pages;
+ 				goto activate_locked;
+ 			}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
