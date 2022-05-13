@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF54C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:25:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 663A6C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:25:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383865AbiEMTZH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:25:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44862 "EHLO
+        id S1383868AbiEMTZJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:25:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383875AbiEMTXQ (ORCPT
+        with ESMTP id S1383882AbiEMTXQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:23:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CE5D3E5DE
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:16 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E02CA2ED75
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CE83FB831A4
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85B33C34113;
-        Fri, 13 May 2022 19:22:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6851B60C2A
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBA08C34117;
+        Fri, 13 May 2022 19:22:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469733;
-        bh=OIKjiY7Pb8ld81N/kPv0EsLJ06huAyGuRsE2gSUk0Vc=;
+        s=korg; t=1652469738;
+        bh=XASH4O7kYoPoRW85nqgIc1BKM6WaMRuE3U9hCbKRTaA=;
         h=Date:To:From:Subject:From;
-        b=mg+Jq6ekBduGjkIQnFLK4aE2IXWd03ymffZc6XeFhOI4M1GoTQlI61csQVn+0nsmd
-         HBigCx80JzInwkVHsZQMYzd4MP2YyQZdN4mijNipCaWGHwNCW4ivlSrLoQ/fvFpvw3
-         CKicaUnWcguGXE+FRwY7h6z0IaIFxetTgbZclD8E=
-Date:   Fri, 13 May 2022 12:22:12 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        wangkefeng.wang@huawei.com, paul.walmsley@sifive.com,
-        pasha.tatashin@soleen.com, palmer@dabbelt.com, mingo@redhat.com,
-        hpa@zytor.com, dave.hansen@linux.intel.com,
-        catalin.marinas@arm.com, bp@alien8.de, anshuman.khandual@arm.com,
-        tongtiangen@huawei.com, akpm@linux-foundation.org
+        b=2vT0ZtqPS6tXV1n9qI2+Q5mgIr2Y6ufNYIX8D3BTm7ELHXGEGTdjVBlimLiWYHB3U
+         mbFlozMMYLwxSpJjldszrr9V0+v+wWyI90mtjooAfOIN3XTxgRzPv5tOHMKseFs+Jt
+         qC2DmUy2Vn/dQFCESxTf9hCDmCy+V/TBqAchqjrE=
+Date:   Fri, 13 May 2022 12:22:18 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        ngupta@vflare.org, minchan@kernel.org, ddrokosov@sberdevices.ru,
+        avromanov@sberdevices.ru, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] riscv-mm-enable-arch_supports_page_table_check.patch removed from -mm tree
-Message-Id: <20220513192213.85B33C34113@smtp.kernel.org>
+Subject: [merged mm-stable] zram-remove-double-compression-logic.patch removed from -mm tree
+Message-Id: <20220513192218.BBA08C34117@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,207 +42,137 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: riscv/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK
+     Subject: zram: remove double compression logic
 has been removed from the -mm tree.  Its filename was
-     riscv-mm-enable-arch_supports_page_table_check.patch
+     zram-remove-double-compression-logic.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tong Tiangen <tongtiangen@huawei.com>
-Subject: riscv/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK
+From: Alexey Romanov <avromanov@sberdevices.ru>
+Subject: zram: remove double compression logic
 
-As commit d283d422c6c4 ("x86: mm: add x86_64 support for page table
-check"), enable ARCH_SUPPORTS_PAGE_TABLE_CHECK on riscv.
+The 2nd trial allocation under per-cpu presumption has been used to
+prevent regression of allocation failure.  However, it makes trouble for
+maintenance without significant benefit.  The slowpath branch is executed
+extremely rarely: getting there is problematic.  Therefore, we delete this
+branch.
 
-Add additional page table check stubs for page table helpers, these stubs
-can be used to check the existing page table entries.
+Since b09ab054b69b ("zram: support BDI_CAP_STABLE_WRITES"), zram has used
+QUEUE_FLAG_STABLE_WRITES to prevent buffer change between 1st and 2nd
+memory allocations.  Since we remove second trial memory allocation logic,
+we could remove the STABLE_WRITES flag because there is no change buffer
+to be modified under us.
 
-Link: https://lkml.kernel.org/r/20220507110114.4128854-7-tongtiangen@huawei.com
-Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20220505094443.11728-1-avromanov@sberdevices.ru
+Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
+Signed-off-by: Dmitry Rokosov <ddrokosov@sberdevices.ru>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig               |    1 
- arch/riscv/include/asm/pgtable.h |   71 ++++++++++++++++++++++++++---
- 2 files changed, 66 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |   42 +++++++-------------------------
+ drivers/block/zram/zram_drv.h |    1 
+ 2 files changed, 10 insertions(+), 33 deletions(-)
 
---- a/arch/riscv/include/asm/pgtable.h~riscv-mm-enable-arch_supports_page_table_check
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -114,6 +114,8 @@
- #include <asm/pgtable-32.h>
- #endif /* CONFIG_64BIT */
- 
-+#include <linux/page_table_check.h>
-+
- #ifdef CONFIG_XIP_KERNEL
- #define XIP_FIXUP(addr) ({							\
- 	uintptr_t __a = (uintptr_t)(addr);					\
-@@ -315,6 +317,11 @@ static inline int pte_exec(pte_t pte)
- 	return pte_val(pte) & _PAGE_EXEC;
- }
- 
-+static inline int pte_user(pte_t pte)
-+{
-+	return pte_val(pte) & _PAGE_USER;
-+}
-+
- static inline int pte_huge(pte_t pte)
+--- a/drivers/block/zram/zram_drv.c~zram-remove-double-compression-logic
++++ a/drivers/block/zram/zram_drv.c
+@@ -1144,15 +1144,14 @@ static ssize_t bd_stat_show(struct devic
+ static ssize_t debug_stat_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	return pte_present(pte) && (pte_val(pte) & _PAGE_LEAF);
-@@ -446,7 +453,7 @@ static inline void set_pte(pte_t *ptep,
+-	int version = 1;
++	int version = 2;
+ 	struct zram *zram = dev_to_zram(dev);
+ 	ssize_t ret;
  
- void flush_icache_pte(pte_t pte);
+ 	down_read(&zram->init_lock);
+ 	ret = scnprintf(buf, PAGE_SIZE,
+-			"version: %d\n%8llu %8llu\n",
++			"version: %d\n%8llu\n",
+ 			version,
+-			(u64)atomic64_read(&zram->stats.writestall),
+ 			(u64)atomic64_read(&zram->stats.miss_free));
+ 	up_read(&zram->init_lock);
  
--static inline void set_pte_at(struct mm_struct *mm,
-+static inline void __set_pte_at(struct mm_struct *mm,
- 	unsigned long addr, pte_t *ptep, pte_t pteval)
- {
- 	if (pte_present(pteval) && pte_exec(pteval))
-@@ -455,10 +462,17 @@ static inline void set_pte_at(struct mm_
- 	set_pte(ptep, pteval);
- }
+@@ -1368,7 +1367,6 @@ static int __zram_bvec_write(struct zram
+ 	}
+ 	kunmap_atomic(mem);
  
-+static inline void set_pte_at(struct mm_struct *mm,
-+	unsigned long addr, pte_t *ptep, pte_t pteval)
-+{
-+	page_table_check_pte_set(mm, addr, ptep, pteval);
-+	__set_pte_at(mm, addr, ptep, pteval);
-+}
-+
- static inline void pte_clear(struct mm_struct *mm,
- 	unsigned long addr, pte_t *ptep)
- {
--	set_pte_at(mm, addr, ptep, __pte(0));
-+	__set_pte_at(mm, addr, ptep, __pte(0));
- }
+-compress_again:
+ 	zstrm = zcomp_stream_get(zram->comp);
+ 	src = kmap_atomic(page);
+ 	ret = zcomp_compress(zstrm, src, &comp_len);
+@@ -1377,39 +1375,20 @@ compress_again:
+ 	if (unlikely(ret)) {
+ 		zcomp_stream_put(zram->comp);
+ 		pr_err("Compression failed! err=%d\n", ret);
+-		zs_free(zram->mem_pool, handle);
+ 		return ret;
+ 	}
  
- #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
-@@ -479,7 +493,11 @@ static inline int ptep_set_access_flags(
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
- 				       unsigned long address, pte_t *ptep)
- {
--	return __pte(atomic_long_xchg((atomic_long_t *)ptep, 0));
-+	pte_t pte = __pte(atomic_long_xchg((atomic_long_t *)ptep, 0));
+ 	if (comp_len >= huge_class_size)
+ 		comp_len = PAGE_SIZE;
+-	/*
+-	 * handle allocation has 2 paths:
+-	 * a) fast path is executed with preemption disabled (for
+-	 *  per-cpu streams) and has __GFP_DIRECT_RECLAIM bit clear,
+-	 *  since we can't sleep;
+-	 * b) slow path enables preemption and attempts to allocate
+-	 *  the page with __GFP_DIRECT_RECLAIM bit set. we have to
+-	 *  put per-cpu compression stream and, thus, to re-do
+-	 *  the compression once handle is allocated.
+-	 *
+-	 * if we have a 'non-null' handle here then we are coming
+-	 * from the slow path and handle has already been allocated.
+-	 */
+-	if (!handle)
+-		handle = zs_malloc(zram->mem_pool, comp_len,
+-				__GFP_KSWAPD_RECLAIM |
+-				__GFP_NOWARN |
+-				__GFP_HIGHMEM |
+-				__GFP_MOVABLE);
+-	if (!handle) {
 +
-+	page_table_check_pte_clear(mm, address, pte);
++	handle = zs_malloc(zram->mem_pool, comp_len,
++			__GFP_KSWAPD_RECLAIM |
++			__GFP_NOWARN |
++			__GFP_HIGHMEM |
++			__GFP_MOVABLE);
 +
-+	return pte;
- }
++	if (unlikely(!handle)) {
+ 		zcomp_stream_put(zram->comp);
+-		atomic64_inc(&zram->stats.writestall);
+-		handle = zs_malloc(zram->mem_pool, comp_len,
+-				GFP_NOIO | __GFP_HIGHMEM |
+-				__GFP_MOVABLE);
+-		if (handle)
+-			goto compress_again;
+ 		return -ENOMEM;
+ 	}
  
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
-@@ -546,6 +564,13 @@ static inline unsigned long pmd_pfn(pmd_
- 	return ((__pmd_to_phys(pmd) & PMD_MASK) >> PAGE_SHIFT);
- }
+@@ -1967,7 +1946,6 @@ static int zram_add(void)
+ 	if (ZRAM_LOGICAL_BLOCK_SIZE == PAGE_SIZE)
+ 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
  
-+#define __pud_to_phys(pud)  (pud_val(pud) >> _PAGE_PFN_SHIFT << PAGE_SHIFT)
-+
-+static inline unsigned long pud_pfn(pud_t pud)
-+{
-+	return ((__pud_to_phys(pud) & PUD_MASK) >> PAGE_SHIFT);
-+}
-+
- static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
- {
- 	return pte_pmd(pte_modify(pmd_pte(pmd), newprot));
-@@ -567,6 +592,11 @@ static inline int pmd_young(pmd_t pmd)
- 	return pte_young(pmd_pte(pmd));
- }
- 
-+static inline int pmd_user(pmd_t pmd)
-+{
-+	return pte_user(pmd_pte(pmd));
-+}
-+
- static inline pmd_t pmd_mkold(pmd_t pmd)
- {
- 	return pte_pmd(pte_mkold(pmd_pte(pmd)));
-@@ -600,15 +630,39 @@ static inline pmd_t pmd_mkdirty(pmd_t pm
- static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 				pmd_t *pmdp, pmd_t pmd)
- {
--	return set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd));
-+	page_table_check_pmd_set(mm, addr, pmdp, pmd);
-+	return __set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd));
-+}
-+
-+static inline int pud_user(pud_t pud)
-+{
-+	return pte_user(pud_pte(pud));
- }
- 
- static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
- 				pud_t *pudp, pud_t pud)
- {
--	return set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud));
-+	page_table_check_pud_set(mm, addr, pudp, pud);
-+	return __set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud));
-+}
-+
-+#ifdef CONFIG_PAGE_TABLE_CHECK
-+static inline bool pte_user_accessible_page(pte_t pte)
-+{
-+	return pte_present(pte) && pte_user(pte);
-+}
-+
-+static inline bool pmd_user_accessible_page(pmd_t pmd)
-+{
-+	return pmd_leaf(pmd) && pmd_user(pmd);
- }
- 
-+static inline bool pud_user_accessible_page(pud_t pud)
-+{
-+	return pud_leaf(pud) && pud_user(pud);
-+}
-+#endif
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline int pmd_trans_huge(pmd_t pmd)
- {
-@@ -634,7 +688,11 @@ static inline int pmdp_test_and_clear_yo
- static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
- 					unsigned long address, pmd_t *pmdp)
- {
--	return pte_pmd(ptep_get_and_clear(mm, address, (pte_t *)pmdp));
-+	pmd_t pmd = __pmd(atomic_long_xchg((atomic_long_t *)pmdp, 0));
-+
-+	page_table_check_pmd_clear(mm, address, pmd);
-+
-+	return pmd;
- }
- 
- #define __HAVE_ARCH_PMDP_SET_WRPROTECT
-@@ -648,6 +706,7 @@ static inline void pmdp_set_wrprotect(st
- static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
- 				unsigned long address, pmd_t *pmdp, pmd_t pmd)
- {
-+	page_table_check_pmd_set(vma->vm_mm, address, pmdp, pmd);
- 	return __pmd(atomic_long_xchg((atomic_long_t *)pmdp, pmd_val(pmd)));
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
---- a/arch/riscv/Kconfig~riscv-mm-enable-arch_supports_page_table_check
-+++ a/arch/riscv/Kconfig
-@@ -38,6 +38,7 @@ config RISCV
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC if MMU
- 	select ARCH_SUPPORTS_HUGETLBFS if MMU
-+	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
- 	select ARCH_USE_MEMTEST
- 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT if MMU
- 	select ARCH_WANT_FRAME_POINTERS
+-	blk_queue_flag_set(QUEUE_FLAG_STABLE_WRITES, zram->disk->queue);
+ 	ret = device_add_disk(NULL, zram->disk, zram_disk_groups);
+ 	if (ret)
+ 		goto out_cleanup_disk;
+--- a/drivers/block/zram/zram_drv.h~zram-remove-double-compression-logic
++++ a/drivers/block/zram/zram_drv.h
+@@ -81,7 +81,6 @@ struct zram_stats {
+ 	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
+ 	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
+-	atomic64_t writestall;		/* no. of write slow paths */
+ 	atomic64_t miss_free;		/* no. of missed free */
+ #ifdef	CONFIG_ZRAM_WRITEBACK
+ 	atomic64_t bd_count;		/* no. of pages in backing device */
 _
 
-Patches currently in -mm which might be from tongtiangen@huawei.com are
+Patches currently in -mm which might be from avromanov@sberdevices.ru are
 
 
