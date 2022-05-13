@@ -2,127 +2,114 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21E0AC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:28:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBDDEC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:39:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383805AbiEMT17 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:27:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42752 "EHLO
+        id S1383838AbiEMTjf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:39:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383894AbiEMTY2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:24:28 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 427F030566
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:36 -0700 (PDT)
+        with ESMTP id S1383685AbiEMTje (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:39:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C00AA4C433
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:39:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id A71C6CE3301
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EF5AC34100;
-        Fri, 13 May 2022 19:22:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 821EAB83177
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:39:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35361C34100;
+        Fri, 13 May 2022 19:39:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469753;
-        bh=PfW2TTbFw8+BMVLCrUct0u1b5GWXnRAyBi/kTmi3XWw=;
+        s=korg; t=1652470771;
+        bh=+MvTIbhnfv8t9CF6DmkTSE0+6A1rXRhXFWD6iTR19IE=;
         h=Date:To:From:Subject:From;
-        b=qTuadxoX78W6Q1lTjT12sHKXnlFDQbbacy69IEv4PzYOwX/L9WdSEyCfOj+lpRHUH
-         l55J+AZ5qbdZ0moqdqHtGwV2tjCW6GhIQabB/6i4CTAiJIvEMkbdVnFuM2Z8KNo38/
-         Vrmn88VJwdatWmeO6JN1ZZjsIabvBQl+U8ajTQV4=
-Date:   Fri, 13 May 2022 12:22:32 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        pizhenwei@bytedance.com, akpm@linux-foundation.org
+        b=u7fNo18+1lfAyC/vBOYH7tHM+/8VnJ8oTwutFTljXOLFQ8le1m05kFY896oJlxrxm
+         c+GycOPvNjKqK4/AnBO8bF7aQE8oJlHB/0D6Kj1h+Fd3M7SciAGcokJ0yplYp/R1Dv
+         o3eG6Y6g4nsD4GGVxWYpXqV2DZOkl5qc1I3yJH/k=
+Date:   Fri, 13 May 2022 12:39:30 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        quic_qiancai@quicinc.com, Liam.Howlett@oracle.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failurec-simplify-num_poisoned_pages_inc-dec.patch removed from -mm tree
-Message-Id: <20220513192233.0EF5AC34100@smtp.kernel.org>
+Subject: + mm-remove-the-vma-linked-list-fix.patch added to mm-unstable branch
+Message-Id: <20220513193931.35361C34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/memory-failure.c: simplify num_poisoned_pages_inc/dec
-has been removed from the -mm tree.  Its filename was
-     mm-memory-failurec-simplify-num_poisoned_pages_inc-dec.patch
+The patch titled
+     Subject: mm/mmap: fix potential leak on do_mas_align_munmap()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-remove-the-vma-linked-list-fix.patch
 
-This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-the-vma-linked-list-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: zhenwei pi <pizhenwei@bytedance.com>
-Subject: mm/memory-failure.c: simplify num_poisoned_pages_inc/dec
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: mm/mmap: fix potential leak on do_mas_align_munmap()
+Date: Fri, 13 May 2022 14:15:53 +0000
 
-Originally, do num_poisoned_pages_inc() in memory failure routine, use
-num_poisoned_pages_dec() to rollback the number if filtered/ cancelled.
+There is a leak when the system is low on resources and fails to allocate
+enough memory to complete the munmap task.  Fix this by adding the
+necessary free operations in the unwinding.
 
-Suggested by Naoya, do num_poisoned_pages_inc() only in action_result(),
-this make this clear and simple.
-
-Link: https://lkml.kernel.org/r/20220509105641.491313-6-pizhenwei@bytedance.com
-Signed-off-by: zhenwei pi <pizhenwei@bytedance.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20220513141548.2019143-1-Liam.Howlett@oracle.com
+Fixes: a760774e7b7b (mm: start tracking VMAs with maple tree)
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Qian Cai <quic_qiancai@quicinc.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/mmap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failurec-simplify-num_poisoned_pages_inc-dec
-+++ a/mm/memory-failure.c
-@@ -1132,6 +1132,7 @@ static void action_result(unsigned long
- {
- 	trace_memory_failure_event(pfn, type, result);
+--- a/mm/mmap.c~mm-remove-the-vma-linked-list-fix
++++ a/mm/mmap.c
+@@ -2394,7 +2394,7 @@ do_mas_align_munmap(struct ma_state *mas
+ 		return -ENOMEM;
  
-+	num_poisoned_pages_inc();
- 	pr_err("Memory failure: %#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
+ 	if (mas_preallocate(&mas_detach, vma, GFP_KERNEL))
+-		return -ENOMEM;
++		goto detach_alloc_fail;
+ 
+ 	mas->last = end - 1;
+ 	/*
+@@ -2533,6 +2533,8 @@ do_mas_align_munmap(struct ma_state *mas
+ map_count_exceeded:
+ split_failed:
+ userfaultfd_error:
++	mas_destroy(&mas_detach);
++detach_alloc_fail:
+ 	mas_destroy(mas);
+ 	return error;
  }
-@@ -1587,8 +1588,6 @@ retry:
- 		goto out;
- 	}
- 
--	num_poisoned_pages_inc();
--
- 	/*
- 	 * Handling free hugepage.  The possible race with hugepage allocation
- 	 * or demotion can be prevented by PageHWPoison flag.
-@@ -1806,7 +1805,6 @@ try_again:
- 	}
- 
- 	hpage = compound_head(p);
--	num_poisoned_pages_inc();
- 
- 	/*
- 	 * We need/can do nothing about count=0 pages.
-@@ -1830,7 +1828,6 @@ try_again:
- 					/* We lost the race, try again */
- 					if (retry) {
- 						ClearPageHWPoison(p);
--						num_poisoned_pages_dec();
- 						retry = false;
- 						goto try_again;
- 					}
-@@ -1893,8 +1890,7 @@ try_again:
- 	 */
- 	if (PageCompound(p)) {
- 		if (retry) {
--			if (TestClearPageHWPoison(p))
--				num_poisoned_pages_dec();
-+			ClearPageHWPoison(p);
- 			unlock_page(p);
- 			put_page(p);
- 			flags &= ~MF_COUNT_INCREASED;
-@@ -1916,8 +1912,7 @@ try_again:
- 	page_flags = p->flags;
- 
- 	if (hwpoison_filter(p)) {
--		if (TestClearPageHWPoison(p))
--			num_poisoned_pages_dec();
-+		TestClearPageHWPoison(p);
- 		unlock_page(p);
- 		put_page(p);
- 		res = -EOPNOTSUPP;
 _
 
-Patches currently in -mm which might be from pizhenwei@bytedance.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
+maple-tree-add-new-data-structure-fix.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
+mm-start-tracking-vmas-with-maple-tree-fix-2.patch
+mm-remove-the-vma-linked-list-fix.patch
 
