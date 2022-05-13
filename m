@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B82A5C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D34E0C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383696AbiEMTWg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:22:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40876 "EHLO
+        id S1383850AbiEMTWh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:22:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383807AbiEMTWT (ORCPT
+        with ESMTP id S1383804AbiEMTWT (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:22:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B1ED3B01E
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BE323B022
         for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C74FE6225A
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AC4AC34113;
-        Fri, 13 May 2022 19:21:43 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 9D7BCCE3313
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0726BC34113;
+        Fri, 13 May 2022 19:21:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469703;
-        bh=H6ifKKoKeBUa6ZcjKxdu8Wnjnvbe0phA9pzTA1haXMc=;
+        s=korg; t=1652469701;
+        bh=hgzE/o9B3BhN2tHberhJh9a/QTaQtsu+LyxWfL9XvBY=;
         h=Date:To:From:Subject:From;
-        b=Fs8TBBs4SzKU+DReepalPf3QWme2q9kqYUf5J0P7L6Awkjdj7mir/ZCvOkt5FkkOA
-         JoTn6WyjA866YVN0Vsbh2VteGG/7kzSLPcy2oNbOWrZ+O847OD4z8z49OK/Q1Ml5gW
-         +8jPZvsrwLvMFSWwANEImjvVTbr53ovchDY2MLE8=
-Date:   Fri, 13 May 2022 12:21:42 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, hch@lst.de,
+        b=LCggIbXezyZOn9Vuv0qLBMO4A3LO3QntTdEn8gyQyJkxm/awl0LmTwfzcF1z59hTb
+         5carxBNmE9HIM8qlpPG9289BmS8njy4ntjAx4meb7zJJxFFaDqIZSYfOqwtP40ltWK
+         nR2p1yJuinBH5D/c1oh0bUUBGr/R1czHYeDLy1u0=
+Date:   Fri, 13 May 2022 12:21:40 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, hch@lst.de,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] alpha-fix-alloc_zeroed_user_highpage_movable.patch removed from -mm tree
-Message-Id: <20220513192143.2AC4AC34113@smtp.kernel.org>
+Subject: [merged mm-stable] shmem-convert-shmem_alloc_hugepage-to-use-vma_alloc_folio.patch removed from -mm tree
+Message-Id: <20220513192141.0726BC34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,41 +41,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: alpha: fix alloc_zeroed_user_highpage_movable()
+     Subject: shmem: convert shmem_alloc_hugepage() to use vma_alloc_folio()
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-alloc_zeroed_user_highpage_movable.patch
+     shmem-convert-shmem_alloc_hugepage-to-use-vma_alloc_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: alpha: fix alloc_zeroed_user_highpage_movable()
+Subject: shmem: convert shmem_alloc_hugepage() to use vma_alloc_folio()
 
-Due to a typo, the final argument to alloc_page_vma() didn't refer to a
-real variable.  This only affected CONFIG_NUMA, which was marked BROKEN in
-2006 and removed from alpha in 2021.  Found due to a refactoring patch.
+Patch series "Folio patches for 5.19", v2.
 
-Link: https://lkml.kernel.org/r/20220504182857.4013401-4-willy@infradead.org
+
+This patch (of 26):
+
+For now, return the head page of the folio, but remove use of the old
+alloc_pages_vma() API.
+
+Link: https://lkml.kernel.org/r/20220504182857.4013401-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220504182857.4013401-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: kernel test robot <lkp@intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/page.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/arch/alpha/include/asm/page.h~alpha-fix-alloc_zeroed_user_highpage_movable
-+++ a/arch/alpha/include/asm/page.h
-@@ -18,7 +18,7 @@ extern void clear_page(void *page);
- #define clear_user_page(page, vaddr, pg)	clear_page(page)
+--- a/mm/shmem.c~shmem-convert-shmem_alloc_hugepage-to-use-vma_alloc_folio
++++ a/mm/shmem.c
+@@ -1528,7 +1528,7 @@ static struct page *shmem_alloc_hugepage
+ 	struct vm_area_struct pvma;
+ 	struct address_space *mapping = info->vfs_inode.i_mapping;
+ 	pgoff_t hindex;
+-	struct page *page;
++	struct folio *folio;
  
- #define alloc_zeroed_user_highpage_movable(vma, vaddr) \
--	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vmaddr)
-+	alloc_page_vma(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, vma, vaddr)
- #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE_MOVABLE
+ 	hindex = round_down(index, HPAGE_PMD_NR);
+ 	if (xa_find(&mapping->i_pages, &hindex, hindex + HPAGE_PMD_NR - 1,
+@@ -1536,13 +1536,11 @@ static struct page *shmem_alloc_hugepage
+ 		return NULL;
  
- extern void copy_page(void * _to, void * _from);
+ 	shmem_pseudo_vma_init(&pvma, info, hindex);
+-	page = alloc_pages_vma(gfp, HPAGE_PMD_ORDER, &pvma, 0, true);
++	folio = vma_alloc_folio(gfp, HPAGE_PMD_ORDER, &pvma, 0, true);
+ 	shmem_pseudo_vma_destroy(&pvma);
+-	if (page)
+-		prep_transhuge_page(page);
+-	else
++	if (!folio)
+ 		count_vm_event(THP_FILE_FALLBACK);
+-	return page;
++	return &folio->page;
+ }
+ 
+ static struct page *shmem_alloc_page(gfp_t gfp,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
