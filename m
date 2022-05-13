@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03D6DC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:25:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E90CC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:25:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383628AbiEMTZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:25:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45266 "EHLO
+        id S1383782AbiEMTZV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:25:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383782AbiEMTX2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:23:28 -0400
+        with ESMTP id S1383829AbiEMTX7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:23:59 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7F3C2E09C
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCFB92E6BA
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6BD5D60A66
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD5DAC34100;
-        Fri, 13 May 2022 19:22:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A89860ADC
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C05E7C34100;
+        Fri, 13 May 2022 19:22:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469744;
-        bh=svkLoFMoGf6tGJuLnozItcIlJ3bDkPzrYYKdHJzIKRs=;
+        s=korg; t=1652469746;
+        bh=F7fk5I0X+OCexTbn9fJ9npx6J91m3IU8FqfGWw+LBgU=;
         h=Date:To:From:Subject:From;
-        b=zmhGHp9dVfYmv6rGzz5cF0BBiuCty1cnB9TeGgRPPQtxUsF5YJcjqIWXeT0JItT9k
-         mnnMBp7S9Nf7Ru8b0iYSSXPDJP5fm6RCv7pM6e+I+1qqsm763ZBuWt/2U0U13Obagv
-         sPlbZmLYU/I0lmXU9d0RKfEml+BAmWDK8Q8jZrxE=
-Date:   Fri, 13 May 2022 12:22:24 -0700
+        b=Liax92gz4xjjYSdKeWlcR6Yxq310J30XCoYTQiS8/OYyaEF3LGUw/OymtVLUBu0Xq
+         AAUTQgv+vVKK3yVIKP7ttDvWSkbzx1ra2uDy6jpPkR2zQUMSKXrM61yKdXT7NdNpUR
+         WGQB97zg5Lni9UhhLpUhRwA+Ffil5ZosHp1d7Gag=
+Date:   Fri, 13 May 2022 12:22:26 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-update-documentation.patch removed from -mm tree
-Message-Id: <20220513192224.BD5DAC34100@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-clean-up-kconfig-options-descriptions.patch removed from -mm tree
+Message-Id: <20220513192226.C05E7C34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,303 +42,317 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: update documentation
+     Subject: kasan: clean-up kconfig options descriptions
 has been removed from the -mm tree.  Its filename was
-     kasan-update-documentation.patch
+     kasan-clean-up-kconfig-options-descriptions.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: update documentation
+Subject: kasan: clean-up kconfig options descriptions
 
-Do assorted clean-ups and improvements to KASAN documentation, including:
+Various readability clean-ups of KASAN Kconfig options.
 
-- Describe each mode in a dedicated paragraph.
-- Split out a Support section that describes in details which compilers,
-  architectures and memory types each mode requires/supports.
-- Capitalize the first letter in the names of each KASAN mode.
+No functional changes.
 
-[andreyknvl@google.com: rewording, per Marco]
-  Link: https://lkml.kernel.org/r/896b2d914d6b50d677fd7b38f76967cc705c01ba.1652203271.git.andreyknvl@google.com
-Link: https://lkml.kernel.org/r/5bd58ebebf066593ce0e1d265d60278b5f5a1874.1652123204.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/c160840dd9e4b1ad5529ecfdb0bba35d9a14d826.1652203271.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/47afaecec29221347bee49f58c258ac1ced3b429.1652123204.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |  160 ++++++++++++++++------------
- 1 file changed, 95 insertions(+), 65 deletions(-)
+ lib/Kconfig.kasan |  168 +++++++++++++++++++++-----------------------
+ 1 file changed, 82 insertions(+), 86 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -4,39 +4,76 @@ The Kernel Address Sanitizer (KASAN)
- Overview
- --------
- 
--KernelAddressSANitizer (KASAN) is a dynamic memory safety error detector
--designed to find out-of-bound and use-after-free bugs. KASAN has three modes:
-+Kernel Address Sanitizer (KASAN) is a dynamic memory safety error detector
-+designed to find out-of-bounds and use-after-free bugs.
- 
--1. generic KASAN (similar to userspace ASan),
--2. software tag-based KASAN (similar to userspace HWASan),
--3. hardware tag-based KASAN (based on hardware memory tagging).
--
--Generic KASAN is mainly used for debugging due to a large memory overhead.
--Software tag-based KASAN can be used for dogfood testing as it has a lower
--memory overhead that allows using it with real workloads. Hardware tag-based
--KASAN comes with low memory and performance overheads and, therefore, can be
--used in production. Either as an in-field memory bug detector or as a security
--mitigation.
--
--Software KASAN modes (#1 and #2) use compile-time instrumentation to insert
--validity checks before every memory access and, therefore, require a compiler
--version that supports that.
--
--Generic KASAN is supported in GCC and Clang. With GCC, it requires version
--8.3.0 or later. Any supported Clang version is compatible, but detection of
--out-of-bounds accesses for global variables is only supported since Clang 11.
--
--Software tag-based KASAN mode is only supported in Clang.
--
--The hardware KASAN mode (#3) relies on hardware to perform the checks but
--still requires a compiler version that supports memory tagging instructions.
--This mode is supported in GCC 10+ and Clang 12+.
-+KASAN has three modes:
- 
--Both software KASAN modes work with SLUB and SLAB memory allocators,
--while the hardware tag-based KASAN currently only supports SLUB.
-+1. Generic KASAN
-+2. Software Tag-Based KASAN
-+3. Hardware Tag-Based KASAN
- 
--Currently, generic KASAN is supported for the x86_64, arm, arm64, xtensa, s390,
--and riscv architectures, and tag-based KASAN modes are supported only for arm64.
-+Generic KASAN, enabled with CONFIG_KASAN_GENERIC, is the mode intended for
-+debugging, similar to userspace ASan. This mode is supported on many CPU
-+architectures, but it has significant performance and memory overheads.
+--- a/lib/Kconfig.kasan~kasan-clean-up-kconfig-options-descriptions
++++ a/lib/Kconfig.kasan
+@@ -1,4 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
 +
-+Software Tag-Based KASAN or SW_TAGS KASAN, enabled with CONFIG_KASAN_SW_TAGS,
-+can be used for both debugging and dogfood testing, similar to userspace HWASan.
-+This mode is only supported for arm64, but its moderate memory overhead allows
-+using it for testing on memory-restricted devices with real workloads.
+ # This config refers to the generic KASAN mode.
+ config HAVE_ARCH_KASAN
+ 	bool
+@@ -15,9 +16,8 @@ config HAVE_ARCH_KASAN_VMALLOC
+ config ARCH_DISABLE_KASAN_INLINE
+ 	bool
+ 	help
+-	  An architecture might not support inline instrumentation.
+-	  When this option is selected, inline and stack instrumentation are
+-	  disabled.
++	  Disables both inline and stack instrumentation. Selected by
++	  architectures that do not support these instrumentation types.
+ 
+ config CC_HAS_KASAN_GENERIC
+ 	def_bool $(cc-option, -fsanitize=kernel-address)
+@@ -26,13 +26,13 @@ config CC_HAS_KASAN_SW_TAGS
+ 	def_bool $(cc-option, -fsanitize=kernel-hwaddress)
+ 
+ # This option is only required for software KASAN modes.
+-# Old GCC versions don't have proper support for no_sanitize_address.
++# Old GCC versions do not have proper support for no_sanitize_address.
+ # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89124 for details.
+ config CC_HAS_WORKING_NOSANITIZE_ADDRESS
+ 	def_bool !CC_IS_GCC || GCC_VERSION >= 80300
+ 
+ menuconfig KASAN
+-	bool "KASAN: runtime memory debugger"
++	bool "KASAN: dynamic memory safety error detector"
+ 	depends on (((HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
+ 		     (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)) && \
+ 		    CC_HAS_WORKING_NOSANITIZE_ADDRESS) || \
+@@ -40,10 +40,13 @@ menuconfig KASAN
+ 	depends on (SLUB && SYSFS) || (SLAB && !DEBUG_SLAB)
+ 	select STACKDEPOT_ALWAYS_INIT
+ 	help
+-	  Enables KASAN (KernelAddressSANitizer) - runtime memory debugger,
+-	  designed to find out-of-bounds accesses and use-after-free bugs.
++	  Enables KASAN (Kernel Address Sanitizer) - a dynamic memory safety
++	  error detector designed to find out-of-bounds and use-after-free bugs.
 +
-+Hardware Tag-Based KASAN or HW_TAGS KASAN, enabled with CONFIG_KASAN_HW_TAGS,
-+is the mode intended to be used as an in-field memory bug detector or as a
-+security mitigation. This mode only works on arm64 CPUs that support MTE
-+(Memory Tagging Extension), but it has low memory and performance overheads and
-+thus can be used in production.
+ 	  See Documentation/dev-tools/kasan.rst for details.
+ 
++	  For better error reports, also enable CONFIG_STACKTRACE.
 +
-+For details about the memory and performance impact of each KASAN mode, see the
-+descriptions of the corresponding Kconfig options.
+ if KASAN
+ 
+ choice
+@@ -51,75 +54,71 @@ choice
+ 	default KASAN_GENERIC
+ 	help
+ 	  KASAN has three modes:
+-	  1. generic KASAN (similar to userspace ASan,
+-	     x86_64/arm64/xtensa, enabled with CONFIG_KASAN_GENERIC),
+-	  2. software tag-based KASAN (arm64 only, based on software
+-	     memory tagging (similar to userspace HWASan), enabled with
+-	     CONFIG_KASAN_SW_TAGS), and
+-	  3. hardware tag-based KASAN (arm64 only, based on hardware
+-	     memory tagging, enabled with CONFIG_KASAN_HW_TAGS).
+ 
+-	  All KASAN modes are strictly debugging features.
++	  1. Generic KASAN (supported by many architectures, enabled with
++	     CONFIG_KASAN_GENERIC, similar to userspace ASan),
++	  2. Software Tag-Based KASAN (arm64 only, based on software memory
++	     tagging, enabled with CONFIG_KASAN_SW_TAGS, similar to userspace
++	     HWASan), and
++	  3. Hardware Tag-Based KASAN (arm64 only, based on hardware memory
++	     tagging, enabled with CONFIG_KASAN_HW_TAGS).
+ 
+-	  For better error reports enable CONFIG_STACKTRACE.
++	  See Documentation/dev-tools/kasan.rst for details about each mode.
+ 
+ config KASAN_GENERIC
+-	bool "Generic mode"
++	bool "Generic KASAN"
+ 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
+ 	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
+ 	select SLUB_DEBUG if SLUB
+ 	select CONSTRUCTORS
+ 	help
+-	  Enables generic KASAN mode.
++	  Enables Generic KASAN.
+ 
+-	  This mode is supported in both GCC and Clang. With GCC it requires
+-	  version 8.3.0 or later. Any supported Clang version is compatible,
+-	  but detection of out-of-bounds accesses for global variables is
+-	  supported only since Clang 11.
++	  Requires GCC 8.3.0+ or Clang.
+ 
+-	  This mode consumes about 1/8th of available memory at kernel start
+-	  and introduces an overhead of ~x1.5 for the rest of the allocations.
++	  Consumes about 1/8th of available memory at kernel start and adds an
++	  overhead of ~50% for dynamic allocations.
+ 	  The performance slowdown is ~x3.
+ 
+-	  Currently CONFIG_KASAN_GENERIC doesn't work with CONFIG_DEBUG_SLAB
+-	  (the resulting kernel does not boot).
++	  (Incompatible with CONFIG_DEBUG_SLAB: the kernel does not boot.)
+ 
+ config KASAN_SW_TAGS
+-	bool "Software tag-based mode"
++	bool "Software Tag-Based KASAN"
+ 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
+ 	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
+ 	select SLUB_DEBUG if SLUB
+ 	select CONSTRUCTORS
+ 	help
+-	  Enables software tag-based KASAN mode.
++	  Enables Software Tag-Based KASAN.
 +
-+The Generic and the Software Tag-Based modes are commonly referred to as the
-+software modes. The Software Tag-Based and the Hardware Tag-Based modes are
-+referred to as the tag-based modes.
++	  Requires GCC 11+ or Clang.
+ 
+-	  This mode require software memory tagging support in the form of
+-	  HWASan-like compiler instrumentation.
++	  Supported only on arm64 CPUs and relies on Top Byte Ignore.
+ 
+-	  Currently this mode is only implemented for arm64 CPUs and relies on
+-	  Top Byte Ignore. This mode requires Clang.
++	  Consumes about 1/16th of available memory at kernel start and
++	  add an overhead of ~20% for dynamic allocations.
+ 
+-	  This mode consumes about 1/16th of available memory at kernel start
+-	  and introduces an overhead of ~20% for the rest of the allocations.
+-	  This mode may potentially introduce problems relating to pointer
+-	  casting and comparison, as it embeds tags into the top byte of each
+-	  pointer.
++	  May potentially introduce problems related to pointer casting and
++	  comparison, as it embeds a tag into the top byte of each pointer.
+ 
+-	  Currently CONFIG_KASAN_SW_TAGS doesn't work with CONFIG_DEBUG_SLAB
+-	  (the resulting kernel does not boot).
++	  (Incompatible with CONFIG_DEBUG_SLAB: the kernel does not boot.)
+ 
+ config KASAN_HW_TAGS
+-	bool "Hardware tag-based mode"
++	bool "Hardware Tag-Based KASAN"
+ 	depends on HAVE_ARCH_KASAN_HW_TAGS
+ 	depends on SLUB
+ 	help
+-	  Enables hardware tag-based KASAN mode.
++	  Enables Hardware Tag-Based KASAN.
+ 
+-	  This mode requires hardware memory tagging support, and can be used
+-	  by any architecture that provides it.
++	  Requires GCC 10+ or Clang 12+.
+ 
+-	  Currently this mode is only implemented for arm64 CPUs starting from
+-	  ARMv8.5 and relies on Memory Tagging Extension and Top Byte Ignore.
++	  Supported only on arm64 CPUs starting from ARMv8.5 and relies on
++	  Memory Tagging Extension and Top Byte Ignore.
 +
-+Support
-+-------
++	  Consumes about 1/32nd of available memory.
 +
-+Architectures
-+~~~~~~~~~~~~~
++	  May potentially introduce problems related to pointer casting and
++	  comparison, as it embeds a tag into the top byte of each pointer.
+ 
+ endchoice
+ 
+@@ -131,83 +130,80 @@ choice
+ config KASAN_OUTLINE
+ 	bool "Outline instrumentation"
+ 	help
+-	  Before every memory access compiler insert function call
+-	  __asan_load*/__asan_store*. These functions performs check
+-	  of shadow memory. This is slower than inline instrumentation,
+-	  however it doesn't bloat size of kernel's .text section so
+-	  much as inline does.
++	  Makes the compiler insert function calls that check whether the memory
++	  is accessible before each memory access. Slower than KASAN_INLINE, but
++	  does not bloat the size of the kernel's .text section so much.
+ 
+ config KASAN_INLINE
+ 	bool "Inline instrumentation"
+ 	depends on !ARCH_DISABLE_KASAN_INLINE
+ 	help
+-	  Compiler directly inserts code checking shadow memory before
+-	  memory accesses. This is faster than outline (in some workloads
+-	  it gives about x2 boost over outline instrumentation), but
+-	  make kernel's .text size much bigger.
++	  Makes the compiler directly insert memory accessibility checks before
++	  each memory access. Faster than KASAN_OUTLINE (gives ~x2 boost for
++	  some workloads), but makes the kernel's .text size much bigger.
+ 
+ endchoice
+ 
+ config KASAN_STACK
+-	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
++	bool "Stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
+ 	depends on KASAN_GENERIC || KASAN_SW_TAGS
+ 	depends on !ARCH_DISABLE_KASAN_INLINE
+ 	default y if CC_IS_GCC
+ 	help
+-	  The LLVM stack address sanitizer has a know problem that
+-	  causes excessive stack usage in a lot of functions, see
+-	  https://bugs.llvm.org/show_bug.cgi?id=38809
+-	  Disabling asan-stack makes it safe to run kernels build
+-	  with clang-8 with KASAN enabled, though it loses some of
+-	  the functionality.
+-	  This feature is always disabled when compile-testing with clang
+-	  to avoid cluttering the output in stack overflow warnings,
+-	  but clang users can still enable it for builds without
+-	  CONFIG_COMPILE_TEST.	On gcc it is assumed to always be safe
+-	  to use and enabled by default.
+-	  If the architecture disables inline instrumentation, stack
+-	  instrumentation is also disabled as it adds inline-style
+-	  instrumentation that is run unconditionally.
++	  Disables stack instrumentation and thus KASAN's ability to detect
++	  out-of-bounds bugs in stack variables.
 +
-+Generic KASAN is supported on x86_64, arm, arm64, powerpc, riscv, s390, and
-+xtensa, and the tag-based KASAN modes are supported only on arm64.
++	  With Clang, stack instrumentation has a problem that causes excessive
++	  stack usage, see https://bugs.llvm.org/show_bug.cgi?id=38809. Thus,
++	  with Clang, this option is deemed unsafe.
 +
-+Compilers
-+~~~~~~~~~
++	  This option is always disabled when compile-testing with Clang to
++	  avoid cluttering the log with stack overflow warnings.
 +
-+Software KASAN modes use compile-time instrumentation to insert validity checks
-+before every memory access and thus require a compiler version that provides
-+support for that. The Hardware Tag-Based mode relies on hardware to perform
-+these checks but still requires a compiler version that supports the memory
-+tagging instructions.
++	  With GCC, enabling stack instrumentation is assumed to be safe.
 +
-+Generic KASAN requires GCC version 8.3.0 or later
-+or any Clang version supported by the kernel.
-+
-+Software Tag-Based KASAN requires GCC 11+
-+or any Clang version supported by the kernel.
-+
-+Hardware Tag-Based KASAN requires GCC 10+ or Clang 12+.
-+
-+Memory types
-+~~~~~~~~~~~~
-+
-+Generic KASAN supports finding bugs in all of slab, page_alloc, vmap, vmalloc,
-+stack, and global memory.
-+
-+Software Tag-Based KASAN supports slab, page_alloc, vmalloc, and stack memory.
-+
-+Hardware Tag-Based KASAN supports slab, page_alloc, and non-executable vmalloc
-+memory.
-+
-+For slab, both software KASAN modes support SLUB and SLAB allocators, while
-+Hardware Tag-Based KASAN only supports SLUB.
++	  If the architecture disables inline instrumentation via
++	  ARCH_DISABLE_KASAN_INLINE, stack instrumentation gets disabled
++	  as well, as it adds inline-style instrumentation that is run
++	  unconditionally.
  
- Usage
- -----
-@@ -45,13 +82,13 @@ To enable KASAN, configure the kernel wi
+ config KASAN_TAGS_IDENTIFY
+-	bool "Enable memory corruption identification"
++	bool "Memory corruption type identification"
+ 	depends on KASAN_SW_TAGS || KASAN_HW_TAGS
+ 	help
+-	  This option enables best-effort identification of bug type
+-	  (use-after-free or out-of-bounds) at the cost of increased
+-	  memory consumption.
++	  Enables best-effort identification of the bug types (use-after-free
++	  or out-of-bounds) at the cost of increased memory consumption.
++	  Only applicable for the tag-based KASAN modes.
  
- 	  CONFIG_KASAN=y
+ config KASAN_VMALLOC
+ 	bool "Check accesses to vmalloc allocations"
+ 	depends on HAVE_ARCH_KASAN_VMALLOC
+ 	help
+-	  This mode makes KASAN check accesses to vmalloc allocations for
+-	  validity.
++	  Makes KASAN check the validity of accesses to vmalloc allocations.
  
--and choose between ``CONFIG_KASAN_GENERIC`` (to enable generic KASAN),
--``CONFIG_KASAN_SW_TAGS`` (to enable software tag-based KASAN), and
--``CONFIG_KASAN_HW_TAGS`` (to enable hardware tag-based KASAN).
-+and choose between ``CONFIG_KASAN_GENERIC`` (to enable Generic KASAN),
-+``CONFIG_KASAN_SW_TAGS`` (to enable Software Tag-Based KASAN), and
-+``CONFIG_KASAN_HW_TAGS`` (to enable Hardware Tag-Based KASAN).
+-	  With software KASAN modes, checking is done for all types of vmalloc
+-	  allocations. Enabling this option leads to higher memory usage.
++	  With software KASAN modes, all types vmalloc allocations are
++	  checked. Enabling this option leads to higher memory usage.
  
--For software modes, also choose between ``CONFIG_KASAN_OUTLINE`` and
-+For the software modes, also choose between ``CONFIG_KASAN_OUTLINE`` and
- ``CONFIG_KASAN_INLINE``. Outline and inline are compiler instrumentation types.
--The former produces a smaller binary while the latter is 1.1-2 times faster.
-+The former produces a smaller binary while the latter is up to 2 times faster.
+-	  With hardware tag-based KASAN, only VM_ALLOC mappings are checked.
+-	  There is no additional memory usage.
++	  With Hardware Tag-Based KASAN, only non-executable VM_ALLOC mappings
++	  are checked. There is no additional memory usage.
  
- To include alloc and free stack traces of affected slab objects into reports,
- enable ``CONFIG_STACKTRACE``. To include alloc and free stack traces of affected
-@@ -146,7 +183,7 @@ is either 8 or 16 aligned bytes dependin
- memory state section of the report shows the state of one of the memory
- granules that surround the accessed address.
+ config KASAN_KUNIT_TEST
+ 	tristate "KUnit-compatible tests of KASAN bug detection capabilities" if !KUNIT_ALL_TESTS
+ 	depends on KASAN && KUNIT
+ 	default KUNIT_ALL_TESTS
+ 	help
+-	  This is a KUnit test suite doing various nasty things like
+-	  out of bounds and use after free accesses. It is useful for testing
+-	  kernel debugging features like KASAN.
++	  A KUnit-based KASAN test suite. Triggers different kinds of
++	  out-of-bounds and use-after-free accesses. Useful for testing whether
++	  KASAN can detect certain bug types.
  
--For generic KASAN, the size of each memory granule is 8. The state of each
-+For Generic KASAN, the size of each memory granule is 8. The state of each
- granule is encoded in one shadow byte. Those 8 bytes can be accessible,
- partially accessible, freed, or be a part of a redzone. KASAN uses the following
- encoding for each shadow byte: 00 means that all 8 bytes of the corresponding
-@@ -181,14 +218,14 @@ By default, KASAN prints a bug report on
- With ``kasan_multi_shot``, KASAN prints a report on every invalid access. This
- effectively disables ``panic_on_warn`` for KASAN reports.
+ 	  For more information on KUnit and unit tests in general, please refer
+-	  to the KUnit documentation in Documentation/dev-tools/kunit.
++	  to the KUnit documentation in Documentation/dev-tools/kunit/.
  
--Alternatively, independent of ``panic_on_warn`` the ``kasan.fault=`` boot
-+Alternatively, independent of ``panic_on_warn``, the ``kasan.fault=`` boot
- parameter can be used to control panic and reporting behaviour:
+ config KASAN_MODULE_TEST
+ 	tristate "KUnit-incompatible tests of KASAN bug detection capabilities"
+ 	depends on m && KASAN && !KASAN_HW_TAGS
+ 	help
+-	  This is a part of the KASAN test suite that is incompatible with
+-	  KUnit. Currently includes tests that do bad copy_from/to_user
+-	  accesses.
++	  A part of the KASAN test suite that is not integrated with KUnit.
++	  Incompatible with Hardware Tag-Based KASAN.
  
- - ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
-   report or also panic the kernel (default: ``report``). The panic happens even
-   if ``kasan_multi_shot`` is enabled.
- 
--Hardware tag-based KASAN mode (see the section about various modes below) is
-+Hardware Tag-Based KASAN mode (see the section about various modes below) is
- intended for use in production as a security mitigation. Therefore, it supports
- additional boot parameters that allow disabling KASAN or controlling features:
- 
-@@ -250,49 +287,46 @@ outline-instrumented kernel.
- Generic KASAN is the only mode that delays the reuse of freed objects via
- quarantine (see mm/kasan/quarantine.c for implementation).
- 
--Software tag-based KASAN
-+Software Tag-Based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
- 
--Software tag-based KASAN uses a software memory tagging approach to checking
-+Software Tag-Based KASAN uses a software memory tagging approach to checking
- access validity. It is currently only implemented for the arm64 architecture.
- 
--Software tag-based KASAN uses the Top Byte Ignore (TBI) feature of arm64 CPUs
-+Software Tag-Based KASAN uses the Top Byte Ignore (TBI) feature of arm64 CPUs
- to store a pointer tag in the top byte of kernel pointers. It uses shadow memory
- to store memory tags associated with each 16-byte memory cell (therefore, it
- dedicates 1/16th of the kernel memory for shadow memory).
- 
--On each memory allocation, software tag-based KASAN generates a random tag, tags
-+On each memory allocation, Software Tag-Based KASAN generates a random tag, tags
- the allocated memory with this tag, and embeds the same tag into the returned
- pointer.
- 
--Software tag-based KASAN uses compile-time instrumentation to insert checks
-+Software Tag-Based KASAN uses compile-time instrumentation to insert checks
- before each memory access. These checks make sure that the tag of the memory
- that is being accessed is equal to the tag of the pointer that is used to access
--this memory. In case of a tag mismatch, software tag-based KASAN prints a bug
-+this memory. In case of a tag mismatch, Software Tag-Based KASAN prints a bug
- report.
- 
--Software tag-based KASAN also has two instrumentation modes (outline, which
-+Software Tag-Based KASAN also has two instrumentation modes (outline, which
- emits callbacks to check memory accesses; and inline, which performs the shadow
- memory checks inline). With outline instrumentation mode, a bug report is
- printed from the function that performs the access check. With inline
- instrumentation, a ``brk`` instruction is emitted by the compiler, and a
- dedicated ``brk`` handler is used to print bug reports.
- 
--Software tag-based KASAN uses 0xFF as a match-all pointer tag (accesses through
-+Software Tag-Based KASAN uses 0xFF as a match-all pointer tag (accesses through
- pointers with the 0xFF pointer tag are not checked). The value 0xFE is currently
- reserved to tag freed memory regions.
- 
--Software tag-based KASAN currently only supports tagging of slab, page_alloc,
--and vmalloc memory.
--
--Hardware tag-based KASAN
-+Hardware Tag-Based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
- 
--Hardware tag-based KASAN is similar to the software mode in concept but uses
-+Hardware Tag-Based KASAN is similar to the software mode in concept but uses
- hardware memory tagging support instead of compiler instrumentation and
- shadow memory.
- 
--Hardware tag-based KASAN is currently only implemented for arm64 architecture
-+Hardware Tag-Based KASAN is currently only implemented for arm64 architecture
- and based on both arm64 Memory Tagging Extension (MTE) introduced in ARMv8.5
- Instruction Set Architecture and Top Byte Ignore (TBI).
- 
-@@ -302,21 +336,18 @@ access, hardware makes sure that the tag
- equal to the tag of the pointer that is used to access this memory. In case of a
- tag mismatch, a fault is generated, and a report is printed.
- 
--Hardware tag-based KASAN uses 0xFF as a match-all pointer tag (accesses through
-+Hardware Tag-Based KASAN uses 0xFF as a match-all pointer tag (accesses through
- pointers with the 0xFF pointer tag are not checked). The value 0xFE is currently
- reserved to tag freed memory regions.
- 
--Hardware tag-based KASAN currently only supports tagging of slab, page_alloc,
--and VM_ALLOC-based vmalloc memory.
--
--If the hardware does not support MTE (pre ARMv8.5), hardware tag-based KASAN
-+If the hardware does not support MTE (pre ARMv8.5), Hardware Tag-Based KASAN
- will not be enabled. In this case, all KASAN boot parameters are ignored.
- 
- Note that enabling CONFIG_KASAN_HW_TAGS always results in in-kernel TBI being
- enabled. Even when ``kasan.mode=off`` is provided or when the hardware does not
- support MTE (but supports TBI).
- 
--Hardware tag-based KASAN only reports the first found bug. After that, MTE tag
-+Hardware Tag-Based KASAN only reports the first found bug. After that, MTE tag
- checking gets disabled.
- 
- Shadow memory
-@@ -414,19 +445,18 @@ generic ``noinstr`` one.
- Note that disabling compiler instrumentation (either on a per-file or a
- per-function basis) makes KASAN ignore the accesses that happen directly in
- that code for software KASAN modes. It does not help when the accesses happen
--indirectly (through calls to instrumented functions) or with the hardware
--tag-based mode that does not use compiler instrumentation.
-+indirectly (through calls to instrumented functions) or with Hardware
-+Tag-Based KASAN, which does not use compiler instrumentation.
- 
- For software KASAN modes, to disable KASAN reports in a part of the kernel code
- for the current task, annotate this part of the code with a
- ``kasan_disable_current()``/``kasan_enable_current()`` section. This also
- disables the reports for indirect accesses that happen through function calls.
- 
--For tag-based KASAN modes (include the hardware one), to disable access
--checking, use ``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that
--temporarily disabling access checking via ``page_kasan_tag_reset()`` requires
--saving and restoring the per-page KASAN tag via
--``page_kasan_tag``/``page_kasan_tag_set``.
-+For tag-based KASAN modes, to disable access checking, use
-+``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that temporarily
-+disabling access checking via ``page_kasan_tag_reset()`` requires saving and
-+restoring the per-page KASAN tag via ``page_kasan_tag``/``page_kasan_tag_set``.
- 
- Tests
- ~~~~~
+ endif # KASAN
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
