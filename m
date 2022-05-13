@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17764C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:28:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21E0AC433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:28:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354110AbiEMT15 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:27:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45166 "EHLO
+        id S1383805AbiEMT17 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:27:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42752 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383942AbiEMT0A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:26:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DF1E387A2
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:23:39 -0700 (PDT)
+        with ESMTP id S1383894AbiEMTY2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:24:28 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 427F030566
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ECF10615DC
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:23:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A94EC34100;
-        Fri, 13 May 2022 19:23:38 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id A71C6CE3301
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EF5AC34100;
+        Fri, 13 May 2022 19:22:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469818;
-        bh=BNr8OAD6O5CNyPwYepnurYHeqSioBHEjyE16ylMrnjU=;
+        s=korg; t=1652469753;
+        bh=PfW2TTbFw8+BMVLCrUct0u1b5GWXnRAyBi/kTmi3XWw=;
         h=Date:To:From:Subject:From;
-        b=g0LVMVf6bNIgZmgWit22/xSLncttScxGeTuqpcSnFMlPt9oP77j9AHZhSiqgwFK/A
-         J4Ttd/OhnlLuky16wZluFVc+lTSubCgG1wc//MQvUfyXpQDfSNzotPB+a/GZ1eo23o
-         wzkiO2FEphZNjoMe8Ic+6p/0P0gfAgQIdL1EEyYM=
-Date:   Fri, 13 May 2022 12:23:37 -0700
-To:     mm-commits@vger.kernel.org, keescook@chromium.org,
-        ebiederm@xmission.com, adobriyan@gmail.com,
-        akpm@linux-foundation.org
+        b=qTuadxoX78W6Q1lTjT12sHKXnlFDQbbacy69IEv4PzYOwX/L9WdSEyCfOj+lpRHUH
+         l55J+AZ5qbdZ0moqdqHtGwV2tjCW6GhIQabB/6i4CTAiJIvEMkbdVnFuM2Z8KNo38/
+         Vrmn88VJwdatWmeO6JN1ZZjsIabvBQl+U8ajTQV4=
+Date:   Fri, 13 May 2022 12:22:32 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        pizhenwei@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] elf-uapi-fixup-elf_st_type-definition.patch removed from -mm tree
-Message-Id: <20220513192338.4A94EC34100@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failurec-simplify-num_poisoned_pages_inc-dec.patch removed from -mm tree
+Message-Id: <20220513192233.0EF5AC34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,54 +41,88 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ELF, uapi: fixup ELF_ST_TYPE definition
+     Subject: mm/memory-failure.c: simplify num_poisoned_pages_inc/dec
 has been removed from the -mm tree.  Its filename was
-     elf-uapi-fixup-elf_st_type-definition.patch
+     mm-memory-failurec-simplify-num_poisoned_pages_inc-dec.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: ELF, uapi: fixup ELF_ST_TYPE definition
+From: zhenwei pi <pizhenwei@bytedance.com>
+Subject: mm/memory-failure.c: simplify num_poisoned_pages_inc/dec
 
-This is very theoretical compile failure:
+Originally, do num_poisoned_pages_inc() in memory failure routine, use
+num_poisoned_pages_dec() to rollback the number if filtered/ cancelled.
 
-	ELF_ST_TYPE(st_info = A)
+Suggested by Naoya, do num_poisoned_pages_inc() only in action_result(),
+this make this clear and simple.
 
-Cast will bind first and st_info will stop being lvalue:
-
-	error: lvalue required as left operand of assignment
-
-Given that the only use of this macro is
-
-	ELF_ST_TYPE(sym->st_info)
-
-where st_info is "unsigned char" I've decided to remove cast especially
-given that companion macro ELF_ST_BIND doesn't use cast.
-
-Link: https://lkml.kernel.org/r/Ymv7G1BeX4kt3obz@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/20220509105641.491313-6-pizhenwei@bytedance.com
+Signed-off-by: zhenwei pi <pizhenwei@bytedance.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/elf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
---- a/include/uapi/linux/elf.h~elf-uapi-fixup-elf_st_type-definition
-+++ a/include/uapi/linux/elf.h
-@@ -134,7 +134,7 @@ typedef __s64	Elf64_Sxword;
- #define STT_TLS     6
+--- a/mm/memory-failure.c~mm-memory-failurec-simplify-num_poisoned_pages_inc-dec
++++ a/mm/memory-failure.c
+@@ -1132,6 +1132,7 @@ static void action_result(unsigned long
+ {
+ 	trace_memory_failure_event(pfn, type, result);
  
- #define ELF_ST_BIND(x)		((x) >> 4)
--#define ELF_ST_TYPE(x)		(((unsigned int) x) & 0xf)
-+#define ELF_ST_TYPE(x)		((x) & 0xf)
- #define ELF32_ST_BIND(x)	ELF_ST_BIND(x)
- #define ELF32_ST_TYPE(x)	ELF_ST_TYPE(x)
- #define ELF64_ST_BIND(x)	ELF_ST_BIND(x)
++	num_poisoned_pages_inc();
+ 	pr_err("Memory failure: %#lx: recovery action for %s: %s\n",
+ 		pfn, action_page_types[type], action_name[result]);
+ }
+@@ -1587,8 +1588,6 @@ retry:
+ 		goto out;
+ 	}
+ 
+-	num_poisoned_pages_inc();
+-
+ 	/*
+ 	 * Handling free hugepage.  The possible race with hugepage allocation
+ 	 * or demotion can be prevented by PageHWPoison flag.
+@@ -1806,7 +1805,6 @@ try_again:
+ 	}
+ 
+ 	hpage = compound_head(p);
+-	num_poisoned_pages_inc();
+ 
+ 	/*
+ 	 * We need/can do nothing about count=0 pages.
+@@ -1830,7 +1828,6 @@ try_again:
+ 					/* We lost the race, try again */
+ 					if (retry) {
+ 						ClearPageHWPoison(p);
+-						num_poisoned_pages_dec();
+ 						retry = false;
+ 						goto try_again;
+ 					}
+@@ -1893,8 +1890,7 @@ try_again:
+ 	 */
+ 	if (PageCompound(p)) {
+ 		if (retry) {
+-			if (TestClearPageHWPoison(p))
+-				num_poisoned_pages_dec();
++			ClearPageHWPoison(p);
+ 			unlock_page(p);
+ 			put_page(p);
+ 			flags &= ~MF_COUNT_INCREASED;
+@@ -1916,8 +1912,7 @@ try_again:
+ 	page_flags = p->flags;
+ 
+ 	if (hwpoison_filter(p)) {
+-		if (TestClearPageHWPoison(p))
+-			num_poisoned_pages_dec();
++		TestClearPageHWPoison(p);
+ 		unlock_page(p);
+ 		put_page(p);
+ 		res = -EOPNOTSUPP;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from pizhenwei@bytedance.com are
 
 
