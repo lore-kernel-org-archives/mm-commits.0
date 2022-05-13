@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97EF4C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 02:59:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 841B8C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 03:20:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357470AbiEMC76 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 May 2022 22:59:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58654 "EHLO
+        id S1376691AbiEMDUL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 May 2022 23:20:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359323AbiEMC76 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 22:59:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 089C92927A1
-        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 19:59:57 -0700 (PDT)
+        with ESMTP id S1351676AbiEMDUJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 23:20:09 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1743F1EEE0F
+        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 20:20:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 97FF262158
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 02:59:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAD8DC385B8;
-        Fri, 13 May 2022 02:59:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AE70AB82BCC
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 03:20:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 591F5C34114;
+        Fri, 13 May 2022 03:20:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652410796;
-        bh=l1eONKQ8+MKZn+6ZnDwRn8Hp+NlFijRLYWsOUYOgtds=;
+        s=korg; t=1652412006;
+        bh=T+VSrVIaf0M00ZDeqGNC5Xz7eGhjHE3trhL8801hEmk=;
         h=Date:To:From:Subject:From;
-        b=O9R+gmlMXR9A+ic3yzev844xkYWfHryKfv42ZH30NlMwhQr2bU9kSnrI/HhkYyBeF
-         V0Zdv0QWvRS2zEwYfNtrEOlr4STk+NeOwwWxklcrJCyii8YeE4lcsHIzXBnt+XB4M8
-         Ulu2N0zBTJ/eD3g3QpK8aPzq7UJIT51RIM8oyF40=
-Date:   Thu, 12 May 2022 19:59:55 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=CO/S4RvqdPAMEMfhKT5M+LDZ39lQ6uKoDcmXlL7AQyeS0WLosWu/Zbgm70ajSFcqb
+         gOWAcRtHDYDhqXjThdeztjwe81mk6AY1clVOJ8tRzIwPMRuTT7tTWkcG7M0dg5jwlB
+         gSJgm0Jyut1vdOZiyU2jpA0CVu3gQtCjd0lzRLds=
+Date:   Thu, 12 May 2022 20:20:05 -0700
+To:     mm-commits@vger.kernel.org, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kasan-update-documentation-v2.patch removed from -mm tree
-Message-Id: <20220513025955.EAD8DC385B8@smtp.kernel.org>
+Subject: [folded-merged] mm-uffd-pte_marker_uffd_wp-fix.patch removed from -mm tree
+Message-Id: <20220513032006.591F5C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,56 +41,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: update documentation
+     Subject: fixup! mm/uffd: PTE_MARKER_UFFD_WP
 has been removed from the -mm tree.  Its filename was
-     kasan-update-documentation-v2.patch
+     mm-uffd-pte_marker_uffd_wp-fix.patch
 
-This patch was dropped because it was folded into kasan-update-documentation.patch
+This patch was dropped because it was folded into mm-uffd-pte_marker_uffd_wp.patch
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: update documentation
+From: Peter Xu <peterx@redhat.com>
+Subject: fixup! mm/uffd: PTE_MARKER_UFFD_WP
 
-rewording, per Marco
-
-Link: https://lkml.kernel.org/r/896b2d914d6b50d677fd7b38f76967cc705c01ba.1652203271.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/YkzKiM8tI4+qOfXF@xz-m1.local
+Signed-off-by: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/userfaultfd_k.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation-v2
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -453,11 +453,10 @@ for the current task, annotate this part
- ``kasan_disable_current()``/``kasan_enable_current()`` section. This also
- disables the reports for indirect accesses that happen through function calls.
+--- a/include/linux/userfaultfd_k.h~mm-uffd-pte_marker_uffd_wp-fix
++++ a/include/linux/userfaultfd_k.h
+@@ -240,8 +240,12 @@ static inline void userfaultfd_unmap_com
  
--For tag-based KASAN modes (include the Hardware one), to disable access
--checking, use ``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that
--temporarily disabling access checking via ``page_kasan_tag_reset()`` requires
--saving and restoring the per-page KASAN tag via
--``page_kasan_tag``/``page_kasan_tag_set``.
-+For tag-based KASAN modes, to disable access checking, use
-+``kasan_reset_tag()`` or ``page_kasan_tag_reset()``. Note that temporarily
-+disabling access checking via ``page_kasan_tag_reset()`` requires saving and
-+restoring the per-page KASAN tag via ``page_kasan_tag``/``page_kasan_tag_set``.
+ static inline bool pte_marker_entry_uffd_wp(swp_entry_t entry)
+ {
++#ifdef CONFIG_PTE_MARKER_UFFD_WP
+ 	return is_pte_marker_entry(entry) &&
+ 	    (pte_marker_get(entry) & PTE_MARKER_UFFD_WP);
++#else
++	return false;
++#endif
+ }
  
- Tests
- ~~~~~
+ static inline bool pte_marker_uffd_wp(pte_t pte)
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-kasan-clean-up-comments-in-internal-kasanh.patch
-kasan-use-tabs-to-align-shadow-values.patch
-kasan-give-better-names-to-shadow-values.patch
-kasan-update-documentation.patch
-kasan-move-boot-parameters-section-in-documentation.patch
-kasan-clean-up-kconfig-options-descriptions.patch
+mm-introduce-pte_marker-swap-entry.patch
+mm-teach-core-mm-about-pte-markers.patch
+mm-check-against-orig_pte-for-finish_fault.patch
+mm-uffd-pte_marker_uffd_wp.patch
+mm-shmem-take-care-of-uffdio_copy_mode_wp.patch
+mm-shmem-handle-uffd-wp-special-pte-in-page-fault-handler.patch
+mm-shmem-persist-uffd-wp-bit-across-zapping-for-file-backed.patch
+mm-shmem-allow-uffd-wr-protect-none-pte-for-file-backed-mem.patch
+mm-shmem-allows-file-back-mem-to-be-uffd-wr-protected-on-thps.patch
+mm-shmem-handle-uffd-wp-during-fork.patch
+mm-hugetlb-introduce-huge-pte-version-of-uffd-wp-helpers.patch
+mm-hugetlb-hook-page-faults-for-uffd-write-protection.patch
+mm-hugetlb-take-care-of-uffdio_copy_mode_wp.patch
+mm-hugetlb-handle-uffdio_writeprotect.patch
+mm-hugetlb-handle-pte-markers-in-page-faults.patch
+mm-hugetlb-allow-uffd-wr-protect-none-ptes.patch
+mm-hugetlb-only-drop-uffd-wp-special-pte-if-required.patch
+mm-hugetlb-handle-uffd-wp-during-fork.patch
+mm-khugepaged-dont-recycle-vma-pgtable-if-uffd-wp-registered.patch
+mm-pagemap-recognize-uffd-wp-bit-for-shmem-hugetlbfs.patch
+mm-uffd-enable-write-protection-for-shmem-hugetlbfs.patch
+mm-enable-pte-markers-by-default.patch
+selftests-uffd-enable-uffd-wp-for-shmem-hugetlbfs.patch
+mm-uffd-move-userfaultfd-configs-into-mm.patch
 
