@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F718C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14BDFC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383665AbiEMTW0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:22:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42840 "EHLO
+        id S1357830AbiEMTW1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:22:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383749AbiEMTWS (ORCPT
+        with ESMTP id S1383746AbiEMTWS (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:22:18 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE7AF39B8F
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AB6339B8C
         for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 66EB6B8315D
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15832C34116;
-        Fri, 13 May 2022 19:21:36 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id AE41DCE3301
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A353C34100;
+        Fri, 13 May 2022 19:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469696;
-        bh=4O9oUc6k2QdITkFLDn/IbOxc2YVWuoawcCBsOGOklf4=;
+        s=korg; t=1652469695;
+        bh=3yvO/kb3stld6x+ELIs6C9P+zuk6s7qDYNSJ9gZ1OVw=;
         h=Date:To:From:Subject:From;
-        b=Bsa1OzrzRCGw8gZBfvVqvrfuLvf2moUIq+sgKhKieZjaQUwSNa8G+YARuGf0RWRlQ
-         lJBEor/aks3n0suoJQbCe70PQx9ZY+ig8qqd8lyG8FtR1kfFZNhgXoOx3FrWM3hj+L
-         5Utwh8ds6tiliFTqxPANa6iu0LznPdaG8vOM2JeY=
-Date:   Fri, 13 May 2022 12:21:35 -0700
+        b=BJBd1i4VlJ/+hgkO58uWbiJQoe8+8sFOd2IjYj2r6HxXeJdylO280/nwtPlnt86YP
+         N90Zq85FSR0vg1Cw9DPjNOoXcPqRLbHfnfaMrN6ybePdnYyP+Y1xSKnsRANXpFkBjv
+         G+PBWRUus88Xt2P38X1qoZtQL5SlYVeo416MnQrw=
+Date:   Fri, 13 May 2022 12:21:34 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         osalvador@suse.de, iamjoonsoo.kim@lge.com, hch@lst.de,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch removed from -mm tree
-Message-Id: <20220513192136.15832C34116@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch removed from -mm tree
+Message-Id: <20220513192135.1A353C34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,21 +42,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: remove obsolete comment in kswapd_run
+     Subject: mm/vmscan: take all base pages of THP into account when race with speculative reference
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
+     mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmscan: remove obsolete comment in kswapd_run
+Subject: mm/vmscan: take all base pages of THP into account when race with speculative reference
 
-Since commit 6b700b5b3c59 ("mm/vmscan.c: remove cpu online notification
-for now"), cpu online notification is removed.  So kswapd won't move to
-proper cpus if cpus are hot-added.  Remove this obsolete comment.
+If the page has buffers, shrink_page_list will try to free the buffer
+mappings associated with the page and try to free the page as well.  In
+the rare race with speculative reference, the page will be freed shortly
+by speculative reference.  But nr_reclaimed is not incremented correctly
+when we come across the THP.  We need to account all the base pages in
+this case.
 
-Link: https://lkml.kernel.org/r/20220425111232.23182-6-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220425111232.23182-5-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Huang, Ying <ying.huang@intel.com>
@@ -65,19 +68,20 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-obsolete-comment-in-kswapd_run
+--- a/mm/vmscan.c~mm-vmscan-take-all-base-pages-of-thp-into-account-when-race-with-speculative-reference
 +++ a/mm/vmscan.c
-@@ -4567,7 +4567,6 @@ unsigned long shrink_all_memory(unsigned
- 
- /*
-  * This kswapd start function will be called by init and node-hot-add.
-- * On node-hot-add, kswapd will moved to proper cpus if cpus are hot-added.
-  */
- void kswapd_run(int nid)
- {
+@@ -1884,7 +1884,7 @@ retry:
+ 					 * increment nr_reclaimed here (and
+ 					 * leave it off the LRU).
+ 					 */
+-					nr_reclaimed++;
++					nr_reclaimed += nr_pages;
+ 					continue;
+ 				}
+ 			}
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
