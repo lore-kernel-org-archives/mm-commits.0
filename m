@@ -2,112 +2,81 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 771F3C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 17:08:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1BB1C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 17:27:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382760AbiEMRId (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 13:08:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59784 "EHLO
+        id S232145AbiEMR1f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 13:27:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1382762AbiEMRI2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 13:08:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 213BB6161F;
-        Fri, 13 May 2022 10:08:27 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B17376201D;
-        Fri, 13 May 2022 17:08:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00530C34100;
-        Fri, 13 May 2022 17:08:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652461706;
-        bh=yyta1JDBNdTqYBJ7QeiOI5lEnbOq/t1YaTxEBduqntY=;
-        h=Date:From:To:Cc:Subject:From;
-        b=Zsl5a0c3oklW3J24GmN19JMzXlCtDk0w0R4CkKkbYTih9+4C3LPSyb2g12acZxvts
-         JGIfBdDRclKn5YGxu4nBR+/Fs4ktdS4lcM7qCbfXGX7xlQzwWL/s6DjZljPfcrhCKa
-         nAHNRzjHPOuiA6RsW7uuu9CdGbIXGAUTUgN4lK/4=
-Date:   Fri, 13 May 2022 10:08:25 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 5.18-rc7
-Message-Id: <20220513100825.701c0801de7f18168c4d838c@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S1349632AbiEMR1b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 13:27:31 -0400
+Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C2F06FD1B
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 10:27:30 -0700 (PDT)
+Received: by mail-ej1-x634.google.com with SMTP id m20so17499849ejj.10
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 10:27:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Zf0rn8yLC7yAPUBUazTnzPwSa/C/YmybSq+uQGiI6lg=;
+        b=hEx1V12/qwOL04uY2qlbamcUTkaJNL+QbeX8z8ioN0zwzxI3yvuyYZU9wKfrQZj0rP
+         BD3iFFZQqBbFu0y9i/4PgH4y7TmRpccgEcWf9c35EPwQhAndt8h72QTY8lvv6FJF/3iI
+         1t1xWtbl3fEaJaHwVj2kxyuQr0niC5M7SSqyo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Zf0rn8yLC7yAPUBUazTnzPwSa/C/YmybSq+uQGiI6lg=;
+        b=Gh8QzqzJVS45y+NCJfoEbR7V2Na4QA8MfpW8GNKW4JhKk0o6kbo/hLReVKKlKU/qNY
+         bLv6iUNTyw3y/iATPcFiPpOeWVkb+ZPbSptoysBiVfTBJajOVHsbc48sI4OIb7+Noxgv
+         ybEMn2AbBf+QAM7vFoAEW4GSKUGjkPLdGB95fpUghx4t/thV0o13bhu2XYjFCjDJhKWk
+         EyTVwfRHlNezuW4TZdFxArSMv1c+HkdNSXxkwGT/ado6poD1CiFNqjHkn+qOvAXOeTdr
+         8QfONkep/xhrXzF8Sr2lALuGKx1HoEoN9fA7MwyVvI+tXtrddsSk8Zy+kClvqTEmqMJJ
+         Ns4g==
+X-Gm-Message-State: AOAM531k8JnH12n09WaDwpHyUSiKGTikms+WjkIi6Z24NV0jzgKaFOZ8
+        +1OlwNEEIt89IjQlcedyeolDjs8RXyvQhU6WbS0=
+X-Google-Smtp-Source: ABdhPJwEIyVaL9m6Gvyr1Ff6s19AWZK/FLdHpQ1G5afDHpY9FttE3WGzh151p/LMsPXgBaaY0oYcfQ==
+X-Received: by 2002:a17:906:ce44:b0:6f4:2c9d:2d42 with SMTP id se4-20020a170906ce4400b006f42c9d2d42mr5237230ejb.503.1652462848564;
+        Fri, 13 May 2022 10:27:28 -0700 (PDT)
+Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com. [209.85.221.51])
+        by smtp.gmail.com with ESMTPSA id p7-20020a17090664c700b006f3ef214de3sm982403ejn.73.2022.05.13.10.27.27
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 13 May 2022 10:27:27 -0700 (PDT)
+Received: by mail-wr1-f51.google.com with SMTP id a5so8504851wrp.7
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 10:27:27 -0700 (PDT)
+X-Received: by 2002:adf:ec08:0:b0:20a:d39d:6ab6 with SMTP id
+ x8-20020adfec08000000b0020ad39d6ab6mr4855652wrn.442.1652462846758; Fri, 13
+ May 2022 10:27:26 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220513100825.701c0801de7f18168c4d838c@linux-foundation.org>
+In-Reply-To: <20220513100825.701c0801de7f18168c4d838c@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Fri, 13 May 2022 10:27:10 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wgz2FG+OxdR9KCWO=pPoWezScYx+rLUjHdeL4y9oJJvCg@mail.gmail.com>
+Message-ID: <CAHk-=wgz2FG+OxdR9KCWO=pPoWezScYx+rLUjHdeL4y9oJJvCg@mail.gmail.com>
+Subject: Re: [GIT PULL] hotfixes for 5.18-rc7
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Linus,
+On Fri, May 13, 2022 at 10:08 AM Andrew Morton
+<akpm@linux-foundation.org> wrote:
+>
+> Please pull a bunch of hotfixes for 5.18-rc7.
 
-Please pull a bunch of hotfixes for 5.18-rc7.
+W00t. Pulled.
 
+One day your workflow will also keep patch dates intact.
 
-The following changes since commit 38d741cb70b30741c0e802cbed7bd9cf4fd15fa4:
+That day is not today, but it was still really nice to just pull from you.
 
-  Merge tag 'drm-fixes-2022-04-29' of git://anongit.freedesktop.org/drm/drm (2022-04-28 18:00:34 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-05-11
-
-for you to fetch changes up to 9039b8335276569670caaf23606335946625e764:
-
-  MAINTAINERS: add a mailing list for DAMON development (2022-05-09 17:34:29 -0700)
-
-----------------------------------------------------------------
-
-Seven MM fixes, three of which address issues added in the most recent
-merge window, four of which are cc:stable.
-
-Three non-MM fixes, none very serious.
-
-----------------------------------------------------------------
-Hyeonggon Yoo (1):
-      mm/kfence: reset PG_slab and memcg_data before freeing __kfence_pool
-
-Joel Savitz (1):
-      selftests: vm: Makefile: rename TARGETS to VMTARGETS
-
-Kalesh Singh (1):
-      procfs: prevent unprivileged processes accessing fdinfo dir
-
-Martyna Szapar-Mudlaw (1):
-      mailmap: add entry for martyna.szapar-mudlaw@intel.com
-
-Mike Rapoport (1):
-      arm[64]/memremap: don't abuse pfn_valid() to ensure presence of linear map
-
-Naoya Horiguchi (1):
-      mm/hwpoison: use pr_err() instead of dump_page() in get_any_page()
-
-Niels Dossche (1):
-      mm: mremap: fix sign for EFAULT error return value
-
-SeongJae Park (1):
-      MAINTAINERS: add a mailing list for DAMON development
-
-Xu Yu (2):
-      Revert "mm/memory-failure.c: skip huge_zero_page in memory_failure()"
-      mm/huge_memory: do not overkill when splitting huge_zero_page
-
- .mailmap                            |  1 +
- MAINTAINERS                         |  1 +
- arch/arm/include/asm/io.h           |  3 +++
- arch/arm/mm/ioremap.c               |  8 ++++++++
- arch/arm64/include/asm/io.h         |  4 ++++
- arch/arm64/mm/ioremap.c             |  8 ++++++++
- fs/proc/fd.c                        | 23 ++++++++++++++++++++++-
- mm/huge_memory.c                    |  7 ++++++-
- mm/kfence/core.c                    | 10 ++++++++++
- mm/memory-failure.c                 | 15 +--------------
- mm/mremap.c                         |  2 +-
- tools/testing/selftests/vm/Makefile | 10 +++++-----
- 12 files changed, 70 insertions(+), 22 deletions(-)
-
+Thanks,
+                Linus
