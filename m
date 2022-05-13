@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E26B4C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F718C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:22:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383653AbiEMTW0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1383665AbiEMTW0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 13 May 2022 15:22:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40908 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383750AbiEMTWS (ORCPT
+        with ESMTP id S1383749AbiEMTWS (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:22:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EF3B39838
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE7AF39B8F
         for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BFFDD6220A
+        by ams.source.kernel.org (Postfix) with ESMTPS id 66EB6B8315D
         for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2618AC34113;
-        Fri, 13 May 2022 19:21:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15832C34116;
+        Fri, 13 May 2022 19:21:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469697;
-        bh=XV9M07AFNVaB/gliN0acmWTE8isxN73WRlcblfn2jHY=;
+        s=korg; t=1652469696;
+        bh=4O9oUc6k2QdITkFLDn/IbOxc2YVWuoawcCBsOGOklf4=;
         h=Date:To:From:Subject:From;
-        b=J+YdsR+JNb1hhOAnewegfXxrr5Rc61X4lyfXjOiQZFTMIu5/TrAyASuI/OOoKl3hE
-         4Oo1+ACvRVufdoxmkv5F6x3Xg7ZlLZYo6GjuHXHqHqUQ4OUGXA1Yrlaayi6mF+N/f0
-         5nmRMapxEHi7qfWffQMeEN/8KpRE3Pe6rSOpPy1g=
-Date:   Fri, 13 May 2022 12:21:36 -0700
+        b=Bsa1OzrzRCGw8gZBfvVqvrfuLvf2moUIq+sgKhKieZjaQUwSNa8G+YARuGf0RWRlQ
+         lJBEor/aks3n0suoJQbCe70PQx9ZY+ig8qqd8lyG8FtR1kfFZNhgXoOx3FrWM3hj+L
+         5Utwh8ds6tiliFTqxPANa6iu0LznPdaG8vOM2JeY=
+Date:   Fri, 13 May 2022 12:21:35 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         osalvador@suse.de, iamjoonsoo.kim@lge.com, hch@lst.de,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-use-helper-folio_is_file_lru.patch removed from -mm tree
-Message-Id: <20220513192137.2618AC34113@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch removed from -mm tree
+Message-Id: <20220513192136.15832C34116@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,22 +42,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: use helper folio_is_file_lru()
+     Subject: mm/vmscan: remove obsolete comment in kswapd_run
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-use-helper-folio_is_file_lru.patch
+     mm-vmscan-remove-obsolete-comment-in-kswapd_run.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmscan: use helper folio_is_file_lru()
+Subject: mm/vmscan: remove obsolete comment in kswapd_run
 
-Use helper folio_is_file_lru() to check whether folio is file lru.  Minor
-readability improvement.
+Since commit 6b700b5b3c59 ("mm/vmscan.c: remove cpu online notification
+for now"), cpu online notification is removed.  So kswapd won't move to
+proper cpus if cpus are hot-added.  Remove this obsolete comment.
 
-[linmiaohe@huawei.com: use folio_is_file_lru()]
-  Link: https://lkml.kernel.org/r/20220428105802.21389-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220425111232.23182-7-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220425111232.23182-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Huang, Ying <ying.huang@intel.com>
@@ -66,28 +65,19 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-use-helper-folio_is_file_lru
+--- a/mm/vmscan.c~mm-vmscan-remove-obsolete-comment-in-kswapd_run
 +++ a/mm/vmscan.c
-@@ -1414,14 +1414,14 @@ static enum page_references folio_check_
- 		/*
- 		 * Activate file-backed executable folios after first usage.
- 		 */
--		if ((vm_flags & VM_EXEC) && !folio_test_swapbacked(folio))
-+		if ((vm_flags & VM_EXEC) && folio_is_file_lru(folio))
- 			return PAGEREF_ACTIVATE;
+@@ -4567,7 +4567,6 @@ unsigned long shrink_all_memory(unsigned
  
- 		return PAGEREF_KEEP;
- 	}
- 
- 	/* Reclaim if clean, defer dirty folios to writeback */
--	if (referenced_folio && !folio_test_swapbacked(folio))
-+	if (referenced_folio && folio_is_file_lru(folio))
- 		return PAGEREF_RECLAIM_CLEAN;
- 
- 	return PAGEREF_RECLAIM;
+ /*
+  * This kswapd start function will be called by init and node-hot-add.
+- * On node-hot-add, kswapd will moved to proper cpus if cpus are hot-added.
+  */
+ void kswapd_run(int nid)
+ {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
