@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE458C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:25:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1242C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:25:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383864AbiEMTZG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:25:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44876 "EHLO
+        id S1383866AbiEMTZH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:25:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383883AbiEMTXQ (ORCPT
+        with ESMTP id S1383879AbiEMTXQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:23:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D975A2E9E7
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:20 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C8F22F3BC
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:22:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6627A60C14
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8638C34100;
-        Fri, 13 May 2022 19:22:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F32A5B8310B
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:22:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5E3DC34100;
+        Fri, 13 May 2022 19:22:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469739;
-        bh=ACFAHEJTIVbuS3MFCdXrAQ4II5h4M9Nd5VnXUm1GzoE=;
+        s=korg; t=1652469736;
+        bh=58go8GPbXMYyu0T5j7PnohiQuD1mG7nkVQ8e/VS1C4g=;
         h=Date:To:From:Subject:From;
-        b=xdQ9OtTimSGW9lqAJYlvfnFSTxMkMMSEINp7cKArIN7cmlhBfpiDSi2pJgOc+9Ci9
-         572/sEmLKiC4VKVE6TA4tsLLOBaXONCoVFvovaBZhquO5B+9isV5ErzHxF5z00Nf2t
-         CrYYsyAqk9LcSEpd3nZeEr0saz7LBib+xvC7eZ0Y=
-Date:   Fri, 13 May 2022 12:22:19 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, mingo@redhat.com,
-        vvs@openvz.org, akpm@linux-foundation.org
+        b=Iu06g+9yRwBn261EoRNYWAcltgO32VquOSn7fSAZJAV8qQI13Pkzumyj30VfuJfCE
+         yCR1fmi2hjtJKp/oJZqD5QHcX6eUu8o14g507gp2KOYNy+h9lIOmexqQT7JXsIG2Em
+         cQysRwYCPd9SwqGaMKFUoRjraPZjHqAZa/P27DWk=
+Date:   Fri, 13 May 2022 12:22:16 -0700
+To:     mm-commits@vger.kernel.org, zhaochongxi2019@email.szu.edu.cn,
+        zhangyinan2019@email.szu.edu.cn, yuhongf@szu.edu.cn,
+        yejiajian2018@email.szu.edu.cn, liuyongqiang13@huawei.com,
+        hanshenghong2019@email.szu.edu.cn, corbet@lwn.net,
+        caoyixuan2019@email.szu.edu.cn, baihaowen@meizu.com,
+        akiyks@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tracing-incorrect-gfp_t-conversion.patch removed from -mm tree
-Message-Id: <20220513192219.B8638C34100@smtp.kernel.org>
+Subject: [merged mm-stable] docs-vm-page_owner-tweak-literal-block-in-standard-format-specifiers.patch removed from -mm tree
+Message-Id: <20220513192216.A5E3DC34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,312 +45,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: tracing: incorrect gfp_t conversion
+     Subject: docs: vm/page_owner: tweak literal block in STANDARD FORMAT SPECIFIERS
 has been removed from the -mm tree.  Its filename was
-     tracing-incorrect-gfp_t-conversion.patch
+     docs-vm-page_owner-tweak-literal-block-in-standard-format-specifiers.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@openvz.org>
-Subject: tracing: incorrect gfp_t conversion
+From: Akira Yokosawa <akiyks@gmail.com>
+Subject: docs: vm/page_owner: tweak literal block in STANDARD FORMAT SPECIFIERS
 
-Fixes the following sparse warnings:
+A semantic conflict between commit 5603f9bdea68 ("docs: vm/page_owner: use
+literal blocks for param description") and a change queued for v5.19
+authored by Jiajian Ye ("tools/vm/page_owner_sort.c: support sorting
+blocks by multiple keys") results in a warning from "make htmldocs"
+saying:
 
-include/trace/events/*: sparse: cast to restricted gfp_t
-include/trace/events/*: sparse: restricted gfp_t degrades to integer
+  [...]/vm/page_owner.rst:176: WARNING: Literal block expected; none found.
 
-gfp_t type is bitwise and requires __force attributes for any casts.
+This is because a literal block in ReST ends at a line which has the same
+indent as the paragraph preceding it.  In this case the one with no
+indent.
 
-Link: https://lkml.kernel.org/r/331d88fe-f4f7-657c-02a2-d977f15fbff6@openvz.org
-Signed-off-by: Vasily Averin <vvs@openvz.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+Indent the two "For --xxxx option:" lines by two columns and make the
+whole section a literal block.
+
+While at it, fix indents by white spaces of "ator" keys.
+
+Link: https://lkml.kernel.org/r/fdfecc82-d41e-6d8a-738d-4beb6faa27fb@gmail.com
+Signed-of-by: Akira Yokosawa <akiyks@gmail.com>
+Reported-by: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
+Cc: Jiajian Ye <yejiajian2018@email.szu.edu.cn>
+Cc: Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>
+Cc: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Cc: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+Cc: Yongqiang Liu <liuyongqiang13@huawei.com>
+Cc: Yuhong Feng <yuhongf@szu.edu.cn>
+Cc: Haowen Bai <baihaowen@meizu.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h               |    2 
- include/trace/events/btrfs.h      |    4 -
- include/trace/events/compaction.h |    4 -
- include/trace/events/kmem.h       |   12 ++--
- include/trace/events/mmflags.h    |   78 ++++++++++++++--------------
- include/trace/events/vmscan.h     |   16 ++---
- mm/compaction.c                   |    2 
- 7 files changed, 59 insertions(+), 59 deletions(-)
+ Documentation/vm/page_owner.rst |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/gfp.h~tracing-incorrect-gfp_t-conversion
-+++ a/include/linux/gfp.h
-@@ -367,7 +367,7 @@ static inline int gfp_migratetype(const
- 		return MIGRATE_UNMOVABLE;
+--- a/Documentation/vm/page_owner.rst~docs-vm-page_owner-tweak-literal-block-in-standard-format-specifiers
++++ a/Documentation/vm/page_owner.rst
+@@ -173,7 +173,7 @@ STANDARD FORMAT SPECIFIERS
+ ==========================
+ ::
  
- 	/* Group based on mobility */
--	return (gfp_flags & GFP_MOVABLE_MASK) >> GFP_MOVABLE_SHIFT;
-+	return (__force unsigned long)(gfp_flags & GFP_MOVABLE_MASK) >> GFP_MOVABLE_SHIFT;
- }
- #undef GFP_MOVABLE_MASK
- #undef GFP_MOVABLE_SHIFT
---- a/include/trace/events/btrfs.h~tracing-incorrect-gfp_t-conversion
-+++ a/include/trace/events/btrfs.h
-@@ -1344,13 +1344,13 @@ TRACE_EVENT(alloc_extent_state,
+-For --sort option:
++  For --sort option:
  
- 	TP_STRUCT__entry(
- 		__field(const struct extent_state *, state)
--		__field(gfp_t, mask)
-+		__field(unsigned long, mask)
- 		__field(const void*, ip)
- 	),
+ 	KEY		LONG		DESCRIPTION
+ 	p		pid		process ID
+@@ -183,9 +183,9 @@ For --sort option:
+ 	T		txt		full text of block
+ 	ft		free_ts		timestamp of the page when it was released
+ 	at		alloc_ts	timestamp of the page when it was allocated
+-        ator            allocator       memory allocator for pages
++	ator		allocator	memory allocator for pages
  
- 	TP_fast_assign(
- 		__entry->state	= state,
--		__entry->mask	= mask,
-+		__entry->mask	= (__force unsigned long)mask,
- 		__entry->ip	= (const void *)IP
- 	),
+-For --curl option:
++  For --curl option:
  
---- a/include/trace/events/compaction.h~tracing-incorrect-gfp_t-conversion
-+++ a/include/trace/events/compaction.h
-@@ -162,13 +162,13 @@ TRACE_EVENT(mm_compaction_try_to_compact
- 
- 	TP_STRUCT__entry(
- 		__field(int, order)
--		__field(gfp_t, gfp_mask)
-+		__field(unsigned long, gfp_mask)
- 		__field(int, prio)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->order = order;
--		__entry->gfp_mask = gfp_mask;
-+		__entry->gfp_mask = (__force unsigned long)gfp_mask;
- 		__entry->prio = prio;
- 	),
- 
---- a/include/trace/events/kmem.h~tracing-incorrect-gfp_t-conversion
-+++ a/include/trace/events/kmem.h
-@@ -24,7 +24,7 @@ DECLARE_EVENT_CLASS(kmem_alloc,
- 		__field(	const void *,	ptr		)
- 		__field(	size_t,		bytes_req	)
- 		__field(	size_t,		bytes_alloc	)
--		__field(	gfp_t,		gfp_flags	)
-+		__field(	unsigned long,	gfp_flags	)
- 	),
- 
- 	TP_fast_assign(
-@@ -32,7 +32,7 @@ DECLARE_EVENT_CLASS(kmem_alloc,
- 		__entry->ptr		= ptr;
- 		__entry->bytes_req	= bytes_req;
- 		__entry->bytes_alloc	= bytes_alloc;
--		__entry->gfp_flags	= gfp_flags;
-+		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
- 	),
- 
- 	TP_printk("call_site=%pS ptr=%p bytes_req=%zu bytes_alloc=%zu gfp_flags=%s",
-@@ -75,7 +75,7 @@ DECLARE_EVENT_CLASS(kmem_alloc_node,
- 		__field(	const void *,	ptr		)
- 		__field(	size_t,		bytes_req	)
- 		__field(	size_t,		bytes_alloc	)
--		__field(	gfp_t,		gfp_flags	)
-+		__field(	unsigned long,	gfp_flags	)
- 		__field(	int,		node		)
- 	),
- 
-@@ -84,7 +84,7 @@ DECLARE_EVENT_CLASS(kmem_alloc_node,
- 		__entry->ptr		= ptr;
- 		__entry->bytes_req	= bytes_req;
- 		__entry->bytes_alloc	= bytes_alloc;
--		__entry->gfp_flags	= gfp_flags;
-+		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
- 		__entry->node		= node;
- 	),
- 
-@@ -208,14 +208,14 @@ TRACE_EVENT(mm_page_alloc,
- 	TP_STRUCT__entry(
- 		__field(	unsigned long,	pfn		)
- 		__field(	unsigned int,	order		)
--		__field(	gfp_t,		gfp_flags	)
-+		__field(	unsigned long,	gfp_flags	)
- 		__field(	int,		migratetype	)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->pfn		= page ? page_to_pfn(page) : -1UL;
- 		__entry->order		= order;
--		__entry->gfp_flags	= gfp_flags;
-+		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
- 		__entry->migratetype	= migratetype;
- 	),
- 
---- a/include/trace/events/mmflags.h~tracing-incorrect-gfp_t-conversion
-+++ a/include/trace/events/mmflags.h
-@@ -14,48 +14,48 @@
-  */
- 
- #define __def_gfpflag_names						\
--	{(unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
--	{(unsigned long)GFP_TRANSHUGE_LIGHT,	"GFP_TRANSHUGE_LIGHT"}, \
--	{(unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"},\
--	{(unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
--	{(unsigned long)GFP_USER,		"GFP_USER"},		\
--	{(unsigned long)GFP_KERNEL_ACCOUNT,	"GFP_KERNEL_ACCOUNT"},	\
--	{(unsigned long)GFP_KERNEL,		"GFP_KERNEL"},		\
--	{(unsigned long)GFP_NOFS,		"GFP_NOFS"},		\
--	{(unsigned long)GFP_ATOMIC,		"GFP_ATOMIC"},		\
--	{(unsigned long)GFP_NOIO,		"GFP_NOIO"},		\
--	{(unsigned long)GFP_NOWAIT,		"GFP_NOWAIT"},		\
--	{(unsigned long)GFP_DMA,		"GFP_DMA"},		\
--	{(unsigned long)__GFP_HIGHMEM,		"__GFP_HIGHMEM"},	\
--	{(unsigned long)GFP_DMA32,		"GFP_DMA32"},		\
--	{(unsigned long)__GFP_HIGH,		"__GFP_HIGH"},		\
--	{(unsigned long)__GFP_ATOMIC,		"__GFP_ATOMIC"},	\
--	{(unsigned long)__GFP_IO,		"__GFP_IO"},		\
--	{(unsigned long)__GFP_FS,		"__GFP_FS"},		\
--	{(unsigned long)__GFP_NOWARN,		"__GFP_NOWARN"},	\
--	{(unsigned long)__GFP_RETRY_MAYFAIL,	"__GFP_RETRY_MAYFAIL"},	\
--	{(unsigned long)__GFP_NOFAIL,		"__GFP_NOFAIL"},	\
--	{(unsigned long)__GFP_NORETRY,		"__GFP_NORETRY"},	\
--	{(unsigned long)__GFP_COMP,		"__GFP_COMP"},		\
--	{(unsigned long)__GFP_ZERO,		"__GFP_ZERO"},		\
--	{(unsigned long)__GFP_NOMEMALLOC,	"__GFP_NOMEMALLOC"},	\
--	{(unsigned long)__GFP_MEMALLOC,		"__GFP_MEMALLOC"},	\
--	{(unsigned long)__GFP_HARDWALL,		"__GFP_HARDWALL"},	\
--	{(unsigned long)__GFP_THISNODE,		"__GFP_THISNODE"},	\
--	{(unsigned long)__GFP_RECLAIMABLE,	"__GFP_RECLAIMABLE"},	\
--	{(unsigned long)__GFP_MOVABLE,		"__GFP_MOVABLE"},	\
--	{(unsigned long)__GFP_ACCOUNT,		"__GFP_ACCOUNT"},	\
--	{(unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
--	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
--	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
--	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
--	{(unsigned long)__GFP_ZEROTAGS,		"__GFP_ZEROTAGS"}	\
-+	{(__force unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
-+	{(__force unsigned long)GFP_TRANSHUGE_LIGHT,	"GFP_TRANSHUGE_LIGHT"}, \
-+	{(__force unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"},\
-+	{(__force unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
-+	{(__force unsigned long)GFP_USER,		"GFP_USER"},		\
-+	{(__force unsigned long)GFP_KERNEL_ACCOUNT,	"GFP_KERNEL_ACCOUNT"},	\
-+	{(__force unsigned long)GFP_KERNEL,		"GFP_KERNEL"},		\
-+	{(__force unsigned long)GFP_NOFS,		"GFP_NOFS"},		\
-+	{(__force unsigned long)GFP_ATOMIC,		"GFP_ATOMIC"},		\
-+	{(__force unsigned long)GFP_NOIO,		"GFP_NOIO"},		\
-+	{(__force unsigned long)GFP_NOWAIT,		"GFP_NOWAIT"},		\
-+	{(__force unsigned long)GFP_DMA,		"GFP_DMA"},		\
-+	{(__force unsigned long)__GFP_HIGHMEM,		"__GFP_HIGHMEM"},	\
-+	{(__force unsigned long)GFP_DMA32,		"GFP_DMA32"},		\
-+	{(__force unsigned long)__GFP_HIGH,		"__GFP_HIGH"},		\
-+	{(__force unsigned long)__GFP_ATOMIC,		"__GFP_ATOMIC"},	\
-+	{(__force unsigned long)__GFP_IO,		"__GFP_IO"},		\
-+	{(__force unsigned long)__GFP_FS,		"__GFP_FS"},		\
-+	{(__force unsigned long)__GFP_NOWARN,		"__GFP_NOWARN"},	\
-+	{(__force unsigned long)__GFP_RETRY_MAYFAIL,	"__GFP_RETRY_MAYFAIL"},	\
-+	{(__force unsigned long)__GFP_NOFAIL,		"__GFP_NOFAIL"},	\
-+	{(__force unsigned long)__GFP_NORETRY,		"__GFP_NORETRY"},	\
-+	{(__force unsigned long)__GFP_COMP,		"__GFP_COMP"},		\
-+	{(__force unsigned long)__GFP_ZERO,		"__GFP_ZERO"},		\
-+	{(__force unsigned long)__GFP_NOMEMALLOC,	"__GFP_NOMEMALLOC"},	\
-+	{(__force unsigned long)__GFP_MEMALLOC,		"__GFP_MEMALLOC"},	\
-+	{(__force unsigned long)__GFP_HARDWALL,		"__GFP_HARDWALL"},	\
-+	{(__force unsigned long)__GFP_THISNODE,		"__GFP_THISNODE"},	\
-+	{(__force unsigned long)__GFP_RECLAIMABLE,	"__GFP_RECLAIMABLE"},	\
-+	{(__force unsigned long)__GFP_MOVABLE,		"__GFP_MOVABLE"},	\
-+	{(__force unsigned long)__GFP_ACCOUNT,		"__GFP_ACCOUNT"},	\
-+	{(__force unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
-+	{(__force unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
-+	{(__force unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
-+	{(__force unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
-+	{(__force unsigned long)__GFP_ZEROTAGS,		"__GFP_ZEROTAGS"}	\
- 
- #ifdef CONFIG_KASAN_HW_TAGS
- #define __def_gfpflag_names_kasan ,					       \
--	{(unsigned long)__GFP_SKIP_ZERO,	   "__GFP_SKIP_ZERO"},	       \
--	{(unsigned long)__GFP_SKIP_KASAN_POISON,   "__GFP_SKIP_KASAN_POISON"}, \
--	{(unsigned long)__GFP_SKIP_KASAN_UNPOISON, "__GFP_SKIP_KASAN_UNPOISON"}
-+	{(__force unsigned long)__GFP_SKIP_ZERO,	   "__GFP_SKIP_ZERO"},	       \
-+	{(__force unsigned long)__GFP_SKIP_KASAN_POISON,   "__GFP_SKIP_KASAN_POISON"}, \
-+	{(__force unsigned long)__GFP_SKIP_KASAN_UNPOISON, "__GFP_SKIP_KASAN_UNPOISON"}
- #else
- #define __def_gfpflag_names_kasan
- #endif
---- a/include/trace/events/vmscan.h~tracing-incorrect-gfp_t-conversion
-+++ a/include/trace/events/vmscan.h
-@@ -96,14 +96,14 @@ TRACE_EVENT(mm_vmscan_wakeup_kswapd,
- 		__field(	int,	nid		)
- 		__field(	int,	zid		)
- 		__field(	int,	order		)
--		__field(	gfp_t,	gfp_flags	)
-+		__field(	unsigned long,	gfp_flags	)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->nid		= nid;
- 		__entry->zid		= zid;
- 		__entry->order		= order;
--		__entry->gfp_flags	= gfp_flags;
-+		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
- 	),
- 
- 	TP_printk("nid=%d order=%d gfp_flags=%s",
-@@ -120,12 +120,12 @@ DECLARE_EVENT_CLASS(mm_vmscan_direct_rec
- 
- 	TP_STRUCT__entry(
- 		__field(	int,	order		)
--		__field(	gfp_t,	gfp_flags	)
-+		__field(	unsigned long,	gfp_flags	)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->order		= order;
--		__entry->gfp_flags	= gfp_flags;
-+		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
- 	),
- 
- 	TP_printk("order=%d gfp_flags=%s",
-@@ -210,7 +210,7 @@ TRACE_EVENT(mm_shrink_slab_start,
- 		__field(void *, shrink)
- 		__field(int, nid)
- 		__field(long, nr_objects_to_shrink)
--		__field(gfp_t, gfp_flags)
-+		__field(unsigned long, gfp_flags)
- 		__field(unsigned long, cache_items)
- 		__field(unsigned long long, delta)
- 		__field(unsigned long, total_scan)
-@@ -222,7 +222,7 @@ TRACE_EVENT(mm_shrink_slab_start,
- 		__entry->shrink = shr->scan_objects;
- 		__entry->nid = sc->nid;
- 		__entry->nr_objects_to_shrink = nr_objects_to_shrink;
--		__entry->gfp_flags = sc->gfp_mask;
-+		__entry->gfp_flags = (__force unsigned long)sc->gfp_mask;
- 		__entry->cache_items = cache_items;
- 		__entry->delta = delta;
- 		__entry->total_scan = total_scan;
-@@ -446,13 +446,13 @@ TRACE_EVENT(mm_vmscan_node_reclaim_begin
- 	TP_STRUCT__entry(
- 		__field(int, nid)
- 		__field(int, order)
--		__field(gfp_t, gfp_flags)
-+		__field(unsigned long, gfp_flags)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->nid = nid;
- 		__entry->order = order;
--		__entry->gfp_flags = gfp_flags;
-+		__entry->gfp_flags = (__force unsigned long)gfp_flags;
- 	),
- 
- 	TP_printk("nid=%d order=%d gfp_flags=%s",
---- a/mm/compaction.c~tracing-incorrect-gfp_t-conversion
-+++ a/mm/compaction.c
-@@ -2569,7 +2569,7 @@ enum compact_result try_to_compact_pages
- 		unsigned int alloc_flags, const struct alloc_context *ac,
- 		enum compact_priority prio, struct page **capture)
- {
--	int may_perform_io = gfp_mask & __GFP_IO;
-+	int may_perform_io = (__force int)(gfp_mask & __GFP_IO);
- 	struct zoneref *z;
- 	struct zone *zone;
- 	enum compact_result rc = COMPACT_SKIPPED;
+ 	KEY		LONG		DESCRIPTION
+ 	p		pid		process ID
+@@ -193,4 +193,4 @@ For --curl option:
+ 	n		name		task command name
+ 	f		free		whether the page has been released or not
+ 	st		stacktrace	stack trace of the page allocation
+-        ator            allocator       memory allocator for pages
++	ator		allocator	memory allocator for pages
 _
 
-Patches currently in -mm which might be from vvs@openvz.org are
+Patches currently in -mm which might be from akiyks@gmail.com are
 
 
