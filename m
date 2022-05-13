@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B2B8C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:21:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49722C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 19:21:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383797AbiEMTVo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 13 May 2022 15:21:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40386 "EHLO
+        id S1383801AbiEMTVp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 13 May 2022 15:21:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383850AbiEMTVQ (ORCPT
+        with ESMTP id S1383851AbiEMTVQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 13 May 2022 15:21:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AECA42DD1
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEE6238B0
         for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 12:21:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 447DA62259
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97181C34100;
-        Fri, 13 May 2022 19:21:14 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 1CC63CE330E
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 19:21:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 745DDC34100;
+        Fri, 13 May 2022 19:21:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652469674;
-        bh=mlBtUcjc47+biGPZvoFjBAUfnkeJfv9Emm/OhLDVSU4=;
+        s=korg; t=1652469672;
+        bh=WBw1RLQ5h2g1YApZZIUzdsnk3YlyjLJ6lFAjeAppuNc=;
         h=Date:To:From:Subject:From;
-        b=l2YzoePMEd/V36MPqyLIG96HavUqyJFbBAvYiv8CbeoytOSMYwAUeOoxsk4Kk00I1
-         xOZlqpwdnBwJpYnFzE3vbQzyuimzwFs/1q6NIZi4gMfsNeRuN1anN2zs8f1HCE25nf
-         gaxQUs1Ptl6zTFkNWUaiMD3ewHLUicEWfONDviyo=
-Date:   Fri, 13 May 2022 12:21:14 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        skhan@linuxfoundation.org, guozhengkui@vivo.com,
+        b=e3WYO+iXe26fBwo6cZP4VRi/7y7j/E7ea/4n5wKuAWdfxeL8+wMKrP1FtdH5wpjC1
+         PdC53Oz41OoK7h+65C38QVeZkz7awflDBPkglQEJjoaDkoKtddKUcYwYTGGcWRicsf
+         QBrbYCV8un5JBCV3Oc4wur/X1h4gKms3ZNFI4t2I=
+Date:   Fri, 13 May 2022 12:21:11 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rppt@linux.vnet.ibm.com, nadav.amit@gmail.com,
+        mike.kravetz@oracle.com, kirill@shutemov.name, jglisse@redhat.com,
+        hughd@google.com, david@redhat.com, axelrasmussen@google.com,
+        apopple@nvidia.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-selftests-use-swap-instead-of-open-coding-it.patch removed from -mm tree
-Message-Id: <20220513192114.97181C34100@smtp.kernel.org>
+Subject: [merged mm-stable] mm-enable-pte-markers-by-default.patch removed from -mm tree
+Message-Id: <20220513192112.745DDC34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,70 +45,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: userfaultfd/selftests: use swap() instead of open coding it
+     Subject: mm: enable PTE markers by default
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-use-swap-instead-of-open-coding-it.patch
+     mm-enable-pte-markers-by-default.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Guo Zhengkui <guozhengkui@vivo.com>
-Subject: userfaultfd/selftests: use swap() instead of open coding it
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: enable PTE markers by default
 
-Address the following coccicheck warning:
+Enable PTE markers by default.  On x86_64 it means it'll auto-enable
+PTE_MARKER_UFFD_WP as well.
 
-tools/testing/selftests/vm/userfaultfd.c:1536:21-22: WARNING opportunity
-for swap().
-tools/testing/selftests/vm/userfaultfd.c:1540:33-34: WARNING opportunity
-for swap().
-
-by using swap() for the swapping of variable values and drop
-`tmp_area` that is not needed any more.
-
-`swap()` macro in userfaultfd.c is introduced in commit 681696862bc18
-("selftests: vm: remove dependecy from internal kernel macros")
-
-It has been tested with gcc (Debian 8.3.0-6) 8.3.0.
-
-Link: https://lkml.kernel.org/r/20220407123141.4998-1-guozhengkui@vivo.com
-Signed-off-by: Guo Zhengkui <guozhengkui@vivo.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+[peterx@redhat.com: hide PTE_MARKER option]
+  Link: https://lkml.kernel.org/r/20220419202531.27415-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220405014929.15158-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/Kconfig |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-use-swap-instead-of-open-coding-it
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -1422,7 +1422,6 @@ static void userfaultfd_pagemap_test(uns
- static int userfaultfd_stress(void)
- {
- 	void *area;
--	char *tmp_area;
- 	unsigned long nr;
- 	struct uffdio_register uffdio_register;
- 	struct uffd_stats uffd_stats[nr_cpus];
-@@ -1533,13 +1532,9 @@ static int userfaultfd_stress(void)
- 					    count_verify[nr], nr);
+--- a/mm/Kconfig~mm-enable-pte-markers-by-default
++++ a/mm/Kconfig
+@@ -910,14 +910,16 @@ config ANON_VMA_NAME
+ 	  difference in their name.
  
- 		/* prepare next bounce */
--		tmp_area = area_src;
--		area_src = area_dst;
--		area_dst = tmp_area;
--
--		tmp_area = area_src_alias;
--		area_src_alias = area_dst_alias;
--		area_dst_alias = tmp_area;
-+		swap(area_src, area_dst);
-+
-+		swap(area_src_alias, area_dst_alias);
+ config PTE_MARKER
+-	bool "Marker PTEs support"
++	bool
  
- 		uffd_stats_report(uffd_stats, nr_cpus);
- 	}
+ 	help
+ 	  Allows to create marker PTEs for file-backed memory.
+ 
+ config PTE_MARKER_UFFD_WP
+-	bool "Marker PTEs support for userfaultfd write protection"
+-	depends on PTE_MARKER && HAVE_ARCH_USERFAULTFD_WP
++	bool "Userfaultfd write protection support for shmem/hugetlbfs"
++	default y
++	depends on HAVE_ARCH_USERFAULTFD_WP
++	select PTE_MARKER
+ 
+ 	help
+ 	  Allows to create marker PTEs for userfaultfd write protection
 _
 
-Patches currently in -mm which might be from guozhengkui@vivo.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
 
