@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B48C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 02:53:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A857DC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 13 May 2022 02:53:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356867AbiEMCxN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 May 2022 22:53:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33756 "EHLO
+        id S1376559AbiEMCxt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 May 2022 22:53:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232487AbiEMCxN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 22:53:13 -0400
+        with ESMTP id S232487AbiEMCxs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2022 22:53:48 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61E3F6C0EA
-        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 19:53:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E266627EBA8
+        for <mm-commits@vger.kernel.org>; Thu, 12 May 2022 19:53:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D08D6B828B3
-        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 02:53:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F74EC385B8;
-        Fri, 13 May 2022 02:53:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9B681B82BA8
+        for <mm-commits@vger.kernel.org>; Fri, 13 May 2022 02:53:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CF74C385B8;
+        Fri, 13 May 2022 02:53:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652410389;
-        bh=wphjjojgCyp69h/SFJSFhQE+RaCuq0Mxd5fYNlZrYGE=;
+        s=korg; t=1652410425;
+        bh=E+RaxtJY0YmKm7rMGiA30Ptj8d+iXZC0heCIw+4uDvI=;
         h=Date:To:From:Subject:From;
-        b=dhcJB/r0s8Z8Qf52Uj6ti7jbWebROlUvk1tWoI3DxuWYC+n4yI2LZBXzmYAREpuKG
-         +hE29hRaya++A/cIfLsWuTIjPQ8MvRjIX5HUnvQWBV7qmkUuWx7jETZUheziibPRlH
-         f5zZcZTCdbYuP8LbZ7y3K7Nhiyphz/o3h/AplG3o=
-Date:   Thu, 12 May 2022 19:53:08 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=C54ybhCjx+XLYB0MEXx+xBmbATbTxA4V9OJKXV5vb/8sf+L4MTWUPKbEexgjANSbb
+         0fChssXcDhdvpOdT0LA2GCHpJx09nk1EeUTSPtLiFYcovk9t0xrtiL1KnsnYi5o4QG
+         rvanoa+dJe2iBvwWM6fMNW9eBMXC+tT4IJ3iJfMA=
+Date:   Thu, 12 May 2022 19:53:44 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au, lkp@intel.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-introduce-pte_marker-swap-entry-fix.patch removed from -mm tree
-Message-Id: <20220513025309.7F74EC385B8@smtp.kernel.org>
+Subject: [folded-merged] mm-teach-core-mm-about-pte-markers-fix.patch removed from -mm tree
+Message-Id: <20220513025345.5CF74C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,46 +41,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fixup! mm: Introduce PTE_MARKER swap entry
+     Subject: fixup! mm: Teach core mm about pte markers
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-pte_marker-swap-entry-fix.patch
+     mm-teach-core-mm-about-pte-markers-fix.patch
 
-This patch was dropped because it was folded into mm-introduce-pte_marker-swap-entry.patch
+This patch was dropped because it was folded into mm-teach-core-mm-about-pte-markers.patch
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: fixup! mm: Introduce PTE_MARKER swap entry
+Subject: fixup! mm: Teach core mm about pte markers
 
-Link: https://lkml.kernel.org/r/Yk2rdB7SXZf+2BDF@xz-m1.local
+userfaultfd.c needs swapops.h
+
+Link: https://lkml.kernel.org/r/YmRlVj3cdizYJsr0@xz-m1.local
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reported-by: kernel test robot <lkp@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/hugetlb.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/userfaultfd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/s390/include/asm/hugetlb.h~mm-introduce-pte_marker-swap-entry-fix
-+++ a/arch/s390/include/asm/hugetlb.h
-@@ -85,6 +85,11 @@ static inline int huge_pte_none(pte_t pt
- 	return pte_none(pte);
- }
+--- a/fs/userfaultfd.c~mm-teach-core-mm-about-pte-markers-fix
++++ a/fs/userfaultfd.c
+@@ -29,6 +29,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/security.h>
+ #include <linux/hugetlb.h>
++#include <linux/swapops.h>
  
-+static inline int huge_pte_none_mostly(pte_t pte)
-+{
-+	return huge_pte_none(pte);
-+}
-+
- static inline int huge_pte_write(pte_t pte)
- {
- 	return pte_write(pte);
+ int sysctl_unprivileged_userfaultfd __read_mostly;
+ 
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
 
 mm-introduce-pte_marker-swap-entry.patch
 mm-teach-core-mm-about-pte-markers.patch
-mm-teach-core-mm-about-pte-markers-fix.patch
 mm-check-against-orig_pte-for-finish_fault.patch
 mm-check-against-orig_pte-for-finish_fault-fix.patch
 mm-uffd-pte_marker_uffd_wp.patch
