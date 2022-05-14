@@ -2,41 +2,46 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6EADC433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 14 May 2022 19:55:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BB28C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 14 May 2022 19:55:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235006AbiENTz0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 May 2022 15:55:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53432 "EHLO
+        id S234896AbiENTz1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 May 2022 15:55:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234896AbiENTzT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 May 2022 15:55:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5AD1377E9
-        for <mm-commits@vger.kernel.org>; Sat, 14 May 2022 12:55:17 -0700 (PDT)
+        with ESMTP id S234999AbiENTzY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 May 2022 15:55:24 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29327377EB
+        for <mm-commits@vger.kernel.org>; Sat, 14 May 2022 12:55:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3F4C56114F
-        for <mm-commits@vger.kernel.org>; Sat, 14 May 2022 19:55:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 984BFC340EE;
-        Sat, 14 May 2022 19:55:16 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C32A4B80AFE
+        for <mm-commits@vger.kernel.org>; Sat, 14 May 2022 19:55:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86FE5C34117;
+        Sat, 14 May 2022 19:55:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652558116;
-        bh=o5QjhyK58R+PYmMdQ+sO+ju3v5uroh2+ZM6Sl8ZsD84=;
+        s=korg; t=1652558120;
+        bh=/k8x09qzXW9YyWPz9NzTNyNRUMmYkvkHTqkv1eJmJHQ=;
         h=Date:To:From:Subject:From;
-        b=V31mkXcylXqReNxk6Hul46FzVWmdMx+iIjdHODX67VcGF0/0T9E9O8H/Y40gzTLMi
-         vYug4uOR9aWczb4hgmgnzr6xi+dhrWTfnd/j8RS8ptUw1+ImmbPGjHwK/SpNmIbUt8
-         lSW7d5CJMA8awsg+Q27hJfiIvJ4AizUYeQq0cZ/s=
-Date:   Sat, 14 May 2022 12:55:16 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
-        vbabka@suse.cz, tglx@linutronix.de, rppt@linux.ibm.com,
-        peterz@infradead.org, pcc@google.com, ira.weiny@intel.com,
-        corbet@lwn.net, catalin.marinas@arm.com, bigeasy@linutronix.de,
-        fmdefrancesco@gmail.com, akpm@linux-foundation.org
+        b=V5x3pdUQDUIhgrbJzb+zMlyhkNd8ELxai5rRNsYAl8k4CQH9UvOf5lelwibCUjxTy
+         K4QN0VfgR9j/7WyZdjmT+TxjnmD/Rij08R3dN7iko38YCaUaKmNTN887a+9BOF2Zg1
+         CCx3alnMMiPjxZyowZBFUPUHlsDlyc4v5esjQmWs=
+Date:   Sat, 14 May 2022 12:55:19 -0700
+To:     mm-commits@vger.kernel.org, ysato@users.osdn.me, will@kernel.org,
+        tsbogend@alpha.franken.de, svens@linux.ibm.com,
+        songmuchun@bytedance.com, paulus@samba.org, mpe@ellerman.id.au,
+        mike.kravetz@oracle.com, James.Bottomley@HansenPartnership.com,
+        hca@linux.ibm.com, gor@linux.ibm.com,
+        gerald.schaefer@linux.ibm.com, deller@gmx.de, david@redhat.com,
+        davem@davemloft.net, dalias@libc.org, catalin.marinas@arm.com,
+        borntraeger@linux.ibm.com, benh@kernel.crashing.org, arnd@arndb.de,
+        agordeev@linux.ibm.com, baolin.wang@linux.alibaba.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] documentation-vm-rework-temporary-virtual-mappings-section.patch removed from -mm tree
-Message-Id: <20220514195516.984BFC340EE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-fix-cont-pte-pmd-size-hugetlb-issue-when-unmapping.patch removed from -mm tree
+Message-Id: <20220514195520.86FE5C34117@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,142 +49,136 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Documentation/vm: rework "Temporary Virtual Mappings" section
+     Subject: mm: rmap: fix CONT-PTE/PMD size hugetlb issue when unmapping
 has been removed from the -mm tree.  Its filename was
-     documentation-vm-rework-temporary-virtual-mappings-section.patch
+     mm-rmap-fix-cont-pte-pmd-size-hugetlb-issue-when-unmapping.patch
 
 This patch was dropped because it was merged into the mm-stable branch\nof git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Subject: Documentation/vm: rework "Temporary Virtual Mappings" section
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: rmap: fix CONT-PTE/PMD size hugetlb issue when unmapping
 
-Extend and rework the "Temporary Virtual Mappings" section of the
-highmem.rst documentation.
+On some architectures (like ARM64), it can support CONT-PTE/PMD size
+hugetlb, which means it can support not only PMD/PUD size hugetlb: 2M and
+1G, but also CONT-PTE/PMD size: 64K and 32M if a 4K page size specified.
 
-Despite the local kmaps were introduced by Thomas Gleixner in October
-2020, documentation was still missing information about them.  These
-additions rely largely on Gleixner's patches, Jonathan Corbet's LWN
-articles, comments by Ira Weiny and Matthew Wilcox, and in-code comments
-from ./include/linux/highmem.h.
+When unmapping a hugetlb page, we will get the relevant page table entry
+by huge_pte_offset() only once to nuke it.  This is correct for PMD or PUD
+size hugetlb, since they always contain only one pmd entry or pud entry in
+the page table.
 
-1) Add a paragraph to document kmap_local_page().
-2) Reorder the list of functions by decreasing order of preference
-   of use.
-3) Rework part of the kmap() entry in list.
+However this is incorrect for CONT-PTE and CONT-PMD size hugetlb, since
+they can contain several continuous pte or pmd entry with same page table
+attributes, so we will nuke only one pte or pmd entry for this
+CONT-PTE/PMD size hugetlb page.
 
-Link: https://lkml.kernel.org/r/20220428212455.892-5-fmdefrancesco@gmail.com
-Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
-Suggested-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+And now try_to_unmap() is only passed a hugetlb page in the case where the
+hugetlb page is poisoned.  Which means now we will unmap only one pte
+entry for a CONT-PTE or CONT-PMD size poisoned hugetlb page, and we can
+still access other subpages of a CONT-PTE or CONT-PMD size poisoned
+hugetlb page, which will cause serious issues possibly.
+
+So we should change to use huge_ptep_clear_flush() to nuke the hugetlb
+page table to fix this issue, which already considered CONT-PTE and
+CONT-PMD size hugetlb.
+
+We've already used set_huge_swap_pte_at() to set a poisoned swap entry for
+a poisoned hugetlb page.  Meanwhile adding a VM_BUG_ON() to make sure the
+passed hugetlb page is poisoned in try_to_unmap().
+
+Link: https://lkml.kernel.org/r/0a2e547238cad5bc153a85c3e9658cb9d55f9cac.1652270205.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/730ea4b6d292f32fb10b7a4e87dad49b0eb30474.1652147571.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/highmem.rst |   72 +++++++++++++++++++++++++++------
- 1 file changed, 60 insertions(+), 12 deletions(-)
+ mm/rmap.c |   39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
 
---- a/Documentation/vm/highmem.rst~documentation-vm-rework-temporary-virtual-mappings-section
-+++ a/Documentation/vm/highmem.rst
-@@ -50,26 +50,74 @@ space when they use mm context tags.
- Temporary Virtual Mappings
- ==========================
+--- a/mm/rmap.c~mm-rmap-fix-cont-pte-pmd-size-hugetlb-issue-when-unmapping
++++ a/mm/rmap.c
+@@ -1528,6 +1528,11 @@ static bool try_to_unmap_one(struct foli
  
--The kernel contains several ways of creating temporary mappings:
-+The kernel contains several ways of creating temporary mappings. The following
-+list shows them in order of preference of use.
- 
--* vmap().  This can be used to make a long duration mapping of multiple
--  physical pages into a contiguous virtual space.  It needs global
--  synchronization to unmap.
+ 		if (folio_test_hugetlb(folio)) {
+ 			/*
++			 * The try_to_unmap() is only passed a hugetlb page
++			 * in the case where the hugetlb page is poisoned.
++			 */
++			VM_BUG_ON_PAGE(!PageHWPoison(subpage), subpage);
++			/*
+ 			 * huge_pmd_unshare may unmap an entire PMD page.
+ 			 * There is no way of knowing exactly which PMDs may
+ 			 * be cached for this mm, so we must flush them all.
+@@ -1562,28 +1567,28 @@ static bool try_to_unmap_one(struct foli
+ 					break;
+ 				}
+ 			}
++			pteval = huge_ptep_clear_flush(vma, address, pvmw.pte);
+ 		} else {
+ 			flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
+-		}
 -
--* kmap().  This permits a short duration mapping of a single page.  It needs
--  global synchronization, but is amortized somewhat.  It is also prone to
--  deadlocks when using in a nested fashion, and so it is not recommended for
--  new code.
-+* kmap_local_page().  This function is used to require short term mappings.
-+  It can be invoked from any context (including interrupts) but the mappings
-+  can only be used in the context which acquired them.
-+
-+  This function should be preferred, where feasible, over all the others.
-+
-+  These mappings are thread-local and CPU-local, meaning that the mapping
-+  can only be accessed from within this thread and the thread is bound the
-+  CPU while the mapping is active. Even if the thread is preempted (since
-+  preemption is never disabled by the function) the CPU can not be
-+  unplugged from the system via CPU-hotplug until the mapping is disposed.
-+
-+  It's valid to take pagefaults in a local kmap region, unless the context
-+  in which the local mapping is acquired does not allow it for other reasons.
-+
-+  kmap_local_page() always returns a valid virtual address and it is assumed
-+  that kunmap_local() will never fail.
-+
-+  Nesting kmap_local_page() and kmap_atomic() mappings is allowed to a certain
-+  extent (up to KMAP_TYPE_NR) but their invocations have to be strictly ordered
-+  because the map implementation is stack based. See kmap_local_page() kdocs
-+  (included in the "Functions" section) for details on how to manage nested
-+  mappings.
+-		/*
+-		 * Nuke the page table entry. When having to clear
+-		 * PageAnonExclusive(), we always have to flush.
+-		 */
+-		if (should_defer_flush(mm, flags) && !anon_exclusive) {
+ 			/*
+-			 * We clear the PTE but do not flush so potentially
+-			 * a remote CPU could still be writing to the folio.
+-			 * If the entry was previously clean then the
+-			 * architecture must guarantee that a clear->dirty
+-			 * transition on a cached TLB entry is written through
+-			 * and traps if the PTE is unmapped.
++			 * Nuke the page table entry. When having to clear
++			 * PageAnonExclusive(), we always have to flush.
+ 			 */
+-			pteval = ptep_get_and_clear(mm, address, pvmw.pte);
++			if (should_defer_flush(mm, flags) && !anon_exclusive) {
++				/*
++				 * We clear the PTE but do not flush so potentially
++				 * a remote CPU could still be writing to the folio.
++				 * If the entry was previously clean then the
++				 * architecture must guarantee that a clear->dirty
++				 * transition on a cached TLB entry is written through
++				 * and traps if the PTE is unmapped.
++				 */
++				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
  
- * kmap_atomic().  This permits a very short duration mapping of a single
-   page.  Since the mapping is restricted to the CPU that issued it, it
-   performs well, but the issuing task is therefore required to stay on that
-   CPU until it has finished, lest some other task displace its mappings.
+-			set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
+-		} else {
+-			pteval = ptep_clear_flush(vma, address, pvmw.pte);
++				set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
++			} else {
++				pteval = ptep_clear_flush(vma, address, pvmw.pte);
++			}
+ 		}
  
--  kmap_atomic() may also be used by interrupt contexts, since it is does not
--  sleep and the caller may not sleep until after kunmap_atomic() is called.
-+  kmap_atomic() may also be used by interrupt contexts, since it does not
-+  sleep and the callers too may not sleep until after kunmap_atomic() is
-+  called.
-+
-+  Each call of kmap_atomic() in the kernel creates a non-preemptible section
-+  and disable pagefaults. This could be a source of unwanted latency. Therefore
-+  users should prefer kmap_local_page() instead of kmap_atomic().
-+
-+  It is assumed that k[un]map_atomic() won't fail.
-+
-+* kmap().  This should be used to make short duration mapping of a single
-+  page with no restrictions on preemption or migration. It comes with an
-+  overhead as mapping space is restricted and protected by a global lock
-+  for synchronization. When mapping is no longer needed, the address that
-+  the page was mapped to must be released with kunmap().
-+
-+  Mapping changes must be propagated across all the CPUs. kmap() also
-+  requires global TLB invalidation when the kmap's pool wraps and it might
-+  block when the mapping space is fully utilized until a slot becomes
-+  available. Therefore, kmap() is only callable from preemptible context.
-+
-+  All the above work is necessary if a mapping must last for a relatively
-+  long time but the bulk of high-memory mappings in the kernel are
-+  short-lived and only used in one place. This means that the cost of
-+  kmap() is mostly wasted in such cases. kmap() was not intended for long
-+  term mappings but it has morphed in that direction and its use is
-+  strongly discouraged in newer code and the set of the preceding functions
-+  should be preferred.
-+
-+  On 64-bit systems, calls to kmap_local_page(), kmap_atomic() and kmap() have
-+  no real work to do because a 64-bit address space is more than sufficient to
-+  address all the physical memory whose pages are permanently mapped.
- 
--  It may be assumed that k[un]map_atomic() won't fail.
-+* vmap().  This can be used to make a long duration mapping of multiple
-+  physical pages into a contiguous virtual space.  It needs global
-+  synchronization to unmap.
- 
- 
- Cost of Temporary Mappings
+ 		/*
 _
 
-Patches currently in -mm which might be from fmdefrancesco@gmail.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 
