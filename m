@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18720C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 16 May 2022 21:15:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00C97C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 16 May 2022 21:15:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349066AbiEPVO7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 May 2022 17:14:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39452 "EHLO
+        id S1349134AbiEPVPB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 May 2022 17:15:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349137AbiEPVOo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2022 17:14:44 -0400
+        with ESMTP id S1349218AbiEPVOp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2022 17:14:45 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4A362189
-        for <mm-commits@vger.kernel.org>; Mon, 16 May 2022 14:08:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAFBC11A1A
+        for <mm-commits@vger.kernel.org>; Mon, 16 May 2022 14:09:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B88D461517
-        for <mm-commits@vger.kernel.org>; Mon, 16 May 2022 21:08:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D877C34119;
-        Mon, 16 May 2022 21:08:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6792261517
+        for <mm-commits@vger.kernel.org>; Mon, 16 May 2022 21:09:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA39AC385B8;
+        Mon, 16 May 2022 21:09:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652735336;
-        bh=dkLJuxVGAZGEiyBL9TVc0SCc7qS4G0B5+LxtKac4Zmg=;
+        s=korg; t=1652735340;
+        bh=LyKzmXn97TovSXqYdNxKQZOnUiIwOecccmY1wERnABc=;
         h=Date:To:From:Subject:From;
-        b=RRo6IAzCbnWOiTy5jWPX8fQ4JLvxvoWGHYKrbmcL/wemYvhx6YD3lg17EptSZpr+B
-         wWqSybCSKiBEwP+bcUX73aw+ViQYTcAzKeOlhyNThPT8s5hfhgPJ/oNxF+0AiKNT71
-         PRuplJQvdH1bNU8mPEsku5YST9DMAojIWazcJZ/o=
-Date:   Mon, 16 May 2022 14:08:55 -0700
+        b=hvp1xiPRO8d6Wf0vE8X2g9qX+lzNHJYtm9A73TcFTlO6eBrWwDIzRikBeP2S5Z8js
+         aUzX1sKTLNhikrp5ka7SYu6eoyuBrIvRTrvwI0YuVbvOQfULInQzHuwr0fcc+QLf9V
+         0OByEFElPqphQKIkkw3o6GvcddRLNiLo7hKqvNm0=
+Date:   Mon, 16 May 2022 14:09:00 -0700
 To:     mm-commits@vger.kernel.org, hirofumi@mail.parknet.co.jp,
         cccheng@synology.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-ignore-ctime-updates-and-keep-ctime-identical-to-mtime-in-memory.patch added to mm-nonmm-unstable branch
-Message-Id: <20220516210856.1D877C34119@smtp.kernel.org>
+Subject: + fat-remove-time-truncations-in-vfat_create-vfat_mkdir.patch added to mm-nonmm-unstable branch
+Message-Id: <20220516210900.BA39AC385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: ignore ctime updates, and keep ctime identical to mtime in memory
+     Subject: fat: remove time truncations in vfat_create/vfat_mkdir
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fat-ignore-ctime-updates-and-keep-ctime-identical-to-mtime-in-memory.patch
+     fat-remove-time-truncations-in-vfat_create-vfat_mkdir.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-ignore-ctime-updates-and-keep-ctime-identical-to-mtime-in-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-remove-time-truncations-in-vfat_create-vfat_mkdir.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,78 +65,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Chung-Chiang Cheng <cccheng@synology.com>
-Subject: fat: ignore ctime updates, and keep ctime identical to mtime in memory
-Date: Tue, 3 May 2022 23:25:34 +0800
+Subject: fat: remove time truncations in vfat_create/vfat_mkdir
+Date: Tue, 3 May 2022 23:25:36 +0800
 
-FAT supports creation time but not change time, and there was no
-corresponding timestamp for creation time in previous VFS.  The original
-implementation took the compromise of saving the in-memory change time
-into the on-disk creation time field, but this would lead to compatibility
-issues with non-linux systems.
+All the timestamps in vfat_create() and vfat_mkdir() come from
+fat_time_fat2unix() which ensures time granularity.  We don't need to
+truncate them to fit FAT's format.
 
-To address this issue, this patch changes the behavior of ctime.  It will
-no longer be loaded and stored from the creation time on disk.  Instead of
-that, it'll be consistent with the in-memory mtime and share the same
-on-disk field.  All updates to mtime will also be applied to ctime in
-memory, while all updates to ctime will be ignored.
+Moreover, fat_truncate_crtime() and fat_timespec64_trunc_10ms() are also
+removed because there is no caller anymore.
 
-Link: https://lkml.kernel.org/r/20220503152536.2503003-2-cccheng@synology.com
+Link: https://lkml.kernel.org/r/20220503152536.2503003-4-cccheng@synology.com
 Signed-off-by: Chung-Chiang Cheng <cccheng@synology.com>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |   11 ++++-------
- fs/fat/misc.c  |    9 ++++++---
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ fs/fat/fat.h        |    2 --
+ fs/fat/misc.c       |   21 ---------------------
+ fs/fat/namei_vfat.c |    4 ----
+ 3 files changed, 27 deletions(-)
 
---- a/fs/fat/inode.c~fat-ignore-ctime-updates-and-keep-ctime-identical-to-mtime-in-memory
-+++ a/fs/fat/inode.c
-@@ -567,12 +567,11 @@ int fat_fill_inode(struct inode *inode,
- 			   & ~((loff_t)sbi->cluster_size - 1)) >> 9;
- 
- 	fat_time_fat2unix(sbi, &inode->i_mtime, de->time, de->date, 0);
--	if (sbi->options.isvfat) {
--		fat_time_fat2unix(sbi, &inode->i_ctime, de->ctime,
--				  de->cdate, de->ctime_cs);
-+	inode->i_ctime = inode->i_mtime;
-+	if (sbi->options.isvfat)
- 		fat_time_fat2unix(sbi, &inode->i_atime, 0, de->adate, 0);
--	} else
--		fat_truncate_time(inode, &inode->i_mtime, S_ATIME|S_CTIME);
-+	else
-+		inode->i_atime = fat_truncate_atime(sbi, &inode->i_mtime);
- 
- 	return 0;
- }
-@@ -888,8 +887,6 @@ retry:
- 			  &raw_entry->date, NULL);
- 	if (sbi->options.isvfat) {
- 		__le16 atime;
--		fat_time_unix2fat(sbi, &inode->i_ctime, &raw_entry->ctime,
--				  &raw_entry->cdate, &raw_entry->ctime_cs);
- 		fat_time_unix2fat(sbi, &inode->i_atime, &atime,
- 				  &raw_entry->adate, NULL);
- 	}
---- a/fs/fat/misc.c~fat-ignore-ctime-updates-and-keep-ctime-identical-to-mtime-in-memory
+--- a/fs/fat/fat.h~fat-remove-time-truncations-in-vfat_create-vfat_mkdir
++++ a/fs/fat/fat.h
+@@ -456,8 +456,6 @@ extern void fat_time_unix2fat(struct msd
+ 			      __le16 *time, __le16 *date, u8 *time_cs);
+ extern struct timespec64 fat_truncate_atime(const struct msdos_sb_info *sbi,
+ 					    const struct timespec64 *ts);
+-extern struct timespec64 fat_truncate_crtime(const struct msdos_sb_info *sbi,
+-					     const struct timespec64 *ts);
+ extern struct timespec64 fat_truncate_mtime(const struct msdos_sb_info *sbi,
+ 					    const struct timespec64 *ts);
+ extern int fat_truncate_time(struct inode *inode, struct timespec64 *now,
+--- a/fs/fat/misc.c~fat-remove-time-truncations-in-vfat_create-vfat_mkdir
 +++ a/fs/fat/misc.c
-@@ -347,10 +347,13 @@ int fat_truncate_time(struct inode *inod
- 
- 	if (flags & S_ATIME)
- 		inode->i_atime = fat_truncate_atime(sbi, now);
--	if (flags & S_CTIME)
--		inode->i_ctime = fat_truncate_crtime(sbi, now);
-+	/*
-+	 * ctime and mtime share the same on-disk field, and should be
-+	 * identical in memory. all mtime updates will be applied to ctime,
-+	 * but ctime updates are ignored.
-+	 */
- 	if (flags & S_MTIME)
--		inode->i_mtime = fat_truncate_mtime(sbi, now);
-+		inode->i_mtime = inode->i_ctime = fat_truncate_mtime(sbi, now);
- 
- 	return 0;
+@@ -281,13 +281,6 @@ static inline struct timespec64 fat_time
+ 	return (struct timespec64){ ts.tv_sec & ~1ULL, 0 };
  }
+ 
+-static inline struct timespec64 fat_timespec64_trunc_10ms(struct timespec64 ts)
+-{
+-	if (ts.tv_nsec)
+-		ts.tv_nsec -= ts.tv_nsec % 10000000UL;
+-	return ts;
+-}
+-
+ /*
+  * truncate atime to 24 hour granularity (00:00:00 in local timezone)
+  */
+@@ -306,20 +299,6 @@ struct timespec64 fat_truncate_atime(con
+ }
+ 
+ /*
+- * truncate creation time with appropriate granularity:
+- *   msdos - 2 seconds
+- *   vfat  - 10 milliseconds
+- */
+-struct timespec64 fat_truncate_crtime(const struct msdos_sb_info *sbi,
+-				      const struct timespec64 *ts)
+-{
+-	if (sbi->options.isvfat)
+-		return fat_timespec64_trunc_10ms(*ts);
+-	else
+-		return fat_timespec64_trunc_2secs(*ts);
+-}
+-
+-/*
+  * truncate mtime to 2 second granularity
+  */
+ struct timespec64 fat_truncate_mtime(const struct msdos_sb_info *sbi,
+--- a/fs/fat/namei_vfat.c~fat-remove-time-truncations-in-vfat_create-vfat_mkdir
++++ a/fs/fat/namei_vfat.c
+@@ -780,8 +780,6 @@ static int vfat_create(struct user_names
+ 		goto out;
+ 	}
+ 	inode_inc_iversion(inode);
+-	fat_truncate_time(inode, &ts, S_ATIME|S_CTIME|S_MTIME);
+-	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
+ 
+ 	d_instantiate(dentry, inode);
+ out:
+@@ -878,8 +876,6 @@ static int vfat_mkdir(struct user_namesp
+ 	}
+ 	inode_inc_iversion(inode);
+ 	set_nlink(inode, 2);
+-	fat_truncate_time(inode, &ts, S_ATIME|S_CTIME|S_MTIME);
+-	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
+ 
+ 	d_instantiate(dentry, inode);
+ 
 _
 
 Patches currently in -mm which might be from cccheng@synology.com are
