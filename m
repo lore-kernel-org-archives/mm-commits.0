@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2729C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 17 May 2022 17:39:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76441C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 17 May 2022 18:48:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351529AbiEQRjk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 May 2022 13:39:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35872 "EHLO
+        id S242864AbiEQSs1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 May 2022 14:48:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351515AbiEQRjj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2022 13:39:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3F513A5CF
-        for <mm-commits@vger.kernel.org>; Tue, 17 May 2022 10:39:37 -0700 (PDT)
+        with ESMTP id S1345464AbiEQSs0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2022 14:48:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3369641FBA
+        for <mm-commits@vger.kernel.org>; Tue, 17 May 2022 11:48:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8AECC6139D
-        for <mm-commits@vger.kernel.org>; Tue, 17 May 2022 17:39:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E461AC34116;
-        Tue, 17 May 2022 17:39:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AAE5F615F1
+        for <mm-commits@vger.kernel.org>; Tue, 17 May 2022 18:48:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E743CC385B8;
+        Tue, 17 May 2022 18:48:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652809177;
-        bh=RyAqjEIIXzWb7tHtBD6ucqeyy19zr0yP+6cnlSchyEQ=;
+        s=korg; t=1652813304;
+        bh=kQHDK0oP88nP144tLCc8arzXDnAbdt98G1T14LOQaVQ=;
         h=Date:To:From:Subject:From;
-        b=oWfixl0SfFTB9qp+cBct85TChVHMi6glNc4pP889SwxE6uc4uE99FJbIbO/wJsb/V
-         G+Cdaz6MwYE3KDVvzrdEux7C0XpT4iJFZ6MoRT3rBN1muJWK0F3qwrc77MoDAwMJ3D
-         Zhfkvoku+cGVGNPrra6SKphc4y4xgWjY4ScMebi0=
-Date:   Tue, 17 May 2022 10:39:36 -0700
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au, lkft@linaro.org,
-        Liam.Howlett@oracle.com, liam.howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=k3uDsgUlpUlE6bW+rXvisvKXyCWI/iEYkRcIcslz+jNF7gjmAYL8+hNZcx6j43BAg
+         WGuwpkqhhR1WtBbHaaH6061RKHgKLnz+tNthce8/REahBeArQAqqWRp5S629900dL9
+         uDlKh2dRdbJe7kxELzlbfcAq1Fp+dBsVmFDxAW5E=
+Date:   Tue, 17 May 2022 11:48:23 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple-tree-add-new-data-structure-fix-3.patch added to mm-unstable branch
-Message-Id: <20220517173936.E461AC34116@smtp.kernel.org>
+Subject: + mm-damon-use-hpage_pmd_size.patch added to mm-unstable branch
+Message-Id: <20220517184823.E743CC385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: fix 32b parent pointers
+     Subject: mm: damon: use HPAGE_PMD_SIZE
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple-tree-add-new-data-structure-fix-3.patch
+     mm-damon-use-hpage_pmd_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-use-hpage_pmd_size.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,81 +64,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: maple_tree: fix 32b parent pointers
-Date: Tue, 17 May 2022 15:22:20 +0000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: damon: use HPAGE_PMD_SIZE
+Date: Tue, 17 May 2022 22:51:20 +0800
 
-32 bit parent pointers need an extra bit to account for increased slot
-count.  Update the constants and documentation to use the remaining high
-bit.
+Use HPAGE_PMD_SIZE instead of open coding.
 
-Link: https://lkml.kernel.org/r/20220517152209.3486724-1-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20220517145120.118523-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    2 +-
- lib/maple_tree.c           |   14 +++++++-------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ mm/damon/ops-common.c |    3 +--
+ mm/damon/paddr.c      |    2 +-
+ mm/damon/vaddr.c      |    2 +-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
---- a/include/linux/maple_tree.h~maple-tree-add-new-data-structure-fix-3
-+++ a/include/linux/maple_tree.h
-@@ -37,7 +37,7 @@
- #define MAPLE_NODE_SLOTS	63	/* 256 bytes including ->parent */
- #define MAPLE_RANGE64_SLOTS	32	/* 256 bytes */
- #define MAPLE_ARANGE64_SLOTS	21	/* 240 bytes */
--#define MAPLE_ARANGE64_META_MAX	22	/* Out of range for metadata */
-+#define MAPLE_ARANGE64_META_MAX	31	/* Out of range for metadata */
- #define MAPLE_ALLOC_SLOTS	(MAPLE_NODE_SLOTS - 2)
- #endif /* defined(CONFIG_64BIT) || defined(BUILD_VDSO32_64) */
+--- a/mm/damon/ops-common.c~mm-damon-use-hpage_pmd_size
++++ a/mm/damon/ops-common.c
+@@ -73,8 +73,7 @@ void damon_pmdp_mkold(pmd_t *pmd, struct
+ 	}
  
---- a/lib/maple_tree.c~maple-tree-add-new-data-structure-fix-3
-+++ a/lib/maple_tree.c
-@@ -354,7 +354,7 @@ static inline bool mt_is_alloc(struct ma
- /*
-  * The Parent Pointer
-  * Excluding root, the parent pointer is 256B aligned like all other tree nodes.
-- * When storing a 32 or 64 bit values, the offset can fit into 4 bits.  The 16
-+ * When storing a 32 or 64 bit values, the offset can fit into 5 bits.  The 16
-  * bit values need an extra bit to store the offset.  This extra bit comes from
-  * a reuse of the last bit in the node type.  This is possible by using bit 1 to
-  * indicate if bit 2 is part of the type or the slot.
-@@ -366,19 +366,19 @@ static inline bool mt_is_alloc(struct ma
-  *  0x110 = 64 bit nodes
-  *
-  * Slot size and alignment
-- *  0x??1 : Root
-- *  0x?00 : 16 bit values, type in 0-1, slot in 2-6
-- *  0x010 : 32 bit values, type in 0-2, slot in 3-6
-- *  0x110 : 64 bit values, type in 0-2, slot in 3-6
-+ *  0b??1 : Root
-+ *  0b?00 : 16 bit values, type in 0-1, slot in 2-7
-+ *  0b010 : 32 bit values, type in 0-2, slot in 3-7
-+ *  0b110 : 64 bit values, type in 0-2, slot in 3-7
-  */
+ #ifdef CONFIG_MMU_NOTIFIER
+-	if (mmu_notifier_clear_young(mm, addr,
+-				addr + ((1UL) << HPAGE_PMD_SHIFT)))
++	if (mmu_notifier_clear_young(mm, addr, addr + HPAGE_PMD_SIZE))
+ 		referenced = true;
+ #endif /* CONFIG_MMU_NOTIFIER */
  
- #define MAPLE_PARENT_ROOT		0x01
- 
- #define MAPLE_PARENT_SLOT_SHIFT		0x03
--#define MAPLE_PARENT_SLOT_MASK		0x78
-+#define MAPLE_PARENT_SLOT_MASK		0xF8
- 
- #define MAPLE_PARENT_16B_SLOT_SHIFT	0x02
--#define MAPLE_PARENT_16B_SLOT_MASK	0x7C
-+#define MAPLE_PARENT_16B_SLOT_MASK	0xFC
- 
- #define MAPLE_PARENT_RANGE64		0x06
- #define MAPLE_PARENT_RANGE32		0x04
+--- a/mm/damon/paddr.c~mm-damon-use-hpage_pmd_size
++++ a/mm/damon/paddr.c
+@@ -106,7 +106,7 @@ static bool __damon_pa_young(struct foli
+ 			result->accessed = pmd_young(*pvmw.pmd) ||
+ 				!folio_test_idle(folio) ||
+ 				mmu_notifier_test_young(vma->vm_mm, addr);
+-			result->page_sz = ((1UL) << HPAGE_PMD_SHIFT);
++			result->page_sz = HPAGE_PMD_SIZE;
+ #else
+ 			WARN_ON_ONCE(1);
+ #endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
+--- a/mm/damon/vaddr.c~mm-damon-use-hpage_pmd_size
++++ a/mm/damon/vaddr.c
+@@ -443,7 +443,7 @@ static int damon_young_pmd_entry(pmd_t *
+ 		if (pmd_young(*pmd) || !page_is_idle(page) ||
+ 					mmu_notifier_test_young(walk->mm,
+ 						addr)) {
+-			*priv->page_sz = ((1UL) << HPAGE_PMD_SHIFT);
++			*priv->page_sz = HPAGE_PMD_SIZE;
+ 			priv->young = true;
+ 		}
+ 		put_page(page);
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-maple-tree-add-new-data-structure-fix.patch
-maple-tree-add-new-data-structure-fix-2.patch
-maple-tree-add-new-data-structure-fix-3.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
-mm-start-tracking-vmas-with-maple-tree-fix-2.patch
-mm-remove-the-vma-linked-list-fix.patch
+mm-damon-use-hpage_pmd_size.patch
 
