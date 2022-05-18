@@ -2,41 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45FE5C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 18 May 2022 19:25:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD63C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 18 May 2022 21:00:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241901AbiERTZI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 May 2022 15:25:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58634 "EHLO
+        id S242949AbiERVAY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 May 2022 17:00:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241829AbiERTZH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2022 15:25:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6D34193CB
-        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 12:25:06 -0700 (PDT)
+        with ESMTP id S242954AbiERVAR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2022 17:00:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FBAA254728
+        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 14:00:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7297A61909
-        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 19:25:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFD50C385A5;
-        Wed, 18 May 2022 19:25:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A3C460D36
+        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 21:00:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EEE4C385A5;
+        Wed, 18 May 2022 21:00:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652901905;
-        bh=I9UIzVGE8V+WJ79SsbEN0KRiwqI+HXMoXtL5nORudJ4=;
+        s=korg; t=1652907613;
+        bh=DNjGiYcbMR96BHh/MAK1baQCoXo/cRkuczo6DT9Yfn0=;
         h=Date:To:From:Subject:From;
-        b=Szf/HU/ZJR8iu71sC0pBuWQxwydIeiPWt+a8+apfYxkOCMyZ36GHoDPe14PqqVOp3
-         CMVb5vOW1W93UqaCUltz9VZuDcm9Bu+qqjoPxkJM9FUArESW42qpLsKuqgtbgyQgsd
-         +ZU0PY48bwWoqh+2UPAvkV5duy+VWRX8L1fzPO94=
-Date:   Wed, 18 May 2022 12:25:04 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
-        yang.shi@linux.alibaba.com, songmuchun@bytedance.com,
-        shakeelb@google.com, mhocko@suse.com, guro@fb.com,
-        dave.hansen@linux.intel.com, hannes@cmpxchg.org,
-        akpm@linux-foundation.org
+        b=lZ9oco28IlwfEiZnQJeQ+4wbPGzYprRxEiqej9xGdaqmdWzhystAzG/CTdq0lO2L+
+         dbIiJ+fp734VQoL0gdX66QfbnupBmXSmQ4JBOfI0OTt0w2PjDMwB87MKwhOhUm2UQi
+         scvDG0t1RHsSd8FX3/lnjBBSNkTACAZTJlhpNgu0=
+Date:   Wed, 18 May 2022 14:00:12 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, shuah@kernel.org,
+        shakeelb@google.com, rientjes@google.com, peterx@redhat.com,
+        oleg@redhat.com, minchan@kernel.org, mhocko@suse.com,
+        kirill@shutemov.name, jhubbard@nvidia.com, jannh@google.com,
+        hch@infradead.org, hannes@cmpxchg.org, guro@fb.com,
+        david@redhat.com, brauner@kernel.org, aarcange@redhat.com,
+        surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-vmscan-never-demote-for-memcg-reclaim.patch added to mm-unstable branch
-Message-Id: <20220518192505.BFD50C385A5@smtp.kernel.org>
+Subject: + selftests-vm-add-process_mrelease-tests.patch added to mm-unstable branch
+Message-Id: <20220518210013.2EEE4C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm/vmscan: never demote for memcg reclaim"
+     Subject: selftests: vm: add process_mrelease tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     revert-mm-vmscan-never-demote-for-memcg-reclaim.patch
+     selftests-vm-add-process_mrelease-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-vmscan-never-demote-for-memcg-reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-add-process_mrelease-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,91 +69,303 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Revert "mm/vmscan: never demote for memcg reclaim"
-Date: Wed, 18 May 2022 15:09:11 -0400
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: selftests: vm: add process_mrelease tests
+Date: Wed, 18 May 2022 13:43:16 -0700
 
-This reverts commit 3a235693d3930e1276c8d9cc0ca5807ef292cf0a.
+Introduce process_mrelease syscall sanity tests which include tests
+which expect to fail:
 
-Its premise was that cgroup reclaim cares about freeing memory inside the
-cgroup, and demotion just moves them around within the cgroup limit. 
-Hence, pages from toptier nodes should be reclaimed directly.
+- process_mrelease with invalid pidfd and flags inputs
+- process_mrelease on a live process with no pending signals
 
-However, with NUMA balancing now doing tier promotions, demotion is part
-of the page aging process.  Global reclaim demotes the coldest toptier
-pages to secondary memory, where their life continues and from which they
-have a chance to get promoted back.  Essentially, tiered memory systems
-have an LRU order that spans multiple nodes.
+and valid process_mrelease usage which is expected to succeed.  Because
+process_mrelease has to be used against a process with a pending SIGKILL,
+it's possible that the process exits before process_mrelease gets called. 
+In such cases we retry the test with a victim that allocates twice more
+memory up to 1GB.  This would require the victim process to spend more
+time during exit and process_mrelease has a better chance of catching the
+process before it exits and succeeding.
 
-When cgroup reclaims pages coming off the toptier directly, there can be
-colder pages on lower tier nodes that were demoted by global reclaim. 
-This is an aging inversion, not unlike if cgroups were to reclaim directly
-from the active lists while there are inactive pages.
+On success the test reports the amount of memory the child had to allocate
+for reaping to succeed.  Sample output:
 
-Proactive reclaim is another factor.  The goal of that it is to offload
-colder pages from expensive RAM to cheaper storage.  When lower tier
-memory is available as an intermediate layer, we want offloading to take
-advantage of it instead of bypassing to storage.
+$ mrelease_test
+Success reaping a child with 1MB of memory allocations
 
-Revert the patch so that cgroups respect the LRU order spanning the memory
-hierarchy.
+On failure the test reports the failure. Sample outputs:
 
-Of note is a specific undercommit scenario, where all cgroup limits in the
-system add up to <= available toptier memory.  In that case, shuffling
-pages out to lower tiers first to reclaim them from there is inefficient. 
-This is something could be optimized/short-circuited later on (although
-care must be taken not to accidentally recreate the aging inversion). 
-Let's ensure correctness first.
+$ mrelease_test
+All process_mrelease attempts failed!
 
-Link: https://lkml.kernel.org/r/20220518190911.82400-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
+$ mrelease_test
+process_mrelease: Invalid argument
+
+Link: https://lkml.kernel.org/r/20220518204316.13131-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Roman Gushchin <guro@fb.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ tools/testing/selftests/vm/.gitignore      |    1 
+ tools/testing/selftests/vm/Makefile        |    1 
+ tools/testing/selftests/vm/mrelease_test.c |  200 +++++++++++++++++++
+ tools/testing/selftests/vm/run_vmtests.sh  |    2 
+ 4 files changed, 204 insertions(+)
 
---- a/mm/vmscan.c~revert-mm-vmscan-never-demote-for-memcg-reclaim
-+++ a/mm/vmscan.c
-@@ -528,13 +528,8 @@ static bool can_demote(int nid, struct s
- {
- 	if (!numa_demotion_enabled)
- 		return false;
--	if (sc) {
--		if (sc->no_demotion)
--			return false;
--		/* It is pointless to do demotion in memcg reclaim */
--		if (cgroup_reclaim(sc))
--			return false;
--	}
-+	if (sc && sc->no_demotion)
-+		return false;
- 	if (next_demotion_node(nid) == NUMA_NO_NODE)
- 		return false;
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-process_mrelease-tests
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -10,6 +10,7 @@ map_populate
+ thuge-gen
+ compaction_test
+ mlock2-tests
++mrelease_test
+ mremap_dontunmap
+ mremap_test
+ on-fault-limit
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-process_mrelease-tests
++++ a/tools/testing/selftests/vm/Makefile
+@@ -44,6 +44,7 @@ TEST_GEN_FILES += memfd_secret
+ TEST_GEN_FILES += migration
+ TEST_GEN_FILES += mlock-random-test
+ TEST_GEN_FILES += mlock2-tests
++TEST_GEN_FILES += mrelease_test
+ TEST_GEN_FILES += mremap_dontunmap
+ TEST_GEN_FILES += mremap_test
+ TEST_GEN_FILES += on-fault-limit
+--- /dev/null
++++ a/tools/testing/selftests/vm/mrelease_test.c
+@@ -0,0 +1,200 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright 2022 Google LLC
++ */
++#define _GNU_SOURCE
++#include <errno.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/wait.h>
++#include <unistd.h>
++
++#include "util.h"
++
++#include "../kselftest.h"
++
++#ifndef __NR_pidfd_open
++#define __NR_pidfd_open -1
++#endif
++
++#ifndef __NR_process_mrelease
++#define __NR_process_mrelease -1
++#endif
++
++#define MB(x) (x << 20)
++#define MAX_SIZE_MB 1024
++
++static int alloc_noexit(unsigned long nr_pages, int pipefd)
++{
++	int ppid = getppid();
++	int timeout = 10; /* 10sec timeout to get killed */
++	unsigned long i;
++	char *buf;
++
++	buf = (char *)mmap(NULL, nr_pages * PAGE_SIZE, PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANON, 0, 0);
++	if (buf == MAP_FAILED) {
++		perror("mmap failed, halting the test");
++		return KSFT_FAIL;
++	}
++
++	for (i = 0; i < nr_pages; i++)
++		*((unsigned long *)(buf + (i * PAGE_SIZE))) = i;
++
++	/* Signal the parent that the child is ready */
++	if (write(pipefd, "", 1) < 0) {
++		perror("write");
++		return KSFT_FAIL;
++	}
++
++	/* Wait to be killed (when reparenting happens) */
++	while (getppid() == ppid && timeout > 0) {
++		sleep(1);
++		timeout--;
++	}
++
++	munmap(buf, nr_pages * PAGE_SIZE);
++
++	return (timeout > 0) ? KSFT_PASS : KSFT_FAIL;
++}
++
++/* The process_mrelease calls in this test are expected to fail */
++static void run_negative_tests(int pidfd)
++{
++	/* Test invalid flags. Expect to fail with EINVAL error code. */
++	if (!syscall(__NR_process_mrelease, pidfd, (unsigned int)-1) ||
++			errno != EINVAL) {
++		perror("process_mrelease with wrong flags");
++		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++	}
++	/*
++	 * Test reaping while process is alive with no pending SIGKILL.
++	 * Expect to fail with EINVAL error code.
++	 */
++	if (!syscall(__NR_process_mrelease, pidfd, 0) || errno != EINVAL) {
++		perror("process_mrelease on a live process");
++		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++	}
++}
++
++static int child_main(int pipefd[], size_t size)
++{
++	int res;
++
++	/* Allocate and fault-in memory and wait to be killed */
++	close(pipefd[0]);
++	res = alloc_noexit(MB(size) / PAGE_SIZE, pipefd[1]);
++	close(pipefd[1]);
++	return res;
++}
++
++int main(void)
++{
++	int pipefd[2], pidfd;
++	bool success, retry;
++	size_t size;
++	pid_t pid;
++	char byte;
++	int res;
++
++	/* Test a wrong pidfd */
++	if (!syscall(__NR_process_mrelease, -1, 0) || errno != EBADF) {
++		perror("process_mrelease with wrong pidfd");
++		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++	}
++
++	/* Start the test with 1MB child memory allocation */
++	size = 1;
++retry:
++	/*
++	 * Pipe for the child to signal when it's done allocating
++	 * memory
++	 */
++	if (pipe(pipefd)) {
++		perror("pipe");
++		exit(KSFT_FAIL);
++	}
++	pid = fork();
++	if (pid < 0) {
++		perror("fork");
++		close(pipefd[0]);
++		close(pipefd[1]);
++		exit(KSFT_FAIL);
++	}
++
++	if (pid == 0) {
++		/* Child main routine */
++		res = child_main(pipefd, size);
++		exit(res);
++	}
++
++	/*
++	 * Parent main routine:
++	 * Wait for the child to finish allocations, then kill and reap
++	 */
++	close(pipefd[1]);
++	/* Block until the child is ready */
++	res = read(pipefd[0], &byte, 1);
++	close(pipefd[0]);
++	if (res < 0) {
++		perror("read");
++		if (!kill(pid, SIGKILL))
++			waitpid(pid, NULL, 0);
++		exit(KSFT_FAIL);
++	}
++
++	pidfd = syscall(__NR_pidfd_open, pid, 0);
++	if (pidfd < 0) {
++		perror("pidfd_open");
++		if (!kill(pid, SIGKILL))
++			waitpid(pid, NULL, 0);
++		exit(KSFT_FAIL);
++	}
++
++	/* Run negative tests which require a live child */
++	run_negative_tests(pidfd);
++
++	if (kill(pid, SIGKILL)) {
++		perror("kill");
++		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++	}
++
++	success = (syscall(__NR_process_mrelease, pidfd, 0) == 0);
++	if (!success) {
++		/*
++		 * If we failed to reap because the child exited too soon,
++		 * before we could call process_mrelease. Double child's memory
++		 * which causes it to spend more time on cleanup and increases
++		 * our chances of reaping its memory before it exits.
++		 * Retry until we succeed or reach MAX_SIZE_MB.
++		 */
++		if (errno == ESRCH) {
++			retry = (size <= MAX_SIZE_MB);
++		} else {
++			perror("process_mrelease");
++			waitpid(pid, NULL, 0);
++			exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++		}
++	}
++
++	/* Cleanup to prevent zombies */
++	if (waitpid(pid, NULL, 0) < 0) {
++		perror("waitpid");
++		exit(KSFT_FAIL);
++	}
++	close(pidfd);
++
++	if (!success) {
++		if (retry) {
++			size *= 2;
++			goto retry;
++		}
++		printf("All process_mrelease attempts failed!\n");
++		exit(KSFT_FAIL);
++	}
++
++	printf("Success reaping a child with %zuMB of memory allocations\n",
++	       size);
++	return KSFT_PASS;
++}
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-process_mrelease-tests
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -141,6 +141,8 @@ run_test ./mlock-random-test
  
+ run_test ./mlock2-tests
+ 
++run_test ./mrelease_test
++
+ run_test ./mremap_test
+ 
+ run_test ./thuge-gen
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-documentation-filesystems-proc-update-meminfo-section.patch
-documentation-filesystems-proc-update-meminfo-section-fix.patch
-documentation-filesystems-proc-update-meminfo-section-fix-2.patch
-mm-kconfig-move-swap-and-slab-config-options-to-the-mm-section.patch
-mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus.patch
-mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix.patch
-mm-kconfig-group-swap-slab-hotplug-and-thp-options-into-submenus-fix-fix.patch
-mm-kconfig-simplify-zswap-configuration.patch
-mm-zswap-add-basic-meminfo-and-vmstat-coverage.patch
-zswap-memcg-accounting.patch
-zswap-memcg-accounting-fix.patch
-zswap-memcg-accounting-fix-2.patch
-revert-mm-vmscan-never-demote-for-memcg-reclaim.patch
+selftests-vm-add-process_mrelease-tests.patch
 
