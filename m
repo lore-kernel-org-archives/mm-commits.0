@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5F1DC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 18 May 2022 17:20:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B9A6C4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 18 May 2022 17:32:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240831AbiERRUZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 May 2022 13:20:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58936 "EHLO
+        id S240857AbiERRcd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 May 2022 13:32:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240825AbiERRUV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2022 13:20:21 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A225C1A0767
-        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 10:20:19 -0700 (PDT)
+        with ESMTP id S240868AbiERRcc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2022 13:32:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF16815E4B1
+        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 10:32:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 38E79B8218B
-        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 17:20:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF90BC385A5;
-        Wed, 18 May 2022 17:20:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 52E15617B6
+        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 17:32:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6A7CC385A5;
+        Wed, 18 May 2022 17:32:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652894416;
-        bh=NZwAGP8vd0MGMi7KAcpLoZBC3ohWCi7oLDOFXG21+9c=;
+        s=korg; t=1652895150;
+        bh=sxWcMi6/+7qpK0XId/7lpDtUSTtOJebS6HPx4ktHx6I=;
         h=Date:To:From:Subject:From;
-        b=HFHmWe4gNx+sR1yQdNXizCaM6G7A6NGWhNAf7Q10RyhlKnhnLErmcX0Goo2NUVz/F
-         t4we5+x+nmDQNYYQd6AE5VxjvVz+v3oBWzvR8J1KMDVGO73uW9TZ7ZS+8+GQhCTOar
-         Kzf7VmpPXyLvB5Y97CzPKP1u7JsX5DRCcHij3qlY=
-Date:   Wed, 18 May 2022 10:20:16 -0700
-To:     mm-commits@vger.kernel.org, void@manifault.com,
-        shakeelb@google.com, rpalethorpe@suse.de, roman.gushchin@linux.dev,
-        mhocko@kernel.org, hannes@cmpxchg.org, mkoutny@suse.com,
+        b=RR9qrJI2wZVpWHuQg5wPTM/YK4muyHXiI80FDgY4h6qgmchzry7ysKqQTB/1HCzLC
+         ngIvCZGhdn8w61L/PlWJ+F+L4aemdp/NSQKVoibONvZgJ7RX+MwwfONeRClTy7kYbj
+         GA29Fp59pkFvYHP4ODCoagtr4MUcZl+Tw/6+WZac=
+Date:   Wed, 18 May 2022 10:32:29 -0700
+To:     mm-commits@vger.kernel.org, elver@google.com, liuyun01@kylinos.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-memcg-factor-out-common-parts-of-memorylowmin-tests.patch added to mm-unstable branch
-Message-Id: <20220518172016.CF90BC385A5@smtp.kernel.org>
+Subject: + mm-kfence-print-disabling-or-re-enabling-message.patch added to mm-unstable branch
+Message-Id: <20220518173230.A6A7CC385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: memcg: factor out common parts of memory.{low,min} tests
+     Subject: mm/kfence: print disabling or re-enabling message
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-memcg-factor-out-common-parts-of-memorylowmin-tests.patch
+     mm-kfence-print-disabling-or-re-enabling-message.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memcg-factor-out-common-parts-of-memorylowmin-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-print-disabling-or-re-enabling-message.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,316 +64,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michal Koutný <mkoutny@suse.com>
-Subject: selftests: memcg: factor out common parts of memory.{low,min} tests
-Date: Wed, 18 May 2022 18:18:59 +0200
+From: Jackie Liu <liuyun01@kylinos.cn>
+Subject: mm/kfence: print disabling or re-enabling message
+Date: Wed, 18 May 2022 15:31:05 +0800
 
-The memory protection test setup and runtime is almost equal for
-memory.low and memory.min cases.
+By printing information, we can friendly prompt the status change
+information of kfence by dmesg and record by syslog.
 
-It makes modification of the common parts prone to mistakes, since the
-protections are similar not only in setup but also in principle, factor
-the common part out.
+Also, set kfence_enabled to false only when needed.
 
-Past exceptions between the tests:
-- missing memory.min is fine (kept),
-- test_memcg_low protected orphaned pagecache (adapted like
-  test_memcg_min and we keep the processes of protected memory running).
-
-The evaluation in two tests is different (OOM of allocator vs low events
-of protégés), this is kept different.
-
-Link: https://lkml.kernel.org/r/20220518161859.21565-6-mkoutny@suse.com
-Signed-off-by: Michal Koutný <mkoutny@suse.com>
-CC: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Richard Palethorpe <rpalethorpe@suse.de>
-Cc: David Vernet <void@manifault.com>
+Link: https://lkml.kernel.org/r/20220518073105.3160335-1-liu.yun@linux.dev
+Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
+Co-developed-by: Marco Elver <elver@google.com>
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |  199 ++-----------
- 1 file changed, 36 insertions(+), 163 deletions(-)
+ mm/kfence/core.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-factor-out-common-parts-of-memorylowmin-tests
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -190,13 +190,6 @@ cleanup:
- 	return ret;
+--- a/mm/kfence/core.c~mm-kfence-print-disabling-or-re-enabling-message
++++ a/mm/kfence/core.c
+@@ -69,8 +69,11 @@ static int param_set_sample_interval(con
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (!num) /* Using 0 to indicate KFENCE is disabled. */
++	/* Using 0 to indicate KFENCE is disabled. */
++	if (!num && READ_ONCE(kfence_enabled)) {
++		pr_info("disabled\n");
+ 		WRITE_ONCE(kfence_enabled, false);
++	}
+ 
+ 	*((unsigned long *)kp->arg) = num;
+ 
+@@ -908,6 +911,7 @@ static int kfence_enable_late(void)
+ 
+ 	WRITE_ONCE(kfence_enabled, true);
+ 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
++	pr_info("re-enabled\n");
+ 	return 0;
  }
  
--static int alloc_pagecache_50M(const char *cgroup, void *arg)
--{
--	int fd = (long)arg;
--
--	return alloc_pagecache(fd, MB(50));
--}
--
- static int alloc_pagecache_50M_noexit(const char *cgroup, void *arg)
- {
- 	int fd = (long)arg;
-@@ -254,7 +247,9 @@ static int cg_test_proc_killed(const cha
-  * A/B/E   memory.min = 0,    memory.current = 50M
-  * A/B/F   memory.min = 500M, memory.current = 0
-  *
-- * Usages are pagecache, but the test keeps a running
-+ * (or memory.low if we test soft protection)
-+ *
-+ * Usages are pagecache and the test keeps a running
-  * process in every leaf cgroup.
-  * Then it creates A/G and creates a significant
-  * memory pressure in A.
-@@ -268,15 +263,16 @@ static int cg_test_proc_killed(const cha
-  * (for origin of the numbers, see model in memcg_protection.m.)
-  *
-  * After that it tries to allocate more than there is
-- * unprotected memory in A available, and checks
-- * checks that memory.min protects pagecache even
-- * in this case.
-+ * unprotected memory in A available, and checks that:
-+ * a) memory.min protects pagecache even in this case,
-+ * b) memory.low allows reclaiming page cache with low events.
-  */
--static int test_memcg_min(const char *root)
-+static int test_memcg_protection(const char *root, bool min)
- {
--	int ret = KSFT_FAIL;
-+	int ret = KSFT_FAIL, rc;
- 	char *parent[3] = {NULL};
- 	char *children[4] = {NULL};
-+	const char *attribute = min ? "memory.min" : "memory.low";
- 	long c[4];
- 	int i, attempts;
- 	int fd;
-@@ -300,8 +296,10 @@ static int test_memcg_min(const char *ro
- 	if (cg_create(parent[0]))
- 		goto cleanup;
- 
--	if (cg_read_long(parent[0], "memory.min")) {
--		ret = KSFT_SKIP;
-+	if (cg_read_long(parent[0], attribute)) {
-+		/* No memory.min on older kernels is fine */
-+		if (min)
-+			ret = KSFT_SKIP;
- 		goto cleanup;
- 	}
- 
-@@ -338,15 +336,15 @@ static int test_memcg_min(const char *ro
- 			      (void *)(long)fd);
- 	}
- 
--	if (cg_write(parent[1], "memory.min", "50M"))
-+	if (cg_write(parent[1],   attribute, "50M"))
- 		goto cleanup;
--	if (cg_write(children[0], "memory.min", "75M"))
-+	if (cg_write(children[0], attribute, "75M"))
- 		goto cleanup;
--	if (cg_write(children[1], "memory.min", "25M"))
-+	if (cg_write(children[1], attribute, "25M"))
- 		goto cleanup;
--	if (cg_write(children[2], "memory.min", "0"))
-+	if (cg_write(children[2], attribute, "0"))
- 		goto cleanup;
--	if (cg_write(children[3], "memory.min", "500M"))
-+	if (cg_write(children[3], attribute, "500M"))
- 		goto cleanup;
- 
- 	attempts = 0;
-@@ -375,161 +373,26 @@ static int test_memcg_min(const char *ro
- 	if (c[3] != 0)
- 		goto cleanup;
- 
--	if (!cg_run(parent[2], alloc_anon, (void *)MB(170)))
--		goto cleanup;
--
--	if (!values_close(cg_read_long(parent[1], "memory.current"), MB(50), 3))
--		goto cleanup;
--
--	ret = KSFT_PASS;
--
--cleanup:
--	for (i = ARRAY_SIZE(children) - 1; i >= 0; i--) {
--		if (!children[i])
--			continue;
--
--		cg_destroy(children[i]);
--		free(children[i]);
--	}
--
--	for (i = ARRAY_SIZE(parent) - 1; i >= 0; i--) {
--		if (!parent[i])
--			continue;
--
--		cg_destroy(parent[i]);
--		free(parent[i]);
--	}
--	close(fd);
--	return ret;
--}
--
--/*
-- * First, this test creates the following hierarchy:
-- * A       memory.low = 0,    memory.max = 200M
-- * A/B     memory.low = 50M
-- * A/B/C   memory.low = 75M,  memory.current = 50M
-- * A/B/D   memory.low = 25M,  memory.current = 50M
-- * A/B/E   memory.low = 0,    memory.current = 50M
-- * A/B/F   memory.low = 500M, memory.current = 0
-- *
-- * Usages are pagecache.
-- * Then it creates A/G an creates a significant
-- * memory pressure in it.
-- *
-- * Then it checks actual memory usages and expects that:
-- * A/B    memory.current ~= 50M
-- * A/B/C  memory.current ~= 29M
-- * A/B/D  memory.current ~= 21M
-- * A/B/E  memory.current ~= 0
-- * A/B/F  memory.current  = 0
-- * (for origin of the numbers, see model in memcg_protection.m.)
-- *
-- * After that it tries to allocate more than there is
-- * unprotected memory in A available,
-- * and checks low and oom events in memory.events.
-- */
--static int test_memcg_low(const char *root)
--{
--	int ret = KSFT_FAIL;
--	char *parent[3] = {NULL};
--	char *children[4] = {NULL};
--	long low, oom;
--	long c[4];
--	int i;
--	int fd;
--
--	fd = get_temp_fd();
--	if (fd < 0)
--		goto cleanup;
--
--	parent[0] = cg_name(root, "memcg_test_0");
--	if (!parent[0])
--		goto cleanup;
--
--	parent[1] = cg_name(parent[0], "memcg_test_1");
--	if (!parent[1])
--		goto cleanup;
--
--	parent[2] = cg_name(parent[0], "memcg_test_2");
--	if (!parent[2])
-+	rc = cg_run(parent[2], alloc_anon, (void *)MB(170));
-+	if (min && !rc)
- 		goto cleanup;
--
--	if (cg_create(parent[0]))
--		goto cleanup;
--
--	if (cg_read_long(parent[0], "memory.low"))
--		goto cleanup;
--
--	if (cg_write(parent[0], "cgroup.subtree_control", "+memory"))
--		goto cleanup;
--
--	if (cg_write(parent[0], "memory.max", "200M"))
--		goto cleanup;
--
--	if (cg_write(parent[0], "memory.swap.max", "0"))
--		goto cleanup;
--
--	if (cg_create(parent[1]))
--		goto cleanup;
--
--	if (cg_write(parent[1], "cgroup.subtree_control", "+memory"))
--		goto cleanup;
--
--	if (cg_create(parent[2]))
-+	else if (!min && rc) {
-+		fprintf(stderr,
-+			"memory.low prevents from allocating anon memory\n");
- 		goto cleanup;
--
--	for (i = 0; i < ARRAY_SIZE(children); i++) {
--		children[i] = cg_name_indexed(parent[1], "child_memcg", i);
--		if (!children[i])
--			goto cleanup;
--
--		if (cg_create(children[i]))
--			goto cleanup;
--
--		if (i > 2)
--			continue;
--
--		if (cg_run(children[i], alloc_pagecache_50M, (void *)(long)fd))
--			goto cleanup;
- 	}
- 
--	if (cg_write(parent[1], "memory.low", "50M"))
--		goto cleanup;
--	if (cg_write(children[0], "memory.low", "75M"))
--		goto cleanup;
--	if (cg_write(children[1], "memory.low", "25M"))
--		goto cleanup;
--	if (cg_write(children[2], "memory.low", "0"))
--		goto cleanup;
--	if (cg_write(children[3], "memory.low", "500M"))
--		goto cleanup;
--
--	if (cg_run(parent[2], alloc_anon, (void *)MB(148)))
--		goto cleanup;
--
- 	if (!values_close(cg_read_long(parent[1], "memory.current"), MB(50), 3))
- 		goto cleanup;
- 
--	for (i = 0; i < ARRAY_SIZE(children); i++)
--		c[i] = cg_read_long(children[i], "memory.current");
--
--	if (!values_close(c[0], MB(29), 10))
--		goto cleanup;
--
--	if (!values_close(c[1], MB(21), 10))
--		goto cleanup;
--
--	if (c[3] != 0)
--		goto cleanup;
--
--	if (cg_run(parent[2], alloc_anon, (void *)MB(166))) {
--		fprintf(stderr,
--			"memory.low prevents from allocating anon memory\n");
-+	if (min) {
-+		ret = KSFT_PASS;
- 		goto cleanup;
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(children); i++) {
- 		int no_low_events_index = 1;
-+		long low, oom;
- 
- 		oom = cg_read_key_long(children[i], "memory.events", "oom ");
- 		low = cg_read_key_long(children[i], "memory.events", "low ");
-@@ -565,6 +428,16 @@ cleanup:
- 	return ret;
- }
- 
-+static int test_memcg_min(const char *root)
-+{
-+	return test_memcg_protection(root, true);
-+}
-+
-+static int test_memcg_low(const char *root)
-+{
-+	return test_memcg_protection(root, false);
-+}
-+
- static int alloc_pagecache_max_30M(const char *cgroup, void *arg)
- {
- 	size_t size = MB(50);
 _
 
-Patches currently in -mm which might be from mkoutny@suse.com are
+Patches currently in -mm which might be from liuyun01@kylinos.cn are
 
-selftests-memcg-fix-compilation.patch
-selftests-memcg-expect-no-low-events-in-unprotected-sibling.patch
-selftests-memcg-adjust-expected-reclaim-values-of-protected-cgroups.patch
-selftests-memcg-remove-protection-from-top-level-memcg.patch
-selftests-memcg-factor-out-common-parts-of-memorylowmin-tests.patch
+mm-kfence-print-disabling-or-re-enabling-message.patch
 
