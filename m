@@ -2,40 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49B18C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 21:04:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40BC6C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 21:52:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244938AbiESVEr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 17:04:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50884 "EHLO
+        id S245215AbiESVww (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 17:52:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230385AbiESVEr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 17:04:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2E3C5BD3B
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 14:04:45 -0700 (PDT)
+        with ESMTP id S229738AbiESVwv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 17:52:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C65353707
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 14:52:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A666CB8280A
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 21:04:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67840C385AA;
-        Thu, 19 May 2022 21:04:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BED1E60C23
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 21:52:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A553C385B8;
+        Thu, 19 May 2022 21:52:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652994283;
-        bh=44aWppJ2343N66zXMagq9RxVvFYrOe667/lAiMP89Ps=;
+        s=korg; t=1652997169;
+        bh=TjAsnz8JRhdNVHSdk1zrZaS9WS8Q6EG58BUdtbv/3W0=;
         h=Date:To:From:Subject:From;
-        b=1PGDAlTo0wXd+ihjvDfC8fe3SeK8v5NKR8uopzdyuU3s5IPAdTahgx9a8Mbgee3FE
-         6zMaJTPQiDmZlmHrzWftu7vq1X+NJ3GZqtOM2eJNzpFJ3OzagoMWx14Z86PoEmmjpq
-         8xYlFmUZqiuq9hOscRBYmm3f6ua4ZJb76NuOxw6Q=
-Date:   Thu, 19 May 2022 14:04:42 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rostedt@goodmis.org,
-        jirislaby@kernel.org, gregkh@linuxfoundation.org,
-        akinobu.mita@gmail.com, zhengqi.arch@bytedance.com,
+        b=j5570Md9jHaooE9HEIVL85bMfxfkJxiwEb0od1rSnfn3Xas89wgILMFlV/v4zMzD9
+         +WVIPDcTaxm9P8yJXOmxfPiXQv2ykbcdWhflwPAGNI6Q53P89Iq38zTdKiGzxd6oku
+         IPmWZ3C+ms9BCF78j3WeCM6SMbCWHY4MeH8HfIVQ=
+Date:   Thu, 19 May 2022 14:52:48 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        skhan@linuxfoundation.org, shakeelb@google.com,
+        rientjes@google.com, peterx@redhat.com, oleg@redhat.com,
+        minchan@kernel.org, mhocko@suse.com, kirill@shutemov.name,
+        jhubbard@nvidia.com, jannh@google.com, hch@infradead.org,
+        hannes@cmpxchg.org, guro@fb.com, david@redhat.com,
+        brauner@kernel.org, aarcange@redhat.com, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-missing-handler-for-__gfp_nowarn-v2.patch removed from -mm tree
-Message-Id: <20220519210443.67840C385AA@smtp.kernel.org>
+Subject: [to-be-updated] mm-delete-unused-mmf_oom_victim-flag.patch removed from -mm tree
+Message-Id: <20220519215249.1A553C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,71 +47,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-fix-missing-handler-for-__gfp_nowarn-v2
+     Subject: mm: delete unused MMF_OOM_VICTIM flag
 has been removed from the -mm tree.  Its filename was
-     mm-fix-missing-handler-for-__gfp_nowarn-v2.patch
+     mm-delete-unused-mmf_oom_victim-flag.patch
 
-This patch was dropped because it was folded into mm-fix-missing-handler-for-__gfp_nowarn.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm-fix-missing-handler-for-__gfp_nowarn-v2
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: delete unused MMF_OOM_VICTIM flag
+Date: Mon, 16 May 2022 00:56:19 -0700
 
-  - add comment to WARN_ON_ONCE_GFP
-  - handle __alloc_contig_migrate_range() case
-  - do not deal with:
-	WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
+With the last usage of MMF_OOM_VICTIM in exit_mmap gone, this flag is now
+unused and can be removed.
 
-Link: https://lkml.kernel.org/r/20220511061951.1114-1-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20220516075619.1277152-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    4 ++++
- mm/page_alloc.c |    4 ++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ include/linux/oom.h            |    9 ---------
+ include/linux/sched/coredump.h |    7 +++----
+ mm/oom_kill.c                  |    4 +---
+ 3 files changed, 4 insertions(+), 16 deletions(-)
 
---- a/mm/internal.h~mm-fix-missing-handler-for-__gfp_nowarn-v2
-+++ a/mm/internal.h
-@@ -35,6 +35,10 @@ struct folio_batch;
- /* Do not use these with a slab allocator */
- #define GFP_SLAB_BUG_MASK (__GFP_DMA32|__GFP_HIGHMEM|~__GFP_BITS_MASK)
+--- a/include/linux/oom.h~mm-delete-unused-mmf_oom_victim-flag
++++ a/include/linux/oom.h
+@@ -78,15 +78,6 @@ static inline bool tsk_is_oom_victim(str
+ }
  
-+/*
-+ * Different from WARN_ON_ONCE(), no warning will be issued
-+ * when we specify __GFP_NOWARN.
-+ */
- #define WARN_ON_ONCE_GFP(cond, gfp)	({				\
- 	static bool __section(".data.once") __warned;			\
- 	int __ret_warn_once = !!(cond);					\
---- a/mm/page_alloc.c~mm-fix-missing-handler-for-__gfp_nowarn-v2
-+++ a/mm/page_alloc.c
-@@ -3712,7 +3712,7 @@ struct page *rmqueue(struct zone *prefer
- 	 * We most definitely don't want callers attempting to
- 	 * allocate greater than order-1 page units with __GFP_NOFAIL.
- 	 */
--	WARN_ON_ONCE_GFP((gfp_flags & __GFP_NOFAIL) && (order > 1), gfp_flags);
-+	WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
+ /*
+- * Use this helper if tsk->mm != mm and the victim mm needs a special
+- * handling. This is guaranteed to stay true after once set.
+- */
+-static inline bool mm_is_oom_victim(struct mm_struct *mm)
+-{
+-	return test_bit(MMF_OOM_VICTIM, &mm->flags);
+-}
+-
+-/*
+  * Checks whether a page fault on the given mm is still reliable.
+  * This is no longer true if the oom reaper started to reap the
+  * address space which is reflected by MMF_UNSTABLE flag set in
+--- a/include/linux/sched/coredump.h~mm-delete-unused-mmf_oom_victim-flag
++++ a/include/linux/sched/coredump.h
+@@ -71,9 +71,8 @@ static inline int get_dumpable(struct mm
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+ #define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
+ #define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
+-#define MMF_OOM_VICTIM		25	/* mm is the oom victim */
+-#define MMF_OOM_REAP_QUEUED	26	/* mm was queued for oom_reaper */
+-#define MMF_MULTIPROCESS	27	/* mm is shared between processes */
++#define MMF_OOM_REAP_QUEUED	25	/* mm was queued for oom_reaper */
++#define MMF_MULTIPROCESS	26	/* mm is shared between processes */
+ /*
+  * MMF_HAS_PINNED: Whether this mm has pinned any pages.  This can be either
+  * replaced in the future by mm.pinned_vm when it becomes stable, or grow into
+@@ -81,7 +80,7 @@ static inline int get_dumpable(struct mm
+  * pinned pages were unpinned later on, we'll still keep this bit set for the
+  * lifecycle of this mm, just for simplicity.
+  */
+-#define MMF_HAS_PINNED		28	/* FOLL_PIN has run, never cleared */
++#define MMF_HAS_PINNED		27	/* FOLL_PIN has run, never cleared */
+ #define MMF_DISABLE_THP_MASK	(1 << MMF_DISABLE_THP)
  
- 	do {
- 		page = NULL;
-@@ -9027,7 +9027,7 @@ int __alloc_contig_migrate_range(struct
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+--- a/mm/oom_kill.c~mm-delete-unused-mmf_oom_victim-flag
++++ a/mm/oom_kill.c
+@@ -732,10 +732,8 @@ static void mark_oom_victim(struct task_
+ 		return;
  
- 	lru_cache_enable();
- 	if (ret < 0) {
--		if (ret == -EBUSY)
-+		if (!(cc->gfp_mask & __GFP_NOWARN) && ret == -EBUSY)
- 			alloc_contig_dump_pages(&cc->migratepages);
- 		putback_movable_pages(&cc->migratepages);
- 		return ret;
+ 	/* oom_mm is bound to the signal struct life time. */
+-	if (!cmpxchg(&tsk->signal->oom_mm, NULL, mm)) {
++	if (!cmpxchg(&tsk->signal->oom_mm, NULL, mm))
+ 		mmgrab(tsk->signal->oom_mm);
+-		set_bit(MMF_OOM_VICTIM, &mm->flags);
+-	}
+ 
+ 	/*
+ 	 * Make sure that the task is woken up from uninterruptible sleep
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-fix-missing-handler-for-__gfp_nowarn.patch
+selftests-vm-add-process_mrelease-tests.patch
 
