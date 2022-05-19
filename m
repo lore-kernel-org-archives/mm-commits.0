@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1114CC43219
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:26:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4C9FC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:26:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230442AbiESW0Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 18:26:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51160 "EHLO
+        id S234484AbiESW00 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:26:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245517AbiESW0O (ORCPT
+        with ESMTP id S245519AbiESW0O (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:26:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 244BC2A24D
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:58 -0700 (PDT)
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9956B2FE55
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B44A361012
+        by sin.source.kernel.org (Postfix) with ESMTPS id B6182CE282D
         for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17D61C385B8;
-        Thu, 19 May 2022 22:25:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9CD2C385AA;
+        Thu, 19 May 2022 22:25:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652999157;
-        bh=ljkXVglm/CLIHhkaPHaoC1Jy0N1tqZXnP1RBc92CUfI=;
+        s=korg; t=1652999156;
+        bh=09trh9hJ+pIsi/l+EVgrR31m+t2A0GTZO9JRY2wBeR4=;
         h=Date:To:From:Subject:From;
-        b=gVtvXgCMU1OG1mcYuI25d/ZJuTsXQQqOq4XeYGezqgE2FNeo8fzfi+H0J8lhSYRQh
-         G/PFjzg4PCe/EEHSTRtBD1IiWwWs6UeFAx/4tmp6j3nnSZ4W1yi5Qf99iqM9i1pJql
-         rb+3Bu7rhQYMsyNcbvPwGHVNTKzuGUQkrSN/s6yA=
-Date:   Thu, 19 May 2022 15:25:56 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        syzbot+217f792c92599518a2ab@syzkaller.appspotmail.com,
-        rientjes@google.com, wanngchenng@gmail.com,
-        akpm@linux-foundation.org
+        b=U7MscomPb+j+L9BHroNg+6NyudXcMIfTeioEbu+raIHgjDnINuE20gmVO+jtNnBaS
+         LRyXPCmGz2TZO3M8QLkysZHq27a2BeStzrYbPNPTZNtXTqEQkrQs0Da7E9DEAvJTmb
+         T6I5PPT1w89PskjXb9dQcyLP+1q7fYMtKqP99pjI=
+Date:   Thu, 19 May 2022 15:25:55 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vdavydov.dev@gmail.com, timmurray@google.com, surenb@google.com,
+        mhocko@suse.com, liumartin@google.com, joaodias@google.com,
+        hannes@cmpxchg.org, minchan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mempolicy-fix-uninit-value-in-mpol_rebind_policy.patch removed from -mm tree
-Message-Id: <20220519222557.17D61C385B8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch removed from -mm tree
+Message-Id: <20220519222555.E9CD2C385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,116 +43,407 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: fix uninit-value in mpol_rebind_policy()
+     Subject: mm: don't be stuck to rmap lock on reclaim path
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-fix-uninit-value-in-mpol_rebind_policy.patch
+     mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wang Cheng <wanngchenng@gmail.com>
-Subject: mm/mempolicy: fix uninit-value in mpol_rebind_policy()
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: don't be stuck to rmap lock on reclaim path
 
-mpol_set_nodemask()(mm/mempolicy.c) does not set up nodemask when
-pol->mode is MPOL_LOCAL.  Check pol->mode before access
-pol->w.cpuset_mems_allowed in mpol_rebind_policy()(mm/mempolicy.c).
+The rmap locks(i_mmap_rwsem and anon_vma->root->rwsem) could be contended
+under memory pressure if processes keep working on their vmas(e.g., fork,
+mmap, munmap).  It makes reclaim path stuck.  In our real workload traces,
+we see kswapd is waiting the lock for 300ms+(worst case, a sec) and it
+makes other processes entering direct reclaim, which were also stuck on
+the lock.
 
-BUG: KMSAN: uninit-value in mpol_rebind_policy mm/mempolicy.c:352 [inline]
-BUG: KMSAN: uninit-value in mpol_rebind_task+0x2ac/0x2c0 mm/mempolicy.c:368
- mpol_rebind_policy mm/mempolicy.c:352 [inline]
- mpol_rebind_task+0x2ac/0x2c0 mm/mempolicy.c:368
- cpuset_change_task_nodemask kernel/cgroup/cpuset.c:1711 [inline]
- cpuset_attach+0x787/0x15e0 kernel/cgroup/cpuset.c:2278
- cgroup_migrate_execute+0x1023/0x1d20 kernel/cgroup/cgroup.c:2515
- cgroup_migrate kernel/cgroup/cgroup.c:2771 [inline]
- cgroup_attach_task+0x540/0x8b0 kernel/cgroup/cgroup.c:2804
- __cgroup1_procs_write+0x5cc/0x7a0 kernel/cgroup/cgroup-v1.c:520
- cgroup1_tasks_write+0x94/0xb0 kernel/cgroup/cgroup-v1.c:539
- cgroup_file_write+0x4c2/0x9e0 kernel/cgroup/cgroup.c:3852
- kernfs_fop_write_iter+0x66a/0x9f0 fs/kernfs/file.c:296
- call_write_iter include/linux/fs.h:2162 [inline]
- new_sync_write fs/read_write.c:503 [inline]
- vfs_write+0x1318/0x2030 fs/read_write.c:590
- ksys_write+0x28b/0x510 fs/read_write.c:643
- __do_sys_write fs/read_write.c:655 [inline]
- __se_sys_write fs/read_write.c:652 [inline]
- __x64_sys_write+0xdb/0x120 fs/read_write.c:652
- do_syscall_x64 arch/x86/entry/common.c:51 [inline]
- do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
- entry_SYSCALL_64_after_hwframe+0x44/0xae
+This patch makes lru aging path try_lock mode like shink_page_list so the
+reclaim context will keep working with next lru pages without being stuck.
+if it found the rmap lock contended, it rotates the page back to head of
+lru in both active/inactive lrus to make them consistent behavior, which
+is basic starting point rather than adding more heristic.
 
-Uninit was created at:
- slab_post_alloc_hook mm/slab.h:524 [inline]
- slab_alloc_node mm/slub.c:3251 [inline]
- slab_alloc mm/slub.c:3259 [inline]
- kmem_cache_alloc+0x902/0x11c0 mm/slub.c:3264
- mpol_new mm/mempolicy.c:293 [inline]
- do_set_mempolicy+0x421/0xb70 mm/mempolicy.c:853
- kernel_set_mempolicy mm/mempolicy.c:1504 [inline]
- __do_sys_set_mempolicy mm/mempolicy.c:1510 [inline]
- __se_sys_set_mempolicy+0x44c/0xb60 mm/mempolicy.c:1507
- __x64_sys_set_mempolicy+0xd8/0x110 mm/mempolicy.c:1507
- do_syscall_x64 arch/x86/entry/common.c:51 [inline]
- do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
- entry_SYSCALL_64_after_hwframe+0x44/0xae
+Since this patch introduces a new "contended" field as out-param along
+with try_lock in-param in rmap_walk_control, it's not immutable any longer
+if the try_lock is set so remove const keywords on rmap related functions.
+Since rmap walking is already expensive operation, I doubt the const
+would help sizable benefit( And we didn't have it until 5.17).
 
-KMSAN: uninit-value in mpol_rebind_task (2)
-https://syzkaller.appspot.com/bug?id=d6eb90f952c2a5de9ea718a1b873c55cb13b59dc
+In a heavy app workload in Android, trace shows following statistics.  It
+almost removes rmap lock contention from reclaim path.
 
-This patch seems to fix below bug too.
-KMSAN: uninit-value in mpol_rebind_mm (2)
-https://syzkaller.appspot.com/bug?id=f2fecd0d7013f54ec4162f60743a2b28df40926b
+Martin Liu reported:
 
-The uninit-value is pol->w.cpuset_mems_allowed in mpol_rebind_policy().
-When syzkaller reproducer runs to the beginning of mpol_new(),
+Before:
 
-	    mpol_new() mm/mempolicy.c
-	  do_mbind() mm/mempolicy.c
-	kernel_mbind() mm/mempolicy.c
+   max_dur(ms)  min_dur(ms)  max-min(dur)ms  avg_dur(ms)  sum_dur(ms)  count blocked_function
+         1632            0            1631   151.542173        31672    209  page_lock_anon_vma_read
+          601            0             601   145.544681        28817    198  rmap_walk_file
 
-`mode` is 1(MPOL_PREFERRED), nodes_empty(*nodes) is `true` and `flags`
-is 0. Then
+After:
 
-	mode = MPOL_LOCAL;
-	...
-	policy->mode = mode;
-	policy->flags = flags;
+   max_dur(ms)  min_dur(ms)  max-min(dur)ms  avg_dur(ms)  sum_dur(ms)  count blocked_function
+          NaN          NaN              NaN          NaN          NaN    0.0             NaN
+            0            0                0     0.127645            1     12  rmap_walk_file
 
-will be executed. So in mpol_set_nodemask(),
-
-	    mpol_set_nodemask() mm/mempolicy.c
-	  do_mbind()
-	kernel_mbind()
-
-pol->mode is 4 (MPOL_LOCAL), that `nodemask` in `pol` is not initialized,
-which will be accessed in mpol_rebind_policy().
-
-Link: https://lkml.kernel.org/r/20220512123428.fq3wofedp6oiotd4@ppc.localdomain
-Signed-off-by: Wang Cheng <wanngchenng@gmail.com>
-Reported-by: <syzbot+217f792c92599518a2ab@syzkaller.appspotmail.com>
-Tested-by: <syzbot+217f792c92599518a2ab@syzkaller.appspotmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[minchan@kernel.org: add comment, per Matthew]
+  Link: https://lkml.kernel.org/r/YnNqeB5tUf6LZ57b@google.com
+Link: https://lkml.kernel.org/r/20220510215423.164547-1-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: John Dias <joaodias@google.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Martin Liu <liumartin@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/fs.h   |    5 +++
+ include/linux/ksm.h  |    4 +--
+ include/linux/rmap.h |   28 +++++++++++++++-------
+ mm/ksm.c             |   10 ++++++-
+ mm/memory-failure.c  |    2 -
+ mm/page_idle.c       |    7 +++--
+ mm/rmap.c            |   52 ++++++++++++++++++++++++++++++++---------
+ mm/vmscan.c          |    7 ++++-
+ 8 files changed, 87 insertions(+), 28 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-uninit-value-in-mpol_rebind_policy
-+++ a/mm/mempolicy.c
-@@ -351,7 +351,7 @@ static void mpol_rebind_preferred(struct
-  */
- static void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask)
+--- a/include/linux/fs.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
++++ a/include/linux/fs.h
+@@ -477,6 +477,11 @@ static inline void i_mmap_unlock_write(s
+ 	up_write(&mapping->i_mmap_rwsem);
+ }
+ 
++static inline int i_mmap_trylock_read(struct address_space *mapping)
++{
++	return down_read_trylock(&mapping->i_mmap_rwsem);
++}
++
+ static inline void i_mmap_lock_read(struct address_space *mapping)
  {
--	if (!pol)
-+	if (!pol || pol->mode == MPOL_LOCAL)
+ 	down_read(&mapping->i_mmap_rwsem);
+--- a/include/linux/ksm.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
++++ a/include/linux/ksm.h
+@@ -51,7 +51,7 @@ static inline void ksm_exit(struct mm_st
+ struct page *ksm_might_need_to_copy(struct page *page,
+ 			struct vm_area_struct *vma, unsigned long address);
+ 
+-void rmap_walk_ksm(struct folio *folio, const struct rmap_walk_control *rwc);
++void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
+ void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
+ 
+ #else  /* !CONFIG_KSM */
+@@ -79,7 +79,7 @@ static inline struct page *ksm_might_nee
+ }
+ 
+ static inline void rmap_walk_ksm(struct folio *folio,
+-			const struct rmap_walk_control *rwc)
++			struct rmap_walk_control *rwc)
+ {
+ }
+ 
+--- a/include/linux/rmap.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
++++ a/include/linux/rmap.h
+@@ -128,6 +128,11 @@ static inline void anon_vma_lock_read(st
+ 	down_read(&anon_vma->root->rwsem);
+ }
+ 
++static inline int anon_vma_trylock_read(struct anon_vma *anon_vma)
++{
++	return down_read_trylock(&anon_vma->root->rwsem);
++}
++
+ static inline void anon_vma_unlock_read(struct anon_vma *anon_vma)
+ {
+ 	up_read(&anon_vma->root->rwsem);
+@@ -366,17 +371,14 @@ int pfn_mkclean_range(unsigned long pfn,
+ 
+ void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked);
+ 
+-/*
+- * Called by memory-failure.c to kill processes.
+- */
+-struct anon_vma *folio_lock_anon_vma_read(struct folio *folio);
+-void page_unlock_anon_vma_read(struct anon_vma *anon_vma);
+ int page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
+ 
+ /*
+  * rmap_walk_control: To control rmap traversing for specific needs
+  *
+  * arg: passed to rmap_one() and invalid_vma()
++ * try_lock: bail out if the rmap lock is contended
++ * contended: indicate the rmap traversal bailed out due to lock contention
+  * rmap_one: executed on each vma where page is mapped
+  * done: for checking traversing termination condition
+  * anon_lock: for getting anon_lock by optimized way rather than default
+@@ -384,6 +386,8 @@ int page_mapped_in_vma(struct page *page
+  */
+ struct rmap_walk_control {
+ 	void *arg;
++	bool try_lock;
++	bool contended;
+ 	/*
+ 	 * Return false if page table scanning in rmap_walk should be stopped.
+ 	 * Otherwise, return true.
+@@ -391,12 +395,20 @@ struct rmap_walk_control {
+ 	bool (*rmap_one)(struct folio *folio, struct vm_area_struct *vma,
+ 					unsigned long addr, void *arg);
+ 	int (*done)(struct folio *folio);
+-	struct anon_vma *(*anon_lock)(struct folio *folio);
++	struct anon_vma *(*anon_lock)(struct folio *folio,
++				      struct rmap_walk_control *rwc);
+ 	bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
+ };
+ 
+-void rmap_walk(struct folio *folio, const struct rmap_walk_control *rwc);
+-void rmap_walk_locked(struct folio *folio, const struct rmap_walk_control *rwc);
++void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc);
++void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc);
++
++/*
++ * Called by memory-failure.c to kill processes.
++ */
++struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
++					  struct rmap_walk_control *rwc);
++void page_unlock_anon_vma_read(struct anon_vma *anon_vma);
+ 
+ #else	/* !CONFIG_MMU */
+ 
+--- a/mm/ksm.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
++++ a/mm/ksm.c
+@@ -2610,7 +2610,7 @@ struct page *ksm_might_need_to_copy(stru
+ 	return new_page;
+ }
+ 
+-void rmap_walk_ksm(struct folio *folio, const struct rmap_walk_control *rwc)
++void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc)
+ {
+ 	struct stable_node *stable_node;
+ 	struct rmap_item *rmap_item;
+@@ -2634,7 +2634,13 @@ again:
+ 		struct vm_area_struct *vma;
+ 
+ 		cond_resched();
+-		anon_vma_lock_read(anon_vma);
++		if (!anon_vma_trylock_read(anon_vma)) {
++			if (rwc->try_lock) {
++				rwc->contended = true;
++				return;
++			}
++			anon_vma_lock_read(anon_vma);
++		}
+ 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
+ 					       0, ULONG_MAX) {
+ 			unsigned long addr;
+--- a/mm/memory-failure.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
++++ a/mm/memory-failure.c
+@@ -485,7 +485,7 @@ static void collect_procs_anon(struct pa
+ 	struct anon_vma *av;
+ 	pgoff_t pgoff;
+ 
+-	av = folio_lock_anon_vma_read(folio);
++	av = folio_lock_anon_vma_read(folio, NULL);
+ 	if (av == NULL)	/* Not actually mapped anymore */
  		return;
- 	if (!mpol_store_user_nodemask(pol) &&
- 	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
+ 
+--- a/mm/page_idle.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
++++ a/mm/page_idle.c
+@@ -86,11 +86,12 @@ static bool page_idle_clear_pte_refs_one
+ static void page_idle_clear_pte_refs(struct page *page)
+ {
+ 	struct folio *folio = page_folio(page);
++
+ 	/*
+-	 * Since rwc.arg is unused, rwc is effectively immutable, so we
+-	 * can make it static const to save some cycles and stack.
++	 * Since rwc.try_lock is unused, rwc is effectively immutable, so we
++	 * can make it static to save some cycles and stack.
+ 	 */
+-	static const struct rmap_walk_control rwc = {
++	static struct rmap_walk_control rwc = {
+ 		.rmap_one = page_idle_clear_pte_refs_one,
+ 		.anon_lock = folio_lock_anon_vma_read,
+ 	};
+--- a/mm/rmap.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
++++ a/mm/rmap.c
+@@ -527,9 +527,11 @@ out:
+  *
+  * Its a little more complex as it tries to keep the fast path to a single
+  * atomic op -- the trylock. If we fail the trylock, we fall back to getting a
+- * reference like with page_get_anon_vma() and then block on the mutex.
++ * reference like with page_get_anon_vma() and then block on the mutex
++ * on !rwc->try_lock case.
+  */
+-struct anon_vma *folio_lock_anon_vma_read(struct folio *folio)
++struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
++					  struct rmap_walk_control *rwc)
+ {
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct anon_vma *root_anon_vma;
+@@ -557,6 +559,12 @@ struct anon_vma *folio_lock_anon_vma_rea
+ 		goto out;
+ 	}
+ 
++	if (rwc && rwc->try_lock) {
++		anon_vma = NULL;
++		rwc->contended = true;
++		goto out;
++	}
++
+ 	/* trylock failed, we got to sleep */
+ 	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
+ 		anon_vma = NULL;
+@@ -883,7 +891,8 @@ static bool invalid_folio_referenced_vma
+  *
+  * Quick test_and_clear_referenced for all mappings of a folio,
+  *
+- * Return: The number of mappings which referenced the folio.
++ * Return: The number of mappings which referenced the folio. Return -1 if
++ * the function bailed out due to rmap lock contention.
+  */
+ int folio_referenced(struct folio *folio, int is_locked,
+ 		     struct mem_cgroup *memcg, unsigned long *vm_flags)
+@@ -897,6 +906,7 @@ int folio_referenced(struct folio *folio
+ 		.rmap_one = folio_referenced_one,
+ 		.arg = (void *)&pra,
+ 		.anon_lock = folio_lock_anon_vma_read,
++		.try_lock = true,
+ 	};
+ 
+ 	*vm_flags = 0;
+@@ -927,7 +937,7 @@ int folio_referenced(struct folio *folio
+ 	if (we_locked)
+ 		folio_unlock(folio);
+ 
+-	return pra.referenced;
++	return rwc.contended ? -1 : pra.referenced;
+ }
+ 
+ static int page_vma_mkclean_one(struct page_vma_mapped_walk *pvmw)
+@@ -2336,12 +2346,12 @@ void __put_anon_vma(struct anon_vma *ano
+ }
+ 
+ static struct anon_vma *rmap_walk_anon_lock(struct folio *folio,
+-					const struct rmap_walk_control *rwc)
++					    struct rmap_walk_control *rwc)
+ {
+ 	struct anon_vma *anon_vma;
+ 
+ 	if (rwc->anon_lock)
+-		return rwc->anon_lock(folio);
++		return rwc->anon_lock(folio, rwc);
+ 
+ 	/*
+ 	 * Note: remove_migration_ptes() cannot use folio_lock_anon_vma_read()
+@@ -2353,7 +2363,17 @@ static struct anon_vma *rmap_walk_anon_l
+ 	if (!anon_vma)
+ 		return NULL;
+ 
++	if (anon_vma_trylock_read(anon_vma))
++		goto out;
++
++	if (rwc->try_lock) {
++		anon_vma = NULL;
++		rwc->contended = true;
++		goto out;
++	}
++
+ 	anon_vma_lock_read(anon_vma);
++out:
+ 	return anon_vma;
+ }
+ 
+@@ -2367,7 +2387,7 @@ static struct anon_vma *rmap_walk_anon_l
+  * contained in the anon_vma struct it points to.
+  */
+ static void rmap_walk_anon(struct folio *folio,
+-		const struct rmap_walk_control *rwc, bool locked)
++		struct rmap_walk_control *rwc, bool locked)
+ {
+ 	struct anon_vma *anon_vma;
+ 	pgoff_t pgoff_start, pgoff_end;
+@@ -2415,7 +2435,7 @@ static void rmap_walk_anon(struct folio
+  * contained in the address_space struct it points to.
+  */
+ static void rmap_walk_file(struct folio *folio,
+-		const struct rmap_walk_control *rwc, bool locked)
++		struct rmap_walk_control *rwc, bool locked)
+ {
+ 	struct address_space *mapping = folio_mapping(folio);
+ 	pgoff_t pgoff_start, pgoff_end;
+@@ -2434,8 +2454,18 @@ static void rmap_walk_file(struct folio
+ 
+ 	pgoff_start = folio_pgoff(folio);
+ 	pgoff_end = pgoff_start + folio_nr_pages(folio) - 1;
+-	if (!locked)
++	if (!locked) {
++		if (i_mmap_trylock_read(mapping))
++			goto lookup;
++
++		if (rwc->try_lock) {
++			rwc->contended = true;
++			return;
++		}
++
+ 		i_mmap_lock_read(mapping);
++	}
++lookup:
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap,
+ 			pgoff_start, pgoff_end) {
+ 		unsigned long address = vma_address(&folio->page, vma);
+@@ -2457,7 +2487,7 @@ done:
+ 		i_mmap_unlock_read(mapping);
+ }
+ 
+-void rmap_walk(struct folio *folio, const struct rmap_walk_control *rwc)
++void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc)
+ {
+ 	if (unlikely(folio_test_ksm(folio)))
+ 		rmap_walk_ksm(folio, rwc);
+@@ -2468,7 +2498,7 @@ void rmap_walk(struct folio *folio, cons
+ }
+ 
+ /* Like rmap_walk, but caller holds relevant rmap lock */
+-void rmap_walk_locked(struct folio *folio, const struct rmap_walk_control *rwc)
++void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc)
+ {
+ 	/* no ksm support for now */
+ 	VM_BUG_ON_FOLIO(folio_test_ksm(folio), folio);
+--- a/mm/vmscan.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
++++ a/mm/vmscan.c
+@@ -1391,6 +1391,10 @@ static enum page_references folio_check_
+ 	if (vm_flags & VM_LOCKED)
+ 		return PAGEREF_ACTIVATE;
+ 
++	/* rmap lock contention: rotate */
++	if (referenced_ptes == -1)
++		return PAGEREF_KEEP;
++
+ 	if (referenced_ptes) {
+ 		/*
+ 		 * All mapped folios start out with page table
+@@ -2499,8 +2503,9 @@ static void shrink_active_list(unsigned
+ 			}
+ 		}
+ 
++		/* Referenced or rmap lock contention: rotate */
+ 		if (folio_referenced(folio, 0, sc->target_mem_cgroup,
+-				     &vm_flags)) {
++				     &vm_flags) != 0) {
+ 			/*
+ 			 * Identify referenced, file-backed active pages and
+ 			 * give them one more trip around the active list. So
 _
 
-Patches currently in -mm which might be from wanngchenng@gmail.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 
