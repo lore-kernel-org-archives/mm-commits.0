@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD85DC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:26:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1114CC43219
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:26:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230083AbiESW0Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 18:26:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51002 "EHLO
+        id S230442AbiESW0Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:26:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245512AbiESW0O (ORCPT
+        with ESMTP id S245517AbiESW0O (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:26:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F41F12019F
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 244BC2A24D
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7DB6A61698
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCAD8C385B8;
-        Thu, 19 May 2022 22:25:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B44A361012
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17D61C385B8;
+        Thu, 19 May 2022 22:25:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652999154;
-        bh=CXNC9vMmNdn5M7wADS2RSouv+OWBbByl1m5YeDHJxHc=;
+        s=korg; t=1652999157;
+        bh=ljkXVglm/CLIHhkaPHaoC1Jy0N1tqZXnP1RBc92CUfI=;
         h=Date:To:From:Subject:From;
-        b=fF0SK/k860ZjITJ23hhyqAcc15+qv8dP0654tzFE5v4wjnHAlF7tqKWPkzW8uDGiR
-         op9NzrMm33h16gn7BKQk1bADyMLrAqScUhnTJaqbH4rtb8DVSg4iIm7PIHKcU5uDuO
-         a3idva9zOrGS2pqOovcKj5AjHnueFNSZCrb5Rpnc=
-Date:   Thu, 19 May 2022 15:25:54 -0700
-To:     mm-commits@vger.kernel.org, sjenning@redhat.com,
-        shakeelb@google.com, minchan@kernel.org, mhocko@suse.com,
-        guro@fb.com, ddstreet@ieee.org, hannes@cmpxchg.org,
+        b=gVtvXgCMU1OG1mcYuI25d/ZJuTsXQQqOq4XeYGezqgE2FNeo8fzfi+H0J8lhSYRQh
+         G/PFjzg4PCe/EEHSTRtBD1IiWwWs6UeFAx/4tmp6j3nnSZ4W1yi5Qf99iqM9i1pJql
+         rb+3Bu7rhQYMsyNcbvPwGHVNTKzuGUQkrSN/s6yA=
+Date:   Thu, 19 May 2022 15:25:56 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        syzbot+217f792c92599518a2ab@syzkaller.appspotmail.com,
+        rientjes@google.com, wanngchenng@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zswap-memcg-accounting.patch removed from -mm tree
-Message-Id: <20220519222554.CCAD8C385B8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mempolicy-fix-uninit-value-in-mpol_rebind_policy.patch removed from -mm tree
+Message-Id: <20220519222557.17D61C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,562 +43,116 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zswap: memcg accounting
+     Subject: mm/mempolicy: fix uninit-value in mpol_rebind_policy()
 has been removed from the -mm tree.  Its filename was
-     zswap-memcg-accounting.patch
+     mm-mempolicy-fix-uninit-value-in-mpol_rebind_policy.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: zswap: memcg accounting
+From: Wang Cheng <wanngchenng@gmail.com>
+Subject: mm/mempolicy: fix uninit-value in mpol_rebind_policy()
 
-Applications can currently escape their cgroup memory containment when
-zswap is enabled.  This patch adds per-cgroup tracking and limiting of
-zswap backend memory to rectify this.
+mpol_set_nodemask()(mm/mempolicy.c) does not set up nodemask when
+pol->mode is MPOL_LOCAL.  Check pol->mode before access
+pol->w.cpuset_mems_allowed in mpol_rebind_policy()(mm/mempolicy.c).
 
-The existing cgroup2 memory.stat file is extended to show zswap statistics
-analogous to what's in meminfo and vmstat.  Furthermore, two new control
-files, memory.zswap.current and memory.zswap.max, are added to allow
-tuning zswap usage on a per-workload basis.  This is important since not
-all workloads benefit from zswap equally; some even suffer compared to
-disk swap when memory contents don't compress well.  The optimal size of
-the zswap pool, and the threshold for writeback, also depends on the size
-of the workload's warm set.
+BUG: KMSAN: uninit-value in mpol_rebind_policy mm/mempolicy.c:352 [inline]
+BUG: KMSAN: uninit-value in mpol_rebind_task+0x2ac/0x2c0 mm/mempolicy.c:368
+ mpol_rebind_policy mm/mempolicy.c:352 [inline]
+ mpol_rebind_task+0x2ac/0x2c0 mm/mempolicy.c:368
+ cpuset_change_task_nodemask kernel/cgroup/cpuset.c:1711 [inline]
+ cpuset_attach+0x787/0x15e0 kernel/cgroup/cpuset.c:2278
+ cgroup_migrate_execute+0x1023/0x1d20 kernel/cgroup/cgroup.c:2515
+ cgroup_migrate kernel/cgroup/cgroup.c:2771 [inline]
+ cgroup_attach_task+0x540/0x8b0 kernel/cgroup/cgroup.c:2804
+ __cgroup1_procs_write+0x5cc/0x7a0 kernel/cgroup/cgroup-v1.c:520
+ cgroup1_tasks_write+0x94/0xb0 kernel/cgroup/cgroup-v1.c:539
+ cgroup_file_write+0x4c2/0x9e0 kernel/cgroup/cgroup.c:3852
+ kernfs_fop_write_iter+0x66a/0x9f0 fs/kernfs/file.c:296
+ call_write_iter include/linux/fs.h:2162 [inline]
+ new_sync_write fs/read_write.c:503 [inline]
+ vfs_write+0x1318/0x2030 fs/read_write.c:590
+ ksys_write+0x28b/0x510 fs/read_write.c:643
+ __do_sys_write fs/read_write.c:655 [inline]
+ __se_sys_write fs/read_write.c:652 [inline]
+ __x64_sys_write+0xdb/0x120 fs/read_write.c:652
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-The implementation doesn't use a traditional page_counter transaction. 
-zswap is unconventional as a memory consumer in that we only know the
-amount of memory to charge once expensive compression has occurred.  If
-zwap is disabled or the limit is already exceeded we obviously don't want
-to compress page upon page only to reject them all.  Instead, the limit is
-checked against current usage, then we compress and charge.  This allows
-some limit overrun, but not enough to matter in practice.
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:524 [inline]
+ slab_alloc_node mm/slub.c:3251 [inline]
+ slab_alloc mm/slub.c:3259 [inline]
+ kmem_cache_alloc+0x902/0x11c0 mm/slub.c:3264
+ mpol_new mm/mempolicy.c:293 [inline]
+ do_set_mempolicy+0x421/0xb70 mm/mempolicy.c:853
+ kernel_set_mempolicy mm/mempolicy.c:1504 [inline]
+ __do_sys_set_mempolicy mm/mempolicy.c:1510 [inline]
+ __se_sys_set_mempolicy+0x44c/0xb60 mm/mempolicy.c:1507
+ __x64_sys_set_mempolicy+0xd8/0x110 mm/mempolicy.c:1507
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-[hannes@cmpxchg.org: fix for CONFIG_SLOB builds]
-  Link: https://lkml.kernel.org/r/YnwD14zxYjUJPc2w@cmpxchg.org
-[hannes@cmpxchg.org: opt out of cgroups v1]
-  Link: https://lkml.kernel.org/r/Yn6it9mBYFA+/lTb@cmpxchg.org
-Link: https://lkml.kernel.org/r/20220510152847.230957-7-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Minchan Kim <minchan@kernel.org>
+KMSAN: uninit-value in mpol_rebind_task (2)
+https://syzkaller.appspot.com/bug?id=d6eb90f952c2a5de9ea718a1b873c55cb13b59dc
+
+This patch seems to fix below bug too.
+KMSAN: uninit-value in mpol_rebind_mm (2)
+https://syzkaller.appspot.com/bug?id=f2fecd0d7013f54ec4162f60743a2b28df40926b
+
+The uninit-value is pol->w.cpuset_mems_allowed in mpol_rebind_policy().
+When syzkaller reproducer runs to the beginning of mpol_new(),
+
+	    mpol_new() mm/mempolicy.c
+	  do_mbind() mm/mempolicy.c
+	kernel_mbind() mm/mempolicy.c
+
+`mode` is 1(MPOL_PREFERRED), nodes_empty(*nodes) is `true` and `flags`
+is 0. Then
+
+	mode = MPOL_LOCAL;
+	...
+	policy->mode = mode;
+	policy->flags = flags;
+
+will be executed. So in mpol_set_nodemask(),
+
+	    mpol_set_nodemask() mm/mempolicy.c
+	  do_mbind()
+	kernel_mbind()
+
+pol->mode is 4 (MPOL_LOCAL), that `nodemask` in `pol` is not initialized,
+which will be accessed in mpol_rebind_policy().
+
+Link: https://lkml.kernel.org/r/20220512123428.fq3wofedp6oiotd4@ppc.localdomain
+Signed-off-by: Wang Cheng <wanngchenng@gmail.com>
+Reported-by: <syzbot+217f792c92599518a2ab@syzkaller.appspotmail.com>
+Tested-by: <syzbot+217f792c92599518a2ab@syzkaller.appspotmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   21 ++
- include/linux/memcontrol.h              |   54 +++++
- mm/memcontrol.c                         |  205 +++++++++++++++++++++-
- mm/zswap.c                              |   37 +++
- 4 files changed, 302 insertions(+), 15 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~zswap-memcg-accounting
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1354,6 +1354,12 @@ PAGE_SIZE multiple when read back.
- 		Amount of cached filesystem data that is swap-backed,
- 		such as tmpfs, shm segments, shared anonymous mmap()s
- 
-+	  zswap
-+		Amount of memory consumed by the zswap compression backend.
-+
-+	  zswapped
-+		Amount of application memory swapped out to zswap.
-+
- 	  file_mapped
- 		Amount of cached filesystem data mapped with mmap()
- 
-@@ -1544,6 +1550,21 @@ PAGE_SIZE multiple when read back.
- 	higher than the limit for an extended period of time.  This
- 	reduces the impact on the workload and memory management.
- 
-+  memory.zswap.current
-+	A read-only single value file which exists on non-root
-+	cgroups.
-+
-+	The total amount of memory consumed by the zswap compression
-+	backend.
-+
-+  memory.zswap.max
-+	A read-write single value file which exists on non-root
-+	cgroups.  The default is "max".
-+
-+	Zswap usage hard limit. If a cgroup's zswap pool reaches this
-+	limit, it will refuse to take any more stores before existing
-+	entries fault back in or are written out to disk.
-+
-   memory.pressure
- 	A read-only nested-keyed file.
- 
---- a/include/linux/memcontrol.h~zswap-memcg-accounting
-+++ a/include/linux/memcontrol.h
-@@ -35,6 +35,8 @@ enum memcg_stat_item {
- 	MEMCG_PERCPU_B,
- 	MEMCG_VMALLOC,
- 	MEMCG_KMEM,
-+	MEMCG_ZSWAP_B,
-+	MEMCG_ZSWAPPED,
- 	MEMCG_NR_STAT,
- };
- 
-@@ -252,6 +254,10 @@ struct mem_cgroup {
- 	/* Range enforcement for interrupt charges */
- 	struct work_struct high_work;
- 
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+	unsigned long zswap_max;
-+#endif
-+
- 	unsigned long soft_limit;
- 
- 	/* vmpressure notifications */
-@@ -1273,6 +1279,10 @@ struct mem_cgroup *mem_cgroup_from_css(s
- 	return NULL;
- }
- 
-+static inline void obj_cgroup_put(struct obj_cgroup *objcg)
-+{
-+}
-+
- static inline void mem_cgroup_put(struct mem_cgroup *memcg)
- {
- }
-@@ -1694,6 +1704,7 @@ int __memcg_kmem_charge_page(struct page
- void __memcg_kmem_uncharge_page(struct page *page, int order);
- 
- struct obj_cgroup *get_obj_cgroup_from_current(void);
-+struct obj_cgroup *get_obj_cgroup_from_page(struct page *page);
- 
- int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size);
- void obj_cgroup_uncharge(struct obj_cgroup *objcg, size_t size);
-@@ -1730,6 +1741,20 @@ static inline int memcg_kmem_id(struct m
- 
- struct mem_cgroup *mem_cgroup_from_obj(void *p);
- 
-+static inline void count_objcg_event(struct obj_cgroup *objcg,
-+				     enum vm_event_item idx)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	if (mem_cgroup_kmem_disabled())
-+		return;
-+
-+	rcu_read_lock();
-+	memcg = obj_cgroup_memcg(objcg);
-+	count_memcg_events(memcg, idx, 1);
-+	rcu_read_unlock();
-+}
-+
- #else
- static inline bool mem_cgroup_kmem_disabled(void)
- {
-@@ -1756,6 +1781,11 @@ static inline void __memcg_kmem_uncharge
- {
- }
- 
-+static inline struct obj_cgroup *get_obj_cgroup_from_page(struct page *page)
-+{
-+	return NULL;
-+}
-+
- static inline bool memcg_kmem_enabled(void)
- {
- 	return false;
-@@ -1771,6 +1801,30 @@ static inline struct mem_cgroup *mem_cgr
-        return NULL;
- }
- 
-+static inline void count_objcg_event(struct obj_cgroup *objcg,
-+				     enum vm_event_item idx)
-+{
-+}
-+
- #endif /* CONFIG_MEMCG_KMEM */
- 
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
-+void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
-+void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size);
-+#else
-+static inline bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
-+{
-+	return true;
-+}
-+static inline void obj_cgroup_charge_zswap(struct obj_cgroup *objcg,
-+					   size_t size)
-+{
-+}
-+static inline void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg,
-+					     size_t size)
-+{
-+}
-+#endif
-+
- #endif /* _LINUX_MEMCONTROL_H */
---- a/mm/memcontrol.c~zswap-memcg-accounting
-+++ a/mm/memcontrol.c
-@@ -1398,6 +1398,10 @@ static const struct memory_stat memory_s
- 	{ "sock",			MEMCG_SOCK			},
- 	{ "vmalloc",			MEMCG_VMALLOC			},
- 	{ "shmem",			NR_SHMEM			},
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+	{ "zswap",			MEMCG_ZSWAP_B			},
-+	{ "zswapped",			MEMCG_ZSWAPPED			},
-+#endif
- 	{ "file_mapped",		NR_FILE_MAPPED			},
- 	{ "file_dirty",			NR_FILE_DIRTY			},
- 	{ "file_writeback",		NR_WRITEBACK			},
-@@ -1432,6 +1436,7 @@ static int memcg_page_state_unit(int ite
- {
- 	switch (item) {
- 	case MEMCG_PERCPU_B:
-+	case MEMCG_ZSWAP_B:
- 	case NR_SLAB_RECLAIMABLE_B:
- 	case NR_SLAB_UNRECLAIMABLE_B:
- 	case WORKINGSET_REFAULT_ANON:
-@@ -1512,6 +1517,13 @@ static char *memory_stat_format(struct m
- 	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGLAZYFREED),
- 		       memcg_events(memcg, PGLAZYFREED));
- 
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPIN),
-+		       memcg_events(memcg, ZSWPIN));
-+	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPOUT),
-+		       memcg_events(memcg, ZSWPOUT));
-+#endif
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	seq_buf_printf(&s, "%s %lu\n", vm_event_name(THP_FAULT_ALLOC),
- 		       memcg_events(memcg, THP_FAULT_ALLOC));
-@@ -2883,6 +2895,19 @@ struct mem_cgroup *mem_cgroup_from_obj(v
- 	return page_memcg_check(folio_page(folio, 0));
- }
- 
-+static struct obj_cgroup *__get_obj_cgroup_from_memcg(struct mem_cgroup *memcg)
-+{
-+	struct obj_cgroup *objcg = NULL;
-+
-+	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg)) {
-+		objcg = rcu_dereference(memcg->objcg);
-+		if (objcg && obj_cgroup_tryget(objcg))
-+			break;
-+		objcg = NULL;
-+	}
-+	return objcg;
-+}
-+
- __always_inline struct obj_cgroup *get_obj_cgroup_from_current(void)
- {
- 	struct obj_cgroup *objcg = NULL;
-@@ -2896,15 +2921,32 @@ __always_inline struct obj_cgroup *get_o
- 		memcg = active_memcg();
- 	else
- 		memcg = mem_cgroup_from_task(current);
--
--	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg)) {
--		objcg = rcu_dereference(memcg->objcg);
--		if (objcg && obj_cgroup_tryget(objcg))
--			break;
--		objcg = NULL;
--	}
-+	objcg = __get_obj_cgroup_from_memcg(memcg);
- 	rcu_read_unlock();
-+	return objcg;
-+}
-+
-+struct obj_cgroup *get_obj_cgroup_from_page(struct page *page)
-+{
-+	struct obj_cgroup *objcg;
-+
-+	if (!memcg_kmem_enabled() || memcg_kmem_bypass())
-+		return NULL;
-+
-+	if (PageMemcgKmem(page)) {
-+		objcg = __folio_objcg(page_folio(page));
-+		obj_cgroup_get(objcg);
-+	} else {
-+		struct mem_cgroup *memcg;
- 
-+		rcu_read_lock();
-+		memcg = __folio_memcg(page_folio(page));
-+		if (memcg)
-+			objcg = __get_obj_cgroup_from_memcg(memcg);
-+		else
-+			objcg = NULL;
-+		rcu_read_unlock();
-+	}
- 	return objcg;
- }
- 
-@@ -5142,6 +5184,9 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 
- 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
- 	memcg->soft_limit = PAGE_COUNTER_MAX;
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+	memcg->zswap_max = PAGE_COUNTER_MAX;
-+#endif
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	if (parent) {
- 		memcg->swappiness = mem_cgroup_swappiness(parent);
-@@ -7421,6 +7466,148 @@ static struct cftype memsw_files[] = {
- 	{ },	/* terminate */
- };
- 
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+/**
-+ * obj_cgroup_may_zswap - check if this cgroup can zswap
-+ * @objcg: the object cgroup
-+ *
-+ * Check if the hierarchical zswap limit has been reached.
-+ *
-+ * This doesn't check for specific headroom, and it is not atomic
-+ * either. But with zswap, the size of the allocation is only known
-+ * once compression has occured, and this optimistic pre-check avoids
-+ * spending cycles on compression when there is already no room left
-+ * or zswap is disabled altogether somewhere in the hierarchy.
-+ */
-+bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
-+{
-+	struct mem_cgroup *memcg, *original_memcg;
-+	bool ret = true;
-+
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return true;
-+
-+	original_memcg = get_mem_cgroup_from_objcg(objcg);
-+	for (memcg = original_memcg; memcg != root_mem_cgroup;
-+	     memcg = parent_mem_cgroup(memcg)) {
-+		unsigned long max = READ_ONCE(memcg->zswap_max);
-+		unsigned long pages;
-+
-+		if (max == PAGE_COUNTER_MAX)
-+			continue;
-+		if (max == 0) {
-+			ret = false;
-+			break;
-+		}
-+
-+		cgroup_rstat_flush(memcg->css.cgroup);
-+		pages = memcg_page_state(memcg, MEMCG_ZSWAP_B) / PAGE_SIZE;
-+		if (pages < max)
-+			continue;
-+		ret = false;
-+		break;
-+	}
-+	mem_cgroup_put(original_memcg);
-+	return ret;
-+}
-+
-+/**
-+ * obj_cgroup_charge_zswap - charge compression backend memory
-+ * @objcg: the object cgroup
-+ * @size: size of compressed object
-+ *
-+ * This forces the charge after obj_cgroup_may_swap() allowed
-+ * compression and storage in zwap for this cgroup to go ahead.
-+ */
-+void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return;
-+
-+	VM_WARN_ON_ONCE(!(current->flags & PF_MEMALLOC));
-+
-+	/* PF_MEMALLOC context, charging must succeed */
-+	if (obj_cgroup_charge(objcg, GFP_KERNEL, size))
-+		VM_WARN_ON_ONCE(1);
-+
-+	rcu_read_lock();
-+	memcg = obj_cgroup_memcg(objcg);
-+	mod_memcg_state(memcg, MEMCG_ZSWAP_B, size);
-+	mod_memcg_state(memcg, MEMCG_ZSWAPPED, 1);
-+	rcu_read_unlock();
-+}
-+
-+/**
-+ * obj_cgroup_uncharge_zswap - uncharge compression backend memory
-+ * @objcg: the object cgroup
-+ * @size: size of compressed object
-+ *
-+ * Uncharges zswap memory on page in.
-+ */
-+void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return;
-+
-+	obj_cgroup_uncharge(objcg, size);
-+
-+	rcu_read_lock();
-+	memcg = obj_cgroup_memcg(objcg);
-+	mod_memcg_state(memcg, MEMCG_ZSWAP_B, -size);
-+	mod_memcg_state(memcg, MEMCG_ZSWAPPED, -1);
-+	rcu_read_unlock();
-+}
-+
-+static u64 zswap_current_read(struct cgroup_subsys_state *css,
-+			      struct cftype *cft)
-+{
-+	cgroup_rstat_flush(css->cgroup);
-+	return memcg_page_state(mem_cgroup_from_css(css), MEMCG_ZSWAP_B);
-+}
-+
-+static int zswap_max_show(struct seq_file *m, void *v)
-+{
-+	return seq_puts_memcg_tunable(m,
-+		READ_ONCE(mem_cgroup_from_seq(m)->zswap_max));
-+}
-+
-+static ssize_t zswap_max_write(struct kernfs_open_file *of,
-+			       char *buf, size_t nbytes, loff_t off)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	unsigned long max;
-+	int err;
-+
-+	buf = strstrip(buf);
-+	err = page_counter_memparse(buf, "max", &max);
-+	if (err)
-+		return err;
-+
-+	xchg(&memcg->zswap_max, max);
-+
-+	return nbytes;
-+}
-+
-+static struct cftype zswap_files[] = {
-+	{
-+		.name = "zswap.current",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.read_u64 = zswap_current_read,
-+	},
-+	{
-+		.name = "zswap.max",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.seq_show = zswap_max_show,
-+		.write = zswap_max_write,
-+	},
-+	{ }	/* terminate */
-+};
-+#endif /* CONFIG_MEMCG_KMEM && CONFIG_ZSWAP */
-+
- /*
-  * If mem_cgroup_swap_init() is implemented as a subsys_initcall()
-  * instead of a core_initcall(), this could mean cgroup_memory_noswap still
-@@ -7439,7 +7626,9 @@ static int __init mem_cgroup_swap_init(v
- 
- 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
- 	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
--
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, zswap_files));
-+#endif
- 	return 0;
- }
- core_initcall(mem_cgroup_swap_init);
---- a/mm/zswap.c~zswap-memcg-accounting
-+++ a/mm/zswap.c
-@@ -188,6 +188,7 @@ struct zswap_entry {
- 		unsigned long handle;
- 		unsigned long value;
- 	};
-+	struct obj_cgroup *objcg;
- };
- 
- struct zswap_header {
-@@ -359,6 +360,10 @@ static void zswap_rb_erase(struct rb_roo
+--- a/mm/mempolicy.c~mm-mempolicy-fix-uninit-value-in-mpol_rebind_policy
++++ a/mm/mempolicy.c
+@@ -351,7 +351,7 @@ static void mpol_rebind_preferred(struct
   */
- static void zswap_free_entry(struct zswap_entry *entry)
+ static void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask)
  {
-+	if (entry->objcg) {
-+		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
-+		obj_cgroup_put(entry->objcg);
-+	}
- 	if (!entry->length)
- 		atomic_dec(&zswap_same_filled_pages);
- 	else {
-@@ -1096,6 +1101,8 @@ static int zswap_frontswap_store(unsigne
- 	struct zswap_entry *entry, *dupentry;
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
-+	struct obj_cgroup *objcg = NULL;
-+	struct zswap_pool *pool;
- 	int ret;
- 	unsigned int hlen, dlen = PAGE_SIZE;
- 	unsigned long handle, value;
-@@ -1115,17 +1122,15 @@ static int zswap_frontswap_store(unsigne
- 		goto reject;
- 	}
- 
-+	objcg = get_obj_cgroup_from_page(page);
-+	if (objcg && !obj_cgroup_may_zswap(objcg))
-+		goto shrink;
-+
- 	/* reclaim space if needed */
- 	if (zswap_is_full()) {
--		struct zswap_pool *pool;
--
- 		zswap_pool_limit_hit++;
- 		zswap_pool_reached_full = true;
--		pool = zswap_pool_last_get();
--		if (pool)
--			queue_work(shrink_wq, &pool->shrink_work);
--		ret = -ENOMEM;
--		goto reject;
-+		goto shrink;
- 	}
- 
- 	if (zswap_pool_reached_full) {
-@@ -1227,6 +1232,13 @@ static int zswap_frontswap_store(unsigne
- 	entry->length = dlen;
- 
- insert_entry:
-+	entry->objcg = objcg;
-+	if (objcg) {
-+		obj_cgroup_charge_zswap(objcg, entry->length);
-+		/* Account before objcg ref is moved to tree */
-+		count_objcg_event(objcg, ZSWPOUT);
-+	}
-+
- 	/* map */
- 	spin_lock(&tree->lock);
- 	do {
-@@ -1253,7 +1265,16 @@ put_dstmem:
- freepage:
- 	zswap_entry_cache_free(entry);
- reject:
-+	if (objcg)
-+		obj_cgroup_put(objcg);
- 	return ret;
-+
-+shrink:
-+	pool = zswap_pool_last_get();
-+	if (pool)
-+		queue_work(shrink_wq, &pool->shrink_work);
-+	ret = -ENOMEM;
-+	goto reject;
- }
- 
- /*
-@@ -1326,6 +1347,8 @@ static int zswap_frontswap_load(unsigned
- 	BUG_ON(ret);
- stats:
- 	count_vm_event(ZSWPIN);
-+	if (entry->objcg)
-+		count_objcg_event(entry->objcg, ZSWPIN);
- freeentry:
- 	spin_lock(&tree->lock);
- 	zswap_entry_put(tree, entry);
+-	if (!pol)
++	if (!pol || pol->mode == MPOL_LOCAL)
+ 		return;
+ 	if (!mpol_store_user_nodemask(pol) &&
+ 	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from wanngchenng@gmail.com are
 
-revert-mm-vmscan-never-demote-for-memcg-reclaim.patch
 
