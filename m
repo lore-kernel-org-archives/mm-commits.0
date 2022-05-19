@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4C9FC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:26:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79E51C4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:26:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234484AbiESW00 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 18:26:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52116 "EHLO
+        id S245477AbiESW02 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:26:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245519AbiESW0O (ORCPT
+        with ESMTP id S245522AbiESW0O (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:26:14 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9956B2FE55
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:59 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83F183153D
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:26:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id B6182CE282D
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9CD2C385AA;
-        Thu, 19 May 2022 22:25:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 22CE061697
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:26:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 770FEC34113;
+        Thu, 19 May 2022 22:26:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652999156;
-        bh=09trh9hJ+pIsi/l+EVgrR31m+t2A0GTZO9JRY2wBeR4=;
+        s=korg; t=1652999160;
+        bh=3oNXij23f3tYFEWRAjfV3wALAUS1rSGWiJGmranYwH0=;
         h=Date:To:From:Subject:From;
-        b=U7MscomPb+j+L9BHroNg+6NyudXcMIfTeioEbu+raIHgjDnINuE20gmVO+jtNnBaS
-         LRyXPCmGz2TZO3M8QLkysZHq27a2BeStzrYbPNPTZNtXTqEQkrQs0Da7E9DEAvJTmb
-         T6I5PPT1w89PskjXb9dQcyLP+1q7fYMtKqP99pjI=
-Date:   Thu, 19 May 2022 15:25:55 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vdavydov.dev@gmail.com, timmurray@google.com, surenb@google.com,
-        mhocko@suse.com, liumartin@google.com, joaodias@google.com,
-        hannes@cmpxchg.org, minchan@kernel.org, akpm@linux-foundation.org
+        b=y2fLhRZ4VJ2GQcP8JJoMW8EqyUzZ1gOtIz6D8SXm0l9e7OAuA92vmyowTHnR03yMI
+         JbkwyZDjh82LIn6U8RwyxEX7JOL/q1wEj41uTKZsCVjSo3vXWJro+m4DfMbR9JIjJh
+         ohpovjA1lIfNXb77j9xDE1ymWodZaD8IuPDOsnvs=
+Date:   Thu, 19 May 2022 15:25:59 -0700
+To:     mm-commits@vger.kernel.org, taeung@reallinux.co.kr,
+        rostedt@goodmis.org, mingo@redhat.com, mgorman@suse.de,
+        linuxgeek@linuxgeek.io, kimhy@etri.re.kr, bsahn@etri.re.kr,
+        vvghjk1234@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch removed from -mm tree
-Message-Id: <20220519222555.E9CD2C385AA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-fix-tracepoint-mm_page_alloc_zone_locked.patch removed from -mm tree
+Message-Id: <20220519222600.770FEC34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,407 +43,143 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: don't be stuck to rmap lock on reclaim path
+     Subject: mm/page_alloc: fix tracepoint mm_page_alloc_zone_locked()
 has been removed from the -mm tree.  Its filename was
-     mm-dont-be-stuck-to-rmap-lock-on-reclaim-path.patch
+     mm-page_alloc-fix-tracepoint-mm_page_alloc_zone_locked.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: don't be stuck to rmap lock on reclaim path
+From: Wonhyuk Yang <vvghjk1234@gmail.com>
+Subject: mm/page_alloc: fix tracepoint mm_page_alloc_zone_locked()
 
-The rmap locks(i_mmap_rwsem and anon_vma->root->rwsem) could be contended
-under memory pressure if processes keep working on their vmas(e.g., fork,
-mmap, munmap).  It makes reclaim path stuck.  In our real workload traces,
-we see kswapd is waiting the lock for 300ms+(worst case, a sec) and it
-makes other processes entering direct reclaim, which were also stuck on
-the lock.
+Currently, trace point mm_page_alloc_zone_locked() doesn't show correct
+information.
 
-This patch makes lru aging path try_lock mode like shink_page_list so the
-reclaim context will keep working with next lru pages without being stuck.
-if it found the rmap lock contended, it rotates the page back to head of
-lru in both active/inactive lrus to make them consistent behavior, which
-is basic starting point rather than adding more heristic.
+First, when alloc_flag has ALLOC_HARDER/ALLOC_CMA, page can be allocated
+from MIGRATE_HIGHATOMIC/MIGRATE_CMA.  Nevertheless, tracepoint use
+requested migration type not MIGRATE_HIGHATOMIC and MIGRATE_CMA.
 
-Since this patch introduces a new "contended" field as out-param along
-with try_lock in-param in rmap_walk_control, it's not immutable any longer
-if the try_lock is set so remove const keywords on rmap related functions.
-Since rmap walking is already expensive operation, I doubt the const
-would help sizable benefit( And we didn't have it until 5.17).
+Second, after commit 44042b4498728 ("mm/page_alloc: allow high-order pages
+to be stored on the per-cpu lists") percpu-list can store high order
+pages.  But trace point determine whether it is a refiil of percpu-list by
+comparing requested order and 0.
 
-In a heavy app workload in Android, trace shows following statistics.  It
-almost removes rmap lock contention from reclaim path.
+To handle these problems, make mm_page_alloc_zone_locked() only be called
+by __rmqueue_smallest with correct migration type.  With a new argument
+called percpu_refill, it can show roughly whether it is a refill of
+percpu-list.
 
-Martin Liu reported:
-
-Before:
-
-   max_dur(ms)  min_dur(ms)  max-min(dur)ms  avg_dur(ms)  sum_dur(ms)  count blocked_function
-         1632            0            1631   151.542173        31672    209  page_lock_anon_vma_read
-          601            0             601   145.544681        28817    198  rmap_walk_file
-
-After:
-
-   max_dur(ms)  min_dur(ms)  max-min(dur)ms  avg_dur(ms)  sum_dur(ms)  count blocked_function
-          NaN          NaN              NaN          NaN          NaN    0.0             NaN
-            0            0                0     0.127645            1     12  rmap_walk_file
-
-[minchan@kernel.org: add comment, per Matthew]
-  Link: https://lkml.kernel.org/r/YnNqeB5tUf6LZ57b@google.com
-Link: https://lkml.kernel.org/r/20220510215423.164547-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: John Dias <joaodias@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Martin Liu <liumartin@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20220512025307.57924-1-vvghjk1234@gmail.com
+Signed-off-by: Wonhyuk Yang <vvghjk1234@gmail.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Baik Song An <bsahn@etri.re.kr>
+Cc: Hong Yeon Kim <kimhy@etri.re.kr>
+Cc: Taeung Song <taeung@reallinux.co.kr>
+Cc: <linuxgeek@linuxgeek.io>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h   |    5 +++
- include/linux/ksm.h  |    4 +--
- include/linux/rmap.h |   28 +++++++++++++++-------
- mm/ksm.c             |   10 ++++++-
- mm/memory-failure.c  |    2 -
- mm/page_idle.c       |    7 +++--
- mm/rmap.c            |   52 ++++++++++++++++++++++++++++++++---------
- mm/vmscan.c          |    7 ++++-
- 8 files changed, 87 insertions(+), 28 deletions(-)
+ include/trace/events/kmem.h |   14 +++++++++-----
+ mm/page_alloc.c             |   13 +++++--------
+ 2 files changed, 14 insertions(+), 13 deletions(-)
 
---- a/include/linux/fs.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/include/linux/fs.h
-@@ -477,6 +477,11 @@ static inline void i_mmap_unlock_write(s
- 	up_write(&mapping->i_mmap_rwsem);
- }
+--- a/include/trace/events/kmem.h~mm-page_alloc-fix-tracepoint-mm_page_alloc_zone_locked
++++ a/include/trace/events/kmem.h
+@@ -229,20 +229,23 @@ TRACE_EVENT(mm_page_alloc,
  
-+static inline int i_mmap_trylock_read(struct address_space *mapping)
-+{
-+	return down_read_trylock(&mapping->i_mmap_rwsem);
-+}
-+
- static inline void i_mmap_lock_read(struct address_space *mapping)
- {
- 	down_read(&mapping->i_mmap_rwsem);
---- a/include/linux/ksm.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/include/linux/ksm.h
-@@ -51,7 +51,7 @@ static inline void ksm_exit(struct mm_st
- struct page *ksm_might_need_to_copy(struct page *page,
- 			struct vm_area_struct *vma, unsigned long address);
+ DECLARE_EVENT_CLASS(mm_page,
  
--void rmap_walk_ksm(struct folio *folio, const struct rmap_walk_control *rwc);
-+void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
- void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
+-	TP_PROTO(struct page *page, unsigned int order, int migratetype),
++	TP_PROTO(struct page *page, unsigned int order, int migratetype,
++		 int percpu_refill),
  
- #else  /* !CONFIG_KSM */
-@@ -79,7 +79,7 @@ static inline struct page *ksm_might_nee
- }
+-	TP_ARGS(page, order, migratetype),
++	TP_ARGS(page, order, migratetype, percpu_refill),
  
- static inline void rmap_walk_ksm(struct folio *folio,
--			const struct rmap_walk_control *rwc)
-+			struct rmap_walk_control *rwc)
- {
- }
+ 	TP_STRUCT__entry(
+ 		__field(	unsigned long,	pfn		)
+ 		__field(	unsigned int,	order		)
+ 		__field(	int,		migratetype	)
++		__field(	int,		percpu_refill	)
+ 	),
  
---- a/include/linux/rmap.h~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/include/linux/rmap.h
-@@ -128,6 +128,11 @@ static inline void anon_vma_lock_read(st
- 	down_read(&anon_vma->root->rwsem);
- }
+ 	TP_fast_assign(
+ 		__entry->pfn		= page ? page_to_pfn(page) : -1UL;
+ 		__entry->order		= order;
+ 		__entry->migratetype	= migratetype;
++		__entry->percpu_refill	= percpu_refill;
+ 	),
  
-+static inline int anon_vma_trylock_read(struct anon_vma *anon_vma)
-+{
-+	return down_read_trylock(&anon_vma->root->rwsem);
-+}
-+
- static inline void anon_vma_unlock_read(struct anon_vma *anon_vma)
- {
- 	up_read(&anon_vma->root->rwsem);
-@@ -366,17 +371,14 @@ int pfn_mkclean_range(unsigned long pfn,
+ 	TP_printk("page=%p pfn=0x%lx order=%u migratetype=%d percpu_refill=%d",
+@@ -250,14 +253,15 @@ DECLARE_EVENT_CLASS(mm_page,
+ 		__entry->pfn != -1UL ? __entry->pfn : 0,
+ 		__entry->order,
+ 		__entry->migratetype,
+-		__entry->order == 0)
++		__entry->percpu_refill)
+ );
  
- void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked);
+ DEFINE_EVENT(mm_page, mm_page_alloc_zone_locked,
  
--/*
-- * Called by memory-failure.c to kill processes.
-- */
--struct anon_vma *folio_lock_anon_vma_read(struct folio *folio);
--void page_unlock_anon_vma_read(struct anon_vma *anon_vma);
- int page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
+-	TP_PROTO(struct page *page, unsigned int order, int migratetype),
++	TP_PROTO(struct page *page, unsigned int order, int migratetype,
++		 int percpu_refill),
  
- /*
-  * rmap_walk_control: To control rmap traversing for specific needs
-  *
-  * arg: passed to rmap_one() and invalid_vma()
-+ * try_lock: bail out if the rmap lock is contended
-+ * contended: indicate the rmap traversal bailed out due to lock contention
-  * rmap_one: executed on each vma where page is mapped
-  * done: for checking traversing termination condition
-  * anon_lock: for getting anon_lock by optimized way rather than default
-@@ -384,6 +386,8 @@ int page_mapped_in_vma(struct page *page
-  */
- struct rmap_walk_control {
- 	void *arg;
-+	bool try_lock;
-+	bool contended;
- 	/*
- 	 * Return false if page table scanning in rmap_walk should be stopped.
- 	 * Otherwise, return true.
-@@ -391,12 +395,20 @@ struct rmap_walk_control {
- 	bool (*rmap_one)(struct folio *folio, struct vm_area_struct *vma,
- 					unsigned long addr, void *arg);
- 	int (*done)(struct folio *folio);
--	struct anon_vma *(*anon_lock)(struct folio *folio);
-+	struct anon_vma *(*anon_lock)(struct folio *folio,
-+				      struct rmap_walk_control *rwc);
- 	bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
- };
+-	TP_ARGS(page, order, migratetype)
++	TP_ARGS(page, order, migratetype, percpu_refill)
+ );
  
--void rmap_walk(struct folio *folio, const struct rmap_walk_control *rwc);
--void rmap_walk_locked(struct folio *folio, const struct rmap_walk_control *rwc);
-+void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc);
-+void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc);
-+
-+/*
-+ * Called by memory-failure.c to kill processes.
-+ */
-+struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
-+					  struct rmap_walk_control *rwc);
-+void page_unlock_anon_vma_read(struct anon_vma *anon_vma);
- 
- #else	/* !CONFIG_MMU */
- 
---- a/mm/ksm.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/ksm.c
-@@ -2610,7 +2610,7 @@ struct page *ksm_might_need_to_copy(stru
- 	return new_page;
- }
- 
--void rmap_walk_ksm(struct folio *folio, const struct rmap_walk_control *rwc)
-+void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc)
- {
- 	struct stable_node *stable_node;
- 	struct rmap_item *rmap_item;
-@@ -2634,7 +2634,13 @@ again:
- 		struct vm_area_struct *vma;
- 
- 		cond_resched();
--		anon_vma_lock_read(anon_vma);
-+		if (!anon_vma_trylock_read(anon_vma)) {
-+			if (rwc->try_lock) {
-+				rwc->contended = true;
-+				return;
-+			}
-+			anon_vma_lock_read(anon_vma);
-+		}
- 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
- 					       0, ULONG_MAX) {
- 			unsigned long addr;
---- a/mm/memory-failure.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/memory-failure.c
-@@ -485,7 +485,7 @@ static void collect_procs_anon(struct pa
- 	struct anon_vma *av;
- 	pgoff_t pgoff;
- 
--	av = folio_lock_anon_vma_read(folio);
-+	av = folio_lock_anon_vma_read(folio, NULL);
- 	if (av == NULL)	/* Not actually mapped anymore */
- 		return;
- 
---- a/mm/page_idle.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/page_idle.c
-@@ -86,11 +86,12 @@ static bool page_idle_clear_pte_refs_one
- static void page_idle_clear_pte_refs(struct page *page)
- {
- 	struct folio *folio = page_folio(page);
-+
- 	/*
--	 * Since rwc.arg is unused, rwc is effectively immutable, so we
--	 * can make it static const to save some cycles and stack.
-+	 * Since rwc.try_lock is unused, rwc is effectively immutable, so we
-+	 * can make it static to save some cycles and stack.
- 	 */
--	static const struct rmap_walk_control rwc = {
-+	static struct rmap_walk_control rwc = {
- 		.rmap_one = page_idle_clear_pte_refs_one,
- 		.anon_lock = folio_lock_anon_vma_read,
- 	};
---- a/mm/rmap.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/rmap.c
-@@ -527,9 +527,11 @@ out:
-  *
-  * Its a little more complex as it tries to keep the fast path to a single
-  * atomic op -- the trylock. If we fail the trylock, we fall back to getting a
-- * reference like with page_get_anon_vma() and then block on the mutex.
-+ * reference like with page_get_anon_vma() and then block on the mutex
-+ * on !rwc->try_lock case.
-  */
--struct anon_vma *folio_lock_anon_vma_read(struct folio *folio)
-+struct anon_vma *folio_lock_anon_vma_read(struct folio *folio,
-+					  struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma = NULL;
- 	struct anon_vma *root_anon_vma;
-@@ -557,6 +559,12 @@ struct anon_vma *folio_lock_anon_vma_rea
- 		goto out;
+ TRACE_EVENT(mm_page_pcpu_drain,
+--- a/mm/page_alloc.c~mm-page_alloc-fix-tracepoint-mm_page_alloc_zone_locked
++++ a/mm/page_alloc.c
+@@ -2466,6 +2466,9 @@ struct page *__rmqueue_smallest(struct z
+ 		del_page_from_free_list(page, zone, current_order);
+ 		expand(zone, page, order, current_order, migratetype);
+ 		set_pcppage_migratetype(page, migratetype);
++		trace_mm_page_alloc_zone_locked(page, order, migratetype,
++				pcp_allowed_order(order) &&
++				migratetype < MIGRATE_PCPTYPES);
+ 		return page;
  	}
  
-+	if (rwc && rwc->try_lock) {
-+		anon_vma = NULL;
-+		rwc->contended = true;
-+		goto out;
-+	}
-+
- 	/* trylock failed, we got to sleep */
- 	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
- 		anon_vma = NULL;
-@@ -883,7 +891,8 @@ static bool invalid_folio_referenced_vma
-  *
-  * Quick test_and_clear_referenced for all mappings of a folio,
-  *
-- * Return: The number of mappings which referenced the folio.
-+ * Return: The number of mappings which referenced the folio. Return -1 if
-+ * the function bailed out due to rmap lock contention.
-  */
- int folio_referenced(struct folio *folio, int is_locked,
- 		     struct mem_cgroup *memcg, unsigned long *vm_flags)
-@@ -897,6 +906,7 @@ int folio_referenced(struct folio *folio
- 		.rmap_one = folio_referenced_one,
- 		.arg = (void *)&pra,
- 		.anon_lock = folio_lock_anon_vma_read,
-+		.try_lock = true,
- 	};
- 
- 	*vm_flags = 0;
-@@ -927,7 +937,7 @@ int folio_referenced(struct folio *folio
- 	if (we_locked)
- 		folio_unlock(folio);
- 
--	return pra.referenced;
-+	return rwc.contended ? -1 : pra.referenced;
- }
- 
- static int page_vma_mkclean_one(struct page_vma_mapped_walk *pvmw)
-@@ -2336,12 +2346,12 @@ void __put_anon_vma(struct anon_vma *ano
- }
- 
- static struct anon_vma *rmap_walk_anon_lock(struct folio *folio,
--					const struct rmap_walk_control *rwc)
-+					    struct rmap_walk_control *rwc)
- {
- 	struct anon_vma *anon_vma;
- 
- 	if (rwc->anon_lock)
--		return rwc->anon_lock(folio);
-+		return rwc->anon_lock(folio, rwc);
- 
- 	/*
- 	 * Note: remove_migration_ptes() cannot use folio_lock_anon_vma_read()
-@@ -2353,7 +2363,17 @@ static struct anon_vma *rmap_walk_anon_l
- 	if (!anon_vma)
- 		return NULL;
- 
-+	if (anon_vma_trylock_read(anon_vma))
-+		goto out;
-+
-+	if (rwc->try_lock) {
-+		anon_vma = NULL;
-+		rwc->contended = true;
-+		goto out;
-+	}
-+
- 	anon_vma_lock_read(anon_vma);
-+out:
- 	return anon_vma;
- }
- 
-@@ -2367,7 +2387,7 @@ static struct anon_vma *rmap_walk_anon_l
-  * contained in the anon_vma struct it points to.
-  */
- static void rmap_walk_anon(struct folio *folio,
--		const struct rmap_walk_control *rwc, bool locked)
-+		struct rmap_walk_control *rwc, bool locked)
- {
- 	struct anon_vma *anon_vma;
- 	pgoff_t pgoff_start, pgoff_end;
-@@ -2415,7 +2435,7 @@ static void rmap_walk_anon(struct folio
-  * contained in the address_space struct it points to.
-  */
- static void rmap_walk_file(struct folio *folio,
--		const struct rmap_walk_control *rwc, bool locked)
-+		struct rmap_walk_control *rwc, bool locked)
- {
- 	struct address_space *mapping = folio_mapping(folio);
- 	pgoff_t pgoff_start, pgoff_end;
-@@ -2434,8 +2454,18 @@ static void rmap_walk_file(struct folio
- 
- 	pgoff_start = folio_pgoff(folio);
- 	pgoff_end = pgoff_start + folio_nr_pages(folio) - 1;
--	if (!locked)
-+	if (!locked) {
-+		if (i_mmap_trylock_read(mapping))
-+			goto lookup;
-+
-+		if (rwc->try_lock) {
-+			rwc->contended = true;
-+			return;
-+		}
-+
- 		i_mmap_lock_read(mapping);
-+	}
-+lookup:
- 	vma_interval_tree_foreach(vma, &mapping->i_mmap,
- 			pgoff_start, pgoff_end) {
- 		unsigned long address = vma_address(&folio->page, vma);
-@@ -2457,7 +2487,7 @@ done:
- 		i_mmap_unlock_read(mapping);
- }
- 
--void rmap_walk(struct folio *folio, const struct rmap_walk_control *rwc)
-+void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc)
- {
- 	if (unlikely(folio_test_ksm(folio)))
- 		rmap_walk_ksm(folio, rwc);
-@@ -2468,7 +2498,7 @@ void rmap_walk(struct folio *folio, cons
- }
- 
- /* Like rmap_walk, but caller holds relevant rmap lock */
--void rmap_walk_locked(struct folio *folio, const struct rmap_walk_control *rwc)
-+void rmap_walk_locked(struct folio *folio, struct rmap_walk_control *rwc)
- {
- 	/* no ksm support for now */
- 	VM_BUG_ON_FOLIO(folio_test_ksm(folio), folio);
---- a/mm/vmscan.c~mm-dont-be-stuck-to-rmap-lock-on-reclaim-path
-+++ a/mm/vmscan.c
-@@ -1391,6 +1391,10 @@ static enum page_references folio_check_
- 	if (vm_flags & VM_LOCKED)
- 		return PAGEREF_ACTIVATE;
- 
-+	/* rmap lock contention: rotate */
-+	if (referenced_ptes == -1)
-+		return PAGEREF_KEEP;
-+
- 	if (referenced_ptes) {
- 		/*
- 		 * All mapped folios start out with page table
-@@ -2499,8 +2503,9 @@ static void shrink_active_list(unsigned
- 			}
+@@ -2989,7 +2992,7 @@ __rmqueue(struct zone *zone, unsigned in
+ 		    zone_page_state(zone, NR_FREE_PAGES) / 2) {
+ 			page = __rmqueue_cma_fallback(zone, order);
+ 			if (page)
+-				goto out;
++				return page;
  		}
+ 	}
+ retry:
+@@ -3002,9 +3005,6 @@ retry:
+ 								alloc_flags))
+ 			goto retry;
+ 	}
+-out:
+-	if (page)
+-		trace_mm_page_alloc_zone_locked(page, order, migratetype);
+ 	return page;
+ }
  
-+		/* Referenced or rmap lock contention: rotate */
- 		if (folio_referenced(folio, 0, sc->target_mem_cgroup,
--				     &vm_flags)) {
-+				     &vm_flags) != 0) {
- 			/*
- 			 * Identify referenced, file-backed active pages and
- 			 * give them one more trip around the active list. So
+@@ -3723,11 +3723,8 @@ struct page *rmqueue(struct zone *prefer
+ 		 * reserved for high-order atomic allocation, so order-0
+ 		 * request should skip it.
+ 		 */
+-		if (order > 0 && alloc_flags & ALLOC_HARDER) {
++		if (order > 0 && alloc_flags & ALLOC_HARDER)
+ 			page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
+-			if (page)
+-				trace_mm_page_alloc_zone_locked(page, order, migratetype);
+-		}
+ 		if (!page) {
+ 			page = __rmqueue(zone, order, migratetype, alloc_flags);
+ 			if (!page)
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from vvghjk1234@gmail.com are
 
 
