@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EEA5C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 17:00:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8DE5C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 17:02:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234219AbiESRAJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 13:00:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35324 "EHLO
+        id S242044AbiESRCH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 13:02:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234096AbiESRAI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 13:00:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B4F4B66
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 10:00:07 -0700 (PDT)
+        with ESMTP id S234096AbiESRCG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 13:02:06 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B4ED7A454
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 10:02:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0C57BB82763
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 17:00:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C126FC385AA;
-        Thu, 19 May 2022 17:00:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 504D2B8276B
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 17:02:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEB81C385AA;
+        Thu, 19 May 2022 17:02:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652979604;
-        bh=vNZPxeNqpDawNg/a2xrEqDvASAuYzgzlfPEQNCyeNbw=;
+        s=korg; t=1652979723;
+        bh=GseQUU8ry8vKD8kcu2QLKZJK+r2G1d8NRcK54tn/tvw=;
         h=Date:To:From:Subject:From;
-        b=BDkJVUFju6uchk2/bTcfzJ5SPJzXiDesChhOUUaU5A2+ywgMzJPZNUMsXGnHXlswW
-         yHGGsJbbVWjjvNv9E6poVtizMUoNsWizRE5BpH4KgDN1CxC+Jp9xakkcca2i+Uccdo
-         nIg295W8v1R50Zp/g1BLrZ5r8ZtB3ivcQEaQuZUU=
-Date:   Thu, 19 May 2022 10:00:04 -0700
+        b=vH0WZDwLrnRr0XYrYL8ihqZZfN0MlM+/TNT9Qt1myI2VVv5mOqSS9vWUQ6GeGPC7j
+         F2VcXtUzP46pylGAsKXQqJwswuuGN7jB6JtyQgyFEGhOZJf4fwINaCnTqOLo4mpCoL
+         AE3kRpOZuimF/1T1SSIHu/n5/zwfa0QzYDNAXdmA=
+Date:   Thu, 19 May 2022 10:02:02 -0700
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2.patch added to mm-unstable branch
-Message-Id: <20220519170004.C126FC385AA@smtp.kernel.org>
+Subject: + mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix.patch added to mm-unstable branch
+Message-Id: <20220519170202.DEB81C385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: qvoid dereferencing next on null in BUG_ON()
+     Subject: mm/mmap: fix do_brk_munmap() when munmapping multiple mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2.patch
+     mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,30 +65,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/mmap: qvoid dereferencing next on null in BUG_ON()
-Date: Thu, 19 May 2022 15:04:50 +0000
+Subject: mm/mmap: fix do_brk_munmap() when munmapping multiple mappings
+Date: Thu, 19 May 2022 15:05:22 +0000
 
-Check there is a next before checking the bounds.
+If the newbrk is less than the last brk vma start, then munmap entire
+VMA(s).
 
-Link: https://lkml.kernel.org/r/20220519150442.1289962-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220519150509.1290067-1-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2
+--- a/mm/mmap.c~mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix
 +++ a/mm/mmap.c
-@@ -685,7 +685,7 @@ inline int vma_expand(struct ma_state *m
- 	}
+@@ -3056,8 +3056,7 @@ static int do_brk_munmap(struct ma_state
  
- 	/* Not merging but overwriting any part of next is not handled. */
--	VM_BUG_ON(!remove_next && next != vma && end > next->vm_start);
-+	VM_BUG_ON(next && !remove_next && next != vma && end > next->vm_start);
- 	/* Only handles expanding */
- 	VM_BUG_ON(vma->vm_start < start || vma->vm_end > end);
+ 	arch_unmap(mm, newbrk, oldbrk);
  
+-	if (likely((vma->vm_end < oldbrk) ||
+-		   ((vma->vm_start == newbrk) && (vma->vm_end == oldbrk)))) {
++	if (likely((vma->vm_end < oldbrk) || (vma->vm_start >= newbrk))) {
+ 		/* remove entire mapping(s) */
+ 		ret = do_mas_align_munmap(mas, vma, mm, newbrk, oldbrk, uf,
+ 					  true);
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
@@ -100,5 +102,6 @@ maple-tree-add-new-data-structure-fix-4.patch
 lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
 mm-start-tracking-vmas-with-maple-tree-fix-2.patch
 mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2.patch
+mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix.patch
 mm-remove-the-vma-linked-list-fix.patch
 
