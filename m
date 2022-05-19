@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 545E4C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A330C4332F
 	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:26:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245484AbiESWZw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 18:25:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50646 "EHLO
+        id S229950AbiESWZ6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:25:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245440AbiESWZn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:43 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 651F8663C5
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:40 -0700 (PDT)
+        with ESMTP id S245447AbiESWZo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E83816669E
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0E5BFB828C3
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93FF7C385AA;
-        Thu, 19 May 2022 22:25:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7256C6169A
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7810C385AA;
+        Thu, 19 May 2022 22:25:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652999137;
-        bh=Lv7lxBys6/a8AZTP6PIBwzVRLGFRur2OX2uMXB3U/WY=;
+        s=korg; t=1652999140;
+        bh=eSwQCaCfpQTQfYBMuWPx4odMlBvcGM59ucb3IaeBW1I=;
         h=Date:To:From:Subject:From;
-        b=yTBux2/LuEiCZVtnnToPdrs+ACsuuAWpvDmklEjgAEkI3X0eZ04017KH+VUaF5cDO
-         Gx7cUyXVm14bghvoA5jX+/D17mkYd7vu6Vw8F4ichMdhXIyg333tLyZCv+gLEEK8hW
-         0NW5dolOLhBu8kX/x+fLPJEL2JnWbhdVVe0OkyO4=
-Date:   Thu, 19 May 2022 15:25:37 -0700
+        b=MHzhArQVwJWZgF2eqPD0MhoRlmYwTtCr6dcTBWHmYXzWYo4mW0D5Mxh/PGV2Co/mj
+         oRgzYtAqPF3iNQbb0q4yOsmQxCuNYFsse1ppAfuqXCsbNhDqGDtypdLsUJPRFTY6we
+         PofrJpZfdVrZP47xQU1QFgPo00utCZszqsemZX8o=
+Date:   Thu, 19 May 2022 15:25:40 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, osalvador@suse.de,
         neilb@suse.de, naoya.horiguchi@nec.com, dhowells@redhat.com,
         david@redhat.com, apopple@nvidia.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch removed from -mm tree
-Message-Id: <20220519222537.93FF7C385AA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch removed from -mm tree
+Message-Id: <20220519222540.C7810C385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,21 +44,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: remove unneeded return value of free_swap_slot
+     Subject: mm/swap: remove unneeded p != NULL check in __swap_duplicate
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-unneeded-return-value-of-free_swap_slot.patch
+     mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: remove unneeded return value of free_swap_slot
+Subject: mm/swap: remove unneeded p != NULL check in __swap_duplicate
 
-The return value of free_swap_slot is always 0 and also ignored now. 
-Remove it to clean up the code.
+If p is NULL, __swap_duplicate will already return -EINVAL.  So if we
+reach here, p must be non-NULL.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-8-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
@@ -73,41 +73,21 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap_slots.h |    2 +-
- mm/swap_slots.c            |    4 +---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ mm/swapfile.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/swap_slots.h~mm-swap-remove-unneeded-return-value-of-free_swap_slot
-+++ a/include/linux/swap_slots.h
-@@ -24,7 +24,7 @@ struct swap_slots_cache {
- void disable_swap_slots_cache_lock(void);
- void reenable_swap_slots_cache_unlock(void);
- void enable_swap_slots_cache(void);
--int free_swap_slot(swp_entry_t entry);
-+void free_swap_slot(swp_entry_t entry);
+--- a/mm/swapfile.c~mm-swap-remove-unneeded-p-=-null-check-in-__swap_duplicate
++++ a/mm/swapfile.c
+@@ -3333,8 +3333,7 @@ static int __swap_duplicate(swp_entry_t
  
- extern bool swap_slot_cache_enabled;
- 
---- a/mm/swap_slots.c~mm-swap-remove-unneeded-return-value-of-free_swap_slot
-+++ a/mm/swap_slots.c
-@@ -269,7 +269,7 @@ static int refill_swap_slots_cache(struc
- 	return cache->nr;
+ unlock_out:
+ 	unlock_cluster_or_swap_info(p, ci);
+-	if (p)
+-		put_swap_device(p);
++	put_swap_device(p);
+ 	return err;
  }
  
--int free_swap_slot(swp_entry_t entry)
-+void free_swap_slot(swp_entry_t entry)
- {
- 	struct swap_slots_cache *cache;
- 
-@@ -297,8 +297,6 @@ int free_swap_slot(swp_entry_t entry)
- direct_free:
- 		swapcache_free_entries(&entry, 1);
- 	}
--
--	return 0;
- }
- 
- swp_entry_t folio_alloc_swap(struct folio *folio)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
