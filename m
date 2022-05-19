@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B760C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:25:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDD73C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:26:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245444AbiESWZn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 18:25:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50530 "EHLO
+        id S245440AbiESWZx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:25:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245443AbiESWZj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D29B663C8
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:37 -0700 (PDT)
+        with ESMTP id S245454AbiESWZo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EACC22F6
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 28D8D6169B
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FDDFC385AA;
-        Thu, 19 May 2022 22:25:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8462461693
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9D38C385B8;
+        Thu, 19 May 2022 22:25:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652999136;
-        bh=UZkqAQaxhQWJ6jZsxCcHjlpR3keszVLP3e+PUGb9kwI=;
+        s=korg; t=1652999141;
+        bh=LLdZimyfJ3CxZXPjo3xgBLNL53YyKOXIsWyOFenZSI0=;
         h=Date:To:From:Subject:From;
-        b=ppFiBq1LTlWHBMGl0FkYOUBWMVpFNkxMibCsL0ZLyHPGavV4nfkIGVei26GXQgE5Y
-         YUkfDKNJY1TFxPVsNSdSKprv3gqyYJaYIJMQT6VsrZhN29G6sI6U/EebM3Bubo3CbR
-         jR0hfZ9149yHKOzEhdjkUNb2joTxAQz3tUGTwM3c=
-Date:   Thu, 19 May 2022 15:25:35 -0700
+        b=NX1tCqp6Vz6BS1g6VYx7A23pMAqfWg5RTghblLNADdBjTI4HIUvRIpPgm0fQ7ASgv
+         S0SHLSYQbI93yHZvika8g1UBAsz1V/RhyBC3RuyeZ6707GQ6OlDa6AabM1WiXBfP7m
+         e6GU1THXlpnqp5a4amJb/VyGvjIVpin2Tltn5Rtw=
+Date:   Thu, 19 May 2022 15:25:41 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, osalvador@suse.de,
         neilb@suse.de, naoya.horiguchi@nec.com, dhowells@redhat.com,
         david@redhat.com, apopple@nvidia.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-fold-__swap_info_get-into-its-sole-caller.patch removed from -mm tree
-Message-Id: <20220519222536.7FDDFC385AA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch removed from -mm tree
+Message-Id: <20220519222541.D9D38C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,21 +44,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: fold __swap_info_get() into its sole caller
+     Subject: mm/swap: make page_swapcount and __lru_add_drain_all static
 has been removed from the -mm tree.  Its filename was
-     mm-swap-fold-__swap_info_get-into-its-sole-caller.patch
+     mm-swap-make-page_swapcount-and-__lru_add_drain_all.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: fold __swap_info_get() into its sole caller
+Subject: mm/swap: make page_swapcount and __lru_add_drain_all static
 
-Fold __swap_info_get() into its sole caller to make code more clear. 
-Minor readability improvement.
+Make page_swapcount and __lru_add_drain_all static.  They are only used
+within the file now.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220509131416.17553-9-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
@@ -70,61 +70,60 @@ Cc: NeilBrown <neilb@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   24 ++++++------------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ include/linux/swap.h |    7 -------
+ mm/swap.c            |    2 +-
+ mm/swapfile.c        |    2 +-
+ 3 files changed, 2 insertions(+), 9 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-fold-__swap_info_get-into-its-sole-caller
-+++ a/mm/swapfile.c
-@@ -1122,7 +1122,7 @@ noswap:
- 	return n_ret;
- }
- 
--static struct swap_info_struct *__swap_info_get(swp_entry_t entry)
-+static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
+--- a/include/linux/swap.h~mm-swap-make-page_swapcount-and-__lru_add_drain_all
++++ a/include/linux/swap.h
+@@ -485,7 +485,6 @@ int swap_type_of(dev_t device, sector_t
+ int find_first_swap(dev_t *device);
+ extern unsigned int count_swap_pages(int, int);
+ extern sector_t swapdev_block(int, pgoff_t);
+-extern int page_swapcount(struct page *);
+ extern int __swap_count(swp_entry_t entry);
+ extern int __swp_swapcount(swp_entry_t entry);
+ extern int swp_swapcount(swp_entry_t entry);
+@@ -557,12 +556,6 @@ static inline void put_swap_page(struct
  {
- 	struct swap_info_struct *p;
- 	unsigned long offset;
-@@ -1137,8 +1137,13 @@ static struct swap_info_struct *__swap_i
- 	offset = swp_offset(entry);
- 	if (offset >= p->max)
- 		goto bad_offset;
-+	if (data_race(!p->swap_map[swp_offset(entry)]))
-+		goto bad_free;
- 	return p;
- 
-+bad_free:
-+	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
-+	goto out;
- bad_offset:
- 	pr_err("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
- 	goto out;
-@@ -1150,23 +1155,6 @@ bad_nofile:
- out:
- 	return NULL;
  }
--
--static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
--{
--	struct swap_info_struct *p;
--
--	p = __swap_info_get(entry);
--	if (!p)
--		goto out;
--	if (data_race(!p->swap_map[swp_offset(entry)]))
--		goto bad_free;
--	return p;
--
--bad_free:
--	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
--out:
--	return NULL;
--}
  
- static struct swap_info_struct *swap_info_get_cont(swp_entry_t entry,
- 					struct swap_info_struct *q)
+-
+-static inline int page_swapcount(struct page *page)
+-{
+-	return 0;
+-}
+-
+ static inline int __swap_count(swp_entry_t entry)
+ {
+ 	return 0;
+--- a/mm/swap.c~mm-swap-make-page_swapcount-and-__lru_add_drain_all
++++ a/mm/swap.c
+@@ -748,7 +748,7 @@ static void lru_add_drain_per_cpu(struct
+  * Calling this function with cpu hotplug locks held can actually lead
+  * to obscure indirect dependencies via WQ context.
+  */
+-inline void __lru_add_drain_all(bool force_all_cpus)
++static inline void __lru_add_drain_all(bool force_all_cpus)
+ {
+ 	/*
+ 	 * lru_drain_gen - Global pages generation number
+--- a/mm/swapfile.c~mm-swap-make-page_swapcount-and-__lru_add_drain_all
++++ a/mm/swapfile.c
+@@ -1429,7 +1429,7 @@ void swapcache_free_entries(swp_entry_t
+  * This does not give an exact answer when swap count is continued,
+  * but does include the high COUNT_CONTINUED flag to allow for that.
+  */
+-int page_swapcount(struct page *page)
++static int page_swapcount(struct page *page)
+ {
+ 	int count = 0;
+ 	struct swap_info_struct *p;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
