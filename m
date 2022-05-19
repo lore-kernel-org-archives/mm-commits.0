@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEB87C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDFE9C433EF
 	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:27:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245539AbiESW0T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 18:26:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50748 "EHLO
+        id S245447AbiESW0R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:26:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245482AbiESWZw (ORCPT
+        with ESMTP id S245481AbiESWZw (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E74595B7
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:47 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD2E5FCC
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D1C1461698
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3809AC385B8;
-        Thu, 19 May 2022 22:25:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 71CFCB828C0
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17502C385B8;
+        Thu, 19 May 2022 22:25:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652999146;
-        bh=WyYuH5WRubwDFGrExYQmrCKaR2psXKZNjJqHwJ77VFI=;
+        s=korg; t=1652999144;
+        bh=+V92rSgsAjTloVaOsNJYg1mAbn41NpYR0CTKTM4uFyg=;
         h=Date:To:From:Subject:From;
-        b=G223vSJYqQBlOVG7+p7f1QK6ADn7QghzVwLfqueWBNi1ZnlmFLUxov+Dkopig6RLm
-         7xtqHI/PdhfXgP/1Nt3XNiDAOo3jAIg5FTDz97NkOT1/kRik+cw906rQ6e8u+3G3+A
-         okqC6ipY6r9E+Qa0LwHb+wzlIST5Ba8HcBShKOGs=
-Date:   Thu, 19 May 2022 15:25:45 -0700
+        b=yx79My8rVzr8vQ1fTQykVjpQRkeQPXKxHckrUyICjfq9aqNmLyMTRoQ87lP3249nO
+         X3bNIA/3PkY6rSAlFKW7Ja06faIvodF9g8H3/zqLO/3LKEJhDCdCMweWacsnaWOUPX
+         oC5p8Pl7EVJSwEtrQ3vgV8R5FcxNObvWjnwmoaKQ=
+Date:   Thu, 19 May 2022 15:25:43 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, osalvador@suse.de,
         neilb@suse.de, naoya.horiguchi@nec.com, dhowells@redhat.com,
         david@redhat.com, apopple@nvidia.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch removed from -mm tree
-Message-Id: <20220519222546.3809AC385B8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-add-helper-swap_offset_available.patch removed from -mm tree
+Message-Id: <20220519222544.17502C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,24 +44,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: clean up the comment of find_next_to_unuse
+     Subject: mm/swap: add helper swap_offset_available()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-clean-up-the-comment-of-find_next_to_unuse.patch
+     mm-swap-add-helper-swap_offset_available.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: clean up the comment of find_next_to_unuse
+Subject: mm/swap: add helper swap_offset_available()
 
-Since commit 10a9c496789f ("mm: simplify try_to_unuse"), frontswap
-parameter is removed.  Update the corresponding comment.
+Add helper swap_offset_available() to remove some duplicated codes.  Minor
+readability improvement.
 
-Link: https://lkml.kernel.org/r/20220509131416.17553-14-linmiaohe@huawei.com
+[akpm@linux-foundation.org: s/swap_offset_available/swap_offset_available_and_locked/, per Neil]
+Link: https://lkml.kernel.org/r/20220509131416.17553-12-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
@@ -73,24 +74,68 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/swapfile.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-clean-up-the-comment-of-find_next_to_unuse
+--- a/mm/swapfile.c~mm-swap-add-helper-swap_offset_available
 +++ a/mm/swapfile.c
-@@ -1990,9 +1990,9 @@ static int unuse_mm(struct mm_struct *mm
+@@ -775,6 +775,22 @@ static void set_cluster_next(struct swap
+ 	this_cpu_write(*si->cluster_next_cpu, next);
  }
  
- /*
-- * Scan swap_map (or frontswap_map if frontswap parameter is true)
-- * from current position to next entry still in use. Return 0
-- * if there are no inuse entries after prev till end of the map.
-+ * Scan swap_map from current position to next entry still in use.
-+ * Return 0 if there are no inuse entries after prev till end of
-+ * the map.
-  */
- static unsigned int find_next_to_unuse(struct swap_info_struct *si,
- 					unsigned int prev)
++static bool swap_offset_available_and_locked(struct swap_info_struct *si,
++					     unsigned long offset)
++{
++	if (data_race(!si->swap_map[offset])) {
++		spin_lock(&si->lock);
++		return true;
++	}
++
++	if (vm_swap_full() && READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
++		spin_lock(&si->lock);
++		return true;
++	}
++
++	return false;
++}
++
+ static int scan_swap_map_slots(struct swap_info_struct *si,
+ 			       unsigned char usage, int nr,
+ 			       swp_entry_t slots[])
+@@ -952,15 +968,8 @@ done:
+ scan:
+ 	spin_unlock(&si->lock);
+ 	while (++offset <= READ_ONCE(si->highest_bit)) {
+-		if (data_race(!si->swap_map[offset])) {
+-			spin_lock(&si->lock);
+-			goto checks;
+-		}
+-		if (vm_swap_full() &&
+-		    READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
+-			spin_lock(&si->lock);
++		if (swap_offset_available_and_locked(si, offset))
+ 			goto checks;
+-		}
+ 		if (unlikely(--latency_ration < 0)) {
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
+@@ -969,15 +978,8 @@ scan:
+ 	}
+ 	offset = si->lowest_bit;
+ 	while (offset < scan_base) {
+-		if (data_race(!si->swap_map[offset])) {
+-			spin_lock(&si->lock);
++		if (swap_offset_available_and_locked(si, offset))
+ 			goto checks;
+-		}
+-		if (vm_swap_full() &&
+-		    READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
+-			spin_lock(&si->lock);
+-			goto checks;
+-		}
+ 		if (unlikely(--latency_ration < 0)) {
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
