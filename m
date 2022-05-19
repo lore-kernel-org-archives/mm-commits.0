@@ -2,44 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E1DEC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 21:52:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B51DC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:25:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229738AbiESVwz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 17:52:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57116 "EHLO
+        id S242227AbiESWZ1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:25:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245178AbiESVwv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 17:52:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D0D653E32
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 14:52:50 -0700 (PDT)
+        with ESMTP id S231989AbiESWZ0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0873B6622A
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 272E8B8289E
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 21:52:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D02A2C385AA;
-        Thu, 19 May 2022 21:52:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 94CC961698
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5886C34113;
+        Thu, 19 May 2022 22:25:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652997167;
-        bh=hfkl/3346+mBSNK4q67NJtKXzytewBdjpj7b4AH/icU=;
+        s=korg; t=1652999124;
+        bh=DE0DfLxQicqdxaIF2qKEVOrL6o0G7VSZE3F/5PwyWX0=;
         h=Date:To:From:Subject:From;
-        b=YA+cDwJzOEss6gMEclub4gjnLhEay+Oz8WFnoC/SZDDXzAGwVSjYoYuPFvDxAgrQx
-         tl5jO1X6bDI5K7nlWMkx3hIS1/SRxlisc+E1e0pDaO7tDq5wxFyhNYdFEnOK497ZHY
-         tXEkkBJqfv0LSSWC3mnV4Gkrowc15Q2/hptwRdy8=
-Date:   Thu, 19 May 2022 14:52:47 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        skhan@linuxfoundation.org, shakeelb@google.com,
-        rientjes@google.com, peterx@redhat.com, oleg@redhat.com,
-        minchan@kernel.org, mhocko@suse.com, kirill@shutemov.name,
-        jhubbard@nvidia.com, jannh@google.com, hch@infradead.org,
-        hannes@cmpxchg.org, guro@fb.com, david@redhat.com,
-        brauner@kernel.org, aarcange@redhat.com, surenb@google.com,
+        b=GOF5wx3UZI3eTuS+KEa43l/PNneCfdQAHcqisiBm0tqIXc0P1wZCl8jj1pexdImyt
+         TGC7XeQtD1a4ZUpNuTO2nxbyhCFkUYmPhJrNeJ4KmcvQXKP8HbXe7wZpbTqXWTisdf
+         QDU8ybpnHHI467DfdMJC8bLwJWlwXxwykQHuGprU=
+Date:   Thu, 19 May 2022 15:25:23 -0700
+To:     mm-commits@vger.kernel.org, xiexiuqi@huawei.com, will@kernel.org,
+        paul.walmsley@sifive.com, pasha.tatashin@soleen.com,
+        palmer@dabbelt.com, lkp@intel.com, guohanjun@huawei.com,
+        catalin.marinas@arm.com, arnd@arndb.de, aou@eecs.berkeley.edu,
+        anshuman.khandual@arm.com, tongtiangen@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-drop-oom-code-from-exit_mmap.patch removed from -mm tree
-Message-Id: <20220519215247.D02A2C385AA@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mm-fix-page-table-check-compile-error-for-config_pgtable_levels=2.patch removed from -mm tree
+Message-Id: <20220519222523.D5886C34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,143 +45,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: drop oom code from exit_mmap
+     Subject: arm64/mm: fix page table check compile error for CONFIG_PGTABLE_LEVELS=2
 has been removed from the -mm tree.  Its filename was
-     mm-drop-oom-code-from-exit_mmap.patch
+     arm64-mm-fix-page-table-check-compile-error-for-config_pgtable_levels=2.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: drop oom code from exit_mmap
-Date: Mon, 16 May 2022 00:56:18 -0700
+From: Tong Tiangen <tongtiangen@huawei.com>
+Subject: arm64/mm: fix page table check compile error for CONFIG_PGTABLE_LEVELS=2
+Date: Tue, 17 May 2022 07:45:48 +0000
 
-The primary reason to invoke the oom reaper from the exit_mmap path used
-to be a prevention of an excessive oom killing if the oom victim exit
-races with the oom reaper (see [1] for more details).  The invocation has
-moved around since then because of the interaction with the munlock logic
-but the underlying reason has remained the same (see [2]).
+If CONFIG_PGTABLE_LEVELS=2 and CONFIG_ARCH_SUPPORTS_PAGE_TABLE_CHECK=y,
+then we trigger a compile error:
 
-Munlock code is no longer a problem since [3] and there shouldn't be any
-blocking operation before the memory is unmapped by exit_mmap so the oom
-reaper invocation can be dropped.  The unmapping part can be done with the
-non-exclusive mmap_sem and the exclusive one is only required when page
-tables are freed.
+  error: implicit declaration of function 'pte_user_accessible_page'
 
-Remove the oom_reaper from exit_mmap which will make the code easier to
-read.  This is really unlikely to make any observable difference although
-some microbenchmarks could benefit from one less branch that needs to be
-evaluated even though it almost never is true.
+Move the definition of page table check helper out of branch
+CONFIG_PGTABLE_LEVELS > 2
 
-[1] 212925802454 ("mm: oom: let oom_reap_task and exit_mmap run concurrently")
-[2] 27ae357fa82b ("mm, oom: fix concurrent munlock and oom reaper unmap, v3")
-[3] a213e5cf71cb ("mm/munlock: delete munlock_vma_pages_all(), allow oomreap")
-
-Link: https://lkml.kernel.org/r/20220516075619.1277152-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20220517074548.2227779-3-tongtiangen@huawei.com
+Fixes: daf214c14dbe ("arm64/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK")
+Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Guohanjun <guohanjun@huawei.com>
+Cc: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 --
- mm/mmap.c           |   31 ++++++++++++-------------------
- mm/oom_kill.c       |    2 +-
- 3 files changed, 13 insertions(+), 22 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   33 ++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
---- a/include/linux/oom.h~mm-drop-oom-code-from-exit_mmap
-+++ a/include/linux/oom.h
-@@ -106,8 +106,6 @@ static inline vm_fault_t check_stable_ad
- 	return 0;
- }
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-fix-page-table-check-compile-error-for-config_pgtable_levels=2
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -667,22 +667,6 @@ static inline unsigned long pmd_page_vad
+ #define pud_valid(pud)		pte_valid(pud_pte(pud))
+ #define pud_user(pud)		pte_user(pud_pte(pud))
  
--bool __oom_reap_task_mm(struct mm_struct *mm);
+-#ifdef CONFIG_PAGE_TABLE_CHECK
+-static inline bool pte_user_accessible_page(pte_t pte)
+-{
+-	return pte_present(pte) && (pte_user(pte) || pte_user_exec(pte));
+-}
 -
- long oom_badness(struct task_struct *p,
- 		unsigned long totalpages);
- 
---- a/mm/mmap.c~mm-drop-oom-code-from-exit_mmap
-+++ a/mm/mmap.c
-@@ -3110,30 +3110,13 @@ void exit_mmap(struct mm_struct *mm)
- 	/* mm's last user has gone, and its about to be pulled down */
- 	mmu_notifier_release(mm);
- 
--	if (unlikely(mm_is_oom_victim(mm))) {
--		/*
--		 * Manually reap the mm to free as much memory as possible.
--		 * Then, as the oom reaper does, set MMF_OOM_SKIP to disregard
--		 * this mm from further consideration.  Taking mm->mmap_lock for
--		 * write after setting MMF_OOM_SKIP will guarantee that the oom
--		 * reaper will not run on this mm again after mmap_lock is
--		 * dropped.
--		 *
--		 * Nothing can be holding mm->mmap_lock here and the above call
--		 * to mmu_notifier_release(mm) ensures mmu notifier callbacks in
--		 * __oom_reap_task_mm() will not block.
--		 */
--		(void)__oom_reap_task_mm(mm);
--		set_bit(MMF_OOM_SKIP, &mm->flags);
--	}
+-static inline bool pmd_user_accessible_page(pmd_t pmd)
+-{
+-	return pmd_present(pmd) && (pmd_user(pmd) || pmd_user_exec(pmd));
+-}
 -
--	mmap_write_lock(mm);
-+	mmap_read_lock(mm);
- 	arch_exit_mmap(mm);
+-static inline bool pud_user_accessible_page(pud_t pud)
+-{
+-	return pud_present(pud) && pud_user(pud);
+-}
+-#endif
  
- 	vma = mm->mmap;
- 	if (!vma) {
- 		/* Can happen if dup_mmap() received an OOM */
--		mmap_write_unlock(mm);
-+		mmap_read_unlock(mm);
- 		return;
- 	}
- 
-@@ -3143,6 +3126,16 @@ void exit_mmap(struct mm_struct *mm)
- 	/* update_hiwater_rss(mm) here? but nobody should be looking */
- 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
- 	unmap_vmas(&tlb, vma, 0, -1);
-+	mmap_read_unlock(mm);
-+
-+	/*
-+	 * Set MMF_OOM_SKIP to hide this task from the oom killer/reaper
-+	 * because the memory has been already freed. Do not bother checking
-+	 * mm_is_oom_victim because setting a bit unconditionally is cheaper.
-+	 */
-+	set_bit(MMF_OOM_SKIP, &mm->flags);
-+
-+	mmap_write_lock(mm);
- 	free_pgtables(&tlb, vma, FIRST_USER_ADDRESS, USER_PGTABLES_CEILING);
- 	tlb_finish_mmu(&tlb);
- 
---- a/mm/oom_kill.c~mm-drop-oom-code-from-exit_mmap
-+++ a/mm/oom_kill.c
-@@ -509,7 +509,7 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_reape
- static struct task_struct *oom_reaper_list;
- static DEFINE_SPINLOCK(oom_reaper_lock);
- 
--bool __oom_reap_task_mm(struct mm_struct *mm)
-+static bool __oom_reap_task_mm(struct mm_struct *mm)
+ static inline void set_pud(pud_t *pudp, pud_t pud)
  {
- 	struct vm_area_struct *vma;
- 	bool ret = true;
+@@ -855,6 +839,23 @@ static inline int pgd_devmap(pgd_t pgd)
+ }
+ #endif
+ 
++#ifdef CONFIG_PAGE_TABLE_CHECK
++static inline bool pte_user_accessible_page(pte_t pte)
++{
++	return pte_present(pte) && (pte_user(pte) || pte_user_exec(pte));
++}
++
++static inline bool pmd_user_accessible_page(pmd_t pmd)
++{
++	return pmd_present(pmd) && (pmd_user(pmd) || pmd_user_exec(pmd));
++}
++
++static inline bool pud_user_accessible_page(pud_t pud)
++{
++	return pud_present(pud) && pud_user(pud);
++}
++#endif
++
+ /*
+  * Atomic pte/pmd modifications.
+  */
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from tongtiangen@huawei.com are
 
-selftests-vm-add-process_mrelease-tests.patch
-mm-delete-unused-mmf_oom_victim-flag.patch
 
