@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD63C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 18 May 2022 21:00:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD024C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 02:35:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242949AbiERVAY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 May 2022 17:00:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58934 "EHLO
+        id S232745AbiESCff (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 May 2022 22:35:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242954AbiERVAR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2022 17:00:17 -0400
+        with ESMTP id S232008AbiESCff (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2022 22:35:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FBAA254728
-        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 14:00:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E53FD6819
+        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 19:35:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A3C460D36
-        for <mm-commits@vger.kernel.org>; Wed, 18 May 2022 21:00:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EEE4C385A5;
-        Wed, 18 May 2022 21:00:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C89606183B
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 02:35:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 245ECC385A9;
+        Thu, 19 May 2022 02:35:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652907613;
-        bh=DNjGiYcbMR96BHh/MAK1baQCoXo/cRkuczo6DT9Yfn0=;
+        s=korg; t=1652927733;
+        bh=zfE/OlbylZHRFVe01gX21FTgmTUBrsDzWfTXlYh0HNA=;
         h=Date:To:From:Subject:From;
-        b=lZ9oco28IlwfEiZnQJeQ+4wbPGzYprRxEiqej9xGdaqmdWzhystAzG/CTdq0lO2L+
-         dbIiJ+fp734VQoL0gdX66QfbnupBmXSmQ4JBOfI0OTt0w2PjDMwB87MKwhOhUm2UQi
-         scvDG0t1RHsSd8FX3/lnjBBSNkTACAZTJlhpNgu0=
-Date:   Wed, 18 May 2022 14:00:12 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, shuah@kernel.org,
-        shakeelb@google.com, rientjes@google.com, peterx@redhat.com,
-        oleg@redhat.com, minchan@kernel.org, mhocko@suse.com,
-        kirill@shutemov.name, jhubbard@nvidia.com, jannh@google.com,
-        hch@infradead.org, hannes@cmpxchg.org, guro@fb.com,
-        david@redhat.com, brauner@kernel.org, aarcange@redhat.com,
-        surenb@google.com, akpm@linux-foundation.org
+        b=Wtoknpsl5fLWrV4PtqfUuRM4T4LawD/lufORBpcxhBYjCsUCeg1/nUAqdQS4EzhTY
+         31RH74QuBzEvCL+bkFZOnU9Ra8NQRkWlkkhcFrLgcGAbOrsyVf3veAAaIESlz7ojAW
+         U1LwkfDhGjTqY3PQjp7z8IhcNIlBv13zDBXPc1tI=
+Date:   Wed, 18 May 2022 19:35:32 -0700
+To:     mm-commits@vger.kernel.org,
+        syzbot+ee1fdd8dcc770a3a169a@syzkaller.appspotmail.com,
+        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-add-process_mrelease-tests.patch added to mm-unstable branch
-Message-Id: <20220518210013.2EEE4C385A5@smtp.kernel.org>
+Subject: + mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch added to mm-unstable branch
+Message-Id: <20220519023533.245ECC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: add process_mrelease tests
+     Date: Wed, 13 Apr 2022 23:07:16 -0700
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-add-process_mrelease-tests.patch
+     mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-add-process_mrelease-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,303 +65,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: selftests: vm: add process_mrelease tests
-Date: Wed, 18 May 2022 13:43:16 -0700
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Date: Wed, 13 Apr 2022 23:07:16 -0700
+Subject: mm/mmap: fix advanced maple tree API for mmap_region()
 
-Introduce process_mrelease syscall sanity tests which include tests
-which expect to fail:
+Overwriting next pointer in mmap_region() breaks the error path in a
+future patch.
 
-- process_mrelease with invalid pidfd and flags inputs
-- process_mrelease on a live process with no pending signals
-
-and valid process_mrelease usage which is expected to succeed.  Because
-process_mrelease has to be used against a process with a pending SIGKILL,
-it's possible that the process exits before process_mrelease gets called. 
-In such cases we retry the test with a victim that allocates twice more
-memory up to 1GB.  This would require the victim process to spend more
-time during exit and process_mrelease has a better chance of catching the
-process before it exits and succeeding.
-
-On success the test reports the amount of memory the child had to allocate
-for reaping to succeed.  Sample output:
-
-$ mrelease_test
-Success reaping a child with 1MB of memory allocations
-
-On failure the test reports the failure. Sample outputs:
-
-$ mrelease_test
-All process_mrelease attempts failed!
-
-$ mrelease_test
-process_mrelease: Invalid argument
-
-Link: https://lkml.kernel.org/r/20220518204316.13131-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20220519020341.rr3s6b4dr7o36cqb@revolver
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reported-by: <syzbot+ee1fdd8dcc770a3a169a@syzkaller.appspotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore      |    1 
- tools/testing/selftests/vm/Makefile        |    1 
- tools/testing/selftests/vm/mrelease_test.c |  200 +++++++++++++++++++
- tools/testing/selftests/vm/run_vmtests.sh  |    2 
- 4 files changed, 204 insertions(+)
+ mm/mmap.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-process_mrelease-tests
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -10,6 +10,7 @@ map_populate
- thuge-gen
- compaction_test
- mlock2-tests
-+mrelease_test
- mremap_dontunmap
- mremap_test
- on-fault-limit
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-process_mrelease-tests
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -44,6 +44,7 @@ TEST_GEN_FILES += memfd_secret
- TEST_GEN_FILES += migration
- TEST_GEN_FILES += mlock-random-test
- TEST_GEN_FILES += mlock2-tests
-+TEST_GEN_FILES += mrelease_test
- TEST_GEN_FILES += mremap_dontunmap
- TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += on-fault-limit
---- /dev/null
-+++ a/tools/testing/selftests/vm/mrelease_test.c
-@@ -0,0 +1,200 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright 2022 Google LLC
-+ */
-+#define _GNU_SOURCE
-+#include <errno.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <sys/wait.h>
-+#include <unistd.h>
-+
-+#include "util.h"
-+
-+#include "../kselftest.h"
-+
-+#ifndef __NR_pidfd_open
-+#define __NR_pidfd_open -1
-+#endif
-+
-+#ifndef __NR_process_mrelease
-+#define __NR_process_mrelease -1
-+#endif
-+
-+#define MB(x) (x << 20)
-+#define MAX_SIZE_MB 1024
-+
-+static int alloc_noexit(unsigned long nr_pages, int pipefd)
-+{
-+	int ppid = getppid();
-+	int timeout = 10; /* 10sec timeout to get killed */
-+	unsigned long i;
-+	char *buf;
-+
-+	buf = (char *)mmap(NULL, nr_pages * PAGE_SIZE, PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANON, 0, 0);
-+	if (buf == MAP_FAILED) {
-+		perror("mmap failed, halting the test");
-+		return KSFT_FAIL;
-+	}
-+
-+	for (i = 0; i < nr_pages; i++)
-+		*((unsigned long *)(buf + (i * PAGE_SIZE))) = i;
-+
-+	/* Signal the parent that the child is ready */
-+	if (write(pipefd, "", 1) < 0) {
-+		perror("write");
-+		return KSFT_FAIL;
-+	}
-+
-+	/* Wait to be killed (when reparenting happens) */
-+	while (getppid() == ppid && timeout > 0) {
-+		sleep(1);
-+		timeout--;
-+	}
-+
-+	munmap(buf, nr_pages * PAGE_SIZE);
-+
-+	return (timeout > 0) ? KSFT_PASS : KSFT_FAIL;
-+}
-+
-+/* The process_mrelease calls in this test are expected to fail */
-+static void run_negative_tests(int pidfd)
-+{
-+	/* Test invalid flags. Expect to fail with EINVAL error code. */
-+	if (!syscall(__NR_process_mrelease, pidfd, (unsigned int)-1) ||
-+			errno != EINVAL) {
-+		perror("process_mrelease with wrong flags");
-+		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+	}
-+	/*
-+	 * Test reaping while process is alive with no pending SIGKILL.
-+	 * Expect to fail with EINVAL error code.
-+	 */
-+	if (!syscall(__NR_process_mrelease, pidfd, 0) || errno != EINVAL) {
-+		perror("process_mrelease on a live process");
-+		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+	}
-+}
-+
-+static int child_main(int pipefd[], size_t size)
-+{
-+	int res;
-+
-+	/* Allocate and fault-in memory and wait to be killed */
-+	close(pipefd[0]);
-+	res = alloc_noexit(MB(size) / PAGE_SIZE, pipefd[1]);
-+	close(pipefd[1]);
-+	return res;
-+}
-+
-+int main(void)
-+{
-+	int pipefd[2], pidfd;
-+	bool success, retry;
-+	size_t size;
-+	pid_t pid;
-+	char byte;
-+	int res;
-+
-+	/* Test a wrong pidfd */
-+	if (!syscall(__NR_process_mrelease, -1, 0) || errno != EBADF) {
-+		perror("process_mrelease with wrong pidfd");
-+		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+	}
-+
-+	/* Start the test with 1MB child memory allocation */
-+	size = 1;
-+retry:
-+	/*
-+	 * Pipe for the child to signal when it's done allocating
-+	 * memory
-+	 */
-+	if (pipe(pipefd)) {
-+		perror("pipe");
-+		exit(KSFT_FAIL);
-+	}
-+	pid = fork();
-+	if (pid < 0) {
-+		perror("fork");
-+		close(pipefd[0]);
-+		close(pipefd[1]);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	if (pid == 0) {
-+		/* Child main routine */
-+		res = child_main(pipefd, size);
-+		exit(res);
-+	}
-+
-+	/*
-+	 * Parent main routine:
-+	 * Wait for the child to finish allocations, then kill and reap
-+	 */
-+	close(pipefd[1]);
-+	/* Block until the child is ready */
-+	res = read(pipefd[0], &byte, 1);
-+	close(pipefd[0]);
-+	if (res < 0) {
-+		perror("read");
-+		if (!kill(pid, SIGKILL))
-+			waitpid(pid, NULL, 0);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	pidfd = syscall(__NR_pidfd_open, pid, 0);
-+	if (pidfd < 0) {
-+		perror("pidfd_open");
-+		if (!kill(pid, SIGKILL))
-+			waitpid(pid, NULL, 0);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	/* Run negative tests which require a live child */
-+	run_negative_tests(pidfd);
-+
-+	if (kill(pid, SIGKILL)) {
-+		perror("kill");
-+		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+	}
-+
-+	success = (syscall(__NR_process_mrelease, pidfd, 0) == 0);
-+	if (!success) {
-+		/*
-+		 * If we failed to reap because the child exited too soon,
-+		 * before we could call process_mrelease. Double child's memory
-+		 * which causes it to spend more time on cleanup and increases
-+		 * our chances of reaping its memory before it exits.
-+		 * Retry until we succeed or reach MAX_SIZE_MB.
-+		 */
-+		if (errno == ESRCH) {
-+			retry = (size <= MAX_SIZE_MB);
-+		} else {
-+			perror("process_mrelease");
-+			waitpid(pid, NULL, 0);
-+			exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+		}
-+	}
-+
-+	/* Cleanup to prevent zombies */
-+	if (waitpid(pid, NULL, 0) < 0) {
-+		perror("waitpid");
-+		exit(KSFT_FAIL);
-+	}
-+	close(pidfd);
-+
-+	if (!success) {
-+		if (retry) {
-+			size *= 2;
-+			goto retry;
-+		}
-+		printf("All process_mrelease attempts failed!\n");
-+		exit(KSFT_FAIL);
-+	}
-+
-+	printf("Success reaping a child with %zuMB of memory allocations\n",
-+	       size);
-+	return KSFT_PASS;
-+}
---- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-process_mrelease-tests
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -141,6 +141,8 @@ run_test ./mlock-random-test
- 
- run_test ./mlock2-tests
- 
-+run_test ./mrelease_test
-+
- run_test ./mremap_test
- 
- run_test ./thuge-gen
+--- a/mm/mmap.c~mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix
++++ a/mm/mmap.c
+@@ -1765,7 +1765,7 @@ unsigned long mmap_region(struct file *f
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = NULL;
+-	struct vm_area_struct *prev, *next;
++	struct vm_area_struct *next, *prev, *merge;
+ 	pgoff_t pglen = len >> PAGE_SHIFT;
+ 	unsigned long charged = 0;
+ 	unsigned long end = addr + len;
+@@ -1883,19 +1883,17 @@ cannot_expand:
+ 		 * as we may succeed this time.
+ 		 */
+ 		if (unlikely(vm_flags != vma->vm_flags && prev)) {
+-			next = vma_merge(mm, prev, vma->vm_start, vma->vm_end, vma->vm_flags,
++			merge = vma_merge(mm, prev, vma->vm_start, vma->vm_end, vma->vm_flags,
+ 				NULL, vma->vm_file, vma->vm_pgoff, NULL, NULL_VM_UFFD_CTX, NULL);
+-			if (next) {
++			if (merge) {
+ 				/* ->mmap() can change vma->vm_file and fput the original file. So
+ 				 * fput the vma->vm_file here or we would add an extra fput for file
+ 				 * and cause general protection fault ultimately.
+ 				 */
+ 				fput(vma->vm_file);
+ 				vm_area_free(vma);
+-				vma = prev;
+-				/* Update vm_flags and possible addr to pick up the change. We don't
+-				 * warn here if addr changed as the vma is not linked by vma_link().
+-				 */
++				vma = merge;
++				/* Update vm_flags to pick up the change. */
+ 				addr = vma->vm_start;
+ 				vm_flags = vma->vm_flags;
+ 				goto unmap_writable;
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-selftests-vm-add-process_mrelease-tests.patch
+mips-rename-mt_init-to-mips_mt_init.patch
+maple-tree-add-new-data-structure.patch
+radix-tree-test-suite-add-pr_err-define.patch
+radix-tree-test-suite-add-kmem_cache_set_non_kernel.patch
+radix-tree-test-suite-add-allocation-counts-and-size-to-kmem_cache.patch
+radix-tree-test-suite-add-support-for-slab-bulk-apis.patch
+radix-tree-test-suite-add-lockdep_is_held-to-header.patch
+lib-test_maple_tree-add-testing-for-maple-tree.patch
+mm-start-tracking-vmas-with-maple-tree.patch
+mm-mmap-use-the-maple-tree-in-find_vma-instead-of-the-rbtree.patch
+mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree.patch
+mm-mmap-use-maple-tree-for-unmapped_area_topdown.patch
+kernel-fork-use-maple-tree-for-dup_mmap-during-forking.patch
+damon-convert-__damon_va_three_regions-to-use-the-vma-iterator.patch
+mm-remove-rb-tree.patch
+mmap-change-zeroing-of-maple-tree-in-__vma_adjust.patch
+xen-use-vma_lookup-in-privcmd_ioctl_mmap.patch
+mm-optimize-find_exact_vma-to-use-vma_lookup.patch
+mm-khugepaged-optimize-collapse_pte_mapped_thp-by-using-vma_lookup.patch
+mm-mmap-change-do_brk_flags-to-expand-existing-vma-and-add-do_brk_munmap.patch
+mm-use-maple-tree-operations-for-find_vma_intersection.patch
+mm-mmap-use-advanced-maple-tree-api-for-mmap_region.patch
+mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch
+mm-remove-vmacache.patch
+mm-convert-vma_lookup-to-use-mtree_load.patch
+mm-mmap-move-mmap_region-below-do_munmap.patch
+mm-mmap-reorganize-munmap-to-use-maple-states.patch
+mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap.patch
+arm64-change-elfcore-for_each_mte_vma-to-use-vma-iterator.patch
+fs-proc-base-use-maple-tree-iterators-in-place-of-linked-list.patch
+userfaultfd-use-maple-tree-iterator-to-iterate-vmas.patch
+ipc-shm-use-vma-iterator-instead-of-linked-list.patch
+bpf-remove-vma-linked-list.patch
+mm-gup-use-maple-tree-navigation-instead-of-linked-list.patch
+mm-madvise-use-vma_find-instead-of-vma-linked-list.patch
+mm-memcontrol-stop-using-mm-highest_vm_end.patch
+mm-mempolicy-use-vma-iterator-maple-state-instead-of-vma-linked-list.patch
+mm-mprotect-use-maple-tree-navigation-instead-of-vma-linked-list.patch
+mm-mremap-use-vma_find_intersection-instead-of-vma-linked-list.patch
+mm-msync-use-vma_find-instead-of-vma-linked-list.patch
+mm-oom_kill-use-maple-tree-iterators-instead-of-vma-linked-list.patch
+mm-swapfile-use-vma-iterator-instead-of-vma-linked-list.patch
+riscv-use-vma-iterator-for-vdso.patch
+mm-remove-the-vma-linked-list.patch
+mm-mmap-drop-range_has_overlap-function.patch
+mm-mmapc-pass-in-mapping-to-__vma_link_file.patch
 
