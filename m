@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36853C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:25:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B1EFC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:25:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243546AbiESWZa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 18:25:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50402 "EHLO
+        id S243582AbiESWZc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:25:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243582AbiESWZ2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3055D6622A
+        with ESMTP id S231989AbiESWZ3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:29 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A81F466235
         for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C928C6166C
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5C2E8B828AF
         for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FBBCC385B8;
-        Thu, 19 May 2022 22:25:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A67C385AA;
+        Thu, 19 May 2022 22:25:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652999126;
-        bh=uWzX9pD8wpZGz2NW09c4omzxHpDmo18ltjc23Dd1ynM=;
+        s=korg; t=1652999125;
+        bh=pfdU5p1tGzDPjyOV4NjQw43wAan3w/2upuUe2hhsKW8=;
         h=Date:To:From:Subject:From;
-        b=nyPnAPhtovBM+VqeB1FsxnLZYaEluo2bHOWvAZypXNE6Y7V5u09Q1kdEGCpXl10Io
-         +QmEwWyH2BeHnbOCqlwPNRoQ4FQBfDt7HQYekzTQuqnCjuTJjbMAoEOp50JRFoPvAj
-         MhMuYWxXuWT7+z/810OxGMYBIkGOT1b+G7vmOWmU=
-Date:   Thu, 19 May 2022 15:25:25 -0700
+        b=PnziSTy/i/QGio8xdgjKlaRSd4DI3kD25wL2BO7JXXgnJ1ZGTnnXzaKfzE1uhpdtY
+         c3yeshT0psDSkthLWjIk1OsjkgJ7Jlj2eWHPcWsRc6ShKBg+Gb1mQo6LucDWrS17Cs
+         hntuvL1CPaZP3tcXKWJX8Yd8fOyEE98nRJcpLTyQ=
+Date:   Thu, 19 May 2022 15:25:24 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tytso@mit.edu, songliubraving@fb.com,
         song@kernel.org, riel@surriel.com, linmiaohe@huawei.com,
         kirill.shutemov@linux.intel.com, shy828301@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged.patch removed from -mm tree
-Message-Id: <20220519222526.2FBBCC385B8@smtp.kernel.org>
+Subject: [merged mm-stable] sched-coredumph-clarify-the-use-of-mmf_vm_hugepage.patch removed from -mm tree
+Message-Id: <20220519222525.08A67C385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,25 +44,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: khugepaged: remove redundant check for VM_NO_KHUGEPAGED
+     Subject: sched: coredump.h: clarify the use of MMF_VM_HUGEPAGE
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged.patch
+     sched-coredumph-clarify-the-use-of-mmf_vm_hugepage.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: khugepaged: remove redundant check for VM_NO_KHUGEPAGED
+Subject: sched: coredump.h: clarify the use of MMF_VM_HUGEPAGE
 
-The hugepage_vma_check() called by khugepaged_enter_vma_merge() does check
-VM_NO_KHUGEPAGED.  Remove the check from caller and move the check in
-hugepage_vma_check() up.
+Patch series "Make khugepaged collapse readonly FS THP more consistent", v4.
 
-More checks may be run for VM_NO_KHUGEPAGED vmas, but MADV_HUGEPAGE is
-definitely not a hot path, so cleaner code does outweigh.
+The readonly FS THP relies on khugepaged to collapse THP for suitable
+vmas.  But the behavior is inconsistent for "always" mode
+(https://lore.kernel.org/linux-mm/00f195d4-d039-3cf2-d3a1-a2c88de397a0@suse.cz/).
 
-Link: https://lkml.kernel.org/r/20220510203222.24246-3-shy828301@gmail.com
+The "always" mode means THP allocation should be tried all the time and
+khugepaged should try to collapse THP all the time.  Of course the
+allocation and collapse may fail due to other factors and conditions.
+
+Currently file THP may not be collapsed by khugepaged even though all the
+conditions are met.  That does break the semantics of "always" mode.
+
+So make sure readonly FS vmas are registered to khugepaged to fix the
+break.
+
+Register suitable vmas in common mmap path, that could cover both readonly
+FS vmas and shmem vmas, so remove the khugepaged calls in shmem.c.
+
+The patch 1-7 are minor bug fixes, clean up and preparation patches. 
+Patch 8 is the real meat.  
+
+Tested with khugepaged test in selftests and the testcase provided by
+Vlastimil Babka in
+https://lore.kernel.org/lkml/df3b5d1c-a36b-2c73-3e27-99e74983de3a@suse.cz/
+by commenting out MADV_HUGEPAGE call.
+
+
+This patch (of 8):
+
+MMF_VM_HUGEPAGE is set as long as the mm is available for khugepaged by
+khugepaged_enter(), not only when VM_HUGEPAGE is set on vma.  Correct the
+comment to avoid confusion.
+
+Link: https://lkml.kernel.org/r/20220510203222.24246-1-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20220510203222.24246-2-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Song Liu <song@kernel.org>
@@ -76,41 +104,21 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/sched/coredump.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged
-+++ a/mm/khugepaged.c
-@@ -365,8 +365,7 @@ int hugepage_madvise(struct vm_area_stru
- 		 * register it here without waiting a page fault that
- 		 * may not happen any time soon.
- 		 */
--		if (!(*vm_flags & VM_NO_KHUGEPAGED) &&
--				khugepaged_enter_vma_merge(vma, *vm_flags))
-+		if (khugepaged_enter_vma_merge(vma, *vm_flags))
- 			return -ENOMEM;
- 		break;
- 	case MADV_NOHUGEPAGE:
-@@ -445,6 +444,9 @@ static bool hugepage_vma_check(struct vm
- 	if (!transhuge_vma_enabled(vma, vm_flags))
- 		return false;
- 
-+	if (vm_flags & VM_NO_KHUGEPAGED)
-+		return false;
-+
- 	if (vma->vm_file && !IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) -
- 				vma->vm_pgoff, HPAGE_PMD_NR))
- 		return false;
-@@ -470,7 +472,8 @@ static bool hugepage_vma_check(struct vm
- 		return false;
- 	if (vma_is_temporary_stack(vma))
- 		return false;
--	return !(vm_flags & VM_NO_KHUGEPAGED);
-+
-+	return true;
- }
- 
- int __khugepaged_enter(struct mm_struct *mm)
+--- a/include/linux/sched/coredump.h~sched-coredumph-clarify-the-use-of-mmf_vm_hugepage
++++ a/include/linux/sched/coredump.h
+@@ -57,7 +57,8 @@ static inline int get_dumpable(struct mm
+ #endif
+ 					/* leave room for more dump flags */
+ #define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
+-#define MMF_VM_HUGEPAGE		17	/* set when VM_HUGEPAGE is set on vma */
++#define MMF_VM_HUGEPAGE		17	/* set when mm is available for
++					   khugepaged */
+ /*
+  * This one-shot flag is dropped due to necessity of changing exe once again
+  * on NFS restore
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
