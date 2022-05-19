@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 821DCC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:25:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36853C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 19 May 2022 22:25:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245420AbiESWZ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 May 2022 18:25:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50400 "EHLO
+        id S243546AbiESWZa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 May 2022 18:25:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243546AbiESWZ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:27 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74CD466234
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:26 -0700 (PDT)
+        with ESMTP id S243582AbiESWZ2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2022 18:25:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3055D6622A
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 15:25:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 7083BCE27FF
-        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 993F4C385AA;
-        Thu, 19 May 2022 22:25:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C928C6166C
+        for <mm-commits@vger.kernel.org>; Thu, 19 May 2022 22:25:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FBBCC385B8;
+        Thu, 19 May 2022 22:25:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1652999122;
-        bh=Y/3MbksHzZJVi6lPtr6UIiyOOKyfEnczH0Zrjkz9DGM=;
+        s=korg; t=1652999126;
+        bh=uWzX9pD8wpZGz2NW09c4omzxHpDmo18ltjc23Dd1ynM=;
         h=Date:To:From:Subject:From;
-        b=DFPqCAxueaQ9kcqp8hGtpXXeouwmbF95oEzlW3Vc41b3FRK6uiS0YWWIecWWiN0Hb
-         McpfGQeo0wTE3ay5IyRBIMqZ6VI1jYW73qFxHmR+t3ucrpbktYIbf5aqvU03aQSDkd
-         mp6KLCmMe9A4eP+Sw5rfdDz5G7Rl7wVV/7j3ZjWo=
-Date:   Thu, 19 May 2022 15:25:21 -0700
-To:     mm-commits@vger.kernel.org, xiexiuqi@huawei.com, will@kernel.org,
-        paul.walmsley@sifive.com, pasha.tatashin@soleen.com,
-        palmer@dabbelt.com, lkp@intel.com, guohanjun@huawei.com,
-        catalin.marinas@arm.com, arnd@arndb.de, aou@eecs.berkeley.edu,
-        anshuman.khandual@arm.com, tongtiangen@huawei.com,
+        b=nyPnAPhtovBM+VqeB1FsxnLZYaEluo2bHOWvAZypXNE6Y7V5u09Q1kdEGCpXl10Io
+         +QmEwWyH2BeHnbOCqlwPNRoQ4FQBfDt7HQYekzTQuqnCjuTJjbMAoEOp50JRFoPvAj
+         MhMuYWxXuWT7+z/810OxGMYBIkGOT1b+G7vmOWmU=
+Date:   Thu, 19 May 2022 15:25:25 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
+        vbabka@suse.cz, tytso@mit.edu, songliubraving@fb.com,
+        song@kernel.org, riel@surriel.com, linmiaohe@huawei.com,
+        kirill.shutemov@linux.intel.com, shy828301@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] riscv-mm-fix-two-page-table-check-related-issues.patch removed from -mm tree
-Message-Id: <20220519222522.993F4C385AA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged.patch removed from -mm tree
+Message-Id: <20220519222526.2FBBCC385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,96 +44,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: riscv/mm: fix two page table check related issues
+     Subject: mm: khugepaged: remove redundant check for VM_NO_KHUGEPAGED
 has been removed from the -mm tree.  Its filename was
-     riscv-mm-fix-two-page-table-check-related-issues.patch
+     mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tong Tiangen <tongtiangen@huawei.com>
-Subject: riscv/mm: fix two page table check related issues
-Date: Tue, 17 May 2022 07:45:47 +0000
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: khugepaged: remove redundant check for VM_NO_KHUGEPAGED
 
-Two page table check related issues have been fixed here.
+The hugepage_vma_check() called by khugepaged_enter_vma_merge() does check
+VM_NO_KHUGEPAGED.  Remove the check from caller and move the check in
+hugepage_vma_check() up.
 
-1. Open CONFIG_PAGE_TABLE_CHECK in riscv32, we got a compile error[1]:
+More checks may be run for VM_NO_KHUGEPAGED vmas, but MADV_HUGEPAGE is
+definitely not a hot path, so cleaner code does outweigh.
 
-   error: implicit declaration of function 'pud_leaf'
-
-   Add pud_leaf() definition to incluce/asm-generic/pgtable-nopmd.h to fix
-   this issue.
-
-2. Keep consistent with other pud_xxx() helpers, move pud_user() to
-   pgtable-64.h and add pud_user() to pgtable-nopmd.h.
-
-[1]https://lore.kernel.org/linux-mm/202205161811.2nLxmN2O-lkp@intel.com/T/
-
-Link: https://lkml.kernel.org/r/20220517074548.2227779-2-tongtiangen@huawei.com
-Fixes: 856eed79f8d3 ("riscv/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK")
-Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Guohanjun <guohanjun@huawei.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Xie XiuQi <xiexiuqi@huawei.com>
+Link: https://lkml.kernel.org/r/20220510203222.24246-3-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Song Liu <song@kernel.org>
+Acked-by: Vlastmil Babka <vbabka@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable-64.h |    5 +++++
- arch/riscv/include/asm/pgtable.h    |    5 -----
- include/asm-generic/pgtable-nopmd.h |    2 ++
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ mm/khugepaged.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/arch/riscv/include/asm/pgtable-64.h~riscv-mm-fix-two-page-table-check-related-issues
-+++ a/arch/riscv/include/asm/pgtable-64.h
-@@ -86,6 +86,11 @@ static inline int pud_leaf(pud_t pud)
- 	return pud_present(pud) && (pud_val(pud) & _PAGE_LEAF);
- }
+--- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-check-for-vm_no_khugepaged
++++ a/mm/khugepaged.c
+@@ -365,8 +365,7 @@ int hugepage_madvise(struct vm_area_stru
+ 		 * register it here without waiting a page fault that
+ 		 * may not happen any time soon.
+ 		 */
+-		if (!(*vm_flags & VM_NO_KHUGEPAGED) &&
+-				khugepaged_enter_vma_merge(vma, *vm_flags))
++		if (khugepaged_enter_vma_merge(vma, *vm_flags))
+ 			return -ENOMEM;
+ 		break;
+ 	case MADV_NOHUGEPAGE:
+@@ -445,6 +444,9 @@ static bool hugepage_vma_check(struct vm
+ 	if (!transhuge_vma_enabled(vma, vm_flags))
+ 		return false;
  
-+static inline int pud_user(pud_t pud)
-+{
-+	return pud_val(pud) & _PAGE_USER;
-+}
++	if (vm_flags & VM_NO_KHUGEPAGED)
++		return false;
 +
- static inline void set_pud(pud_t *pudp, pud_t pud)
- {
- 	*pudp = pud;
---- a/arch/riscv/include/asm/pgtable.h~riscv-mm-fix-two-page-table-check-related-issues
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -634,11 +634,6 @@ static inline void set_pmd_at(struct mm_
- 	return __set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd));
+ 	if (vma->vm_file && !IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) -
+ 				vma->vm_pgoff, HPAGE_PMD_NR))
+ 		return false;
+@@ -470,7 +472,8 @@ static bool hugepage_vma_check(struct vm
+ 		return false;
+ 	if (vma_is_temporary_stack(vma))
+ 		return false;
+-	return !(vm_flags & VM_NO_KHUGEPAGED);
++
++	return true;
  }
  
--static inline int pud_user(pud_t pud)
--{
--	return pte_user(pud_pte(pud));
--}
--
- static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
- 				pud_t *pudp, pud_t pud)
- {
---- a/include/asm-generic/pgtable-nopmd.h~riscv-mm-fix-two-page-table-check-related-issues
-+++ a/include/asm-generic/pgtable-nopmd.h
-@@ -30,6 +30,8 @@ typedef struct { pud_t pud; } pmd_t;
- static inline int pud_none(pud_t pud)		{ return 0; }
- static inline int pud_bad(pud_t pud)		{ return 0; }
- static inline int pud_present(pud_t pud)	{ return 1; }
-+static inline int pud_user(pud_t pud)		{ return 0; }
-+static inline int pud_leaf(pud_t pud)		{ return 0; }
- static inline void pud_clear(pud_t *pud)	{ }
- #define pmd_ERROR(pmd)				(pud_ERROR((pmd).pud))
- 
+ int __khugepaged_enter(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from tongtiangen@huawei.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
+mm-rmap-use-the-correct-parameter-name-for-define_page_vma_walk.patch
+mm-pvmw-check-possible-huge-pmd-map-by-transhuge_vma_suitable.patch
 
