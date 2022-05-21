@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC2EDC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 21 May 2022 15:27:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E2DC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 21 May 2022 15:30:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233348AbiEUP1y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 21 May 2022 11:27:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58990 "EHLO
+        id S239767AbiEUPa1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 21 May 2022 11:30:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245231AbiEUP1B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 21 May 2022 11:27:01 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9415E3A1B4
-        for <mm-commits@vger.kernel.org>; Sat, 21 May 2022 08:27:00 -0700 (PDT)
+        with ESMTP id S230448AbiEUPa0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 21 May 2022 11:30:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 206876161B
+        for <mm-commits@vger.kernel.org>; Sat, 21 May 2022 08:30:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4E993B802C8
-        for <mm-commits@vger.kernel.org>; Sat, 21 May 2022 15:26:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4052C385A5;
-        Sat, 21 May 2022 15:26:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B056060DD1
+        for <mm-commits@vger.kernel.org>; Sat, 21 May 2022 15:30:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EC6C385A5;
+        Sat, 21 May 2022 15:30:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653146818;
-        bh=rcejnnl2gsP6ee6N/LczzlP77oRjACSNAHwLPEi4oj8=;
+        s=korg; t=1653147025;
+        bh=nAlFKQx441H03RuV9Xpf44s5f17EpqFjHfTYZV3rIaE=;
         h=Date:To:From:Subject:From;
-        b=Q/ipgNLtT3iEyrzlVA/XtbozDbrvmocmZX86Du0PUNwvD0touI9uVTfn8Hyaleqgj
-         AWof8KHAx9d/0hj47eUGI7YMffBZb4QW2XYpp/Ye0XPsvNiGF/B1KAXfcKRhUs333I
-         zsOpkX3bOGTpF4skL/K6cZ2D8m94spkkd+GEu4+0=
-Date:   Sat, 21 May 2022 08:26:56 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        akpm@linux-foundation.org
+        b=Se0wtNcLI+qSHdOmRnFftMPLt91HNzwrW5bcG+vxQl5JQgWM88UcaSswMtKcZvmWv
+         UeSc8gsEA6bQwiU2eZZEogWQkgNPQmRn2BXq6w76eDoi8iUqTVv4XyuLRd+PvUvNrw
+         Xt3Re3CW0D86cuKNRx7oqOP9/gItwz4K/TyZnP14=
+Date:   Sat, 21 May 2022 08:30:23 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        patrick.wang.shcn@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-add-migration-to-the-gitignore.patch added to mm-unstable branch
-Message-Id: <20220521152657.E4052C385A5@smtp.kernel.org>
+Subject: + selftests-vm-check-numa_available-before-operating-merge_across_nodes-in-ksm_tests.patch added to mm-unstable branch
+Message-Id: <20220521153024.D4EC6C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: add migration to the .gitignore
+     Subject: selftests: vm: check numa_available() before operating "merge_across_nodes" in ksm_tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-add-migration-to-the-gitignore.patch
+     selftests-vm-check-numa_available-before-operating-merge_across_nodes-in-ksm_tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-add-migration-to-the-gitignore.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-check-numa_available-before-operating-merge_across_nodes-in-ksm_tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,34 +64,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests: vm: add migration to the .gitignore
-Date: Sat, 21 May 2022 14:43:13 +0500
+From: Patrick Wang <patrick.wang.shcn@gmail.com>
+Subject: selftests: vm: check numa_available() before operating "merge_across_nodes" in ksm_tests
+Date: Sat, 21 May 2022 16:38:23 +0800
 
-Add newly added migration test object to .gitignore file.
+Patch series "selftests: vm: a few fixup patches".
 
-Link: https://lkml.kernel.org/r/20220521094313.166505-1-usama.anjum@collabora.com
-Fixes: 0c2d08728470 ("mm: add selftests for migration entries")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+This series contains three fixup patches for vm selftests.  They are
+independent.  Please see the patches.
+
+
+This patch (of 3):
+
+Currently, ksm_tests operates "merge_across_nodes" with NUMA either
+enabled or disabled.  In a system with NUMA disabled, these operations
+will fail and output a misleading report given "merge_across_nodes" does
+not exist in sysfs:
+
+  ----------------------------
+  running ./ksm_tests -M -p 10
+  ----------------------------
+  f /sys/kernel/mm/ksm/merge_across_nodes
+  fopen: No such file or directory
+  Cannot save default tunables
+  [FAIL]
+  ----------------------
+
+So check numa_available() before those operations to skip them if NUMA is
+disabled.
+
+Link: https://lkml.kernel.org/r/20220521083825.319654-1-patrick.wang.shcn@gmail.com
+Link: https://lkml.kernel.org/r/20220521083825.319654-2-patrick.wang.shcn@gmail.com
+Signed-off-by: Patrick Wang <patrick.wang.shcn@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/vm/ksm_tests.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-migration-to-the-gitignore
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -9,6 +9,7 @@ map_hugetlb
- map_populate
- thuge-gen
- compaction_test
-+migration
- mlock2-tests
- mrelease_test
- mremap_dontunmap
+--- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-check-numa_available-before-operating-merge_across_nodes-in-ksm_tests
++++ a/tools/testing/selftests/vm/ksm_tests.c
+@@ -221,7 +221,8 @@ static bool assert_ksm_pages_count(long
+ static int ksm_save_def(struct ksm_sysfs *ksm_sysfs)
+ {
+ 	if (ksm_read_sysfs(KSM_FP("max_page_sharing"), &ksm_sysfs->max_page_sharing) ||
+-	    ksm_read_sysfs(KSM_FP("merge_across_nodes"), &ksm_sysfs->merge_across_nodes) ||
++	    numa_available() ? 0 :
++		ksm_read_sysfs(KSM_FP("merge_across_nodes"), &ksm_sysfs->merge_across_nodes) ||
+ 	    ksm_read_sysfs(KSM_FP("sleep_millisecs"), &ksm_sysfs->sleep_millisecs) ||
+ 	    ksm_read_sysfs(KSM_FP("pages_to_scan"), &ksm_sysfs->pages_to_scan) ||
+ 	    ksm_read_sysfs(KSM_FP("run"), &ksm_sysfs->run) ||
+@@ -236,7 +237,8 @@ static int ksm_save_def(struct ksm_sysfs
+ static int ksm_restore(struct ksm_sysfs *ksm_sysfs)
+ {
+ 	if (ksm_write_sysfs(KSM_FP("max_page_sharing"), ksm_sysfs->max_page_sharing) ||
+-	    ksm_write_sysfs(KSM_FP("merge_across_nodes"), ksm_sysfs->merge_across_nodes) ||
++	    numa_available() ? 0 :
++		ksm_write_sysfs(KSM_FP("merge_across_nodes"), ksm_sysfs->merge_across_nodes) ||
+ 	    ksm_write_sysfs(KSM_FP("pages_to_scan"), ksm_sysfs->pages_to_scan) ||
+ 	    ksm_write_sysfs(KSM_FP("run"), ksm_sysfs->run) ||
+ 	    ksm_write_sysfs(KSM_FP("sleep_millisecs"), ksm_sysfs->sleep_millisecs) ||
+@@ -720,7 +722,8 @@ int main(int argc, char *argv[])
+ 
+ 	if (ksm_write_sysfs(KSM_FP("run"), 2) ||
+ 	    ksm_write_sysfs(KSM_FP("sleep_millisecs"), 0) ||
+-	    ksm_write_sysfs(KSM_FP("merge_across_nodes"), 1) ||
++	    numa_available() ? 0 :
++		ksm_write_sysfs(KSM_FP("merge_across_nodes"), 1) ||
+ 	    ksm_write_sysfs(KSM_FP("pages_to_scan"), page_count))
+ 		return KSFT_FAIL;
+ 
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from patrick.wang.shcn@gmail.com are
 
-selftests-vm-add-migration-to-the-gitignore.patch
+selftests-vm-check-numa_available-before-operating-merge_across_nodes-in-ksm_tests.patch
+selftests-vm-add-test_hmmsh-to-test_files.patch
+selftests-vm-add-the-settings-file-with-timeout-variable.patch
 
