@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 631C9C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 21 May 2022 16:15:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90FECC433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 22 May 2022 13:34:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245302AbiEUQPw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 21 May 2022 12:15:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51338 "EHLO
+        id S1345999AbiEVNeI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 22 May 2022 09:34:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237279AbiEUQPw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 21 May 2022 12:15:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 899F825D9
-        for <mm-commits@vger.kernel.org>; Sat, 21 May 2022 09:15:50 -0700 (PDT)
+        with ESMTP id S234645AbiEVNeI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 22 May 2022 09:34:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 869F39FF3
+        for <mm-commits@vger.kernel.org>; Sun, 22 May 2022 06:34:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 25A3760E16
-        for <mm-commits@vger.kernel.org>; Sat, 21 May 2022 16:15:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C94EC385A5;
-        Sat, 21 May 2022 16:15:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2BED5B80BE9
+        for <mm-commits@vger.kernel.org>; Sun, 22 May 2022 13:34:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFDECC385AA;
+        Sun, 22 May 2022 13:34:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653149749;
-        bh=CakRylsC2/R/z4ZFvQONM1ajL/MPbGDwH7A9TFVYcsc=;
+        s=korg; t=1653226444;
+        bh=DX4aKihsebkMvdbywLYO5CZEWzFN8+aBpSRhoFbsNjo=;
         h=Date:To:From:Subject:From;
-        b=r8VI2U+nhliCv2JHXOg8P7zwkvktunGPgSw8luEtMOMol+69Yf+0b4YICWRS/t1eO
-         B82jeIJ7br+gJU3Y7k3nY3riebQF3lNmGlI2IDfV6M9TKFXIKOombYsO3S/R1v9OkY
-         3CPoaBNy3WTwREPG4l87yTdswXH5v14tqFAqWyfg=
-Date:   Sat, 21 May 2022 09:15:48 -0700
-To:     mm-commits@vger.kernel.org, glider@google.com, elver@google.com,
-        dvyukov@google.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=XzOB9Rgdg8deqPaLvV7EC13nJDDc9YhDkyrRX8W0bpfPo0xQ912ffy4pcEiLAI9a1
+         Vmtm+bIbMiKSGqlxb8OSmSIAsCU+t/NViMuDByGfJpi0Yzg+R2nPwWqEI4bylkwXec
+         8cbJxtedAbEaQMO9emhob4RJ2XF/vTI8806OoxH0=
+Date:   Sun, 22 May 2022 06:34:03 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, hch@lst.de,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-use-page_aligned-helper.patch added to mm-unstable branch
-Message-Id: <20220521161549.4C94EC385A5@smtp.kernel.org>
+Subject: + mm-shmem-fix-shmem-folio-swapoff-hang.patch added to mm-stable branch
+Message-Id: <20220522133404.AFDECC385AA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kfence: Use PAGE_ALIGNED helper
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kfence-use-page_aligned-helper.patch
+     Subject: mm/shmem: fix shmem folio swapoff hang
+has been added to the -mm mm-stable branch.  Its filename is
+     mm-shmem-fix-shmem-folio-swapoff-hang.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-use-page_aligned-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fix-shmem-folio-swapoff-hang.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-stable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,41 +64,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: kfence: Use PAGE_ALIGNED helper
-Date: Fri, 20 May 2022 10:18:33 +0800
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/shmem: fix shmem folio swapoff hang
+Date: Sat, 21 May 2022 19:53:04 -0700 (PDT)
 
-Use PAGE_ALIGNED macro instead of IS_ALIGNED and passing PAGE_SIZE.
+Shmem swapoff makes no progress: the index to indices is not incremented. 
+But "ret" is no longer a return value, so use folio_batch_count() instead.
 
-Link: https://lkml.kernel.org/r/20220520021833.121405-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/c32bee8a-f0aa-245-f94e-24dd271924fa@google.com
+Fixes: da08e9b79323 ("mm/shmem: convert shmem_swapin_page() to shmem_swapin_folio()")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/kfence_test.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/shmem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/kfence/kfence_test.c~mm-kfence-use-page_aligned-helper
-+++ a/mm/kfence/kfence_test.c
-@@ -296,10 +296,9 @@ static void *test_alloc(struct kunit *te
+--- a/mm/shmem.c~mm-shmem-fix-shmem-folio-swapoff-hang
++++ a/mm/shmem.c
+@@ -1165,7 +1165,6 @@ static int shmem_find_swap_entries(struc
+ 	XA_STATE(xas, &mapping->i_pages, start);
+ 	struct folio *folio;
+ 	swp_entry_t entry;
+-	unsigned int ret = 0;
  
- 			if (policy == ALLOCATE_ANY)
- 				return alloc;
--			if (policy == ALLOCATE_LEFT && IS_ALIGNED((unsigned long)alloc, PAGE_SIZE))
-+			if (policy == ALLOCATE_LEFT && PAGE_ALIGNED(alloc))
- 				return alloc;
--			if (policy == ALLOCATE_RIGHT &&
--			    !IS_ALIGNED((unsigned long)alloc, PAGE_SIZE))
-+			if (policy == ALLOCATE_RIGHT && !PAGE_ALIGNED(alloc))
- 				return alloc;
- 		} else if (policy == ALLOCATE_NONE)
- 			return alloc;
+ 	rcu_read_lock();
+ 	xas_for_each(&xas, folio, ULONG_MAX) {
+@@ -1179,7 +1178,7 @@ static int shmem_find_swap_entries(struc
+ 		if (swp_type(entry) != type)
+ 			continue;
+ 
+-		indices[ret] = xas.xa_index;
++		indices[folio_batch_count(fbatch)] = xas.xa_index;
+ 		if (!folio_batch_add(fbatch, folio))
+ 			break;
+ 
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-kfence-use-page_aligned-helper.patch
+mm-shmem-fix-shmem-folio-swapoff-hang.patch
 
