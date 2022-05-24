@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6150C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 24 May 2022 18:51:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80A00C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 24 May 2022 18:54:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234405AbiEXSvM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 May 2022 14:51:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37848 "EHLO
+        id S240464AbiEXSyA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 May 2022 14:54:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234121AbiEXSvL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 May 2022 14:51:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D880192B3
-        for <mm-commits@vger.kernel.org>; Tue, 24 May 2022 11:51:10 -0700 (PDT)
+        with ESMTP id S240460AbiEXSyA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 May 2022 14:54:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E4635A17C
+        for <mm-commits@vger.kernel.org>; Tue, 24 May 2022 11:53:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 529E8B81A76
-        for <mm-commits@vger.kernel.org>; Tue, 24 May 2022 18:51:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02EC6C34100;
-        Tue, 24 May 2022 18:51:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 327C9615A7
+        for <mm-commits@vger.kernel.org>; Tue, 24 May 2022 18:53:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F95CC34100;
+        Tue, 24 May 2022 18:53:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653418268;
-        bh=k5jsgah7TETed5kYa2N0dkHh4AGyv8U0vBwIelw9ahY=;
+        s=korg; t=1653418437;
+        bh=o+Emwn8BKfYMhemd9fODgzplG/KAvsHSKf8R6SRHppg=;
         h=Date:To:From:Subject:From;
-        b=PdMcFjUKeRPvnWeJ8Ojd03ZDpG+8O7YGocMKv+xsT/uA9+PB1dY20K9uIeN9W5ah7
-         i7fSdpvuTVnbLaI2J4WNSSkquVOLqSnGIKlhrtlZlqpQhl8qMhy/Mgr3pxZNpaV6+h
-         /8i4+rorF5lQPud8m9wQEfgSSm8h5PKy90I49A/E=
-Date:   Tue, 24 May 2022 11:51:07 -0700
-To:     mm-commits@vger.kernel.org, void@manifault.com, tj@kernel.org,
-        songmuchun@bytedance.com, shuah@kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@kernel.org,
-        lizefan.x@bytedance.com, hannes@cmpxchg.org,
-        dan.carpenter@oracle.com, akpm@linux-foundation.org,
-        christophe.jaillet@wanadoo.fr, akpm@linux-foundation.org
+        b=oeQw8ZvHi0B6h74iSU3wQlZYcmr0GoUovbJUggcxQjprZFWWAeuc/TuhK4Sg8HUrl
+         ymi7YmuY47uLuuA7bHNxdXDMKKvJeX+91chyGMbxqFmba1An1vpUbPTF/h4fqs5C+F
+         r9WDvJ6P40x6ZM9i997pdn19WnXWH13PbYErCCg0=
+Date:   Tue, 24 May 2022 11:53:56 -0700
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m.patch added to mm-unstable branch
-Message-Id: <20220524185108.02EC6C34100@smtp.kernel.org>
+Subject: + maintainers-add-muchun-as-co-maintainer-for-hugetlb.patch added to mm-unstable branch
+Message-Id: <20220524185357.7F95CC34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: fix an error handling path in alloc_pagecache_max_30M()
+     Subject: MAINTAINERS: add Muchun as co-maintainer for HugeTLB
 has been added to the -mm mm-unstable branch.  Its filename is
-     cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m.patch
+     maintainers-add-muchun-as-co-maintainer-for-hugetlb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-muchun-as-co-maintainer-for-hugetlb.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,47 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: cgroup: fix an error handling path in alloc_pagecache_max_30M()
-Date: Sun, 22 May 2022 16:18:51 +0200
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: MAINTAINERS: add Muchun as co-maintainer for HugeTLB
+Date: Sat, 21 May 2022 15:41:03 +0800
 
-If the first goto is taken, 'fd' is not opened yet (and is un-initialized).
-So a direct return is safer.
+I have been focusing on mm for the past two years.  e.g.  developing,
+fixing bugs, reviewing related to HugeTLB system.  I would like to help
+Mike and other people working on HugeTLB by reviewing their work.
 
-Link: https://lkml.kernel.org/r/628312312eb40e0e39463a2c06415fde5295c716.1653229120.git.christophe.jaillet@wanadoo.fr
-Fixes: c1a31a2f7a9c ("cgroup: fix racy check in alloc_pagecache_max_30M() helper function")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zefan Li <lizefan.x@bytedance.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: David Vernet <void@manifault.com>
+When I first introduced the vmemmmap reduction, I forgot to update
+MAINTAINERS file.  Let's update it as well.  And rename "HUGETLB
+FILESYSTEM" to "HUGETLB SUBSYSTEM" since some files are not only related
+to filesystem but also memory management (the name of FILESYSTEM cannot
+cover this area).
+
+Link: https://lkml.kernel.org/r/20220521074103.79468-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -574,7 +574,7 @@ static int alloc_pagecache_max_30M(const
- 	high = cg_read_long(cgroup, "memory.high");
- 	max = cg_read_long(cgroup, "memory.max");
- 	if (high != MB(30) && max != MB(30))
--		goto cleanup;
-+		return -1;
+--- a/MAINTAINERS~maintainers-add-muchun-as-co-maintainer-for-hugetlb
++++ a/MAINTAINERS
+@@ -9020,16 +9020,20 @@ S:	Orphan
+ F:	Documentation/networking/device_drivers/ethernet/huawei/hinic.rst
+ F:	drivers/net/ethernet/huawei/hinic/
  
- 	fd = get_temp_fd();
- 	if (fd < 0)
+-HUGETLB FILESYSTEM
++HUGETLB SUBSYSTEM
+ M:	Mike Kravetz <mike.kravetz@oracle.com>
++M:	Muchun Song <songmuchun@bytedance.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-hugepages
+ F:	Documentation/admin-guide/mm/hugetlbpage.rst
+ F:	Documentation/vm/hugetlbfs_reserv.rst
++F:	Documentation/vm/vmemmap_dedup.rst
+ F:	fs/hugetlbfs/
+ F:	include/linux/hugetlb.h
+ F:	mm/hugetlb.c
++F:	mm/hugetlb_vmemmap.c
++F:	mm/hugetlb_vmemmap.h
+ 
+ HVA ST MEDIA DRIVER
+ M:	Jean-Christophe Trotin <jean-christophe.trotin@foss.st.com>
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m.patch
+maintainers-add-muchun-as-co-maintainer-for-hugetlb.patch
 
