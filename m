@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96B64C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 24 May 2022 18:49:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6150C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 24 May 2022 18:51:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236778AbiEXStW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 May 2022 14:49:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36392 "EHLO
+        id S234405AbiEXSvM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 May 2022 14:51:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234121AbiEXStV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 May 2022 14:49:21 -0400
+        with ESMTP id S234121AbiEXSvL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 May 2022 14:51:11 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B8FD167C3
-        for <mm-commits@vger.kernel.org>; Tue, 24 May 2022 11:49:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D880192B3
+        for <mm-commits@vger.kernel.org>; Tue, 24 May 2022 11:51:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CF580B81B85
-        for <mm-commits@vger.kernel.org>; Tue, 24 May 2022 18:49:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D288C34100;
-        Tue, 24 May 2022 18:49:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 529E8B81A76
+        for <mm-commits@vger.kernel.org>; Tue, 24 May 2022 18:51:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02EC6C34100;
+        Tue, 24 May 2022 18:51:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653418157;
-        bh=UuQHpCyB9qdQC5xzWHC7N8BtJodSS1zr6bX9JkZ4WAs=;
+        s=korg; t=1653418268;
+        bh=k5jsgah7TETed5kYa2N0dkHh4AGyv8U0vBwIelw9ahY=;
         h=Date:To:From:Subject:From;
-        b=HDf71A1RM5tfT5/gRob5Oal/ZomBhJyiL2t+uFV81KWGhz97gEknIrbALO8MFEhzv
-         VEiEJLRpQDts3McLVhVojiZnJj8nevU2n0UGshVaTUiZ6WICvsPVS844okp9d6aSeV
-         nL8gJrCmfV6imZ8y8JyBE7VE7RTHUeYxozPb4qPs=
-Date:   Tue, 24 May 2022 11:49:16 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, hannes@cmpxchg.org,
-        axboe@kernel.dk, rdunlap@infradead.org, akpm@linux-foundation.org
+        b=PdMcFjUKeRPvnWeJ8Ojd03ZDpG+8O7YGocMKv+xsT/uA9+PB1dY20K9uIeN9W5ah7
+         i7fSdpvuTVnbLaI2J4WNSSkquVOLqSnGIKlhrtlZlqpQhl8qMhy/Mgr3pxZNpaV6+h
+         /8i4+rorF5lQPud8m9wQEfgSSm8h5PKy90I49A/E=
+Date:   Tue, 24 May 2022 11:51:07 -0700
+To:     mm-commits@vger.kernel.org, void@manifault.com, tj@kernel.org,
+        songmuchun@bytedance.com, shuah@kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@kernel.org,
+        lizefan.x@bytedance.com, hannes@cmpxchg.org,
+        dan.carpenter@oracle.com, akpm@linux-foundation.org,
+        christophe.jaillet@wanadoo.fr, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-fix-kconfig-dependency-warning.patch added to mm-stable branch
-Message-Id: <20220524184917.6D288C34100@smtp.kernel.org>
+Subject: + cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m.patch added to mm-unstable branch
+Message-Id: <20220524185108.02EC6C34100@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix Kconfig dependency warning
-has been added to the -mm mm-stable branch.  Its filename is
-     zram-fix-kconfig-dependency-warning.patch
+     Subject: cgroup: fix an error handling path in alloc_pagecache_max_30M()
+has been added to the -mm mm-unstable branch.  Its filename is
+     cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-kconfig-dependency-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m.patch
 
-This patch will later appear in the mm-stable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,48 +68,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: zram: fix Kconfig dependency warning
-Date: Sun, 22 May 2022 13:40:27 -0700
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: cgroup: fix an error handling path in alloc_pagecache_max_30M()
+Date: Sun, 22 May 2022 16:18:51 +0200
 
-ZSMALLOC depends on MMU so ZRAM should also depend on MMU since 'select'
-does not follow any dependency chains.
+If the first goto is taken, 'fd' is not opened yet (and is un-initialized).
+So a direct return is safer.
 
-Fixes this Kconfig warning:
-
-WARNING: unmet direct dependencies detected for ZSMALLOC
-  Depends on [n]: MMU [=n]
-  Selected by [y]:
-  - ZRAM [=y] && BLK_DEV [=y] && BLOCK [=y] && SYSFS [=y] && (CRYPTO_LZO [=y] || CRYPTO_ZSTD [=m] || CRYPTO_LZ4 [=m] || CRYPTO_LZ4HC [=n] || CRYPTO_842 [=n])
-
-Link: https://lkml.kernel.org/r/20220522204027.22964-1-rdunlap@infradead.org
-Fixes: b3fbd58fcbb10 ("mm: Kconfig: simplify zswap configuration")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: https://lkml.kernel.org/r/628312312eb40e0e39463a2c06415fde5295c716.1653229120.git.christophe.jaillet@wanadoo.fr
+Fixes: c1a31a2f7a9c ("cgroup: fix racy check in alloc_pagecache_max_30M() helper function")
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: David Vernet <void@manifault.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/Kconfig |    2 +-
+ tools/testing/selftests/cgroup/test_memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/Kconfig~zram-fix-kconfig-dependency-warning
-+++ a/drivers/block/zram/Kconfig
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
- config ZRAM
- 	tristate "Compressed RAM block device support"
--	depends on BLOCK && SYSFS
-+	depends on BLOCK && SYSFS && MMU
- 	depends on CRYPTO_LZO || CRYPTO_ZSTD || CRYPTO_LZ4 || CRYPTO_LZ4HC || CRYPTO_842
- 	select ZSMALLOC
- 	help
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -574,7 +574,7 @@ static int alloc_pagecache_max_30M(const
+ 	high = cg_read_long(cgroup, "memory.high");
+ 	max = cg_read_long(cgroup, "memory.max");
+ 	if (high != MB(30) && max != MB(30))
+-		goto cleanup;
++		return -1;
+ 
+ 	fd = get_temp_fd();
+ 	if (fd < 0)
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-zram-fix-kconfig-dependency-warning.patch
+cgroup-fix-an-error-handling-path-in-alloc_pagecache_max_30m.patch
 
