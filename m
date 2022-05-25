@@ -2,44 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 658B1C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 25 May 2022 17:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F380C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 25 May 2022 17:49:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236196AbiEYRtE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1343506AbiEYRtE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 25 May 2022 13:49:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52816 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343511AbiEYRtC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2022 13:49:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6132D64BDF
-        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 10:48:59 -0700 (PDT)
+        with ESMTP id S1343521AbiEYRtD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2022 13:49:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C29322285
+        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 10:49:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DEAF2617F2
-        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 17:48:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37170C34114;
-        Wed, 25 May 2022 17:48:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9D762B81E8F
+        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 17:49:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FF81C34113;
+        Wed, 25 May 2022 17:48:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653500938;
-        bh=wwsDJmvkdw5LoI9GM0Y2zYanwRCxHa7OnvVOhcEnuaM=;
+        s=korg; t=1653500939;
+        bh=uEIXM3SdoY0UZ3vuxeqCBYPvgsJzy+wrBe3Yk6F5KW8=;
         h=Date:To:From:Subject:From;
-        b=rBvc+aj8DN5a+CLS0+6QG70bTQduvdfqVMCKTYsADZy030rZAPgqTaz7I/pjGGRKz
-         E5v9LVfTshYxzoXblR0SS6L6KfsPOjQqlw546g4HdWWXvd8y8yU5HddV2CaMfjHDdS
-         CX6Q2mirGtHIq73km1l9pBtXtRZAlgycKqAfk6yQ=
-Date:   Wed, 25 May 2022 10:48:57 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        usama.anjum@collabora.com, skhan@linuxfoundation.org,
-        shakeelb@google.com, rientjes@google.com, peterx@redhat.com,
-        oleg@redhat.com, minchan@kernel.org, mhocko@suse.com,
-        kirill@shutemov.name, jhubbard@nvidia.com, jannh@google.com,
-        hch@infradead.org, hannes@cmpxchg.org, guro@fb.com,
-        david@redhat.com, brauner@kernel.org, aarcange@redhat.com,
-        surenb@google.com, akpm@linux-foundation.org
+        b=tKiD5njgeyn1GzC+DSaIbDfpcU/RhRy6Z6q+MQZc6iEAIaFZrG8duKZqo0rk07ExR
+         hBOW+y/B8/bm9XYDaIrJ8jlAWZfj98j7zzqw2DxCKxRDkVGPjGFZVuu7/iEn5pJsat
+         db0YYPureqPuOTbVZm6znpMpaHSqdjchnZs4gLdM=
+Date:   Wed, 25 May 2022 10:48:58 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        Julia.Lawall@inria.fr, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-vm-add-process_mrelease-tests.patch removed from -mm tree
-Message-Id: <20220525174858.37170C34114@smtp.kernel.org>
+Subject: [merged mm-stable] ksm-fix-typo-in-comment.patch removed from -mm tree
+Message-Id: <20220525174859.3FF81C34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,311 +41,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests: vm: add process_mrelease tests
+     Subject: ksm: fix typo in comment
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-add-process_mrelease-tests.patch
+     ksm-fix-typo-in-comment.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: selftests: vm: add process_mrelease tests
-Date: Wed, 18 May 2022 13:43:16 -0700
+From: Julia Lawall <Julia.Lawall@inria.fr>
+Subject: ksm: fix typo in comment
+Date: Sat, 21 May 2022 13:11:44 +0200
 
-Introduce process_mrelease syscall sanity tests which include tests
-which expect to fail:
+Spelling mistake (triple letters) in comment.  Detected with the help of
+Coccinelle.
 
-- process_mrelease with invalid pidfd and flags inputs
-- process_mrelease on a live process with no pending signals
-
-and valid process_mrelease usage which is expected to succeed.  Because
-process_mrelease has to be used against a process with a pending SIGKILL,
-it's possible that the process exits before process_mrelease gets called. 
-In such cases we retry the test with a victim that allocates twice more
-memory up to 1GB.  This would require the victim process to spend more
-time during exit and process_mrelease has a better chance of catching the
-process before it exits and succeeding.
-
-On success the test reports the amount of memory the child had to allocate
-for reaping to succeed.  Sample output:
-
-$ mrelease_test
-Success reaping a child with 1MB of memory allocations
-
-On failure the test reports the failure. Sample outputs:
-
-$ mrelease_test
-All process_mrelease attempts failed!
-
-$ mrelease_test
-process_mrelease: Invalid argument
-
-Link: https://lkml.kernel.org/r/20220518204316.13131-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
-Acked-by: Christian Brauner (Microsoft) <brauner@kernel.org>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Link: https://lkml.kernel.org/r/20220521111145.81697-94-Julia.Lawall@inria.fr
+Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore      |    1 
- tools/testing/selftests/vm/Makefile        |    1 
- tools/testing/selftests/vm/mrelease_test.c |  200 +++++++++++++++++++
- tools/testing/selftests/vm/run_vmtests.sh  |    2 
- 4 files changed, 204 insertions(+)
+ mm/ksm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-process_mrelease-tests
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -10,6 +10,7 @@ map_populate
- thuge-gen
- compaction_test
- mlock2-tests
-+mrelease_test
- mremap_dontunmap
- mremap_test
- on-fault-limit
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-process_mrelease-tests
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -44,6 +44,7 @@ TEST_GEN_FILES += memfd_secret
- TEST_GEN_FILES += migration
- TEST_GEN_FILES += mlock-random-test
- TEST_GEN_FILES += mlock2-tests
-+TEST_GEN_FILES += mrelease_test
- TEST_GEN_FILES += mremap_dontunmap
- TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += on-fault-limit
---- /dev/null
-+++ a/tools/testing/selftests/vm/mrelease_test.c
-@@ -0,0 +1,200 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright 2022 Google LLC
-+ */
-+#define _GNU_SOURCE
-+#include <errno.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <sys/wait.h>
-+#include <unistd.h>
-+
-+#include "util.h"
-+
-+#include "../kselftest.h"
-+
-+#ifndef __NR_pidfd_open
-+#define __NR_pidfd_open -1
-+#endif
-+
-+#ifndef __NR_process_mrelease
-+#define __NR_process_mrelease -1
-+#endif
-+
-+#define MB(x) (x << 20)
-+#define MAX_SIZE_MB 1024
-+
-+static int alloc_noexit(unsigned long nr_pages, int pipefd)
-+{
-+	int ppid = getppid();
-+	int timeout = 10; /* 10sec timeout to get killed */
-+	unsigned long i;
-+	char *buf;
-+
-+	buf = (char *)mmap(NULL, nr_pages * PAGE_SIZE, PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANON, 0, 0);
-+	if (buf == MAP_FAILED) {
-+		perror("mmap failed, halting the test");
-+		return KSFT_FAIL;
-+	}
-+
-+	for (i = 0; i < nr_pages; i++)
-+		*((unsigned long *)(buf + (i * PAGE_SIZE))) = i;
-+
-+	/* Signal the parent that the child is ready */
-+	if (write(pipefd, "", 1) < 0) {
-+		perror("write");
-+		return KSFT_FAIL;
-+	}
-+
-+	/* Wait to be killed (when reparenting happens) */
-+	while (getppid() == ppid && timeout > 0) {
-+		sleep(1);
-+		timeout--;
-+	}
-+
-+	munmap(buf, nr_pages * PAGE_SIZE);
-+
-+	return (timeout > 0) ? KSFT_PASS : KSFT_FAIL;
-+}
-+
-+/* The process_mrelease calls in this test are expected to fail */
-+static void run_negative_tests(int pidfd)
-+{
-+	/* Test invalid flags. Expect to fail with EINVAL error code. */
-+	if (!syscall(__NR_process_mrelease, pidfd, (unsigned int)-1) ||
-+			errno != EINVAL) {
-+		perror("process_mrelease with wrong flags");
-+		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+	}
-+	/*
-+	 * Test reaping while process is alive with no pending SIGKILL.
-+	 * Expect to fail with EINVAL error code.
-+	 */
-+	if (!syscall(__NR_process_mrelease, pidfd, 0) || errno != EINVAL) {
-+		perror("process_mrelease on a live process");
-+		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+	}
-+}
-+
-+static int child_main(int pipefd[], size_t size)
-+{
-+	int res;
-+
-+	/* Allocate and fault-in memory and wait to be killed */
-+	close(pipefd[0]);
-+	res = alloc_noexit(MB(size) / PAGE_SIZE, pipefd[1]);
-+	close(pipefd[1]);
-+	return res;
-+}
-+
-+int main(void)
-+{
-+	int pipefd[2], pidfd;
-+	bool success, retry;
-+	size_t size;
-+	pid_t pid;
-+	char byte;
-+	int res;
-+
-+	/* Test a wrong pidfd */
-+	if (!syscall(__NR_process_mrelease, -1, 0) || errno != EBADF) {
-+		perror("process_mrelease with wrong pidfd");
-+		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+	}
-+
-+	/* Start the test with 1MB child memory allocation */
-+	size = 1;
-+retry:
-+	/*
-+	 * Pipe for the child to signal when it's done allocating
-+	 * memory
-+	 */
-+	if (pipe(pipefd)) {
-+		perror("pipe");
-+		exit(KSFT_FAIL);
-+	}
-+	pid = fork();
-+	if (pid < 0) {
-+		perror("fork");
-+		close(pipefd[0]);
-+		close(pipefd[1]);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	if (pid == 0) {
-+		/* Child main routine */
-+		res = child_main(pipefd, size);
-+		exit(res);
-+	}
-+
-+	/*
-+	 * Parent main routine:
-+	 * Wait for the child to finish allocations, then kill and reap
-+	 */
-+	close(pipefd[1]);
-+	/* Block until the child is ready */
-+	res = read(pipefd[0], &byte, 1);
-+	close(pipefd[0]);
-+	if (res < 0) {
-+		perror("read");
-+		if (!kill(pid, SIGKILL))
-+			waitpid(pid, NULL, 0);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	pidfd = syscall(__NR_pidfd_open, pid, 0);
-+	if (pidfd < 0) {
-+		perror("pidfd_open");
-+		if (!kill(pid, SIGKILL))
-+			waitpid(pid, NULL, 0);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	/* Run negative tests which require a live child */
-+	run_negative_tests(pidfd);
-+
-+	if (kill(pid, SIGKILL)) {
-+		perror("kill");
-+		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+	}
-+
-+	success = (syscall(__NR_process_mrelease, pidfd, 0) == 0);
-+	if (!success) {
-+		/*
-+		 * If we failed to reap because the child exited too soon,
-+		 * before we could call process_mrelease. Double child's memory
-+		 * which causes it to spend more time on cleanup and increases
-+		 * our chances of reaping its memory before it exits.
-+		 * Retry until we succeed or reach MAX_SIZE_MB.
-+		 */
-+		if (errno == ESRCH) {
-+			retry = (size <= MAX_SIZE_MB);
-+		} else {
-+			perror("process_mrelease");
-+			waitpid(pid, NULL, 0);
-+			exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
-+		}
-+	}
-+
-+	/* Cleanup to prevent zombies */
-+	if (waitpid(pid, NULL, 0) < 0) {
-+		perror("waitpid");
-+		exit(KSFT_FAIL);
-+	}
-+	close(pidfd);
-+
-+	if (!success) {
-+		if (retry) {
-+			size *= 2;
-+			goto retry;
-+		}
-+		printf("All process_mrelease attempts failed!\n");
-+		exit(KSFT_FAIL);
-+	}
-+
-+	printf("Success reaping a child with %zuMB of memory allocations\n",
-+	       size);
-+	return KSFT_PASS;
-+}
---- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-process_mrelease-tests
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -141,6 +141,8 @@ run_test ./mlock-random-test
- 
- run_test ./mlock2-tests
- 
-+run_test ./mrelease_test
-+
- run_test ./mremap_test
- 
- run_test ./thuge-gen
+--- a/mm/ksm.c~ksm-fix-typo-in-comment
++++ a/mm/ksm.c
+@@ -1590,7 +1590,7 @@ again:
+ 		 * the rbtree instead as a regular stable_node (in
+ 		 * order to collapse the stable_node chain if a single
+ 		 * stable_node dup was found in it). In such case the
+-		 * stable_node is overwritten by the calleee to point
++		 * stable_node is overwritten by the callee to point
+ 		 * to the stable_node_dup that was collapsed in the
+ 		 * stable rbtree and stable_node will be equal to
+ 		 * stable_node_dup like if the chain never existed.
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from Julia.Lawall@inria.fr are
 
 
