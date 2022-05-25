@@ -2,39 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD07C4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 25 May 2022 17:49:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 658B1C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 25 May 2022 17:49:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343510AbiEYRtD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 May 2022 13:49:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52752 "EHLO
+        id S236196AbiEYRtE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 May 2022 13:49:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343505AbiEYRs7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2022 13:48:59 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CC572018E
-        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 10:48:56 -0700 (PDT)
+        with ESMTP id S1343511AbiEYRtC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2022 13:49:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6132D64BDF
+        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 10:48:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DF966B81E88
-        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 17:48:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AB4FC385B8;
-        Wed, 25 May 2022 17:48:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DEAF2617F2
+        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 17:48:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37170C34114;
+        Wed, 25 May 2022 17:48:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653500933;
-        bh=o0JbUPYwhk9ZlyzWhKwLNtVUgFlIwS5IgOs2G0BhORQ=;
+        s=korg; t=1653500938;
+        bh=wwsDJmvkdw5LoI9GM0Y2zYanwRCxHa7OnvVOhcEnuaM=;
         h=Date:To:From:Subject:From;
-        b=IYUf7xlwoFC2sKXK8xcAT1u3lsPYz2GMuFOaa3uBbClyzEyp3Dp+NUrM0ZobILBoh
-         71kKwGUWMBg3+8hE236dt/0k6zQLZhA6WomWswTuG21bTji2bS0qnQbq4Nj6WZVtT5
-         0ha2GHk97dlsMLvjLr7SJzX06vXa+TQlHmkIihIQ=
-Date:   Wed, 25 May 2022 10:48:52 -0700
+        b=rBvc+aj8DN5a+CLS0+6QG70bTQduvdfqVMCKTYsADZy030rZAPgqTaz7I/pjGGRKz
+         E5v9LVfTshYxzoXblR0SS6L6KfsPOjQqlw546g4HdWWXvd8y8yU5HddV2CaMfjHDdS
+         CX6Q2mirGtHIq73km1l9pBtXtRZAlgycKqAfk6yQ=
+Date:   Wed, 25 May 2022 10:48:57 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        rostedt@goodmis.org, joe@perches.com, vvs@openvz.org,
-        akpm@linux-foundation.org
+        usama.anjum@collabora.com, skhan@linuxfoundation.org,
+        shakeelb@google.com, rientjes@google.com, peterx@redhat.com,
+        oleg@redhat.com, minchan@kernel.org, mhocko@suse.com,
+        kirill@shutemov.name, jhubbard@nvidia.com, jannh@google.com,
+        hch@infradead.org, hannes@cmpxchg.org, guro@fb.com,
+        david@redhat.com, brauner@kernel.org, aarcange@redhat.com,
+        surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] cleanup-for-tracing-incorrect-gfp_t-conversion.patch removed from -mm tree
-Message-Id: <20220525174853.7AB4FC385B8@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-vm-add-process_mrelease-tests.patch removed from -mm tree
+Message-Id: <20220525174858.37170C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,130 +47,311 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: include/trace/events/mmflags.h: cleanup for "tracing: incorrect gfp_t conversion"
+     Subject: selftests: vm: add process_mrelease tests
 has been removed from the -mm tree.  Its filename was
-     cleanup-for-tracing-incorrect-gfp_t-conversion.patch
+     selftests-vm-add-process_mrelease-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@openvz.org>
-Subject: include/trace/events/mmflags.h: cleanup for "tracing: incorrect gfp_t conversion"
-Date: Tue, 17 May 2022 09:58:14 +0300
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: selftests: vm: add process_mrelease tests
+Date: Wed, 18 May 2022 13:43:16 -0700
 
-Redefines __def_gfpflag_names array according to akpm@, willy@ and Joe
-Perches recommendations.
+Introduce process_mrelease syscall sanity tests which include tests
+which expect to fail:
 
-Link: https://lkml.kernel.org/r/6f811e19-41c6-f3e8-fca6-23a19a62e313@openvz.org
-Fixes: fe573327ffb1 ("tracing: incorrect gfp_t conversion")
-Signed-off-by: Vasily Averin <vvs@openvz.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+- process_mrelease with invalid pidfd and flags inputs
+- process_mrelease on a live process with no pending signals
+
+and valid process_mrelease usage which is expected to succeed.  Because
+process_mrelease has to be used against a process with a pending SIGKILL,
+it's possible that the process exits before process_mrelease gets called. 
+In such cases we retry the test with a victim that allocates twice more
+memory up to 1GB.  This would require the victim process to spend more
+time during exit and process_mrelease has a better chance of catching the
+process before it exits and succeeding.
+
+On success the test reports the amount of memory the child had to allocate
+for reaping to succeed.  Sample output:
+
+$ mrelease_test
+Success reaping a child with 1MB of memory allocations
+
+On failure the test reports the failure. Sample outputs:
+
+$ mrelease_test
+All process_mrelease attempts failed!
+
+$ mrelease_test
+process_mrelease: Invalid argument
+
+Link: https://lkml.kernel.org/r/20220518204316.13131-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Acked-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmflags.h |   84 +++++++++++++++----------------
- 1 file changed, 43 insertions(+), 41 deletions(-)
+ tools/testing/selftests/vm/.gitignore      |    1 
+ tools/testing/selftests/vm/Makefile        |    1 
+ tools/testing/selftests/vm/mrelease_test.c |  200 +++++++++++++++++++
+ tools/testing/selftests/vm/run_vmtests.sh  |    2 
+ 4 files changed, 204 insertions(+)
 
---- a/include/trace/events/mmflags.h~cleanup-for-tracing-incorrect-gfp_t-conversion
-+++ a/include/trace/events/mmflags.h
-@@ -13,49 +13,51 @@
-  * Thus most bits set go first.
-  */
- 
--#define __def_gfpflag_names						\
--	{(__force unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
--	{(__force unsigned long)GFP_TRANSHUGE_LIGHT,	"GFP_TRANSHUGE_LIGHT"}, \
--	{(__force unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"},\
--	{(__force unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
--	{(__force unsigned long)GFP_USER,		"GFP_USER"},		\
--	{(__force unsigned long)GFP_KERNEL_ACCOUNT,	"GFP_KERNEL_ACCOUNT"},	\
--	{(__force unsigned long)GFP_KERNEL,		"GFP_KERNEL"},		\
--	{(__force unsigned long)GFP_NOFS,		"GFP_NOFS"},		\
--	{(__force unsigned long)GFP_ATOMIC,		"GFP_ATOMIC"},		\
--	{(__force unsigned long)GFP_NOIO,		"GFP_NOIO"},		\
--	{(__force unsigned long)GFP_NOWAIT,		"GFP_NOWAIT"},		\
--	{(__force unsigned long)GFP_DMA,		"GFP_DMA"},		\
--	{(__force unsigned long)__GFP_HIGHMEM,		"__GFP_HIGHMEM"},	\
--	{(__force unsigned long)GFP_DMA32,		"GFP_DMA32"},		\
--	{(__force unsigned long)__GFP_HIGH,		"__GFP_HIGH"},		\
--	{(__force unsigned long)__GFP_ATOMIC,		"__GFP_ATOMIC"},	\
--	{(__force unsigned long)__GFP_IO,		"__GFP_IO"},		\
--	{(__force unsigned long)__GFP_FS,		"__GFP_FS"},		\
--	{(__force unsigned long)__GFP_NOWARN,		"__GFP_NOWARN"},	\
--	{(__force unsigned long)__GFP_RETRY_MAYFAIL,	"__GFP_RETRY_MAYFAIL"},	\
--	{(__force unsigned long)__GFP_NOFAIL,		"__GFP_NOFAIL"},	\
--	{(__force unsigned long)__GFP_NORETRY,		"__GFP_NORETRY"},	\
--	{(__force unsigned long)__GFP_COMP,		"__GFP_COMP"},		\
--	{(__force unsigned long)__GFP_ZERO,		"__GFP_ZERO"},		\
--	{(__force unsigned long)__GFP_NOMEMALLOC,	"__GFP_NOMEMALLOC"},	\
--	{(__force unsigned long)__GFP_MEMALLOC,		"__GFP_MEMALLOC"},	\
--	{(__force unsigned long)__GFP_HARDWALL,		"__GFP_HARDWALL"},	\
--	{(__force unsigned long)__GFP_THISNODE,		"__GFP_THISNODE"},	\
--	{(__force unsigned long)__GFP_RECLAIMABLE,	"__GFP_RECLAIMABLE"},	\
--	{(__force unsigned long)__GFP_MOVABLE,		"__GFP_MOVABLE"},	\
--	{(__force unsigned long)__GFP_ACCOUNT,		"__GFP_ACCOUNT"},	\
--	{(__force unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
--	{(__force unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
--	{(__force unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
--	{(__force unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
--	{(__force unsigned long)__GFP_ZEROTAGS,		"__GFP_ZEROTAGS"}	\
-+#define gfpflag_string(flag) {(__force unsigned long)flag, #flag}
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-process_mrelease-tests
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -10,6 +10,7 @@ map_populate
+ thuge-gen
+ compaction_test
+ mlock2-tests
++mrelease_test
+ mremap_dontunmap
+ mremap_test
+ on-fault-limit
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-process_mrelease-tests
++++ a/tools/testing/selftests/vm/Makefile
+@@ -44,6 +44,7 @@ TEST_GEN_FILES += memfd_secret
+ TEST_GEN_FILES += migration
+ TEST_GEN_FILES += mlock-random-test
+ TEST_GEN_FILES += mlock2-tests
++TEST_GEN_FILES += mrelease_test
+ TEST_GEN_FILES += mremap_dontunmap
+ TEST_GEN_FILES += mremap_test
+ TEST_GEN_FILES += on-fault-limit
+--- /dev/null
++++ a/tools/testing/selftests/vm/mrelease_test.c
+@@ -0,0 +1,200 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright 2022 Google LLC
++ */
++#define _GNU_SOURCE
++#include <errno.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/wait.h>
++#include <unistd.h>
 +
-+#define __def_gfpflag_names			\
-+	gfpflag_string(GFP_TRANSHUGE),		\
-+	gfpflag_string(GFP_TRANSHUGE_LIGHT),	\
-+	gfpflag_string(GFP_HIGHUSER_MOVABLE),	\
-+	gfpflag_string(GFP_HIGHUSER),		\
-+	gfpflag_string(GFP_USER),		\
-+	gfpflag_string(GFP_KERNEL_ACCOUNT),	\
-+	gfpflag_string(GFP_KERNEL),		\
-+	gfpflag_string(GFP_NOFS),		\
-+	gfpflag_string(GFP_ATOMIC),		\
-+	gfpflag_string(GFP_NOIO),		\
-+	gfpflag_string(GFP_NOWAIT),		\
-+	gfpflag_string(GFP_DMA),		\
-+	gfpflag_string(__GFP_HIGHMEM),		\
-+	gfpflag_string(GFP_DMA32),		\
-+	gfpflag_string(__GFP_HIGH),		\
-+	gfpflag_string(__GFP_ATOMIC),		\
-+	gfpflag_string(__GFP_IO),		\
-+	gfpflag_string(__GFP_FS),		\
-+	gfpflag_string(__GFP_NOWARN),		\
-+	gfpflag_string(__GFP_RETRY_MAYFAIL),	\
-+	gfpflag_string(__GFP_NOFAIL),		\
-+	gfpflag_string(__GFP_NORETRY),		\
-+	gfpflag_string(__GFP_COMP),		\
-+	gfpflag_string(__GFP_ZERO),		\
-+	gfpflag_string(__GFP_NOMEMALLOC),	\
-+	gfpflag_string(__GFP_MEMALLOC),		\
-+	gfpflag_string(__GFP_HARDWALL),		\
-+	gfpflag_string(__GFP_THISNODE),		\
-+	gfpflag_string(__GFP_RECLAIMABLE),	\
-+	gfpflag_string(__GFP_MOVABLE),		\
-+	gfpflag_string(__GFP_ACCOUNT),		\
-+	gfpflag_string(__GFP_WRITE),		\
-+	gfpflag_string(__GFP_RECLAIM),		\
-+	gfpflag_string(__GFP_DIRECT_RECLAIM),	\
-+	gfpflag_string(__GFP_KSWAPD_RECLAIM),	\
-+	gfpflag_string(__GFP_ZEROTAGS)
++#include "util.h"
++
++#include "../kselftest.h"
++
++#ifndef __NR_pidfd_open
++#define __NR_pidfd_open -1
++#endif
++
++#ifndef __NR_process_mrelease
++#define __NR_process_mrelease -1
++#endif
++
++#define MB(x) (x << 20)
++#define MAX_SIZE_MB 1024
++
++static int alloc_noexit(unsigned long nr_pages, int pipefd)
++{
++	int ppid = getppid();
++	int timeout = 10; /* 10sec timeout to get killed */
++	unsigned long i;
++	char *buf;
++
++	buf = (char *)mmap(NULL, nr_pages * PAGE_SIZE, PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANON, 0, 0);
++	if (buf == MAP_FAILED) {
++		perror("mmap failed, halting the test");
++		return KSFT_FAIL;
++	}
++
++	for (i = 0; i < nr_pages; i++)
++		*((unsigned long *)(buf + (i * PAGE_SIZE))) = i;
++
++	/* Signal the parent that the child is ready */
++	if (write(pipefd, "", 1) < 0) {
++		perror("write");
++		return KSFT_FAIL;
++	}
++
++	/* Wait to be killed (when reparenting happens) */
++	while (getppid() == ppid && timeout > 0) {
++		sleep(1);
++		timeout--;
++	}
++
++	munmap(buf, nr_pages * PAGE_SIZE);
++
++	return (timeout > 0) ? KSFT_PASS : KSFT_FAIL;
++}
++
++/* The process_mrelease calls in this test are expected to fail */
++static void run_negative_tests(int pidfd)
++{
++	/* Test invalid flags. Expect to fail with EINVAL error code. */
++	if (!syscall(__NR_process_mrelease, pidfd, (unsigned int)-1) ||
++			errno != EINVAL) {
++		perror("process_mrelease with wrong flags");
++		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++	}
++	/*
++	 * Test reaping while process is alive with no pending SIGKILL.
++	 * Expect to fail with EINVAL error code.
++	 */
++	if (!syscall(__NR_process_mrelease, pidfd, 0) || errno != EINVAL) {
++		perror("process_mrelease on a live process");
++		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++	}
++}
++
++static int child_main(int pipefd[], size_t size)
++{
++	int res;
++
++	/* Allocate and fault-in memory and wait to be killed */
++	close(pipefd[0]);
++	res = alloc_noexit(MB(size) / PAGE_SIZE, pipefd[1]);
++	close(pipefd[1]);
++	return res;
++}
++
++int main(void)
++{
++	int pipefd[2], pidfd;
++	bool success, retry;
++	size_t size;
++	pid_t pid;
++	char byte;
++	int res;
++
++	/* Test a wrong pidfd */
++	if (!syscall(__NR_process_mrelease, -1, 0) || errno != EBADF) {
++		perror("process_mrelease with wrong pidfd");
++		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++	}
++
++	/* Start the test with 1MB child memory allocation */
++	size = 1;
++retry:
++	/*
++	 * Pipe for the child to signal when it's done allocating
++	 * memory
++	 */
++	if (pipe(pipefd)) {
++		perror("pipe");
++		exit(KSFT_FAIL);
++	}
++	pid = fork();
++	if (pid < 0) {
++		perror("fork");
++		close(pipefd[0]);
++		close(pipefd[1]);
++		exit(KSFT_FAIL);
++	}
++
++	if (pid == 0) {
++		/* Child main routine */
++		res = child_main(pipefd, size);
++		exit(res);
++	}
++
++	/*
++	 * Parent main routine:
++	 * Wait for the child to finish allocations, then kill and reap
++	 */
++	close(pipefd[1]);
++	/* Block until the child is ready */
++	res = read(pipefd[0], &byte, 1);
++	close(pipefd[0]);
++	if (res < 0) {
++		perror("read");
++		if (!kill(pid, SIGKILL))
++			waitpid(pid, NULL, 0);
++		exit(KSFT_FAIL);
++	}
++
++	pidfd = syscall(__NR_pidfd_open, pid, 0);
++	if (pidfd < 0) {
++		perror("pidfd_open");
++		if (!kill(pid, SIGKILL))
++			waitpid(pid, NULL, 0);
++		exit(KSFT_FAIL);
++	}
++
++	/* Run negative tests which require a live child */
++	run_negative_tests(pidfd);
++
++	if (kill(pid, SIGKILL)) {
++		perror("kill");
++		exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++	}
++
++	success = (syscall(__NR_process_mrelease, pidfd, 0) == 0);
++	if (!success) {
++		/*
++		 * If we failed to reap because the child exited too soon,
++		 * before we could call process_mrelease. Double child's memory
++		 * which causes it to spend more time on cleanup and increases
++		 * our chances of reaping its memory before it exits.
++		 * Retry until we succeed or reach MAX_SIZE_MB.
++		 */
++		if (errno == ESRCH) {
++			retry = (size <= MAX_SIZE_MB);
++		} else {
++			perror("process_mrelease");
++			waitpid(pid, NULL, 0);
++			exit(errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
++		}
++	}
++
++	/* Cleanup to prevent zombies */
++	if (waitpid(pid, NULL, 0) < 0) {
++		perror("waitpid");
++		exit(KSFT_FAIL);
++	}
++	close(pidfd);
++
++	if (!success) {
++		if (retry) {
++			size *= 2;
++			goto retry;
++		}
++		printf("All process_mrelease attempts failed!\n");
++		exit(KSFT_FAIL);
++	}
++
++	printf("Success reaping a child with %zuMB of memory allocations\n",
++	       size);
++	return KSFT_PASS;
++}
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-process_mrelease-tests
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -141,6 +141,8 @@ run_test ./mlock-random-test
  
- #ifdef CONFIG_KASAN_HW_TAGS
--#define __def_gfpflag_names_kasan ,					       \
--	{(__force unsigned long)__GFP_SKIP_ZERO,	   "__GFP_SKIP_ZERO"},	       \
--	{(__force unsigned long)__GFP_SKIP_KASAN_POISON,   "__GFP_SKIP_KASAN_POISON"}, \
--	{(__force unsigned long)__GFP_SKIP_KASAN_UNPOISON, "__GFP_SKIP_KASAN_UNPOISON"}
-+#define __def_gfpflag_names_kasan ,			\
-+	gfpflag_string(__GFP_SKIP_ZERO),		\
-+	gfpflag_string(__GFP_SKIP_KASAN_POISON),	\
-+	gfpflag_string(__GFP_SKIP_KASAN_UNPOISON)
- #else
- #define __def_gfpflag_names_kasan
- #endif
+ run_test ./mlock2-tests
+ 
++run_test ./mrelease_test
++
+ run_test ./mremap_test
+ 
+ run_test ./thuge-gen
 _
 
-Patches currently in -mm which might be from vvs@openvz.org are
+Patches currently in -mm which might be from surenb@google.com are
 
 
