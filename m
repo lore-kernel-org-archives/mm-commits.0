@@ -2,102 +2,115 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A020FC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 25 May 2022 19:06:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC8A0C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 25 May 2022 20:06:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230026AbiEYTGP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 May 2022 15:06:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46408 "EHLO
+        id S1343956AbiEYUGn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 May 2022 16:06:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232941AbiEYTGO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2022 15:06:14 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A567D101CB
-        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 12:06:12 -0700 (PDT)
+        with ESMTP id S235125AbiEYUGc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2022 16:06:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 084E65FAD
+        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 13:06:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 0339ECE1EA4
-        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 19:06:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 583E3C385B8;
-        Wed, 25 May 2022 19:06:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 815B961A0F
+        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 20:06:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAC9BC385B8;
+        Wed, 25 May 2022 20:06:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653505569;
-        bh=LHJkRjcfAafIiPmHRnU4HkSQYWuQEyj4okbKPNRZ9cI=;
+        s=korg; t=1653509187;
+        bh=LF3dpNUPlOEyjKGOi31SkTUCF4m49YVm7XlJcX9Y31c=;
         h=Date:To:From:Subject:From;
-        b=S1fJyrnHxgfDI/WCt88Gp7O9eFzfU/adyi7xfM0F1tNHDSE01keNxrTpdlTtTgb4e
-         hyhw1xJ6Loesg4SEbalAJodK2AoFDJdeVhdXWlxbHasiOLsUGuM6c/MNuUwymnpfC7
-         VLe2aJKQi7hyMsyI9qPoOqhoRiKQQKBAzi/l4Buc=
-Date:   Wed, 25 May 2022 12:06:08 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        dhowells@redhat.com, joe@perches.com, akpm@linux-foundation.org
+        b=RtfQnZ/tHZiLPCpbe0E+P/63qEm0DmvFSYKpziOda1YF4HlP2lBOtoMMAgHPB6kWT
+         N5/UZFk/kadz4H7xr9QPgEo95kZ/UjK+TKNLjH/YWHRqVRqNHD0Y0SaXilza8fckYt
+         C68a7phGOWoZbW14F9jGUSkuoeoCEgEdhEejVDWk=
+Date:   Wed, 25 May 2022 13:06:27 -0700
+To:     mm-commits@vger.kernel.org, dvyukov@google.com,
+        andreyknvl@gmail.com, liu3101@purdue.edu, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-add-xa_state-and-xa_state_order-to-the-macro-declaration-list.patch added to mm-nonmm-unstable branch
-Message-Id: <20220525190609.583E3C385B8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kcov-update-pos-before-writing-pc-in-trace-function.patch removed from -mm tree
+Message-Id: <20220525200627.CAC9BC385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: checkpatch: add XA_STATE and XA_STATE_ORDER to the macro declaration list
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-add-xa_state-and-xa_state_order-to-the-macro-declaration-list.patch
+The quilt patch titled
+     Subject: kcov: update pos before writing pc in trace function
+has been removed from the -mm tree.  Its filename was
+     kcov-update-pos-before-writing-pc-in-trace-function.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-xa_state-and-xa_state_order-to-the-macro-declaration-list.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add XA_STATE and XA_STATE_ORDER to the macro declaration list
-Date: Wed, 25 May 2022 12:03:17 -0700
+From: Congyu Liu <liu3101@purdue.edu>
+Subject: kcov: update pos before writing pc in trace function
+Date: Mon, 23 May 2022 05:35:31 +0000
 
-XA_STATE() and XA_STATE_ORDER macro uses are declarations.
+In __sanitizer_cov_trace_pc(), previously we write pc before updating pos.
+However, some early interrupt code could bypass check_kcov_mode() check
+and invoke __sanitizer_cov_trace_pc().  If such interrupt is raised
+between writing pc and updating pos, the pc could be overitten by the
+recursive __sanitizer_cov_trace_pc().
 
-Add them to the declaration macro list to avoid suggesting a blank line
-after declarations when used.
+As suggested by Dmitry, we cold update pos before writing pc to avoid such
+interleaving.
 
-Link: https://lkml.kernel.org/r/144314f4bf2c58cf2336028a75a5127e848abd81.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: David Howells <dhowells@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Apply the same change to write_comp_data().
+
+Link: https://lkml.kernel.org/r/20220523053531.1572793-1-liu3101@purdue.edu
+Signed-off-by: Congyu Liu <liu3101@purdue.edu>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/kcov.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-xa_state-and-xa_state_order-to-the-macro-declaration-list
-+++ a/scripts/checkpatch.pl
-@@ -1042,7 +1042,8 @@ our $FuncArg = qr{$Typecast{0,1}($LvalOr
- our $declaration_macros = qr{(?x:
- 	(?:$Storage\s+)?(?:[A-Z_][A-Z0-9]*_){0,2}(?:DEFINE|DECLARE)(?:_[A-Z0-9]+){1,6}\s*\(|
- 	(?:$Storage\s+)?[HLP]?LIST_HEAD\s*\(|
--	(?:SKCIPHER_REQUEST|SHASH_DESC|AHASH_REQUEST)_ON_STACK\s*\(
-+	(?:SKCIPHER_REQUEST|SHASH_DESC|AHASH_REQUEST)_ON_STACK\s*\(|
-+	(?:$Storage\s+)?(?:XA_STATE|XA_STATE_ORDER)\s*\(
- )};
+--- a/kernel/kcov.c~kcov-update-pos-before-writing-pc-in-trace-function
++++ a/kernel/kcov.c
+@@ -204,8 +204,16 @@ void notrace __sanitizer_cov_trace_pc(vo
+ 	/* The first 64-bit word is the number of subsequent PCs. */
+ 	pos = READ_ONCE(area[0]) + 1;
+ 	if (likely(pos < t->kcov_size)) {
+-		area[pos] = ip;
++		/* Previously we write pc before updating pos. However, some
++		 * early interrupt code could bypass check_kcov_mode() check
++		 * and invoke __sanitizer_cov_trace_pc(). If such interrupt is
++		 * raised between writing pc and updating pos, the pc could be
++		 * overitten by the recursive __sanitizer_cov_trace_pc().
++		 * Update pos before writing pc to avoid such interleaving.
++		 */
+ 		WRITE_ONCE(area[0], pos);
++		barrier();
++		area[pos] = ip;
+ 	}
+ }
+ EXPORT_SYMBOL(__sanitizer_cov_trace_pc);
+@@ -236,11 +244,13 @@ static void notrace write_comp_data(u64
+ 	start_index = 1 + count * KCOV_WORDS_PER_CMP;
+ 	end_pos = (start_index + KCOV_WORDS_PER_CMP) * sizeof(u64);
+ 	if (likely(end_pos <= max_pos)) {
++		/* See comment in __sanitizer_cov_trace_pc(). */
++		WRITE_ONCE(area[0], count + 1);
++		barrier();
+ 		area[start_index] = type;
+ 		area[start_index + 1] = arg1;
+ 		area[start_index + 2] = arg2;
+ 		area[start_index + 3] = ip;
+-		WRITE_ONCE(area[0], count + 1);
+ 	}
+ }
  
- our %allow_repeated_words = (
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from liu3101@purdue.edu are
 
-checkpatch-add-xa_state-and-xa_state_order-to-the-macro-declaration-list.patch
 
