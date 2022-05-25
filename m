@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C4CEC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 25 May 2022 17:45:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7C7BC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 25 May 2022 17:49:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245747AbiEYRp2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 May 2022 13:45:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50358 "EHLO
+        id S1343501AbiEYRtD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 May 2022 13:49:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245188AbiEYRpY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2022 13:45:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30E489D06A
-        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 10:45:24 -0700 (PDT)
+        with ESMTP id S1343504AbiEYRs7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2022 13:48:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6108E50B3E
+        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 10:48:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C1FF3617B1
-        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 17:45:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1990DC385B8;
-        Wed, 25 May 2022 17:45:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 05A82B81E8F
+        for <mm-commits@vger.kernel.org>; Wed, 25 May 2022 17:48:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 893A5C34113;
+        Wed, 25 May 2022 17:48:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653500723;
-        bh=6wN5iXH3VfKC/joDNOU4O/+sJQ9X+8gRNpS/d2AeLh8=;
+        s=korg; t=1653500934;
+        bh=TYUsdTUWIoiaN7kC0iRJnQz4U4PiaIDMsdh/Qgi7x5o=;
         h=Date:To:From:Subject:From;
-        b=ENdB0SMd1VWL+RBEkLS2J1bvluVUBQtXWAu+oQoXm3fxEfaCCdLKBDVrUyppiYTOd
-         xCExntKU9QvG8l6B189h0wBOt6M0tZ1iV07OHmw+VJfmaAFJX3SxXGvFDYTb/peC19
-         eFRTerYzpfAN617sY+IMrL6szcF1YlB9vAOiVrj8=
-Date:   Wed, 25 May 2022 10:45:22 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, vbabka@suse.cz,
-        sfr@canb.auug.org.au, rppt@linux.ibm.com, renzhengeek@gmail.com,
-        quic_qiancai@quicinc.com, osalvador@suse.de, minchan@kernel.org,
-        mgorman@techsingularity.net, david@redhat.com,
-        christophe.leroy@csgroup.eu, akpm@linux-foundation.org,
+        b=NP+0qQJbfxZk+gItuTRr7j7Jy6foyYPpOXg7KjN6uKyHcy78Tchdr1Uj+eyNzDzSI
+         dnpyb7ag+9XmUnaVPAr7tMSz+roXEuCS6LJeqIXWa/Z8WmK/Y+gWQ968ZeiDASdurF
+         aT0BI1zf6wQlvyAx0e5pKHssxZzSQ9D4LdGuPrq0=
+Date:   Wed, 25 May 2022 10:48:53 -0700
+To:     mm-commits@vger.kernel.org, vvs@openvz.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-a-potential-infinite-loop-in-start_isolate_page_range-fix.patch removed from -mm tree
-Message-Id: <20220525174523.1990DC385B8@smtp.kernel.org>
+Subject: [merged mm-stable] cleanup-for-percpu-improve-percpu_alloc_percpu-event-trace.patch removed from -mm tree
+Message-Id: <20220525174854.893A5C34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,57 +41,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-fix-a-potential-infinite-loop-in-start_isolate_page_range-fix
+     Subject: include/trace/events/percpu.h: cleanup for "percpu: improve percpu_alloc_percpu event trace"
 has been removed from the -mm tree.  Its filename was
-     mm-fix-a-potential-infinite-loop-in-start_isolate_page_range-fix.patch
+     cleanup-for-percpu-improve-percpu_alloc_percpu-event-trace.patch
 
-This patch was dropped because it was folded into mm-fix-a-potential-infinite-loop-in-start_isolate_page_range.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-a-potential-infinite-loop-in-start_isolate_page_range-fix
-Date: Wed May 25 10:34:12 AM PDT 2022
+From: Vasily Averin <vvs@openvz.org>
+Subject: include/trace/events/percpu.h: cleanup for "percpu: improve percpu_alloc_percpu event trace"
+Date: Tue, 17 May 2022 09:55:51 +0300
 
-suppressmin() warning
+Fix sparse warning about incorrect gfp_t cast.
 
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Eric Ren <renzhengeek@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Qian Cai <quic_qiancai@quicinc.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/001979f3-e978-0998-cbed-61a4a2ac87b8@openvz.org
+Fixes: f67bed134a05 ("percpu: improve percpu_alloc_percpu event trace")
+Signed-off-by: Vasily Averin <vvs@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/trace/events/percpu.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-fix-a-potential-infinite-loop-in-start_isolate_page_range-fix
-+++ a/mm/page_alloc.c
-@@ -1123,7 +1123,9 @@ void split_free_page(struct page *free_p
- 	     pfn < free_page_pfn + (1UL << order);) {
- 		int mt = get_pfnblock_migratetype(pfn_to_page(pfn), pfn);
+--- a/include/trace/events/percpu.h~cleanup-for-percpu-improve-percpu_alloc_percpu-event-trace
++++ a/include/trace/events/percpu.h
+@@ -28,7 +28,7 @@ TRACE_EVENT(percpu_alloc_percpu,
+ 		__field(	int,			off		)
+ 		__field(	void __percpu *,	ptr		)
+ 		__field(	size_t,			bytes_alloc	)
+-		__field(	gfp_t,			gfp_flags	)
++		__field(	unsigned long,		gfp_flags	)
+ 	),
+ 	TP_fast_assign(
+ 		__entry->call_site	= call_site;
+@@ -40,7 +40,7 @@ TRACE_EVENT(percpu_alloc_percpu,
+ 		__entry->off		= off;
+ 		__entry->ptr		= ptr;
+ 		__entry->bytes_alloc	= bytes_alloc;
+-		__entry->gfp_flags	= gfp_flags;
++		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+ 	),
  
--		free_page_order = min(pfn ? __ffs(pfn) : order, __fls(split_pfn_offset));
-+		free_page_order = min_t(int,
-+					pfn ? __ffs(pfn) : order,
-+					__fls(split_pfn_offset));
- 		__free_one_page(pfn_to_page(pfn), pfn, zone, free_page_order,
- 				mt, FPI_NONE);
- 		pfn += 1UL << free_page_order;
+ 	TP_printk("call_site=%pS reserved=%d is_atomic=%d size=%zu align=%zu base_addr=%p off=%d ptr=%p bytes_alloc=%zu gfp_flags=%s",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vvs@openvz.org are
 
-mm-fix-a-potential-infinite-loop-in-start_isolate_page_range.patch
-mm-page_alloc-remotely-drain-per-cpu-lists-checkpatch-fixes.patch
-kexec_file-drop-weak-attribute-from-arch_kexec_apply_relocations-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
 
