@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B57CC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 26 May 2022 18:03:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A81AC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 26 May 2022 18:05:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236668AbiEZSDG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 May 2022 14:03:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57418 "EHLO
+        id S241671AbiEZSFa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 May 2022 14:05:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230133AbiEZSDG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2022 14:03:06 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C657A8892
-        for <mm-commits@vger.kernel.org>; Thu, 26 May 2022 11:03:04 -0700 (PDT)
+        with ESMTP id S230133AbiEZSF3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2022 14:05:29 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE875A76E7;
+        Thu, 26 May 2022 11:05:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5126DB821A7
-        for <mm-commits@vger.kernel.org>; Thu, 26 May 2022 18:03:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A3FC385A9;
-        Thu, 26 May 2022 18:03:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 81F5BB82053;
+        Thu, 26 May 2022 18:05:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 275A9C34116;
+        Thu, 26 May 2022 18:05:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653588182;
-        bh=1C4V2iLj9x4ocN0VC/2EuVqJscG/C0Zr5gEjAK+yd3s=;
+        s=korg; t=1653588324;
+        bh=+NJb8Kdj3a3U/ZXqNggQ5xmvnrIEU1xTrnczpeU/xR8=;
         h=Date:To:From:Subject:From;
-        b=jGkcEJA8ol5S7fGov0W/2T1l6r2aTfNANehfX1ql5lx3pIeWEBSnpkHGUN8UhnKN2
-         HWbg/aID9zFKk0rSOBo1jVvipCE28+3nWfw1SP3Qdy4yEEa36x33RTq/fPt6eou4jk
-         2bGu+O2SN6WMV50yy/pj3NHkQoPACRSsmzJ5gEi4=
-Date:   Thu, 26 May 2022 11:03:01 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        peterx@redhat.com, akpm@linux-foundation.org
+        b=dq8GdGiek9yraxzfwK2b44u+Mk+SwJ2bSPExqTvT7zu61SUsAgrBPe/hnT3UStiQY
+         o8s32SQ9NUAm2N0aODgO4pPtW/rvWiPZJzzd/8wGmCGsDWaKZapaNeQGn5NPox+HLy
+         bhX4DC/VvxYe/vez5srRH/D2SBRVln+PuCPNN5tU=
+Date:   Thu, 26 May 2022 11:05:23 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
+        jack@suse.cz, djwong@kernel.org, dchinner@redhat.com,
+        chuck.lever@oracle.com, brouer@redhat.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-x86-remove-dead-code-for-hugetlbpagec.patch added to mm-unstable branch
-Message-Id: <20220526180302.08A3FC385A9@smtp.kernel.org>
+Subject: + mm-page_alloc-always-attempt-to-allocate-at-least-one-page-during-bulk-allocation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220526180524.275A9C34116@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/x86: remove dead code for hugetlbpage.c
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-x86-remove-dead-code-for-hugetlbpagec.patch
+     Subject: mm/page_alloc: always attempt to allocate at least one page during bulk allocation
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_alloc-always-attempt-to-allocate-at-least-one-page-during-bulk-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-x86-remove-dead-code-for-hugetlbpagec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-always-attempt-to-allocate-at-least-one-page-during-bulk-allocation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,79 +66,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/x86: remove dead code for hugetlbpage.c
-Date: Wed, 25 May 2022 15:52:20 -0400
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: always attempt to allocate at least one page during bulk allocation
+Date: Thu, 26 May 2022 10:12:10 +0100
 
-It seems to exist since the old times and never used once.  Remove them.
+Peter Pavlisko reported the following problem on kernel bugzilla 216007.
 
-Link: https://lkml.kernel.org/r/20220525195220.10241-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
+	When I try to extract an uncompressed tar archive (2.6 milion
+	files, 760.3 GiB in size) on newly created (empty) XFS file system,
+	after first low tens of gigabytes extracted the process hangs in
+	iowait indefinitely. One CPU core is 100% occupied with iowait,
+	the other CPU core is idle (on 2-core Intel Celeron G1610T).
+
+It was bisected to c9fa563072e1 ("xfs: use alloc_pages_bulk_array() for
+buffers") but XFS is only the messenger.  The problem is that nothing is
+waking kswapd to reclaim some pages at a time the PCP lists cannot be
+refilled until some reclaim happens.  The bulk allocator checks that there
+are some pages in the array and the original intent was that a bulk
+allocator did not necessarily need all the requested pages and it was best
+to return as quickly as possible.
+
+This was fine for the first user of the API but both NFS and XFS require
+the requested number of pages be available before making progress.  Both
+could be adjusted to call the page allocator directly if a bulk allocation
+fails but it puts a burden on users of the API.  Adjust the semantics to
+attempt at least one allocation via __alloc_pages() before returning so
+kswapd is woken if necessary.
+
+It was reported via bugzilla that the patch addressed the problem and that
+the tar extraction completed successfully.  This may also address bug
+215975 but has yet to be confirmed.
+
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=216007
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=215975
+Link: https://lkml.kernel.org/r/20220526091210.GC3441@techsingularity.net
+Fixes: 387ba26fb1cb ("mm/page_alloc: add a bulk page allocator")
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: <stable@vger.kernel.org> # v5.13+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |   39 ------------------------------------
- 1 file changed, 39 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/x86/mm/hugetlbpage.c~mm-x86-remove-dead-code-for-hugetlbpagec
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -19,44 +19,6 @@
- #include <asm/tlbflush.h>
- #include <asm/elf.h>
- 
--#if 0	/* This is just for testing */
--struct page *
--follow_huge_addr(struct mm_struct *mm, unsigned long address, int write)
--{
--	unsigned long start = address;
--	int length = 1;
--	int nr;
--	struct page *page;
--	struct vm_area_struct *vma;
--
--	vma = find_vma(mm, addr);
--	if (!vma || !is_vm_hugetlb_page(vma))
--		return ERR_PTR(-EINVAL);
--
--	pte = huge_pte_offset(mm, address, vma_mmu_pagesize(vma));
--
--	/* hugetlb should be locked, and hence, prefaulted */
--	WARN_ON(!pte || pte_none(*pte));
--
--	page = &pte_page(*pte)[vpfn % (HPAGE_SIZE/PAGE_SIZE)];
--
--	WARN_ON(!PageHead(page));
--
--	return page;
--}
--
--int pmd_huge(pmd_t pmd)
--{
--	return 0;
--}
--
--int pud_huge(pud_t pud)
--{
--	return 0;
--}
--
--#else
--
- /*
-  * pmd_huge() returns 1 if @pmd is hugetlb related entry, that is normal
-  * hugetlb entry or non-present (migration or hwpoisoned) hugetlb entry.
-@@ -72,7 +34,6 @@ int pud_huge(pud_t pud)
- {
- 	return !!(pud_val(pud) & _PAGE_PSE);
- }
--#endif
- 
- #ifdef CONFIG_HUGETLB_PAGE
- static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *file,
+--- a/mm/page_alloc.c~mm-page_alloc-always-attempt-to-allocate-at-least-one-page-during-bulk-allocation
++++ a/mm/page_alloc.c
+@@ -5324,8 +5324,8 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		page = __rmqueue_pcplist(zone, 0, ac.migratetype, alloc_flags,
+ 								pcp, pcp_list);
+ 		if (unlikely(!page)) {
+-			/* Try and get at least one page */
+-			if (!nr_populated)
++			/* Try and allocate at least one page */
++			if (!nr_account)
+ 				goto failed_irq;
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-x86-remove-dead-code-for-hugetlbpagec.patch
+mm-page_alloc-always-attempt-to-allocate-at-least-one-page-during-bulk-allocation.patch
+mm-page_alloc-add-page-buddy_list-and-page-pcp_list.patch
+mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
+mm-page_alloc-split-out-buddy-removal-code-from-rmqueue-into-separate-helper.patch
+mm-page_alloc-protect-pcp-lists-with-a-spinlock.patch
 
