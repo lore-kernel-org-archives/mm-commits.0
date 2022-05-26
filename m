@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B456EC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 26 May 2022 17:53:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B57CC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 26 May 2022 18:03:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234658AbiEZRx7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 May 2022 13:53:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50012 "EHLO
+        id S236668AbiEZSDG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 May 2022 14:03:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232984AbiEZRx6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2022 13:53:58 -0400
+        with ESMTP id S230133AbiEZSDG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2022 14:03:06 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84372A0D25
-        for <mm-commits@vger.kernel.org>; Thu, 26 May 2022 10:53:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C657A8892
+        for <mm-commits@vger.kernel.org>; Thu, 26 May 2022 11:03:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 237FAB82057
-        for <mm-commits@vger.kernel.org>; Thu, 26 May 2022 17:53:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF2ABC385A9;
-        Thu, 26 May 2022 17:53:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5126DB821A7
+        for <mm-commits@vger.kernel.org>; Thu, 26 May 2022 18:03:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A3FC385A9;
+        Thu, 26 May 2022 18:03:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653587633;
-        bh=3gAb4R80B6XOnR9izvSGDKK9dcc2SasjhmbmzsfKXV8=;
+        s=korg; t=1653588182;
+        bh=1C4V2iLj9x4ocN0VC/2EuVqJscG/C0Zr5gEjAK+yd3s=;
         h=Date:To:From:Subject:From;
-        b=D62V6MC38Wy7JU/pLe3qah7+y6r/E8HsxYAgaRv45RPRnNvWbUCuQNqP0CPs2jD4H
-         Xtv45uyd1FhgvrEwgVRMb7simp2lXDdlwUl7dNN+lT9eVy/aR9JJDBiIwiuOtjxkwe
-         eXoK0UcYOps7nuO2Bu3s7N98Hu1/uzoHx/CF0qyQ=
-Date:   Thu, 26 May 2022 10:53:53 -0700
-To:     mm-commits@vger.kernel.org, urezki@gmail.com, ke.wang@unisoc.com,
-        hch@lst.de, zhaoyang.huang@unisoc.com, akpm@linux-foundation.org
+        b=jGkcEJA8ol5S7fGov0W/2T1l6r2aTfNANehfX1ql5lx3pIeWEBSnpkHGUN8UhnKN2
+         HWbg/aID9zFKk0rSOBo1jVvipCE28+3nWfw1SP3Qdy4yEEa36x33RTq/fPt6eou4jk
+         2bGu+O2SN6WMV50yy/pj3NHkQoPACRSsmzJ5gEi4=
+Date:   Thu, 26 May 2022 11:03:01 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-racing-of-vb-va-when-kasan-enabled.patch added to mm-unstable branch
-Message-Id: <20220526175353.BF2ABC385A9@smtp.kernel.org>
+Subject: + mm-x86-remove-dead-code-for-hugetlbpagec.patch added to mm-unstable branch
+Message-Id: <20220526180302.08A3FC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix racing of vb->va when kasan enabled
+     Subject: mm/x86: remove dead code for hugetlbpage.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-racing-of-vb-va-when-kasan-enabled.patch
+     mm-x86-remove-dead-code-for-hugetlbpagec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-racing-of-vb-va-when-kasan-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-x86-remove-dead-code-for-hugetlbpagec.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,103 +64,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: mm: fix racing of vb->va when kasan enabled
-Date: Wed, 25 May 2022 10:52:44 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/x86: remove dead code for hugetlbpage.c
+Date: Wed, 25 May 2022 15:52:20 -0400
 
-Access to vb->va could be deemed as use after free when KASAN is enabled
-like below.  Fix it by expanding the mutex's range.
+It seems to exist since the old times and never used once.  Remove them.
 
-[   20.232335] ==================================================================
-[   20.232365] BUG: KASAN: use-after-free in _vm_unmap_aliases+0x164/0x364
-[   20.232376] Read of size 8 at addr ffffff80d84af780 by task modprobe/300
-[   20.232380]
-[   20.232395] CPU: 5 PID: 300 Comm: modprobe Tainted: G S       C O      5.4.161-android12-9-03238-gd43329d103de-ab20547 #1
-[   20.232401] Hardware name: Spreadtrum UMS512-1H10 SoC (DT)
-[   20.232407] Call trace:
-[   20.232419]  dump_backtrace+0x0/0x2b4
-[   20.232428]  show_stack+0x24/0x30
-[   20.232443]  dump_stack+0x15c/0x1f4
-[   20.232455]  print_address_description+0x88/0x568
-[   20.232465]  __kasan_report+0x1b8/0x1dc
-[   20.232474]  kasan_report+0x10/0x18
-[   20.232486]  __asan_report_load8_noabort+0x1c/0x24
-[   20.232495]  _vm_unmap_aliases+0x164/0x364
-[   20.232505]  vm_unmap_aliases+0x20/0x28
-[   20.232516]  change_memory_common+0x2c4/0x3ec
-[   20.232524]  set_memory_ro+0x30/0x3c
-[   20.232539]  module_enable_ro+0x144/0x3f0
-[   20.232547]  load_module+0x54c0/0x8248
-[   20.232555]  __se_sys_finit_module+0x174/0x1b0
-[   20.232564]  __arm64_sys_finit_module+0x78/0x88
-[   20.232573]  el0_svc_common+0x19c/0x354
-[   20.232581]  el0_svc_handler+0x48/0x54
-[   20.232591]  el0_svc+0x8/0xc
-[   20.232595]
-[   20.232602] Allocated by task 297:
-[   20.232615]  __kasan_kmalloc+0x130/0x1f8
-[   20.232625]  kasan_slab_alloc+0x14/0x1c
-[   20.232638]  kmem_cache_alloc+0x1dc/0x394
-[   20.232648]  alloc_vmap_area+0xb4/0x1630
-[   20.232657]  vm_map_ram+0x3ac/0x768
-[   20.232671]  z_erofs_decompress_generic+0x2f0/0x844
-[   20.232681]  z_erofs_decompress+0xa8/0x594
-[   20.232692]  z_erofs_decompress_pcluster+0xeb4/0x1458
-[   20.232702]  z_erofs_vle_unzip_wq+0xe4/0x140
-[   20.232715]  process_one_work+0x5c0/0x10ac
-[   20.232724]  worker_thread+0x888/0x1128
-[   20.232733]  kthread+0x290/0x304
-[   20.232744]  ret_from_fork+0x10/0x18
-[   20.232747]
-[   20.232752] Freed by task 51:
-[   20.232762]  __kasan_slab_free+0x1a0/0x270
-[   20.232772]  kasan_slab_free+0x10/0x1c
-[   20.232781]  slab_free_freelist_hook+0xd0/0x1ac
-[   20.232792]  kmem_cache_free+0x110/0x368
-[   20.232803]  __purge_vmap_area_lazy+0x524/0x13e4
-[   20.232813]  _vm_unmap_aliases+0x290/0x364
-[   20.232822]  __vunmap+0x45c/0x5c4
-[   20.232831]  vfree+0x74/0x16c
-[   20.232841]  module_memfree+0x44/0x7c
-[   20.232850]  do_free_init+0x5c/0xac
-[   20.232860]  process_one_work+0x5c0/0x10ac
-[   20.232869]  worker_thread+0xb3c/0x1128
-[   20.232877]  kthread+0x290/0x304
-[   20.232887]  ret_from_fork+0x10/0x18
-
-Link: https://lkml.kernel.org/r/1653447164-15017-1-git-send-email-zhaoyang.huang@unisoc.com
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Cc: ke.wang <ke.wang@unisoc.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20220525195220.10241-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Acked-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/mm/hugetlbpage.c |   39 ------------------------------------
+ 1 file changed, 39 deletions(-)
 
---- a/mm/vmalloc.c~mm-fix-racing-of-vb-va-when-kasan-enabled
-+++ a/mm/vmalloc.c
-@@ -2095,7 +2095,7 @@ static void _vm_unmap_aliases(unsigned l
- 		return;
+--- a/arch/x86/mm/hugetlbpage.c~mm-x86-remove-dead-code-for-hugetlbpagec
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -19,44 +19,6 @@
+ #include <asm/tlbflush.h>
+ #include <asm/elf.h>
  
- 	might_sleep();
+-#if 0	/* This is just for testing */
+-struct page *
+-follow_huge_addr(struct mm_struct *mm, unsigned long address, int write)
+-{
+-	unsigned long start = address;
+-	int length = 1;
+-	int nr;
+-	struct page *page;
+-	struct vm_area_struct *vma;
 -
-+	mutex_lock(&vmap_purge_lock);
- 	for_each_possible_cpu(cpu) {
- 		struct vmap_block_queue *vbq = &per_cpu(vmap_block_queue, cpu);
- 		struct vmap_block *vb;
-@@ -2120,7 +2120,6 @@ static void _vm_unmap_aliases(unsigned l
- 		rcu_read_unlock();
- 	}
+-	vma = find_vma(mm, addr);
+-	if (!vma || !is_vm_hugetlb_page(vma))
+-		return ERR_PTR(-EINVAL);
+-
+-	pte = huge_pte_offset(mm, address, vma_mmu_pagesize(vma));
+-
+-	/* hugetlb should be locked, and hence, prefaulted */
+-	WARN_ON(!pte || pte_none(*pte));
+-
+-	page = &pte_page(*pte)[vpfn % (HPAGE_SIZE/PAGE_SIZE)];
+-
+-	WARN_ON(!PageHead(page));
+-
+-	return page;
+-}
+-
+-int pmd_huge(pmd_t pmd)
+-{
+-	return 0;
+-}
+-
+-int pud_huge(pud_t pud)
+-{
+-	return 0;
+-}
+-
+-#else
+-
+ /*
+  * pmd_huge() returns 1 if @pmd is hugetlb related entry, that is normal
+  * hugetlb entry or non-present (migration or hwpoisoned) hugetlb entry.
+@@ -72,7 +34,6 @@ int pud_huge(pud_t pud)
+ {
+ 	return !!(pud_val(pud) & _PAGE_PSE);
+ }
+-#endif
  
--	mutex_lock(&vmap_purge_lock);
- 	purge_fragmented_blocks_allcpus();
- 	if (!__purge_vmap_area_lazy(start, end) && flush)
- 		flush_tlb_kernel_range(start, end);
+ #ifdef CONFIG_HUGETLB_PAGE
+ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *file,
 _
 
-Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-fix-racing-of-vb-va-when-kasan-enabled.patch
+mm-x86-remove-dead-code-for-hugetlbpagec.patch
 
