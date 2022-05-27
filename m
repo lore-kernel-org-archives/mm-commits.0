@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1104FC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 16:35:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11011C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 16:35:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237497AbiE0Qez (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 May 2022 12:34:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44574 "EHLO
+        id S1346616AbiE0QfP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 May 2022 12:35:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44744 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245051AbiE0Qey (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 12:34:54 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BAE7527DE
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 09:34:53 -0700 (PDT)
+        with ESMTP id S1354163AbiE0QfI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 12:35:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80CCF3B2AE
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 09:35:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B8F20B82562
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 16:34:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5872FC385B8;
-        Fri, 27 May 2022 16:34:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D99361C36
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 16:35:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73D1AC34113;
+        Fri, 27 May 2022 16:35:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653669290;
-        bh=YGC2Wk/vMbHDTPAy3qimjrFdkxk3F+kE2Bte2UeqYLY=;
+        s=korg; t=1653669306;
+        bh=YfWHK1oqZlAMmQUXoC9KkeTaruRGnUcwNR2owHNAe6I=;
         h=Date:To:From:Subject:From;
-        b=meaQEJQ6N8f9n+Mp7EuKFKyv1Jqtog3LkAbOCQxM9mfhd8VCA0kHRbnqPE24nuQRS
-         iQdufIKi8+Ob+Nv7/mjTRQe7tV80gUl5orOF6lfrAzD5sD2Unom6Lp3DEyqR2LI8C9
-         /ux+eTxYGAU4SPiZYUTGXKc9tElpWzWI3ed3bcwg=
-Date:   Fri, 27 May 2022 09:34:49 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
-        renzhengeek@gmail.com, quic_qiancai@quicinc.com, osalvador@suse.de,
-        opendmb@gmail.com, m.szyprowski@samsung.com, michael@walle.cc,
-        mgorman@techsingularity.net, david@redhat.com,
-        christophe.leroy@csgroup.eu, ziy@nvidia.com,
+        b=pvwzPewljpJFURh2p9SrXGE1AUfCRo0elp/TvBik0NmK888pP+Y6e7HsXfXCB0ozI
+         7cXwkGPwln+wuQQOluH9Cjxwleobe3//xtLb+e8zrKfo3NyRzrdw5itnPzPdXA2CuG
+         P4YsEAtDCyPk8IJ/hSElGgqOKJS6ta3cXCcCqxHM=
+Date:   Fri, 27 May 2022 09:35:05 -0700
+To:     mm-commits@vger.kernel.org, void@manifault.com,
+        shakeelb@google.com, rpalethorpe@suse.de, roman.gushchin@linux.dev,
+        mhocko@kernel.org, hannes@cmpxchg.org, mkoutny@suse.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page-isolation-skip-isolated-pageblock-in-start_isolate_page_range.patch removed from -mm tree
-Message-Id: <20220527163450.5872FC385B8@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-memcg-remove-protection-from-top-level-memcg.patch removed from -mm tree
+Message-Id: <20220527163506.73D1AC34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,114 +43,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page-isolation: skip isolated pageblock in start_isolate_page_range()
+     Subject: selftests: memcg: remove protection from top level memcg
 has been removed from the -mm tree.  Its filename was
-     mm-page-isolation-skip-isolated-pageblock-in-start_isolate_page_range.patch
+     selftests-memcg-remove-protection-from-top-level-memcg.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm: page-isolation: skip isolated pageblock in start_isolate_page_range()
-Date: Thu, 26 May 2022 19:15:30 -0400
+From: Michal Koutný <mkoutny@suse.com>
+Subject: selftests: memcg: remove protection from top level memcg
+Date: Wed, 18 May 2022 18:18:58 +0200
 
-start_isolate_page_range() first isolates the first and the last
-pageblocks in the range and ensure pages across range boundaries are split
-during isolation.  But it missed the case when the range is <= a pageblock
-and the first and the last pageblocks are the same one, so the second
-isolate_single_pageblock() will always fail.  To fix it, skip the
-pageblock isolation in second isolate_single_pageblock().
+The reclaim is triggered by memory limit in a subtree, therefore the
+testcase does not need configured protection against external reclaim.
 
-Link: https://lkml.kernel.org/r/20220526231531.2404977-1-zi.yan@sent.com
-Fixes: 88ee134320b8 ("mm: fix a potential infinite loop in start_isolate_page_range()")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-  Link: https://lore.kernel.org/linux-mm/ac65adc0-a7e4-cdfe-a0d8-757195b86293@samsung.com/
-Reported-by: Michael Walle <michael@walle.cc>
-Tested-by: Michael Walle <michael@walle.cc>
-  Link: https://lore.kernel.org/linux-mm/8ca048ca8b547e0dd1c95387ee05c23d@walle.cc/
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Doug Berger <opendmb@gmail.com>
-Cc: Eric Ren <renzhengeek@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Qian Cai <quic_qiancai@quicinc.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Also, correct respective comments.
+
+Link: https://lkml.kernel.org/r/20220518161859.21565-5-mkoutny@suse.com
+Signed-off-by: Michal Koutný <mkoutny@suse.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: David Vernet <void@manifault.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Richard Palethorpe <rpalethorpe@suse.de>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
---- a/mm/page_isolation.c~mm-page-isolation-skip-isolated-pageblock-in-start_isolate_page_range
-+++ a/mm/page_isolation.c
-@@ -300,7 +300,7 @@ __first_valid_page(unsigned long pfn, un
-  * the in-use page then splitting the free page.
-  */
- static int isolate_single_pageblock(unsigned long boundary_pfn, int flags,
--			gfp_t gfp_flags, bool isolate_before)
-+			gfp_t gfp_flags, bool isolate_before, bool skip_isolation)
- {
- 	unsigned char saved_mt;
- 	unsigned long start_pfn;
-@@ -327,11 +327,16 @@ static int isolate_single_pageblock(unsi
- 				      zone->zone_start_pfn);
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-remove-protection-from-top-level-memcg
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -247,7 +247,7 @@ static int cg_test_proc_killed(const cha
  
- 	saved_mt = get_pageblock_migratetype(pfn_to_page(isolate_pageblock));
--	ret = set_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt, flags,
--			isolate_pageblock, isolate_pageblock + pageblock_nr_pages);
+ /*
+  * First, this test creates the following hierarchy:
+- * A       memory.min = 50M,  memory.max = 200M
++ * A       memory.min = 0,    memory.max = 200M
+  * A/B     memory.min = 50M
+  * A/B/C   memory.min = 75M,  memory.current = 50M
+  * A/B/D   memory.min = 25M,  memory.current = 50M
+@@ -257,7 +257,7 @@ static int cg_test_proc_killed(const cha
+  * Usages are pagecache, but the test keeps a running
+  * process in every leaf cgroup.
+  * Then it creates A/G and creates a significant
+- * memory pressure in it.
++ * memory pressure in A.
+  *
+  * Then it checks actual memory usages and expects that:
+  * A/B    memory.current ~= 50M
+@@ -338,8 +338,6 @@ static int test_memcg_min(const char *ro
+ 			      (void *)(long)fd);
+ 	}
  
--	if (ret)
--		return ret;
-+	if (skip_isolation)
-+		VM_BUG_ON(!is_migrate_isolate(saved_mt));
-+	else {
-+		ret = set_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt, flags,
-+				isolate_pageblock, isolate_pageblock + pageblock_nr_pages);
-+
-+		if (ret)
-+			return ret;
-+	}
+-	if (cg_write(parent[0], "memory.min", "50M"))
+-		goto cleanup;
+ 	if (cg_write(parent[1], "memory.min", "50M"))
+ 		goto cleanup;
+ 	if (cg_write(children[0], "memory.min", "75M"))
+@@ -407,7 +405,7 @@ cleanup:
  
- 	/*
- 	 * Bail out early when the to-be-isolated pageblock does not form
-@@ -463,7 +468,8 @@ static int isolate_single_pageblock(unsi
- 	return 0;
- failed:
- 	/* restore the original migratetype */
--	unset_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt);
-+	if (!skip_isolation)
-+		unset_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt);
- 	return -EBUSY;
- }
+ /*
+  * First, this test creates the following hierarchy:
+- * A       memory.low = 50M,  memory.max = 200M
++ * A       memory.low = 0,    memory.max = 200M
+  * A/B     memory.low = 50M
+  * A/B/C   memory.low = 75M,  memory.current = 50M
+  * A/B/D   memory.low = 25M,  memory.current = 50M
+@@ -495,8 +493,6 @@ static int test_memcg_low(const char *ro
+ 			goto cleanup;
+ 	}
  
-@@ -522,14 +528,18 @@ int start_isolate_page_range(unsigned lo
- 	unsigned long isolate_start = ALIGN_DOWN(start_pfn, pageblock_nr_pages);
- 	unsigned long isolate_end = ALIGN(end_pfn, pageblock_nr_pages);
- 	int ret;
-+	bool skip_isolation = false;
- 
- 	/* isolate [isolate_start, isolate_start + pageblock_nr_pages) pageblock */
--	ret = isolate_single_pageblock(isolate_start, flags, gfp_flags, false);
-+	ret = isolate_single_pageblock(isolate_start, flags, gfp_flags, false, skip_isolation);
- 	if (ret)
- 		return ret;
- 
-+	if (isolate_start == isolate_end - pageblock_nr_pages)
-+		skip_isolation = true;
-+
- 	/* isolate [isolate_end - pageblock_nr_pages, isolate_end) pageblock */
--	ret = isolate_single_pageblock(isolate_end, flags, gfp_flags, true);
-+	ret = isolate_single_pageblock(isolate_end, flags, gfp_flags, true, skip_isolation);
- 	if (ret) {
- 		unset_migratetype_isolate(pfn_to_page(isolate_start), migratetype);
- 		return ret;
+-	if (cg_write(parent[0], "memory.low", "50M"))
+-		goto cleanup;
+ 	if (cg_write(parent[1], "memory.low", "50M"))
+ 		goto cleanup;
+ 	if (cg_write(children[0], "memory.low", "75M"))
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from mkoutny@suse.com are
 
 
