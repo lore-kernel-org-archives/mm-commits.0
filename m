@@ -2,82 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC0DBC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 18:45:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 418CBC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 18:49:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353052AbiE0SpK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 May 2022 14:45:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34790 "EHLO
+        id S1354516AbiE0StG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 May 2022 14:49:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349993AbiE0SpJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 14:45:09 -0400
-Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF93E106376
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 11:45:07 -0700 (PDT)
-Received: by mail-ed1-x52d.google.com with SMTP id j28so6437534eda.13
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 11:45:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=52zOsCc6qEBLSd0EvVPsjC9FUkx7ysoIDr7i7kJhu7I=;
-        b=eViVbPMW3o5xWiLGbwthVcpGNrkna0bmofKE98fV4grdZ6eH74UtthI/lzXo3RPIjz
-         RwnfnWgzerkx2YzKRb/M9ndnInTc35IAUyAVqW91mVF2CtO8uqf6h5cuCiAiSN2JPaGP
-         jC2VXu6WQjuai5tXQAtG6xajiwkx+dnQ+3/T0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=52zOsCc6qEBLSd0EvVPsjC9FUkx7ysoIDr7i7kJhu7I=;
-        b=DM3B6hcf8WTLHID01aLXYZsDswlk7rpgU1vZnpkGDjCxdnwBi4KGShLW91aTj8iOoL
-         BlaAeKbSkmONEc5C9xZobM/ojN5oa9lepNODny1ctYLvgHaMSIWCUCI5G2VydHAapgoB
-         XiFzCkMVy6H/kj8TEHvp7JZ+MYlMpCI+ZKoNfda11ZlZVSfSpyQe9YnBlQwCY3iRq/t+
-         fJ02p17b6cLXi+3RlbkSdZURC7x8K4K91f/F3kSpVPKDMnjEumvrKYC/AJ8y/rehoigX
-         sqGjeTF9yv0Bga/b3Ya/qy6QBP9pJUPPSIIj00+wGITKwhW0aoq/v9mzSGcUGhCZzERK
-         QL+A==
-X-Gm-Message-State: AOAM5329MtLUo4UnM8roSE/ts4zKBQqhO69xQ2TMYncAuAsOFyMsfFwp
-        dD2fkdVXqw+zdGXWZharnLj5OCVlzK8cZQUQ
-X-Google-Smtp-Source: ABdhPJyrKNTMQQmK0j3MInFbwdy/N+CRYXEEFWwhTfIAAdMvs/9g1tNHARWsx5SehgMevTDCpP/b1Q==
-X-Received: by 2002:a05:6402:27c9:b0:42a:d367:fdb9 with SMTP id c9-20020a05640227c900b0042ad367fdb9mr46761526ede.47.1653677106247;
-        Fri, 27 May 2022 11:45:06 -0700 (PDT)
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com. [209.85.128.41])
-        by smtp.gmail.com with ESMTPSA id wn18-20020a170907069200b006fec56c57f3sm1713270ejb.178.2022.05.27.11.45.04
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 27 May 2022 11:45:05 -0700 (PDT)
-Received: by mail-wm1-f41.google.com with SMTP id n124-20020a1c2782000000b003972dfca96cso3183555wmn.4
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 11:45:04 -0700 (PDT)
-X-Received: by 2002:a05:600c:4f0e:b0:397:6b94:7469 with SMTP id
- l14-20020a05600c4f0e00b003976b947469mr8216306wmq.145.1653677104449; Fri, 27
- May 2022 11:45:04 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220527103014.517818624f9f6d4f0ba0b523@linux-foundation.org>
-In-Reply-To: <20220527103014.517818624f9f6d4f0ba0b523@linux-foundation.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Fri, 27 May 2022 11:44:47 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wi72yLMW6vrnCpGJCO8Sj35miJMH74dWu2kJ0bYD1P42w@mail.gmail.com>
-Message-ID: <CAHk-=wi72yLMW6vrnCpGJCO8Sj35miJMH74dWu2kJ0bYD1P42w@mail.gmail.com>
+        with ESMTP id S1354454AbiE0StD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 14:49:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4690633A29;
+        Fri, 27 May 2022 11:49:02 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EFA59B82636;
+        Fri, 27 May 2022 18:49:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id B8511C34118;
+        Fri, 27 May 2022 18:48:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1653677339;
+        bh=SbQk50Q7Finyci9EDngIQJNc8si7TqVP2/ey5DlIWHI=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=cubr/OVPL2ITKZ8Z1w9vYmK+jyDkxHOn+0nVnZfki2q88UPpeZd1pJiDe20JNb0Hv
+         +7Z7MURA4bQl71fGdOjgNPB8Yo39G18XjKYlsHUJwkQ9iVVOLI8EUFURXhoOTxFRCJ
+         hF+tjffjDhwyawFtBFTrKT7wmAjrSA7lYlC28NVuQcWxvRwEkWzpuO7sH2r+wShG88
+         oAVAhfRcuILQf8EFwpLFRovo1DSLFh1TRQnw3lPp5XD3TvFU9MQwy0CAoFwgAm5Pkw
+         4XiMyTLW5Lgdjk4u5W9yB4SMU0MY/uVq0+lsSW3jDKRhn3dU8ULe0UgMusWO8ozVp4
+         uSRXIfWMH+xoA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A34C2F03944;
+        Fri, 27 May 2022 18:48:59 +0000 (UTC)
 Subject: Re: [GIT PULL] additional MM updates for 5.19-rc1
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20220527103014.517818624f9f6d4f0ba0b523@linux-foundation.org>
+References: <20220527103014.517818624f9f6d4f0ba0b523@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20220527103014.517818624f9f6d4f0ba0b523@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-05-27
+X-PR-Tracked-Commit-Id: fa020a2b87d24016723fff4a4237deb612478a32
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 8291eaafed36f575f23951f3ce18407f480e9ecf
+Message-Id: <165367733966.12450.3553347697030042023.pr-tracker-bot@kernel.org>
+Date:   Fri, 27 May 2022 18:48:59 +0000
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linux-MM <linux-mm@kvack.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        mm-commits@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, May 27, 2022 at 10:30 AM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> There's a merge conflict in init/Kconfig.  We resolved that by removing
-> the VM_EVENT_COUNTERS..MMAP_ALLOW_UNINITIALIZED entries.
->
-> And another in lib/Kconfig.debug.  Similarly resolved by removing the
-> DEBUG_SLAB..SLUB_STATS entries.
+The pull request you sent on Fri, 27 May 2022 10:30:14 -0700:
 
-Both of those also needed fixups for the new mm/Kconfig.debug thing to
-enable the proper STACKDEPOT things.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-05-27
 
-               Linus
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/8291eaafed36f575f23951f3ce18407f480e9ecf
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
