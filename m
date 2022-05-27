@@ -2,92 +2,157 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0873EC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 17:29:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD5C0C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 17:30:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343774AbiE0R3w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 May 2022 13:29:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34226 "EHLO
+        id S1354312AbiE0RaU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 May 2022 13:30:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34698 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240684AbiE0R3v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 13:29:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E2A44DF4D;
-        Fri, 27 May 2022 10:29:51 -0700 (PDT)
+        with ESMTP id S1354324AbiE0RaT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 13:30:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7B0578905;
+        Fri, 27 May 2022 10:30:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B379DB82563;
-        Fri, 27 May 2022 17:29:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D019C385A9;
-        Fri, 27 May 2022 17:29:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 64E9461DD4;
+        Fri, 27 May 2022 17:30:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A42ACC385A9;
+        Fri, 27 May 2022 17:30:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653672588;
-        bh=dXRXn3acix0mFrOqchNGNDczfWUrkP/pulD2yGBjfkQ=;
+        s=korg; t=1653672615;
+        bh=DRbdVK7ebjAFaviXvuPpdxj4DfolmqNryDBytbwEKgc=;
         h=Date:From:To:Cc:Subject:From;
-        b=nrntJh4TXFaYHXCTbctJ1Cj5ZkRZzPRHtfxCQeSXMZ5IdYsRaLGBA54hk73bXJAKT
-         hkaQTUIxdK8dwardv9BvxPLzL3AlinxKNLQWQghX61Y2UUxo9bsNaAhIUT2O5O4y5t
-         TklLgl1oZ1FAsvvYv47ihQiEuGVRKTP2WD5f7cTY=
-Date:   Fri, 27 May 2022 10:29:47 -0700
+        b=n15PVRxHeWxwHcvVnGMRW5PrQdfWh0ogIEEZEbE5i0a2izv2KnqPJkcNqeakZi45t
+         srJE0rqhqU8hvLIdjPzxyqQetexMXNN/0u/sOiBqg8ji5m1KMRnGODdCe9T7+cNLd2
+         aTzHx6QsTsGtltG5wNb4GmdgiBn2Uhs+Ko8Dv8qI=
+Date:   Fri, 27 May 2022 10:30:14 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     Linus Torvalds <torvalds@linux-foundation.org>
 Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
         mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 5.19-rc1
-Message-Id: <20220527102947.9c7e74d491765ba74bb81374@linux-foundation.org>
+Subject: [GIT PULL] additional MM updates for 5.19-rc1
+Message-Id: <20220527103014.517818624f9f6d4f0ba0b523@linux-foundation.org>
 X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The following changes since commit 9039b8335276569670caaf23606335946625e764:
+Pretty much the final flush here.  Mel's "Drain remote per-cpu
+directly" series might be stabilized later in the merge window.
 
-  MAINTAINERS: add a mailing list for DAMON development (2022-05-09 17:34:29 -0700)
+There's a merge conflict in init/Kconfig.  We resolved that by removing
+the VM_EVENT_COUNTERS..MMAP_ALLOW_UNINITIALIZED entries.
+
+And another in lib/Kconfig.debug.  Similarly resolved by removing the
+DEBUG_SLAB..SLUB_STATS entries.
+
+
+
+I'll shortly be resurrecting Liam's maple-tree patchset for additional
+stabilization and a view to merge that up for 5.20.  And shortly after
+that I'll bring in Yu Zhau's multigen LRU work to get that some
+linux-next testing and hopefully reviewer provocation.
+
+
+
+The following changes since commit f403f22f8ccb12860b2b62fec3173c6ccd45938b:
+
+  mm: kfence: use PAGE_ALIGNED helper (2022-05-25 10:47:49 -0700)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-05-27
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022=
+-05-27
 
-for you to fetch changes up to 24c8e27e63224ce832b4723cb60632d3eddb55de:
+for you to fetch changes up to fa020a2b87d24016723fff4a4237deb612478a32:
 
-  mm/page_table_check: fix accessing unmapped ptep (2022-05-27 08:55:18 -0700)
-
-----------------------------------------------------------------
-Six hotfixes.  One from Miaohe Lin is considered a minor thing so it isn't
-for -stable.  The remainder address pre-5.19 issues and are cc:stable.
+  mm/shmem.c: suppress shift warning (2022-05-27 09:33:47 -0700)
 
 ----------------------------------------------------------------
-Dong Aisheng (1):
-      Revert "mm/cma.c: remove redundant cma_mutex lock"
+Two followon fixes for the post-5.19 series "Use pageblock_order for cma
+and alloc_contig_range alignment", from Zi Yan.
 
-Mel Gorman (1):
-      mm/page_alloc: always attempt to allocate at least one page during bulk allocation
+A series of z3fold cleanups and fixes from Miaohe Lin.
 
-Miaohe Lin (1):
-      mm/page_table_check: fix accessing unmapped ptep
+Some memcg selftests work from Michal Koutn=FD <mkoutny@suse.com>
 
-Mike Kravetz (1):
-      hugetlb: fix huge_pmd_unshare address update
+Some swap fixes and cleanups from Miaohe Lin.
 
-Naveen N. Rao (1):
-      kexec_file: drop weak attribute from arch_kexec_apply_relocations[_add]
+Several individual minor fixups.
 
-Sultan Alsawaf (1):
-      zsmalloc: fix races between asynchronous zspage free and page migration
+----------------------------------------------------------------
+Andrew Morton (1):
+      mm/shmem.c: suppress shift warning
 
- arch/s390/include/asm/kexec.h | 10 ++++++++++
- arch/x86/include/asm/kexec.h  |  8 ++++++++
- include/linux/kexec.h         | 46 +++++++++++++++++++++++++++++++++++--------
- kernel/kexec_file.c           | 34 --------------------------------
- mm/cma.c                      |  4 +++-
- mm/hugetlb.c                  |  9 ++++++++-
- mm/page_alloc.c               |  4 ++--
- mm/page_table_check.c         |  2 +-
- mm/zsmalloc.c                 | 37 ++++++++++++++++++++++++++++++----
- 9 files changed, 103 insertions(+), 51 deletions(-)
+Kefeng Wang (1):
+      mm: kasan: fix input of vmalloc_to_page()
+
+Miaohe Lin (14):
+      mm/z3fold: fix sheduling while atomic
+      mm/z3fold: fix possible null pointer dereferencing
+      mm/z3fold: remove buggy use of stale list for allocation
+      mm/z3fold: throw warning on failure of trylock_page in z3fold_alloc
+      revert "mm/z3fold.c: allow __GFP_HIGHMEM in z3fold_alloc"
+      mm/z3fold: put z3fold page back into unbuddied list when reclaim or m=
+igration fails
+      mm/z3fold: always clear PAGE_CLAIMED under z3fold page lock
+      mm/z3fold: fix z3fold_reclaim_page races with z3fold_free
+      mm/z3fold: fix z3fold_page_migrate races with z3fold_map
+      mm/swapfile: unuse_pte can map random data if swap read fails
+      mm/swapfile: fix lost swap bits in unuse_pte()
+      mm/madvise: free hwpoison and swapin error entry in madvise_free_pte_=
+range
+      mm/shmem: fix infinite loop when swap in shmem error at swapoff time
+      mm: filter out swapin error entry in shmem mapping
+
+Michal Koutn=FD (5):
+      selftests: memcg: fix compilation
+      selftests: memcg: expect no low events in unprotected sibling
+      selftests: memcg: adjust expected reclaim values of protected cgroups
+      selftests: memcg: remove protection from top level memcg
+      selftests: memcg: factor out common parts of memory.{low,min} tests
+
+Minchan Kim (1):
+      mm: fix is_pinnable_page against a cma page
+
+Vlastimil Babka (1):
+      mm: Kconfig: reorganize misplaced mm options
+
+Zi Yan (2):
+      mm: page-isolation: skip isolated pageblock in start_isolate_page_ran=
+ge()
+      mm: split free page with properly free memory accounting and without =
+race
+
+ MAINTAINERS                                       |   1 +
+ include/linux/mm.h                                |   9 +-
+ include/linux/swap.h                              |   7 +-
+ include/linux/swapops.h                           |  10 +
+ init/Kconfig                                      |  53 -----
+ lib/Kconfig.debug                                 |  34 ---
+ mm/Kconfig                                        |  56 +++++
+ mm/Kconfig.debug                                  |  31 +++
+ mm/internal.h                                     |   4 +-
+ mm/kasan/report.c                                 |   2 +-
+ mm/madvise.c                                      |  18 +-
+ mm/memory.c                                       |   5 +-
+ mm/page_alloc.c                                   |  32 ++-
+ mm/page_isolation.c                               |  36 +++-
+ mm/shmem.c                                        |  41 +++-
+ mm/swap_state.c                                   |   3 +
+ mm/swapfile.c                                     |  21 +-
+ mm/z3fold.c                                       |  97 ++++-----
+ tools/testing/selftests/cgroup/memcg_protection.m |  89 ++++++++
+ tools/testing/selftests/cgroup/test_memcontrol.c  | 247 ++++++------------=
+----
+ 20 files changed, 434 insertions(+), 362 deletions(-)
+ create mode 100644 tools/testing/selftests/cgroup/memcg_protection.m
 
