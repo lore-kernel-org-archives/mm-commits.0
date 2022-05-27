@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B17B2C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 15:53:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B017FC433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 15:56:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345532AbiE0PxN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 May 2022 11:53:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38200 "EHLO
+        id S1353685AbiE0P4Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 May 2022 11:56:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344738AbiE0PxM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 11:53:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BBAA13F1ED
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 08:53:12 -0700 (PDT)
+        with ESMTP id S1353754AbiE0P4P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 11:56:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CEEE8D;
+        Fri, 27 May 2022 08:56:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 968A861D71
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 15:53:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA7AAC385A9;
-        Fri, 27 May 2022 15:53:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 12E2661D80;
+        Fri, 27 May 2022 15:56:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5634FC34113;
+        Fri, 27 May 2022 15:56:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653666791;
-        bh=jKpz7/d+k8vqDs8lWFVHFZLTVtZmcjmUgdQY2TSNVnQ=;
+        s=korg; t=1653666970;
+        bh=p7xZEtByf8oJB7QHOKF1Ix+uICAdxPdqiQcdUdbbZh0=;
         h=Date:To:From:Subject:From;
-        b=dXPswZ9gDdMbcee/YRrfcHWUpn+FpwHUObZQIq1i5z/OZx+zw+PoubOql8xsy2QmX
-         o+mCWQ7V417klJ4Zxmra6PB0ulYVAvEnZ6gHuz7LDTH0MPdVZcgWtFVMb0HDpC/Mam
-         dNMlHqM90/10DU4b5IXckExNTV3T7TtQjcPBjnLI=
-Date:   Fri, 27 May 2022 08:53:10 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        willy@infradead.org, rientjes@google.com,
-        pasha.tatashin@soleen.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=xCFeMiYcqqANCRwPQBNCC8peQWcngXukVQrP/tD1JdEcWoz1JaYUlRSnpPH+YeSoY
+         Znjeb7JcK0rw58PTafHmOG8lguOu/OFIBA9E7Ilq96/1tpoxplWjnO26ga2sjiq0LQ
+         RdroyikTliBzHMlITFsqEIu6Rjpid8FjRPJh3KLU=
+Date:   Fri, 27 May 2022 08:56:09 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
+        jack@suse.cz, djwong@kernel.org, dchinner@redhat.com,
+        chuck.lever@oracle.com, brouer@redhat.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-page_table_check-fix-accessing-unmapped-ptep-fix.patch removed from -mm tree
-Message-Id: <20220527155310.EA7AAC385A9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-page_alloc-always-attempt-to-allocate-at-least-one-page-during-bulk-allocation.patch removed from -mm tree
+Message-Id: <20220527155610.5634FC34113@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,48 +43,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-page_table_check-fix-accessing-unmapped-ptep-fix
+     Subject: mm/page_alloc: always attempt to allocate at least one page during bulk allocation
 has been removed from the -mm tree.  Its filename was
-     mm-page_table_check-fix-accessing-unmapped-ptep-fix.patch
+     mm-page_alloc-always-attempt-to-allocate-at-least-one-page-during-bulk-allocation.patch
 
-This patch was dropped because it was folded into mm-page_table_check-fix-accessing-unmapped-ptep.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_table_check-fix-accessing-unmapped-ptep-fix
-Date: Thu May 26 11:12:12 AM PDT 2022
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: always attempt to allocate at least one page during bulk allocation
+Date: Thu, 26 May 2022 10:12:10 +0100
 
-account for ptep alteration, per Matthew
+Peter Pavlisko reported the following problem on kernel bugzilla 216007.
 
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: David Rientjes <rientjes@google.com>
+	When I try to extract an uncompressed tar archive (2.6 milion
+	files, 760.3 GiB in size) on newly created (empty) XFS file system,
+	after first low tens of gigabytes extracted the process hangs in
+	iowait indefinitely. One CPU core is 100% occupied with iowait,
+	the other CPU core is idle (on 2-core Intel Celeron G1610T).
+
+It was bisected to c9fa563072e1 ("xfs: use alloc_pages_bulk_array() for
+buffers") but XFS is only the messenger.  The problem is that nothing is
+waking kswapd to reclaim some pages at a time the PCP lists cannot be
+refilled until some reclaim happens.  The bulk allocator checks that there
+are some pages in the array and the original intent was that a bulk
+allocator did not necessarily need all the requested pages and it was best
+to return as quickly as possible.
+
+This was fine for the first user of the API but both NFS and XFS require
+the requested number of pages be available before making progress.  Both
+could be adjusted to call the page allocator directly if a bulk allocation
+fails but it puts a burden on users of the API.  Adjust the semantics to
+attempt at least one allocation via __alloc_pages() before returning so
+kswapd is woken if necessary.
+
+It was reported via bugzilla that the patch addressed the problem and that
+the tar extraction completed successfully.  This may also address bug
+215975 but has yet to be confirmed.
+
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=216007
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=215975
+Link: https://lkml.kernel.org/r/20220526091210.GC3441@techsingularity.net
+Fixes: 387ba26fb1cb ("mm/page_alloc: add a bulk page allocator")
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: <stable@vger.kernel.org>	[5.13+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_table_check.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_table_check.c~mm-page_table_check-fix-accessing-unmapped-ptep-fix
-+++ a/mm/page_table_check.c
-@@ -256,6 +256,6 @@ void __page_table_check_pte_clear_range(
- 			addr += PAGE_SIZE;
- 			ptep++;
+--- a/mm/page_alloc.c~mm-page_alloc-always-attempt-to-allocate-at-least-one-page-during-bulk-allocation
++++ a/mm/page_alloc.c
+@@ -5324,8 +5324,8 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		page = __rmqueue_pcplist(zone, 0, ac.migratetype, alloc_flags,
+ 								pcp, pcp_list);
+ 		if (unlikely(!page)) {
+-			/* Try and get at least one page */
+-			if (!nr_populated)
++			/* Try and allocate at least one page */
++			if (!nr_account)
+ 				goto failed_irq;
+ 			break;
  		}
--		pte_unmap(ptep);
-+		pte_unmap(ptep - PTRS_PER_PTE);
- 	}
- }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-page_table_check-fix-accessing-unmapped-ptep.patch
-mm-page_alloc-remotely-drain-per-cpu-lists-checkpatch-fixes.patch
-mm-shmemc-suppress-shift-warning.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+mm-page_alloc-add-page-buddy_list-and-page-pcp_list.patch
+mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
+mm-page_alloc-split-out-buddy-removal-code-from-rmqueue-into-separate-helper.patch
+mm-page_alloc-protect-pcp-lists-with-a-spinlock.patch
 
