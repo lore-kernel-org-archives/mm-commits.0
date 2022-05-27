@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67CAFC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 15:56:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCCC9C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 15:56:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244394AbiE0P4R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 May 2022 11:56:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43080 "EHLO
+        id S237616AbiE0P4c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 May 2022 11:56:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353755AbiE0P4P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 11:56:15 -0400
+        with ESMTP id S1353754AbiE0P4S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 11:56:18 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4A1B11B;
-        Fri, 27 May 2022 08:56:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23F6B2BCF;
+        Fri, 27 May 2022 08:56:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7DE39B82173;
-        Fri, 27 May 2022 15:56:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16283C385B8;
-        Fri, 27 May 2022 15:56:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0DD64B8259F;
+        Fri, 27 May 2022 15:56:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FEE3C385B8;
+        Fri, 27 May 2022 15:56:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653666969;
-        bh=mppR6qT+wjJGVusKRLl56HHyBQ/A7Hq9nGbrRLGyZw8=;
+        s=korg; t=1653666971;
+        bh=EPJ6GgdKvvTTzpkQb91Vq58296dVXW14JjlSK1mMYRE=;
         h=Date:To:From:Subject:From;
-        b=BT4nPiX8WyZ8Xxg5PUzJTmORVcZDS9qlAUKkBlOurXDDKPKuXTi4kAwHL9eHlZLt9
-         zFcGfVNzn/yAbSNVWcPYdd8n8TlWxiUGquQU1p2OvLT+rtPBr7U+89QDBwRllP/Pux
-         oRevYfh5h64NpDd1GZ2TlHzEoX5F9jD9jn3gT5/g=
-Date:   Fri, 27 May 2022 08:56:08 -0700
+        b=SDROOtVvEzUr6M/ev37Z90ynFCTA083DM5QqnWAeOXqqjioBr1EdeIS6Z21FXsCUS
+         RSX+rkMPqSfpOfRvlBDqcaDsSoMXgdvDRLYZR8LdUSldYdEDVs4bFcocKu4u/vm+7l
+         ClA/2npA9fCR55PVZOpRiKGcYJA/LdtgAIgh53hs=
+Date:   Fri, 27 May 2022 08:56:10 -0700
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        songmuchun@bytedance.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        mpe@ellerman.id.au, ebiederm@xmission.com,
+        naveen.n.rao@linux.vnet.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] hugetlb-fix-huge_pmd_unshare-address-update.patch removed from -mm tree
-Message-Id: <20220527155609.16283C385B8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kexec_file-drop-weak-attribute-from-arch_kexec_apply_relocations.patch removed from -mm tree
+Message-Id: <20220527155611.9FEE3C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,58 +42,195 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlb: fix huge_pmd_unshare address update
+     Subject: kexec_file: drop weak attribute from arch_kexec_apply_relocations[_add]
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-huge_pmd_unshare-address-update.patch
+     kexec_file-drop-weak-attribute-from-arch_kexec_apply_relocations.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: fix huge_pmd_unshare address update
-Date: Tue, 24 May 2022 13:50:03 -0700
+From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Subject: kexec_file: drop weak attribute from arch_kexec_apply_relocations[_add]
+Date: Thu, 19 May 2022 14:42:37 +0530
 
-The routine huge_pmd_unshare() is passed a pointer to an address
-associated with an area which may be unshared.  If unshare is successful
-this address is updated to 'optimize' callers iterating over huge page
-addresses.  For the optimization to work correctly, address should be
-updated to the last huge page in the unmapped/unshared area.  However, in
-the common case where the passed address is PUD_SIZE aligned, the address
-is incorrectly updated to the address of the preceding huge page.  That
-wastes CPU cycles as the unmapped/unshared range is scanned twice.
+Since commit d1bcae833b32f1 ("ELF: Don't generate unused section
+symbols") [1], binutils (v2.36+) started dropping section symbols that
+it thought were unused.  This isn't an issue in general, but with
+kexec_file.c, gcc is placing kexec_arch_apply_relocations[_add] into a
+separate .text.unlikely section and the section symbol ".text.unlikely"
+is being dropped. Due to this, recordmcount is unable to find a non-weak
+symbol in .text.unlikely to generate a relocation record against.
 
-Link: https://lkml.kernel.org/r/20220524205003.126184-1-mike.kravetz@oracle.com
-Fixes: 39dde65c9940 ("shared page table for hugetlb page")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
+Address this by dropping the weak attribute from these functions.
+Instead, follow the existing pattern of having architectures #define the
+name of the function they want to override in their headers.
+
+[1] https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=d1bcae833b32f1
+
+[akpm@linux-foundation.org: arch/s390/include/asm/kexec.h needs linux/module.h]
+Link: https://lkml.kernel.org/r/20220519091237.676736-1-naveen.n.rao@linux.vnet.ibm.com
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/s390/include/asm/kexec.h |   10 ++++++
+ arch/x86/include/asm/kexec.h  |    8 +++++
+ include/linux/kexec.h         |   46 ++++++++++++++++++++++++++------
+ kernel/kexec_file.c           |   34 -----------------------
+ 4 files changed, 56 insertions(+), 42 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-fix-huge_pmd_unshare-address-update
-+++ a/mm/hugetlb.c
-@@ -6562,7 +6562,14 @@ int huge_pmd_unshare(struct mm_struct *m
- 	pud_clear(pud);
- 	put_page(virt_to_page(ptep));
- 	mm_dec_nr_pmds(mm);
--	*addr = ALIGN(*addr, HPAGE_SIZE * PTRS_PER_PTE) - HPAGE_SIZE;
-+	/*
-+	 * This update of passed address optimizes loops sequentially
-+	 * processing addresses in increments of huge page size (PMD_SIZE
-+	 * in this case).  By clearing the pud, a PUD_SIZE area is unmapped.
-+	 * Update address to the 'last page' in the cleared area so that
-+	 * calling loop can move to first page past this area.
-+	 */
-+	*addr |= PUD_SIZE - PMD_SIZE;
- 	return 1;
- }
+--- a/arch/s390/include/asm/kexec.h~kexec_file-drop-weak-attribute-from-arch_kexec_apply_relocations
++++ a/arch/s390/include/asm/kexec.h
+@@ -9,6 +9,8 @@
+ #ifndef _S390_KEXEC_H
+ #define _S390_KEXEC_H
  
++#include <linux/module.h>
++
+ #include <asm/processor.h>
+ #include <asm/page.h>
+ #include <asm/setup.h>
+@@ -83,4 +85,12 @@ struct kimage_arch {
+ extern const struct kexec_file_ops s390_kexec_image_ops;
+ extern const struct kexec_file_ops s390_kexec_elf_ops;
+ 
++#ifdef CONFIG_KEXEC_FILE
++struct purgatory_info;
++int arch_kexec_apply_relocations_add(struct purgatory_info *pi,
++				     Elf_Shdr *section,
++				     const Elf_Shdr *relsec,
++				     const Elf_Shdr *symtab);
++#define arch_kexec_apply_relocations_add arch_kexec_apply_relocations_add
++#endif
+ #endif /*_S390_KEXEC_H */
+--- a/arch/x86/include/asm/kexec.h~kexec_file-drop-weak-attribute-from-arch_kexec_apply_relocations
++++ a/arch/x86/include/asm/kexec.h
+@@ -186,6 +186,14 @@ extern int arch_kexec_post_alloc_pages(v
+ extern void arch_kexec_pre_free_pages(void *vaddr, unsigned int pages);
+ #define arch_kexec_pre_free_pages arch_kexec_pre_free_pages
+ 
++#ifdef CONFIG_KEXEC_FILE
++struct purgatory_info;
++int arch_kexec_apply_relocations_add(struct purgatory_info *pi,
++				     Elf_Shdr *section,
++				     const Elf_Shdr *relsec,
++				     const Elf_Shdr *symtab);
++#define arch_kexec_apply_relocations_add arch_kexec_apply_relocations_add
++#endif
+ #endif
+ 
+ typedef void crash_vmclear_fn(void);
+--- a/include/linux/kexec.h~kexec_file-drop-weak-attribute-from-arch_kexec_apply_relocations
++++ a/include/linux/kexec.h
+@@ -193,14 +193,6 @@ void *kexec_purgatory_get_symbol_addr(st
+ int arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
+ 				  unsigned long buf_len);
+ void *arch_kexec_kernel_image_load(struct kimage *image);
+-int arch_kexec_apply_relocations_add(struct purgatory_info *pi,
+-				     Elf_Shdr *section,
+-				     const Elf_Shdr *relsec,
+-				     const Elf_Shdr *symtab);
+-int arch_kexec_apply_relocations(struct purgatory_info *pi,
+-				 Elf_Shdr *section,
+-				 const Elf_Shdr *relsec,
+-				 const Elf_Shdr *symtab);
+ int arch_kimage_file_post_load_cleanup(struct kimage *image);
+ #ifdef CONFIG_KEXEC_SIG
+ int arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
+@@ -229,6 +221,44 @@ extern int crash_exclude_mem_range(struc
+ 				   unsigned long long mend);
+ extern int crash_prepare_elf64_headers(struct crash_mem *mem, int kernel_map,
+ 				       void **addr, unsigned long *sz);
++
++#ifndef arch_kexec_apply_relocations_add
++/*
++ * arch_kexec_apply_relocations_add - apply relocations of type RELA
++ * @pi:		Purgatory to be relocated.
++ * @section:	Section relocations applying to.
++ * @relsec:	Section containing RELAs.
++ * @symtab:	Corresponding symtab.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++static inline int
++arch_kexec_apply_relocations_add(struct purgatory_info *pi, Elf_Shdr *section,
++				 const Elf_Shdr *relsec, const Elf_Shdr *symtab)
++{
++	pr_err("RELA relocation unsupported.\n");
++	return -ENOEXEC;
++}
++#endif
++
++#ifndef arch_kexec_apply_relocations
++/*
++ * arch_kexec_apply_relocations - apply relocations of type REL
++ * @pi:		Purgatory to be relocated.
++ * @section:	Section relocations applying to.
++ * @relsec:	Section containing RELs.
++ * @symtab:	Corresponding symtab.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++static inline int
++arch_kexec_apply_relocations(struct purgatory_info *pi, Elf_Shdr *section,
++			     const Elf_Shdr *relsec, const Elf_Shdr *symtab)
++{
++	pr_err("REL relocation unsupported.\n");
++	return -ENOEXEC;
++}
++#endif
+ #endif /* CONFIG_KEXEC_FILE */
+ 
+ #ifdef CONFIG_KEXEC_ELF
+--- a/kernel/kexec_file.c~kexec_file-drop-weak-attribute-from-arch_kexec_apply_relocations
++++ a/kernel/kexec_file.c
+@@ -109,40 +109,6 @@ int __weak arch_kexec_kernel_verify_sig(
+ #endif
+ 
+ /*
+- * arch_kexec_apply_relocations_add - apply relocations of type RELA
+- * @pi:		Purgatory to be relocated.
+- * @section:	Section relocations applying to.
+- * @relsec:	Section containing RELAs.
+- * @symtab:	Corresponding symtab.
+- *
+- * Return: 0 on success, negative errno on error.
+- */
+-int __weak
+-arch_kexec_apply_relocations_add(struct purgatory_info *pi, Elf_Shdr *section,
+-				 const Elf_Shdr *relsec, const Elf_Shdr *symtab)
+-{
+-	pr_err("RELA relocation unsupported.\n");
+-	return -ENOEXEC;
+-}
+-
+-/*
+- * arch_kexec_apply_relocations - apply relocations of type REL
+- * @pi:		Purgatory to be relocated.
+- * @section:	Section relocations applying to.
+- * @relsec:	Section containing RELs.
+- * @symtab:	Corresponding symtab.
+- *
+- * Return: 0 on success, negative errno on error.
+- */
+-int __weak
+-arch_kexec_apply_relocations(struct purgatory_info *pi, Elf_Shdr *section,
+-			     const Elf_Shdr *relsec, const Elf_Shdr *symtab)
+-{
+-	pr_err("REL relocation unsupported.\n");
+-	return -ENOEXEC;
+-}
+-
+-/*
+  * Free up memory used by kernel, initrd, and command line. This is temporary
+  * memory allocation which is not needed any more after these buffers have
+  * been loaded into separate segments and have been copied elsewhere.
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from naveen.n.rao@linux.vnet.ibm.com are
 
 
