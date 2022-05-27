@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08238C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 16:35:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F5E7C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 16:35:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241779AbiE0QfY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 May 2022 12:35:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44850 "EHLO
+        id S1349000AbiE0Qf0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 May 2022 12:35:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349000AbiE0QfQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 12:35:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86C43527C1
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 09:35:15 -0700 (PDT)
+        with ESMTP id S1349713AbiE0QfS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 12:35:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91E8952B3F
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 09:35:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 09CB161DE5
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 16:35:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64EB4C34113;
-        Fri, 27 May 2022 16:35:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2CAE461DE5
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 16:35:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86C4DC385A9;
+        Fri, 27 May 2022 16:35:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653669314;
-        bh=R9mqctzkLLKauIi7/GhbO5HZGp8TJWjAaQvPmlUbSMY=;
+        s=korg; t=1653669316;
+        bh=sQGNKLTmDWf2/OhQeidpj3KmtTzY+rprF1kkZa2bIRA=;
         h=Date:To:From:Subject:From;
-        b=WBKP+UqmUODuKGlgVRCNJodrIUrdJrH3i2KEv/jX0z2nUsv7H1V4AQz+8AIdL3vLu
-         HmJgG7kiyJLhmS9JVc68/jfP8QpuFATwO+7LYJVVukQ8ETNbwY/YnBhxSpM/87Jv0E
-         C8X1w57vI/gCzE2rfn0Tt5EU//QWGnYRYNxrFuic=
-Date:   Fri, 27 May 2022 09:35:13 -0700
-To:     mm-commits@vger.kernel.org, paulmck@kernel.org,
-        jhubbard@nvidia.com, david@redhat.com, minchan@kernel.org,
+        b=aeBXmTDNhEa8fEQi7QDFVw26VYcHmO3+Z5rJHdvYZF46BXIXEvmVLkBe+zXj9kLHW
+         /rEuSiT1a0JnYIviVD217uFxw74KRxLu5pU5hj5c1K74Lya6kOAcGJBYAWJ9l9c9eK
+         g/bvgzsCO9QUlZd5WET4hncogiMoSs0JoBYPZkRs=
+Date:   Fri, 27 May 2022 09:35:15 -0700
+To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org, vbabka@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-is_pinnable_page-against-a-cma-page.patch removed from -mm tree
-Message-Id: <20220527163514.64EB4C34113@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kconfig-reorganize-misplaced-mm-options.patch removed from -mm tree
+Message-Id: <20220527163516.86C4DC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,106 +41,270 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: fix is_pinnable_page against a cma page
+     Subject: mm: Kconfig: reorganize misplaced mm options
 has been removed from the -mm tree.  Its filename was
-     mm-fix-is_pinnable_page-against-a-cma-page.patch
+     mm-kconfig-reorganize-misplaced-mm-options.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fix is_pinnable_page against a cma page
-Date: Tue, 24 May 2022 10:15:25 -0700
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: Kconfig: reorganize misplaced mm options
+Date: Wed, 25 May 2022 13:25:59 +0200
 
-Pages in the CMA area could have MIGRATE_ISOLATE as well as MIGRATE_CMA so
-the current is_pinnable_page() could miss CMA pages which have
-MIGRATE_ISOLATE.  It ends up pinning CMA pages as longterm for the
-pin_user_pages() API so CMA allocations keep failing until the pin is
-released.
+After commits 7b42f1041c98 ("mm: Kconfig: move swap and slab config
+options to the MM section") and 519bcb797907 ("mm: Kconfig: group swap,
+slab, hotplug and thp options into submenus") we now have nicely organized
+mm related config options.  I have noticed some that were still misplaced,
+so this moves them from various places into the new structure:
 
-     CPU 0                                   CPU 1 - Task B
+VM_EVENT_COUNTERS, COMPAT_BRK, MMAP_ALLOW_UNINITIALIZED to mm/Kconfig and
+general MM section.
 
-cma_alloc
-alloc_contig_range
-                                        pin_user_pages_fast(FOLL_LONGTERM)
-change pageblock as MIGRATE_ISOLATE
-                                        internal_get_user_pages_fast
-                                        lockless_pages_from_mm
-                                        gup_pte_range
-                                        try_grab_folio
-                                        is_pinnable_page
-                                          return true;
-                                        So, pinned the page successfully.
-page migration failure with pinned page
-                                        ..
-                                        .. After 30 sec
-                                        unpin_user_page(page)
+SLUB_STATS to mm/Kconfig and the slab submenu.
 
-CMA allocation succeeded after 30 sec.
+DEBUG_SLAB, SLUB_DEBUG, SLUB_DEBUG_ON to mm/Kconfig.debug and the Kernel
+hacking / Memory Debugging submenu.
 
-The CMA allocation path protects the migration type change race using
-zone->lock but what GUP path need to know is just whether the page is on
-CMA area or not rather than exact migration type.  Thus, we don't need
-zone->lock but just checks migration type in either of (MIGRATE_ISOLATE
-and MIGRATE_CMA).
-
-Adding the MIGRATE_ISOLATE check in is_pinnable_page could cause rejecting
-of pinning pages on MIGRATE_ISOLATE pageblocks even though it's neither
-CMA nor movable zone if the page is temporarily unmovable.  However, such
-a migration failure by unexpected temporal refcount holding is general
-issue, not only come from MIGRATE_ISOLATE and the MIGRATE_ISOLATE is also
-transient state like other temporal elevated refcount problem.
-
-Link: https://lkml.kernel.org/r/20220524171525.976723-1-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: Paul E. McKenney <paulmck@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20220525112559.1139-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 +++++++--
- mm/page_alloc.c    |    8 ++++++--
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ init/Kconfig      |   53 -----------------------------------------
+ lib/Kconfig.debug |   34 --------------------------
+ mm/Kconfig        |   56 ++++++++++++++++++++++++++++++++++++++++++++
+ mm/Kconfig.debug  |   31 ++++++++++++++++++++++++
+ 4 files changed, 87 insertions(+), 87 deletions(-)
 
---- a/include/linux/mm.h~mm-fix-is_pinnable_page-against-a-cma-page
-+++ a/include/linux/mm.h
-@@ -1594,8 +1594,13 @@ static inline bool page_needs_cow_for_dm
- #ifdef CONFIG_MIGRATION
- static inline bool is_pinnable_page(struct page *page)
- {
--	return !(is_zone_movable_page(page) || is_migrate_cma_page(page)) ||
--		is_zero_pfn(page_to_pfn(page));
-+#ifdef CONFIG_CMA
-+	int mt = get_pageblock_migratetype(page);
-+
-+	if (mt == MIGRATE_CMA || mt == MIGRATE_ISOLATE)
-+		return false;
-+#endif
-+	return !(is_zone_movable_page(page) || is_zero_pfn(page_to_pfn(page)));
- }
- #else
- static inline bool is_pinnable_page(struct page *page)
---- a/mm/page_alloc.c~mm-fix-is_pinnable_page-against-a-cma-page
-+++ a/mm/page_alloc.c
-@@ -482,8 +482,12 @@ unsigned long __get_pfnblock_flags_mask(
- 	bitidx = pfn_to_bitidx(page, pfn);
- 	word_bitidx = bitidx / BITS_PER_LONG;
- 	bitidx &= (BITS_PER_LONG-1);
--
--	word = bitmap[word_bitidx];
-+	/*
-+	 * This races, without locks, with set_pfnblock_flags_mask(). Ensure
-+	 * a consistent read of the memory array, so that results, even though
-+	 * racy, are not corrupted.
-+	 */
-+	word = READ_ONCE(bitmap[word_bitidx]);
- 	return (word >> bitidx) & mask;
- }
+--- a/init/Kconfig~mm-kconfig-reorganize-misplaced-mm-options
++++ a/init/Kconfig
+@@ -1828,59 +1828,6 @@ config DEBUG_PERF_USE_VMALLOC
  
+ endmenu
+ 
+-config VM_EVENT_COUNTERS
+-	default y
+-	bool "Enable VM event counters for /proc/vmstat" if EXPERT
+-	help
+-	  VM event counters are needed for event counts to be shown.
+-	  This option allows the disabling of the VM event counters
+-	  on EXPERT systems.  /proc/vmstat will only show page counts
+-	  if VM event counters are disabled.
+-
+-config SLUB_DEBUG
+-	default y
+-	bool "Enable SLUB debugging support" if EXPERT
+-	depends on SLUB && SYSFS
+-	help
+-	  SLUB has extensive debug support features. Disabling these can
+-	  result in significant savings in code size. This also disables
+-	  SLUB sysfs support. /sys/slab will not exist and there will be
+-	  no support for cache validation etc.
+-
+-config COMPAT_BRK
+-	bool "Disable heap randomization"
+-	default y
+-	help
+-	  Randomizing heap placement makes heap exploits harder, but it
+-	  also breaks ancient binaries (including anything libc5 based).
+-	  This option changes the bootup default to heap randomization
+-	  disabled, and can be overridden at runtime by setting
+-	  /proc/sys/kernel/randomize_va_space to 2.
+-
+-	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
+-
+-config MMAP_ALLOW_UNINITIALIZED
+-	bool "Allow mmapped anonymous memory to be uninitialized"
+-	depends on EXPERT && !MMU
+-	default n
+-	help
+-	  Normally, and according to the Linux spec, anonymous memory obtained
+-	  from mmap() has its contents cleared before it is passed to
+-	  userspace.  Enabling this config option allows you to request that
+-	  mmap() skip that if it is given an MAP_UNINITIALIZED flag, thus
+-	  providing a huge performance boost.  If this option is not enabled,
+-	  then the flag will be ignored.
+-
+-	  This is taken advantage of by uClibc's malloc(), and also by
+-	  ELF-FDPIC binfmt's brk and stack allocator.
+-
+-	  Because of the obvious security issues, this option should only be
+-	  enabled on embedded devices where you control what is run in
+-	  userspace.  Since that isn't generally a problem on no-MMU systems,
+-	  it is normally safe to say Y here.
+-
+-	  See Documentation/admin-guide/mm/nommu-mmap.rst for more information.
+-
+ config SYSTEM_DATA_VERIFICATION
+ 	def_bool n
+ 	select SYSTEM_TRUSTED_KEYRING
+--- a/lib/Kconfig.debug~mm-kconfig-reorganize-misplaced-mm-options
++++ a/lib/Kconfig.debug
+@@ -698,40 +698,6 @@ config DEBUG_OBJECTS_ENABLE_DEFAULT
+ 	help
+ 	  Debug objects boot parameter default value
+ 
+-config DEBUG_SLAB
+-	bool "Debug slab memory allocations"
+-	depends on DEBUG_KERNEL && SLAB
+-	help
+-	  Say Y here to have the kernel do limited verification on memory
+-	  allocation as well as poisoning memory on free to catch use of freed
+-	  memory. This can make kmalloc/kfree-intensive workloads much slower.
+-
+-config SLUB_DEBUG_ON
+-	bool "SLUB debugging on by default"
+-	depends on SLUB && SLUB_DEBUG
+-	default n
+-	help
+-	  Boot with debugging on by default. SLUB boots by default with
+-	  the runtime debug capabilities switched off. Enabling this is
+-	  equivalent to specifying the "slub_debug" parameter on boot.
+-	  There is no support for more fine grained debug control like
+-	  possible with slub_debug=xxx. SLUB debugging may be switched
+-	  off in a kernel built with CONFIG_SLUB_DEBUG_ON by specifying
+-	  "slub_debug=-".
+-
+-config SLUB_STATS
+-	default n
+-	bool "Enable SLUB performance statistics"
+-	depends on SLUB && SYSFS
+-	help
+-	  SLUB statistics are useful to debug SLUBs allocation behavior in
+-	  order find ways to optimize the allocator. This should never be
+-	  enabled for production use since keeping statistics slows down
+-	  the allocator by a few percentage points. The slabinfo command
+-	  supports the determination of the most active slabs to figure
+-	  out which slabs are relevant to a particular load.
+-	  Try running: slabinfo -DA
+-
+ config HAVE_DEBUG_KMEMLEAK
+ 	bool
+ 
+--- a/mm/Kconfig~mm-kconfig-reorganize-misplaced-mm-options
++++ a/mm/Kconfig
+@@ -270,6 +270,19 @@ config SLAB_FREELIST_HARDENED
+ 	  sanity-checking than others. This option is most effective with
+ 	  CONFIG_SLUB.
+ 
++config SLUB_STATS
++	default n
++	bool "Enable SLUB performance statistics"
++	depends on SLUB && SYSFS
++	help
++	  SLUB statistics are useful to debug SLUBs allocation behavior in
++	  order find ways to optimize the allocator. This should never be
++	  enabled for production use since keeping statistics slows down
++	  the allocator by a few percentage points. The slabinfo command
++	  supports the determination of the most active slabs to figure
++	  out which slabs are relevant to a particular load.
++	  Try running: slabinfo -DA
++
+ config SLUB_CPU_PARTIAL
+ 	default y
+ 	depends on SLUB && SMP
+@@ -307,6 +320,40 @@ config SHUFFLE_PAGE_ALLOCATOR
+ 
+ 	  Say Y if unsure.
+ 
++config COMPAT_BRK
++	bool "Disable heap randomization"
++	default y
++	help
++	  Randomizing heap placement makes heap exploits harder, but it
++	  also breaks ancient binaries (including anything libc5 based).
++	  This option changes the bootup default to heap randomization
++	  disabled, and can be overridden at runtime by setting
++	  /proc/sys/kernel/randomize_va_space to 2.
++
++	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
++
++config MMAP_ALLOW_UNINITIALIZED
++	bool "Allow mmapped anonymous memory to be uninitialized"
++	depends on EXPERT && !MMU
++	default n
++	help
++	  Normally, and according to the Linux spec, anonymous memory obtained
++	  from mmap() has its contents cleared before it is passed to
++	  userspace.  Enabling this config option allows you to request that
++	  mmap() skip that if it is given an MAP_UNINITIALIZED flag, thus
++	  providing a huge performance boost.  If this option is not enabled,
++	  then the flag will be ignored.
++
++	  This is taken advantage of by uClibc's malloc(), and also by
++	  ELF-FDPIC binfmt's brk and stack allocator.
++
++	  Because of the obvious security issues, this option should only be
++	  enabled on embedded devices where you control what is run in
++	  userspace.  Since that isn't generally a problem on no-MMU systems,
++	  it is normally safe to say Y here.
++
++	  See Documentation/admin-guide/mm/nommu-mmap.rst for more information.
++
+ config SELECT_MEMORY_MODEL
+ 	def_bool y
+ 	depends on ARCH_SELECT_MEMORY_MODEL
+@@ -964,6 +1011,15 @@ config ARCH_USES_HIGH_VMA_FLAGS
+ config ARCH_HAS_PKEYS
+ 	bool
+ 
++config VM_EVENT_COUNTERS
++	default y
++	bool "Enable VM event counters for /proc/vmstat" if EXPERT
++	help
++	  VM event counters are needed for event counts to be shown.
++	  This option allows the disabling of the VM event counters
++	  on EXPERT systems.  /proc/vmstat will only show page counts
++	  if VM event counters are disabled.
++
+ config PERCPU_STATS
+ 	bool "Collect percpu memory statistics"
+ 	help
+--- a/mm/Kconfig.debug~mm-kconfig-reorganize-misplaced-mm-options
++++ a/mm/Kconfig.debug
+@@ -45,6 +45,37 @@ config DEBUG_PAGEALLOC_ENABLE_DEFAULT
+ 	  Enable debug page memory allocations by default? This value
+ 	  can be overridden by debug_pagealloc=off|on.
+ 
++config DEBUG_SLAB
++	bool "Debug slab memory allocations"
++	depends on DEBUG_KERNEL && SLAB
++	help
++	  Say Y here to have the kernel do limited verification on memory
++	  allocation as well as poisoning memory on free to catch use of freed
++	  memory. This can make kmalloc/kfree-intensive workloads much slower.
++
++config SLUB_DEBUG
++	default y
++	bool "Enable SLUB debugging support" if EXPERT
++	depends on SLUB && SYSFS
++	help
++	  SLUB has extensive debug support features. Disabling these can
++	  result in significant savings in code size. This also disables
++	  SLUB sysfs support. /sys/slab will not exist and there will be
++	  no support for cache validation etc.
++
++config SLUB_DEBUG_ON
++	bool "SLUB debugging on by default"
++	depends on SLUB && SLUB_DEBUG
++	default n
++	help
++	  Boot with debugging on by default. SLUB boots by default with
++	  the runtime debug capabilities switched off. Enabling this is
++	  equivalent to specifying the "slub_debug" parameter on boot.
++	  There is no support for more fine grained debug control like
++	  possible with slub_debug=xxx. SLUB debugging may be switched
++	  off in a kernel built with CONFIG_SLUB_DEBUG_ON by specifying
++	  "slub_debug=-".
++
+ config PAGE_OWNER
+ 	bool "Track page owner"
+ 	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
