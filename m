@@ -2,294 +2,174 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 922ACC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 26 May 2022 22:24:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5E96C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 02:14:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347056AbiEZWYT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 May 2022 18:24:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38064 "EHLO
+        id S233548AbiE0COx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 26 May 2022 22:14:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229604AbiEZWYS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2022 18:24:18 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0CB995A0F
-        for <mm-commits@vger.kernel.org>; Thu, 26 May 2022 15:24:15 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S231421AbiE0COw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2022 22:14:52 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB77E6FA05
+        for <mm-commits@vger.kernel.org>; Thu, 26 May 2022 19:14:50 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id BE4421F935;
-        Thu, 26 May 2022 22:24:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1653603853; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=OprR7Lz8j4QRxxDM0oL8Sk5uUQy/PiNFUsoG71hHN+I=;
-        b=burRNFGJa/gLEgMPJWkeweXn8bL1BwIlkcSmXFYv+uJRA/wWlHMDA0ZqLstzqlBMKyRMBO
-        giI2VH6K6XcY+E7PhBS1fIHCz2CoRtmsWP1AMTuxL2KYIu4WUhEx1l5aKRhg4O01nZs+Or
-        bypnUtKR3ofbz6hKY9UJfY1IcCgzseY=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1653603853;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=OprR7Lz8j4QRxxDM0oL8Sk5uUQy/PiNFUsoG71hHN+I=;
-        b=BFs6MsDBljCxmC4VHNeUE8bDngqKSYaW+GtRAFHDrr/LkM6mLLNEWGampCR6o27DwxTKhk
-        baCJddLUEIwZwnBA==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 817D013AE3;
-        Thu, 26 May 2022 22:24:13 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id siJSHg3+j2L/CwAAMHmgww
-        (envelope-from <vbabka@suse.cz>); Thu, 26 May 2022 22:24:13 +0000
-Message-ID: <49816e4a-76fb-fcf8-eced-68e0086cba3b@suse.cz>
-Date:   Fri, 27 May 2022 00:22:57 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.0
-Subject: Re: [merged mm-stable]
- mm-fix-a-potential-infinite-loop-in-start_isolate_page_range.patch removed
- from -mm tree
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4818DB82219
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 02:14:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC44FC385A9;
+        Fri, 27 May 2022 02:14:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1653617688;
+        bh=56YeJM8l/w8udkoCp7tp5E7YSutA23MFdD0QC8tbUy8=;
+        h=Date:To:From:Subject:From;
+        b=EqKyP7BxcAD03sAu34Ufu1t0pqF19aQPV7lBYkt2BbkEhAUJVCBFQKs12avlqrff5
+         dnTEtGUuv3/hL1+Rx7QwhjB/0cSOKKeK4FrNh6Xip1Mvn21eLiPIF2fIvJX8HpphaY
+         ImnYRNgniZIDQ7FAkHTUGx5OkFVTVZfGkt9w+ZEY=
+Date:   Thu, 26 May 2022 19:14:47 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
         renzhengeek@gmail.com, quic_qiancai@quicinc.com, osalvador@suse.de,
-        minchan@kernel.org, mgorman@techsingularity.net, david@redhat.com,
-        christophe.leroy@csgroup.eu, ziy@nvidia.com
-References: <20220526210352.0AA3EC34116@smtp.kernel.org>
-From:   Vlastimil Babka <vbabka@suse.cz>
-In-Reply-To: <20220526210352.0AA3EC34116@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        opendmb@gmail.com, m.szyprowski@samsung.com, michael@walle.cc,
+        mgorman@techsingularity.net, david@redhat.com,
+        christophe.leroy@csgroup.eu, ziy@nvidia.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-page-isolation-skip-isolated-pageblock-in-start_isolate_page_range.patch added to mm-unstable branch
+Message-Id: <20220527021447.EC44FC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 5/26/22 23:03, Andrew Morton wrote:
-> The quilt patch titled
->      Subject: mm: fix a potential infinite loop in start_isolate_page_range()
-> has been removed from the -mm tree.  Its filename was
->      mm-fix-a-potential-infinite-loop-in-start_isolate_page_range.patch
-> 
-> This patch was dropped because it was merged into the mm-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Was it with the followup fix?
-https://lore.kernel.org/all/8C74B0BA-3C69-46EE-8C14-0CE6787D0B65@nvidia.com/
-The patch content below suggest it wasn't, but maybe it's just how the
-mails are generated.
+The patch titled
+     Subject: mm: page-isolation: skip isolated pageblock in start_isolate_page_range()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page-isolation-skip-isolated-pageblock-in-start_isolate_page_range.patch
 
-> ------------------------------------------------------
-> From: Zi Yan <ziy@nvidia.com>
-> Subject: mm: fix a potential infinite loop in start_isolate_page_range()
-> Date: Tue, 24 May 2022 15:47:56 -0400
-> 
-> In isolate_single_pageblock() called by start_isolate_page_range(), there
-> are some pageblock isolation issues causing a potential infinite loop when
-> isolating a page range.  This is reported by Qian Cai.
-> 
-> 1. the pageblock was isolated by just changing pageblock migratetype
->    without checking unmovable pages. Calling set_migratetype_isolate() to
->    isolate pageblock properly.
-> 2. an off-by-one error caused migrating pages unnecessarily, since the page
->    is not crossing pageblock boundary.
-> 3. migrating a compound page across pageblock boundary then splitting the
->    free page later has a small race window that the free page might be
->    allocated again, so that the code will try again, causing an potential
->    infinite loop. Temporarily set the to-be-migrated page's pageblock to
->    MIGRATE_ISOLATE to prevent that and bail out early if no free page is
->    found after page migration.
-> 
-> An additional fix to split_free_page() aims to avoid crashing in
-> __free_one_page().  When the free page is split at the specified
-> split_pfn_offset, free_page_order should check both the first bit of
-> free_page_pfn and the last bit of split_pfn_offset and use the smaller
-> one.  For example, if free_page_pfn=0x10000, split_pfn_offset=0xc000,
-> free_page_order should first be 0x8000 then 0x4000, instead of 0x4000 then
-> 0x8000, which the original algorithm did.
-> 
-> [akpm@linux-foundation.org: suppress min() warning]
-> Link: https://lkml.kernel.org/r/20220524194756.1698351-1-zi.yan@sent.com
-> Fixes: b2c9e2fbba3253 ("mm: make alloc_contig_range work at pageblock granularity")
-> Signed-off-by: Zi Yan <ziy@nvidia.com>
-> Reported-by: Qian Cai <quic_qiancai@quicinc.com>
-> Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-> Cc: David Hildenbrand <david@redhat.com>
-> Cc: Eric Ren <renzhengeek@gmail.com>
-> Cc: Mel Gorman <mgorman@techsingularity.net>
-> Cc: Mike Rapoport <rppt@linux.ibm.com>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Cc: Oscar Salvador <osalvador@suse.de>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  mm/page_alloc.c     |    7 ++++-
->  mm/page_isolation.c |   52 ++++++++++++++++++++++++++++++++----------
->  2 files changed, 46 insertions(+), 13 deletions(-)
-> 
-> --- a/mm/page_alloc.c~mm-fix-a-potential-infinite-loop-in-start_isolate_page_range
-> +++ a/mm/page_alloc.c
-> @@ -1114,13 +1114,18 @@ void split_free_page(struct page *free_p
->  	unsigned long flags;
->  	int free_page_order;
->  
-> +	if (split_pfn_offset == 0)
-> +		return;
-> +
->  	spin_lock_irqsave(&zone->lock, flags);
->  	del_page_from_free_list(free_page, zone, order);
->  	for (pfn = free_page_pfn;
->  	     pfn < free_page_pfn + (1UL << order);) {
->  		int mt = get_pfnblock_migratetype(pfn_to_page(pfn), pfn);
->  
-> -		free_page_order = ffs(split_pfn_offset) - 1;
-> +		free_page_order = min_t(int,
-> +					pfn ? __ffs(pfn) : order,
-> +					__fls(split_pfn_offset));
->  		__free_one_page(pfn_to_page(pfn), pfn, zone, free_page_order,
->  				mt, FPI_NONE);
->  		pfn += 1UL << free_page_order;
-> --- a/mm/page_isolation.c~mm-fix-a-potential-infinite-loop-in-start_isolate_page_range
-> +++ a/mm/page_isolation.c
-> @@ -283,6 +283,7 @@ __first_valid_page(unsigned long pfn, un
->   * isolate_single_pageblock() -- tries to isolate a pageblock that might be
->   * within a free or in-use page.
->   * @boundary_pfn:		pageblock-aligned pfn that a page might cross
-> + * @flags:			isolation flags
->   * @gfp_flags:			GFP flags used for migrating pages
->   * @isolate_before:	isolate the pageblock before the boundary_pfn
->   *
-> @@ -298,14 +299,15 @@ __first_valid_page(unsigned long pfn, un
->   * either. The function handles this by splitting the free page or migrating
->   * the in-use page then splitting the free page.
->   */
-> -static int isolate_single_pageblock(unsigned long boundary_pfn, gfp_t gfp_flags,
-> -			bool isolate_before)
-> +static int isolate_single_pageblock(unsigned long boundary_pfn, int flags,
-> +			gfp_t gfp_flags, bool isolate_before)
->  {
->  	unsigned char saved_mt;
->  	unsigned long start_pfn;
->  	unsigned long isolate_pageblock;
->  	unsigned long pfn;
->  	struct zone *zone;
-> +	int ret;
->  
->  	VM_BUG_ON(!IS_ALIGNED(boundary_pfn, pageblock_nr_pages));
->  
-> @@ -325,7 +327,11 @@ static int isolate_single_pageblock(unsi
->  				      zone->zone_start_pfn);
->  
->  	saved_mt = get_pageblock_migratetype(pfn_to_page(isolate_pageblock));
-> -	set_pageblock_migratetype(pfn_to_page(isolate_pageblock), MIGRATE_ISOLATE);
-> +	ret = set_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt, flags,
-> +			isolate_pageblock, isolate_pageblock + pageblock_nr_pages);
-> +
-> +	if (ret)
-> +		return ret;
->  
->  	/*
->  	 * Bail out early when the to-be-isolated pageblock does not form
-> @@ -374,7 +380,7 @@ static int isolate_single_pageblock(unsi
->  			struct page *head = compound_head(page);
->  			unsigned long head_pfn = page_to_pfn(head);
->  
-> -			if (head_pfn + nr_pages < boundary_pfn) {
-> +			if (head_pfn + nr_pages <= boundary_pfn) {
->  				pfn = head_pfn + nr_pages;
->  				continue;
->  			}
-> @@ -386,7 +392,8 @@ static int isolate_single_pageblock(unsi
->  			if (PageHuge(page) || PageLRU(page) || __PageMovable(page)) {
->  				int order;
->  				unsigned long outer_pfn;
-> -				int ret;
-> +				int page_mt = get_pageblock_migratetype(page);
-> +				bool isolate_page = !is_migrate_isolate_page(page);
->  				struct compact_control cc = {
->  					.nr_migratepages = 0,
->  					.order = -1,
-> @@ -399,9 +406,31 @@ static int isolate_single_pageblock(unsi
->  				};
->  				INIT_LIST_HEAD(&cc.migratepages);
->  
-> +				/*
-> +				 * XXX: mark the page as MIGRATE_ISOLATE so that
-> +				 * no one else can grab the freed page after migration.
-> +				 * Ideally, the page should be freed as two separate
-> +				 * pages to be added into separate migratetype free
-> +				 * lists.
-> +				 */
-> +				if (isolate_page) {
-> +					ret = set_migratetype_isolate(page, page_mt,
-> +						flags, head_pfn, head_pfn + nr_pages);
-> +					if (ret)
-> +						goto failed;
-> +				}
-> +
->  				ret = __alloc_contig_migrate_range(&cc, head_pfn,
->  							head_pfn + nr_pages);
->  
-> +				/*
-> +				 * restore the page's migratetype so that it can
-> +				 * be split into separate migratetype free lists
-> +				 * later.
-> +				 */
-> +				if (isolate_page)
-> +					unset_migratetype_isolate(page, page_mt);
-> +
->  				if (ret)
->  					goto failed;
->  				/*
-> @@ -417,10 +446,9 @@ static int isolate_single_pageblock(unsi
->  				order = 0;
->  				outer_pfn = pfn;
->  				while (!PageBuddy(pfn_to_page(outer_pfn))) {
-> -					if (++order >= MAX_ORDER) {
-> -						outer_pfn = pfn;
-> -						break;
-> -					}
-> +					/* stop if we cannot find the free page */
-> +					if (++order >= MAX_ORDER)
-> +						goto failed;
->  					outer_pfn &= ~0UL << order;
->  				}
->  				pfn = outer_pfn;
-> @@ -435,7 +463,7 @@ static int isolate_single_pageblock(unsi
->  	return 0;
->  failed:
->  	/* restore the original migratetype */
-> -	set_pageblock_migratetype(pfn_to_page(isolate_pageblock), saved_mt);
-> +	unset_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt);
->  	return -EBUSY;
->  }
->  
-> @@ -496,12 +524,12 @@ int start_isolate_page_range(unsigned lo
->  	int ret;
->  
->  	/* isolate [isolate_start, isolate_start + pageblock_nr_pages) pageblock */
-> -	ret = isolate_single_pageblock(isolate_start, gfp_flags, false);
-> +	ret = isolate_single_pageblock(isolate_start, flags, gfp_flags, false);
->  	if (ret)
->  		return ret;
->  
->  	/* isolate [isolate_end - pageblock_nr_pages, isolate_end) pageblock */
-> -	ret = isolate_single_pageblock(isolate_end, gfp_flags, true);
-> +	ret = isolate_single_pageblock(isolate_end, flags, gfp_flags, true);
->  	if (ret) {
->  		unset_migratetype_isolate(pfn_to_page(isolate_start), migratetype);
->  		return ret;
-> _
-> 
-> Patches currently in -mm which might be from ziy@nvidia.com are
-> 
-> 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page-isolation-skip-isolated-pageblock-in-start_isolate_page_range.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: page-isolation: skip isolated pageblock in start_isolate_page_range()
+Date: Thu, 26 May 2022 19:15:30 -0400
+
+start_isolate_page_range() first isolates the first and the last
+pageblocks in the range and ensure pages across range boundaries are split
+during isolation.  But it missed the case when the range is <= a pageblock
+and the first and the last pageblocks are the same one, so the second
+isolate_single_pageblock() will always fail.  To fix it, skip the
+pageblock isolation in second isolate_single_pageblock().
+
+Link: https://lkml.kernel.org/r/20220526231531.2404977-1-zi.yan@sent.com
+Fixes: 88ee134320b8 ("mm: fix a potential infinite loop in start_isolate_page_range()")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+  Link: https://lore.kernel.org/linux-mm/ac65adc0-a7e4-cdfe-a0d8-757195b86293@samsung.com/
+Reported-by: Michael Walle <michael@walle.cc>
+Tested-by: Michael Walle <michael@walle.cc>
+  Link: https://lore.kernel.org/linux-mm/8ca048ca8b547e0dd1c95387ee05c23d@walle.cc/
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Doug Berger <opendmb@gmail.com>
+Cc: Eric Ren <renzhengeek@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Qian Cai <quic_qiancai@quicinc.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/page_isolation.c |   26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
+
+--- a/mm/page_isolation.c~mm-page-isolation-skip-isolated-pageblock-in-start_isolate_page_range
++++ a/mm/page_isolation.c
+@@ -300,7 +300,7 @@ __first_valid_page(unsigned long pfn, un
+  * the in-use page then splitting the free page.
+  */
+ static int isolate_single_pageblock(unsigned long boundary_pfn, int flags,
+-			gfp_t gfp_flags, bool isolate_before)
++			gfp_t gfp_flags, bool isolate_before, bool skip_isolation)
+ {
+ 	unsigned char saved_mt;
+ 	unsigned long start_pfn;
+@@ -327,11 +327,16 @@ static int isolate_single_pageblock(unsi
+ 				      zone->zone_start_pfn);
+ 
+ 	saved_mt = get_pageblock_migratetype(pfn_to_page(isolate_pageblock));
+-	ret = set_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt, flags,
+-			isolate_pageblock, isolate_pageblock + pageblock_nr_pages);
+ 
+-	if (ret)
+-		return ret;
++	if (skip_isolation)
++		VM_BUG_ON(!is_migrate_isolate(saved_mt));
++	else {
++		ret = set_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt, flags,
++				isolate_pageblock, isolate_pageblock + pageblock_nr_pages);
++
++		if (ret)
++			return ret;
++	}
+ 
+ 	/*
+ 	 * Bail out early when the to-be-isolated pageblock does not form
+@@ -463,7 +468,8 @@ static int isolate_single_pageblock(unsi
+ 	return 0;
+ failed:
+ 	/* restore the original migratetype */
+-	unset_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt);
++	if (!skip_isolation)
++		unset_migratetype_isolate(pfn_to_page(isolate_pageblock), saved_mt);
+ 	return -EBUSY;
+ }
+ 
+@@ -522,14 +528,18 @@ int start_isolate_page_range(unsigned lo
+ 	unsigned long isolate_start = ALIGN_DOWN(start_pfn, pageblock_nr_pages);
+ 	unsigned long isolate_end = ALIGN(end_pfn, pageblock_nr_pages);
+ 	int ret;
++	bool skip_isolation = false;
+ 
+ 	/* isolate [isolate_start, isolate_start + pageblock_nr_pages) pageblock */
+-	ret = isolate_single_pageblock(isolate_start, flags, gfp_flags, false);
++	ret = isolate_single_pageblock(isolate_start, flags, gfp_flags, false, skip_isolation);
+ 	if (ret)
+ 		return ret;
+ 
++	if (isolate_start == isolate_end - pageblock_nr_pages)
++		skip_isolation = true;
++
+ 	/* isolate [isolate_end - pageblock_nr_pages, isolate_end) pageblock */
+-	ret = isolate_single_pageblock(isolate_end, flags, gfp_flags, true);
++	ret = isolate_single_pageblock(isolate_end, flags, gfp_flags, true, skip_isolation);
+ 	if (ret) {
+ 		unset_migratetype_isolate(pfn_to_page(isolate_start), migratetype);
+ 		return ret;
+_
+
+Patches currently in -mm which might be from ziy@nvidia.com are
+
+mm-page-isolation-skip-isolated-pageblock-in-start_isolate_page_range.patch
+mm-split-free-page-with-properly-free-memory-accounting-and-without-race.patch
 
