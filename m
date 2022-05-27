@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B304FC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 16:37:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1742DC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 16:37:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243072AbiE0QhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 May 2022 12:37:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44670 "EHLO
+        id S1349163AbiE0QhE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 May 2022 12:37:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354006AbiE0QfB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 12:35:01 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BACA3B56F
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 09:35:01 -0700 (PDT)
+        with ESMTP id S1349801AbiE0QfA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 12:35:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53CC252B1D
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 09:34:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A7BDFB825AF
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 16:34:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A2FCC385A9;
-        Fri, 27 May 2022 16:34:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C1CF561DE3
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 16:34:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20A1EC385B8;
+        Fri, 27 May 2022 16:34:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653669298;
-        bh=0qCF9TgTHd4noKypk/9WyC9LaW0Nxr04hEJbwCXKCkU=;
+        s=korg; t=1653669297;
+        bh=vvMOsSUsuaJRNlGXisvTIlFwMUb3BYAD5/cIPrH2NIY=;
         h=Date:To:From:Subject:From;
-        b=TATQ26UB8yLDt7Km1a16eva1k5GkkWVh4uqmlEN0Zvlsq7rQLGJolvd0RcI/mVF+9
-         iWvsX1f19WwGApbjBz/RvYXWzVug1oIQRht7fEoKPxMZlH4OhL6igBuNSNrlQhCI7l
-         PnrWoJFCfxinZIU6cVo0dKx5T9pRcKgCM9VA72oA=
-Date:   Fri, 27 May 2022 09:34:57 -0700
+        b=SiDYjBFwtefK1WenN5bkyDVf3Gc8XuaYkPbZlk6Dew2SpHOzq19u9QCehaAGTxn+g
+         PjgnGNUNC544FLuU/pXfJQ8f3/WtktL+siuE43oBcLZ7pf65P72vI71pIGVTWn0tVb
+         oCqbP3gAmai8VxcZlT7ULHEzz3bferrmcmGvpTPg=
+Date:   Fri, 27 May 2022 09:34:56 -0700
 To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch removed from -mm tree
-Message-Id: <20220527163458.4A2FCC385A9@smtp.kernel.org>
+Subject: [merged mm-stable] revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch removed from -mm tree
+Message-Id: <20220527163457.20A1EC385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,53 +41,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/z3fold: put z3fold page back into unbuddied list when reclaim or migration fails
+     Subject: revert "mm/z3fold.c: allow __GFP_HIGHMEM in z3fold_alloc"
 has been removed from the -mm tree.  Its filename was
-     mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails.patch
+     revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/z3fold: put z3fold page back into unbuddied list when reclaim or migration fails
+Subject: revert "mm/z3fold.c: allow __GFP_HIGHMEM in z3fold_alloc"
 Date: Fri, 29 Apr 2022 14:40:43 +0800
 
-When doing z3fold page reclaim or migration, the page is removed from
-unbuddied list.  If reclaim or migration succeeds, it's fine as page is
-released.  But in case it fails, the page is not put back into unbuddied
-list now.  The page will be leaked until next compaction work, reclaim or
-migration is done.
+Revert commit f1549cb5ab2b ("mm/z3fold.c: allow __GFP_HIGHMEM in
+z3fold_alloc").
 
-Link: https://lkml.kernel.org/r/20220429064051.61552-7-linmiaohe@huawei.com
+z3fold can't support GFP_HIGHMEM page now.  page_address is used directly
+at all places.  Moreover, z3fold_header is on per cpu unbuddied list which
+could be accessed anytime.  So we should remove the support of GFP_HIGHMEM
+allocation for z3fold.
+
+Link: https://lkml.kernel.org/r/20220429064051.61552-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/z3fold.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-put-z3fold-page-back-into-unbuddied-list-when-reclaim-or-migration-fails
+--- a/mm/z3fold.c~revert-mm-z3foldc-allow-__gfp_highmem-in-z3fold_alloc
 +++ a/mm/z3fold.c
-@@ -1422,6 +1422,8 @@ next:
- 			spin_lock(&pool->lock);
- 			list_add(&page->lru, &pool->lru);
- 			spin_unlock(&pool->lock);
-+			if (list_empty(&zhdr->buddy))
-+				add_to_unbuddied(pool, zhdr);
- 			z3fold_page_unlock(zhdr);
- 			clear_bit(PAGE_CLAIMED, &page->private);
- 		}
-@@ -1638,6 +1640,8 @@ static void z3fold_page_putback(struct p
- 	spin_lock(&pool->lock);
- 	list_add(&page->lru, &pool->lru);
- 	spin_unlock(&pool->lock);
-+	if (list_empty(&zhdr->buddy))
-+		add_to_unbuddied(pool, zhdr);
- 	clear_bit(PAGE_CLAIMED, &page->private);
- 	z3fold_page_unlock(zhdr);
- }
+@@ -212,10 +212,8 @@ static int size_to_chunks(size_t size)
+ static inline struct z3fold_buddy_slots *alloc_slots(struct z3fold_pool *pool,
+ 							gfp_t gfp)
+ {
+-	struct z3fold_buddy_slots *slots;
+-
+-	slots = kmem_cache_zalloc(pool->c_handle,
+-				 (gfp & ~(__GFP_HIGHMEM | __GFP_MOVABLE)));
++	struct z3fold_buddy_slots *slots = kmem_cache_zalloc(pool->c_handle,
++							     gfp);
+ 
+ 	if (slots) {
+ 		/* It will be freed separately in free_handle(). */
+@@ -1075,7 +1073,7 @@ static int z3fold_alloc(struct z3fold_po
+ 	enum buddy bud;
+ 	bool can_sleep = gfpflags_allow_blocking(gfp);
+ 
+-	if (!size)
++	if (!size || (gfp & __GFP_HIGHMEM))
+ 		return -EINVAL;
+ 
+ 	if (size > PAGE_SIZE)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
