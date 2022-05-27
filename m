@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F5E7C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 16:35:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5B4FC433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 27 May 2022 16:35:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349000AbiE0Qf0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 27 May 2022 12:35:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44908 "EHLO
+        id S1349713AbiE0Qf3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 May 2022 12:35:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349713AbiE0QfS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 12:35:18 -0400
+        with ESMTP id S1349268AbiE0QfR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2022 12:35:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91E8952B3F
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 09:35:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D5E752B0A
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 09:35:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2CAE461DE5
-        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 16:35:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86C4DC385A9;
-        Fri, 27 May 2022 16:35:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2B43561DE4
+        for <mm-commits@vger.kernel.org>; Fri, 27 May 2022 16:35:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86CFFC385A9;
+        Fri, 27 May 2022 16:35:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653669316;
-        bh=sQGNKLTmDWf2/OhQeidpj3KmtTzY+rprF1kkZa2bIRA=;
+        s=korg; t=1653669315;
+        bh=ZB29TzbjHikJY3+Qem+cvBgoNY1QWN9Nu4SwcFZAsGI=;
         h=Date:To:From:Subject:From;
-        b=aeBXmTDNhEa8fEQi7QDFVw26VYcHmO3+Z5rJHdvYZF46BXIXEvmVLkBe+zXj9kLHW
-         /rEuSiT1a0JnYIviVD217uFxw74KRxLu5pU5hj5c1K74Lya6kOAcGJBYAWJ9l9c9eK
-         g/bvgzsCO9QUlZd5WET4hncogiMoSs0JoBYPZkRs=
-Date:   Fri, 27 May 2022 09:35:15 -0700
-To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org, vbabka@suse.cz,
+        b=VHe6RYqNXrB8WJV/Lo73N2o+53LXytIQ2VLDeC2cyrBkIgt6joCWAVcujlbfWMw8F
+         0kb9bSIVPXixBCLQYwzeNbgyf9npAbbFzD/oaGYEWU8U3912W5uiFB7HOkBePzCrlQ
+         rc7U8X4aBCsqVglAfEMUbH+NnLwbib3uGUgxg9Oo=
+Date:   Fri, 27 May 2022 09:35:14 -0700
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        ryabinin.a.a@gmail.com, glider@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kconfig-reorganize-misplaced-mm-options.patch removed from -mm tree
-Message-Id: <20220527163516.86C4DC385A9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kasan-fix-input-of-vmalloc_to_page.patch removed from -mm tree
+Message-Id: <20220527163515.86CFFC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,270 +43,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: Kconfig: reorganize misplaced mm options
+     Subject: mm: kasan: fix input of vmalloc_to_page()
 has been removed from the -mm tree.  Its filename was
-     mm-kconfig-reorganize-misplaced-mm-options.patch
+     mm-kasan-fix-input-of-vmalloc_to_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: Kconfig: reorganize misplaced mm options
-Date: Wed, 25 May 2022 13:25:59 +0200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: kasan: fix input of vmalloc_to_page()
+Date: Wed, 25 May 2022 20:08:04 +0800
 
-After commits 7b42f1041c98 ("mm: Kconfig: move swap and slab config
-options to the MM section") and 519bcb797907 ("mm: Kconfig: group swap,
-slab, hotplug and thp options into submenus") we now have nicely organized
-mm related config options.  I have noticed some that were still misplaced,
-so this moves them from various places into the new structure:
+When print virtual mapping info for vmalloc address, it should pass
+the addr not page, fix it.
 
-VM_EVENT_COUNTERS, COMPAT_BRK, MMAP_ALLOW_UNINITIALIZED to mm/Kconfig and
-general MM section.
-
-SLUB_STATS to mm/Kconfig and the slab submenu.
-
-DEBUG_SLAB, SLUB_DEBUG, SLUB_DEBUG_ON to mm/Kconfig.debug and the Kernel
-hacking / Memory Debugging submenu.
-
-Link: https://lkml.kernel.org/r/20220525112559.1139-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20220525120804.38155-1-wangkefeng.wang@huawei.com
+Fixes: c056a364e954 ("kasan: print virtual mapping info in reports")
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig      |   53 -----------------------------------------
- lib/Kconfig.debug |   34 --------------------------
- mm/Kconfig        |   56 ++++++++++++++++++++++++++++++++++++++++++++
- mm/Kconfig.debug  |   31 ++++++++++++++++++++++++
- 4 files changed, 87 insertions(+), 87 deletions(-)
+ mm/kasan/report.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/init/Kconfig~mm-kconfig-reorganize-misplaced-mm-options
-+++ a/init/Kconfig
-@@ -1828,59 +1828,6 @@ config DEBUG_PERF_USE_VMALLOC
+--- a/mm/kasan/report.c~mm-kasan-fix-input-of-vmalloc_to_page
++++ a/mm/kasan/report.c
+@@ -347,7 +347,7 @@ static void print_address_description(vo
+ 			       va->addr, va->addr + va->size, va->caller);
+ 			pr_err("\n");
  
- endmenu
+-			page = vmalloc_to_page(page);
++			page = vmalloc_to_page(addr);
+ 		}
+ 	}
  
--config VM_EVENT_COUNTERS
--	default y
--	bool "Enable VM event counters for /proc/vmstat" if EXPERT
--	help
--	  VM event counters are needed for event counts to be shown.
--	  This option allows the disabling of the VM event counters
--	  on EXPERT systems.  /proc/vmstat will only show page counts
--	  if VM event counters are disabled.
--
--config SLUB_DEBUG
--	default y
--	bool "Enable SLUB debugging support" if EXPERT
--	depends on SLUB && SYSFS
--	help
--	  SLUB has extensive debug support features. Disabling these can
--	  result in significant savings in code size. This also disables
--	  SLUB sysfs support. /sys/slab will not exist and there will be
--	  no support for cache validation etc.
--
--config COMPAT_BRK
--	bool "Disable heap randomization"
--	default y
--	help
--	  Randomizing heap placement makes heap exploits harder, but it
--	  also breaks ancient binaries (including anything libc5 based).
--	  This option changes the bootup default to heap randomization
--	  disabled, and can be overridden at runtime by setting
--	  /proc/sys/kernel/randomize_va_space to 2.
--
--	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
--
--config MMAP_ALLOW_UNINITIALIZED
--	bool "Allow mmapped anonymous memory to be uninitialized"
--	depends on EXPERT && !MMU
--	default n
--	help
--	  Normally, and according to the Linux spec, anonymous memory obtained
--	  from mmap() has its contents cleared before it is passed to
--	  userspace.  Enabling this config option allows you to request that
--	  mmap() skip that if it is given an MAP_UNINITIALIZED flag, thus
--	  providing a huge performance boost.  If this option is not enabled,
--	  then the flag will be ignored.
--
--	  This is taken advantage of by uClibc's malloc(), and also by
--	  ELF-FDPIC binfmt's brk and stack allocator.
--
--	  Because of the obvious security issues, this option should only be
--	  enabled on embedded devices where you control what is run in
--	  userspace.  Since that isn't generally a problem on no-MMU systems,
--	  it is normally safe to say Y here.
--
--	  See Documentation/admin-guide/mm/nommu-mmap.rst for more information.
--
- config SYSTEM_DATA_VERIFICATION
- 	def_bool n
- 	select SYSTEM_TRUSTED_KEYRING
---- a/lib/Kconfig.debug~mm-kconfig-reorganize-misplaced-mm-options
-+++ a/lib/Kconfig.debug
-@@ -698,40 +698,6 @@ config DEBUG_OBJECTS_ENABLE_DEFAULT
- 	help
- 	  Debug objects boot parameter default value
- 
--config DEBUG_SLAB
--	bool "Debug slab memory allocations"
--	depends on DEBUG_KERNEL && SLAB
--	help
--	  Say Y here to have the kernel do limited verification on memory
--	  allocation as well as poisoning memory on free to catch use of freed
--	  memory. This can make kmalloc/kfree-intensive workloads much slower.
--
--config SLUB_DEBUG_ON
--	bool "SLUB debugging on by default"
--	depends on SLUB && SLUB_DEBUG
--	default n
--	help
--	  Boot with debugging on by default. SLUB boots by default with
--	  the runtime debug capabilities switched off. Enabling this is
--	  equivalent to specifying the "slub_debug" parameter on boot.
--	  There is no support for more fine grained debug control like
--	  possible with slub_debug=xxx. SLUB debugging may be switched
--	  off in a kernel built with CONFIG_SLUB_DEBUG_ON by specifying
--	  "slub_debug=-".
--
--config SLUB_STATS
--	default n
--	bool "Enable SLUB performance statistics"
--	depends on SLUB && SYSFS
--	help
--	  SLUB statistics are useful to debug SLUBs allocation behavior in
--	  order find ways to optimize the allocator. This should never be
--	  enabled for production use since keeping statistics slows down
--	  the allocator by a few percentage points. The slabinfo command
--	  supports the determination of the most active slabs to figure
--	  out which slabs are relevant to a particular load.
--	  Try running: slabinfo -DA
--
- config HAVE_DEBUG_KMEMLEAK
- 	bool
- 
---- a/mm/Kconfig~mm-kconfig-reorganize-misplaced-mm-options
-+++ a/mm/Kconfig
-@@ -270,6 +270,19 @@ config SLAB_FREELIST_HARDENED
- 	  sanity-checking than others. This option is most effective with
- 	  CONFIG_SLUB.
- 
-+config SLUB_STATS
-+	default n
-+	bool "Enable SLUB performance statistics"
-+	depends on SLUB && SYSFS
-+	help
-+	  SLUB statistics are useful to debug SLUBs allocation behavior in
-+	  order find ways to optimize the allocator. This should never be
-+	  enabled for production use since keeping statistics slows down
-+	  the allocator by a few percentage points. The slabinfo command
-+	  supports the determination of the most active slabs to figure
-+	  out which slabs are relevant to a particular load.
-+	  Try running: slabinfo -DA
-+
- config SLUB_CPU_PARTIAL
- 	default y
- 	depends on SLUB && SMP
-@@ -307,6 +320,40 @@ config SHUFFLE_PAGE_ALLOCATOR
- 
- 	  Say Y if unsure.
- 
-+config COMPAT_BRK
-+	bool "Disable heap randomization"
-+	default y
-+	help
-+	  Randomizing heap placement makes heap exploits harder, but it
-+	  also breaks ancient binaries (including anything libc5 based).
-+	  This option changes the bootup default to heap randomization
-+	  disabled, and can be overridden at runtime by setting
-+	  /proc/sys/kernel/randomize_va_space to 2.
-+
-+	  On non-ancient distros (post-2000 ones) N is usually a safe choice.
-+
-+config MMAP_ALLOW_UNINITIALIZED
-+	bool "Allow mmapped anonymous memory to be uninitialized"
-+	depends on EXPERT && !MMU
-+	default n
-+	help
-+	  Normally, and according to the Linux spec, anonymous memory obtained
-+	  from mmap() has its contents cleared before it is passed to
-+	  userspace.  Enabling this config option allows you to request that
-+	  mmap() skip that if it is given an MAP_UNINITIALIZED flag, thus
-+	  providing a huge performance boost.  If this option is not enabled,
-+	  then the flag will be ignored.
-+
-+	  This is taken advantage of by uClibc's malloc(), and also by
-+	  ELF-FDPIC binfmt's brk and stack allocator.
-+
-+	  Because of the obvious security issues, this option should only be
-+	  enabled on embedded devices where you control what is run in
-+	  userspace.  Since that isn't generally a problem on no-MMU systems,
-+	  it is normally safe to say Y here.
-+
-+	  See Documentation/admin-guide/mm/nommu-mmap.rst for more information.
-+
- config SELECT_MEMORY_MODEL
- 	def_bool y
- 	depends on ARCH_SELECT_MEMORY_MODEL
-@@ -964,6 +1011,15 @@ config ARCH_USES_HIGH_VMA_FLAGS
- config ARCH_HAS_PKEYS
- 	bool
- 
-+config VM_EVENT_COUNTERS
-+	default y
-+	bool "Enable VM event counters for /proc/vmstat" if EXPERT
-+	help
-+	  VM event counters are needed for event counts to be shown.
-+	  This option allows the disabling of the VM event counters
-+	  on EXPERT systems.  /proc/vmstat will only show page counts
-+	  if VM event counters are disabled.
-+
- config PERCPU_STATS
- 	bool "Collect percpu memory statistics"
- 	help
---- a/mm/Kconfig.debug~mm-kconfig-reorganize-misplaced-mm-options
-+++ a/mm/Kconfig.debug
-@@ -45,6 +45,37 @@ config DEBUG_PAGEALLOC_ENABLE_DEFAULT
- 	  Enable debug page memory allocations by default? This value
- 	  can be overridden by debug_pagealloc=off|on.
- 
-+config DEBUG_SLAB
-+	bool "Debug slab memory allocations"
-+	depends on DEBUG_KERNEL && SLAB
-+	help
-+	  Say Y here to have the kernel do limited verification on memory
-+	  allocation as well as poisoning memory on free to catch use of freed
-+	  memory. This can make kmalloc/kfree-intensive workloads much slower.
-+
-+config SLUB_DEBUG
-+	default y
-+	bool "Enable SLUB debugging support" if EXPERT
-+	depends on SLUB && SYSFS
-+	help
-+	  SLUB has extensive debug support features. Disabling these can
-+	  result in significant savings in code size. This also disables
-+	  SLUB sysfs support. /sys/slab will not exist and there will be
-+	  no support for cache validation etc.
-+
-+config SLUB_DEBUG_ON
-+	bool "SLUB debugging on by default"
-+	depends on SLUB && SLUB_DEBUG
-+	default n
-+	help
-+	  Boot with debugging on by default. SLUB boots by default with
-+	  the runtime debug capabilities switched off. Enabling this is
-+	  equivalent to specifying the "slub_debug" parameter on boot.
-+	  There is no support for more fine grained debug control like
-+	  possible with slub_debug=xxx. SLUB debugging may be switched
-+	  off in a kernel built with CONFIG_SLUB_DEBUG_ON by specifying
-+	  "slub_debug=-".
-+
- config PAGE_OWNER
- 	bool "Track page owner"
- 	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
