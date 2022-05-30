@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB5CCC433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 29 May 2022 23:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9158C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 30 May 2022 20:00:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231656AbiE2Xwn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 29 May 2022 19:52:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45840 "EHLO
+        id S242675AbiE3UAu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 30 May 2022 16:00:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231281AbiE2Xwn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 29 May 2022 19:52:43 -0400
+        with ESMTP id S239600AbiE3UAs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 May 2022 16:00:48 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5AE85A15E
-        for <mm-commits@vger.kernel.org>; Sun, 29 May 2022 16:52:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E804095DDB;
+        Mon, 30 May 2022 13:00:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7D00960FCA
-        for <mm-commits@vger.kernel.org>; Sun, 29 May 2022 23:52:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C73B8C385A9;
-        Sun, 29 May 2022 23:52:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 854AB60F15;
+        Mon, 30 May 2022 20:00:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF490C385B8;
+        Mon, 30 May 2022 20:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1653868360;
-        bh=ev9oHWMHvBvO28E6dj/KDXic0fbEaN1+YgTcanRyrfY=;
+        s=korg; t=1653940846;
+        bh=sLGwvYn6Tq1PA60gp+5cqvjEY09S8DGzcvboC/1PbB0=;
         h=Date:To:From:Subject:From;
-        b=wU4z6eW82Lqaxb5PijgKUREEGK5LJkNExsfvNtvFMuUV0dhcc30JZm3NIc2bVkwVt
-         ClK5zWMSECfbhlmNYiNzhsTSNLxSfkt5UyOHlH99QETy6cy/gztc7njFjR/sn4OzUd
-         XsvqSNyp6N9zK1HfNqVxL9oTP64Dhk2orWFj/xoc=
-Date:   Sun, 29 May 2022 16:52:40 -0700
-To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        jpoimboe@kernel.org, akpm@linux-foundation.org
+        b=EtnwYMeujAFfsYTz4Hc+EGe66rGZuzznAY7WKoA9YvCu0lG12Z1qnvqKVv+DPsRcy
+         582/K7lHdfzD6jlV8CIHaH4bpJNvrXjEnTS/aLbZTQCZ2ycgaH8wYi0yRqQLF81K8P
+         qmFgkX99R2fyIsKp86Mlf1vyeUWcR3etS2db8os4=
+Date:   Mon, 30 May 2022 13:00:46 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tglx@linutronix.de, stefan.wahren@i2se.com, stable@vger.kernel.org,
+        phil@raspberrypi.com, paulmck@kernel.org, nsaenzju@redhat.com,
+        minchan@kernel.org, Michael@MichaelLarabel.com,
+        mgorman@techsingularity.net, juri.lelli@redhat.com, bp@alien8.de,
+        bigeasy@linutronix.de, mtosatti@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-josh-poimboeufs-email.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220529235240.C73B8C385A9@smtp.kernel.org>
+Subject: + mm-lru_cache_disable-use-synchronize_rcu_expedited.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220530200046.CF490C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: update Josh Poimboeuf's email
+     Subject: mm: lru_cache_disable: use synchronize_rcu_expedited
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-update-josh-poimboeufs-email.patch
+     mm-lru_cache_disable-use-synchronize_rcu_expedited.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-josh-poimboeufs-email.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lru_cache_disable-use-synchronize_rcu_expedited.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,36 +69,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Josh Poimboeuf <jpoimboe@kernel.org>
-Subject: mailmap: update Josh Poimboeuf's email
-Date: Fri, 27 May 2022 13:18:52 -0700
+From: Marcelo Tosatti <mtosatti@redhat.com>
+Subject: mm: lru_cache_disable: use synchronize_rcu_expedited
+Date: Mon, 30 May 2022 12:51:56 -0300
 
-I recently switched to my kernel.org email address.  Add aliases for my
-previous Red Hat and IBM addresses.
+commit ff042f4a9b050 ("mm: lru_cache_disable: replace work queue
+synchronization with synchronize_rcu") replaced lru_cache_disable's usage
+of work queues with synchronize_rcu.
 
-Link: https://lkml.kernel.org/r/0519dcfbb1ee2cb82cb32b0aff61410a62949aa5.1653682698.git.jpoimboe@kernel.org
-Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
-Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
+Some users reported large performance regressions due to this commit, for
+example:
+https://lore.kernel.org/all/20220521234616.GO1790663@paulmck-ThinkPad-P17-Gen-1/T/
+
+Switching to synchronize_rcu_expedited fixes the problem.
+
+Link: https://lkml.kernel.org/r/YpToHCmnx/HEcVyR@fuller.cnet
+Fixes: ff042f4a9b050 ("mm: lru_cache_disable: replace work queue synchronization with synchronize_rcu")
+Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
+Tested-by: Stefan Wahren <stefan.wahren@i2se.com>
+Tested-by: Michael Larabel <Michael@MichaelLarabel.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Phil Elwell <phil@raspberrypi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-update-josh-poimboeufs-email
-+++ a/.mailmap
-@@ -201,6 +201,8 @@ Jordan Crouse <jordan@cosmicpenguin.net>
- <josh@joshtriplett.org> <josht@linux.vnet.ibm.com>
- <josh@joshtriplett.org> <josht@us.ibm.com>
- <josh@joshtriplett.org> <josht@vnet.ibm.com>
-+Josh Poimboeuf <jpoimboe@kernel.org> <jpoimboe@redhat.com>
-+Josh Poimboeuf <jpoimboe@kernel.org> <jpoimboe@us.ibm.com>
- Juha Yrjola <at solidboot.com>
- Juha Yrjola <juha.yrjola@nokia.com>
- Juha Yrjola <juha.yrjola@solidboot.com>
+--- a/mm/swap.c~mm-lru_cache_disable-use-synchronize_rcu_expedited
++++ a/mm/swap.c
+@@ -881,7 +881,7 @@ void lru_cache_disable(void)
+ 	 * lru_disable_count = 0 will have exited the critical
+ 	 * section when synchronize_rcu() returns.
+ 	 */
+-	synchronize_rcu();
++	synchronize_rcu_expedited();
+ #ifdef CONFIG_SMP
+ 	__lru_add_drain_all(true);
+ #else
 _
 
-Patches currently in -mm which might be from jpoimboe@kernel.org are
+Patches currently in -mm which might be from mtosatti@redhat.com are
 
-mailmap-update-josh-poimboeufs-email.patch
+mm-lru_cache_disable-use-synchronize_rcu_expedited.patch
 
