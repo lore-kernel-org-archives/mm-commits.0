@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 203F2C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 20:57:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92232C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 21:06:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347820AbiEaU53 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 May 2022 16:57:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56632 "EHLO
+        id S243351AbiEaVGo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 May 2022 17:06:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35396 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345314AbiEaU5Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 16:57:25 -0400
+        with ESMTP id S238177AbiEaVGn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 17:06:43 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FEB71A807
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 13:57:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E4C3D51
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 14:06:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7E052B81609
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 20:57:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27D48C385A9;
-        Tue, 31 May 2022 20:57:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 24108B816BC
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 21:06:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B7C7C3411C;
+        Tue, 31 May 2022 21:06:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654030638;
-        bh=Cojrwrh7qj5UlN3o9YrLBp73gxu+KLT9rErVKSJazD0=;
+        s=korg; t=1654031199;
+        bh=t4g4Q7XBlbnJ23Zh7y2+/cuYCg9r9aEQ0XWIGI5i+r0=;
         h=Date:To:From:Subject:From;
-        b=ZewPIV+1KLWnC1tOysxcY+C0xu9lF3kL6udZCIEfo2TyxR9FMaG0pQZ6339Wt9EFT
-         oVc2Psip4rxX0bq0nbjPWSNOBFT8J+9WcgxoygYMXKoN7yf+b2slUyWWxWKxlPVh8g
-         twHWPsNI6lL8wS2r5lnLgUWR0O6FvpQtr0903kD4=
-Date:   Tue, 31 May 2022 13:57:17 -0700
-To:     mm-commits@vger.kernel.org, paulmck@kernel.org, osalvador@suse.de,
-        mike.kravetz@oracle.com, duanxiongchun@bytedance.com,
-        david@redhat.com, corbet@lwn.net, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
+        b=pU5UnmuOsmPeaOZHa0gzwQupxkohoKAXGxL1r7UH4KR707Mh718YFsE0P5gSeZzGJ
+         TWUc1y0/ZIokzZBBTLJvgvr0OLZqjlTiBpXh8Ji+lZn8rqq5IdffKN0rp1Qc25L0OM
+         i8bSFIWgggU/J2TeRDQZoNJeHIRJKSM0IeWuZ2JM=
+Date:   Tue, 31 May 2022 14:06:38 -0700
+To:     mm-commits@vger.kernel.org, rientjes@google.com, mhocko@kernel.org,
+        zackary.liu.pro@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap.patch added to mm-unstable branch
-Message-Id: <20220531205718.27D48C385A9@smtp.kernel.org>
+Subject: + mm-oom_kill-break-evaluation-when-a-task-has-been-selected.patch added to mm-unstable branch
+Message-Id: <20220531210639.9B7C7C3411C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory_hotplug: introduce SECTION_CANNOT_OPTIMIZE_VMEMMAP
+     Subject: mm/oom_kill: break evaluation when a task has been selected
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap.patch
+     mm-oom_kill-break-evaluation-when-a-task-has-been-selected.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-break-evaluation-when-a-task-has-been-selected.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,272 +64,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memory_hotplug: introduce SECTION_CANNOT_OPTIMIZE_VMEMMAP
-Date: Fri, 20 May 2022 10:55:38 +0800
+From: Zhaoyu Liu <zackary.liu.pro@gmail.com>
+Subject: mm/oom_kill: break evaluation when a task has been selected
+Date: Sat, 14 May 2022 15:52:28 +0800
 
-For now, the feature of hugetlb_free_vmemmap is not compatible with the
-feature of memory_hotplug.memmap_on_memory, and hugetlb_free_vmemmap takes
-precedence over memory_hotplug.memmap_on_memory.
+oom points no longer need to be calculated if a task is oom_task_origin(),
+so return 1 to stop the oom_evaluate_task().
 
-However, someone wants to make memory_hotplug.memmap_on_memory takes
-precedence over hugetlb_free_vmemmap since memmap_on_memory makes it more
-likely to succeed memory hotplug in close-to-OOM situations.
-
-So the decision of making hugetlb_free_vmemmap take precedence is not wise
-and elegant.  The proper approach is to have hugetlb_vmemmap.c do the
-check whether the section which the HugeTLB pages belong to can be
-optimized.  If the section's vmemmap pages are allocated from the added
-memory block itself, hugetlb_free_vmemmap should refuse to optimize the
-vmemmap, otherwise, do the optimization.
-
-Then both kernel parameters are compatible.  So this patch introduces
-SECTION_CANNOT_OPTIMIZE_VMEMMAP to indicate whether the section could be
-optimized.
-
-Link: https://lkml.kernel.org/r/20220520025538.21144-3-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220514075223.GA11384@pc
+Signed-off-by: Zhaoyu Liu <zackary.liu.pro@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   22 +++++------
- Documentation/admin-guide/sysctl/vm.rst         |    5 +-
- include/linux/memory_hotplug.h                  |    9 ----
- include/linux/mmzone.h                          |   17 ++++++++
- mm/hugetlb_vmemmap.c                            |   28 ++++++++++----
- mm/memory_hotplug.c                             |   22 +++--------
- mm/sparse.c                                     |    8 ++++
- 7 files changed, 66 insertions(+), 45 deletions(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1717,9 +1717,11 @@
- 			Built with CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON=y,
- 			the default is on.
- 
--			This is not compatible with memory_hotplug.memmap_on_memory.
--			If both parameters are enabled, hugetlb_free_vmemmap takes
--			precedence over memory_hotplug.memmap_on_memory.
-+			Note that the vmemmap pages may be allocated from the added
-+			memory block itself when memory_hotplug.memmap_on_memory is
-+			enabled, those vmemmap pages cannot be optimized even if this
-+			feature is enabled.  Other vmemmap pages not allocated from
-+			the added memory block itself do not be affected.
- 
- 	hung_task_panic=
- 			[KNL] Should the hung task detector generate panics.
-@@ -3064,10 +3066,12 @@
- 			[KNL,X86,ARM] Boolean flag to enable this feature.
- 			Format: {on | off (default)}
- 			When enabled, runtime hotplugged memory will
--			allocate its internal metadata (struct pages)
--			from the hotadded memory which will allow to
--			hotadd a lot of memory without requiring
--			additional memory to do so.
-+			allocate its internal metadata (struct pages,
-+			those vmemmap pages cannot be optimized even
-+			if hugetlb_free_vmemmap is enabled) from the
-+			hotadded memory which will allow to hotadd a
-+			lot of memory without requiring additional
-+			memory to do so.
- 			This feature is disabled by default because it
- 			has some implication on large (e.g. GB)
- 			allocations in some configurations (e.g. small
-@@ -3077,10 +3081,6 @@
- 			Note that even when enabled, there are a few cases where
- 			the feature is not effective.
- 
--			This is not compatible with hugetlb_free_vmemmap. If
--			both parameters are enabled, hugetlb_free_vmemmap takes
--			precedence over memory_hotplug.memmap_on_memory.
--
- 	memtest=	[KNL,X86,ARM,M68K,PPC,RISCV] Enable memtest
- 			Format: <integer>
- 			default : 0 <disable>
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -565,9 +565,8 @@ See Documentation/admin-guide/mm/hugetlb
- hugetlb_optimize_vmemmap
- ========================
- 
--This knob is not available when memory_hotplug.memmap_on_memory (kernel parameter)
--is configured or the size of 'struct page' (a structure defined in
--include/linux/mm_types.h) is not power of two (an unusual system config could
-+This knob is not available when the size of 'struct page' (a structure defined
-+in include/linux/mm_types.h) is not power of two (an unusual system config could
- result in this).
- 
- Enable (set to 1) or disable (set to 0) the feature of optimizing vmemmap pages
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap
-+++ a/include/linux/memory_hotplug.h
-@@ -351,13 +351,4 @@ void arch_remove_linear_mapping(u64 star
- extern bool mhp_supports_memmap_on_memory(unsigned long size);
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
--#ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
--bool mhp_memmap_on_memory(void);
--#else
--static inline bool mhp_memmap_on_memory(void)
--{
--	return false;
--}
--#endif
--
- #endif /* __LINUX_MEMORY_HOTPLUG_H */
---- a/include/linux/mmzone.h~mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap
-+++ a/include/linux/mmzone.h
-@@ -1434,6 +1434,7 @@ extern size_t mem_section_usage_size(voi
- 	MAPPER(IS_ONLINE)							\
- 	MAPPER(IS_EARLY)							\
- 	MAPPER(TAINT_ZONE_DEVICE, CONFIG_ZONE_DEVICE)				\
-+	MAPPER(CANNOT_OPTIMIZE_VMEMMAP, CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP)	\
- 	MAPPER(MAP_LAST_BIT)
- 
- #define __SECTION_SHIFT_FLAG_MAPPER_0(x)
-@@ -1471,6 +1472,22 @@ static inline struct page *__section_mem
- 	return (struct page *)map;
- }
- 
-+#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
-+static inline void section_mark_cannot_optimize_vmemmap(struct mem_section *ms)
-+{
-+	ms->section_mem_map |= SECTION_CANNOT_OPTIMIZE_VMEMMAP;
-+}
-+
-+static inline int section_cannot_optimize_vmemmap(struct mem_section *ms)
-+{
-+	return (ms && (ms->section_mem_map & SECTION_CANNOT_OPTIMIZE_VMEMMAP));
-+}
-+#else
-+static inline void section_mark_cannot_optimize_vmemmap(struct mem_section *ms)
-+{
-+}
-+#endif
-+
- static inline int present_section(struct mem_section *section)
+--- a/mm/oom_kill.c~mm-oom_kill-break-evaluation-when-a-task-has-been-selected
++++ a/mm/oom_kill.c
+@@ -337,7 +337,7 @@ static enum oom_constraint constrained_a
+ static int oom_evaluate_task(struct task_struct *task, void *arg)
  {
- 	return (section && (section->section_mem_map & SECTION_MARKED_PRESENT));
---- a/mm/hugetlb_vmemmap.c~mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap
-+++ a/mm/hugetlb_vmemmap.c
-@@ -97,18 +97,32 @@ int hugetlb_vmemmap_alloc(struct hstate
- 	return ret;
- }
+ 	struct oom_control *oc = arg;
+-	long points;
++	long points = 0;
  
-+static unsigned int optimizable_vmemmap_pages(struct hstate *h,
-+					      struct page *head)
-+{
-+	unsigned long pfn = page_to_pfn(head);
-+	unsigned long end = pfn + pages_per_huge_page(h);
-+
-+	if (READ_ONCE(vmemmap_optimize_mode) == VMEMMAP_OPTIMIZE_OFF)
-+		return 0;
-+
-+	for (; pfn < end; pfn += PAGES_PER_SECTION) {
-+		if (section_cannot_optimize_vmemmap(__pfn_to_section(pfn)))
-+			return 0;
-+	}
-+
-+	return hugetlb_optimize_vmemmap_pages(h);
-+}
-+
- void hugetlb_vmemmap_free(struct hstate *h, struct page *head)
- {
- 	unsigned long vmemmap_addr = (unsigned long)head;
- 	unsigned long vmemmap_end, vmemmap_reuse, vmemmap_pages;
- 
--	vmemmap_pages = hugetlb_optimize_vmemmap_pages(h);
-+	vmemmap_pages = optimizable_vmemmap_pages(h, head);
- 	if (!vmemmap_pages)
- 		return;
- 
--	if (READ_ONCE(vmemmap_optimize_mode) == VMEMMAP_OPTIMIZE_OFF)
--		return;
--
- 	static_branch_inc(&hugetlb_optimize_vmemmap_key);
- 
- 	vmemmap_addr	+= RESERVE_VMEMMAP_SIZE;
-@@ -199,10 +213,10 @@ static struct ctl_table hugetlb_vmemmap_
- static __init int hugetlb_vmemmap_sysctls_init(void)
- {
- 	/*
--	 * If "memory_hotplug.memmap_on_memory" is enabled or "struct page"
--	 * crosses page boundaries, the vmemmap pages cannot be optimized.
-+	 * If "struct page" crosses page boundaries, the vmemmap pages cannot
-+	 * be optimized.
- 	 */
--	if (!mhp_memmap_on_memory() && is_power_of_2(sizeof(struct page)))
-+	if (is_power_of_2(sizeof(struct page)))
- 		register_sysctl_init("vm", hugetlb_vmemmap_sysctls);
- 
- 	return 0;
---- a/mm/memory_hotplug.c~mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap
-+++ a/mm/memory_hotplug.c
-@@ -43,30 +43,22 @@
- #include "shuffle.h"
- 
- #ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
--static int memmap_on_memory_set(const char *val, const struct kernel_param *kp)
--{
--	if (hugetlb_optimize_vmemmap_enabled())
--		return 0;
--	return param_set_bool(val, kp);
--}
--
--static const struct kernel_param_ops memmap_on_memory_ops = {
--	.flags	= KERNEL_PARAM_OPS_FL_NOARG,
--	.set	= memmap_on_memory_set,
--	.get	= param_get_bool,
--};
--
- /*
-  * memory_hotplug.memmap_on_memory parameter
-  */
- static bool memmap_on_memory __ro_after_init;
--module_param_cb(memmap_on_memory, &memmap_on_memory_ops, &memmap_on_memory, 0444);
-+module_param(memmap_on_memory, bool, 0444);
- MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug");
- 
--bool mhp_memmap_on_memory(void)
-+static inline bool mhp_memmap_on_memory(void)
- {
- 	return memmap_on_memory;
- }
-+#else
-+static inline bool mhp_memmap_on_memory(void)
-+{
-+	return false;
-+}
- #endif
- 
- enum {
---- a/mm/sparse.c~mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap
-+++ a/mm/sparse.c
-@@ -913,6 +913,14 @@ int __meminit sparse_add_section(int nid
- 	ms = __nr_to_section(section_nr);
- 	set_section_nid(section_nr, nid);
- 	__section_mark_present(ms, section_nr);
-+	/*
-+	 * Mark whole section as non-optimizable once there is a subsection
-+	 * whose vmemmap pages are allocated from alternative allocator. The
-+	 * early section is always optimizable since the early section's
-+	 * vmemmap pages do not consider partially being populated.
-+	 */
-+	if (!early_section(ms) && altmap)
-+		section_mark_cannot_optimize_vmemmap(ms);
- 
- 	/* Align memmap to section boundary in the subsection case */
- 	if (section_nr_to_pfn(section_nr) != start_pfn)
+ 	if (oom_unkillable_task(task))
+ 		goto next;
+@@ -378,7 +378,7 @@ select:
+ 	oc->chosen = task;
+ 	oc->chosen_points = points;
+ next:
+-	return 0;
++	return points == LONG_MAX;
+ abort:
+ 	if (oc->chosen)
+ 		put_task_struct(oc->chosen);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from zackary.liu.pro@gmail.com are
 
-mm-hugetlb_vmemmap-fix-config_hugetlb_page_free_vmemmap_default_on.patch
-mm-memory_hotplug-enumerate-all-supported-section-flags.patch
-mm-memory_hotplug-introduce-section_cannot_optimize_vmemmap.patch
+mm-oom_kill-break-evaluation-when-a-task-has-been-selected.patch
 
