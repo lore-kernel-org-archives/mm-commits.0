@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EBFDC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 17:32:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65A04C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 17:32:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346568AbiEaRcd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 May 2022 13:32:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45148 "EHLO
+        id S1344711AbiEaRcj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 May 2022 13:32:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344711AbiEaRcc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 13:32:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DE4F90CDB
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 10:32:31 -0700 (PDT)
+        with ESMTP id S1346565AbiEaRci (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 13:32:38 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6EF890CDB
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 10:32:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 09BEB61035
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 17:32:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C456C385A9;
-        Tue, 31 May 2022 17:32:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 663C9B815E8
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 17:32:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 162B0C3411D;
+        Tue, 31 May 2022 17:32:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654018350;
-        bh=vSJuFfjbCPRhQ1ZXxINGffH6sS97nOTcNz8qkj2/5hk=;
+        s=korg; t=1654018354;
+        bh=7gNZx+dXuJu1vEbINKDhHo649aCF2sUm9/Ds7IEvgE4=;
         h=Date:To:From:Subject:From;
-        b=wuiOvkZ8oHxzJxBHGyqP4Btwg/Zpd8ky8G+lJMWqWB7BxSPFvOIT/60XuBxlBI+yV
-         uuGU4rbEHPko5nxLa0hDJVp9Y77hg/BrEYCZZhDf3uIwKlx8IL66KNcszHA4xNRjgK
-         Ial7PxFsdonlo6ssgYEDRGYMExcLH11U8ydWRcxY=
-Date:   Tue, 31 May 2022 10:32:29 -0700
+        b=K4qtNV73FEYtIvWW+lHc28xNe1PNBbIDNzNVpDJavFnQieNgPkrDM8rZzrwG/EWpo
+         Ch3ytcgYwAjUwhDTmWkwcmxdGzljSUfuPeZgi/kb5a36YQR1/+Xpu10wVmRQ1DghmD
+         zTA2olzAsEPlf7YjwJ3s7AvxuFQ3vh/RZ36T9Kgs=
+Date:   Tue, 31 May 2022 10:32:33 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
-        hch@lst.de, Felix.Kuehling@amd.com, felix.kuehling@amd.com,
-        david@redhat.com, apopple@nvidia.com, alex.sierra@amd.com,
-        akpm@linux-foundation.org
+        hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
+        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-zone-device-coherent-type-memory-support.patch added to mm-unstable branch
-Message-Id: <20220531173230.5C456C385A9@smtp.kernel.org>
+Subject: + mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch added to mm-unstable branch
+Message-Id: <20220531173234.162B0C3411D@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add zone device coherent type memory support
+     Subject: mm: handling Non-LRU pages returned by vm_normal_pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-zone-device-coherent-type-memory-support.patch
+     mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-zone-device-coherent-type-memory-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,254 +67,267 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alex Sierra <alex.sierra@amd.com>
-Subject: mm: add zone device coherent type memory support
-Date: Tue, 31 May 2022 10:56:17 -0500
+Subject: mm: handling Non-LRU pages returned by vm_normal_pages
+Date: Tue, 31 May 2022 10:56:18 -0500
 
-Patch series "Add MEMORY_DEVICE_COHERENT for coherent device memory mapping", v4.
+With DEVICE_COHERENT, we'll soon have vm_normal_pages() return
+device-managed anonymous pages that are not LRU pages.  Although they
+behave like normal pages for purposes of mapping in CPU page, and for COW.
+They do not support LRU lists, NUMA migration or THP.
 
-This patch series introduces MEMORY_DEVICE_COHERENT, a type of memory
-owned by a device that can be mapped into CPU page tables like
-MEMORY_DEVICE_GENERIC and can also be migrated like MEMORY_DEVICE_PRIVATE.
-
-This patch series is mostly self-contained except for a few places where
-it needs to update other subsystems to handle the new memory type.
-
-System stability and performance are not affected according to our ongoing
-testing, including xfstests.
-
-How it works: The system BIOS advertises the GPU device memory (aka VRAM)
-as SPM (special purpose memory) in the UEFI system address map.
-
-The amdgpu driver registers the memory with devmap as
-MEMORY_DEVICE_COHERENT using devm_memremap_pages.  The initial user for
-this hardware page migration capability is the Frontier supercomputer
-project.  This functionality is not AMD-specific.  We expect other GPU
-vendors to find this functionality useful, and possibly other hardware
-types in the future.
-
-Our test nodes in the lab are similar to the Frontier configuration, with
-.5 TB of system memory plus 256 GB of device memory split across 4 GPUs,
-all in a single coherent address space.  Page migration is expected to
-improve application efficiency significantly.  We will report empirical
-results as they become available.
-
-Coherent device type pages at gup are now migrated back to system memory
-if they are being pinned long-term (FOLL_LONGTERM).  The reason is, that
-long-term pinning would interfere with the device memory manager owning
-the device-coherent pages (e.g.  evictions in TTM).  These series
-incorporate Alistair Popple patches to do this migration from
-pin_user_pages() calls.  hmm_gup_test has been added to hmm-test to test
-different get user pages calls.
-
-This series includes handling of device-managed anonymous pages returned
-by vm_normal_pages.  Although they behave like normal pages for purposes
-of mapping in CPU page tables and for COW, they do not support LRU lists,
-NUMA migration or THP.
-
-We also introduced a FOLL_LRU flag that adds the same behaviour to
+We also introduce a FOLL_LRU flag that adds the same behaviour to
 follow_page and related APIs, to allow callers to specify that they expect
 to put pages on an LRU list.
 
-
-This patch (of 13):
-
-Device memory that is cache coherent from device and CPU point of view. 
-This is used on platforms that have an advanced system bus (like CAPI or
-CXL).  Any page of a process can be migrated to such memory.  However, no
-one should be allowed to pin such memory so that it can always be evicted.
-
-[hch@lst.de: rebase on top of the refcount changes, remove is_dev_private_or_coherent_page]
-Link: https://lkml.kernel.org/r/20220531155629.20057-1-alex.sierra@amd.com
-Link: https://lkml.kernel.org/r/20220531155629.20057-2-alex.sierra@amd.com
+Link: https://lkml.kernel.org/r/20220531155629.20057-3-alex.sierra@amd.com
 Signed-off-by: Alex Sierra <alex.sierra@amd.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Felix Kuehling <felix.kuehling@amd.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |   19 +++++++++++++++++++
- mm/memcontrol.c          |    7 ++++---
- mm/memory-failure.c      |    8 ++++++--
- mm/memremap.c            |   10 ++++++++++
- mm/migrate_device.c      |   16 +++++++---------
- mm/rmap.c                |    5 +++--
- 6 files changed, 49 insertions(+), 16 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ include/linux/mm.h |    3 ++-
+ mm/gup.c           |    6 +++++-
+ mm/huge_memory.c   |    2 +-
+ mm/khugepaged.c    |    9 ++++++---
+ mm/ksm.c           |    6 +++---
+ mm/madvise.c       |    4 ++--
+ mm/memory.c        |    9 ++++++++-
+ mm/mempolicy.c     |    2 +-
+ mm/migrate.c       |    4 ++--
+ mm/mlock.c         |    2 +-
+ mm/mprotect.c      |    2 +-
+ 12 files changed, 33 insertions(+), 18 deletions(-)
 
---- a/include/linux/memremap.h~mm-add-zone-device-coherent-type-memory-support
-+++ a/include/linux/memremap.h
-@@ -41,6 +41,13 @@ struct vmem_altmap {
-  * A more complete discussion of unaddressable memory may be found in
-  * include/linux/hmm.h and Documentation/vm/hmm.rst.
-  *
-+ * MEMORY_DEVICE_COHERENT:
-+ * Device memory that is cache coherent from device and CPU point of view. This
-+ * is used on platforms that have an advanced system bus (like CAPI or CXL). A
-+ * driver can hotplug the device memory using ZONE_DEVICE and with that memory
-+ * type. Any page of a process can be migrated to such memory. However no one
-+ * should be allowed to pin such memory so that it can always be evicted.
-+ *
-  * MEMORY_DEVICE_FS_DAX:
-  * Host memory that has similar access semantics as System RAM i.e. DMA
-  * coherent and supports page pinning. In support of coordinating page
-@@ -61,6 +68,7 @@ struct vmem_altmap {
- enum memory_type {
- 	/* 0 is reserved to catch uninitialized type fields */
- 	MEMORY_DEVICE_PRIVATE = 1,
-+	MEMORY_DEVICE_COHERENT,
- 	MEMORY_DEVICE_FS_DAX,
- 	MEMORY_DEVICE_GENERIC,
- 	MEMORY_DEVICE_PCI_P2PDMA,
-@@ -143,6 +151,17 @@ static inline bool folio_is_device_priva
- 	return is_device_private_page(&folio->page);
- }
+--- a/fs/proc/task_mmu.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/fs/proc/task_mmu.c
+@@ -1792,7 +1792,7 @@ static struct page *can_gather_numa_stat
+ 		return NULL;
  
-+static inline bool is_device_coherent_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		page->pgmap->type == MEMORY_DEVICE_COHERENT;
-+}
-+
-+static inline bool folio_is_device_coherent(const struct folio *folio)
-+{
-+	return is_device_coherent_page(&folio->page);
-+}
-+
- static inline bool is_pci_p2pdma_page(const struct page *page)
- {
- 	return IS_ENABLED(CONFIG_PCI_P2PDMA) &&
---- a/mm/memcontrol.c~mm-add-zone-device-coherent-type-memory-support
-+++ a/mm/memcontrol.c
-@@ -5665,8 +5665,8 @@ out:
-  *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
-  *     target for charge migration. if @target is not NULL, the entry is stored
-  *     in target->ent.
-- *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is MEMORY_DEVICE_PRIVATE
-- *     (so ZONE_DEVICE page and thus not on the lru).
-+ *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is device memory and
-+ *   thus not on the lru.
-  *     For now we such page is charge like a regular page would be as for all
-  *     intent and purposes it is just special memory taking the place of a
-  *     regular page.
-@@ -5704,7 +5704,8 @@ static enum mc_target_type get_mctgt_typ
- 		 */
- 		if (page_memcg(page) == mc.from) {
- 			ret = MC_TARGET_PAGE;
--			if (is_device_private_page(page))
-+			if (is_device_private_page(page) ||
-+			    is_device_coherent_page(page))
- 				ret = MC_TARGET_DEVICE;
- 			if (target)
- 				target->page = page;
---- a/mm/memory-failure.c~mm-add-zone-device-coherent-type-memory-support
-+++ a/mm/memory-failure.c
-@@ -1683,12 +1683,16 @@ static int memory_failure_dev_pagemap(un
- 		goto unlock;
+ 	page = vm_normal_page(vma, addr, pte);
+-	if (!page)
++	if (!page || is_zone_device_page(page))
+ 		return NULL;
+ 
+ 	if (PageReserved(page))
+--- a/include/linux/mm.h~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/include/linux/mm.h
+@@ -601,7 +601,7 @@ struct vm_operations_struct {
+ #endif
+ 	/*
+ 	 * Called by vm_normal_page() for special PTEs to find the
+-	 * page for @addr.  This is useful if the default behavior
++	 * page for @addr. This is useful if the default behavior
+ 	 * (using pte_page()) would not find the correct page.
+ 	 */
+ 	struct page *(*find_special_page)(struct vm_area_struct *vma,
+@@ -2934,6 +2934,7 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_NUMA	0x200	/* force NUMA hinting page fault */
+ #define FOLL_MIGRATION	0x400	/* wait for page to replace migration entry */
+ #define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
++#define FOLL_LRU        0x1000  /* return only LRU (anon or page cache) */
+ #define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
+ #define FOLL_COW	0x4000	/* internal GUP flag */
+ #define FOLL_ANON	0x8000	/* don't do file mappings */
+--- a/mm/gup.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/gup.c
+@@ -532,7 +532,11 @@ retry:
  	}
  
--	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
-+	switch (pgmap->type) {
-+	case MEMORY_DEVICE_PRIVATE:
-+	case MEMORY_DEVICE_COHERENT:
+ 	page = vm_normal_page(vma, address, pte);
+-	if (!page && pte_devmap(pte) && (flags & (FOLL_GET | FOLL_PIN))) {
++	if ((flags & FOLL_LRU) && ((page && is_zone_device_page(page)) ||
++	    (!page && pte_devmap(pte)))) {
++		page = ERR_PTR(-EEXIST);
++		goto out;
++	} else if (!page && pte_devmap(pte) && (flags & (FOLL_GET | FOLL_PIN))) {
  		/*
--		 * TODO: Handle HMM pages which may need coordination
-+		 * TODO: Handle device pages which may need coordination
- 		 * with device-side memory.
- 		 */
- 		goto unlock;
-+	default:
-+		break;
+ 		 * Only return device mapping pages in the FOLL_GET or FOLL_PIN
+ 		 * case since they are only valid while holding the pgmap
+--- a/mm/huge_memory.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/huge_memory.c
+@@ -2906,7 +2906,7 @@ static int split_huge_pages_pid(int pid,
+ 		}
+ 
+ 		/* FOLL_DUMP to ignore special (like zero) pages */
+-		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
++		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP | FOLL_LRU);
+ 
+ 		if (IS_ERR(page))
+ 			continue;
+--- a/mm/khugepaged.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/khugepaged.c
+@@ -618,7 +618,7 @@ static int __collapse_huge_page_isolate(
+ 			goto out;
+ 		}
+ 		page = vm_normal_page(vma, address, pteval);
+-		if (unlikely(!page)) {
++		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
+ 			result = SCAN_PAGE_NULL;
+ 			goto out;
+ 		}
+@@ -1267,7 +1267,7 @@ static int khugepaged_scan_pmd(struct mm
+ 			writable = true;
+ 
+ 		page = vm_normal_page(vma, _address, pteval);
+-		if (unlikely(!page)) {
++		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
+ 			result = SCAN_PAGE_NULL;
+ 			goto out_unmap;
+ 		}
+@@ -1479,7 +1479,8 @@ void collapse_pte_mapped_thp(struct mm_s
+ 			goto abort;
+ 
+ 		page = vm_normal_page(vma, addr, *pte);
+-
++		if (WARN_ON_ONCE(page && is_zone_device_page(page)))
++			page = NULL;
+ 		/*
+ 		 * Note that uprobe, debugger, or MAP_PRIVATE may change the
+ 		 * page table, but the new page will not be a subpage of hpage.
+@@ -1497,6 +1498,8 @@ void collapse_pte_mapped_thp(struct mm_s
+ 		if (pte_none(*pte))
+ 			continue;
+ 		page = vm_normal_page(vma, addr, *pte);
++		if (WARN_ON_ONCE(page && is_zone_device_page(page)))
++			goto abort;
+ 		page_remove_rmap(page, vma, false);
  	}
  
- 	/*
---- a/mm/memremap.c~mm-add-zone-device-coherent-type-memory-support
-+++ a/mm/memremap.c
-@@ -315,6 +315,16 @@ void *memremap_pages(struct dev_pagemap
- 			return ERR_PTR(-EINVAL);
+--- a/mm/ksm.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/ksm.c
+@@ -474,7 +474,7 @@ static int break_ksm(struct vm_area_stru
+ 	do {
+ 		cond_resched();
+ 		page = follow_page(vma, addr,
+-				FOLL_GET | FOLL_MIGRATION | FOLL_REMOTE);
++				FOLL_GET | FOLL_MIGRATION | FOLL_REMOTE | FOLL_LRU);
+ 		if (IS_ERR_OR_NULL(page))
+ 			break;
+ 		if (PageKsm(page))
+@@ -559,7 +559,7 @@ static struct page *get_mergeable_page(s
+ 	if (!vma)
+ 		goto out;
+ 
+-	page = follow_page(vma, addr, FOLL_GET);
++	page = follow_page(vma, addr, FOLL_GET | FOLL_LRU);
+ 	if (IS_ERR_OR_NULL(page))
+ 		goto out;
+ 	if (PageAnon(page)) {
+@@ -2307,7 +2307,7 @@ next_mm:
+ 		while (ksm_scan.address < vma->vm_end) {
+ 			if (ksm_test_exit(mm))
+ 				break;
+-			*page = follow_page(vma, ksm_scan.address, FOLL_GET);
++			*page = follow_page(vma, ksm_scan.address, FOLL_GET | FOLL_LRU);
+ 			if (IS_ERR_OR_NULL(*page)) {
+ 				ksm_scan.address += PAGE_SIZE;
+ 				cond_resched();
+--- a/mm/madvise.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/madvise.c
+@@ -421,7 +421,7 @@ regular_page:
+ 			continue;
+ 
+ 		page = vm_normal_page(vma, addr, ptent);
+-		if (!page)
++		if (!page || is_zone_device_page(page))
+ 			continue;
+ 
+ 		/*
+@@ -639,7 +639,7 @@ static int madvise_free_pte_range(pmd_t
  		}
- 		break;
-+	case MEMORY_DEVICE_COHERENT:
-+		if (!pgmap->ops->page_free) {
-+			WARN(1, "Missing page_free method\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		if (!pgmap->owner) {
-+			WARN(1, "Missing owner\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		break;
- 	case MEMORY_DEVICE_FS_DAX:
- 		if (IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
- 			WARN(1, "File system DAX not supported\n");
---- a/mm/migrate_device.c~mm-add-zone-device-coherent-type-memory-support
-+++ a/mm/migrate_device.c
-@@ -518,7 +518,7 @@ EXPORT_SYMBOL(migrate_vma_setup);
-  *     handle_pte_fault()
-  *       do_anonymous_page()
-  * to map in an anonymous zero page but the struct page will be a ZONE_DEVICE
-- * private page.
-+ * private or coherent page.
-  */
- static void migrate_vma_insert_page(struct migrate_vma *migrate,
- 				    unsigned long addr,
-@@ -594,11 +594,8 @@ static void migrate_vma_insert_page(stru
- 						page_to_pfn(page));
- 		entry = swp_entry_to_pte(swp_entry);
- 	} else {
--		/*
--		 * For now we only support migrating to un-addressable device
--		 * memory.
--		 */
--		if (is_zone_device_page(page)) {
-+		if (is_zone_device_page(page) &&
-+		    !is_device_coherent_page(page)) {
- 			pr_warn_once("Unsupported ZONE_DEVICE page type.\n");
- 			goto abort;
- 		}
-@@ -701,10 +698,11 @@ void migrate_vma_pages(struct migrate_vm
  
- 		mapping = page_mapping(page);
+ 		page = vm_normal_page(vma, addr, ptent);
+-		if (!page)
++		if (!page || is_zone_device_page(page))
+ 			continue;
  
--		if (is_device_private_page(newpage)) {
-+		if (is_device_private_page(newpage) ||
-+		    is_device_coherent_page(newpage)) {
- 			/*
--			 * For now only support private anonymous when migrating
--			 * to un-addressable device memory.
-+			 * For now only support anonymous memory migrating to
-+			 * device private or coherent memory.
- 			 */
- 			if (mapping) {
- 				migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
---- a/mm/rmap.c~mm-add-zone-device-coherent-type-memory-support
-+++ a/mm/rmap.c
-@@ -1957,7 +1957,7 @@ static bool try_to_migrate_one(struct fo
- 		/* Update high watermark before we lower rss */
- 		update_hiwater_rss(mm);
+ 		/*
+--- a/mm/memory.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/memory.c
+@@ -624,6 +624,13 @@ struct page *vm_normal_page(struct vm_ar
+ 		if (is_zero_pfn(pfn))
+ 			return NULL;
+ 		if (pte_devmap(pte))
++/*
++ * NOTE: New uers of ZONE_DEVICE will not set pte_devmap() and will have
++ * refcounts incremented on their struct pages when they are inserted into
++ * PTEs, thus they are safe to return here. Legacy ZONE_DEVICE pages that set
++ * pte_devmap() do not have refcounts. Example of legacy ZONE_DEVICE is
++ * MEMORY_DEVICE_FS_DAX type in pmem or virtio_fs drivers.
++ */
+ 			return NULL;
  
--		if (folio_is_zone_device(folio)) {
-+		if (folio_is_device_private(folio)) {
- 			unsigned long pfn = folio_pfn(folio);
- 			swp_entry_t entry;
- 			pte_t swp_pte;
-@@ -2131,7 +2131,8 @@ void try_to_migrate(struct folio *folio,
- 					TTU_SYNC)))
- 		return;
+ 		print_bad_pte(vma, addr, pte, NULL);
+@@ -4685,7 +4692,7 @@ static vm_fault_t do_numa_page(struct vm
+ 	pte = pte_modify(old_pte, vma->vm_page_prot);
  
--	if (folio_is_zone_device(folio) && !folio_is_device_private(folio))
-+	if (folio_is_zone_device(folio) &&
-+	    (!folio_is_device_private(folio) && !folio_is_device_coherent(folio)))
- 		return;
+ 	page = vm_normal_page(vma, vmf->address, pte);
+-	if (!page)
++	if (!page || is_zone_device_page(page))
+ 		goto out_map;
  
- 	/*
+ 	/* TODO: handle PTE-mapped THP */
+--- a/mm/mempolicy.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/mempolicy.c
+@@ -523,7 +523,7 @@ static int queue_pages_pte_range(pmd_t *
+ 		if (!pte_present(*pte))
+ 			continue;
+ 		page = vm_normal_page(vma, addr, *pte);
+-		if (!page)
++		if (!page || is_zone_device_page(page))
+ 			continue;
+ 		/*
+ 		 * vm_normal_page() filters out zero pages, but there might
+--- a/mm/migrate.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/migrate.c
+@@ -1622,7 +1622,7 @@ static int add_page_for_migration(struct
+ 		goto out;
+ 
+ 	/* FOLL_DUMP to ignore special (like zero) pages */
+-	page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
++	page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP | FOLL_LRU);
+ 
+ 	err = PTR_ERR(page);
+ 	if (IS_ERR(page))
+@@ -1814,7 +1814,7 @@ static void do_pages_stat_array(struct m
+ 			goto set_status;
+ 
+ 		/* FOLL_DUMP to ignore special (like zero) pages */
+-		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
++		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP | FOLL_LRU);
+ 
+ 		err = PTR_ERR(page);
+ 		if (IS_ERR(page))
+--- a/mm/mlock.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/mlock.c
+@@ -333,7 +333,7 @@ static int mlock_pte_range(pmd_t *pmd, u
+ 		if (!pte_present(*pte))
+ 			continue;
+ 		page = vm_normal_page(vma, addr, *pte);
+-		if (!page)
++		if (!page || is_zone_device_page(page))
+ 			continue;
+ 		if (PageTransCompound(page))
+ 			continue;
+--- a/mm/mprotect.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
++++ a/mm/mprotect.c
+@@ -95,7 +95,7 @@ static unsigned long change_pte_range(st
+ 					continue;
+ 
+ 				page = vm_normal_page(vma, addr, oldpte);
+-				if (!page || PageKsm(page))
++				if (!page || is_zone_device_page(page) || PageKsm(page))
+ 					continue;
+ 
+ 				/* Also skip shared copy-on-write pages */
 _
 
 Patches currently in -mm which might be from alex.sierra@amd.com are
