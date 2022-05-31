@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A2E2C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02B17C433FE
 	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 20:23:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347721AbiEaUXq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 May 2022 16:23:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45418 "EHLO
+        id S1347576AbiEaUXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 May 2022 16:23:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347725AbiEaUXb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 16:23:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6644459BB9
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 13:23:25 -0700 (PDT)
+        with ESMTP id S1347712AbiEaUXd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 16:23:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE8F65FF13
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 13:23:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DA979612D8
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 20:23:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C779C385A9;
-        Tue, 31 May 2022 20:23:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 60150B81643
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 20:23:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11504C385A9;
+        Tue, 31 May 2022 20:23:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654028604;
-        bh=lqeGfimdg0LGmfZxTeHABALa9QZlCME3VOlKxy7wbzY=;
+        s=korg; t=1654028606;
+        bh=7hdOp8F45PqeAKJKzGtsZrDmZqWHidsBVDXFRYOwv2M=;
         h=Date:To:From:Subject:From;
-        b=a0zAg56/ATM3C7PV+TYhZmgtSCe3uiJ5/nCXOLgcQTVNtUNYiZFYFPkITSvmP2SO4
-         QSlVA2xX+G9+ifm94Huk3Ft8SbzEFQYu05chSKDvB08D//Rg0vNbK+jYzdAMeJ9oW8
-         EyfXfZtpQIZi58Xi+9+t7iA8Uuu5HYEE71k/cp8I=
-Date:   Tue, 31 May 2022 13:23:23 -0700
+        b=RG+5Ah6JHBNR7xkPS0ZzDxUYizvoIRddbt9g1u2+yv6dfKf4vsR4R/BUCyXn0pmxz
+         x80WSzGmSLqLhEbesG3eXK1eyNFNHF/m+Ii3SePUy1QFswdhDy6+uT0/XDlbimP+XF
+         ICZ6jO18sOLwA9DTNHLFVD4skBmKc5JO1xZnGC6M=
+Date:   Tue, 31 May 2022 13:23:25 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
         hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
         apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-update-test_hmm-script-to-support-sp-config.patch added to mm-unstable branch
-Message-Id: <20220531202324.3C779C385A9@smtp.kernel.org>
+Subject: + tools-add-hmm-gup-tests-for-device-coherent-type.patch added to mm-unstable branch
+Message-Id: <20220531202326.11504C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: update test_hmm script to support SP config
+     Subject: tools: add hmm gup tests for device coherent type
 has been added to the -mm mm-unstable branch.  Its filename is
-     tools-update-test_hmm-script-to-support-sp-config.patch
+     tools-add-hmm-gup-tests-for-device-coherent-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-update-test_hmm-script-to-support-sp-config.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-add-hmm-gup-tests-for-device-coherent-type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,20 +67,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alex Sierra <alex.sierra@amd.com>
-Subject: tools: update test_hmm script to support SP config
-Date: Tue, 31 May 2022 15:00:39 -0500
+Subject: tools: add hmm gup tests for device coherent type
+Date: Tue, 31 May 2022 15:00:40 -0500
 
-Add two more parameters to set spm_addr_dev0 & spm_addr_dev1 addresses. 
-These two parameters configure the start SP addresses for each device in
-test_hmm driver.  Consequently, this configures zone device type as
-coherent.
+The intention is to test hmm device coherent type under different get user
+pages paths.  Also, test gup with FOLL_LONGTERM flag set in device
+coherent pages.  These pages should get migrated back to system memory.
 
-Link: https://lkml.kernel.org/r/20220531200041.24904-12-alex.sierra@amd.com
+Link: https://lkml.kernel.org/r/20220531200041.24904-13-alex.sierra@amd.com
 Signed-off-by: Alex Sierra <alex.sierra@amd.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
 Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -88,67 +87,135 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/test_hmm.sh |   24 ++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/hmm-tests.c |  105 +++++++++++++++++++++++
+ 1 file changed, 105 insertions(+)
 
---- a/tools/testing/selftests/vm/test_hmm.sh~tools-update-test_hmm-script-to-support-sp-config
-+++ a/tools/testing/selftests/vm/test_hmm.sh
-@@ -40,11 +40,26 @@ check_test_requirements()
+--- a/tools/testing/selftests/vm/hmm-tests.c~tools-add-hmm-gup-tests-for-device-coherent-type
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -36,6 +36,7 @@
+  * in the usual include/uapi/... directory.
+  */
+ #include "../../../../lib/test_hmm_uapi.h"
++#include "../../../../mm/gup_test.h"
  
- load_driver()
+ struct hmm_buffer {
+ 	void		*ptr;
+@@ -59,6 +60,8 @@ enum {
+ #define NTIMES		10
+ 
+ #define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
++/* Just the flags we need, copied from mm.h: */
++#define FOLL_WRITE	0x01	/* check pte is writable */
+ 
+ FIXTURE(hmm)
  {
--	modprobe $DRIVER > /dev/null 2>&1
-+	if [ $# -eq 0 ]; then
-+		modprobe $DRIVER > /dev/null 2>&1
-+	else
-+		if [ $# -eq 2 ]; then
-+			modprobe $DRIVER spm_addr_dev0=$1 spm_addr_dev1=$2
-+				> /dev/null 2>&1
-+		else
-+			echo "Missing module parameters. Make sure pass"\
-+			"spm_addr_dev0 and spm_addr_dev1"
-+			usage
-+		fi
-+	fi
- 	if [ $? == 0 ]; then
- 		major=$(awk "\$2==\"HMM_DMIRROR\" {print \$1}" /proc/devices)
- 		mknod /dev/hmm_dmirror0 c $major 0
- 		mknod /dev/hmm_dmirror1 c $major 1
-+		if [ $# -eq 2 ]; then
-+			mknod /dev/hmm_dmirror2 c $major 2
-+			mknod /dev/hmm_dmirror3 c $major 3
-+		fi
- 	fi
+@@ -1764,4 +1767,106 @@ TEST_F(hmm, exclusive_cow)
+ 	hmm_buffer_free(buffer);
  }
  
-@@ -58,7 +73,7 @@ run_smoke()
- {
- 	echo "Running smoke test. Note, this test provides basic coverage."
- 
--	load_driver
-+	load_driver $1 $2
- 	$(dirname "${BASH_SOURCE[0]}")/hmm-tests
- 	unload_driver
- }
-@@ -75,6 +90,9 @@ usage()
- 	echo "# Smoke testing"
- 	echo "./${TEST_NAME}.sh smoke"
- 	echo
-+	echo "# Smoke testing with SPM enabled"
-+	echo "./${TEST_NAME}.sh smoke <spm_addr_dev0> <spm_addr_dev1>"
-+	echo
- 	exit 0
- }
- 
-@@ -84,7 +102,7 @@ function run_test()
- 		usage
- 	else
- 		if [ "$1" = "smoke" ]; then
--			run_smoke
-+			run_smoke $2 $3
- 		else
- 			usage
- 		fi
++static int gup_test_exec(int gup_fd, unsigned long addr,
++			 int cmd, int npages, int size)
++{
++	struct gup_test gup = {
++		.nr_pages_per_call	= npages,
++		.addr			= addr,
++		.gup_flags		= FOLL_WRITE,
++		.size			= size,
++	};
++
++	if (ioctl(gup_fd, cmd, &gup)) {
++		perror("ioctl on error\n");
++		return errno;
++	}
++
++	return 0;
++}
++
++/*
++ * Test get user device pages through gup_test. Setting PIN_LONGTERM flag.
++ * This should trigger a migration back to system memory for both, private
++ * and coherent type pages.
++ * This test makes use of gup_test module. Make sure GUP_TEST_CONFIG is added
++ * to your configuration before you run it.
++ */
++TEST_F(hmm, hmm_gup_test)
++{
++	struct hmm_buffer *buffer;
++	int gup_fd;
++	unsigned long npages;
++	unsigned long size;
++	unsigned long i;
++	int *ptr;
++	int ret;
++	unsigned char *m;
++
++	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
++	if (gup_fd == -1)
++		SKIP(return, "Skipping test, could not find gup_test driver");
++
++	npages = 3;
++	size = npages << self->page_shift;
++
++	buffer = malloc(sizeof(*buffer));
++	ASSERT_NE(buffer, NULL);
++
++	buffer->fd = -1;
++	buffer->size = size;
++	buffer->mirror = malloc(size);
++	ASSERT_NE(buffer->mirror, NULL);
++
++	buffer->ptr = mmap(NULL, size,
++			   PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANONYMOUS,
++			   buffer->fd, 0);
++	ASSERT_NE(buffer->ptr, MAP_FAILED);
++
++	/* Initialize buffer in system memory. */
++	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ptr[i] = i;
++
++	/* Migrate memory to device. */
++	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++	/* Check what the device read. */
++	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
++		ASSERT_EQ(ptr[i], i);
++
++	ASSERT_EQ(gup_test_exec(gup_fd,
++				(unsigned long)buffer->ptr,
++				GUP_BASIC_TEST, 1, self->page_size), 0);
++	ASSERT_EQ(gup_test_exec(gup_fd,
++				(unsigned long)buffer->ptr + 1 * self->page_size,
++				GUP_FAST_BENCHMARK, 1, self->page_size), 0);
++	ASSERT_EQ(gup_test_exec(gup_fd,
++				(unsigned long)buffer->ptr + 2 * self->page_size,
++				PIN_LONGTERM_BENCHMARK, 1, self->page_size), 0);
++
++	/* Take snapshot to CPU pagetables */
++	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++	m = buffer->mirror;
++	if (hmm_is_coherent_type(variant->device_number)) {
++		ASSERT_EQ(HMM_DMIRROR_PROT_DEV_COHERENT_LOCAL | HMM_DMIRROR_PROT_WRITE, m[0]);
++		ASSERT_EQ(HMM_DMIRROR_PROT_DEV_COHERENT_LOCAL | HMM_DMIRROR_PROT_WRITE, m[1]);
++	} else {
++		ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[0]);
++		ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[1]);
++	}
++	ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[2]);
++	/*
++	 * Check again the content on the pages. Make sure there's no
++	 * corrupted data.
++	 */
++	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ASSERT_EQ(ptr[i], i);
++
++	close(gup_fd);
++	hmm_buffer_free(buffer);
++}
+ TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from alex.sierra@amd.com are
