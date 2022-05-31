@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BA66C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 20:23:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48A6DC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 20:23:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232840AbiEaUXG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 May 2022 16:23:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43194 "EHLO
+        id S237412AbiEaUXN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 May 2022 16:23:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237412AbiEaUXF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 16:23:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84E2A562E7
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 13:23:03 -0700 (PDT)
+        with ESMTP id S1345899AbiEaUXJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 16:23:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27B0556401
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 13:23:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 35D6DB81643
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 20:23:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7DFEC385A9;
-        Tue, 31 May 2022 20:23:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF2ED612A5
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 20:23:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DE67C385A9;
+        Tue, 31 May 2022 20:23:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654028581;
-        bh=xMVoGS37+Tj7OXGmvgu5G1x52V/pHj3I26L92W2aEWA=;
+        s=korg; t=1654028586;
+        bh=f+AmatbfncPV2TkC1C2aFfqo3pU0d8LNPrrAAvRxI5M=;
         h=Date:To:From:Subject:From;
-        b=oIas0x3o28NUHPjfUBne+U7rtjnFEFlCnPiW0zCEkZnENKkBGBisDCSN42G9ZiGUH
-         hNgv0N52/HJLjUaPRsb6FrUG0ReuCvjXbZvTpZqi8QMaeE0GBfV1AfBTxCAIBpM+Yx
-         qQNa84B5OCLW4PWJGQ9zh/YJtbH/mPa8PGmY2o3w=
-Date:   Tue, 31 May 2022 13:23:00 -0700
+        b=USGePOu9IiBJDtGs/Yt+uF04LilvYCDey+clsnIJyfn60XqexR7x2XMb9Qqb6WiRF
+         5bwCJHrk3vxD0ysVfzwf/5QO9uZ2Y0dvoaRex+FuGbZCtXQ2XA6t2sf5ZimJP31aOP
+         xzle7Y5+iyw25g6Z8pV4J1glSUG9a5Ysx13Vh4jA=
+Date:   Tue, 31 May 2022 13:23:05 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
         hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
         apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch added to mm-unstable branch
-Message-Id: <20220531202300.E7DFEC385A9@smtp.kernel.org>
+Subject: + mm-add-device-coherent-vma-selection-for-memory-migration.patch added to mm-unstable branch
+Message-Id: <20220531202306.0DE67C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: handling Non-LRU pages returned by vm_normal_pages
+     Subject: mm: add device coherent vma selection for memory migration
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
+     mm-add-device-coherent-vma-selection-for-memory-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-device-coherent-vma-selection-for-memory-migration.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,23 +67,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alex Sierra <alex.sierra@amd.com>
-Subject: mm: handling Non-LRU pages returned by vm_normal_pages
-Date: Tue, 31 May 2022 15:00:30 -0500
+Subject: mm: add device coherent vma selection for memory migration
+Date: Tue, 31 May 2022 15:00:31 -0500
 
-With DEVICE_COHERENT, we'll soon have vm_normal_pages() return
-device-managed anonymous pages that are not LRU pages.  Although they
-behave like normal pages for purposes of mapping in CPU page, and for COW.
-They do not support LRU lists, NUMA migration or THP.
+This case is used to migrate pages from device memory, back to system
+memory.  Device coherent type memory is cache coherent from device and CPU
+point of view.
 
-We also introduced a FOLL_LRU flag that adds the same behaviour to
-follow_page and related APIs, to allow callers to specify that they expect
-to put pages on an LRU list.
-
-Link: https://lkml.kernel.org/r/20220531200041.24904-3-alex.sierra@amd.com
+Link: https://lkml.kernel.org/r/20220531200041.24904-4-alex.sierra@amd.com
 Signed-off-by: Alex Sierra <alex.sierra@amd.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Alistair Poppple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
@@ -92,242 +87,47 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- include/linux/mm.h |    3 ++-
- mm/gup.c           |    6 +++++-
- mm/huge_memory.c   |    2 +-
- mm/khugepaged.c    |    9 ++++++---
- mm/ksm.c           |    6 +++---
- mm/madvise.c       |    4 ++--
- mm/memory.c        |    9 ++++++++-
- mm/mempolicy.c     |    2 +-
- mm/migrate.c       |    4 ++--
- mm/mlock.c         |    2 +-
- mm/mprotect.c      |    2 +-
- 12 files changed, 33 insertions(+), 18 deletions(-)
+ include/linux/migrate.h |    1 +
+ mm/migrate_device.c     |   12 +++++++++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/fs/proc/task_mmu.c
-@@ -1792,7 +1792,7 @@ static struct page *can_gather_numa_stat
- 		return NULL;
+--- a/include/linux/migrate.h~mm-add-device-coherent-vma-selection-for-memory-migration
++++ a/include/linux/migrate.h
+@@ -148,6 +148,7 @@ static inline unsigned long migrate_pfn(
+ enum migrate_vma_direction {
+ 	MIGRATE_VMA_SELECT_SYSTEM = 1 << 0,
+ 	MIGRATE_VMA_SELECT_DEVICE_PRIVATE = 1 << 1,
++	MIGRATE_VMA_SELECT_DEVICE_COHERENT = 1 << 2,
+ };
  
- 	page = vm_normal_page(vma, addr, pte);
--	if (!page)
-+	if (!page || is_zone_device_page(page))
- 		return NULL;
- 
- 	if (PageReserved(page))
---- a/include/linux/mm.h~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/include/linux/mm.h
-@@ -601,7 +601,7 @@ struct vm_operations_struct {
- #endif
- 	/*
- 	 * Called by vm_normal_page() for special PTEs to find the
--	 * page for @addr.  This is useful if the default behavior
-+	 * page for @addr. This is useful if the default behavior
- 	 * (using pte_page()) would not find the correct page.
- 	 */
- 	struct page *(*find_special_page)(struct vm_area_struct *vma,
-@@ -2934,6 +2934,7 @@ struct page *follow_page(struct vm_area_
- #define FOLL_NUMA	0x200	/* force NUMA hinting page fault */
- #define FOLL_MIGRATION	0x400	/* wait for page to replace migration entry */
- #define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
-+#define FOLL_LRU        0x1000  /* return only LRU (anon or page cache) */
- #define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
- #define FOLL_COW	0x4000	/* internal GUP flag */
- #define FOLL_ANON	0x8000	/* don't do file mappings */
---- a/mm/gup.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/gup.c
-@@ -532,7 +532,11 @@ retry:
- 	}
- 
- 	page = vm_normal_page(vma, address, pte);
--	if (!page && pte_devmap(pte) && (flags & (FOLL_GET | FOLL_PIN))) {
-+	if ((flags & FOLL_LRU) && ((page && is_zone_device_page(page)) ||
-+	    (!page && pte_devmap(pte)))) {
-+		page = ERR_PTR(-EEXIST);
-+		goto out;
-+	} else if (!page && pte_devmap(pte) && (flags & (FOLL_GET | FOLL_PIN))) {
- 		/*
- 		 * Only return device mapping pages in the FOLL_GET or FOLL_PIN
- 		 * case since they are only valid while holding the pgmap
---- a/mm/huge_memory.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/huge_memory.c
-@@ -2906,7 +2906,7 @@ static int split_huge_pages_pid(int pid,
+ struct migrate_vma {
+--- a/mm/migrate_device.c~mm-add-device-coherent-vma-selection-for-memory-migration
++++ a/mm/migrate_device.c
+@@ -148,15 +148,21 @@ again:
+ 			if (is_writable_device_private_entry(entry))
+ 				mpfn |= MIGRATE_PFN_WRITE;
+ 		} else {
+-			if (!(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
+-				goto next;
+ 			pfn = pte_pfn(pte);
+-			if (is_zero_pfn(pfn)) {
++			if (is_zero_pfn(pfn) &&
++			    (migrate->flags & MIGRATE_VMA_SELECT_SYSTEM)) {
+ 				mpfn = MIGRATE_PFN_MIGRATE;
+ 				migrate->cpages++;
+ 				goto next;
+ 			}
+ 			page = vm_normal_page(migrate->vma, addr, pte);
++			if (page && !is_zone_device_page(page) &&
++			    !(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
++				goto next;
++			else if (page && is_device_coherent_page(page) &&
++			    (!(migrate->flags & MIGRATE_VMA_SELECT_DEVICE_COHERENT) ||
++			     page->pgmap->owner != migrate->pgmap_owner))
++				goto next;
+ 			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
+ 			mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
  		}
- 
- 		/* FOLL_DUMP to ignore special (like zero) pages */
--		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
-+		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP | FOLL_LRU);
- 
- 		if (IS_ERR(page))
- 			continue;
---- a/mm/khugepaged.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/khugepaged.c
-@@ -618,7 +618,7 @@ static int __collapse_huge_page_isolate(
- 			goto out;
- 		}
- 		page = vm_normal_page(vma, address, pteval);
--		if (unlikely(!page)) {
-+		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
- 			result = SCAN_PAGE_NULL;
- 			goto out;
- 		}
-@@ -1267,7 +1267,7 @@ static int khugepaged_scan_pmd(struct mm
- 			writable = true;
- 
- 		page = vm_normal_page(vma, _address, pteval);
--		if (unlikely(!page)) {
-+		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
- 			result = SCAN_PAGE_NULL;
- 			goto out_unmap;
- 		}
-@@ -1479,7 +1479,8 @@ void collapse_pte_mapped_thp(struct mm_s
- 			goto abort;
- 
- 		page = vm_normal_page(vma, addr, *pte);
--
-+		if (WARN_ON_ONCE(page && is_zone_device_page(page)))
-+			page = NULL;
- 		/*
- 		 * Note that uprobe, debugger, or MAP_PRIVATE may change the
- 		 * page table, but the new page will not be a subpage of hpage.
-@@ -1497,6 +1498,8 @@ void collapse_pte_mapped_thp(struct mm_s
- 		if (pte_none(*pte))
- 			continue;
- 		page = vm_normal_page(vma, addr, *pte);
-+		if (WARN_ON_ONCE(page && is_zone_device_page(page)))
-+			goto abort;
- 		page_remove_rmap(page, vma, false);
- 	}
- 
---- a/mm/ksm.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/ksm.c
-@@ -474,7 +474,7 @@ static int break_ksm(struct vm_area_stru
- 	do {
- 		cond_resched();
- 		page = follow_page(vma, addr,
--				FOLL_GET | FOLL_MIGRATION | FOLL_REMOTE);
-+				FOLL_GET | FOLL_MIGRATION | FOLL_REMOTE | FOLL_LRU);
- 		if (IS_ERR_OR_NULL(page))
- 			break;
- 		if (PageKsm(page))
-@@ -559,7 +559,7 @@ static struct page *get_mergeable_page(s
- 	if (!vma)
- 		goto out;
- 
--	page = follow_page(vma, addr, FOLL_GET);
-+	page = follow_page(vma, addr, FOLL_GET | FOLL_LRU);
- 	if (IS_ERR_OR_NULL(page))
- 		goto out;
- 	if (PageAnon(page)) {
-@@ -2307,7 +2307,7 @@ next_mm:
- 		while (ksm_scan.address < vma->vm_end) {
- 			if (ksm_test_exit(mm))
- 				break;
--			*page = follow_page(vma, ksm_scan.address, FOLL_GET);
-+			*page = follow_page(vma, ksm_scan.address, FOLL_GET | FOLL_LRU);
- 			if (IS_ERR_OR_NULL(*page)) {
- 				ksm_scan.address += PAGE_SIZE;
- 				cond_resched();
---- a/mm/madvise.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/madvise.c
-@@ -421,7 +421,7 @@ regular_page:
- 			continue;
- 
- 		page = vm_normal_page(vma, addr, ptent);
--		if (!page)
-+		if (!page || is_zone_device_page(page))
- 			continue;
- 
- 		/*
-@@ -639,7 +639,7 @@ static int madvise_free_pte_range(pmd_t
- 		}
- 
- 		page = vm_normal_page(vma, addr, ptent);
--		if (!page)
-+		if (!page || is_zone_device_page(page))
- 			continue;
- 
- 		/*
---- a/mm/memory.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/memory.c
-@@ -624,6 +624,13 @@ struct page *vm_normal_page(struct vm_ar
- 		if (is_zero_pfn(pfn))
- 			return NULL;
- 		if (pte_devmap(pte))
-+/*
-+ * NOTE: New uers of ZONE_DEVICE will not set pte_devmap() and will have
-+ * refcounts incremented on their struct pages when they are inserted into
-+ * PTEs, thus they are safe to return here. Legacy ZONE_DEVICE pages that set
-+ * pte_devmap() do not have refcounts. Example of legacy ZONE_DEVICE is
-+ * MEMORY_DEVICE_FS_DAX type in pmem or virtio_fs drivers.
-+ */
- 			return NULL;
- 
- 		print_bad_pte(vma, addr, pte, NULL);
-@@ -4685,7 +4692,7 @@ static vm_fault_t do_numa_page(struct vm
- 	pte = pte_modify(old_pte, vma->vm_page_prot);
- 
- 	page = vm_normal_page(vma, vmf->address, pte);
--	if (!page)
-+	if (!page || is_zone_device_page(page))
- 		goto out_map;
- 
- 	/* TODO: handle PTE-mapped THP */
---- a/mm/mempolicy.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/mempolicy.c
-@@ -523,7 +523,7 @@ static int queue_pages_pte_range(pmd_t *
- 		if (!pte_present(*pte))
- 			continue;
- 		page = vm_normal_page(vma, addr, *pte);
--		if (!page)
-+		if (!page || is_zone_device_page(page))
- 			continue;
- 		/*
- 		 * vm_normal_page() filters out zero pages, but there might
---- a/mm/migrate.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/migrate.c
-@@ -1622,7 +1622,7 @@ static int add_page_for_migration(struct
- 		goto out;
- 
- 	/* FOLL_DUMP to ignore special (like zero) pages */
--	page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
-+	page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP | FOLL_LRU);
- 
- 	err = PTR_ERR(page);
- 	if (IS_ERR(page))
-@@ -1814,7 +1814,7 @@ static void do_pages_stat_array(struct m
- 			goto set_status;
- 
- 		/* FOLL_DUMP to ignore special (like zero) pages */
--		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
-+		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP | FOLL_LRU);
- 
- 		err = PTR_ERR(page);
- 		if (IS_ERR(page))
---- a/mm/mlock.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/mlock.c
-@@ -333,7 +333,7 @@ static int mlock_pte_range(pmd_t *pmd, u
- 		if (!pte_present(*pte))
- 			continue;
- 		page = vm_normal_page(vma, addr, *pte);
--		if (!page)
-+		if (!page || is_zone_device_page(page))
- 			continue;
- 		if (PageTransCompound(page))
- 			continue;
---- a/mm/mprotect.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages
-+++ a/mm/mprotect.c
-@@ -95,7 +95,7 @@ static unsigned long change_pte_range(st
- 					continue;
- 
- 				page = vm_normal_page(vma, addr, oldpte);
--				if (!page || PageKsm(page))
-+				if (!page || is_zone_device_page(page) || PageKsm(page))
- 					continue;
- 
- 				/* Also skip shared copy-on-write pages */
 _
 
 Patches currently in -mm which might be from alex.sierra@amd.com are
