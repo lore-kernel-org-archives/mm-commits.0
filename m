@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93558C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 17:32:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 105A6C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 17:33:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346581AbiEaRc6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1346580AbiEaRc6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 31 May 2022 13:32:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45370 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346580AbiEaRct (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 13:32:49 -0400
+        with ESMTP id S1346586AbiEaRc4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 13:32:56 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 134DB939E8
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 10:32:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65F85939B4
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 10:32:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9374AB810F1
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 17:32:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48934C385A9;
-        Tue, 31 May 2022 17:32:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1AE8FB815FB
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 17:32:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C315CC385A9;
+        Tue, 31 May 2022 17:32:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654018365;
-        bh=Vspb5zcjmUBNDjgftmUvloNlaw2G17KKobJkEj9AlZs=;
+        s=korg; t=1654018369;
+        bh=ejDUjPAlM0v8HqEIqr88Q6ecfpbrc5nSayC44CywLj8=;
         h=Date:To:From:Subject:From;
-        b=SEmx1Va0XSpTDY2NRUFrgSb+4vGbeNkgM9j1tS1zjutZCoS+V/8o6qRGhmnBlp2+v
-         5KKdmAnULXU2iBCnotYx1DDyeiGtUQAn6zj+Js4CsgNeXSyviXYBjBMjdFmnsIaQWh
-         XDBS3V2a+bsmP4FFGD86GwHuWcAm+G9GautAiOU0=
-Date:   Tue, 31 May 2022 10:32:44 -0700
+        b=1cnsqVfYFE3kLPQEZSyHdb0cD1vLkBoD8erjV3c75kspBlPirfzyabVCVDro0F0I4
+         sASmVKSco9lyV2r4XHHxA1CvmaDiRDWIoAczZZh+16qA5o2Fvj6O/hWEfrCAN235d+
+         H2BrHOt0TOCXTaNL+hSlONomveT8Pc3j0wrWPRPo=
+Date:   Tue, 31 May 2022 10:32:49 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
         hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
-        apopple@nvidia.com, akpm@linux-foundation.org
+        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch added to mm-unstable branch
-Message-Id: <20220531173245.48934C385A9@smtp.kernel.org>
+Subject: + lib-test_hmm-add-ioctl-to-get-zone-device-type.patch added to mm-unstable branch
+Message-Id: <20220531173249.C315CC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: migrate device coherent pages when pinning instead of failing
+     Subject: lib: test_hmm add ioctl to get zone device type
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
+     lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,24 +66,18 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/gup: migrate device coherent pages when pinning instead of failing
-Date: Tue, 31 May 2022 10:56:21 -0500
+From: Alex Sierra <alex.sierra@amd.com>
+Subject: lib: test_hmm add ioctl to get zone device type
+Date: Tue, 31 May 2022 10:56:23 -0500
 
-Currently any attempts to pin a device coherent page will fail.  This is
-because device coherent pages need to be managed by a device driver, and
-pinning them would prevent a driver from migrating them off the device.
+New ioctl cmd added to query zone device type.  This will be used once the
+test_hmm adds zone device coherent type.
 
-However this is no reason to fail pinning of these pages.  These are
-coherent and accessible from the CPU so can be migrated just like pinning
-ZONE_MOVABLE pages.  So instead of failing all attempts to pin them first
-try migrating them out of ZONE_DEVICE.
-
-[hch@lst.de: rebase to the split device memory checks, move migrate_device_page to migrate_device.c]
-Link: https://lkml.kernel.org/r/20220531155629.20057-6-alex.sierra@amd.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Link: https://lkml.kernel.org/r/20220531155629.20057-8-alex.sierra@amd.com
+Signed-off-by: Alex Sierra <alex.sierra@amd.com>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Reviewed-by: Alistair Poppple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
@@ -92,149 +86,118 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c            |   47 +++++++++++++++++++++++++++++++++----
- mm/internal.h       |    1 
- mm/migrate_device.c |   53 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 96 insertions(+), 5 deletions(-)
+ lib/test_hmm.c      |   23 +++++++++++++++++++++--
+ lib/test_hmm_uapi.h |    8 ++++++++
+ 2 files changed, 29 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing
-+++ a/mm/gup.c
-@@ -1927,9 +1927,43 @@ static long check_and_migrate_movable_pa
- 			continue;
- 		prev_folio = folio;
+--- a/lib/test_hmm.c~lib-test_hmm-add-ioctl-to-get-zone-device-type
++++ a/lib/test_hmm.c
+@@ -87,6 +87,7 @@ struct dmirror_chunk {
+ struct dmirror_device {
+ 	struct cdev		cdevice;
+ 	struct hmm_devmem	*devmem;
++	unsigned int            zone_device_type;
  
--		if (folio_is_pinnable(folio))
-+		/*
-+		 * Device private pages will get faulted in during gup so it
-+		 * shouldn't be possible to see one here.
-+		 */
-+		if (WARN_ON_ONCE(folio_is_device_private(folio))) {
-+			ret = -EFAULT;
-+			goto unpin_pages;
-+		}
-+
-+		/*
-+		 * Device coherent pages are managed by a driver and should not
-+		 * be pinned indefinitely as it prevents the driver moving the
-+		 * page. So when trying to pin with FOLL_LONGTERM instead try
-+		 * to migrate the page out of device memory.
-+		 */
-+		if (folio_is_device_coherent(folio)) {
-+			WARN_ON_ONCE(PageCompound(&folio->page));
-+
-+			/*
-+			 * Migration will fail if the page is pinned, so convert
-+			 * the pin on the source page to a normal reference.
-+			 */
-+			if (gup_flags & FOLL_PIN) {
-+				get_page(&folio->page);
-+				unpin_user_page(&folio->page);
-+			}
-+
-+			pages[i] = migrate_device_page(&folio->page, gup_flags);
-+			if (!pages[i]) {
-+				ret = -EBUSY;
-+				goto unpin_pages;
-+			}
- 			continue;
-+		}
+ 	unsigned int		devmem_capacity;
+ 	unsigned int		devmem_count;
+@@ -1026,6 +1027,15 @@ static int dmirror_snapshot(struct dmirr
+ 	return ret;
+ }
  
-+		if (folio_is_pinnable(folio))
-+			continue;
- 		/*
- 		 * Try to move out any movable page before pinning the range.
- 		 */
-@@ -1965,10 +1999,13 @@ static long check_and_migrate_movable_pa
- 	return nr_pages;
- 
- unpin_pages:
--	if (gup_flags & FOLL_PIN) {
--		unpin_user_pages(pages, nr_pages);
--	} else {
--		for (i = 0; i < nr_pages; i++)
-+	for (i = 0; i < nr_pages; i++) {
-+		if (!pages[i])
-+			continue;
++static int dmirror_get_device_type(struct dmirror *dmirror,
++			    struct hmm_dmirror_cmd *cmd)
++{
++	mutex_lock(&dmirror->mutex);
++	cmd->zone_device_type = dmirror->mdevice->zone_device_type;
++	mutex_unlock(&dmirror->mutex);
 +
-+		if (gup_flags & FOLL_PIN)
-+			unpin_user_page(pages[i]);
-+		else
- 			put_page(pages[i]);
++	return 0;
++}
+ static long dmirror_fops_unlocked_ioctl(struct file *filp,
+ 					unsigned int command,
+ 					unsigned long arg)
+@@ -1076,6 +1086,9 @@ static long dmirror_fops_unlocked_ioctl(
+ 		ret = dmirror_snapshot(dmirror, &cmd);
+ 		break;
+ 
++	case HMM_DMIRROR_GET_MEM_DEV_TYPE:
++		ret = dmirror_get_device_type(dmirror, &cmd);
++		break;
+ 	default:
+ 		return -EINVAL;
  	}
+@@ -1260,14 +1273,20 @@ static void dmirror_device_remove(struct
+ static int __init hmm_dmirror_init(void)
+ {
+ 	int ret;
+-	int id;
++	int id = 0;
++	int ndevices = 0;
  
---- a/mm/internal.h~mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing
-+++ a/mm/internal.h
-@@ -853,6 +853,7 @@ int numa_migrate_prep(struct page *page,
- 		      unsigned long addr, int page_nid, int *flags);
+ 	ret = alloc_chrdev_region(&dmirror_dev, 0, DMIRROR_NDEVICES,
+ 				  "HMM_DMIRROR");
+ 	if (ret)
+ 		goto err_unreg;
  
- void free_zone_device_page(struct page *page);
-+struct page *migrate_device_page(struct page *page, unsigned int gup_flags);
+-	for (id = 0; id < DMIRROR_NDEVICES; id++) {
++	memset(dmirror_devices, 0, DMIRROR_NDEVICES * sizeof(dmirror_devices[0]));
++	dmirror_devices[ndevices++].zone_device_type =
++				HMM_DMIRROR_MEMORY_DEVICE_PRIVATE;
++	dmirror_devices[ndevices++].zone_device_type =
++				HMM_DMIRROR_MEMORY_DEVICE_PRIVATE;
++	for (id = 0; id < ndevices; id++) {
+ 		ret = dmirror_device_init(dmirror_devices + id, id);
+ 		if (ret)
+ 			goto err_chrdev;
+--- a/lib/test_hmm_uapi.h~lib-test_hmm-add-ioctl-to-get-zone-device-type
++++ a/lib/test_hmm_uapi.h
+@@ -19,6 +19,7 @@
+  * @npages: (in) number of pages to read/write
+  * @cpages: (out) number of pages copied
+  * @faults: (out) number of device page faults seen
++ * @zone_device_type: (out) zone device memory type
+  */
+ struct hmm_dmirror_cmd {
+ 	__u64		addr;
+@@ -26,6 +27,7 @@ struct hmm_dmirror_cmd {
+ 	__u64		npages;
+ 	__u64		cpages;
+ 	__u64		faults;
++	__u64		zone_device_type;
+ };
+ 
+ /* Expose the address space of the calling process through hmm device file */
+@@ -35,6 +37,7 @@ struct hmm_dmirror_cmd {
+ #define HMM_DMIRROR_SNAPSHOT		_IOWR('H', 0x03, struct hmm_dmirror_cmd)
+ #define HMM_DMIRROR_EXCLUSIVE		_IOWR('H', 0x04, struct hmm_dmirror_cmd)
+ #define HMM_DMIRROR_CHECK_EXCLUSIVE	_IOWR('H', 0x05, struct hmm_dmirror_cmd)
++#define HMM_DMIRROR_GET_MEM_DEV_TYPE	_IOWR('H', 0x06, struct hmm_dmirror_cmd)
  
  /*
-  * mm/gup.c
---- a/mm/migrate_device.c~mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing
-+++ a/mm/migrate_device.c
-@@ -794,3 +794,56 @@ void migrate_vma_finalize(struct migrate
- 	}
- }
- EXPORT_SYMBOL(migrate_vma_finalize);
+  * Values returned in hmm_dmirror_cmd.ptr for HMM_DMIRROR_SNAPSHOT.
+@@ -62,4 +65,9 @@ enum {
+ 	HMM_DMIRROR_PROT_DEV_PRIVATE_REMOTE	= 0x30,
+ };
+ 
++enum {
++	/* 0 is reserved to catch uninitialized type fields */
++	HMM_DMIRROR_MEMORY_DEVICE_PRIVATE = 1,
++};
 +
-+/*
-+ * Migrate a device coherent page back to normal memory.  The caller should have
-+ * a reference on page which will be copied to the new page if migration is
-+ * successful or dropped on failure.
-+ */
-+struct page *migrate_device_page(struct page *page, unsigned int gup_flags)
-+{
-+	unsigned long src_pfn, dst_pfn = 0;
-+	struct migrate_vma args;
-+	struct page *dpage;
-+
-+	lock_page(page);
-+	src_pfn = migrate_pfn(page_to_pfn(page)) | MIGRATE_PFN_MIGRATE;
-+	args.src = &src_pfn;
-+	args.dst = &dst_pfn;
-+	args.cpages = 1;
-+	args.npages = 1;
-+	args.vma = NULL;
-+	migrate_vma_setup(&args);
-+	if (!(src_pfn & MIGRATE_PFN_MIGRATE))
-+		return NULL;
-+
-+	dpage = alloc_pages(GFP_USER | __GFP_NOWARN, 0);
-+
-+	/*
-+	 * get/pin the new page now so we don't have to retry gup after
-+	 * migrating. We already have a reference so this should never fail.
-+	 */
-+	if (dpage && WARN_ON_ONCE(!try_grab_page(dpage, gup_flags))) {
-+		__free_pages(dpage, 0);
-+		dpage = NULL;
-+	}
-+
-+	if (dpage) {
-+		lock_page(dpage);
-+		dst_pfn = migrate_pfn(page_to_pfn(dpage));
-+	}
-+
-+	migrate_vma_pages(&args);
-+	if (src_pfn & MIGRATE_PFN_MIGRATE)
-+		copy_highpage(dpage, page);
-+	migrate_vma_finalize(&args);
-+	if (dpage && !(src_pfn & MIGRATE_PFN_MIGRATE)) {
-+		if (gup_flags & FOLL_PIN)
-+			unpin_user_page(dpage);
-+		else
-+			put_page(dpage);
-+		dpage = NULL;
-+	}
-+
-+	return dpage;
-+}
+ #endif /* _LIB_TEST_HMM_UAPI_H */
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from alex.sierra@amd.com are
 
-mm-remove-the-vma-check-in-migrate_vma_setup.patch
-mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
+mm-add-zone-device-coherent-type-memory-support.patch
+mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
+mm-add-device-coherent-vma-selection-for-memory-migration.patch
+drm-amdkfd-add-spm-support-for-svm.patch
+lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
+lib-test_hmm-add-module-param-for-zone-device-type.patch
+lib-add-support-for-device-coherent-type-in-test_hmm.patch
+tools-update-hmm-test-to-support-device-coherent-type.patch
+tools-update-test_hmm-script-to-support-sp-config.patch
+tools-add-hmm-gup-tests-for-device-coherent-type.patch
+tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
 
