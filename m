@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CACF5C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 21:27:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90B15C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 21:28:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245739AbiEaV1c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 May 2022 17:27:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56104 "EHLO
+        id S1346652AbiEaV2j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 May 2022 17:28:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238279AbiEaV1b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 17:27:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA5E63B3EC;
-        Tue, 31 May 2022 14:27:30 -0700 (PDT)
+        with ESMTP id S1346692AbiEaV2j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 17:28:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16A13703C1
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 14:28:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 76F6E6132D;
-        Tue, 31 May 2022 21:27:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC6EFC385A9;
-        Tue, 31 May 2022 21:27:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A672C6134F
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 21:28:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04B51C385A9;
+        Tue, 31 May 2022 21:28:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654032449;
-        bh=J/B6HZrOHzGGN29mQ4Jyk0qb4sS6EYDCzmWhnk3A4pM=;
+        s=korg; t=1654032517;
+        bh=WuO6RRejTbce1cAvuZJicDOiUGF6tws+fH8liSYkrB8=;
         h=Date:To:From:Subject:From;
-        b=nidv6J3Q69KMhuVt7wzOnVqDeKDLzqV4IYgsh89bGoXruwvK86BXLfsH+4NQQa7Dj
-         XTZRlmh/eJShyt6ITFbw3r51MBj/sHMDxFhxp5WgejIVVPnP0ugL6lvRWUDC9PLnLy
-         GBLEbOV+wVg8MPPR/P5AHfiVvSRCFpTnsSunRCtg=
-Date:   Tue, 31 May 2022 14:27:28 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        dyoung@redhat.com, bhe@redhat.com, akpm@linux-foundation.org
+        b=rWE9QvHEi3UYWGUq+z8tZqU5hDkJDl0nquk5fYCSv1F/3UQvZcEpew7Uv7Nd7k1+/
+         tjMAuzlGU4D+7aWDKf/Hk5PIKd20J1LVp+YZaj7aiW1Esmd593IYsyLb7HgnATPv3v
+         QrpLUD/A/Lv1/YUydBen52MZSayl8LtXY5vYTDN4=
+Date:   Tue, 31 May 2022 14:28:36 -0700
+To:     mm-commits@vger.kernel.org, dyoung@redhat.com, bhe@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kexec-fix-memory-leak-of-elf-header-buffer.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220531212729.CC6EFC385A9@smtp.kernel.org>
+Subject: + kexec_file-clean-up-arch_kexec_kernel_image_load.patch added to mm-nonmm-unstable branch
+Message-Id: <20220531212837.04B51C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/kexec: fix memory leak of elf header buffer
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-kexec-fix-memory-leak-of-elf-header-buffer.patch
+     Subject: kexec_file: clean up arch_kexec_kernel_image_load
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kexec_file-clean-up-arch_kexec_kernel_image_load.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-fix-memory-leak-of-elf-header-buffer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_file-clean-up-arch_kexec_kernel_image_load.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,83 +65,94 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: x86/kexec: fix memory leak of elf header buffer
-Date: Wed, 23 Feb 2022 19:32:24 +0800
+Subject: kexec_file: clean up arch_kexec_kernel_image_load
+Date: Wed, 23 Feb 2022 19:32:25 +0800
 
-This is reported by kmemleak detector:
+arch_kexec_kernel_image_load() has a common weak version which is a
+wrapper of kexec_image_load_default() , and has only one arch dependent
+version in x86_64.  Now the x86_64 dependent function is not needed any
+more.  So clean it up.
 
-unreferenced object 0xffffc900002a9000 (size 4096):
-  comm "kexec", pid 14950, jiffies 4295110793 (age 373.951s)
-  hex dump (first 32 bytes):
-    7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00  .ELF............
-    04 00 3e 00 01 00 00 00 00 00 00 00 00 00 00 00  ..>.............
-  backtrace:
-    [<0000000016a8ef9f>] __vmalloc_node_range+0x101/0x170
-    [<000000002b66b6c0>] __vmalloc_node+0xb4/0x160
-    [<00000000ad40107d>] crash_prepare_elf64_headers+0x8e/0xcd0
-    [<0000000019afff23>] crash_load_segments+0x260/0x470
-    [<0000000019ebe95c>] bzImage64_load+0x814/0xad0
-    [<0000000093e16b05>] arch_kexec_kernel_image_load+0x1be/0x2a0
-    [<000000009ef2fc88>] kimage_file_alloc_init+0x2ec/0x5a0
-    [<0000000038f5a97a>] __do_sys_kexec_file_load+0x28d/0x530
-    [<0000000087c19992>] do_syscall_64+0x3b/0x90
-    [<0000000066e063a4>] entry_SYSCALL_64_after_hwframe+0x44/0xae
+And also rename kexec_image_load_default() to kexec_kernel_image_load()
+for better reflecting its functionality.
 
-In crash_prepare_elf64_headers(), a buffer is allocated via vmalloc() to
-store elf headers.  While it's not freed back to system correctly when
-kdump kernel is reloaded or unloaded.  Then memory leak is caused.  Fix it
-by introducing x86 specific function arch_kimage_file_post_load_cleanup(),
-and freeing the buffer there.
-
-And also remove the incorrect elf header buffer freeing code.  Before
-calling arch specific kexec_file loading function, the image instance has
-been initialized.  So 'image->elf_headers' must be NULL.  It doesn't make
-sense to free the elf header buffer in the place.
-
-Three different people have reported three bugs about the memory leak on
-x86_64 inside Redhat.
-
-Link: https://lkml.kernel.org/r/20220223113225.63106-2-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20220223113225.63106-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Acked-by: Dave Young <dyoung@redhat.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |   11 -----------
+ include/linux/kexec.h              |    1 -
+ kernel/kexec_file.c                |    9 ++-------
+ 3 files changed, 2 insertions(+), 19 deletions(-)
 
---- a/arch/x86/kernel/machine_kexec_64.c~x86-kexec-fix-memory-leak-of-elf-header-buffer
+--- a/arch/x86/kernel/machine_kexec_64.c~kexec_file-clean-up-arch_kexec_kernel_image_load
 +++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -376,9 +376,6 @@ void machine_kexec(struct kimage *image)
+@@ -374,17 +374,6 @@ void machine_kexec(struct kimage *image)
+ /* arch-dependent functionality related to kexec file-based syscall */
+ 
  #ifdef CONFIG_KEXEC_FILE
- void *arch_kexec_kernel_image_load(struct kimage *image)
- {
--	vfree(image->elf_headers);
--	image->elf_headers = NULL;
+-void *arch_kexec_kernel_image_load(struct kimage *image)
+-{
+-	if (!image->fops || !image->fops->load)
+-		return ERR_PTR(-ENOEXEC);
 -
+-	return image->fops->load(image, image->kernel_buf,
+-				 image->kernel_buf_len, image->initrd_buf,
+-				 image->initrd_buf_len, image->cmdline_buf,
+-				 image->cmdline_buf_len);
+-}
+-
+ /*
+  * Apply purgatory relocations.
+  *
+--- a/include/linux/kexec.h~kexec_file-clean-up-arch_kexec_kernel_image_load
++++ a/include/linux/kexec.h
+@@ -192,7 +192,6 @@ void *kexec_purgatory_get_symbol_addr(st
+ /* Architectures may override the below functions */
+ int arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
+ 				  unsigned long buf_len);
+-void *arch_kexec_kernel_image_load(struct kimage *image);
+ int arch_kimage_file_post_load_cleanup(struct kimage *image);
+ #ifdef CONFIG_KEXEC_SIG
+ int arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
+--- a/kernel/kexec_file.c~kexec_file-clean-up-arch_kexec_kernel_image_load
++++ a/kernel/kexec_file.c
+@@ -60,7 +60,7 @@ int __weak arch_kexec_kernel_image_probe
+ 	return kexec_image_probe_default(image, buf, buf_len);
+ }
+ 
+-static void *kexec_image_load_default(struct kimage *image)
++static void *kexec_kernel_image_load(struct kimage *image)
+ {
  	if (!image->fops || !image->fops->load)
  		return ERR_PTR(-ENOEXEC);
- 
-@@ -514,6 +511,15 @@ overflow:
- 	       (int)ELF64_R_TYPE(rel[i].r_info), value);
- 	return -ENOEXEC;
+@@ -71,11 +71,6 @@ static void *kexec_image_load_default(st
+ 				 image->cmdline_buf_len);
  }
-+
-+int arch_kimage_file_post_load_cleanup(struct kimage *image)
-+{
-+	vfree(image->elf_headers);
-+	image->elf_headers = NULL;
-+	image->elf_headers_sz = 0;
-+
-+	return kexec_image_post_load_cleanup_default(image);
-+}
- #endif /* CONFIG_KEXEC_FILE */
  
- static int
+-void * __weak arch_kexec_kernel_image_load(struct kimage *image)
+-{
+-	return kexec_image_load_default(image);
+-}
+-
+ int kexec_image_post_load_cleanup_default(struct kimage *image)
+ {
+ 	if (!image->fops || !image->fops->cleanup)
+@@ -245,7 +240,7 @@ kimage_file_prepare_segments(struct kima
+ 	ima_add_kexec_buffer(image);
+ 
+ 	/* Call arch image load handlers */
+-	ldata = arch_kexec_kernel_image_load(image);
++	ldata = kexec_kernel_image_load(image);
+ 
+ 	if (IS_ERR(ldata)) {
+ 		ret = PTR_ERR(ldata);
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
 
 x86-kexec-fix-memory-leak-of-elf-header-buffer.patch
+kexec_file-clean-up-arch_kexec_kernel_image_load.patch
 
