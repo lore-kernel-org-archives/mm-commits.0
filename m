@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD030C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 19:38:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B8EC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 31 May 2022 20:23:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232007AbiEaTiI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 May 2022 15:38:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35786 "EHLO
+        id S237041AbiEaUXA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 May 2022 16:23:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242211AbiEaTiH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 15:38:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFEDE4B415
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 12:38:05 -0700 (PDT)
+        with ESMTP id S232840AbiEaUXA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2022 16:23:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E5C6541AF
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 13:22:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A0327B8111E
-        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 19:38:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BCEEC3411D;
-        Tue, 31 May 2022 19:38:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 007C9612A5
+        for <mm-commits@vger.kernel.org>; Tue, 31 May 2022 20:22:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 494D0C385A9;
+        Tue, 31 May 2022 20:22:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654025883;
-        bh=SudSyNo7zt27RDQpWH+YPeBPkkdO30UHlFIfxsERR3E=;
+        s=korg; t=1654028577;
+        bh=2W9yhbSA4cLow2PNN1L6DU8gnYS7i+nKSroKrSWkERs=;
         h=Date:To:From:Subject:From;
-        b=gopUmBFRZuW4g0d3ZRVere+LztmUZSDZQQxINpZf2cYqiovyd2m81BWREVXO7QMeY
-         GlulRbZgLZHFeleqNmR9y/zE8QobWOcNYXtGdXaKgN3Lwqkmo2EHlEVL70MWMGmLer
-         cair7JPQ2iKCCvJEw1TdwSdxmu3ZIrQ0grzHIwdk=
-Date:   Tue, 31 May 2022 12:38:02 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, anshuman.khandual@arm.com,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
+        b=UTg0+hPFIp+en4Rwp5OjDkjfuYf9zClnU9IygXJAzHW5HmSkf8cR4TStdsoEogpKm
+         65v7FZDcedp7Pf78za8eaw/oK0pAST7kf7CjGS5DMYUvHOz/SgYx9O6yzRYVCnISdq
+         reMVksyc55z7EjmECN1pKbWZBt/PpIibQvz6uvKI=
+Date:   Tue, 31 May 2022 13:22:56 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
+        hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
+        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-remove-unnecessary-huge_ptep_set_access_flags-in-hugetlb_mcopy_atomic_pte.patch added to mm-unstable branch
-Message-Id: <20220531193803.5BCEEC3411D@smtp.kernel.org>
+Subject: + mm-add-zone-device-coherent-type-memory-support.patch added to mm-unstable branch
+Message-Id: <20220531202257.494D0C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: remove unnecessary huge_ptep_set_access_flags() in hugetlb_mcopy_atomic_pte()
+     Subject: mm: add zone device coherent type memory support
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-remove-unnecessary-huge_ptep_set_access_flags-in-hugetlb_mcopy_atomic_pte.patch
+     mm-add-zone-device-coherent-type-memory-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-unnecessary-huge_ptep_set_access_flags-in-hugetlb_mcopy_atomic_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-zone-device-coherent-type-memory-support.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,42 +66,265 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm/hugetlb: remove unnecessary huge_ptep_set_access_flags() in hugetlb_mcopy_atomic_pte()
-Date: Fri, 27 May 2022 10:01:35 +0800
+From: Alex Sierra <alex.sierra@amd.com>
+Subject: mm: add zone device coherent type memory support
+Date: Tue, 31 May 2022 15:00:29 -0500
 
-There is no need to update the hugetlb access flags after just setting the
-hugetlb page table entry by set_huge_pte_at(), since the page table entry
-value has no changes.
+Patch series "Add MEMORY_DEVICE_COHERENT for coherent device memory mapping", v5.
 
-Thus remove the unnecessary huge_ptep_set_access_flags() in
-hugetlb_mcopy_atomic_pte().
+This patch series introduces MEMORY_DEVICE_COHERENT, a type of memory
+owned by a device that can be mapped into CPU page tables like
+MEMORY_DEVICE_GENERIC and can also be migrated like MEMORY_DEVICE_PRIVATE.
 
-Link: https://lkml.kernel.org/r/f3e28b897b53a69967a8b98a6fdcda3be80c9229.1653616175.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+This patch series is mostly self-contained except for a few places where
+it needs to update other subsystems to handle the new memory type.
+
+System stability and performance are not affected according to our ongoing
+testing, including xfstests.
+
+How it works: The system BIOS advertises the GPU device memory (aka VRAM)
+as SPM (special purpose memory) in the UEFI system address map.
+
+The amdgpu driver registers the memory with devmap as
+MEMORY_DEVICE_COHERENT using devm_memremap_pages.  The initial user for
+this hardware page migration capability is the Frontier supercomputer
+project.  This functionality is not AMD-specific.  We expect other GPU
+vendors to find this functionality useful, and possibly other hardware
+types in the future.
+
+Our test nodes in the lab are similar to the Frontier configuration, with
+.5 TB of system memory plus 256 GB of device memory split across 4 GPUs,
+all in a single coherent address space.  Page migration is expected to
+improve application efficiency significantly.  We will report empirical
+results as they become available.
+
+Coherent device type pages at gup are now migrated back to system memory
+if they are being pinned long-term (FOLL_LONGTERM).  The reason is, that
+long-term pinning would interfere with the device memory manager owning
+the device-coherent pages (e.g.  evictions in TTM).  These series
+incorporate Alistair Popple patches to do this migration from
+pin_user_pages() calls.  hmm_gup_test has been added to hmm-test to test
+different get user pages calls.
+
+This series includes handling of device-managed anonymous pages returned
+by vm_normal_pages.  Although they behave like normal pages for purposes
+of mapping in CPU page tables and for COW, they do not support LRU lists,
+NUMA migration or THP.
+
+We also introduce a FOLL_LRU flag that adds the same behaviour to
+follow_page and related APIs, to allow callers to specify that they expect
+to put pages on an LRU list.
+
+
+This patch (od 13):
+
+Device memory that is cache coherent from device and CPU point of view. 
+This is used on platforms that have an advanced system bus (like CAPI or
+CXL).  Any page of a process can be migrated to such memory.  However, no
+one should be allowed to pin such memory so that it can always be evicted.
+
+[hch@lst.de: rebased ontop of the refcount changes, removed is_dev_private_or_coherent_page]
+Link: https://lkml.kernel.org/r/20220531200041.24904-1-alex.sierra@amd.com
+Link: https://lkml.kernel.org/r/20220531200041.24904-2-alex.sierra@amd.com
+Signed-off-by: Alex Sierra <alex.sierra@amd.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/memremap.h |   19 +++++++++++++++++++
+ mm/memcontrol.c          |    7 ++++---
+ mm/memory-failure.c      |    8 ++++++--
+ mm/memremap.c            |   10 ++++++++++
+ mm/migrate_device.c      |   16 +++++++---------
+ mm/rmap.c                |    5 +++--
+ 6 files changed, 49 insertions(+), 16 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-unnecessary-huge_ptep_set_access_flags-in-hugetlb_mcopy_atomic_pte
-+++ a/mm/hugetlb.c
-@@ -6031,8 +6031,6 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+--- a/include/linux/memremap.h~mm-add-zone-device-coherent-type-memory-support
++++ a/include/linux/memremap.h
+@@ -41,6 +41,13 @@ struct vmem_altmap {
+  * A more complete discussion of unaddressable memory may be found in
+  * include/linux/hmm.h and Documentation/vm/hmm.rst.
+  *
++ * MEMORY_DEVICE_COHERENT:
++ * Device memory that is cache coherent from device and CPU point of view. This
++ * is used on platforms that have an advanced system bus (like CAPI or CXL). A
++ * driver can hotplug the device memory using ZONE_DEVICE and with that memory
++ * type. Any page of a process can be migrated to such memory. However no one
++ * should be allowed to pin such memory so that it can always be evicted.
++ *
+  * MEMORY_DEVICE_FS_DAX:
+  * Host memory that has similar access semantics as System RAM i.e. DMA
+  * coherent and supports page pinning. In support of coordinating page
+@@ -61,6 +68,7 @@ struct vmem_altmap {
+ enum memory_type {
+ 	/* 0 is reserved to catch uninitialized type fields */
+ 	MEMORY_DEVICE_PRIVATE = 1,
++	MEMORY_DEVICE_COHERENT,
+ 	MEMORY_DEVICE_FS_DAX,
+ 	MEMORY_DEVICE_GENERIC,
+ 	MEMORY_DEVICE_PCI_P2PDMA,
+@@ -143,6 +151,17 @@ static inline bool folio_is_device_priva
+ 	return is_device_private_page(&folio->page);
+ }
  
- 	set_huge_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
++static inline bool is_device_coherent_page(const struct page *page)
++{
++	return is_zone_device_page(page) &&
++		page->pgmap->type == MEMORY_DEVICE_COHERENT;
++}
++
++static inline bool folio_is_device_coherent(const struct folio *folio)
++{
++	return is_device_coherent_page(&folio->page);
++}
++
+ static inline bool is_pci_p2pdma_page(const struct page *page)
+ {
+ 	return IS_ENABLED(CONFIG_PCI_P2PDMA) &&
+--- a/mm/memcontrol.c~mm-add-zone-device-coherent-type-memory-support
++++ a/mm/memcontrol.c
+@@ -5665,8 +5665,8 @@ out:
+  *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
+  *     target for charge migration. if @target is not NULL, the entry is stored
+  *     in target->ent.
+- *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is MEMORY_DEVICE_PRIVATE
+- *     (so ZONE_DEVICE page and thus not on the lru).
++ *   3(MC_TARGET_DEVICE): like MC_TARGET_PAGE  but page is device memory and
++ *   thus not on the lru.
+  *     For now we such page is charge like a regular page would be as for all
+  *     intent and purposes it is just special memory taking the place of a
+  *     regular page.
+@@ -5704,7 +5704,8 @@ static enum mc_target_type get_mctgt_typ
+ 		 */
+ 		if (page_memcg(page) == mc.from) {
+ 			ret = MC_TARGET_PAGE;
+-			if (is_device_private_page(page))
++			if (is_device_private_page(page) ||
++			    is_device_coherent_page(page))
+ 				ret = MC_TARGET_DEVICE;
+ 			if (target)
+ 				target->page = page;
+--- a/mm/memory-failure.c~mm-add-zone-device-coherent-type-memory-support
++++ a/mm/memory-failure.c
+@@ -1683,12 +1683,16 @@ static int memory_failure_dev_pagemap(un
+ 		goto unlock;
+ 	}
  
--	(void)huge_ptep_set_access_flags(dst_vma, dst_addr, dst_pte, _dst_pte,
--					dst_vma->vm_flags & VM_WRITE);
- 	hugetlb_count_add(pages_per_huge_page(h), dst_mm);
+-	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
++	switch (pgmap->type) {
++	case MEMORY_DEVICE_PRIVATE:
++	case MEMORY_DEVICE_COHERENT:
+ 		/*
+-		 * TODO: Handle HMM pages which may need coordination
++		 * TODO: Handle device pages which may need coordination
+ 		 * with device-side memory.
+ 		 */
+ 		goto unlock;
++	default:
++		break;
+ 	}
  
- 	/* No need to invalidate - it was non-present before */
+ 	/*
+--- a/mm/memremap.c~mm-add-zone-device-coherent-type-memory-support
++++ a/mm/memremap.c
+@@ -315,6 +315,16 @@ void *memremap_pages(struct dev_pagemap
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 		break;
++	case MEMORY_DEVICE_COHERENT:
++		if (!pgmap->ops->page_free) {
++			WARN(1, "Missing page_free method\n");
++			return ERR_PTR(-EINVAL);
++		}
++		if (!pgmap->owner) {
++			WARN(1, "Missing owner\n");
++			return ERR_PTR(-EINVAL);
++		}
++		break;
+ 	case MEMORY_DEVICE_FS_DAX:
+ 		if (IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
+ 			WARN(1, "File system DAX not supported\n");
+--- a/mm/migrate_device.c~mm-add-zone-device-coherent-type-memory-support
++++ a/mm/migrate_device.c
+@@ -518,7 +518,7 @@ EXPORT_SYMBOL(migrate_vma_setup);
+  *     handle_pte_fault()
+  *       do_anonymous_page()
+  * to map in an anonymous zero page but the struct page will be a ZONE_DEVICE
+- * private page.
++ * private or coherent page.
+  */
+ static void migrate_vma_insert_page(struct migrate_vma *migrate,
+ 				    unsigned long addr,
+@@ -594,11 +594,8 @@ static void migrate_vma_insert_page(stru
+ 						page_to_pfn(page));
+ 		entry = swp_entry_to_pte(swp_entry);
+ 	} else {
+-		/*
+-		 * For now we only support migrating to un-addressable device
+-		 * memory.
+-		 */
+-		if (is_zone_device_page(page)) {
++		if (is_zone_device_page(page) &&
++		    !is_device_coherent_page(page)) {
+ 			pr_warn_once("Unsupported ZONE_DEVICE page type.\n");
+ 			goto abort;
+ 		}
+@@ -701,10 +698,11 @@ void migrate_vma_pages(struct migrate_vm
+ 
+ 		mapping = page_mapping(page);
+ 
+-		if (is_device_private_page(newpage)) {
++		if (is_device_private_page(newpage) ||
++		    is_device_coherent_page(newpage)) {
+ 			/*
+-			 * For now only support private anonymous when migrating
+-			 * to un-addressable device memory.
++			 * For now only support anonymous memory migrating to
++			 * device private or coherent memory.
+ 			 */
+ 			if (mapping) {
+ 				migrate->src[i] &= ~MIGRATE_PFN_MIGRATE;
+--- a/mm/rmap.c~mm-add-zone-device-coherent-type-memory-support
++++ a/mm/rmap.c
+@@ -1957,7 +1957,7 @@ static bool try_to_migrate_one(struct fo
+ 		/* Update high watermark before we lower rss */
+ 		update_hiwater_rss(mm);
+ 
+-		if (folio_is_zone_device(folio)) {
++		if (folio_is_device_private(folio)) {
+ 			unsigned long pfn = folio_pfn(folio);
+ 			swp_entry_t entry;
+ 			pte_t swp_pte;
+@@ -2131,7 +2131,8 @@ void try_to_migrate(struct folio *folio,
+ 					TTU_SYNC)))
+ 		return;
+ 
+-	if (folio_is_zone_device(folio) && !folio_is_device_private(folio))
++	if (folio_is_zone_device(folio) &&
++	    (!folio_is_device_private(folio) && !folio_is_device_coherent(folio)))
+ 		return;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from alex.sierra@amd.com are
 
-mm-hugetlb-remove-unnecessary-huge_ptep_set_access_flags-in-hugetlb_mcopy_atomic_pte.patch
+mm-add-zone-device-coherent-type-memory-support.patch
+mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
+mm-add-device-coherent-vma-selection-for-memory-migration.patch
+drm-amdkfd-add-spm-support-for-svm.patch
+lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
+lib-test_hmm-add-module-param-for-zone-device-type.patch
+lib-add-support-for-device-coherent-type-in-test_hmm.patch
+tools-update-hmm-test-to-support-device-coherent-type.patch
+tools-update-test_hmm-script-to-support-sp-config.patch
+tools-add-hmm-gup-tests-for-device-coherent-type.patch
+tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
 
