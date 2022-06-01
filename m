@@ -2,141 +2,133 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBA38C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Jun 2022 22:11:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F7CBC43334
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Jun 2022 22:14:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232259AbiFAWK7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Jun 2022 18:10:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53234 "EHLO
+        id S232103AbiFAWOI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Jun 2022 18:14:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232317AbiFAWKu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2022 18:10:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8336A5676F
-        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 15:10:45 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 15939614B5
-        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 22:10:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6959FC385A5;
-        Wed,  1 Jun 2022 22:10:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654121444;
-        bh=SvuLs7nFwlneq4PWEEMx+VzJDzGF49ZEfRRaTFpha6o=;
-        h=Date:To:From:Subject:From;
-        b=pXHRGWRE0/OXweBvUlOqAunarIwSMabeqo4cA3ldAFKJcFAlv9/RVCEvAEsGJVMjc
-         uyu288iGfyehswuJg8W2xrH/c+VZt/6ppIBR5YUrdY6pWoY1g1/Jg2n7XEub3ih0M9
-         ULUWVynt85aq2fzimLrFdsHPdqqgvrbAc/AcsWPE=
-Date:   Wed, 01 Jun 2022 15:10:43 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        linux@roeck-us.net, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-list_debugc-detect-uninitialized-lists.patch added to mm-nonmm-unstable branch
-Message-Id: <20220601221044.6959FC385A5@smtp.kernel.org>
+        with ESMTP id S232128AbiFAWOH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2022 18:14:07 -0400
+Received: from mail-yb1-xb2e.google.com (mail-yb1-xb2e.google.com [IPv6:2607:f8b0:4864:20::b2e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 527252528B
+        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 15:14:06 -0700 (PDT)
+Received: by mail-yb1-xb2e.google.com with SMTP id g4so5250045ybf.12
+        for <mm-commits@vger.kernel.org>; Wed, 01 Jun 2022 15:14:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=3lchSwxpgxXWZoqJIR3k86lWN6hQqrE2YEa3/+RhP14=;
+        b=sQ2cs8vx+GBc662i3r5L0m6/SWBfaJv3wEJXDAR3qJTPaKo14l1FuSzHgh7hO5l/wv
+         lfWOPmlncTu9+GXwFfQ4s74DwdAPEhEWRb6E9I/V0jazEHaaUifxyY4QV9Tfj4fXhOSd
+         koSIlCQ/pEVHZFjqgQ+4fCY9Xeia0hHL4xSkHuXbqpVYdO1ITL8J516nZcY9gf5oi4Vj
+         RsP7BdA7lK3XiHX1zBGPE+XevvwznjTH52pp7SUf/XmpQot+C4qCcVgh/vd25ckSU1Sa
+         pPA1NieGKUjn5BLSTjvAKVt6a2KADoQGQsTJQiozsq4kOv5rSz15p1sShr34CckjIOn+
+         rWuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=3lchSwxpgxXWZoqJIR3k86lWN6hQqrE2YEa3/+RhP14=;
+        b=F+lIdDb1Ws+/aBIz+RCnYLfVZuNXcASe5G12TVbNAxNIr/XnkqnouuAn5X6LDXp5vy
+         a20ysQdSvDB7hITF01XrjWGskvEOPtX0wgIGKDGKEh9tWtuYK5//xPvstXr63GoI/WhC
+         s1v8vsKhLZtjcm4lpjtebZqXOcoxeFlOb8xmgD0qy9o0nWDwAOD9g/YFCAovX+Z7Iznv
+         3rflI4g9nqr75VunMbURdj42oAnKfNFxb3S30z/XXzoGhJpfgVcdcpGH7yvUKfQUrvNV
+         9KvC3erv0aCB2Xp7ctxNZhA9BBRzD9bGgwuDCAoHd5bt/IX5cYW7emCQYC5KRJFoGA+3
+         QRGA==
+X-Gm-Message-State: AOAM530La+JhBJLFRQamoFmr7OOKXF+m7dAJuuDPULP+uz3u7o5RAzXp
+        RUswwjt8yTHESeymZBtpvVlFYOQ3+xE1vxxL9qpNWyyVDrw=
+X-Google-Smtp-Source: ABdhPJzKWgMOiukWsPBeQu/eSjKUGR8TJIeje6Ci0ItoAoqaSK+t9icQVcTmIozIguX1xz1F3CIxyfFj5QMQPxqa6tw=
+X-Received: by 2002:a05:6902:13c2:b0:641:b6d:a151 with SMTP id
+ y2-20020a05690213c200b006410b6da151mr2142341ybu.348.1654121645366; Wed, 01
+ Jun 2022 15:14:05 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220601220859.B1F0EC385A5@smtp.kernel.org>
+In-Reply-To: <20220601220859.B1F0EC385A5@smtp.kernel.org>
+From:   Suren Baghdasaryan <surenb@google.com>
+Date:   Wed, 1 Jun 2022 15:13:54 -0700
+Message-ID: <CAJuCfpFvH0EnyNnc8bdFnMVE3tHWQX2zwN7L29Yz+PT_xsZq5A@mail.gmail.com>
+Subject: Re: + mm-drop-oom-code-from-exit_mmap-fix.patch added to mm-unstable branch
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Jun 1, 2022 at 3:09 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+>
+> The patch titled
+>      Subject: mm-drop-oom-code-from-exit_mmap-fix
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-drop-oom-code-from-exit_mmap-fix.patch
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-drop-oom-code-from-exit_mmap-fix.patch
+>
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: mm-drop-oom-code-from-exit_mmap-fix
+> Date: Wed Jun  1 03:07:59 PM PDT 2022
+>
+> fix it for presense of mapletree patchset, per Suren
 
-The patch titled
-     Subject: lib/list_debug.c: Detect uninitialized lists
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-list_debugc-detect-uninitialized-lists.patch
+Andrew, could we also restore the mmap_lock_read/write retaking? It
+does make a difference for parallel memory reaping.
+If you want I can post a v3 with more explanation about that and also
+a separate patchset applied over maple-tree branch (if you have it
+separately). Should I?
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-list_debugc-detect-uninitialized-lists.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: lib/list_debug.c: Detect uninitialized lists
-Date: Tue, 31 May 2022 15:29:51 -0700
-
-In some circumstances, attempts are made to add entries to or to remove
-entries from an uninitialized list.  A prime example is
-amdgpu_bo_vm_destroy(): It is indirectly called from
-ttm_bo_init_reserved() if that function fails, and tries to remove an
-entry from a list.  However, that list is only initialized in
-amdgpu_bo_create_vm() after the call to ttm_bo_init_reserved() returned
-success.  This results in crashes such as
-
- BUG: kernel NULL pointer dereference, address: 0000000000000000
- #PF: supervisor read access in kernel mode
- #PF: error_code(0x0000) - not-present page
- PGD 0 P4D 0
- Oops: 0000 [#1] PREEMPT SMP NOPTI
- CPU: 1 PID: 1479 Comm: chrome Not tainted 5.10.110-15768-g29a72e65dae5
- Hardware name: Google Grunt/Grunt, BIOS Google_Grunt.11031.149.0 07/15/2020
- RIP: 0010:__list_del_entry_valid+0x26/0x7d
- ...
- Call Trace:
-  amdgpu_bo_vm_destroy+0x48/0x8b
-  ttm_bo_init_reserved+0x1d7/0x1e0
-  amdgpu_bo_create+0x212/0x476
-  ? amdgpu_bo_user_destroy+0x23/0x23
-  ? kmem_cache_alloc+0x60/0x271
-  amdgpu_bo_create_vm+0x40/0x7d
-  amdgpu_vm_pt_create+0xe8/0x24b
- ...
-
-Check if the list's prev and next pointers are NULL to catch such problems.
-
-Link: https://lkml.kernel.org/r/20220531222951.92073-1-linux@roeck-us.net
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/list_debug.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
---- a/lib/list_debug.c~lib-list_debugc-detect-uninitialized-lists
-+++ a/lib/list_debug.c
-@@ -20,7 +20,11 @@
- bool __list_add_valid(struct list_head *new, struct list_head *prev,
- 		      struct list_head *next)
- {
--	if (CHECK_DATA_CORRUPTION(next->prev != prev,
-+	if (CHECK_DATA_CORRUPTION(prev == NULL,
-+			"list_add corruption. prev is NULL.\n") ||
-+	    CHECK_DATA_CORRUPTION(next == NULL,
-+			"list_add corruption. next is NULL.\n") ||
-+	    CHECK_DATA_CORRUPTION(next->prev != prev,
- 			"list_add corruption. next->prev should be prev (%px), but was %px. (next=%px).\n",
- 			prev, next->prev, next) ||
- 	    CHECK_DATA_CORRUPTION(prev->next != next,
-@@ -42,7 +46,11 @@ bool __list_del_entry_valid(struct list_
- 	prev = entry->prev;
- 	next = entry->next;
- 
--	if (CHECK_DATA_CORRUPTION(next == LIST_POISON1,
-+	if (CHECK_DATA_CORRUPTION(next == NULL,
-+			"list_del corruption, %px->next is NULL\n", entry) ||
-+	    CHECK_DATA_CORRUPTION(prev == NULL,
-+			"list_del corruption, %px->prev is NULL\n", entry) ||
-+	    CHECK_DATA_CORRUPTION(next == LIST_POISON1,
- 			"list_del corruption, %px->next is LIST_POISON1 (%px)\n",
- 			entry, LIST_POISON1) ||
- 	    CHECK_DATA_CORRUPTION(prev == LIST_POISON2,
-_
-
-Patches currently in -mm which might be from linux@roeck-us.net are
-
-lib-list_debugc-detect-uninitialized-lists.patch
-
+>
+> Cc: Suren Baghdasaryan <surenb@google.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  mm/mmap.c |    1 -
+>  1 file changed, 1 deletion(-)
+>
+> --- a/mm/mmap.c~mm-drop-oom-code-from-exit_mmap-fix
+> +++ a/mm/mmap.c
+> @@ -3215,7 +3215,6 @@ void exit_mmap(struct mm_struct *mm)
+>
+>         trace_exit_mmap(mm);
+>         __mt_destroy(&mm->mm_mt);
+> -       mm->mmap = NULL;
+>         mmap_write_unlock(mm);
+>         vm_unacct_memory(nr_accounted);
+>  }
+> _
+>
+> Patches currently in -mm which might be from akpm@linux-foundation.org are
+>
+> mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
+> mm-page_alloc-remotely-drain-per-cpu-lists-checkpatch-fixes.patch
+> mm-start-tracking-vmas-with-maple-tree-fix.patch
+> damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch
+> mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-checkpatch-fixes.patch
+> mm-remove-the-vma-linked-list-fix-fix.patch
+> mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix.patch
+> mm-introduce-clear_highpage_tagged-fix.patch
+> kasan-fix-zeroing-vmalloc-memory-with-hw_tags-fix.patch
+> mm-drop-oom-code-from-exit_mmap-fix.patch
+> squashfs-implement-readahead-checkpatch-fixes.patch
+>
