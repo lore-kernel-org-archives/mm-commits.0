@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4CFFC43334
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Jun 2022 20:51:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04198C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Jun 2022 20:59:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230208AbiFAUvQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Jun 2022 16:51:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36092 "EHLO
+        id S230483AbiFAU66 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Jun 2022 16:58:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231583AbiFAUun (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2022 16:50:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 524871B5858
-        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 13:48:57 -0700 (PDT)
+        with ESMTP id S230469AbiFAU64 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2022 16:58:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8FE1176D4F
+        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 13:58:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CA9FB60E9D
-        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 20:47:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F3D4C385B8;
-        Wed,  1 Jun 2022 20:47:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 807CEB816CC
+        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 20:58:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB153C385B8;
+        Wed,  1 Jun 2022 20:58:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654116471;
-        bh=8ycNewgxt+H84IH+OiKQJai5WrAoTW+zDobvqRdq0iM=;
+        s=korg; t=1654117132;
+        bh=rOoo9ufJNo7s03mi9wUaBXWx3w2MO4fPJ2svb2QLkwA=;
         h=Date:To:From:Subject:From;
-        b=B4tUk2qDVZ0dC6X2E7ITguzpxCZoCeZlte5hDu+RxL8gh/ok4jArr5Xj7MiMQAIbi
-         xXwwsD3NoRNsJLbwwwSIASf4UWdqD7tRxUOVlUOfgQ5xy2Ruh55UCwXuJ6ogTCjhHV
-         7FXq34s13BiTJagMrZ09h/+IvAaU60h/gDJ/RVEY=
-Date:   Wed, 01 Jun 2022 13:47:50 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        linmiaohe@huawei.com, david@redhat.com, dan.j.williams@intel.com,
-        aneesh.kumar@linux.ibm.com, vaibhav@linux.ibm.com,
+        b=Y/Wrsc8JQE+1+49qRR4nXFdp8V68j8aOybkDQbYLAQXcWsPuuU5yN3oLNcwYdrvkW
+         2opHWJ99/AVwSKZNQHwMIJnrPV6x9sLGNrxGZy6LQMLwdEFTLx4PwbnCitE1A5eCKk
+         2vxUBMhzFGGZPXcNQLN7YZMSrQbt/1p/kfjNrStE=
+Date:   Wed, 01 Jun 2022 13:58:51 -0700
+To:     mm-commits@vger.kernel.org, zhengliang6@huawei.com,
+        yi.zhang@huawei.com, Xiongwei.Song@windriver.com,
+        willy@infradead.org, phillip@squashfs.org.uk, miaoxie@huawei.com,
+        lkp@intel.com, houtao1@huawei.com, hsinyi@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-re-factor-page_is_ram.patch added to mm-nonmm-unstable branch
-Message-Id: <20220601204751.2F3D4C385B8@smtp.kernel.org>
+Subject: + revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch added to mm-nonmm-unstable branch
+Message-Id: <20220601205851.EB153C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: resource: re-factor page_is_ram()
+     Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-re-factor-page_is_ram.patch
+     revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-re-factor-page_is_ram.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,94 +67,112 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-Subject: resource: re-factor page_is_ram()
-Date: Wed, 1 Jun 2022 22:02:43 +0530
+From: Hsin-Yi Wang <hsinyi@chromium.org>
+Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
+Date: Wed, 1 Jun 2022 18:39:20 +0800
 
-Presently page_is_ram() relies on walk_system_ram_range() that performs a
-walk on kernel iomem resources hierarchy with a dummy callback __is_ram().
-Before calling find_next_iomem_res(), walk_system_ram_range() does some
-book-keeping which can be avoided for page_is_ram() use-case.
+Patch series "Implement readahead for squashfs", v4.
 
-Hence this patch proposes to update page_is_ram() to directly call
-find_next_iomem_res() with minimal book-keeping needed.
+Commit c1f6925e1091("mm: put readahead pages in cache earlier") requires
+fs to implement readahead callback.  Otherwise there will be a performance
+regression.
 
-To avoid allocating a 'struct resource' the patch also updates
-find_next_iomem_res() to not return -EINVAL in case 'res == NULL'. 
-Instead our 'struct resource *res' is only populated when its not NULL.
+Commit 9eec1d897139("squashfs: provide backing_dev_info in order to
+disable read-ahead") mitigates the performance drop issue for squashfs by
+closing readahead for it.
 
-Link: https://lkml.kernel.org/r/20220601163243.3806231-1-vaibhav@linux.ibm.com
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+This series implements readahead callback for squashfs.  The previous
+discussion are in [1] and [2].
+
+[1] https://lore.kernel.org/all/CAJMQK-g9G6KQmH-V=BRGX0swZji9Wxe_2c7ht-MMAapdFy2pXw@mail.gmail.com/T/
+[2] https://lore.kernel.org/linux-mm/Yn5Yij9pRPCzDozt@casper.infradead.org/t/#m4af4473b94f98a4996cb11756b633a07e5e059d1
+
+
+This patch (of 3):
+
+This reverts commit 9eec1d897139e ("squashfs: provide backing_dev_info in
+order to disable read-ahead").
+
+Revert closing the readahead to squashfs since the readahead callback
+for squashfs is implemented.
+
+Link: https://lkml.kernel.org/r/20220601103922.1338320-1-hsinyi@chromium.org
+Link: https://lkml.kernel.org/r/20220601103922.1338320-2-hsinyi@chromium.org
+Signed-off-by: Hsin-Yi Wang <hsinyi@chromium.org>
+Suggested-by: Xiongwei Song <Xiongwei.Song@windriver.com>
+Cc: Hou Tao <houtao1@huawei.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miao Xie <miaoxie@huawei.com>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Zhang Yi <yi.zhang@huawei.com>
+Cc: Zheng Liang <zhengliang6@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ fs/squashfs/super.c |   33 ---------------------------------
+ 1 file changed, 33 deletions(-)
 
---- a/kernel/resource.c~resource-re-factor-page_is_ram
-+++ a/kernel/resource.c
-@@ -311,7 +311,7 @@ EXPORT_SYMBOL(release_resource);
-  *
-  * If a resource is found, returns 0 and @*res is overwritten with the part
-  * of the resource that's within [@start..@end]; if none is found, returns
-- * -ENODEV.  Returns -EINVAL for invalid parameters.
-+ * -ENODEV.
-  *
-  * @start:	start address of the resource searched for
-  * @end:	end address of same resource
-@@ -328,9 +328,6 @@ static int find_next_iomem_res(resource_
- {
- 	struct resource *p;
+--- a/fs/squashfs/super.c~revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead
++++ a/fs/squashfs/super.c
+@@ -29,7 +29,6 @@
+ #include <linux/module.h>
+ #include <linux/magic.h>
+ #include <linux/xattr.h>
+-#include <linux/backing-dev.h>
  
--	if (!res)
--		return -EINVAL;
--
- 	if (start >= end)
- 		return -EINVAL;
- 
-@@ -356,7 +353,7 @@ static int find_next_iomem_res(resource_
- 		break;
- 	}
- 
--	if (p) {
-+	if (p && res) {
- 		/* copy data */
- 		*res = (struct resource) {
- 			.start = max(start, p->start),
-@@ -474,18 +471,18 @@ int walk_system_ram_range(unsigned long
- 	return ret;
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+@@ -113,24 +112,6 @@ static const struct squashfs_decompresso
+ 	return decompressor;
  }
  
--static int __is_ram(unsigned long pfn, unsigned long nr_pages, void *arg)
+-static int squashfs_bdi_init(struct super_block *sb)
 -{
--	return 1;
--}
+-	int err;
+-	unsigned int major = MAJOR(sb->s_dev);
+-	unsigned int minor = MINOR(sb->s_dev);
 -
- /*
-  * This generic page_is_ram() returns true if specified address is
-  * registered as System RAM in iomem_resource list.
-  */
- int __weak page_is_ram(unsigned long pfn)
- {
--	return walk_system_ram_range(pfn, 1, NULL, __is_ram) == 1;
-+	const resource_size_t pfn_res = PFN_PHYS(pfn);
-+
-+	return find_next_iomem_res(pfn_res,
-+				   pfn_res + 1,
-+				   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
-+				   IORES_DESC_NONE, NULL) == 0;
- }
- EXPORT_SYMBOL_GPL(page_is_ram);
+-	bdi_put(sb->s_bdi);
+-	sb->s_bdi = &noop_backing_dev_info;
+-
+-	err = super_setup_bdi_name(sb, "squashfs_%u_%u", major, minor);
+-	if (err)
+-		return err;
+-
+-	sb->s_bdi->ra_pages = 0;
+-	sb->s_bdi->io_pages = 0;
+-
+-	return 0;
+-}
  
+ static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
+ {
+@@ -146,20 +127,6 @@ static int squashfs_fill_super(struct su
+ 
+ 	TRACE("Entered squashfs_fill_superblock\n");
+ 
+-	/*
+-	 * squashfs provides 'backing_dev_info' in order to disable read-ahead. For
+-	 * squashfs, I/O is not deferred, it is done immediately in read_folio,
+-	 * which means the user would always have to wait their own I/O. So the effect
+-	 * of readahead is very weak for squashfs. squashfs_bdi_init will set
+-	 * sb->s_bdi->ra_pages and sb->s_bdi->io_pages to 0 and close readahead for
+-	 * squashfs.
+-	 */
+-	err = squashfs_bdi_init(sb);
+-	if (err) {
+-		errorf(fc, "squashfs init bdi failed");
+-		return err;
+-	}
+-
+ 	sb->s_fs_info = kzalloc(sizeof(*msblk), GFP_KERNEL);
+ 	if (sb->s_fs_info == NULL) {
+ 		ERROR("Failed to allocate squashfs_sb_info\n");
 _
 
-Patches currently in -mm which might be from vaibhav@linux.ibm.com are
+Patches currently in -mm which might be from hsinyi@chromium.org are
 
-resource-re-factor-page_is_ram.patch
+revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
+squashfs-implement-readahead.patch
 
