@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17670C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Jun 2022 20:47:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4CFFC43334
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Jun 2022 20:51:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229784AbiFAUry (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Jun 2022 16:47:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43486 "EHLO
+        id S230208AbiFAUvQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Jun 2022 16:51:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230130AbiFAUrR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2022 16:47:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 432FD1115
-        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 13:39:42 -0700 (PDT)
+        with ESMTP id S231583AbiFAUun (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2022 16:50:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 524871B5858
+        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 13:48:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D515D6167C
-        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 20:39:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24A98C385A5;
-        Wed,  1 Jun 2022 20:39:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CA9FB60E9D
+        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 20:47:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F3D4C385B8;
+        Wed,  1 Jun 2022 20:47:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654115981;
-        bh=zyrGvwnPrce/Z8UweNIr0uz1YSTsdYzu27FsuWTq+po=;
+        s=korg; t=1654116471;
+        bh=8ycNewgxt+H84IH+OiKQJai5WrAoTW+zDobvqRdq0iM=;
         h=Date:To:From:Subject:From;
-        b=Otuk4hyhQ9/XPhv8sQeAP4y7ne1O7/qn8cbzEhrRjFjm0SkQMqfr8nrtC88kLEfNT
-         bqgCDmSgnPkO0vZN4ajxQKL4actlg+cRKbfS1UQ/7fX1mcFhGtF5wHzzdtbjtBicaO
-         c1MbYBpAsGkVrqQy0SqPyv466dffG7R132GTWosQ=
-Date:   Wed, 01 Jun 2022 13:39:40 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        b=B4tUk2qDVZ0dC6X2E7ITguzpxCZoCeZlte5hDu+RxL8gh/ok4jArr5Xj7MiMQAIbi
+         xXwwsD3NoRNsJLbwwwSIASf4UWdqD7tRxUOVlUOfgQ5xy2Ruh55UCwXuJ6ogTCjhHV
+         7FXq34s13BiTJagMrZ09h/+IvAaU60h/gDJ/RVEY=
+Date:   Wed, 01 Jun 2022 13:47:50 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        linmiaohe@huawei.com, david@redhat.com, dan.j.williams@intel.com,
+        aneesh.kumar@linux.ibm.com, vaibhav@linux.ibm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nommu-remove-uses-of-vma-linked-list-fix.patch added to mm-unstable branch
-Message-Id: <20220601203941.24A98C385A5@smtp.kernel.org>
+Subject: + resource-re-factor-page_is_ram.patch added to mm-nonmm-unstable branch
+Message-Id: <20220601204751.2F3D4C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/nommu: move preallocations and limit other allocations
-has been added to the -mm mm-unstable branch.  Its filename is
-     nommu-remove-uses-of-vma-linked-list-fix.patch
+     Subject: resource: re-factor page_is_ram()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     resource-re-factor-page_is_ram.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nommu-remove-uses-of-vma-linked-list-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-re-factor-page_is_ram.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,293 +66,94 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/nommu: move preallocations and limit other allocations
-Date: Fri, 20 May 2022 21:51:57 -0400
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+Subject: resource: re-factor page_is_ram()
+Date: Wed, 1 Jun 2022 22:02:43 +0530
 
-Move the preallocations in do_mmap() ahead of allocations that may use
-alloc_pages_exact() so that reclaimed areas of larger pages don't get
-reused for the maple tree nodes.  This will allow the larger blocks of
-memory to reassemble after use.
+Presently page_is_ram() relies on walk_system_ram_range() that performs a
+walk on kernel iomem resources hierarchy with a dummy callback __is_ram().
+Before calling find_next_iomem_res(), walk_system_ram_range() does some
+book-keeping which can be avoided for page_is_ram() use-case.
 
-Also avoid other unnecessary allocations for maple tree nodes by
-overwriting the VMA on split instead of deleting and re-adding.
+Hence this patch proposes to update page_is_ram() to directly call
+find_next_iomem_res() with minimal book-keeping needed.
 
-Link: https://lkml.kernel.org/r/20220601190624.yd3xj2pyjyxtt634@revolver
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+To avoid allocating a 'struct resource' the patch also updates
+find_next_iomem_res() to not return -EINVAL in case 'res == NULL'. 
+Instead our 'struct resource *res' is only populated when its not NULL.
+
+Link: https://lkml.kernel.org/r/20220601163243.3806231-1-vaibhav@linux.ibm.com
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |  118 ++++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 89 insertions(+), 29 deletions(-)
+ kernel/resource.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
---- a/mm/nommu.c~nommu-remove-uses-of-vma-linked-list-fix
-+++ a/mm/nommu.c
-@@ -557,26 +557,14 @@ void vma_mas_remove(struct vm_area_struc
- 	mas_store_prealloc(mas, NULL);
- }
- 
--/*
-- * add a VMA into a process's mm_struct in the appropriate place in the list
-- * and tree and add to the address space's page tree also if not an anonymous
-- * page
-- * - should be called with mm->mmap_lock held writelocked
-- */
--static void add_vma_to_mm(struct mm_struct *mm, struct vm_area_struct *vma)
-+static void setup_vma_to_mm(struct vm_area_struct *vma, struct mm_struct *mm)
+--- a/kernel/resource.c~resource-re-factor-page_is_ram
++++ a/kernel/resource.c
+@@ -311,7 +311,7 @@ EXPORT_SYMBOL(release_resource);
+  *
+  * If a resource is found, returns 0 and @*res is overwritten with the part
+  * of the resource that's within [@start..@end]; if none is found, returns
+- * -ENODEV.  Returns -EINVAL for invalid parameters.
++ * -ENODEV.
+  *
+  * @start:	start address of the resource searched for
+  * @end:	end address of same resource
+@@ -328,9 +328,6 @@ static int find_next_iomem_res(resource_
  {
--	struct address_space *mapping;
--	struct vm_area_struct *prev;
--	MA_STATE(mas, &mm->mm_mt, vma->vm_start, vma->vm_end);
--
--	BUG_ON(!vma->vm_region);
--
- 	mm->map_count++;
- 	vma->vm_mm = mm;
+ 	struct resource *p;
  
- 	/* add the VMA to the mapping */
- 	if (vma->vm_file) {
--		mapping = vma->vm_file->f_mapping;
-+		struct address_space *mapping = vma->vm_file->f_mapping;
+-	if (!res)
+-		return -EINVAL;
+-
+ 	if (start >= end)
+ 		return -EINVAL;
  
- 		i_mmap_lock_write(mapping);
- 		flush_dcache_mmap_lock(mapping);
-@@ -584,21 +572,52 @@ static void add_vma_to_mm(struct mm_stru
- 		flush_dcache_mmap_unlock(mapping);
- 		i_mmap_unlock_write(mapping);
+@@ -356,7 +353,7 @@ static int find_next_iomem_res(resource_
+ 		break;
  	}
-+}
-+
-+/*
-+ * mas_add_vma_to_mm() - Maple state variant of add_mas_to_mm().
-+ * @mas: The maple state with preallocations.
-+ * @mm: The mm_struct
-+ * @vma: The vma to add
-+ *
-+ */
-+static void mas_add_vma_to_mm(struct ma_state *mas, struct mm_struct *mm,
-+			      struct vm_area_struct *vma)
-+{
-+	struct vm_area_struct *prev;
-+
-+	BUG_ON(!vma->vm_region);
-+
-+	setup_vma_to_mm(vma, mm);
  
- 	prev = mas_prev(&mas, 0);
- 	mas_reset(&mas);
- 	/* add the VMA to the tree */
--	vma_mas_store(vma, &mas);
-+	vma_mas_store(vma, mas);
- 	__vma_link_list(mm, vma, prev);
+-	if (p) {
++	if (p && res) {
+ 		/* copy data */
+ 		*res = (struct resource) {
+ 			.start = max(start, p->start),
+@@ -474,18 +471,18 @@ int walk_system_ram_range(unsigned long
+ 	return ret;
  }
  
+-static int __is_ram(unsigned long pfn, unsigned long nr_pages, void *arg)
+-{
+-	return 1;
+-}
+-
  /*
-- * delete a VMA from its owning mm_struct and address space
-+ * add a VMA into a process's mm_struct in the appropriate place in the list
-+ * and tree and add to the address space's page tree also if not an anonymous
-+ * page
-+ * - should be called with mm->mmap_lock held writelocked
+  * This generic page_is_ram() returns true if specified address is
+  * registered as System RAM in iomem_resource list.
   */
--static void delete_vma_from_mm(struct vm_area_struct *vma)
-+static int add_vma_to_mm(struct mm_struct *mm, struct vm_area_struct *vma)
+ int __weak page_is_ram(unsigned long pfn)
  {
--	MA_STATE(mas, &vma->vm_mm->mm_mt, 0, 0);
-+	MA_STATE(mas, &mm->mm_mt, vma->vm_start, vma->vm_end);
- 
-+	if (mas_preallocate(&mas, vma, GFP_KERNEL)) {
-+		pr_warn("Allocation of vma tree for process %d failed\n",
-+		       current->pid);
-+		return -ENOMEM;
-+	}
-+	mas_add_vma_to_mm(&mas, mm, vma);
-+	return 0;
-+}
+-	return walk_system_ram_range(pfn, 1, NULL, __is_ram) == 1;
++	const resource_size_t pfn_res = PFN_PHYS(pfn);
 +
-+static void cleanup_vma_from_mm(struct vm_area_struct *vma)
-+{
- 	vma->vm_mm->map_count--;
- 	/* remove the VMA from the mapping */
- 	if (vma->vm_file) {
-@@ -611,10 +630,25 @@ static void delete_vma_from_mm(struct vm
- 		flush_dcache_mmap_unlock(mapping);
- 		i_mmap_unlock_write(mapping);
- 	}
-+}
-+/*
-+ * delete a VMA from its owning mm_struct and address space
-+ */
-+static int delete_vma_from_mm(struct vm_area_struct *vma)
-+{
-+	MA_STATE(mas, &vma->vm_mm->mm_mt, 0, 0);
-+
-+	if (mas_preallocate(&mas, vma, GFP_KERNEL)) {
-+		pr_warn("Allocation of vma tree for process %d failed\n",
-+		       current->pid);
-+		return -ENOMEM;
-+	}
-+	cleanup_vma_from_mm(vma);
- 
- 	/* remove from the MM's tree and list */
- 	vma_mas_remove(vma, &mas);
- 	__vma_unlink_list(vma->vm_mm, vma);
-+	return 0;
++	return find_next_iomem_res(pfn_res,
++				   pfn_res + 1,
++				   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
++				   IORES_DESC_NONE, NULL) == 0;
  }
+ EXPORT_SYMBOL_GPL(page_is_ram);
  
- /*
-@@ -1024,6 +1058,7 @@ unsigned long do_mmap(struct file *file,
- 	vm_flags_t vm_flags;
- 	unsigned long capabilities, result;
- 	int ret;
-+	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
- 
- 	*populate = 0;
- 
-@@ -1042,6 +1077,10 @@ unsigned long do_mmap(struct file *file,
- 	 * now know into VMA flags */
- 	vm_flags = determine_vm_flags(file, prot, flags, capabilities);
- 
-+
-+	if (mas_preallocate(&mas, vma, GFP_KERNEL))
-+		goto error_maple_preallocate;
-+
- 	/* we're going to need to record the mapping */
- 	region = kmem_cache_zalloc(vm_region_jar, GFP_KERNEL);
- 	if (!region)
-@@ -1191,7 +1230,7 @@ unsigned long do_mmap(struct file *file,
- 	current->mm->total_vm += len >> PAGE_SHIFT;
- 
- share:
--	add_vma_to_mm(current->mm, vma);
-+	mas_add_vma_to_mm(&mas, current->mm, vma);
- 
- 	/* we flush the region from the icache only when the first executable
- 	 * mapping of it is made  */
-@@ -1217,11 +1256,13 @@ error:
- 
- sharing_violation:
- 	up_write(&nommu_region_sem);
-+	mas_destroy(&mas);
- 	pr_warn("Attempt to share mismatched mappings\n");
- 	ret = -EINVAL;
- 	goto error;
- 
- error_getting_vma:
-+	mas_destroy(&mas);
- 	kmem_cache_free(vm_region_jar, region);
- 	pr_warn("Allocation of vma for %lu byte allocation from process %d failed\n",
- 			len, current->pid);
-@@ -1229,10 +1270,17 @@ error_getting_vma:
- 	return -ENOMEM;
- 
- error_getting_region:
-+	mas_destroy(&mas);
- 	pr_warn("Allocation of vm region for %lu byte allocation from process %d failed\n",
- 			len, current->pid);
- 	show_free_areas(0, NULL);
- 	return -ENOMEM;
-+
-+error_maple_preallocate:
-+	pr_warn("Allocation of vma tree for process %d failed\n", current->pid);
-+	show_free_areas(0, NULL);
-+	return -ENOMEM;
-+
- }
- 
- unsigned long ksys_mmap_pgoff(unsigned long addr, unsigned long len,
-@@ -1298,6 +1346,7 @@ int split_vma(struct mm_struct *mm, stru
- 	struct vm_area_struct *new;
- 	struct vm_region *region;
- 	unsigned long npages;
-+	MA_STATE(mas, &mm->mm_mt, vma->vm_start, vma->vm_end);
- 
- 	/* we're only permitted to split anonymous regions (these should have
- 	 * only a single usage on the region) */
-@@ -1333,7 +1382,6 @@ int split_vma(struct mm_struct *mm, stru
- 	if (new->vm_ops && new->vm_ops->open)
- 		new->vm_ops->open(new);
- 
--	delete_vma_from_mm(vma);
- 	down_write(&nommu_region_sem);
- 	delete_nommu_region(vma->vm_region);
- 	if (new_below) {
-@@ -1346,8 +1394,17 @@ int split_vma(struct mm_struct *mm, stru
- 	add_nommu_region(vma->vm_region);
- 	add_nommu_region(new->vm_region);
- 	up_write(&nommu_region_sem);
--	add_vma_to_mm(mm, vma);
--	add_vma_to_mm(mm, new);
-+	if (mas_preallocate(&mas, vma, GFP_KERNEL)) {
-+		pr_warn("Allocation of vma tree for process %d failed\n",
-+		       current->pid);
-+		return -ENOMEM;
-+	}
-+
-+	setup_vma_to_mm(vma, mm);
-+	setup_vma_to_mm(new, mm);
-+	mas_set_range(&mas, vma->vm_start, vma->vm_end - 1);
-+	mas_store(&mas, vma);
-+	vma_mas_store(new, &mas);
- 	return 0;
- }
- 
-@@ -1363,12 +1420,14 @@ static int shrink_vma(struct mm_struct *
- 
- 	/* adjust the VMA's pointers, which may reposition it in the MM's tree
- 	 * and list */
--	delete_vma_from_mm(vma);
-+	if (delete_vma_from_mm(vma))
-+		return -ENOMEM;
- 	if (from > vma->vm_start)
- 		vma->vm_end = from;
- 	else
- 		vma->vm_start = to;
--	add_vma_to_mm(mm, vma);
-+	if (add_vma_to_mm(mm, vma))
-+		return -ENOMEM;
- 
- 	/* cut the backing region down to size */
- 	region = vma->vm_region;
-@@ -1399,7 +1458,7 @@ int do_munmap(struct mm_struct *mm, unsi
- 	MA_STATE(mas, &mm->mm_mt, start, start);
- 	struct vm_area_struct *vma;
- 	unsigned long end;
--	int ret;
-+	int ret = 0;
- 
- 	len = PAGE_ALIGN(len);
- 	if (len == 0)
-@@ -1449,9 +1508,10 @@ int do_munmap(struct mm_struct *mm, unsi
- 	}
- 
- erase_whole_vma:
--	delete_vma_from_mm(vma);
-+	if (delete_vma_from_mm(vma))
-+		ret = -ENOMEM;
- 	delete_vma(mm, vma);
--	return 0;
-+	return ret;
- }
- 
- int vm_munmap(unsigned long addr, size_t len)
-@@ -1490,12 +1550,12 @@ void exit_mmap(struct mm_struct *mm)
- 	 */
- 	mmap_write_lock(mm);
- 	for_each_vma(vmi, vma) {
--		delete_vma_from_mm(vma);
-+		cleanup_vma_from_mm(vma);
- 		delete_vma(mm, vma);
- 		cond_resched();
- 	}
--	mmap_write_unlock(mm);
- 	__mt_destroy(&mm->mm_mt);
-+	mmap_write_unlock(mm);
- }
- 
- int vm_brk(unsigned long addr, unsigned long len)
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from vaibhav@linux.ibm.com are
 
-nommu-remove-uses-of-vma-linked-list-fix.patch
+resource-re-factor-page_is_ram.patch
 
