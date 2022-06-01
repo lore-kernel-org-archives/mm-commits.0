@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5CAEC43334
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Jun 2022 20:59:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D8D7C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Jun 2022 21:12:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230503AbiFAU7u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Jun 2022 16:59:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53794 "EHLO
+        id S231297AbiFAVMI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Jun 2022 17:12:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230494AbiFAU7t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2022 16:59:49 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 378342148B9
-        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 13:59:47 -0700 (PDT)
+        with ESMTP id S231172AbiFAVMH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2022 17:12:07 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35FAB5A094
+        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 14:12:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CF133B81CE7
-        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 20:59:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BD17C385A5;
-        Wed,  1 Jun 2022 20:59:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DD963B81CE8
+        for <mm-commits@vger.kernel.org>; Wed,  1 Jun 2022 21:12:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76079C385A5;
+        Wed,  1 Jun 2022 21:12:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654117184;
-        bh=RDtunV0XcG9JqAEcfrDsXpyUxawwIxzTDkUzCjAuZuw=;
+        s=korg; t=1654117923;
+        bh=zt6GPqm3OBsAY0KcowIBDMF9WoMYaqT0wk7BhknR/hc=;
         h=Date:To:From:Subject:From;
-        b=Jf4dQWw6uE/ei8c7jJSOMtEbdH0VPM0ZoIqZB+NP4DCYLfUE17nphp2r/836+5PK8
-         qUW1eEBXQK4/sQv6n8TtdpPTp5I5OCsKyZVhhnX1ZVTbUiPy7N8e/X3phHIDEHmTh0
-         Sk4FTuIX0Icy8fORSFOcXIYX0HzS7fEos60n5vvU=
-Date:   Wed, 01 Jun 2022 13:59:43 -0700
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        hsinyi@chromium.org, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=wFvWdhyD7/PE2+xyN1GGGez6JNEmcQUee6BBZLEw8wRxxGi2AEfcNsH2Spkp8XRaV
+         KXzcE8ff1Ylni7M2wA92qLYW3BiN8j0/IFVDogwSJ/gh+QwlH8zbvRP6bvzeRuelbB
+         NFkAslEE2l9NWOoqh+6SuISriNwNHrg9NV5+QY08=
+Date:   Wed, 01 Jun 2022 14:12:02 -0700
+To:     mm-commits@vger.kernel.org, mark.rutland@arm.com, arnd@arndb.de,
+        tianyu.li@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-implement-readahead-checkpatch-fixes.patch added to mm-nonmm-unstable branch
-Message-Id: <20220601205944.4BD17C385A5@smtp.kernel.org>
+Subject: + mm-mempolicy-fix-get_nodes-out-of-bound-access.patch added to mm-unstable branch
+Message-Id: <20220601211203.76079C385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs-implement-readahead-checkpatch-fixes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-implement-readahead-checkpatch-fixes.patch
+     Subject: mm/mempolicy: fix get_nodes out of bound access
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mempolicy-fix-get_nodes-out-of-bound-access.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-implement-readahead-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-get_nodes-out-of-bound-access.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,63 +64,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: squashfs-implement-readahead-checkpatch-fixes
-Date: Wed Jun  1 01:59:05 PM PDT 2022
+From: Tianyu Li <tianyu.li@arm.com>
+Subject: mm/mempolicy: fix get_nodes out of bound access
+Date: Wed, 1 Jun 2022 17:32:11 +0800
 
-ERROR: need consistent spacing around '&' (ctx:WxO)
-#54: FILE: fs/squashfs/file.c:505:
-+	loff_t start = readahead_pos(ractl) &~ mask;
- 	                                    ^
+When user specified more nodes than supported, get_nodes will access nmask
+array out of bounds.
 
-ERROR: space prohibited after that '~' (ctx:OxW)
-#54: FILE: fs/squashfs/file.c:505:
-+	loff_t start = readahead_pos(ractl) &~ mask;
- 	                                     ^
-
-total: 2 errors, 0 warnings, 109 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/squashfs-implement-readahead.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Hsin-Yi Wang <hsinyi@chromium.org>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/20220601093211.2970565-1-tianyu.li@arm.com
+Fixes: e130242dc351 ("mm: simplify compat numa syscalls")
+Signed-off-by: Tianyu Li <tianyu.li@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file.c |    2 +-
+ mm/mempolicy.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/squashfs/file.c~squashfs-implement-readahead-checkpatch-fixes
-+++ a/fs/squashfs/file.c
-@@ -502,7 +502,7 @@ static void squashfs_readahead(struct re
- 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
- 	size_t mask = (1UL << msblk->block_log) - 1;
- 	unsigned short shift = msblk->block_log - PAGE_SHIFT;
--	loff_t start = readahead_pos(ractl) &~ mask;
-+	loff_t start = readahead_pos(ractl) & ~mask;
- 	size_t len = readahead_length(ractl) + readahead_pos(ractl) - start;
- 	struct squashfs_page_actor *actor;
- 	unsigned int nr_pages = 0;
+--- a/mm/mempolicy.c~mm-mempolicy-fix-get_nodes-out-of-bound-access
++++ a/mm/mempolicy.c
+@@ -1397,7 +1397,7 @@ static int get_nodes(nodemask_t *nodes,
+ 		unsigned long bits = min_t(unsigned long, maxnode, BITS_PER_LONG);
+ 		unsigned long t;
+ 
+-		if (get_bitmap(&t, &nmask[maxnode / BITS_PER_LONG], bits))
++		if (get_bitmap(&t, &nmask[(maxnode - 1) / BITS_PER_LONG], bits))
+ 			return -EFAULT;
+ 
+ 		if (maxnode - bits >= MAX_NUMNODES) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tianyu.li@arm.com are
 
-mm-oom_killc-fix-vm_oom_kill_table-ifdeffery.patch
-mm-page_alloc-remotely-drain-per-cpu-lists-checkpatch-fixes.patch
-mm-start-tracking-vmas-with-maple-tree-fix.patch
-damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch
-mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-checkpatch-fixes.patch
-mm-remove-the-vma-linked-list-fix-fix.patch
-mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix.patch
-mm-introduce-clear_highpage_tagged-fix.patch
-kasan-fix-zeroing-vmalloc-memory-with-hw_tags-fix.patch
-squashfs-implement-readahead-checkpatch-fixes.patch
+mm-mempolicy-fix-get_nodes-out-of-bound-access.patch
 
