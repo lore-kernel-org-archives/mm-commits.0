@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5295CCA482
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 17:52:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1296BC43334
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 17:52:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345370AbiFCRwY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Jun 2022 13:52:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46608 "EHLO
+        id S1345378AbiFCRw0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Jun 2022 13:52:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346009AbiFCRuk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 13:50:40 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C2CAFD2F
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 10:46:56 -0700 (PDT)
+        with ESMTP id S1345970AbiFCRuh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 13:50:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A968CE13
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 10:46:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 43C55B82419
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 17:46:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04F65C385B8;
-        Fri,  3 Jun 2022 17:46:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B01460A0F
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 17:46:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0416C385B8;
+        Fri,  3 Jun 2022 17:46:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654278414;
-        bh=RltWqX5lR1HvCE9GMWE6f2Kv+JmkocYLe7Bra+CP5GE=;
+        s=korg; t=1654278413;
+        bh=bmlXE4aDyPjG7TbeZbUwh47XUfmqKUet+0iWGYJJ6bs=;
         h=Date:To:From:Subject:From;
-        b=hnNkNfbulP/igp4a95A+86qfvLqwsveVJSwg6O9zu56Rm53jzGpVpEpvEHoo4wt67
-         36IRBjr+W9DypdAl3y0ovOPh6YhDj+sMTqNjrMhzskRuJMbue90wY9i21HaAPpfexm
-         LkHadmY6ZGmBcBea3zQGva0tlOlcLP7Ng6BzEFSI=
-Date:   Fri, 03 Jun 2022 10:46:53 -0700
+        b=0LAmd1B3/A6sp/6nmniubLMg3A5lgbxzQgr+3DzznPvsvcLJ21RVUyVCPt6BEEaNk
+         HTb8WgGkDZ3IKgSixHiIYa3JKkWnGlJwn4lZoy3z3rrn6EWnGtj/J4FCm/kIfyokgo
+         /JMCr07XBF3NQukf/BCjr/n3bmWpKp1JVi1hButU=
+Date:   Fri, 03 Jun 2022 10:46:52 -0700
 To:     mm-commits@vger.kernel.org, zhengliang6@huawei.com,
         yi.zhang@huawei.com, Xiongwei.Song@windriver.com,
-        willy@infradead.org, miaoxie@huawei.com, lkp@intel.com,
-        hsinyi@chromium.org, houtao1@huawei.com, phillip@squashfs.org.uk,
+        willy@infradead.org, phillip@squashfs.org.uk, miaoxie@huawei.com,
+        lkp@intel.com, houtao1@huawei.com, hsinyi@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] squashfs-always-build-file-direct-version-of-page-actor.patch removed from -mm tree
-Message-Id: <20220603174654.04F65C385B8@smtp.kernel.org>
+Subject: [to-be-updated] revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch removed from -mm tree
+Message-Id: <20220603174652.E0416C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,107 +44,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: squashfs: always build "file direct" version of page actor
+     Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
 has been removed from the -mm tree.  Its filename was
-     squashfs-always-build-file-direct-version-of-page-actor.patch
+     revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: always build "file direct" version of page actor
-Date: Wed, 1 Jun 2022 18:39:21 +0800
+From: Hsin-Yi Wang <hsinyi@chromium.org>
+Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
+Date: Wed, 1 Jun 2022 18:39:20 +0800
 
-Squashfs_readahead uses the "file direct" version of the page actor, and
-so build it unconditionally.
+Patch series "Implement readahead for squashfs", v4.
 
-Link: https://lkml.kernel.org/r/20220601103922.1338320-3-hsinyi@chromium.org
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Commit c1f6925e1091("mm: put readahead pages in cache earlier") requires
+fs to implement readahead callback.  Otherwise there will be a performance
+regression.
+
+Commit 9eec1d897139("squashfs: provide backing_dev_info in order to
+disable read-ahead") mitigates the performance drop issue for squashfs by
+closing readahead for it.
+
+This series implements readahead callback for squashfs.  The previous
+discussion are in [1] and [2].
+
+[1] https://lore.kernel.org/all/CAJMQK-g9G6KQmH-V=BRGX0swZji9Wxe_2c7ht-MMAapdFy2pXw@mail.gmail.com/T/
+[2] https://lore.kernel.org/linux-mm/Yn5Yij9pRPCzDozt@casper.infradead.org/t/#m4af4473b94f98a4996cb11756b633a07e5e059d1
+
+
+This patch (of 3):
+
+This reverts commit 9eec1d897139e ("squashfs: provide backing_dev_info in
+order to disable read-ahead").
+
+Revert closing the readahead to squashfs since the readahead callback
+for squashfs is implemented.
+
+Link: https://lkml.kernel.org/r/20220601103922.1338320-1-hsinyi@chromium.org
+Link: https://lkml.kernel.org/r/20220601103922.1338320-2-hsinyi@chromium.org
 Signed-off-by: Hsin-Yi Wang <hsinyi@chromium.org>
-Reported-by: kernel test robot <lkp@intel.com>
+Suggested-by: Xiongwei Song <Xiongwei.Song@windriver.com>
 Cc: Hou Tao <houtao1@huawei.com>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miao Xie <miaoxie@huawei.com>
-Cc: Xiongwei Song <Xiongwei.Song@windriver.com>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Cc: Zhang Yi <yi.zhang@huawei.com>
 Cc: Zheng Liang <zhengliang6@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/Makefile     |    4 +--
- fs/squashfs/page_actor.h |   41 -------------------------------------
- 2 files changed, 2 insertions(+), 43 deletions(-)
+ fs/squashfs/super.c |   33 ---------------------------------
+ 1 file changed, 33 deletions(-)
 
---- a/fs/squashfs/Makefile~squashfs-always-build-file-direct-version-of-page-actor
-+++ a/fs/squashfs/Makefile
-@@ -5,9 +5,9 @@
+--- a/fs/squashfs/super.c~revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead
++++ a/fs/squashfs/super.c
+@@ -29,7 +29,6 @@
+ #include <linux/module.h>
+ #include <linux/magic.h>
+ #include <linux/xattr.h>
+-#include <linux/backing-dev.h>
  
- obj-$(CONFIG_SQUASHFS) += squashfs.o
- squashfs-y += block.o cache.o dir.o export.o file.o fragment.o id.o inode.o
--squashfs-y += namei.o super.o symlink.o decompressor.o
-+squashfs-y += namei.o super.o symlink.o decompressor.o page_actor.o
- squashfs-$(CONFIG_SQUASHFS_FILE_CACHE) += file_cache.o
--squashfs-$(CONFIG_SQUASHFS_FILE_DIRECT) += file_direct.o page_actor.o
-+squashfs-$(CONFIG_SQUASHFS_FILE_DIRECT) += file_direct.o
- squashfs-$(CONFIG_SQUASHFS_DECOMP_SINGLE) += decompressor_single.o
- squashfs-$(CONFIG_SQUASHFS_DECOMP_MULTI) += decompressor_multi.o
- squashfs-$(CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU) += decompressor_multi_percpu.o
---- a/fs/squashfs/page_actor.h~squashfs-always-build-file-direct-version-of-page-actor
-+++ a/fs/squashfs/page_actor.h
-@@ -6,46 +6,6 @@
-  * Phillip Lougher <phillip@squashfs.org.uk>
-  */
- 
--#ifndef CONFIG_SQUASHFS_FILE_DIRECT
--struct squashfs_page_actor {
--	void	**page;
--	int	pages;
--	int	length;
--	int	next_page;
--};
--
--static inline struct squashfs_page_actor *squashfs_page_actor_init(void **page,
--	int pages, int length)
--{
--	struct squashfs_page_actor *actor = kmalloc(sizeof(*actor), GFP_KERNEL);
--
--	if (actor == NULL)
--		return NULL;
--
--	actor->length = length ? : pages * PAGE_SIZE;
--	actor->page = page;
--	actor->pages = pages;
--	actor->next_page = 0;
--	return actor;
--}
--
--static inline void *squashfs_first_page(struct squashfs_page_actor *actor)
--{
--	actor->next_page = 1;
--	return actor->page[0];
--}
--
--static inline void *squashfs_next_page(struct squashfs_page_actor *actor)
--{
--	return actor->next_page == actor->pages ? NULL :
--		actor->page[actor->next_page++];
--}
--
--static inline void squashfs_finish_page(struct squashfs_page_actor *actor)
--{
--	/* empty */
--}
--#else
- struct squashfs_page_actor {
- 	union {
- 		void		**buffer;
-@@ -76,4 +36,3 @@ static inline void squashfs_finish_page(
- 	actor->squashfs_finish_page(actor);
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+@@ -113,24 +112,6 @@ static const struct squashfs_decompresso
+ 	return decompressor;
  }
- #endif
--#endif
+ 
+-static int squashfs_bdi_init(struct super_block *sb)
+-{
+-	int err;
+-	unsigned int major = MAJOR(sb->s_dev);
+-	unsigned int minor = MINOR(sb->s_dev);
+-
+-	bdi_put(sb->s_bdi);
+-	sb->s_bdi = &noop_backing_dev_info;
+-
+-	err = super_setup_bdi_name(sb, "squashfs_%u_%u", major, minor);
+-	if (err)
+-		return err;
+-
+-	sb->s_bdi->ra_pages = 0;
+-	sb->s_bdi->io_pages = 0;
+-
+-	return 0;
+-}
+ 
+ static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
+ {
+@@ -146,20 +127,6 @@ static int squashfs_fill_super(struct su
+ 
+ 	TRACE("Entered squashfs_fill_superblock\n");
+ 
+-	/*
+-	 * squashfs provides 'backing_dev_info' in order to disable read-ahead. For
+-	 * squashfs, I/O is not deferred, it is done immediately in read_folio,
+-	 * which means the user would always have to wait their own I/O. So the effect
+-	 * of readahead is very weak for squashfs. squashfs_bdi_init will set
+-	 * sb->s_bdi->ra_pages and sb->s_bdi->io_pages to 0 and close readahead for
+-	 * squashfs.
+-	 */
+-	err = squashfs_bdi_init(sb);
+-	if (err) {
+-		errorf(fc, "squashfs init bdi failed");
+-		return err;
+-	}
+-
+ 	sb->s_fs_info = kzalloc(sizeof(*msblk), GFP_KERNEL);
+ 	if (sb->s_fs_info == NULL) {
+ 		ERROR("Failed to allocate squashfs_sb_info\n");
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from hsinyi@chromium.org are
 
+squashfs-implement-readahead.patch
 
