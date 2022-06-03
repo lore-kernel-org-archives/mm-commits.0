@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 372F4CCA473
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 18:37:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B00BC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 18:37:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347325AbiFCShg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Jun 2022 14:37:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39420 "EHLO
+        id S1347361AbiFCShh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Jun 2022 14:37:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347003AbiFCShH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 14:37:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24B4F1E3D8
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 11:32:32 -0700 (PDT)
+        with ESMTP id S1347573AbiFCShI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 14:37:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 015B21E3DB
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 11:32:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B426061952
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 18:32:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15159C385A9;
-        Fri,  3 Jun 2022 18:32:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 94A136194E
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 18:32:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AF4C385A9;
+        Fri,  3 Jun 2022 18:32:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654281151;
-        bh=vXbi+xNBoijLq8YzifMFCHEgpVo6u+HLa6lTq9jDW+A=;
+        s=korg; t=1654281153;
+        bh=RS8blxvAFTbjaZx/Z8gngASa4ipLnJCCM8wlxo3ktqk=;
         h=Date:To:From:Subject:From;
-        b=d+xSbpkADPXiy+VCTsb+sO6tJV3yLTFeUwWCF1/x9zn0g6PMYtfVw7saQOe5C89Ct
-         F8s5aD4WGcGPNtgLGrjjC+UiSlgWIPi6MQE2af2apgCTW92kGVgcyYmanBWeR4ycZy
-         A9PxnADLuB2ETAejzAkgHUkOSkr4UlEBlAiPIpds=
-Date:   Fri, 03 Jun 2022 11:32:30 -0700
+        b=p1QQNMDoi9XeNQPZ3J9dt016qX/McaNgx62SWVFVhhe6fLsxRnvzTE1NYTawUuxH8
+         pzgFJI6UY4nOyMlortrvNUd/W4dBh2/OO3ncCu+fh04HOQXE9iCrmy1CBL6R5AayMb
+         pYttBk/FZDrwgypU0h6uUhryIZt+ZTUf95QHz4tc=
+Date:   Fri, 03 Jun 2022 11:32:32 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xarray-replace-kernelh-with-the-necessary-inclusions.patch added to mm-nonmm-unstable branch
-Message-Id: <20220603183231.15159C385A9@smtp.kernel.org>
+Subject: + kernelh-move-sysfs-related-macro-to-sysfsh.patch added to mm-nonmm-unstable branch
+Message-Id: <20220603183232.E9AF4C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/xarray.h: replace kernel.h with the necessary inclusions
+     Subject: kernel.h: move sysfs related macro to sysfs.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xarray-replace-kernelh-with-the-necessary-inclusions.patch
+     kernelh-move-sysfs-related-macro-to-sysfsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-replace-kernelh-with-the-necessary-inclusions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernelh-move-sysfs-related-macro-to-sysfsh.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,45 +65,63 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/xarray.h: replace kernel.h with the necessary inclusions
-Date: Fri, 3 Jun 2022 20:11:53 +0300
+Subject: kernel.h: move sysfs related macro to sysfs.h
+Date: Fri, 3 Jun 2022 20:21:01 +0300
 
-When kernel.h is used in the headers it adds a lot into dependency hell,
-especially when there are circular dependencies are involved.
+As stated in the comment of VERIFY_OCTAL_PERMISSIONS() it's related to
+sysfs.  Move it to the corresponding header.
 
-Replace kernel.h inclusion with the list of what is really being used.
-
-Link: https://lkml.kernel.org/r/20220603171153.48928-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20220603172101.49950-1-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xarray.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/kernel.h |   12 ------------
+ include/linux/sysfs.h  |   13 +++++++++++++
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
---- a/include/linux/xarray.h~xarray-replace-kernelh-with-the-necessary-inclusions
-+++ a/include/linux/xarray.h
-@@ -12,13 +12,18 @@
- #include <linux/bitmap.h>
- #include <linux/bug.h>
- #include <linux/compiler.h>
-+#include <linux/err.h>
- #include <linux/gfp.h>
- #include <linux/kconfig.h>
--#include <linux/kernel.h>
-+#include <linux/limits.h>
-+#include <linux/lockdep.h>
-+#include <linux/math.h>
- #include <linux/rcupdate.h>
- #include <linux/spinlock.h>
- #include <linux/types.h>
+--- a/include/linux/kernel.h~kernelh-move-sysfs-related-macro-to-sysfsh
++++ a/include/linux/kernel.h
+@@ -496,16 +496,4 @@ static inline void ftrace_dump(enum ftra
+ # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
+ #endif
  
-+#include <asm/bitsperlong.h>
+-/* Permissions on a sysfs file: you didn't miss the 0 prefix did you? */
+-#define VERIFY_OCTAL_PERMISSIONS(perms)						\
+-	(BUILD_BUG_ON_ZERO((perms) < 0) +					\
+-	 BUILD_BUG_ON_ZERO((perms) > 0777) +					\
+-	 /* USER_READABLE >= GROUP_READABLE >= OTHER_READABLE */		\
+-	 BUILD_BUG_ON_ZERO((((perms) >> 6) & 4) < (((perms) >> 3) & 4)) +	\
+-	 BUILD_BUG_ON_ZERO((((perms) >> 3) & 4) < ((perms) & 4)) +		\
+-	 /* USER_WRITABLE >= GROUP_WRITABLE */					\
+-	 BUILD_BUG_ON_ZERO((((perms) >> 6) & 2) < (((perms) >> 3) & 2)) +	\
+-	 /* OTHER_WRITABLE?  Generally considered a bad idea. */		\
+-	 BUILD_BUG_ON_ZERO((perms) & 2) +					\
+-	 (perms))
+ #endif
+--- a/include/linux/sysfs.h~kernelh-move-sysfs-related-macro-to-sysfsh
++++ a/include/linux/sysfs.h
+@@ -98,6 +98,19 @@ struct attribute_group {
+ 
+ #define SYSFS_PREALLOC 010000
+ 
++/* Permissions on a sysfs file: you didn't miss the 0 prefix did you? */
++#define VERIFY_OCTAL_PERMISSIONS(perms)						\
++	(BUILD_BUG_ON_ZERO((perms) < 0) +					\
++	 BUILD_BUG_ON_ZERO((perms) > 0777) +					\
++	 /* USER_READABLE >= GROUP_READABLE >= OTHER_READABLE */		\
++	 BUILD_BUG_ON_ZERO((((perms) >> 6) & 4) < (((perms) >> 3) & 4)) +	\
++	 BUILD_BUG_ON_ZERO((((perms) >> 3) & 4) < ((perms) & 4)) +		\
++	 /* USER_WRITABLE >= GROUP_WRITABLE */					\
++	 BUILD_BUG_ON_ZERO((((perms) >> 6) & 2) < (((perms) >> 3) & 2)) +	\
++	 /* OTHER_WRITABLE?  Generally considered a bad idea. */		\
++	 BUILD_BUG_ON_ZERO((perms) & 2) +					\
++	 (perms))
 +
- /*
-  * The bottom two bits of the entry determine how the XArray interprets
-  * the contents:
+ #define __ATTR(_name, _mode, _show, _store) {				\
+ 	.attr = {.name = __stringify(_name),				\
+ 		 .mode = VERIFY_OCTAL_PERMISSIONS(_mode) },		\
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
