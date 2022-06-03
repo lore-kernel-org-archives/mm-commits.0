@@ -2,113 +2,132 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B76C0C43334
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 19:42:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24B3AC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 19:56:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243751AbiFCTmK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Jun 2022 15:42:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48258 "EHLO
+        id S1347389AbiFCT4C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Jun 2022 15:56:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243277AbiFCTmJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 15:42:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90EC811470
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 12:42:07 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 28A05619F3
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 19:42:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60FD9C385A9;
-        Fri,  3 Jun 2022 19:42:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654285326;
-        bh=X8D60mTYO1O1uqpeTZju2P3RKSJIgh0BEdYb6S8r56U=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=TotTbn7ccmvcpwM0jcxalJrNrDZK+orqinkhA0wqkdY4xPEKjsPwhglqe8Vadjw2x
-         HvwBuT6S/rOY1tPHJtbsO0iZHWLMwv+7D8H245nAoO1I9y/C2vjqkauBMyqYUWDtnH
-         fPLv6lacToB2viUJipy2RvO+pRbhAPNtaeXsr0MA=
-Date:   Fri, 3 Jun 2022 12:42:05 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Matthew Wilcox <willy@infradead.org>
-Cc:     mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com
-Subject: Re: + xarray-replace-kernelh-with-the-necessary-inclusions.patch
- added to mm-nonmm-unstable branch
-Message-Id: <20220603124205.28b5d1b1ab3e91568faa1022@linux-foundation.org>
-In-Reply-To: <YppXmagvcR7Cioug@casper.infradead.org>
-References: <20220603183231.15159C385A9@smtp.kernel.org>
-        <YppWoUnSxCUljVpS@casper.infradead.org>
-        <20220603114712.da849292ea89f5c956967c54@linux-foundation.org>
-        <YppXmagvcR7Cioug@casper.infradead.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        with ESMTP id S240471AbiFCT4C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 15:56:02 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F1FB41306
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 12:55:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
+        :In-Reply-To:From:References:To:Subject:MIME-Version:Date:Message-ID:Sender:
+        Reply-To:Cc:Content-ID:Content-Description;
+        bh=dJk8hZOiYQpmru0hniNc+F7VHbUWEkkLeGV/E6OUwNM=; b=lmMalIZpXSe54wmb7E+3Jkb5j1
+        z6uvhT09+0CDCDeAyQCDu/YRKTalbztMRE3tkgP3WE5Nl7yaY4g+V5/VaXEl3K3DXUVUhjWyazm9C
+        gk5V5GrHCR4rQU6g9trt+uK15TVjHShVQeRGSkZ84IM6tqyyTIuvyTALeJh5TMLMRZTOCd7Y79uUr
+        vZJ7+q1dhYnPa5TGuErUmBJAql0akIFDKMjm6fMAVrlnRKqiE0h2EDdXar/BGZ0VKrDsVBUJethzT
+        +Y7tkDV/k+SSgH613OtRdrj2rAzXCbckr61Lsx/WMzkRNzB3U0xSu7mrr3ekLIL+BCMgSHlu3HdaE
+        hsq0401g==;
+Received: from [2601:1c0:6280:3f0::aa0b]
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nxDOe-004Vh1-Qe; Fri, 03 Jun 2022 19:55:49 +0000
+Message-ID: <e7b0b464-0b3c-b37e-2bbe-7380722dea9a@infradead.org>
+Date:   Fri, 3 Jun 2022 12:55:45 -0700
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.9.1
+Subject: Re: +
+ mm-hwpoison-hugetlb-introduce-subpage_index_hwpoison-to-save-raw-error-page-fix.patch
+ added to mm-unstable branch
+Content-Language: en-US
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        mm-commits@vger.kernel.org, lkp@intel.com, naoya.horiguchi@nec.com
+References: <20220603164907.B72A2C385B8@smtp.kernel.org>
+From:   Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <20220603164907.B72A2C385B8@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, 3 Jun 2022 19:48:57 +0100 Matthew Wilcox <willy@infradead.org> wrote:
 
-> On Fri, Jun 03, 2022 at 11:47:12AM -0700, Andrew Morton wrote:
-> > On Fri, 3 Jun 2022 19:44:49 +0100 Matthew Wilcox <willy@infradead.org> wrote:
-> > 
-> > > On Fri, Jun 03, 2022 at 11:32:30AM -0700, Andrew Morton wrote:
-> > > > ------------------------------------------------------
-> > > > From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > > Subject: include/linux/xarray.h: replace kernel.h with the necessary inclusions
-> > > > Date: Fri, 3 Jun 2022 20:11:53 +0300
-> > > > 
-> > > > When kernel.h is used in the headers it adds a lot into dependency hell,
-> > > > especially when there are circular dependencies are involved.
-> > > > 
-> > > > Replace kernel.h inclusion with the list of what is really being used.
-> > > > 
-> > > > Link: https://lkml.kernel.org/r/20220603171153.48928-1-andriy.shevchenko@linux.intel.com
-> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > > Cc: Matthew Wilcox <willy@infradead.org>
-> > > > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > > 
-> > > NAK, breaks the test suite.
-> > 
-> > The test suite compiled OK for me?
+
+On 6/3/22 09:49, Andrew Morton wrote:
+> The patch titled
+>      Subject: mm-hwpoison-hugetlb-introduce-subpage_index_hwpoison-to-save-raw-error-page-fix
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-hwpoison-hugetlb-introduce-subpage_index_hwpoison-to-save-raw-error-page-fix.patch
 > 
-> I don't see a limits.h in tools/ ?
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-hugetlb-introduce-subpage_index_hwpoison-to-save-raw-error-page-fix.patch
+> 
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+> Subject: mm-hwpoison-hugetlb-introduce-subpage_index_hwpoison-to-save-raw-error-page-fix
+> Date: Fri, 3 Jun 2022 02:10:43 +0000
+> 
+> build fix
+> 
+> __get_huge_page_for_hwpoison() is not needed when CONFIG_HUGETLB_PAGE is
+> n, so extending "#ifdef CONFIG_HUGETLB_PAG" to cover
+> __get_huge_page_for_hwpoison() would be a simple resolution.
+> 
+> Reported-by: kernel test robot <lkp@intel.com>
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-It works, but I'm not sure why.
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
 
-cc -H says:
+Thanks.
 
-.... ./linux/xarray.h
-..... ./generated/map-shift.h
-..... ./linux/../../../../include/linux/xarray.h
-...... ../../include/linux/bitmap.h
-....... ../../include/linux/find.h
-...... ./linux/bug.h
-....... ../../include/asm/bug.h
-...... ./linux/kconfig.h
-....... ./linux/../../../../include/linux/kconfig.h
-........ ./generated/autoconf.h
-.... ./linux/local_lock.h
-. ../../../lib/xarray.c
-.. ../../include/linux/export.h
-.. ../../include/linux/slab.h
-.. ./linux/xarray.h
+> ---
+> 
+>  mm/memory-failure.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- a/mm/memory-failure.c~mm-hwpoison-hugetlb-introduce-subpage_index_hwpoison-to-save-raw-error-page-fix
+> +++ a/mm/memory-failure.c
+> @@ -1496,6 +1496,7 @@ static int try_to_split_thp_page(struct
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_HUGETLB_PAGE
+>  /*
+>   * Called from hugetlb code with hugetlb_lock held.
+>   *
+> @@ -1544,7 +1545,6 @@ out:
+>  	return ret;
+>  }
+>  
+> -#ifdef CONFIG_HUGETLB_PAGE
+>  /*
+>   * Taking refcount of hugetlb pages needs extra care about race conditions
+>   * with basic operations like hugepage allocation/free/demotion.
+> _
+> 
+> Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+> 
+> mm-hwpoison-hugetlb-introduce-subpage_index_hwpoison-to-save-raw-error-page.patch
+> mm-hwpoison-hugetlb-introduce-subpage_index_hwpoison-to-save-raw-error-page-fix.patch
+> mmhwpoison-set-pg_hwpoison-for-busy-hugetlb-pages.patch
+> mm-hwpoison-make-__page_handle_poison-returns-int.patch
+> mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch
+> mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
+> 
 
-xarray.h has
-
-#include <linux/bitmap.h>
-#include <linux/bug.h>
-#include <linux/compiler.h>
-#include <linux/err.h>
-#include <linux/gfp.h>
-#include <linux/kconfig.h>
-#include <linux/limits.h>
-#include <linux/lockdep.h>
-#include <linux/math.h>
-#include <linux/rcupdate.h>
-#include <linux/spinlock.h>
-#include <linux/types.h>
-
-Perhaps some magic happened with cpp's recognition of include guards?
+-- 
+~Randy
