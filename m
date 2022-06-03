@@ -2,160 +2,206 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1296BC43334
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 17:52:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38E58C43334
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 17:52:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345378AbiFCRw0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Jun 2022 13:52:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46538 "EHLO
+        id S1345412AbiFCRwd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Jun 2022 13:52:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345970AbiFCRuh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 13:50:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A968CE13
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 10:46:54 -0700 (PDT)
+        with ESMTP id S1347109AbiFCRv7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 13:51:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 039B6562D7
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 10:50:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B01460A0F
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 17:46:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0416C385B8;
-        Fri,  3 Jun 2022 17:46:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 72C8560F4E
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 17:50:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9216C385A9;
+        Fri,  3 Jun 2022 17:50:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654278413;
-        bh=bmlXE4aDyPjG7TbeZbUwh47XUfmqKUet+0iWGYJJ6bs=;
+        s=korg; t=1654278604;
+        bh=GZJ522kgioOKakg1h/eUWB7GsZrjck+3aqlWA0DEa9E=;
         h=Date:To:From:Subject:From;
-        b=0LAmd1B3/A6sp/6nmniubLMg3A5lgbxzQgr+3DzznPvsvcLJ21RVUyVCPt6BEEaNk
-         HTb8WgGkDZ3IKgSixHiIYa3JKkWnGlJwn4lZoy3z3rrn6EWnGtj/J4FCm/kIfyokgo
-         /JMCr07XBF3NQukf/BCjr/n3bmWpKp1JVi1hButU=
-Date:   Fri, 03 Jun 2022 10:46:52 -0700
-To:     mm-commits@vger.kernel.org, zhengliang6@huawei.com,
-        yi.zhang@huawei.com, Xiongwei.Song@windriver.com,
-        willy@infradead.org, phillip@squashfs.org.uk, miaoxie@huawei.com,
-        lkp@intel.com, houtao1@huawei.com, hsinyi@chromium.org,
+        b=L3L6LOkMsEHcTdM9/yHiB7tXcjs1FzTRtASADLCK/w5LU6SCYagiZFhsGf6JLkKRn
+         7iPKRZujuk+cDyoaj3GcYX43DDmfzC3M33gKxuRQEj/JnCj4t4OVLvx8rpbEH0gpgq
+         BefgdB4BM0k5mBMs5sVjMBL/2OugAhwRvlwptWdA=
+Date:   Fri, 03 Jun 2022 10:50:04 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, corbet@lwn.net, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch removed from -mm tree
-Message-Id: <20220603174652.E0416C385B8@smtp.kernel.org>
+Subject: + mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch added to mm-unstable branch
+Message-Id: <20220603175004.C9216C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
-has been removed from the -mm tree.  Its filename was
-     revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
+The patch titled
+     Subject: mm: memcontrol: separate {pgscan,pgsteal}_{kswapd,direct} items in memory.stat of cgroup v2
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hsin-Yi Wang <hsinyi@chromium.org>
-Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
-Date: Wed, 1 Jun 2022 18:39:20 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: memcontrol: separate {pgscan,pgsteal}_{kswapd,direct} items in memory.stat of cgroup v2
+Date: Fri, 3 Jun 2022 15:04:23 +0800
 
-Patch series "Implement readahead for squashfs", v4.
+There are already statistics of {pgscan,pgsteal}_kswapd and
+{pgscan,pgsteal}_direct of memcg event here, but now the sum of the two is
+displayed in memory.stat of cgroup v2.
 
-Commit c1f6925e1091("mm: put readahead pages in cache earlier") requires
-fs to implement readahead callback.  Otherwise there will be a performance
-regression.
+In order to obtain more accurate information during monitoring and
+debugging, and to align with the display in /proc/vmstat, it better to
+display {pgscan,pgsteal}_kswapd and {pgscan,pgsteal}_direct separately.
 
-Commit 9eec1d897139("squashfs: provide backing_dev_info in order to
-disable read-ahead") mitigates the performance drop issue for squashfs by
-closing readahead for it.
+Moreover, after this modification, all memcg events can be printed with a
+combination of vm_event_name() and memcg_events().  This allows us to
+create an array to traverse and print, which reduces redundant
+seq_buf_printf() codes.
 
-This series implements readahead callback for squashfs.  The previous
-discussion are in [1] and [2].
-
-[1] https://lore.kernel.org/all/CAJMQK-g9G6KQmH-V=BRGX0swZji9Wxe_2c7ht-MMAapdFy2pXw@mail.gmail.com/T/
-[2] https://lore.kernel.org/linux-mm/Yn5Yij9pRPCzDozt@casper.infradead.org/t/#m4af4473b94f98a4996cb11756b633a07e5e059d1
-
-
-This patch (of 3):
-
-This reverts commit 9eec1d897139e ("squashfs: provide backing_dev_info in
-order to disable read-ahead").
-
-Revert closing the readahead to squashfs since the readahead callback
-for squashfs is implemented.
-
-Link: https://lkml.kernel.org/r/20220601103922.1338320-1-hsinyi@chromium.org
-Link: https://lkml.kernel.org/r/20220601103922.1338320-2-hsinyi@chromium.org
-Signed-off-by: Hsin-Yi Wang <hsinyi@chromium.org>
-Suggested-by: Xiongwei Song <Xiongwei.Song@windriver.com>
-Cc: Hou Tao <houtao1@huawei.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miao Xie <miaoxie@huawei.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Zhang Yi <yi.zhang@huawei.com>
-Cc: Zheng Liang <zhengliang6@huawei.com>
+Link: https://lkml.kernel.org/r/20220603070423.10025-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/super.c |   33 ---------------------------------
- 1 file changed, 33 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |   14 +++--
+ mm/memcontrol.c                         |   61 +++++++++-------------
+ 2 files changed, 36 insertions(+), 39 deletions(-)
 
---- a/fs/squashfs/super.c~revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead
-+++ a/fs/squashfs/super.c
-@@ -29,7 +29,6 @@
- #include <linux/module.h>
- #include <linux/magic.h>
- #include <linux/xattr.h>
--#include <linux/backing-dev.h>
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1442,11 +1442,17 @@ PAGE_SIZE multiple when read back.
+ 	  pgrefill (npn)
+ 		Amount of scanned pages (in an active LRU list)
  
- #include "squashfs_fs.h"
- #include "squashfs_fs_sb.h"
-@@ -113,24 +112,6 @@ static const struct squashfs_decompresso
- 	return decompressor;
+-	  pgscan (npn)
+-		Amount of scanned pages (in an inactive LRU list)
++	  pgscan_kswapd (npn)
++		Amount of scanned pages by kswapd (in an inactive LRU list)
+ 
+-	  pgsteal (npn)
+-		Amount of reclaimed pages
++	  pgscan_direct (npn)
++		Amount of scanned pages directly  (in an inactive LRU list)
++
++	  pgsteal_kswapd (npn)
++		Amount of reclaimed pages by kswapd
++
++	  pgsteal_direct (npn)
++		Amount of reclaimed pages directly
+ 
+ 	  pgactivate (npn)
+ 		Amount of pages moved to the active LRU list
+--- a/mm/memcontrol.c~mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2
++++ a/mm/memcontrol.c
+@@ -1460,6 +1460,28 @@ static inline unsigned long memcg_page_s
+ 	return memcg_page_state(memcg, item) * memcg_page_state_unit(item);
  }
  
--static int squashfs_bdi_init(struct super_block *sb)
--{
--	int err;
--	unsigned int major = MAJOR(sb->s_dev);
--	unsigned int minor = MINOR(sb->s_dev);
--
--	bdi_put(sb->s_bdi);
--	sb->s_bdi = &noop_backing_dev_info;
--
--	err = super_setup_bdi_name(sb, "squashfs_%u_%u", major, minor);
--	if (err)
--		return err;
--
--	sb->s_bdi->ra_pages = 0;
--	sb->s_bdi->io_pages = 0;
--
--	return 0;
--}
- 
- static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
++static const unsigned int memcg_vm_event_stat[] = {
++	PGFAULT,
++	PGMAJFAULT,
++	PGREFILL,
++	PGSCAN_KSWAPD,
++	PGSCAN_DIRECT,
++	PGSTEAL_KSWAPD,
++	PGSTEAL_DIRECT,
++	PGACTIVATE,
++	PGDEACTIVATE,
++	PGLAZYFREE,
++	PGLAZYFREED,
++#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
++	ZSWPIN,
++	ZSWPOUT,
++#endif
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	THP_FAULT_ALLOC,
++	THP_COLLAPSE_ALLOC,
++#endif
++};
++
+ static char *memory_stat_format(struct mem_cgroup *memcg)
  {
-@@ -146,20 +127,6 @@ static int squashfs_fill_super(struct su
+ 	struct seq_buf s;
+@@ -1495,41 +1517,10 @@ static char *memory_stat_format(struct m
+ 	}
  
- 	TRACE("Entered squashfs_fill_superblock\n");
- 
--	/*
--	 * squashfs provides 'backing_dev_info' in order to disable read-ahead. For
--	 * squashfs, I/O is not deferred, it is done immediately in read_folio,
--	 * which means the user would always have to wait their own I/O. So the effect
--	 * of readahead is very weak for squashfs. squashfs_bdi_init will set
--	 * sb->s_bdi->ra_pages and sb->s_bdi->io_pages to 0 and close readahead for
--	 * squashfs.
--	 */
--	err = squashfs_bdi_init(sb);
--	if (err) {
--		errorf(fc, "squashfs init bdi failed");
--		return err;
--	}
+ 	/* Accumulated memory events */
 -
- 	sb->s_fs_info = kzalloc(sizeof(*msblk), GFP_KERNEL);
- 	if (sb->s_fs_info == NULL) {
- 		ERROR("Failed to allocate squashfs_sb_info\n");
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGFAULT),
+-		       memcg_events(memcg, PGFAULT));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGMAJFAULT),
+-		       memcg_events(memcg, PGMAJFAULT));
+-	seq_buf_printf(&s, "%s %lu\n",  vm_event_name(PGREFILL),
+-		       memcg_events(memcg, PGREFILL));
+-	seq_buf_printf(&s, "pgscan %lu\n",
+-		       memcg_events(memcg, PGSCAN_KSWAPD) +
+-		       memcg_events(memcg, PGSCAN_DIRECT));
+-	seq_buf_printf(&s, "pgsteal %lu\n",
+-		       memcg_events(memcg, PGSTEAL_KSWAPD) +
+-		       memcg_events(memcg, PGSTEAL_DIRECT));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGACTIVATE),
+-		       memcg_events(memcg, PGACTIVATE));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGDEACTIVATE),
+-		       memcg_events(memcg, PGDEACTIVATE));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGLAZYFREE),
+-		       memcg_events(memcg, PGLAZYFREE));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGLAZYFREED),
+-		       memcg_events(memcg, PGLAZYFREED));
+-
+-#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPIN),
+-		       memcg_events(memcg, ZSWPIN));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPOUT),
+-		       memcg_events(memcg, ZSWPOUT));
+-#endif
+-
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(THP_FAULT_ALLOC),
+-		       memcg_events(memcg, THP_FAULT_ALLOC));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(THP_COLLAPSE_ALLOC),
+-		       memcg_events(memcg, THP_COLLAPSE_ALLOC));
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++)
++		seq_buf_printf(&s, "%s %lu\n",
++			       vm_event_name(memcg_vm_event_stat[i]),
++			       memcg_events(memcg, memcg_vm_event_stat[i]));
+ 
+ 	/* The above should easily fit into one page */
+ 	WARN_ON_ONCE(seq_buf_has_overflowed(&s));
 _
 
-Patches currently in -mm which might be from hsinyi@chromium.org are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-squashfs-implement-readahead.patch
+mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch
 
