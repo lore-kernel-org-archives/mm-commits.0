@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D2F6C43334
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 17:11:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 465A7C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 17:11:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240823AbiFCRLl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Jun 2022 13:11:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53658 "EHLO
+        id S230480AbiFCRLq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Jun 2022 13:11:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230480AbiFCRLk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 13:11:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0134B842
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 10:11:39 -0700 (PDT)
+        with ESMTP id S1344205AbiFCRLp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 13:11:45 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 594155251B
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 10:11:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6866361A39
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 17:11:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B342AC385B8;
-        Fri,  3 Jun 2022 17:11:38 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 81A58CE2413
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 17:11:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDEBCC385A9;
+        Fri,  3 Jun 2022 17:11:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654276298;
-        bh=7tIoh6FCF4V5pYCdQn8k6OiI3LqGGJoHeavM9H1mpDg=;
+        s=korg; t=1654276300;
+        bh=rXcu3ra09ZJbkTTdwutUQXHDuaMPacRiLtF1Wi3Qkcw=;
         h=Date:To:From:Subject:From;
-        b=vfBmTlWM8AraPm+ctX/4wTyDt55YzwfFZD2G0N8mbuc/VL1emEKSHe5AF7bouJnt1
-         Lye91b2UI2n0IXYKlcBjLxa23bZi8Iq8i4sdrpN3TAU1gRmh7D0bWyYLoZkAcqh8f4
-         P7XMONAPJfiJNWH0c17hntrVtDc+WxsU7pUDm1hw=
-Date:   Fri, 03 Jun 2022 10:11:37 -0700
+        b=FXKbLXc4sXUIvY6SV7MTK5b036/YYZIL8j5mwseT6iPNXbWsINkl3VeTo7iTQBcm5
+         0qk9vf6+PlUXmxdEh6RRCdOu6fO3qfTShxZ1hK7H1Qbsu2azGTVJgPyvTOXtbHEf71
+         Zi+hX1N7lOUuG28rWVaWKNKLHzIjLewypsqzFD7c=
+Date:   Fri, 03 Jun 2022 10:11:40 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         rostedt@goodmis.org, riel@surriel.com, peterz@infradead.org,
         mhocko@kernel.org, mgorman@techsingularity.net,
         liam.howlett@oracle.com, kirill@shutemov.name, hughd@google.com,
         matenajakub@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-refactor-of-vma_merge.patch added to mm-unstable branch
-Message-Id: <20220603171138.B342AC385B8@smtp.kernel.org>
+Subject: + mm-add-merging-after-mremap-resize.patch added to mm-unstable branch
+Message-Id: <20220603171140.CDEBCC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH 1/2] mm: refactor of vma_merge()
+     Subject: [PATCH 2/2] mm: add merging after mremap resize
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-refactor-of-vma_merge.patch
+     mm-add-merging-after-mremap-resize.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-refactor-of-vma_merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-merging-after-mremap-resize.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,171 +68,156 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jakub Matěna <matenajakub@gmail.com>
-Subject: [PATCH 1/2] mm: refactor of vma_merge()
-Date: Fri, 3 Jun 2022 16:57:18 +0200
+Subject: [PATCH 2/2] mm: add merging after mremap resize
+Date: Fri, 3 Jun 2022 16:57:19 +0200
 
-Patch series "Refactor of vma_merge and new merge call", v4.
+When mremap call results in expansion, it might be possible to merge the
+VMA with the next VMA which might become adjacent.  This patch adds
+vma_merge call after the expansion is done to try and merge.
 
-I am currently working on my master's thesis trying to increase number of
-merges of VMAs currently failing because of page offset incompatibility
-and difference in their anon_vmas.  The following refactor and added merge
-call included in this series is just two smaller upgrades I created along
-the way.
-
-
-This patch (of 2):
-
-Refactor vma_merge() to make it shorter and more understandable.  Main
-change is the elimination of code duplicity in the case of merge next
-check.  This is done by first doing checks and caching the results before
-executing the merge itself.  The variable 'area' is divided into 'mid' and
-'res' as previously it was used for two purposes, as the middle VMA
-between prev and next and also as the result of the merge itself.  Exit
-paths are also unified.
-
-Link: https://lkml.kernel.org/r/20220603145719.1012094-1-matenajakub@gmail.com
-Link: https://lkml.kernel.org/r/20220603145719.1012094-2-matenajakub@gmail.com
+Link: https://lkml.kernel.org/r/20220603145719.1012094-3-matenajakub@gmail.com
 Signed-off-by: Jakub Matěna <matenajakub@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   87 ++++++++++++++++++++++------------------------------
- 1 file changed, 37 insertions(+), 50 deletions(-)
+ mm/mremap.c                              |   19 +++++++-
+ tools/testing/selftests/vm/mremap_test.c |   47 ++++++++++++++++++++-
+ 2 files changed, 63 insertions(+), 3 deletions(-)
 
---- a/mm/mmap.c~mm-refactor-of-vma_merge
-+++ a/mm/mmap.c
-@@ -1074,8 +1074,10 @@ struct vm_area_struct *vma_merge(struct
- 			struct anon_vma_name *anon_name)
- {
- 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
--	struct vm_area_struct *area, *next;
--	int err;
-+	struct vm_area_struct *mid, *next, *res;
-+	int err = -1;
-+	bool merge_prev = false;
-+	bool merge_next = false;
+--- a/mm/mremap.c~mm-add-merging-after-mremap-resize
++++ a/mm/mremap.c
+@@ -9,6 +9,7 @@
+  */
  
- 	/*
- 	 * We later require that vma->vm_flags == vm_flags,
-@@ -1085,75 +1087,60 @@ struct vm_area_struct *vma_merge(struct
- 		return NULL;
+ #include <linux/mm.h>
++#include <linux/mm_inline.h>
+ #include <linux/hugetlb.h>
+ #include <linux/shm.h>
+ #include <linux/ksm.h>
+@@ -23,6 +24,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/uaccess.h>
+ #include <linux/userfaultfd_k.h>
++#include <linux/mempolicy.h>
  
- 	next = find_vma(mm, prev ? prev->vm_end : 0);
--	area = next;
--	if (area && area->vm_end == end)		/* cases 6, 7, 8 */
-+	mid = next;
-+	if (next && next->vm_end == end)		/* cases 6, 7, 8 */
- 		next = find_vma(mm, next->vm_end);
+ #include <asm/cacheflush.h>
+ #include <asm/tlb.h>
+@@ -1012,6 +1014,9 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 		/* can we just expand the current mapping? */
+ 		if (vma_expandable(vma, new_len - old_len)) {
+ 			long pages = (new_len - old_len) >> PAGE_SHIFT;
++			unsigned long extension_start = addr + old_len;
++			unsigned long extension_end = addr + new_len;
++			pgoff_t extension_pgoff = vma->vm_pgoff + (old_len >> PAGE_SHIFT);
  
- 	/* verify some invariant that must be enforced by the caller */
- 	VM_WARN_ON(prev && addr <= prev->vm_start);
--	VM_WARN_ON(area && end > area->vm_end);
-+	VM_WARN_ON(mid && end > mid->vm_end);
- 	VM_WARN_ON(addr >= end);
+ 			if (vma->vm_flags & VM_ACCOUNT) {
+ 				if (security_vm_enough_memory_mm(mm, pages)) {
+@@ -1020,8 +1025,18 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 				}
+ 			}
  
--	/*
--	 * Can it merge with the predecessor?
--	 */
-+	/* Can we merge the predecessor? */
- 	if (prev && prev->vm_end == addr &&
- 			mpol_equal(vma_policy(prev), policy) &&
- 			can_vma_merge_after(prev, vm_flags,
- 					    anon_vma, file, pgoff,
- 					    vm_userfaultfd_ctx, anon_name)) {
--		/*
--		 * OK, it can.  Can we now merge in the successor as well?
--		 */
--		if (next && end == next->vm_start &&
--				mpol_equal(policy, vma_policy(next)) &&
--				can_vma_merge_before(next, vm_flags,
--						     anon_vma, file,
--						     pgoff+pglen,
--						     vm_userfaultfd_ctx, anon_name) &&
--				is_mergeable_anon_vma(prev->anon_vma,
--						      next->anon_vma, NULL)) {
--							/* cases 1, 6 */
--			err = __vma_adjust(prev, prev->vm_start,
--					 next->vm_end, prev->vm_pgoff, NULL,
--					 prev);
--		} else					/* cases 2, 5, 7 */
--			err = __vma_adjust(prev, prev->vm_start,
--					 end, prev->vm_pgoff, NULL, prev);
--		if (err)
--			return NULL;
--		khugepaged_enter_vma(prev, vm_flags);
--		return prev;
-+		merge_prev = true;
- 	}
--
--	/*
--	 * Can this new request be merged in front of next?
--	 */
-+	/* Can we merge the successor? */
- 	if (next && end == next->vm_start &&
- 			mpol_equal(policy, vma_policy(next)) &&
- 			can_vma_merge_before(next, vm_flags,
- 					     anon_vma, file, pgoff+pglen,
- 					     vm_userfaultfd_ctx, anon_name)) {
-+		merge_next = true;
-+	}
-+	/* Can we merge both the predecessor and the successor? */
-+	if (merge_prev && merge_next &&
-+			is_mergeable_anon_vma(prev->anon_vma,
-+				next->anon_vma, NULL)) {	 /* cases 1, 6 */
-+		err = __vma_adjust(prev, prev->vm_start,
-+					next->vm_end, prev->vm_pgoff, NULL,
-+					prev);
-+		res = prev;
-+	} else if (merge_prev) {			/* cases 2, 5, 7 */
-+		err = __vma_adjust(prev, prev->vm_start,
-+					end, prev->vm_pgoff, NULL, prev);
-+		res = prev;
-+	} else if (merge_next) {
- 		if (prev && addr < prev->vm_end)	/* case 4 */
- 			err = __vma_adjust(prev, prev->vm_start,
--					 addr, prev->vm_pgoff, NULL, next);
--		else {					/* cases 3, 8 */
--			err = __vma_adjust(area, addr, next->vm_end,
--					 next->vm_pgoff - pglen, NULL, next);
--			/*
--			 * In case 3 area is already equal to next and
--			 * this is a noop, but in case 8 "area" has
--			 * been removed and next was expanded over it.
--			 */
--			area = next;
--		}
--		if (err)
--			return NULL;
--		khugepaged_enter_vma(area, vm_flags);
--		return area;
-+					addr, prev->vm_pgoff, NULL, next);
-+		else					/* cases 3, 8 */
-+			err = __vma_adjust(mid, addr, next->vm_end,
-+					next->vm_pgoff - pglen, NULL, next);
-+		res = next;
- 	}
- 
--	return NULL;
-+	/*
-+	 * Cannot merge with predecessor or successor or error in __vma_adjust?
-+	 */
-+	if (err)
-+		return NULL;
-+	khugepaged_enter_vma(res, vm_flags);
-+	return res;
+-			if (vma_adjust(vma, vma->vm_start, addr + new_len,
+-				       vma->vm_pgoff, NULL)) {
++			/*
++			 * Function vma_merge() is called on the extension we are adding to
++			 * the already existing vma, vma_merge() will merge this extension with
++			 * the already existing vma (expand operation itself) and possibly also
++			 * with the next vma if it becomes adjacent to the expanded vma and
++			 * otherwise compatible.
++			 */
++			vma = vma_merge(mm, vma, extension_start, extension_end,
++					vma->vm_flags, vma->anon_vma, vma->vm_file,
++					extension_pgoff, vma_policy(vma),
++					vma->vm_userfaultfd_ctx, anon_vma_name(vma));
++			if (!vma) {
+ 				vm_unacct_memory(pages);
+ 				ret = -ENOMEM;
+ 				goto out;
+--- a/tools/testing/selftests/vm/mremap_test.c~mm-add-merging-after-mremap-resize
++++ a/tools/testing/selftests/vm/mremap_test.c
+@@ -119,6 +119,48 @@ static unsigned long long get_mmap_min_a
  }
  
  /*
++ * This test validates that merge is called when expanding a mapping.
++ * Mapping containing three pages is created, middle page is unmapped
++ * and then the mapping containing the first page is expanded so that
++ * it fills the created hole. The two parts should merge creating
++ * single mapping with three pages.
++ */
++static void mremap_expand_merge(unsigned long page_size)
++{
++	char *test_name = "mremap expand merge";
++	FILE *fp;
++	char *line = NULL;
++	size_t len = 0;
++	bool success = false;
++
++	char *start = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	munmap(start + page_size, page_size);
++	mremap(start, page_size, 2 * page_size, 0);
++
++	fp = fopen("/proc/self/maps", "r");
++	if (fp == NULL) {
++		ksft_test_result_fail("%s\n", test_name);
++		return;
++	}
++
++	while(getline(&line, &len, fp) != -1) {
++		char *first = strtok(line,"- ");
++		void *first_val = (void *) strtol(first, NULL, 16);
++		char *second = strtok(NULL,"- ");
++		void *second_val = (void *) strtol(second, NULL, 16);
++		if (first_val == start && second_val == start + 3 * page_size) {
++			success = true;
++			break;
++		}
++	}
++	if (success)
++		ksft_test_result_pass("%s\n", test_name);
++	else
++		ksft_test_result_fail("%s\n", test_name);
++	fclose(fp);
++}
++
++/*
+  * Returns the start address of the mapping on success, else returns
+  * NULL on failure.
+  */
+@@ -336,6 +378,7 @@ int main(int argc, char **argv)
+ 	int i, run_perf_tests;
+ 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
+ 	unsigned int pattern_seed;
++	int num_expand_tests = 1;
+ 	struct test test_cases[MAX_TEST];
+ 	struct test perf_test_cases[MAX_PERF_TEST];
+ 	int page_size;
+@@ -407,12 +450,14 @@ int main(int argc, char **argv)
+ 				(threshold_mb * _1MB >= _1GB);
+ 
+ 	ksft_set_plan(ARRAY_SIZE(test_cases) + (run_perf_tests ?
+-		      ARRAY_SIZE(perf_test_cases) : 0));
++		      ARRAY_SIZE(perf_test_cases) : 0) + num_expand_tests);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(test_cases); i++)
+ 		run_mremap_test_case(test_cases[i], &failures, threshold_mb,
+ 				     pattern_seed);
+ 
++	mremap_expand_merge(page_size);
++
+ 	if (run_perf_tests) {
+ 		ksft_print_msg("\n%s\n",
+ 		 "mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:");
 _
 
 Patches currently in -mm which might be from matenajakub@gmail.com are
