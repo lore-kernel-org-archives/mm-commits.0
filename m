@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50FA6CCA473
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 18:19:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81260C43334
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 18:19:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240408AbiFCSTK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Jun 2022 14:19:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35234 "EHLO
+        id S1347107AbiFCST0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Jun 2022 14:19:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39984 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237621AbiFCSRT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 14:17:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81B1556F86
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 11:04:30 -0700 (PDT)
+        with ESMTP id S1346996AbiFCSRm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 14:17:42 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63E2D663DB
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 11:04:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BC2ADB8241D
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 18:04:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65D43C385B8;
-        Fri,  3 Jun 2022 18:04:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 858E6B82369
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 18:04:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1674DC385A9;
+        Fri,  3 Jun 2022 18:04:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654279467;
-        bh=WbjqT+SJ7Tq5X2Gn6y8xVgQwjNMx0Wb+n7DG4Yx08Vg=;
+        s=korg; t=1654279470;
+        bh=kfq0JSDRsDGFpmDl2Nm1INvdM+IlX1ut4sXRlh8RjD0=;
         h=Date:To:From:Subject:From;
-        b=ILKJb6kz4JDOrnrSzfA9AqzvF3oce+e4rhKNnwoKOO2KYK2GuV3yFe6HZvceJTssK
-         glwU/6W/xGSEewu8dcZLSOofl0Le5p6DSIlnDBCrVPiyPEUcsU6QmBxnApzDnK3RiE
-         JFR8iHH0DhjBiMrGxrCzhG1ONiCrE3Rf/FxDOOq8=
-Date:   Fri, 03 Jun 2022 11:04:26 -0700
+        b=D4kohHfCIQKP5TYGrGBJn2A+7IDtL65Bzl1DzfyNxpwMGxHYhOLwg3bddI/UAFSKJ
+         yKsPA9IMi+90S5z8h6Avk+PWBGSabWriRBWB9ygb2SYsc4+FyHTSwqqqEuqIjBEsax
+         +s9BhUapMSvg15X/hbQPOoMEfGe0QKCZ0eKWiMiQ=
+Date:   Fri, 03 Jun 2022 11:04:29 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, riteshh@linux.ibm.com, rgoldwyn@suse.de,
         rgoldwyn@suse.com, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         dan.j.wiliams@intel.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xfs-support-cow-in-fsdax-mode.patch added to mm-unstable branch
-Message-Id: <20220603180427.65D43C385B8@smtp.kernel.org>
+Subject: + xfs-add-dax-dedupe-support.patch added to mm-unstable branch
+Message-Id: <20220603180430.1674DC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xfs: support CoW in fsdax mode
+     Subject: xfs: add dax dedupe support
 has been added to the -mm mm-unstable branch.  Its filename is
-     xfs-support-cow-in-fsdax-mode.patch
+     xfs-add-dax-dedupe-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-support-cow-in-fsdax-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-add-dax-dedupe-support.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,19 +70,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: xfs: support CoW in fsdax mode
-Date: Fri, 3 Jun 2022 13:37:37 +0800
+Subject: xfs: add dax dedupe support
+Date: Fri, 3 Jun 2022 13:37:38 +0800
 
-In fsdax mode, WRITE and ZERO on a shared extent need CoW performed. 
-After that, new allocated extents needs to be remapped to the file.  So,
-add a CoW identification in ->iomap_begin(), and implement ->iomap_end()
-to do the remapping work.
+Introduce xfs_mmaplock_two_inodes_and_break_dax_layout() for dax files who
+are going to be deduped.  After that, call compare range function only
+when files are both DAX or not.
 
-Link: https://lkml.kernel.org/r/20220603053738.1218681-14-ruansy.fnst@fujitsu.com
+Link: https://lkml.kernel.org/r/20220603053738.1218681-15-ruansy.fnst@fujitsu.com
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dan Williams <dan.j.wiliams@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -96,129 +95,138 @@ Cc: Ritesh Harjani <riteshh@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_file.c  |   33 ++++++++++++++++++++++++++++-----
- fs/xfs/xfs_iomap.c |   30 +++++++++++++++++++++++++++++-
- fs/xfs/xfs_iomap.h |    1 +
- 3 files changed, 58 insertions(+), 6 deletions(-)
+ fs/xfs/xfs_file.c    |    2 -
+ fs/xfs/xfs_inode.c   |   69 ++++++++++++++++++++++++++++++++++++++---
+ fs/xfs/xfs_inode.h   |    1 
+ fs/xfs/xfs_reflink.c |    4 +-
+ 4 files changed, 69 insertions(+), 7 deletions(-)
 
---- a/fs/xfs/xfs_file.c~xfs-support-cow-in-fsdax-mode
+--- a/fs/xfs/xfs_file.c~xfs-add-dax-dedupe-support
 +++ a/fs/xfs/xfs_file.c
-@@ -25,6 +25,7 @@
- #include "xfs_iomap.h"
- #include "xfs_reflink.h"
- 
-+#include <linux/dax.h>
- #include <linux/falloc.h>
- #include <linux/backing-dev.h>
- #include <linux/mman.h>
-@@ -669,7 +670,7 @@ xfs_file_dax_write(
- 	pos = iocb->ki_pos;
- 
- 	trace_xfs_file_dax_write(iocb, from);
--	ret = dax_iomap_rw(iocb, from, &xfs_direct_write_iomap_ops);
-+	ret = dax_iomap_rw(iocb, from, &xfs_dax_write_iomap_ops);
- 	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
- 		i_size_write(inode, iocb->ki_pos);
- 		error = xfs_setfilesize(ip, pos, ret);
-@@ -1254,6 +1255,31 @@ xfs_file_llseek(
- 	return vfs_setpos(file, offset, inode->i_sb->s_maxbytes);
+@@ -808,7 +808,7 @@ xfs_wait_dax_page(
+ 	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
  }
  
-+#ifdef CONFIG_FS_DAX
+-static int
 +int
-+xfs_dax_fault(
-+	struct vm_fault		*vmf,
-+	enum page_entry_size	pe_size,
-+	bool			write_fault,
-+	pfn_t			*pfn)
-+{
-+	return dax_iomap_fault(vmf, pe_size, pfn, NULL,
-+			(write_fault && !vmf->cow_page) ?
-+				&xfs_dax_write_iomap_ops :
-+				&xfs_read_iomap_ops);
-+}
-+#else
-+int
-+xfs_dax_fault(
-+	struct vm_fault		*vmf,
-+	enum page_entry_size	pe_size,
-+	bool			write_fault,
-+	pfn_t			*pfn)
-+{
-+	return 0;
-+}
-+#endif
-+
- /*
-  * Locking for serialisation of IO during page faults. This results in a lock
-  * ordering of:
-@@ -1285,10 +1311,7 @@ __xfs_filemap_fault(
- 		pfn_t pfn;
+ xfs_break_dax_layouts(
+ 	struct inode		*inode,
+ 	bool			*retry)
+--- a/fs/xfs/xfs_inode.c~xfs-add-dax-dedupe-support
++++ a/fs/xfs/xfs_inode.c
+@@ -3767,6 +3767,50 @@ retry:
+ 	return 0;
+ }
  
- 		xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
--		ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL,
--				(write_fault && !vmf->cow_page) ?
--				 &xfs_direct_write_iomap_ops :
--				 &xfs_read_iomap_ops);
-+		ret = xfs_dax_fault(vmf, pe_size, write_fault, &pfn);
- 		if (ret & VM_FAULT_NEEDDSYNC)
- 			ret = dax_finish_sync_fault(vmf, pe_size, pfn);
- 		xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
---- a/fs/xfs/xfs_iomap.c~xfs-support-cow-in-fsdax-mode
-+++ a/fs/xfs/xfs_iomap.c
-@@ -773,7 +773,8 @@ xfs_direct_write_iomap_begin(
- 
- 		/* may drop and re-acquire the ilock */
- 		error = xfs_reflink_allocate_cow(ip, &imap, &cmap, &shared,
--				&lockmode, flags & IOMAP_DIRECT);
-+				&lockmode,
-+				(flags & IOMAP_DIRECT) || IS_DAX(inode));
- 		if (error)
- 			goto out_unlock;
- 		if (shared)
-@@ -868,6 +869,33 @@ const struct iomap_ops xfs_direct_write_
- };
- 
- static int
-+xfs_dax_write_iomap_end(
-+	struct inode		*inode,
-+	loff_t			pos,
-+	loff_t			length,
-+	ssize_t			written,
-+	unsigned		flags,
-+	struct iomap		*iomap)
++static int
++xfs_mmaplock_two_inodes_and_break_dax_layout(
++	struct xfs_inode	*ip1,
++	struct xfs_inode	*ip2)
 +{
-+	struct xfs_inode	*ip = XFS_I(inode);
++	int			error;
++	bool			retry;
++	struct page		*page;
 +
-+	if (!xfs_is_cow_inode(ip))
-+		return 0;
++	if (ip1->i_ino > ip2->i_ino)
++		swap(ip1, ip2);
 +
-+	if (!written) {
-+		xfs_reflink_cancel_cow_range(ip, pos, length, true);
-+		return 0;
++again:
++	retry = false;
++	/* Lock the first inode */
++	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
++	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
++	if (error || retry) {
++		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++		if (error == 0 && retry)
++			goto again;
++		return error;
 +	}
 +
-+	return xfs_reflink_end_cow(ip, pos, written);
++	if (ip1 == ip2)
++		return 0;
++
++	/* Nested lock the second inode */
++	xfs_ilock(ip2, xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1));
++	/*
++	 * We cannot use xfs_break_dax_layouts() directly here because it may
++	 * need to unlock & lock the XFS_MMAPLOCK_EXCL which is not suitable
++	 * for this nested lock case.
++	 */
++	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
++	if (page && page_ref_count(page) != 1) {
++		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
++		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++		goto again;
++	}
++
++	return 0;
 +}
 +
-+const struct iomap_ops xfs_dax_write_iomap_ops = {
-+	.iomap_begin	= xfs_direct_write_iomap_begin,
-+	.iomap_end	= xfs_dax_write_iomap_end,
-+};
+ /*
+  * Lock two inodes so that userspace cannot initiate I/O via file syscalls or
+  * mmap activity.
+@@ -3781,8 +3825,19 @@ xfs_ilock2_io_mmap(
+ 	ret = xfs_iolock_two_inodes_and_break_layout(VFS_I(ip1), VFS_I(ip2));
+ 	if (ret)
+ 		return ret;
+-	filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
+-				    VFS_I(ip2)->i_mapping);
 +
-+static int
- xfs_buffered_write_iomap_begin(
- 	struct inode		*inode,
- 	loff_t			offset,
---- a/fs/xfs/xfs_iomap.h~xfs-support-cow-in-fsdax-mode
-+++ a/fs/xfs/xfs_iomap.h
-@@ -51,5 +51,6 @@ extern const struct iomap_ops xfs_direct
- extern const struct iomap_ops xfs_read_iomap_ops;
- extern const struct iomap_ops xfs_seek_iomap_ops;
- extern const struct iomap_ops xfs_xattr_iomap_ops;
-+extern const struct iomap_ops xfs_dax_write_iomap_ops;
++	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
++		ret = xfs_mmaplock_two_inodes_and_break_dax_layout(ip1, ip2);
++		if (ret) {
++			inode_unlock(VFS_I(ip2));
++			if (ip1 != ip2)
++				inode_unlock(VFS_I(ip1));
++			return ret;
++		}
++	} else
++		filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
++					    VFS_I(ip2)->i_mapping);
++
+ 	return 0;
+ }
  
- #endif /* __XFS_IOMAP_H__*/
+@@ -3792,8 +3847,14 @@ xfs_iunlock2_io_mmap(
+ 	struct xfs_inode	*ip1,
+ 	struct xfs_inode	*ip2)
+ {
+-	filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
+-				      VFS_I(ip2)->i_mapping);
++	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
++		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
++		if (ip1 != ip2)
++			xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++	} else
++		filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
++					      VFS_I(ip2)->i_mapping);
++
+ 	inode_unlock(VFS_I(ip2));
+ 	if (ip1 != ip2)
+ 		inode_unlock(VFS_I(ip1));
+--- a/fs/xfs/xfs_inode.h~xfs-add-dax-dedupe-support
++++ a/fs/xfs/xfs_inode.h
+@@ -467,6 +467,7 @@ xfs_itruncate_extents(
+ }
+ 
+ /* from xfs_file.c */
++int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
+ int	xfs_break_layouts(struct inode *inode, uint *iolock,
+ 		enum layout_break_reason reason);
+ 
+--- a/fs/xfs/xfs_reflink.c~xfs-add-dax-dedupe-support
++++ a/fs/xfs/xfs_reflink.c
+@@ -1363,8 +1363,8 @@ xfs_reflink_remap_prep(
+ 	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
+ 		goto out_unlock;
+ 
+-	/* Don't share DAX file data for now. */
+-	if (IS_DAX(inode_in) || IS_DAX(inode_out))
++	/* Don't share DAX file data with non-DAX file. */
++	if (IS_DAX(inode_in) != IS_DAX(inode_out))
+ 		goto out_unlock;
+ 
+ 	if (!IS_DAX(inode_in))
 _
 
 Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
