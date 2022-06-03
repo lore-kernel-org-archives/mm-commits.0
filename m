@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 151E5C43334
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 17:59:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 700B6CCA483
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Jun 2022 18:16:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346137AbiFCR75 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Jun 2022 13:59:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46336 "EHLO
+        id S240032AbiFCSQy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Jun 2022 14:16:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346142AbiFCR7S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 13:59:18 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 753F7580E9
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 10:55:16 -0700 (PDT)
+        with ESMTP id S1348489AbiFCSQp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2022 14:16:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B31B64BFC
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 11:04:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 30521B82430
-        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 17:55:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA371C385A9;
-        Fri,  3 Jun 2022 17:55:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A62261709
+        for <mm-commits@vger.kernel.org>; Fri,  3 Jun 2022 18:04:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A065CC385A9;
+        Fri,  3 Jun 2022 18:04:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654278913;
-        bh=dyr5Gl/7Nn9SKcBQ7AxtEhRdz49d6oopBNhRpf2j0q4=;
+        s=korg; t=1654279441;
+        bh=QqKZDhfvqF2jcZ53RIgMA0Gr0nvYW1D8tNksyuqk91U=;
         h=Date:To:From:Subject:From;
-        b=EVjftvPESNryN44v5BdyrUVGAsV0LQkZcxI1G2/53iIOA9tnaSAFYO20a7bK7SiqB
-         X3LXplkEi6WUSDz7jmdWRB6AcnJKk3pynFlurNTGfTFUfFz0ELv5LftVycz1dySMFK
-         k3cy2YoGdxwM+0xIQ/b1TucnDMLfar8kBmdc8RoE=
-Date:   Fri, 03 Jun 2022 10:55:13 -0700
-To:     mm-commits@vger.kernel.org, ytk.lee@samsung.com, s.suk@samsung.com,
-        senozhatsky@chromium.org, ngupta@vflare.org, minchan@kernel.org,
-        avromanov@sberdevices.ru, jaewon31.kim@samsung.com,
+        b=DfNVXLf7SAWQJ8btUaq8WmqAuYIveTEVPnGqLFpaC34Jtl5X92hFJ83QmmCrDqhQb
+         yXljoi0uYeploXdpqmKC7DEgKOxfZU3a7PwA+/P8JY2VjkrbANrZAN0KUNZLJ6Iy+3
+         TuaPIOoKE5/f4Tot8w7y+R5+klt10wIAs1mh1iIg=
+Date:   Fri, 03 Jun 2022 11:04:00 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, riteshh@linux.ibm.com, rgoldwyn@suse.de,
+        rgoldwyn@suse.com, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
+        jane.chu@oracle.com, hch@lst.de, djwong@kernel.org,
+        david@fromorbit.com, dan.j.williams@intel.com,
+        dan.j.wiliams@intel.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram_drv-add-__gfp_nomemalloc-not-to-use-alloc_no_watermarks.patch added to mm-unstable branch
-Message-Id: <20220603175513.DA371C385A9@smtp.kernel.org>
+Subject: + pagemappmem-introduce-memory_failure.patch added to mm-unstable branch
+Message-Id: <20220603180401.A065CC385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram_drv: add __GFP_NOMEMALLOC not to use ALLOC_NO_WATERMARKS
+     Subject: pagemap,pmem: introduce ->memory_failure()
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram_drv-add-__gfp_nomemalloc-not-to-use-alloc_no_watermarks.patch
+     pagemappmem-introduce-memory_failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram_drv-add-__gfp_nomemalloc-not-to-use-alloc_no_watermarks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pagemappmem-introduce-memory_failure.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,99 +69,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: zram_drv: add __GFP_NOMEMALLOC not to use ALLOC_NO_WATERMARKS
-Date: Fri, 3 Jun 2022 14:57:47 +0900
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: pagemap,pmem: introduce ->memory_failure()
+Date: Fri, 3 Jun 2022 13:37:27 +0800
 
-Atomic page allocation failures sometimes happen, and most of them seem to
-occur during boot time.
+When memory-failure occurs, we call this function which is implemented by
+each kind of devices.  For the fsdax case, pmem device driver implements
+it.  Pmem device driver will find out the filesystem in which the
+corrupted page located in.
 
-[   59.707645] system_server: page allocation failure: order:0, mode:0xa20(GFP_ATOMIC), nodemask=(null),cpuset=foreground-boost,mems_allowed=0
-[   59.707676] CPU: 5 PID: 1209 Comm: system_server Tainted: G S O      5.4.161-qgki-24219806-abA236USQU0AVE1 #1
-[   59.707691] Call trace:
-[   59.707702]  dump_backtrace.cfi_jt+0x0/0x4
-[   59.707712]  show_stack+0x18/0x24
-[   59.707719]  dump_stack+0xa4/0xe0
-[   59.707728]  warn_alloc+0x114/0x194
-[   59.707734]  __alloc_pages_slowpath+0x828/0x83c
-[   59.707740]  __alloc_pages_nodemask+0x2b4/0x310
-[   59.707747]  alloc_slab_page+0x40/0x5c8
-[   59.707753]  new_slab+0x404/0x420
-[   59.707759]  ___slab_alloc+0x224/0x3b0
-[   59.707765]  __kmalloc+0x37c/0x394
-[   59.707773]  context_struct_to_string+0x110/0x1b8
-[   59.707778]  context_add_hash+0x6c/0xc8
-[   59.707785]  security_compute_sid.llvm.13699573597798246927+0x508/0x5d8
-[   59.707792]  security_transition_sid+0x2c/0x38
-[   59.707804]  selinux_socket_create+0xa0/0xd8
-[   59.707811]  security_socket_create+0x68/0xbc
-[   59.707818]  __sock_create+0x8c/0x2f8
-[   59.707823]  __sys_socket+0x94/0x19c
-[   59.707829]  __arm64_sys_socket+0x20/0x30
-[   59.707836]  el0_svc_common+0x100/0x1e0
-[   59.707841]  el0_svc_handler+0x68/0x74
-[   59.707848]  el0_svc+0x8/0xc
-[   59.707853] Mem-Info:
-[   59.707890] active_anon:223569 inactive_anon:74412 isolated_anon:0
-[   59.707890]  active_file:51395 inactive_file:176622 isolated_file:0
-[   59.707890]  unevictable:1018 dirty:211 writeback:4 unstable:0
-[   59.707890]  slab_reclaimable:14398 slab_unreclaimable:61909
-[   59.707890]  mapped:134779 shmem:1231 pagetables:26706 bounce:0
-[   59.707890]  free:528 free_pcp:844 free_cma:147
-[   59.707900] Node 0 active_anon:894276kB inactive_anon:297648kB active_file:205580kB inactive_file:706488kB unevictable:4072kB isolated(anon):0kB isolated(file):0kB mapped:539116kB dirty:844kB writeback:16kB shmem:4924kB writeback_tmp:0kB unstable:0kB all_unreclaimable? no
-[   59.707912] Normal free:2112kB min:7244kB low:68892kB high:72180kB active_anon:893140kB inactive_anon:297660kB active_file:204740kB inactive_file:706396kB unevictable:4072kB writepending:860kB present:3626812kB managed:3288700kB mlocked:4068kB kernel_stack:62416kB shadow_call_stack:15656kB pagetables:106824kB bounce:0kB free_pcp:3372kB local_pcp:176kB free_cma:588kB
-[   59.707915] lowmem_reserve[]: 0 0
-[   59.707922] Normal: 8*4kB (H) 5*8kB (H) 13*16kB (H) 25*32kB (H) 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 1080kB
-[   59.707942] 242549 total pagecache pages
-[   59.707951] 12446 pages in swap cache
-[   59.707956] Swap cache stats: add 212408, delete 199969, find 36869/71571
-[   59.707961] Free swap  = 3445756kB
-[   59.707965] Total swap = 4194300kB
-[   59.707969] 906703 pages RAM
-[   59.707973] 0 pages HighMem/MovableOnly
-[   59.707978] 84528 pages reserved
-[   59.707982] 49152 pages cma reserved
+With dax_holder notify support, we are able to notify the memory failure
+from pmem driver to upper layers.  If there is something not support in
+the notify routine, memory_failure will fall back to the generic hanlder.
 
-The kswapd or other reclaim contexts may not prepare enough free pages for
-many atomic allocations occurring in a short time.  But zram may not be
-helpful for these atomic allocations even though zram is used to reclaim.
-
-To get one zs object for a specific size, zram may allocate several pages.
-And this can happen on different class sizes at the same time.  This
-means zram may consume more pages to reclaim only one page.  This
-inefficiency may cause consumption of all free pages below watermark min
-by a process having PF_MEMALLOC like kswapd.
-
-We can avoid this by adding __GFP_NOMEMALLOC.  A PF_MEMALLOC process won't
-use ALLOC_NO_WATERMARKS.
-
-Link: https://lkml.kernel.org/r/20220603055747.11694-1-jaewon31.kim@samsung.com
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Alexey Romanov <avromanov@sberdevices.ru>
-Cc: Sooyong Suk <s.suk@samsung.com>
-Cc: Yong-Taek Lee <ytk.lee@samsung.com>
+Link: https://lkml.kernel.org/r/20220603053738.1218681-4-ruansy.fnst@fujitsu.com
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Dan Williams <dan.j.wiliams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Ritesh Harjani <riteshh@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/nvdimm/pmem.c    |   17 +++++++++++++++++
+ include/linux/memremap.h |   12 ++++++++++++
+ mm/memory-failure.c      |   14 ++++++++++++++
+ 3 files changed, 43 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram_drv-add-__gfp_nomemalloc-not-to-use-alloc_no_watermarks
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1383,6 +1383,7 @@ static int __zram_bvec_write(struct zram
+--- a/drivers/nvdimm/pmem.c~pagemappmem-introduce-memory_failure
++++ a/drivers/nvdimm/pmem.c
+@@ -453,6 +453,21 @@ static void pmem_release_disk(void *__pm
+ 	blk_cleanup_disk(pmem->disk);
+ }
  
- 	handle = zs_malloc(zram->mem_pool, comp_len,
- 			__GFP_KSWAPD_RECLAIM |
-+			__GFP_NOMEMALLOC |
- 			__GFP_NOWARN |
- 			__GFP_HIGHMEM |
- 			__GFP_MOVABLE);
++static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
++		unsigned long pfn, unsigned long nr_pages, int mf_flags)
++{
++	struct pmem_device *pmem =
++			container_of(pgmap, struct pmem_device, pgmap);
++	u64 offset = PFN_PHYS(pfn) - pmem->phys_addr - pmem->data_offset;
++	u64 len = nr_pages << PAGE_SHIFT;
++
++	return dax_holder_notify_failure(pmem->dax_dev, offset, len, mf_flags);
++}
++
++static const struct dev_pagemap_ops fsdax_pagemap_ops = {
++	.memory_failure		= pmem_pagemap_memory_failure,
++};
++
+ static int pmem_attach_disk(struct device *dev,
+ 		struct nd_namespace_common *ndns)
+ {
+@@ -514,6 +529,7 @@ static int pmem_attach_disk(struct devic
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (is_nd_pfn(dev)) {
+ 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
++		pmem->pgmap.ops = &fsdax_pagemap_ops;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap);
+ 		pfn_sb = nd_pfn->pfn_sb;
+ 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
+@@ -527,6 +543,7 @@ static int pmem_attach_disk(struct devic
+ 		pmem->pgmap.range.end = res->end;
+ 		pmem->pgmap.nr_range = 1;
+ 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
++		pmem->pgmap.ops = &fsdax_pagemap_ops;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap);
+ 		pmem->pfn_flags |= PFN_MAP;
+ 		bb_range = pmem->pgmap.range;
+--- a/include/linux/memremap.h~pagemappmem-introduce-memory_failure
++++ a/include/linux/memremap.h
+@@ -87,6 +87,18 @@ struct dev_pagemap_ops {
+ 	 * the page back to a CPU accessible page.
+ 	 */
+ 	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
++
++	/*
++	 * Handle the memory failure happens on a range of pfns.  Notify the
++	 * processes who are using these pfns, and try to recover the data on
++	 * them if necessary.  The mf_flags is finally passed to the recover
++	 * function through the whole notify routine.
++	 *
++	 * When this is not implemented, or it returns -EOPNOTSUPP, the caller
++	 * will fall back to a common handler called mf_generic_kill_procs().
++	 */
++	int (*memory_failure)(struct dev_pagemap *pgmap, unsigned long pfn,
++			      unsigned long nr_pages, int mf_flags);
+ };
+ 
+ #define PGMAP_ALTMAP_VALID	(1 << 0)
+--- a/mm/memory-failure.c~pagemappmem-introduce-memory_failure
++++ a/mm/memory-failure.c
+@@ -1737,6 +1737,20 @@ static int memory_failure_dev_pagemap(un
+ 	if (!pgmap_pfn_valid(pgmap, pfn))
+ 		goto out;
+ 
++	/*
++	 * Call driver's implementation to handle the memory failure, otherwise
++	 * fall back to generic handler.
++	 */
++	if (pgmap->ops->memory_failure) {
++		rc = pgmap->ops->memory_failure(pgmap, pfn, 1, flags);
++		/*
++		 * Fall back to generic handler too if operation is not
++		 * supported inside the driver/device/filesystem.
++		 */
++		if (rc != -EOPNOTSUPP)
++			goto out;
++	}
++
+ 	rc = mf_generic_kill_procs(pfn, flags, pgmap);
+ out:
+ 	/* drop pgmap ref acquired in caller */
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
 
-zram_drv-add-__gfp_nomemalloc-not-to-use-alloc_no_watermarks.patch
+dax-introduce-holder-for-dax_device.patch
+mm-factor-helpers-for-memory_failure_dev_pagemap.patch
+pagemappmem-introduce-memory_failure.patch
+fsdax-introduce-dax_lock_mapping_entry.patch
+mm-introduce-mf_dax_kill_procs-for-fsdax-case.patch
+xfs-implement-notify_failure-for-xfs.patch
+fsdax-set-a-cow-flag-when-associate-reflink-mappings.patch
+fsdax-output-address-in-dax_iomap_pfn-and-rename-it.patch
+fsdax-introduce-dax_iomap_cow_copy.patch
+fsdax-replace-mmap-entry-in-case-of-cow.patch
+fsdax-add-dax_iomap_cow_copy-for-dax-zero.patch
+fsdax-dedup-file-range-to-use-a-compare-function.patch
+xfs-support-cow-in-fsdax-mode.patch
+xfs-add-dax-dedupe-support.patch
 
