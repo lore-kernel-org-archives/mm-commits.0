@@ -2,156 +2,189 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED85FC433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  4 Jun 2022 18:56:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B6ADC433EF
+	for <mm-commits@archiver.kernel.org>; Sat,  4 Jun 2022 19:01:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239751AbiFDS4m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 4 Jun 2022 14:56:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46564 "EHLO
+        id S239793AbiFDTBv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 4 Jun 2022 15:01:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239717AbiFDS4l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Jun 2022 14:56:41 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7978B4F47B;
-        Sat,  4 Jun 2022 11:56:40 -0700 (PDT)
+        with ESMTP id S239717AbiFDTBt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Jun 2022 15:01:49 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55FE54F470
+        for <mm-commits@vger.kernel.org>; Sat,  4 Jun 2022 12:01:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id F23F2B803F4;
-        Sat,  4 Jun 2022 18:56:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95743C385B8;
-        Sat,  4 Jun 2022 18:56:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 099B1B8013B
+        for <mm-commits@vger.kernel.org>; Sat,  4 Jun 2022 19:01:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90908C385B8;
+        Sat,  4 Jun 2022 19:01:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654368997;
-        bh=mVkKB5vr27GjXwNnkwRE61qgB0Z2AlvC/b553xv51hM=;
+        s=korg; t=1654369304;
+        bh=sijnNY3Fsy0gHUVS6oJK6MrXUr+IjCdkOP3UNqwuACI=;
         h=Date:To:From:Subject:From;
-        b=szCXQIyDWuwxafuAYM2LlqvI17AILC84tT/inYK4lz1xmGZrsKmMHEwwo6znQ2cfk
-         htq9/B09vft71DDe/n1aT6WejOMwNLfCkl8XucsheDcn60wQK0cQymhQUFb77aYP4P
-         DDjUvuskMR5na/sr6FB9rGs1iLJV03FsQRFfHTtc=
-Date:   Sat, 04 Jun 2022 11:56:36 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        naoya.horiguchi@nec.com, pizhenwei@bytedance.com,
+        b=U+SB4016ujBwM6YqbNrbXJ7R2DYopxHwQF0U+418YRgejlyVU9dti/WKh0C2l02WS
+         8LZbuM3PVf1LHyqBA57vgOqXoggGJRqDvpNQtn4dprhGw9RzN0VuOrJob66OdPkTRa
+         wr5CHUILqS8aZtzRJY7T9XtJZGLm7J0WdLqetmJo=
+Date:   Sat, 04 Jun 2022 12:01:43 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, corbet@lwn.net, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-dont-allow-to-unpoison-hw-corrupted-page.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220604185637.95743C385B8@smtp.kernel.org>
+Subject: [to-be-updated] mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch removed from -mm tree
+Message-Id: <20220604190144.90908C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/memory-failure: don't allow to unpoison hw corrupted page
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-dont-allow-to-unpoison-hw-corrupted-page.patch
+The quilt patch titled
+     Subject: mm: memcontrol: separate {pgscan,pgsteal}_{kswapd,direct} items in memory.stat of cgroup v2
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-dont-allow-to-unpoison-hw-corrupted-page.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: zhenwei pi <pizhenwei@bytedance.com>
-Subject: mm/memory-failure: don't allow to unpoison hw corrupted page
-Date: Sat, 4 Jun 2022 18:32:29 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: memcontrol: separate {pgscan,pgsteal}_{kswapd,direct} items in memory.stat of cgroup v2
+Date: Fri, 3 Jun 2022 15:04:23 +0800
 
-Currently unpoison_memory(unsigned long pfn) is designed for soft
-poison(hwpoison-inject) only.  Unpoisoning a hardware corrupted page puts
-page back buddy only, this leads BUG during accessing on the corrupted
-KPTE.
+There are already statistics of {pgscan,pgsteal}_kswapd and
+{pgscan,pgsteal}_direct of memcg event here, but now the sum of the two is
+displayed in memory.stat of cgroup v2.
 
-Do not allow to unpoison hardware corrupted page in unpoison_memory() to
-avoid BUG like this:
+In order to obtain more accurate information during monitoring and
+debugging, and to align with the display in /proc/vmstat, it better to
+display {pgscan,pgsteal}_kswapd and {pgscan,pgsteal}_direct separately.
 
- Unpoison: Software-unpoisoned page 0x61234
- BUG: unable to handle page fault for address: ffff888061234000
- #PF: supervisor write access in kernel mode
- #PF: error_code(0x0002) - not-present page
- PGD 2c01067 P4D 2c01067 PUD 107267063 PMD 10382b063 PTE 800fffff9edcb062
- Oops: 0002 [#1] PREEMPT SMP NOPTI
- CPU: 4 PID: 26551 Comm: stress Kdump: loaded Tainted: G   M       OE     5.18.0.bm.1-amd64 #7
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996) ...
- RIP: 0010:clear_page_erms+0x7/0x10
- Code: ...
- RSP: 0000:ffffc90001107bc8 EFLAGS: 00010246
- RAX: 0000000000000000 RBX: 0000000000000901 RCX: 0000000000001000
- RDX: ffffea0001848d00 RSI: ffffea0001848d40 RDI: ffff888061234000
- RBP: ffffea0001848d00 R08: 0000000000000901 R09: 0000000000001276
- R10: 0000000000000003 R11: 0000000000000000 R12: 0000000000000001
- R13: 0000000000000000 R14: 0000000000140dca R15: 0000000000000001
- FS:  00007fd8b2333740(0000) GS:ffff88813fd00000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: ffff888061234000 CR3: 00000001023d2005 CR4: 0000000000770ee0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- PKRU: 55555554
- Call Trace:
-  <TASK>
-  prep_new_page+0x151/0x170
-  get_page_from_freelist+0xca0/0xe20
-  ? sysvec_apic_timer_interrupt+0xab/0xc0
-  ? asm_sysvec_apic_timer_interrupt+0x1b/0x20
-  __alloc_pages+0x17e/0x340
-  __folio_alloc+0x17/0x40
-  vma_alloc_folio+0x84/0x280
-  __handle_mm_fault+0x8d4/0xeb0
-  handle_mm_fault+0xd5/0x2a0
-  do_user_addr_fault+0x1d0/0x680
-  ? kvm_read_and_reset_apf_flags+0x3b/0x50
-  exc_page_fault+0x78/0x170
-  asm_exc_page_fault+0x27/0x30
+Moreover, after this modification, all memcg events can be printed with a
+combination of vm_event_name() and memcg_events().  This allows us to
+create an array to traverse and print, which reduces redundant
+seq_buf_printf() codes.
 
-Link: https://lkml.kernel.org/r/20220604103229.3378591-1-pizhenwei@bytedance.com
-Signed-off-by: zhenwei pi <pizhenwei@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220603070423.10025-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/admin-guide/cgroup-v2.rst |   14 +++--
+ mm/memcontrol.c                         |   61 +++++++++-------------
+ 2 files changed, 36 insertions(+), 39 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-dont-allow-to-unpoison-hw-corrupted-page
-+++ a/mm/memory-failure.c
-@@ -2090,6 +2090,7 @@ int unpoison_memory(unsigned long pfn)
- {
- 	struct page *page;
- 	struct page *p;
-+	pte_t *kpte;
- 	int ret = -EBUSY;
- 	int freeit = 0;
- 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
-@@ -2101,6 +2102,13 @@ int unpoison_memory(unsigned long pfn)
- 	p = pfn_to_page(pfn);
- 	page = compound_head(p);
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1442,11 +1442,17 @@ PAGE_SIZE multiple when read back.
+ 	  pgrefill (npn)
+ 		Amount of scanned pages (in an active LRU list)
  
-+	kpte = virt_to_kpte((unsigned long)page_to_virt(p));
-+	if (kpte && !pte_present(*kpte)) {
-+		unpoison_pr_info("Unpoison: Page was hardware poisoned %#lx\n",
-+				 pfn, &unpoison_rs);
-+		return -EPERM;
-+	}
+-	  pgscan (npn)
+-		Amount of scanned pages (in an inactive LRU list)
++	  pgscan_kswapd (npn)
++		Amount of scanned pages by kswapd (in an inactive LRU list)
+ 
+-	  pgsteal (npn)
+-		Amount of reclaimed pages
++	  pgscan_direct (npn)
++		Amount of scanned pages directly  (in an inactive LRU list)
 +
- 	mutex_lock(&mf_mutex);
++	  pgsteal_kswapd (npn)
++		Amount of reclaimed pages by kswapd
++
++	  pgsteal_direct (npn)
++		Amount of reclaimed pages directly
  
- 	if (!PageHWPoison(p)) {
+ 	  pgactivate (npn)
+ 		Amount of pages moved to the active LRU list
+--- a/mm/memcontrol.c~mm-memcontrol-separate-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2
++++ a/mm/memcontrol.c
+@@ -1460,6 +1460,28 @@ static inline unsigned long memcg_page_s
+ 	return memcg_page_state(memcg, item) * memcg_page_state_unit(item);
+ }
+ 
++static const unsigned int memcg_vm_event_stat[] = {
++	PGFAULT,
++	PGMAJFAULT,
++	PGREFILL,
++	PGSCAN_KSWAPD,
++	PGSCAN_DIRECT,
++	PGSTEAL_KSWAPD,
++	PGSTEAL_DIRECT,
++	PGACTIVATE,
++	PGDEACTIVATE,
++	PGLAZYFREE,
++	PGLAZYFREED,
++#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
++	ZSWPIN,
++	ZSWPOUT,
++#endif
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	THP_FAULT_ALLOC,
++	THP_COLLAPSE_ALLOC,
++#endif
++};
++
+ static char *memory_stat_format(struct mem_cgroup *memcg)
+ {
+ 	struct seq_buf s;
+@@ -1495,41 +1517,10 @@ static char *memory_stat_format(struct m
+ 	}
+ 
+ 	/* Accumulated memory events */
+-
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGFAULT),
+-		       memcg_events(memcg, PGFAULT));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGMAJFAULT),
+-		       memcg_events(memcg, PGMAJFAULT));
+-	seq_buf_printf(&s, "%s %lu\n",  vm_event_name(PGREFILL),
+-		       memcg_events(memcg, PGREFILL));
+-	seq_buf_printf(&s, "pgscan %lu\n",
+-		       memcg_events(memcg, PGSCAN_KSWAPD) +
+-		       memcg_events(memcg, PGSCAN_DIRECT));
+-	seq_buf_printf(&s, "pgsteal %lu\n",
+-		       memcg_events(memcg, PGSTEAL_KSWAPD) +
+-		       memcg_events(memcg, PGSTEAL_DIRECT));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGACTIVATE),
+-		       memcg_events(memcg, PGACTIVATE));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGDEACTIVATE),
+-		       memcg_events(memcg, PGDEACTIVATE));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGLAZYFREE),
+-		       memcg_events(memcg, PGLAZYFREE));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGLAZYFREED),
+-		       memcg_events(memcg, PGLAZYFREED));
+-
+-#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPIN),
+-		       memcg_events(memcg, ZSWPIN));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPOUT),
+-		       memcg_events(memcg, ZSWPOUT));
+-#endif
+-
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(THP_FAULT_ALLOC),
+-		       memcg_events(memcg, THP_FAULT_ALLOC));
+-	seq_buf_printf(&s, "%s %lu\n", vm_event_name(THP_COLLAPSE_ALLOC),
+-		       memcg_events(memcg, THP_COLLAPSE_ALLOC));
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++)
++		seq_buf_printf(&s, "%s %lu\n",
++			       vm_event_name(memcg_vm_event_stat[i]),
++			       memcg_events(memcg, memcg_vm_event_stat[i]));
+ 
+ 	/* The above should easily fit into one page */
+ 	WARN_ON_ONCE(seq_buf_has_overflowed(&s));
 _
 
-Patches currently in -mm which might be from pizhenwei@bytedance.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-memory-failure-dont-allow-to-unpoison-hw-corrupted-page.patch
 
