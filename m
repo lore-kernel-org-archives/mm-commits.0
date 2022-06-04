@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD4FC433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  4 Jun 2022 19:02:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5064C43334
+	for <mm-commits@archiver.kernel.org>; Sat,  4 Jun 2022 19:05:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239832AbiFDTCn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 4 Jun 2022 15:02:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35856 "EHLO
+        id S239717AbiFDTFJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 4 Jun 2022 15:05:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239717AbiFDTCn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Jun 2022 15:02:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1D8955B0
-        for <mm-commits@vger.kernel.org>; Sat,  4 Jun 2022 12:02:41 -0700 (PDT)
+        with ESMTP id S239924AbiFDTFF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Jun 2022 15:05:05 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 459F6637B;
+        Sat,  4 Jun 2022 12:05:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8DFBB60F87
-        for <mm-commits@vger.kernel.org>; Sat,  4 Jun 2022 19:02:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEAD2C385B8;
-        Sat,  4 Jun 2022 19:02:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0B34AB802C6;
+        Sat,  4 Jun 2022 19:05:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA0E5C385B8;
+        Sat,  4 Jun 2022 19:05:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654369361;
-        bh=riEb4rqVxWUUgKl8aeMAkmHrutQbLg7zf/h70Q/n2o4=;
+        s=korg; t=1654369501;
+        bh=VE9DWAYBygq7VbVdUYJ+vmc7mgCTMyNU/Pzz0DVfgZE=;
         h=Date:To:From:Subject:From;
-        b=aXbEVufVpmxRH0PTThujrgikyF39if+BOJWBWzzkoSLFQeyW04WgXT0oKPEBmT7bh
-         ZL0yFQNLsZyx1R9YWApvzAGNCzCHLwUm4uHtl1QmBsMxCUOOjIO9curDBa7b0EfWLz
-         Fw/ldq2uS7d/RKmVP/sk/b+tyPhlkYKSdKYXSe8k=
-Date:   Sat, 04 Jun 2022 12:02:40 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@kernel.org,
-        hannes@cmpxchg.org, corbet@lwn.net, zhengqi.arch@bytedance.com,
+        b=hYJ5T7093xpGaKHrbc1XfZr6ydVinudcjNhxHBxUqq2XEfbSgF97fE8mHoVH3Am+n
+         ypF6gFMHFm+gHhQYKGQFLKYATDECP3dWWiWXpXuvBpp9bFUUhKa/wt8nphFuRz5YfJ
+         /BssYd1WZizCqyqd50AljbMGcK4BpwbAImqS5xk8=
+Date:   Sat, 04 Jun 2022 12:05:00 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        peterx@redhat.com, hughd@google.com, axelrasmussen@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-add-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch added to mm-unstable branch
-Message-Id: <20220604190240.DEAD2C385B8@smtp.kernel.org>
+Subject: + mm-userfaultfd-fix-uffdio_continue-on-fallocated-shmem-pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220604190501.AA0E5C385B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: add {pgscan,pgsteal}_{kswapd,direct} items in memory.stat of cgroup v2
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcontrol-add-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch
+     Subject: mm: userfaultfd: fix UFFDIO_CONTINUE on fallocated shmem pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-userfaultfd-fix-uffdio_continue-on-fallocated-shmem-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-add-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-fix-uffdio_continue-on-fallocated-shmem-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,141 +65,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memcontrol: add {pgscan,pgsteal}_{kswapd,direct} items in memory.stat of cgroup v2
-Date: Sat, 4 Jun 2022 16:22:09 +0800
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: mm: userfaultfd: fix UFFDIO_CONTINUE on fallocated shmem pages
+Date: Fri, 3 Jun 2022 13:57:41 -0700
 
-There are already statistics of {pgscan,pgsteal}_kswapd and
-{pgscan,pgsteal}_direct of memcg event here, but now only the sum of the
-two is displayed in memory.stat of cgroup v2.
+When fallocate() is used on a shmem file, the pages we allocate can end up
+with !PageUptodate.
 
-In order to obtain more accurate information during monitoring and
-debugging, and to align with the display in /proc/vmstat, it better to
-display {pgscan,pgsteal}_kswapd and {pgscan,pgsteal}_direct separately.
+Since UFFDIO_CONTINUE tries to find the existing page the user wants to
+map with SGP_READ, we would fail to find such a page, since
+shmem_getpage_gfp returns with a "NULL" pagep for SGP_READ if it discovers
+!PageUptodate.  As a result, UFFDIO_CONTINUE returns -EFAULT, as it would
+do if the page wasn't found in the page cache at all.
 
-Also, for forward compatibility, we still display pgscan and pgsteal items
-so that it won't break existing applications.
+This isn't the intended behavior.  UFFDIO_CONTINUE is just trying to find
+if a page exists, and doesn't care whether it still needs to be cleared or
+not.  So, instead of SGP_READ, pass in SGP_NOALLOC.  This is the same,
+except for one critical difference: in the !PageUptodate case, SGP_NOALLOC
+will clear the page and then return it.  With this change, UFFDIO_CONTINUE
+works properly (succeeds) on a shmem file which has been fallocated, but
+otherwise not modified.
 
-Link: https://lkml.kernel.org/r/20220604082209.55174-1-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20220603205741.12888-1-axelrasmussen@google.com
+Fixes: 153132571f02 ("userfaultfd/shmem: support UFFDIO_CONTINUE for shmem")
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   12 ++++
- mm/memcontrol.c                         |   54 ++++++++++------------
- 2 files changed, 38 insertions(+), 28 deletions(-)
+ mm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcontrol-add-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1445,9 +1445,21 @@ PAGE_SIZE multiple when read back.
- 	  pgscan (npn)
- 		Amount of scanned pages (in an inactive LRU list)
+--- a/mm/userfaultfd.c~mm-userfaultfd-fix-uffdio_continue-on-fallocated-shmem-pages
++++ a/mm/userfaultfd.c
+@@ -246,7 +246,7 @@ static int mcontinue_atomic_pte(struct m
+ 	struct page *page;
+ 	int ret;
  
-+	  pgscan_kswapd (npn)
-+		Amount of scanned pages by kswapd (in an inactive LRU list)
-+
-+	  pgscan_direct (npn)
-+		Amount of scanned pages directly  (in an inactive LRU list)
-+
- 	  pgsteal (npn)
- 		Amount of reclaimed pages
- 
-+	  pgsteal_kswapd (npn)
-+		Amount of reclaimed pages by kswapd
-+
-+	  pgsteal_direct (npn)
-+		Amount of reclaimed pages directly
-+
- 	  pgactivate (npn)
- 		Amount of pages moved to the active LRU list
- 
---- a/mm/memcontrol.c~mm-memcontrol-add-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2
-+++ a/mm/memcontrol.c
-@@ -1460,6 +1460,28 @@ static inline unsigned long memcg_page_s
- 	return memcg_page_state(memcg, item) * memcg_page_state_unit(item);
- }
- 
-+static const unsigned int memcg_vm_event_stat[] = {
-+	PGSCAN_KSWAPD,
-+	PGSCAN_DIRECT,
-+	PGSTEAL_KSWAPD,
-+	PGSTEAL_DIRECT,
-+	PGFAULT,
-+	PGMAJFAULT,
-+	PGREFILL,
-+	PGACTIVATE,
-+	PGDEACTIVATE,
-+	PGLAZYFREE,
-+	PGLAZYFREED,
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+	ZSWPIN,
-+	ZSWPOUT,
-+#endif
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	THP_FAULT_ALLOC,
-+	THP_COLLAPSE_ALLOC,
-+#endif
-+};
-+
- static char *memory_stat_format(struct mem_cgroup *memcg)
- {
- 	struct seq_buf s;
-@@ -1495,41 +1517,17 @@ static char *memory_stat_format(struct m
- 	}
- 
- 	/* Accumulated memory events */
--
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGFAULT),
--		       memcg_events(memcg, PGFAULT));
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGMAJFAULT),
--		       memcg_events(memcg, PGMAJFAULT));
--	seq_buf_printf(&s, "%s %lu\n",  vm_event_name(PGREFILL),
--		       memcg_events(memcg, PGREFILL));
- 	seq_buf_printf(&s, "pgscan %lu\n",
- 		       memcg_events(memcg, PGSCAN_KSWAPD) +
- 		       memcg_events(memcg, PGSCAN_DIRECT));
- 	seq_buf_printf(&s, "pgsteal %lu\n",
- 		       memcg_events(memcg, PGSTEAL_KSWAPD) +
- 		       memcg_events(memcg, PGSTEAL_DIRECT));
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGACTIVATE),
--		       memcg_events(memcg, PGACTIVATE));
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGDEACTIVATE),
--		       memcg_events(memcg, PGDEACTIVATE));
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGLAZYFREE),
--		       memcg_events(memcg, PGLAZYFREE));
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(PGLAZYFREED),
--		       memcg_events(memcg, PGLAZYFREED));
- 
--#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPIN),
--		       memcg_events(memcg, ZSWPIN));
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(ZSWPOUT),
--		       memcg_events(memcg, ZSWPOUT));
--#endif
--
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(THP_FAULT_ALLOC),
--		       memcg_events(memcg, THP_FAULT_ALLOC));
--	seq_buf_printf(&s, "%s %lu\n", vm_event_name(THP_COLLAPSE_ALLOC),
--		       memcg_events(memcg, THP_COLLAPSE_ALLOC));
--#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++)
-+		seq_buf_printf(&s, "%s %lu\n",
-+			       vm_event_name(memcg_vm_event_stat[i]),
-+			       memcg_events(memcg, memcg_vm_event_stat[i]));
- 
- 	/* The above should easily fit into one page */
- 	WARN_ON_ONCE(seq_buf_has_overflowed(&s));
+-	ret = shmem_getpage(inode, pgoff, &page, SGP_READ);
++	ret = shmem_getpage(inode, pgoff, &page, SGP_NOALLOC);
+ 	if (ret)
+ 		goto out;
+ 	if (!page) {
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-mm-memcontrol-add-pgscanpgsteal_kswapddirect-items-in-memorystat-of-cgroup-v2.patch
+mm-userfaultfd-fix-uffdio_continue-on-fallocated-shmem-pages.patch
 
