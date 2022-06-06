@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4B2FC433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Jun 2022 20:08:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ECB0C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Jun 2022 20:27:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233039AbiFFUII (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Jun 2022 16:08:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36676 "EHLO
+        id S233857AbiFFU1w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Jun 2022 16:27:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233030AbiFFUIG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2022 16:08:06 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E83B4FD0B
-        for <mm-commits@vger.kernel.org>; Mon,  6 Jun 2022 13:08:00 -0700 (PDT)
+        with ESMTP id S233967AbiFFU1d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2022 16:27:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA7A056760
+        for <mm-commits@vger.kernel.org>; Mon,  6 Jun 2022 13:26:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E7160B80E8B
-        for <mm-commits@vger.kernel.org>; Mon,  6 Jun 2022 20:07:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F4A1C385A9;
-        Mon,  6 Jun 2022 20:07:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6091D6155C
+        for <mm-commits@vger.kernel.org>; Mon,  6 Jun 2022 20:26:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A42E2C385A9;
+        Mon,  6 Jun 2022 20:26:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654546077;
-        bh=omCqP3aiofknZIz5DOX1QvzeEoZcjQmFesk8flYOCmA=;
+        s=korg; t=1654547183;
+        bh=dyBCxDZmirgaKgougssJsPQHsp/Z4SWaYxQFZhUnEVU=;
         h=Date:To:From:Subject:From;
-        b=aTaIp+34OSMxQ4MRScgn+U/4cLrmXkgNagapv9Lg5+GRbJ5KAzvtAVrXyghCowvpN
-         FBqT5694nRk1LmTKgHekWWkTnoVuPGsqAnaNVGLWXzNLWfoTd0jy0hLz+SbJNAVCp7
-         pKh+n+ug0tkmdH0WL0tlX6ZkW/9T5EyAcc+YJ6Jg=
-Date:   Mon, 06 Jun 2022 13:07:56 -0700
-To:     mm-commits@vger.kernel.org, urezki@gmail.com, npiggin@gmail.com,
-        bhe@redhat.com, akpm@linux-foundation.org
+        b=vEeH5EySI8mUodRdXyoxfWJOTwYVe7ggEu2QGaFmS1CZUn2PNB3Xy8dBrOME6Vguo
+         LXtT3EfX6ArztDEFYeLKx5r+R1khJIX0rLgweJmubHsEVEyz2e7nCYmuwb80D1kZog
+         VCy+Gllcq10bdQnea+pqDw5AzlALCqlHrnhDQoKw=
+Date:   Mon, 06 Jun 2022 13:26:22 -0700
+To:     mm-commits@vger.kernel.org, toke@redhat.com, paulmck@kernel.org,
+        lkp@intel.com, arnd@arndb.de, luc.vanoostenryck@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ioremap-rename-ioremap_page_range-to-ioremap_range.patch added to mm-unstable branch
-Message-Id: <20220606200757.7F4A1C385A9@smtp.kernel.org>
+Subject: + ia64-fix-sparse-warnings-with-cmpxchg-xchg.patch added to mm-nonmm-unstable branch
+Message-Id: <20220606202623.A42E2C385A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: ioremap: rename ioremap_page_range() to ioremap_range()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ioremap-rename-ioremap_page_range-to-ioremap_range.patch
+     Subject: ia64: fix sparse warnings with cmpxchg() & xchg()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ia64-fix-sparse-warnings-with-cmpxchg-xchg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ioremap-rename-ioremap_page_range-to-ioremap_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ia64-fix-sparse-warnings-with-cmpxchg-xchg.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,331 +65,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm: ioremap: rename ioremap_page_range() to ioremap_range()
-Date: Mon, 6 Jun 2022 16:39:09 +0800
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Subject: ia64: fix sparse warnings with cmpxchg() & xchg()
+Date: Sun, 5 Jun 2022 18:07:38 +0200
 
-Because the current ioremap_page_range() only maps IO address to kernel
-virtual address, no struct page pointer passed in or page handling
-related.  So rename it here.
+On IA64, new sparse's warnings where issued after fixing some __rcu
+annotations in kernel/bpf/.
 
-The renaming is done with below command:
-sed -i "s/ioremap_page_range/ioremap_range/g" `git grep -l ioremap_page_range`
+These new warnings are false positives and appear on IA64 because on this
+architecture, the macros for cmpxchg() and xchg() make casts that ignore
+sparse annotations.
 
-Link: https://lkml.kernel.org/r/20220606083909.363350-6-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+This patch contains the minimal patch to fix this issue: adding a missing
+cast and some missing '__force'.
+
+Link: https://lore.kernel.org/r/20220601120013.bq5a3ynbkc3hngm5@mail
+Link: https://lkml.kernel.org/r/20220605160738.79736-1-luc.vanoostenryck@gmail.com
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Paul E. McKenney <paulmck@kernel.org>
+Acked-by: Toke Høiland-Jørgensen <toke@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ia64/aliasing.rst  |    2 +-
- arch/alpha/kernel/proto.h        |    2 +-
- arch/arc/mm/ioremap.c            |    2 +-
- arch/arm/mm/ioremap.c            |    6 +++---
- arch/arm64/mm/ioremap.c          |    2 +-
- arch/hexagon/mm/ioremap.c        |    2 +-
- arch/ia64/mm/ioremap.c           |    2 +-
- arch/mips/loongson64/init.c      |    2 +-
- arch/mips/mm/ioremap.c           |    2 +-
- arch/openrisc/mm/ioremap.c       |    2 +-
- arch/parisc/mm/ioremap.c         |    2 +-
- arch/powerpc/kernel/isa-bridge.c |    2 +-
- arch/powerpc/kernel/pci_64.c     |    2 +-
- arch/powerpc/mm/ioremap.c        |    2 +-
- arch/s390/pci/pci.c              |    2 +-
- arch/sh/kernel/cpu/sh4/sq.c      |    2 +-
- arch/sh/mm/ioremap.c             |    2 +-
- arch/x86/mm/ioremap.c            |    2 +-
- arch/xtensa/mm/ioremap.c         |    2 +-
- drivers/pci/pci.c                |    2 +-
- include/linux/io.h               |    4 ++--
- mm/ioremap.c                     |    2 +-
- mm/vmalloc.c                     |    2 +-
- 23 files changed, 26 insertions(+), 26 deletions(-)
+ arch/ia64/include/uapi/asm/cmpxchg.h |   28 ++++++++++++-------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
---- a/arch/alpha/kernel/proto.h~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/alpha/kernel/proto.h
-@@ -187,7 +187,7 @@ __alpha_remap_area_pages(unsigned long a
+--- a/arch/ia64/include/uapi/asm/cmpxchg.h~ia64-fix-sparse-warnings-with-cmpxchg-xchg
++++ a/arch/ia64/include/uapi/asm/cmpxchg.h
+@@ -33,24 +33,24 @@ extern void ia64_xchg_called_with_bad_po
+ 									\
+ 	switch (size) {							\
+ 	case 1:								\
+-		__xchg_result = ia64_xchg1((__u8 *)ptr, x);		\
++		__xchg_result = ia64_xchg1((__u8 __force *)ptr, x);	\
+ 		break;							\
+ 									\
+ 	case 2:								\
+-		__xchg_result = ia64_xchg2((__u16 *)ptr, x);		\
++		__xchg_result = ia64_xchg2((__u16 __force *)ptr, x);	\
+ 		break;							\
+ 									\
+ 	case 4:								\
+-		__xchg_result = ia64_xchg4((__u32 *)ptr, x);		\
++		__xchg_result = ia64_xchg4((__u32 __force *)ptr, x);	\
+ 		break;							\
+ 									\
+ 	case 8:								\
+-		__xchg_result = ia64_xchg8((__u64 *)ptr, x);		\
++		__xchg_result = ia64_xchg8((__u64 __force *)ptr, x);	\
+ 		break;							\
+ 	default:							\
+ 		ia64_xchg_called_with_bad_pointer();			\
+ 	}								\
+-	__xchg_result;							\
++	(__typeof__ (*(ptr)) __force) __xchg_result;			\
+ })
  
- 	prot = __pgprot(_PAGE_VALID | _PAGE_ASM | _PAGE_KRE
- 			| _PAGE_KWE | flags);
--	return ioremap_page_range(address, address + size, phys_addr, prot);
-+	return ioremap_range(address, address + size, phys_addr, prot);
- }
+ #ifndef __KERNEL__
+@@ -76,42 +76,42 @@ extern long ia64_cmpxchg_called_with_bad
+ 									\
+ 	switch (size) {							\
+ 	case 1:								\
+-		_o_ = (__u8) (long) (old);				\
++		_o_ = (__u8) (long __force) (old);			\
+ 		break;							\
+ 	case 2:								\
+-		_o_ = (__u16) (long) (old);				\
++		_o_ = (__u16) (long __force) (old);			\
+ 		break;							\
+ 	case 4:								\
+-		_o_ = (__u32) (long) (old);				\
++		_o_ = (__u32) (long __force) (old);			\
+ 		break;							\
+ 	case 8:								\
+-		_o_ = (__u64) (long) (old);				\
++		_o_ = (__u64) (long __force) (old);			\
+ 		break;							\
+ 	default:							\
+ 		break;							\
+ 	}								\
+ 	switch (size) {							\
+ 	case 1:								\
+-		_r_ = ia64_cmpxchg1_##sem((__u8 *) ptr, new, _o_);	\
++		_r_ = ia64_cmpxchg1_##sem((__u8 __force *) ptr, new, _o_);	\
+ 		break;							\
+ 									\
+ 	case 2:								\
+-		_r_ = ia64_cmpxchg2_##sem((__u16 *) ptr, new, _o_);	\
++		_r_ = ia64_cmpxchg2_##sem((__u16 __force *) ptr, new, _o_);	\
+ 		break;							\
+ 									\
+ 	case 4:								\
+-		_r_ = ia64_cmpxchg4_##sem((__u32 *) ptr, new, _o_);	\
++		_r_ = ia64_cmpxchg4_##sem((__u32 __force *) ptr, new, _o_);	\
+ 		break;							\
+ 									\
+ 	case 8:								\
+-		_r_ = ia64_cmpxchg8_##sem((__u64 *) ptr, new, _o_);	\
++		_r_ = ia64_cmpxchg8_##sem((__u64 __force *) ptr, new, _o_);	\
+ 		break;							\
+ 									\
+ 	default:							\
+ 		_r_ = ia64_cmpxchg_called_with_bad_pointer();		\
+ 		break;							\
+ 	}								\
+-	(__typeof__(old)) _r_;						\
++	(__typeof__(old) __force) _r_;					\
+ })
  
- /* irq.c */
---- a/arch/arc/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/arc/mm/ioremap.c
-@@ -85,7 +85,7 @@ void __iomem *ioremap_prot(phys_addr_t p
- 		return NULL;
- 	area->phys_addr = paddr;
- 	vaddr = (unsigned long)area->addr;
--	if (ioremap_page_range(vaddr, vaddr + size, paddr, prot)) {
-+	if (ioremap_range(vaddr, vaddr + size, paddr, prot)) {
- 		vunmap((void __force *)vaddr);
- 		return NULL;
- 	}
---- a/arch/arm64/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/arm64/mm/ioremap.c
-@@ -52,7 +52,7 @@ static void __iomem *__ioremap_caller(ph
- 	addr = (unsigned long)area->addr;
- 	area->phys_addr = phys_addr;
- 
--	err = ioremap_page_range(addr, addr + size, phys_addr, prot);
-+	err = ioremap_range(addr, addr + size, phys_addr, prot);
- 	if (err) {
- 		vunmap((void *)addr);
- 		return NULL;
---- a/arch/arm/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/arm/mm/ioremap.c
-@@ -110,7 +110,7 @@ void __init add_static_vm_early(struct s
- int ioremap_page(unsigned long virt, unsigned long phys,
- 		 const struct mem_type *mtype)
- {
--	return ioremap_page_range(virt, virt + PAGE_SIZE, phys,
-+	return ioremap_range(virt, virt + PAGE_SIZE, phys,
- 				  __pgprot(mtype->prot_pte));
- }
- EXPORT_SYMBOL(ioremap_page);
-@@ -312,7 +312,7 @@ static void __iomem * __arm_ioremap_pfn_
- 		err = remap_area_sections(addr, pfn, size, type);
- 	} else
- #endif
--		err = ioremap_page_range(addr, addr + size, paddr,
-+		err = ioremap_range(addr, addr + size, paddr,
- 					 __pgprot(type->prot_pte));
- 
- 	if (err) {
-@@ -473,7 +473,7 @@ int pci_remap_iospace(const struct resou
- 	if (res->end > IO_SPACE_LIMIT)
- 		return -EINVAL;
- 
--	return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
-+	return ioremap_range(vaddr, vaddr + resource_size(res), phys_addr,
- 				  __pgprot(get_mem_type(pci_ioremap_mem_type)->prot_pte));
- }
- EXPORT_SYMBOL(pci_remap_iospace);
---- a/arch/hexagon/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/hexagon/mm/ioremap.c
-@@ -30,7 +30,7 @@ void __iomem *ioremap(unsigned long phys
- 	area = get_vm_area(size, VM_IOREMAP);
- 	addr = (unsigned long)area->addr;
- 
--	if (ioremap_page_range(addr, addr+size, phys_addr, prot)) {
-+	if (ioremap_range(addr, addr+size, phys_addr, prot)) {
- 		vunmap((void *)addr);
- 		return NULL;
- 	}
---- a/arch/ia64/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/ia64/mm/ioremap.c
-@@ -86,7 +86,7 @@ ioremap (unsigned long phys_addr, unsign
- 
- 		area->phys_addr = phys_addr;
- 		addr = (void __iomem *) area->addr;
--		if (ioremap_page_range((unsigned long) addr,
-+		if (ioremap_range((unsigned long) addr,
- 				(unsigned long) addr + size, phys_addr, prot)) {
- 			vunmap((void __force *) addr);
- 			return NULL;
---- a/arch/mips/loongson64/init.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/mips/loongson64/init.c
-@@ -162,7 +162,7 @@ static int __init add_legacy_isa_io(stru
- 
- 	vaddr = PCI_IOBASE + range->io_start;
- 
--	ioremap_page_range(vaddr, vaddr + size, hw_start, pgprot_device(PAGE_KERNEL));
-+	ioremap_range(vaddr, vaddr + size, hw_start, pgprot_device(PAGE_KERNEL));
- 
- 	return 0;
- }
---- a/arch/mips/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/mips/mm/ioremap.c
-@@ -101,7 +101,7 @@ void __iomem *ioremap_prot(phys_addr_t p
- 	vaddr = (unsigned long)area->addr;
- 
- 	flags |= _PAGE_GLOBAL | _PAGE_PRESENT | __READABLE | __WRITEABLE;
--	if (ioremap_page_range(vaddr, vaddr + size, phys_addr,
-+	if (ioremap_range(vaddr, vaddr + size, phys_addr,
- 			__pgprot(flags))) {
- 		free_vm_area(area);
- 		return NULL;
---- a/arch/openrisc/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/openrisc/mm/ioremap.c
-@@ -64,7 +64,7 @@ void __iomem *__ref ioremap(phys_addr_t
- 		fixmaps_used += (size >> PAGE_SHIFT);
- 	}
- 
--	if (ioremap_page_range(v, v + size, p,
-+	if (ioremap_range(v, v + size, p,
- 			__pgprot(pgprot_val(PAGE_KERNEL) | _PAGE_CI))) {
- 		if (likely(mem_init_done))
- 			vfree(area->addr);
---- a/arch/parisc/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/parisc/mm/ioremap.c
-@@ -80,7 +80,7 @@ void __iomem *ioremap(unsigned long phys
- 		return NULL;
- 
- 	addr = (void __iomem *) area->addr;
--	if (ioremap_page_range((unsigned long)addr, (unsigned long)addr + size,
-+	if (ioremap_range((unsigned long)addr, (unsigned long)addr + size,
- 			       phys_addr, pgprot)) {
- 		vunmap(addr);
- 		return NULL;
---- a/arch/powerpc/kernel/isa-bridge.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/powerpc/kernel/isa-bridge.c
-@@ -46,7 +46,7 @@ static void remap_isa_base(phys_addr_t p
- 	WARN_ON_ONCE(size & ~PAGE_MASK);
- 
- 	if (slab_is_available()) {
--		if (ioremap_page_range(ISA_IO_BASE, ISA_IO_BASE + size, pa,
-+		if (ioremap_range(ISA_IO_BASE, ISA_IO_BASE + size, pa,
- 				pgprot_noncached(PAGE_KERNEL)))
- 			vunmap_range(ISA_IO_BASE, ISA_IO_BASE + size);
- 	} else {
---- a/arch/powerpc/kernel/pci_64.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/powerpc/kernel/pci_64.c
-@@ -138,7 +138,7 @@ void __iomem *ioremap_phb(phys_addr_t pa
- 		return NULL;
- 
- 	addr = (unsigned long)area->addr;
--	if (ioremap_page_range(addr, addr + size, paddr,
-+	if (ioremap_range(addr, addr + size, paddr,
- 			pgprot_noncached(PAGE_KERNEL))) {
- 		vunmap_range(addr, addr + size);
- 		return NULL;
---- a/arch/powerpc/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/powerpc/mm/ioremap.c
-@@ -89,7 +89,7 @@ void __iomem *do_ioremap(phys_addr_t pa,
- 	area->phys_addr = pa;
- 	va = (unsigned long)area->addr;
- 
--	ret = ioremap_page_range(va, va + size, pa, prot);
-+	ret = ioremap_range(va, va + size, pa, prot);
- 	if (!ret)
- 		return (void __iomem *)area->addr + offset;
- 
---- a/arch/s390/pci/pci.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/s390/pci/pci.c
-@@ -252,7 +252,7 @@ static void __iomem *__ioremap(phys_addr
- 		return NULL;
- 
- 	vaddr = (unsigned long) area->addr;
--	if (ioremap_page_range(vaddr, vaddr + size, addr, prot)) {
-+	if (ioremap_range(vaddr, vaddr + size, addr, prot)) {
- 		free_vm_area(area);
- 		return NULL;
- 	}
---- a/arch/sh/kernel/cpu/sh4/sq.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/sh/kernel/cpu/sh4/sq.c
-@@ -110,7 +110,7 @@ static int __sq_remap(struct sq_mapping
- 
- 	vma->phys_addr = map->addr;
- 
--	if (ioremap_page_range((unsigned long)vma->addr,
-+	if (ioremap_range((unsigned long)vma->addr,
- 			       (unsigned long)vma->addr + map->size,
- 			       vma->phys_addr, prot)) {
- 		vunmap(vma->addr);
---- a/arch/sh/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/sh/mm/ioremap.c
-@@ -132,7 +132,7 @@ __ioremap_caller(phys_addr_t phys_addr,
- 	area->phys_addr = phys_addr;
- 	orig_addr = addr = (unsigned long)area->addr;
- 
--	if (ioremap_page_range(addr, addr + size, phys_addr, pgprot)) {
-+	if (ioremap_range(addr, addr + size, phys_addr, pgprot)) {
- 		vunmap((void *)orig_addr);
- 		return NULL;
- 	}
---- a/arch/x86/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/x86/mm/ioremap.c
-@@ -286,7 +286,7 @@ __ioremap_caller(resource_size_t phys_ad
- 	if (memtype_kernel_map_sync(phys_addr, size, pcm))
- 		goto err_free_area;
- 
--	if (ioremap_page_range(vaddr, vaddr + size, phys_addr, prot))
-+	if (ioremap_range(vaddr, vaddr + size, phys_addr, prot))
- 		goto err_free_area;
- 
- 	ret_addr = (void __iomem *) (vaddr + offset);
---- a/arch/xtensa/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/arch/xtensa/mm/ioremap.c
-@@ -33,7 +33,7 @@ static void __iomem *xtensa_ioremap(unsi
- 	vaddr = (unsigned long)area->addr;
- 	area->phys_addr = paddr;
- 
--	err = ioremap_page_range(vaddr, vaddr + size, paddr, prot);
-+	err = ioremap_range(vaddr, vaddr + size, paddr, prot);
- 
- 	if (err) {
- 		vunmap((void *)vaddr);
---- a/Documentation/ia64/aliasing.rst~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/Documentation/ia64/aliasing.rst
-@@ -165,7 +165,7 @@ ioremap()
- 
- 	If the granule contains non-WB memory, but we can cover the
- 	region safely with kernel page table mappings, we can use
--	ioremap_page_range() as most other architectures do.
-+	ioremap_range() as most other architectures do.
- 
- 	Failing all of the above, we have to fall back to a UC mapping.
- 
---- a/drivers/pci/pci.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/drivers/pci/pci.c
-@@ -4232,7 +4232,7 @@ int pci_remap_iospace(const struct resou
- 	if (res->end > IO_SPACE_LIMIT)
- 		return -EINVAL;
- 
--	return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
-+	return ioremap_range(vaddr, vaddr + resource_size(res), phys_addr,
- 				  pgprot_device(PAGE_KERNEL));
- #else
- 	/*
---- a/include/linux/io.h~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/include/linux/io.h
-@@ -21,10 +21,10 @@ void __ioread32_copy(void *to, const voi
- void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
- 
- #ifdef CONFIG_MMU
--int ioremap_page_range(unsigned long addr, unsigned long end,
-+int ioremap_range(unsigned long addr, unsigned long end,
- 		       phys_addr_t phys_addr, pgprot_t prot);
- #else
--static inline int ioremap_page_range(unsigned long addr, unsigned long end,
-+static inline int ioremap_range(unsigned long addr, unsigned long end,
- 				     phys_addr_t phys_addr, pgprot_t prot)
- {
- 	return 0;
---- a/mm/ioremap.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/mm/ioremap.c
-@@ -33,7 +33,7 @@ void __iomem *ioremap_prot(phys_addr_t a
- 		return NULL;
- 	vaddr = (unsigned long)area->addr;
- 
--	if (ioremap_page_range(vaddr, vaddr + size, addr, __pgprot(prot))) {
-+	if (ioremap_range(vaddr, vaddr + size, addr, __pgprot(prot))) {
- 		free_vm_area(area);
- 		return NULL;
- 	}
---- a/mm/vmalloc.c~mm-ioremap-rename-ioremap_page_range-to-ioremap_range
-+++ a/mm/vmalloc.c
-@@ -312,7 +312,7 @@ static int vmap_range_noflush(unsigned l
- 	return err;
- }
- 
--int ioremap_page_range(unsigned long addr, unsigned long end,
-+int ioremap_range(unsigned long addr, unsigned long end,
- 		phys_addr_t phys_addr, pgprot_t prot)
- {
- 	int err;
+ #define cmpxchg_acq(ptr, o, n)	\
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from luc.vanoostenryck@gmail.com are
 
-mm-vmalloc-remove-the-unnecessary-type-check.patch
-mm-vmalloc-remove-the-redundant-boundary-check.patch
-mm-vmalloc-fix-typo-in-local-variable-name.patch
-mm-vmalloc-add-code-comment-for-find_vmap_area_exceed_addr.patch
-mm-ioremap-rename-ioremap_page_range-to-ioremap_range.patch
+ia64-fix-sparse-warnings-with-cmpxchg-xchg.patch
 
