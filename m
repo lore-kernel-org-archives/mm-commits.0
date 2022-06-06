@@ -2,69 +2,198 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E45CCA47B
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Jun 2022 00:23:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB34DC43334
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Jun 2022 15:01:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351842AbiFFAXL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 5 Jun 2022 20:23:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46818 "EHLO
+        id S240274AbiFFPBT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Jun 2022 11:01:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351837AbiFFAXI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 5 Jun 2022 20:23:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 146A56389;
-        Sun,  5 Jun 2022 17:23:06 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9D064B80E16;
-        Mon,  6 Jun 2022 00:23:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 627D8C3411C;
-        Mon,  6 Jun 2022 00:23:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1654474984;
-        bh=F7JmaPT+TPdAAthcQrI5M/nMMgMa2A+xE2mclhXfsCY=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=JTEpta9OzdU+mCLSb92yge1m5KBLtOobIdjOs20v5NQg6Ppae5xauoHa/sTzJn43I
-         +5dYIJd41Nd3xkevfi7XWWAuVSHxiJw0kbtWVDWETufn3ItCTxyrhyvX0BH1dTvGjV
-         NsKYouxpJX3xM4rXCaGuUoswJ8ueu+T9HJ9fHllldm6wU+vFAyQ6I+lejpQwZ7B11+
-         UbaDF/rzEo4uuDy+rE/FYM61PK5OQ4GfBkBfPxLPHbSUSuz9pflStuGWFArYztD7eH
-         lBtJsbbj5irgdjVRKZl7VIbJCeI2pgSY0xac8LZCOIOxA4tRbtkB/aHiKrv50DIRWg
-         iyb8cZIItpRVA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 4C667F03875;
-        Mon,  6 Jun 2022 00:23:04 +0000 (UTC)
-Subject: Re: [GIT PULL] final non-MM work for 5.19-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20220605113800.83dfb5ac57ba1f0f64552d9f@linux-foundation.org>
-References: <20220605113800.83dfb5ac57ba1f0f64552d9f@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20220605113800.83dfb5ac57ba1f0f64552d9f@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2022-06-05
-X-PR-Tracked-Commit-Id: 662ce1dc9caf493c309200edbe38d186f1ea20d0
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: e17fee8976c3d2ccf9add6d6c8912a37b025d840
-Message-Id: <165447498430.29908.10648017095522967533.pr-tracker-bot@kernel.org>
-Date:   Mon, 06 Jun 2022 00:23:04 +0000
+        with ESMTP id S240246AbiFFPBL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2022 11:01:11 -0400
+Received: from out01.mta.xmission.com (out01.mta.xmission.com [166.70.13.231])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CED9B32162D
+        for <mm-commits@vger.kernel.org>; Mon,  6 Jun 2022 08:01:04 -0700 (PDT)
+Received: from in01.mta.xmission.com ([166.70.13.51]:38756)
+        by out01.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1nyEE3-003fQb-5Y; Mon, 06 Jun 2022 09:01:03 -0600
+Received: from ip68-227-174-4.om.om.cox.net ([68.227.174.4]:32976 helo=email.froward.int.ebiederm.org.xmission.com)
+        by in01.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1nyEE0-007Mai-QS; Mon, 06 Jun 2022 09:01:02 -0600
+From:   "Eric W. Biederman" <ebiederm@xmission.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
+Cc:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+        peterz@infradead.org, mathieu.desnoyers@polymtl.ca,
+        keescook@chromium.org, elver@google.com, axboe@kernel.dk,
+        pmladek@suse.com
+References: <20220315235159.4ED42C340E8@smtp.kernel.org>
+Date:   Mon, 06 Jun 2022 10:00:54 -0500
+In-Reply-To: <20220315235159.4ED42C340E8@smtp.kernel.org> (Andrew Morton's
+        message of "Tue, 15 Mar 2022 16:51:58 -0700")
+Message-ID: <87y1y94z15.fsf@email.froward.int.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain
+X-XM-SPF: eid=1nyEE0-007Mai-QS;;;mid=<87y1y94z15.fsf@email.froward.int.ebiederm.org>;;;hst=in01.mta.xmission.com;;;ip=68.227.174.4;;;frm=ebiederm@xmission.com;;;spf=softfail
+X-XM-AID: U2FsdGVkX1+g6dA1sui0moUveyuIccydr7wtsX1jHZ4=
+X-SA-Exim-Connect-IP: 68.227.174.4
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: +
+ kthread-make-it-clear-that-kthread_create_on_node-might-be-terminated-by-any-fatal-signal.patch
+ added to -mm tree
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Sun, 5 Jun 2022 11:38:00 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2022-06-05
+Andrew are you still planning to push this comment fix upstream?
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/e17fee8976c3d2ccf9add6d6c8912a37b025d840
+Eric
 
-Thank you!
+Andrew Morton <akpm@linux-foundation.org> writes:
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+> The patch titled
+>      Subject: kthread: make it clear that kthread_create_on_node() might be terminated by any fatal signal
+> has been added to the -mm tree.  Its filename is
+>      kthread-make-it-clear-that-kthread_create_on_node-might-be-terminated-by-any-fatal-signal.patch
+>
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/kthread-make-it-clear-that-kthread_create_on_node-might-be-terminated-by-any-fatal-signal.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/kthread-make-it-clear-that-kthread_create_on_node-might-be-terminated-by-any-fatal-signal.patch
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+>
+> ------------------------------------------------------
+> From: Petr Mladek <pmladek@suse.com>
+> Subject: kthread: make it clear that kthread_create_on_node() might be terminated by any fatal signal
+>
+> The comments in kernel/kthread.c create a feeling that only SIGKILL is
+> able to terminate the creation of kernel kthreads by
+> kthread_create()/_on_node()/_on_cpu() APIs.
+>
+> In reality, wait_for_completion_killable() might be killed by any fatal
+> signal that does not have a custom handler:
+>
+> 	(!siginmask(signr, SIG_KERNEL_IGNORE_MASK|SIG_KERNEL_STOP_MASK) && \
+> 	 (t)->sighand->action[(signr)-1].sa.sa_handler == SIG_DFL)
+>
+> static inline void signal_wake_up(struct task_struct *t, bool resume)
+> {
+> 	signal_wake_up_state(t, resume ? TASK_WAKEKILL : 0);
+> }
+>
+> static void complete_signal(int sig, struct task_struct *p, enum pid_type type)
+> {
+> [...]
+> 	/*
+> 	 * Found a killable thread.  If the signal will be fatal,
+> 	 * then start taking the whole group down immediately.
+> 	 */
+> 	if (sig_fatal(p, sig) ...) {
+> 		if (!sig_kernel_coredump(sig)) {
+> 		[...]
+> 			do {
+> 				task_clear_jobctl_pending(t, JOBCTL_PENDING_MASK);
+> 				sigaddset(&t->pending.signal, SIGKILL);
+> 				signal_wake_up(t, 1);
+> 			} while_each_thread(p, t);
+> 			return;
+> 		}
+> 	}
+> }
+>
+> Update the comments in kernel/kthread.c to make this more obvious.
+>
+> The motivation for this change was debugging why a module initialization
+> failed.  The module was being loaded from initrd.  It "magically" failed
+> when systemd was switching to the real root.  The clean up operations sent
+> SIGTERM to various pending processed that were started from initrd.
+>
+> Link: https://lkml.kernel.org/r/20220315102444.2380-1-pmladek@suse.com
+> Signed-off-by: Petr Mladek <pmladek@suse.com>
+> Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: Marco Elver <elver@google.com>
+> Cc: Jens Axboe <axboe@kernel.dk>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  kernel/kthread.c |   14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+>
+> --- a/kernel/kthread.c~kthread-make-it-clear-that-kthread_create_on_node-might-be-terminated-by-any-fatal-signal
+> +++ a/kernel/kthread.c
+> @@ -341,7 +341,7 @@ static int kthread(void *_create)
+>  
+>  	self = to_kthread(current);
+>  
+> -	/* If user was SIGKILLed, I release the structure. */
+> +	/* Release the structure when caller killed by a fatal signal. */
+>  	done = xchg(&create->done, NULL);
+>  	if (!done) {
+>  		kfree(create);
+> @@ -399,7 +399,7 @@ static void create_kthread(struct kthrea
+>  	/* We want our own signal handler (we take no signals by default). */
+>  	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
+>  	if (pid < 0) {
+> -		/* If user was SIGKILLed, I release the structure. */
+> +		/* Release the structure when caller killed by a fatal signal. */
+>  		struct completion *done = xchg(&create->done, NULL);
+>  
+>  		if (!done) {
+> @@ -441,9 +441,9 @@ struct task_struct *__kthread_create_on_
+>  	 */
+>  	if (unlikely(wait_for_completion_killable(&done))) {
+>  		/*
+> -		 * If I was SIGKILLed before kthreadd (or new kernel thread)
+> -		 * calls complete(), leave the cleanup of this structure to
+> -		 * that thread.
+> +		 * If I was killed by a fatal signal before kthreadd (or new
+> +		 * kernel thread) calls complete(), leave the cleanup of this
+> +		 * structure to that thread.
+>  		 */
+>  		if (xchg(&create->done, NULL))
+>  			return ERR_PTR(-EINTR);
+> @@ -877,7 +877,7 @@ fail_task:
+>   *
+>   * Returns a pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
+>   * when the needed structures could not get allocated, and ERR_PTR(-EINTR)
+> - * when the worker was SIGKILLed.
+> + * when the caller was killed by a fatal signal.
+>   */
+>  struct kthread_worker *
+>  kthread_create_worker(unsigned int flags, const char namefmt[], ...)
+> @@ -926,7 +926,7 @@ EXPORT_SYMBOL(kthread_create_worker);
+>   * Return:
+>   * The pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
+>   * when the needed structures could not get allocated, and ERR_PTR(-EINTR)
+> - * when the worker was SIGKILLed.
+> + * when the caller was killed by a fatal signal.
+>   */
+>  struct kthread_worker *
+>  kthread_create_worker_on_cpu(int cpu, unsigned int flags,
+> _
+>
+> Patches currently in -mm which might be from pmladek@suse.com are
+>
+> kthread-make-it-clear-that-kthread_create_on_node-might-be-terminated-by-any-fatal-signal.patch
