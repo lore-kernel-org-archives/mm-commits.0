@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2AC4C43334
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 01:10:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 288CCCCA47C
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 01:10:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376532AbiFHBKM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Jun 2022 21:10:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49066 "EHLO
+        id S1376379AbiFHBKH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Jun 2022 21:10:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1588587AbiFGXys (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2022 19:54:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7B58F7FAB
-        for <mm-commits@vger.kernel.org>; Tue,  7 Jun 2022 16:15:28 -0700 (PDT)
+        with ESMTP id S1588477AbiFGXym (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2022 19:54:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C3B54FC47
+        for <mm-commits@vger.kernel.org>; Tue,  7 Jun 2022 16:11:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5AD2CB8245D
-        for <mm-commits@vger.kernel.org>; Tue,  7 Jun 2022 23:15:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D90C3411E;
-        Tue,  7 Jun 2022 23:15:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2C8F66164B
+        for <mm-commits@vger.kernel.org>; Tue,  7 Jun 2022 23:11:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81497C3411C;
+        Tue,  7 Jun 2022 23:11:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654643726;
-        bh=nvfKYLzVT5gRGo6fQjlaCAO74kylFbhO6T2SYsH7dRg=;
+        s=korg; t=1654643480;
+        bh=G6jM77yz41C7p279PkfKdtNwn4pk5wfmdK7yOW5d864=;
         h=Date:To:From:Subject:From;
-        b=HZvAS0NEINxhQCp25SJSfjuhGkTB+0YgF3IwsUnNpp/xGA07jBvz5FrBtfwo8CueM
-         vst9MO8iP18RNIx3ny6F2C+DYdArfI6okyUa9mN++V7xx/uJozyZxiwJfpY7jTJqE+
-         srp5wwRNWC66dLUTU7jabs77o8eqSnPSa7sYMYAQ=
-Date:   Tue, 07 Jun 2022 16:15:25 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=KoTqkcKnpW2gK3Xh+aEZuCs3Gk042aLL+fQap0kP6o1zV9yShW8827CFcgu4ME4F+
+         d8RuR5c5xUCaoZLWT4AJI8V+SzyuMcQnkmDqMnJpHJg/VyQTM1jLm8JDj6Z5Ns4sLx
+         GHGoJ26vO3kfGh3fMMV0sJ9HzABPR6724ZOQhQt4=
+Date:   Tue, 07 Jun 2022 16:11:19 -0700
+To:     mm-commits@vger.kernel.org, Liam.Howlett@Oracle.com,
+        lukas.bulwahn@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple-tree-add-new-data-structure-fix-6.patch added to mm-unstable branch
-Message-Id: <20220607231525.F1D90C3411E@smtp.kernel.org>
+Subject: + maple-tree-add-new-data-structure-fix-5.patch added to mm-unstable branch
+Message-Id: <20220607231120.81497C3411C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: cleanup for checkpatch
+     Subject: MAINTAINERS: remove an obvious typo in MAPLE TREE
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple-tree-add-new-data-structure-fix-6.patch
+     maple-tree-add-new-data-structure-fix-5.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-6.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-5.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,540 +64,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: cleanup for checkpatch
-Date: Thu, 19 May 2022 13:48:49 -0400
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: MAINTAINERS: remove an obvious typo in MAPLE TREE
+Date: Tue, 7 Jun 2022 08:38:34 +0200
 
-Remove px now that no_hash_pointers exists.
-Fix whitespace issues
-Fix semicolons on defines
+Commit c6e2362e9289 ("Maple Tree: add new data structure") adds the maple
+tree and a corresponding MAINTAINERS section, but slips in an obvious
+typo.
 
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Hence, ./scripts/get_maintainer.pl --self-test=patterns complains about a
+broken reference.
+
+Remove this obvious typo in MAPLE TREE.
+
+Link: https://lkml.kernel.org/r/20220607063834.7004-1-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h                         |    2 
- include/trace/events/maple_tree.h                  |    6 
- lib/maple_tree.c                                   |  141 +++++------
- tools/testing/radix-tree/linux/maple_tree.h        |    2 
- tools/testing/radix-tree/trace/events/maple_tree.h |    8 
- 5 files changed, 78 insertions(+), 81 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/maple_tree.h~maple-tree-add-new-data-structure-fix-6
-+++ a/include/linux/maple_tree.h
-@@ -189,7 +189,7 @@ enum maple_type {
- typedef struct lockdep_map *lockdep_map_p;
- #define mt_lock_is_held(mt)	lock_is_held(mt->ma_external_lock)
- #define mt_set_external_lock(mt, lock)					\
--	(mt)->ma_external_lock = &(lock)->dep_map;
-+	(mt)->ma_external_lock = &(lock)->dep_map
- #else
- typedef struct { /* nothing */ } lockdep_map_p;
- #define mt_lock_is_held(mt)	1
---- a/include/trace/events/maple_tree.h~maple-tree-add-new-data-structure-fix-6
-+++ a/include/trace/events/maple_tree.h
-@@ -34,7 +34,7 @@ TRACE_EVENT(ma_op,
- 			__entry->node		= mas->node;
- 	),
+--- a/MAINTAINERS~maple-tree-add-new-data-structure-fix-5
++++ a/MAINTAINERS
+@@ -11790,7 +11790,7 @@ F:	include/linux/maple_tree.h
+ F:	include/trace/events/maple_tree.h
+ F:	lib/maple_tree.c
+ F:	lib/test_maple_tree.c
+-F:	tools/testing/_adix-tree/linux/maple_tree.h
++F:	tools/testing/radix-tree/linux/maple_tree.h
+ F:	tools/testing/radix-tree/maple.c
  
--	TP_printk("%s\tNode: %px (%lu %lu) range: %lu-%lu",
-+	TP_printk("%s\tNode: %p (%lu %lu) range: %lu-%lu",
- 		  __entry->fn,
- 		  (void *) __entry->node,
- 		  (unsigned long) __entry->min,
-@@ -67,7 +67,7 @@ TRACE_EVENT(ma_read,
- 			__entry->node		= mas->node;
- 	),
- 
--	TP_printk("%s\tNode: %px (%lu %lu) range: %lu-%lu",
-+	TP_printk("%s\tNode: %p (%lu %lu) range: %lu-%lu",
- 		  __entry->fn,
- 		  (void *) __entry->node,
- 		  (unsigned long) __entry->min,
-@@ -106,7 +106,7 @@ TRACE_EVENT(ma_write,
- 			__entry->node		= mas->node;
- 	),
- 
--	TP_printk("%s\tNode %px (%lu %lu) range:%lu-%lu piv (%lu) val %px",
-+	TP_printk("%s\tNode %p (%lu %lu) range:%lu-%lu piv (%lu) val %p",
- 		  __entry->fn,
- 		  (void *) __entry->node,
- 		  (unsigned long) __entry->min,
---- a/lib/maple_tree.c~maple-tree-add-new-data-structure-fix-6
-+++ a/lib/maple_tree.c
-@@ -294,7 +294,7 @@ static inline struct maple_node *mas_mn(
- static inline void mte_set_node_dead(struct maple_enode *mn)
- {
- 	mte_to_node(mn)->parent = ma_parent_ptr(mte_to_node(mn));
--	smp_wmb();
-+	smp_wmb(); /* Needed for RCU */
- }
- 
- /* Bit 1 indicates the root is a node */
-@@ -469,7 +469,7 @@ void mte_set_parent(struct maple_enode *
- 	BUG_ON(p_type == maple_dense);
- 	BUG_ON(p_type == maple_leaf_64);
- 
--	switch(p_type) {
-+	switch (p_type) {
- 	case maple_range_64:
- 	case maple_arange_64:
- 		shift = MAPLE_PARENT_SLOT_SHIFT;
-@@ -664,7 +664,7 @@ static inline unsigned long mte_pivot(co
- {
- 	struct maple_node *node = mte_to_node(mn);
- 
--	if(piv >= mt_pivots[piv]) {
-+	if (piv >= mt_pivots[piv]) {
- 		WARN_ON(1);
- 		return 0;
- 	}
-@@ -1657,7 +1657,7 @@ static inline void mas_adopt_children(st
- 	do {
- 		child = mas_slot_locked(mas, slots, offset);
- 		mte_set_parent(child, parent, offset);
--	} while(offset--);
-+	} while (offset--);
- }
- 
- /*
-@@ -2654,7 +2654,7 @@ static inline void mas_wmb_replace(struc
- 				   struct ma_topiary *destroy)
- {
- 	/* All nodes must see old data as dead prior to replacing that data */
--	smp_wmb();
-+	smp_wmb(); /* Needed for RCU */
- 
- 	/* Insert the new data in the tree */
- 	mas_replace(mas, true);
-@@ -2677,7 +2677,7 @@ static inline void mas_wmb_replace(struc
-  * mast_new_root() - Set a new tree root during subtree creation
-  * @mast: The maple subtree state
-  * @mas: The maple state
-- * */
-+ */
- static inline void mast_new_root(struct maple_subtree_state *mast,
- 				 struct ma_state *mas)
- {
-@@ -2827,7 +2827,7 @@ static inline void *mtree_range_walk(str
- 
- 		do {
- 			offset++;
--		} while((offset < end) && (pivots[offset] < mas->index));
-+		} while ((offset < end) && (pivots[offset] < mas->index));
- 
- 		prev_min = min;
- 		min = pivots[offset - 1] + 1;
-@@ -3279,7 +3279,7 @@ static inline void mast_split_data(struc
- 	mast->l->max = mast->bn->pivot[split];
- 	mast->r->min = mast->l->max + 1;
- 	if (mte_is_leaf(mas->node))
--	    return;
-+		return;
- 
- 	p_slot = mast->orig_l->offset;
- 	mas_set_split_parent(mast->orig_l, mast->l->node, mast->r->node,
-@@ -3476,11 +3476,10 @@ static inline bool mas_reuse_node(struct
- 		return false;
- 
- 	if (end > bn->b_end) {
--			int clear = mt_slots[wr_mas->type] - bn->b_end;
--			memset(wr_mas->slots + bn->b_end, 0,
--			       sizeof(void *) * clear--);
--			memset(wr_mas->pivots + bn->b_end, 0,
--			       sizeof(void *) * clear);
-+		int clear = mt_slots[wr_mas->type] - bn->b_end;
-+
-+		memset(wr_mas->slots + bn->b_end, 0, sizeof(void *) * clear--);
-+		memset(wr_mas->pivots + bn->b_end, 0, sizeof(void *) * clear);
- 	}
- 	mab_mas_cp(bn, 0, bn->b_end, wr_mas->mas, false);
- 	return true;
-@@ -3788,7 +3787,7 @@ static inline void *mtree_lookup_walk(st
- 
- 		do {
- 			offset++;
--		} while((offset < end) && (pivots[offset] < mas->index));
-+		} while ((offset < end) && (pivots[offset] < mas->index));
- 
- 		if (likely(offset > end))
- 			max = pivots[offset];
-@@ -4107,7 +4106,7 @@ static inline bool mas_wr_slot_store(str
- 	/* Overwriting a portion of offset and all of offset + 1 */
- 	if ((offset + 1 < mt_pivots[wr_mas->type]) &&
- 	    (wr_mas->entry || wr_mas->pivots[offset + 1]))
--			wr_mas->pivots[offset + 1] = mas->last;
-+		wr_mas->pivots[offset + 1] = mas->last;
- 
- 	rcu_assign_pointer(wr_mas->slots[offset + 1], wr_mas->entry);
- 	wr_mas->pivots[offset] = mas->index - 1;
-@@ -4227,9 +4226,9 @@ static inline void mas_wr_modify(struct
- 
- 	if (wr_mas->entry && (wr_mas->node_end < node_slots - 1) &&
- 	    (mas->offset == wr_mas->node_end) && mas_wr_append(wr_mas)) {
--			if (!wr_mas->content || !wr_mas->entry)
--				mas_update_gap(mas);
--			return;
-+		if (!wr_mas->content || !wr_mas->entry)
-+			mas_update_gap(mas);
-+		return;
- 	}
- 
- 	if ((wr_mas->offset_end - mas->offset <= 1) && mas_wr_slot_store(wr_mas))
-@@ -4258,8 +4257,8 @@ static inline void *mas_wr_store_entry(s
- {
- 	struct ma_state *mas = wr_mas->mas;
- 
--	if ((wr_mas->content = mas_start(mas)) || mas_is_none(mas) ||
--	    mas_is_ptr(mas)) {
-+	wr_mas->content = mas_start(mas);
-+	if (mas_is_none(mas) || mas_is_ptr(mas)) {
- 		mas_store_root(mas, wr_mas->entry);
- 		return wr_mas->content;
- 	}
-@@ -4770,7 +4769,7 @@ static bool mas_rev_awalk(struct ma_stat
- 	unsigned char offset;
- 
- 	if (unlikely(mas_is_err(mas)))
--	    return true;
-+		return true;
- 
- 	if (ma_is_dense(type)) {
- 		/* dense nodes. */
-@@ -5117,13 +5116,12 @@ int mas_empty_area(struct ma_state *mas,
- 	unsigned long *pivots;
- 	enum maple_type mt;
- 
--	if (mas_is_start(mas)) {
-+	if (mas_is_start(mas))
- 		mas_start(mas);
--	} else if (mas->offset >= 2) {
-+	else if (mas->offset >= 2)
- 		mas->offset -= 2;
--	} else if (!mas_skip_node(mas)) {
-+	else if (!mas_skip_node(mas))
- 		return -EBUSY;
--	}
- 
- 	/* Empty set */
- 	if (mas_is_none(mas) || mas_is_ptr(mas)) {
-@@ -5309,7 +5307,7 @@ unsigned char mas_dead_leaves(struct ma_
- 			break;
- 
- 		mte_set_node_dead(entry);
--		smp_wmb();
-+		smp_wmb(); /* Needed for RCU */
- 		node->type = type;
- 		rcu_assign_pointer(slots[offset], node);
- 	}
-@@ -5508,7 +5506,7 @@ void *mas_store(struct ma_state *mas, vo
- 	trace_ma_write(__func__, mas, 0, entry);
- #ifdef CONFIG_DEBUG_MAPLE_TREE
- 	if (mas->index > mas->last)
--		printk("Error %lu > %lu %p\n", mas->index, mas->last, entry);
-+		pr_err("Error %lu > %lu %p\n", mas->index, mas->last, entry);
- 	MT_BUG_ON(mas->tree, mas->index > mas->last);
- 	if (mas->index > mas->last) {
- 		mas_set_err(mas, -EINVAL);
-@@ -5555,7 +5553,7 @@ retry:
- }
- 
- /**
-- * mas_store_prealloc() - Store a value into the tree using memeory
-+ * mas_store_prealloc() - Store a value into the tree using memory
-  * preallocated in the maple state.
-  * @mas: The maple state
-  * @entry: The entry to store.
-@@ -6315,7 +6313,7 @@ unlock:
- 		*index = mas.last + 1;
- #ifdef CONFIG_DEBUG_MAPLE_TREE
- 		if ((*index) && (*index) <= copy)
--			printk("index not increased! %lx <= %lx\n",
-+			pr_err("index not increased! %lx <= %lx\n",
- 			       *index, copy);
- 		MT_BUG_ON(mt, (*index) && ((*index) <= copy));
- #endif
-@@ -6365,19 +6363,19 @@ unsigned long mt_get_alloc_size(void)
- }
- 
- extern void kmem_cache_zero_nr_tallocated(struct kmem_cache *);
--void mt_zero_nr_tallocated()
-+void mt_zero_nr_tallocated(void)
- {
- 	kmem_cache_zero_nr_tallocated(maple_node_cache);
- }
- 
- extern unsigned int kmem_cache_nr_tallocated(struct kmem_cache *);
--unsigned int mt_nr_tallocated()
-+unsigned int mt_nr_tallocated(void)
- {
- 	return kmem_cache_nr_tallocated(maple_node_cache);
- }
- 
- extern unsigned int kmem_cache_nr_allocated(struct kmem_cache *);
--unsigned int mt_nr_allocated()
-+unsigned int mt_nr_allocated(void)
- {
- 	return kmem_cache_nr_allocated(maple_node_cache);
- }
-@@ -6392,20 +6390,16 @@ unsigned int mt_nr_allocated()
-  */
- static inline int mas_dead_node(struct ma_state *mas, unsigned long index)
- {
--       if (unlikely(!mas_searchable(mas) || mas_is_start(mas)))
--               return 0;
-+	if (unlikely(!mas_searchable(mas) || mas_is_start(mas)))
-+		return 0;
- 
--       if (likely(!mte_dead_node(mas->node)))
--               return 0;
-+	if (likely(!mte_dead_node(mas->node)))
-+		return 0;
- 
--       mas_rewalk(mas, index);
--       return 1;
-+	mas_rewalk(mas, index);
-+	return 1;
- }
--
--#define MA_PTR "%p"
--#else /*  __KERNEL__ is defined */
--#define MA_PTR "%px"
--#endif
-+#endif /* not defined __KERNEL__ */
- 
- /*
-  * mas_get_slot() - Get the entry in the maple state node stored at @offset.
-@@ -6418,7 +6412,7 @@ static inline struct maple_enode *mas_ge
- 		unsigned char offset)
- {
- 	return mas_slot(mas, ma_slots(mas_mn(mas), mte_node_type(mas->node)),
--		       offset);
-+			offset);
- }
- 
- 
-@@ -6469,7 +6463,7 @@ static inline void *mas_first_entry(stru
- 	if (mas->index > limit)
- 		goto none;
- 
--	if(likely(entry))
-+	if (likely(entry))
- 		return entry;
- 
- 	pivots = ma_pivots(mn, mt);
-@@ -6482,7 +6476,7 @@ static inline void *mas_first_entry(stru
- 	if (mas->index > limit)
- 		goto none;
- 
--	if(likely(entry))
-+	if (likely(entry))
- 		return entry;
- 
- none:
-@@ -6542,14 +6536,14 @@ static void mt_dump_entry(void *entry, u
- 	mt_dump_range(min, max, depth);
- 
- 	if (xa_is_value(entry))
--		pr_cont("value %ld (0x%lx) ["MA_PTR"]\n", xa_to_value(entry),
-+		pr_cont("value %ld (0x%lx) [%p]\n", xa_to_value(entry),
- 				xa_to_value(entry), entry);
- 	else if (xa_is_zero(entry))
- 		pr_cont("zero (%ld)\n", xa_to_internal(entry));
- 	else if (mt_is_reserved(entry))
--		pr_cont("UNKNOWN ENTRY ("MA_PTR")\n", entry);
-+		pr_cont("UNKNOWN ENTRY (%p)\n", entry);
- 	else
--		pr_cont(""MA_PTR"\n", entry);
-+		pr_cont("%p\n", entry);
- }
- 
- static void mt_dump_range64(const struct maple_tree *mt, void *entry,
-@@ -6562,8 +6556,8 @@ static void mt_dump_range64(const struct
- 
- 	pr_cont(" contents: ");
- 	for (i = 0; i < MAPLE_RANGE64_SLOTS - 1; i++)
--		pr_cont(""MA_PTR" %lu ", node->slot[i], node->pivot[i]);
--	pr_cont(""MA_PTR"\n", node->slot[i]);
-+		pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
-+	pr_cont("%p\n", node->slot[i]);
- 	for (i = 0; i < MAPLE_RANGE64_SLOTS; i++) {
- 		unsigned long last = max;
- 
-@@ -6583,7 +6577,7 @@ static void mt_dump_range64(const struct
- 		if (last == max)
- 			break;
- 		if (last > max) {
--			pr_err("node "MA_PTR" last (%lu) > max (%lu) at pivot %d!\n",
-+			pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
- 					node, last, max, i);
- 			break;
- 		}
-@@ -6604,8 +6598,8 @@ static void mt_dump_arange64(const struc
- 		pr_cont("%lu ", node->gap[i]);
- 	pr_cont("| %02X %02X| ", node->meta.end, node->meta.gap);
- 	for (i = 0; i < MAPLE_ARANGE64_SLOTS - 1; i++)
--		pr_cont(MA_PTR" %lu ", node->slot[i], node->pivot[i]);
--	pr_cont(MA_PTR"\n", node->slot[i]);
-+		pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
-+	pr_cont("%p\n", node->slot[i]);
- 	for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++) {
- 		unsigned long last = max;
- 
-@@ -6625,7 +6619,7 @@ static void mt_dump_arange64(const struc
- 		if (last == max)
- 			break;
- 		if (last > max) {
--			pr_err("node "MA_PTR" last (%lu) > max (%lu) at pivot %d!\n",
-+			pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
- 					node, last, max, i);
- 			break;
- 		}
-@@ -6642,7 +6636,7 @@ static void mt_dump_node(const struct ma
- 
- 	mt_dump_range(min, max, depth);
- 
--	pr_cont("node "MA_PTR" depth %d type %d parent "MA_PTR, node, depth, type,
-+	pr_cont("node %p depth %d type %d parent %p", node, depth, type,
- 			node ? node->parent : NULL);
- 	switch (type) {
- 	case maple_dense:
-@@ -6671,7 +6665,7 @@ void mt_dump(const struct maple_tree *mt
- {
- 	void *entry = rcu_dereference_check(mt->ma_root, mt_locked(mt));
- 
--	pr_info("maple_tree("MA_PTR") flags %X, height %u root "MA_PTR"\n",
-+	pr_info("maple_tree(%p) flags %X, height %u root %p\n",
- 		 mt, mt->ma_flags, mt_height(mt), entry);
- 	if (!xa_is_node(entry))
- 		mt_dump_entry(entry, 0, 0, 0);
-@@ -6724,7 +6718,7 @@ static void mas_validate_gaps(struct ma_
- 			gap = gaps[i];
- 			if (!entry) {
- 				if (gap != p_end - p_start + 1) {
--					pr_err(MA_PTR"[%u] -> "MA_PTR" %lu != %lu - %lu + 1\n",
-+					pr_err("%p[%u] -> %p %lu != %lu - %lu + 1\n",
- 						mas_mn(mas), i,
- 						mas_get_slot(mas, i), gap,
- 						p_end, p_start);
-@@ -6735,7 +6729,7 @@ static void mas_validate_gaps(struct ma_
- 				}
- 			} else {
- 				if (gap > p_end - p_start + 1) {
--					pr_err(MA_PTR"[%u] %lu >= %lu - %lu + 1 (%lu)\n",
-+					pr_err("%p[%u] %lu >= %lu - %lu + 1 (%lu)\n",
- 					mas_mn(mas), i, gap, p_end, p_start,
- 					p_end - p_start + 1);
- 					MT_BUG_ON(mas->tree,
-@@ -6760,7 +6754,7 @@ counted:
- 	p_mn = mte_parent(mte);
- 	MT_BUG_ON(mas->tree, max_gap > mas->max);
- 	if (ma_gaps(p_mn, mas_parent_enum(mas, mte))[p_slot] != max_gap) {
--		pr_err("gap "MA_PTR"[%u] != %lu\n", p_mn, p_slot, max_gap);
-+		pr_err("gap %p[%u] != %lu\n", p_mn, p_slot, max_gap);
- 		mt_dump(mas->tree);
- 	}
- 
-@@ -6794,8 +6788,8 @@ static void mas_validate_parent_slot(str
- 					parent, i, mas_mn(mas));
- 			MT_BUG_ON(mas->tree, node != mas->node);
- 		} else if (node == mas->node) {
--			pr_err("parent contains invalid child at "MA_PTR"[%u] "
--				MA_PTR" p_slot %u\n", parent, i, mas_mn(mas), p_slot);
-+			pr_err("Invalid child %p at parent %p[%u] p_slot %u\n",
-+			       mas_mn(mas), parent, i, p_slot);
- 			MT_BUG_ON(mas->tree, node == mas->node);
- 		}
- 	}
-@@ -6821,16 +6815,16 @@ static void mas_validate_child_slot(stru
- 			break;
- 
- 		if (mte_parent_slot(child) != i) {
--			pr_err("child has incorrect slot at "MA_PTR"[%u] "
--				MA_PTR" is set to %u\n", mas_mn(mas),
--				i, mte_to_node(child), mte_parent_slot(child));
-+			pr_err("Slot error at %p[%u]: child %p has pslot %u\n",
-+			       mas_mn(mas), i, mte_to_node(child),
-+			       mte_parent_slot(child));
- 			MT_BUG_ON(mas->tree, 1);
- 		}
- 
- 		if (mte_parent(child) != mte_to_node(mas->node)) {
--			pr_err("child "MA_PTR" has parent "MA_PTR" not "MA_PTR"\n",
--			mte_to_node(child), mte_parent(child),
--			mte_to_node(mas->node));
-+			pr_err("child %p has parent %p not %p\n",
-+			       mte_to_node(child), mte_parent(child),
-+			       mte_to_node(mas->node));
- 			MT_BUG_ON(mas->tree, 1);
- 		}
- 	}
-@@ -6860,26 +6854,27 @@ static void mas_validate_limits(struct m
- 
- 		if (!mte_is_leaf(mas->node)) {
- 			void *entry = mas_slot(mas, slots, i);
-+
- 			if (!entry)
--				pr_err(MA_PTR"[%u] cannot be null\n",
-+				pr_err("%p[%u] cannot be null\n",
- 				       mas_mn(mas), i);
- 
- 			MT_BUG_ON(mas->tree, !entry);
- 		}
- 
- 		if (prev_piv > piv) {
--			pr_err(MA_PTR"[%u] piv %lu < prev_piv %lu\n",
-+			pr_err("%p[%u] piv %lu < prev_piv %lu\n",
- 				mas_mn(mas), i, piv, prev_piv);
- 			MT_BUG_ON(mas->tree, piv < prev_piv);
- 		}
- 
- 		if (piv < mas->min) {
--			pr_err(MA_PTR"[%u] %lu < %lu\n", mas_mn(mas), i,
-+			pr_err("%p[%u] %lu < %lu\n", mas_mn(mas), i,
- 				piv, mas->min);
- 			MT_BUG_ON(mas->tree, piv < mas->min);
- 		}
- 		if (piv > mas->max) {
--			pr_err(MA_PTR"[%u] %lu > %lu\n", mas_mn(mas), i,
-+			pr_err("%p[%u] %lu > %lu\n", mas_mn(mas), i,
- 				piv, mas->max);
- 			MT_BUG_ON(mas->tree, piv > mas->max);
- 		}
-@@ -6947,7 +6942,7 @@ void mt_validate(struct maple_tree *mt)
- 			end = mas_data_end(&mas);
- 			if ((end < mt_min_slot_count(mas.node)) &&
- 			    (mas.max != ULONG_MAX)) {
--				pr_err("Invalid size %u of "MA_PTR"\n", end,
-+				pr_err("Invalid size %u of %p\n", end,
- 				mas_mn(&mas));
- 				MT_BUG_ON(mas.tree, 1);
- 			}
---- a/tools/testing/radix-tree/linux/maple_tree.h~maple-tree-add-new-data-structure-fix-6
-+++ a/tools/testing/radix-tree/linux/maple_tree.h
-@@ -3,5 +3,5 @@
- #include "../../../../include/linux/maple_tree.h"
- #define atomic_inc(x) uatomic_inc(x)
- #define atomic_read(x) uatomic_read(x)
--#define atomic_set(x, y) do {} while(0)
-+#define atomic_set(x, y) do {} while (0)
- #define U8_MAX UCHAR_MAX
---- a/tools/testing/radix-tree/trace/events/maple_tree.h~maple-tree-add-new-data-structure-fix-6
-+++ a/tools/testing/radix-tree/trace/events/maple_tree.h
-@@ -1,3 +1,5 @@
--#define trace_ma_op(a, b) do {} while(0);
--#define trace_ma_read(a, b) do {} while(0);
--#define trace_ma_write(a, b, c, d) do {} while(0);
-+/* SPDX-License-Identifier: GPL-2.0+ */
-+
-+#define trace_ma_op(a, b) do {} while (0)
-+#define trace_ma_read(a, b) do {} while (0)
-+#define trace_ma_write(a, b, c, d) do {} while (0)
+ MARDUK (CREATOR CI40) DEVICE TREE SUPPORT
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
 
-maple-tree-add-new-data-structure-fix-6.patch
-nommu-remove-uses-of-vma-linked-list-fix.patch
-nommu-remove-uses-of-vma-linked-list-fix-fix.patch
+maple-tree-add-new-data-structure-fix-5.patch
 
