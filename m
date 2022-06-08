@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 588BBC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 19:22:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B075CC43334
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 19:28:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233934AbiFHTWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Jun 2022 15:22:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59592 "EHLO
+        id S235453AbiFHT2W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Jun 2022 15:28:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231183AbiFHTWA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2022 15:22:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B89011BC7AF
-        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 12:21:58 -0700 (PDT)
+        with ESMTP id S232406AbiFHT2T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2022 15:28:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F6401B07B0
+        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 12:28:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6B718B829B3
-        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 19:21:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205A5C34116;
-        Wed,  8 Jun 2022 19:21:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D15CE612FF
+        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 19:28:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E1F6C34116;
+        Wed,  8 Jun 2022 19:28:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654716116;
-        bh=0irTnOfXBtaus6G6bKI+hiH0ohN8bCIwtv1xFtIRDEE=;
+        s=korg; t=1654716497;
+        bh=lzjGpB+8kj5gFmTkIjH7oA1dXAVKICi0qZbN1QErsKM=;
         h=Date:To:From:Subject:From;
-        b=F5PUFRJ4X57ITB1/5GEGlUogHxGMQGcI7+Y7enIQnmhSnZ/wl0qxQ9lHbK2tjwxT8
-         OakGStfLGUKpU3sHpO0ADgRCRVIkppAjvPszp8NSDs9AIlOA3bk/zivh1IXH8DdqFH
-         SF3Xh5vw1zqmBMIqZQoBsry+CvzNtgF7kEfSuQSg=
-Date:   Wed, 08 Jun 2022 12:21:55 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        sashal@kernel.org, gthelen@google.com, ebiederm@xmission.com,
-        bhe@redhat.com, pasha.tatashin@soleen.com,
+        b=08KAuwCRQHpAh7/lfZOQ7tJcBKvk0QfBJ3PzaWwVbGRgEUmnssOzyUHszboYAPHiH
+         iZMb8iY/GBnvLPC6dSlLTT70g4KCMo8yd9Hf9n4WBYHcdOLLyb2xRFub1TY91F0hRV
+         mNdom3cUWr/z7RiZX2uwFryi+vZlvXVlwU/JlX5o=
+Date:   Wed, 08 Jun 2022 12:28:16 -0700
+To:     mm-commits@vger.kernel.org, trix@redhat.com,
+        ndesaulniers@google.com, nathan@kernel.org, jstitt007@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec_file-increase-maximum-file-size-to-4g.patch added to mm-nonmm-unstable branch
-Message-Id: <20220608192156.205A5C34116@smtp.kernel.org>
+Subject: + include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch added to mm-nonmm-unstable branch
+Message-Id: <20220608192817.1E1F6C34116@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec_file: increase maximum file size to 4G
+     Subject: include/uapi/linux/swab.h: move explicit cast outside ternary
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec_file-increase-maximum-file-size-to-4g.patch
+     include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_file-increase-maximum-file-size-to-4g.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,76 +65,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kexec_file: increase maximum file size to 4G
-Date: Fri, 27 May 2022 02:55:35 +0000
+From: Justin Stitt <jstitt007@gmail.com>
+Subject: include/uapi/linux/swab.h: move explicit cast outside ternary
+Date: Tue, 7 Jun 2022 17:14:22 -0700
 
-In some case initrd can be large.  For example, it could be a netboot
-image loaded by u-root, that is kexec'ing into it.
+A cast inside __builtin_constant_p doesn't do anything since it should
+evaluate as constant at compile time irrespective of this cast.  Instead,
+I moved this cast outside the ternary to ensure the return type is as
+expected.
 
-The maximum size of initrd is arbitrary set to 2G.  Also, the limit is not
-very obvious because it is hidden behind a generic INT_MAX macro.
+For instance, if __HAVE_BUILTIN_BSWAP16__ was not defined then __swab16 is
+actually returning an `int` not a `u16` due to integer promotion as
+described by Nick in this thread.  This has repercussions when building
+with clang -Wformat.  This fix should solve many of these warnings.
 
-Theoretically, we could make it LONG_MAX, but it is safer to keep it sane,
-and just increase it to 4G.
-
-Increase the size to 4G, and make it obvious by having a new macro that
-specifies the maximum file size supported by kexec_file_load() syscall:
-KEXEC_FILE_SIZE_MAX.
-
-Link: https://lkml.kernel.org/r/20220527025535.3953665-3-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baoquan He <bhe@redhat.com>
+Link: https://github.com/ClangBuiltLinux/linux/issues/378
+Link: https://lkml.kernel.org/r/20220608001422.26383-1-jstitt007@gmail.com
+Signed-off-by: Justin Stitt <jstitt007@gmail.com>
+Suggested-by: Nathan Chancellor <nathan@kernel.org>
+Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Tom Rix <trix@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/uapi/linux/swab.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/kernel/kexec_file.c~kexec_file-increase-maximum-file-size-to-4g
-+++ a/kernel/kexec_file.c
-@@ -31,6 +31,9 @@
- 
- static int kexec_calculate_store_digests(struct kimage *image);
- 
-+/* Maximum size in bytes for kernel/initrd files. */
-+#define KEXEC_FILE_SIZE_MAX	min_t(s64, 4LL << 30, SSIZE_MAX)
-+
- /*
-  * Currently this is the only default function that is exported as some
-  * architectures need it to do additional handlings.
-@@ -189,11 +192,12 @@ kimage_file_prepare_segments(struct kima
- 			     const char __user *cmdline_ptr,
- 			     unsigned long cmdline_len, unsigned flags)
- {
--	int ret;
-+	ssize_t ret;
- 	void *ldata;
- 
- 	ret = kernel_read_file_from_fd(kernel_fd, 0, &image->kernel_buf,
--				       INT_MAX, NULL, READING_KEXEC_IMAGE);
-+				       KEXEC_FILE_SIZE_MAX, NULL,
-+				       READING_KEXEC_IMAGE);
- 	if (ret < 0)
- 		return ret;
- 	image->kernel_buf_len = ret;
-@@ -213,7 +217,7 @@ kimage_file_prepare_segments(struct kima
- 	/* It is possible that there no initramfs is being loaded */
- 	if (!(flags & KEXEC_FILE_NO_INITRAMFS)) {
- 		ret = kernel_read_file_from_fd(initrd_fd, 0, &image->initrd_buf,
--					       INT_MAX, NULL,
-+					       KEXEC_FILE_SIZE_MAX, NULL,
- 					       READING_KEXEC_INITRAMFS);
- 		if (ret < 0)
- 			goto out;
+--- a/include/uapi/linux/swab.h~include-uapi-linux-swabh-move-explicit-cast-outside-ternary
++++ a/include/uapi/linux/swab.h
+@@ -99,10 +99,10 @@ static inline __attribute_const__ __u32
+  * @x: value to byteswap
+  */
+ #ifdef __HAVE_BUILTIN_BSWAP16__
+-#define __swab16(x) (__u16)__builtin_bswap16((__u16)(x))
++#define __swab16(x) (__u16)__builtin_bswap16(x)
+ #else
+ #define __swab16(x)				\
+-	(__builtin_constant_p((__u16)(x)) ?	\
++	(__u16)(__builtin_constant_p(x) ?	\
+ 	___constant_swab16(x) :			\
+ 	__fswab16(x))
+ #endif
+@@ -112,10 +112,10 @@ static inline __attribute_const__ __u32
+  * @x: value to byteswap
+  */
+ #ifdef __HAVE_BUILTIN_BSWAP32__
+-#define __swab32(x) (__u32)__builtin_bswap32((__u32)(x))
++#define __swab32(x) (__u32)__builtin_bswap32(x)
+ #else
+ #define __swab32(x)				\
+-	(__builtin_constant_p((__u32)(x)) ?	\
++	(__u32)(__builtin_constant_p(x) ?	\
+ 	___constant_swab32(x) :			\
+ 	__fswab32(x))
+ #endif
+@@ -125,10 +125,10 @@ static inline __attribute_const__ __u32
+  * @x: value to byteswap
+  */
+ #ifdef __HAVE_BUILTIN_BSWAP64__
+-#define __swab64(x) (__u64)__builtin_bswap64((__u64)(x))
++#define __swab64(x) (__u64)__builtin_bswap64(x)
+ #else
+ #define __swab64(x)				\
+-	(__builtin_constant_p((__u64)(x)) ?	\
++	(__u64)(__builtin_constant_p(x) ?	\
+ 	___constant_swab64(x) :			\
+ 	__fswab64(x))
+ #endif
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from jstitt007@gmail.com are
 
-fs-kernel_read_file-allow-to-read-files-up-to-ssize_t.patch
-kexec_file-increase-maximum-file-size-to-4g.patch
+include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch
+include-uapi-linux-swabh-add-__u16-cast-to-__swab16-conditional.patch
 
