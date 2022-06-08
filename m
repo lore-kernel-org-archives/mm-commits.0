@@ -2,122 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35A28C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 18:35:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4226DC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 19:00:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229764AbiFHSfQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Jun 2022 14:35:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41742 "EHLO
+        id S233625AbiFHS7z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Jun 2022 14:59:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229711AbiFHSfQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2022 14:35:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E896E8B8B
-        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 11:35:14 -0700 (PDT)
+        with ESMTP id S233196AbiFHS7x (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2022 14:59:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E47D3C73C
+        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 11:59:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E3766B82853
-        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 18:35:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967E2C34116;
-        Wed,  8 Jun 2022 18:35:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EB38B61C2E
+        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 18:59:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E9B7C34116;
+        Wed,  8 Jun 2022 18:59:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654713311;
-        bh=ijEDre/nY+nEh1FFr9txfgfgZp85g8amK9PjhnneUds=;
-        h=Date:To:From:Subject:From;
-        b=C0tiqxp1NToCiken+BkU/xIvve9mModZdbyg7GYjmPnU3RJ98bGZu63OBuODgWaKY
-         bG2idXBGABt7BTELzIZEXM6wyCmVTWTKo+5BBSv9gWeMswmAiZ/kXmV+McA/Fxh2vn
-         lTEGxFkdyA4qYEEts7nRZkcS0ksxUxB2JrF1C2i8=
-Date:   Wed, 08 Jun 2022 11:35:10 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        s=korg; t=1654714773;
+        bh=a+rNBS+qjDFo4tQH1PRM61MJwf6OXFJj3AvoKjC72G4=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=w/12s+n58aQhyYQkpYrf7mOkMcO4liu0dJqbUOAMJhP104nWgpLZ0kKOHPm/Y5MRK
+         DOS5U3z0tyESnDKVg4JXggB5Q6D87ohbW2dhj662dCT4Px09Zj9IMjA46kn3ZtC0Ws
+         V1b3sEt3W8pVJ2u0hF0nEe0x5MXrO9HM6GWaGykc=
+Date:   Wed, 8 Jun 2022 11:59:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-dont-try-to-reclaim-freed-folios.patch added to mm-unstable branch
-Message-Id: <20220608183511.967E2C34116@smtp.kernel.org>
+To:     Matthew Wilcox <willy@infradead.org>
+Cc:     mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com
+Subject: Re: + xarray-replace-kernelh-with-the-necessary-inclusions.patch
+ added to mm-nonmm-unstable branch
+Message-Id: <20220608115932.f1a5c3353eaee8778cc7a4e1@linux-foundation.org>
+In-Reply-To: <YqDokVn0dSEbfSLE@casper.infradead.org>
+References: <20220603183231.15159C385A9@smtp.kernel.org>
+        <YppWoUnSxCUljVpS@casper.infradead.org>
+        <20220603114712.da849292ea89f5c956967c54@linux-foundation.org>
+        <YppXmagvcR7Cioug@casper.infradead.org>
+        <20220603124205.28b5d1b1ab3e91568faa1022@linux-foundation.org>
+        <YqDokVn0dSEbfSLE@casper.infradead.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, 8 Jun 2022 19:21:05 +0100 Matthew Wilcox <willy@infradead.org> wrote:
 
-The patch titled
-     Subject: mm/vmscan: don't try to reclaim freed folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-dont-try-to-reclaim-freed-folios.patch
+> > Perhaps some magic happened with cpp's recognition of include guards?
+> 
+> I had some time to look at this now.  It's picking up
+> /usr/include/linux/limits.h on my machine which is provided by
+> linux-libc-dev.  That's a rather different set of constants from the ones
+> the kernel provides internally, which might cause problems later.  But I'm
+> not in a mood to go poking around the different locations that different
+> environments provide things in, so I think this patch is OK.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-dont-try-to-reclaim-freed-folios.patch
+Thanks.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmscan: don't try to reclaim freed folios
-Date: Wed, 8 Jun 2022 22:14:32 +0800
-
-If folios were freed from under us, there's no need to reclaim them.  Skip
-these folios to save lots of cpu cycles and avoid possible unnecessary
-disk I/O.
-
-Link: https://lkml.kernel.org/r/20220608141432.23258-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/vmscan.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
---- a/mm/vmscan.c~mm-vmscan-dont-try-to-reclaim-freed-folios
-+++ a/mm/vmscan.c
-@@ -1610,13 +1610,19 @@ retry:
- 		folio = lru_to_folio(page_list);
- 		list_del(&folio->lru);
- 
-+		nr_pages = folio_nr_pages(folio);
-+
-+		if (folio_ref_count(folio) == 1 &&
-+		    folio_ref_freeze(folio, 1)) {
-+			/* folio was freed from under us. So we are done. */
-+			goto free_it;
-+		}
-+
- 		if (!folio_trylock(folio))
- 			goto keep;
- 
- 		VM_BUG_ON_FOLIO(folio_test_active(folio), folio);
- 
--		nr_pages = folio_nr_pages(folio);
--
- 		/* Account the number of base pages */
- 		sc->nr_scanned += nr_pages;
- 
-_
-
-Patches currently in -mm which might be from linmiaohe@huawei.com are
-
-maintainers-add-myself-as-a-memory-failure-reviewer.patch
-mm-shmemc-clean-up-comment-of-shmem_swapin_folio.patch
-mm-reduce-the-rcu-lock-duration.patch
-mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-mm-migration-return-errno-when-isolate_huge_page-failed.patch
-mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-memremap-fix-wrong-function-name-above-memremap_pages.patch
-mm-swapfile-make-security_vm_enough_memory_mm-work-as-expected.patch
-mm-swapfile-fix-possible-data-races-of-inuse_pages.patch
-mm-swap-remove-swap_cache_info-statistics.patch
-mm-vmscan-dont-try-to-reclaim-freed-folios.patch
+I don't think it's good to be replacing our limits.h with some random
+system-provided one.  I'll drop the patch.
 
