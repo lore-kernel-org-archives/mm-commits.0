@@ -2,105 +2,119 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35929C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 03:17:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0E9CCCA480
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 18:21:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235153AbiFHDRX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Jun 2022 23:17:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47618 "EHLO
+        id S234197AbiFHSVM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Jun 2022 14:21:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347754AbiFHDOp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2022 23:14:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05E0919EC0F
-        for <mm-commits@vger.kernel.org>; Tue,  7 Jun 2022 12:26:21 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 95140611D8
-        for <mm-commits@vger.kernel.org>; Tue,  7 Jun 2022 19:26:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E03B8C385A2;
-        Tue,  7 Jun 2022 19:26:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654629980;
-        bh=g7P0OWQTADEEBq8ImWeeigHzLO9E21q2Gs3lYJ1yE5g=;
-        h=Date:To:From:Subject:From;
-        b=ILOlBBYaIy5Xthig3WNWYEqs5fZ5GgffMncCzNy+jSXvoRN7/oQTfvyULD5lJo2p7
-         qdmVYj43AhIWQFu/5opa1EI8F+QlcJTuUty8r8mIJ1Ce0JY8Qs1/pha+RkINPYVlAB
-         8oX7SK2TXZgOAd7oRqo+4LNVWPTBKwugHSVlsN5A=
-Date:   Tue, 07 Jun 2022 12:26:19 -0700
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memremap-fix-wrong-function-name-above-memremap_pages.patch added to mm-unstable branch
-Message-Id: <20220607192619.E03B8C385A2@smtp.kernel.org>
+        with ESMTP id S234177AbiFHSVL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2022 14:21:11 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77E661C116
+        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 11:21:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=1I40ACbP6tuF9313ZLK8pV3uI2qjk5InqJhqgRWTk1U=; b=JGLGrnHqDT0U8XETlh9p7midl5
+        rCXL3KzybtsFYkgzFJOAEOXC5nqpl6+4NyL0aYTlYPp1dAAp4yz89XofYI4pqN0wtdkw2GRou4+1g
+        eTavz30PXE4BXJxaJ/BFJ0e/SESJj4LMvHjIuSkAXA04yjYd7+ctuhwwsLBWWdqx6NZuPmxaJH9yG
+        Zxpe/ok9T18oxoIC4zPV6AG5es+vKPqnbSf0vgxBDnOXGrXKKPtTrtN4ZU+517jZrHAe+KamBqfaF
+        6oQ0Bnhn+6IljVud9woX6O3NRxEfR1OScChEzct8qNj6Pl1/proJeegh9FvDtD4DkWy9XKSK21TUT
+        kCvazXtg==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nz0Ij-00CrcT-Au; Wed, 08 Jun 2022 18:21:05 +0000
+Date:   Wed, 8 Jun 2022 19:21:05 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com
+Subject: Re: + xarray-replace-kernelh-with-the-necessary-inclusions.patch
+ added to mm-nonmm-unstable branch
+Message-ID: <YqDokVn0dSEbfSLE@casper.infradead.org>
+References: <20220603183231.15159C385A9@smtp.kernel.org>
+ <YppWoUnSxCUljVpS@casper.infradead.org>
+ <20220603114712.da849292ea89f5c956967c54@linux-foundation.org>
+ <YppXmagvcR7Cioug@casper.infradead.org>
+ <20220603124205.28b5d1b1ab3e91568faa1022@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220603124205.28b5d1b1ab3e91568faa1022@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Fri, Jun 03, 2022 at 12:42:05PM -0700, Andrew Morton wrote:
+> On Fri, 3 Jun 2022 19:48:57 +0100 Matthew Wilcox <willy@infradead.org> wrote:
+> 
+> > On Fri, Jun 03, 2022 at 11:47:12AM -0700, Andrew Morton wrote:
+> > > On Fri, 3 Jun 2022 19:44:49 +0100 Matthew Wilcox <willy@infradead.org> wrote:
+> > > 
+> > > > On Fri, Jun 03, 2022 at 11:32:30AM -0700, Andrew Morton wrote:
+> > > > > ------------------------------------------------------
+> > > > > From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > > > Subject: include/linux/xarray.h: replace kernel.h with the necessary inclusions
+> > > > > Date: Fri, 3 Jun 2022 20:11:53 +0300
+> > > > > 
+> > > > > When kernel.h is used in the headers it adds a lot into dependency hell,
+> > > > > especially when there are circular dependencies are involved.
+> > > > > 
+> > > > > Replace kernel.h inclusion with the list of what is really being used.
+> > > > > 
+> > > > > Link: https://lkml.kernel.org/r/20220603171153.48928-1-andriy.shevchenko@linux.intel.com
+> > > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > > > Cc: Matthew Wilcox <willy@infradead.org>
+> > > > > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> > > > 
+> > > > NAK, breaks the test suite.
+> > > 
+> > > The test suite compiled OK for me?
+> > 
+> > I don't see a limits.h in tools/ ?
+> 
+> It works, but I'm not sure why.
+> 
+> cc -H says:
+> 
+> .... ./linux/xarray.h
+> ..... ./generated/map-shift.h
+> ..... ./linux/../../../../include/linux/xarray.h
+> ...... ../../include/linux/bitmap.h
+> ....... ../../include/linux/find.h
+> ...... ./linux/bug.h
+> ....... ../../include/asm/bug.h
+> ...... ./linux/kconfig.h
+> ....... ./linux/../../../../include/linux/kconfig.h
+> ........ ./generated/autoconf.h
+> .... ./linux/local_lock.h
+> . ../../../lib/xarray.c
+> .. ../../include/linux/export.h
+> .. ../../include/linux/slab.h
+> .. ./linux/xarray.h
+> 
+> xarray.h has
+> 
+> #include <linux/bitmap.h>
+> #include <linux/bug.h>
+> #include <linux/compiler.h>
+> #include <linux/err.h>
+> #include <linux/gfp.h>
+> #include <linux/kconfig.h>
+> #include <linux/limits.h>
+> #include <linux/lockdep.h>
+> #include <linux/math.h>
+> #include <linux/rcupdate.h>
+> #include <linux/spinlock.h>
+> #include <linux/types.h>
+> 
+> Perhaps some magic happened with cpp's recognition of include guards?
 
-The patch titled
-     Subject: mm/memremap: fix wrong function name above memremap_pages()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memremap-fix-wrong-function-name-above-memremap_pages.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremap-fix-wrong-function-name-above-memremap_pages.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memremap: fix wrong function name above memremap_pages()
-Date: Tue, 7 Jun 2022 22:36:21 +0800
-
-Fix the wrong function name dev_memremap_pages above memremap_pages() to
-avoid confusion.  Minor readability improvement.
-
-Link: https://lkml.kernel.org/r/20220607143621.58989-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memremap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/mm/memremap.c~mm-memremap-fix-wrong-function-name-above-memremap_pages
-+++ a/mm/memremap.c
-@@ -279,8 +279,8 @@ err_pfn_remap:
- 
- 
- /*
-- * Not device managed version of dev_memremap_pages, undone by
-- * memunmap_pages().  Please use dev_memremap_pages if you have a struct
-+ * Not device managed version of devm_memremap_pages, undone by
-+ * memunmap_pages().  Please use devm_memremap_pages if you have a struct
-  * device available.
-  */
- void *memremap_pages(struct dev_pagemap *pgmap, int nid)
-_
-
-Patches currently in -mm which might be from linmiaohe@huawei.com are
-
-maintainers-add-myself-as-a-memory-failure-reviewer.patch
-mm-shmemc-clean-up-comment-of-shmem_swapin_folio.patch
-mm-reduce-the-rcu-lock-duration.patch
-mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-mm-migration-return-errno-when-isolate_huge_page-failed.patch
-mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-memremap-fix-wrong-function-name-above-memremap_pages.patch
-
+I had some time to look at this now.  It's picking up
+/usr/include/linux/limits.h on my machine which is provided by
+linux-libc-dev.  That's a rather different set of constants from the ones
+the kernel provides internally, which might cause problems later.  But I'm
+not in a mood to go poking around the different locations that different
+environments provide things in, so I think this patch is OK.
