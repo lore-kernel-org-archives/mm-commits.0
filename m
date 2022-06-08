@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 838E4C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 18:32:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9DC7C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 18:32:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234174AbiFHScy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Jun 2022 14:32:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59204 "EHLO
+        id S234374AbiFHScz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Jun 2022 14:32:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233196AbiFHScw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2022 14:32:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6872A2E09A
-        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 11:32:49 -0700 (PDT)
+        with ESMTP id S233196AbiFHScz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2022 14:32:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F24DE2ED41
+        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 11:32:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0335C61B4C
-        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 18:32:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5790EC34116;
-        Wed,  8 Jun 2022 18:32:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A379DB82997
+        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 18:32:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 410E5C34116;
+        Wed,  8 Jun 2022 18:32:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654713168;
-        bh=4bhdy5lVM5PENzD/SZd+p/q8zDydCE0tPQcLqrUB/tQ=;
+        s=korg; t=1654713170;
+        bh=Fcltey9waUjzqJJH9Hw0foXWoExHl/ZFkdfYpGh/5og=;
         h=Date:To:From:Subject:From;
-        b=hHsgaQT1qHoGWGVmPT//3uOE5pDV6pevus18GxW9KlbXrv635JDBG7dBuDB4gGhj2
-         fw7IqV3gMEy5qDpYQPn8jcqSl0v6umq++OlHqPIyXzDkFSH0q4SNFhKm6yrWPkgC+e
-         n7jjdycOcyz3qmswVFtTN7A2xtzQH/Y/3pnn7a2Q=
-Date:   Wed, 08 Jun 2022 11:32:47 -0700
+        b=HLrkTMwgny3Oj0Ou+SLpCNVLglM0amy+oUMUhJ5+pmVMHEtaFRUqsyHgH/qowB2Rv
+         FtcvB/DOvmHN+uo5qRL9CpGi6lbs++OsTHNJZdYxmll3iaPOkZcQtCf1wVxeD78s2v
+         yUXXXQ8QrWFPMwO/W6ZDjzIp2bo2S4qbbOzYZx1M=
+Date:   Wed, 08 Jun 2022 11:32:49 -0700
 To:     mm-commits@vger.kernel.org, hughd@google.com, david@redhat.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-fix-possible-data-races-of-inuse_pages.patch added to mm-unstable branch
-Message-Id: <20220608183248.5790EC34116@smtp.kernel.org>
+Subject: + mm-swap-remove-swap_cache_info-statistics.patch added to mm-unstable branch
+Message-Id: <20220608183250.410E5C34116@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile: fix possible data races of inuse_pages
+     Subject: mm/swap: remove swap_cache_info statistics
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfile-fix-possible-data-races-of-inuse_pages.patch
+     mm-swap-remove-swap_cache_info-statistics.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-fix-possible-data-races-of-inuse_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-swap_cache_info-statistics.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,44 +65,81 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile: fix possible data races of inuse_pages
-Date: Wed, 8 Jun 2022 22:40:30 +0800
+Subject: mm/swap: remove swap_cache_info statistics
+Date: Wed, 8 Jun 2022 22:40:31 +0800
 
-si->inuse_pages could still be accessed concurrently now.  The plain reads
-outside si->lock critical section, i.e.  swap_show and si_swapinfo, which
-results in data races.  But these should be ok because they're just used
-for showing swap info.
+swap_cache_info are not statistics that could be easily used to tune
+system performance because they are not easily accessile.  Also they can't
+provide really useful info when OOM occurs.  Remove these statistics can
+also help mitigate unneeded global swap_cache_info cacheline contention.
 
-Link: https://lkml.kernel.org/r/20220608144031.829-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220608144031.829-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swap_state.c |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-fix-possible-data-races-of-inuse_pages
-+++ a/mm/swapfile.c
-@@ -2646,7 +2646,7 @@ static int swap_show(struct seq_file *sw
- 	}
+--- a/mm/swap_state.c~mm-swap-remove-swap_cache_info-statistics
++++ a/mm/swap_state.c
+@@ -59,24 +59,11 @@ static bool enable_vma_readahead __read_
+ #define GET_SWAP_RA_VAL(vma)					\
+ 	(atomic_long_read(&(vma)->swap_readahead_info) ? : 4)
  
- 	bytes = si->pages << (PAGE_SHIFT - 10);
--	inuse = si->inuse_pages << (PAGE_SHIFT - 10);
-+	inuse = READ_ONCE(si->inuse_pages) << (PAGE_SHIFT - 10);
+-#define INC_CACHE_INFO(x)	data_race(swap_cache_info.x++)
+-#define ADD_CACHE_INFO(x, nr)	data_race(swap_cache_info.x += (nr))
+-
+-static struct {
+-	unsigned long add_total;
+-	unsigned long del_total;
+-	unsigned long find_success;
+-	unsigned long find_total;
+-} swap_cache_info;
+-
+ static atomic_t swapin_readahead_hits = ATOMIC_INIT(4);
  
- 	file = si->swap_file;
- 	len = seq_file_path(swap, file, " \t\n\\");
-@@ -3265,7 +3265,7 @@ void si_swapinfo(struct sysinfo *val)
- 		struct swap_info_struct *si = swap_info[type];
+ void show_swap_cache_info(void)
+ {
+ 	printk("%lu pages in swap cache\n", total_swapcache_pages());
+-	printk("Swap cache stats: add %lu, delete %lu, find %lu/%lu\n",
+-		swap_cache_info.add_total, swap_cache_info.del_total,
+-		swap_cache_info.find_success, swap_cache_info.find_total);
+ 	printk("Free swap  = %ldkB\n",
+ 		get_nr_swap_pages() << (PAGE_SHIFT - 10));
+ 	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
+@@ -133,7 +120,6 @@ int add_to_swap_cache(struct page *page,
+ 		address_space->nrpages += nr;
+ 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
+ 		__mod_lruvec_page_state(page, NR_SWAPCACHE, nr);
+-		ADD_CACHE_INFO(add_total, nr);
+ unlock:
+ 		xas_unlock_irq(&xas);
+ 	} while (xas_nomem(&xas, gfp));
+@@ -172,7 +158,6 @@ void __delete_from_swap_cache(struct pag
+ 	address_space->nrpages -= nr;
+ 	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
+ 	__mod_lruvec_page_state(page, NR_SWAPCACHE, -nr);
+-	ADD_CACHE_INFO(del_total, nr);
+ }
  
- 		if ((si->flags & SWP_USED) && !(si->flags & SWP_WRITEOK))
--			nr_to_be_unused += si->inuse_pages;
-+			nr_to_be_unused += READ_ONCE(si->inuse_pages);
- 	}
- 	val->freeswap = atomic_long_read(&nr_swap_pages) + nr_to_be_unused;
- 	val->totalswap = total_swap_pages + nr_to_be_unused;
+ /**
+@@ -348,12 +333,10 @@ struct page *lookup_swap_cache(swp_entry
+ 	page = find_get_page(swap_address_space(entry), swp_offset(entry));
+ 	put_swap_device(si);
+ 
+-	INC_CACHE_INFO(find_total);
+ 	if (page) {
+ 		bool vma_ra = swap_use_vma_readahead();
+ 		bool readahead;
+ 
+-		INC_CACHE_INFO(find_success);
+ 		/*
+ 		 * At the moment, we don't support PG_readahead for anon THP
+ 		 * so let's bail out rather than confusing the readahead stat.
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
