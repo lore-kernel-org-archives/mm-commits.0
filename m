@@ -2,90 +2,132 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AAE0C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Jun 2022 17:29:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE06DC43334
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Jun 2022 17:29:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239064AbiFIR3H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Jun 2022 13:29:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49874 "EHLO
+        id S239136AbiFIR3j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Jun 2022 13:29:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239081AbiFIR3G (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2022 13:29:06 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61138122971
-        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 10:29:00 -0700 (PDT)
+        with ESMTP id S239081AbiFIR3h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2022 13:29:37 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C3A21BE65B
+        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 10:29:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 31E6DCE3067
-        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 17:28:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D00EC3411F
-        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 17:28:57 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="Y5Fr3wlV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1654795734;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=ydBJR/Ct5hnzG3jcnmSRmCA1PkkEhwCFb+H0OW1nuSA=;
-        b=Y5Fr3wlVW/AG8sMSWwQLvERrkLmXZIE27fQoChBngv+kHXz+l5WDIy1j0KnHXlqpKjBOmp
-        9PvnN5HIedcK18oRxlOGzCsPliQ6uc4zX6j5dsO45D7vRmZVqDkhlYIlhLZy2zg50j8ul/
-        mVtQqyt2AREp7Ey7hjf79/DBiSEgwY0=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id d91fba2c (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO)
-        for <mm-commits@vger.kernel.org>;
-        Thu, 9 Jun 2022 17:28:54 +0000 (UTC)
-Received: by mail-yb1-f176.google.com with SMTP id r3so8766047ybr.6
-        for <mm-commits@vger.kernel.org>; Thu, 09 Jun 2022 10:28:53 -0700 (PDT)
-X-Gm-Message-State: AOAM532M1XxxhU7CrUpWph/bmV6/VkwlGUc6QaQ0MPWWzle3yBY7+ITz
-        EmbRcY9lpXCXSRf1XxTNIRfKejJ7VIbimxfii1s=
-X-Google-Smtp-Source: ABdhPJw263L9DvTjEYSvAJw5wPhEXsoFyMtcvDt7Xav9ZLhlLIuJsMy00b1lkVYZVduZy010tajdKEunrdmZ0R9zArQ=
-X-Received: by 2002:a5b:dcf:0:b0:64a:6923:bbba with SMTP id
- t15-20020a5b0dcf000000b0064a6923bbbamr43244058ybr.398.1654795732866; Thu, 09
- Jun 2022 10:28:52 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220609165640.E538EC34114@smtp.kernel.org> <CAHmME9pgWOU1wg2s5r99DowFgKYHYn=uYPjOLzHf6HEWOcsqgw@mail.gmail.com>
- <20220609101738.393ace428296b78106525c13@linux-foundation.org>
-In-Reply-To: <20220609101738.393ace428296b78106525c13@linux-foundation.org>
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-Date:   Thu, 9 Jun 2022 19:28:41 +0200
-X-Gmail-Original-Message-ID: <CAHmME9qXXScRxrKv13NRbXwwfg49qkUx5ju_++ZLWNyEF4wBGQ@mail.gmail.com>
-Message-ID: <CAHmME9qXXScRxrKv13NRbXwwfg49qkUx5ju_++ZLWNyEF4wBGQ@mail.gmail.com>
-Subject: Re: + mm-kfence-select-random-number-before-taking-raw-lock.patch
- added to mm-unstable branch
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, Petr Mladek <pmladek@suse.com>,
-        John Ogness <john.ogness@linutronix.de>,
-        Alexander Potapenko <glider@google.com>,
-        geert+renesas@glider.be, Geert Uytterhoeven <geert@linux-m68k.org>,
-        Marco Elver <elver@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>
-Content-Type: text/plain; charset="UTF-8"
+        by ams.source.kernel.org (Postfix) with ESMTPS id 292CFB82CFB
+        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 17:29:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8187C34114;
+        Thu,  9 Jun 2022 17:29:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1654795773;
+        bh=4GeXI15P1Xk4q5ib4mEerhdV87eL/wHbhxU8PlL/KjM=;
+        h=Date:To:From:Subject:From;
+        b=wYs6owSg1yq3AbSMxmYtInq0OZnMkSiTODu8Auc705Cmp6ke3kDkuwu4y0yKQ0sZU
+         bbp8HNXhtS7MTaV4tyATPvDdIqDMggKeTXemzp4wJj0g3wW/21bM3q/iHYNsuy7AdO
+         8z4LlypvoJ04cpdRB/V0hzqgd7Owy8GlDJJErvxs=
+Date:   Thu, 09 Jun 2022 10:29:33 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        ndesaulniers@google.com, nathan@kernel.org, jstitt007@gmail.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch added to mm-nonmm-unstable branch
+Message-Id: <20220609172933.D8187C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Andrew,
 
-On Thu, Jun 9, 2022 at 7:17 PM Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> On Thu, 9 Jun 2022 19:02:55 +0200 "Jason A. Donenfeld" <Jason@zx2c4.com> wrote:
->
-> > Hi Andrew,
-> >
-> > On Thu, Jun 9, 2022 at 6:56 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> > >      Subject: mm/kfence: select random number before taking raw lock
-> > > has been added to the -mm mm-unstable branch.
-> >
-> > I believe this belongs in the hotfixes branch, actually. It's a
-> > regression in 5.19.
-> >
->
-> Oh, OK.  Do we have a Fixes: tag?
+The patch titled
+     Subject: include/uapi/linux/swab.h: move explicit cast outside ternary
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch
 
-Errr, I guess so technically.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch
 
-Fixes: d4150779e60f ("random32: use real rng for non-deterministic randomness")
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Jason
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Justin Stitt <jstitt007@gmail.com>
+Subject: include/uapi/linux/swab.h: move explicit cast outside ternary
+Date: Wed, 8 Jun 2022 15:35:39 -0700
+
+A cast inside __builtin_constant_p doesn't do anything since it should
+evaluate as constant at compile time irrespective of this cast.  Instead,
+I moved this cast outside the ternary to ensure the return type is as
+expected.
+
+Additionally, if __HAVE_BUILTIN_BSWAP16__ was not defined then __swab16 is
+actually returning an `int` not a `u16` due to integer promotion.
+
+As Al Viro notes:
+You *can't* get smaller-than-int out of ? :, same as you can't get it
+out of addition, etc.
+
+This also fixes some clang -Wformat warnings involving default
+argument promotion.
+
+Link: https://github.com/ClangBuiltLinux/linux/issues/378
+Link: https://lkml.kernel.org/r/20220608223539.470472-1-justinstitt@google.com
+Signed-off-by: Justin Stitt <jstitt007@gmail.com>
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Suggested-by: Nathan Chancellor <nathan@kernel.org>
+Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/uapi/linux/swab.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- a/include/uapi/linux/swab.h~include-uapi-linux-swabh-move-explicit-cast-outside-ternary
++++ a/include/uapi/linux/swab.h
+@@ -102,7 +102,7 @@ static inline __attribute_const__ __u32
+ #define __swab16(x) (__u16)__builtin_bswap16((__u16)(x))
+ #else
+ #define __swab16(x)				\
+-	(__builtin_constant_p((__u16)(x)) ?	\
++	(__u16)(__builtin_constant_p(x) ?	\
+ 	___constant_swab16(x) :			\
+ 	__fswab16(x))
+ #endif
+@@ -115,7 +115,7 @@ static inline __attribute_const__ __u32
+ #define __swab32(x) (__u32)__builtin_bswap32((__u32)(x))
+ #else
+ #define __swab32(x)				\
+-	(__builtin_constant_p((__u32)(x)) ?	\
++	(__u32)(__builtin_constant_p(x) ?	\
+ 	___constant_swab32(x) :			\
+ 	__fswab32(x))
+ #endif
+@@ -128,7 +128,7 @@ static inline __attribute_const__ __u32
+ #define __swab64(x) (__u64)__builtin_bswap64((__u64)(x))
+ #else
+ #define __swab64(x)				\
+-	(__builtin_constant_p((__u64)(x)) ?	\
++	(__u64)(__builtin_constant_p(x) ?	\
+ 	___constant_swab64(x) :			\
+ 	__fswab64(x))
+ #endif
+_
+
+Patches currently in -mm which might be from jstitt007@gmail.com are
+
+include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch
+
