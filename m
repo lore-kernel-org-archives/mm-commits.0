@@ -2,134 +2,90 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAE87C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Jun 2022 17:22:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AAE0C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Jun 2022 17:29:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237908AbiFIRWY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Jun 2022 13:22:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49348 "EHLO
+        id S239064AbiFIR3H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Jun 2022 13:29:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232258AbiFIRWY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2022 13:22:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBB8C254
-        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 10:22:22 -0700 (PDT)
+        with ESMTP id S239081AbiFIR3G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2022 13:29:06 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61138122971
+        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 10:29:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7458461AC4
-        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 17:22:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6A38C34114;
-        Thu,  9 Jun 2022 17:22:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654795341;
-        bh=TAL5bc2XPD4sqcQx1TsK/cc9DkmFxBo9Pwu4lhEKAjY=;
-        h=Date:To:From:Subject:From;
-        b=vbfo5Ouzu6wq4o7gB4wnWUoA+hZ6+hVcgyBeGaUbYJQIzFm59xrD4AYx4hicIXPN6
-         Ycg49wG7yIcaz8vHoVL5azMCJcmlA2G73wWwTBrR/StsdNI/JCiJLTUcvg5lqldsnh
-         nvSQb2cwexkM22RZcqYQgF6qYbExZmiUuq8c19VY=
-Date:   Thu, 09 Jun 2022 10:22:21 -0700
-To:     mm-commits@vger.kernel.org, dan.j.williams@intel.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memremap-fix-memunmap_pages-race-with-get_dev_pagemap.patch added to mm-unstable branch
-Message-Id: <20220609172221.C6A38C34114@smtp.kernel.org>
+        by sin.source.kernel.org (Postfix) with ESMTPS id 31E6DCE3067
+        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 17:28:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D00EC3411F
+        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 17:28:57 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="Y5Fr3wlV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1654795734;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ydBJR/Ct5hnzG3jcnmSRmCA1PkkEhwCFb+H0OW1nuSA=;
+        b=Y5Fr3wlVW/AG8sMSWwQLvERrkLmXZIE27fQoChBngv+kHXz+l5WDIy1j0KnHXlqpKjBOmp
+        9PvnN5HIedcK18oRxlOGzCsPliQ6uc4zX6j5dsO45D7vRmZVqDkhlYIlhLZy2zg50j8ul/
+        mVtQqyt2AREp7Ey7hjf79/DBiSEgwY0=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id d91fba2c (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO)
+        for <mm-commits@vger.kernel.org>;
+        Thu, 9 Jun 2022 17:28:54 +0000 (UTC)
+Received: by mail-yb1-f176.google.com with SMTP id r3so8766047ybr.6
+        for <mm-commits@vger.kernel.org>; Thu, 09 Jun 2022 10:28:53 -0700 (PDT)
+X-Gm-Message-State: AOAM532M1XxxhU7CrUpWph/bmV6/VkwlGUc6QaQ0MPWWzle3yBY7+ITz
+        EmbRcY9lpXCXSRf1XxTNIRfKejJ7VIbimxfii1s=
+X-Google-Smtp-Source: ABdhPJw263L9DvTjEYSvAJw5wPhEXsoFyMtcvDt7Xav9ZLhlLIuJsMy00b1lkVYZVduZy010tajdKEunrdmZ0R9zArQ=
+X-Received: by 2002:a5b:dcf:0:b0:64a:6923:bbba with SMTP id
+ t15-20020a5b0dcf000000b0064a6923bbbamr43244058ybr.398.1654795732866; Thu, 09
+ Jun 2022 10:28:52 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220609165640.E538EC34114@smtp.kernel.org> <CAHmME9pgWOU1wg2s5r99DowFgKYHYn=uYPjOLzHf6HEWOcsqgw@mail.gmail.com>
+ <20220609101738.393ace428296b78106525c13@linux-foundation.org>
+In-Reply-To: <20220609101738.393ace428296b78106525c13@linux-foundation.org>
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+Date:   Thu, 9 Jun 2022 19:28:41 +0200
+X-Gmail-Original-Message-ID: <CAHmME9qXXScRxrKv13NRbXwwfg49qkUx5ju_++ZLWNyEF4wBGQ@mail.gmail.com>
+Message-ID: <CAHmME9qXXScRxrKv13NRbXwwfg49qkUx5ju_++ZLWNyEF4wBGQ@mail.gmail.com>
+Subject: Re: + mm-kfence-select-random-number-before-taking-raw-lock.patch
+ added to mm-unstable branch
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, Petr Mladek <pmladek@suse.com>,
+        John Ogness <john.ogness@linutronix.de>,
+        Alexander Potapenko <glider@google.com>,
+        geert+renesas@glider.be, Geert Uytterhoeven <geert@linux-m68k.org>,
+        Marco Elver <elver@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hi Andrew,
 
-The patch titled
-     Subject: mm/memremap: fix memunmap_pages() race with get_dev_pagemap()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memremap-fix-memunmap_pages-race-with-get_dev_pagemap.patch
+On Thu, Jun 9, 2022 at 7:17 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> On Thu, 9 Jun 2022 19:02:55 +0200 "Jason A. Donenfeld" <Jason@zx2c4.com> wrote:
+>
+> > Hi Andrew,
+> >
+> > On Thu, Jun 9, 2022 at 6:56 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+> > >      Subject: mm/kfence: select random number before taking raw lock
+> > > has been added to the -mm mm-unstable branch.
+> >
+> > I believe this belongs in the hotfixes branch, actually. It's a
+> > regression in 5.19.
+> >
+>
+> Oh, OK.  Do we have a Fixes: tag?
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memremap-fix-memunmap_pages-race-with-get_dev_pagemap.patch
+Errr, I guess so technically.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Fixes: d4150779e60f ("random32: use real rng for non-deterministic randomness")
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memremap: fix memunmap_pages() race with get_dev_pagemap()
-Date: Thu, 9 Jun 2022 20:13:05 +0800
-
-Think about the below scene:
-
- CPU1			CPU2
- memunmap_pages
-   percpu_ref_exit
-     __percpu_ref_exit
-       free_percpu(percpu_count);
-         /* percpu_count is freed here! */
-			 get_dev_pagemap
-			   xa_load(&pgmap_array, PHYS_PFN(phys))
-			     /* pgmap still in the pgmap_array */
-			   percpu_ref_tryget_live(&pgmap->ref)
-			     if __ref_is_percpu
-			       /* __PERCPU_REF_ATOMIC_DEAD not set yet */
-			       this_cpu_inc(*percpu_count)
-			         /* access freed percpu_count here! */
-      ref->percpu_count_ptr = __PERCPU_REF_ATOMIC_DEAD;
-        /* too late... */
-   pageunmap_range
-
-To fix the issue, do percpu_ref_exit() after pgmap_array is emptied. So
-we won't do percpu_ref_tryget_live() against a being freed percpu_ref.
-
-Link: https://lkml.kernel.org/r/20220609121305.2508-1-linmiaohe@huawei.com
-Fixes: b7b3c01b1915 ("mm/memremap_pages: support multiple ranges per invocation")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/memremap.c~mm-memremap-fix-memunmap_pages-race-with-get_dev_pagemap
-+++ a/mm/memremap.c
-@@ -141,10 +141,10 @@ void memunmap_pages(struct dev_pagemap *
- 	for (i = 0; i < pgmap->nr_range; i++)
- 		percpu_ref_put_many(&pgmap->ref, pfn_len(pgmap, i));
- 	wait_for_completion(&pgmap->done);
--	percpu_ref_exit(&pgmap->ref);
- 
- 	for (i = 0; i < pgmap->nr_range; i++)
- 		pageunmap_range(pgmap, i);
-+	percpu_ref_exit(&pgmap->ref);
- 
- 	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
- 	devmap_managed_enable_put(pgmap);
-_
-
-Patches currently in -mm which might be from linmiaohe@huawei.com are
-
-maintainers-add-myself-as-a-memory-failure-reviewer.patch
-mm-shmemc-clean-up-comment-of-shmem_swapin_folio.patch
-mm-reduce-the-rcu-lock-duration.patch
-mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-mm-migration-return-errno-when-isolate_huge_page-failed.patch
-mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-memremap-fix-wrong-function-name-above-memremap_pages.patch
-mm-swapfile-make-security_vm_enough_memory_mm-work-as-expected.patch
-mm-swapfile-fix-possible-data-races-of-inuse_pages.patch
-mm-swap-remove-swap_cache_info-statistics.patch
-mm-vmscan-dont-try-to-reclaim-freed-folios.patch
-lib-test_hmm-avoid-accessing-uninitialized-pages.patch
-mm-memremap-fix-memunmap_pages-race-with-get_dev_pagemap.patch
-
+Jason
