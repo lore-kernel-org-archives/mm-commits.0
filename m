@@ -2,122 +2,92 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8330C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Jun 2022 20:09:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FBE0C43334
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Jun 2022 16:02:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229883AbiFHUJx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Jun 2022 16:09:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51910 "EHLO
+        id S237194AbiFIQCi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Jun 2022 12:02:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229851AbiFHUJx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2022 16:09:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0ADDDBCE8F
-        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 13:09:52 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 826DC61C67
-        for <mm-commits@vger.kernel.org>; Wed,  8 Jun 2022 20:09:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F58C34116;
-        Wed,  8 Jun 2022 20:09:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654718990;
-        bh=aIlVnclWNZ0BcyQpUax0+FKYm9mz7g1yg7EzdULb7h8=;
-        h=Date:To:From:Subject:From;
-        b=vZuJzyjZeNRxsIuj4C5fDMfLeeq6D4JdPX4Rgv6JfZ//I8foLidbQ9H60YBODVExP
-         pVyuu5c3V/qk6/wu91Z1BQ8RrK7ri+SArDp14ARb6XiehCe2f2p2sef2EMM2UAoBuG
-         ISRoVOMtM7dCkIZZBZCJQr3bk8+F7hLRzqcAitKw=
-Date:   Wed, 08 Jun 2022 13:09:50 -0700
-To:     mm-commits@vger.kernel.org, trix@redhat.com,
-        ndesaulniers@google.com, nathan@kernel.org, jstitt007@gmail.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch removed from -mm tree
-Message-Id: <20220608200950.D5F58C34116@smtp.kernel.org>
+        with ESMTP id S231679AbiFIQCh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2022 12:02:37 -0400
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A95EA33EA9
+        for <mm-commits@vger.kernel.org>; Thu,  9 Jun 2022 09:02:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1654790556; x=1686326556;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=dde3YtrmwcD0TxgSyt6/xvc2t4Nz6hN7c7JbOBgP7c8=;
+  b=nELSZrzrCNGQm3of4F/nSFIQk7czck8UyQu7GRwyE7nkHsTVPtN7ls/+
+   uwvbuaO+RWa5EMbICeYC2g99OcajczqgNLACXqeXschWv6eYxdTHADWGX
+   cFtaDCmcqgmFAdshOpv/cP/9ow8bDAQ29d+0pzRmoUpqwQSUnF7706uIE
+   LZ+vJtZ0wJBgR1wRA2kWpBt0w1FoEp2GpPs5H01ykNl99sM6gPAKqp9qg
+   iajGy0/qxYM868MytTSAk7JagsxCP42zgS2oV1kIglvTrnxFSrxrzt9aV
+   IT3yDaKpkTc/HQn7ECkxbunrtkjuvvJoSOL4Kp+btlthyltl0VxTL0Ent
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10373"; a="341403760"
+X-IronPort-AV: E=Sophos;i="5.91,287,1647327600"; 
+   d="scan'208";a="341403760"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jun 2022 09:01:50 -0700
+X-IronPort-AV: E=Sophos;i="5.91,287,1647327600"; 
+   d="scan'208";a="649335653"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jun 2022 09:01:46 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.95)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1nzKbP-000Y1c-5Z;
+        Thu, 09 Jun 2022 19:01:43 +0300
+Date:   Thu, 9 Jun 2022 19:01:42 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Matthew Wilcox <willy@infradead.org>, mm-commits@vger.kernel.org
+Subject: Re: + xarray-replace-kernelh-with-the-necessary-inclusions.patch
+ added to mm-nonmm-unstable branch
+Message-ID: <YqIZZj0+D/2VE8Bb@smile.fi.intel.com>
+References: <20220603183231.15159C385A9@smtp.kernel.org>
+ <YppWoUnSxCUljVpS@casper.infradead.org>
+ <20220603114712.da849292ea89f5c956967c54@linux-foundation.org>
+ <YppXmagvcR7Cioug@casper.infradead.org>
+ <20220603124205.28b5d1b1ab3e91568faa1022@linux-foundation.org>
+ <YqDokVn0dSEbfSLE@casper.infradead.org>
+ <20220608115932.f1a5c3353eaee8778cc7a4e1@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220608115932.f1a5c3353eaee8778cc7a4e1@linux-foundation.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Jun 08, 2022 at 11:59:32AM -0700, Andrew Morton wrote:
+> On Wed, 8 Jun 2022 19:21:05 +0100 Matthew Wilcox <willy@infradead.org> wrote:
+> 
+> > > Perhaps some magic happened with cpp's recognition of include guards?
+> > 
+> > I had some time to look at this now.  It's picking up
+> > /usr/include/linux/limits.h on my machine which is provided by
+> > linux-libc-dev.  That's a rather different set of constants from the ones
+> > the kernel provides internally, which might cause problems later.  But I'm
+> > not in a mood to go poking around the different locations that different
+> > environments provide things in, so I think this patch is OK.
+> 
+> Thanks.
+> 
+> I don't think it's good to be replacing our limits.h with some random
+> system-provided one.  I'll drop the patch.
 
-The quilt patch titled
-     Subject: include/uapi/linux/swab.h: move explicit cast outside ternary
-has been removed from the -mm tree.  Its filename was
-     include-uapi-linux-swabh-move-explicit-cast-outside-ternary.patch
+It's fine. Perhaps we will add a limits.h to the tools. I have to remember this
+somewhere.
 
-This patch was dropped because an updated version will be merged
+Thanks, Matthew, for the investigation and finding a root cause.
 
-------------------------------------------------------
-From: Justin Stitt <jstitt007@gmail.com>
-Subject: include/uapi/linux/swab.h: move explicit cast outside ternary
-Date: Tue, 7 Jun 2022 17:14:22 -0700
-
-A cast inside __builtin_constant_p doesn't do anything since it should
-evaluate as constant at compile time irrespective of this cast.  Instead,
-I moved this cast outside the ternary to ensure the return type is as
-expected.
-
-For instance, if __HAVE_BUILTIN_BSWAP16__ was not defined then __swab16 is
-actually returning an `int` not a `u16` due to integer promotion as
-described by Nick in this thread.  This has repercussions when building
-with clang -Wformat.  This fix should solve many of these warnings.
-
-Link: https://github.com/ClangBuiltLinux/linux/issues/378
-Link: https://lkml.kernel.org/r/20220608001422.26383-1-jstitt007@gmail.com
-Signed-off-by: Justin Stitt <jstitt007@gmail.com>
-Suggested-by: Nathan Chancellor <nathan@kernel.org>
-Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Tom Rix <trix@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/uapi/linux/swab.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
---- a/include/uapi/linux/swab.h~include-uapi-linux-swabh-move-explicit-cast-outside-ternary
-+++ a/include/uapi/linux/swab.h
-@@ -99,10 +99,10 @@ static inline __attribute_const__ __u32
-  * @x: value to byteswap
-  */
- #ifdef __HAVE_BUILTIN_BSWAP16__
--#define __swab16(x) (__u16)__builtin_bswap16((__u16)(x))
-+#define __swab16(x) (__u16)__builtin_bswap16(x)
- #else
- #define __swab16(x)				\
--	(__builtin_constant_p((__u16)(x)) ?	\
-+	(__u16)(__builtin_constant_p(x) ?	\
- 	___constant_swab16(x) :			\
- 	__fswab16(x))
- #endif
-@@ -112,10 +112,10 @@ static inline __attribute_const__ __u32
-  * @x: value to byteswap
-  */
- #ifdef __HAVE_BUILTIN_BSWAP32__
--#define __swab32(x) (__u32)__builtin_bswap32((__u32)(x))
-+#define __swab32(x) (__u32)__builtin_bswap32(x)
- #else
- #define __swab32(x)				\
--	(__builtin_constant_p((__u32)(x)) ?	\
-+	(__u32)(__builtin_constant_p(x) ?	\
- 	___constant_swab32(x) :			\
- 	__fswab32(x))
- #endif
-@@ -125,10 +125,10 @@ static inline __attribute_const__ __u32
-  * @x: value to byteswap
-  */
- #ifdef __HAVE_BUILTIN_BSWAP64__
--#define __swab64(x) (__u64)__builtin_bswap64((__u64)(x))
-+#define __swab64(x) (__u64)__builtin_bswap64(x)
- #else
- #define __swab64(x)				\
--	(__builtin_constant_p((__u64)(x)) ?	\
-+	(__u64)(__builtin_constant_p(x) ?	\
- 	___constant_swab64(x) :			\
- 	__fswab64(x))
- #endif
-_
-
-Patches currently in -mm which might be from jstitt007@gmail.com are
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
