@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41587C43334
-	for <mm-commits@archiver.kernel.org>; Sat, 11 Jun 2022 22:08:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2293EC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 11 Jun 2022 22:12:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232380AbiFKWIl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 11 Jun 2022 18:08:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35382 "EHLO
+        id S232386AbiFKWMO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 11 Jun 2022 18:12:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231842AbiFKWIl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 11 Jun 2022 18:08:41 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E9FC40A2C
-        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 15:08:40 -0700 (PDT)
+        with ESMTP id S231842AbiFKWMN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 11 Jun 2022 18:12:13 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CC991A4
+        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 15:12:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CBB3BB80B3E
-        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 22:08:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75C8FC3411C;
-        Sat, 11 Jun 2022 22:08:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 25B22B80B4D
+        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 22:12:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4FBAC3411C;
+        Sat, 11 Jun 2022 22:12:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654985317;
-        bh=NE2jDmU52apoYwiRVUsJnvw2T15KIRkU7W+Cj695AuU=;
+        s=korg; t=1654985527;
+        bh=pL5Ei/iEzDgcNHrAPR/oYuf7IoNm9Cj4+6tk37Lo3Hk=;
         h=Date:To:From:Subject:From;
-        b=BtLqyp+3Pv0iE3ri8Siq6U8JbT5QZQR5O1sLuXQ+dTOD8gvQR8tKKgRTI+LWyV3ik
-         XhsY4DnwQWOF8VCvD+JTfvBGsaIINU+fhWOSSiXJYgMFqogrRvQgMI6GEnu5g3qvrJ
-         i/LGMXUPuOVhfbar4LaG+l9cRW3BYHeXABDCOeaM=
-Date:   Sat, 11 Jun 2022 15:08:36 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        roman.gushchin@linux.dev, yang.yang29@zte.com.cn,
-        akpm@linux-foundation.org
+        b=GEElbNYSo7eWB8rD0w2mHaZ9Dj3nl/rii7Yq7G6fVhpxcFmasyzQnc9YleaPn/USV
+         LsV5wZ4w1R40lE6ypp69EKEmYJcRiDl5ZdErjPhwpcVz91KUpem6v/3Dvee9hd5SFP
+         N3QRW5T12yBCq8vtk6n6EVRlHabKE6mIVLdQseII=
+Date:   Sat, 11 Jun 2022 15:12:07 -0700
+To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
+        npache@redhat.com, jsavitz@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-reference-to-tools-cgroup-memcg_slabinfopy.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220611220837.75C8FC3411C@smtp.kernel.org>
+Subject: + selftests-make-use-of-gup_test_file-macro.patch added to mm-unstable branch
+Message-Id: <20220611221207.D4FBAC3411C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: reference to tools/cgroup/memcg_slabinfo.py
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memcontrol-reference-to-tools-cgroup-memcg_slabinfopy.patch
+     Subject: selftests: make use of GUP_TEST_FILE macro
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-make-use-of-gup_test_file-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-reference-to-tools-cgroup-memcg_slabinfopy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-make-use-of-gup_test_file-macro.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,36 +64,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: mm: memcontrol: reference to tools/cgroup/memcg_slabinfo.py
-Date: Fri, 10 Jun 2022 02:44:52 +0000
+From: Joel Savitz <jsavitz@redhat.com>
+Subject: selftests: make use of GUP_TEST_FILE macro
+Date: Thu, 9 Jun 2022 16:32:17 -0400
 
-There is no slabinfo.py in tools/cgroup, but has memcg_slabinfo.py instead.
+Commit 17de1e559cf1 ("selftests: clarify common error when running
+gup_test") had most of its hunks dropped due to a conflict with another
+patch accepted into Linux around the same time that implemented the same
+behavior as a subset of other changes.
 
-Link: https://lkml.kernel.org/r/20220610024451.744135-1-yang.yang29@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+However, the remaining hunk defines the GUP_TEST_FILE macro without making
+use of it.  This patch makes use of the macro in the two relevant places.
+
+Furthermore, the above mentioned commit's log message erroneously
+describes the changes that were dropped from the patch.
+
+This patch corrects the record.
+
+Link: https://lkml.kernel.org/r/20220609203217.3206247-1-jsavitz@redhat.com
+Fixes: 17de1e559cf1 ("selftests: clarify common error when running gup_test")
+Signed-off-by: Joel Savitz <jsavitz@redhat.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Acked-by: Nico Pache <npache@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/gup_test.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-reference-to-tools-cgroup-memcg_slabinfopy
-+++ a/mm/memcontrol.c
-@@ -4859,7 +4859,7 @@ static int mem_cgroup_slab_show(struct s
- {
- 	/*
- 	 * Deprecated.
--	 * Please, take a look at tools/cgroup/slabinfo.py .
-+	 * Please, take a look at tools/cgroup/memcg_slabinfo.py .
- 	 */
- 	return 0;
- }
+--- a/tools/testing/selftests/vm/gup_test.c~selftests-make-use-of-gup_test_file-macro
++++ a/tools/testing/selftests/vm/gup_test.c
+@@ -209,7 +209,7 @@ int main(int argc, char **argv)
+ 	if (write)
+ 		gup.gup_flags |= FOLL_WRITE;
+ 
+-	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
++	gup_fd = open(GUP_TEST_FILE, O_RDWR);
+ 	if (gup_fd == -1) {
+ 		switch (errno) {
+ 		case EACCES:
+@@ -224,7 +224,7 @@ int main(int argc, char **argv)
+ 			printf("check if CONFIG_GUP_TEST is enabled in kernel config\n");
+ 			break;
+ 		default:
+-			perror("failed to open /sys/kernel/debug/gup_test");
++			perror("failed to open " GUP_TEST_FILE);
+ 			break;
+ 		}
+ 		exit(KSFT_SKIP);
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from jsavitz@redhat.com are
 
-mm-memcontrol-reference-to-tools-cgroup-memcg_slabinfopy.patch
+selftests-make-use-of-gup_test_file-macro.patch
 
