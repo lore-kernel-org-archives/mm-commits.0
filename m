@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5B6DC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 11 Jun 2022 21:05:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3029EC43334
+	for <mm-commits@archiver.kernel.org>; Sat, 11 Jun 2022 21:10:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230050AbiFKVFc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 11 Jun 2022 17:05:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53372 "EHLO
+        id S230268AbiFKVKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 11 Jun 2022 17:10:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230263AbiFKVFb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 11 Jun 2022 17:05:31 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6944B3E5EA
-        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 14:05:29 -0700 (PDT)
+        with ESMTP id S230263AbiFKVKI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 11 Jun 2022 17:10:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F69D50003
+        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 14:10:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0803CB80B4B
-        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 21:05:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B657EC34116;
-        Sat, 11 Jun 2022 21:05:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 967C360FCD
+        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 21:10:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E189BC34116;
+        Sat, 11 Jun 2022 21:10:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654981526;
-        bh=3bxah/9fJxCqiexIOR7oYO7c7fDjkbzlL90tUlv4mVU=;
+        s=korg; t=1654981805;
+        bh=g+XDBlxX7CKf+2yMQL9GHCASglE5M3Q/GasBNXTSsBQ=;
         h=Date:To:From:Subject:From;
-        b=d8htxdiq6E+eyzVSuBsgShJSwcZfK9nZG/4ul06QLcBeilzAEFA8eg77+/ODAq96O
-         T7Fe7zC6t3r7/KGRQjbZXsSUoaZh2RNtMtEs1Og13RIUaGLvbwNPfiCH0nQYojy+d+
-         TRz3MRAF9TChS/I8g6vucyNiIN8iYi1zeQwV5bnU=
-Date:   Sat, 11 Jun 2022 14:05:26 -0700
-To:     mm-commits@vger.kernel.org, yee.lee@mediatek.com,
-        catalin.marinas@arm.com, patrick.wang.shcn@gmail.com,
+        b=di1ULeUMFXIBYDYTmzAegfBz5JLHyFuY0VIUhwaX9NsMwofj7UBo4JhQoY97+p8rF
+         AEExVHFxTrt7UsRKl43PzU1Lmzal52vrZOCs15oGxIKZNOorfMvVXM460DrmR0E3Dz
+         5AgmIe8N+1Kv5ZRNXKzqLsUXdBrghuVY2NLqo3Pc=
+Date:   Sat, 11 Jun 2022 14:10:04 -0700
+To:     mm-commits@vger.kernel.org, Xiongwei.Song@windriver.com,
+        willy@infradead.org, hsinyi@chromium.org, phillip@squashfs.org.uk,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-add-rbtree-and-store-physical-address-for-objects-allocated-with-pa.patch added to mm-unstable branch
-Message-Id: <20220611210526.B657EC34116@smtp.kernel.org>
+Subject: + squashfs-extend-page-actor-to-handle-missing-pages.patch added to mm-nonmm-unstable branch
+Message-Id: <20220611211004.E189BC34116@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: add rbtree and store physical address for objects allocated with PA
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmemleak-add-rbtree-and-store-physical-address-for-objects-allocated-with-pa.patch
+     Subject: squashfs: extend "page actor" to handle missing pages
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-extend-page-actor-to-handle-missing-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-add-rbtree-and-store-physical-address-for-objects-allocated-with-pa.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-extend-page-actor-to-handle-missing-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,370 +65,495 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Patrick Wang <patrick.wang.shcn@gmail.com>
-Subject: mm: kmemleak: add rbtree and store physical address for objects allocated with PA
-Date: Sat, 11 Jun 2022 11:55:50 +0800
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: extend "page actor" to handle missing pages
+Date: Sat, 11 Jun 2022 04:21:32 +0100
 
-Add object_phys_tree_root to store the objects allocated with physical
-address.  Distinguish it from object_tree_root by OBJECT_PHYS flag or
-function argument.  The physical address is stored directly in those
-objects.
+Patch series "Squashfs: handle missing pages decompressing into page
+cache".
 
-Link: https://lkml.kernel.org/r/20220611035551.1823303-4-patrick.wang.shcn@gmail.com
-Signed-off-by: Patrick Wang <patrick.wang.shcn@gmail.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Yee Lee <yee.lee@mediatek.com>
+This patchset enables Squashfs to handle missing pages when directly
+decompressing datablocks into the page cache.
+
+Previously if the full set of pages needed was not available, Squashfs
+would have to fall back to using an intermediate buffer (the older
+method), which is slower, involving a memcopy, and it introduces
+contention on a shared buffer.
+
+The first patch extends the "page actor" code to handle missing pages.
+
+The second patch updates Squashfs_readpage_block() to use the new
+functionality, and removes the code that falls back to using an
+intermediate buffer.
+
+This patchset is independent of the readahead work, and it is standalone. 
+It can be merged on its own.
+
+But the readahead patch for efficiency also needs this patch-set.
+
+
+This patch (of 2):
+
+This patch extends the "page actor" code to handle missing pages.
+
+Previously if the full set of pages needed to decompress a Squashfs
+datablock was unavailable, this would cause decompression to fail on the
+missing pages.
+
+In this case direct decompression into the page cache could not be
+achieved and the code would fall back to using the older intermediate
+buffer method.
+
+With this patch, direct decompression into the page cache can be achieved
+with missing pages.
+
+For "multi-shot" decompressors (zlib, xz, zstd), the page actor will
+allocate a temporary buffer which is passed to the decompressor, and then
+freed by the page actor.
+
+For "single shot" decompressors (lz4, lzo) which decompress into a
+contiguous "bounce buffer", and which is then copied into the page cache,
+it would be pointless to allocate a temporary buffer, memcpy into it, and
+then free it.  For these decompressors -ENOMEM is returned, which
+signifies that the memcpy for that page should be skipped.
+
+This also happens if the data block is uncompressed.
+
+Link: https://lkml.kernel.org/r/20220611032133.5743-1-phillip@squashfs.org.uk
+Link: https://lkml.kernel.org/r/20220611032133.5743-2-phillip@squashfs.org.uk
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Hsin-Yi Wang <hsinyi@chromium.org>
+Cc: Xiongwei Song <Xiongwei.Song@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |  133 ++++++++++++++++++++++++++++++++----------------
- 1 file changed, 91 insertions(+), 42 deletions(-)
+ fs/squashfs/block.c        |   10 ++++--
+ fs/squashfs/decompressor.h |    1 
+ fs/squashfs/file_direct.c  |   21 +++++++------
+ fs/squashfs/lz4_wrapper.c  |    7 +++-
+ fs/squashfs/lzo_wrapper.c  |    7 +++-
+ fs/squashfs/page_actor.c   |   55 +++++++++++++++++++++++++++++------
+ fs/squashfs/page_actor.h   |   21 +++++++++++--
+ fs/squashfs/xz_wrapper.c   |   11 ++++++-
+ fs/squashfs/zlib_wrapper.c |   12 +++++++
+ fs/squashfs/zstd_wrapper.c |   12 +++++++
+ 10 files changed, 126 insertions(+), 31 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-add-rbtree-and-store-physical-address-for-objects-allocated-with-pa
-+++ a/mm/kmemleak.c
-@@ -14,14 +14,16 @@
-  * The following locks and mutexes are used by kmemleak:
-  *
-  * - kmemleak_lock (raw_spinlock_t): protects the object_list modifications and
-- *   accesses to the object_tree_root. The object_list is the main list
-- *   holding the metadata (struct kmemleak_object) for the allocated memory
-- *   blocks. The object_tree_root is a red black tree used to look-up
-- *   metadata based on a pointer to the corresponding memory block.  The
-- *   kmemleak_object structures are added to the object_list and
-- *   object_tree_root in the create_object() function called from the
-- *   kmemleak_alloc() callback and removed in delete_object() called from the
-- *   kmemleak_free() callback
-+ *   accesses to the object_tree_root (or object_phys_tree_root). The
-+ *   object_list is the main list holding the metadata (struct kmemleak_object)
-+ *   for the allocated memory blocks. The object_tree_root and object_phys_tree_root
-+ *   are red black trees used to look-up metadata based on a pointer to the
-+ *   corresponding memory block. The object_phys_tree_root is for objects
-+ *   allocated with physical address. The kmemleak_object structures are
-+ *   added to the object_list and object_tree_root (or object_phys_tree_root)
-+ *   in the create_object() function called from the kmemleak_alloc() (or
-+ *   kmemleak_alloc_phys()) callback and removed in delete_object() called from
-+ *   the kmemleak_free() callback
-  * - kmemleak_object.lock (raw_spinlock_t): protects a kmemleak_object.
-  *   Accesses to the metadata (e.g. count) are protected by this lock. Note
-  *   that some members of this structure may be protected by other means
-@@ -195,7 +197,9 @@ static int mem_pool_free_count = ARRAY_S
- static LIST_HEAD(mem_pool_free_list);
- /* search tree for object boundaries */
- static struct rb_root object_tree_root = RB_ROOT;
--/* protecting the access to object_list and object_tree_root */
-+/* search tree for object (with OBJECT_PHYS flag) boundaries */
-+static struct rb_root object_phys_tree_root = RB_ROOT;
-+/* protecting the access to object_list, object_tree_root (or object_phys_tree_root) */
- static DEFINE_RAW_SPINLOCK(kmemleak_lock);
+--- a/fs/squashfs/block.c~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/block.c
+@@ -34,12 +34,15 @@ static int copy_bio_to_actor(struct bio
+ 			     struct squashfs_page_actor *actor,
+ 			     int offset, int req_length)
+ {
+-	void *actor_addr = squashfs_first_page(actor);
++	void *actor_addr;
+ 	struct bvec_iter_all iter_all = {};
+ 	struct bio_vec *bvec = bvec_init_iter_all(&iter_all);
+ 	int copied_bytes = 0;
+ 	int actor_offset = 0;
  
- /* allocation caches for kmemleak internal data */
-@@ -287,6 +291,9 @@ static void hex_dump_object(struct seq_f
- 	const u8 *ptr = (const u8 *)object->pointer;
- 	size_t len;
- 
-+	if (WARN_ON_ONCE(object->flags & OBJECT_PHYS))
-+		return;
++	squashfs_actor_nobuff(actor);
++	actor_addr = squashfs_first_page(actor);
 +
- 	/* limit the number of lines to HEX_MAX_LINES */
- 	len = min_t(size_t, object->size, HEX_MAX_LINES * HEX_ROW_SIZE);
+ 	if (WARN_ON_ONCE(!bio_next_segment(bio, &iter_all)))
+ 		return 0;
  
-@@ -380,9 +387,11 @@ static void dump_object_info(struct kmem
-  * beginning of the memory block are allowed. The kmemleak_lock must be held
-  * when calling this function.
-  */
--static struct kmemleak_object *lookup_object(unsigned long ptr, int alias)
-+static struct kmemleak_object *__lookup_object(unsigned long ptr, int alias,
-+					       bool is_phys)
- {
--	struct rb_node *rb = object_tree_root.rb_node;
-+	struct rb_node *rb = is_phys ? object_phys_tree_root.rb_node :
-+			     object_tree_root.rb_node;
- 	unsigned long untagged_ptr = (unsigned long)kasan_reset_tag((void *)ptr);
+@@ -49,8 +52,9 @@ static int copy_bio_to_actor(struct bio
  
- 	while (rb) {
-@@ -408,6 +417,12 @@ static struct kmemleak_object *lookup_ob
- 	return NULL;
- }
+ 		bytes_to_copy = min_t(int, bytes_to_copy,
+ 				      req_length - copied_bytes);
+-		memcpy(actor_addr + actor_offset, bvec_virt(bvec) + offset,
+-		       bytes_to_copy);
++		if (!IS_ERR(actor_addr))
++			memcpy(actor_addr + actor_offset, bvec_virt(bvec) +
++					offset, bytes_to_copy);
  
-+/* Look-up a kmemleak object which allocated with virtual address. */
-+static struct kmemleak_object *lookup_object(unsigned long ptr, int alias)
-+{
-+	return __lookup_object(ptr, alias, false);
-+}
-+
- /*
-  * Increment the object use_count. Return 1 if successful or 0 otherwise. Note
-  * that once an object's use_count reached 0, the RCU freeing was already
-@@ -517,14 +532,15 @@ static void put_object(struct kmemleak_o
- /*
-  * Look up an object in the object search tree and increase its use_count.
-  */
--static struct kmemleak_object *find_and_get_object(unsigned long ptr, int alias)
-+static struct kmemleak_object *__find_and_get_object(unsigned long ptr, int alias,
-+						     bool is_phys)
- {
- 	unsigned long flags;
- 	struct kmemleak_object *object;
+ 		actor_offset += bytes_to_copy;
+ 		copied_bytes += bytes_to_copy;
+--- a/fs/squashfs/decompressor.h~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/decompressor.h
+@@ -20,6 +20,7 @@ struct squashfs_decompressor {
+ 		struct bio *, int, int, struct squashfs_page_actor *);
+ 	int	id;
+ 	char	*name;
++	int	alloc_buffer;
+ 	int	supported;
+ };
  
- 	rcu_read_lock();
- 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
--	object = lookup_object(ptr, alias);
-+	object = __lookup_object(ptr, alias, is_phys);
- 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
+--- a/fs/squashfs/file_direct.c~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/file_direct.c
+@@ -47,14 +47,6 @@ int squashfs_readpage_block(struct page
+ 	if (page == NULL)
+ 		return res;
  
- 	/* check whether the object is still available */
-@@ -535,28 +551,39 @@ static struct kmemleak_object *find_and_
- 	return object;
- }
+-	/*
+-	 * Create a "page actor" which will kmap and kunmap the
+-	 * page cache pages appropriately within the decompressor
+-	 */
+-	actor = squashfs_page_actor_init_special(page, pages, 0);
+-	if (actor == NULL)
+-		goto out;
+-
+ 	/* Try to grab all the pages covered by the Squashfs block */
+ 	for (missing_pages = 0, i = 0, n = start_index; i < pages; i++, n++) {
+ 		page[i] = (n == target_page->index) ? target_page :
+@@ -89,8 +81,19 @@ int squashfs_readpage_block(struct page
+ 		goto out;
+ 	}
  
-+/* Look up and get an object which allocated with virtual address. */
-+static struct kmemleak_object *find_and_get_object(unsigned long ptr, int alias)
-+{
-+	return __find_and_get_object(ptr, alias, false);
-+}
-+
- /*
-- * Remove an object from the object_tree_root and object_list. Must be called
-- * with the kmemleak_lock held _if_ kmemleak is still enabled.
-+ * Remove an object from the object_tree_root (or object_phys_tree_root)
-+ * and object_list. Must be called with the kmemleak_lock held _if_ kmemleak
-+ * is still enabled.
-  */
- static void __remove_object(struct kmemleak_object *object)
- {
--	rb_erase(&object->rb_node, &object_tree_root);
-+	rb_erase(&object->rb_node, object->flags & OBJECT_PHYS ?
-+				   &object_phys_tree_root :
-+				   &object_tree_root);
- 	list_del_rcu(&object->object_list);
- }
- 
- /*
-  * Look up an object in the object search tree and remove it from both
-- * object_tree_root and object_list. The returned object's use_count should be
-- * at least 1, as initially set by create_object().
-+ * object_tree_root (or object_phys_tree_root) and object_list. The
-+ * returned object's use_count should be at least 1, as initially set
-+ * by create_object().
-  */
--static struct kmemleak_object *find_and_remove_object(unsigned long ptr, int alias)
-+static struct kmemleak_object *find_and_remove_object(unsigned long ptr, int alias,
-+						      bool is_phys)
- {
- 	unsigned long flags;
- 	struct kmemleak_object *object;
- 
- 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
--	object = lookup_object(ptr, alias);
-+	object = __lookup_object(ptr, alias, is_phys);
- 	if (object)
- 		__remove_object(object);
- 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
-@@ -574,7 +601,8 @@ static int __save_stack_trace(unsigned l
- 
- /*
-  * Create the metadata (struct kmemleak_object) corresponding to an allocated
-- * memory block and add it to the object_list and object_tree_root.
-+ * memory block and add it to the object_list and object_tree_root (or
-+ * object_phys_tree_root).
-  */
- static struct kmemleak_object *__create_object(unsigned long ptr, size_t size,
- 					     int min_count, gfp_t gfp,
-@@ -631,9 +659,16 @@ static struct kmemleak_object *__create_
- 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
- 
- 	untagged_ptr = (unsigned long)kasan_reset_tag((void *)ptr);
--	min_addr = min(min_addr, untagged_ptr);
--	max_addr = max(max_addr, untagged_ptr + size);
--	link = &object_tree_root.rb_node;
 +	/*
-+	 * Only update min_addr and max_addr with object
-+	 * storing virtual address.
++	 * Create a "page actor" which will kmap and kunmap the
++	 * page cache pages appropriately within the decompressor
 +	 */
-+	if (!is_phys) {
-+		min_addr = min(min_addr, untagged_ptr);
-+		max_addr = max(max_addr, untagged_ptr + size);
++	actor = squashfs_page_actor_init_special(msblk, page, pages, 0);
++	if (actor == NULL)
++		goto out;
++
+ 	/* Decompress directly into the page cache buffers */
+ 	res = squashfs_read_data(inode->i_sb, block, bsize, NULL, actor);
++
++	kfree(actor);
++
+ 	if (res < 0)
+ 		goto mark_errored;
+ 
+@@ -116,7 +119,6 @@ int squashfs_readpage_block(struct page
+ 			put_page(page[i]);
+ 	}
+ 
+-	kfree(actor);
+ 	kfree(page);
+ 
+ 	return 0;
+@@ -135,7 +137,6 @@ mark_errored:
+ 	}
+ 
+ out:
+-	kfree(actor);
+ 	kfree(page);
+ 	return res;
+ }
+--- a/fs/squashfs/lz4_wrapper.c~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/lz4_wrapper.c
+@@ -119,10 +119,12 @@ static int lz4_uncompress(struct squashf
+ 	buff = stream->output;
+ 	while (data) {
+ 		if (bytes <= PAGE_SIZE) {
+-			memcpy(data, buff, bytes);
++			if (!IS_ERR(data))
++				memcpy(data, buff, bytes);
+ 			break;
+ 		}
+-		memcpy(data, buff, PAGE_SIZE);
++		if (!IS_ERR(data))
++			memcpy(data, buff, PAGE_SIZE);
+ 		buff += PAGE_SIZE;
+ 		bytes -= PAGE_SIZE;
+ 		data = squashfs_next_page(output);
+@@ -139,5 +141,6 @@ const struct squashfs_decompressor squas
+ 	.decompress = lz4_uncompress,
+ 	.id = LZ4_COMPRESSION,
+ 	.name = "lz4",
++	.alloc_buffer = 0,
+ 	.supported = 1
+ };
+--- a/fs/squashfs/lzo_wrapper.c~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/lzo_wrapper.c
+@@ -93,10 +93,12 @@ static int lzo_uncompress(struct squashf
+ 	buff = stream->output;
+ 	while (data) {
+ 		if (bytes <= PAGE_SIZE) {
+-			memcpy(data, buff, bytes);
++			if (!IS_ERR(data))
++				memcpy(data, buff, bytes);
+ 			break;
+ 		} else {
+-			memcpy(data, buff, PAGE_SIZE);
++			if (!IS_ERR(data))
++				memcpy(data, buff, PAGE_SIZE);
+ 			buff += PAGE_SIZE;
+ 			bytes -= PAGE_SIZE;
+ 			data = squashfs_next_page(output);
+@@ -116,5 +118,6 @@ const struct squashfs_decompressor squas
+ 	.decompress = lzo_uncompress,
+ 	.id = LZO_COMPRESSION,
+ 	.name = "lzo",
++	.alloc_buffer = 0,
+ 	.supported = 1
+ };
+--- a/fs/squashfs/page_actor.c~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/page_actor.c
+@@ -7,6 +7,8 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/pagemap.h>
++#include "squashfs_fs_sb.h"
++#include "decompressor.h"
+ #include "page_actor.h"
+ 
+ /*
+@@ -57,29 +59,62 @@ struct squashfs_page_actor *squashfs_pag
+ }
+ 
+ /* Implementation of page_actor for decompressing directly into page cache. */
++static void *handle_next_page(struct squashfs_page_actor *actor)
++{
++	int max_pages = (actor->length + PAGE_SIZE - 1) >> PAGE_SHIFT;
++
++	if (actor->returned_pages == max_pages)
++		return NULL;
++
++	if ((actor->next_page == actor->pages) ||
++			(actor->next_index != actor->page[actor->next_page]->index)) {
++		if (actor->alloc_buffer) {
++			void *tmp_buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
++
++			if (tmp_buffer) {
++				actor->tmp_buffer = tmp_buffer;
++				actor->next_index++;
++				actor->returned_pages++;
++				return tmp_buffer;
++			}
++		}
++
++		actor->next_index++;
++		actor->returned_pages++;
++		return ERR_PTR(-ENOMEM);
 +	}
-+	link = is_phys ? &object_phys_tree_root.rb_node :
-+		&object_tree_root.rb_node;
- 	rb_parent = NULL;
- 	while (*link) {
- 		rb_parent = *link;
-@@ -657,7 +692,8 @@ static struct kmemleak_object *__create_
++
++	actor->next_index++;
++	actor->returned_pages++;
++	return actor->pageaddr = kmap_local_page(actor->page[actor->next_page++]);
++}
++
+ static void *direct_first_page(struct squashfs_page_actor *actor)
+ {
+-	actor->next_page = 1;
+-	return actor->pageaddr = kmap_atomic(actor->page[0]);
++	return handle_next_page(actor);
+ }
+ 
+ static void *direct_next_page(struct squashfs_page_actor *actor)
+ {
+ 	if (actor->pageaddr)
+-		kunmap_atomic(actor->pageaddr);
++		kunmap_local(actor->pageaddr);
++
++	kfree(actor->tmp_buffer);
++	actor->pageaddr = actor->tmp_buffer = NULL;
+ 
+-	return actor->pageaddr = actor->next_page == actor->pages ? NULL :
+-		kmap_atomic(actor->page[actor->next_page++]);
++	return handle_next_page(actor);
+ }
+ 
+ static void direct_finish_page(struct squashfs_page_actor *actor)
+ {
+ 	if (actor->pageaddr)
+-		kunmap_atomic(actor->pageaddr);
++		kunmap_local(actor->pageaddr);
++
++	kfree(actor->tmp_buffer);
+ }
+ 
+-struct squashfs_page_actor *squashfs_page_actor_init_special(struct page **page,
+-	int pages, int length)
++struct squashfs_page_actor *squashfs_page_actor_init_special(struct squashfs_sb_info *msblk,
++	struct page **page, int pages, int length)
+ {
+ 	struct squashfs_page_actor *actor = kmalloc(sizeof(*actor), GFP_KERNEL);
+ 
+@@ -90,7 +125,11 @@ struct squashfs_page_actor *squashfs_pag
+ 	actor->page = page;
+ 	actor->pages = pages;
+ 	actor->next_page = 0;
++	actor->returned_pages = 0;
++	actor->next_index = page[0]->index & ~((1 << (msblk->block_log - PAGE_SHIFT)) - 1);
+ 	actor->pageaddr = NULL;
++	actor->tmp_buffer = NULL;
++	actor->alloc_buffer = msblk->decompressor->alloc_buffer;
+ 	actor->squashfs_first_page = direct_first_page;
+ 	actor->squashfs_next_page = direct_next_page;
+ 	actor->squashfs_finish_page = direct_finish_page;
+--- a/fs/squashfs/page_actor.h~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/page_actor.h
+@@ -45,6 +45,11 @@ static inline void squashfs_finish_page(
+ {
+ 	/* empty */
+ }
++
++static inline void squashfs_actor_nobuff(struct squashfs_page_actor *actor)
++{
++	/* empty */
++}
+ #else
+ struct squashfs_page_actor {
+ 	union {
+@@ -52,17 +57,23 @@ struct squashfs_page_actor {
+ 		struct page	**page;
+ 	};
+ 	void	*pageaddr;
++	void	*tmp_buffer;
+ 	void    *(*squashfs_first_page)(struct squashfs_page_actor *);
+ 	void    *(*squashfs_next_page)(struct squashfs_page_actor *);
+ 	void    (*squashfs_finish_page)(struct squashfs_page_actor *);
+ 	int	pages;
+ 	int	length;
+ 	int	next_page;
++	int	alloc_buffer;
++	int	returned_pages;
++	pgoff_t	next_index;
+ };
+ 
+-extern struct squashfs_page_actor *squashfs_page_actor_init(void **, int, int);
+-extern struct squashfs_page_actor *squashfs_page_actor_init_special(struct page
+-							 **, int, int);
++extern struct squashfs_page_actor *squashfs_page_actor_init(void **buffer,
++				int pages, int length);
++extern struct squashfs_page_actor *squashfs_page_actor_init_special(
++				struct squashfs_sb_info *msblk,
++				struct page **page, int pages, int length);
+ static inline void *squashfs_first_page(struct squashfs_page_actor *actor)
+ {
+ 	return actor->squashfs_first_page(actor);
+@@ -75,5 +86,9 @@ static inline void squashfs_finish_page(
+ {
+ 	actor->squashfs_finish_page(actor);
+ }
++static inline void squashfs_actor_nobuff(struct squashfs_page_actor *actor)
++{
++	actor->alloc_buffer = 0;
++}
+ #endif
+ #endif
+--- a/fs/squashfs/xz_wrapper.c~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/xz_wrapper.c
+@@ -131,6 +131,10 @@ static int squashfs_xz_uncompress(struct
+ 	stream->buf.out_pos = 0;
+ 	stream->buf.out_size = PAGE_SIZE;
+ 	stream->buf.out = squashfs_first_page(output);
++	if (IS_ERR(stream->buf.out)) {
++		error = PTR_ERR(stream->buf.out);
++		goto finish;
++	}
+ 
+ 	for (;;) {
+ 		enum xz_ret xz_err;
+@@ -156,7 +160,10 @@ static int squashfs_xz_uncompress(struct
+ 
+ 		if (stream->buf.out_pos == stream->buf.out_size) {
+ 			stream->buf.out = squashfs_next_page(output);
+-			if (stream->buf.out != NULL) {
++			if (IS_ERR(stream->buf.out)) {
++				error = PTR_ERR(stream->buf.out);
++				break;
++			} else if (stream->buf.out != NULL) {
+ 				stream->buf.out_pos = 0;
+ 				total += PAGE_SIZE;
+ 			}
+@@ -171,6 +178,7 @@ static int squashfs_xz_uncompress(struct
  		}
  	}
- 	rb_link_node(&object->rb_node, rb_parent, link);
--	rb_insert_color(&object->rb_node, &object_tree_root);
-+	rb_insert_color(&object->rb_node, is_phys ? &object_phys_tree_root :
-+					  &object_tree_root);
  
- 	list_add_tail_rcu(&object->object_list, &object_list);
- out:
-@@ -707,7 +743,7 @@ static void delete_object_full(unsigned
- {
- 	struct kmemleak_object *object;
++finish:
+ 	squashfs_finish_page(output);
  
--	object = find_and_remove_object(ptr, 0);
-+	object = find_and_remove_object(ptr, 0, false);
- 	if (!object) {
- #ifdef DEBUG
- 		kmemleak_warn("Freeing unknown object at 0x%08lx\n",
-@@ -723,12 +759,12 @@ static void delete_object_full(unsigned
-  * delete it. If the memory block is partially freed, the function may create
-  * additional metadata for the remaining parts of the block.
-  */
--static void delete_object_part(unsigned long ptr, size_t size)
-+static void delete_object_part(unsigned long ptr, size_t size, bool is_phys)
- {
- 	struct kmemleak_object *object;
- 	unsigned long start, end;
+ 	return error ? error : total + stream->buf.out_pos;
+@@ -183,5 +191,6 @@ const struct squashfs_decompressor squas
+ 	.decompress = squashfs_xz_uncompress,
+ 	.id = XZ_COMPRESSION,
+ 	.name = "xz",
++	.alloc_buffer = 1,
+ 	.supported = 1
+ };
+--- a/fs/squashfs/zlib_wrapper.c~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/zlib_wrapper.c
+@@ -62,6 +62,11 @@ static int zlib_uncompress(struct squash
+ 	stream->next_out = squashfs_first_page(output);
+ 	stream->avail_in = 0;
  
--	object = find_and_remove_object(ptr, 1);
-+	object = find_and_remove_object(ptr, 1, is_phys);
- 	if (!object) {
- #ifdef DEBUG
- 		kmemleak_warn("Partially freeing unknown object at 0x%08lx (size %zu)\n",
-@@ -746,10 +782,10 @@ static void delete_object_part(unsigned
- 	end = object->pointer + object->size;
- 	if (ptr > start)
- 		__create_object(start, ptr - start, object->min_count,
--			      GFP_KERNEL, object->flags & OBJECT_PHYS);
-+			      GFP_KERNEL, is_phys);
- 	if (ptr + size < end)
- 		__create_object(ptr + size, end - ptr - size, object->min_count,
--			      GFP_KERNEL, object->flags & OBJECT_PHYS);
-+			      GFP_KERNEL, is_phys);
- 
- 	__delete_object(object);
- }
-@@ -770,11 +806,11 @@ static void paint_it(struct kmemleak_obj
- 	raw_spin_unlock_irqrestore(&object->lock, flags);
- }
- 
--static void paint_ptr(unsigned long ptr, int color)
-+static void paint_ptr(unsigned long ptr, int color, bool is_phys)
- {
- 	struct kmemleak_object *object;
- 
--	object = find_and_get_object(ptr, 0);
-+	object = __find_and_get_object(ptr, 0, is_phys);
- 	if (!object) {
- 		kmemleak_warn("Trying to color unknown object at 0x%08lx as %s\n",
- 			      ptr,
-@@ -792,16 +828,16 @@ static void paint_ptr(unsigned long ptr,
-  */
- static void make_gray_object(unsigned long ptr)
- {
--	paint_ptr(ptr, KMEMLEAK_GREY);
-+	paint_ptr(ptr, KMEMLEAK_GREY, false);
- }
- 
- /*
-  * Mark the object as black-colored so that it is ignored from scans and
-  * reporting.
-  */
--static void make_black_object(unsigned long ptr)
-+static void make_black_object(unsigned long ptr, bool is_phys)
- {
--	paint_ptr(ptr, KMEMLEAK_BLACK);
-+	paint_ptr(ptr, KMEMLEAK_BLACK, is_phys);
- }
- 
- /*
-@@ -1007,7 +1043,7 @@ void __ref kmemleak_free_part(const void
- 	pr_debug("%s(0x%p)\n", __func__, ptr);
- 
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
--		delete_object_part((unsigned long)ptr, size);
-+		delete_object_part((unsigned long)ptr, size, false);
- }
- EXPORT_SYMBOL_GPL(kmemleak_free_part);
- 
-@@ -1095,7 +1131,7 @@ void __ref kmemleak_ignore(const void *p
- 	pr_debug("%s(0x%p)\n", __func__, ptr);
- 
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
--		make_black_object((unsigned long)ptr);
-+		make_black_object((unsigned long)ptr, false);
- }
- EXPORT_SYMBOL(kmemleak_ignore);
- 
-@@ -1153,7 +1189,7 @@ void __ref kmemleak_alloc_phys(phys_addr
- 		 * Create object with OBJECT_PHYS flag and
- 		 * assume min_count 0.
- 		 */
--		create_object_phys((unsigned long)__va(phys), size, 0, gfp);
-+		create_object_phys((unsigned long)phys, size, 0, gfp);
- }
- EXPORT_SYMBOL(kmemleak_alloc_phys);
- 
-@@ -1166,8 +1202,10 @@ EXPORT_SYMBOL(kmemleak_alloc_phys);
-  */
- void __ref kmemleak_free_part_phys(phys_addr_t phys, size_t size)
- {
-+	pr_debug("%s(0x%pa)\n", __func__, &phys);
++	if (IS_ERR(stream->next_out)) {
++		error = PTR_ERR(stream->next_out);
++		goto finish;
++	}
 +
- 	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
--		kmemleak_free_part(__va(phys), size);
-+		delete_object_part((unsigned long)phys, size, true);
- }
- EXPORT_SYMBOL(kmemleak_free_part_phys);
+ 	for (;;) {
+ 		int zlib_err;
  
-@@ -1178,8 +1216,10 @@ EXPORT_SYMBOL(kmemleak_free_part_phys);
-  */
- void __ref kmemleak_ignore_phys(phys_addr_t phys)
- {
-+	pr_debug("%s(0x%pa)\n", __func__, &phys);
+@@ -85,7 +90,10 @@ static int zlib_uncompress(struct squash
+ 
+ 		if (stream->avail_out == 0) {
+ 			stream->next_out = squashfs_next_page(output);
+-			if (stream->next_out != NULL)
++			if (IS_ERR(stream->next_out)) {
++				error = PTR_ERR(stream->next_out);
++				break;
++			} else if (stream->next_out != NULL)
+ 				stream->avail_out = PAGE_SIZE;
+ 		}
+ 
+@@ -107,6 +115,7 @@ static int zlib_uncompress(struct squash
+ 		}
+ 	}
+ 
++finish:
+ 	squashfs_finish_page(output);
+ 
+ 	if (!error)
+@@ -122,6 +131,7 @@ const struct squashfs_decompressor squas
+ 	.decompress = zlib_uncompress,
+ 	.id = ZLIB_COMPRESSION,
+ 	.name = "zlib",
++	.alloc_buffer = 1,
+ 	.supported = 1
+ };
+ 
+--- a/fs/squashfs/zstd_wrapper.c~squashfs-extend-page-actor-to-handle-missing-pages
++++ a/fs/squashfs/zstd_wrapper.c
+@@ -80,6 +80,10 @@ static int zstd_uncompress(struct squash
+ 
+ 	out_buf.size = PAGE_SIZE;
+ 	out_buf.dst = squashfs_first_page(output);
++	if (IS_ERR(out_buf.dst)) {
++		error = PTR_ERR(out_buf.dst);
++		goto finish;
++	}
+ 
+ 	for (;;) {
+ 		size_t zstd_err;
+@@ -104,7 +108,10 @@ static int zstd_uncompress(struct squash
+ 
+ 		if (out_buf.pos == out_buf.size) {
+ 			out_buf.dst = squashfs_next_page(output);
+-			if (out_buf.dst == NULL) {
++			if (IS_ERR(out_buf.dst)) {
++				error = PTR_ERR(out_buf.dst);
++				break;
++			} else if (out_buf.dst == NULL) {
+ 				/* Shouldn't run out of pages
+ 				 * before stream is done.
+ 				 */
+@@ -129,6 +136,8 @@ static int zstd_uncompress(struct squash
+ 		}
+ 	}
+ 
++finish:
 +
- 	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
--		kmemleak_ignore(__va(phys));
-+		make_black_object((unsigned long)phys, true);
- }
- EXPORT_SYMBOL(kmemleak_ignore_phys);
+ 	squashfs_finish_page(output);
  
-@@ -1190,6 +1230,9 @@ static bool update_checksum(struct kmeml
- {
- 	u32 old_csum = object->checksum;
- 
-+	if (WARN_ON_ONCE(object->flags & OBJECT_PHYS))
-+		return false;
-+
- 	kasan_disable_current();
- 	kcsan_disable_current();
- 	object->checksum = crc32(0, kasan_reset_tag((void *)object->pointer), object->size);
-@@ -1343,6 +1386,7 @@ static void scan_object(struct kmemleak_
- {
- 	struct kmemleak_scan_area *area;
- 	unsigned long flags;
-+	void *obj_ptr;
- 
- 	/*
- 	 * Once the object->lock is acquired, the corresponding memory block
-@@ -1354,10 +1398,15 @@ static void scan_object(struct kmemleak_
- 	if (!(object->flags & OBJECT_ALLOCATED))
- 		/* already freed object */
- 		goto out;
-+
-+	obj_ptr = object->flags & OBJECT_PHYS ?
-+		  __va((phys_addr_t)object->pointer) :
-+		  (void *)object->pointer;
-+
- 	if (hlist_empty(&object->area_list) ||
- 	    object->flags & OBJECT_FULL_SCAN) {
--		void *start = (void *)object->pointer;
--		void *end = (void *)(object->pointer + object->size);
-+		void *start = obj_ptr;
-+		void *end = obj_ptr + object->size;
- 		void *next;
- 
- 		do {
+ 	return error ? error : total_out;
+@@ -140,5 +149,6 @@ const struct squashfs_decompressor squas
+ 	.decompress = zstd_uncompress,
+ 	.id = ZSTD_COMPRESSION,
+ 	.name = "zstd",
++	.alloc_buffer = 1,
+ 	.supported = 1
+ };
 _
 
-Patches currently in -mm which might be from patrick.wang.shcn@gmail.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys.patch
-mm-kmemleak-add-object_phys-flag-for-objects-allocated-with-physical-address.patch
-mm-kmemleak-add-rbtree-and-store-physical-address-for-objects-allocated-with-pa.patch
-mm-kmemleak-check-physical-address-when-scan.patch
+squashfs-extend-page-actor-to-handle-missing-pages.patch
+squashfs-dont-use-intermediate-buffer-if-pages-missing.patch
 
