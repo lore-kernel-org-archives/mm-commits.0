@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7328C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 11 Jun 2022 20:36:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD2E1C43334
+	for <mm-commits@archiver.kernel.org>; Sat, 11 Jun 2022 20:36:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231341AbiFKUgN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 11 Jun 2022 16:36:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36906 "EHLO
+        id S231909AbiFKUgO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 11 Jun 2022 16:36:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229528AbiFKUgM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 11 Jun 2022 16:36:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB50E112C
-        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 13:36:11 -0700 (PDT)
+        with ESMTP id S229528AbiFKUgO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 11 Jun 2022 16:36:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F593694A5
+        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 13:36:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2ECD061298
-        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 20:36:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82E20C34116;
-        Sat, 11 Jun 2022 20:36:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B38D61297
+        for <mm-commits@vger.kernel.org>; Sat, 11 Jun 2022 20:36:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65B7AC34116;
+        Sat, 11 Jun 2022 20:36:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1654979770;
-        bh=VVzbBVhMuLm6SNfuV8wQSQAYis88d9vyT81x5MiDRig=;
+        s=korg; t=1654979772;
+        bh=uYFQFDZ/PRPF5F/0tOv2CMn3a4h6BOSiuhD8xfpY+wM=;
         h=Date:To:From:Subject:From;
-        b=ZwUQNZy3pJKD8Ek3M7zrjFKY5I3Ht7NTSZMIqdpw1mtVy+Bl+ulDE9k3QuUwtxwIY
-         rtG/tn5l/Yd1uiSIcqPAmGz82VOYllsyVTB2HDvLGfdU4fAogwhjSxFj0M/f9I9Htj
-         Q0Lsr+ij0cGcW/FFT4w6BIwaCBmF0NL83qr3gjzE=
-Date:   Sat, 11 Jun 2022 13:36:09 -0700
+        b=m+k9pcsAXWG73nNVT+qxADMkkbYGotYxHheWNdkQq3b25/KU6y1Vznia3dByZhLlH
+         t2t/IMlynSbTju4tRR5fk5ac7pYeFqzfgfoGIafs6csBYWEbIxCnKgQYB1Y1OrKtu2
+         CD3Kk3MZRO/ErdSDDRV6+VLo2Svj1GDDLRhuc7yU=
+Date:   Sat, 11 Jun 2022 13:36:11 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         surenb@google.com, peterx@redhat.com, neilb@suse.de,
         mike.kravetz@oracle.com, dhowells@redhat.com, david@redhat.com,
         apopple@nvidia.com, aarcange@redhat.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-unneeded-shmem_huge_enabled-check.patch added to mm-unstable branch
-Message-Id: <20220611203610.82E20C34116@smtp.kernel.org>
+Subject: + mm-khugepaged-stop-swapping-in-page-when-vm_fault_retry-occurs.patch added to mm-unstable branch
+Message-Id: <20220611203612.65B7AC34116@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: remove unneeded shmem_huge_enabled() check
+     Subject: mm/khugepaged: stop swapping in page when VM_FAULT_RETRY occurs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-remove-unneeded-shmem_huge_enabled-check.patch
+     mm-khugepaged-stop-swapping-in-page-when-vm_fault_retry-occurs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-unneeded-shmem_huge_enabled-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-stop-swapping-in-page-when-vm_fault_retry-occurs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,52 +68,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/khugepaged: remove unneeded shmem_huge_enabled() check
-Date: Sat, 11 Jun 2022 16:47:25 +0800
+Subject: mm/khugepaged: stop swapping in page when VM_FAULT_RETRY occurs
+Date: Sat, 11 Jun 2022 16:47:26 +0800
 
-Patch series "A few cleanup patches for khugepaged".
+When do_swap_page returns VM_FAULT_RETRY, we do not retry here and thus
+swap entry will remain in pagetable.  This will result in later failure. 
+So stop swapping in pages in this case to save cpu cycles.
 
-This series contains a few cleaup patches to remove unneeded return value,
-use helper macro, fix typos and so on.  More details can be found in the
-respective changelogs.
-
-
-This patch (of 7):
-
-If we reach here, hugepage_vma_check() has already made sure that hugepage
-is enabled for shmem, via its call to hugepage_vma_check().  Remove this
-duplicated check.
-
-Link: https://lkml.kernel.org/r/20220611084731.55155-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220611084731.55155-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220611084731.55155-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Howells <dhowells@redhat.com>
-Cc: NeilBrown <neilb@suse.de>
 Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/khugepaged.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-unneeded-shmem_huge_enabled-check
+--- a/mm/khugepaged.c~mm-khugepaged-stop-swapping-in-page-when-vm_fault_retry-occurs
 +++ a/mm/khugepaged.c
-@@ -2153,8 +2153,6 @@ skip:
- 		if (khugepaged_scan.address < hstart)
- 			khugepaged_scan.address = hstart;
- 		VM_BUG_ON(khugepaged_scan.address & ~HPAGE_PMD_MASK);
--		if (shmem_file(vma->vm_file) && !shmem_huge_enabled(vma))
--			goto skip;
+@@ -1003,19 +1003,16 @@ static bool __collapse_huge_page_swapin(
+ 		swapped_in++;
+ 		ret = do_swap_page(&vmf);
  
- 		while (khugepaged_scan.address < hend) {
- 			int ret;
+-		/* do_swap_page returns VM_FAULT_RETRY with released mmap_lock */
++		/*
++		 * do_swap_page returns VM_FAULT_RETRY with released mmap_lock.
++		 * Note we treat VM_FAULT_RETRY as VM_FAULT_ERROR here because
++		 * we do not retry here and swap entry will remain in pagetable
++		 * resulting in later failure.
++		 */
+ 		if (ret & VM_FAULT_RETRY) {
+ 			mmap_read_lock(mm);
+-			if (hugepage_vma_revalidate(mm, haddr, &vma)) {
+-				/* vma is no longer available, don't continue to swapin */
+-				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+-				return false;
+-			}
+-			/* check if the pmd is still valid */
+-			if (mm_find_pmd(mm, haddr) != pmd) {
+-				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+-				return false;
+-			}
++			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
++			return false;
+ 		}
+ 		if (ret & VM_FAULT_ERROR) {
+ 			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
