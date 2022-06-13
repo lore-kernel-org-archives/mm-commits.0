@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CFB5C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:17:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B7ACC43334
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:17:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348019AbiFMTRj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 15:17:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39078 "EHLO
+        id S241053AbiFMTRl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 15:17:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241940AbiFMTQm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:16:42 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6845B65E7
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 10:29:37 -0700 (PDT)
+        with ESMTP id S234621AbiFMTQs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:16:48 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7271F563A3
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 10:29:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2419CB811A6
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 17:29:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5927C34114;
-        Mon, 13 Jun 2022 17:29:34 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id E1FA7CE16A1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 17:29:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A7B8C34114;
+        Mon, 13 Jun 2022 17:29:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655141374;
-        bh=VbDs+kQjKHIZQHEroI6tm+HXELeEcsF2vkLcV+LcMfM=;
+        s=korg; t=1655141377;
+        bh=5sqhb4WUe9hUAZaxaasiRSEAa9lXZ46zhMcpiG6eEig=;
         h=Date:To:From:Subject:From;
-        b=xPHa3PRSgNOVabGegbnCpSiuEJl0vcm8ZWWNhaQ8qrRe6GNWmXS17gBLZvHV14Jh3
-         u/N1MAHadwjtrapT7eooV/BkwJ/fIqJdHg1t/4lt6ZCTv3zeU2gLunEM3n0KorlUPX
-         Y1AlU8CXxI1aGyprxT7/MVwALzVHeAmclkDDCIKE=
-Date:   Mon, 13 Jun 2022 10:29:34 -0700
+        b=h6eakBK3Cin9hexireVbOTSLGa4+GnKUJx7cPIegELU0LD9FYLjwckBxavcLDwQ8L
+         1IKc+BSJoSUi+7eiYWsBomvk7ChnOcbgASW4WGd4UyhmDVmHwHMK+KveJSI9hYWpmd
+         xJ5n+lpK8u3e0rePdAi/WWiTounoI2QMbcs4MJwU=
+Date:   Mon, 13 Jun 2022 10:29:36 -0700
 To:     mm-commits@vger.kernel.org, zhengliang6@huawei.com,
         yi.zhang@huawei.com, Xiongwei.Song@windriver.com,
-        willy@infradead.org, m.szyprowski@samsung.com, miaoxie@huawei.com,
-        lkp@intel.com, hsinyi@chromium.org, houtao1@huawei.com,
-        phillip@squashfs.org.uk, akpm@linux-foundation.org
+        willy@infradead.org, phillip@squashfs.org.uk,
+        m.szyprowski@samsung.com, miaoxie@huawei.com, lkp@intel.com,
+        houtao1@huawei.com, akpm@linux-foundation.org, hsinyi@chromium.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-always-build-file-direct-version-of-page-actor.patch added to mm-nonmm-unstable branch
-Message-Id: <20220613172934.D5927C34114@smtp.kernel.org>
+Subject: + squashfs-implement-readahead.patch added to mm-nonmm-unstable branch
+Message-Id: <20220613172937.1A7B8C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: always build "file direct" version of page actor
+     Subject: squashfs: implement readahead
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-always-build-file-direct-version-of-page-actor.patch
+     squashfs-implement-readahead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-always-build-file-direct-version-of-page-actor.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-implement-readahead.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,109 +68,153 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: always build "file direct" version of page actor
-Date: Mon, 13 Jun 2022 16:28:01 +0800
+From: Hsin-Yi Wang <hsinyi@chromium.org>
+Subject: squashfs: implement readahead
+Date: Mon, 13 Jun 2022 16:28:02 +0800
 
-Squashfs_readahead uses the "file direct" version of the page
-actor, and so build it unconditionally.
+Implement readahead callback for squashfs.  It will read datablocks which
+cover pages in readahead request.  For a few cases it will not mark page
+as uptodate, including:
 
-Link: https://lkml.kernel.org/r/20220613082802.1301238-3-hsinyi@chromium.org
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+- file end is 0.
+- zero filled blocks.
+- current batch of pages isn't in the same datablock.
+- decompressor error.
+
+Otherwise pages will be marked as uptodate.  The unhandled pages will be
+updated by readpage later.
+
+Link: https://lkml.kernel.org/r/20220613082802.1301238-4-hsinyi@chromium.org
+Suggested-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Hsin-Yi Wang <hsinyi@chromium.org>
+Reported-by: Matthew Wilcox <willy@infradead.org>
+Reported-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: Xiongwei Song <Xiongwei.Song@windriver.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Hou Tao <houtao1@huawei.com>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Miao Xie <miaoxie@huawei.com>
-Cc: Xiongwei Song <Xiongwei.Song@windriver.com>
 Cc: Zhang Yi <yi.zhang@huawei.com>
 Cc: Zheng Liang <zhengliang6@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/Makefile     |    4 +--
- fs/squashfs/page_actor.h |   46 -------------------------------------
- 2 files changed, 2 insertions(+), 48 deletions(-)
+ fs/squashfs/file.c |   92 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 91 insertions(+), 1 deletion(-)
 
---- a/fs/squashfs/Makefile~squashfs-always-build-file-direct-version-of-page-actor
-+++ a/fs/squashfs/Makefile
-@@ -5,9 +5,9 @@
+--- a/fs/squashfs/file.c~squashfs-implement-readahead
++++ a/fs/squashfs/file.c
+@@ -39,6 +39,7 @@
+ #include "squashfs_fs_sb.h"
+ #include "squashfs_fs_i.h"
+ #include "squashfs.h"
++#include "page_actor.h"
  
- obj-$(CONFIG_SQUASHFS) += squashfs.o
- squashfs-y += block.o cache.o dir.o export.o file.o fragment.o id.o inode.o
--squashfs-y += namei.o super.o symlink.o decompressor.o
-+squashfs-y += namei.o super.o symlink.o decompressor.o page_actor.o
- squashfs-$(CONFIG_SQUASHFS_FILE_CACHE) += file_cache.o
--squashfs-$(CONFIG_SQUASHFS_FILE_DIRECT) += file_direct.o page_actor.o
-+squashfs-$(CONFIG_SQUASHFS_FILE_DIRECT) += file_direct.o
- squashfs-$(CONFIG_SQUASHFS_DECOMP_SINGLE) += decompressor_single.o
- squashfs-$(CONFIG_SQUASHFS_DECOMP_MULTI) += decompressor_multi.o
- squashfs-$(CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU) += decompressor_multi_percpu.o
---- a/fs/squashfs/page_actor.h~squashfs-always-build-file-direct-version-of-page-actor
-+++ a/fs/squashfs/page_actor.h
-@@ -6,51 +6,6 @@
-  * Phillip Lougher <phillip@squashfs.org.uk>
-  */
- 
--#ifndef CONFIG_SQUASHFS_FILE_DIRECT
--struct squashfs_page_actor {
--	void	**page;
--	int	pages;
--	int	length;
--	int	next_page;
--};
--
--static inline struct squashfs_page_actor *squashfs_page_actor_init(void **page,
--	int pages, int length)
--{
--	struct squashfs_page_actor *actor = kmalloc(sizeof(*actor), GFP_KERNEL);
--
--	if (actor == NULL)
--		return NULL;
--
--	actor->length = length ? : pages * PAGE_SIZE;
--	actor->page = page;
--	actor->pages = pages;
--	actor->next_page = 0;
--	return actor;
--}
--
--static inline void *squashfs_first_page(struct squashfs_page_actor *actor)
--{
--	actor->next_page = 1;
--	return actor->page[0];
--}
--
--static inline void *squashfs_next_page(struct squashfs_page_actor *actor)
--{
--	return actor->next_page == actor->pages ? NULL :
--		actor->page[actor->next_page++];
--}
--
--static inline void squashfs_finish_page(struct squashfs_page_actor *actor)
--{
--	/* empty */
--}
--
--static inline void squashfs_actor_nobuff(struct squashfs_page_actor *actor)
--{
--	/* empty */
--}
--#else
- struct squashfs_page_actor {
- 	union {
- 		void		**buffer;
-@@ -91,4 +46,3 @@ static inline void squashfs_actor_nobuff
- 	actor->alloc_buffer = 0;
+ /*
+  * Locate cache slot in range [offset, index] for specified inode.  If
+@@ -495,7 +496,96 @@ out:
+ 	return 0;
  }
- #endif
--#endif
+ 
++static void squashfs_readahead(struct readahead_control *ractl)
++{
++	struct inode *inode = ractl->mapping->host;
++	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
++	size_t mask = (1UL << msblk->block_log) - 1;
++	unsigned short shift = msblk->block_log - PAGE_SHIFT;
++	loff_t start = readahead_pos(ractl) & ~mask;
++	size_t len = readahead_length(ractl) + readahead_pos(ractl) - start;
++	struct squashfs_page_actor *actor;
++	unsigned int nr_pages = 0;
++	struct page **pages;
++	int i, file_end = i_size_read(inode) >> msblk->block_log;
++	unsigned int max_pages = 1UL << shift;
++
++	readahead_expand(ractl, start, (len | mask) + 1);
++
++	if (file_end == 0)
++		return;
++
++	pages = kmalloc_array(max_pages, sizeof(void *), GFP_KERNEL);
++	if (!pages)
++		return;
++
++	for (;;) {
++		pgoff_t index;
++		int res, bsize;
++		u64 block = 0;
++		unsigned int expected;
++
++		nr_pages = __readahead_batch(ractl, pages, max_pages);
++		if (!nr_pages)
++			break;
++
++		if (readahead_pos(ractl) >= i_size_read(inode))
++			goto skip_pages;
++
++		index = pages[0]->index >> shift;
++		if ((pages[nr_pages - 1]->index >> shift) != index)
++			goto skip_pages;
++
++		expected = index == file_end ?
++			   (i_size_read(inode) & (msblk->block_size - 1)) :
++			    msblk->block_size;
++
++		bsize = read_blocklist(inode, index, &block);
++		if (bsize == 0)
++			goto skip_pages;
++
++		actor = squashfs_page_actor_init_special(msblk, pages, nr_pages,
++							 expected);
++		if (!actor)
++			goto skip_pages;
++
++		res = squashfs_read_data(inode->i_sb, block, bsize, NULL, actor);
++
++		kfree(actor);
++
++		if (res == expected) {
++			int bytes;
++
++			/* Last page (if present) may have trailing bytes not filled */
++			bytes = res % PAGE_SIZE;
++			if (pages[nr_pages - 1]->index == file_end && bytes)
++				memzero_page(pages[nr_pages - 1], bytes,
++					     PAGE_SIZE - bytes);
++
++			for (i = 0; i < nr_pages; i++) {
++				flush_dcache_page(pages[i]);
++				SetPageUptodate(pages[i]);
++			}
++		}
++
++		for (i = 0; i < nr_pages; i++) {
++			unlock_page(pages[i]);
++			put_page(pages[i]);
++		}
++	}
++
++	kfree(pages);
++	return;
++
++skip_pages:
++	for (i = 0; i < nr_pages; i++) {
++		unlock_page(pages[i]);
++		put_page(pages[i]);
++	}
++	kfree(pages);
++}
+ 
+ const struct address_space_operations squashfs_aops = {
+-	.read_folio = squashfs_read_folio
++	.read_folio = squashfs_read_folio,
++	.readahead = squashfs_readahead
+ };
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from hsinyi@chromium.org are
 
-squashfs-extend-page-actor-to-handle-missing-pages.patch
-squashfs-dont-use-intermediate-buffer-if-pages-missing.patch
-squashfs-always-build-file-direct-version-of-page-actor.patch
+revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
+squashfs-implement-readahead.patch
 
