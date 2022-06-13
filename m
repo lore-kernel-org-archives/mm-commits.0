@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31412C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:40:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39AA4C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:41:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243747AbiFMTkP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 15:40:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46264 "EHLO
+        id S238150AbiFMTlT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 15:41:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244278AbiFMTkE (ORCPT
+        with ESMTP id S244281AbiFMTkE (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:40:04 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72C0F71A37
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 11:06:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A415571A30
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 11:06:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2E20DB811ED
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 18:06:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C82A1C34114;
-        Mon, 13 Jun 2022 18:06:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4E5F2B811EC
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 18:06:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4BA8C34114;
+        Mon, 13 Jun 2022 18:06:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655143592;
-        bh=+r+n3UYDp41v+jo7EGMhFxwu/VQIhIBGTqtPjPEeNrM=;
+        s=korg; t=1655143591;
+        bh=sF8gioqsIGKiqN+CUAFNY4nsLQBVl9OicIspE15C/C0=;
         h=Date:To:From:Subject:From;
-        b=kFtLq6UyDWBIRDL14aDpGqdtpZyPF1Ve1LmCdaFiHG3/n0R4uYveIQ2leVT8FodVw
-         M5lEHS8eAJ04HKH+id0B+dUXmT5LDQAUzdnleFh15XMXFHy5CdEoIVKpJ7zAkRSdHF
-         eVp/HZrBtYSep0fDjzJO/q3Mx5+jo/5ICaOs7Xuo=
-Date:   Mon, 13 Jun 2022 11:06:32 -0700
+        b=mQcNcArPj2oPD/RCYpnRRiG7bMCkj5mONWt968a8Ot2h/Jdpo57npaurZSqv0Cscb
+         2if6Noa+XUejM3jxSn3iEmyCI+2YrloZqu+5bD8bXihHg5DWLvWm2UWgOv/jB+aF/s
+         YmmZJjEm4DlWYfwQR6vtZSP0fr62UiVBJGLR5U7w=
+Date:   Mon, 13 Jun 2022 11:06:30 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         catalin.marinas@arm.com, longman@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-prevent-soft-lockup-in-first-object-iteration-loop-of-kmemleak_scan.patch added to mm-unstable branch
-Message-Id: <20220613180632.C82A1C34114@smtp.kernel.org>
+Subject: + mm-kmemleak-skip-unlikely-objects-in-kmemleak_scan-without-taking-lock.patch added to mm-unstable branch
+Message-Id: <20220613180630.E4BA8C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: prevent soft lockup in first object iteration loop of kmemleak_scan()
+     Subject: mm/kmemleak: skip unlikely objects in kmemleak_scan() without taking lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmemleak-prevent-soft-lockup-in-first-object-iteration-loop-of-kmemleak_scan.patch
+     mm-kmemleak-skip-unlikely-objects-in-kmemleak_scan-without-taking-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-prevent-soft-lockup-in-first-object-iteration-loop-of-kmemleak_scan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-skip-unlikely-objects-in-kmemleak_scan-without-taking-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,75 +66,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Waiman Long <longman@redhat.com>
-Subject: mm/kmemleak: prevent soft lockup in first object iteration loop of kmemleak_scan()
-Date: Sun, 12 Jun 2022 14:33:01 -0400
+Subject: mm/kmemleak: skip unlikely objects in kmemleak_scan() without taking lock
+Date: Sun, 12 Jun 2022 14:33:00 -0400
 
-The first RCU-based object iteration loop has to put almost all the
-objects into the gray list and so cannot skip taking the object lock.
+There are 3 RCU-based object iteration loops in kmemleak_scan().  Because
+of the need to take RCU read lock, we can't insert cond_resched() into the
+loop like other parts of the function.  As there can be millions of
+objects to be scanned, it takes a while to iterate all of them.  The
+kmemleak functionality is usually enabled in a debug kernel which is much
+slower than a non-debug kernel.  With sufficient number of kmemleak
+objects, the time to iterate them all may exceed 22s causing soft lockup.
 
-One way to avoid soft lockup is to insert occasional cond_resched() into
-the loop.  This cannot be done while holding the RCU read lock which is to
-protect objects from removal.  However, putting an object into the gray
-list means getting a reference to the object.  That will prevent the
-object from removal as well without the need to hold the RCU read lock. 
-So insert a cond_resched() call after every 64k objects are put into the
-gray list.
+  watchdog: BUG: soft lockup - CPU#3 stuck for 22s! [kmemleak:625]
 
-Link: https://lkml.kernel.org/r/20220612183301.981616-4-longman@redhat.com
+In this particular bug report, the soft lockup happen in the 2nd iteration
+loop.
+
+In the 2nd and 3rd loops, most of the objects are checked and then skipped
+under the object lock.  Only a selected fews are modified.  Those objects
+certainly need lock protection.  However, the lock/unlock operation is
+slow especially with interrupt disabling and enabling included.
+
+We can actually do some basic check like color_white() without taking the
+lock and skip the object accordingly.  Of course, this kind of check is
+racy and may miss objects that are being modified concurrently.  The cost
+of missed objects, however, is just that they will be discovered in the
+next scan instead.  The advantage of doing so is that iteration can be
+done much faster especially with LOCKDEP enabled in a debug kernel.
+
+With a debug kernel running on a 2-socket 96-thread x86-64 system
+(HZ=1000), the 2nd and 3rd iteration loops speedup with this patch on the
+first kmemleak_scan() call after bootup is shown in the table below.
+
+                   Before patch                    After patch
+  Loop #    # of objects  Elapsed time     # of objects  Elapsed time
+  ------    ------------  ------------     ------------  ------------
+    2        2,599,850      2.392s          2,596,364       0.266s
+    3        2,600,176      2.171s          2,597,061       0.260s
+
+This patch reduces loop iteration times by about 88%.  This will greatly
+reduce the chance of a soft lockup happening in the 2nd or 3rd iteration
+loops.
+
+Link: https://lkml.kernel.org/r/20220612183301.981616-3-longman@redhat.com
 Signed-off-by: Waiman Long <longman@redhat.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ mm/kmemleak.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/kmemleak.c~mm-kmemleak-prevent-soft-lockup-in-first-object-iteration-loop-of-kmemleak_scan
+--- a/mm/kmemleak.c~mm-kmemleak-skip-unlikely-objects-in-kmemleak_scan-without-taking-lock
 +++ a/mm/kmemleak.c
-@@ -1474,12 +1474,15 @@ static void kmemleak_scan(void)
- 	struct zone *zone;
- 	int __maybe_unused i;
- 	int new_leaks = 0;
-+	int gray_list_cnt = 0;
- 
- 	jiffies_last_scan = jiffies;
- 
- 	/* prepare the kmemleak_object's */
+@@ -1576,6 +1576,13 @@ static void kmemleak_scan(void)
+ 	 */
  	rcu_read_lock();
  	list_for_each_entry_rcu(object, &object_list, object_list) {
-+		bool object_pinned = false;
-+
- 		raw_spin_lock_irq(&object->lock);
- #ifdef DEBUG
- 		/*
-@@ -1505,10 +1508,25 @@ static void kmemleak_scan(void)
- 
- 		/* reset the reference count (whiten the object) */
- 		object->count = 0;
--		if (color_gray(object) && get_object(object))
-+		if (color_gray(object) && get_object(object)) {
- 			list_add_tail(&object->gray_list, &gray_list);
-+			gray_list_cnt++;
-+			object_pinned = true;
-+		}
- 
- 		raw_spin_unlock_irq(&object->lock);
-+
 +		/*
-+		 * With object pinned by a positive reference count, it
-+		 * won't go away and we can safely release the RCU read
-+		 * lock and do a cond_resched() to avoid soft lockup every
-+		 * 64k objects.
++		 * This is racy but we can save the overhead of lock/unlock
++		 * calls. The missed objects, if any, should be caught in
++		 * the next scan.
 +		 */
-+		if (object_pinned && !(gray_list_cnt & 0xffff)) {
-+			rcu_read_unlock();
-+			cond_resched();
-+			rcu_read_lock();
-+		}
- 	}
- 	rcu_read_unlock();
- 
++		if (!color_white(object))
++			continue;
+ 		raw_spin_lock_irq(&object->lock);
+ 		if (color_white(object) && (object->flags & OBJECT_ALLOCATED)
+ 		    && update_checksum(object) && get_object(object)) {
+@@ -1603,6 +1610,13 @@ static void kmemleak_scan(void)
+ 	 */
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
++		/*
++		 * This is racy but we can save the overhead of lock/unlock
++		 * calls. The missed objects, if any, should be caught in
++		 * the next scan.
++		 */
++		if (!color_white(object))
++			continue;
+ 		raw_spin_lock_irq(&object->lock);
+ 		if (unreferenced_object(object) &&
+ 		    !(object->flags & OBJECT_REPORTED)) {
 _
 
 Patches currently in -mm which might be from longman@redhat.com are
