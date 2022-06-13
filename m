@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 445F1C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 20:19:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1EC3C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 20:31:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351074AbiFMUTj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 16:19:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53634 "EHLO
+        id S233513AbiFMUas (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 16:30:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351117AbiFMUSw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 16:18:52 -0400
+        with ESMTP id S234918AbiFMU1r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 16:27:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45E9410FE4
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 11:57:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16E6638A8
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 12:14:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D685C613F5
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 18:57:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38003C3411C;
-        Mon, 13 Jun 2022 18:57:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A188E61486
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 19:14:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0368FC34114;
+        Mon, 13 Jun 2022 19:14:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655146657;
-        bh=8WS7RbXCofxPbX8JiasPwLnrJaakje+HswmNgTv0Pw0=;
+        s=korg; t=1655147687;
+        bh=n3KcnU5+7zNCxpcT2fUFq40Dy6lR+3BgX5MjpvsB4rM=;
         h=Date:To:From:Subject:From;
-        b=IRzxY8Ydlb1qQ2GvnkCrYwomvGBrWLXhyXHvDYrrgmzC2j6NFWMDakaLI4FDZujaX
-         sQTgNYRVMGXL797Q+3iJCZ93qlrVC5gnut5QHMzML5m0UBjPoSsONsldOJmy4vzoLn
-         yRW+jsLc++1pXjO5vizbJ/KmgVCyMIvevM2wH/iE=
-Date:   Mon, 13 Jun 2022 11:57:36 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, naoya.horiguchi@linux.dev,
-        mike.kravetz@oracle.com, mhocko@suse.com, david@redhat.com,
-        dave.hansen@intel.com, axelrasmussen@google.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=Y1mN9HdOfo9XZ1wsI1ZLDW9Lf/BFsYO86CQ7s0W3ePdTS+/91sr2tH1VsVyl4qn4e
+         S0TdQOV5Ut34LQQ4LcMpI2KPmg3YpNd1BubLjV2t2A2mcOT5Dw5003qi3XzlZGoRci
+         5GNCAmFXFCGvajMywssl0gwfwq+90OrIb+KgBoHc=
+Date:   Mon, 13 Jun 2022 12:14:46 -0700
+To:     mm-commits@vger.kernel.org, yhs@fb.com, songliubraving@fb.com,
+        mhiramat@kernel.org, kpsingh@kernel.org, kafai@fb.com,
+        john.fastabend@gmail.com, wuchi.zero@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlbfs-zero-partial-pages-during-fallocate-hole-punch-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220613185737.38003C3411C@smtp.kernel.org>
+Subject: + lib-error-inject-convert-to-define_seq_attribute.patch added to mm-nonmm-unstable branch
+Message-Id: <20220613191447.0368FC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs-zero-partial-pages-during-fallocate-hole-punch-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     hugetlbfs-zero-partial-pages-during-fallocate-hole-punch-fix.patch
+     Subject: lib/error-inject: convert to DEFINE_SEQ_ATTRIBUTE
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-error-inject-convert-to-define_seq_attribute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-zero-partial-pages-during-fallocate-hole-punch-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-error-inject-convert-to-define_seq_attribute.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,53 +66,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlbfs-zero-partial-pages-during-fallocate-hole-punch-fix
-Date: Mon Jun 13 11:54:37 AM PDT 2022
+From: wuchi <wuchi.zero@gmail.com>
+Subject: lib/error-inject: convert to DEFINE_SEQ_ATTRIBUTE
+Date: Sun, 12 Jun 2022 13:20:15 +0800
 
-use loff_t, per Matthew
+Use DEFINE_SEQ_ATTRIBUTE helper macro to simplify the code.
 
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Link: https://lkml.kernel.org/r/20220612052015.23283-1-wuchi.zero@gmail.com
+Signed-off-by: wuchi <wuchi.zero@gmail.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Martin KaFai Lau <kafai@fb.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Yonghong Song <yhs@fb.com>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/error-inject.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-zero-partial-pages-during-fallocate-hole-punch-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -602,8 +602,7 @@ static void hugetlb_vmtruncate(struct in
+--- a/lib/error-inject.c~lib-error-inject-convert-to-define_seq_attribute
++++ a/lib/error-inject.c
+@@ -197,24 +197,14 @@ static int ei_seq_show(struct seq_file *
+ 	return 0;
+ }
  
- static void hugetlbfs_zero_partial_page(struct hstate *h,
- 					struct address_space *mapping,
--					unsigned long start,
--					unsigned long end)
-+					loff_t start, loff_t end)
+-static const struct seq_operations ei_seq_ops = {
++static const struct seq_operations ei_sops = {
+ 	.start = ei_seq_start,
+ 	.next  = ei_seq_next,
+ 	.stop  = ei_seq_stop,
+ 	.show  = ei_seq_show,
+ };
+ 
+-static int ei_open(struct inode *inode, struct file *filp)
+-{
+-	return seq_open(filp, &ei_seq_ops);
+-}
+-
+-static const struct file_operations debugfs_ei_ops = {
+-	.open           = ei_open,
+-	.read           = seq_read,
+-	.llseek         = seq_lseek,
+-	.release        = seq_release,
+-};
++DEFINE_SEQ_ATTRIBUTE(ei);
+ 
+ static int __init ei_debugfs_init(void)
  {
- 	pgoff_t idx = start >> huge_page_shift(h);
- 	struct page *page;
+@@ -224,7 +214,7 @@ static int __init ei_debugfs_init(void)
+ 	if (!dir)
+ 		return -ENOMEM;
+ 
+-	file = debugfs_create_file("list", 0444, dir, NULL, &debugfs_ei_ops);
++	file = debugfs_create_file("list", 0444, dir, NULL, &ei_fops);
+ 	if (!file) {
+ 		debugfs_remove(dir);
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wuchi.zero@gmail.com are
 
-hugetlbfs-zero-partial-pages-during-fallocate-hole-punch-fix.patch
-mm-start-tracking-vmas-with-maple-tree-fix.patch
-damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch
-mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-checkpatch-fixes.patch
-mm-remove-the-vma-linked-list-fix-fix.patch
-mm-remove-the-vma-linked-list-fix-fix-fix.patch
-mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix.patch
-mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers-fix.patch
-mm-shrinkers-add-scan-interface-for-shrinker-debugfs-fix-fix.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-factor-helpers-for-memory_failure_dev_pagemap-fix.patch
-xfs-support-cow-in-fsdax-mode-fix.patch
+lib-flex_proportionsc-remove-local_irq_ops-in-fprop_new_period.patch
+lib-btree-simplify-btree_lookupupdate.patch
+lib-debugobjects-fix-stat-count-and-optimize-debug_objects_mem_init.patch
+lib-error-inject-convert-to-define_seq_attribute.patch
 
