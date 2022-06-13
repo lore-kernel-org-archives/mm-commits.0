@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67E05C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:47:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2F15C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:56:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245114AbiFMTru (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 15:47:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48744 "EHLO
+        id S1344736AbiFMT4S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 15:56:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343577AbiFMTrh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:47:37 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3978A9154A
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 11:18:10 -0700 (PDT)
+        with ESMTP id S1345939AbiFMT4H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:56:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32F4CA33B9
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 11:27:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A3CC3B81247
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 18:18:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38B61C34114;
-        Mon, 13 Jun 2022 18:18:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 46A1061290
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 18:27:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CF01C34114;
+        Mon, 13 Jun 2022 18:27:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655144287;
-        bh=c5LOr6k7Y2ZvLsp19vv9vNrbg3XpAsTndv7Z9EJvFps=;
+        s=korg; t=1655144862;
+        bh=O4Q2mpFMaSXFzEoDFfeSxTQ4ahREkU7dPFr2rIVIkHY=;
         h=Date:To:From:Subject:From;
-        b=cCcFgwDFoXrmpVwEfPkPzNP08WeEqGMs1q3ACxJFBxPKOzeNVzshMw8bBYftib5eZ
-         DcNPnz/9Avh6jJFTmyJpTMJrgbAF/boG/9ZnmL7wB1oN0CcqELwwZWKiVbGaO0VbrC
-         H5xaVNxjMvkVB2ZQV3slTL4xU4IBQp8bgwIqswEI=
-Date:   Mon, 13 Jun 2022 11:18:06 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        naoya.horiguchi@linux.dev, mhocko@suse.com, david@redhat.com,
-        dave.hansen@intel.com, axelrasmussen@google.com,
-        mike.kravetz@oracle.com, akpm@linux-foundation.org
+        b=CLEZ5RLwQuy3bDTplEB4eNEfxvCDHitL7JDVs7fPNR2Uc2LvaiD9/5Af0yjmY5XqV
+         5V8keAPpKaulLIRDHnMsTpg5FGxA9odvLHhP9tQqvC2OvnDkg+aAxqbl9jy5I1Pszt
+         PK3fDx/JnOva2vKbNbsTCgC5b5UiGdnvZ3+zBW5I=
+Date:   Mon, 13 Jun 2022 11:27:41 -0700
+To:     mm-commits@vger.kernel.org, walters@verbum.org,
+        usama.anjum@collabora.com, pjones@redhat.com,
+        lennart@poettering.net, javierm@redhat.com, ckellner@redhat.com,
+        cccheng@synology.com, alexl@redhat.com,
+        hirofumi@mail.parknet.co.jp, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlbfs-zero-partial-pages-during-fallocate-hole-punch.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220613181807.38B61C34114@smtp.kernel.org>
+Subject: + fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20220613182742.9CF01C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: zero partial pages during fallocate hole punch
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     hugetlbfs-zero-partial-pages-during-fallocate-hole-punch.patch
+     Subject: fat: factor out reusable code in vfat_rename() as helper functions
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-zero-partial-pages-during-fallocate-hole-punch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,152 +67,175 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlbfs: zero partial pages during fallocate hole punch
-Date: Mon, 13 Jun 2022 11:08:58 -0700
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: factor out reusable code in vfat_rename() as helper functions
+Date: Fri, 10 Jun 2022 09:57:19 +0200
 
-hugetlbfs fallocate support was originally added with commit 70c3547e36f5
-("hugetlbfs: add hugetlbfs_fallocate()").  Initial support only operated
-on whole hugetlb pages.  This makes sense for populating files as other
-interfaces such as mmap and truncate require hugetlb page size alignment.
-Only operating on whole hugetlb pages for the hole punch case was a
-simplification and there was no compelling use case to zero partial pages.
+The vfat_rename() function is quite big and there are code blocks that can
+be moved into helper functions.  This not only simplify the implementation
+of that function but also allows these helpers to be reused.
 
-In a recent discussion[1] it was assumed that hugetlbfs hole punch would
-zero partial hugetlb pages as that is in line with the man page
-description saying 'partial filesystem  blocks  are  zeroed'.  However,
-the hugetlbfs hole punch code actually does this:
+For example, the helpers can be used by the handler of the RENAME_EXCHANGE
+flag once this is implemented in a subsequent patch.
 
-        hole_start = round_up(offset, hpage_size);
-        hole_end = round_down(offset + len, hpage_size);
-
-Modify code to zero partial hugetlb pages in hole punch range.  It is
-possible that application code could note a change in behavior.  However,
-that would imply the code is passing in an unaligned range and expecting
-only whole pages be removed.  This is unlikely as the fallocate
-documentation states the opposite.
-
-The current hugetlbfs fallocate hole punch behavior is tested with the
-libhugetlbfs test fallocate_align[2].  This test will be updated to
-validate partial page zeroing.
-
-[1] https://lore.kernel.org/linux-mm/20571829-9d3d-0b48-817c-b6b15565f651@redhat.com/
-[2] https://github.com/libhugetlbfs/libhugetlbfs/blob/master/tests/fallocate_align.c
-
-Link: https://lkml.kernel.org/r/20220613180858.15933-1-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20220610075721.1182745-3-javierm@redhat.com
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Alexander Larsson <alexl@redhat.com>
+Cc: Christian Kellner <ckellner@redhat.com>
+Cc: Chung-Chiang Cheng <cccheng@synology.com>
+Cc: Colin Walters <walters@verbum.org>
+Cc: Lennart Poettering <lennart@poettering.net>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Peter Jones <pjones@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   68 +++++++++++++++++++++++++++++++----------
- 1 file changed, 53 insertions(+), 15 deletions(-)
+ fs/fat/namei_vfat.c |   89 ++++++++++++++++++++++++++----------------
+ 1 file changed, 57 insertions(+), 32 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-zero-partial-pages-during-fallocate-hole-punch
-+++ a/fs/hugetlbfs/inode.c
-@@ -600,41 +600,79 @@ static void hugetlb_vmtruncate(struct in
- 	remove_inode_hugepages(inode, offset, LLONG_MAX);
+--- a/fs/fat/namei_vfat.c~fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions
++++ a/fs/fat/namei_vfat.c
+@@ -889,16 +889,55 @@ out:
+ 	return err;
  }
  
-+static void hugetlbfs_zero_partial_page(struct hstate *h,
-+					struct address_space *mapping,
-+					unsigned long start,
-+					unsigned long end)
++static int vfat_get_dotdot_de(struct inode *inode, struct buffer_head **bh,
++			      struct msdos_dir_entry **de)
 +{
-+	pgoff_t idx = start >> huge_page_shift(h);
-+	struct page *page;
-+
-+	page = find_lock_page(mapping, idx);
-+	if (!page)
-+		return;
-+
-+	start = start & ~huge_page_mask(h);
-+	end = end & ~huge_page_mask(h);
-+	if (!end)
-+		end = huge_page_size(h);
-+
-+	zero_user_segment(page, (unsigned int)start, (unsigned int)end);
-+
-+	unlock_page(page);
-+	put_page(page);
++	if (S_ISDIR(inode->i_mode)) {
++		if (fat_get_dotdot_entry(inode, bh, de))
++			return -EIO;
++	}
++	return 0;
 +}
 +
- static long hugetlbfs_punch_hole(struct inode *inode, loff_t offset, loff_t len)
- {
-+	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
-+	struct address_space *mapping = inode->i_mapping;
- 	struct hstate *h = hstate_inode(inode);
- 	loff_t hpage_size = huge_page_size(h);
- 	loff_t hole_start, hole_end;
- 
- 	/*
--	 * For hole punch round up the beginning offset of the hole and
--	 * round down the end.
-+	 * hole_start and hole_end indicate the full pages within the hole.
- 	 */
- 	hole_start = round_up(offset, hpage_size);
- 	hole_end = round_down(offset + len, hpage_size);
- 
--	if (hole_end > hole_start) {
--		struct address_space *mapping = inode->i_mapping;
--		struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
-+	inode_lock(inode);
++static int vfat_sync_ipos(struct inode *dir, struct inode *inode)
++{
++	if (IS_DIRSYNC(dir))
++		return fat_sync_inode(inode);
++	mark_inode_dirty(inode);
++	return 0;
++}
 +
-+	/* protected by i_rwsem */
-+	if (info->seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE)) {
-+		inode_unlock(inode);
-+		return -EPERM;
-+	}
++static int vfat_update_dotdot_de(struct inode *dir, struct inode *inode,
++				 struct buffer_head *dotdot_bh,
++				 struct msdos_dir_entry *dotdot_de)
++{
++	fat_set_start(dotdot_de, MSDOS_I(dir)->i_logstart);
++	mark_buffer_dirty_inode(dotdot_bh, inode);
++	if (IS_DIRSYNC(dir))
++		return sync_dirty_buffer(dotdot_bh);
++	return 0;
++}
++
++static void vfat_update_dir_metadata(struct inode *dir, struct timespec64 *ts)
++{
++	inode_inc_iversion(dir);
++	fat_truncate_time(dir, ts, S_CTIME | S_MTIME);
++	if (IS_DIRSYNC(dir))
++		(void)fat_sync_inode(dir);
++	else
++		mark_inode_dirty(dir);
++}
++
+ static int vfat_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 		       struct inode *new_dir, struct dentry *new_dentry)
+ {
+ 	struct buffer_head *dotdot_bh;
+-	struct msdos_dir_entry *dotdot_de;
++	struct msdos_dir_entry *dotdot_de = NULL;
+ 	struct inode *old_inode, *new_inode;
+ 	struct fat_slot_info old_sinfo, sinfo;
+ 	struct timespec64 ts;
+ 	loff_t new_i_pos;
+-	int err, is_dir, update_dotdot, corrupt = 0;
++	int err, is_dir, corrupt = 0;
+ 	struct super_block *sb = old_dir->i_sb;
  
--		inode_lock(inode);
-+	i_mmap_lock_write(mapping);
+ 	old_sinfo.bh = sinfo.bh = dotdot_bh = NULL;
+@@ -909,15 +948,13 @@ static int vfat_rename(struct inode *old
+ 	if (err)
+ 		goto out;
  
--		/* protected by i_rwsem */
--		if (info->seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE)) {
--			inode_unlock(inode);
--			return -EPERM;
+-	is_dir = S_ISDIR(old_inode->i_mode);
+-	update_dotdot = (is_dir && old_dir != new_dir);
+-	if (update_dotdot) {
+-		if (fat_get_dotdot_entry(old_inode, &dotdot_bh, &dotdot_de)) {
+-			err = -EIO;
++	if (old_dir != new_dir) {
++		err = vfat_get_dotdot_de(old_inode, &dotdot_bh, &dotdot_de);
++		if (err)
+ 			goto out;
 -		}
-+	/* If range starts before first full page, zero partial page. */
-+	if (offset < hole_start)
-+		hugetlbfs_zero_partial_page(h, mapping,
-+				offset, min(offset + len, hole_start));
- 
--		i_mmap_lock_write(mapping);
-+	/* Unmap users of full pages in the hole. */
-+	if (hole_end > hole_start) {
- 		if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
- 			hugetlb_vmdelete_list(&mapping->i_mmap,
- 					      hole_start >> PAGE_SHIFT,
- 					      hole_end >> PAGE_SHIFT, 0);
--		i_mmap_unlock_write(mapping);
--		remove_inode_hugepages(inode, hole_start, hole_end);
--		inode_unlock(inode);
  	}
  
-+	/* If range extends beyond last full page, zero partial page. */
-+	if ((offset + len) > hole_end && (offset + len) > hole_start)
-+		hugetlbfs_zero_partial_page(h, mapping,
-+				hole_end, offset + len);
-+
-+	i_mmap_unlock_write(mapping);
-+
-+	/* Remove full pages from the file. */
-+	if (hole_end > hole_start)
-+		remove_inode_hugepages(inode, hole_start, hole_end);
-+
-+	inode_unlock(inode);
-+
- 	return 0;
- }
++	is_dir = S_ISDIR(old_inode->i_mode);
+ 	ts = current_time(old_dir);
+ 	if (new_inode) {
+ 		if (is_dir) {
+@@ -938,21 +975,15 @@ static int vfat_rename(struct inode *old
  
+ 	fat_detach(old_inode);
+ 	fat_attach(old_inode, new_i_pos);
+-	if (IS_DIRSYNC(new_dir)) {
+-		err = fat_sync_inode(old_inode);
++	err = vfat_sync_ipos(new_dir, old_inode);
++	if (err)
++		goto error_inode;
++
++	if (dotdot_de) {
++		err = vfat_update_dotdot_de(new_dir, old_inode, dotdot_bh,
++					    dotdot_de);
+ 		if (err)
+-			goto error_inode;
+-	} else
+-		mark_inode_dirty(old_inode);
+-
+-	if (update_dotdot) {
+-		fat_set_start(dotdot_de, MSDOS_I(new_dir)->i_logstart);
+-		mark_buffer_dirty_inode(dotdot_bh, old_inode);
+-		if (IS_DIRSYNC(new_dir)) {
+-			err = sync_dirty_buffer(dotdot_bh);
+-			if (err)
+-				goto error_dotdot;
+-		}
++			goto error_dotdot;
+ 		drop_nlink(old_dir);
+ 		if (!new_inode)
+  			inc_nlink(new_dir);
+@@ -962,12 +993,7 @@ static int vfat_rename(struct inode *old
+ 	old_sinfo.bh = NULL;
+ 	if (err)
+ 		goto error_dotdot;
+-	inode_inc_iversion(old_dir);
+-	fat_truncate_time(old_dir, &ts, S_CTIME|S_MTIME);
+-	if (IS_DIRSYNC(old_dir))
+-		(void)fat_sync_inode(old_dir);
+-	else
+-		mark_inode_dirty(old_dir);
++	vfat_update_dir_metadata(old_dir, &ts);
+ 
+ 	if (new_inode) {
+ 		drop_nlink(new_inode);
+@@ -987,10 +1013,9 @@ error_dotdot:
+ 	/* data cluster is shared, serious corruption */
+ 	corrupt = 1;
+ 
+-	if (update_dotdot) {
+-		fat_set_start(dotdot_de, MSDOS_I(old_dir)->i_logstart);
+-		mark_buffer_dirty_inode(dotdot_bh, old_inode);
+-		corrupt |= sync_dirty_buffer(dotdot_bh);
++	if (dotdot_de) {
++		corrupt |= vfat_update_dotdot_de(old_dir, old_inode, dotdot_bh,
++						 dotdot_de);
+ 	}
+ error_inode:
+ 	fat_detach(old_inode);
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-hugetlbfs-zero-partial-pages-during-fallocate-hole-punch.patch
+fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions.patch
 
