@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB425C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 21:31:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A732C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 21:31:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345282AbiFMVbS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 17:31:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33048 "EHLO
+        id S1345301AbiFMVbT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 17:31:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353231AbiFMV33 (ORCPT
+        with ESMTP id S1353242AbiFMV33 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 17:29:29 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AA58E7B
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 14:27:00 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F1C5E81
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 14:27:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id AA868CE17C5
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 21:26:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB5F6C34114;
-        Mon, 13 Jun 2022 21:26:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C9F19B815A6
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 21:27:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8407FC34114;
+        Mon, 13 Jun 2022 21:26:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655155617;
-        bh=xh3fqjpeodMWpofAP2vOTVlKQJK2LVLAPJ9Zrjz8rOk=;
+        s=korg; t=1655155619;
+        bh=ZAPAFiFInx/Gy7N78cQSa3RhU0SYlxItNOZ2QSze7Cs=;
         h=Date:To:From:Subject:From;
-        b=18gozUzKOc4IQQIpzzGNSN8HiNYn9WOAgpg/4etUk4kVVkMmL7nbdJxMzgPl3p+Vi
-         BVVzzPX0NRvZFKxdBeS2xUCJjYWg84/qvX489olnFN+4NyRQnbcMe9ratdZzI26znT
-         FOapjWy+qYFdOlaLGIb1MoPJbYYGymhejAlYPWs4=
-Date:   Mon, 13 Jun 2022 14:26:56 -0700
+        b=zYCfBbPHY/0iOxKpyNKHvupFOGKhmDrGzrPvoAJaKYb8g6sDaLnbWXqXhtsD7rY/R
+         JEbiyq/hqrCkXytnGy4BlW+fZBDL/y8vR91uBKpciHTEkc78L4bmdf4npbetGd9hq7
+         h4PxgKVplWrr1pmcEqju1whwfZQfy/VwdASHnyuo=
+Date:   Mon, 13 Jun 2022 14:26:58 -0700
 To:     mm-commits@vger.kernel.org, void@manifault.com, vgoyal@redhat.com,
         swboyd@chromium.org, samitolvanen@google.com,
         ndesaulniers@google.com, keescook@chromium.org, jolsa@kernel.org,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, void@manifault.com, vgoyal@redhat.com,
         bhe@redhat.com, stephen.s.brennan@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kallsyms-move-declarations-to-internal-header.patch added to mm-nonmm-unstable branch
-Message-Id: <20220613212656.DB5F6C34114@smtp.kernel.org>
+Subject: + vmcoreinfo-include-kallsyms-symbols.patch added to mm-nonmm-unstable branch
+Message-Id: <20220613212659.8407FC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kallsyms: move declarations to internal header
+     Subject: vmcoreinfo: include kallsyms symbols
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kallsyms-move-declarations-to-internal-header.patch
+     vmcoreinfo-include-kallsyms-symbols.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kallsyms-move-declarations-to-internal-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcoreinfo-include-kallsyms-symbols.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,135 +69,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Stephen Brennan <stephen.s.brennan@oracle.com>
-Subject: kallsyms: move declarations to internal header
-Date: Mon, 16 May 2022 17:05:07 -0700
+Subject: vmcoreinfo: include kallsyms symbols
+Date: Mon, 16 May 2022 17:05:08 -0700
 
-Patch series "Expose kallsyms data in vmcoreinfo note".
+The internal kallsyms tables contain information which could be quite
+useful to a debugging tool in the absence of other debuginfo.  If kallsyms
+is enabled, then a debugging tool could parse it and use it as a fallback
+symbol table.  Combined with BTF data, live & post-mortem debuggers can
+support basic operations without needing a large DWARF debuginfo file
+available.  As many as five symbols are necessary to properly parse
+kallsyms names and addresses.  Add these to the vmcoreinfo note.
 
-The kernel can be configured to contain a lot of introspection or
-debugging information built-in, such as ORC for unwinding stack traces,
-BTF for type information, and of course kallsyms.  Debuggers could use
-this information to navigate a core dump or live system, but they need to
-be able to find it.
+CONFIG_KALLSYMS_ABSOLUTE_PERCPU does impact the computation of symbol
+addresses.  However, a debugger can infer this configuration value by
+comparing the address of _stext in the vmcoreinfo with the address
+computed via kallsyms.  So there's no need to include information about
+this config value in the vmcoreinfo note.
 
-This patch series adds the necessary symbols into vmcoreinfo, which would
-allow a debugger to find and interpret the kallsyms table.  Using the
-kallsyms data, the debugger can then lookup any symbol, allowing it to
-find ORC, BTF, or any other useful data.
+To verify that we're still well below the maximum of 4096 bytes, I created
+a script[1] to compute a rough upper bound on the possible size of
+vmcoreinfo.  On v5.18-rc7, the script reports 3106 bytes, and with this
+patch, the maximum become 3370 bytes.
 
-This would allow a live kernel, or core dump, to be debugged without any
-DWARF debuginfo.  This is useful for many cases: the debuginfo may not
-have been generated, or you may not want to deploy the large files
-everywhere you need them.
+[1]: https://github.com/brenns10/kernel_stuff/blob/master/vmcoreinfosize/
 
-I've demonstrated a proof of concept for this at LSF/MM+BPF during a
-lighting talk.  Using a work-in-progress branch of the drgn debugger, and
-an extended set of BTF generated by a patched version of dwarves, I've
-been able to open a core dump without any DWARF info and do basic tasks
-such as enumerating slab caches, block devices, tasks, and doing
-backtraces.  I hope this series can be a first step toward a new
-possibility of "DWARFless debugging".
-
-Related discussion around the BTF side of this:
-https://lore.kernel.org/bpf/586a6288-704a-f7a7-b256-e18a675927df@oracle.com/T/#u
-
-Some work-in-progress branches using this feature:
-https://github.com/brenns10/dwarves/tree/remove_percpu_restriction_1
-https://github.com/brenns10/drgn/tree/kallsyms_plus_btf
-
-
-This patch (of 2):
-
-To include kallsyms data in the vmcoreinfo note, we must make the symbol
-declarations visible outside of kallsyms.c.  Move these to a new internal
-header file.
-
-Link: https://lkml.kernel.org/r/20220517000508.777145-1-stephen.s.brennan@oracle.com
-Link: https://lkml.kernel.org/r/20220517000508.777145-2-stephen.s.brennan@oracle.com
+Link: https://lkml.kernel.org/r/20220517000508.777145-3-stephen.s.brennan@oracle.com
 Signed-off-by: Stephen Brennan <stephen.s.brennan@oracle.com>
 Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Stephen Boyd <swboyd@chromium.org>
 Cc: Bixuan Cui <cuibixuan@huawei.com>
+Cc: Dave Young <dyoung@redhat.com>
 Cc: David Vernet <void@manifault.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Stephen Boyd <swboyd@chromium.org>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c          |   23 +----------------------
- kernel/kallsyms_internal.h |   30 ++++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+), 22 deletions(-)
+ kernel/crash_core.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/kernel/kallsyms.c~kallsyms-move-declarations-to-internal-header
-+++ a/kernel/kallsyms.c
-@@ -31,28 +31,7 @@
- #include <linux/kernel.h>
- #include <linux/bsearch.h>
+--- a/kernel/crash_core.c~vmcoreinfo-include-kallsyms-symbols
++++ a/kernel/crash_core.c
+@@ -15,6 +15,8 @@
  
--/*
-- * These will be re-linked against their real values
-- * during the second link stage.
-- */
--extern const unsigned long kallsyms_addresses[] __weak;
--extern const int kallsyms_offsets[] __weak;
--extern const u8 kallsyms_names[] __weak;
--
--/*
-- * Tell the compiler that the count isn't in the small data section if the arch
-- * has one (eg: FRV).
-- */
--extern const unsigned int kallsyms_num_syms
--__section(".rodata") __attribute__((weak));
--
--extern const unsigned long kallsyms_relative_base
--__section(".rodata") __attribute__((weak));
--
--extern const char kallsyms_token_table[] __weak;
--extern const u16 kallsyms_token_index[] __weak;
--
--extern const unsigned int kallsyms_markers[] __weak;
+ #include <crypto/sha1.h>
+ 
 +#include "kallsyms_internal.h"
++
+ /* vmcoreinfo stuff */
+ unsigned char *vmcoreinfo_data;
+ size_t vmcoreinfo_size;
+@@ -480,6 +482,18 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_NUMBER(PAGE_OFFLINE_MAPCOUNT_VALUE);
+ #endif
  
- /*
-  * Expand a compressed symbol data into the resulting uncompressed string,
---- /dev/null
-+++ a/kernel/kallsyms_internal.h
-@@ -0,0 +1,30 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+#ifndef LINUX_KALLSYMS_INTERNAL_H_
-+#define LINUX_KALLSYMS_INTERNAL_H_
++#ifdef CONFIG_KALLSYMS
++	VMCOREINFO_SYMBOL(kallsyms_names);
++	VMCOREINFO_SYMBOL(kallsyms_token_table);
++	VMCOREINFO_SYMBOL(kallsyms_token_index);
++#ifdef CONFIG_KALLSYMS_BASE_RELATIVE
++	VMCOREINFO_SYMBOL(kallsyms_offsets);
++	VMCOREINFO_SYMBOL(kallsyms_relative_base);
++#else
++	VMCOREINFO_SYMBOL(kallsyms_addresses);
++#endif /* CONFIG_KALLSYMS_BASE_RELATIVE */
++#endif /* CONFIG_KALLSYMS */
 +
-+#include <linux/types.h>
-+
-+/*
-+ * These will be re-linked against their real values
-+ * during the second link stage.
-+ */
-+extern const unsigned long kallsyms_addresses[] __weak;
-+extern const int kallsyms_offsets[] __weak;
-+extern const u8 kallsyms_names[] __weak;
-+
-+/*
-+ * Tell the compiler that the count isn't in the small data section if the arch
-+ * has one (eg: FRV).
-+ */
-+extern const unsigned int kallsyms_num_syms
-+__section(".rodata") __attribute__((weak));
-+
-+extern const unsigned long kallsyms_relative_base
-+__section(".rodata") __attribute__((weak));
-+
-+extern const char kallsyms_token_table[] __weak;
-+extern const u16 kallsyms_token_index[] __weak;
-+
-+extern const unsigned int kallsyms_markers[] __weak;
-+
-+#endif // LINUX_KALLSYMS_INTERNAL_H_
+ 	arch_crash_save_vmcoreinfo();
+ 	update_vmcoreinfo_note();
+ 
 _
 
 Patches currently in -mm which might be from stephen.s.brennan@oracle.com are
