@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D32C7C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:04:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96CB8C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346056AbiFMTEv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 15:04:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53602 "EHLO
+        id S1348384AbiFMTFX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 15:05:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350168AbiFMTEQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:04:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96F4813DD6
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 09:54:30 -0700 (PDT)
+        with ESMTP id S1346301AbiFMTET (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:04:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2CA3106A49
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 09:54:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 23FEB61539
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 16:54:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7211DC34114;
-        Mon, 13 Jun 2022 16:54:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3FD9861034
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 16:54:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97871C34114;
+        Mon, 13 Jun 2022 16:54:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655139269;
-        bh=+K3NKO+G3TGjPmrk7CL6o/pMN7LjCyMheovUjaBj88A=;
+        s=korg; t=1655139278;
+        bh=2xY/uChMRitTzxVb6TkgDVDhAPbDwRpIl2dD7VhjXEo=;
         h=Date:To:From:Subject:From;
-        b=MrO/vvJz18kz8K1unik8/lvHPugGrmue1f4k+x5YpaIQFEMCOXKpUsXPuEkI0KRhR
-         kWqhVejvYprzs5Saqvap1A9q+wEyJiqAGDu5ta18RSsYsQmkpVGDa3U5C+u7Ge/FnB
-         5Pe0oIUC60lvCV+wnGia6rtt0k5wy+mWmrcMuDq0=
-Date:   Mon, 13 Jun 2022 09:54:28 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, nsaenzju@redhat.com,
-        mtosatti@redhat.com, minchan@kernel.org, mhocko@kernel.org,
-        hughd@google.com, mgorman@techsingularity.net,
-        akpm@linux-foundation.org
+        b=OLX7YebCt4jlGvhS1VL0JckmeHBgQE3hqqSq734oi6C7SL27NtB5mKYJ9kJ682Ru8
+         3s2T7RG+dW0/cMHTjFDt1YjEiyQZvo7hYQLQSri6CaTz1JWmKZ47BjvQb5B1+pj3+I
+         sblNxiSG+8b+UGRdHHQsBjvhtH92iipSTR5rEp1c=
+Date:   Mon, 13 Jun 2022 09:54:38 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mtosatti@redhat.com,
+        minchan@kernel.org, mhocko@kernel.org, mgorman@techsingularity.net,
+        hughd@google.com, nsaenzju@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch added to mm-unstable branch
-Message-Id: <20220613165429.7211DC34114@smtp.kernel.org>
+Subject: + mm-page_alloc-remotely-drain-per-cpu-lists.patch added to mm-unstable branch
+Message-Id: <20220613165438.97871C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: use only one PCP list for THP-sized allocations
+     Subject: mm/page_alloc: remotely drain per-cpu lists
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
+     mm-page_alloc-remotely-drain-per-cpu-lists.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remotely-drain-per-cpu-lists.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,110 +65,186 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: use only one PCP list for THP-sized allocations
-Date: Mon, 13 Jun 2022 13:56:17 +0100
+From: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+Subject: mm/page_alloc: remotely drain per-cpu lists
+Date: Mon, 13 Jun 2022 13:56:21 +0100
 
-The per_cpu_pages is cache-aligned on a standard x86-64 distribution
-configuration but a later patch will add a new field which would push the
-structure into the next cache line.  Use only one list to store THP-sized
-pages on the per-cpu list.  This assumes that the vast majority of
-THP-sized allocations are GFP_MOVABLE but even if it was another type, it
-would not contribute to serious fragmentation that potentially causes a
-later THP allocation failure.  Align per_cpu_pages on the cacheline
-boundary to ensure there is no false cache sharing.
+Some setups, notably NOHZ_FULL CPUs, are too busy to handle the per-cpu
+drain work queued by __drain_all_pages().  So introduce a new mechanism to
+remotely drain the per-cpu lists.  It is made possible by remotely locking
+'struct per_cpu_pages' new per-cpu spinlocks.  A benefit of this new
+scheme is that drain operations are now migration safe.
 
-After this patch, the structure sizing is;
+There was no observed performance degradation vs.  the previous scheme. 
+Both netperf and hackbench were run in parallel to triggering the
+__drain_all_pages(NULL, true) code path around ~100 times per second.  The
+new scheme performs a bit better (~5%), although the important point here
+is there are no performance regressions vs.  the previous mechanism. 
+Per-cpu lists draining happens only in slow paths.
 
-struct per_cpu_pages {
-        int                        count;                /*     0     4 */
-        int                        high;                 /*     4     4 */
-        int                        batch;                /*     8     4 */
-        short int                  free_factor;          /*    12     2 */
-        short int                  expire;               /*    14     2 */
-        struct list_head           lists[13];            /*    16   208 */
+Minchan Kim tested this independently and reported;
 
-        /* size: 256, cachelines: 4, members: 6 */
-        /* padding: 32 */
-} __attribute__((__aligned__(64)));
+	My workload is not NOHZ CPUs but run apps under heavy memory
+	pressure so they goes to direct reclaim and be stuck on
+	drain_all_pages until work on workqueue run.
 
-Link: https://lkml.kernel.org/r/20220613125622.18628-3-mgorman@techsingularity.net
+	unit: nanosecond
+	max(dur)        avg(dur)                count(dur)
+	166713013       487511.77786438033      1283
+
+	From traces, system encountered the drain_all_pages 1283 times and
+	worst case was 166ms and avg was 487us.
+
+	The other problem was alloc_contig_range in CMA. The PCP draining
+	takes several hundred millisecond sometimes though there is no
+	memory pressure or a few of pages to be migrated out but CPU were
+	fully booked.
+
+	Your patch perfectly removed those wasted time.
+
+Link: https://lkml.kernel.org/r/20220613125622.18628-7-mgorman@techsingularity.net
+Signed-off-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Tested-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   11 +++++++----
- mm/page_alloc.c        |    4 ++--
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |   58 +++-------------------------------------------
+ 1 file changed, 4 insertions(+), 54 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations
-+++ a/include/linux/mmzone.h
-@@ -355,15 +355,18 @@ enum zone_watermarks {
- };
- 
- /*
-- * One per migratetype for each PAGE_ALLOC_COSTLY_ORDER plus one additional
-- * for pageblock size for THP if configured.
-+ * One per migratetype for each PAGE_ALLOC_COSTLY_ORDER. One additional list
-+ * for THP which will usually be GFP_MOVABLE. Even if it is another type,
-+ * it should not contribute to serious fragmentation causing THP allocation
-+ * failures.
-  */
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- #define NR_PCP_THP 1
- #else
- #define NR_PCP_THP 0
- #endif
--#define NR_PCP_LISTS (MIGRATE_PCPTYPES * (PAGE_ALLOC_COSTLY_ORDER + 1 + NR_PCP_THP))
-+#define NR_LOWORDER_PCP_LISTS (MIGRATE_PCPTYPES * (PAGE_ALLOC_COSTLY_ORDER + 1))
-+#define NR_PCP_LISTS (NR_LOWORDER_PCP_LISTS + NR_PCP_THP)
- 
- /*
-  * Shift to encode migratetype and order in the same integer, with order
-@@ -389,7 +392,7 @@ struct per_cpu_pages {
- 
- 	/* Lists of pages, one per migrate type stored on the pcp-lists */
- 	struct list_head lists[NR_PCP_LISTS];
--};
-+} ____cacheline_aligned_in_smp;
- 
- struct per_cpu_zonestat {
- #ifdef CONFIG_SMP
---- a/mm/page_alloc.c~mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations
+--- a/mm/page_alloc.c~mm-page_alloc-remotely-drain-per-cpu-lists
 +++ a/mm/page_alloc.c
-@@ -653,7 +653,7 @@ static inline unsigned int order_to_pind
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (order > PAGE_ALLOC_COSTLY_ORDER) {
- 		VM_BUG_ON(order != pageblock_order);
--		base = PAGE_ALLOC_COSTLY_ORDER + 1;
-+		return NR_LOWORDER_PCP_LISTS;
- 	}
- #else
- 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
-@@ -667,7 +667,7 @@ static inline int pindex_to_order(unsign
- 	int order = pindex / MIGRATE_PCPTYPES;
+@@ -165,13 +165,7 @@ DEFINE_PER_CPU(int, _numa_mem_);		/* Ker
+ EXPORT_PER_CPU_SYMBOL(_numa_mem_);
+ #endif
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (order > PAGE_ALLOC_COSTLY_ORDER)
-+	if (pindex == NR_LOWORDER_PCP_LISTS)
- 		order = pageblock_order;
- #else
- 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
+-/* work_structs for global per-cpu drains */
+-struct pcpu_drain {
+-	struct zone *zone;
+-	struct work_struct work;
+-};
+ static DEFINE_MUTEX(pcpu_drain_mutex);
+-static DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
+ 
+ #ifdef CONFIG_GCC_PLUGIN_LATENT_ENTROPY
+ volatile unsigned long latent_entropy __latent_entropy;
+@@ -3101,9 +3095,6 @@ static int rmqueue_bulk(struct zone *zon
+  * Called from the vmstat counter updater to drain pagesets of this
+  * currently executing processor on remote nodes after they have
+  * expired.
+- *
+- * Note that this function must be called with the thread pinned to
+- * a single processor.
+  */
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp)
+ {
+@@ -3128,10 +3119,6 @@ void drain_zone_pages(struct zone *zone,
+ 
+ /*
+  * Drain pcplists of the indicated processor and zone.
+- *
+- * The processor must either be the current processor and the
+- * thread pinned to the current processor or a processor that
+- * is not online.
+  */
+ static void drain_pages_zone(unsigned int cpu, struct zone *zone)
+ {
+@@ -3150,10 +3137,6 @@ static void drain_pages_zone(unsigned in
+ 
+ /*
+  * Drain pcplists of all zones on the indicated processor.
+- *
+- * The processor must either be the current processor and the
+- * thread pinned to the current processor or a processor that
+- * is not online.
+  */
+ static void drain_pages(unsigned int cpu)
+ {
+@@ -3166,9 +3149,6 @@ static void drain_pages(unsigned int cpu
+ 
+ /*
+  * Spill all of this CPU's per-cpu pages back into the buddy allocator.
+- *
+- * The CPU has to be pinned. When zone parameter is non-NULL, spill just
+- * the single zone's pages.
+  */
+ void drain_local_pages(struct zone *zone)
+ {
+@@ -3180,24 +3160,6 @@ void drain_local_pages(struct zone *zone
+ 		drain_pages(cpu);
+ }
+ 
+-static void drain_local_pages_wq(struct work_struct *work)
+-{
+-	struct pcpu_drain *drain;
+-
+-	drain = container_of(work, struct pcpu_drain, work);
+-
+-	/*
+-	 * drain_all_pages doesn't use proper cpu hotplug protection so
+-	 * we can race with cpu offline when the WQ can move this from
+-	 * a cpu pinned worker to an unbound one. We can operate on a different
+-	 * cpu which is alright but we also have to make sure to not move to
+-	 * a different one.
+-	 */
+-	migrate_disable();
+-	drain_local_pages(drain->zone);
+-	migrate_enable();
+-}
+-
+ /*
+  * The implementation of drain_all_pages(), exposing an extra parameter to
+  * drain on all cpus.
+@@ -3219,13 +3181,6 @@ static void __drain_all_pages(struct zon
+ 	static cpumask_t cpus_with_pcps;
+ 
+ 	/*
+-	 * Make sure nobody triggers this path before mm_percpu_wq is fully
+-	 * initialized.
+-	 */
+-	if (WARN_ON_ONCE(!mm_percpu_wq))
+-		return;
+-
+-	/*
+ 	 * Do not drain if one is already in progress unless it's specific to
+ 	 * a zone. Such callers are primarily CMA and memory hotplug and need
+ 	 * the drain to be complete when the call returns.
+@@ -3274,14 +3229,11 @@ static void __drain_all_pages(struct zon
+ 	}
+ 
+ 	for_each_cpu(cpu, &cpus_with_pcps) {
+-		struct pcpu_drain *drain = per_cpu_ptr(&pcpu_drain, cpu);
+-
+-		drain->zone = zone;
+-		INIT_WORK(&drain->work, drain_local_pages_wq);
+-		queue_work_on(cpu, mm_percpu_wq, &drain->work);
++		if (zone)
++			drain_pages_zone(cpu, zone);
++		else
++			drain_pages(cpu);
+ 	}
+-	for_each_cpu(cpu, &cpus_with_pcps)
+-		flush_work(&per_cpu_ptr(&pcpu_drain, cpu)->work);
+ 
+ 	mutex_unlock(&pcpu_drain_mutex);
+ }
+@@ -3290,8 +3242,6 @@ static void __drain_all_pages(struct zon
+  * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
+  *
+  * When zone parameter is non-NULL, spill just the single zone's pages.
+- *
+- * Note that this can be extremely slow as the draining happens in a workqueue.
+  */
+ void drain_all_pages(struct zone *zone)
+ {
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from nsaenzju@redhat.com are
 
-mm-page_alloc-add-page-buddy_list-and-page-pcp_list.patch
-mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
-mm-page_alloc-split-out-buddy-removal-code-from-rmqueue-into-separate-helper.patch
-mm-page_alloc-remove-mistaken-page-==-null-check-in-rmqueue.patch
-mm-page_alloc-protect-pcp-lists-with-a-spinlock.patch
-mm-page_alloc-replace-local_lock-with-normal-spinlock.patch
+mm-page_alloc-remotely-drain-per-cpu-lists.patch
 
