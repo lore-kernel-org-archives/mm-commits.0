@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72A8BC43334
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:05:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 985BAC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:17:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346417AbiFMTFY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 15:05:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54162 "EHLO
+        id S238489AbiFMTRD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 15:17:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346763AbiFMTEU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:04:20 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C7BE4B85F
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 09:54:44 -0700 (PDT)
+        with ESMTP id S245545AbiFMTQl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:16:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80BE356386
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 10:29:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 6771DCE13D4
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 16:54:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 983F1C34114;
-        Mon, 13 Jun 2022 16:54:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 856ED60C95
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 17:29:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0F90C34114;
+        Mon, 13 Jun 2022 17:29:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655139280;
-        bh=TUAXoInMwXM0Rtf70/lrqcNM66oG53KziuJcNiGtWY4=;
+        s=korg; t=1655141372;
+        bh=rIYCooyTHcGQbeSiX1KSvKXidDS7TxtszlA+ycB57PE=;
         h=Date:To:From:Subject:From;
-        b=eKDACzwdFeVl4Zr92ZXV5EQL/okWAo8oAYxe2EjIMZBhskM3DumOzBYFOWVnaOdh1
-         jY4/rfkDQVqAkm7Vb2lM6lzwTWZVwpG0BQwrzw88/QKbEi3bCutT0rD97sho24wb+3
-         HI3acsD1YEAs1MnmuF95BxpKmsYdQhPgY2Sf16xo=
-Date:   Mon, 13 Jun 2022 09:54:40 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, nsaenzju@redhat.com,
-        mtosatti@redhat.com, minchan@kernel.org, mhocko@kernel.org,
-        hughd@google.com, mgorman@techsingularity.net,
-        akpm@linux-foundation.org
+        b=Qo+iO2piFGv/0y8ROTZQwVIzvATZ7MAkbeqpkwcD/K2O7cx182ZbSzmk6vLndyF/i
+         vtBfm4bNpdLFMIvavhTuV6lfqqvqaCIUXDSxMrI9daoclVIZh7cAWusLdg2ZqZvS4I
+         hd76UI1A86R4Z3fSZLDxY6zufg7x9JFZMDFHOG9U=
+Date:   Mon, 13 Jun 2022 10:29:32 -0700
+To:     mm-commits@vger.kernel.org, zhengliang6@huawei.com,
+        yi.zhang@huawei.com, Xiongwei.Song@windriver.com,
+        willy@infradead.org, phillip@squashfs.org.uk,
+        m.szyprowski@samsung.com, miaoxie@huawei.com, lkp@intel.com,
+        houtao1@huawei.com, hsinyi@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-replace-local_lock-with-normal-spinlock.patch added to mm-unstable branch
-Message-Id: <20220613165440.983F1C34114@smtp.kernel.org>
+Subject: + revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch added to mm-nonmm-unstable branch
+Message-Id: <20220613172932.D0F90C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: replace local_lock with normal spinlock
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-replace-local_lock-with-normal-spinlock.patch
+     Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-replace-local_lock-with-normal-spinlock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,446 +67,103 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: replace local_lock with normal spinlock
-Date: Mon, 13 Jun 2022 13:56:22 +0100
+From: Hsin-Yi Wang <hsinyi@chromium.org>
+Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
+Date: Mon, 13 Jun 2022 16:28:00 +0800
 
-struct per_cpu_pages is no longer strictly local as PCP lists can be
-drained remotely using a lock for protection.  While the use of local_lock
-works, it goes against the intent of local_lock which is for "pure CPU
-local concurrency control mechanisms and not suited for inter-CPU
-concurrency control" (Documentation/locking/locktypes.rst)
+Patch series "Implement readahead for squashfs", v6.
 
-local_lock protects against migration between when the percpu pointer is
-accessed and the pcp->lock acquired.  The lock acquisition is a preemption
-point so in the worst case, a task could migrate to another NUMA node and
-accidentally allocate remote memory.  The main requirement is to pin the
-task to a CPU that is suitable for PREEMPT_RT and !PREEMPT_RT.
+Commit 9eec1d897139("squashfs: provide backing_dev_info in order to
+disable read-ahead") mitigates the performance drop issue for squashfs by
+closing readahead for it.
 
-Replace local_lock with helpers that pin a task to a CPU, lookup the
-per-cpu structure and acquire the embedded lock.  It's similar to
-local_lock without breaking the intent behind the API.  It is not a
-complete API as only the parts needed for PCP-alloc are implemented but in
-theory, the generic helpers could be promoted to a general API if there
-was demand for an embedded lock within a per-cpu struct with a guarantee
-that the per-cpu structure locked matches the running CPU and cannot use
-get_cpu_var due to RT concerns.  PCP requires these semantics to avoid
-accidentally allocating remote memory.
 
-Link: https://lkml.kernel.org/r/20220613125622.18628-8-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This patch (of 3):
+
+This reverts commit 9eec1d897139e5 ("squashfs: provide backing_dev_info in
+order to disable read-ahead").
+
+Revert closing the readahead to squashfs since the readahead callback
+for squashfs is implemented.
+
+Link: https://lkml.kernel.org/r/20220613082802.1301238-1-hsinyi@chromium.org
+Link: https://lkml.kernel.org/r/20220613082802.1301238-2-hsinyi@chromium.org
+Suggested-by: Xiongwei Song <Xiongwei.Song@windriver.com>
+Signed-off-by: Hsin-Yi Wang <hsinyi@chromium.org>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Zheng Liang <zhengliang6@huawei.com>
+Cc: Zhang Yi <yi.zhang@huawei.com>
+Cc: Hou Tao <houtao1@huawei.com>
+Cc: Miao Xie <miaoxie@huawei.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  226 ++++++++++++++++++++++++----------------------
- 1 file changed, 121 insertions(+), 105 deletions(-)
+ fs/squashfs/super.c |   33 ---------------------------------
+ 1 file changed, 33 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-replace-local_lock-with-normal-spinlock
-+++ a/mm/page_alloc.c
-@@ -126,13 +126,6 @@ typedef int __bitwise fpi_t;
- static DEFINE_MUTEX(pcp_batch_high_lock);
- #define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
+--- a/fs/squashfs/super.c~revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead
++++ a/fs/squashfs/super.c
+@@ -29,7 +29,6 @@
+ #include <linux/module.h>
+ #include <linux/magic.h>
+ #include <linux/xattr.h>
+-#include <linux/backing-dev.h>
  
--struct pagesets {
--	local_lock_t lock;
--};
--static DEFINE_PER_CPU(struct pagesets, pagesets) = {
--	.lock = INIT_LOCAL_LOCK(lock),
--};
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+@@ -113,24 +112,6 @@ static const struct squashfs_decompresso
+ 	return decompressor;
+ }
+ 
+-static int squashfs_bdi_init(struct super_block *sb)
+-{
+-	int err;
+-	unsigned int major = MAJOR(sb->s_dev);
+-	unsigned int minor = MINOR(sb->s_dev);
 -
- #if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT)
- /*
-  * On SMP, spin_trylock is sufficient protection.
-@@ -147,6 +140,81 @@ static DEFINE_PER_CPU(struct pagesets, p
- #define pcp_trylock_finish(flags)	local_irq_restore(flags)
- #endif
+-	bdi_put(sb->s_bdi);
+-	sb->s_bdi = &noop_backing_dev_info;
+-
+-	err = super_setup_bdi_name(sb, "squashfs_%u_%u", major, minor);
+-	if (err)
+-		return err;
+-
+-	sb->s_bdi->ra_pages = 0;
+-	sb->s_bdi->io_pages = 0;
+-
+-	return 0;
+-}
  
-+/*
-+ * Locking a pcp requires a PCP lookup followed by a spinlock. To avoid
-+ * a migration causing the wrong PCP to be locked and remote memory being
-+ * potentially allocated, pin the task to the CPU for the lookup+lock.
-+ * preempt_disable is used on !RT because it is faster than migrate_disable.
-+ * migrate_disable is used on RT because otherwise RT spinlock usage is
-+ * interfered with and a high priority task cannot preempt the allocator.
-+ */
-+#ifndef CONFIG_PREEMPT_RT
-+#define pcpu_task_pin()		preempt_disable()
-+#define pcpu_task_unpin()	preempt_enable()
-+#else
-+#define pcpu_task_pin()		migrate_disable()
-+#define pcpu_task_unpin()	migrate_enable()
-+#endif
-+
-+/*
-+ * Generic helper to lookup and a per-cpu variable with an embedded spinlock.
-+ * Return value should be used with equivalent unlock helper.
-+ */
-+#define pcpu_spin_lock(type, member, ptr)				\
-+({									\
-+	type *_ret;							\
-+	pcpu_task_pin();						\
-+	_ret = this_cpu_ptr(ptr);					\
-+	spin_lock(&_ret->member);					\
-+	_ret;								\
-+})
-+
-+#define pcpu_spin_lock_irqsave(type, member, ptr, flags)		\
-+({									\
-+	type *_ret;							\
-+	pcpu_task_pin();						\
-+	_ret = this_cpu_ptr(ptr);					\
-+	spin_lock_irqsave(&_ret->member, flags);			\
-+	_ret;								\
-+})
-+
-+#define pcpu_spin_trylock_irqsave(type, member, ptr, flags)		\
-+({									\
-+	type *_ret;							\
-+	pcpu_task_pin();						\
-+	_ret = this_cpu_ptr(ptr);					\
-+	if (!spin_trylock_irqsave(&_ret->member, flags))		\
-+		_ret = NULL;						\
-+	_ret;								\
-+})
-+
-+#define pcpu_spin_unlock(member, ptr)					\
-+({									\
-+	spin_unlock(&ptr->member);					\
-+	pcpu_task_unpin();						\
-+})
-+
-+#define pcpu_spin_unlock_irqrestore(member, ptr, flags)			\
-+({									\
-+	spin_unlock_irqrestore(&ptr->member, flags);			\
-+	pcpu_task_unpin();						\
-+})
-+
-+/* struct per_cpu_pages specific helpers. */
-+#define pcp_spin_lock(ptr)						\
-+	pcpu_spin_lock(struct per_cpu_pages, lock, ptr)
-+
-+#define pcp_spin_lock_irqsave(ptr, flags)				\
-+	pcpu_spin_lock_irqsave(struct per_cpu_pages, lock, ptr, flags)
-+
-+#define pcp_spin_trylock_irqsave(ptr, flags)				\
-+	pcpu_spin_trylock_irqsave(struct per_cpu_pages, lock, ptr, flags)
-+
-+#define pcp_spin_unlock(ptr)						\
-+	pcpu_spin_unlock(lock, ptr)
-+
-+#define pcp_spin_unlock_irqrestore(ptr, flags)				\
-+	pcpu_spin_unlock_irqrestore(lock, ptr, flags)
- #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
- DEFINE_PER_CPU(int, numa_node);
- EXPORT_PER_CPU_SYMBOL(numa_node);
-@@ -1477,10 +1545,7 @@ static void free_pcppages_bulk(struct zo
- 	/* Ensure requested pindex is drained first. */
- 	pindex = pindex - 1;
+ static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
+ {
+@@ -146,20 +127,6 @@ static int squashfs_fill_super(struct su
+ 
+ 	TRACE("Entered squashfs_fill_superblock\n");
  
 -	/*
--	 * local_lock_irq held so equivalent to spin_lock_irqsave for
--	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
+-	 * squashfs provides 'backing_dev_info' in order to disable read-ahead. For
+-	 * squashfs, I/O is not deferred, it is done immediately in read_folio,
+-	 * which means the user would always have to wait their own I/O. So the effect
+-	 * of readahead is very weak for squashfs. squashfs_bdi_init will set
+-	 * sb->s_bdi->ra_pages and sb->s_bdi->io_pages to 0 and close readahead for
+-	 * squashfs.
 -	 */
-+	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
- 	spin_lock(&zone->lock);
- 	isolated_pageblocks = has_isolate_pageblock(zone);
- 
-@@ -3048,10 +3113,7 @@ static int rmqueue_bulk(struct zone *zon
- {
- 	int i, allocated = 0;
- 
--	/*
--	 * local_lock_irq held so equivalent to spin_lock_irqsave for
--	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
--	 */
-+	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
- 	spin_lock(&zone->lock);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype,
-@@ -3363,30 +3425,17 @@ static int nr_pcp_high(struct per_cpu_pa
- 	return min(READ_ONCE(pcp->batch) << 2, high);
- }
- 
--/* Returns true if the page was committed to the per-cpu list. */
--static bool free_unref_page_commit(struct page *page, int migratetype,
--				   unsigned int order, bool locked)
-+static void free_unref_page_commit(struct per_cpu_pages *pcp, struct zone *zone,
-+				   struct page *page, int migratetype,
-+				   unsigned int order)
- {
--	struct zone *zone = page_zone(page);
--	struct per_cpu_pages *pcp;
- 	int high;
- 	int pindex;
- 	bool free_high;
--	unsigned long __maybe_unused UP_flags;
- 
- 	__count_vm_event(PGFREE);
--	pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 	pindex = order_to_pindex(migratetype, order);
- 
--	if (!locked) {
--		/* Protect against a parallel drain. */
--		pcp_trylock_prepare(UP_flags);
--		if (!spin_trylock(&pcp->lock)) {
--			pcp_trylock_finish(UP_flags);
--			return false;
--		}
+-	err = squashfs_bdi_init(sb);
+-	if (err) {
+-		errorf(fc, "squashfs init bdi failed");
+-		return err;
 -	}
 -
- 	list_add(&page->pcp_list, &pcp->lists[pindex]);
- 	pcp->count += 1 << order;
- 
-@@ -3404,13 +3453,6 @@ static bool free_unref_page_commit(struc
- 
- 		free_pcppages_bulk(zone, nr_pcp_free(pcp, high, batch, free_high), pcp, pindex);
- 	}
--
--	if (!locked) {
--		spin_unlock(&pcp->lock);
--		pcp_trylock_finish(UP_flags);
--	}
--
--	return true;
- }
- 
- /*
-@@ -3418,10 +3460,12 @@ static bool free_unref_page_commit(struc
-  */
- void free_unref_page(struct page *page, unsigned int order)
- {
--	unsigned long flags;
-+	struct per_cpu_pages *pcp;
-+	struct zone *zone;
- 	unsigned long pfn = page_to_pfn(page);
- 	int migratetype;
--	bool freed_pcp = false;
-+	unsigned long flags;
-+	unsigned long __maybe_unused UP_flags;
- 
- 	if (!free_unref_page_prepare(page, pfn, order))
- 		return;
-@@ -3442,12 +3486,16 @@ void free_unref_page(struct page *page,
- 		migratetype = MIGRATE_MOVABLE;
- 	}
- 
--	local_lock_irqsave(&pagesets.lock, flags);
--	freed_pcp = free_unref_page_commit(page, migratetype, order, false);
--	local_unlock_irqrestore(&pagesets.lock, flags);
--
--	if (unlikely(!freed_pcp))
-+	zone = page_zone(page);
-+	pcp_trylock_prepare(UP_flags);
-+	pcp = pcpu_spin_trylock_irqsave(struct per_cpu_pages, lock, zone->per_cpu_pageset, flags);
-+	if (pcp) {
-+		free_unref_page_commit(pcp, zone, page, migratetype, order);
-+		pcp_spin_unlock_irqrestore(pcp, flags);
-+	} else {
- 		free_one_page(page_zone(page), page, pfn, order, migratetype, FPI_NONE);
-+	}
-+	pcp_trylock_finish(UP_flags);
- }
- 
- /*
-@@ -3496,20 +3544,20 @@ void free_unref_page_list(struct list_he
- 	if (list_empty(list))
- 		return;
- 
--	local_lock_irqsave(&pagesets.lock, flags);
--
- 	page = lru_to_page(list);
- 	locked_zone = page_zone(page);
--	pcp = this_cpu_ptr(locked_zone->per_cpu_pageset);
--	spin_lock(&pcp->lock);
-+	pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
- 
- 	list_for_each_entry_safe(page, next, list, lru) {
- 		struct zone *zone = page_zone(page);
- 
- 		/* Different zone, different pcp lock. */
- 		if (zone != locked_zone) {
-+			/* Leave IRQs enabled as a new lock is acquired. */
- 			spin_unlock(&pcp->lock);
- 			locked_zone = zone;
-+
-+			/* Preemption disabled by pcp_spin_lock_irqsave. */
- 			pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 			spin_lock(&pcp->lock);
- 		}
-@@ -3524,33 +3572,19 @@ void free_unref_page_list(struct list_he
- 
- 		trace_mm_page_free_batched(page);
- 
--		/*
--		 * If there is a parallel drain in progress, free to the buddy
--		 * allocator directly. This is expensive as the zone lock will
--		 * be acquired multiple times but if a drain is in progress
--		 * then an expensive operation is already taking place.
--		 *
--		 * TODO: Always false at the moment due to local_lock_irqsave
--		 *       and is preparation for converting to local_lock.
--		 */
--		if (unlikely(!free_unref_page_commit(page, migratetype, 0, true)))
--			free_one_page(page_zone(page), page, page_to_pfn(page), 0, migratetype, FPI_NONE);
-+		free_unref_page_commit(pcp, zone, page, migratetype, 0);
- 
- 		/*
- 		 * Guard against excessive IRQ disabled times when we get
- 		 * a large list of pages to free.
- 		 */
- 		if (++batch_count == SWAP_CLUSTER_MAX) {
--			spin_unlock(&pcp->lock);
--			local_unlock_irqrestore(&pagesets.lock, flags);
-+			pcp_spin_unlock_irqrestore(pcp, flags);
- 			batch_count = 0;
--			local_lock_irqsave(&pagesets.lock, flags);
--			pcp = this_cpu_ptr(locked_zone->per_cpu_pageset);
--			spin_lock(&pcp->lock);
-+			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
- 		}
- 	}
--	spin_unlock(&pcp->lock);
--	local_unlock_irqrestore(&pagesets.lock, flags);
-+	pcp_spin_unlock_irqrestore(pcp, flags);
- }
- 
- /*
-@@ -3718,28 +3752,9 @@ struct page *__rmqueue_pcplist(struct zo
- 			int migratetype,
- 			unsigned int alloc_flags,
- 			struct per_cpu_pages *pcp,
--			struct list_head *list,
--			bool locked)
-+			struct list_head *list)
- {
- 	struct page *page;
--	unsigned long __maybe_unused UP_flags;
--
--	/*
--	 * spin_trylock is not necessary right now due to due to
--	 * local_lock_irqsave and is a preparation step for
--	 * a conversion to local_lock using the trylock to prevent
--	 * IRQ re-entrancy. If pcp->lock cannot be acquired, the caller
--	 * uses rmqueue_buddy.
--	 *
--	 * TODO: Convert local_lock_irqsave to local_lock.
--	 */
--	if (unlikely(!locked)) {
--		pcp_trylock_prepare(UP_flags);
--		if (!spin_trylock(&pcp->lock)) {
--			pcp_trylock_finish(UP_flags);
--			return NULL;
--		}
--	}
- 
- 	do {
- 		if (list_empty(list)) {
-@@ -3772,10 +3787,6 @@ struct page *__rmqueue_pcplist(struct zo
- 	} while (check_new_pcp(page, order));
- 
- out:
--	if (!locked) {
--		spin_unlock(&pcp->lock);
--		pcp_trylock_finish(UP_flags);
--	}
- 
- 	return page;
- }
-@@ -3790,19 +3801,29 @@ static struct page *rmqueue_pcplist(stru
- 	struct list_head *list;
- 	struct page *page;
- 	unsigned long flags;
-+	unsigned long __maybe_unused UP_flags;
- 
--	local_lock_irqsave(&pagesets.lock, flags);
-+	/*
-+	 * spin_trylock_irqsave is not necessary right now as it'll only be
-+	 * true when contending with a remote drain. It's in place as a
-+	 * preparation step before converting pcp locking to spin_trylock
-+	 * to protect against IRQ reentry.
-+	 */
-+	pcp_trylock_prepare(UP_flags);
-+	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-+	if (!pcp)
-+		return NULL;
- 
- 	/*
- 	 * On allocation, reduce the number of pages that are batch freed.
- 	 * See nr_pcp_free() where free_factor is increased for subsequent
- 	 * frees.
- 	 */
--	pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 	pcp->free_factor >>= 1;
- 	list = &pcp->lists[order_to_pindex(migratetype, order)];
--	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list, false);
--	local_unlock_irqrestore(&pagesets.lock, flags);
-+	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
-+	pcp_spin_unlock_irqrestore(pcp, flags);
-+	pcp_trylock_finish(UP_flags);
- 	if (page) {
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1);
- 		zone_statistics(preferred_zone, zone, 1);
-@@ -5395,10 +5416,8 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		goto failed;
- 
- 	/* Attempt the batch allocation */
--	local_lock_irqsave(&pagesets.lock, flags);
--	pcp = this_cpu_ptr(zone->per_cpu_pageset);
-+	pcp = pcp_spin_lock_irqsave(zone->per_cpu_pageset, flags);
- 	pcp_list = &pcp->lists[order_to_pindex(ac.migratetype, 0)];
--	spin_lock(&pcp->lock);
- 
- 	while (nr_populated < nr_pages) {
- 
-@@ -5409,13 +5428,11 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		}
- 
- 		page = __rmqueue_pcplist(zone, 0, ac.migratetype, alloc_flags,
--							pcp, pcp_list, true);
-+							pcp, pcp_list);
- 		if (unlikely(!page)) {
- 			/* Try and allocate at least one page */
--			if (!nr_account) {
--				spin_unlock(&pcp->lock);
-+			if (!nr_account)
- 				goto failed_irq;
--			}
- 			break;
- 		}
- 		nr_account++;
-@@ -5428,8 +5445,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		nr_populated++;
- 	}
- 
--	spin_unlock(&pcp->lock);
--	local_unlock_irqrestore(&pagesets.lock, flags);
-+	pcp_spin_unlock_irqrestore(pcp, flags);
- 
- 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
- 	zone_statistics(ac.preferred_zoneref->zone, zone, nr_account);
-@@ -5438,7 +5454,7 @@ out:
- 	return nr_populated;
- 
- failed_irq:
--	local_unlock_irqrestore(&pagesets.lock, flags);
-+	pcp_spin_unlock_irqrestore(pcp, flags);
- 
- failed:
- 	page = __alloc_pages(gfp, 0, preferred_nid, nodemask);
+ 	sb->s_fs_info = kzalloc(sizeof(*msblk), GFP_KERNEL);
+ 	if (sb->s_fs_info == NULL) {
+ 		ERROR("Failed to allocate squashfs_sb_info\n");
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from hsinyi@chromium.org are
 
-mm-page_alloc-add-page-buddy_list-and-page-pcp_list.patch
-mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
-mm-page_alloc-split-out-buddy-removal-code-from-rmqueue-into-separate-helper.patch
-mm-page_alloc-remove-mistaken-page-==-null-check-in-rmqueue.patch
-mm-page_alloc-protect-pcp-lists-with-a-spinlock.patch
-mm-page_alloc-replace-local_lock-with-normal-spinlock.patch
+revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
+squashfs-implement-readahead.patch
 
