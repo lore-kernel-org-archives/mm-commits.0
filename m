@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E93AC43334
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:04:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D32C7C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 19:04:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347986AbiFMTEq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 15:04:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50488 "EHLO
+        id S1346056AbiFMTEv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 15:04:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350031AbiFMTEO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:04:14 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2B35106A47
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 09:54:38 -0700 (PDT)
+        with ESMTP id S1350168AbiFMTEQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 15:04:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96F4813DD6
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 09:54:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 759D7B81133
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 16:54:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17BCCC34114;
-        Mon, 13 Jun 2022 16:54:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 23FEB61539
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 16:54:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7211DC34114;
+        Mon, 13 Jun 2022 16:54:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655139276;
-        bh=OHjHLZGezUjDacfUHNU/pQa4mE3veENqw7pBwT2zKuE=;
+        s=korg; t=1655139269;
+        bh=+K3NKO+G3TGjPmrk7CL6o/pMN7LjCyMheovUjaBj88A=;
         h=Date:To:From:Subject:From;
-        b=XMPiU/ETcujDdmAqqPgAhFKCXlSU7MtWF9dWM3wQceDohMhyEot6zSTKZ3bz38qU3
-         N2oNUnEBEIFPqm6373S/PhojG+ZuDF+HAw/IeuhCaN5Mx+xkar9/iBx095vsscfIo+
-         zXx8xPhY8F1mqZtz3FKfkGYzqMG8lEbI4leC1y2k=
-Date:   Mon, 13 Jun 2022 09:54:35 -0700
+        b=MrO/vvJz18kz8K1unik8/lvHPugGrmue1f4k+x5YpaIQFEMCOXKpUsXPuEkI0KRhR
+         kWqhVejvYprzs5Saqvap1A9q+wEyJiqAGDu5ta18RSsYsQmkpVGDa3U5C+u7Ge/FnB
+         5Pe0oIUC60lvCV+wnGia6rtt0k5wy+mWmrcMuDq0=
+Date:   Mon, 13 Jun 2022 09:54:28 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, nsaenzju@redhat.com,
         mtosatti@redhat.com, minchan@kernel.org, mhocko@kernel.org,
         hughd@google.com, mgorman@techsingularity.net,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-protect-pcp-lists-with-a-spinlock.patch added to mm-unstable branch
-Message-Id: <20220613165436.17BCCC34114@smtp.kernel.org>
+Subject: + mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch added to mm-unstable branch
+Message-Id: <20220613165429.7211DC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: protect PCP lists with a spinlock
+     Subject: mm/page_alloc: use only one PCP list for THP-sized allocations
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-protect-pcp-lists-with-a-spinlock.patch
+     mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-protect-pcp-lists-with-a-spinlock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,437 +67,101 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: protect PCP lists with a spinlock
-Date: Mon, 13 Jun 2022 13:56:20 +0100
+Subject: mm/page_alloc: use only one PCP list for THP-sized allocations
+Date: Mon, 13 Jun 2022 13:56:17 +0100
 
-Currently the PCP lists are protected by using local_lock_irqsave to
-prevent migration and IRQ reentrancy but this is inconvenient.  Remote
-draining of the lists is impossible and a workqueue is required and every
-task allocation/free must disable then enable interrupts which is
-expensive.
+The per_cpu_pages is cache-aligned on a standard x86-64 distribution
+configuration but a later patch will add a new field which would push the
+structure into the next cache line.  Use only one list to store THP-sized
+pages on the per-cpu list.  This assumes that the vast majority of
+THP-sized allocations are GFP_MOVABLE but even if it was another type, it
+would not contribute to serious fragmentation that potentially causes a
+later THP allocation failure.  Align per_cpu_pages on the cacheline
+boundary to ensure there is no false cache sharing.
 
-As preparation for dealing with both of those problems, protect the lists
-with a spinlock.  The IRQ-unsafe version of the lock is used because IRQs
-are already disabled by local_lock_irqsave.  spin_trylock is used in
-preparation for a time when local_lock could be used instead of
-lock_lock_irqsave.
-
-The per_cpu_pages still fits within the same number of cache lines after
-this patch relative to before the series.
+After this patch, the structure sizing is;
 
 struct per_cpu_pages {
-        spinlock_t                 lock;                 /*     0     4 */
-        int                        count;                /*     4     4 */
-        int                        high;                 /*     8     4 */
-        int                        batch;                /*    12     4 */
-        short int                  free_factor;          /*    16     2 */
-        short int                  expire;               /*    18     2 */
+        int                        count;                /*     0     4 */
+        int                        high;                 /*     4     4 */
+        int                        batch;                /*     8     4 */
+        short int                  free_factor;          /*    12     2 */
+        short int                  expire;               /*    14     2 */
+        struct list_head           lists[13];            /*    16   208 */
 
-        /* XXX 4 bytes hole, try to pack */
-
-        struct list_head           lists[13];            /*    24   208 */
-
-        /* size: 256, cachelines: 4, members: 7 */
-        /* sum members: 228, holes: 1, sum holes: 4 */
-        /* padding: 24 */
+        /* size: 256, cachelines: 4, members: 6 */
+        /* padding: 32 */
 } __attribute__((__aligned__(64)));
 
-There is overhead in the fast path due to acquiring the spinlock even
-though the spinlock is per-cpu and uncontended in the common case.  Page
-Fault Test (PFT) running on a 1-socket reported the following results on a
-1 socket machine.
-
-                                     5.18.0-rc1               5.18.0-rc1
-                                        vanilla         mm-pcpdrain-v2r1
-Hmean     faults/sec-1   886331.5718 (   0.00%)   885462.7479 (  -0.10%)
-Hmean     faults/sec-3  2337706.1583 (   0.00%)  2332130.4909 *  -0.24%*
-Hmean     faults/sec-5  2851594.2897 (   0.00%)  2844123.9307 (  -0.26%)
-Hmean     faults/sec-7  3543251.5507 (   0.00%)  3516889.0442 *  -0.74%*
-Hmean     faults/sec-8  3947098.0024 (   0.00%)  3916162.8476 *  -0.78%*
-Stddev    faults/sec-1     2302.9105 (   0.00%)     2065.0845 (  10.33%)
-Stddev    faults/sec-3     7275.2442 (   0.00%)     6033.2620 (  17.07%)
-Stddev    faults/sec-5    24726.0328 (   0.00%)    12525.1026 (  49.34%)
-Stddev    faults/sec-7     9974.2542 (   0.00%)     9543.9627 (   4.31%)
-Stddev    faults/sec-8     9468.0191 (   0.00%)     7958.2607 (  15.95%)
-CoeffVar  faults/sec-1        0.2598 (   0.00%)        0.2332 (  10.24%)
-CoeffVar  faults/sec-3        0.3112 (   0.00%)        0.2587 (  16.87%)
-CoeffVar  faults/sec-5        0.8670 (   0.00%)        0.4404 (  49.21%)
-CoeffVar  faults/sec-7        0.2815 (   0.00%)        0.2714 (   3.60%)
-CoeffVar  faults/sec-8        0.2399 (   0.00%)        0.2032 (  15.28%)
-
-There is a small hit in the number of faults per second but given that the
-results are more stable, it's borderline noise.
-
-Link: https://lkml.kernel.org/r/20220613125622.18628-6-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20220613125622.18628-3-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Tested-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 
- mm/page_alloc.c        |  167 ++++++++++++++++++++++++++++++++++-----
- 2 files changed, 147 insertions(+), 21 deletions(-)
+ include/linux/mmzone.h |   11 +++++++----
+ mm/page_alloc.c        |    4 ++--
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-protect-pcp-lists-with-a-spinlock
+--- a/include/linux/mmzone.h~mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations
 +++ a/include/linux/mmzone.h
-@@ -382,6 +382,7 @@ enum zone_watermarks {
- 
- /* Fields and list protected by pagesets local_lock in page_alloc.c */
- struct per_cpu_pages {
-+	spinlock_t lock;	/* Protects lists field */
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
- 	int batch;		/* chunk size for buddy add/remove */
---- a/mm/page_alloc.c~mm-page_alloc-protect-pcp-lists-with-a-spinlock
-+++ a/mm/page_alloc.c
-@@ -133,6 +133,20 @@ static DEFINE_PER_CPU(struct pagesets, p
- 	.lock = INIT_LOCAL_LOCK(lock),
+@@ -355,15 +355,18 @@ enum zone_watermarks {
  };
  
-+#if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT)
-+/*
-+ * On SMP, spin_trylock is sufficient protection.
-+ * On PREEMPT_RT, spin_trylock is equivalent on both SMP and UP.
-+ */
-+#define pcp_trylock_prepare(flags)	do { } while (0)
-+#define pcp_trylock_finish(flag)	do { } while (0)
-+#else
-+
-+/* UP spin_trylock always succeeds so disable IRQs to prevent re-entrancy. */
-+#define pcp_trylock_prepare(flags)	local_irq_save(flags)
-+#define pcp_trylock_finish(flags)	local_irq_restore(flags)
-+#endif
-+
- #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
- DEFINE_PER_CPU(int, numa_node);
- EXPORT_PER_CPU_SYMBOL(numa_node);
-@@ -3093,15 +3107,22 @@ static int rmqueue_bulk(struct zone *zon
+ /*
+- * One per migratetype for each PAGE_ALLOC_COSTLY_ORDER plus one additional
+- * for pageblock size for THP if configured.
++ * One per migratetype for each PAGE_ALLOC_COSTLY_ORDER. One additional list
++ * for THP which will usually be GFP_MOVABLE. Even if it is another type,
++ * it should not contribute to serious fragmentation causing THP allocation
++ * failures.
   */
- void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp)
- {
--	unsigned long flags;
- 	int to_drain, batch;
- 
--	local_lock_irqsave(&pagesets.lock, flags);
- 	batch = READ_ONCE(pcp->batch);
- 	to_drain = min(pcp->count, batch);
--	if (to_drain > 0)
-+	if (to_drain > 0) {
-+		unsigned long flags;
-+
-+		/*
-+		 * free_pcppages_bulk expects IRQs disabled for zone->lock
-+		 * so even though pcp->lock is not intended to be IRQ-safe,
-+		 * it's needed in this context.
-+		 */
-+		spin_lock_irqsave(&pcp->lock, flags);
- 		free_pcppages_bulk(zone, to_drain, pcp, 0);
--	local_unlock_irqrestore(&pagesets.lock, flags);
-+		spin_unlock_irqrestore(&pcp->lock, flags);
-+	}
- }
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define NR_PCP_THP 1
+ #else
+ #define NR_PCP_THP 0
  #endif
- 
-@@ -3114,16 +3135,17 @@ void drain_zone_pages(struct zone *zone,
-  */
- static void drain_pages_zone(unsigned int cpu, struct zone *zone)
- {
--	unsigned long flags;
- 	struct per_cpu_pages *pcp;
- 
--	local_lock_irqsave(&pagesets.lock, flags);
--
- 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
--	if (pcp->count)
--		free_pcppages_bulk(zone, pcp->count, pcp, 0);
-+	if (pcp->count) {
-+		unsigned long flags;
- 
--	local_unlock_irqrestore(&pagesets.lock, flags);
-+		/* See drain_zone_pages on why this is disabling IRQs */
-+		spin_lock_irqsave(&pcp->lock, flags);
-+		free_pcppages_bulk(zone, pcp->count, pcp, 0);
-+		spin_unlock_irqrestore(&pcp->lock, flags);
-+	}
- }
+-#define NR_PCP_LISTS (MIGRATE_PCPTYPES * (PAGE_ALLOC_COSTLY_ORDER + 1 + NR_PCP_THP))
++#define NR_LOWORDER_PCP_LISTS (MIGRATE_PCPTYPES * (PAGE_ALLOC_COSTLY_ORDER + 1))
++#define NR_PCP_LISTS (NR_LOWORDER_PCP_LISTS + NR_PCP_THP)
  
  /*
-@@ -3391,18 +3413,30 @@ static int nr_pcp_high(struct per_cpu_pa
- 	return min(READ_ONCE(pcp->batch) << 2, high);
- }
+  * Shift to encode migratetype and order in the same integer, with order
+@@ -389,7 +392,7 @@ struct per_cpu_pages {
  
--static void free_unref_page_commit(struct page *page, int migratetype,
--				   unsigned int order)
-+/* Returns true if the page was committed to the per-cpu list. */
-+static bool free_unref_page_commit(struct page *page, int migratetype,
-+				   unsigned int order, bool locked)
- {
- 	struct zone *zone = page_zone(page);
- 	struct per_cpu_pages *pcp;
- 	int high;
- 	int pindex;
- 	bool free_high;
-+	unsigned long __maybe_unused UP_flags;
+ 	/* Lists of pages, one per migrate type stored on the pcp-lists */
+ 	struct list_head lists[NR_PCP_LISTS];
+-};
++} ____cacheline_aligned_in_smp;
  
- 	__count_vm_event(PGFREE);
- 	pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 	pindex = order_to_pindex(migratetype, order);
-+
-+	if (!locked) {
-+		/* Protect against a parallel drain. */
-+		pcp_trylock_prepare(UP_flags);
-+		if (!spin_trylock(&pcp->lock)) {
-+			pcp_trylock_finish(UP_flags);
-+			return false;
-+		}
-+	}
-+
- 	list_add(&page->pcp_list, &pcp->lists[pindex]);
- 	pcp->count += 1 << order;
- 
-@@ -3420,6 +3454,13 @@ static void free_unref_page_commit(struc
- 
- 		free_pcppages_bulk(zone, nr_pcp_free(pcp, high, batch, free_high), pcp, pindex);
+ struct per_cpu_zonestat {
+ #ifdef CONFIG_SMP
+--- a/mm/page_alloc.c~mm-page_alloc-use-only-one-pcp-list-for-thp-sized-allocations
++++ a/mm/page_alloc.c
+@@ -653,7 +653,7 @@ static inline unsigned int order_to_pind
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	if (order > PAGE_ALLOC_COSTLY_ORDER) {
+ 		VM_BUG_ON(order != pageblock_order);
+-		base = PAGE_ALLOC_COSTLY_ORDER + 1;
++		return NR_LOWORDER_PCP_LISTS;
  	}
-+
-+	if (!locked) {
-+		spin_unlock(&pcp->lock);
-+		pcp_trylock_finish(UP_flags);
-+	}
-+
-+	return true;
- }
+ #else
+ 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
+@@ -667,7 +667,7 @@ static inline int pindex_to_order(unsign
+ 	int order = pindex / MIGRATE_PCPTYPES;
  
- /*
-@@ -3430,6 +3471,7 @@ void free_unref_page(struct page *page,
- 	unsigned long flags;
- 	unsigned long pfn = page_to_pfn(page);
- 	int migratetype;
-+	bool freed_pcp = false;
- 
- 	if (!free_unref_page_prepare(page, pfn, order))
- 		return;
-@@ -3451,8 +3493,11 @@ void free_unref_page(struct page *page,
- 	}
- 
- 	local_lock_irqsave(&pagesets.lock, flags);
--	free_unref_page_commit(page, migratetype, order);
-+	freed_pcp = free_unref_page_commit(page, migratetype, order, false);
- 	local_unlock_irqrestore(&pagesets.lock, flags);
-+
-+	if (unlikely(!freed_pcp))
-+		free_one_page(page_zone(page), page, pfn, order, migratetype, FPI_NONE);
- }
- 
- /*
-@@ -3461,10 +3506,19 @@ void free_unref_page(struct page *page,
- void free_unref_page_list(struct list_head *list)
- {
- 	struct page *page, *next;
-+	struct per_cpu_pages *pcp;
-+	struct zone *locked_zone;
- 	unsigned long flags;
- 	int batch_count = 0;
- 	int migratetype;
- 
-+	/*
-+	 * An empty list is possible. Check early so that the later
-+	 * lru_to_page() does not potentially read garbage.
-+	 */
-+	if (list_empty(list))
-+		return;
-+
- 	/* Prepare pages for freeing */
- 	list_for_each_entry_safe(page, next, list, lru) {
- 		unsigned long pfn = page_to_pfn(page);
-@@ -3485,8 +3539,31 @@ void free_unref_page_list(struct list_he
- 		}
- 	}
- 
-+	/*
-+	 * Preparation could have drained the list due to failing to prepare
-+	 * or all pages are being isolated.
-+	 */
-+	if (list_empty(list))
-+		return;
-+
- 	local_lock_irqsave(&pagesets.lock, flags);
-+
-+	page = lru_to_page(list);
-+	locked_zone = page_zone(page);
-+	pcp = this_cpu_ptr(locked_zone->per_cpu_pageset);
-+	spin_lock(&pcp->lock);
-+
- 	list_for_each_entry_safe(page, next, list, lru) {
-+		struct zone *zone = page_zone(page);
-+
-+		/* Different zone, different pcp lock. */
-+		if (zone != locked_zone) {
-+			spin_unlock(&pcp->lock);
-+			locked_zone = zone;
-+			pcp = this_cpu_ptr(zone->per_cpu_pageset);
-+			spin_lock(&pcp->lock);
-+		}
-+
- 		/*
- 		 * Non-isolated types over MIGRATE_PCPTYPES get added
- 		 * to the MIGRATE_MOVABLE pcp list.
-@@ -3496,18 +3573,33 @@ void free_unref_page_list(struct list_he
- 			migratetype = MIGRATE_MOVABLE;
- 
- 		trace_mm_page_free_batched(page);
--		free_unref_page_commit(page, migratetype, 0);
-+
-+		/*
-+		 * If there is a parallel drain in progress, free to the buddy
-+		 * allocator directly. This is expensive as the zone lock will
-+		 * be acquired multiple times but if a drain is in progress
-+		 * then an expensive operation is already taking place.
-+		 *
-+		 * TODO: Always false at the moment due to local_lock_irqsave
-+		 *       and is preparation for converting to local_lock.
-+		 */
-+		if (unlikely(!free_unref_page_commit(page, migratetype, 0, true)))
-+			free_one_page(page_zone(page), page, page_to_pfn(page), 0, migratetype, FPI_NONE);
- 
- 		/*
- 		 * Guard against excessive IRQ disabled times when we get
- 		 * a large list of pages to free.
- 		 */
- 		if (++batch_count == SWAP_CLUSTER_MAX) {
-+			spin_unlock(&pcp->lock);
- 			local_unlock_irqrestore(&pagesets.lock, flags);
- 			batch_count = 0;
- 			local_lock_irqsave(&pagesets.lock, flags);
-+			pcp = this_cpu_ptr(locked_zone->per_cpu_pageset);
-+			spin_lock(&pcp->lock);
- 		}
- 	}
-+	spin_unlock(&pcp->lock);
- 	local_unlock_irqrestore(&pagesets.lock, flags);
- }
- 
-@@ -3676,9 +3768,28 @@ struct page *__rmqueue_pcplist(struct zo
- 			int migratetype,
- 			unsigned int alloc_flags,
- 			struct per_cpu_pages *pcp,
--			struct list_head *list)
-+			struct list_head *list,
-+			bool locked)
- {
- 	struct page *page;
-+	unsigned long __maybe_unused UP_flags;
-+
-+	/*
-+	 * spin_trylock is not necessary right now due to due to
-+	 * local_lock_irqsave and is a preparation step for
-+	 * a conversion to local_lock using the trylock to prevent
-+	 * IRQ re-entrancy. If pcp->lock cannot be acquired, the caller
-+	 * uses rmqueue_buddy.
-+	 *
-+	 * TODO: Convert local_lock_irqsave to local_lock.
-+	 */
-+	if (unlikely(!locked)) {
-+		pcp_trylock_prepare(UP_flags);
-+		if (!spin_trylock(&pcp->lock)) {
-+			pcp_trylock_finish(UP_flags);
-+			return NULL;
-+		}
-+	}
- 
- 	do {
- 		if (list_empty(list)) {
-@@ -3699,8 +3810,10 @@ struct page *__rmqueue_pcplist(struct zo
- 					migratetype, alloc_flags);
- 
- 			pcp->count += alloced << order;
--			if (unlikely(list_empty(list)))
--				return NULL;
-+			if (unlikely(list_empty(list))) {
-+				page = NULL;
-+				goto out;
-+			}
- 		}
- 
- 		page = list_first_entry(list, struct page, pcp_list);
-@@ -3708,6 +3821,12 @@ struct page *__rmqueue_pcplist(struct zo
- 		pcp->count -= 1 << order;
- 	} while (check_new_pcp(page, order));
- 
-+out:
-+	if (!locked) {
-+		spin_unlock(&pcp->lock);
-+		pcp_trylock_finish(UP_flags);
-+	}
-+
- 	return page;
- }
- 
-@@ -3732,7 +3851,7 @@ static struct page *rmqueue_pcplist(stru
- 	pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 	pcp->free_factor >>= 1;
- 	list = &pcp->lists[order_to_pindex(migratetype, order)];
--	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
-+	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list, false);
- 	local_unlock_irqrestore(&pagesets.lock, flags);
- 	if (page) {
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1);
-@@ -3767,7 +3886,8 @@ struct page *rmqueue(struct zone *prefer
- 				migratetype != MIGRATE_MOVABLE) {
- 			page = rmqueue_pcplist(preferred_zone, zone, order,
- 					gfp_flags, migratetype, alloc_flags);
--			goto out;
-+			if (likely(page))
-+				goto out;
- 		}
- 	}
- 
-@@ -5328,6 +5448,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	local_lock_irqsave(&pagesets.lock, flags);
- 	pcp = this_cpu_ptr(zone->per_cpu_pageset);
- 	pcp_list = &pcp->lists[order_to_pindex(ac.migratetype, 0)];
-+	spin_lock(&pcp->lock);
- 
- 	while (nr_populated < nr_pages) {
- 
-@@ -5338,11 +5459,13 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		}
- 
- 		page = __rmqueue_pcplist(zone, 0, ac.migratetype, alloc_flags,
--								pcp, pcp_list);
-+							pcp, pcp_list, true);
- 		if (unlikely(!page)) {
- 			/* Try and allocate at least one page */
--			if (!nr_account)
-+			if (!nr_account) {
-+				spin_unlock(&pcp->lock);
- 				goto failed_irq;
-+			}
- 			break;
- 		}
- 		nr_account++;
-@@ -5355,6 +5478,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 		nr_populated++;
- 	}
- 
-+	spin_unlock(&pcp->lock);
- 	local_unlock_irqrestore(&pagesets.lock, flags);
- 
- 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
-@@ -7008,6 +7132,7 @@ static void per_cpu_pages_init(struct pe
- 	memset(pcp, 0, sizeof(*pcp));
- 	memset(pzstats, 0, sizeof(*pzstats));
- 
-+	spin_lock_init(&pcp->lock);
- 	for (pindex = 0; pindex < NR_PCP_LISTS; pindex++)
- 		INIT_LIST_HEAD(&pcp->lists[pindex]);
- 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (order > PAGE_ALLOC_COSTLY_ORDER)
++	if (pindex == NR_LOWORDER_PCP_LISTS)
+ 		order = pageblock_order;
+ #else
+ 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
