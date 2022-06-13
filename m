@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1EC3C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 20:31:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5007FCCA47D
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Jun 2022 20:41:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233513AbiFMUas (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jun 2022 16:30:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60148 "EHLO
+        id S239173AbiFMUlt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jun 2022 16:41:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234918AbiFMU1r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 16:27:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16E6638A8
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 12:14:48 -0700 (PDT)
+        with ESMTP id S245473AbiFMUlE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jun 2022 16:41:04 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DFF360F9
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 12:40:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A188E61486
-        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 19:14:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0368FC34114;
-        Mon, 13 Jun 2022 19:14:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2E2EEB81260
+        for <mm-commits@vger.kernel.org>; Mon, 13 Jun 2022 19:40:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4AC5C34114;
+        Mon, 13 Jun 2022 19:40:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655147687;
-        bh=n3KcnU5+7zNCxpcT2fUFq40Dy6lR+3BgX5MjpvsB4rM=;
+        s=korg; t=1655149236;
+        bh=e9TRbM0mbU0MAeMWXoA3g5PL3v+Sxe9uOJea3dgEXfo=;
         h=Date:To:From:Subject:From;
-        b=Y1mN9HdOfo9XZ1wsI1ZLDW9Lf/BFsYO86CQ7s0W3ePdTS+/91sr2tH1VsVyl4qn4e
-         S0TdQOV5Ut34LQQ4LcMpI2KPmg3YpNd1BubLjV2t2A2mcOT5Dw5003qi3XzlZGoRci
-         5GNCAmFXFCGvajMywssl0gwfwq+90OrIb+KgBoHc=
-Date:   Mon, 13 Jun 2022 12:14:46 -0700
-To:     mm-commits@vger.kernel.org, yhs@fb.com, songliubraving@fb.com,
-        mhiramat@kernel.org, kpsingh@kernel.org, kafai@fb.com,
-        john.fastabend@gmail.com, wuchi.zero@gmail.com,
+        b=U5gJ7Z9L0sCuRXAVrj81kylFiCDCobPqE8jbgeq7QH+ibRvxLOoKdbtlNkvijEwwP
+         GdCqAr6PQjPtZFg11aTZEGjjq7B8u7tU3w3hK2Sk3hH4uCj06qAC02Efm2RxZQLDAV
+         eWVLL6KmJHPLUWie+KK9DE03GC3fAGhUo9Q19E9c=
+Date:   Mon, 13 Jun 2022 12:40:35 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-error-inject-convert-to-define_seq_attribute.patch added to mm-nonmm-unstable branch
-Message-Id: <20220613191447.0368FC34114@smtp.kernel.org>
+Subject: + mm-damon-dbgfs-add-and-use-mappings-between-schemes-action-inputs-and-damos_action-values.patch added to mm-unstable branch
+Message-Id: <20220613194036.C4AC5C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/error-inject: convert to DEFINE_SEQ_ATTRIBUTE
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-error-inject-convert-to-define_seq_attribute.patch
+     Subject: mm/damon/dbgfs: add and use mappings between 'schemes' action inputs and 'damos_action' values
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-dbgfs-add-and-use-mappings-between-schemes-action-inputs-and-damos_action-values.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-error-inject-convert-to-define_seq_attribute.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-dbgfs-add-and-use-mappings-between-schemes-action-inputs-and-damos_action-values.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,70 +64,316 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wuchi <wuchi.zero@gmail.com>
-Subject: lib/error-inject: convert to DEFINE_SEQ_ATTRIBUTE
-Date: Sun, 12 Jun 2022 13:20:15 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/dbgfs: add and use mappings between 'schemes' action inputs and 'damos_action' values
+Date: Mon, 13 Jun 2022 19:22:53 +0000
 
-Use DEFINE_SEQ_ATTRIBUTE helper macro to simplify the code.
+Patch series "Extend DAMOS for Proactive LRU-lists Sorting".
 
-Link: https://lkml.kernel.org/r/20220612052015.23283-1-wuchi.zero@gmail.com
-Signed-off-by: wuchi <wuchi.zero@gmail.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Yonghong Song <yhs@fb.com>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
+Introduction
+============
+
+In short, this patchset 1) extends DAMON-based Operation Schemes (DAMOS)
+for low overhead data access pattern based LRU-lists sorting, and 2)
+implements a static kernel module for easy use of conservatively-tuned
+version of that using the extended DAMOS capability.
+
+Background
+----------
+
+As page-granularity access checking overhead could be significant on huge
+systems, LRU lists are normally not proactively sorted but partially and
+reactively sorted for special events including specific user requests,
+system calls and memory pressure.  As a result, LRU lists are sometimes
+not so perfectly prepared to be used as a trustworthy access pattern
+source for some situations including reclamation target pages selection
+under sudden memory pressure.
+
+DAMON-based Proactive LRU-lists Sorting
+---------------------------------------
+
+Because DAMON can identify access patterns of best-effort accuracy while
+inducing only user-specified range of overhead, using DAMON for Proactive
+LRU-lists Sorting (PLRUS) could be helpful for this situation.  The idea
+is quite simple.  Find hot pages and cold pages using DAMON, and
+prioritize hot pages while deprioritizing cold pages on their LRU-lists.
+
+This patchset extends DAMON to support such schemes by introducing a
+couple of new DAMOS actions for prioritizing and deprioritizing memory
+regions of specific access patterns on their LRU-lists.  In detail, this
+patchset simply uses 'mark_page_accessed()' and 'deactivate_page()'
+functions for prioritization and deprioritization of pages on their LRU
+lists, respectively.
+
+To make the scheme easy to use without complex tuning for common
+situations, this patchset further implements a static kernel module called
+'DAMON_LRU_SORT' using the extended DAMOS functionality.  It proactively
+sorts LRU-lists using DAMON with conservatively chosen default
+hotness/coldness thresholds and small CPU usage quota limit.  That is, the
+module under its default parameters will make no harm for common situation
+but provide some level of benefit for systems having clear hot/cold access
+pattern under only memory pressure while consuming only limited small
+portion of CPU time.
+
+Related Works
+-------------
+
+Proactive reclamation is well known to be helpful for reducing non-optimal
+reclamation target selection caused performance drops.  However, proactive
+reclamation is not a best option for some cases, because it could incur
+additional I/O.  For an example, it could be prohitive for systems using
+storage devices that total number of writes is limited, or cloud block
+storages that charges every I/O.
+
+Some proactive reclamation approaches[1,2] induce a level of memory
+pressure using memcg files or swappiness while monitoring PSI.  As
+reclamation target selection is still relying on the original LRU-lists
+mechanism, using DAMON-based proactive reclamation before inducing the
+proactive reclamation could allow more memory saving with same level of
+performance overhead, or less performance overhead with same level of
+memory saving.
+
+[1] https://blogs.oracle.com/linux/post/anticipating-your-memory-needs
+[2] https://www.pdl.cmu.edu/ftp/NVM/tmo_asplos22.pdf
+
+Evaluation
+==========
+
+In short, PLRUS achieves 10% memory PSI (some) reduction, 14% major page
+faults reduction, and 3.74% speedup under memory pressure.
+
+Setup
+-----
+
+To show the effect of PLRUS, I run PARSEC3 and SPLASH-2X benchmarks under
+below variant systems and measure a few metrics including the runtime of
+each workload, number of system-wide major page faults, and system-wide
+memory PSI (some).
+
+- orig: v5.18-rc4 based mm-unstable kernel + this patchset, but no DAMON scheme
+        applied.
+- mprs: Same to 'orig' but artificial memory pressure is induced.
+- plrus: Same to 'mprs' but a radically tuned PLRUS scheme is applied to the
+         entire physical address space of the system.
+
+For the artificial memory pressure, I set 'memory.limit_in_bytes' to 75%
+of the running workload's peak RSS, wait 1 second, remove the pressure by
+setting it to 200% of the peak RSS, wait 10 seconds, and repeat the
+procedure until the workload finishes[1].  I use zram based swap device. 
+The tests are automated[2].
+
+[1] https://github.com/awslabs/damon-tests/blob/next/perf/runners/back/0009_memcg_pressure.sh
+[2] https://github.com/awslabs/damon-tests/blob/next/perf/full_once_config.sh
+
+Radically Tuned PLRUS
+---------------------
+
+To show effect of PLRUS on the PARSEC3/SPLASH-2X workloads which runs for
+no long time, we use radically tuned version of PLRUS.  The version asks
+DAMON to do the proactive LRU-lists sorting as below.
+
+1. Find any memory regions shown some accesses (approximately >=20 accesses per
+   100 sampling) and prioritize pages of the regions on their LRU lists using
+   up to 2% CPU time.  Under the CPU time limit, prioritize regions having
+   higher access frequency and kept the access frequency longer first.
+
+2. Find any memory regions shown no access for at least >=5 seconds and
+   deprioritize pages of the rgions on their LRU lists using up to 2% CPU time.
+   Under the CPU time limit, deprioritize regions that not accessed for longer
+   time first.
+
+Results
+-------
+
+I repeat the tests 25 times and calculate average of the measured numbers.
+The results are as below:
+
+    metric               orig        mprs         plrus        plrus/mprs
+    runtime_seconds      190.06      292.83       281.87       0.96
+    pgmajfaults          852.55      8769420.00   7525040.00   0.86
+    memory_psi_some_us   106911.00   6943420.00   6220920.00   0.90
+
+The first row is for legend.  The first cell shows the metric that the
+following cells of the row shows.  Second, third, and fourth cells show
+the metrics under the configs shown at the first row of the cell, and the
+fifth cell shows the metric under 'plrus' divided by the metric under
+'mprs'.  Second row shows the averaged runtime of the workloads in
+seconds.  Third row shows the number of system-wide major page faults
+while the test was ongoing.  Fourth row shows the system-wide memory
+pressure stall for some processes in microseconds while the test was
+ongoing.
+
+In short, PLRUS achieves 10% memory PSI (some) reduction, 14% major page
+faults reduction, and 3.74% speedup under memory pressure.  We also
+confirmed the CPU usage of kdamond was 2.61% of single CPU, which is below
+4% as expected.
+
+Sequence of Patches
+===================
+
+The first and second patch cleans up DAMON debugfs interface and
+DAMOS_PAGEOUT handling code of physical address space monitoring
+operations implementation for easier extension of the code.
+
+The thrid and fourth patches implement a new DAMOS action called
+'lru_prio', which prioritizes pages under memory regions which have a
+user-specified access pattern, and document it, respectively.  The fifth
+and sixth patches implement yet another new DAMOS action called
+'lru_deprio', which deprioritizes pages under memory regions which have a
+user-specified access pattern, and document it, respectively.
+
+The seventh patch implements a static kernel module called
+'damon_lru_sort', which utilizes the DAMON-based proactive LRU-lists
+sorting under conservatively chosen default parameter.  Finally, the
+eighth patch documents 'damon_lru_sort'.
+
+
+This patch (of 8):
+
+DAMON debugfs interface assumes users will write 'damos_action' value
+directly to the 'schemes' file.  This makes adding new 'damos_action' in
+the middle of its definition breaks the backward compatibility of DAMON
+debugfs interface, as values of some 'damos_action' could be changed.  To
+mitigate the situation, this commit adds mappings between the user inputs
+and 'damos_action' value and makes DAMON debugfs code uses those.
+
+Link: https://lkml.kernel.org/r/20220613192301.8817-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20220613192301.8817-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/error-inject.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ mm/damon/dbgfs.c |   64 +++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 50 insertions(+), 14 deletions(-)
 
---- a/lib/error-inject.c~lib-error-inject-convert-to-define_seq_attribute
-+++ a/lib/error-inject.c
-@@ -197,24 +197,14 @@ static int ei_seq_show(struct seq_file *
- 	return 0;
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-add-and-use-mappings-between-schemes-action-inputs-and-damos_action-values
++++ a/mm/damon/dbgfs.c
+@@ -97,6 +97,31 @@ out:
+ 	return ret;
  }
  
--static const struct seq_operations ei_seq_ops = {
-+static const struct seq_operations ei_sops = {
- 	.start = ei_seq_start,
- 	.next  = ei_seq_next,
- 	.stop  = ei_seq_stop,
- 	.show  = ei_seq_show,
- };
- 
--static int ei_open(struct inode *inode, struct file *filp)
--{
--	return seq_open(filp, &ei_seq_ops);
--}
--
--static const struct file_operations debugfs_ei_ops = {
--	.open           = ei_open,
--	.read           = seq_read,
--	.llseek         = seq_lseek,
--	.release        = seq_release,
--};
-+DEFINE_SEQ_ATTRIBUTE(ei);
- 
- static int __init ei_debugfs_init(void)
++/*
++ * Return corresponding dbgfs' scheme action value (int) for the given
++ * damos_action if the given damos_action value is valid and supported by
++ * dbgfs, negative error code otherwise.
++ */
++static int damos_action_to_dbgfs_scheme_action(enum damos_action action)
++{
++	switch (action) {
++	case DAMOS_WILLNEED:
++		return 0;
++	case DAMOS_COLD:
++		return 1;
++	case DAMOS_PAGEOUT:
++		return 2;
++	case DAMOS_HUGEPAGE:
++		return 3;
++	case DAMOS_NOHUGEPAGE:
++		return 4;
++	case DAMOS_STAT:
++		return 5;
++	default:
++		return -EINVAL;
++	}
++}
++
+ static ssize_t sprint_schemes(struct damon_ctx *c, char *buf, ssize_t len)
  {
-@@ -224,7 +214,7 @@ static int __init ei_debugfs_init(void)
- 	if (!dir)
- 		return -ENOMEM;
+ 	struct damos *s;
+@@ -109,7 +134,7 @@ static ssize_t sprint_schemes(struct dam
+ 				s->min_sz_region, s->max_sz_region,
+ 				s->min_nr_accesses, s->max_nr_accesses,
+ 				s->min_age_region, s->max_age_region,
+-				s->action,
++				damos_action_to_dbgfs_scheme_action(s->action),
+ 				s->quota.ms, s->quota.sz,
+ 				s->quota.reset_interval,
+ 				s->quota.weight_sz,
+@@ -160,18 +185,27 @@ static void free_schemes_arr(struct damo
+ 	kfree(schemes);
+ }
  
--	file = debugfs_create_file("list", 0444, dir, NULL, &debugfs_ei_ops);
-+	file = debugfs_create_file("list", 0444, dir, NULL, &ei_fops);
- 	if (!file) {
- 		debugfs_remove(dir);
- 		return -ENOMEM;
+-static bool damos_action_valid(int action)
++/*
++ * Return corresponding damos_action for the given dbgfs input for a scheme
++ * action if the input is valid, negative error code otherwise.
++ */
++static enum damos_action dbgfs_scheme_action_to_damos_action(int dbgfs_action)
+ {
+-	switch (action) {
+-	case DAMOS_WILLNEED:
+-	case DAMOS_COLD:
+-	case DAMOS_PAGEOUT:
+-	case DAMOS_HUGEPAGE:
+-	case DAMOS_NOHUGEPAGE:
+-	case DAMOS_STAT:
+-		return true;
++	switch (dbgfs_action) {
++	case 0:
++		return DAMOS_WILLNEED;
++	case 1:
++		return DAMOS_COLD;
++	case 2:
++		return DAMOS_PAGEOUT;
++	case 3:
++		return DAMOS_HUGEPAGE;
++	case 4:
++		return DAMOS_NOHUGEPAGE;
++	case 5:
++		return DAMOS_STAT;
+ 	default:
+-		return false;
++		return -EINVAL;
+ 	}
+ }
+ 
+@@ -189,7 +223,8 @@ static struct damos **str_to_schemes(con
+ 	int pos = 0, parsed, ret;
+ 	unsigned long min_sz, max_sz;
+ 	unsigned int min_nr_a, max_nr_a, min_age, max_age;
+-	unsigned int action;
++	unsigned int action_input;
++	enum damos_action action;
+ 
+ 	schemes = kmalloc_array(max_nr_schemes, sizeof(scheme),
+ 			GFP_KERNEL);
+@@ -204,7 +239,7 @@ static struct damos **str_to_schemes(con
+ 		ret = sscanf(&str[pos],
+ 				"%lu %lu %u %u %u %u %u %lu %lu %lu %u %u %u %u %lu %lu %lu %lu%n",
+ 				&min_sz, &max_sz, &min_nr_a, &max_nr_a,
+-				&min_age, &max_age, &action, &quota.ms,
++				&min_age, &max_age, &action_input, &quota.ms,
+ 				&quota.sz, &quota.reset_interval,
+ 				&quota.weight_sz, &quota.weight_nr_accesses,
+ 				&quota.weight_age, &wmarks.metric,
+@@ -212,7 +247,8 @@ static struct damos **str_to_schemes(con
+ 				&wmarks.low, &parsed);
+ 		if (ret != 18)
+ 			break;
+-		if (!damos_action_valid(action))
++		action = dbgfs_scheme_action_to_damos_action(action_input);
++		if ((int)action < 0)
+ 			goto fail;
+ 
+ 		if (min_sz > max_sz || min_nr_a > max_nr_a || min_age > max_age)
 _
 
-Patches currently in -mm which might be from wuchi.zero@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-lib-flex_proportionsc-remove-local_irq_ops-in-fprop_new_period.patch
-lib-btree-simplify-btree_lookupupdate.patch
-lib-debugobjects-fix-stat-count-and-optimize-debug_objects_mem_init.patch
-lib-error-inject-convert-to-define_seq_attribute.patch
+mm-damon-reclaim-schedule-damon_reclaim_timer-only-after-system_wq-is-initialized.patch
+docs-admin-guide-damon-reclaim-remove-a-paragraph-that-been-obsolete-due-to-online-tuning-support.patch
+mm-damon-dbgfssysfs-move-target_has_pid-from-dbgfs-to-damonh.patch
+mm-damon-reclaim-deduplicate-commit_inputs-handling.patch
+mm-damon-sysfs-deduplicate-inputs-applying.patch
+mm-damon-reclaim-make-enabled-checking-timer-simpler.patch
+mm-damon-reclaim-add-damon_reclaim_-prefix-to-enabled_store.patch
+mm-damon-dbgfs-add-and-use-mappings-between-schemes-action-inputs-and-damos_action-values.patch
+mm-damon-paddr-use-a-separate-function-for-damos_pageout-handling.patch
+mm-damon-schemes-add-lru_prio-damos-action.patch
+docs-admin-guide-damon-sysfs-document-lru_prio-scheme-action.patch
+mm-damon-schemes-add-lru_deprio-action.patch
+docs-admin-guide-damon-sysfs-document-lru_deprio-scheme-action.patch
+mm-damon-introduce-damon-based-lru-lists-sorting.patch
+docs-admin-guide-damon-add-a-document-for-damon_lru_sort.patch
 
