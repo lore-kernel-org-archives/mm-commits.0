@@ -2,99 +2,124 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C676C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jun 2022 17:33:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57BD0C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jun 2022 18:01:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232199AbiFNRdD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Jun 2022 13:33:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53254 "EHLO
+        id S237431AbiFNSBQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Jun 2022 14:01:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230002AbiFNRdC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2022 13:33:02 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3ED11C10F
-        for <mm-commits@vger.kernel.org>; Tue, 14 Jun 2022 10:33:01 -0700 (PDT)
+        with ESMTP id S232199AbiFNSBP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2022 14:01:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 360BC2A273
+        for <mm-commits@vger.kernel.org>; Tue, 14 Jun 2022 11:01:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 67834B81A3F
-        for <mm-commits@vger.kernel.org>; Tue, 14 Jun 2022 17:33:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BC02C3411C;
-        Tue, 14 Jun 2022 17:32:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C1B3F6175D
+        for <mm-commits@vger.kernel.org>; Tue, 14 Jun 2022 18:01:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A8C7C3411B;
+        Tue, 14 Jun 2022 18:01:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655227979;
-        bh=lqC9fBQT6R/+0jIiWDai8mfFmlKmj4KZd8+daRHrC64=;
+        s=korg; t=1655229673;
+        bh=asjedtuFgjhkBpp9oLNmA1ktINxDKfzUETqpUGLT+1s=;
         h=Date:To:From:Subject:From;
-        b=YTomk+MVrNqKTS51g2GsNZn8q1lzJICT1ZMmQM+fDKpTCAnY5xrPHNPGQdu6CJ2w6
-         mzKiJ2Q1j4nVKXY9NKny3eGwrrAKeAO/JrEz0tRWU591ZOMqlimt5HSoDV1QQRnh7P
-         icaRWUm2Lxwday9hom80eT6ok0BuFQp5m2Ni/2e8=
-Date:   Tue, 14 Jun 2022 10:32:58 -0700
-To:     mm-commits@vger.kernel.org, rientjes@google.com, mhocko@kernel.org,
-        zackary.liu.pro@gmail.com, akpm@linux-foundation.org
+        b=Rpq1IT6ObGn0UU+UErAbLHVWHs+EWhxRK3hv50r1WIOZdZ/rVOIcjRfjrcKIZQeJ9
+         2myNE67jktjn9bTDQjyG6cuvibODsAh+F+sYQYHJiRvlxmE0MLNp3qyThz+rCWCNik
+         9qKVqTyuSv8xYtFQDf4Ky6TE4ru+u1HBVbhx4aS0=
+Date:   Tue, 14 Jun 2022 11:01:12 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, peterx@redhat.com,
+        axelrasmussen@google.com, edliaw@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-oom_kill-break-evaluation-when-a-task-has-been-selected.patch removed from -mm tree
-Message-Id: <20220614173259.0BC02C3411C@smtp.kernel.org>
+Subject: + userfaultfd-selftests-infinite-loop-in-faulting_process.patch added to mm-unstable branch
+Message-Id: <20220614180113.1A8C7C3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/oom_kill: break evaluation when a task has been selected
-has been removed from the -mm tree.  Its filename was
-     mm-oom_kill-break-evaluation-when-a-task-has-been-selected.patch
+The patch titled
+     Subject: userfaultfd: selftests: infinite loop in faulting_process
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-selftests-infinite-loop-in-faulting_process.patch
 
-This patch was dropped because it was nacked
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-selftests-infinite-loop-in-faulting_process.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhaoyu Liu <zackary.liu.pro@gmail.com>
-Subject: mm/oom_kill: break evaluation when a task has been selected
-Date: Sat, 14 May 2022 15:52:28 +0800
+From: Edward Liaw <edliaw@google.com>
+Subject: userfaultfd: selftests: infinite loop in faulting_process
+Date: Mon, 13 Jun 2022 23:33:21 +0000
 
-oom points no longer need to be calculated if a task is oom_task_origin(),
-so return 1 to stop the oom_evaluate_task().
+On Android this test is getting stuck in an infinite loop due to
+indeterminate behavior:
 
-The victim was marked in the last oom, and now it has entered the oom
-again, which means that the system still has no deprecated memory
-available.  In order to ensure that the system can return to normal as
-soon as possible, killing the original task immediately should be a
-good choice, and the role of this patch is to end oom_evaluate_task and
-return true as soon as the original task is found.  Maybe this patch is
-not the optimal solution, it has a trade-off.
+The local variables steps and signalled were being reset to 1 and 0
+respectively after every jump back to sigsetjmp by siglongjmp in the
+signal handler.  The test was incrementing them and expecting them to
+retain their incremented values.  The documentation for siglongjmp says:
 
-Link: https://lkml.kernel.org/r/20220514075223.GA11384@pc
-Signed-off-by: Zhaoyu Liu <zackary.liu.pro@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+All accessible objects have values as of the time sigsetjmp() was called,
+except that the values of objects of automatic storage duration which are
+local to the function containing the invocation of the corresponding
+sigsetjmp() which do not have volatile-qualified type and which are
+changed between the sigsetjmp() invocation and siglongjmp() call are
+indeterminate.
+
+Tagging steps and signalled with volatile enabled the test to pass.
+
+Link: https://lkml.kernel.org/r/20220613233321.431282-1-edliaw@google.com
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
+ tools/testing/selftests/vm/userfaultfd.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-break-evaluation-when-a-task-has-been-selected
-+++ a/mm/oom_kill.c
-@@ -308,7 +308,7 @@ static enum oom_constraint constrained_a
- static int oom_evaluate_task(struct task_struct *task, void *arg)
- {
- 	struct oom_control *oc = arg;
--	long points;
-+	long points = 0;
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-infinite-loop-in-faulting_process
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -963,7 +963,7 @@ static int faulting_process(int signal_t
+ 	unsigned long split_nr_pages;
+ 	unsigned long lastnr;
+ 	struct sigaction act;
+-	unsigned long signalled = 0;
++	volatile unsigned long signalled = 0;
  
- 	if (oom_unkillable_task(task))
- 		goto next;
-@@ -349,7 +349,7 @@ select:
- 	oc->chosen = task;
- 	oc->chosen_points = points;
- next:
--	return 0;
-+	return points == LONG_MAX;
- abort:
- 	if (oc->chosen)
- 		put_task_struct(oc->chosen);
+ 	split_nr_pages = (nr_pages + 1) / 2;
+ 
+@@ -978,7 +978,7 @@ static int faulting_process(int signal_t
+ 	}
+ 
+ 	for (nr = 0; nr < split_nr_pages; nr++) {
+-		int steps = 1;
++		volatile int steps = 1;
+ 		unsigned long offset = nr * page_size;
+ 
+ 		if (signal_test) {
 _
 
-Patches currently in -mm which might be from zackary.liu.pro@gmail.com are
+Patches currently in -mm which might be from edliaw@google.com are
 
+userfaultfd-selftests-infinite-loop-in-faulting_process.patch
 
