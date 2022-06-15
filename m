@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17FCAC43334
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Jun 2022 20:42:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6534C43334
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Jun 2022 20:49:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244719AbiFOUmD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Jun 2022 16:42:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35960 "EHLO
+        id S1346383AbiFOUtk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Jun 2022 16:49:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232547AbiFOUmC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2022 16:42:02 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1A254EF4D
-        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 13:42:00 -0700 (PDT)
+        with ESMTP id S1346327AbiFOUtk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2022 16:49:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ED1F54F96;
+        Wed, 15 Jun 2022 13:49:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 66337B81C66
-        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 20:41:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA615C3411A;
-        Wed, 15 Jun 2022 20:41:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A08606177D;
+        Wed, 15 Jun 2022 20:49:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF298C3411B;
+        Wed, 15 Jun 2022 20:49:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655325718;
-        bh=+tE97v0omPnckSzxolld+rlbNhFlLb9wI7YuUV54hsw=;
+        s=korg; t=1655326178;
+        bh=7JYDlzjI0Ym4VdWV9ddmzZadt2seR+DQPxcdYim+2kc=;
         h=Date:To:From:Subject:From;
-        b=zf9/A6ANI7iSD6n/pXitW6FxQThWsisgioYEGY+YWWYKyTYXbUc0cuwO+UhDObcJD
-         Qkx8zY9bFdfc7BqjqKB0IUoBzBh1gwTn1fVWEsGtQwJSA5fnhcVFxNFuFo+6HInV4z
-         AMC+tLRFPMrMLGzkpotY8PmgQJeK0ZL3DrqcoEzs=
-Date:   Wed, 15 Jun 2022 13:41:57 -0700
-To:     mm-commits@vger.kernel.org, quic_qiancai@quicinc.com,
-        Liam.Howlett@oracle.com, liam.howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=L5RnXAQIPISiYrTUgiVOCWwwkEq65S4NOn2yJlZM3aVdTnJC3jmg/vEdZ0wZ2HsaP
+         sqUMmEYIl/vKhKiFiUns49H4MUxn0xt0tglJWqD4pVU/Iu2EsDcuUHPurOqdw68f3x
+         8EiSR1bvInwMUa5mDRA9ru6d1irCmoeuOZYj2jXQ=
+Date:   Wed, 15 Jun 2022 13:49:37 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        osalvador@suse.de, naoya.horiguchi@nec.com,
+        gregkh@linuxfoundation.org, david@redhat.com,
+        pizhenwei@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple-tree-add-new-data-structure-fix-8.patch added to mm-unstable branch
-Message-Id: <20220615204157.DA615C3411A@smtp.kernel.org>
+Subject: + mm-memory-failure-disable-unpoison-once-hw-error-happens.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220615204937.EF298C3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: change spanning store to work on larger trees
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple-tree-add-new-data-structure-fix-8.patch
+     Subject: mm/memory-failure: disable unpoison once hw error happens
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory-failure-disable-unpoison-once-hw-error-happens.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-8.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-disable-unpoison-once-hw-error-happens.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,538 +66,172 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: maple_tree: change spanning store to work on larger trees
-Date: Wed, 15 Jun 2022 14:19:39 +0000
+From: zhenwei pi <pizhenwei@bytedance.com>
+Subject: mm/memory-failure: disable unpoison once hw error happens
+Date: Wed, 15 Jun 2022 17:32:09 +0800
 
-Spanning store had an issue which could lead to double free during a large
-tree modification.  Fix this by being more careful about how nodes are
-added to the to-be-freed and to-be-destroyed list on this operation.
+Currently unpoison_memory(unsigned long pfn) is designed for soft
+poison(hwpoison-inject) only.  Since 17fae1294ad9d, the KPTE gets cleared
+on a x86 platform once hardware memory corrupts.
 
-Link: https://lkml.kernel.org/r/20220615141921.417598-3-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Qian Cai <quic_qiancai@quicinc.com>
+Unpoisoning a hardware corrupted page puts page back buddy only, the
+kernel has a chance to access the page with *NOT PRESENT* KPTE.  This
+leads BUG during accessing on the corrupted KPTE.
+
+Suggested by David&Naoya, disable unpoison mechanism when a real HW error
+happens to avoid BUG like this:
+
+ Unpoison: Software-unpoisoned page 0x61234
+ BUG: unable to handle page fault for address: ffff888061234000
+ #PF: supervisor write access in kernel mode
+ #PF: error_code(0x0002) - not-present page
+ PGD 2c01067 P4D 2c01067 PUD 107267063 PMD 10382b063 PTE 800fffff9edcb062
+ Oops: 0002 [#1] PREEMPT SMP NOPTI
+ CPU: 4 PID: 26551 Comm: stress Kdump: loaded Tainted: G   M       OE     5.18.0.bm.1-amd64 #7
+ Hardware name: QEMU Standard PC (i440FX + PIIX, 1996) ...
+ RIP: 0010:clear_page_erms+0x7/0x10
+ Code: ...
+ RSP: 0000:ffffc90001107bc8 EFLAGS: 00010246
+ RAX: 0000000000000000 RBX: 0000000000000901 RCX: 0000000000001000
+ RDX: ffffea0001848d00 RSI: ffffea0001848d40 RDI: ffff888061234000
+ RBP: ffffea0001848d00 R08: 0000000000000901 R09: 0000000000001276
+ R10: 0000000000000003 R11: 0000000000000000 R12: 0000000000000001
+ R13: 0000000000000000 R14: 0000000000140dca R15: 0000000000000001
+ FS:  00007fd8b2333740(0000) GS:ffff88813fd00000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: ffff888061234000 CR3: 00000001023d2005 CR4: 0000000000770ee0
+ DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ PKRU: 55555554
+ Call Trace:
+  <TASK>
+  prep_new_page+0x151/0x170
+  get_page_from_freelist+0xca0/0xe20
+  ? sysvec_apic_timer_interrupt+0xab/0xc0
+  ? asm_sysvec_apic_timer_interrupt+0x1b/0x20
+  __alloc_pages+0x17e/0x340
+  __folio_alloc+0x17/0x40
+  vma_alloc_folio+0x84/0x280
+  __handle_mm_fault+0x8d4/0xeb0
+  handle_mm_fault+0xd5/0x2a0
+  do_user_addr_fault+0x1d0/0x680
+  ? kvm_read_and_reset_apf_flags+0x3b/0x50
+  exc_page_fault+0x78/0x170
+  asm_exc_page_fault+0x27/0x30
+
+Link: https://lkml.kernel.org/r/20220615093209.259374-2-pizhenwei@bytedance.com
+Fixes: 847ce401df392 ("HWPOISON: Add unpoisoning support")
+Fixes: 17fae1294ad9d ("x86/{mce,mm}: Unmap the entire page if the whole page is affected and poisoned")
+Signed-off-by: zhenwei pi <pizhenwei@bytedance.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |  325 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 206 insertions(+), 119 deletions(-)
+ Documentation/vm/hwpoison.rst |    3 ++-
+ drivers/base/memory.c         |    2 +-
+ include/linux/mm.h            |    1 +
+ mm/hwpoison-inject.c          |    2 +-
+ mm/madvise.c                  |    2 +-
+ mm/memory-failure.c           |   12 ++++++++++++
+ 6 files changed, 18 insertions(+), 4 deletions(-)
 
---- a/lib/maple_tree.c~maple-tree-add-new-data-structure-fix-8
-+++ a/lib/maple_tree.c
-@@ -1388,7 +1388,6 @@ static inline unsigned char ma_data_end(
- /*
-  * mas_data_end() - Find the end of the data (slot).
-  * @mas: the maple state
-- * @type: the type of maple node
-  *
-  * This method is optimized to check the metadata of a node if the node type
-  * supports data end metadata.
-@@ -2273,6 +2272,31 @@ done:
+--- a/Documentation/vm/hwpoison.rst~mm-memory-failure-disable-unpoison-once-hw-error-happens
++++ a/Documentation/vm/hwpoison.rst
+@@ -120,7 +120,8 @@ Testing
+   unpoison-pfn
+ 	Software-unpoison page at PFN echoed into this file. This way
+ 	a page can be reused again.  This only works for Linux
+-	injected failures, not for real memory failures.
++	injected failures, not for real memory failures. Once any hardware
++	memory failure happens, this feature is disabled.
+ 
+   Note these injection interfaces are not stable and might change between
+   kernel versions
+--- a/drivers/base/memory.c~mm-memory-failure-disable-unpoison-once-hw-error-happens
++++ a/drivers/base/memory.c
+@@ -558,7 +558,7 @@ static ssize_t hard_offline_page_store(s
+ 	if (kstrtoull(buf, 0, &pfn) < 0)
+ 		return -EINVAL;
+ 	pfn >>= PAGE_SHIFT;
+-	ret = memory_failure(pfn, 0);
++	ret = memory_failure(pfn, MF_SW_SIMULATED);
+ 	if (ret == -EOPNOTSUPP)
+ 		ret = 0;
+ 	return ret ? ret : count;
+--- a/include/linux/mm.h~mm-memory-failure-disable-unpoison-once-hw-error-happens
++++ a/include/linux/mm.h
+@@ -3232,6 +3232,7 @@ enum mf_flags {
+ 	MF_MUST_KILL = 1 << 2,
+ 	MF_SOFT_OFFLINE = 1 << 3,
+ 	MF_UNPOISON = 1 << 4,
++	MF_SW_SIMULATED = 1 << 5,
+ };
+ extern int memory_failure(unsigned long pfn, int flags);
+ extern void memory_failure_queue(unsigned long pfn, int flags);
+--- a/mm/hwpoison-inject.c~mm-memory-failure-disable-unpoison-once-hw-error-happens
++++ a/mm/hwpoison-inject.c
+@@ -48,7 +48,7 @@ static int hwpoison_inject(void *data, u
+ 
+ inject:
+ 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
+-	err = memory_failure(pfn, 0);
++	err = memory_failure(pfn, MF_SW_SIMULATED);
+ 	return (err == -EOPNOTSUPP) ? 0 : err;
  }
  
- /*
-+ * mas_topiary_range() - Add a range of slots to the topiary.
-+ * @mas: The maple state
-+ * @destroy: The topiary to add the slots (usually destroy)
-+ * @start: The starting slot inclusively
-+ * @end: The end slot inclusively
-+ */
-+static inline void mas_topiary_range(struct ma_state *mas,
-+	struct ma_topiary *destroy, unsigned char start, unsigned char end)
-+{
-+	void __rcu **slots;
-+	unsigned offset;
-+
-+	MT_BUG_ON(mas->tree, mte_is_leaf(mas->node));
-+	slots = ma_slots(mas_mn(mas), mte_node_type(mas->node));
-+	for (offset = start; offset <= end; offset++) {
-+		struct maple_enode *enode = mas_slot_locked(mas, slots, offset);
-+
-+		if (mte_dead_node(enode))
-+			continue;
-+
-+		mat_add(destroy, enode);
-+	}
-+}
-+
-+/*
-  * mast_topiary() - Add the portions of the tree to the removal list; either to
-  * be freed or discarded (destroy walk).
-  * @mast: The maple_subtree_state.
-@@ -2280,48 +2304,62 @@ done:
- static inline void mast_topiary(struct maple_subtree_state *mast)
- {
- 	MA_WR_STATE(wr_mas, mast->orig_l, NULL);
--	unsigned char l_off, r_off, offset;
--	unsigned long l_index;
--	struct maple_enode *child;
--	void __rcu **slots;
-+	unsigned char r_start, r_end;
-+	unsigned char l_start, l_end;
-+	void **l_slots, **r_slots;
- 
- 	wr_mas.type = mte_node_type(mast->orig_l->node);
--	/* The left node is consumed, so add to the free list. */
--	l_index = mast->orig_l->index;
- 	mast->orig_l->index = mast->orig_l->last;
- 	mas_wr_node_walk(&wr_mas);
--	mast->orig_l->index = l_index;
--	l_off = mast->orig_l->offset;
--	r_off = mast->orig_r->offset;
--	if (mast->orig_l->node == mast->orig_r->node) {
--		slots = ma_slots(mte_to_node(mast->orig_l->node), wr_mas.type);
--		for (offset = l_off + 1; offset < r_off; offset++)
--			mat_add(mast->destroy, mas_slot_locked(mast->orig_l,
--							slots, offset));
-+	l_start = mast->orig_l->offset + 1;
-+	l_end = mas_data_end(mast->orig_l);
-+	r_start = 0;
-+	r_end = mast->orig_r->offset;
-+
-+	if (r_end)
-+		r_end--;
-+
-+	l_slots = ma_slots(mas_mn(mast->orig_l),
-+			   mte_node_type(mast->orig_l->node));
-+
-+	r_slots = ma_slots(mas_mn(mast->orig_r),
-+			   mte_node_type(mast->orig_r->node));
-+
-+	if ((l_start < l_end) &&
-+	    mte_dead_node(mas_slot_locked(mast->orig_l, l_slots, l_start))) {
-+		l_start++;
-+	}
- 
-+	if (mte_dead_node(mas_slot_locked(mast->orig_r, r_slots, r_end))) {
-+		if (r_end)
-+			r_end--;
-+	}
-+
-+	if ((l_start > r_end) && (mast->orig_l->node == mast->orig_r->node))
- 		return;
-+
-+	/* At the node where left and right sides meet, add the parts between */
-+	if (mast->orig_l->node == mast->orig_r->node) {
-+		return mas_topiary_range(mast->orig_l, mast->destroy,
-+					     l_start, r_end);
- 	}
- 
- 	/* mast->orig_r is different and consumed. */
- 	if (mte_is_leaf(mast->orig_r->node))
- 		return;
- 
--	/* Now destroy l_off + 1 -> end and 0 -> r_off - 1 */
--	offset = l_off + 1;
--	slots = ma_slots(mte_to_node(mast->orig_l->node), wr_mas.type);
--	while (offset < mt_slots[wr_mas.type]) {
--		child = mas_slot_locked(mast->orig_l, slots, offset++);
--		if (!child)
--			break;
-+	if (mte_dead_node(mas_slot_locked(mast->orig_l, l_slots, l_end)))
-+		l_end--;
- 
--		mat_add(mast->destroy, child);
--	}
- 
--	slots = ma_slots(mte_to_node(mast->orig_r->node),
--			     mte_node_type(mast->orig_r->node));
--	for (offset = 0; offset < r_off; offset++)
--		mat_add(mast->destroy,
--				mas_slot_locked(mast->orig_l, slots, offset));
-+	if (l_start <= l_end)
-+		mas_topiary_range(mast->orig_l, mast->destroy, l_start, l_end);
-+
-+	if (mte_dead_node(mas_slot_locked(mast->orig_r, r_slots, r_start)))
-+		r_start++;
-+
-+	if (r_start <= r_end)
-+		mas_topiary_range(mast->orig_r, mast->destroy, 0, r_end);
- }
- 
- /*
-@@ -2329,19 +2367,13 @@ static inline void mast_topiary(struct m
-  * @mast: The maple subtree state
-  * @old_r: The encoded maple node to the right (next node).
-  */
--static inline void mast_rebalance_next(struct maple_subtree_state *mast,
--				       struct maple_enode *old_r, bool free)
-+static inline void mast_rebalance_next(struct maple_subtree_state *mast)
- {
- 	unsigned char b_end = mast->bn->b_end;
- 
- 	mas_mab_cp(mast->orig_r, 0, mt_slot_count(mast->orig_r->node),
- 		   mast->bn, b_end);
--	if (free)
--		mat_add(mast->free, old_r);
--
- 	mast->orig_r->last = mast->orig_r->max;
--	if (old_r == mast->orig_l->node)
--		mast->orig_l->node = mast->orig_r->node;
- }
- 
- /*
-@@ -2349,17 +2381,13 @@ static inline void mast_rebalance_next(s
-  * @mast: The maple subtree state
-  * @old_l: The encoded maple node to the left (previous node)
-  */
--static inline void mast_rebalance_prev(struct maple_subtree_state *mast,
--				       struct maple_enode *old_l)
-+static inline void mast_rebalance_prev(struct maple_subtree_state *mast)
- {
- 	unsigned char end = mas_data_end(mast->orig_l) + 1;
- 	unsigned char b_end = mast->bn->b_end;
- 
- 	mab_shift_right(mast->bn, end);
- 	mas_mab_cp(mast->orig_l, 0, end - 1, mast->bn, 0);
--	mat_add(mast->free, old_l);
--	if (mast->orig_r->node == old_l)
--		mast->orig_r->node = mast->orig_l->node;
- 	mast->l->min = mast->orig_l->min;
- 	mast->orig_l->index = mast->orig_l->min;
- 	mast->bn->b_end = end + b_end;
-@@ -2367,68 +2395,116 @@ static inline void mast_rebalance_prev(s
- }
- 
- /*
-- * mast_sibling_rebalance_right() - Rebalance from nodes with the same parents.
-- * Check the right side, then the left.  Data is copied into the @mast->bn.
-+ * mast_spanning_rebalance() - Rebalance nodes with nearest neighbour favouring
-+ * the node to the right.  Checking the nodes to the right then the left at each
-+ * level upwards until root is reached.  Free and destroy as needed.
-+ * Data is copied into the @mast->bn.
-  * @mast: The maple_subtree_state.
-  */
- static inline
--bool mast_sibling_rebalance_right(struct maple_subtree_state *mast, bool free)
-+bool mast_spanning_rebalance(struct maple_subtree_state *mast)
- {
--	struct maple_enode *old_r;
--	struct maple_enode *old_l;
-+	struct ma_state r_tmp = *mast->orig_r;
-+	struct ma_state l_tmp = *mast->orig_l;
-+	struct maple_enode *ancestor = NULL;
-+	unsigned char start, end;
-+	unsigned char depth = 0;
- 
--	old_r = mast->orig_r->node;
--	if (mas_next_sibling(mast->orig_r)) {
--		mast_rebalance_next(mast, old_r, free);
--		return true;
--	}
-+	r_tmp = *mast->orig_r;
-+	l_tmp = *mast->orig_l;
-+	do {
-+		mas_ascend(mast->orig_r);
-+		mas_ascend(mast->orig_l);
-+		depth++;
-+		if (!ancestor &&
-+		    (mast->orig_r->node == mast->orig_l->node)) {
-+			ancestor = mast->orig_r->node;
-+			end = mast->orig_r->offset - 1;
-+			start = mast->orig_l->offset + 1;
-+		}
- 
--	old_l = mast->orig_l->node;
--	if (mas_prev_sibling(mast->orig_l)) {
--		mast->bn->type = mte_node_type(mast->orig_l->node);
--		mast_rebalance_prev(mast, old_l);
--		return true;
--	}
-+		if (mast->orig_r->offset < mas_data_end(mast->orig_r)) {
-+			if (!ancestor) {
-+				ancestor = mast->orig_r->node;
-+				start = 0;
-+			}
- 
--	return false;
--}
-+			mast->orig_r->offset++;
-+			do {
-+				mas_descend(mast->orig_r);
-+				mast->orig_r->offset = 0;
-+				depth--;
-+			} while (depth);
-+
-+			mast_rebalance_next(mast);
-+			do {
-+				unsigned char l_off = 0;
-+				struct maple_enode *child = r_tmp.node;
-+
-+				mas_ascend(&r_tmp);
-+				if (ancestor == r_tmp.node)
-+					l_off = start;
-+
-+				if (r_tmp.offset)
-+					r_tmp.offset--;
-+
-+				if (l_off < r_tmp.offset)
-+					mas_topiary_range(&r_tmp, mast->destroy,
-+							  l_off, r_tmp.offset);
- 
--static inline int mas_prev_node(struct ma_state *mas, unsigned long min);
--static inline int mas_next_node(struct ma_state *mas, struct maple_node *node,
--				unsigned long max);
--/*
-- * mast_cousin_rebalance_right() - Rebalance from nodes with different parents.
-- * Check the right side, then the left.  Data is copied into the @mast->bn.
-- * @mast: The maple_subtree_state.
-- */
--static inline
--bool mast_cousin_rebalance_right(struct maple_subtree_state *mast, bool free)
--{
--	struct maple_enode *old_l = mast->orig_l->node;
--	struct maple_enode *old_r = mast->orig_r->node;
-+				if (l_tmp.node != child)
-+					mat_add(mast->free, child);
- 
--	MA_STATE(tmp, mast->orig_r->tree, mast->orig_r->index, mast->orig_r->last);
-+			} while (r_tmp.node != ancestor);
- 
--	tmp = *mast->orig_r;
--	mas_next_node(mast->orig_r, mas_mn(mast->orig_r), ULONG_MAX);
--	if (!mas_is_none(mast->orig_r)) {
--		mast_rebalance_next(mast, old_r, free);
--		return true;
--	}
-+			*mast->orig_l = l_tmp;
-+			return true;
- 
--	*mast->orig_r = *mast->orig_l;
--	*mast->r = *mast->l;
--	mas_prev_node(mast->orig_l, 0);
--	if (mas_is_none(mast->orig_l)) {
--		/* Making a new root with the contents of mast->bn */
--		*mast->orig_l = *mast->orig_r;
--		*mast->orig_r = tmp;
--		return false;
--	}
-+		} else if (mast->orig_l->offset != 0) {
-+			if (!ancestor) {
-+				ancestor = mast->orig_l->node;
-+				end = mas_data_end(mast->orig_l);
-+			}
- 
--	mast->orig_l->offset = 0;
--	mast_rebalance_prev(mast, old_l);
--	return true;
-+			mast->orig_l->offset--;
-+			do {
-+				mas_descend(mast->orig_l);
-+				mast->orig_l->offset =
-+					mas_data_end(mast->orig_l);
-+				depth--;
-+			} while (depth);
-+
-+			mast_rebalance_prev(mast);
-+			do {
-+				unsigned char r_off;
-+				struct maple_enode *child = l_tmp.node;
-+
-+				mas_ascend(&l_tmp);
-+				if (ancestor == l_tmp.node)
-+					r_off = end;
-+				else
-+					r_off = mas_data_end(&l_tmp);
-+
-+				if (l_tmp.offset < r_off)
-+					l_tmp.offset++;
-+
-+				if (l_tmp.offset < r_off)
-+					mas_topiary_range(&l_tmp, mast->destroy,
-+							  l_tmp.offset, r_off);
-+
-+				if (r_tmp.node != child)
-+					mat_add(mast->free, child);
-+
-+			} while (l_tmp.node != ancestor);
-+
-+			*mast->orig_r = r_tmp;
-+			return true;
-+		}
-+	} while (!mte_is_root(mast->orig_r->node));
-+
-+	*mast->orig_r = r_tmp;
-+	*mast->orig_l = l_tmp;
-+	return false;
- }
- 
- /*
-@@ -2462,18 +2538,16 @@ mast_ascend_free(struct maple_subtree_st
- 	 * The node may not contain the value so set slot to ensure all
- 	 * of the nodes contents are freed or destroyed.
- 	 */
--	if (mast->orig_r->max < mast->orig_r->last)
--		mast->orig_r->offset = mas_data_end(mast->orig_r) + 1;
--	else {
--		wr_mas.type = mte_node_type(mast->orig_r->node);
--		mas_wr_node_walk(&wr_mas);
--	}
-+	wr_mas.type = mte_node_type(mast->orig_r->node);
-+	mas_wr_node_walk(&wr_mas);
- 	/* Set up the left side of things */
- 	mast->orig_l->offset = 0;
- 	mast->orig_l->index = mast->l->min;
- 	wr_mas.mas = mast->orig_l;
- 	wr_mas.type = mte_node_type(mast->orig_l->node);
- 	mas_wr_node_walk(&wr_mas);
-+
-+	mast->bn->type = wr_mas.type;
- }
- 
- /*
-@@ -2881,7 +2955,7 @@ static int mas_spanning_rebalance(struct
- 	struct maple_enode *left = NULL, *middle = NULL, *right = NULL;
- 
- 	MA_STATE(l_mas, mas->tree, mas->index, mas->index);
--	MA_STATE(r_mas, mas->tree, mas->index, mas->index);
-+	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
- 	MA_STATE(m_mas, mas->tree, mas->index, mas->index);
- 	MA_TOPIARY(free, mas->tree);
- 	MA_TOPIARY(destroy, mas->tree);
-@@ -2897,14 +2971,9 @@ static int mas_spanning_rebalance(struct
- 	mast->destroy = &destroy;
- 	l_mas.node = r_mas.node = m_mas.node = MAS_NONE;
- 	if (!mas_is_root_limits(mast->orig_l) &&
--	    unlikely(mast->bn->b_end <= mt_min_slots[mast->bn->type])) {
--		/*
--		 * Do not free the current node as it may be freed in a bulk
--		 * free.
--		 */
--		if (!mast_sibling_rebalance_right(mast, false))
--			mast_cousin_rebalance_right(mast, false);
--	}
-+	    unlikely(mast->bn->b_end <= mt_min_slots[mast->bn->type]))
-+		mast_spanning_rebalance(mast);
-+
- 	mast->orig_l->depth = 0;
- 
- 	/*
-@@ -2948,6 +3017,15 @@ static int mas_spanning_rebalance(struct
- 
- 		/* Copy anything necessary out of the right node. */
- 		mast_combine_cp_right(mast);
-+		if (mte_dead_node(mast->orig_l->node) ||
-+		    mte_dead_node(mast->orig_r->node)) {
-+			printk("FUCKED.  l %p is %s and r %p is %s\n",
-+			       mas_mn(mast->orig_l),
-+			       mte_dead_node(mast->orig_l->node) ? "dead" : "alive",
-+			       mas_mn(mast->orig_r),
-+			       mte_dead_node(mast->orig_r->node) ? "dead" : "alive");
-+			printk("Writing %lu-%lu\n", mas->index, mas->last);
-+		}
- 		mast_topiary(mast);
- 		mast->orig_l->last = mast->orig_l->max;
- 
-@@ -2961,15 +3039,14 @@ static int mas_spanning_rebalance(struct
- 		if (mas_is_root_limits(mast->orig_l))
- 			break;
- 
--		/* Try to get enough data for the next iteration. */
--		if (!mast_sibling_rebalance_right(mast, true))
--			if (!mast_cousin_rebalance_right(mast, true))
--				break;
-+		if (!mast_spanning_rebalance(mast))
-+			break;
- 
- 		/* rebalancing from other nodes may require another loop. */
- 		if (!count)
- 			count++;
- 	}
-+
- 	l_mas.node = mt_mk_node(ma_mnode_ptr(mas_pop_node(mas)),
- 				mte_node_type(mast->orig_l->node));
- 	mast->orig_l->depth++;
-@@ -3042,6 +3119,7 @@ static inline int mas_rebalance(struct m
- 	mast.orig_l = &l_mas;
- 	mast.orig_r = &r_mas;
- 	mast.bn = b_node;
-+	mast.bn->type = mte_node_type(mas->node);
- 
- 	l_mas = r_mas = *mas;
- 
-@@ -3855,7 +3933,7 @@ done:
- 	return 1;
- }
- /*
-- * mas_spanning_store() - Create a subtree with the store operation completed
-+ * mas_wr_spanning_store() - Create a subtree with the store operation completed
-  * and new nodes where necessary, then place the sub-tree in the actual tree.
-  * Note that mas is expected to point to the node which caused the store to
-  * span.
-@@ -3941,6 +4019,13 @@ static inline int mas_wr_spanning_store(
- 	mast.bn = &b_node;
- 	mast.orig_l = &l_mas;
- 	mast.orig_r = &r_mas;
-+		if (mte_dead_node(mast.orig_l->node) ||
-+		    mte_dead_node(mast.orig_r->node)) {
-+			printk("FUCKED.  l is %s and r is %s\n",
-+		       mte_dead_node(mast.orig_l->node) ? "dead" : "alive",
-+		       mte_dead_node(mast.orig_r->node) ? "dead" : "alive");
-+			printk("Writing %lu-%lu\n", mas->index, mas->last);
-+		}
- 	/* Combine l_mas and r_mas and split them up evenly again. */
- 	return mas_spanning_rebalance(mas, &mast, height + 1);
- }
-@@ -5387,6 +5472,9 @@ static inline void __rcu **mas_destroy_d
- 		node = mas_mn(mas);
- 		slots = ma_slots(node, mte_node_type(mas->node));
- 		next = mas_slot_locked(mas, slots, 0);
-+		if ((mte_dead_node(next)))
-+			next = mas_slot_locked(mas, slots, 1);
-+
- 		mte_set_node_dead(mas->node);
- 		node->type = mte_node_type(mas->node);
- 		node->piv_parent = prev;
-@@ -5394,6 +5482,7 @@ static inline void __rcu **mas_destroy_d
- 		offset = 0;
- 		prev = mas->node;
- 	} while (!mte_is_leaf(next));
-+
- 	return slots;
- }
- 
-@@ -5427,17 +5516,15 @@ static void mt_destroy_walk(struct maple
- 		mas.node = node->piv_parent;
- 		if (mas_mn(&mas) == node)
- 			goto start_slots_free;
-+
- 		type = mte_node_type(mas.node);
- 		slots = ma_slots(mte_to_node(mas.node), type);
--		if ((offset < mt_slots[type])) {
--			struct maple_enode *next = slots[offset];
-+		if ((offset < mt_slots[type]) && mte_node_type(slots[offset]) &&
-+		    mte_to_node(slots[offset])) {
-+			struct maple_enode *parent = mas.node;
- 
--			if (mte_node_type(next) && mte_to_node(next)) {
--				struct maple_enode *parent = mas.node;
--
--				mas.node = mas_slot_locked(&mas, slots, offset);
--				slots = mas_destroy_descend(&mas, parent, offset);
--			}
-+			mas.node = mas_slot_locked(&mas, slots, offset);
-+			slots = mas_destroy_descend(&mas, parent, offset);
+--- a/mm/madvise.c~mm-memory-failure-disable-unpoison-once-hw-error-happens
++++ a/mm/madvise.c
+@@ -1112,7 +1112,7 @@ static int madvise_inject_error(int beha
+ 		} else {
+ 			pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
+ 				 pfn, start);
+-			ret = memory_failure(pfn, MF_COUNT_INCREASED);
++			ret = memory_failure(pfn, MF_COUNT_INCREASED | MF_SW_SIMULATED);
+ 			if (ret == -EOPNOTSUPP)
+ 				ret = 0;
  		}
- 		node = mas_mn(&mas);
- 	} while (start != mas.node);
+--- a/mm/memory-failure.c~mm-memory-failure-disable-unpoison-once-hw-error-happens
++++ a/mm/memory-failure.c
+@@ -69,6 +69,8 @@ int sysctl_memory_failure_recovery __rea
+ 
+ atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
+ 
++static bool hw_memory_failure __read_mostly = false;
++
+ static bool __page_handle_poison(struct page *page)
+ {
+ 	int ret;
+@@ -1768,6 +1770,9 @@ int memory_failure(unsigned long pfn, in
+ 
+ 	mutex_lock(&mf_mutex);
+ 
++	if (!(flags & MF_SW_SIMULATED))
++		hw_memory_failure = true;
++
+ 	p = pfn_to_online_page(pfn);
+ 	if (!p) {
+ 		res = arch_memory_failure(pfn, flags);
+@@ -2103,6 +2108,13 @@ int unpoison_memory(unsigned long pfn)
+ 
+ 	mutex_lock(&mf_mutex);
+ 
++	if (hw_memory_failure) {
++		unpoison_pr_info("Unpoison: Disabled after HW memory failure %#lx\n",
++				 pfn, &unpoison_rs);
++		ret = -EOPNOTSUPP;
++		goto unlock_mutex;
++	}
++
+ 	if (!PageHWPoison(p)) {
+ 		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
+ 				 pfn, &unpoison_rs);
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from pizhenwei@bytedance.com are
 
-maple-tree-add-new-data-structure-fix.patch
-maple-tree-add-new-data-structure-fix-2.patch
-maple-tree-add-new-data-structure-fix-3.patch
-maple-tree-add-new-data-structure-fix-4.patch
-maple-tree-add-new-data-structure-fix-7.patch
-maple-tree-add-new-data-structure-fix-8.patch
-maple-tree-add-new-data-structure-fix-9.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix-2.patch
-mm-start-tracking-vmas-with-maple-tree-fix-2.patch
-mm-start-tracking-vmas-with-maple-tree-fix-3.patch
-mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2.patch
-mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix.patch
-mm-remove-the-vma-linked-list-fix.patch
-mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
+mm-memory-failure-disable-unpoison-once-hw-error-happens.patch
 
