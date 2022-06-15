@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6534C43334
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Jun 2022 20:49:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D06BC43334
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Jun 2022 21:17:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346383AbiFOUtk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Jun 2022 16:49:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44578 "EHLO
+        id S1349938AbiFOVR6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Jun 2022 17:17:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43562 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346327AbiFOUtk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2022 16:49:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ED1F54F96;
-        Wed, 15 Jun 2022 13:49:39 -0700 (PDT)
+        with ESMTP id S1349932AbiFOVR5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2022 17:17:57 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0068E47074
+        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 14:17:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A08606177D;
-        Wed, 15 Jun 2022 20:49:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF298C3411B;
-        Wed, 15 Jun 2022 20:49:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AA34FB82182
+        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 21:17:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07DC6C3411A;
+        Wed, 15 Jun 2022 21:17:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655326178;
-        bh=7JYDlzjI0Ym4VdWV9ddmzZadt2seR+DQPxcdYim+2kc=;
+        s=korg; t=1655327873;
+        bh=eX5kxakhuQIHaiSjiKiIhBoQXzYnc2ECWXDsiJZUvYI=;
         h=Date:To:From:Subject:From;
-        b=L5RnXAQIPISiYrTUgiVOCWwwkEq65S4NOn2yJlZM3aVdTnJC3jmg/vEdZ0wZ2HsaP
-         sqUMmEYIl/vKhKiFiUns49H4MUxn0xt0tglJWqD4pVU/Iu2EsDcuUHPurOqdw68f3x
-         8EiSR1bvInwMUa5mDRA9ru6d1irCmoeuOZYj2jXQ=
-Date:   Wed, 15 Jun 2022 13:49:37 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        osalvador@suse.de, naoya.horiguchi@nec.com,
-        gregkh@linuxfoundation.org, david@redhat.com,
-        pizhenwei@bytedance.com, akpm@linux-foundation.org
+        b=0qM6x+H+QQVI0rCpB2XgJ2Nm/Bls+m6ff8rylp96TVGQspy3/f0NZQIyhm6IouDY4
+         NsFDRzqBci8Tq4Z3R6YE0huxWtfFgf61b7qtKOfkYexFXqiT+Ayy0qkuTSz6WdiGt/
+         PihFPyBIuXTo/lzaXcIiIGyQB26ghFLHRkNsHQsc=
+Date:   Wed, 15 Jun 2022 14:17:52 -0700
+To:     mm-commits@vger.kernel.org, yee.lee@mediatek.com,
+        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com,
+        matthias.bgg@gmail.com, glider@google.com, dvyukov@google.com,
+        chinwen.chang@mediatek.com, andreyknvl@gmail.com,
+        andrew.yang@mediatek.com, Kuan-Ying.Lee@mediatek.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-disable-unpoison-once-hw-error-happens.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220615204937.EF298C3411B@smtp.kernel.org>
+Subject: + kasan-separate-double-free-case-from-invalid-free.patch added to mm-unstable branch
+Message-Id: <20220615211753.07DC6C3411A@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: disable unpoison once hw error happens
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-disable-unpoison-once-hw-error-happens.patch
+     Subject: kasan: separate double free case from invalid free
+has been added to the -mm mm-unstable branch.  Its filename is
+     kasan-separate-double-free-case-from-invalid-free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-disable-unpoison-once-hw-error-happens.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-separate-double-free-case-from-invalid-free.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,172 +68,130 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: zhenwei pi <pizhenwei@bytedance.com>
-Subject: mm/memory-failure: disable unpoison once hw error happens
-Date: Wed, 15 Jun 2022 17:32:09 +0800
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: kasan: separate double free case from invalid free
+Date: Wed, 15 Jun 2022 14:22:18 +0800
 
-Currently unpoison_memory(unsigned long pfn) is designed for soft
-poison(hwpoison-inject) only.  Since 17fae1294ad9d, the KPTE gets cleared
-on a x86 platform once hardware memory corrupts.
+Currently, KASAN describes all invalid-free/double-free bugs as
+"double-free or invalid-free".  This is ambiguous.
 
-Unpoisoning a hardware corrupted page puts page back buddy only, the
-kernel has a chance to access the page with *NOT PRESENT* KPTE.  This
-leads BUG during accessing on the corrupted KPTE.
+KASAN should report "double-free" when a double-free is a more likely
+cause (the address points to the start of an object) and report
+"invalid-free" otherwise [1].
 
-Suggested by David&Naoya, disable unpoison mechanism when a real HW error
-happens to avoid BUG like this:
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=212193
 
- Unpoison: Software-unpoisoned page 0x61234
- BUG: unable to handle page fault for address: ffff888061234000
- #PF: supervisor write access in kernel mode
- #PF: error_code(0x0002) - not-present page
- PGD 2c01067 P4D 2c01067 PUD 107267063 PMD 10382b063 PTE 800fffff9edcb062
- Oops: 0002 [#1] PREEMPT SMP NOPTI
- CPU: 4 PID: 26551 Comm: stress Kdump: loaded Tainted: G   M       OE     5.18.0.bm.1-amd64 #7
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996) ...
- RIP: 0010:clear_page_erms+0x7/0x10
- Code: ...
- RSP: 0000:ffffc90001107bc8 EFLAGS: 00010246
- RAX: 0000000000000000 RBX: 0000000000000901 RCX: 0000000000001000
- RDX: ffffea0001848d00 RSI: ffffea0001848d40 RDI: ffff888061234000
- RBP: ffffea0001848d00 R08: 0000000000000901 R09: 0000000000001276
- R10: 0000000000000003 R11: 0000000000000000 R12: 0000000000000001
- R13: 0000000000000000 R14: 0000000000140dca R15: 0000000000000001
- FS:  00007fd8b2333740(0000) GS:ffff88813fd00000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: ffff888061234000 CR3: 00000001023d2005 CR4: 0000000000770ee0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- PKRU: 55555554
- Call Trace:
-  <TASK>
-  prep_new_page+0x151/0x170
-  get_page_from_freelist+0xca0/0xe20
-  ? sysvec_apic_timer_interrupt+0xab/0xc0
-  ? asm_sysvec_apic_timer_interrupt+0x1b/0x20
-  __alloc_pages+0x17e/0x340
-  __folio_alloc+0x17/0x40
-  vma_alloc_folio+0x84/0x280
-  __handle_mm_fault+0x8d4/0xeb0
-  handle_mm_fault+0xd5/0x2a0
-  do_user_addr_fault+0x1d0/0x680
-  ? kvm_read_and_reset_apf_flags+0x3b/0x50
-  exc_page_fault+0x78/0x170
-  asm_exc_page_fault+0x27/0x30
-
-Link: https://lkml.kernel.org/r/20220615093209.259374-2-pizhenwei@bytedance.com
-Fixes: 847ce401df392 ("HWPOISON: Add unpoisoning support")
-Fixes: 17fae1294ad9d ("x86/{mce,mm}: Unmap the entire page if the whole page is affected and poisoned")
-Signed-off-by: zhenwei pi <pizhenwei@bytedance.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220615062219.22618-1-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Yee Lee <yee.lee@mediatek.com>
+Cc: Andrew Yang <andrew.yang@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/hwpoison.rst |    3 ++-
- drivers/base/memory.c         |    2 +-
- include/linux/mm.h            |    1 +
- mm/hwpoison-inject.c          |    2 +-
- mm/madvise.c                  |    2 +-
- mm/memory-failure.c           |   12 ++++++++++++
- 6 files changed, 18 insertions(+), 4 deletions(-)
+ mm/kasan/common.c |    8 ++++----
+ mm/kasan/kasan.h  |    3 ++-
+ mm/kasan/report.c |   12 ++++++++----
+ 3 files changed, 14 insertions(+), 9 deletions(-)
 
---- a/Documentation/vm/hwpoison.rst~mm-memory-failure-disable-unpoison-once-hw-error-happens
-+++ a/Documentation/vm/hwpoison.rst
-@@ -120,7 +120,8 @@ Testing
-   unpoison-pfn
- 	Software-unpoison page at PFN echoed into this file. This way
- 	a page can be reused again.  This only works for Linux
--	injected failures, not for real memory failures.
-+	injected failures, not for real memory failures. Once any hardware
-+	memory failure happens, this feature is disabled.
+--- a/mm/kasan/common.c~kasan-separate-double-free-case-from-invalid-free
++++ a/mm/kasan/common.c
+@@ -343,7 +343,7 @@ static inline bool ____kasan_slab_free(s
  
-   Note these injection interfaces are not stable and might change between
-   kernel versions
---- a/drivers/base/memory.c~mm-memory-failure-disable-unpoison-once-hw-error-happens
-+++ a/drivers/base/memory.c
-@@ -558,7 +558,7 @@ static ssize_t hard_offline_page_store(s
- 	if (kstrtoull(buf, 0, &pfn) < 0)
- 		return -EINVAL;
- 	pfn >>= PAGE_SHIFT;
--	ret = memory_failure(pfn, 0);
-+	ret = memory_failure(pfn, MF_SW_SIMULATED);
- 	if (ret == -EOPNOTSUPP)
- 		ret = 0;
- 	return ret ? ret : count;
---- a/include/linux/mm.h~mm-memory-failure-disable-unpoison-once-hw-error-happens
-+++ a/include/linux/mm.h
-@@ -3232,6 +3232,7 @@ enum mf_flags {
- 	MF_MUST_KILL = 1 << 2,
- 	MF_SOFT_OFFLINE = 1 << 3,
- 	MF_UNPOISON = 1 << 4,
-+	MF_SW_SIMULATED = 1 << 5,
- };
- extern int memory_failure(unsigned long pfn, int flags);
- extern void memory_failure_queue(unsigned long pfn, int flags);
---- a/mm/hwpoison-inject.c~mm-memory-failure-disable-unpoison-once-hw-error-happens
-+++ a/mm/hwpoison-inject.c
-@@ -48,7 +48,7 @@ static int hwpoison_inject(void *data, u
+ 	if (unlikely(nearest_obj(cache, virt_to_slab(object), object) !=
+ 	    object)) {
+-		kasan_report_invalid_free(tagged_object, ip);
++		kasan_report_invalid_free(tagged_object, ip, KASAN_REPORT_INVALID_FREE);
+ 		return true;
+ 	}
  
- inject:
- 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
--	err = memory_failure(pfn, 0);
-+	err = memory_failure(pfn, MF_SW_SIMULATED);
- 	return (err == -EOPNOTSUPP) ? 0 : err;
- }
+@@ -352,7 +352,7 @@ static inline bool ____kasan_slab_free(s
+ 		return false;
  
---- a/mm/madvise.c~mm-memory-failure-disable-unpoison-once-hw-error-happens
-+++ a/mm/madvise.c
-@@ -1112,7 +1112,7 @@ static int madvise_inject_error(int beha
- 		} else {
- 			pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
- 				 pfn, start);
--			ret = memory_failure(pfn, MF_COUNT_INCREASED);
-+			ret = memory_failure(pfn, MF_COUNT_INCREASED | MF_SW_SIMULATED);
- 			if (ret == -EOPNOTSUPP)
- 				ret = 0;
- 		}
---- a/mm/memory-failure.c~mm-memory-failure-disable-unpoison-once-hw-error-happens
-+++ a/mm/memory-failure.c
-@@ -69,6 +69,8 @@ int sysctl_memory_failure_recovery __rea
+ 	if (!kasan_byte_accessible(tagged_object)) {
+-		kasan_report_invalid_free(tagged_object, ip);
++		kasan_report_invalid_free(tagged_object, ip, KASAN_REPORT_DOUBLE_FREE);
+ 		return true;
+ 	}
  
- atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
- 
-+static bool hw_memory_failure __read_mostly = false;
-+
- static bool __page_handle_poison(struct page *page)
+@@ -377,12 +377,12 @@ bool __kasan_slab_free(struct kmem_cache
+ static inline bool ____kasan_kfree_large(void *ptr, unsigned long ip)
  {
- 	int ret;
-@@ -1768,6 +1770,9 @@ int memory_failure(unsigned long pfn, in
+ 	if (ptr != page_address(virt_to_head_page(ptr))) {
+-		kasan_report_invalid_free(ptr, ip);
++		kasan_report_invalid_free(ptr, ip, KASAN_REPORT_INVALID_FREE);
+ 		return true;
+ 	}
  
- 	mutex_lock(&mf_mutex);
+ 	if (!kasan_byte_accessible(ptr)) {
+-		kasan_report_invalid_free(ptr, ip);
++		kasan_report_invalid_free(ptr, ip, KASAN_REPORT_DOUBLE_FREE);
+ 		return true;
+ 	}
  
-+	if (!(flags & MF_SW_SIMULATED))
-+		hw_memory_failure = true;
-+
- 	p = pfn_to_online_page(pfn);
- 	if (!p) {
- 		res = arch_memory_failure(pfn, flags);
-@@ -2103,6 +2108,13 @@ int unpoison_memory(unsigned long pfn)
+--- a/mm/kasan/kasan.h~kasan-separate-double-free-case-from-invalid-free
++++ a/mm/kasan/kasan.h
+@@ -125,6 +125,7 @@ static inline bool kasan_sync_fault_poss
+ enum kasan_report_type {
+ 	KASAN_REPORT_ACCESS,
+ 	KASAN_REPORT_INVALID_FREE,
++	KASAN_REPORT_DOUBLE_FREE,
+ };
  
- 	mutex_lock(&mf_mutex);
+ struct kasan_report_info {
+@@ -277,7 +278,7 @@ static inline void kasan_print_address_s
  
-+	if (hw_memory_failure) {
-+		unpoison_pr_info("Unpoison: Disabled after HW memory failure %#lx\n",
-+				 pfn, &unpoison_rs);
-+		ret = -EOPNOTSUPP;
-+		goto unlock_mutex;
+ bool kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+-void kasan_report_invalid_free(void *object, unsigned long ip);
++void kasan_report_invalid_free(void *object, unsigned long ip, enum kasan_report_type type);
+ 
+ struct page *kasan_addr_to_page(const void *addr);
+ struct slab *kasan_addr_to_slab(const void *addr);
+--- a/mm/kasan/report.c~kasan-separate-double-free-case-from-invalid-free
++++ a/mm/kasan/report.c
+@@ -176,8 +176,12 @@ static void end_report(unsigned long *fl
+ static void print_error_description(struct kasan_report_info *info)
+ {
+ 	if (info->type == KASAN_REPORT_INVALID_FREE) {
+-		pr_err("BUG: KASAN: double-free or invalid-free in %pS\n",
+-		       (void *)info->ip);
++		pr_err("BUG: KASAN: invalid-free in %pS\n", (void *)info->ip);
++		return;
 +	}
 +
- 	if (!PageHWPoison(p)) {
- 		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
- 				 pfn, &unpoison_rs);
++	if (info->type == KASAN_REPORT_DOUBLE_FREE) {
++		pr_err("BUG: KASAN: double-free in %pS\n", (void *)info->ip);
+ 		return;
+ 	}
+ 
+@@ -433,7 +437,7 @@ static void print_report(struct kasan_re
+ 	}
+ }
+ 
+-void kasan_report_invalid_free(void *ptr, unsigned long ip)
++void kasan_report_invalid_free(void *ptr, unsigned long ip, enum kasan_report_type type)
+ {
+ 	unsigned long flags;
+ 	struct kasan_report_info info;
+@@ -448,7 +452,7 @@ void kasan_report_invalid_free(void *ptr
+ 
+ 	start_report(&flags, true);
+ 
+-	info.type = KASAN_REPORT_INVALID_FREE;
++	info.type = type;
+ 	info.access_addr = ptr;
+ 	info.first_bad_addr = kasan_reset_tag(ptr);
+ 	info.access_size = 0;
 _
 
-Patches currently in -mm which might be from pizhenwei@bytedance.com are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-mm-memory-failure-disable-unpoison-once-hw-error-happens.patch
+kasan-separate-double-free-case-from-invalid-free.patch
 
