@@ -2,125 +2,120 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89D5EC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jun 2022 18:27:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B5A7C43334
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Jun 2022 20:12:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234344AbiFNS1t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Jun 2022 14:27:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48124 "EHLO
+        id S1346406AbiFOUMU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Jun 2022 16:12:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245128AbiFNS1s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2022 14:27:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 295392F673
-        for <mm-commits@vger.kernel.org>; Tue, 14 Jun 2022 11:27:47 -0700 (PDT)
+        with ESMTP id S238652AbiFOUMT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2022 16:12:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 867534B1C9
+        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 13:12:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DA6B1B8186A
-        for <mm-commits@vger.kernel.org>; Tue, 14 Jun 2022 18:27:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8753BC3411B;
-        Tue, 14 Jun 2022 18:27:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 420A4B82176
+        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 20:12:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAFDBC3411A;
+        Wed, 15 Jun 2022 20:12:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655231264;
-        bh=I1B2AIrRhC+YNDYEQ90llCupOyNPm14SGnJJvuRmJ68=;
+        s=korg; t=1655323935;
+        bh=njwme5eLvDFVzzlYYo0xWDjKAqTrS5yF8upWq2Od+aI=;
         h=Date:To:From:Subject:From;
-        b=PzzOYogjI77S0rBGcw4X5aGuXdqJxSZUkP8UFKE0v9u2wEVJElfPjfegp+Y0HAN2v
-         KQ9LEbEvdYjW0xdWZGAX8o8r+PMw4yeYShPVIcjCxzYkWEEcFudsMIGqh24k4Srnxy
-         B+tstxDuFGqC7ZrR/y9irDzWU+Z586XaLyhiOys8=
-Date:   Tue, 14 Jun 2022 11:27:43 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        catalin.marinas@arm.com, longman@redhat.com,
+        b=PkDNDXwj/LR0zRP9ZcwYMFV6LuoDlF3JmCqijLjLd9eD85gFdQZj27k0Nxju7UwYU
+         x6kivZMJF1L28iU9gY4qM91qsPV4b2hp8EtuykkBhPijFVCu055EB3Lmxd7c2XAMeg
+         It54/dpL0/b4fitaolUeNYyJUYBJqR6hIjti9/3o=
+Date:   Wed, 15 Jun 2022 13:12:15 -0700
+To:     mm-commits@vger.kernel.org, quic_qiancai@quicinc.com,
+        Liam.Howlett@oracle.com, liam.howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-kmemleak-prevent-soft-lockup-in-first-object-iteration-loop-of-kmemleak_scan.patch removed from -mm tree
-Message-Id: <20220614182744.8753BC3411B@smtp.kernel.org>
+Subject: + maple-tree-add-new-data-structure-fix-7.patch added to mm-unstable branch
+Message-Id: <20220615201215.BAFDBC3411A@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/kmemleak: prevent soft lockup in first object iteration loop of kmemleak_scan()
-has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-prevent-soft-lockup-in-first-object-iteration-loop-of-kmemleak_scan.patch
+The patch titled
+     Subject: maple_tree: fix mt_destroy_walk() on full non-leaf non-alloc nodes
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple-tree-add-new-data-structure-fix-7.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-7.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/kmemleak: prevent soft lockup in first object iteration loop of kmemleak_scan()
-Date: Sun, 12 Jun 2022 14:33:01 -0400
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: fix mt_destroy_walk() on full non-leaf non-alloc nodes
+Date: Wed, 15 Jun 2022 14:19:38 +0000
 
-The first RCU-based object iteration loop has to put almost all the
-objects into the gray list and so cannot skip taking the object lock.
+It is possible to iterate over the metadata of full non-leaf nodes when
+operating in non-alloc mode.
 
-One way to avoid soft lockup is to insert occasional cond_resched() into
-the loop.  This cannot be done while holding the RCU read lock which is to
-protect objects from removal.  However, putting an object into the gray
-list means getting a reference to the object.  That will prevent the
-object from removal as well without the need to hold the RCU read lock. 
-So insert a cond_resched() call after every 64k objects are put into the
-gray list.
-
-Link: https://lkml.kernel.org/r/20220612183301.981616-4-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220615141921.417598-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Qian Cai <quic_qiancai@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ lib/maple_tree.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-prevent-soft-lockup-in-first-object-iteration-loop-of-kmemleak_scan
-+++ a/mm/kmemleak.c
-@@ -1474,12 +1474,15 @@ static void kmemleak_scan(void)
- 	struct zone *zone;
- 	int __maybe_unused i;
- 	int new_leaks = 0;
-+	int gray_list_cnt = 0;
+--- a/lib/maple_tree.c~maple-tree-add-new-data-structure-fix-7
++++ a/lib/maple_tree.c
+@@ -5429,11 +5429,15 @@ static void mt_destroy_walk(struct maple
+ 			goto start_slots_free;
+ 		type = mte_node_type(mas.node);
+ 		slots = ma_slots(mte_to_node(mas.node), type);
+-		if ((offset < mt_slots[type]) && (slots[offset])) {
+-			struct maple_enode *parent = mas.node;
++		if ((offset < mt_slots[type])) {
++			struct maple_enode *next = slots[offset];
  
- 	jiffies_last_scan = jiffies;
- 
- 	/* prepare the kmemleak_object's */
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(object, &object_list, object_list) {
-+		bool object_pinned = false;
+-			mas.node = mas_slot_locked(&mas, slots, offset);
+-			slots = mas_destroy_descend(&mas, parent, offset);
++			if (mte_node_type(next) && mte_to_node(next)) {
++				struct maple_enode *parent = mas.node;
 +
- 		raw_spin_lock_irq(&object->lock);
- #ifdef DEBUG
- 		/*
-@@ -1505,10 +1508,25 @@ static void kmemleak_scan(void)
- 
- 		/* reset the reference count (whiten the object) */
- 		object->count = 0;
--		if (color_gray(object) && get_object(object))
-+		if (color_gray(object) && get_object(object)) {
- 			list_add_tail(&object->gray_list, &gray_list);
-+			gray_list_cnt++;
-+			object_pinned = true;
-+		}
- 
- 		raw_spin_unlock_irq(&object->lock);
-+
-+		/*
-+		 * With object pinned by a positive reference count, it
-+		 * won't go away and we can safely release the RCU read
-+		 * lock and do a cond_resched() to avoid soft lockup every
-+		 * 64k objects.
-+		 */
-+		if (object_pinned && !(gray_list_cnt & 0xffff)) {
-+			rcu_read_unlock();
-+			cond_resched();
-+			rcu_read_lock();
-+		}
- 	}
- 	rcu_read_unlock();
- 
++				mas.node = mas_slot_locked(&mas, slots, offset);
++				slots = mas_destroy_descend(&mas, parent, offset);
++			}
+ 		}
+ 		node = mas_mn(&mas);
+ 	} while (start != mas.node);
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
+maple-tree-add-new-data-structure-fix.patch
+maple-tree-add-new-data-structure-fix-2.patch
+maple-tree-add-new-data-structure-fix-3.patch
+maple-tree-add-new-data-structure-fix-4.patch
+maple-tree-add-new-data-structure-fix-7.patch
+maple-tree-add-new-data-structure-fix-8.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
+mm-start-tracking-vmas-with-maple-tree-fix-2.patch
+mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2.patch
+mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix.patch
+mm-remove-the-vma-linked-list-fix.patch
 
