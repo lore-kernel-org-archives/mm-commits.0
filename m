@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1643BC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Jun 2022 20:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F3D8CCA47D
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Jun 2022 20:26:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344427AbiFOU0s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Jun 2022 16:26:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50022 "EHLO
+        id S1343819AbiFOU0t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Jun 2022 16:26:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344239AbiFOU0i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2022 16:26:38 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BA8A53C42
-        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 13:26:33 -0700 (PDT)
+        with ESMTP id S245053AbiFOU0q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2022 16:26:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0F1354690
+        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 13:26:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AE2BCB8216F
-        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 20:26:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 361A3C3411A;
-        Wed, 15 Jun 2022 20:26:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 327D7615C1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Jun 2022 20:26:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D42AC3411E;
+        Wed, 15 Jun 2022 20:26:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655324790;
-        bh=MR7K0hA01YFnNVZEbMFIrTYpjCz00m0uUms9or1e9vk=;
+        s=korg; t=1655324796;
+        bh=M9XDmtJtX7XcEMQDvDrkLNQgMRhMFyr5Dgx7Qipkq5I=;
         h=Date:To:From:Subject:From;
-        b=xZ2zHB7da1QzX+v34xJmIP89M8/fPiHPxC6Yd3q657wHMIApvv5VjC/Z0Fw9DiUKq
-         LwZt5T5y5RSk3eEYCgxUVui8/4ehCtCkGmLCYkTfuB51dlvs9eU0d6GFyB2rEWPfLf
-         SpV38+0wc2XQo9vjs5v37++WA7I/bSxuSeCmr7kM=
-Date:   Wed, 15 Jun 2022 13:26:29 -0700
+        b=eBVUPv7xDQwQV6u3ttbNcYGaNoL2CjhYD1MsT5PVvwQsdOz53Y0YT2ecHd7U/D8Oz
+         jQ4YKa9T/K9v0VTuC8AXjdqkAqU1soS92yKgLkzg1OTvDs4USXHVyv5DRluX3M5qIi
+         /eDROhso0qihzXlKwNENWV0xrSRpuloFEc4X6wT8=
+Date:   Wed, 15 Jun 2022 13:26:35 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com,
         willy@infradead.org, vbabka@suse.cz, linmiaohe@huawei.com,
         kirill.shutemov@linux.intel.com, shy828301@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-kill-transparent_hugepage_active.patch added to mm-unstable branch
-Message-Id: <20220615202630.361A3C3411A@smtp.kernel.org>
+Subject: + mm-khugepaged-reorg-some-khugepaged-helpers.patch added to mm-unstable branch
+Message-Id: <20220615202636.7D42AC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: kill transparent_hugepage_active()
+     Subject: mm: khugepaged: reorg some khugepaged helpers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-kill-transparent_hugepage_active.patch
+     mm-khugepaged-reorg-some-khugepaged-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-kill-transparent_hugepage_active.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-reorg-some-khugepaged-helpers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,21 +67,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: thp: kill transparent_hugepage_active()
-Date: Wed, 15 Jun 2022 10:29:23 -0700
+Subject: mm: khugepaged: reorg some khugepaged helpers
+Date: Wed, 15 Jun 2022 10:29:25 -0700
 
-The transparent_hugepage_active() was introduced to show THP eligibility
-bit in smaps in proc, smaps is the only user.  But it actually does the
-similar check as hugepage_vma_check() which is used by khugepaged.  We
-definitely don't have to maintain two similar checks, so kill
-transparent_hugepage_active().
+The khugepaged_{enabled|always|req_madv} are not khugepaged only anymore,
+move them to huge_mm.h and rename to hugepage_flags_xxx, and remove
+khugepaged_req_madv due to no users.
 
-This patch also fixed the wrong behavior for VM_NO_KHUGEPAGED vmas.
+Also move khugepaged_defrag to khugepaged.c since its only caller is in
+that file, it doesn't have to be in a header file.
 
-Also move hugepage_vma_check() to huge_memory.c and huge_mm.h since it is
-not only for khugepaged anymore.
-
-Link: https://lkml.kernel.org/r/20220615172926.546974-5-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20220615172926.546974-7-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -91,212 +87,144 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c         |    2 -
- include/linux/huge_mm.h    |   11 +++++++
- include/linux/khugepaged.h |    2 -
- mm/huge_memory.c           |   50 ++++++++++++++++++++++++++++-------
- mm/khugepaged.c            |   48 ++-------------------------------
- 5 files changed, 56 insertions(+), 57 deletions(-)
+ include/linux/huge_mm.h    |    8 ++++++++
+ include/linux/khugepaged.h |   14 --------------
+ mm/huge_memory.c           |    4 ++--
+ mm/khugepaged.c            |   18 +++++++++++-------
+ 4 files changed, 21 insertions(+), 23 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-thp-kill-transparent_hugepage_active
-+++ a/fs/proc/task_mmu.c
-@@ -863,7 +863,7 @@ static int show_smap(struct seq_file *m,
- 	__show_smap(m, &mss, false);
- 
- 	seq_printf(m, "THPeligible:    %d\n",
--		   transparent_hugepage_active(vma));
-+		   hugepage_vma_check(vma, vma->vm_flags, true));
- 
- 	if (arch_pkeys_enabled())
- 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
---- a/include/linux/huge_mm.h~mm-thp-kill-transparent_hugepage_active
+--- a/include/linux/huge_mm.h~mm-khugepaged-reorg-some-khugepaged-helpers
 +++ a/include/linux/huge_mm.h
-@@ -202,7 +202,9 @@ static inline bool file_thp_enabled(stru
- 	       !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
- }
+@@ -116,6 +116,14 @@ extern struct kobj_attribute shmem_enabl
  
--bool transparent_hugepage_active(struct vm_area_struct *vma);
-+bool hugepage_vma_check(struct vm_area_struct *vma,
-+			unsigned long vm_flags,
-+			bool smaps);
+ extern unsigned long transparent_hugepage_flags;
  
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
-@@ -367,6 +369,13 @@ static inline bool transhuge_vma_enabled
- {
- 	return false;
- }
++#define hugepage_flags_enabled()					       \
++	(transparent_hugepage_flags &				       \
++	 ((1<<TRANSPARENT_HUGEPAGE_FLAG) |		       \
++	  (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG)))
++#define hugepage_flags_always()				\
++	(transparent_hugepage_flags &			\
++	 (1<<TRANSPARENT_HUGEPAGE_FLAG))
 +
-+static inline bool hugepage_vma_check(struct vm_area_struct *vma,
-+				       unsigned long vm_flags,
-+				       bool smaps)
-+{
-+	return false;
-+}
- 
- static inline void prep_transhuge_page(struct page *page) {}
- 
---- a/include/linux/khugepaged.h~mm-thp-kill-transparent_hugepage_active
+ /*
+  * Do the below checks:
+  *   - For file vma, check if the linear page offset of vma is
+--- a/include/linux/khugepaged.h~mm-khugepaged-reorg-some-khugepaged-helpers
 +++ a/include/linux/khugepaged.h
-@@ -10,8 +10,6 @@ extern struct attribute_group khugepaged
- extern int khugepaged_init(void);
- extern void khugepaged_destroy(void);
- extern int start_stop_khugepaged(void);
--extern bool hugepage_vma_check(struct vm_area_struct *vma,
--			       unsigned long vm_flags);
- extern void __khugepaged_enter(struct mm_struct *mm);
- extern void __khugepaged_exit(struct mm_struct *mm);
- extern void khugepaged_enter_vma(struct vm_area_struct *vma,
---- a/mm/huge_memory.c~mm-thp-kill-transparent_hugepage_active
+@@ -24,20 +24,6 @@ static inline void collapse_pte_mapped_t
+ }
+ #endif
+ 
+-#define khugepaged_enabled()					       \
+-	(transparent_hugepage_flags &				       \
+-	 ((1<<TRANSPARENT_HUGEPAGE_FLAG) |		       \
+-	  (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG)))
+-#define khugepaged_always()				\
+-	(transparent_hugepage_flags &			\
+-	 (1<<TRANSPARENT_HUGEPAGE_FLAG))
+-#define khugepaged_req_madv()					\
+-	(transparent_hugepage_flags &				\
+-	 (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG))
+-#define khugepaged_defrag()					\
+-	(transparent_hugepage_flags &				\
+-	 (1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG))
+-
+ static inline void khugepaged_fork(struct mm_struct *mm, struct mm_struct *oldmm)
+ {
+ 	if (test_bit(MMF_VM_HUGEPAGE, &oldmm->flags))
+--- a/mm/huge_memory.c~mm-khugepaged-reorg-some-khugepaged-helpers
 +++ a/mm/huge_memory.c
-@@ -69,21 +69,53 @@ static atomic_t huge_zero_refcount;
- struct page *huge_zero_page __read_mostly;
- unsigned long huge_zero_pfn __read_mostly = ~0UL;
- 
--bool transparent_hugepage_active(struct vm_area_struct *vma)
-+bool hugepage_vma_check(struct vm_area_struct *vma,
-+			unsigned long vm_flags,
-+			bool smaps)
- {
--	/* The addr is used to check if the vma size fits */
--	unsigned long addr = (vma->vm_end & HPAGE_PMD_MASK) - HPAGE_PMD_SIZE;
-+	if (!transhuge_vma_enabled(vma, vm_flags))
-+		return false;
-+
-+	if (vm_flags & VM_NO_KHUGEPAGED)
-+		return false;
-+
-+	/* Don't run khugepaged against DAX vma */
-+	if (vma_is_dax(vma))
-+		return false;
- 
--	if (!transhuge_vma_suitable(vma, addr))
-+	/* Check alignment for file vma and size for both file and anon vma */
-+	if (!transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
- 		return false;
--	if (vma_is_anonymous(vma))
--		return __transparent_hugepage_enabled(vma);
--	if (vma_is_shmem(vma))
-+
-+	/* Enabled via shmem mount options or sysfs settings. */
-+	if (shmem_file(vma->vm_file))
+@@ -117,11 +117,11 @@ bool hugepage_vma_check(struct vm_area_s
+ 	if (!in_pf && shmem_file(vma->vm_file))
  		return shmem_huge_enabled(vma);
--	if (transhuge_vma_enabled(vma, vma->vm_flags) && file_thp_enabled(vma))
-+
-+	if (!khugepaged_enabled())
-+		return false;
-+
-+	/* THP settings require madvise. */
-+	if (!(vm_flags & VM_HUGEPAGE) && !khugepaged_always())
-+		return false;
-+
-+	/* Only regular file is valid */
-+	if (file_thp_enabled(vma))
- 		return true;
  
--	return false;
-+	if (!vma_is_anonymous(vma))
-+		return false;
-+
-+	if (vma_is_temporary_stack(vma))
-+		return false;
-+
-+	/*
-+	 * THPeligible bit of smaps should show 1 for proper VMAs even
-+	 * though anon_vma is not initialized yet.
-+	 */
-+	if (!vma->anon_vma)
-+		return smaps;
-+
-+	return true;
- }
- 
- static bool get_huge_zero_page(void)
---- a/mm/khugepaged.c~mm-thp-kill-transparent_hugepage_active
-+++ a/mm/khugepaged.c
-@@ -430,46 +430,6 @@ static inline int khugepaged_test_exit(s
- 	return atomic_read(&mm->mm_users) == 0;
- }
- 
--bool hugepage_vma_check(struct vm_area_struct *vma,
--			unsigned long vm_flags)
--{
--	if (!transhuge_vma_enabled(vma, vm_flags))
--		return false;
--
--	if (vm_flags & VM_NO_KHUGEPAGED)
--		return false;
--
--	/* Don't run khugepaged against DAX vma */
--	if (vma_is_dax(vma))
--		return false;
--
--	/* Check alignment for file vma and size for both file and anon vma */
--	if (!transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
--		return false;
--
--	/* Enabled via shmem mount options or sysfs settings. */
--	if (shmem_file(vma->vm_file))
--		return shmem_huge_enabled(vma);
--
 -	if (!khugepaged_enabled())
--		return false;
--
--	/* THP settings require madvise. */
++	if (!hugepage_flags_enabled())
+ 		return false;
+ 
+ 	/* THP settings require madvise. */
 -	if (!(vm_flags & VM_HUGEPAGE) && !khugepaged_always())
--		return false;
--
--	/* Only regular file is valid */
--	if (file_thp_enabled(vma))
--		return true;
--
--	if (!vma->anon_vma || !vma_is_anonymous(vma))
--		return false;
--	if (vma_is_temporary_stack(vma))
--		return false;
--
--	return true;
--}
--
- void __khugepaged_enter(struct mm_struct *mm)
- {
- 	struct mm_slot *mm_slot;
-@@ -506,7 +466,7 @@ void khugepaged_enter_vma(struct vm_area
++	if (!(vm_flags & VM_HUGEPAGE) && !hugepage_flags_always())
+ 		return false;
+ 
+ 	/* Only regular file is valid */
+--- a/mm/khugepaged.c~mm-khugepaged-reorg-some-khugepaged-helpers
++++ a/mm/khugepaged.c
+@@ -465,7 +465,7 @@ void khugepaged_enter_vma(struct vm_area
+ 			  unsigned long vm_flags)
  {
  	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
- 	    khugepaged_enabled()) {
--		if (hugepage_vma_check(vma, vm_flags))
-+		if (hugepage_vma_check(vma, vm_flags, false))
+-	    khugepaged_enabled()) {
++	    hugepage_flags_enabled()) {
+ 		if (hugepage_vma_check(vma, vm_flags, false, false))
  			__khugepaged_enter(vma->vm_mm);
  	}
+@@ -757,6 +757,10 @@ static bool khugepaged_scan_abort(int ni
+ 	return false;
  }
-@@ -952,7 +912,7 @@ static int hugepage_vma_revalidate(struc
  
- 	if (!transhuge_vma_suitable(vma, address))
- 		return SCAN_ADDRESS_RANGE;
--	if (!hugepage_vma_check(vma, vma->vm_flags))
-+	if (!hugepage_vma_check(vma, vma->vm_flags, false))
- 		return SCAN_VMA_CHECK;
- 	/*
- 	 * Anon VMA expected, the address may be unmapped then
-@@ -1438,7 +1398,7 @@ void collapse_pte_mapped_thp(struct mm_s
- 	 * the valid THP. Add extra VM_HUGEPAGE so hugepage_vma_check()
- 	 * will not fail the vma for missing VM_HUGEPAGE
- 	 */
--	if (!hugepage_vma_check(vma, vma->vm_flags | VM_HUGEPAGE))
-+	if (!hugepage_vma_check(vma, vma->vm_flags | VM_HUGEPAGE, false))
++#define khugepaged_defrag()					\
++	(transparent_hugepage_flags &				\
++	 (1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG))
++
+ /* Defrag for khugepaged will enter direct reclaim/compaction if necessary */
+ static inline gfp_t alloc_hugepage_khugepaged_gfpmask(void)
+ {
+@@ -854,7 +858,7 @@ static struct page *khugepaged_alloc_hug
+ 			khugepaged_alloc_sleep();
+ 		} else
+ 			count_vm_event(THP_COLLAPSE_ALLOC);
+-	} while (unlikely(!hpage) && likely(khugepaged_enabled()));
++	} while (unlikely(!hpage) && likely(hugepage_flags_enabled()));
+ 
+ 	return hpage;
+ }
+@@ -2173,7 +2177,7 @@ breakouterloop_mmap_lock:
+ static int khugepaged_has_work(void)
+ {
+ 	return !list_empty(&khugepaged_scan.mm_head) &&
+-		khugepaged_enabled();
++		hugepage_flags_enabled();
+ }
+ 
+ static int khugepaged_wait_event(void)
+@@ -2238,7 +2242,7 @@ static void khugepaged_wait_work(void)
  		return;
+ 	}
  
- 	/* Keep pmd pgtable for uffd-wp; see comment in retract_page_tables() */
-@@ -2132,7 +2092,7 @@ static unsigned int khugepaged_scan_mm_s
- 			progress++;
- 			break;
- 		}
--		if (!hugepage_vma_check(vma, vma->vm_flags)) {
-+		if (!hugepage_vma_check(vma, vma->vm_flags, false)) {
- skip:
- 			progress++;
- 			continue;
+-	if (khugepaged_enabled())
++	if (hugepage_flags_enabled())
+ 		wait_event_freezable(khugepaged_wait, khugepaged_wait_event());
+ }
+ 
+@@ -2269,7 +2273,7 @@ static void set_recommended_min_free_kby
+ 	int nr_zones = 0;
+ 	unsigned long recommended_min;
+ 
+-	if (!khugepaged_enabled()) {
++	if (!hugepage_flags_enabled()) {
+ 		calculate_min_free_kbytes();
+ 		goto update_wmarks;
+ 	}
+@@ -2319,7 +2323,7 @@ int start_stop_khugepaged(void)
+ 	int err = 0;
+ 
+ 	mutex_lock(&khugepaged_mutex);
+-	if (khugepaged_enabled()) {
++	if (hugepage_flags_enabled()) {
+ 		if (!khugepaged_thread)
+ 			khugepaged_thread = kthread_run(khugepaged, NULL,
+ 							"khugepaged");
+@@ -2345,7 +2349,7 @@ fail:
+ void khugepaged_min_free_kbytes_update(void)
+ {
+ 	mutex_lock(&khugepaged_mutex);
+-	if (khugepaged_enabled() && khugepaged_thread)
++	if (hugepage_flags_enabled() && khugepaged_thread)
+ 		set_recommended_min_free_kbytes();
+ 	mutex_unlock(&khugepaged_mutex);
+ }
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
