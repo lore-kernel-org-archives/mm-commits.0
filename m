@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B690EC43334
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jun 2022 18:41:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E6E8C43334
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jun 2022 19:41:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232660AbiFPSlv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jun 2022 14:41:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42096 "EHLO
+        id S1378172AbiFPTla (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jun 2022 15:41:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229683AbiFPSlu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 14:41:50 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5D2C54BCC
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 11:41:49 -0700 (PDT)
+        with ESMTP id S1378000AbiFPTla (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 15:41:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B54A859974
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 12:41:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 90482B825A0
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 18:41:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B428C3411B;
-        Thu, 16 Jun 2022 18:41:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F8DB61D69
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:41:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A66B3C34114;
+        Thu, 16 Jun 2022 19:41:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655404907;
-        bh=iHcoad+DhzPyzQKTMvwOpv5Sy0IRXbC6SrKwyBvoZ4U=;
+        s=korg; t=1655408488;
+        bh=0F1nrwMB0BiXZxXOsQ+daKraMaxHr4oanzfpAC7MADU=;
         h=Date:To:From:Subject:From;
-        b=MCCBaAQQah/Z5E6gd+ho7EsZclsbingh6ZIPFFqIcd8Qm5m/P0e7kki4THlQv6ap6
-         1wrFfwV5A5DOZaWca1sKqj8ekOfHXx5Pnj5sB+p2GiTAJGm/a+yNOunVnfDm1qALYS
-         0VZr7CJ4r/MScQzFtRM0OZUM4MjHttlKelsQagFc=
-Date:   Thu, 16 Jun 2022 11:41:46 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
+        b=sZDgbtGDrNqm7R1dKXrIqc7/g4CEreQdXig2GNtrfXdayj6lxcmvG/OCYW3eKN/fk
+         j6WfgAyKRI+EfA6He+ClZFAJwnBcYY3tsiLsFLGJXq2ZvE4C1Y8t6nCnkqjXpJvkYg
+         gRnH46yRKrDJXudzL7apDee6oNTwqsZLTmyJnZzw=
+Date:   Thu, 16 Jun 2022 12:41:27 -0700
+To:     mm-commits@vger.kernel.org, peterz@infradead.org,
+        bigeasy@linutronix.de, chenjun102@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-3.patch added to mm-unstable branch
-Message-Id: <20220616184147.2B428C3411B@smtp.kernel.org>
+Subject: + lockdep-make-prove_raw_lock_nesting-depend-on-preempt_rt.patch added to mm-nonmm-unstable branch
+Message-Id: <20220616194128.A66B3C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: allow vma_expand() to lock both anon and file locks
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-3.patch
+     Subject: lockdep: make PROVE_RAW_LOCK_NESTING depend on PREEMPT_RT
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lockdep-make-prove_raw_lock_nesting-depend-on-preempt_rt.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lockdep-make-prove_raw_lock_nesting-depend-on-preempt_rt.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,86 +65,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mm/mmap: allow vma_expand() to lock both anon and file locks
-Date: Thu, 16 Jun 2022 18:33:06 +0000
+From: Chen Jun <chenjun102@huawei.com>
+Subject: lockdep: make PROVE_RAW_LOCK_NESTING depend on PREEMPT_RT
+Date: Thu, 16 Jun 2022 02:29:11 +0000
 
-vma_expand() was only locking either file or anon based locks but could
-unlock both.  This caused a locking error in trinity fuzzer.  Allow both
-locks to be taken and released.
+CONFIG_PROVE_RAW_LOCK_NESTING is used to check two things.
+1. calling spin_lock in hardirq.
+2. raw_spinlock - spinlock nesting.
+The error messages like below:
+[   13.485711] [ BUG: Invalid wait context ]
 
-Link: https://lkml.kernel.org/r/20220616183258.1153609-1-Liam.Howlett@oracle.com
-Fixes: a5985220056d (mm/mmap: use advanced maple tree API for mmap_region())
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+However there is no problem on non-PREEMPT_RT kernel. The messages may be
+confusing and disturbing.
+
+Therefore, do not check raw_spinlock - spinlock nesting
+on non-PREEMPT_RT kernel.
+
+Link: https://lkml.kernel.org/r/20220616022911.35826-1-chenjun102@huawei.com
+Signed-off-by: Chen Jun <chenjun102@huawei.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mmap.c~mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-3
-+++ a/mm/mmap.c
-@@ -694,6 +694,11 @@ inline int vma_expand(struct ma_state *m
- 
- 	vma_adjust_trans_huge(vma, start, end, 0);
- 
-+	if (anon_vma) {
-+		anon_vma_lock_write(anon_vma);
-+		anon_vma_interval_tree_pre_update_vma(vma);
-+	}
-+
- 	if (file) {
- 		mapping = file->f_mapping;
- 		root = &mapping->i_mmap;
-@@ -701,9 +706,6 @@ inline int vma_expand(struct ma_state *m
- 		i_mmap_lock_write(mapping);
- 		flush_dcache_mmap_lock(mapping);
- 		vma_interval_tree_remove(vma, root);
--	} else if (anon_vma) {
--		anon_vma_lock_write(anon_vma);
--		anon_vma_interval_tree_pre_update_vma(vma);
- 	}
- 
- 	vma->vm_start = start;
-@@ -732,15 +734,16 @@ inline int vma_expand(struct ma_state *m
- 		mm->highest_vm_end = vm_end_gap(vma);
- 	}
- 
-+	if (file) {
-+		i_mmap_unlock_write(mapping);
-+		uprobe_mmap(vma);
-+	}
-+
- 	if (anon_vma) {
- 		anon_vma_interval_tree_post_update_vma(vma);
- 		anon_vma_unlock_write(anon_vma);
- 	}
- 
--	if (file) {
--		i_mmap_unlock_write(mapping);
--		uprobe_mmap(vma);
--	}
- 
- 	if (remove_next) {
- 		if (file) {
+--- a/lib/Kconfig.debug~lockdep-make-prove_raw_lock_nesting-depend-on-preempt_rt
++++ a/lib/Kconfig.debug
+@@ -1270,6 +1270,7 @@ config PROVE_LOCKING
+ config PROVE_RAW_LOCK_NESTING
+ 	bool "Enable raw_spinlock - spinlock nesting checks"
+ 	depends on PROVE_LOCKING
++	depends on PREEMPT_RT
+ 	default n
+ 	help
+ 	 Enable the raw_spinlock vs. spinlock nesting checks which ensure
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from chenjun102@huawei.com are
 
-maple-tree-add-new-data-structure-fix.patch
-maple-tree-add-new-data-structure-fix-2.patch
-maple-tree-add-new-data-structure-fix-3.patch
-maple-tree-add-new-data-structure-fix-4.patch
-maple-tree-add-new-data-structure-fix-7.patch
-maple-tree-add-new-data-structure-fix-8.patch
-maple-tree-add-new-data-structure-fix-9.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix-2.patch
-mm-start-tracking-vmas-with-maple-tree-fix-2.patch
-mm-start-tracking-vmas-with-maple-tree-fix-3.patch
-mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2.patch
-mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-3.patch
-mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix.patch
-mm-remove-the-vma-linked-list-fix.patch
-mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
+lockdep-make-prove_raw_lock_nesting-depend-on-preempt_rt.patch
 
