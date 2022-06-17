@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41717C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:14:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9C34C43334
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:15:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234830AbiFQXOu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jun 2022 19:14:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47270 "EHLO
+        id S236023AbiFQXPB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jun 2022 19:15:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236214AbiFQXOi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:38 -0400
+        with ESMTP id S236576AbiFQXOq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:46 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26A4864D0D
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 402C36541A
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A6633B82BFD
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57373C3411D;
-        Fri, 17 Jun 2022 23:14:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 482B6B82C03
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4314C3411B;
+        Fri, 17 Jun 2022 23:14:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507674;
-        bh=lRCk3ifYh8GCL0vTXVbq6jzNxaHLsjyAqRcnquOHd1w=;
+        s=korg; t=1655507678;
+        bh=mvoA91NmZcZZepg2Trit9nR49WiCqQK0LJgXAp5N5Mc=;
         h=Date:To:From:Subject:From;
-        b=Q4wdU3EmJ3MPTUORpKVwW+8seFBq5CG++/5R496gei62TLyzuhUfuGNtJeX0tRK9M
-         aG1i8cdomTC00AFgjkIGiF9/FbYvBiG+/3WLGP/1nPJwA0ouNL5kMMCb/Iq+qzj91h
-         5480rIHHxk+n1ymfC6QyWX9OoZqYtJn2xWZjhTus=
-Date:   Fri, 17 Jun 2022 16:14:33 -0700
+        b=egP2+vju8uLfOR1r10WtaXqd7rCEOw1WzpeGfc7Q1zpP9cUjthvATEVRDr065S4a/
+         zF7h2Xv3/hTgC5MJjzMwXw19ekzy/8oX+yOwwJwR5q2WF9+7qUdy+/OPAo3cmfQ4TP
+         4ZyEaREm2yxmzRKQloAdrpQYYCMBROlez4m6zaSc=
+Date:   Fri, 17 Jun 2022 16:14:37 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-optimise-lru_add_drain_cpu.patch added to mm-unstable branch
-Message-Id: <20220617231434.57373C3411D@smtp.kernel.org>
+Subject: + mm-swap-convert-release_pages-to-use-a-folio-internally.patch added to mm-unstable branch
+Message-Id: <20220617231437.E4314C3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: optimise lru_add_drain_cpu()
+     Subject: mm/swap: convert release_pages to use a folio internally
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-optimise-lru_add_drain_cpu.patch
+     mm-swap-convert-release_pages-to-use-a-folio-internally.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-optimise-lru_add_drain_cpu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-release_pages-to-use-a-folio-internally.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +65,108 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: optimise lru_add_drain_cpu()
-Date: Fri, 17 Jun 2022 18:50:09 +0100
+Subject: mm/swap: convert release_pages to use a folio internally
+Date: Fri, 17 Jun 2022 18:50:11 +0100
 
-Do the per-cpu dereferencing of the fbatches once which saves 14 bytes
-of text and several percpu relocations.
+This function was already calling compound_head(), but now it can
+cache the result of calling compound_head() and avoid calling it again.
+Saves 299 bytes of text by avoiding various calls to compound_page()
+and avoiding checks of PageTail.
 
-Link: https://lkml.kernel.org/r/20220617175020.717127-12-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/swap.c |   34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
---- a/mm/swap.c~mm-swap-optimise-lru_add_drain_cpu
+--- a/mm/swap.c~mm-swap-convert-release_pages-to-use-a-folio-internally
 +++ a/mm/swap.c
-@@ -620,7 +620,8 @@ static void lru_lazyfree_fn(struct lruve
-  */
- void lru_add_drain_cpu(int cpu)
- {
--	struct folio_batch *fbatch = &per_cpu(cpu_fbatches.lru_add, cpu);
-+	struct cpu_fbatches *fbatches = &per_cpu(cpu_fbatches, cpu);
-+	struct folio_batch *fbatch = &fbatches->lru_add;
+@@ -941,8 +941,7 @@ void release_pages(struct page **pages,
+ 	unsigned int lock_batch;
  
- 	if (folio_batch_count(fbatch))
- 		folio_batch_move_lru(fbatch, lru_add_fn);
-@@ -636,15 +637,15 @@ void lru_add_drain_cpu(int cpu)
- 		local_unlock_irqrestore(&lru_rotate.lock, flags);
+ 	for (i = 0; i < nr; i++) {
+-		struct page *page = pages[i];
+-		struct folio *folio = page_folio(page);
++		struct folio *folio = page_folio(pages[i]);
+ 
+ 		/*
+ 		 * Make sure the IRQ-safe lock-holding time does not get
+@@ -954,35 +953,34 @@ void release_pages(struct page **pages,
+ 			lruvec = NULL;
+ 		}
+ 
+-		page = &folio->page;
+-		if (is_huge_zero_page(page))
++		if (is_huge_zero_page(&folio->page))
+ 			continue;
+ 
+-		if (is_zone_device_page(page)) {
++		if (folio_is_zone_device(folio)) {
+ 			if (lruvec) {
+ 				unlock_page_lruvec_irqrestore(lruvec, flags);
+ 				lruvec = NULL;
+ 			}
+-			if (put_devmap_managed_page(page))
++			if (put_devmap_managed_page(&folio->page))
+ 				continue;
+-			if (put_page_testzero(page))
+-				free_zone_device_page(page);
++			if (folio_put_testzero(folio))
++				free_zone_device_page(&folio->page);
+ 			continue;
+ 		}
+ 
+-		if (!put_page_testzero(page))
++		if (!folio_put_testzero(folio))
+ 			continue;
+ 
+-		if (PageCompound(page)) {
++		if (folio_test_large(folio)) {
+ 			if (lruvec) {
+ 				unlock_page_lruvec_irqrestore(lruvec, flags);
+ 				lruvec = NULL;
+ 			}
+-			__put_compound_page(page);
++			__put_compound_page(&folio->page);
+ 			continue;
+ 		}
+ 
+-		if (PageLRU(page)) {
++		if (folio_test_lru(folio)) {
+ 			struct lruvec *prev_lruvec = lruvec;
+ 
+ 			lruvec = folio_lruvec_relock_irqsave(folio, lruvec,
+@@ -990,8 +988,8 @@ void release_pages(struct page **pages,
+ 			if (prev_lruvec != lruvec)
+ 				lock_batch = 0;
+ 
+-			del_page_from_lru_list(page, lruvec);
+-			__clear_page_lru_flags(page);
++			lruvec_del_folio(lruvec, folio);
++			__folio_clear_lru_flags(folio);
+ 		}
+ 
+ 		/*
+@@ -1000,13 +998,13 @@ void release_pages(struct page **pages,
+ 		 * found set here.  This does not indicate a problem, unless
+ 		 * "unevictable_pgs_cleared" appears worryingly large.
+ 		 */
+-		if (unlikely(PageMlocked(page))) {
+-			__ClearPageMlocked(page);
+-			dec_zone_page_state(page, NR_MLOCK);
++		if (unlikely(folio_test_mlocked(folio))) {
++			__folio_clear_mlocked(folio);
++			zone_stat_sub_folio(folio, NR_MLOCK);
+ 			count_vm_event(UNEVICTABLE_PGCLEARED);
+ 		}
+ 
+-		list_add(&page->lru, &pages_to_free);
++		list_add(&folio->lru, &pages_to_free);
  	}
- 
--	fbatch = &per_cpu(cpu_fbatches.lru_deactivate_file, cpu);
-+	fbatch = &fbatches->lru_deactivate_file;
- 	if (folio_batch_count(fbatch))
- 		folio_batch_move_lru(fbatch, lru_deactivate_file_fn);
- 
--	fbatch = &per_cpu(cpu_fbatches.lru_deactivate, cpu);
-+	fbatch = &fbatches->lru_deactivate;
- 	if (folio_batch_count(fbatch))
- 		folio_batch_move_lru(fbatch, lru_deactivate_fn);
- 
--	fbatch = &per_cpu(cpu_fbatches.lru_lazyfree, cpu);
-+	fbatch = &fbatches->lru_lazyfree;
- 	if (folio_batch_count(fbatch))
- 		folio_batch_move_lru(fbatch, lru_lazyfree_fn);
- 
+ 	if (lruvec)
+ 		unlock_page_lruvec_irqrestore(lruvec, flags);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
