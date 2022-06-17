@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73A88C43334
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:14:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41717C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:14:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236031AbiFQXOt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jun 2022 19:14:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47214 "EHLO
+        id S234830AbiFQXOu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jun 2022 19:14:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234830AbiFQXOg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:36 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E5ED5D5D2
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:35 -0700 (PDT)
+        with ESMTP id S236214AbiFQXOi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:38 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26A4864D0D
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C7955B82C04
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89571C3411D;
-        Fri, 17 Jun 2022 23:14:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A6633B82BFD
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57373C3411D;
+        Fri, 17 Jun 2022 23:14:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507672;
-        bh=jmZ4d5PVqUZF++1FIB069JPl0sa0kYz57cGn5rJQvHs=;
+        s=korg; t=1655507674;
+        bh=lRCk3ifYh8GCL0vTXVbq6jzNxaHLsjyAqRcnquOHd1w=;
         h=Date:To:From:Subject:From;
-        b=rDUWNPWxBzDzBV2LFTBrZTgvFrKY+4Aq2Xi/iqLmr2d/LYwm9gTDp/nnpy9rxhpJX
-         WUpj5fJH7fk5ZUQlSAMFSmvv8IRwaBBb85YKfa1app5oGwPr7QM5WPLOsbOVbJ0LyT
-         1Oy41t8epVVaQOqMkoh+knM80j40bl1I2MfTGL5k=
-Date:   Fri, 17 Jun 2022 16:14:31 -0700
+        b=Q4wdU3EmJ3MPTUORpKVwW+8seFBq5CG++/5R496gei62TLyzuhUfuGNtJeX0tRK9M
+         aG1i8cdomTC00AFgjkIGiF9/FbYvBiG+/3WLGP/1nPJwA0ouNL5kMMCb/Iq+qzj91h
+         5480rIHHxk+n1ymfC6QyWX9OoZqYtJn2xWZjhTus=
+Date:   Fri, 17 Jun 2022 16:14:33 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-pull-the-cpu-conditional-out-of-__lru_add_drain_all.patch added to mm-unstable branch
-Message-Id: <20220617231432.89571C3411D@smtp.kernel.org>
+Subject: + mm-swap-optimise-lru_add_drain_cpu.patch added to mm-unstable branch
+Message-Id: <20220617231434.57373C3411D@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: pull the CPU conditional out of __lru_add_drain_all()
+     Subject: mm/swap: optimise lru_add_drain_cpu()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-pull-the-cpu-conditional-out-of-__lru_add_drain_all.patch
+     mm-swap-optimise-lru_add_drain_cpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-pull-the-cpu-conditional-out-of-__lru_add_drain_all.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-optimise-lru_add_drain_cpu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,62 +65,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: pull the CPU conditional out of __lru_add_drain_all()
-Date: Fri, 17 Jun 2022 18:50:08 +0100
+Subject: mm/swap: optimise lru_add_drain_cpu()
+Date: Fri, 17 Jun 2022 18:50:09 +0100
 
-The function is too long, so pull this complicated conditional out into
-cpu_needs_drain().  This ends up shrinking the text by 14 bytes,
-by allowing GCC to cache the result of calling per_cpu() instead of
-relocating each lookup individually.
+Do the per-cpu dereferencing of the fbatches once which saves 14 bytes
+of text and several percpu relocations.
 
-Link: https://lkml.kernel.org/r/20220617175020.717127-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ mm/swap.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/swap.c~mm-swap-pull-the-cpu-conditional-out-of-__lru_add_drain_all
+--- a/mm/swap.c~mm-swap-optimise-lru_add_drain_cpu
 +++ a/mm/swap.c
-@@ -765,6 +765,21 @@ static void lru_add_drain_per_cpu(struct
- 	lru_add_and_bh_lrus_drain();
- }
- 
-+static bool cpu_needs_drain(unsigned int cpu)
-+{
+@@ -620,7 +620,8 @@ static void lru_lazyfree_fn(struct lruve
+  */
+ void lru_add_drain_cpu(int cpu)
+ {
+-	struct folio_batch *fbatch = &per_cpu(cpu_fbatches.lru_add, cpu);
 +	struct cpu_fbatches *fbatches = &per_cpu(cpu_fbatches, cpu);
-+
-+	/* Check these in order of likelihood that they're not zero */
-+	return folio_batch_count(&fbatches->lru_add) ||
-+		data_race(folio_batch_count(&per_cpu(lru_rotate.fbatch, cpu))) ||
-+		folio_batch_count(&fbatches->lru_deactivate_file) ||
-+		folio_batch_count(&fbatches->lru_deactivate) ||
-+		folio_batch_count(&fbatches->lru_lazyfree) ||
-+		folio_batch_count(&fbatches->activate) ||
-+		need_mlock_page_drain(cpu) ||
-+		has_bh_in_lru(cpu, NULL);
-+}
-+
- /*
-  * Doesn't need any cpu hotplug locking because we do rely on per-cpu
-  * kworkers being shut down before our page_alloc_cpu_dead callback is
-@@ -849,14 +864,7 @@ static inline void __lru_add_drain_all(b
- 	for_each_online_cpu(cpu) {
- 		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
++	struct folio_batch *fbatch = &fbatches->lru_add;
  
--		if (folio_batch_count(&per_cpu(cpu_fbatches.lru_add, cpu)) ||
--		    data_race(folio_batch_count(&per_cpu(lru_rotate.fbatch, cpu))) ||
--		    folio_batch_count(&per_cpu(cpu_fbatches.lru_deactivate_file, cpu)) ||
--		    folio_batch_count(&per_cpu(cpu_fbatches.lru_deactivate, cpu)) ||
--		    folio_batch_count(&per_cpu(cpu_fbatches.lru_lazyfree, cpu)) ||
--		    folio_batch_count(&per_cpu(cpu_fbatches.activate, cpu)) ||
--		    need_mlock_page_drain(cpu) ||
--		    has_bh_in_lru(cpu, NULL)) {
-+		if (cpu_needs_drain(cpu)) {
- 			INIT_WORK(work, lru_add_drain_per_cpu);
- 			queue_work_on(cpu, mm_percpu_wq, work);
- 			__cpumask_set_cpu(cpu, &has_work);
+ 	if (folio_batch_count(fbatch))
+ 		folio_batch_move_lru(fbatch, lru_add_fn);
+@@ -636,15 +637,15 @@ void lru_add_drain_cpu(int cpu)
+ 		local_unlock_irqrestore(&lru_rotate.lock, flags);
+ 	}
+ 
+-	fbatch = &per_cpu(cpu_fbatches.lru_deactivate_file, cpu);
++	fbatch = &fbatches->lru_deactivate_file;
+ 	if (folio_batch_count(fbatch))
+ 		folio_batch_move_lru(fbatch, lru_deactivate_file_fn);
+ 
+-	fbatch = &per_cpu(cpu_fbatches.lru_deactivate, cpu);
++	fbatch = &fbatches->lru_deactivate;
+ 	if (folio_batch_count(fbatch))
+ 		folio_batch_move_lru(fbatch, lru_deactivate_fn);
+ 
+-	fbatch = &per_cpu(cpu_fbatches.lru_lazyfree, cpu);
++	fbatch = &fbatches->lru_lazyfree;
+ 	if (folio_batch_count(fbatch))
+ 		folio_batch_move_lru(fbatch, lru_lazyfree_fn);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
