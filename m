@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C51A2C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:06:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B90CCA479
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:08:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237569AbiFQXGY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jun 2022 19:06:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40142 "EHLO
+        id S1383584AbiFQXIi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jun 2022 19:08:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347032AbiFQXGY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:06:24 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0ECB763508
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:06:23 -0700 (PDT)
+        with ESMTP id S1383377AbiFQXIT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:08:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB48A2BB0A
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:08:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 75A51CE2C6C
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:06:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7922C3411B;
-        Fri, 17 Jun 2022 23:06:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7CD90B82C02
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:08:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39EF3C3411B;
+        Fri, 17 Jun 2022 23:08:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507179;
-        bh=x/cjz8+W/MwL0qLcdkii3/Jy1JSBGBul69+/C1PA8Yg=;
+        s=korg; t=1655507295;
+        bh=KPL6hqlJwGKo9X9xYF2td2rezPZqHnhWhpaDJ6/mrsY=;
         h=Date:To:From:Subject:From;
-        b=Z6a6G7irqrkorlGvHvu/8c1R59i4lh/k8T4tV63UCsP0329d46Bokb3qgVoOocA6M
-         Yymb/BwAGLTCAkMcUgoflnnd9Y4jK9H/6pySY8p//e0Of5xdJ6DlFnsqllaiZcST6U
-         HQTKYapBwybAnbXNv+MsrTCEZkCT/ShbsaFl3xYU=
-Date:   Fri, 17 Jun 2022 16:06:19 -0700
-To:     mm-commits@vger.kernel.org, paulmck@kernel.org, osalvador@suse.de,
-        mike.kravetz@oracle.com, duanxiongchun@bytedance.com,
-        david@redhat.com, corbet@lwn.net, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
+        b=ZRXuVJIxmbp3XkUdW76vOW10OI6S2fVzVBN8gB1b8T1caMZYd33a8JGsoRlAi4691
+         5xslYwSkXh8yx5M0KzspE75YKXC1QbdlqBCpvvxC1VXVT6pxW/mMqtpUjuarzA1G6/
+         38mTVqUCVzLBSkJeToXq7AeEtv8D6iElpkFq0UY4=
+Date:   Fri, 17 Jun 2022 16:08:14 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        quic_qiancai@quicinc.com, Liam.Howlett@oracle.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch added to mm-unstable branch
-Message-Id: <20220617230619.C7922C3411B@smtp.kernel.org>
+Subject: + mm-remove-the-vma-linked-list-fix-4.patch added to mm-unstable branch
+Message-Id: <20220617230815.39EF3C3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory_hotplug: make hugetlb_optimize_vmemmap compatible with memmap_on_memory
+     Subject: mm/mmap: change do_mas_align_munmap() to avoid preallocations for sidetree
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
+     mm-remove-the-vma-linked-list-fix-4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-the-vma-linked-list-fix-4.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,291 +65,161 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memory_hotplug: make hugetlb_optimize_vmemmap compatible with memmap_on_memory
-Date: Fri, 17 Jun 2022 21:56:50 +0800
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: mm/mmap: change do_mas_align_munmap() to avoid preallocations for sidetree
+Date: Fri, 17 Jun 2022 13:46:42 +0000
 
-For now, the feature of hugetlb_free_vmemmap is not compatible with the
-feature of memory_hotplug.memmap_on_memory, and hugetlb_free_vmemmap takes
-precedence over memory_hotplug.memmap_on_memory.  However, someone wants
-to make memory_hotplug.memmap_on_memory takes precedence over
-hugetlb_free_vmemmap since memmap_on_memory makes it more likely to
-succeed memory hotplug in close-to-OOM situations.  So the decision of
-making hugetlb_free_vmemmap take precedence is not wise and elegant.
+Recording the VMAs to be removed in the sidetree does not require a
+preallocation - after all, split allocates with GFP_KERNEL.  Changing to a
+regular maple tree write means we can avoid issues when there are a large
+number of VMAs.  Using mas_store_gfp() instead of preallocations also
+means that the maple state does not need to be destroyed (freeing unused
+nodes).  At the same time, switch the tree flags to just
+MT_FLAGS_LOCK_EXTERN since gaps do not need to be tracked in the side
+tree.  This will allow more VMAs per node.
 
-The proper approach is to have hugetlb_vmemmap.c do the check whether the
-section which the HugeTLB pages belong to can be optimized.  If the
-section's vmemmap pages are allocated from the added memory block itself,
-hugetlb_free_vmemmap should refuse to optimize the vmemmap, otherwise, do
-the optimization.  Then both kernel parameters are compatible.  So this
-patch introduces VmemmapSelfHosted to mask any non-optimizable vmemmap
-pages.  The hugetlb_vmemmap can use this flag to detect if a vmemmap page
-can be optimized.
+Also reorganize the goto statements and split them up for better
+unwinding.
 
-Link: https://lkml.kernel.org/r/20220617135650.74901-3-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Co-developed-by: Oscar Salvador <osalvador@suse.de>
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220617134637.1771711-1-Liam.Howlett@oracle.com
+Fixes: e34b4addc263 (mm/mmap: fix potential leak on do_mas_align_munmap())
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Qian Cai <quic_qiancai@quicinc.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   22 +++---
- Documentation/admin-guide/sysctl/vm.rst         |    5 -
- include/linux/memory_hotplug.h                  |    9 --
- include/linux/page-flags.h                      |   11 +++
- mm/hugetlb_vmemmap.c                            |   47 +++++++++++---
- mm/memory_hotplug.c                             |   27 +++-----
- 6 files changed, 74 insertions(+), 47 deletions(-)
+ mm/mmap.c |   39 +++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1722,9 +1722,11 @@
- 			Built with CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON=y,
- 			the default is on.
- 
--			This is not compatible with memory_hotplug.memmap_on_memory.
--			If both parameters are enabled, hugetlb_free_vmemmap takes
--			precedence over memory_hotplug.memmap_on_memory.
-+			Note that the vmemmap pages may be allocated from the added
-+			memory block itself when memory_hotplug.memmap_on_memory is
-+			enabled, those vmemmap pages cannot be optimized even if this
-+			feature is enabled.  Other vmemmap pages not allocated from
-+			the added memory block itself do not be affected.
- 
- 	hung_task_panic=
- 			[KNL] Should the hung task detector generate panics.
-@@ -3069,10 +3071,12 @@
- 			[KNL,X86,ARM] Boolean flag to enable this feature.
- 			Format: {on | off (default)}
- 			When enabled, runtime hotplugged memory will
--			allocate its internal metadata (struct pages)
--			from the hotadded memory which will allow to
--			hotadd a lot of memory without requiring
--			additional memory to do so.
-+			allocate its internal metadata (struct pages,
-+			those vmemmap pages cannot be optimized even
-+			if hugetlb_free_vmemmap is enabled) from the
-+			hotadded memory which will allow to hotadd a
-+			lot of memory without requiring additional
-+			memory to do so.
- 			This feature is disabled by default because it
- 			has some implication on large (e.g. GB)
- 			allocations in some configurations (e.g. small
-@@ -3082,10 +3086,6 @@
- 			Note that even when enabled, there are a few cases where
- 			the feature is not effective.
- 
--			This is not compatible with hugetlb_free_vmemmap. If
--			both parameters are enabled, hugetlb_free_vmemmap takes
--			precedence over memory_hotplug.memmap_on_memory.
--
- 	memtest=	[KNL,X86,ARM,M68K,PPC,RISCV] Enable memtest
- 			Format: <integer>
- 			default : 0 <disable>
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -565,9 +565,8 @@ See Documentation/admin-guide/mm/hugetlb
- hugetlb_optimize_vmemmap
- ========================
- 
--This knob is not available when memory_hotplug.memmap_on_memory (kernel parameter)
--is configured or the size of 'struct page' (a structure defined in
--include/linux/mm_types.h) is not power of two (an unusual system config could
-+This knob is not available when the size of 'struct page' (a structure defined
-+in include/linux/mm_types.h) is not power of two (an unusual system config could
- result in this).
- 
- Enable (set to 1) or disable (set to 0) the feature of optimizing vmemmap pages
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
-+++ a/include/linux/memory_hotplug.h
-@@ -351,13 +351,4 @@ void arch_remove_linear_mapping(u64 star
- extern bool mhp_supports_memmap_on_memory(unsigned long size);
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
--#ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
--bool mhp_memmap_on_memory(void);
--#else
--static inline bool mhp_memmap_on_memory(void)
--{
--	return false;
--}
--#endif
--
- #endif /* __LINUX_MEMORY_HOTPLUG_H */
---- a/include/linux/page-flags.h~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
-+++ a/include/linux/page-flags.h
-@@ -193,6 +193,11 @@ enum pageflags {
- 
- 	/* Only valid for buddy pages. Used to track pages that are reported */
- 	PG_reported = PG_uptodate,
-+
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+	/* For self-hosted memmap pages */
-+	PG_vmemmap_self_hosted = PG_owner_priv_1,
-+#endif
- };
- 
- #define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
-@@ -628,6 +633,12 @@ PAGEFLAG_FALSE(SkipKASanPoison, skip_kas
-  */
- __PAGEFLAG(Reported, reported, PF_NO_COMPOUND)
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+PAGEFLAG(VmemmapSelfHosted, vmemmap_self_hosted, PF_ANY)
-+#else
-+PAGEFLAG_FALSE(VmemmapSelfHosted, vmemmap_self_hosted)
-+#endif
-+
- /*
-  * On an anonymous page mapped into a user virtual memory area,
-  * page->mapping points to its anon_vma, not to a struct address_space;
---- a/mm/hugetlb_vmemmap.c~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
-+++ a/mm/hugetlb_vmemmap.c
-@@ -10,7 +10,6 @@
-  */
- #define pr_fmt(fmt)	"HugeTLB: " fmt
- 
--#include <linux/memory_hotplug.h>
- #include "hugetlb_vmemmap.h"
- 
- /*
-@@ -97,18 +96,50 @@ int hugetlb_vmemmap_alloc(struct hstate
- 	return ret;
+--- a/mm/mmap.c~mm-remove-the-vma-linked-list-fix-4
++++ a/mm/mmap.c
+@@ -2377,13 +2377,17 @@ int split_vma(struct mm_struct *mm, stru
+ 	return __split_vma(mm, vma, addr, new_below);
  }
  
-+static unsigned int vmemmap_optimizable_pages(struct hstate *h,
-+					      struct page *head)
-+{
-+	struct mem_section *ms;
-+	struct page *vmemmap_page;
-+	unsigned long pfn = page_to_pfn(head);
-+
-+	if (READ_ONCE(vmemmap_optimize_mode) == VMEMMAP_OPTIMIZE_OFF)
-+		return 0;
-+
-+	ms = __pfn_to_section(pfn);
-+	vmemmap_page = sparse_decode_mem_map(ms->section_mem_map,
-+					     pfn_to_section_nr(pfn));
-+	/*
-+	 * Only the vmemmap pages' vmemmap may be marked as VmemmapSelfHosted.
-+	 *
-+	 * Due to HugeTLB alignment requirements, and the vmemmap pages being
-+	 * at the start of the hotplugged memory region. Checking any vmemmap
-+	 * page's vmemmap is fine.
-+	 *
-+	 * [      hotplugged memory     ]
-+	 * [ vmemmap ][  usable memory  ]
-+	 *   ^   |      |            |
-+	 *   +---+      |            |
-+	 *     ^        |            |
-+	 *     +--------+            |
-+	 *         ^                 |
-+	 *         +-----------------+
-+	 */
-+	if (PageVmemmapSelfHosted(vmemmap_page))
-+		return 0;
-+
-+	return hugetlb_optimize_vmemmap_pages(h);
-+}
-+
- void hugetlb_vmemmap_free(struct hstate *h, struct page *head)
+-static inline void munmap_sidetree(struct vm_area_struct *vma,
++static inline int munmap_sidetree(struct vm_area_struct *vma,
+ 				   struct ma_state *mas_detach)
  {
- 	unsigned long vmemmap_addr = (unsigned long)head;
- 	unsigned long vmemmap_end, vmemmap_reuse, vmemmap_pages;
+ 	mas_set_range(mas_detach, vma->vm_start, vma->vm_end - 1);
+-	mas_store(mas_detach, vma);
++	if (mas_store_gfp(mas_detach, vma, GFP_KERNEL))
++		return -ENOMEM;
++
+ 	if (vma->vm_flags & VM_LOCKED)
+ 		vma->vm_mm->locked_vm -= vma_pages(vma);
++
++	return 0;
+ }
  
--	vmemmap_pages = hugetlb_optimize_vmemmap_pages(h);
-+	vmemmap_pages = vmemmap_optimizable_pages(h, head);
- 	if (!vmemmap_pages)
- 		return;
+ /*
+@@ -2407,16 +2411,13 @@ do_mas_align_munmap(struct ma_state *mas
+ 	struct maple_tree mt_detach;
+ 	int count = 0;
+ 	int error = -ENOMEM;
+-	MA_STATE(mas_detach, &mt_detach, start, end - 1);
+-	mt_init_flags(&mt_detach, MM_MT_FLAGS);
++	MA_STATE(mas_detach, &mt_detach, 0, 0);
++	mt_init_flags(&mt_detach, MT_FLAGS_LOCK_EXTERN);
+ 	mt_set_external_lock(&mt_detach, &mm->mmap_lock);
  
--	if (READ_ONCE(vmemmap_optimize_mode) == VMEMMAP_OPTIMIZE_OFF)
--		return;
+ 	if (mas_preallocate(mas, vma, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+-	if (mas_preallocate(&mas_detach, vma, GFP_KERNEL))
+-		goto detach_alloc_fail;
 -
- 	static_branch_inc(&hugetlb_optimize_vmemmap_key);
- 
- 	vmemmap_addr	+= RESERVE_VMEMMAP_SIZE;
-@@ -199,10 +230,10 @@ static struct ctl_table hugetlb_vmemmap_
- static __init int hugetlb_vmemmap_sysctls_init(void)
- {
+ 	mas->last = end - 1;
  	/*
--	 * If "memory_hotplug.memmap_on_memory" is enabled or "struct page"
--	 * crosses page boundaries, the vmemmap pages cannot be optimized.
-+	 * If "struct page" crosses page boundaries, the vmemmap pages cannot
-+	 * be optimized.
- 	 */
--	if (!mhp_memmap_on_memory() && is_power_of_2(sizeof(struct page)))
-+	if (is_power_of_2(sizeof(struct page)))
- 		register_sysctl_init("vm", hugetlb_vmemmap_sysctls);
+ 	 * If we need to split any vma, do it now to save pain later.
+@@ -2443,7 +2444,7 @@ do_mas_align_munmap(struct ma_state *mas
+ 		 */
+ 		error = __split_vma(mm, vma, start, 0);
+ 		if (error)
+-			goto split_failed;
++			goto start_split_failed;
  
- 	return 0;
---- a/mm/memory_hotplug.c~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
-+++ a/mm/memory_hotplug.c
-@@ -43,30 +43,22 @@
- #include "shuffle.h"
+ 		mas_set(mas, start);
+ 		vma = mas_walk(mas);
+@@ -2464,26 +2465,28 @@ do_mas_align_munmap(struct ma_state *mas
  
- #ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
--static int memmap_on_memory_set(const char *val, const struct kernel_param *kp)
--{
--	if (hugetlb_optimize_vmemmap_enabled())
--		return 0;
--	return param_set_bool(val, kp);
--}
--
--static const struct kernel_param_ops memmap_on_memory_ops = {
--	.flags	= KERNEL_PARAM_OPS_FL_NOARG,
--	.set	= memmap_on_memory_set,
--	.get	= param_get_bool,
--};
--
- /*
-  * memory_hotplug.memmap_on_memory parameter
-  */
- static bool memmap_on_memory __ro_after_init;
--module_param_cb(memmap_on_memory, &memmap_on_memory_ops, &memmap_on_memory, 0444);
-+module_param(memmap_on_memory, bool, 0444);
- MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug");
+ 			error = __split_vma(mm, next, end, 1);
+ 			if (error)
+-				goto split_failed;
++				goto end_split_failed;
  
--bool mhp_memmap_on_memory(void)
-+static inline bool mhp_memmap_on_memory(void)
- {
- 	return memmap_on_memory;
- }
-+#else
-+static inline bool mhp_memmap_on_memory(void)
-+{
-+	return false;
-+}
+ 			mas_set(mas, end);
+ 			split = mas_prev(mas, 0);
+-			munmap_sidetree(split, &mas_detach);
++			if (munmap_sidetree(split, &mas_detach))
++				goto munmap_sidetree_failed;
++
+ 			count++;
+ 			if (vma == next)
+ 				vma = split;
+ 			break;
+ 		}
++		if (munmap_sidetree(next, &mas_detach))
++			goto munmap_sidetree_failed;
++
+ 		count++;
+-		munmap_sidetree(next, &mas_detach);
+ #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
+ 		BUG_ON(next->vm_start < start);
+ 		BUG_ON(next->vm_start > end);
  #endif
+ 	}
  
- enum {
-@@ -1035,7 +1027,7 @@ int mhp_init_memmap_on_memory(unsigned l
- 			      struct zone *zone)
- {
- 	unsigned long end_pfn = pfn + nr_pages;
--	int ret;
-+	int ret, i;
+-	mas_destroy(&mas_detach);
+-
+ 	if (!next)
+ 		next = mas_next(mas, ULONG_MAX);
  
- 	ret = kasan_add_zero_shadow(__va(PFN_PHYS(pfn)), PFN_PHYS(nr_pages));
- 	if (ret)
-@@ -1043,6 +1035,9 @@ int mhp_init_memmap_on_memory(unsigned l
+@@ -2544,18 +2547,18 @@ do_mas_align_munmap(struct ma_state *mas
+ 	/* Statistics and freeing VMAs */
+ 	mas_set(&mas_detach, start);
+ 	remove_mt(mm, &mas_detach);
+-	validate_mm(mm);
+ 	__mt_destroy(&mt_detach);
  
- 	move_pfn_range_to_zone(zone, pfn, nr_pages, NULL, MIGRATE_UNMOVABLE);
  
-+	for (i = 0; i < nr_pages; i++)
-+		SetPageVmemmapSelfHosted(pfn_to_page(pfn + i));
-+
- 	/*
- 	 * It might be that the vmemmap_pages fully span sections. If that is
- 	 * the case, mark those sections online here as otherwise they will be
+ 	validate_mm(mm);
+ 	return downgrade ? 1 : 0;
+ 
+-map_count_exceeded:
+-split_failed:
+ userfaultfd_error:
+-	mas_destroy(&mas_detach);
+-detach_alloc_fail:
++munmap_sidetree_failed:
++end_split_failed:
++	__mt_destroy(&mt_detach);
++start_split_failed:
++map_count_exceeded:
+ 	mas_destroy(mas);
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-mm-memory_hotplug-enumerate-all-supported-section-flags.patch
-mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
+maple-tree-add-new-data-structure-fix.patch
+maple-tree-add-new-data-structure-fix-2.patch
+maple-tree-add-new-data-structure-fix-3.patch
+maple-tree-add-new-data-structure-fix-4.patch
+maple-tree-add-new-data-structure-fix-7.patch
+maple-tree-add-new-data-structure-fix-8.patch
+maple-tree-add-new-data-structure-fix-8-fix.patch
+maple-tree-add-new-data-structure-fix-9.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix-2.patch
+mm-start-tracking-vmas-with-maple-tree-fix-2.patch
+mm-start-tracking-vmas-with-maple-tree-fix-3.patch
+mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-2.patch
+mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-3.patch
+mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap-fix.patch
+mm-remove-the-vma-linked-list-fix.patch
+mm-remove-the-vma-linked-list-fix-4.patch
+mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
 
