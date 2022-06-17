@@ -2,56 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6361CC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:49:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9FCBC43334
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:49:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379790AbiFQCtX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jun 2022 22:49:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60268 "EHLO
+        id S1379810AbiFQCtg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jun 2022 22:49:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379793AbiFQCtW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D1E865400
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:20 -0700 (PDT)
+        with ESMTP id S1379800AbiFQCtY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 120C965406
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1429DB826EF
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFC66C34114;
-        Fri, 17 Jun 2022 02:49:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9939561D23
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED14EC34114;
+        Fri, 17 Jun 2022 02:49:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655434157;
-        bh=IDLBkpZzMGCoVfuRCtqMfx3sEOGpUjCwXhHdfu3lo70=;
+        s=korg; t=1655434162;
+        bh=CgtHiplCvwwva11Bof8TKAd67N2Qzqdgy8wqAsQceu0=;
         h=Date:To:From:Subject:From;
-        b=z/zNLmmi3KtWCbkQ3ZAeQikeH+wpyerVc9sTCGbTgrWrHY8U0nh71bXBg0QT+TsqT
-         NRN7bQq9vXidzyvDBfgOFuyo/00bLY2nzABMdvJDE0BRs1uROLqxDdSIFLepqBVAuZ
-         7id47m2sQXjSoTo9CcDg8+Ej+Dadlt6Rh67+QLqQ=
-Date:   Thu, 16 Jun 2022 19:49:17 -0700
-To:     mm-commits@vger.kernel.org, ysato@users.osdn.me, will@kernel.org,
-        viro@zeniv.linux.org.uk, vgupta@kernel.org, vbabka@suse.cz,
-        tsbogend@alpha.franken.de, tglx@linutronix.de, svens@linux.ibm.com,
-        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
-        rth@twiddle.net, rmk+kernel@armlinux.org.uk, richard@nod.at,
-        peterz@infradead.org, paul.walmsley@sifive.com, paulus@samba.org,
-        palmer@dabbelt.com, npiggin@gmail.com, mpe@ellerman.id.au,
-        monstr@monstr.eu, mingo@kernel.org, mattst88@gmail.com,
-        luto@kernel.org, jonas@southpole.se, johannes@sipsolutions.net,
-        jcmvbkbc@gmail.com, James.Bottomley@HansenPartnership.com,
-        ink@jurassic.park.msu.ru, hughd@google.com, hpa@zytor.com,
-        hca@linux.ibm.com, hannes@cmpxchg.org, guoren@kernel.org,
-        gor@linux.ibm.com, geert@linux-m68k.org, frankja@linux.ibm.com,
-        dinguyen@kernel.org, deller@gmx.de, david@redhat.com,
-        davem@davemloft.net, dave.hansen@linux.intel.com, dalias@libc.org,
-        chris@zankel.net, catalin.marinas@arm.com, bp@alien8.de,
-        borntraeger@linux.ibm.com, benh@kernel.crashing.org,
-        bcain@quicinc.com, apopple@nvidia.com, aou@eecs.berkeley.edu,
-        anton.ivanov@cambridgegreys.com, agordeev@linux.ibm.com,
-        aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
+        b=ZUvCyRmGNw77BlcR9F27hztfCYqzKdXdZ4NwQmxTY8aqisEOcV1imdqzkoDQh7BN3
+         ySAZdPw+b62WZUp5fSlgBN7yxwPnNSAckTyPuxklnh/17SroO1x6hxmtlvtfKURgjD
+         /8xmn8uSqczGT8p+VG8ZhKv0KRCyr0hicT6tRjoY=
+Date:   Thu, 16 Jun 2022 19:49:21 -0700
+To:     mm-commits@vger.kernel.org, urezki@gmail.com, hch@infradead.org,
+        bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types.patch removed from -mm tree
-Message-Id: <20220617024917.AFC66C34114@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-invoke-classify_va_fit_type-in-adjust_va_to_fit_type.patch removed from -mm tree
+Message-Id: <20220617024921.ED14EC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -59,578 +41,116 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: avoid unnecessary page fault retires on shared memory types
+     Subject: mm/vmalloc: invoke classify_va_fit_type() in adjust_va_to_fit_type()
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types.patch
+     mm-vmalloc-invoke-classify_va_fit_type-in-adjust_va_to_fit_type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: avoid unnecessary page fault retires on shared memory types
-Date: Mon, 30 May 2022 14:34:50 -0400
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/vmalloc: invoke classify_va_fit_type() in adjust_va_to_fit_type()
+Date: Tue, 7 Jun 2022 18:59:55 +0800
 
-I observed that for each of the shared file-backed page faults, we're very
-likely to retry one more time for the 1st write fault upon no page.  It's
-because we'll need to release the mmap lock for dirty rate limit purpose
-with balance_dirty_pages_ratelimited() (in fault_dirty_shared_page()).
+Patch series "Cleanup patches of vmalloc", v2.
 
-Then after that throttling we return VM_FAULT_RETRY.
+Some cleanup patches found when reading vmalloc code.
 
-We did that probably because VM_FAULT_RETRY is the only way we can return
-to the fault handler at that time telling it we've released the mmap lock.
 
-However that's not ideal because it's very likely the fault does not need
-to be retried at all since the pgtable was well installed before the
-throttling, so the next continuous fault (including taking mmap read lock,
-walk the pgtable, etc.) could be in most cases unnecessary.
+This patch (of 4):
 
-It's not only slowing down page faults for shared file-backed, but also add
-more mmap lock contention which is in most cases not needed at all.
+adjust_va_to_fit_type() checks all values of passed in fit type, including
+NOTHING_FIT in the else branch.  However, the check of NOTHING_FIT has
+been done inside adjust_va_to_fit_type() and before it's called in all
+call sites.
 
-To observe this, one could try to write to some shmem page and look at
-"pgfault" value in /proc/vmstat, then we should expect 2 counts for each
-shmem write simply because we retried, and vm event "pgfault" will capture
-that.
+In fact, both of these functions are coupled tightly, since
+classify_va_fit_type() is doing the preparation work for
+adjust_va_to_fit_type().  So putting invocation of classify_va_fit_type()
+inside adjust_va_to_fit_type() can simplify code logic and the redundant
+check of NOTHING_FIT issue will go away.
 
-To make it more efficient, add a new VM_FAULT_COMPLETED return code just to
-show that we've completed the whole fault and released the lock.  It's also
-a hint that we should very possibly not need another fault immediately on
-this page because we've just completed it.
-
-This patch provides a ~12% perf boost on my aarch64 test VM with a simple
-program sequentially dirtying 400MB shmem file being mmap()ed and these are
-the time it needs:
-
-  Before: 650.980 ms (+-1.94%)
-  After:  569.396 ms (+-1.38%)
-
-I believe it could help more than that.
-
-We need some special care on GUP and the s390 pgfault handler (for gmap
-code before returning from pgfault), the rest changes in the page fault
-handlers should be relatively straightforward.
-
-Another thing to mention is that mm_account_fault() does take this new
-fault as a generic fault to be accounted, unlike VM_FAULT_RETRY.
-
-I explicitly didn't touch hmm_vma_fault() and break_ksm() because they do
-not handle VM_FAULT_RETRY even with existing code, so I'm literally keeping
-them as-is.
-
-Link: https://lkml.kernel.org/r/20220530183450.42886-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vineet Gupta <vgupta@kernel.org>
-Acked-by: Guo Ren <guoren@kernel.org>
-Acked-by: Max Filippov <jcmvbkbc@gmail.com>
-Acked-by: Christian Borntraeger <borntraeger@linux.ibm.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Ingo Molnar <mingo@kernel.org>
-Acked-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>	[arm part]
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Brian Cain <bcain@quicinc.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Will Deacon <will@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Yoshinori Sato <ysato@users.osdn.me>
+Link: https://lkml.kernel.org/r/20220607105958.382076-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20220607105958.382076-2-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Suggested-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/fault.c         |    4 +++
- arch/arc/mm/fault.c           |    4 +++
- arch/arm/mm/fault.c           |    4 +++
- arch/arm64/mm/fault.c         |    4 +++
- arch/csky/mm/fault.c          |    4 +++
- arch/hexagon/mm/vm_fault.c    |    4 +++
- arch/ia64/mm/fault.c          |    4 +++
- arch/m68k/mm/fault.c          |    4 +++
- arch/microblaze/mm/fault.c    |    4 +++
- arch/mips/mm/fault.c          |    4 +++
- arch/nios2/mm/fault.c         |    4 +++
- arch/openrisc/mm/fault.c      |    4 +++
- arch/parisc/mm/fault.c        |    4 +++
- arch/powerpc/mm/copro_fault.c |    5 ++++
- arch/powerpc/mm/fault.c       |    5 ++++
- arch/riscv/mm/fault.c         |    4 +++
- arch/s390/mm/fault.c          |   12 +++++++++++
- arch/sh/mm/fault.c            |    4 +++
- arch/sparc/mm/fault_32.c      |    4 +++
- arch/sparc/mm/fault_64.c      |    5 ++++
- arch/um/kernel/trap.c         |    4 +++
- arch/x86/mm/fault.c           |    4 +++
- arch/xtensa/mm/fault.c        |    4 +++
- include/linux/mm_types.h      |    2 +
- mm/gup.c                      |   34 +++++++++++++++++++++++++++++++-
- mm/memory.c                   |    2 -
- 26 files changed, 139 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
---- a/arch/alpha/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/alpha/mm/fault.c
-@@ -155,6 +155,10 @@ retry:
- 	if (fault_signal_pending(fault, regs))
- 		return;
+--- a/mm/vmalloc.c~mm-vmalloc-invoke-classify_va_fit_type-in-adjust_va_to_fit_type
++++ a/mm/vmalloc.c
+@@ -1335,10 +1335,10 @@ classify_va_fit_type(struct vmap_area *v
  
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
---- a/arch/arc/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/arc/mm/fault.c
-@@ -146,6 +146,10 @@ retry:
- 		return;
- 	}
+ static __always_inline int
+ adjust_va_to_fit_type(struct vmap_area *va,
+-	unsigned long nva_start_addr, unsigned long size,
+-	enum fit_type type)
++	unsigned long nva_start_addr, unsigned long size)
+ {
+ 	struct vmap_area *lva = NULL;
++	enum fit_type type = classify_va_fit_type(va, nva_start_addr, size);
  
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	/*
- 	 * Fault retry nuances, mmap_lock already relinquished by core mm
- 	 */
---- a/arch/arm64/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/arm64/mm/fault.c
-@@ -608,6 +608,10 @@ retry:
- 		return 0;
- 	}
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return 0;
-+
- 	if (fault & VM_FAULT_RETRY) {
- 		mm_flags |= FAULT_FLAG_TRIED;
- 		goto retry;
---- a/arch/arm/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/arm/mm/fault.c
-@@ -322,6 +322,10 @@ retry:
- 		return 0;
- 	}
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return 0;
-+
- 	if (!(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_RETRY) {
- 			flags |= FAULT_FLAG_TRIED;
---- a/arch/csky/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/csky/mm/fault.c
-@@ -285,6 +285,10 @@ good_area:
- 		return;
- 	}
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely((fault & VM_FAULT_RETRY) && (flags & FAULT_FLAG_ALLOW_RETRY))) {
- 		flags |= FAULT_FLAG_TRIED;
- 
---- a/arch/hexagon/mm/vm_fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/hexagon/mm/vm_fault.c
-@@ -96,6 +96,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		return;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	/* The most common case -- we are done. */
- 	if (likely(!(fault & VM_FAULT_ERROR))) {
- 		if (fault & VM_FAULT_RETRY) {
---- a/arch/ia64/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/ia64/mm/fault.c
-@@ -139,6 +139,10 @@ retry:
- 	if (fault_signal_pending(fault, regs))
- 		return;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 	if (type == FL_FIT_TYPE) {
  		/*
- 		 * We ran out of memory, or some other thing happened
---- a/arch/m68k/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/m68k/mm/fault.c
-@@ -141,6 +141,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		return 0;
+@@ -1444,7 +1444,6 @@ __alloc_vmap_area(unsigned long size, un
+ 	bool adjust_search_size = true;
+ 	unsigned long nva_start_addr;
+ 	struct vmap_area *va;
+-	enum fit_type type;
+ 	int ret;
  
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return 0;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
---- a/arch/microblaze/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/microblaze/mm/fault.c
-@@ -222,6 +222,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		return;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
---- a/arch/mips/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/mips/mm/fault.c
-@@ -162,6 +162,10 @@ good_area:
- 		return;
- 	}
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
---- a/arch/nios2/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/nios2/mm/fault.c
-@@ -139,6 +139,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		return;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
---- a/arch/openrisc/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/openrisc/mm/fault.c
-@@ -165,6 +165,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		return;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
---- a/arch/parisc/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/parisc/mm/fault.c
-@@ -311,6 +311,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		return;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		/*
- 		 * We hit a shared mapping outside of the file, or some
---- a/arch/powerpc/mm/copro_fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/powerpc/mm/copro_fault.c
-@@ -65,6 +65,11 @@ int copro_handle_mm_fault(struct mm_stru
- 
- 	ret = 0;
- 	*flt = handle_mm_fault(vma, ea, is_write ? FAULT_FLAG_WRITE : 0, NULL);
-+
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (*flt & VM_FAULT_COMPLETED)
-+		return 0;
-+
- 	if (unlikely(*flt & VM_FAULT_ERROR)) {
- 		if (*flt & VM_FAULT_OOM) {
- 			ret = -ENOMEM;
---- a/arch/powerpc/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/powerpc/mm/fault.c
-@@ -511,6 +511,10 @@ retry:
- 	if (fault_signal_pending(fault, regs))
- 		return user_mode(regs) ? 0 : SIGBUS;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		goto out;
-+
  	/*
- 	 * Handle the retry right now, the mmap_lock has been released in that
- 	 * case.
-@@ -525,6 +529,7 @@ retry:
- 	if (unlikely(fault & VM_FAULT_ERROR))
- 		return mm_fault_error(regs, address, fault);
+@@ -1472,14 +1471,9 @@ __alloc_vmap_area(unsigned long size, un
+ 	if (nva_start_addr + size > vend)
+ 		return vend;
  
-+out:
- 	/*
- 	 * Major/minor page fault accounting.
- 	 */
---- a/arch/riscv/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/riscv/mm/fault.c
-@@ -326,6 +326,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		return;
+-	/* Classify what we have found. */
+-	type = classify_va_fit_type(va, nva_start_addr, size);
+-	if (WARN_ON_ONCE(type == NOTHING_FIT))
+-		return vend;
+-
+ 	/* Update the free vmap_area. */
+-	ret = adjust_va_to_fit_type(va, nva_start_addr, size, type);
+-	if (ret)
++	ret = adjust_va_to_fit_type(va, nva_start_addr, size);
++	if (WARN_ON_ONCE(ret))
+ 		return vend;
  
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_RETRY)) {
- 		flags |= FAULT_FLAG_TRIED;
+ #if DEBUG_AUGMENT_LOWEST_MATCH_CHECK
+@@ -3735,7 +3729,6 @@ struct vm_struct **pcpu_get_vm_areas(con
+ 	int area, area2, last_area, term_area;
+ 	unsigned long base, start, size, end, last_end, orig_start, orig_end;
+ 	bool purged = false;
+-	enum fit_type type;
  
---- a/arch/s390/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/s390/mm/fault.c
-@@ -433,6 +433,17 @@ retry:
- 			goto out_up;
- 		goto out;
- 	}
-+
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED) {
-+		if (gmap) {
-+			mmap_read_lock(mm);
-+			goto out_gmap;
-+		}
-+		fault = 0;
-+		goto out;
-+	}
-+
- 	if (unlikely(fault & VM_FAULT_ERROR))
- 		goto out_up;
+ 	/* verify parameters and allocate data structures */
+ 	BUG_ON(offset_in_page(align) || !is_power_of_2(align));
+@@ -3846,15 +3839,11 @@ retry:
+ 			/* It is a BUG(), but trigger recovery instead. */
+ 			goto recovery;
  
-@@ -452,6 +463,7 @@ retry:
- 		mmap_read_lock(mm);
- 		goto retry;
- 	}
-+out_gmap:
- 	if (IS_ENABLED(CONFIG_PGSTE) && gmap) {
- 		address =  __gmap_link(gmap, current->thread.gmap_addr,
- 				       address);
---- a/arch/sh/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/sh/mm/fault.c
-@@ -485,6 +485,10 @@ good_area:
- 		if (mm_fault_error(regs, error_code, address, fault))
- 			return;
+-		type = classify_va_fit_type(va, start, size);
+-		if (WARN_ON_ONCE(type == NOTHING_FIT))
++		ret = adjust_va_to_fit_type(va, start, size);
++		if (WARN_ON_ONCE(unlikely(ret)))
+ 			/* It is a BUG(), but trigger recovery instead. */
+ 			goto recovery;
  
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (fault & VM_FAULT_RETRY) {
- 		flags |= FAULT_FLAG_TRIED;
- 
---- a/arch/sparc/mm/fault_32.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/sparc/mm/fault_32.c
-@@ -190,6 +190,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		return;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
---- a/arch/sparc/mm/fault_64.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/sparc/mm/fault_64.c
-@@ -427,6 +427,10 @@ good_area:
- 	if (fault_signal_pending(fault, regs))
- 		goto exit_exception;
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		goto lock_released;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
-@@ -449,6 +453,7 @@ good_area:
- 	}
- 	mmap_read_unlock(mm);
- 
-+lock_released:
- 	mm_rss = get_mm_rss(mm);
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE)
- 	mm_rss -= (mm->context.thp_pte_count * (HPAGE_SIZE / PAGE_SIZE));
---- a/arch/um/kernel/trap.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/um/kernel/trap.c
-@@ -76,6 +76,10 @@ good_area:
- 		if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
- 			goto out_nosemaphore;
- 
-+		/* The fault is fully completed (including releasing mmap lock) */
-+		if (fault & VM_FAULT_COMPLETED)
-+			return 0;
-+
- 		if (unlikely(fault & VM_FAULT_ERROR)) {
- 			if (fault & VM_FAULT_OOM) {
- 				goto out_of_memory;
---- a/arch/x86/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/x86/mm/fault.c
-@@ -1408,6 +1408,10 @@ good_area:
- 		return;
- 	}
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	/*
- 	 * If we need to retry the mmap_lock has already been released,
- 	 * and if there is a fatal signal pending there is no guarantee
---- a/arch/xtensa/mm/fault.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/arch/xtensa/mm/fault.c
-@@ -172,6 +172,10 @@ good_area:
- 		return;
- 	}
- 
-+	/* The fault is fully completed (including releasing mmap lock) */
-+	if (fault & VM_FAULT_COMPLETED)
-+		return;
-+
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
---- a/include/linux/mm_types.h~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/include/linux/mm_types.h
-@@ -729,6 +729,7 @@ typedef __bitwise unsigned int vm_fault_
-  * @VM_FAULT_NEEDDSYNC:		->fault did not modify page tables and needs
-  *				fsync() to complete (for synchronous page faults
-  *				in DAX)
-+ * @VM_FAULT_COMPLETED:		->fault completed, meanwhile mmap lock released
-  * @VM_FAULT_HINDEX_MASK:	mask HINDEX value
-  *
-  */
-@@ -746,6 +747,7 @@ enum vm_fault_reason {
- 	VM_FAULT_FALLBACK       = (__force vm_fault_t)0x000800,
- 	VM_FAULT_DONE_COW       = (__force vm_fault_t)0x001000,
- 	VM_FAULT_NEEDDSYNC      = (__force vm_fault_t)0x002000,
-+	VM_FAULT_COMPLETED      = (__force vm_fault_t)0x004000,
- 	VM_FAULT_HINDEX_MASK    = (__force vm_fault_t)0x0f0000,
- };
- 
---- a/mm/gup.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/mm/gup.c
-@@ -951,6 +951,25 @@ static int faultin_page(struct vm_area_s
- 	}
- 
- 	ret = handle_mm_fault(vma, address, fault_flags, NULL);
-+
-+	if (ret & VM_FAULT_COMPLETED) {
-+		/*
-+		 * With FAULT_FLAG_RETRY_NOWAIT we'll never release the
-+		 * mmap lock in the page fault handler. Sanity check this.
-+		 */
-+		WARN_ON_ONCE(fault_flags & FAULT_FLAG_RETRY_NOWAIT);
-+		if (locked)
-+			*locked = 0;
-+		/*
-+		 * We should do the same as VM_FAULT_RETRY, but let's not
-+		 * return -EBUSY since that's not reflecting the reality of
-+		 * what has happened - we've just fully completed a page
-+		 * fault, with the mmap lock released.  Use -EAGAIN to show
-+		 * that we want to take the mmap lock _again_.
-+		 */
-+		return -EAGAIN;
-+	}
-+
- 	if (ret & VM_FAULT_ERROR) {
- 		int err = vm_fault_to_errno(ret, *flags);
- 
-@@ -1177,6 +1196,7 @@ retry:
- 			case 0:
- 				goto retry;
- 			case -EBUSY:
-+			case -EAGAIN:
- 				ret = 0;
- 				fallthrough;
- 			case -EFAULT:
-@@ -1303,6 +1323,18 @@ retry:
- 		return -EINTR;
- 
- 	ret = handle_mm_fault(vma, address, fault_flags, NULL);
-+
-+	if (ret & VM_FAULT_COMPLETED) {
-+		/*
-+		 * NOTE: it's a pity that we need to retake the lock here
-+		 * to pair with the unlock() in the callers. Ideally we
-+		 * could tell the callers so they do not need to unlock.
-+		 */
-+		mmap_read_lock(mm);
-+		*unlocked = true;
-+		return 0;
-+	}
-+
- 	if (ret & VM_FAULT_ERROR) {
- 		int err = vm_fault_to_errno(ret, 0);
- 
-@@ -1368,7 +1400,7 @@ static __always_inline long __get_user_p
- 			/* VM_FAULT_RETRY couldn't trigger, bypass */
- 			return ret;
- 
--		/* VM_FAULT_RETRY cannot return errors */
-+		/* VM_FAULT_RETRY or VM_FAULT_COMPLETED cannot return errors */
- 		if (!*locked) {
- 			BUG_ON(ret < 0);
- 			BUG_ON(ret >= nr_pages);
---- a/mm/memory.c~mm-avoid-unnecessary-page-fault-retires-on-shared-memory-types
-+++ a/mm/memory.c
-@@ -3020,7 +3020,7 @@ static vm_fault_t fault_dirty_shared_pag
- 		balance_dirty_pages_ratelimited(mapping);
- 		if (fpin) {
- 			fput(fpin);
--			return VM_FAULT_RETRY;
-+			return VM_FAULT_COMPLETED;
- 		}
- 	}
- 
+-		ret = adjust_va_to_fit_type(va, start, size, type);
+-		if (unlikely(ret))
+-			goto recovery;
+-
+ 		/* Allocated area. */
+ 		va = vas[area];
+ 		va->va_start = start;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
 
