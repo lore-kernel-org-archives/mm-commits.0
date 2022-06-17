@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E5CBC43334
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52794C43334
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:14:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235768AbiFQXO0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jun 2022 19:14:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47056 "EHLO
+        id S234931AbiFQXOa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jun 2022 19:14:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234393AbiFQXOV (ORCPT
+        with ESMTP id S235537AbiFQXOV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:21 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A972E5AEED
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:19 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AE205D5D2
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4641DB82BFC
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07235C3411B;
-        Fri, 17 Jun 2022 23:14:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AF976174E
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED45AC3411D;
+        Fri, 17 Jun 2022 23:14:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507657;
-        bh=4/EEAuM4H6vZlIv+bEqaFxyoD4+RUv4Zh+t6ottnXnI=;
+        s=korg; t=1655507659;
+        bh=dv2GUcoFRL2xrf1AtoSKQW/XUq1bZWry1zBLIziJfWM=;
         h=Date:To:From:Subject:From;
-        b=qGwYDILVjQ2W3TYw5tr242xcuYKWrdu9onK+YBkkmBnNTB/J7O0mVne3lf2VCGbY4
-         LQBNPPR0XAJGpOKhhojGC2h1B9FxlR0D9e3ZAv/tzzRKPC5U3yXBSsZCLprcXjKjl3
-         mwsm1hqL3ug8J3j/if3eVq0T7M/gIYvywcddaSpw=
-Date:   Fri, 17 Jun 2022 16:14:16 -0700
+        b=ml3Y72ptfacGLLmNymIvVEWb9IC8QUpAN9rNS7+7H1pjb9tI+zyQjyStSm9CJnFHB
+         s0imw5fQftaklONQC0Nh3XCdD5SeutA/BkPrWEKhOQdA6ypqk01eFHJ2iBvtCaQtDi
+         pUM+ew+LHOnB2UBCxN8k5CuLmw5XPcSamLWUc0zs=
+Date:   Fri, 17 Jun 2022 16:14:18 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-add-folio_batch_move_lru.patch added to mm-unstable branch
-Message-Id: <20220617231417.07235C3411B@smtp.kernel.org>
+Subject: + mm-swap-make-__pagevec_lru_add-static.patch added to mm-unstable branch
+Message-Id: <20220617231418.ED45AC3411D@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: add folio_batch_move_lru()
+     Subject: mm/swap: make __pagevec_lru_add static
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-add-folio_batch_move_lru.patch
+     mm-swap-make-__pagevec_lru_add-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-add-folio_batch_move_lru.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-make-__pagevec_lru_add-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,165 +65,173 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: add folio_batch_move_lru()
-Date: Fri, 17 Jun 2022 18:50:00 +0100
+Subject: mm/swap: make __pagevec_lru_add static
+Date: Fri, 17 Jun 2022 18:50:01 +0100
 
-Start converting the LRU from pagevecs to folio_batches.
+__pagevec_lru_add has no callers outside swap.c, so make it static,
+and move it to a more logical position in the file.
 
-Combine the functionality of pagevec_add_and_need_flush() with
-pagevec_lru_move_fn() in the new folio_batch_add_and_move().
-
-Convert the lru_rotate pagevec to a folio_batch.
-
-Adds 223 bytes total to kernel text, because we're duplicating
-infrastructure.  This will be more than made up for in future patches.
-
-Link: https://lkml.kernel.org/r/20220617175020.717127-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   78 +++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 56 insertions(+), 22 deletions(-)
+ include/linux/pagevec.h |    1 
+ mm/swap.c               |  126 +++++++++++++++++++-------------------
+ 2 files changed, 63 insertions(+), 64 deletions(-)
 
---- a/mm/swap.c~mm-swap-add-folio_batch_move_lru
-+++ a/mm/swap.c
-@@ -46,10 +46,10 @@
- /* How many pages do we try to swap or page in/out together? */
- int page_cluster;
- 
--/* Protecting only lru_rotate.pvec which requires disabling interrupts */
-+/* Protecting only lru_rotate.fbatch which requires disabling interrupts */
- struct lru_rotate {
- 	local_lock_t lock;
--	struct pagevec pvec;
-+	struct folio_batch fbatch;
+--- a/include/linux/pagevec.h~mm-swap-make-__pagevec_lru_add-static
++++ a/include/linux/pagevec.h
+@@ -26,7 +26,6 @@ struct pagevec {
  };
- static DEFINE_PER_CPU(struct lru_rotate, lru_rotate) = {
- 	.lock = INIT_LOCAL_LOCK(lock),
-@@ -214,18 +214,6 @@ static void pagevec_lru_move_fn(struct p
- 	pagevec_reinit(pvec);
- }
  
--static void pagevec_move_tail_fn(struct page *page, struct lruvec *lruvec)
--{
--	struct folio *folio = page_folio(page);
--
--	if (!folio_test_unevictable(folio)) {
--		lruvec_del_folio(lruvec, folio);
--		folio_clear_active(folio);
--		lruvec_add_folio_tail(lruvec, folio);
--		__count_vm_events(PGROTATED, folio_nr_pages(folio));
--	}
--}
--
- /* return true if pagevec needs to drain */
- static bool pagevec_add_and_need_flush(struct pagevec *pvec, struct page *page)
- {
-@@ -238,6 +226,52 @@ static bool pagevec_add_and_need_flush(s
- 	return ret;
- }
+ void __pagevec_release(struct pagevec *pvec);
+-void __pagevec_lru_add(struct pagevec *pvec);
+ unsigned pagevec_lookup_range(struct pagevec *pvec,
+ 			      struct address_space *mapping,
+ 			      pgoff_t *start, pgoff_t end);
+--- a/mm/swap.c~mm-swap-make-__pagevec_lru_add-static
++++ a/mm/swap.c
+@@ -228,6 +228,69 @@ static bool pagevec_add_and_need_flush(s
  
-+typedef void (*move_fn_t)(struct lruvec *lruvec, struct folio *folio);
+ typedef void (*move_fn_t)(struct lruvec *lruvec, struct folio *folio);
+ 
++static void __pagevec_lru_add_fn(struct folio *folio, struct lruvec *lruvec)
++{
++	int was_unevictable = folio_test_clear_unevictable(folio);
++	long nr_pages = folio_nr_pages(folio);
 +
-+static void folio_batch_move_lru(struct folio_batch *fbatch, move_fn_t move_fn)
++	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
++
++	folio_set_lru(folio);
++	/*
++	 * Is an smp_mb__after_atomic() still required here, before
++	 * folio_evictable() tests PageMlocked, to rule out the possibility
++	 * of stranding an evictable folio on an unevictable LRU?  I think
++	 * not, because __munlock_page() only clears PageMlocked while the LRU
++	 * lock is held.
++	 *
++	 * (That is not true of __page_cache_release(), and not necessarily
++	 * true of release_pages(): but those only clear PageMlocked after
++	 * put_page_testzero() has excluded any other users of the page.)
++	 */
++	if (folio_evictable(folio)) {
++		if (was_unevictable)
++			__count_vm_events(UNEVICTABLE_PGRESCUED, nr_pages);
++	} else {
++		folio_clear_active(folio);
++		folio_set_unevictable(folio);
++		/*
++		 * folio->mlock_count = !!folio_test_mlocked(folio)?
++		 * But that leaves __mlock_page() in doubt whether another
++		 * actor has already counted the mlock or not.  Err on the
++		 * safe side, underestimate, let page reclaim fix it, rather
++		 * than leaving a page on the unevictable LRU indefinitely.
++		 */
++		folio->mlock_count = 0;
++		if (!was_unevictable)
++			__count_vm_events(UNEVICTABLE_PGCULLED, nr_pages);
++	}
++
++	lruvec_add_folio(lruvec, folio);
++	trace_mm_lru_insertion(folio);
++}
++
++/*
++ * Add the passed pages to the LRU, then drop the caller's refcount
++ * on them.  Reinitialises the caller's pagevec.
++ */
++static void __pagevec_lru_add(struct pagevec *pvec)
 +{
 +	int i;
 +	struct lruvec *lruvec = NULL;
 +	unsigned long flags = 0;
 +
-+	for (i = 0; i < folio_batch_count(fbatch); i++) {
-+		struct folio *folio = fbatch->folios[i];
-+
-+		/* block memcg migration while the folio moves between lru */
-+		if (!folio_test_clear_lru(folio))
-+			continue;
++	for (i = 0; i < pagevec_count(pvec); i++) {
++		struct folio *folio = page_folio(pvec->pages[i]);
 +
 +		lruvec = folio_lruvec_relock_irqsave(folio, lruvec, &flags);
-+		move_fn(lruvec, folio);
-+
-+		folio_set_lru(folio);
++		__pagevec_lru_add_fn(folio, lruvec);
 +	}
-+
 +	if (lruvec)
 +		unlock_page_lruvec_irqrestore(lruvec, flags);
-+	folios_put(fbatch->folios, folio_batch_count(fbatch));
-+	folio_batch_init(fbatch);
++	release_pages(pvec->pages, pvec->nr);
++	pagevec_reinit(pvec);
 +}
 +
-+static void folio_batch_add_and_move(struct folio_batch *fbatch,
-+		struct folio *folio, move_fn_t move_fn)
-+{
-+	if (folio_batch_add(fbatch, folio) && !folio_test_large(folio) &&
-+	    !lru_cache_disabled())
-+		return;
-+	folio_batch_move_lru(fbatch, move_fn);
-+}
-+
-+static void lru_move_tail_fn(struct lruvec *lruvec, struct folio *folio)
-+{
-+	if (!folio_test_unevictable(folio)) {
-+		lruvec_del_folio(lruvec, folio);
-+		folio_clear_active(folio);
-+		lruvec_add_folio_tail(lruvec, folio);
-+		__count_vm_events(PGROTATED, folio_nr_pages(folio));
-+	}
-+}
-+
- /*
-  * Writeback is about to end against a folio which has been marked for
-  * immediate reclaim.  If it still appears to be reclaimable, move it
-@@ -249,14 +283,13 @@ void folio_rotate_reclaimable(struct fol
+ static void folio_batch_move_lru(struct folio_batch *fbatch, move_fn_t move_fn)
  {
- 	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
- 	    !folio_test_unevictable(folio) && folio_test_lru(folio)) {
--		struct pagevec *pvec;
-+		struct folio_batch *fbatch;
- 		unsigned long flags;
- 
- 		folio_get(folio);
- 		local_lock_irqsave(&lru_rotate.lock, flags);
--		pvec = this_cpu_ptr(&lru_rotate.pvec);
--		if (pagevec_add_and_need_flush(pvec, &folio->page))
--			pagevec_lru_move_fn(pvec, pagevec_move_tail_fn);
-+		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
-+		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
- 		local_unlock_irqrestore(&lru_rotate.lock, flags);
- 	}
+ 	int i;
+@@ -1036,69 +1099,6 @@ void __pagevec_release(struct pagevec *p
  }
-@@ -595,19 +628,20 @@ static void lru_lazyfree_fn(struct page
-  */
- void lru_add_drain_cpu(int cpu)
- {
-+	struct folio_batch *fbatch;
- 	struct pagevec *pvec = &per_cpu(lru_pvecs.lru_add, cpu);
+ EXPORT_SYMBOL(__pagevec_release);
  
- 	if (pagevec_count(pvec))
- 		__pagevec_lru_add(pvec);
- 
--	pvec = &per_cpu(lru_rotate.pvec, cpu);
-+	fbatch = &per_cpu(lru_rotate.fbatch, cpu);
- 	/* Disabling interrupts below acts as a compiler barrier. */
--	if (data_race(pagevec_count(pvec))) {
-+	if (data_race(folio_batch_count(fbatch))) {
- 		unsigned long flags;
- 
- 		/* No harm done if a racing interrupt already did this */
- 		local_lock_irqsave(&lru_rotate.lock, flags);
--		pagevec_lru_move_fn(pvec, pagevec_move_tail_fn);
-+		folio_batch_move_lru(fbatch, lru_move_tail_fn);
- 		local_unlock_irqrestore(&lru_rotate.lock, flags);
- 	}
- 
-@@ -824,7 +858,7 @@ static inline void __lru_add_drain_all(b
- 		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
- 
- 		if (pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
--		    data_race(pagevec_count(&per_cpu(lru_rotate.pvec, cpu))) ||
-+		    data_race(folio_batch_count(&per_cpu(lru_rotate.fbatch, cpu))) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_lazyfree, cpu)) ||
+-static void __pagevec_lru_add_fn(struct folio *folio, struct lruvec *lruvec)
+-{
+-	int was_unevictable = folio_test_clear_unevictable(folio);
+-	long nr_pages = folio_nr_pages(folio);
+-
+-	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+-
+-	folio_set_lru(folio);
+-	/*
+-	 * Is an smp_mb__after_atomic() still required here, before
+-	 * folio_evictable() tests PageMlocked, to rule out the possibility
+-	 * of stranding an evictable folio on an unevictable LRU?  I think
+-	 * not, because __munlock_page() only clears PageMlocked while the LRU
+-	 * lock is held.
+-	 *
+-	 * (That is not true of __page_cache_release(), and not necessarily
+-	 * true of release_pages(): but those only clear PageMlocked after
+-	 * put_page_testzero() has excluded any other users of the page.)
+-	 */
+-	if (folio_evictable(folio)) {
+-		if (was_unevictable)
+-			__count_vm_events(UNEVICTABLE_PGRESCUED, nr_pages);
+-	} else {
+-		folio_clear_active(folio);
+-		folio_set_unevictable(folio);
+-		/*
+-		 * folio->mlock_count = !!folio_test_mlocked(folio)?
+-		 * But that leaves __mlock_page() in doubt whether another
+-		 * actor has already counted the mlock or not.  Err on the
+-		 * safe side, underestimate, let page reclaim fix it, rather
+-		 * than leaving a page on the unevictable LRU indefinitely.
+-		 */
+-		folio->mlock_count = 0;
+-		if (!was_unevictable)
+-			__count_vm_events(UNEVICTABLE_PGCULLED, nr_pages);
+-	}
+-
+-	lruvec_add_folio(lruvec, folio);
+-	trace_mm_lru_insertion(folio);
+-}
+-
+-/*
+- * Add the passed pages to the LRU, then drop the caller's refcount
+- * on them.  Reinitialises the caller's pagevec.
+- */
+-void __pagevec_lru_add(struct pagevec *pvec)
+-{
+-	int i;
+-	struct lruvec *lruvec = NULL;
+-	unsigned long flags = 0;
+-
+-	for (i = 0; i < pagevec_count(pvec); i++) {
+-		struct folio *folio = page_folio(pvec->pages[i]);
+-
+-		lruvec = folio_lruvec_relock_irqsave(folio, lruvec, &flags);
+-		__pagevec_lru_add_fn(folio, lruvec);
+-	}
+-	if (lruvec)
+-		unlock_page_lruvec_irqrestore(lruvec, flags);
+-	release_pages(pvec->pages, pvec->nr);
+-	pagevec_reinit(pvec);
+-}
+-
+ /**
+  * folio_batch_remove_exceptionals() - Prune non-folios from a batch.
+  * @fbatch: The batch to prune
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
