@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF972C43334
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:06:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C51A2C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:06:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245202AbiFQXGU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jun 2022 19:06:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40084 "EHLO
+        id S237569AbiFQXGY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jun 2022 19:06:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237569AbiFQXGT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:06:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FDBF633B5
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:06:18 -0700 (PDT)
+        with ESMTP id S1347032AbiFQXGY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:06:24 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0ECB763508
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:06:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CEF336153F
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:06:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ABECC3411B;
-        Fri, 17 Jun 2022 23:06:17 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 75A51CE2C6C
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:06:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7922C3411B;
+        Fri, 17 Jun 2022 23:06:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507177;
-        bh=fyQpKKDp9YfL0fizR9uTRpu2Aj5Y3MPCrPExTlEgo5U=;
+        s=korg; t=1655507179;
+        bh=x/cjz8+W/MwL0qLcdkii3/Jy1JSBGBul69+/C1PA8Yg=;
         h=Date:To:From:Subject:From;
-        b=hcvAaztjdKpAOPm4HG8RGCTv7yudacrYTf7L4t2eTvwTC6mSo+IzNIm+tYnqZcuz/
-         6FBCqwpiQdG+NfNBy18Qqe1Ys7j70ZSsFxHEUrcGBqa/Ms6w3mse2vfzUNIqLr+yy1
-         I46l1WY0VQ3SLprxqbJrZ2X8GEwOgZtfVQFff3Qw=
-Date:   Fri, 17 Jun 2022 16:06:16 -0700
+        b=Z6a6G7irqrkorlGvHvu/8c1R59i4lh/k8T4tV63UCsP0329d46Bokb3qgVoOocA6M
+         Yymb/BwAGLTCAkMcUgoflnnd9Y4jK9H/6pySY8p//e0Of5xdJ6DlFnsqllaiZcST6U
+         HQTKYapBwybAnbXNv+MsrTCEZkCT/ShbsaFl3xYU=
+Date:   Fri, 17 Jun 2022 16:06:19 -0700
 To:     mm-commits@vger.kernel.org, paulmck@kernel.org, osalvador@suse.de,
         mike.kravetz@oracle.com, duanxiongchun@bytedance.com,
         david@redhat.com, corbet@lwn.net, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-enumerate-all-supported-section-flags.patch added to mm-unstable branch
-Message-Id: <20220617230617.1ABECC3411B@smtp.kernel.org>
+Subject: + mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch added to mm-unstable branch
+Message-Id: <20220617230619.C7922C3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory_hotplug: enumerate all supported section flags
+     Subject: mm: memory_hotplug: make hugetlb_optimize_vmemmap compatible with memmap_on_memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-enumerate-all-supported-section-flags.patch
+     mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-enumerate-all-supported-section-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,144 +67,286 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memory_hotplug: enumerate all supported section flags
-Date: Fri, 17 Jun 2022 21:56:49 +0800
+Subject: mm: memory_hotplug: make hugetlb_optimize_vmemmap compatible with memmap_on_memory
+Date: Fri, 17 Jun 2022 21:56:50 +0800
 
-Patch series "make hugetlb_optimize_vmemmap compatible with
-memmap_on_memory", v3.
+For now, the feature of hugetlb_free_vmemmap is not compatible with the
+feature of memory_hotplug.memmap_on_memory, and hugetlb_free_vmemmap takes
+precedence over memory_hotplug.memmap_on_memory.  However, someone wants
+to make memory_hotplug.memmap_on_memory takes precedence over
+hugetlb_free_vmemmap since memmap_on_memory makes it more likely to
+succeed memory hotplug in close-to-OOM situations.  So the decision of
+making hugetlb_free_vmemmap take precedence is not wise and elegant.
 
-This series makes hugetlb_optimize_vmemmap compatible with
-memmap_on_memory.
+The proper approach is to have hugetlb_vmemmap.c do the check whether the
+section which the HugeTLB pages belong to can be optimized.  If the
+section's vmemmap pages are allocated from the added memory block itself,
+hugetlb_free_vmemmap should refuse to optimize the vmemmap, otherwise, do
+the optimization.  Then both kernel parameters are compatible.  So this
+patch introduces VmemmapSelfHosted to mask any non-optimizable vmemmap
+pages.  The hugetlb_vmemmap can use this flag to detect if a vmemmap page
+can be optimized.
 
-
-This patch (of 2):
-
-We are almost running out of section flags, only one bit is available in
-the worst case (powerpc with 256k pages).  However, there are still some
-free bits (in ->section_mem_map) on other architectures (e.g.  x86_64 has
-10 bits available, arm64 has 8 bits available with worst case of 64K
-pages).  We have hard coded those numbers in code, it is inconvenient to
-use those bits on other architectures except powerpc.  So transfer those
-section flags to enumeration to make it easy to add new section flags in
-the future.  Also, move SECTION_TAINT_ZONE_DEVICE into the scope of
-CONFIG_ZONE_DEVICE to save a bit on non-zone-device case.
-
-Link: https://lkml.kernel.org/r/20220617135650.74901-1-songmuchun@bytedance.com
-Link: https://lkml.kernel.org/r/20220617135650.74901-2-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220617135650.74901-3-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Co-developed-by: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   44 +++++++++++++++++++++++++++++++--------
- mm/memory_hotplug.c    |    6 +++++
- mm/sparse.c            |    2 -
- 3 files changed, 42 insertions(+), 10 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |   22 +++---
+ Documentation/admin-guide/sysctl/vm.rst         |    5 -
+ include/linux/memory_hotplug.h                  |    9 --
+ include/linux/page-flags.h                      |   11 +++
+ mm/hugetlb_vmemmap.c                            |   47 +++++++++++---
+ mm/memory_hotplug.c                             |   27 +++-----
+ 6 files changed, 74 insertions(+), 47 deletions(-)
 
---- a/include/linux/mmzone.h~mm-memory_hotplug-enumerate-all-supported-section-flags
-+++ a/include/linux/mmzone.h
-@@ -1422,16 +1422,35 @@ extern size_t mem_section_usage_size(voi
-  *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
-  *      worst combination is powerpc with 256k pages,
-  *      which results in PFN_SECTION_SHIFT equal 6.
-- * To sum it up, at least 6 bits are available.
-+ * To sum it up, at least 6 bits are available on all architectures.
-+ * However, we can exceed 6 bits on some other architectures except
-+ * powerpc (e.g. 15 bits are available on x86_64, 13 bits are available
-+ * with the worst case of 64K pages on arm64) if we make sure the
-+ * exceeded bit is not applicable to powerpc.
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1722,9 +1722,11 @@
+ 			Built with CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON=y,
+ 			the default is on.
+ 
+-			This is not compatible with memory_hotplug.memmap_on_memory.
+-			If both parameters are enabled, hugetlb_free_vmemmap takes
+-			precedence over memory_hotplug.memmap_on_memory.
++			Note that the vmemmap pages may be allocated from the added
++			memory block itself when memory_hotplug.memmap_on_memory is
++			enabled, those vmemmap pages cannot be optimized even if this
++			feature is enabled.  Other vmemmap pages not allocated from
++			the added memory block itself do not be affected.
+ 
+ 	hung_task_panic=
+ 			[KNL] Should the hung task detector generate panics.
+@@ -3069,10 +3071,12 @@
+ 			[KNL,X86,ARM] Boolean flag to enable this feature.
+ 			Format: {on | off (default)}
+ 			When enabled, runtime hotplugged memory will
+-			allocate its internal metadata (struct pages)
+-			from the hotadded memory which will allow to
+-			hotadd a lot of memory without requiring
+-			additional memory to do so.
++			allocate its internal metadata (struct pages,
++			those vmemmap pages cannot be optimized even
++			if hugetlb_free_vmemmap is enabled) from the
++			hotadded memory which will allow to hotadd a
++			lot of memory without requiring additional
++			memory to do so.
+ 			This feature is disabled by default because it
+ 			has some implication on large (e.g. GB)
+ 			allocations in some configurations (e.g. small
+@@ -3082,10 +3086,6 @@
+ 			Note that even when enabled, there are a few cases where
+ 			the feature is not effective.
+ 
+-			This is not compatible with hugetlb_free_vmemmap. If
+-			both parameters are enabled, hugetlb_free_vmemmap takes
+-			precedence over memory_hotplug.memmap_on_memory.
+-
+ 	memtest=	[KNL,X86,ARM,M68K,PPC,RISCV] Enable memtest
+ 			Format: <integer>
+ 			default : 0 <disable>
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -565,9 +565,8 @@ See Documentation/admin-guide/mm/hugetlb
+ hugetlb_optimize_vmemmap
+ ========================
+ 
+-This knob is not available when memory_hotplug.memmap_on_memory (kernel parameter)
+-is configured or the size of 'struct page' (a structure defined in
+-include/linux/mm_types.h) is not power of two (an unusual system config could
++This knob is not available when the size of 'struct page' (a structure defined
++in include/linux/mm_types.h) is not power of two (an unusual system config could
+ result in this).
+ 
+ Enable (set to 1) or disable (set to 0) the feature of optimizing vmemmap pages
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
++++ a/include/linux/memory_hotplug.h
+@@ -351,13 +351,4 @@ void arch_remove_linear_mapping(u64 star
+ extern bool mhp_supports_memmap_on_memory(unsigned long size);
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-#ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
+-bool mhp_memmap_on_memory(void);
+-#else
+-static inline bool mhp_memmap_on_memory(void)
+-{
+-	return false;
+-}
+-#endif
+-
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+--- a/include/linux/page-flags.h~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
++++ a/include/linux/page-flags.h
+@@ -193,6 +193,11 @@ enum pageflags {
+ 
+ 	/* Only valid for buddy pages. Used to track pages that are reported */
+ 	PG_reported = PG_uptodate,
++
++#ifdef CONFIG_MEMORY_HOTPLUG
++	/* For self-hosted memmap pages */
++	PG_vmemmap_self_hosted = PG_owner_priv_1,
++#endif
+ };
+ 
+ #define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
+@@ -628,6 +633,12 @@ PAGEFLAG_FALSE(SkipKASanPoison, skip_kas
   */
--#define SECTION_MARKED_PRESENT		(1UL<<0)
--#define SECTION_HAS_MEM_MAP		(1UL<<1)
--#define SECTION_IS_ONLINE		(1UL<<2)
--#define SECTION_IS_EARLY		(1UL<<3)
--#define SECTION_TAINT_ZONE_DEVICE	(1UL<<4)
--#define SECTION_MAP_LAST_BIT		(1UL<<5)
--#define SECTION_MAP_MASK		(~(SECTION_MAP_LAST_BIT-1))
--#define SECTION_NID_SHIFT		6
-+enum {
-+	SECTION_MARKED_PRESENT_BIT,
-+	SECTION_HAS_MEM_MAP_BIT,
-+	SECTION_IS_ONLINE_BIT,
-+	SECTION_IS_EARLY_BIT,
-+#ifdef CONFIG_ZONE_DEVICE
-+	SECTION_TAINT_ZONE_DEVICE_BIT,
-+#endif
-+	SECTION_MAP_LAST_BIT,
-+};
-+
-+enum {
-+	SECTION_MARKED_PRESENT		= BIT(SECTION_MARKED_PRESENT_BIT),
-+	SECTION_HAS_MEM_MAP		= BIT(SECTION_HAS_MEM_MAP_BIT),
-+	SECTION_IS_ONLINE		= BIT(SECTION_IS_ONLINE_BIT),
-+	SECTION_IS_EARLY		= BIT(SECTION_IS_EARLY_BIT),
-+#ifdef CONFIG_ZONE_DEVICE
-+	SECTION_TAINT_ZONE_DEVICE	= BIT(SECTION_TAINT_ZONE_DEVICE_BIT),
-+#endif
-+};
-+
-+#define SECTION_MAP_MASK		(~(BIT(SECTION_MAP_LAST_BIT) - 1))
-+#define SECTION_NID_SHIFT		SECTION_MAP_LAST_BIT
+ __PAGEFLAG(Reported, reported, PF_NO_COMPOUND)
  
- static inline struct page *__section_mem_map_addr(struct mem_section *section)
- {
-@@ -1470,12 +1489,19 @@ static inline int online_section(struct
- 	return (section && (section->section_mem_map & SECTION_IS_ONLINE));
- }
- 
-+#ifdef CONFIG_ZONE_DEVICE
- static inline int online_device_section(struct mem_section *section)
- {
- 	unsigned long flags = SECTION_IS_ONLINE | SECTION_TAINT_ZONE_DEVICE;
- 
- 	return section && ((section->section_mem_map & flags) == flags);
- }
++#ifdef CONFIG_MEMORY_HOTPLUG
++PAGEFLAG(VmemmapSelfHosted, vmemmap_self_hosted, PF_ANY)
 +#else
-+static inline int online_device_section(struct mem_section *section)
-+{
-+	return 0;
-+}
++PAGEFLAG_FALSE(VmemmapSelfHosted, vmemmap_self_hosted)
 +#endif
++
+ /*
+  * On an anonymous page mapped into a user virtual memory area,
+  * page->mapping points to its anon_vma, not to a struct address_space;
+--- a/mm/hugetlb_vmemmap.c~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
++++ a/mm/hugetlb_vmemmap.c
+@@ -10,7 +10,6 @@
+  */
+ #define pr_fmt(fmt)	"HugeTLB: " fmt
  
- static inline int online_section_nr(unsigned long nr)
- {
---- a/mm/memory_hotplug.c~mm-memory_hotplug-enumerate-all-supported-section-flags
-+++ a/mm/memory_hotplug.c
-@@ -670,12 +670,18 @@ static void __meminit resize_pgdat_range
- 
- }
- 
-+#ifdef CONFIG_ZONE_DEVICE
- static void section_taint_zone_device(unsigned long pfn)
- {
- 	struct mem_section *ms = __pfn_to_section(pfn);
- 
- 	ms->section_mem_map |= SECTION_TAINT_ZONE_DEVICE;
- }
-+#else
-+static inline void section_taint_zone_device(unsigned long pfn)
-+{
-+}
-+#endif
+-#include <linux/memory_hotplug.h>
+ #include "hugetlb_vmemmap.h"
  
  /*
-  * Associate the pfn range with the given zone, initializing the memmaps
---- a/mm/sparse.c~mm-memory_hotplug-enumerate-all-supported-section-flags
-+++ a/mm/sparse.c
-@@ -281,7 +281,7 @@ static unsigned long sparse_encode_mem_m
- {
- 	unsigned long coded_mem_map =
- 		(unsigned long)(mem_map - (section_nr_to_pfn(pnum)));
--	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > (1UL<<PFN_SECTION_SHIFT));
-+	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > PFN_SECTION_SHIFT);
- 	BUG_ON(coded_mem_map & ~SECTION_MAP_MASK);
- 	return coded_mem_map;
+@@ -97,18 +96,50 @@ int hugetlb_vmemmap_alloc(struct hstate
+ 	return ret;
  }
+ 
++static unsigned int vmemmap_optimizable_pages(struct hstate *h,
++					      struct page *head)
++{
++	struct mem_section *ms;
++	struct page *vmemmap_page;
++	unsigned long pfn = page_to_pfn(head);
++
++	if (READ_ONCE(vmemmap_optimize_mode) == VMEMMAP_OPTIMIZE_OFF)
++		return 0;
++
++	ms = __pfn_to_section(pfn);
++	vmemmap_page = sparse_decode_mem_map(ms->section_mem_map,
++					     pfn_to_section_nr(pfn));
++	/*
++	 * Only the vmemmap pages' vmemmap may be marked as VmemmapSelfHosted.
++	 *
++	 * Due to HugeTLB alignment requirements, and the vmemmap pages being
++	 * at the start of the hotplugged memory region. Checking any vmemmap
++	 * page's vmemmap is fine.
++	 *
++	 * [      hotplugged memory     ]
++	 * [ vmemmap ][  usable memory  ]
++	 *   ^   |      |            |
++	 *   +---+      |            |
++	 *     ^        |            |
++	 *     +--------+            |
++	 *         ^                 |
++	 *         +-----------------+
++	 */
++	if (PageVmemmapSelfHosted(vmemmap_page))
++		return 0;
++
++	return hugetlb_optimize_vmemmap_pages(h);
++}
++
+ void hugetlb_vmemmap_free(struct hstate *h, struct page *head)
+ {
+ 	unsigned long vmemmap_addr = (unsigned long)head;
+ 	unsigned long vmemmap_end, vmemmap_reuse, vmemmap_pages;
+ 
+-	vmemmap_pages = hugetlb_optimize_vmemmap_pages(h);
++	vmemmap_pages = vmemmap_optimizable_pages(h, head);
+ 	if (!vmemmap_pages)
+ 		return;
+ 
+-	if (READ_ONCE(vmemmap_optimize_mode) == VMEMMAP_OPTIMIZE_OFF)
+-		return;
+-
+ 	static_branch_inc(&hugetlb_optimize_vmemmap_key);
+ 
+ 	vmemmap_addr	+= RESERVE_VMEMMAP_SIZE;
+@@ -199,10 +230,10 @@ static struct ctl_table hugetlb_vmemmap_
+ static __init int hugetlb_vmemmap_sysctls_init(void)
+ {
+ 	/*
+-	 * If "memory_hotplug.memmap_on_memory" is enabled or "struct page"
+-	 * crosses page boundaries, the vmemmap pages cannot be optimized.
++	 * If "struct page" crosses page boundaries, the vmemmap pages cannot
++	 * be optimized.
+ 	 */
+-	if (!mhp_memmap_on_memory() && is_power_of_2(sizeof(struct page)))
++	if (is_power_of_2(sizeof(struct page)))
+ 		register_sysctl_init("vm", hugetlb_vmemmap_sysctls);
+ 
+ 	return 0;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory
++++ a/mm/memory_hotplug.c
+@@ -43,30 +43,22 @@
+ #include "shuffle.h"
+ 
+ #ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
+-static int memmap_on_memory_set(const char *val, const struct kernel_param *kp)
+-{
+-	if (hugetlb_optimize_vmemmap_enabled())
+-		return 0;
+-	return param_set_bool(val, kp);
+-}
+-
+-static const struct kernel_param_ops memmap_on_memory_ops = {
+-	.flags	= KERNEL_PARAM_OPS_FL_NOARG,
+-	.set	= memmap_on_memory_set,
+-	.get	= param_get_bool,
+-};
+-
+ /*
+  * memory_hotplug.memmap_on_memory parameter
+  */
+ static bool memmap_on_memory __ro_after_init;
+-module_param_cb(memmap_on_memory, &memmap_on_memory_ops, &memmap_on_memory, 0444);
++module_param(memmap_on_memory, bool, 0444);
+ MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug");
+ 
+-bool mhp_memmap_on_memory(void)
++static inline bool mhp_memmap_on_memory(void)
+ {
+ 	return memmap_on_memory;
+ }
++#else
++static inline bool mhp_memmap_on_memory(void)
++{
++	return false;
++}
+ #endif
+ 
+ enum {
+@@ -1035,7 +1027,7 @@ int mhp_init_memmap_on_memory(unsigned l
+ 			      struct zone *zone)
+ {
+ 	unsigned long end_pfn = pfn + nr_pages;
+-	int ret;
++	int ret, i;
+ 
+ 	ret = kasan_add_zero_shadow(__va(PFN_PHYS(pfn)), PFN_PHYS(nr_pages));
+ 	if (ret)
+@@ -1043,6 +1035,9 @@ int mhp_init_memmap_on_memory(unsigned l
+ 
+ 	move_pfn_range_to_zone(zone, pfn, nr_pages, NULL, MIGRATE_UNMOVABLE);
+ 
++	for (i = 0; i < nr_pages; i++)
++		SetPageVmemmapSelfHosted(pfn_to_page(pfn + i));
++
+ 	/*
+ 	 * It might be that the vmemmap_pages fully span sections. If that is
+ 	 * the case, mark those sections online here as otherwise they will be
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
