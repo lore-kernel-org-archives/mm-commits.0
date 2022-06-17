@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70657C43334
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:12:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C53CBCCA47A
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:12:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379410AbiFQCMR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jun 2022 22:12:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59576 "EHLO
+        id S1379552AbiFQCMT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jun 2022 22:12:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238214AbiFQCMO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:12:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E11C64BD9
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:12:14 -0700 (PDT)
+        with ESMTP id S1378914AbiFQCMQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:12:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 938C864BD9;
+        Thu, 16 Jun 2022 19:12:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F0B3A61C5E
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:12:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44E63C34114;
-        Fri, 17 Jun 2022 02:12:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2C05561C0A;
+        Fri, 17 Jun 2022 02:12:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78D6BC34114;
+        Fri, 17 Jun 2022 02:12:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655431933;
-        bh=EM99rVaBzPV/bysDleQWIb/ntkLzzh9h7n5YQ1AxwZU=;
+        s=korg; t=1655431934;
+        bh=XcL6P16IXzo/mFB9hxdBveMcZrtRzVA4hyGe2w07Bw4=;
         h=Date:To:From:Subject:From;
-        b=Vtnehc7ydCBkIfLupaqVBI/h2Wc2s1UTrvAyIQKK4TyugpOWfewant+Mqs+w+7ZBI
-         HRK7FhWO7aUaR9EHUkKOoHbyH9CTHToUjNnqUJchqUQ2cDvk03WG7wfMrloA9mx3YJ
-         oenLm09qRcmidJUuwT8KifBGoOtkApcwUA/ouILE=
-Date:   Thu, 16 Jun 2022 19:12:12 -0700
-To:     mm-commits@vger.kernel.org, abaci@linux.alibaba.com,
-        yang.lee@linux.alibaba.com, akpm@linux-foundation.org
+        b=ZZs4E9IA2ipAZrlsFz9Sd1eDbiw+i+tdTiIW+JadxJtg4/HMgv5RcVgLgFd7lzupr
+         0dVa3llROyCigizZWM+mL6OHTW5pGOOW25XJctcB/67v/ENcPXrpHcejPqiDzVtLsi
+         Tde5gpNRCHBql9h6MSj600293ulfBSrqW7eETRg4=
+Date:   Thu, 16 Jun 2022 19:12:13 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tglx@linutronix.de, stefan.wahren@i2se.com, stable@vger.kernel.org,
+        phil@raspberrypi.com, paulmck@kernel.org, nsaenzju@redhat.com,
+        minchan@kernel.org, Michael@MichaelLarabel.com,
+        mgorman@techsingularity.net, juri.lelli@redhat.com, bp@alien8.de,
+        bigeasy@linutronix.de, mtosatti@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-one-kernel-doc-comment.patch removed from -mm tree
-Message-Id: <20220617021213.44E63C34114@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-lru_cache_disable-use-synchronize_rcu_expedited.patch removed from -mm tree
+Message-Id: <20220617021214.78D6BC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,46 +46,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_isolation.c: fix one kernel-doc comment
+     Subject: mm: lru_cache_disable: use synchronize_rcu_expedited
 has been removed from the -mm tree.  Its filename was
-     mm-fix-one-kernel-doc-comment.patch
+     mm-lru_cache_disable-use-synchronize_rcu_expedited.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Li <yang.lee@linux.alibaba.com>
-Subject: mm/page_isolation.c: fix one kernel-doc comment
-Date: Thu, 2 Jun 2022 14:21:16 +0800
+From: Marcelo Tosatti <mtosatti@redhat.com>
+Subject: mm: lru_cache_disable: use synchronize_rcu_expedited
+Date: Mon, 30 May 2022 12:51:56 -0300
 
-Remove one warning found by running scripts/kernel-doc, which is caused by
-using 'make W=1':
+commit ff042f4a9b050 ("mm: lru_cache_disable: replace work queue
+synchronization with synchronize_rcu") replaced lru_cache_disable's usage
+of work queues with synchronize_rcu.
 
-mm/page_isolation.c:304: warning: Function parameter or member
-'skip_isolation' not described in 'isolate_single_pageblock'
+Some users reported large performance regressions due to this commit, for
+example:
+https://lore.kernel.org/all/20220521234616.GO1790663@paulmck-ThinkPad-P17-Gen-1/T/
 
-Link: https://lkml.kernel.org/r/20220602062116.61199-1-yang.lee@linux.alibaba.com
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Switching to synchronize_rcu_expedited fixes the problem.
+
+Link: https://lkml.kernel.org/r/YpToHCmnx/HEcVyR@fuller.cnet
+Fixes: ff042f4a9b050 ("mm: lru_cache_disable: replace work queue synchronization with synchronize_rcu")
+Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
+Tested-by: Stefan Wahren <stefan.wahren@i2se.com>
+Tested-by: Michael Larabel <Michael@MichaelLarabel.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Phil Elwell <phil@raspberrypi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_isolation.c~mm-fix-one-kernel-doc-comment
-+++ a/mm/page_isolation.c
-@@ -286,6 +286,8 @@ __first_valid_page(unsigned long pfn, un
-  * @flags:			isolation flags
-  * @gfp_flags:			GFP flags used for migrating pages
-  * @isolate_before:	isolate the pageblock before the boundary_pfn
-+ * @skip_isolation:	the flag to skip the pageblock isolation in second
-+ *			isolate_single_pageblock()
-  *
-  * Free and in-use pages can be as big as MAX_ORDER-1 and contain more than one
-  * pageblock. When not all pageblocks within a page are isolated at the same
+--- a/mm/swap.c~mm-lru_cache_disable-use-synchronize_rcu_expedited
++++ a/mm/swap.c
+@@ -881,7 +881,7 @@ void lru_cache_disable(void)
+ 	 * lru_disable_count = 0 will have exited the critical
+ 	 * section when synchronize_rcu() returns.
+ 	 */
+-	synchronize_rcu();
++	synchronize_rcu_expedited();
+ #ifdef CONFIG_SMP
+ 	__lru_add_drain_all(true);
+ #else
 _
 
-Patches currently in -mm which might be from yang.lee@linux.alibaba.com are
+Patches currently in -mm which might be from mtosatti@redhat.com are
 
 
