@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16DA8CCA481
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:59:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29412C43334
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:59:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379758AbiFQC7S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jun 2022 22:59:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40724 "EHLO
+        id S1379928AbiFQC7p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jun 2022 22:59:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379898AbiFQC7N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:59:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5311C66203
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:59:11 -0700 (PDT)
+        with ESMTP id S1379904AbiFQC7P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:59:15 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DB3E65D31
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:59:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E4E1561D46
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:59:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44882C3411A;
-        Fri, 17 Jun 2022 02:59:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BB235B826F5
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:59:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60764C34114;
+        Fri, 17 Jun 2022 02:59:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655434750;
-        bh=Bun1+/K//QK4z2YcVBUi/oKhAvd1R6+/EtxGvySR/CM=;
+        s=korg; t=1655434751;
+        bh=wbY3UQE6YQvqpZJCwR4jHdPTG9OxX4phQZYLsxAOuF8=;
         h=Date:To:From:Subject:From;
-        b=v8G/qFPdqTYwxL6pCXAShJGUKU6KsAth4UY3uIMvbiZRdYbV+wd9nfwhp2rGB0pMI
-         oDdKL6SJD152lyqOHD0Z0qjKdRqNeq0oFTGAvb3EtiiuThV+Ci3R54SdT3Eb9IxQcY
-         fpg/pCLE0dH0IcbylHjigVk6FX8wQhULWKGjv2wA=
-Date:   Thu, 16 Jun 2022 19:59:09 -0700
+        b=CxY55qaJW+diVgh5c8rDHESXEPdTAkhNWXLnrb6uZET8hM5yDvB1wmvzXTRRBgppd
+         B45y1TA7yvjaHPdSQoAOH5bC+yloHsTuzIN6RsistJ2ALYJ0eL3QweJWplgRmheyNO
+         4rPtLw2F834xs6NM4xVD5k3uQc/k8xuS0sal6OVg=
+Date:   Thu, 16 Jun 2022 19:59:10 -0700
 To:     mm-commits@vger.kernel.org, walters@verbum.org,
         usama.anjum@collabora.com, pjones@redhat.com,
-        lennart@poettering.net, javierm@redhat.com, ckellner@redhat.com,
-        cccheng@synology.com, alexl@redhat.com,
-        hirofumi@mail.parknet.co.jp, akpm@linux-foundation.org
+        lennart@poettering.net, hirofumi@mail.parknet.co.jp,
+        ckellner@redhat.com, cccheng@synology.com, alexl@redhat.com,
+        javierm@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions.patch removed from -mm tree
-Message-Id: <20220617025910.44882C3411A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-add-renameat2-rename_exchange-flag-support.patch removed from -mm tree
+Message-Id: <20220617025911.60764C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,27 +44,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fat: factor out reusable code in vfat_rename() as helper functions
+     Subject: fat: add renameat2 RENAME_EXCHANGE flag support
 has been removed from the -mm tree.  Its filename was
-     fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions.patch
+     fat-add-renameat2-rename_exchange-flag-support.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: factor out reusable code in vfat_rename() as helper functions
-Date: Fri, 10 Jun 2022 09:57:19 +0200
+From: Javier Martinez Canillas <javierm@redhat.com>
+Subject: fat: add renameat2 RENAME_EXCHANGE flag support
+Date: Fri, 10 Jun 2022 09:57:20 +0200
 
-The vfat_rename() function is quite big and there are code blocks that can
-be moved into helper functions.  This not only simplify the implementation
-of that function but also allows these helpers to be reused.
+The renameat2 RENAME_EXCHANGE flag allows to atomically exchange two paths
+but is currently not supported by the Linux vfat filesystem driver.
 
-For example, the helpers can be used by the handler of the RENAME_EXCHANGE
-flag once this is implemented in a subsequent patch.
+Add a vfat_rename_exchange() helper function that implements this support.
 
-Link: https://lkml.kernel.org/r/20220610075721.1182745-3-javierm@redhat.com
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+The super block lock is acquired during the operation to ensure atomicity,
+and in the error path actions made are reversed also with the mutex held.
+
+It makes the operation as transactional as possible, within the limitation
+impossed by vfat due not having a journal with logs to replay.
+
+Link: https://lkml.kernel.org/r/20220610075721.1182745-4-javierm@redhat.com
 Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Alexander Larsson <alexl@redhat.com>
@@ -77,149 +80,149 @@ Cc: Peter Jones <pjones@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/namei_vfat.c |   89 ++++++++++++++++++++++++++----------------
- 1 file changed, 57 insertions(+), 32 deletions(-)
+ fs/fat/namei_vfat.c |  123 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 122 insertions(+), 1 deletion(-)
 
---- a/fs/fat/namei_vfat.c~fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions
+--- a/fs/fat/namei_vfat.c~fat-add-renameat2-rename_exchange-flag-support
 +++ a/fs/fat/namei_vfat.c
-@@ -889,16 +889,55 @@ out:
- 	return err;
+@@ -1042,13 +1042,134 @@ error_inode:
+ 	goto out;
  }
  
-+static int vfat_get_dotdot_de(struct inode *inode, struct buffer_head **bh,
-+			      struct msdos_dir_entry **de)
++static void vfat_exchange_ipos(struct inode *old_inode, struct inode *new_inode,
++			       loff_t old_i_pos, loff_t new_i_pos)
 +{
-+	if (S_ISDIR(inode->i_mode)) {
-+		if (fat_get_dotdot_entry(inode, bh, de))
-+			return -EIO;
-+	}
-+	return 0;
++	fat_detach(old_inode);
++	fat_detach(new_inode);
++	fat_attach(old_inode, new_i_pos);
++	fat_attach(new_inode, old_i_pos);
 +}
 +
-+static int vfat_sync_ipos(struct inode *dir, struct inode *inode)
++static void vfat_move_nlink(struct inode *src, struct inode *dst)
 +{
-+	if (IS_DIRSYNC(dir))
-+		return fat_sync_inode(inode);
-+	mark_inode_dirty(inode);
-+	return 0;
++	drop_nlink(src);
++	inc_nlink(dst);
 +}
 +
-+static int vfat_update_dotdot_de(struct inode *dir, struct inode *inode,
-+				 struct buffer_head *dotdot_bh,
-+				 struct msdos_dir_entry *dotdot_de)
++static int vfat_rename_exchange(struct inode *old_dir, struct dentry *old_dentry,
++				struct inode *new_dir, struct dentry *new_dentry)
 +{
-+	fat_set_start(dotdot_de, MSDOS_I(dir)->i_logstart);
-+	mark_buffer_dirty_inode(dotdot_bh, inode);
-+	if (IS_DIRSYNC(dir))
-+		return sync_dirty_buffer(dotdot_bh);
-+	return 0;
-+}
++	struct buffer_head *old_dotdot_bh = NULL, *new_dotdot_bh = NULL;
++	struct msdos_dir_entry *old_dotdot_de = NULL, *new_dotdot_de = NULL;
++	struct inode *old_inode, *new_inode;
++	struct timespec64 ts = current_time(old_dir);
++	loff_t old_i_pos, new_i_pos;
++	int err, corrupt = 0;
++	struct super_block *sb = old_dir->i_sb;
 +
-+static void vfat_update_dir_metadata(struct inode *dir, struct timespec64 *ts)
-+{
-+	inode_inc_iversion(dir);
-+	fat_truncate_time(dir, ts, S_CTIME | S_MTIME);
-+	if (IS_DIRSYNC(dir))
-+		(void)fat_sync_inode(dir);
-+	else
-+		mark_inode_dirty(dir);
-+}
++	old_inode = d_inode(old_dentry);
++	new_inode = d_inode(new_dentry);
 +
- static int vfat_rename(struct inode *old_dir, struct dentry *old_dentry,
- 		       struct inode *new_dir, struct dentry *new_dentry)
- {
- 	struct buffer_head *dotdot_bh;
--	struct msdos_dir_entry *dotdot_de;
-+	struct msdos_dir_entry *dotdot_de = NULL;
- 	struct inode *old_inode, *new_inode;
- 	struct fat_slot_info old_sinfo, sinfo;
- 	struct timespec64 ts;
- 	loff_t new_i_pos;
--	int err, is_dir, update_dotdot, corrupt = 0;
-+	int err, is_dir, corrupt = 0;
- 	struct super_block *sb = old_dir->i_sb;
- 
- 	old_sinfo.bh = sinfo.bh = dotdot_bh = NULL;
-@@ -909,15 +948,13 @@ static int vfat_rename(struct inode *old
- 	if (err)
- 		goto out;
- 
--	is_dir = S_ISDIR(old_inode->i_mode);
--	update_dotdot = (is_dir && old_dir != new_dir);
--	if (update_dotdot) {
--		if (fat_get_dotdot_entry(old_inode, &dotdot_bh, &dotdot_de)) {
--			err = -EIO;
++	/* Acquire super block lock for the operation to be atomic */
++	mutex_lock(&MSDOS_SB(sb)->s_lock);
++
++	/* if directories are not the same, get ".." info to update */
 +	if (old_dir != new_dir) {
-+		err = vfat_get_dotdot_de(old_inode, &dotdot_bh, &dotdot_de);
++		err = vfat_get_dotdot_de(old_inode, &old_dotdot_bh,
++					 &old_dotdot_de);
 +		if (err)
- 			goto out;
--		}
- 	}
- 
-+	is_dir = S_ISDIR(old_inode->i_mode);
- 	ts = current_time(old_dir);
- 	if (new_inode) {
- 		if (is_dir) {
-@@ -938,21 +975,15 @@ static int vfat_rename(struct inode *old
- 
- 	fat_detach(old_inode);
- 	fat_attach(old_inode, new_i_pos);
--	if (IS_DIRSYNC(new_dir)) {
--		err = fat_sync_inode(old_inode);
++			goto out;
++
++		err = vfat_get_dotdot_de(new_inode, &new_dotdot_bh,
++					 &new_dotdot_de);
++		if (err)
++			goto out;
++	}
++
++	old_i_pos = MSDOS_I(old_inode)->i_pos;
++	new_i_pos = MSDOS_I(new_inode)->i_pos;
++
++	vfat_exchange_ipos(old_inode, new_inode, old_i_pos, new_i_pos);
++
++	err = vfat_sync_ipos(old_dir, new_inode);
++	if (err)
++		goto error_exchange;
 +	err = vfat_sync_ipos(new_dir, old_inode);
 +	if (err)
-+		goto error_inode;
++		goto error_exchange;
 +
-+	if (dotdot_de) {
-+		err = vfat_update_dotdot_de(new_dir, old_inode, dotdot_bh,
-+					    dotdot_de);
- 		if (err)
--			goto error_inode;
--	} else
--		mark_inode_dirty(old_inode);
--
--	if (update_dotdot) {
--		fat_set_start(dotdot_de, MSDOS_I(new_dir)->i_logstart);
--		mark_buffer_dirty_inode(dotdot_bh, old_inode);
--		if (IS_DIRSYNC(new_dir)) {
--			err = sync_dirty_buffer(dotdot_bh);
--			if (err)
--				goto error_dotdot;
--		}
-+			goto error_dotdot;
- 		drop_nlink(old_dir);
- 		if (!new_inode)
-  			inc_nlink(new_dir);
-@@ -962,12 +993,7 @@ static int vfat_rename(struct inode *old
- 	old_sinfo.bh = NULL;
- 	if (err)
- 		goto error_dotdot;
--	inode_inc_iversion(old_dir);
--	fat_truncate_time(old_dir, &ts, S_CTIME|S_MTIME);
--	if (IS_DIRSYNC(old_dir))
--		(void)fat_sync_inode(old_dir);
--	else
--		mark_inode_dirty(old_dir);
++	/* update ".." directory entry info */
++	if (old_dotdot_de) {
++		err = vfat_update_dotdot_de(new_dir, old_inode, old_dotdot_bh,
++					    old_dotdot_de);
++		if (err)
++			goto error_old_dotdot;
++	}
++	if (new_dotdot_de) {
++		err = vfat_update_dotdot_de(old_dir, new_inode, new_dotdot_bh,
++					    new_dotdot_de);
++		if (err)
++			goto error_new_dotdot;
++	}
++
++	/* if cross directory and only one is a directory, adjust nlink */
++	if (!old_dotdot_de != !new_dotdot_de) {
++		if (old_dotdot_de)
++			vfat_move_nlink(old_dir, new_dir);
++		else
++			vfat_move_nlink(new_dir, old_dir);
++	}
++
 +	vfat_update_dir_metadata(old_dir, &ts);
++	/* if directories are not the same, update new_dir as well */
++	if (old_dir != new_dir)
++		vfat_update_dir_metadata(new_dir, &ts);
++
++out:
++	brelse(old_dotdot_bh);
++	brelse(new_dotdot_bh);
++	mutex_unlock(&MSDOS_SB(sb)->s_lock);
++
++	return err;
++
++error_new_dotdot:
++	if (new_dotdot_de) {
++		corrupt |= vfat_update_dotdot_de(new_dir, new_inode,
++						 new_dotdot_bh, new_dotdot_de);
++	}
++
++error_old_dotdot:
++	if (old_dotdot_de) {
++		corrupt |= vfat_update_dotdot_de(old_dir, old_inode,
++						 old_dotdot_bh, old_dotdot_de);
++	}
++
++error_exchange:
++	vfat_exchange_ipos(old_inode, new_inode, new_i_pos, old_i_pos);
++	corrupt |= vfat_sync_ipos(new_dir, new_inode);
++	corrupt |= vfat_sync_ipos(old_dir, old_inode);
++
++	if (corrupt < 0) {
++		fat_fs_error(new_dir->i_sb,
++			     "%s: Filesystem corrupted (i_pos %lld, %lld)",
++			     __func__, old_i_pos, new_i_pos);
++	}
++	goto out;
++}
++
+ static int vfat_rename2(struct user_namespace *mnt_userns, struct inode *old_dir,
+ 			struct dentry *old_dentry, struct inode *new_dir,
+ 			struct dentry *new_dentry, unsigned int flags)
+ {
+-	if (flags & ~RENAME_NOREPLACE)
++	if (flags & ~(RENAME_NOREPLACE | RENAME_EXCHANGE))
+ 		return -EINVAL;
  
- 	if (new_inode) {
- 		drop_nlink(new_inode);
-@@ -987,10 +1013,9 @@ error_dotdot:
- 	/* data cluster is shared, serious corruption */
- 	corrupt = 1;
- 
--	if (update_dotdot) {
--		fat_set_start(dotdot_de, MSDOS_I(old_dir)->i_logstart);
--		mark_buffer_dirty_inode(dotdot_bh, old_inode);
--		corrupt |= sync_dirty_buffer(dotdot_bh);
-+	if (dotdot_de) {
-+		corrupt |= vfat_update_dotdot_de(old_dir, old_inode, dotdot_bh,
-+						 dotdot_de);
- 	}
- error_inode:
- 	fat_detach(old_inode);
++	if (flags & RENAME_EXCHANGE) {
++		return vfat_rename_exchange(old_dir, old_dentry,
++					    new_dir, new_dentry);
++	}
++
+ 	/* VFS already handled RENAME_NOREPLACE, handle it as a normal rename */
+ 	return vfat_rename(old_dir, old_dentry, new_dir, new_dentry);
+ }
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from javierm@redhat.com are
 
 
