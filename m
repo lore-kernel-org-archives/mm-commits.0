@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 317F1CCA47E
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:14:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C7CC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:14:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235634AbiFQXOh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235771AbiFQXOh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 17 Jun 2022 19:14:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47112 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235771AbiFQXO0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:26 -0400
+        with ESMTP id S235737AbiFQXOZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:25 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C47063BD9
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25DA863BD6
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9F40A6174E
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00EECC3411B;
-        Fri, 17 Jun 2022 23:14:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B546761698
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13CCDC3411B;
+        Fri, 17 Jun 2022 23:14:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507665;
-        bh=lEhFamUaNelGmSELBIy9L+mkcqbNBhgI7F+p2m4dz/A=;
+        s=korg; t=1655507663;
+        bh=lr8U355SQcWgFtVhEFnk7X29PPGxHL/C8hMJJ8mawjY=;
         h=Date:To:From:Subject:From;
-        b=KeBHBJ1H/wYzgP0RduVUJg2A/NfYCIReK6P3W+qKIav2FkDGqFCExe9CyaPEmm8gG
-         Vt5+YgH6h3oOvyoIFJntFJIRHMgBMjCabIXxNG0C5+VCkjbfL/rNvotrhsmDyI+wJk
-         vmf8N/g907RR/FTngzEh+Ot7dC/tBUEw2+5Y6yBQ=
-Date:   Fri, 17 Jun 2022 16:14:24 -0700
+        b=pcEZ2wWq0TX9hbzq+qW94F287EhPPi2BMAv4GtdyfOmSl1O+Af1Gh+M7EoLpV6eDw
+         H24nXOQ7fs7tgKEcH4Ss84xGTy/yqtTB/OTEnGaTgJmXYdmDyB5scK83fZrA1jshNz
+         FCQGrA3EvKcKX8ldzYeHzLYRsY6hXTBK/yUENJN4=
+Date:   Fri, 17 Jun 2022 16:14:22 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-convert-lru_deactivate-to-a-folio_batch.patch added to mm-unstable branch
-Message-Id: <20220617231425.00EECC3411B@smtp.kernel.org>
+Subject: + mm-swap-convert-lru_deactivate_file-to-a-folio_batch.patch added to mm-unstable branch
+Message-Id: <20220617231423.13CCDC3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: convert lru_deactivate to a folio_batch
+     Subject: mm/swap: convert lru_deactivate_file to a folio_batch
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-convert-lru_deactivate-to-a-folio_batch.patch
+     mm-swap-convert-lru_deactivate_file-to-a-folio_batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-lru_deactivate-to-a-folio_batch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-lru_deactivate_file-to-a-folio_batch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,99 +65,177 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: convert lru_deactivate to a folio_batch
-Date: Fri, 17 Jun 2022 18:50:04 +0100
+Subject: mm/swap: convert lru_deactivate_file to a folio_batch
+Date: Fri, 17 Jun 2022 18:50:03 +0100
 
-Using folios instead of pages shrinks deactivate_page() and
-lru_deactivate_fn() by 778 bytes between them.
+Use a folio throughout lru_deactivate_file_fn(), removing many hidden
+calls to compound_head().  Shrinks the kernel by 864 bytes of text.
 
-Link: https://lkml.kernel.org/r/20220617175020.717127-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   38 ++++++++++++++++++++------------------
- 1 file changed, 20 insertions(+), 18 deletions(-)
+ mm/swap.c |   82 ++++++++++++++++++++++++----------------------------
+ 1 file changed, 39 insertions(+), 43 deletions(-)
 
---- a/mm/swap.c~mm-swap-convert-lru_deactivate-to-a-folio_batch
+--- a/mm/swap.c~mm-swap-convert-lru_deactivate_file-to-a-folio_batch
 +++ a/mm/swap.c
-@@ -63,7 +63,7 @@ struct lru_pvecs {
+@@ -62,7 +62,7 @@ static DEFINE_PER_CPU(struct lru_rotate,
+ struct lru_pvecs {
  	local_lock_t lock;
  	struct folio_batch lru_add;
- 	struct folio_batch lru_deactivate_file;
--	struct pagevec lru_deactivate;
-+	struct folio_batch lru_deactivate;
+-	struct pagevec lru_deactivate_file;
++	struct folio_batch lru_deactivate_file;
+ 	struct pagevec lru_deactivate;
  	struct pagevec lru_lazyfree;
  #ifdef CONFIG_SMP
- 	struct pagevec activate_page;
-@@ -623,15 +623,15 @@ static void lru_deactivate_file_fn(struc
- 	}
+@@ -562,56 +562,57 @@ void lru_cache_add_inactive_or_unevictab
  }
  
--static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec)
-+static void lru_deactivate_fn(struct lruvec *lruvec, struct folio *folio)
- {
--	if (PageActive(page) && !PageUnevictable(page)) {
--		int nr_pages = thp_nr_pages(page);
-+	if (folio_test_active(folio) && !folio_test_unevictable(folio)) {
-+		long nr_pages = folio_nr_pages(folio);
- 
--		del_page_from_lru_list(page, lruvec);
--		ClearPageActive(page);
--		ClearPageReferenced(page);
--		add_page_to_lru_list(page, lruvec);
-+		lruvec_del_folio(lruvec, folio);
-+		folio_clear_active(folio);
-+		folio_clear_referenced(folio);
-+		lruvec_add_folio(lruvec, folio);
- 
- 		__count_vm_events(PGDEACTIVATE, nr_pages);
- 		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
-@@ -690,9 +690,9 @@ void lru_add_drain_cpu(int cpu)
- 	if (folio_batch_count(fbatch))
- 		folio_batch_move_lru(fbatch, lru_deactivate_file_fn);
- 
--	pvec = &per_cpu(lru_pvecs.lru_deactivate, cpu);
--	if (pagevec_count(pvec))
--		pagevec_lru_move_fn(pvec, lru_deactivate_fn);
-+	fbatch = &per_cpu(lru_pvecs.lru_deactivate, cpu);
-+	if (folio_batch_count(fbatch))
-+		folio_batch_move_lru(fbatch, lru_deactivate_fn);
- 
- 	pvec = &per_cpu(lru_pvecs.lru_lazyfree, cpu);
- 	if (pagevec_count(pvec))
-@@ -736,14 +736,16 @@ void deactivate_file_folio(struct folio
+ /*
+- * If the page can not be invalidated, it is moved to the
++ * If the folio cannot be invalidated, it is moved to the
+  * inactive list to speed up its reclaim.  It is moved to the
+  * head of the list, rather than the tail, to give the flusher
+  * threads some time to write it out, as this is much more
+  * effective than the single-page writeout from reclaim.
+  *
+- * If the page isn't page_mapped and dirty/writeback, the page
+- * could reclaim asap using PG_reclaim.
++ * If the folio isn't mapped and dirty/writeback, the folio
++ * could be reclaimed asap using the reclaim flag.
+  *
+- * 1. active, mapped page -> none
+- * 2. active, dirty/writeback page -> inactive, head, PG_reclaim
+- * 3. inactive, mapped page -> none
+- * 4. inactive, dirty/writeback page -> inactive, head, PG_reclaim
++ * 1. active, mapped folio -> none
++ * 2. active, dirty/writeback folio -> inactive, head, reclaim
++ * 3. inactive, mapped folio -> none
++ * 4. inactive, dirty/writeback folio -> inactive, head, reclaim
+  * 5. inactive, clean -> inactive, tail
+  * 6. Others -> none
+  *
+- * In 4, why it moves inactive's head, the VM expects the page would
+- * be write it out by flusher threads as this is much more effective
++ * In 4, it moves to the head of the inactive list so the folio is
++ * written out by flusher threads as this is much more efficient
+  * than the single-page writeout from reclaim.
   */
- void deactivate_page(struct page *page)
+-static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec)
++static void lru_deactivate_file_fn(struct lruvec *lruvec, struct folio *folio)
  {
--	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
--		struct pagevec *pvec;
-+	struct folio *folio = page_folio(page);
+-	bool active = PageActive(page);
+-	int nr_pages = thp_nr_pages(page);
++	bool active = folio_test_active(folio);
++	long nr_pages = folio_nr_pages(folio);
  
-+	if (folio_test_lru(folio) && folio_test_active(folio) &&
-+	    !folio_test_unevictable(folio)) {
-+		struct folio_batch *fbatch;
-+
-+		folio_get(folio);
- 		local_lock(&lru_pvecs.lock);
--		pvec = this_cpu_ptr(&lru_pvecs.lru_deactivate);
--		get_page(page);
--		if (pagevec_add_and_need_flush(pvec, page))
--			pagevec_lru_move_fn(pvec, lru_deactivate_fn);
-+		fbatch = this_cpu_ptr(&lru_pvecs.lru_deactivate);
-+		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
- 		local_unlock(&lru_pvecs.lock);
+-	if (PageUnevictable(page))
++	if (folio_test_unevictable(folio))
+ 		return;
+ 
+-	/* Some processes are using the page */
+-	if (page_mapped(page))
++	/* Some processes are using the folio */
++	if (folio_mapped(folio))
+ 		return;
+ 
+-	del_page_from_lru_list(page, lruvec);
+-	ClearPageActive(page);
+-	ClearPageReferenced(page);
++	lruvec_del_folio(lruvec, folio);
++	folio_clear_active(folio);
++	folio_clear_referenced(folio);
+ 
+-	if (PageWriteback(page) || PageDirty(page)) {
++	if (folio_test_writeback(folio) || folio_test_dirty(folio)) {
+ 		/*
+-		 * PG_reclaim could be raced with end_page_writeback
+-		 * It can make readahead confusing.  But race window
+-		 * is _really_ small and  it's non-critical problem.
++		 * Setting the reclaim flag could race with
++		 * folio_end_writeback() and confuse readahead.  But the
++		 * race window is _really_ small and  it's not a critical
++		 * problem.
+ 		 */
+-		add_page_to_lru_list(page, lruvec);
+-		SetPageReclaim(page);
++		lruvec_add_folio(lruvec, folio);
++		folio_set_reclaim(folio);
+ 	} else {
+ 		/*
+-		 * The page's writeback ends up during pagevec
+-		 * We move that page into tail of inactive.
++		 * The folio's writeback ended while it was in the batch.
++		 * We move that folio to the tail of the inactive list.
+ 		 */
+-		add_page_to_lru_list_tail(page, lruvec);
++		lruvec_add_folio_tail(lruvec, folio);
+ 		__count_vm_events(PGROTATED, nr_pages);
  	}
+ 
+@@ -685,9 +686,9 @@ void lru_add_drain_cpu(int cpu)
+ 		local_unlock_irqrestore(&lru_rotate.lock, flags);
+ 	}
+ 
+-	pvec = &per_cpu(lru_pvecs.lru_deactivate_file, cpu);
+-	if (pagevec_count(pvec))
+-		pagevec_lru_move_fn(pvec, lru_deactivate_file_fn);
++	fbatch = &per_cpu(lru_pvecs.lru_deactivate_file, cpu);
++	if (folio_batch_count(fbatch))
++		folio_batch_move_lru(fbatch, lru_deactivate_file_fn);
+ 
+ 	pvec = &per_cpu(lru_pvecs.lru_deactivate, cpu);
+ 	if (pagevec_count(pvec))
+@@ -701,32 +702,27 @@ void lru_add_drain_cpu(int cpu)
  }
-@@ -896,7 +898,7 @@ static inline void __lru_add_drain_all(b
+ 
+ /**
+- * deactivate_file_folio() - Forcefully deactivate a file folio.
++ * deactivate_file_folio() - Deactivate a file folio.
+  * @folio: Folio to deactivate.
+  *
+  * This function hints to the VM that @folio is a good reclaim candidate,
+  * for example if its invalidation fails due to the folio being dirty
+  * or under writeback.
+  *
+- * Context: Caller holds a reference on the page.
++ * Context: Caller holds a reference on the folio.
+  */
+ void deactivate_file_folio(struct folio *folio)
+ {
+-	struct pagevec *pvec;
++	struct folio_batch *fbatch;
+ 
+-	/*
+-	 * In a workload with many unevictable pages such as mprotect,
+-	 * unevictable folio deactivation for accelerating reclaim is pointless.
+-	 */
++	/* Deactivating an unevictable folio will not accelerate reclaim */
+ 	if (folio_test_unevictable(folio))
+ 		return;
+ 
+ 	folio_get(folio);
+ 	local_lock(&lru_pvecs.lock);
+-	pvec = this_cpu_ptr(&lru_pvecs.lru_deactivate_file);
+-
+-	if (pagevec_add_and_need_flush(pvec, &folio->page))
+-		pagevec_lru_move_fn(pvec, lru_deactivate_file_fn);
++	fbatch = this_cpu_ptr(&lru_pvecs.lru_deactivate_file);
++	folio_batch_add_and_move(fbatch, folio, lru_deactivate_file_fn);
+ 	local_unlock(&lru_pvecs.lock);
+ }
+ 
+@@ -899,7 +895,7 @@ static inline void __lru_add_drain_all(b
+ 
  		if (folio_batch_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
  		    data_race(folio_batch_count(&per_cpu(lru_rotate.fbatch, cpu))) ||
- 		    folio_batch_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
--		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
-+		    folio_batch_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
+-		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
++		    folio_batch_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
+ 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
  		    pagevec_count(&per_cpu(lru_pvecs.lru_lazyfree, cpu)) ||
  		    need_activate_page_drain(cpu) ||
- 		    need_mlock_page_drain(cpu) ||
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
