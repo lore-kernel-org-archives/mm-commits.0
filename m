@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 502E5C43334
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:15:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3008ACCA479
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:15:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236214AbiFQXPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236246AbiFQXPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 17 Jun 2022 19:15:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47426 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237214AbiFQXOq (ORCPT
+        with ESMTP id S237031AbiFQXOq (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE9AF65D03
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9980965434
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7ABF961698
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D07A0C3411B;
-        Fri, 17 Jun 2022 23:14:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F22B617BE
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82462C3411D;
+        Fri, 17 Jun 2022 23:14:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507683;
-        bh=tX24cjbnFL0IgbZk+ZAhxjMuNo7m/327K8ZWY8U5IMk=;
+        s=korg; t=1655507681;
+        bh=TOOP08+JRAn2XcRvwa8S4vGVRH6ZJ26Rp70ifOiN/Ds=;
         h=Date:To:From:Subject:From;
-        b=E2zyyjYGwd+txWQt/UPvCcp6TTC83qrGBGbqt7dP7YR/dP/kbEhT0DfqI3c2UdXXu
-         uHxfMFm2xD1rBsIWvSSHdoXvwPoJ9Gj2NS11q3/Yv26I1pXPDJQTWuuz8vxxSop+1o
-         ouIHFD1vv7mAtQpQ8DDNQ+qaklCjtdF96h6Agj/0=
-Date:   Fri, 17 Jun 2022 16:14:43 -0700
+        b=1yv4ayVwTaTR4qFX4+/TiitBn9Rp8vPSjaCnmr+LfY/F5xZSLYO9npg++WAVG6FXS
+         fx1kxacfdiEPB4jL4iq7tmu2GW9LOR9o6EMxZ85MPhxSLiiNYtLKbkhwX2Kxj04MPJ
+         qsKW2LtrXGCl3C2zF3I2kLESFupEDah8LwZSzQ+c=
+Date:   Fri, 17 Jun 2022 16:14:40 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-convert-__put_single_page-to-__folio_put_small.patch added to mm-unstable branch
-Message-Id: <20220617231443.D07A0C3411B@smtp.kernel.org>
+Subject: + mm-swap-convert-__put_page-to-__folio_put.patch added to mm-unstable branch
+Message-Id: <20220617231441.82462C3411D@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: convert __put_single_page() to __folio_put_small()
+     Subject: mm/swap: convert __put_page() to __folio_put()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-convert-__put_single_page-to-__folio_put_small.patch
+     mm-swap-convert-__put_page-to-__folio_put.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-__put_single_page-to-__folio_put_small.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-__put_page-to-__folio_put.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,45 +65,86 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: convert __put_single_page() to __folio_put_small()
-Date: Fri, 17 Jun 2022 18:50:14 +0100
+Subject: mm/swap: convert __put_page() to __folio_put()
+Date: Fri, 17 Jun 2022 18:50:13 +0100
 
-Saves 56 bytes of text by removing a call to compound_head().
+Saves 11 bytes of text by removing a check of PageTail.
 
-Link: https://lkml.kernel.org/r/20220617175020.717127-17-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-16-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/mm.h   |    6 +++---
+ mm/swap.c            |   14 +++++++-------
+ net/core/page_pool.c |    2 +-
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/mm/swap.c~mm-swap-convert-__put_single_page-to-__folio_put_small
-+++ a/mm/swap.c
-@@ -99,11 +99,11 @@ static void __page_cache_release(struct
- 	}
+--- a/include/linux/mm.h~mm-swap-convert-__put_page-to-__folio_put
++++ a/include/linux/mm.h
+@@ -886,7 +886,7 @@ static inline struct folio *virt_to_foli
+ 	return page_folio(page);
  }
  
--static void __put_single_page(struct page *page)
-+static void __folio_put_small(struct folio *folio)
+-void __put_page(struct page *page);
++void __folio_put(struct folio *folio);
+ 
+ void put_pages_list(struct list_head *pages);
+ 
+@@ -1228,7 +1228,7 @@ static inline __must_check bool try_get_
+ static inline void folio_put(struct folio *folio)
  {
--	__page_cache_release(page);
--	mem_cgroup_uncharge(page_folio(page));
--	free_unref_page(page, 0);
-+	__page_cache_release(&folio->page);
-+	mem_cgroup_uncharge(folio);
-+	free_unref_page(&folio->page, 0);
+ 	if (folio_put_testzero(folio))
+-		__put_page(&folio->page);
++		__folio_put(folio);
  }
  
- static void __put_compound_page(struct page *page)
-@@ -126,7 +126,7 @@ void __folio_put(struct folio *folio)
- 	else if (unlikely(folio_test_large(folio)))
- 		__put_compound_page(&folio->page);
- 	else
--		__put_single_page(&folio->page);
-+		__folio_put_small(folio);
+ /**
+@@ -1248,7 +1248,7 @@ static inline void folio_put(struct foli
+ static inline void folio_put_refs(struct folio *folio, int refs)
+ {
+ 	if (folio_ref_sub_and_test(folio, refs))
+-		__put_page(&folio->page);
++		__folio_put(folio);
  }
- EXPORT_SYMBOL(__folio_put);
+ 
+ void release_pages(struct page **pages, int nr);
+--- a/mm/swap.c~mm-swap-convert-__put_page-to-__folio_put
++++ a/mm/swap.c
+@@ -119,16 +119,16 @@ static void __put_compound_page(struct p
+ 	destroy_compound_page(page);
+ }
+ 
+-void __put_page(struct page *page)
++void __folio_put(struct folio *folio)
+ {
+-	if (unlikely(is_zone_device_page(page)))
+-		free_zone_device_page(page);
+-	else if (unlikely(PageCompound(page)))
+-		__put_compound_page(page);
++	if (unlikely(folio_is_zone_device(folio)))
++		free_zone_device_page(&folio->page);
++	else if (unlikely(folio_test_large(folio)))
++		__put_compound_page(&folio->page);
+ 	else
+-		__put_single_page(page);
++		__put_single_page(&folio->page);
+ }
+-EXPORT_SYMBOL(__put_page);
++EXPORT_SYMBOL(__folio_put);
+ 
+ /**
+  * put_pages_list() - release a list of pages
+--- a/net/core/page_pool.c~mm-swap-convert-__put_page-to-__folio_put
++++ a/net/core/page_pool.c
+@@ -16,7 +16,7 @@
+ #include <linux/dma-direction.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/page-flags.h>
+-#include <linux/mm.h> /* for __put_page() */
++#include <linux/mm.h> /* for put_page() */
+ #include <linux/poison.h>
+ #include <linux/ethtool.h>
  
 _
 
