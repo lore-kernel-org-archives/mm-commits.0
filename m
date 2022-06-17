@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F26CDCCA47E
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:15:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D197FCCA479
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:15:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234394AbiFQXP0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jun 2022 19:15:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47412 "EHLO
+        id S237125AbiFQXP2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jun 2022 19:15:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237986AbiFQXPB (ORCPT
+        with ESMTP id S237683AbiFQXPB (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:15:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D35364D18
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2884463BD9
         for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 138B061560
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B3A4C3411B;
-        Fri, 17 Jun 2022 23:14:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DFAB6B82BFC
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E09AC3411B;
+        Fri, 17 Jun 2022 23:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507687;
-        bh=yyL1aCxyBIZFEDizPBrRpdHcMT+qHHHUqpV5kth0hF4=;
+        s=korg; t=1655507685;
+        bh=iFFS0naSkYZu318XZN9o7Uuw6TP18cC5yjgNHSH2CNM=;
         h=Date:To:From:Subject:From;
-        b=yxYPk2sxwdN8P9CabrgL2sF3x2jrmkqh9IDI+sPmOhxB2uzC8aywz4ZW19/MDykDx
-         mwrev5U2viPBnLYN4ww/c4RN3dTKkR57M3WQzSwNQ+Q8cGLAyG5efGuxKJzxy7P8m6
-         Mljw5EOFLhWtCKyGmpQfenRnU0o0xhpSw23lYlNg=
-Date:   Fri, 17 Jun 2022 16:14:46 -0700
+        b=ej3IyNf9phGNZGhqFdAG0Sw6fNy4IEs4v9apLfXKmR524JMPU0Xsi96DaMpFxD3BK
+         fFScFjV7/MlKzom1uK13/fSIEdOtl/nvIR3tczzPgLMaKR87Ci0xZ8Md1QczFmP+1l
+         SxupooQ2KQoCW24RmA7OC4afkbHGy7phGlgbQtE0=
+Date:   Fri, 17 Jun 2022 16:14:45 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-convert-__page_cache_release-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20220617231447.6B3A4C3411B@smtp.kernel.org>
+Subject: + mm-swap-convert-__put_compound_page-to-__folio_put_large.patch added to mm-unstable branch
+Message-Id: <20220617231445.9E09AC3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: convert __page_cache_release() to use a folio
+     Subject: mm/swap: convert __put_compound_page() to __folio_put_large()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-convert-__page_cache_release-to-use-a-folio.patch
+     mm-swap-convert-__put_compound_page-to-__folio_put_large.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-__page_cache_release-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-__put_compound_page-to-__folio_put_large.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,93 +65,72 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: convert __page_cache_release() to use a folio
-Date: Fri, 17 Jun 2022 18:50:16 +0100
+Subject: mm/swap: convert __put_compound_page() to __folio_put_large()
+Date: Fri, 17 Jun 2022 18:50:15 +0100
 
-All the callers now have a folio.  Saves several calls to compound_head,
-totalling 502 bytes of text.
+All the callers now have a folio, so pass it in.  This doesn't
+save any text, but it does save a call to compound_head() as
+folio_test_hugetlb() does not contain a call like PageHuge() does.
 
-Link: https://lkml.kernel.org/r/20220617175020.717127-19-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-18-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   33 ++++++++++++++++-----------------
- 1 file changed, 16 insertions(+), 17 deletions(-)
+ mm/swap.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/swap.c~mm-swap-convert-__page_cache_release-to-use-a-folio
+--- a/mm/swap.c~mm-swap-convert-__put_compound_page-to-__folio_put_large
 +++ a/mm/swap.c
-@@ -77,31 +77,30 @@ static DEFINE_PER_CPU(struct cpu_fbatche
-  * This path almost never happens for VM activity - pages are normally freed
-  * via pagevecs.  But it gets used by networking - and for compound pages.
-  */
--static void __page_cache_release(struct page *page)
-+static void __page_cache_release(struct folio *folio)
- {
--	if (PageLRU(page)) {
--		struct folio *folio = page_folio(page);
-+	if (folio_test_lru(folio)) {
- 		struct lruvec *lruvec;
- 		unsigned long flags;
- 
- 		lruvec = folio_lruvec_lock_irqsave(folio, &flags);
--		del_page_from_lru_list(page, lruvec);
--		__clear_page_lru_flags(page);
-+		lruvec_del_folio(lruvec, folio);
-+		__folio_clear_lru_flags(folio);
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
- 	}
--	/* See comment on PageMlocked in release_pages() */
--	if (unlikely(PageMlocked(page))) {
--		int nr_pages = thp_nr_pages(page);
-+	/* See comment on folio_test_mlocked in release_pages() */
-+	if (unlikely(folio_test_mlocked(folio))) {
-+		long nr_pages = folio_nr_pages(folio);
- 
--		__ClearPageMlocked(page);
--		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
-+		__folio_clear_mlocked(folio);
-+		zone_stat_mod_folio(folio, NR_MLOCK, -nr_pages);
- 		count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
- 	}
- }
- 
- static void __folio_put_small(struct folio *folio)
- {
--	__page_cache_release(&folio->page);
-+	__page_cache_release(folio);
- 	mem_cgroup_uncharge(folio);
+@@ -106,7 +106,7 @@ static void __folio_put_small(struct fol
  	free_unref_page(&folio->page, 0);
  }
-@@ -115,7 +114,7 @@ static void __folio_put_large(struct fol
+ 
+-static void __put_compound_page(struct page *page)
++static void __folio_put_large(struct folio *folio)
+ {
+ 	/*
+ 	 * __page_cache_release() is supposed to be called for thp, not for
+@@ -114,9 +114,9 @@ static void __put_compound_page(struct p
+ 	 * (it's never listed to any LRU lists) and no memcg routines should
  	 * be called for hugetlb (it has a separate hugetlb_cgroup.)
  	 */
- 	if (!folio_test_hugetlb(folio))
--		__page_cache_release(&folio->page);
-+		__page_cache_release(folio);
- 	destroy_compound_page(&folio->page);
+-	if (!PageHuge(page))
+-		__page_cache_release(page);
+-	destroy_compound_page(page);
++	if (!folio_test_hugetlb(folio))
++		__page_cache_release(&folio->page);
++	destroy_compound_page(&folio->page);
  }
  
-@@ -199,14 +198,14 @@ static void lru_add_fn(struct lruvec *lr
+ void __folio_put(struct folio *folio)
+@@ -124,7 +124,7 @@ void __folio_put(struct folio *folio)
+ 	if (unlikely(folio_is_zone_device(folio)))
+ 		free_zone_device_page(&folio->page);
+ 	else if (unlikely(folio_test_large(folio)))
+-		__put_compound_page(&folio->page);
++		__folio_put_large(folio);
+ 	else
+ 		__folio_put_small(folio);
+ }
+@@ -147,7 +147,7 @@ void put_pages_list(struct list_head *pa
+ 		}
+ 		if (folio_test_large(folio)) {
+ 			list_del(&folio->lru);
+-			__put_compound_page(&folio->page);
++			__folio_put_large(folio);
+ 			continue;
+ 		}
+ 		/* LRU flag must be clear because it's passed using the lru */
+@@ -976,7 +976,7 @@ void release_pages(struct page **pages,
+ 				unlock_page_lruvec_irqrestore(lruvec, flags);
+ 				lruvec = NULL;
+ 			}
+-			__put_compound_page(&folio->page);
++			__folio_put_large(folio);
+ 			continue;
+ 		}
  
- 	/*
- 	 * Is an smp_mb__after_atomic() still required here, before
--	 * folio_evictable() tests PageMlocked, to rule out the possibility
-+	 * folio_evictable() tests the mlocked flag, to rule out the possibility
- 	 * of stranding an evictable folio on an unevictable LRU?  I think
--	 * not, because __munlock_page() only clears PageMlocked while the LRU
--	 * lock is held.
-+	 * not, because __munlock_page() only clears the mlocked flag
-+	 * while the LRU lock is held.
- 	 *
- 	 * (That is not true of __page_cache_release(), and not necessarily
--	 * true of release_pages(): but those only clear PageMlocked after
--	 * put_page_testzero() has excluded any other users of the page.)
-+	 * true of release_pages(): but those only clear the mlocked flag after
-+	 * folio_put_testzero() has excluded any other users of the folio.)
- 	 */
- 	if (folio_evictable(folio)) {
- 		if (was_unevictable)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
