@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF785C43334
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:49:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3713ECCA47A
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:49:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379797AbiFQCt3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1379794AbiFQCt3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 16 Jun 2022 22:49:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60282 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379794AbiFQCtX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:23 -0400
+        with ESMTP id S1379799AbiFQCtY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:24 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7685764D0B
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94F1965400
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2C6CBB825FA
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7429C34114;
-        Fri, 17 Jun 2022 02:49:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 45162B826F2
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0419C3411A;
+        Fri, 17 Jun 2022 02:49:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655434159;
-        bh=PRTaXqAv459zC4/RJSxf3sNS5ANreA6hdQIOxeA4o0I=;
+        s=korg; t=1655434161;
+        bh=9sRKGOahueFdebdzbHd9eCc1p1vRtKefHvYoV79/Ovo=;
         h=Date:To:From:Subject:From;
-        b=PaD0G9Rduix1NglLf4wXisPtoOD6CJnnhsZrmkFuJ/iUxv7AR/NE90NrgKzooXrR4
-         jBKb+GxT308M/QXDY6mNk2hmuciBUuTbTHuVt5ctBBlCASse6d/zzAur4JpF35eNvX
-         n8VKBtFdjEAU53mxe462mt4PS6nB0w/IDPdvRyzE=
-Date:   Thu, 16 Jun 2022 19:49:19 -0700
-To:     mm-commits@vger.kernel.org, osalvador@suse.de, david@redhat.com,
-        anshuman.khandual@arm.com, akpm@linux-foundation.org
+        b=FmObRlD03LJWCc7q07s6qjo9wW5SJXutG7tjhpmADbhgVK2Ipcv8j1uoQR+R+iFw8
+         5muFGAYPFg9OEYiGlYze8sNi2cx2WW8lmkipj0HhgqRecNJY2smzThittIyd31BUJG
+         74qdmYn346V550d0h3AjO997DgYm2y2Ry56PFqIE=
+Date:   Thu, 16 Jun 2022 19:49:20 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        zhouchengming@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_hotplug-drop-reason-argument-from-check_pfn_span.patch removed from -mm tree
-Message-Id: <20220617024919.D7429C34114@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-remove-obsolete-comments-of-kdamond_stop.patch removed from -mm tree
+Message-Id: <20220617024920.E0419C3411A@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,89 +41,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memory_hotplug: drop 'reason' argument from check_pfn_span()
+     Subject: mm/damon: remove obsolete comments of kdamond_stop
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-drop-reason-argument-from-check_pfn_span.patch
+     mm-damon-remove-obsolete-comments-of-kdamond_stop.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/memory_hotplug: drop 'reason' argument from check_pfn_span()
-Date: Tue, 31 May 2022 14:34:41 +0530
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/damon: remove obsolete comments of kdamond_stop
+Date: Tue, 31 May 2022 10:04:21 +0800
 
-In check_pfn_span(), a 'reason' string is being used to recreate the
-caller function name, while printing the warning message.  It is really
-unnecessary as the warning message could just be printed inside the caller
-depending on the return code.  Currently there are just two callers for
-check_pfn_span() i.e __add_pages() and __remove_pages().  Let's clean this
-up.
+Since commit 0f91d13366a4 ("mm/damon: simplify stop mechanism") delete
+kdamond_stop and change to use kthread stop mechanism, these obsolete
+comments should be removed accordingly.
 
-Link: https://lkml.kernel.org/r/20220531090441.170650-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20220531020421.46849-1-zhouchengming@bytedance.com
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ include/linux/damon.h |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-reason-argument-from-check_pfn_span
-+++ a/mm/memory_hotplug.c
-@@ -237,8 +237,7 @@ static void release_memory_resource(stru
- 	kfree(res);
- }
- 
--static int check_pfn_span(unsigned long pfn, unsigned long nr_pages,
--		const char *reason)
-+static int check_pfn_span(unsigned long pfn, unsigned long nr_pages)
- {
- 	/*
- 	 * Disallow all operations smaller than a sub-section and only
-@@ -255,12 +254,8 @@ static int check_pfn_span(unsigned long
- 		min_align = PAGES_PER_SUBSECTION;
- 	else
- 		min_align = PAGES_PER_SECTION;
--	if (!IS_ALIGNED(pfn, min_align)
--			|| !IS_ALIGNED(nr_pages, min_align)) {
--		WARN(1, "Misaligned __%s_pages start: %#lx end: #%lx\n",
--				reason, pfn, pfn + nr_pages - 1);
-+	if (!IS_ALIGNED(pfn | nr_pages, min_align))
- 		return -EINVAL;
--	}
- 	return 0;
- }
- 
-@@ -337,9 +332,10 @@ int __ref __add_pages(int nid, unsigned
- 		altmap->alloc = 0;
- 	}
- 
--	err = check_pfn_span(pfn, nr_pages, "add");
--	if (err)
--		return err;
-+	if (check_pfn_span(pfn, nr_pages)) {
-+		WARN(1, "Misaligned %s start: %#lx end: #%lx\n", __func__, pfn, pfn + nr_pages - 1);
-+		return -EINVAL;
-+	}
- 
- 	for (; pfn < end_pfn; pfn += cur_nr_pages) {
- 		/* Select all remaining pages up to the next section boundary */
-@@ -536,8 +532,10 @@ void __remove_pages(unsigned long pfn, u
- 
- 	map_offset = vmem_altmap_offset(altmap);
- 
--	if (check_pfn_span(pfn, nr_pages, "remove"))
-+	if (check_pfn_span(pfn, nr_pages)) {
-+		WARN(1, "Misaligned %s start: %#lx end: #%lx\n", __func__, pfn, pfn + nr_pages - 1);
- 		return;
-+	}
- 
- 	for (; pfn < end_pfn; pfn += cur_nr_pages) {
- 		cond_resched();
+--- a/include/linux/damon.h~mm-damon-remove-obsolete-comments-of-kdamond_stop
++++ a/include/linux/damon.h
+@@ -397,7 +397,6 @@ struct damon_callback {
+  * detail.
+  *
+  * @kdamond:		Kernel thread who does the monitoring.
+- * @kdamond_stop:	Notifies whether kdamond should stop.
+  * @kdamond_lock:	Mutex for the synchronizations with @kdamond.
+  *
+  * For each monitoring context, one kernel thread for the monitoring is
+@@ -406,14 +405,14 @@ struct damon_callback {
+  * Once started, the monitoring thread runs until explicitly required to be
+  * terminated or every monitoring target is invalid.  The validity of the
+  * targets is checked via the &damon_operations.target_valid of @ops.  The
+- * termination can also be explicitly requested by writing non-zero to
+- * @kdamond_stop.  The thread sets @kdamond to NULL when it terminates.
+- * Therefore, users can know whether the monitoring is ongoing or terminated by
+- * reading @kdamond.  Reads and writes to @kdamond and @kdamond_stop from
+- * outside of the monitoring thread must be protected by @kdamond_lock.
++ * termination can also be explicitly requested by calling damon_stop().
++ * The thread sets @kdamond to NULL when it terminates. Therefore, users can
++ * know whether the monitoring is ongoing or terminated by reading @kdamond.
++ * Reads and writes to @kdamond from outside of the monitoring thread must
++ * be protected by @kdamond_lock.
+  *
+- * Note that the monitoring thread protects only @kdamond and @kdamond_stop via
+- * @kdamond_lock.  Accesses to other fields must be protected by themselves.
++ * Note that the monitoring thread protects only @kdamond via @kdamond_lock.
++ * Accesses to other fields must be protected by themselves.
+  *
+  * @ops:	Set of monitoring operations for given use cases.
+  * @callback:	Set of callbacks for monitoring events notifications.
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
 
