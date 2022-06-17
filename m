@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3008ACCA479
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F26CDCCA47E
 	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:15:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236246AbiFQXPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jun 2022 19:15:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47422 "EHLO
+        id S234394AbiFQXP0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jun 2022 19:15:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237031AbiFQXOq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:46 -0400
+        with ESMTP id S237986AbiFQXPB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:15:01 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9980965434
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D35364D18
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F22B617BE
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82462C3411D;
-        Fri, 17 Jun 2022 23:14:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 138B061560
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B3A4C3411B;
+        Fri, 17 Jun 2022 23:14:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507681;
-        bh=TOOP08+JRAn2XcRvwa8S4vGVRH6ZJ26Rp70ifOiN/Ds=;
+        s=korg; t=1655507687;
+        bh=yyL1aCxyBIZFEDizPBrRpdHcMT+qHHHUqpV5kth0hF4=;
         h=Date:To:From:Subject:From;
-        b=1yv4ayVwTaTR4qFX4+/TiitBn9Rp8vPSjaCnmr+LfY/F5xZSLYO9npg++WAVG6FXS
-         fx1kxacfdiEPB4jL4iq7tmu2GW9LOR9o6EMxZ85MPhxSLiiNYtLKbkhwX2Kxj04MPJ
-         qsKW2LtrXGCl3C2zF3I2kLESFupEDah8LwZSzQ+c=
-Date:   Fri, 17 Jun 2022 16:14:40 -0700
+        b=yxYPk2sxwdN8P9CabrgL2sF3x2jrmkqh9IDI+sPmOhxB2uzC8aywz4ZW19/MDykDx
+         mwrev5U2viPBnLYN4ww/c4RN3dTKkR57M3WQzSwNQ+Q8cGLAyG5efGuxKJzxy7P8m6
+         Mljw5EOFLhWtCKyGmpQfenRnU0o0xhpSw23lYlNg=
+Date:   Fri, 17 Jun 2022 16:14:46 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-convert-__put_page-to-__folio_put.patch added to mm-unstable branch
-Message-Id: <20220617231441.82462C3411D@smtp.kernel.org>
+Subject: + mm-swap-convert-__page_cache_release-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20220617231447.6B3A4C3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: convert __put_page() to __folio_put()
+     Subject: mm/swap: convert __page_cache_release() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-convert-__put_page-to-__folio_put.patch
+     mm-swap-convert-__page_cache_release-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-__put_page-to-__folio_put.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-__page_cache_release-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,87 +65,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: convert __put_page() to __folio_put()
-Date: Fri, 17 Jun 2022 18:50:13 +0100
+Subject: mm/swap: convert __page_cache_release() to use a folio
+Date: Fri, 17 Jun 2022 18:50:16 +0100
 
-Saves 11 bytes of text by removing a check of PageTail.
+All the callers now have a folio.  Saves several calls to compound_head,
+totalling 502 bytes of text.
 
-Link: https://lkml.kernel.org/r/20220617175020.717127-16-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-19-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |    6 +++---
- mm/swap.c            |   14 +++++++-------
- net/core/page_pool.c |    2 +-
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ mm/swap.c |   33 ++++++++++++++++-----------------
+ 1 file changed, 16 insertions(+), 17 deletions(-)
 
---- a/include/linux/mm.h~mm-swap-convert-__put_page-to-__folio_put
-+++ a/include/linux/mm.h
-@@ -886,7 +886,7 @@ static inline struct folio *virt_to_foli
- 	return page_folio(page);
- }
- 
--void __put_page(struct page *page);
-+void __folio_put(struct folio *folio);
- 
- void put_pages_list(struct list_head *pages);
- 
-@@ -1228,7 +1228,7 @@ static inline __must_check bool try_get_
- static inline void folio_put(struct folio *folio)
- {
- 	if (folio_put_testzero(folio))
--		__put_page(&folio->page);
-+		__folio_put(folio);
- }
- 
- /**
-@@ -1248,7 +1248,7 @@ static inline void folio_put(struct foli
- static inline void folio_put_refs(struct folio *folio, int refs)
- {
- 	if (folio_ref_sub_and_test(folio, refs))
--		__put_page(&folio->page);
-+		__folio_put(folio);
- }
- 
- void release_pages(struct page **pages, int nr);
---- a/mm/swap.c~mm-swap-convert-__put_page-to-__folio_put
+--- a/mm/swap.c~mm-swap-convert-__page_cache_release-to-use-a-folio
 +++ a/mm/swap.c
-@@ -119,16 +119,16 @@ static void __put_compound_page(struct p
- 	destroy_compound_page(page);
- }
- 
--void __put_page(struct page *page)
-+void __folio_put(struct folio *folio)
+@@ -77,31 +77,30 @@ static DEFINE_PER_CPU(struct cpu_fbatche
+  * This path almost never happens for VM activity - pages are normally freed
+  * via pagevecs.  But it gets used by networking - and for compound pages.
+  */
+-static void __page_cache_release(struct page *page)
++static void __page_cache_release(struct folio *folio)
  {
--	if (unlikely(is_zone_device_page(page)))
--		free_zone_device_page(page);
--	else if (unlikely(PageCompound(page)))
--		__put_compound_page(page);
-+	if (unlikely(folio_is_zone_device(folio)))
-+		free_zone_device_page(&folio->page);
-+	else if (unlikely(folio_test_large(folio)))
-+		__put_compound_page(&folio->page);
- 	else
--		__put_single_page(page);
-+		__put_single_page(&folio->page);
+-	if (PageLRU(page)) {
+-		struct folio *folio = page_folio(page);
++	if (folio_test_lru(folio)) {
+ 		struct lruvec *lruvec;
+ 		unsigned long flags;
+ 
+ 		lruvec = folio_lruvec_lock_irqsave(folio, &flags);
+-		del_page_from_lru_list(page, lruvec);
+-		__clear_page_lru_flags(page);
++		lruvec_del_folio(lruvec, folio);
++		__folio_clear_lru_flags(folio);
+ 		unlock_page_lruvec_irqrestore(lruvec, flags);
+ 	}
+-	/* See comment on PageMlocked in release_pages() */
+-	if (unlikely(PageMlocked(page))) {
+-		int nr_pages = thp_nr_pages(page);
++	/* See comment on folio_test_mlocked in release_pages() */
++	if (unlikely(folio_test_mlocked(folio))) {
++		long nr_pages = folio_nr_pages(folio);
+ 
+-		__ClearPageMlocked(page);
+-		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
++		__folio_clear_mlocked(folio);
++		zone_stat_mod_folio(folio, NR_MLOCK, -nr_pages);
+ 		count_vm_events(UNEVICTABLE_PGCLEARED, nr_pages);
+ 	}
  }
--EXPORT_SYMBOL(__put_page);
-+EXPORT_SYMBOL(__folio_put);
  
- /**
-  * put_pages_list() - release a list of pages
---- a/net/core/page_pool.c~mm-swap-convert-__put_page-to-__folio_put
-+++ a/net/core/page_pool.c
-@@ -16,7 +16,7 @@
- #include <linux/dma-direction.h>
- #include <linux/dma-mapping.h>
- #include <linux/page-flags.h>
--#include <linux/mm.h> /* for __put_page() */
-+#include <linux/mm.h> /* for put_page() */
- #include <linux/poison.h>
- #include <linux/ethtool.h>
+ static void __folio_put_small(struct folio *folio)
+ {
+-	__page_cache_release(&folio->page);
++	__page_cache_release(folio);
+ 	mem_cgroup_uncharge(folio);
+ 	free_unref_page(&folio->page, 0);
+ }
+@@ -115,7 +114,7 @@ static void __folio_put_large(struct fol
+ 	 * be called for hugetlb (it has a separate hugetlb_cgroup.)
+ 	 */
+ 	if (!folio_test_hugetlb(folio))
+-		__page_cache_release(&folio->page);
++		__page_cache_release(folio);
+ 	destroy_compound_page(&folio->page);
+ }
  
+@@ -199,14 +198,14 @@ static void lru_add_fn(struct lruvec *lr
+ 
+ 	/*
+ 	 * Is an smp_mb__after_atomic() still required here, before
+-	 * folio_evictable() tests PageMlocked, to rule out the possibility
++	 * folio_evictable() tests the mlocked flag, to rule out the possibility
+ 	 * of stranding an evictable folio on an unevictable LRU?  I think
+-	 * not, because __munlock_page() only clears PageMlocked while the LRU
+-	 * lock is held.
++	 * not, because __munlock_page() only clears the mlocked flag
++	 * while the LRU lock is held.
+ 	 *
+ 	 * (That is not true of __page_cache_release(), and not necessarily
+-	 * true of release_pages(): but those only clear PageMlocked after
+-	 * put_page_testzero() has excluded any other users of the page.)
++	 * true of release_pages(): but those only clear the mlocked flag after
++	 * folio_put_testzero() has excluded any other users of the folio.)
+ 	 */
+ 	if (folio_evictable(folio)) {
+ 		if (was_unevictable)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
