@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE267C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:15:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 502E5C43334
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 23:15:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383377AbiFQXPW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jun 2022 19:15:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47424 "EHLO
+        id S236214AbiFQXPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jun 2022 19:15:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237125AbiFQXOq (ORCPT
+        with ESMTP id S237214AbiFQXOq (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jun 2022 19:14:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25A1E65438
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:43 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE9AF65D03
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 16:14:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A5BECB82BFD
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7F7CC3411B;
-        Fri, 17 Jun 2022 23:14:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7ABF961698
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 23:14:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D07A0C3411B;
+        Fri, 17 Jun 2022 23:14:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655507679;
-        bh=d4W+8psmf4e/7MEq5b7IVZ5DZpHeJYXELVWHketMp8o=;
+        s=korg; t=1655507683;
+        bh=tX24cjbnFL0IgbZk+ZAhxjMuNo7m/327K8ZWY8U5IMk=;
         h=Date:To:From:Subject:From;
-        b=IsnXI7xHmmW9s6CGynLV69PZkTU3CKhWnLlpNLzCrEqfddqrRngIm6ZfKN9irNBsb
-         sBYzp42kxGhKA9RRnQmVPK3Odo8oCAHMEkRwD6egajhbBR8nAJ01MpNNdcNv+GYItN
-         SEkiYimFfZUtQ7Mu5aNVANd6qXD0aMqASqagANG0=
-Date:   Fri, 17 Jun 2022 16:14:39 -0700
+        b=E2zyyjYGwd+txWQt/UPvCcp6TTC83qrGBGbqt7dP7YR/dP/kbEhT0DfqI3c2UdXXu
+         uHxfMFm2xD1rBsIWvSSHdoXvwPoJ9Gj2NS11q3/Yv26I1pXPDJQTWuuz8vxxSop+1o
+         ouIHFD1vv7mAtQpQ8DDNQ+qaklCjtdF96h6Agj/0=
+Date:   Fri, 17 Jun 2022 16:14:43 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-convert-put_pages_list-to-use-folios.patch added to mm-unstable branch
-Message-Id: <20220617231439.B7F7CC3411B@smtp.kernel.org>
+Subject: + mm-swap-convert-__put_single_page-to-__folio_put_small.patch added to mm-unstable branch
+Message-Id: <20220617231443.D07A0C3411B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: convert put_pages_list to use folios
+     Subject: mm/swap: convert __put_single_page() to __folio_put_small()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-convert-put_pages_list-to-use-folios.patch
+     mm-swap-convert-__put_single_page-to-__folio_put_small.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-put_pages_list-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-convert-__put_single_page-to-__folio_put_small.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,52 +65,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: convert put_pages_list to use folios
-Date: Fri, 17 Jun 2022 18:50:12 +0100
+Subject: mm/swap: convert __put_single_page() to __folio_put_small()
+Date: Fri, 17 Jun 2022 18:50:14 +0100
 
-Pages linked through the LRU list cannot be tail pages as ->compound_head
-is in a union with one of the words of the list_head, and they cannot
-be ZONE_DEVICE pages as ->pgmap is in a union with the same word.
-Saves 60 bytes of text by removing a call to page_is_fake_head().
+Saves 56 bytes of text by removing a call to compound_head().
 
-Link: https://lkml.kernel.org/r/20220617175020.717127-15-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-17-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/swap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/swap.c~mm-swap-convert-put_pages_list-to-use-folios
+--- a/mm/swap.c~mm-swap-convert-__put_single_page-to-__folio_put_small
 +++ a/mm/swap.c
-@@ -138,19 +138,19 @@ EXPORT_SYMBOL(__put_page);
-  */
- void put_pages_list(struct list_head *pages)
- {
--	struct page *page, *next;
-+	struct folio *folio, *next;
- 
--	list_for_each_entry_safe(page, next, pages, lru) {
--		if (!put_page_testzero(page)) {
--			list_del(&page->lru);
-+	list_for_each_entry_safe(folio, next, pages, lru) {
-+		if (!folio_put_testzero(folio)) {
-+			list_del(&folio->lru);
- 			continue;
- 		}
--		if (PageHead(page)) {
--			list_del(&page->lru);
--			__put_compound_page(page);
-+		if (folio_test_large(folio)) {
-+			list_del(&folio->lru);
-+			__put_compound_page(&folio->page);
- 			continue;
- 		}
--		/* Cannot be PageLRU because it's passed to us using the lru */
-+		/* LRU flag must be clear because it's passed using the lru */
+@@ -99,11 +99,11 @@ static void __page_cache_release(struct
  	}
+ }
  
- 	free_unref_page_list(pages);
+-static void __put_single_page(struct page *page)
++static void __folio_put_small(struct folio *folio)
+ {
+-	__page_cache_release(page);
+-	mem_cgroup_uncharge(page_folio(page));
+-	free_unref_page(page, 0);
++	__page_cache_release(&folio->page);
++	mem_cgroup_uncharge(folio);
++	free_unref_page(&folio->page, 0);
+ }
+ 
+ static void __put_compound_page(struct page *page)
+@@ -126,7 +126,7 @@ void __folio_put(struct folio *folio)
+ 	else if (unlikely(folio_test_large(folio)))
+ 		__put_compound_page(&folio->page);
+ 	else
+-		__put_single_page(&folio->page);
++		__folio_put_small(folio);
+ }
+ EXPORT_SYMBOL(__folio_put);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
