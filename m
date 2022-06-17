@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AF12CCA47A
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:49:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF68C43334
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:49:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379809AbiFQCtp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jun 2022 22:49:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60340 "EHLO
+        id S1379839AbiFQCtr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jun 2022 22:49:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379800AbiFQCtk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:40 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D30665427
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:35 -0700 (PDT)
+        with ESMTP id S1379821AbiFQCtm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FA2C64D0B
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 25B16B826EF
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7040C34114;
-        Fri, 17 Jun 2022 02:49:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 77DF461D19
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0A52C3411A;
+        Fri, 17 Jun 2022 02:49:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655434172;
-        bh=E3AbRU13RGF4X+ZpiS5AncM8SzRgaW0V2pPb3qneWi4=;
+        s=korg; t=1655434179;
+        bh=gZjMjOoutHq/aNwVQVyYg2O3Ndc6hAzC/0gl8wZ5zsE=;
         h=Date:To:From:Subject:From;
-        b=ERDLm39PFKCrKNm5+q66PSPIuOZjnv6WIWno2ml5JInyXHJTuCmiCvZZdLgR+FsfU
-         v/q+4gdlQAyAiY177QkUo4QOimb427DQNGOT6s5E7SC9uykHHIa2viAhQUsXdCSLOF
-         +UkvT9b39RUfZtite4muxiJBitvGrPK0+CTGNPho=
-Date:   Thu, 16 Jun 2022 19:49:32 -0700
-To:     mm-commits@vger.kernel.org, yee.lee@mediatek.com,
-        catalin.marinas@arm.com, patrick.wang.shcn@gmail.com,
-        akpm@linux-foundation.org
+        b=FWKycW84DPTx0v5f84pFW6GByxDM8B7e/e0EDtCTt58ZNrXj1SDhXzVqmdjsbn5R/
+         YHyiXQxrP+fwyzV34ayi86oe9sNRUb1aYFJ50n2cmr1EiE+MZL1ml05KHjI14p+hrP
+         N4Q4W+WJIwMfz7tlxHpremIAdsmwierIP0WqxL6w=
+Date:   Thu, 16 Jun 2022 19:49:39 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        vbabka@suse.cz, songmuchun@bytedance.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, quic_qiancai@quicinc.com,
+        pabeni@redhat.com, naresh.kamboju@linaro.org, mkoutny@suse.com,
+        mhocko@suse.com, lkft@linaro.org, kuba@kernel.org,
+        hannes@cmpxchg.org, fw@strlen.de, edumazet@google.com,
+        davem@davemloft.net, vvs@openvz.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys.patch removed from -mm tree
-Message-Id: <20220617024932.D7040C34114@smtp.kernel.org>
+Subject: [merged mm-stable] net-set-proper-memcg-for-net_init-hooks-allocations.patch removed from -mm tree
+Message-Id: <20220617024939.D0A52C3411A@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,198 +46,153 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: kmemleak: remove kmemleak_not_leak_phys() and the min_count argument to kmemleak_alloc_phys()
+     Subject: net: set proper memcg for net_init hooks allocations
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys.patch
+     net-set-proper-memcg-for-net_init-hooks-allocations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Patrick Wang <patrick.wang.shcn@gmail.com>
-Subject: mm: kmemleak: remove kmemleak_not_leak_phys() and the min_count argument to kmemleak_alloc_phys()
-Date: Sat, 11 Jun 2022 11:55:48 +0800
+From: Vasily Averin <vvs@openvz.org>
+Subject: net: set proper memcg for net_init hooks allocations
+Date: Fri, 3 Jun 2022 07:19:43 +0300
 
-Patch series "mm: kmemleak: store objects allocated with physical address
-separately and check when scan", v4.
+__register_pernet_operations() executes init hook of registered
+pernet_operation structure in all existing net namespaces.
 
-The kmemleak_*_phys() interface uses "min_low_pfn" and "max_low_pfn" to
-check address.  But on some architectures, kmemleak_*_phys() is called
-before those two variables initialized.  The following steps will be
-taken:
+Typically, these hooks are called by a process associated with the
+specified net namespace, and all __GFP_ACCOUNT marked allocation are
+accounted for corresponding container/memcg.
 
-1) Add OBJECT_PHYS flag and rbtree for the objects allocated
-   with physical address
-2) Store physical address in objects if allocated with OBJECT_PHYS
-3) Check the boundary when scan instead of in kmemleak_*_phys()
+However __register_pernet_operations() calls the hooks in the same
+context, and as a result all marked allocations are accounted to one memcg
+for all processed net namespaces.
 
-This patch set will solve:
-https://lore.kernel.org/r/20220527032504.30341-1-yee.lee@mediatek.com
-https://lore.kernel.org/r/9dd08bb5-f39e-53d8-f88d-bec598a08c93@gmail.com
+This patch adjusts active memcg for each net namespace and helps to
+account memory allocated inside ops_init() into the proper memcg.
 
-v3: https://lore.kernel.org/r/20220609124950.1694394-1-patrick.wang.shcn@gmail.com
-v2: https://lore.kernel.org/r/20220603035415.1243913-1-patrick.wang.shcn@gmail.com
-v1: https://lore.kernel.org/r/20220531150823.1004101-1-patrick.wang.shcn@gmail.com
-
-
-This patch (of 4):
-
-Remove the unused kmemleak_not_leak_phys() function.  And remove the
-min_count argument to kmemleak_alloc_phys() function, assume it's 0.
-
-Link: https://lkml.kernel.org/r/20220611035551.1823303-1-patrick.wang.shcn@gmail.com
-Link: https://lkml.kernel.org/r/20220611035551.1823303-2-patrick.wang.shcn@gmail.com
-Signed-off-by: Patrick Wang <patrick.wang.shcn@gmail.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Yee Lee <yee.lee@mediatek.com>
+Link: https://lkml.kernel.org/r/f9394752-e272-9bf9-645f-a18c56d1c4ec@openvz.org
+Signed-off-by: Vasily Averin <vvs@openvz.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Linux Kernel Functional Testing <lkft@linaro.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Qian Cai <quic_qiancai@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kmemleak.rst    |    1 -
- drivers/of/fdt.c                        |    2 +-
- include/linux/kmemleak.h                |    8 ++------
- mm/kmemleak.c                           |   20 +++-----------------
- mm/memblock.c                           |   14 +++++++-------
- tools/testing/memblock/linux/kmemleak.h |    2 +-
- 6 files changed, 14 insertions(+), 33 deletions(-)
+ include/linux/memcontrol.h |   47 ++++++++++++++++++++++++++++++++++-
+ net/core/net_namespace.c   |    7 +++++
+ 2 files changed, 53 insertions(+), 1 deletion(-)
 
---- a/Documentation/dev-tools/kmemleak.rst~mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys
-+++ a/Documentation/dev-tools/kmemleak.rst
-@@ -174,7 +174,6 @@ mapping:
+--- a/include/linux/memcontrol.h~net-set-proper-memcg-for-net_init-hooks-allocations
++++ a/include/linux/memcontrol.h
+@@ -1756,6 +1756,42 @@ static inline void count_objcg_event(str
+ 	rcu_read_unlock();
+ }
  
- - ``kmemleak_alloc_phys``
- - ``kmemleak_free_part_phys``
--- ``kmemleak_not_leak_phys``
- - ``kmemleak_ignore_phys``
++/**
++ * get_mem_cgroup_from_obj - get a memcg associated with passed kernel object.
++ * @p: pointer to object from which memcg should be extracted. It can be NULL.
++ *
++ * Retrieves the memory group into which the memory of the pointed kernel
++ * object is accounted. If memcg is found, its reference is taken.
++ * If a passed kernel object is uncharged, or if proper memcg cannot be found,
++ * as well as if mem_cgroup is disabled, NULL is returned.
++ *
++ * Return: valid memcg pointer with taken reference or NULL.
++ */
++static inline struct mem_cgroup *get_mem_cgroup_from_obj(void *p)
++{
++	struct mem_cgroup *memcg;
++
++	rcu_read_lock();
++	do {
++		memcg = mem_cgroup_from_obj(p);
++	} while (memcg && !css_tryget(&memcg->css));
++	rcu_read_unlock();
++	return memcg;
++}
++
++/**
++ * mem_cgroup_or_root - always returns a pointer to a valid memory cgroup.
++ * @memcg: pointer to a valid memory cgroup or NULL.
++ *
++ * If passed argument is not NULL, returns it without any additional checks
++ * and changes. Otherwise, root_mem_cgroup is returned.
++ *
++ * NOTE: root_mem_cgroup can be NULL during early boot.
++ */
++static inline struct mem_cgroup *mem_cgroup_or_root(struct mem_cgroup *memcg)
++{
++	return memcg ? memcg : root_mem_cgroup;
++}
+ #else
+ static inline bool mem_cgroup_kmem_disabled(void)
+ {
+@@ -1799,7 +1835,7 @@ static inline int memcg_kmem_id(struct m
  
- Dealing with false positives/negatives
---- a/drivers/of/fdt.c~mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys
-+++ a/drivers/of/fdt.c
-@@ -529,7 +529,7 @@ static int __init __reserved_mem_reserve
- 			pr_debug("Reserved memory: reserved region for node '%s': base %pa, size %lu MiB\n",
- 				uname, &base, (unsigned long)(size / SZ_1M));
- 			if (!nomap)
--				kmemleak_alloc_phys(base, size, 0, 0);
-+				kmemleak_alloc_phys(base, size, 0);
- 		}
- 		else
- 			pr_info("Reserved memory: failed to reserve memory for node '%s': base %pa, size %lu MiB\n",
---- a/include/linux/kmemleak.h~mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys
-+++ a/include/linux/kmemleak.h
-@@ -29,10 +29,9 @@ extern void kmemleak_not_leak(const void
- extern void kmemleak_ignore(const void *ptr) __ref;
- extern void kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp) __ref;
- extern void kmemleak_no_scan(const void *ptr) __ref;
--extern void kmemleak_alloc_phys(phys_addr_t phys, size_t size, int min_count,
-+extern void kmemleak_alloc_phys(phys_addr_t phys, size_t size,
- 				gfp_t gfp) __ref;
- extern void kmemleak_free_part_phys(phys_addr_t phys, size_t size) __ref;
--extern void kmemleak_not_leak_phys(phys_addr_t phys) __ref;
- extern void kmemleak_ignore_phys(phys_addr_t phys) __ref;
+ static inline struct mem_cgroup *mem_cgroup_from_obj(void *p)
+ {
+-       return NULL;
++	return NULL;
+ }
  
- static inline void kmemleak_alloc_recursive(const void *ptr, size_t size,
-@@ -107,15 +106,12 @@ static inline void kmemleak_no_scan(cons
+ static inline struct mem_cgroup *mem_cgroup_from_slab_obj(void *p)
+@@ -1812,6 +1848,15 @@ static inline void count_objcg_event(str
  {
  }
- static inline void kmemleak_alloc_phys(phys_addr_t phys, size_t size,
--				       int min_count, gfp_t gfp)
-+				       gfp_t gfp)
- {
- }
- static inline void kmemleak_free_part_phys(phys_addr_t phys, size_t size)
- {
- }
--static inline void kmemleak_not_leak_phys(phys_addr_t phys)
--{
--}
- static inline void kmemleak_ignore_phys(phys_addr_t phys)
- {
- }
---- a/mm/kmemleak.c~mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys
-+++ a/mm/kmemleak.c
-@@ -1125,15 +1125,13 @@ EXPORT_SYMBOL(kmemleak_no_scan);
-  *			 address argument
-  * @phys:	physical address of the object
-  * @size:	size of the object
-- * @min_count:	minimum number of references to this object.
-- *              See kmemleak_alloc()
-  * @gfp:	kmalloc() flags used for kmemleak internal memory allocations
-  */
--void __ref kmemleak_alloc_phys(phys_addr_t phys, size_t size, int min_count,
--			       gfp_t gfp)
-+void __ref kmemleak_alloc_phys(phys_addr_t phys, size_t size, gfp_t gfp)
- {
- 	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
--		kmemleak_alloc(__va(phys), size, min_count, gfp);
-+		/* assume min_count 0 */
-+		kmemleak_alloc(__va(phys), size, 0, gfp);
- }
- EXPORT_SYMBOL(kmemleak_alloc_phys);
  
-@@ -1152,18 +1150,6 @@ void __ref kmemleak_free_part_phys(phys_
- EXPORT_SYMBOL(kmemleak_free_part_phys);
++static inline struct mem_cgroup *get_mem_cgroup_from_obj(void *p)
++{
++	return NULL;
++}
++
++static inline struct mem_cgroup *mem_cgroup_or_root(struct mem_cgroup *memcg)
++{
++	return NULL;
++}
+ #endif /* CONFIG_MEMCG_KMEM */
  
- /**
-- * kmemleak_not_leak_phys - similar to kmemleak_not_leak but taking a physical
-- *			    address argument
-- * @phys:	physical address of the object
-- */
--void __ref kmemleak_not_leak_phys(phys_addr_t phys)
--{
--	if (PHYS_PFN(phys) >= min_low_pfn && PHYS_PFN(phys) < max_low_pfn)
--		kmemleak_not_leak(__va(phys));
--}
--EXPORT_SYMBOL(kmemleak_not_leak_phys);
--
--/**
-  * kmemleak_ignore_phys - similar to kmemleak_ignore but taking a physical
-  *			  address argument
-  * @phys:	physical address of the object
---- a/mm/memblock.c~mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys
-+++ a/mm/memblock.c
-@@ -1345,8 +1345,8 @@ __next_mem_pfn_range_in_zone(u64 *idx, s
-  * from the regions with mirroring enabled and then retried from any
-  * memory region.
-  *
-- * In addition, function sets the min_count to 0 using kmemleak_alloc_phys for
-- * allocated boot memory block, so that it is never reported as leaks.
-+ * In addition, function using kmemleak_alloc_phys for allocated boot
-+ * memory block, it is never reported as leaks.
-  *
-  * Return:
-  * Physical address of allocated memory block on success, %0 on failure.
-@@ -1398,12 +1398,12 @@ done:
- 	 */
- 	if (end != MEMBLOCK_ALLOC_NOLEAKTRACE)
- 		/*
--		 * The min_count is set to 0 so that memblock allocated
--		 * blocks are never reported as leaks. This is because many
--		 * of these blocks are only referred via the physical
--		 * address which is not looked up by kmemleak.
-+		 * Memblock allocated blocks are never reported as
-+		 * leaks. This is because many of these blocks are
-+		 * only referred via the physical address which is
-+		 * not looked up by kmemleak.
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+--- a/net/core/net_namespace.c~net-set-proper-memcg-for-net_init-hooks-allocations
++++ a/net/core/net_namespace.c
+@@ -18,6 +18,7 @@
+ #include <linux/user_namespace.h>
+ #include <linux/net_namespace.h>
+ #include <linux/sched/task.h>
++#include <linux/sched/mm.h>
+ #include <linux/uidgid.h>
+ #include <linux/cookie.h>
+ 
+@@ -1143,7 +1144,13 @@ static int __register_pernet_operations(
+ 		 * setup_net() and cleanup_net() are not possible.
  		 */
--		kmemleak_alloc_phys(found, size, 0, 0);
-+		kmemleak_alloc_phys(found, size, 0);
- 
- 	return found;
- }
---- a/tools/testing/memblock/linux/kmemleak.h~mm-kmemleak-remove-kmemleak_not_leak_phys-and-the-min_count-argument-to-kmemleak_alloc_phys
-+++ a/tools/testing/memblock/linux/kmemleak.h
-@@ -7,7 +7,7 @@ static inline void kmemleak_free_part_ph
- }
- 
- static inline void kmemleak_alloc_phys(phys_addr_t phys, size_t size,
--				       int min_count, gfp_t gfp)
-+				       gfp_t gfp)
- {
- }
- 
+ 		for_each_net(net) {
++			struct mem_cgroup *old, *memcg;
++
++			memcg = mem_cgroup_or_root(get_mem_cgroup_from_obj(net));
++			old = set_active_memcg(memcg);
+ 			error = ops_init(ops, net);
++			set_active_memcg(old);
++			mem_cgroup_put(memcg);
+ 			if (error)
+ 				goto out_undo;
+ 			list_add_tail(&net->exit_list, &net_exit_list);
 _
 
-Patches currently in -mm which might be from patrick.wang.shcn@gmail.com are
+Patches currently in -mm which might be from vvs@openvz.org are
 
 
