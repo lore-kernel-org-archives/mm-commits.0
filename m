@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FF5BC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:49:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF11C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:50:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379852AbiFQCt4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jun 2022 22:49:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60616 "EHLO
+        id S1379811AbiFQCuM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jun 2022 22:50:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379827AbiFQCto (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:44 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96B0A65418
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:43 -0700 (PDT)
+        with ESMTP id S1379812AbiFQCtq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:46 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86D3465406
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 41259B826F2
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD219C34114;
-        Fri, 17 Jun 2022 02:49:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 47046B826ED
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E459FC34114;
+        Fri, 17 Jun 2022 02:49:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655434180;
-        bh=uVPPOuA48PD6qxLVangzdEGfoIIo0KMax5huukEYklY=;
+        s=korg; t=1655434183;
+        bh=cNJd+4c73l5RFdEJJxPOgEh5gBmshxOQ7FQmpIzanv4=;
         h=Date:To:From:Subject:From;
-        b=D2TMRUk/CJE2GGnxWrVyAplFHf9npiftx0EvP5bxE0fjsS+lkY2mPjlfNTDDCjeSd
-         fzHTIQJ7p2CaPXxjnc6JiAzSPZaSt61IoPP9Bl8qRKu7ftD5PuAVkCPXDSA6rtgSJL
-         rtMHr76GnKi+OUBHnpf24TuLVX5CNwvJsLSamNWQ=
-Date:   Thu, 16 Jun 2022 19:49:40 -0700
-To:     mm-commits@vger.kernel.org, wangxiang@cdjrlc.com,
-        akpm@linux-foundation.org
+        b=IhL+oFrzMH7qP2SwFnVFslAZgEndXPqZgR8RRQdKCMaBfM2CdW2EEY7SMeI0nEGOk
+         qDvxvNFfw5WHOm/T7pFDT9eAps0FB4zo6L38VrBXq5ybrRGxp5OaMd9bA8zHkQnqSG
+         +hvLZEA73dobiXSoV0Kx+QCIf2UqVdXHXSypLBdQ=
+Date:   Thu, 16 Jun 2022 19:49:42 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        osalvador@suse.de, joao.m.martins@oracle.com, david@redhat.com,
+        gautammenghani201@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-selftests-fix-typo-in-comment.patch removed from -mm tree
-Message-Id: <20220617024940.CD219C34114@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-unwanted-initialization-in-vmemmap_populate_compound_pages.patch removed from -mm tree
+Message-Id: <20220617024942.E459FC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,41 +42,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: userfaultfd/selftests: fix typo in comment
+     Subject: mm/sparse-vmemmap.c: remove unwanted initialization in vmemmap_populate_compound_pages()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-fix-typo-in-comment.patch
+     mm-remove-unwanted-initialization-in-vmemmap_populate_compound_pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xiang wangx <wangxiang@cdjrlc.com>
-Subject: userfaultfd/selftests: fix typo in comment
-Date: Fri, 10 Jun 2022 15:12:44 +0800
+From: Gautam Menghani <gautammenghani201@gmail.com>
+Subject: mm/sparse-vmemmap.c: remove unwanted initialization in vmemmap_populate_compound_pages()
+Date: Sun, 12 Jun 2022 11:23:20 -0700
 
-Delete the redundant word 'in'.
+Remove unnecessary initialization for the variable 'next'.  This fixes
+the clang scan warning: Value stored to 'next' during its
+initialization is never read [deadcode.DeadStores]
 
-Link: https://lkml.kernel.org/r/20220610071244.59679-1-wangxiang@cdjrlc.com
-Signed-off-by: Xiang wangx <wangxiang@cdjrlc.com>
+Link: https://lkml.kernel.org/r/20220612182320.160651-1-gautammenghani201@gmail.com
+Signed-off-by: Gautam Menghani <gautammenghani201@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    2 +-
+ mm/sparse-vmemmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-fix-typo-in-comment
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -860,7 +860,7 @@ static int stress(struct uffd_stats *uff
- 	/*
- 	 * Be strict and immediately zap area_src, the whole area has
- 	 * been transferred already by the background treads. The
--	 * area_src could then be faulted in in a racy way by still
-+	 * area_src could then be faulted in a racy way by still
- 	 * running uffdio_threads reading zeropages after we zapped
- 	 * area_src (but they're guaranteed to get -EEXIST from
- 	 * UFFDIO_COPY without writing zero pages into area_dst
+--- a/mm/sparse-vmemmap.c~mm-remove-unwanted-initialization-in-vmemmap_populate_compound_pages
++++ a/mm/sparse-vmemmap.c
+@@ -737,7 +737,7 @@ static int __meminit vmemmap_populate_co
+ 
+ 	size = min(end - start, pgmap_vmemmap_nr(pgmap) * sizeof(struct page));
+ 	for (addr = start; addr < end; addr += size) {
+-		unsigned long next = addr, last = addr + size;
++		unsigned long next, last = addr + size;
+ 
+ 		/* Populate the head page vmemmap page */
+ 		pte = vmemmap_populate_address(addr, node, NULL, NULL);
 _
 
-Patches currently in -mm which might be from wangxiang@cdjrlc.com are
+Patches currently in -mm which might be from gautammenghani201@gmail.com are
 
 
