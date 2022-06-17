@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF11C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:50:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29476C43334
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:50:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379811AbiFQCuM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jun 2022 22:50:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60702 "EHLO
+        id S1379869AbiFQCue (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jun 2022 22:50:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379812AbiFQCtq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86D3465406
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:45 -0700 (PDT)
+        with ESMTP id S1379840AbiFQCtu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:49:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BE926543D
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:49:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 47046B826ED
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E459FC34114;
-        Fri, 17 Jun 2022 02:49:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D8DE461D25
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:49:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BA3CC34114;
+        Fri, 17 Jun 2022 02:49:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655434183;
-        bh=cNJd+4c73l5RFdEJJxPOgEh5gBmshxOQ7FQmpIzanv4=;
+        s=korg; t=1655434185;
+        bh=OftZ8PEfoSQDfnYYtshuCBNLgeadAHllZdJYSIA9gjs=;
         h=Date:To:From:Subject:From;
-        b=IhL+oFrzMH7qP2SwFnVFslAZgEndXPqZgR8RRQdKCMaBfM2CdW2EEY7SMeI0nEGOk
-         qDvxvNFfw5WHOm/T7pFDT9eAps0FB4zo6L38VrBXq5ybrRGxp5OaMd9bA8zHkQnqSG
-         +hvLZEA73dobiXSoV0Kx+QCIf2UqVdXHXSypLBdQ=
-Date:   Thu, 16 Jun 2022 19:49:42 -0700
+        b=njzNJ+F83Bgvofkzn3o+J7uxClz5gfvcQYB8EtWF5eQpHaKcZk9lLZPpya6iSj/hX
+         xhYGe0QzxrP+87Mr4TQplBniXKbFgr7XEj+sw984mxj4VgzOGC5xRShsHZZ6lC7dMb
+         1wKhx7mX+HQQqaKJuSL7HZ4jF0YvCtClofcHU5eQ=
+Date:   Thu, 16 Jun 2022 19:49:44 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        osalvador@suse.de, joao.m.martins@oracle.com, david@redhat.com,
-        gautammenghani201@gmail.com, akpm@linux-foundation.org
+        catalin.marinas@arm.com, longman@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-unwanted-initialization-in-vmemmap_populate_compound_pages.patch removed from -mm tree
-Message-Id: <20220617024942.E459FC34114@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-skip-unlikely-objects-in-kmemleak_scan-without-taking-lock.patch removed from -mm tree
+Message-Id: <20220617024945.3BA3CC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,47 +42,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap.c: remove unwanted initialization in vmemmap_populate_compound_pages()
+     Subject: mm/kmemleak: skip unlikely objects in kmemleak_scan() without taking lock
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unwanted-initialization-in-vmemmap_populate_compound_pages.patch
+     mm-kmemleak-skip-unlikely-objects-in-kmemleak_scan-without-taking-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gautam Menghani <gautammenghani201@gmail.com>
-Subject: mm/sparse-vmemmap.c: remove unwanted initialization in vmemmap_populate_compound_pages()
-Date: Sun, 12 Jun 2022 11:23:20 -0700
+From: Waiman Long <longman@redhat.com>
+Subject: mm/kmemleak: skip unlikely objects in kmemleak_scan() without taking lock
+Date: Tue, 14 Jun 2022 18:03:58 -0400
 
-Remove unnecessary initialization for the variable 'next'.  This fixes
-the clang scan warning: Value stored to 'next' during its
-initialization is never read [deadcode.DeadStores]
+There are 3 RCU-based object iteration loops in kmemleak_scan().  Because
+of the need to take RCU read lock, we can't insert cond_resched() into the
+loop like other parts of the function.  As there can be millions of
+objects to be scanned, it takes a while to iterate all of them.  The
+kmemleak functionality is usually enabled in a debug kernel which is much
+slower than a non-debug kernel.  With sufficient number of kmemleak
+objects, the time to iterate them all may exceed 22s causing soft lockup.
 
-Link: https://lkml.kernel.org/r/20220612182320.160651-1-gautammenghani201@gmail.com
-Signed-off-by: Gautam Menghani <gautammenghani201@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+  watchdog: BUG: soft lockup - CPU#3 stuck for 22s! [kmemleak:625]
+
+In this particular bug report, the soft lockup happen in the 2nd iteration
+loop.
+
+In the 2nd and 3rd loops, most of the objects are checked and then skipped
+under the object lock.  Only a selected fews are modified.  Those objects
+certainly need lock protection.  However, the lock/unlock operation is
+slow especially with interrupt disabling and enabling included.
+
+We can actually do some basic check like color_white() without taking the
+lock and skip the object accordingly.  Of course, this kind of check is
+racy and may miss objects that are being modified concurrently.  The cost
+of missed objects, however, is just that they will be discovered in the
+next scan instead.  The advantage of doing so is that iteration can be
+done much faster especially with LOCKDEP enabled in a debug kernel.
+
+With a debug kernel running on a 2-socket 96-thread x86-64 system
+(HZ=1000), the 2nd and 3rd iteration loops speedup with this patch on the
+first kmemleak_scan() call after bootup is shown in the table below.
+
+                   Before patch                    After patch
+  Loop #    # of objects  Elapsed time     # of objects  Elapsed time
+  ------    ------------  ------------     ------------  ------------
+    2        2,599,850      2.392s          2,596,364       0.266s
+    3        2,600,176      2.171s          2,597,061       0.260s
+
+This patch reduces loop iteration times by about 88%.  This will greatly
+reduce the chance of a soft lockup happening in the 2nd or 3rd iteration
+loops.
+
+Even though the first loop runs a little bit faster, it can still be
+problematic if many kmemleak objects are there.  As the object count has
+to be modified in every object, we cannot avoid taking the object lock. 
+So other way to prevent soft lockup will be needed.
+
+Link: https://lkml.kernel.org/r/20220614220359.59282-3-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kmemleak.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/sparse-vmemmap.c~mm-remove-unwanted-initialization-in-vmemmap_populate_compound_pages
-+++ a/mm/sparse-vmemmap.c
-@@ -737,7 +737,7 @@ static int __meminit vmemmap_populate_co
- 
- 	size = min(end - start, pgmap_vmemmap_nr(pgmap) * sizeof(struct page));
- 	for (addr = start; addr < end; addr += size) {
--		unsigned long next = addr, last = addr + size;
-+		unsigned long next, last = addr + size;
- 
- 		/* Populate the head page vmemmap page */
- 		pte = vmemmap_populate_address(addr, node, NULL, NULL);
+--- a/mm/kmemleak.c~mm-kmemleak-skip-unlikely-objects-in-kmemleak_scan-without-taking-lock
++++ a/mm/kmemleak.c
+@@ -1576,6 +1576,13 @@ static void kmemleak_scan(void)
+ 	 */
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
++		/*
++		 * This is racy but we can save the overhead of lock/unlock
++		 * calls. The missed objects, if any, should be caught in
++		 * the next scan.
++		 */
++		if (!color_white(object))
++			continue;
+ 		raw_spin_lock_irq(&object->lock);
+ 		if (color_white(object) && (object->flags & OBJECT_ALLOCATED)
+ 		    && update_checksum(object) && get_object(object)) {
+@@ -1603,6 +1610,13 @@ static void kmemleak_scan(void)
+ 	 */
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
++		/*
++		 * This is racy but we can save the overhead of lock/unlock
++		 * calls. The missed objects, if any, should be caught in
++		 * the next scan.
++		 */
++		if (!color_white(object))
++			continue;
+ 		raw_spin_lock_irq(&object->lock);
+ 		if (unreferenced_object(object) &&
+ 		    !(object->flags & OBJECT_REPORTED)) {
 _
 
-Patches currently in -mm which might be from gautammenghani201@gmail.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
 
