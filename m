@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7EF5CCA47E
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16DA8CCA481
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jun 2022 02:59:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379892AbiFQC7Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jun 2022 22:59:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40830 "EHLO
+        id S1379758AbiFQC7S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jun 2022 22:59:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379893AbiFQC7M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:59:12 -0400
+        with ESMTP id S1379898AbiFQC7N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2022 22:59:13 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFBDD66200
-        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:59:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5311C66203
+        for <mm-commits@vger.kernel.org>; Thu, 16 Jun 2022 19:59:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8BBEB61CFB
-        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:59:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2927C34114;
-        Fri, 17 Jun 2022 02:59:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E4E1561D46
+        for <mm-commits@vger.kernel.org>; Fri, 17 Jun 2022 02:59:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44882C3411A;
+        Fri, 17 Jun 2022 02:59:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655434748;
-        bh=9Jafjwqo3XAqFzbdxQNnyaMnq5Jqs62t/gnfOTu1kqg=;
+        s=korg; t=1655434750;
+        bh=Bun1+/K//QK4z2YcVBUi/oKhAvd1R6+/EtxGvySR/CM=;
         h=Date:To:From:Subject:From;
-        b=QsGilpp/sOXwf6/OmzXjb9VIJFE6bkE5903s0NW5xW7+NooZpQLcfjLqhnGaq4BO6
-         Hq90ei81N0DJ1DJn8hgePeT95/wAWAsbxj7FKyRfMQtOfeFvFkjepzspQvp1NIkKj6
-         eC4OFBmQkcELsa/LoSKFAgrj/lj4kIdVOvMjwITg=
-Date:   Thu, 16 Jun 2022 19:59:07 -0700
-To:     mm-commits@vger.kernel.org, Xiongwei.Song@windriver.com,
-        willy@infradead.org, hsinyi@chromium.org, phillip@squashfs.org.uk,
-        akpm@linux-foundation.org
+        b=v8G/qFPdqTYwxL6pCXAShJGUKU6KsAth4UY3uIMvbiZRdYbV+wd9nfwhp2rGB0pMI
+         oDdKL6SJD152lyqOHD0Z0qjKdRqNeq0oFTGAvb3EtiiuThV+Ci3R54SdT3Eb9IxQcY
+         fpg/pCLE0dH0IcbylHjigVk6FX8wQhULWKGjv2wA=
+Date:   Thu, 16 Jun 2022 19:59:09 -0700
+To:     mm-commits@vger.kernel.org, walters@verbum.org,
+        usama.anjum@collabora.com, pjones@redhat.com,
+        lennart@poettering.net, javierm@redhat.com, ckellner@redhat.com,
+        cccheng@synology.com, alexl@redhat.com,
+        hirofumi@mail.parknet.co.jp, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] squashfs-dont-use-intermediate-buffer-if-pages-missing.patch removed from -mm tree
-Message-Id: <20220617025907.E2927C34114@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions.patch removed from -mm tree
+Message-Id: <20220617025910.44882C3411A@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,163 +44,182 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: squashfs: don't use intermediate buffer if pages missing
+     Subject: fat: factor out reusable code in vfat_rename() as helper functions
 has been removed from the -mm tree.  Its filename was
-     squashfs-dont-use-intermediate-buffer-if-pages-missing.patch
+     fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: don't use intermediate buffer if pages missing
-Date: Sat, 11 Jun 2022 04:21:33 +0100
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: factor out reusable code in vfat_rename() as helper functions
+Date: Fri, 10 Jun 2022 09:57:19 +0200
 
-Now that the "page actor" can handle missing pages, we don't have to fall
-back to using an intermediate buffer in Squashfs_readpage_block() if all
-the pages necessary can't be obtained.
+The vfat_rename() function is quite big and there are code blocks that can
+be moved into helper functions.  This not only simplify the implementation
+of that function but also allows these helpers to be reused.
 
-Link: https://lkml.kernel.org/r/20220611032133.5743-3-phillip@squashfs.org.uk
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Hsin-Yi Wang <hsinyi@chromium.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Xiongwei Song <Xiongwei.Song@windriver.com>
+For example, the helpers can be used by the handler of the RENAME_EXCHANGE
+flag once this is implemented in a subsequent patch.
+
+Link: https://lkml.kernel.org/r/20220610075721.1182745-3-javierm@redhat.com
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Alexander Larsson <alexl@redhat.com>
+Cc: Christian Kellner <ckellner@redhat.com>
+Cc: Chung-Chiang Cheng <cccheng@synology.com>
+Cc: Colin Walters <walters@verbum.org>
+Cc: Lennart Poettering <lennart@poettering.net>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Peter Jones <pjones@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file_direct.c |   75 +++++-------------------------------
- 1 file changed, 12 insertions(+), 63 deletions(-)
+ fs/fat/namei_vfat.c |   89 ++++++++++++++++++++++++++----------------
+ 1 file changed, 57 insertions(+), 32 deletions(-)
 
---- a/fs/squashfs/file_direct.c~squashfs-dont-use-intermediate-buffer-if-pages-missing
-+++ a/fs/squashfs/file_direct.c
-@@ -18,9 +18,6 @@
- #include "squashfs.h"
- #include "page_actor.h"
+--- a/fs/fat/namei_vfat.c~fat-factor-out-reusable-code-in-vfat_rename-as-helper-functions
++++ a/fs/fat/namei_vfat.c
+@@ -889,16 +889,55 @@ out:
+ 	return err;
+ }
  
--static int squashfs_read_cache(struct page *target_page, u64 block, int bsize,
--	int pages, struct page **page, int bytes);
--
- /* Read separately compressed datablock directly into page cache */
- int squashfs_readpage_block(struct page *target_page, u64 block, int bsize,
- 	int expected)
-@@ -33,7 +30,7 @@ int squashfs_readpage_block(struct page
- 	int mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
- 	int start_index = target_page->index & ~mask;
- 	int end_index = start_index | mask;
--	int i, n, pages, missing_pages, bytes, res = -ENOMEM;
-+	int i, n, pages, bytes, res = -ENOMEM;
- 	struct page **page;
- 	struct squashfs_page_actor *actor;
- 	void *pageaddr;
-@@ -48,44 +45,29 @@ int squashfs_readpage_block(struct page
- 		return res;
- 
- 	/* Try to grab all the pages covered by the Squashfs block */
--	for (missing_pages = 0, i = 0, n = start_index; i < pages; i++, n++) {
-+	for (i = 0, n = start_index; n <= end_index; n++) {
- 		page[i] = (n == target_page->index) ? target_page :
- 			grab_cache_page_nowait(target_page->mapping, n);
- 
--		if (page[i] == NULL) {
--			missing_pages++;
-+		if (page[i] == NULL)
- 			continue;
--		}
- 
- 		if (PageUptodate(page[i])) {
- 			unlock_page(page[i]);
- 			put_page(page[i]);
--			page[i] = NULL;
--			missing_pages++;
-+			continue;
- 		}
--	}
--
--	if (missing_pages) {
--		/*
--		 * Couldn't get one or more pages, this page has either
--		 * been VM reclaimed, but others are still in the page cache
--		 * and uptodate, or we're racing with another thread in
--		 * squashfs_readpage also trying to grab them.  Fall back to
--		 * using an intermediate buffer.
--		 */
--		res = squashfs_read_cache(target_page, block, bsize, pages,
--							page, expected);
--		if (res < 0)
--			goto mark_errored;
- 
--		goto out;
-+		i++;
- 	}
- 
-+	pages = i;
++static int vfat_get_dotdot_de(struct inode *inode, struct buffer_head **bh,
++			      struct msdos_dir_entry **de)
++{
++	if (S_ISDIR(inode->i_mode)) {
++		if (fat_get_dotdot_entry(inode, bh, de))
++			return -EIO;
++	}
++	return 0;
++}
 +
- 	/*
- 	 * Create a "page actor" which will kmap and kunmap the
- 	 * page cache pages appropriately within the decompressor
- 	 */
--	actor = squashfs_page_actor_init_special(msblk, page, pages, 0);
-+	actor = squashfs_page_actor_init_special(msblk, page, pages, expected);
- 	if (actor == NULL)
++static int vfat_sync_ipos(struct inode *dir, struct inode *inode)
++{
++	if (IS_DIRSYNC(dir))
++		return fat_sync_inode(inode);
++	mark_inode_dirty(inode);
++	return 0;
++}
++
++static int vfat_update_dotdot_de(struct inode *dir, struct inode *inode,
++				 struct buffer_head *dotdot_bh,
++				 struct msdos_dir_entry *dotdot_de)
++{
++	fat_set_start(dotdot_de, MSDOS_I(dir)->i_logstart);
++	mark_buffer_dirty_inode(dotdot_bh, inode);
++	if (IS_DIRSYNC(dir))
++		return sync_dirty_buffer(dotdot_bh);
++	return 0;
++}
++
++static void vfat_update_dir_metadata(struct inode *dir, struct timespec64 *ts)
++{
++	inode_inc_iversion(dir);
++	fat_truncate_time(dir, ts, S_CTIME | S_MTIME);
++	if (IS_DIRSYNC(dir))
++		(void)fat_sync_inode(dir);
++	else
++		mark_inode_dirty(dir);
++}
++
+ static int vfat_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 		       struct inode *new_dir, struct dentry *new_dentry)
+ {
+ 	struct buffer_head *dotdot_bh;
+-	struct msdos_dir_entry *dotdot_de;
++	struct msdos_dir_entry *dotdot_de = NULL;
+ 	struct inode *old_inode, *new_inode;
+ 	struct fat_slot_info old_sinfo, sinfo;
+ 	struct timespec64 ts;
+ 	loff_t new_i_pos;
+-	int err, is_dir, update_dotdot, corrupt = 0;
++	int err, is_dir, corrupt = 0;
+ 	struct super_block *sb = old_dir->i_sb;
+ 
+ 	old_sinfo.bh = sinfo.bh = dotdot_bh = NULL;
+@@ -909,15 +948,13 @@ static int vfat_rename(struct inode *old
+ 	if (err)
  		goto out;
  
-@@ -102,12 +84,12 @@ int squashfs_readpage_block(struct page
- 		goto mark_errored;
+-	is_dir = S_ISDIR(old_inode->i_mode);
+-	update_dotdot = (is_dir && old_dir != new_dir);
+-	if (update_dotdot) {
+-		if (fat_get_dotdot_entry(old_inode, &dotdot_bh, &dotdot_de)) {
+-			err = -EIO;
++	if (old_dir != new_dir) {
++		err = vfat_get_dotdot_de(old_inode, &dotdot_bh, &dotdot_de);
++		if (err)
+ 			goto out;
+-		}
  	}
  
--	/* Last page may have trailing bytes not filled */
-+	/* Last page (if present) may have trailing bytes not filled */
- 	bytes = res % PAGE_SIZE;
--	if (bytes) {
--		pageaddr = kmap_atomic(page[pages - 1]);
-+	if (page[pages - 1]->index == end_index && bytes) {
-+		pageaddr = kmap_local_page(page[pages - 1]);
- 		memset(pageaddr + bytes, 0, PAGE_SIZE - bytes);
--		kunmap_atomic(pageaddr);
-+		kunmap_local(pageaddr);
- 	}
++	is_dir = S_ISDIR(old_inode->i_mode);
+ 	ts = current_time(old_dir);
+ 	if (new_inode) {
+ 		if (is_dir) {
+@@ -938,21 +975,15 @@ static int vfat_rename(struct inode *old
  
- 	/* Mark pages as uptodate, unlock and release */
-@@ -140,36 +122,3 @@ out:
- 	kfree(page);
- 	return res;
- }
+ 	fat_detach(old_inode);
+ 	fat_attach(old_inode, new_i_pos);
+-	if (IS_DIRSYNC(new_dir)) {
+-		err = fat_sync_inode(old_inode);
++	err = vfat_sync_ipos(new_dir, old_inode);
++	if (err)
++		goto error_inode;
++
++	if (dotdot_de) {
++		err = vfat_update_dotdot_de(new_dir, old_inode, dotdot_bh,
++					    dotdot_de);
+ 		if (err)
+-			goto error_inode;
+-	} else
+-		mark_inode_dirty(old_inode);
 -
--
--static int squashfs_read_cache(struct page *target_page, u64 block, int bsize,
--	int pages, struct page **page, int bytes)
--{
--	struct inode *i = target_page->mapping->host;
--	struct squashfs_cache_entry *buffer = squashfs_get_datablock(i->i_sb,
--						 block, bsize);
--	int res = buffer->error, n, offset = 0;
--
--	if (res) {
--		ERROR("Unable to read page, block %llx, size %x\n", block,
--			bsize);
--		goto out;
--	}
--
--	for (n = 0; n < pages && bytes > 0; n++,
--			bytes -= PAGE_SIZE, offset += PAGE_SIZE) {
--		int avail = min_t(int, bytes, PAGE_SIZE);
--
--		if (page[n] == NULL)
--			continue;
--
--		squashfs_fill_page(page[n], buffer, offset, avail);
--		unlock_page(page[n]);
--		if (page[n] != target_page)
--			put_page(page[n]);
--	}
--
--out:
--	squashfs_cache_put(buffer);
--	return res;
--}
+-	if (update_dotdot) {
+-		fat_set_start(dotdot_de, MSDOS_I(new_dir)->i_logstart);
+-		mark_buffer_dirty_inode(dotdot_bh, old_inode);
+-		if (IS_DIRSYNC(new_dir)) {
+-			err = sync_dirty_buffer(dotdot_bh);
+-			if (err)
+-				goto error_dotdot;
+-		}
++			goto error_dotdot;
+ 		drop_nlink(old_dir);
+ 		if (!new_inode)
+  			inc_nlink(new_dir);
+@@ -962,12 +993,7 @@ static int vfat_rename(struct inode *old
+ 	old_sinfo.bh = NULL;
+ 	if (err)
+ 		goto error_dotdot;
+-	inode_inc_iversion(old_dir);
+-	fat_truncate_time(old_dir, &ts, S_CTIME|S_MTIME);
+-	if (IS_DIRSYNC(old_dir))
+-		(void)fat_sync_inode(old_dir);
+-	else
+-		mark_inode_dirty(old_dir);
++	vfat_update_dir_metadata(old_dir, &ts);
+ 
+ 	if (new_inode) {
+ 		drop_nlink(new_inode);
+@@ -987,10 +1013,9 @@ error_dotdot:
+ 	/* data cluster is shared, serious corruption */
+ 	corrupt = 1;
+ 
+-	if (update_dotdot) {
+-		fat_set_start(dotdot_de, MSDOS_I(old_dir)->i_logstart);
+-		mark_buffer_dirty_inode(dotdot_bh, old_inode);
+-		corrupt |= sync_dirty_buffer(dotdot_bh);
++	if (dotdot_de) {
++		corrupt |= vfat_update_dotdot_de(old_dir, old_inode, dotdot_bh,
++						 dotdot_de);
+ 	}
+ error_inode:
+ 	fat_detach(old_inode);
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-squashfs-always-build-file-direct-version-of-page-actor.patch
 
