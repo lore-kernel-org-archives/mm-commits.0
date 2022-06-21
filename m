@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD2F1C43334
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jun 2022 20:09:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56F4EC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jun 2022 20:43:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349676AbiFUUJO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Jun 2022 16:09:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47820 "EHLO
+        id S231383AbiFUUnr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Jun 2022 16:43:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42562 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232027AbiFUUJO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2022 16:09:14 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EACA1AF00
-        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 13:09:12 -0700 (PDT)
+        with ESMTP id S1352430AbiFUUnp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2022 16:43:45 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A7D925C60
+        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 13:43:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C4F8FB81B21
-        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 20:09:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67E40C3411C;
-        Tue, 21 Jun 2022 20:09:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CF702B81B22
+        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 20:43:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C029FC341C5;
+        Tue, 21 Jun 2022 20:43:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655842149;
-        bh=ShKNcOcjyYn1eTGq+0BT0qmtC3CdZEKE7Rq2QFQq98E=;
+        s=korg; t=1655844221;
+        bh=T2LuaNkcQnz3wikO7VlhICyF8yhWxJL4TzNCEuG7k8I=;
         h=Date:To:From:Subject:From;
-        b=zkRYb+1//NiQuiSGYnFipqAJYcHuZLbnYobMLI6KJ+Mc2wXIyYL/Pt0kyw2XCzDAj
-         Mk/EUnJht1tWcc5B/X7o2fYDywceTVoA8rcaDRpoEdApagnM/hzQtDHNXDG5cYi69H
-         uxiTw4oibb1giF4Pmzgi20TvqWTI5IdM/R+SdhmI=
-Date:   Tue, 21 Jun 2022 13:08:59 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@kernel.org,
-        longman@redhat.com, hannes@cmpxchg.org,
-        duanxiongchun@bytedance.com, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
+        b=xONbWpFz1LuJkFT6ADfYaFd+m5YHL804G48BgcR/8022+k/Vdme+v+NVoo/02fuH/
+         TJtLy2tDNzGevPBDEh2l11ZZGLa88uG9QJZYN+ZdrrSUu/+CjqVdDfQMlA4Nuu67gn
+         B/2gPVNq1IzTWzHA7CYU3QO4SRrV/DRCCb0F/u+k=
+Date:   Tue, 21 Jun 2022 13:43:32 -0700
+To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, vbabka@suse.cz, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-lru-use-lruvec-lock-to-serialize-memcg-changes.patch added to mm-unstable branch
-Message-Id: <20220621200907.67E40C3411C@smtp.kernel.org>
+Subject: + lib-stackdepot-replace-config_stack_hash_order-with-automatic-sizing.patch added to mm-nonmm-unstable branch
+Message-Id: <20220621204339.C029FC341C5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: lru: use lruvec lock to serialize memcg changes
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-lru-use-lruvec-lock-to-serialize-memcg-changes.patch
+     Subject: lib/stackdepot: replace CONFIG_STACK_HASH_ORDER with automatic sizing
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-stackdepot-replace-config_stack_hash_order-with-automatic-sizing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lru-use-lruvec-lock-to-serialize-memcg-changes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-replace-config_stack_hash_order-with-automatic-sizing.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,249 +65,197 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: lru: use lruvec lock to serialize memcg changes
-Date: Tue, 21 Jun 2022 20:56:58 +0800
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: lib/stackdepot: replace CONFIG_STACK_HASH_ORDER with automatic sizing
+Date: Mon, 20 Jun 2022 17:02:49 +0200
 
-As described by commit fc574c23558c ("mm/swap.c: serialize memcg changes
-in pagevec_lru_move_fn"), TestClearPageLRU() aims to serialize
-mem_cgroup_move_account() during pagevec_lru_move_fn().  Now
-folio_lruvec_lock*() has the ability to detect whether page memcg has been
-changed.  So we can use lruvec lock to serialize mem_cgroup_move_account()
-during pagevec_lru_move_fn().  This change is a partial revert of the
-commit fc574c23558c ("mm/swap.c: serialize memcg changes in
-pagevec_lru_move_fn").
+As Linus explained [1], setting the stackdepot hash table size as a config
+option is suboptimal, especially as stackdepot becomes a dependency of
+less "expert" subsystems than initially (e.g.  DRM, networking,
+SLUB_DEBUG):
 
-And pagevec_lru_move_fn() is more hot compare with
-mem_cgroup_move_account(), removing an atomic operation would be an
-optimization.  Also this change would not dirty cacheline for a page which
-isn't on the LRU.
+: (a) it introduces a new compile-time question that isn't sane to ask
+: a regular user, but is now exposed to regular users.
 
-Link: https://lkml.kernel.org/r/20220621125658.64935-12-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+: (b) this by default uses 1MB of memory for a feature that didn't in
+: the past, so now if you have small machines you need to make sure you
+: make a special kernel config for them.
+
+Ideally we would employ rhashtable for fully automatic resizing, which
+should be feasible for many of the new users, but problematic for the
+original users with restricted context that call __stack_depot_save() with
+can_alloc == false, i.e.  KASAN.
+
+However we can easily remove the config option and scale the hash table
+automatically with system memory.  The STACK_HASH_MASK constant becomes
+stack_hash_mask variable and is used only in one mask operation, so the
+overhead should be negligible to none.  For early allocation we can employ
+the existing alloc_large_system_hash() function and perform similar
+scaling for the late allocation.
+
+The existing limits of the config option (between 4k and 1M buckets) are
+preserved, and scaling factor is set to one bucket per 16kB memory so on
+64bit the max 1M buckets (8MB memory) is achieved with 16GB system, while
+a 1GB system will use 512kB.
+
+Because KASAN is reported to need the maximum number of buckets even with
+smaller amounts of memory [2], set it as such when kasan_enabled().
+
+If needed, the automatic scaling could be complemented with a boot-time
+kernel parameter, but it feels pointless to add it without a specific use
+case.
+
+[1] https://lore.kernel.org/all/CAHk-=wjC5nS+fnf6EzRD9yQRJApAhxx7gRB87ZV+pAWo9oVrTg@mail.gmail.com/
+[2] https://lore.kernel.org/all/CACT4Y+Y4GZfXOru2z5tFPzFdaSUd+GFc6KVL=bsa0+1m197cQQ@mail.gmail.com/
+
+Link: https://lkml.kernel.org/r/20220620150249.16814-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   34 ++++++++++++++++++++++++++++++++++
- mm/swap.c       |   32 +++++++++++++++-----------------
- mm/vmscan.c     |   16 +++++++---------
- 3 files changed, 56 insertions(+), 26 deletions(-)
+ lib/Kconfig      |    9 ------
+ lib/stackdepot.c |   59 +++++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 49 insertions(+), 19 deletions(-)
 
---- a/mm/memcontrol.c~mm-lru-use-lruvec-lock-to-serialize-memcg-changes
-+++ a/mm/memcontrol.c
-@@ -1330,10 +1330,39 @@ retry:
- 	lruvec = folio_lruvec(folio);
- 	spin_lock(&lruvec->lru_lock);
+--- a/lib/Kconfig~lib-stackdepot-replace-config_stack_hash_order-with-automatic-sizing
++++ a/lib/Kconfig
+@@ -685,15 +685,6 @@ config STACKDEPOT_ALWAYS_INIT
+ 	bool
+ 	select STACKDEPOT
  
-+	/*
-+	 * The memcg of the page can be changed by any the following routines:
-+	 *
-+	 * 1) mem_cgroup_move_account() or
-+	 * 2) memcg_reparent_objcgs()
-+	 *
-+	 * The possible bad scenario would like:
-+	 *
-+	 * CPU0:                CPU1:                CPU2:
-+	 * lruvec = folio_lruvec()
-+	 *
-+	 *                      if (!isolate_lru_page())
-+	 *                              mem_cgroup_move_account()
-+	 *
-+	 *                                           memcg_reparent_objcgs()
-+	 *
-+	 * spin_lock(&lruvec->lru_lock)
-+	 *                ^^^^^^
-+	 *              wrong lock
-+	 *
-+	 * Either CPU1 or CPU2 can change page memcg, so we need to check
-+	 * whether page memcg is changed, if so, we should reacquire the
-+	 * new lruvec lock.
-+	 */
- 	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
- 		spin_unlock(&lruvec->lru_lock);
- 		goto retry;
- 	}
-+
-+	/*
-+	 * When we reach here, it means that the folio_memcg(folio) is
-+	 * stable.
-+	 */
- 	rcu_read_unlock();
- 
- 	return lruvec;
-@@ -1361,6 +1390,7 @@ retry:
- 	lruvec = folio_lruvec(folio);
- 	spin_lock_irq(&lruvec->lru_lock);
- 
-+	/* See the comments in folio_lruvec_lock(). */
- 	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
- 		spin_unlock_irq(&lruvec->lru_lock);
- 		goto retry;
-@@ -1394,6 +1424,7 @@ retry:
- 	lruvec = folio_lruvec(folio);
- 	spin_lock_irqsave(&lruvec->lru_lock, *flags);
- 
-+	/* See the comments in folio_lruvec_lock(). */
- 	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
- 		spin_unlock_irqrestore(&lruvec->lru_lock, *flags);
- 		goto retry;
-@@ -5809,7 +5840,10 @@ static int mem_cgroup_move_account(struc
- 	obj_cgroup_put(rcu_dereference(from->objcg));
- 	rcu_read_unlock();
- 
-+	/* See the comments in folio_lruvec_lock(). */
-+	spin_lock(&from_vec->lru_lock);
- 	folio->memcg_data = (unsigned long)rcu_access_pointer(to->objcg);
-+	spin_unlock(&from_vec->lru_lock);
- 
- 	__folio_memcg_unlock(from);
- 
---- a/mm/swap.c~mm-lru-use-lruvec-lock-to-serialize-memcg-changes
-+++ a/mm/swap.c
-@@ -196,6 +196,7 @@ static void lru_add_fn(struct lruvec *lr
- 
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
- 
-+	folio_set_lru(folio);
- 	/*
- 	 * Is an smp_mb__after_atomic() still required here, before
- 	 * folio_evictable() tests the mlocked flag, to rule out the possibility
-@@ -238,14 +239,8 @@ static void folio_batch_move_lru(struct
- 	for (i = 0; i < folio_batch_count(fbatch); i++) {
- 		struct folio *folio = fbatch->folios[i];
- 
--		/* block memcg migration while the folio moves between lru */
--		if (move_fn != lru_add_fn && !folio_test_clear_lru(folio))
--			continue;
+-config STACK_HASH_ORDER
+-	int "stack depot hash size (12 => 4KB, 20 => 1024KB)"
+-	range 12 20
+-	default 20
+-	depends on STACKDEPOT
+-	help
+-	 Select the hash size as a power of 2 for the stackdepot hash table.
+-	 Choose a lower value to reduce the memory impact.
 -
- 		lruvec = folio_lruvec_relock_irqsave(folio, lruvec, &flags);
- 		move_fn(lruvec, folio);
--
--		folio_set_lru(folio);
- 	}
+ config REF_TRACKER
+ 	bool
+ 	depends on STACKTRACE_SUPPORT
+--- a/lib/stackdepot.c~lib-stackdepot-replace-config_stack_hash_order-with-automatic-sizing
++++ a/lib/stackdepot.c
+@@ -32,6 +32,7 @@
+ #include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/memblock.h>
++#include <linux/kasan-enabled.h>
  
- 	if (lruvec)
-@@ -265,7 +260,7 @@ static void folio_batch_add_and_move(str
+ #define DEPOT_STACK_BITS (sizeof(depot_stack_handle_t) * 8)
  
- static void lru_move_tail_fn(struct lruvec *lruvec, struct folio *folio)
- {
--	if (!folio_test_unevictable(folio)) {
-+	if (folio_test_lru(folio) && !folio_test_unevictable(folio)) {
- 		lruvec_del_folio(lruvec, folio);
- 		folio_clear_active(folio);
- 		lruvec_add_folio_tail(lruvec, folio);
-@@ -348,7 +343,8 @@ void lru_note_cost_folio(struct folio *f
- 
- static void folio_activate_fn(struct lruvec *lruvec, struct folio *folio)
- {
--	if (!folio_test_active(folio) && !folio_test_unevictable(folio)) {
-+	if (folio_test_lru(folio) && !folio_test_active(folio) &&
-+	    !folio_test_unevictable(folio)) {
- 		long nr_pages = folio_nr_pages(folio);
- 
- 		lruvec_del_folio(lruvec, folio);
-@@ -394,12 +390,9 @@ static void folio_activate(struct folio
- {
- 	struct lruvec *lruvec;
- 
--	if (folio_test_clear_lru(folio)) {
--		lruvec = folio_lruvec_lock_irq(folio);
--		folio_activate_fn(lruvec, folio);
--		lruvec_unlock_irq(lruvec);
--		folio_set_lru(folio);
--	}
-+	lruvec = folio_lruvec_lock_irq(folio);
-+	folio_activate_fn(lruvec, folio);
-+	lruvec_unlock_irq(lruvec);
+@@ -145,10 +146,16 @@ depot_alloc_stack(unsigned long *entries
+ 	return stack;
  }
- #endif
  
-@@ -542,6 +535,9 @@ static void lru_deactivate_file_fn(struc
- 	bool active = folio_test_active(folio);
- 	long nr_pages = folio_nr_pages(folio);
+-#define STACK_HASH_SIZE (1L << CONFIG_STACK_HASH_ORDER)
+-#define STACK_HASH_MASK (STACK_HASH_SIZE - 1)
++/* one hash table bucket entry per 16kB of memory */
++#define STACK_HASH_SCALE	14
++/* limited between 4k and 1M buckets */
++#define STACK_HASH_ORDER_MIN	12
++#define STACK_HASH_ORDER_MAX	20
+ #define STACK_HASH_SEED 0x9747b28c
  
-+	if (!folio_test_lru(folio))
-+		return;
++static unsigned int stack_hash_order;
++static unsigned int stack_hash_mask;
 +
- 	if (folio_test_unevictable(folio))
- 		return;
+ static bool stack_depot_disable;
+ static struct stack_record **stack_table;
  
-@@ -580,7 +576,8 @@ static void lru_deactivate_file_fn(struc
+@@ -175,7 +182,7 @@ void __init stack_depot_want_early_init(
  
- static void lru_deactivate_fn(struct lruvec *lruvec, struct folio *folio)
+ int __init stack_depot_early_init(void)
  {
--	if (folio_test_active(folio) && !folio_test_unevictable(folio)) {
-+	if (folio_test_lru(folio) && folio_test_active(folio) &&
-+	    !folio_test_unevictable(folio)) {
- 		long nr_pages = folio_nr_pages(folio);
+-	size_t size;
++	unsigned long entries = 0;
  
- 		lruvec_del_folio(lruvec, folio);
-@@ -596,8 +593,9 @@ static void lru_deactivate_fn(struct lru
+ 	/* This is supposed to be called only once, from mm_init() */
+ 	if (WARN_ON(__stack_depot_early_init_passed))
+@@ -183,13 +190,23 @@ int __init stack_depot_early_init(void)
  
- static void lru_lazyfree_fn(struct lruvec *lruvec, struct folio *folio)
- {
--	if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
--	    !folio_test_swapcache(folio) && !folio_test_unevictable(folio)) {
-+	if (folio_test_lru(folio) && folio_test_anon(folio) &&
-+	    folio_test_swapbacked(folio) && !folio_test_swapcache(folio) &&
-+	    !folio_test_unevictable(folio)) {
- 		long nr_pages = folio_nr_pages(folio);
+ 	__stack_depot_early_init_passed = true;
  
- 		lruvec_del_folio(lruvec, folio);
---- a/mm/vmscan.c~mm-lru-use-lruvec-lock-to-serialize-memcg-changes
-+++ a/mm/vmscan.c
-@@ -4864,21 +4864,19 @@ void check_move_unevictable_pages(struct
- 		if (PageTransTail(page))
- 			continue;
++	if (kasan_enabled() && !stack_hash_order)
++		stack_hash_order = STACK_HASH_ORDER_MAX;
++
+ 	if (!__stack_depot_want_early_init || stack_depot_disable)
+ 		return 0;
  
--		nr_pages = thp_nr_pages(page);
-+		nr_pages = folio_nr_pages(folio);
- 		pgscanned += nr_pages;
+-	size = (STACK_HASH_SIZE * sizeof(struct stack_record *));
+-	pr_info("Stack Depot early init allocating hash table with memblock_alloc, %zu bytes\n",
+-		size);
+-	stack_table = memblock_alloc(size, SMP_CACHE_BYTES);
++	if (stack_hash_order)
++		entries = 1UL <<  stack_hash_order;
++	stack_table = alloc_large_system_hash("stackdepot",
++						sizeof(struct stack_record *),
++						entries,
++						STACK_HASH_SCALE,
++						HASH_EARLY | HASH_ZERO,
++						NULL,
++						&stack_hash_mask,
++						1UL << STACK_HASH_ORDER_MIN,
++						1UL << STACK_HASH_ORDER_MAX);
  
--		/* block memcg migration during page moving between lru */
--		if (!TestClearPageLRU(page))
-+		lruvec = folio_lruvec_relock_irq(folio, lruvec);
-+		if (!folio_test_lru(folio) || !folio_test_unevictable(folio))
- 			continue;
+ 	if (!stack_table) {
+ 		pr_err("Stack Depot hash table allocation failed, disabling\n");
+@@ -207,13 +224,35 @@ int stack_depot_init(void)
  
--		lruvec = folio_lruvec_relock_irq(folio, lruvec);
--		if (page_evictable(page) && PageUnevictable(page)) {
--			del_page_from_lru_list(page, lruvec);
--			ClearPageUnevictable(page);
--			add_page_to_lru_list(page, lruvec);
-+		if (folio_evictable(folio)) {
-+			lruvec_del_folio(lruvec, folio);
-+			folio_clear_unevictable(folio);
-+			lruvec_add_folio(lruvec, folio);
- 			pgrescued += nr_pages;
+ 	mutex_lock(&stack_depot_init_mutex);
+ 	if (!stack_depot_disable && !stack_table) {
+-		pr_info("Stack Depot allocating hash table with kvcalloc\n");
+-		stack_table = kvcalloc(STACK_HASH_SIZE, sizeof(struct stack_record *), GFP_KERNEL);
++		unsigned long entries;
++		int scale = STACK_HASH_SCALE;
++
++		if (stack_hash_order) {
++			entries = 1UL << stack_hash_order;
++		} else {
++			entries = nr_free_buffer_pages();
++			entries = roundup_pow_of_two(entries);
++
++			if (scale > PAGE_SHIFT)
++				entries >>= (scale - PAGE_SHIFT);
++			else
++				entries <<= (PAGE_SHIFT - scale);
++		}
++
++		if (entries < 1UL << STACK_HASH_ORDER_MIN)
++			entries = 1UL << STACK_HASH_ORDER_MIN;
++		if (entries > 1UL << STACK_HASH_ORDER_MAX)
++			entries = 1UL << STACK_HASH_ORDER_MAX;
++
++		pr_info("Stack Depot allocating hash table of %lu entries with kvcalloc\n",
++				entries);
++		stack_table = kvcalloc(entries, sizeof(struct stack_record *), GFP_KERNEL);
+ 		if (!stack_table) {
+ 			pr_err("Stack Depot hash table allocation failed, disabling\n");
+ 			stack_depot_disable = true;
+ 			ret = -ENOMEM;
  		}
--		SetPageLRU(page);
++		stack_hash_mask = entries - 1;
  	}
+ 	mutex_unlock(&stack_depot_init_mutex);
+ 	return ret;
+@@ -386,7 +425,7 @@ depot_stack_handle_t __stack_depot_save(
+ 		goto fast_exit;
  
- 	if (lruvec) {
+ 	hash = hash_stack(entries, nr_entries);
+-	bucket = &stack_table[hash & STACK_HASH_MASK];
++	bucket = &stack_table[hash & stack_hash_mask];
+ 
+ 	/*
+ 	 * Fast path: look the stack trace up without locking.
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-memory_hotplug-enumerate-all-supported-section-flags.patch
-mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
-mm-hugetlb-remove-minimum_order-variable.patch
-mm-memcontrol-remove-dead-code-and-comments.patch
-mm-rename-unlock_page_lruvec_irq-_irqrestore-to-lruvec_unlock_irq-_irqrestore.patch
-mm-memcontrol-prepare-objcg-api-for-non-kmem-usage.patch
-mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented.patch
-mm-vmscan-rework-move_pages_to_lru.patch
-mm-thp-make-split-queue-lock-safe-when-lru-pages-are-reparented.patch
-mm-memcontrol-make-all-the-callers-of-foliopage_memcg-safe.patch
-mm-memcontrol-introduce-memcg_reparent_ops.patch
-mm-memcontrol-use-obj_cgroup-apis-to-charge-the-lru-pages.patch
-mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-function.patch
-mm-lru-use-lruvec-lock-to-serialize-memcg-changes.patch
+lib-stackdepot-replace-config_stack_hash_order-with-automatic-sizing.patch
 
