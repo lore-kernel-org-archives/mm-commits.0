@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82C4EC43334
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jun 2022 21:22:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5797BC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jun 2022 21:54:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355067AbiFUVWS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Jun 2022 17:22:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37576 "EHLO
+        id S1355280AbiFUVyj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Jun 2022 17:54:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38902 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355619AbiFUVV7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2022 17:21:59 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E11531392
-        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 14:09:03 -0700 (PDT)
+        with ESMTP id S1354456AbiFUVyi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2022 17:54:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B51D71DA50
+        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 14:54:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C1DA1B817F3
-        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 21:09:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00164C3411C;
-        Tue, 21 Jun 2022 21:08:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5B1AE615D1
+        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 21:54:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2759EC3411C;
+        Tue, 21 Jun 2022 21:54:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655845740;
-        bh=rL2lP1uRblCGev9+mR3oTERX8CN7JKUxVQmpje5A6Pw=;
+        s=korg; t=1655848476;
+        bh=vZKmB5RpYgJYzSFCJGJ17kjLFmWYTIeQW84fJ5vkw/M=;
         h=Date:To:From:Subject:From;
-        b=NMIX8R3SU+LFjsewFj69AeJJ2mN6HHCSC4ZXzxKbGlaml4XYTq1FjWIqc6l34MhRK
-         ZUv/MxraK1d47nBsBL7tol+tpmpWLNBnJSmaiHgnnCc8MoJuZ18AsEKpgkSJYLpqjt
-         slZF4jmQ5AtSfaGjiboP6AzLDMdc3XgQABd1T6Wo=
-Date:   Tue, 21 Jun 2022 14:08:51 -0700
-To:     mm-commits@vger.kernel.org, yhs@fb.com, songliubraving@fb.com,
-        mhiramat@kernel.org, kpsingh@kernel.org, kafai@fb.com,
-        john.fastabend@gmail.com, wuchi.zero@gmail.com,
-        akpm@linux-foundation.org
+        b=ZRmSqLyQfgkQb7ECI01f/mX3wGoR3yPuJY9q3fTGmoZdKTobHvSps3Gi+9wXFl/aN
+         MBiG7OCTbkWw7Jb6vHGZaBQAW3HjVsVadE6gRNqfDOtndxCVbAM81tRxn2zVDk/D51
+         r5O2Y5NqnK+bmsNme3722TnsS7H1gLEKHS1Cvr7k=
+Date:   Tue, 21 Jun 2022 14:54:27 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, adobriyan@gmail.com,
+        vincent.whitchurch@axis.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-error-inject-traverse-list-with-mutex.patch added to mm-nonmm-unstable branch
-Message-Id: <20220621210859.00164C3411C@smtp.kernel.org>
+Subject: + mm-smaps-add-pss_dirty.patch added to mm-unstable branch
+Message-Id: <20220621215435.2759EC3411C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/error-inject: Traverse list with mutex
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-error-inject-traverse-list-with-mutex.patch
+     Subject: mm/smaps: add Pss_Dirty
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-smaps-add-pss_dirty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-error-inject-traverse-list-with-mutex.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-smaps-add-pss_dirty.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,60 +64,100 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wuchi <wuchi.zero@gmail.com>
-Subject: lib/error-inject: Traverse list with mutex
-Date: Mon, 20 Jun 2022 18:02:44 +0800
+From: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Subject: mm/smaps: add Pss_Dirty
+Date: Mon, 20 Jun 2022 10:12:50 +0200
 
-Traversing list without mutex in get_injectable_error_type will
-race with the following code:
-    list_del_init(&ent->list)
-    kfree(ent)
-in module_unload_ei_list. So fix that.
+Pss is the sum of the sizes of clean and dirty private pages, and the
+proportional sizes of clean and dirty shared pages:
 
-Link: https://lkml.kernel.org/r/20220620100244.82896-1-wuchi.zero@gmail.com
-Signed-off-by: wuchi <wuchi.zero@gmail.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Yonghong Song <yhs@fb.com>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
+ Private = Private_Dirty + Private_Clean
+ Shared_Proportional = Shared_Dirty_Proportional + Shared_Clean_Proportional
+ Pss = Private + Shared_Proportional
+
+The Shared*Proportional fields are not present in smaps, so it is not
+always possible to determine how much of the Pss is from dirty pages and
+how much is from clean pages.  This information can be useful for
+measuring memory usage for the purpose of optimisation, since clean pages
+can usually be discarded by the kernel immediately while dirty pages
+cannot.
+
+The smaps routines in the kernel already have access to this data, so add
+a Pss_Dirty to show it to userspace.  Pss_Clean is not added since it can
+be calculated from Pss and Pss_Dirty.
+
+Link: https://lkml.kernel.org/r/20220620081251.2928103-1-vincent.whitchurch@axis.com
+Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/error-inject.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/procfs-smaps_rollup |    1 +
+ Documentation/filesystems/proc.rst            |    5 ++++-
+ fs/proc/task_mmu.c                            |    3 +++
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/lib/error-inject.c~lib-error-inject-traverse-list-with-mutex
-+++ a/lib/error-inject.c
-@@ -40,12 +40,18 @@ bool within_error_injection_list(unsigne
- int get_injectable_error_type(unsigned long addr)
+--- a/Documentation/ABI/testing/procfs-smaps_rollup~mm-smaps-add-pss_dirty
++++ a/Documentation/ABI/testing/procfs-smaps_rollup
+@@ -22,6 +22,7 @@ Description:
+ 			MMUPageSize:           4 kB
+ 			Rss:		     884 kB
+ 			Pss:		     385 kB
++			Pss_Dirty:	      68 kB
+ 			Pss_Anon:	     301 kB
+ 			Pss_File:	      80 kB
+ 			Pss_Shmem:	       4 kB
+--- a/Documentation/filesystems/proc.rst~mm-smaps-add-pss_dirty
++++ a/Documentation/filesystems/proc.rst
+@@ -448,6 +448,7 @@ Memory Area, or VMA) there is a series o
+     MMUPageSize:           4 kB
+     Rss:                 892 kB
+     Pss:                 374 kB
++    Pss_Dirty:             0 kB
+     Shared_Clean:        892 kB
+     Shared_Dirty:          0 kB
+     Private_Clean:         0 kB
+@@ -479,7 +480,9 @@ dirty shared and private pages in the ma
+ The "proportional set size" (PSS) of a process is the count of pages it has
+ in memory, where each page is divided by the number of processes sharing it.
+ So if a process has 1000 pages all to itself, and 1000 shared with one other
+-process, its PSS will be 1500.
++process, its PSS will be 1500.  "Pss_Dirty" is the portion of PSS which
++consists of dirty pages.  ("Pss_Clean" is not included, but it can be
++calculated by subtracting "Pss_Dirty" from "Pss".)
+ 
+ Note that even a page which is part of a MAP_SHARED mapping, but has only
+ a single pte mapped, i.e.  is currently used by only one process, is accounted
+--- a/fs/proc/task_mmu.c~mm-smaps-add-pss_dirty
++++ a/fs/proc/task_mmu.c
+@@ -409,6 +409,7 @@ struct mem_size_stats {
+ 	u64 pss_anon;
+ 	u64 pss_file;
+ 	u64 pss_shmem;
++	u64 pss_dirty;
+ 	u64 pss_locked;
+ 	u64 swap_pss;
+ };
+@@ -430,6 +431,7 @@ static void smaps_page_accumulate(struct
+ 		mss->pss_locked += pss;
+ 
+ 	if (dirty || PageDirty(page)) {
++		mss->pss_dirty += pss;
+ 		if (private)
+ 			mss->private_dirty += size;
+ 		else
+@@ -811,6 +813,7 @@ static void __show_smap(struct seq_file
  {
- 	struct ei_entry *ent;
-+	int ei_type = EI_ETYPE_NONE;
- 
-+	mutex_lock(&ei_mutex);
- 	list_for_each_entry(ent, &error_injection_list, list) {
--		if (addr >= ent->start_addr && addr < ent->end_addr)
--			return ent->etype;
-+		if (addr >= ent->start_addr && addr < ent->end_addr) {
-+			ei_type = ent->etype;
-+			break;
-+		}
- 	}
--	return EI_ETYPE_NONE;
-+	mutex_unlock(&ei_mutex);
-+
-+	return ei_type;
- }
- 
- /*
+ 	SEQ_PUT_DEC("Rss:            ", mss->resident);
+ 	SEQ_PUT_DEC(" kB\nPss:            ", mss->pss >> PSS_SHIFT);
++	SEQ_PUT_DEC(" kB\nPss_Dirty:      ", mss->pss_dirty >> PSS_SHIFT);
+ 	if (rollup_mode) {
+ 		/*
+ 		 * These are meaningful only for smaps_rollup, otherwise two of
 _
 
-Patches currently in -mm which might be from wuchi.zero@gmail.com are
+Patches currently in -mm which might be from vincent.whitchurch@axis.com are
 
-lib-debugobjects-fix-stat-count-and-optimize-debug_objects_mem_init.patch
-lib-lru_cache-fix-error-free-handing-in-lc_create.patch
-net-lib-once-remove-net_get_random_once_wait-macro.patch
-lib-error-inject-traverse-list-with-mutex.patch
+mm-smaps-add-pss_dirty.patch
 
