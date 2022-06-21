@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70754C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jun 2022 20:07:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74203C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jun 2022 20:07:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232802AbiFUUHc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Jun 2022 16:07:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46640 "EHLO
+        id S230386AbiFUUHz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Jun 2022 16:07:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236071AbiFUUHc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2022 16:07:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 322C263B0
-        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 13:07:31 -0700 (PDT)
+        with ESMTP id S1352977AbiFUUHx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2022 16:07:53 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EB13F3
+        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 13:07:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BE4DC617EE
-        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 20:07:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00A4DC3411C;
-        Tue, 21 Jun 2022 20:07:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 08359B81B1C
+        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 20:07:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F41D8C3411C;
+        Tue, 21 Jun 2022 20:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655842050;
-        bh=oxdf/EDK+Pnvj6PQg8Taz5j9W9C0wgwlRuBOL3Fd6hM=;
+        s=korg; t=1655842068;
+        bh=Ii8Pqm5l+/Ua+6wBT7iIf23jFbij6rvlnkxAJKmeu2U=;
         h=Date:To:From:Subject:From;
-        b=frA5tPLyWyAG2CYJpDayV7kno2XSMmRpad4bXtFFY/X9FG9VMl79pu9T7FYyx347l
-         rs+M0jnaaRkKWzfKyOqgFI3p5CQT9H1mLoxf0nxx6yhW2V12lcYoiPh0QM4idY1dko
-         SYjzmz5eCj5qBqRCNWFaEGlk2ueuWERluVe79jUE=
-Date:   Tue, 21 Jun 2022 13:07:16 -0700
+        b=nMByLu6YoBob8qHz4YNslFwepIMBV/RGsjgESxAVbOPADY59jYgAluoAQfegy2Co+
+         awAzEMus9XffSeefQLiUIjoJLZKSnYw8RI5l1nqWd+FI1cAc9K3YO+bQVvzfEt+jKl
+         t3HmkHapNze3uNp9wF7dfF66OHee5WColpHfQQ5Y=
+Date:   Tue, 21 Jun 2022 13:07:31 -0700
 To:     mm-commits@vger.kernel.org, shakeelb@google.com,
         roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@kernel.org,
         longman@redhat.com, hannes@cmpxchg.org,
         duanxiongchun@bytedance.com, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented.patch added to mm-unstable branch
-Message-Id: <20220621200726.00A4DC3411C@smtp.kernel.org>
+Subject: + mm-vmscan-rework-move_pages_to_lru.patch added to mm-unstable branch
+Message-Id: <20220621200747.F41D8C3411C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: make lruvec lock safe when LRU pages are reparented
+     Subject: mm: vmscan: rework move_pages_to_lru()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented.patch
+     mm-vmscan-rework-move_pages_to_lru.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-rework-move_pages_to_lru.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,270 +68,138 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: make lruvec lock safe when LRU pages are reparented
-Date: Tue, 21 Jun 2022 20:56:51 +0800
+Subject: mm: vmscan: rework move_pages_to_lru()
+Date: Tue, 21 Jun 2022 20:56:52 +0800
 
-The diagram below shows how to make the folio lruvec lock safe when LRU
-pages are reparented.
+In a later patch, we will reparent the LRU pages.  The pages moved to
+appropriate LRU list can be reparented during the process of the
+move_pages_to_lru().  So holding a lruvec lock by the caller is wrong, we
+should use the more general interface of folio_lruvec_relock_irq() to
+acquire the correct lruvec lock.
 
-folio_lruvec_lock(folio)
-	rcu_read_lock();
-    retry:
-	lruvec = folio_lruvec(folio);
-
-        // The folio is reparented at this time.
-        spin_lock(&lruvec->lru_lock);
-
-        if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio)))
-            // Acquired the wrong lruvec lock and need to retry.
-            // Because this folio is on the parent memcg lruvec list.
-            spin_unlock(&lruvec->lru_lock);
-	    goto retry;
-
-        // If we reach here, it means that folio_memcg(folio) is stable.
-
-memcg_reparent_objcgs(memcg)
-    // lruvec belongs to memcg and lruvec_parent belongs to parent memcg.
-    spin_lock(&lruvec->lru_lock);
-    spin_lock(&lruvec_parent->lru_lock);
-
-    // Move all the pages from the lruvec list to the parent lruvec list.
-
-    spin_unlock(&lruvec_parent->lru_lock);
-    spin_unlock(&lruvec->lru_lock);
-
-After we acquire the lruvec lock, we need to check whether the folio is
-reparented.  If so, we need to reacquire the new lruvec lock.  On the
-routine of the LRU pages reparenting, we will also acquire the lruvec lock
-(will be implemented in the later patch).  So folio_memcg() cannot be
-changed when we hold the lruvec lock.
-
-Since lruvec_memcg(lruvec) is always equal to folio_memcg(folio) after we
-hold the lruvec lock, lruvec_memcg_debug() check is pointless.  So remove
-it.
-
-This is a preparation for reparenting the LRU pages.
-
-Link: https://lkml.kernel.org/r/20220621125658.64935-5-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20220621125658.64935-6-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   18 +----------
- mm/compaction.c            |   27 +++++++++++++++--
- mm/memcontrol.c            |   53 +++++++++++++++++++----------------
- mm/swap.c                  |    5 +++
- 4 files changed, 61 insertions(+), 42 deletions(-)
+ mm/vmscan.c |   39 +++++++++++++++++++--------------------
+ 1 file changed, 19 insertions(+), 20 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented
-+++ a/include/linux/memcontrol.h
-@@ -758,7 +758,9 @@ out:
-  * folio_lruvec - return lruvec for isolating/putting an LRU folio
-  * @folio: Pointer to the folio.
+--- a/mm/vmscan.c~mm-vmscan-rework-move_pages_to_lru
++++ a/mm/vmscan.c
+@@ -2312,23 +2312,26 @@ static int too_many_isolated(struct pgli
+  * move_pages_to_lru() moves folios from private @list to appropriate LRU list.
+  * On return, @list is reused as a list of folios to be freed by the caller.
   *
-- * This function relies on folio->mem_cgroup being stable.
-+ * The lruvec can be changed to its parent lruvec when the page reparented.
-+ * The caller need to recheck if it cares about this changes (just like
-+ * folio_lruvec_lock() does).
+- * Returns the number of pages moved to the given lruvec.
++ * Returns the number of pages moved to the appropriate LRU list.
++ *
++ * Note: The caller must not hold any lruvec lock.
   */
- static inline struct lruvec *folio_lruvec(struct folio *folio)
+-static unsigned int move_pages_to_lru(struct lruvec *lruvec,
+-				      struct list_head *list)
++static unsigned int move_pages_to_lru(struct list_head *list)
  {
-@@ -777,15 +779,6 @@ struct lruvec *folio_lruvec_lock_irq(str
- struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
- 						unsigned long *flags);
+ 	int nr_pages, nr_moved = 0;
++	struct lruvec *lruvec = NULL;
+ 	LIST_HEAD(folios_to_free);
  
--#ifdef CONFIG_DEBUG_VM
--void lruvec_memcg_debug(struct lruvec *lruvec, struct folio *folio);
--#else
--static inline
--void lruvec_memcg_debug(struct lruvec *lruvec, struct folio *folio)
--{
--}
--#endif
+ 	while (!list_empty(list)) {
+ 		struct folio *folio = lru_to_folio(list);
+ 
++		lruvec = folio_lruvec_relock_irq(folio, lruvec);
+ 		VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 		list_del(&folio->lru);
+ 		if (unlikely(!folio_evictable(folio))) {
+-			spin_unlock_irq(&lruvec->lru_lock);
++			lruvec_unlock_irq(lruvec);
+ 			folio_putback_lru(folio);
+-			spin_lock_irq(&lruvec->lru_lock);
++			lruvec = NULL;
+ 			continue;
+ 		}
+ 
+@@ -2349,19 +2352,15 @@ static unsigned int move_pages_to_lru(st
+ 			__folio_clear_lru_flags(folio);
+ 
+ 			if (unlikely(folio_test_large(folio))) {
+-				spin_unlock_irq(&lruvec->lru_lock);
++				lruvec_unlock_irq(lruvec);
+ 				destroy_large_folio(folio);
+-				spin_lock_irq(&lruvec->lru_lock);
++				lruvec = NULL;
+ 			} else
+ 				list_add(&folio->lru, &folios_to_free);
+ 
+ 			continue;
+ 		}
+ 
+-		/*
+-		 * All pages were isolated from the same lruvec (and isolation
+-		 * inhibits memcg migration).
+-		 */
+ 		VM_BUG_ON_FOLIO(!folio_matches_lruvec(folio, lruvec), folio);
+ 		lruvec_add_folio(lruvec, folio);
+ 		nr_pages = folio_nr_pages(folio);
+@@ -2370,6 +2369,8 @@ static unsigned int move_pages_to_lru(st
+ 			workingset_age_nonresident(lruvec, nr_pages);
+ 	}
+ 
++	if (lruvec)
++		lruvec_unlock_irq(lruvec);
+ 	/*
+ 	 * To save our caller's stack, now use input list for pages to free.
+ 	 */
+@@ -2440,16 +2441,16 @@ shrink_inactive_list(unsigned long nr_to
+ 
+ 	nr_reclaimed = shrink_page_list(&page_list, pgdat, sc, &stat, false);
+ 
+-	spin_lock_irq(&lruvec->lru_lock);
+-	move_pages_to_lru(lruvec, &page_list);
++	move_pages_to_lru(&page_list);
+ 
++	local_irq_disable();
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_reclaimed);
+ 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
+ 	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
+-	spin_unlock_irq(&lruvec->lru_lock);
++	local_irq_enable();
+ 
+ 	lru_note_cost(lruvec, file, stat.nr_pageout);
+ 	mem_cgroup_uncharge_list(&page_list);
+@@ -2578,18 +2579,16 @@ static void shrink_active_list(unsigned
+ 	/*
+ 	 * Move folios back to the lru list.
+ 	 */
+-	spin_lock_irq(&lruvec->lru_lock);
 -
- static inline
- struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *css){
- 	return css ? container_of(css, struct mem_cgroup, css) : NULL;
-@@ -1260,11 +1253,6 @@ static inline struct lruvec *folio_lruve
- 	return &pgdat->__lruvec;
- }
+-	nr_activate = move_pages_to_lru(lruvec, &l_active);
+-	nr_deactivate = move_pages_to_lru(lruvec, &l_inactive);
++	nr_activate = move_pages_to_lru(&l_active);
++	nr_deactivate = move_pages_to_lru(&l_inactive);
+ 	/* Keep all free folios in l_active list */
+ 	list_splice(&l_inactive, &l_active);
  
--static inline
--void lruvec_memcg_debug(struct lruvec *lruvec, struct folio *folio)
--{
--}
++	local_irq_disable();
+ 	__count_vm_events(PGDEACTIVATE, nr_deactivate);
+ 	__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
 -
- static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
- {
- 	return NULL;
---- a/mm/compaction.c~mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented
-+++ a/mm/compaction.c
-@@ -508,6 +508,25 @@ static bool compact_lock_irqsave(spinloc
- 	return true;
- }
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+-	spin_unlock_irq(&lruvec->lru_lock);
++	local_irq_enable();
  
-+static struct lruvec *
-+compact_folio_lruvec_lock_irqsave(struct folio *folio, unsigned long *flags,
-+				  struct compact_control *cc)
-+{
-+	struct lruvec *lruvec;
-+
-+	rcu_read_lock();
-+retry:
-+	lruvec = folio_lruvec(folio);
-+	compact_lock_irqsave(&lruvec->lru_lock, flags, cc);
-+	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-+		spin_unlock_irqrestore(&lruvec->lru_lock, *flags);
-+		goto retry;
-+	}
-+	rcu_read_unlock();
-+
-+	return lruvec;
-+}
-+
- /*
-  * Compaction requires the taking of some coarse locks that are potentially
-  * very heavily contended. The lock should be periodically unlocked to avoid
-@@ -834,6 +853,7 @@ isolate_migratepages_block(struct compac
- 
- 	/* Time to isolate some pages for migration */
- 	for (; low_pfn < end_pfn; low_pfn++) {
-+		struct folio *folio;
- 
- 		if (skip_on_failure && low_pfn >= next_skip_pfn) {
- 			/*
-@@ -1055,18 +1075,17 @@ isolate_migratepages_block(struct compac
- 		if (!TestClearPageLRU(page))
- 			goto isolate_fail_put;
- 
--		lruvec = folio_lruvec(page_folio(page));
-+		folio = page_folio(page);
-+		lruvec = folio_lruvec(folio);
- 
- 		/* If we already hold the lock, we can skip some rechecking */
- 		if (lruvec != locked) {
- 			if (locked)
- 				lruvec_unlock_irqrestore(locked, flags);
- 
--			compact_lock_irqsave(&lruvec->lru_lock, &flags, cc);
-+			lruvec = compact_folio_lruvec_lock_irqsave(folio, &flags, cc);
- 			locked = lruvec;
- 
--			lruvec_memcg_debug(lruvec, page_folio(page));
--
- 			/* Try get exclusive access under lock */
- 			if (!skip_updated) {
- 				skip_updated = true;
---- a/mm/memcontrol.c~mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented
-+++ a/mm/memcontrol.c
-@@ -1195,23 +1195,6 @@ int mem_cgroup_scan_tasks(struct mem_cgr
- 	return ret;
- }
- 
--#ifdef CONFIG_DEBUG_VM
--void lruvec_memcg_debug(struct lruvec *lruvec, struct folio *folio)
--{
--	struct mem_cgroup *memcg;
--
--	if (mem_cgroup_disabled())
--		return;
--
--	memcg = folio_memcg(folio);
--
--	if (!memcg)
--		VM_BUG_ON_FOLIO(lruvec_memcg(lruvec) != root_mem_cgroup, folio);
--	else
--		VM_BUG_ON_FOLIO(lruvec_memcg(lruvec) != memcg, folio);
--}
--#endif
--
- /**
-  * folio_lruvec_lock - Lock the lruvec for a folio.
-  * @folio: Pointer to the folio.
-@@ -1226,10 +1209,18 @@ void lruvec_memcg_debug(struct lruvec *l
-  */
- struct lruvec *folio_lruvec_lock(struct folio *folio)
- {
--	struct lruvec *lruvec = folio_lruvec(folio);
-+	struct lruvec *lruvec;
- 
-+	rcu_read_lock();
-+retry:
-+	lruvec = folio_lruvec(folio);
- 	spin_lock(&lruvec->lru_lock);
--	lruvec_memcg_debug(lruvec, folio);
-+
-+	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-+		spin_unlock(&lruvec->lru_lock);
-+		goto retry;
-+	}
-+	rcu_read_unlock();
- 
- 	return lruvec;
- }
-@@ -1249,10 +1240,18 @@ struct lruvec *folio_lruvec_lock(struct
-  */
- struct lruvec *folio_lruvec_lock_irq(struct folio *folio)
- {
--	struct lruvec *lruvec = folio_lruvec(folio);
-+	struct lruvec *lruvec;
- 
-+	rcu_read_lock();
-+retry:
-+	lruvec = folio_lruvec(folio);
- 	spin_lock_irq(&lruvec->lru_lock);
--	lruvec_memcg_debug(lruvec, folio);
-+
-+	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-+		spin_unlock_irq(&lruvec->lru_lock);
-+		goto retry;
-+	}
-+	rcu_read_unlock();
- 
- 	return lruvec;
- }
-@@ -1274,10 +1273,18 @@ struct lruvec *folio_lruvec_lock_irq(str
- struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
- 		unsigned long *flags)
- {
--	struct lruvec *lruvec = folio_lruvec(folio);
-+	struct lruvec *lruvec;
- 
-+	rcu_read_lock();
-+retry:
-+	lruvec = folio_lruvec(folio);
- 	spin_lock_irqsave(&lruvec->lru_lock, *flags);
--	lruvec_memcg_debug(lruvec, folio);
-+
-+	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-+		spin_unlock_irqrestore(&lruvec->lru_lock, *flags);
-+		goto retry;
-+	}
-+	rcu_read_unlock();
- 
- 	return lruvec;
- }
---- a/mm/swap.c~mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented
-+++ a/mm/swap.c
-@@ -337,6 +337,11 @@ void lru_note_cost(struct lruvec *lruvec
- 
- void lru_note_cost_folio(struct folio *folio)
- {
-+	WARN_ON_ONCE(!rcu_read_lock_held());
-+	/*
-+	 * The rcu read lock is held by the caller, so we do not need to
-+	 * care about the lruvec returned by folio_lruvec() being released.
-+	 */
- 	lru_note_cost(folio_lruvec(folio), folio_is_file_lru(folio),
- 			folio_nr_pages(folio));
- }
+ 	mem_cgroup_uncharge_list(&l_active);
+ 	free_unref_page_list(&l_active);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
