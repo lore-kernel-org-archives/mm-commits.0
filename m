@@ -2,169 +2,149 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7291BC43334
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 20:33:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4145C43334
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 21:07:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232108AbiFVUdw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Jun 2022 16:33:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57158 "EHLO
+        id S1356081AbiFVVHl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Jun 2022 17:07:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229473AbiFVUdw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2022 16:33:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2332338792
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 13:33:51 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B18E0618CE
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 20:33:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14D71C3411D;
-        Wed, 22 Jun 2022 20:33:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655930030;
-        bh=tasGzb/B7w5kMiUKJNvEsbo+Kisf/aM3nHdT6HJ8dE8=;
-        h=Date:To:From:Subject:From;
-        b=fEOSMcrEFmpPxIpbllHMDZv9LCuhA+b5FvtnULhvkVHrp72MdSqXO/MkncfuQ1PNm
-         fzEiYhB9EIcxGNs/Z/IhCnDht5+qD0LCWZi1fZ/GSIXTn2ruFV2AZrz23SUALZllt1
-         /uleNvxMMJrQZjS1BJLy3N9f8IerjFwDF5vjxOmk=
-Date:   Wed, 22 Jun 2022 13:33:49 -0700
-To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-thp-kill-__transhuge_page_enabled-fix.patch removed from -mm tree
-Message-Id: <20220622203350.14D71C3411D@smtp.kernel.org>
+        with ESMTP id S229693AbiFVVHl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2022 17:07:41 -0400
+Received: from mail-ed1-x529.google.com (mail-ed1-x529.google.com [IPv6:2a00:1450:4864:20::529])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0A6D3FBE8
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 14:07:39 -0700 (PDT)
+Received: by mail-ed1-x529.google.com with SMTP id e2so14726755edv.3
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 14:07:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=vdV4khN9jbInqLI4CoGJr0aFm/O0NmyVKymv5AnToq8=;
+        b=XLKkNjFRt1C0ChxBi2kAg8Go9eskGrlfI4csxSmooiP/W7x9Ujt3ZyNelAZ686R9pW
+         N498trRQ8h/Q27iBMd+gsaT7IOwDVGZU5ZS48n09MfaRcVZHXqpBa6ZAlDFUIh3F1ViM
+         MR6hh0LV1ZnhBVGrTq0GaUQEN6nCffHi5cKQ8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vdV4khN9jbInqLI4CoGJr0aFm/O0NmyVKymv5AnToq8=;
+        b=qpjXCEEWjQPyxbknJqns2KDKLs3Aod/r84VaemHuZdlyozFSTd+jkq7mL/5oTGocr6
+         HXwHt0OoabA1/l8FjqLSNk/HLzU/2YtwXiC0oPk2R/nrJDrOpWrzQlyKuYGkv4jMdKTt
+         RD3i7Ny707VdrbV4pNh7UnU8BRtUIo4v2ihIlgVnNAccrYOsa62lrLpu/BD5H1ZUyQ4o
+         gZTuGUoKvd/SvJxgx8iwdXoUxVEsyI/9f9vJQZaOpo3yNQRuPobSVHWZhKxXoKXpMexN
+         pzG/HTSyXv+RSQ2tVLVYhNWuBMIt62SrpK4P57Tt4ihZZvsSfDXaT3MgLT+7fLkjUScC
+         XBaw==
+X-Gm-Message-State: AJIora9mZI+a69bBc/EsRvKAuAGNyRSxjZNBOGLn0U8l2DpAtkTmE++B
+        jqhw7ruTx55bwHgJ2kL7pmsdxgUkKBlrWe8o
+X-Google-Smtp-Source: AGRyM1sL7FcqITb8hQwhHZEOwMmkRP4N/Cf/+TzyXP9DD57UP+hLu1kdWROUlR9Y1qixNkK1f32zMQ==
+X-Received: by 2002:a05:6402:2812:b0:434:dcb3:c85 with SMTP id h18-20020a056402281200b00434dcb30c85mr6468168ede.1.1655932057698;
+        Wed, 22 Jun 2022 14:07:37 -0700 (PDT)
+Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com. [209.85.128.42])
+        by smtp.gmail.com with ESMTPSA id y24-20020a17090629d800b00722f0c7d081sm1609669eje.119.2022.06.22.14.07.36
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 22 Jun 2022 14:07:36 -0700 (PDT)
+Received: by mail-wm1-f42.google.com with SMTP id l126-20020a1c2584000000b0039c1a10507fso340938wml.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 14:07:36 -0700 (PDT)
+X-Received: by 2002:a05:600c:354c:b0:39c:7e86:6ff5 with SMTP id
+ i12-20020a05600c354c00b0039c7e866ff5mr270015wmq.145.1655932056146; Wed, 22
+ Jun 2022 14:07:36 -0700 (PDT)
+MIME-Version: 1.0
+References: <CAHk-=wiGbrJMim6EWncZUQBzguqy-vtNd+grfNizm5L8Vcmu+w@mail.gmail.com>
+ <YnLplKy0Y66SsvQw@zn.tnic> <CAHk-=wjUX5DGNSiBYvPC8fQJGRe5_RWR8NW=gYF4=UpPiwCE8A@mail.gmail.com>
+ <Ynow8F3G8Kl6V3gu@zn.tnic> <CAHk-=whCmmipbBDips0OJ=UiBUjZfgBGYruoOsqcq2TVd5kBSA@mail.gmail.com>
+ <YnqqhmYv75p+xl73@zn.tnic> <Ynq1nVpu1xCpjnXm@zn.tnic> <YozQZMyQ0NDdD8cH@zn.tnic>
+ <YrMlVBoDxB21l/kD@zn.tnic> <CAHk-=wgmOfipHDvshwooTV81hMh6FHieSvhgGVWZMX8w+E-2DQ@mail.gmail.com>
+ <YrN4DdR9HN0srNWe@zn.tnic>
+In-Reply-To: <YrN4DdR9HN0srNWe@zn.tnic>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Wed, 22 Jun 2022 16:07:19 -0500
+X-Gmail-Original-Message-ID: <CAHk-=wj_MeMUnKyRDuQTiU1OmQ=gfZVZhcD=G7Uma=1gkKkzxg@mail.gmail.com>
+Message-ID: <CAHk-=wj_MeMUnKyRDuQTiU1OmQ=gfZVZhcD=G7Uma=1gkKkzxg@mail.gmail.com>
+Subject: Re: [PATCH] x86/clear_user: Make it faster
+To:     Borislav Petkov <bp@alien8.de>
+Cc:     Mark Hemment <markhemm@googlemail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
+        Lukas Czerner <lczerner@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Mel Gorman <mgorman@suse.de>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Jun 22, 2022 at 3:14 PM Borislav Petkov <bp@alien8.de> wrote:
+>
+> before:
+>
+> $ dd if=/dev/zero of=/dev/null bs=1024k status=progress
+> 400823418880 bytes (401 GB, 373 GiB) copied, 17 s, 23.6 GB/s
+>
+> after:
+>
+> $ dd if=/dev/zero of=/dev/null bs=1024k status=progress
+> 2696274771968 bytes (2.7 TB, 2.5 TiB) copied, 50 s, 53.9 GB/s
+>
+> So that's very persuasive in my book.
 
-The quilt patch titled
-     Subject: mm: thp: fix hugepage_vma_check() for gate vma
-has been removed from the -mm tree.  Its filename was
-     mm-thp-kill-__transhuge_page_enabled-fix.patch
+Heh. Your numbers are very confusing, because apparently you just ^C'd
+the thing randomly and they do different sizes (and the GB/s number is
+what matters).
 
-This patch was dropped because it had testing failures
+Might I suggest just using "count=XYZ" to make the sizes the same and
+the numbers a but more comparable? Because when I first looked at the
+numbers I was like "oh, the first one finished in 17s, the second one
+was three times slower!
 
-------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: thp: fix hugepage_vma_check() for gate vma
-Date: Fri, 17 Jun 2022 17:47:36 -0700
+But yes, apparently that "rep stos" is *much* better with that /dev/zero test.
 
-The syzbot reported the below issue:
+That does imply that what it does is to avoid polluting some cache
+hierarchy, since your 'dd' test case doesn't actually ever *use* the
+end result of the zeroing.
 
-BUG: KASAN: null-ptr-deref in instrument_atomic_read include/linux/instrumented.h:71 [inline]
-BUG: KASAN: null-ptr-deref in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
-BUG: KASAN: null-ptr-deref in hugepage_vma_check+0x8e/0x750 mm/huge_memory.c:82
-Read of size 8 at addr 00000000000005a8 by task syz-executor.5/21978
+So yeah, memset and memcpy are just fundamentally hard to benchmark,
+because what matters more than the cost of the op itself is often how
+the end result interacts with the code around it.
 
-CPU: 0 PID: 21978 Comm: syz-executor.5 Not tainted 5.19.0-rc2-next-20220616-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:88 [inline]
- dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
- kasan_report+0xbe/0x1f0 mm/kasan/report.c:495
- check_region_inline mm/kasan/generic.c:183 [inline]
- kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
- instrument_atomic_read include/linux/instrumented.h:71 [inline]
- test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
- hugepage_vma_check+0x8e/0x750 mm/huge_memory.c:82
- show_smap+0x1c6/0x470 fs/proc/task_mmu.c:866
- traverse.part.0+0xcf/0x5f0 fs/seq_file.c:111
- traverse fs/seq_file.c:101 [inline]
- seq_read_iter+0x90f/0x1280 fs/seq_file.c:195
- seq_read+0x337/0x4b0 fs/seq_file.c:162
- do_loop_readv_writev fs/read_write.c:763 [inline]
- do_loop_readv_writev fs/read_write.c:750 [inline]
- do_iter_read+0x4f8/0x750 fs/read_write.c:805
- vfs_readv+0xe5/0x150 fs/read_write.c:923
- do_preadv fs/read_write.c:1015 [inline]
- __do_sys_preadv fs/read_write.c:1065 [inline]
- __se_sys_preadv fs/read_write.c:1060 [inline]
- __x64_sys_preadv+0x22b/0x310 fs/read_write.c:1060
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x46/0xb0
-RIP: 0033:0x7f5c1d889109
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f5c1ea69168 EFLAGS: 00000246 ORIG_RAX: 0000000000000127
-RAX: ffffffffffffffda RBX: 00007f5c1d99bf60 RCX: 00007f5c1d889109
-RDX: 0000000000000001 RSI: 00000000200006c0 RDI: 0000000000000005
-RBP: 00007f5c1d8e305d R08: 0000000000000000 R09: 0000000000000000
-R10: 00000000fffffffe R11: 0000000000000246 R12: 0000000000000000
-R13: 00007ffd8514b43f R14: 00007f5c1ea69300 R15: 0000000000022000
+For example, one of the things that I hope FSRM really does well is
+when small copies (or memsets) are then used immediately afterwards -
+does the just stored data by the microcode get nicely forwarded from
+the store buffers (like it would if it was a loop of stores) or does
+it mean that the store buffer is bypassed and subsequent loads will
+then hit the L1 cache?
 
-The mm of the vma returned by smaps is NULL.  But it seems impossible
-for normal vma since the mm is pinned before reaching hugepage_vma_check()
-unless the vma is gate vma.
+That is *not* an issue in this situation, since any clear_user() won't
+be immediately loaded just a few instructions later, but it's
+traditionally an issue for the "small memset/memcpy" case, where the
+memset/memcpy destination is possibly accessed immediately afterwards
+(either to make further modifications, or to just be read).
 
-The gate vma doesn't have valid mm, but its size is PAGE_SIZE so the old
-code (checking vma size first) did return before dereferencing mm.  So
-move vma size check to the top to make sure it returns for gate vma
-before dereferencing mm.
+In a perfect world, you get all the memory forwarding logic kicking
+in, which can really shortcircuit things on an OoO core and take the
+memory pipeline out of the critical path, which then helps IPC.
 
-Link: https://lkml.kernel.org/r/20220618004736.1235352-1-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reported-by: syzbot+4d875b4d2e2b60bae9b4@syzkaller.appspotmail.com
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+And that's an area that legacy microcoded 'rep stosb' has not been
+good at. Whether FSRM is quite there yet, I don't know.
 
- mm/huge_memory.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+(Somebody could test: do a 'store register to memory', then to a
+'memcpy()' of that memory to another memory area, and then do a
+register load from that new area - at least in _theory_ a very
+aggressive microarchitecture could actually do that whole forwarding,
+and make the latency from the original memory store to the final
+memory load be zero cycles. I know AMD was supposedly doing that for
+some of the simpler cases, and it *does* actually matter for real
+world loads, because that memory indirection is often due to passing
+data in structures as function arguments. So it sounds stupid to store
+to memory and then immediately load it again, but it actually happens
+_all_the_time_ even for smart software).
 
---- a/mm/huge_memory.c~mm-thp-kill-__transhuge_page_enabled-fix
-+++ a/mm/huge_memory.c
-@@ -104,16 +104,6 @@ bool hugepage_vma_check(struct vm_area_s
- 		return false;
- 
- 	/*
--	 * Check alignment for file vma and size for both file and anon vma.
--	 *
--	 * Skip the check for page fault. Huge fault does the check in fault
--	 * handlers. And this check is not suitable for huge PUD fault.
--	 */
--	if (!in_pf &&
--	    !transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
--		return false;
--
--	/*
- 	 * Enabled via shmem mount options or sysfs settings.
- 	 * Must be done before hugepage flags check since shmem has its
- 	 * own flags.
-@@ -182,6 +172,20 @@ retry:
- static void put_huge_zero_page(void)
- {
- 	/*
-+	 * Check alignment for file vma and size for both file and anon vma.
-+	 *
-+	 * Call this before touching mm since gate vma may be met by smaps,
-+	 * which doesn't have valid mm. The size of gate vma is PAGE_SIZE so
-+	 * it will just return here.
-+	 *
-+	 * Skip the check for page fault. Huge fault does the check in fault
-+	 * handlers. And this check is not suitable for huge PUD fault.
-+	 */
-+	if (!in_pf &&
-+	    !transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
-+		return false;
-+
-+	/*
- 	 * Counter should never go to zero here. Only shrinker can put
- 	 * last reference.
- 	 */
-_
-
-Patches currently in -mm which might be from shy828301@gmail.com are
-
-mm-rmap-use-the-correct-parameter-name-for-define_page_vma_walk.patch
-mm-pvmw-check-possible-huge-pmd-map-by-transhuge_vma_suitable.patch
-mm-khugepaged-check-thp-flag-in-hugepage_vma_check.patch
-mm-thp-consolidate-vma-size-check-to-transhuge_vma_suitable.patch
-mm-khugepaged-better-comments-for-anon-vma-check-in-hugepage_vma_revalidate.patch
-mm-thp-kill-transparent_hugepage_active.patch
-mm-thp-kill-__transhuge_page_enabled.patch
-mm-khugepaged-reorg-some-khugepaged-helpers.patch
-doc-proc-fix-the-description-to-thpeligible.patch
-
+            Linus
