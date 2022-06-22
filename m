@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B575CC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 19:22:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B544C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 19:56:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236509AbiFVTWp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Jun 2022 15:22:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59652 "EHLO
+        id S233302AbiFVT4Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Jun 2022 15:56:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229824AbiFVTWo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2022 15:22:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5148838D90
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 12:22:43 -0700 (PDT)
+        with ESMTP id S1376894AbiFVT4W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2022 15:56:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1892C2F3A0
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 12:56:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E12AA60AD7
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 19:22:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 739B4C34114;
-        Wed, 22 Jun 2022 19:22:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A9A7D6175D
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 19:56:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCEA7C34114;
+        Wed, 22 Jun 2022 19:56:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655925762;
-        bh=gYE8T/h/y5avjfVI+ZikvZcE41p9k0NgLCYsrOHCWmg=;
+        s=korg; t=1655927780;
+        bh=5rpOM+hUBoco/rrQnozFzf2kBV2029Jvj49H3a1o2E8=;
         h=Date:To:From:Subject:From;
-        b=OOtM1Z9VOd1CI78yXeZT/4z2E+hW7KEr2MKPxUPgkCdOvbx/GuV1kOffKSf02ZIhw
-         oGm1ZXhZvXEy+l2/4+waqQT7ojYw4z01HOAhUA+fAJ86Xlt7fMiesaWP1Q3WXvgs0R
-         itVizYS64Bo0WVrUsi189AYp3unIvOhYAMybZrQI=
-Date:   Wed, 22 Jun 2022 12:22:34 -0700
-To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
-        senozhatsky@chromium.org, akpm@linux-foundation.org
+        b=WzD60h7F4qCl8MgchRPMhmF2YbonlK3/D4W1Ww8nHgz4eY+sSHKDrFQWk3/69Sxwe
+         axr+qze6psFVUNiza4NLllhGsG3yCzmCiVr5+UfZXnzka4DqZAqxXR4CocNiuIgyms
+         C69HhK/aj2k4PQUr9N1MAPqeHnK1zT2ZyRXZXAw8=
+Date:   Wed, 22 Jun 2022 12:56:11 -0700
+To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-do-not-lookup-algorithm-in-backends-table.patch added to mm-unstable branch
-Message-Id: <20220622192241.739B4C34114@smtp.kernel.org>
+Subject: + mm-thp-kill-__transhuge_page_enabled-fix.patch added to mm-unstable branch
+Message-Id: <20220622195618.CCEA7C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: do not lookup algorithm in backends table
+     Subject: mm: thp: fix hugepage_vma_check() for gate vma
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-do-not-lookup-algorithm-in-backends-table.patch
+     mm-thp-kill-__transhuge_page_enabled-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-lookup-algorithm-in-backends-table.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-kill-__transhuge_page_enabled-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,45 +64,124 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: do not lookup algorithm in backends table
-Date: Wed, 22 Jun 2022 11:35:01 +0900
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: thp: fix hugepage_vma_check() for gate vma
+Date: Fri, 17 Jun 2022 17:47:36 -0700
 
-Always use crypto_has_comp() so that crypto can lookup module, call
-usermodhelper to load the modules, wait for usermodhelper to finish and so
-on.  Otherwise crypto will do all of these steps under CPU hot-plug lock
-and this looks like too much stuff to handle under the CPU hot-plug lock. 
-Besides this can end up in a deadlock when usermodhelper triggers a code
-path that attempts to lock the CPU hot-plug lock, that zram already holds.
+The syzbot reported the below issue:
 
-Link: https://lkml.kernel.org/r/20220622023501.517125-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+BUG: KASAN: null-ptr-deref in instrument_atomic_read include/linux/instrumented.h:71 [inline]
+BUG: KASAN: null-ptr-deref in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
+BUG: KASAN: null-ptr-deref in hugepage_vma_check+0x8e/0x750 mm/huge_memory.c:82
+Read of size 8 at addr 00000000000005a8 by task syz-executor.5/21978
+
+CPU: 0 PID: 21978 Comm: syz-executor.5 Not tainted 5.19.0-rc2-next-20220616-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ kasan_report+0xbe/0x1f0 mm/kasan/report.c:495
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read include/linux/instrumented.h:71 [inline]
+ test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
+ hugepage_vma_check+0x8e/0x750 mm/huge_memory.c:82
+ show_smap+0x1c6/0x470 fs/proc/task_mmu.c:866
+ traverse.part.0+0xcf/0x5f0 fs/seq_file.c:111
+ traverse fs/seq_file.c:101 [inline]
+ seq_read_iter+0x90f/0x1280 fs/seq_file.c:195
+ seq_read+0x337/0x4b0 fs/seq_file.c:162
+ do_loop_readv_writev fs/read_write.c:763 [inline]
+ do_loop_readv_writev fs/read_write.c:750 [inline]
+ do_iter_read+0x4f8/0x750 fs/read_write.c:805
+ vfs_readv+0xe5/0x150 fs/read_write.c:923
+ do_preadv fs/read_write.c:1015 [inline]
+ __do_sys_preadv fs/read_write.c:1065 [inline]
+ __se_sys_preadv fs/read_write.c:1060 [inline]
+ __x64_sys_preadv+0x22b/0x310 fs/read_write.c:1060
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+RIP: 0033:0x7f5c1d889109
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f5c1ea69168 EFLAGS: 00000246 ORIG_RAX: 0000000000000127
+RAX: ffffffffffffffda RBX: 00007f5c1d99bf60 RCX: 00007f5c1d889109
+RDX: 0000000000000001 RSI: 00000000200006c0 RDI: 0000000000000005
+RBP: 00007f5c1d8e305d R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000fffffffe R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffd8514b43f R14: 00007f5c1ea69300 R15: 0000000000022000
+
+The mm of the vma returned by smaps is NULL.  But it seems impossible
+for normal vma since the mm is pinned before reaching hugepage_vma_check()
+unless the vma is gate vma.
+
+The gate vma doesn't have valid mm, but its size is PAGE_SIZE so the old
+code (checking vma size first) did return before dereferencing mm.  So
+move vma size check to the top to make sure it returns for gate vma
+before dereferencing mm.
+
+Link: https://lkml.kernel.org/r/20220618004736.1235352-1-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reported-by: syzbot+4d875b4d2e2b60bae9b4@syzkaller.appspotmail.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/huge_memory.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-do-not-lookup-algorithm-in-backends-table
-+++ a/drivers/block/zram/zcomp.c
-@@ -63,12 +63,6 @@ static int zcomp_strm_init(struct zcomp_
+--- a/mm/huge_memory.c~mm-thp-kill-__transhuge_page_enabled-fix
++++ a/mm/huge_memory.c
+@@ -104,16 +104,6 @@ bool hugepage_vma_check(struct vm_area_s
+ 		return false;
  
- bool zcomp_available_algorithm(const char *comp)
- {
--	int i;
--
--	i = sysfs_match_string(backends, comp);
--	if (i >= 0)
--		return true;
--
  	/*
- 	 * Crypto does not ignore a trailing new line symbol,
- 	 * so make sure you don't supply a string containing
+-	 * Check alignment for file vma and size for both file and anon vma.
+-	 *
+-	 * Skip the check for page fault. Huge fault does the check in fault
+-	 * handlers. And this check is not suitable for huge PUD fault.
+-	 */
+-	if (!in_pf &&
+-	    !transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
+-		return false;
+-
+-	/*
+ 	 * Enabled via shmem mount options or sysfs settings.
+ 	 * Must be done before hugepage flags check since shmem has its
+ 	 * own flags.
+@@ -182,6 +172,20 @@ retry:
+ static void put_huge_zero_page(void)
+ {
+ 	/*
++	 * Check alignment for file vma and size for both file and anon vma.
++	 *
++	 * Call this before touching mm since gate vma may be met by smaps,
++	 * which doesn't have valid mm. The size of gate vma is PAGE_SIZE so
++	 * it will just return here.
++	 *
++	 * Skip the check for page fault. Huge fault does the check in fault
++	 * handlers. And this check is not suitable for huge PUD fault.
++	 */
++	if (!in_pf &&
++	    !transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
++		return false;
++
++	/*
+ 	 * Counter should never go to zero here. Only shrinker can put
+ 	 * last reference.
+ 	 */
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-zram-do-not-lookup-algorithm-in-backends-table.patch
+mm-rmap-use-the-correct-parameter-name-for-define_page_vma_walk.patch
+mm-pvmw-check-possible-huge-pmd-map-by-transhuge_vma_suitable.patch
+mm-khugepaged-check-thp-flag-in-hugepage_vma_check.patch
+mm-thp-consolidate-vma-size-check-to-transhuge_vma_suitable.patch
+mm-khugepaged-better-comments-for-anon-vma-check-in-hugepage_vma_revalidate.patch
+mm-thp-kill-transparent_hugepage_active.patch
+mm-thp-kill-__transhuge_page_enabled.patch
+mm-thp-kill-__transhuge_page_enabled-fix.patch
+mm-khugepaged-reorg-some-khugepaged-helpers.patch
+doc-proc-fix-the-description-to-thpeligible.patch
 
