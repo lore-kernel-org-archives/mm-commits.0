@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A081CC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 00:06:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BED6FC43334
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 00:24:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231727AbiFVAGz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Jun 2022 20:06:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57534 "EHLO
+        id S1352458AbiFVAYz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Jun 2022 20:24:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231569AbiFVAGy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2022 20:06:54 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97BEE14D37
-        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 17:06:52 -0700 (PDT)
+        with ESMTP id S232257AbiFVAYz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2022 20:24:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5641812A8A
+        for <mm-commits@vger.kernel.org>; Tue, 21 Jun 2022 17:24:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 577CFB81B80
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 00:06:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E843C3411C;
-        Wed, 22 Jun 2022 00:06:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ED21F617A0
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 00:24:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C452EC3411C;
+        Wed, 22 Jun 2022 00:24:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655856410;
-        bh=4CE5kqWuVeWNTpu5D1XmG/fKjcniiTXzAINS/7MP4N0=;
+        s=korg; t=1655857493;
+        bh=E1mv8nPzc6uNvQMzp3wHw2640m7YrrVcxvxlyB5kNEM=;
         h=Date:To:From:Subject:From;
-        b=GdsDNU7S5p++3EZEQHUt8QiHWtPsfJiGizFuXdV3phI7Na8hh1XF3eSbUCFuU1IMF
-         ELGJ23JqUlUzYmjIPvcnf3H640j+Jm0jxQIM/Y926GlkZ5oyxoYqiPG2n9diihqQMp
-         maiRp/o2c4F8zG5sIu1238Ug26HOoL+QqwI9XDl8=
-Date:   Tue, 21 Jun 2022 17:06:42 -0700
-To:     mm-commits@vger.kernel.org, p76091292@gs.ncku.edu.tw,
-        jrdr.linux@gmail.com, akpm@linux-foundation.org,
+        b=1nHKM/9xf/liymw3C6dLAz8nYCR8OjZ8nMClDGr9VuOlcUuVH51qpix6VUcGLL/Dj
+         UxDju4jRg2eOZS2ViuKOfZU0oQuk8B29NS94jsml2Sn3nxXZpTe1YQt+aUC+DnNi1l
+         TsBwQ9ozYLR5pFQ+G9yxo1RUVR95TwofFjpRIeJE=
+Date:   Tue, 21 Jun 2022 17:24:43 -0700
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-docs-fix-comments-that-mention-mem_hotplug_end-fix.patch added to mm-unstable branch
-Message-Id: <20220622000649.2E843C3411C@smtp.kernel.org>
+Subject: + mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch added to mm-unstable branch
+Message-Id: <20220622002451.C452EC3411C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-docs-fix-comments-that-mention-mem_hotplug_end-fix
+     Subject: mm/mmap.c: fix missing call to vm_unacct_memory in mmap_region
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-docs-fix-comments-that-mention-mem_hotplug_end-fix.patch
+     mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-docs-fix-comments-that-mention-mem_hotplug_end-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,73 +64,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-docs-fix-comments-that-mention-mem_hotplug_end-fix
-Date: Tue Jun 21 05:05:38 PM PDT 2022
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mmap.c: fix missing call to vm_unacct_memory in mmap_region
+Date: Sat, 18 Jun 2022 16:20:27 +0800
 
-grammatical fixes
+Since the beginning, charged is set to 0 to avoid calling vm_unacct_memory
+twice because vm_unacct_memory will be called by above unmap_region.  But
+since commit 4f74d2c8e827 ("vm: remove 'nr_accounted' calculations from
+the unmap_vmas() interfaces"), unmap_region doesn't call vm_unacct_memory
+anymore.  So charged shouldn't be set to 0 now otherwise the calling to
+paired vm_unacct_memory will be missed and leads to imbalanced account.
 
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Yun-Ze Li <p76091292@gs.ncku.edu.tw>
+Link: https://lkml.kernel.org/r/20220618082027.43391-1-linmiaohe@huawei.com
+Fixes: 4f74d2c8e827 ("vm: remove 'nr_accounted' calculations from the unmap_vmas() interfaces")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/compaction.c        |    2 +-
- mm/vmscan.c            |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ mm/mmap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-docs-fix-comments-that-mention-mem_hotplug_end-fix
-+++ a/include/linux/mmzone.h
-@@ -596,7 +596,7 @@ struct zone {
- 	 *
- 	 * Write access to present_pages at runtime should be protected by
- 	 * mem_hotplug_begin/done(). Any reader who can't tolerant drift of
--	 * present_pages should get_online_mems() to get a stable value.
-+	 * present_pages should use get_online_mems() to get a stable value.
- 	 */
- 	atomic_long_t		managed_pages;
- 	unsigned long		spanned_pages;
---- a/mm/compaction.c~mm-docs-fix-comments-that-mention-mem_hotplug_end-fix
-+++ a/mm/compaction.c
-@@ -3030,7 +3030,7 @@ void kcompactd_run(int nid)
+--- a/mm/mmap.c~mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region
++++ a/mm/mmap.c
+@@ -2809,7 +2809,6 @@ unmap_and_free_vma:
  
- /*
-  * Called by memory hotplug when all memory in a node is offlined. Caller must
-- * be hold mem_hotplug_begin/done().
-+ * be holding mem_hotplug_begin/done().
-  */
- void kcompactd_stop(int nid)
- {
---- a/mm/vmscan.c~mm-docs-fix-comments-that-mention-mem_hotplug_end-fix
-+++ a/mm/vmscan.c
-@@ -4645,7 +4645,7 @@ void kswapd_run(int nid)
- 
- /*
-  * Called by memory hotplug when all memory in a node is offlined.  Caller must
-- * be hold mem_hotplug_begin/done().
-+ * be holding mem_hotplug_begin/done().
-  */
- void kswapd_stop(int nid)
- {
+ 	/* Undo any partial mapping done by a device driver. */
+ 	unmap_region(mm, mas.tree, vma, prev, next, vma->vm_start, vma->vm_end);
+-	charged = 0;
+ 	if (vm_flags & VM_SHARED)
+ 		mapping_unmap_writable(file->f_mapping);
+ free_vma:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-start-tracking-vmas-with-maple-tree-fix.patch
-damon-convert-__damon_va_three_regions-to-use-the-vma-iterator-fix.patch
-mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix-checkpatch-fixes.patch
-mm-remove-the-vma-linked-list-fix-fix.patch
-mm-remove-the-vma-linked-list-fix-fix-fix.patch
-mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix.patch
-mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers-fix.patch
-mm-shrinkers-add-scan-interface-for-shrinker-debugfs-fix-fix.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-factor-helpers-for-memory_failure_dev_pagemap-fix.patch
-xfs-support-cow-in-fsdax-mode-fix.patch
-mm-page_alloc-replace-local_lock-with-normal-spinlock-fix.patch
-mm-convert-destroy_compound_page-to-destroy_large_folio-fix.patch
-mm-madvise-minor-cleanup-for-swapin_walk_pmd_entry-fix.patch
-mm-docs-fix-comments-that-mention-mem_hotplug_end-fix.patch
+mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
+mm-migration-return-errno-when-isolate_huge_page-failed.patch
+mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
+mm-swapfile-make-security_vm_enough_memory_mm-work-as-expected.patch
+mm-swapfile-fix-possible-data-races-of-inuse_pages.patch
+mm-swap-remove-swap_cache_info-statistics.patch
+mm-vmscan-dont-try-to-reclaim-freed-folios.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-madvise-minor-cleanup-for-swapin_walk_pmd_entry.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
 
