@@ -2,186 +2,168 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B544C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 19:56:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98080C43334
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 20:14:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233302AbiFVT4Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Jun 2022 15:56:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35040 "EHLO
+        id S230253AbiFVUOV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Jun 2022 16:14:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376894AbiFVT4W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2022 15:56:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1892C2F3A0
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 12:56:21 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        with ESMTP id S229473AbiFVUOQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2022 16:14:16 -0400
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 236A413E9A
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 13:14:15 -0700 (PDT)
+Received: from zn.tnic (p200300ea974657a0329c23fffea6a903.dip0.t-ipconnect.de [IPv6:2003:ea:9746:57a0:329c:23ff:fea6:a903])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A9A7D6175D
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 19:56:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCEA7C34114;
-        Wed, 22 Jun 2022 19:56:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655927780;
-        bh=5rpOM+hUBoco/rrQnozFzf2kBV2029Jvj49H3a1o2E8=;
-        h=Date:To:From:Subject:From;
-        b=WzD60h7F4qCl8MgchRPMhmF2YbonlK3/D4W1Ww8nHgz4eY+sSHKDrFQWk3/69Sxwe
-         axr+qze6psFVUNiza4NLllhGsG3yCzmCiVr5+UfZXnzka4DqZAqxXR4CocNiuIgyms
-         C69HhK/aj2k4PQUr9N1MAPqeHnK1zT2ZyRXZXAw8=
-Date:   Wed, 22 Jun 2022 12:56:11 -0700
-To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-kill-__transhuge_page_enabled-fix.patch added to mm-unstable branch
-Message-Id: <20220622195618.CCEA7C34114@smtp.kernel.org>
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 88B1E1EC04FB;
+        Wed, 22 Jun 2022 22:14:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1655928849;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+        bh=rFuSHJzwwt4PLrDbB1K3TByKrUIZ7mUmXXNvdkifRus=;
+        b=aePInROFcL1WALSd+y/WzuOnSE7mkUfk6qnf7w7jbHED4l3NMFWUJDVoxgUjtkmLTYWpLx
+        YWHy8fOeV09NbyJ48Do/6xEzFODl6/KXDfAda+yx5fenzWxn/BznroJ60lGNyTYiKEGlUw
+        NtTZYq7+BrIIg/utaEf/nGQyk9BAz7A=
+Date:   Wed, 22 Jun 2022 22:14:05 +0200
+From:   Borislav Petkov <bp@alien8.de>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Mark Hemment <markhemm@googlemail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
+        Lukas Czerner <lczerner@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Mel Gorman <mgorman@suse.de>
+Subject: Re: [PATCH] x86/clear_user: Make it faster
+Message-ID: <YrN4DdR9HN0srNWe@zn.tnic>
+References: <CAHk-=wiGbrJMim6EWncZUQBzguqy-vtNd+grfNizm5L8Vcmu+w@mail.gmail.com>
+ <YnLplKy0Y66SsvQw@zn.tnic>
+ <CAHk-=wjUX5DGNSiBYvPC8fQJGRe5_RWR8NW=gYF4=UpPiwCE8A@mail.gmail.com>
+ <Ynow8F3G8Kl6V3gu@zn.tnic>
+ <CAHk-=whCmmipbBDips0OJ=UiBUjZfgBGYruoOsqcq2TVd5kBSA@mail.gmail.com>
+ <YnqqhmYv75p+xl73@zn.tnic>
+ <Ynq1nVpu1xCpjnXm@zn.tnic>
+ <YozQZMyQ0NDdD8cH@zn.tnic>
+ <YrMlVBoDxB21l/kD@zn.tnic>
+ <CAHk-=wgmOfipHDvshwooTV81hMh6FHieSvhgGVWZMX8w+E-2DQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAHk-=wgmOfipHDvshwooTV81hMh6FHieSvhgGVWZMX8w+E-2DQ@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Jun 22, 2022 at 10:06:42AM -0500, Linus Torvalds wrote:
+> I'm not sure how valid the TSC thing is, with the extra
+> synchronization maybe interacting with the whole microcode engine
+> startup/stop thing.
 
-The patch titled
-     Subject: mm: thp: fix hugepage_vma_check() for gate vma
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-kill-__transhuge_page_enabled-fix.patch
+Very possible.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-kill-__transhuge_page_enabled-fix.patch
+So I went and did the original microbenchmark which started people
+looking into this in the first place and with it, it looks very
+good:
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+before:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+$ dd if=/dev/zero of=/dev/null bs=1024k status=progress
+400823418880 bytes (401 GB, 373 GiB) copied, 17 s, 23.6 GB/s
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+after:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+$ dd if=/dev/zero of=/dev/null bs=1024k status=progress
+2696274771968 bytes (2.7 TB, 2.5 TiB) copied, 50 s, 53.9 GB/s
 
-------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: thp: fix hugepage_vma_check() for gate vma
-Date: Fri, 17 Jun 2022 17:47:36 -0700
+So that's very persuasive in my book.
 
-The syzbot reported the below issue:
+> I'm also not sure the rdtsc is doing the same thing on your AMD tests
+> vs your Intel tests - I suspect you end up both using 'rdtscp' (as
 
-BUG: KASAN: null-ptr-deref in instrument_atomic_read include/linux/instrumented.h:71 [inline]
-BUG: KASAN: null-ptr-deref in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
-BUG: KASAN: null-ptr-deref in hugepage_vma_check+0x8e/0x750 mm/huge_memory.c:82
-Read of size 8 at addr 00000000000005a8 by task syz-executor.5/21978
+That is correct.
 
-CPU: 0 PID: 21978 Comm: syz-executor.5 Not tainted 5.19.0-rc2-next-20220616-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:88 [inline]
- dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
- kasan_report+0xbe/0x1f0 mm/kasan/report.c:495
- check_region_inline mm/kasan/generic.c:183 [inline]
- kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
- instrument_atomic_read include/linux/instrumented.h:71 [inline]
- test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
- hugepage_vma_check+0x8e/0x750 mm/huge_memory.c:82
- show_smap+0x1c6/0x470 fs/proc/task_mmu.c:866
- traverse.part.0+0xcf/0x5f0 fs/seq_file.c:111
- traverse fs/seq_file.c:101 [inline]
- seq_read_iter+0x90f/0x1280 fs/seq_file.c:195
- seq_read+0x337/0x4b0 fs/seq_file.c:162
- do_loop_readv_writev fs/read_write.c:763 [inline]
- do_loop_readv_writev fs/read_write.c:750 [inline]
- do_iter_read+0x4f8/0x750 fs/read_write.c:805
- vfs_readv+0xe5/0x150 fs/read_write.c:923
- do_preadv fs/read_write.c:1015 [inline]
- __do_sys_preadv fs/read_write.c:1065 [inline]
- __se_sys_preadv fs/read_write.c:1060 [inline]
- __x64_sys_preadv+0x22b/0x310 fs/read_write.c:1060
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x46/0xb0
-RIP: 0033:0x7f5c1d889109
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f5c1ea69168 EFLAGS: 00000246 ORIG_RAX: 0000000000000127
-RAX: ffffffffffffffda RBX: 00007f5c1d99bf60 RCX: 00007f5c1d889109
-RDX: 0000000000000001 RSI: 00000000200006c0 RDI: 0000000000000005
-RBP: 00007f5c1d8e305d R08: 0000000000000000 R09: 0000000000000000
-R10: 00000000fffffffe R11: 0000000000000246 R12: 0000000000000000
-R13: 00007ffd8514b43f R14: 00007f5c1ea69300 R15: 0000000000022000
+> opposed to the 'lsync' variant we also have), but I don't think the
+> ordering really is all that well defined architecturally, so AMD may
+> have very different serialization rules than Intel does.
+>
+> .. and that serialization may well be different wrt normal load/stores
+> and microcode.
 
-The mm of the vma returned by smaps is NULL.  But it seems impossible
-for normal vma since the mm is pinned before reaching hugepage_vma_check()
-unless the vma is gate vma.
+Well, if it is that, hw people have always been telling me to use RDTSC
+to measure stuff but I will object next time.
 
-The gate vma doesn't have valid mm, but its size is PAGE_SIZE so the old
-code (checking vma size first) did return before dereferencing mm.  So
-move vma size check to the top to make sure it returns for gate vma
-before dereferencing mm.
+> So those numbers look like they have a 3% difference, but I'm not 100%
+> convinced it might not be due to measuring artifacts. The fact that it
+> worked well for you on your AMD platform doesn't necessarily mean that
+> it has to work on icelake-x.
 
-Link: https://lkml.kernel.org/r/20220618004736.1235352-1-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reported-by: syzbot+4d875b4d2e2b60bae9b4@syzkaller.appspotmail.com
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Well, it certainly is something uarch-specific because that machine
+had an eval Icelake sample before and it would show the same minute
+slowdown too. I attributed it to the CPU being an eval sample but I
+guess uarch-wise it didn't matter.
 
- mm/huge_memory.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+> But it could equally easily be that "rep stosb" really just isn't any
+> better on that platform, and the numbers are just giving the plain
+> reality.
 
---- a/mm/huge_memory.c~mm-thp-kill-__transhuge_page_enabled-fix
-+++ a/mm/huge_memory.c
-@@ -104,16 +104,6 @@ bool hugepage_vma_check(struct vm_area_s
- 		return false;
- 
- 	/*
--	 * Check alignment for file vma and size for both file and anon vma.
--	 *
--	 * Skip the check for page fault. Huge fault does the check in fault
--	 * handlers. And this check is not suitable for huge PUD fault.
--	 */
--	if (!in_pf &&
--	    !transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
--		return false;
--
--	/*
- 	 * Enabled via shmem mount options or sysfs settings.
- 	 * Must be done before hugepage flags check since shmem has its
- 	 * own flags.
-@@ -182,6 +172,20 @@ retry:
- static void put_huge_zero_page(void)
- {
- 	/*
-+	 * Check alignment for file vma and size for both file and anon vma.
-+	 *
-+	 * Call this before touching mm since gate vma may be met by smaps,
-+	 * which doesn't have valid mm. The size of gate vma is PAGE_SIZE so
-+	 * it will just return here.
-+	 *
-+	 * Skip the check for page fault. Huge fault does the check in fault
-+	 * handlers. And this check is not suitable for huge PUD fault.
-+	 */
-+	if (!in_pf &&
-+	    !transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
-+		return false;
-+
-+	/*
- 	 * Counter should never go to zero here. Only shrinker can put
- 	 * last reference.
- 	 */
-_
+Right.
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+> Or it could mean that it makes some cache access decision ("this is
+> big enough that let's not pollute L1 caches, do stores directly to
+> L2") that might be better for actual performance afterwards, but that
+> makes that clearing itself that bit slower.
 
-mm-rmap-use-the-correct-parameter-name-for-define_page_vma_walk.patch
-mm-pvmw-check-possible-huge-pmd-map-by-transhuge_vma_suitable.patch
-mm-khugepaged-check-thp-flag-in-hugepage_vma_check.patch
-mm-thp-consolidate-vma-size-check-to-transhuge_vma_suitable.patch
-mm-khugepaged-better-comments-for-anon-vma-check-in-hugepage_vma_revalidate.patch
-mm-thp-kill-transparent_hugepage_active.patch
-mm-thp-kill-__transhuge_page_enabled.patch
-mm-thp-kill-__transhuge_page_enabled-fix.patch
-mm-khugepaged-reorg-some-khugepaged-helpers.patch
-doc-proc-fix-the-description-to-thpeligible.patch
+There's that too.
 
+> IOW, I do think that microbenchmarks are kind of suspect to begin
+> with, and the rdtsc thing in particular may work better on some
+> microarchitectures than it does others.
+> 
+> Very hard to make a judgment call - I think the only thing that really
+> ends up mattering is the macro-benchmarks, but I think when you tried
+> that it was way too noisy to actually show any real signal.
+
+Yap, that was the reason why I went down to the microbenchmarks. But
+even with the real benchmark, it would show a slightly bad numbers on
+ICL which got me scratching my head as to why that is...
+
+> That is, of course, a problem with memcpy and memset in general. It's
+> easy to do microbenchmarks for them, it's not just clear whether said
+> microbenchmarks give numbers that are actually meaningful, exactly
+> because of things like cache replacement policy etc.
+> 
+> And finally, I will repeat that this particular code probably just
+> isn't that important. The memory clearing for page allocation and
+> regular memcpy is where most of the real time is spent, so I don't
+> think that you should necessarily worry too much about this special
+> case.
+
+Yeah, I started poking at this because people would come with patches or
+complain about stuff being slow but then no one would actually sit down
+and do the measurements...
+
+Oh well, anyway, I still think we should take that because that dd thing
+above is pretty good-lookin' even on ICL. And we now have a good example
+of how all this patching thing should work - have the insns patched
+in and only replace with calls to other variants on the minority of
+machines.
+
+And the ICL slowdown is small enough and kinda hard to measure...
+
+Thoughts?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
