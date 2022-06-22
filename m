@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F243BC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 18:49:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B575CC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Jun 2022 19:22:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376728AbiFVStO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Jun 2022 14:49:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36888 "EHLO
+        id S236509AbiFVTWp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Jun 2022 15:22:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376845AbiFVStN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2022 14:49:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1120B31911
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 11:49:11 -0700 (PDT)
+        with ESMTP id S229824AbiFVTWo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2022 15:22:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5148838D90
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 12:22:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B9CDDB8208B
-        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 18:49:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1603FC34114;
-        Wed, 22 Jun 2022 18:49:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E12AA60AD7
+        for <mm-commits@vger.kernel.org>; Wed, 22 Jun 2022 19:22:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 739B4C34114;
+        Wed, 22 Jun 2022 19:22:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1655923748;
-        bh=nKQTC4NYSqBJFkdIIWZhz4/pHwcxKvl4I4Oyun0YE38=;
+        s=korg; t=1655925762;
+        bh=gYE8T/h/y5avjfVI+ZikvZcE41p9k0NgLCYsrOHCWmg=;
         h=Date:To:From:Subject:From;
-        b=k1PJKEAlpjqcphL6n9TiG8dgPWt/UpAg66n4uIuAG/GqtxFkO9W3yT/JblJ6e1rml
-         yk1AtCO2YOVQhUg83Jqgy5TjtcJr/P0QkrlwvWBpmKDr2IPJ0bg2t+ry8xLBb+f4HD
-         M8OLudI/EqCWkX4bVWxIgHDJx6YZOiATRHote7Bk=
-Date:   Wed, 22 Jun 2022 11:49:00 -0700
-To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
-        sfr@canb.auug.org.au, akpm@linux-foundation.org
+        b=OOtM1Z9VOd1CI78yXeZT/4z2E+hW7KEr2MKPxUPgkCdOvbx/GuV1kOffKSf02ZIhw
+         oGm1ZXhZvXEy+l2/4+waqQT7ojYw4z01HOAhUA+fAJ86Xlt7fMiesaWP1Q3WXvgs0R
+         itVizYS64Bo0WVrUsi189AYp3unIvOhYAMybZrQI=
+Date:   Wed, 22 Jun 2022 12:22:34 -0700
+To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-do-not-update-address-in-huge_pmd_unshare-fix.patch added to mm-unstable branch
-Message-Id: <20220622184907.1603FC34114@smtp.kernel.org>
+Subject: + zram-do-not-lookup-algorithm-in-backends-table.patch added to mm-unstable branch
+Message-Id: <20220622192241.739B4C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix an unused variable warning/error
+     Subject: zram: do not lookup algorithm in backends table
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-do-not-update-address-in-huge_pmd_unshare-fix.patch
+     zram-do-not-lookup-algorithm-in-backends-table.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-do-not-update-address-in-huge_pmd_unshare-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-lookup-algorithm-in-backends-table.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,36 +64,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: hugetlb: fix an unused variable warning/error
-Date: Wed, 22 Jun 2022 17:04:46 +1000
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: do not lookup algorithm in backends table
+Date: Wed, 22 Jun 2022 11:35:01 +0900
 
-Link: https://lkml.kernel.org/r/20220622171117.70850960@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Always use crypto_has_comp() so that crypto can lookup module, call
+usermodhelper to load the modules, wait for usermodhelper to finish and so
+on.  Otherwise crypto will do all of these steps under CPU hot-plug lock
+and this looks like too much stuff to handle under the CPU hot-plug lock. 
+Besides this can end up in a deadlock when usermodhelper triggers a code
+path that attempts to lock the CPU hot-plug lock, that zram already holds.
+
+Link: https://lkml.kernel.org/r/20220622023501.517125-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/block/zram/zcomp.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-do-not-update-address-in-huge_pmd_unshare-fix
-+++ a/mm/hugetlb.c
-@@ -6899,10 +6899,8 @@ unsigned long hugetlb_mask_last_page(str
- /* See description above.  Architectures can provide their own version. */
- __weak unsigned long hugetlb_mask_last_page(struct hstate *h)
+--- a/drivers/block/zram/zcomp.c~zram-do-not-lookup-algorithm-in-backends-table
++++ a/drivers/block/zram/zcomp.c
+@@ -63,12 +63,6 @@ static int zcomp_strm_init(struct zcomp_
+ 
+ bool zcomp_available_algorithm(const char *comp)
  {
--	unsigned long hp_size = huge_page_size(h);
+-	int i;
 -
- #ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
--	if (hp_size == PMD_SIZE)
-+	if (huge_page_size(h) == PMD_SIZE)
- 		return PUD_SIZE - PMD_SIZE;
- #endif
- 	return 0UL;
+-	i = sysfs_match_string(backends, comp);
+-	if (i >= 0)
+-		return true;
+-
+ 	/*
+ 	 * Crypto does not ignore a trailing new line symbol,
+ 	 * so make sure you don't supply a string containing
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-hugetlb-do-not-update-address-in-huge_pmd_unshare-fix.patch
+zram-do-not-lookup-algorithm-in-backends-table.patch
 
