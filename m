@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8D66C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jun 2022 19:34:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41AEAC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jun 2022 19:38:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229915AbiFXTeV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jun 2022 15:34:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56840 "EHLO
+        id S231476AbiFXTis (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jun 2022 15:38:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229830AbiFXTeU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2022 15:34:20 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 274837A1A9
-        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 12:34:19 -0700 (PDT)
+        with ESMTP id S231173AbiFXTiq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2022 15:38:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 432315DC1C
+        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 12:38:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 5A5C3CE2B16
-        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 19:34:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8432DC3411C;
-        Fri, 24 Jun 2022 19:34:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CC9C46221C
+        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 19:38:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30AECC34114;
+        Fri, 24 Jun 2022 19:38:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656099255;
-        bh=2je1oJEnUMwdC2cKTFnVRB/5waqSoQBmfSJBrMGUNK8=;
+        s=korg; t=1656099523;
+        bh=8kRPfh0idhtM9m+75M5mtNJzd9LkPfRVpRGvGtrxfu4=;
         h=Date:To:From:Subject:From;
-        b=suqnJ4w935c44ahgME6oTIv2bvaGo2cMspr4GoD5S0gTAV8xHW+dSqUy6EgYcd180
-         s55EOA/ui6enM+T+USAfaZg5CEHH5zcJRDKi4XzOFDTvlogSQteBqtEXMriwKId8Gf
-         44ftI+CRghEZPc5edu7N4CqR8qu8CdERqxvOS4rU=
-Date:   Fri, 24 Jun 2022 12:34:14 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        tjmercier@google.com, surenb@google.com, sumit.semwal@linaro.org,
-        stephen.s.brennan@oracle.com, rdunlap@infradead.org,
-        paul.gortmaker@windriver.com, mail@christoph.anton.mitterer.name,
-        ilkos@google.com, hch@infradead.org, hannes@cmpxchg.org,
-        David.Laight@ACULAB.COM, corbet@lwn.net, christian.koenig@amd.com,
-        ccross@google.com, adobriyan@gmail.com, kaleshsingh@google.com,
-        akpm@linux-foundation.org
+        b=XS3jIBlw1z4x97mkSg91caienWLBkTR3+IrtE8qKF6EHyiwohK1UGjhDI37QD3vo6
+         jg94UiIX8bXpe3Y7DIAB/Zbysmuo7B94/hGSCoqMLAIkOcFFZng2zZe5isApR/z2AT
+         HahyWes69tCMY1SQ0A/n49ENjSE78LSf9Jt+z2D8=
+Date:   Fri, 24 Jun 2022 12:38:42 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        hch@lst.de, apopple@nvidia.com, alex.sierra@amd.com,
+        david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + procfs-add-path-to-proc-pid-fdinfo.patch added to mm-unstable branch
-Message-Id: <20220624193415.8432DC3411C@smtp.kernel.org>
+Subject: + mm-rmap-fix-dereferencing-invalid-subpage-pointer-in-try_to_migrate_one.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220624193843.30AECC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: add 'path' to /proc/<pid>/fdinfo/
-has been added to the -mm mm-unstable branch.  Its filename is
-     procfs-add-path-to-proc-pid-fdinfo.patch
+     Subject: mm/rmap: fix dereferencing invalid subpage pointer in try_to_migrate_one()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-rmap-fix-dereferencing-invalid-subpage-pointer-in-try_to_migrate_one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/procfs-add-path-to-proc-pid-fdinfo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-fix-dereferencing-invalid-subpage-pointer-in-try_to_migrate_one.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -70,182 +65,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: procfs: add 'path' to /proc/<pid>/fdinfo/
-Date: Thu, 23 Jun 2022 15:06:07 -0700
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/rmap: fix dereferencing invalid subpage pointer in try_to_migrate_one()
+Date: Thu, 23 Jun 2022 22:53:32 +0200
 
-In order to identify the type of memory a process has pinned through its
-open fds, add the file path to fdinfo output.  This allows identifying
-memory types based on common prefixes: e.g.  "/memfd...", "/dmabuf...",
-"/dev/ashmem...".
+The subpage we calculate is an invalid pointer for device private pages,
+because device private pages are mapped via non-present device private
+entries, not ordinary present PTEs.
 
-To be cautious, only expose the paths for anonymous inodes, and this also
-avoids printing path names with strange characters.
+Let's just not compute broken pointers and fixup later.  Move the proper
+assignment of the correct subpage to the beginning of the function and
+assert that we really only have a single page in our folio.
 
-Access to /proc/<pid>/fdinfo is governed by PTRACE_MODE_READ_FSCREDS the
-same as /proc/<pid>/maps which also exposes the file path of mappings; so
-the security permissions for accessing path is consistent with that of
-/proc/<pid>/maps.
+This currently results in a BUG when tying to compute anon_exclusive,
+because:
 
-Link: https://lkml.kernel.org/r/20220623220613.3014268-3-kaleshsingh@google.com
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Colin Cross <ccross@google.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Ioannis Ilkos <ilkos@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Paul Gortmaker<paul.gortmaker@windriver.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Brennan <stephen.s.brennan@oracle.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: T.J. Mercier <tjmercier@google.com>
+[  528.727237] BUG: unable to handle page fault for address: ffffea1fffffffc0
+[  528.739585] #PF: supervisor read access in kernel mode
+[  528.745324] #PF: error_code(0x0000) - not-present page
+[  528.751062] PGD 44eaf2067 P4D 44eaf2067 PUD 0
+[  528.756026] Oops: 0000 [#1] PREEMPT SMP NOPTI
+[  528.760890] CPU: 120 PID: 18275 Comm: hmm-tests Not tainted 5.19.0-rc3-kfd-alex #257
+[  528.769542] Hardware name: AMD Corporation BardPeak/BardPeak, BIOS RTY1002BDS 09/17/2021
+[  528.778579] RIP: 0010:try_to_migrate_one+0x21a/0x1000
+[  528.784225] Code: f6 48 89 c8 48 2b 05 45 d1 6a 01 48 c1 f8 06 48 29
+c3 48 8b 45 a8 48 c1 e3 06 48 01 cb f6 41 18 01 48 89 85 50 ff ff ff 74
+0b <4c> 8b 33 49 c1 ee 11 41 83 e6 01 48 8b bd 48 ff ff ff e8 3f 99 02
+[  528.805194] RSP: 0000:ffffc90003cdfaa0 EFLAGS: 00010202
+[  528.811027] RAX: 00007ffff7ff4000 RBX: ffffea1fffffffc0 RCX: ffffeaffffffffc0
+[  528.818995] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffc90003cdfaf8
+[  528.826962] RBP: ffffc90003cdfb70 R08: 0000000000000000 R09: 0000000000000000
+[  528.834930] R10: ffffc90003cdf910 R11: 0000000000000002 R12: ffff888194450540
+[  528.842899] R13: ffff888160d057c0 R14: 0000000000000000 R15: 03ffffffffffffff
+[  528.850865] FS:  00007ffff7fdb740(0000) GS:ffff8883b0600000(0000) knlGS:0000000000000000
+[  528.859891] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  528.866308] CR2: ffffea1fffffffc0 CR3: 00000001562b4003 CR4: 0000000000770ee0
+[  528.874275] PKRU: 55555554
+[  528.877286] Call Trace:
+[  528.880016]  <TASK>
+[  528.882356]  ? lock_is_held_type+0xdf/0x130
+[  528.887033]  rmap_walk_anon+0x167/0x410
+[  528.891316]  try_to_migrate+0x90/0xd0
+[  528.895405]  ? try_to_unmap_one+0xe10/0xe10
+[  528.900074]  ? anon_vma_ctor+0x50/0x50
+[  528.904260]  ? put_anon_vma+0x10/0x10
+[  528.908347]  ? invalid_mkclean_vma+0x20/0x20
+[  528.913114]  migrate_vma_setup+0x5f4/0x750
+[  528.917691]  dmirror_devmem_fault+0x8c/0x250 [test_hmm]
+[  528.923532]  do_swap_page+0xac0/0xe50
+[  528.927623]  ? __lock_acquire+0x4b2/0x1ac0
+[  528.932199]  __handle_mm_fault+0x949/0x1440
+[  528.936876]  handle_mm_fault+0x13f/0x3e0
+[  528.941256]  do_user_addr_fault+0x215/0x740
+[  528.945928]  exc_page_fault+0x75/0x280
+[  528.950115]  asm_exc_page_fault+0x27/0x30
+[  528.954593] RIP: 0033:0x40366b
+...
+
+Link: https://lkml.kernel.org/r/20220623205332.319257-1-david@redhat.com
+Fixes: 6c287605fd56 ("mm: remember exclusively mapped anonymous pages with PG_anon_exclusive")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: "Sierra Guiza, Alejandro (Alex)" <alex.sierra@amd.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Tested-by: Alistair Popple <apopple@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |   10 ++++++++++
- fs/libfs.c                         |    9 +++++++++
- fs/proc/fd.c                       |   13 +++++++++++--
- include/linux/fs.h                 |    1 +
- 4 files changed, 31 insertions(+), 2 deletions(-)
+ mm/rmap.c |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~procfs-add-path-to-proc-pid-fdinfo
-+++ a/Documentation/filesystems/proc.rst
-@@ -1912,6 +1912,9 @@ All locks associated with a file descrip
+--- a/mm/rmap.c~mm-rmap-fix-dereferencing-invalid-subpage-pointer-in-try_to_migrate_one
++++ a/mm/rmap.c
+@@ -1899,8 +1899,23 @@ static bool try_to_migrate_one(struct fo
+ 		/* Unexpected PMD-mapped THP? */
+ 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
  
-     lock:       1: FLOCK  ADVISORY  WRITE 359 00:13:11691 0 EOF
- 
-+Files with anonymous inodes have an additional 'path' field which represents
-+the anonymous file path.
-+
- The files such as eventfd, fsnotify, signalfd, epoll among the regular pos/flags
- pair provide additional information particular to the objects they represent.
- 
-@@ -1925,6 +1928,7 @@ Eventfd files
- 	mnt_id:	9
- 	ino:	63107
- 	size:   0
-+	path:	anon_inode:[eventfd]
- 	eventfd-count:	5a
- 
- where 'eventfd-count' is hex value of a counter.
-@@ -1939,6 +1943,7 @@ Signalfd files
- 	mnt_id:	9
- 	ino:	63107
- 	size:   0
-+	path:	anon_inode:[signalfd]
- 	sigmask:	0000000000000200
- 
- where 'sigmask' is hex value of the signal mask associated
-@@ -1954,6 +1959,7 @@ Epoll files
- 	mnt_id:	9
- 	ino:	63107
- 	size:   0
-+	path:	anon_inode:[eventpoll]
- 	tfd:        5 events:       1d data: ffffffffffffffff pos:0 ino:61af sdev:7
- 
- where 'tfd' is a target file descriptor number in decimal form,
-@@ -1973,6 +1979,7 @@ For inotify files the format is the foll
- 	mnt_id:	9
- 	ino:	63107
- 	size:   0
-+	path:	anon_inode:inotify
- 	inotify wd:3 ino:9e7e sdev:800013 mask:800afce ignored_mask:0 fhandle-bytes:8 fhandle-type:1 f_handle:7e9e0000640d1b6d
- 
- where 'wd' is a watch descriptor in decimal form, i.e. a target file
-@@ -1997,6 +2004,7 @@ For fanotify files the format is::
- 	mnt_id:	9
- 	ino:	63107
- 	size:   0
-+	path:	anon_inode:[fanotify]
- 	fanotify flags:10 event-flags:0
- 	fanotify mnt_id:12 mflags:40 mask:38 ignored_mask:40000003
- 	fanotify ino:4f969 sdev:800013 mflags:0 mask:3b ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:69f90400c275b5b4
-@@ -2023,6 +2031,7 @@ Timerfd files
- 	mnt_id:	9
- 	ino:	63107
- 	size:   0
-+	path:	anon_inode:[timerfd]
- 	clockid: 0
- 	ticks: 0
- 	settime flags: 01
-@@ -2047,6 +2056,7 @@ DMA Buffer files
- 	mnt_id:	9
- 	ino:	63107
- 	size:   32768
-+	path:	/dmabuf:
- 	count:  2
- 	exp_name:  system-heap
- 
---- a/fs/libfs.c~procfs-add-path-to-proc-pid-fdinfo
-+++ a/fs/libfs.c
-@@ -1217,6 +1217,15 @@ void kfree_link(void *p)
- }
- EXPORT_SYMBOL(kfree_link);
- 
-+static const struct address_space_operations anon_aops = {
-+	.dirty_folio	= noop_dirty_folio,
-+};
-+
-+bool is_anon_inode(struct inode *inode)
-+{
-+	return inode->i_mapping->a_ops == &anon_aops;
-+}
-+
- struct inode *alloc_anon_inode(struct super_block *s)
- {
- 	static const struct address_space_operations anon_aops = {
---- a/fs/proc/fd.c~procfs-add-path-to-proc-pid-fdinfo
-+++ a/fs/proc/fd.c
-@@ -23,6 +23,7 @@ static int seq_show(struct seq_file *m,
- 	struct files_struct *files = NULL;
- 	int f_flags = 0, ret = -ENOENT;
- 	struct file *file = NULL;
-+	struct inode *inode = NULL;
- 	struct task_struct *task;
- 
- 	task = get_proc_task(m->private);
-@@ -54,11 +55,19 @@ static int seq_show(struct seq_file *m,
- 	if (ret)
- 		return ret;
- 
-+	inode = file_inode(file);
-+
- 	seq_printf(m, "pos:\t%lli\n", (long long)file->f_pos);
- 	seq_printf(m, "flags:\t0%o\n", f_flags);
- 	seq_printf(m, "mnt_id:\t%i\n", real_mount(file->f_path.mnt)->mnt_id);
--	seq_printf(m, "ino:\t%lu\n", file_inode(file)->i_ino);
--	seq_printf(m, "size:\t%lli\n", (long long)file_inode(file)->i_size);
-+	seq_printf(m, "ino:\t%lu\n", inode->i_ino);
-+	seq_printf(m, "size:\t%lli\n", (long long)inode->i_size);
-+
-+	if (is_anon_inode(inode)) {
-+		seq_puts(m, "path:\t");
-+		seq_file_path(m, file, "\n");
-+		seq_putc(m, '\n');
-+	}
- 
- 	/* show_fd_locks() never deferences files so a stale value is safe */
- 	show_fd_locks(m, file, files);
---- a/include/linux/fs.h~procfs-add-path-to-proc-pid-fdinfo
-+++ a/include/linux/fs.h
-@@ -3115,6 +3115,7 @@ extern void page_put_link(void *);
- extern int page_symlink(struct inode *inode, const char *symname, int len);
- extern const struct inode_operations page_symlink_inode_operations;
- extern void kfree_link(void *);
-+extern bool is_anon_inode(struct inode *inode);
- void generic_fillattr(struct user_namespace *, struct inode *, struct kstat *);
- void generic_fill_statx_attr(struct inode *inode, struct kstat *stat);
- extern int vfs_getattr_nosec(const struct path *, struct kstat *, u32, unsigned int);
+-		subpage = folio_page(folio,
+-				pte_pfn(*pvmw.pte) - folio_pfn(folio));
++		if (folio_is_zone_device(folio)) {
++			/*
++			 * Our PTE is a non-present device exclusive entry and
++			 * calculating the subpage as for the common case would
++			 * result in an invalid pointer.
++			 *
++			 * Since only PAGE_SIZE pages can currently be
++			 * migrated, just set it to page. This will need to be
++			 * changed when hugepage migrations to device private
++			 * memory are supported.
++			 */
++			VM_BUG_ON_FOLIO(folio_nr_pages(folio) > 1, folio);
++			subpage = &folio->page;
++		} else {
++			subpage = folio_page(folio,
++					pte_pfn(*pvmw.pte) - folio_pfn(folio));
++		}
+ 		address = pvmw.address;
+ 		anon_exclusive = folio_test_anon(folio) &&
+ 				 PageAnonExclusive(subpage);
+@@ -1993,15 +2008,7 @@ static bool try_to_migrate_one(struct fo
+ 			/*
+ 			 * No need to invalidate here it will synchronize on
+ 			 * against the special swap migration pte.
+-			 *
+-			 * The assignment to subpage above was computed from a
+-			 * swap PTE which results in an invalid pointer.
+-			 * Since only PAGE_SIZE pages can currently be
+-			 * migrated, just set it to page. This will need to be
+-			 * changed when hugepage migrations to device private
+-			 * memory are supported.
+ 			 */
+-			subpage = &folio->page;
+ 		} else if (PageHWPoison(subpage)) {
+ 			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
+ 			if (folio_test_hugetlb(folio)) {
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-procfs-add-size-to-proc-pid-fdinfo.patch
-procfs-add-path-to-proc-pid-fdinfo.patch
+mm-rmap-fix-dereferencing-invalid-subpage-pointer-in-try_to_migrate_one.patch
+mm-mprotect-try-avoiding-write-faults-for-exclusive-anonymous-pages-when-changing-protection.patch
 
