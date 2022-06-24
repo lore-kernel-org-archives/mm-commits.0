@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1100C43334
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jun 2022 20:35:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E10AC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jun 2022 20:47:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229891AbiFXUft (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jun 2022 16:35:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45398 "EHLO
+        id S231801AbiFXUri (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jun 2022 16:47:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229607AbiFXUfs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2022 16:35:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8711E3AA73
-        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 13:35:47 -0700 (PDT)
+        with ESMTP id S231796AbiFXUrh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2022 16:47:37 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 433924DF57
+        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 13:47:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E29F7B828C9
-        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 20:35:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9694EC34114;
-        Fri, 24 Jun 2022 20:35:44 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id A71EFCE2E60
+        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 20:47:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D537BC34114;
+        Fri, 24 Jun 2022 20:47:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656102944;
-        bh=qwGmqdnhbDYoRiGN+nfmxN9NYAS0RSEfUU8NWMRNldw=;
+        s=korg; t=1656103652;
+        bh=IlrbEenl+UmQB02tE17RH9VusiEjQTzrg8QWppe0rz4=;
         h=Date:To:From:Subject:From;
-        b=cWBTtJi2Yl/NrUa7yOgYBb+MvMwz+j92QwZgFJ/2xOp9A040J5kmqqAHP9Hj9jdKH
-         io1RZgRLtHa6sa1neiAod8C1cWKXgMR8t3Lt4jIWQBLmTat9HDSIZIfF5z8T92m9na
-         SxEjCnQ21d8yBrG+SAjRC/F/3PIruoSqQ+iGbZmU=
-Date:   Fri, 24 Jun 2022 13:35:43 -0700
-To:     mm-commits@vger.kernel.org, ptp@lysator.liu.se,
-        ciprian.craciun@gmail.com, konishi.ryusuke@gmail.com,
+        b=XiuYuNXVrhLDQVtpl8jF5cNspH0NaZr5S+OfgTH8gAm/lB7ZrXMsCsOrumZcFNaAc
+         drph5tL8o2kdVPMIytf5sNpMYDIFz5nq3VNuYMps5I+AEOXhnzIr3qSUR7rhn0pfnC
+         btaeQTm4IXlbqaZGrynkbwayn7ymyQIDn3ISuvtE=
+Date:   Fri, 24 Jun 2022 13:47:32 -0700
+To:     mm-commits@vger.kernel.org, thomas.hellstrom@linux.intel.com,
+        jschoenh@amazon.de, christian.koenig@amd.com, jgowans@amazon.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-incorrect-masking-of-permission-flags-for-symlinks.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220624203544.9694EC34114@smtp.kernel.org>
+Subject: + mm-split-huge-pud-on-wp_huge_pud-fallback.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220624204732.D537BC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix incorrect masking of permission flags for symlinks
+     Subject: mm: split huge PUD on wp_huge_pud fallback
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-incorrect-masking-of-permission-flags-for-symlinks.patch
+     mm-split-huge-pud-on-wp_huge_pud-fallback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-incorrect-masking-of-permission-flags-for-symlinks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-split-huge-pud-on-wp_huge_pud-fallback.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,49 +65,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix incorrect masking of permission flags for symlinks
-Date: Thu, 23 Jun 2022 17:54:01 +0900
+From: "Gowans, James" <jgowans@amazon.com>
+Subject: mm: split huge PUD on wp_huge_pud fallback
+Date: Thu, 23 Jun 2022 05:24:03 +0000
 
-The permission flags of newly created symlinks are wrongly dropped on
-nilfs2 with the current umask value even though symlinks should have 777
-(rwxrwxrwx) permissions:
+Currently the implementation will split the PUD when a fallback is taken
+inside the create_huge_pud function.  This isn't where it should be done:
+the splitting should be done in wp_huge_pud, just like it's done for PMDs.
+Reason being that if a callback is taken during create, there is no PUD
+yet so nothing to split, whereas if a fallback is taken when encountering
+a write protection fault there is something to split.
 
- $ umask
- 0022
- $ touch file && ln -s file symlink; ls -l file symlink
- -rw-r--r--. 1 root root 0 Jun 23 16:29 file
- lrwxr-xr-x. 1 root root 4 Jun 23 16:29 symlink -> file
+It looks like this was the original intention with the commit where the
+splitting was introduced, but somehow it got moved to the wrong place
+between v1 and v2 of the patch series.  Rebase mistake perhaps.
 
-This fixes the bug by inserting a missing check that excludes
-symlinks.
-
-Link: https://lkml.kernel.org/r/1655974441-5612-1-git-send-email-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: Tommy Pettersson <ptp@lysator.liu.se>
-Reported-by: Ciprian Craciun <ciprian.craciun@gmail.com>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/6f48d622eb8bce1ae5dd75327b0b73894a2ec407.camel@amazon.com
+Fixes: 327e9fd48972 ("mm: Split huge pages on write-notify or COW")
+Signed-off-by: James Gowans <jgowans@amazon.com>
+Reviewed-by: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Jan H. Schönherr <jschoenh@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/nilfs.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
---- a/fs/nilfs2/nilfs.h~nilfs2-fix-incorrect-masking-of-permission-flags-for-symlinks
-+++ a/fs/nilfs2/nilfs.h
-@@ -198,6 +198,9 @@ static inline int nilfs_acl_chmod(struct
- 
- static inline int nilfs_init_acl(struct inode *inode, struct inode *dir)
- {
-+	if (S_ISLNK(inode->i_mode))
-+		return 0;
+--- a/mm/memory.c~mm-split-huge-pud-on-wp_huge_pud-fallback
++++ a/mm/memory.c
+@@ -4802,6 +4802,19 @@ static vm_fault_t create_huge_pud(struct
+ 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
+ 	/* No support for anonymous transparent PUD pages yet */
+ 	if (vma_is_anonymous(vmf->vma))
++		return VM_FAULT_FALLBACK;
++	if (vmf->vma->vm_ops->huge_fault)
++		return vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++	return VM_FAULT_FALLBACK;
++}
 +
- 	inode->i_mode &= ~current_umask();
- 	return 0;
++static vm_fault_t wp_huge_pud(struct vm_fault *vmf, pud_t orig_pud)
++{
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) &&			\
++	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
++	/* No support for anonymous transparent PUD pages yet */
++	if (vma_is_anonymous(vmf->vma))
+ 		goto split;
+ 	if (vmf->vma->vm_ops->huge_fault) {
+ 		vm_fault_t ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
+@@ -4812,19 +4825,7 @@ static vm_fault_t create_huge_pud(struct
+ split:
+ 	/* COW or write-notify not handled on PUD level: split pud.*/
+ 	__split_huge_pud(vmf->vma, vmf->pud, vmf->address);
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+-	return VM_FAULT_FALLBACK;
+-}
+-
+-static vm_fault_t wp_huge_pud(struct vm_fault *vmf, pud_t orig_pud)
+-{
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	/* No support for anonymous transparent PUD pages yet */
+-	if (vma_is_anonymous(vmf->vma))
+-		return VM_FAULT_FALLBACK;
+-	if (vmf->vma->vm_ops->huge_fault)
+-		return vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ 	return VM_FAULT_FALLBACK;
  }
+ 
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from jgowans@amazon.com are
 
-nilfs2-fix-incorrect-masking-of-permission-flags-for-symlinks.patch
+mm-split-huge-pud-on-wp_huge_pud-fallback.patch
 
