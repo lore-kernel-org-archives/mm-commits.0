@@ -2,112 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82729C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 20:39:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4008C43334
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 21:29:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232070AbiFZUjm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Jun 2022 16:39:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49666 "EHLO
+        id S231774AbiFZV3P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Jun 2022 17:29:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229955AbiFZUjk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 16:39:40 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D0EEDD8
-        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 13:39:39 -0700 (PDT)
+        with ESMTP id S232089AbiFZV3L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 17:29:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6847EFF8;
+        Sun, 26 Jun 2022 14:29:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 26089B80DFB
-        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 20:39:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE263C34114;
-        Sun, 26 Jun 2022 20:39:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656275976;
-        bh=/jTK6Yh1ajMc1lXsA3bE7dH25aO0ZIAe/IjK+T2vY+E=;
-        h=Date:To:From:Subject:From;
-        b=DsMLMEPIKu3cY/9k1fRTSOJKkKmKrTp6qyaqt7VQ7U06w3+8EJbTo0Ine8XaFsQER
-         ITrTwzTBNBAOK4g1BjwBCf5gZ4ijBpjXwO2INc0gYEx/qZOSi2SMpKQnOrBEcJRjXA
-         J23gSF/v3dYLG/iAsnr+n63qWHDlPf9Wfj201JsM=
-Date:   Sun, 26 Jun 2022 13:39:36 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_maple_tree-add-testing-for-maple-tree-fix.patch added to mm-unstable branch
-Message-Id: <20220626203936.BE263C34114@smtp.kernel.org>
+        by ams.source.kernel.org (Postfix) with ESMTPS id CF649B80DFE;
+        Sun, 26 Jun 2022 21:29:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 86BC5C34114;
+        Sun, 26 Jun 2022 21:29:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1656278947;
+        bh=Gy1FHWKJcr/uiy0E93qZmK94fcCSp1tK0BNRwyJwRMs=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=QNNGz5eL579fZ7fgI0iJZGxoLw8zMEAD2OZU+bCERn4nTG2JPE8tsftsS+KxY8E57
+         za2xEw2rrVXXbrsePk6G2ABC8ULEipLyMbLs8UJaBTKTaFeh1lUDbuQDqtGSO4axi6
+         iOW90Sh79twNYaDjSUBvZf+/JLHD9gKqzuYjvkA7f26hct1cXZ3YXeVEcaU2iEhw1C
+         aiXQii0kYqfusLPb0UOsVLTNWTA39sHdzmO7xaHeVmpdzNmnubXUcvE2Q+2zBHvHgA
+         7P1sU8twZgNIXIYeas4+X0AQievZCKtOCzDW4ywdAcDGxsknVC5vf2uHOjNgrqt7f4
+         xMUuAqkyjckAw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 69119E73875;
+        Sun, 26 Jun 2022 21:29:07 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 5.19-rcX
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20220626125310.83a3f4bb1b38bf9408d7c42c@linux-foundation.org>
+References: <20220626125310.83a3f4bb1b38bf9408d7c42c@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20220626125310.83a3f4bb1b38bf9408d7c42c@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-06-26
+X-PR-Tracked-Commit-Id: e67679cc4264cf9b318af4e8616eaa2a7565db1f
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 413c1f14919b3efee05eb79d2e913663e964abda
+Message-Id: <165627894740.16687.9869113937593924797.pr-tracker-bot@kernel.org>
+Date:   Sun, 26 Jun 2022 21:29:07 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The pull request you sent on Sun, 26 Jun 2022 12:53:10 -0700:
 
-The patch titled
-     Subject: test_maple_tree: add test for spanning store of entire range
-has been added to the -mm mm-unstable branch.  Its filename is
-     lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-06-26
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/413c1f14919b3efee05eb79d2e913663e964abda
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thank you!
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: test_maple_tree: add test for spanning store of entire range
-Date: Sat, 25 Jun 2022 00:39:07 +0000
-
-Entire range store over an existing tree would cause an underflow in
-mas_spanning_store() when the tree is multiple levels.  Add a testcase to
-ensure it doesn't happen again.
-
-Link: https://lkml.kernel.org/r/20220625003854.1230114-3-Liam.Howlett@oracle.com
-Fixes: 51282228cdd4 (lib/test_maple_tree: add testing for maple tree)
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/test_maple_tree.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
---- a/lib/test_maple_tree.c~lib-test_maple_tree-add-testing-for-maple-tree-fix
-+++ a/lib/test_maple_tree.c
-@@ -35676,6 +35676,19 @@ static noinline void check_spanning_writ
- 	mtree_unlock(mt);
- 	mtree_destroy(mt);
- 
-+	for (i = 1; i <= max; i++)
-+		mtree_test_store_range(mt, i * 10, i * 10 + 5, &i);
-+
-+	mtree_lock(mt);
-+	mas_set_range(&mas, 9, 50006); /* Will expand to 0 - ULONG_MAX */
-+	mas_store_gfp(&mas, NULL, GFP_KERNEL);
-+	mas_set(&mas, 1205);
-+	MT_BUG_ON(mt, mas_walk(&mas) != NULL);
-+	mtree_unlock(mt);
-+	mt_dump(mt);
-+	mt_validate(mt);
-+	mtree_destroy(mt);
-+
- 	/* Test spanning store that requires a right cousin rebalance */
- 	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
- 	for (i = 0; i <= max; i++)
-_
-
-Patches currently in -mm which might be from liam.howlett@oracle.com are
-
-maple-tree-add-new-data-structure-fix.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
-mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
