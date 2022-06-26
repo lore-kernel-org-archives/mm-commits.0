@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B13CAC43334
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 20:32:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA6A0C43334
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 20:36:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232077AbiFZUc0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Jun 2022 16:32:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47704 "EHLO
+        id S229999AbiFZUgt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Jun 2022 16:36:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232072AbiFZUcZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 16:32:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C661327
-        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 13:32:24 -0700 (PDT)
+        with ESMTP id S229955AbiFZUgs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 16:36:48 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55C75111F
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 13:36:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EA78060FBD
-        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 20:32:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A27C341CA;
-        Sun, 26 Jun 2022 20:32:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 08E60B80DF6
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 20:36:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3F39C34114;
+        Sun, 26 Jun 2022 20:36:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656275543;
-        bh=GhXwuA2tGyYNt2aq8cs2XuFOcY9MipMv/m+T+yAMO88=;
+        s=korg; t=1656275804;
+        bh=mKzmH2pxbq0Um5Bh6wUAWChfeE0/ev1Xb50gm9BbFig=;
         h=Date:To:From:Subject:From;
-        b=kTb0nm0RuPNv+fbi3etr9hkRHL6gxPT2PIbAoL8ma8vajamLoeRyyY5JjVK58vpLx
-         EWq+bgoGyUTtyuvWcb+ZRkvPHl6/UesOjtEaf9CuSEd/kzh7d61CsGAKcMYSQR6TpZ
-         3sVjpCF9GK9bWyHj9CLSnKeFmVF4JWmV78qZrdo8=
-Date:   Sun, 26 Jun 2022 13:32:22 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com, linmiaohe@huawei.com,
+        b=2FAak5Ny9TNLWgttDQdFEtqXv9XGF8fUVjDtzWzGyKlhYSl4ePqKqzF+EcRDfOzk/
+         Y6mDoNGvS/d0xPMBH9XQRClrxvClhQ6Cg/nVplXNtQaomcL8rno/keuWRKPpJrF4Kt
+         qAFVTE7BtjnxAlwjdUtSAyU3jwGB4eij/mFfyS78=
+Date:   Sun, 26 Jun 2022 13:36:44 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, xiangyang3@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-fix-possible-data-races-of-inuse_pages-v3.patch added to mm-unstable branch
-Message-Id: <20220626203223.43A27C341CA@smtp.kernel.org>
+Subject: + mm-memcontrolc-replace-cgroup_memory_nokmem-with-mem_cgroup_kmem_disabled.patch added to mm-unstable branch
+Message-Id: <20220626203644.A3F39C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-swapfile-fix-possible-data-races-of-inuse_pages-v3
+     Subject: mm/memcontrol.c: replace cgroup_memory_nokmem with mem_cgroup_kmem_disabled()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfile-fix-possible-data-races-of-inuse_pages-v3.patch
+     mm-memcontrolc-replace-cgroup_memory_nokmem-with-mem_cgroup_kmem_disabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-fix-possible-data-races-of-inuse_pages-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrolc-replace-cgroup_memory_nokmem-with-mem_cgroup_kmem_disabled.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,60 +66,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm-swapfile-fix-possible-data-races-of-inuse_pages-v3
-Date: Sat, 25 Jun 2022 17:33:45 +0800
+From: Xiang Yang <xiangyang3@huawei.com>
+Subject: mm/memcontrol.c: replace cgroup_memory_nokmem with mem_cgroup_kmem_disabled()
+Date: Sat, 25 Jun 2022 14:18:44 +0800
 
-use WRITE_ONCE to pair with READ_ONCE
+mem_cgroup_kmem_disabled() checks whether the kmem accounting is off. 
+Therefore, replace cgroup_memory_nokmem with mem_cgroup_kmem_disabled(),
+which is the same work in percpu.c and slab_common.c.
 
-Link: https://lkml.kernel.org/r/20220625093346.48894-2-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20220625061844.226764-1-xiangyang3@huawei.com
+Signed-off-by: Xiang Yang <xiangyang3@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ++--
+ mm/memcontrol.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-fix-possible-data-races-of-inuse_pages-v3
-+++ a/mm/swapfile.c
-@@ -695,7 +695,7 @@ static void swap_range_alloc(struct swap
- 		si->lowest_bit += nr_entries;
- 	if (end == si->highest_bit)
- 		WRITE_ONCE(si->highest_bit, si->highest_bit - nr_entries);
--	si->inuse_pages += nr_entries;
-+	WRITE_ONCE(si->inuse_pages, si->inuse_pages + nr_entries);
- 	if (si->inuse_pages == si->pages) {
- 		si->lowest_bit = si->max;
- 		si->highest_bit = 0;
-@@ -732,7 +732,7 @@ static void swap_range_free(struct swap_
- 			add_to_avail_list(si);
- 	}
- 	atomic_long_add(nr_entries, &nr_swap_pages);
--	si->inuse_pages -= nr_entries;
-+	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
- 	if (si->flags & SWP_BLKDEV)
- 		swap_slot_free_notify =
- 			si->bdev->bd_disk->fops->swap_slot_free_notify;
+--- a/mm/memcontrol.c~mm-memcontrolc-replace-cgroup_memory_nokmem-with-mem_cgroup_kmem_disabled
++++ a/mm/memcontrol.c
+@@ -3783,7 +3783,7 @@ static u64 mem_cgroup_read_u64(struct cg
+ #ifdef CONFIG_MEMCG_KMEM
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
+ {
+-	if (cgroup_memory_nokmem)
++	if (mem_cgroup_kmem_disabled())
+ 		return 0;
+ 
+ 	if (unlikely(mem_cgroup_is_root(memcg)))
+@@ -3798,7 +3798,7 @@ static int memcg_online_kmem(struct mem_
+ 
+ static void memcg_offline_kmem(struct mem_cgroup *memcg)
+ {
+-	if (cgroup_memory_nokmem)
++	if (mem_cgroup_kmem_disabled())
+ 		return;
+ 
+ 	if (unlikely(mem_cgroup_is_root(memcg)))
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from xiangyang3@huawei.com are
 
-mm-migration-remove-unneeded-lock-page-and-pagemovable-check.patch
-mm-migration-return-errno-when-isolate_huge_page-failed.patch
-mm-migration-fix-potential-pte_unmap-on-an-not-mapped-pte.patch
-mm-swapfile-fix-possible-data-races-of-inuse_pages.patch
-mm-swapfile-fix-possible-data-races-of-inuse_pages-v3.patch
-mm-swap-remove-swap_cache_info-statistics.patch
-mm-vmscan-dont-try-to-reclaim-freed-folios.patch
-mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
-mm-madvise-minor-cleanup-for-swapin_walk_pmd_entry.patch
-mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
-mm-khugepaged-remove-unneeded-shmem_huge_enabled-check.patch
-mm-khugepaged-stop-swapping-in-page-when-vm_fault_retry-occurs.patch
-mm-khugepaged-trivial-typo-and-codestyle-cleanup.patch
-mm-khugepaged-minor-cleanup-for-collapse_file.patch
-mm-khugepaged-use-helper-macro-__attr_rw.patch
-mm-khugepaged-remove-unneeded-return-value-of-khugepaged_add_pte_mapped_thp.patch
-mm-khugepaged-try-to-free-transhuge-swapcache-when-possible.patch
+mm-memcontrolc-replace-cgroup_memory_nokmem-with-mem_cgroup_kmem_disabled.patch
 
