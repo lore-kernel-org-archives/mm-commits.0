@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3367C43334
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jun 2022 21:14:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B2D1C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 17:41:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229645AbiFXVOb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jun 2022 17:14:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48660 "EHLO
+        id S232185AbiFZRlp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Jun 2022 13:41:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbiFXVOa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2022 17:14:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EEB986AC7
-        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 14:14:29 -0700 (PDT)
+        with ESMTP id S232181AbiFZRlp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 13:41:45 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 527831A3
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 10:41:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DC7E1B82B63
-        for <mm-commits@vger.kernel.org>; Fri, 24 Jun 2022 21:14:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9836DC34114;
-        Fri, 24 Jun 2022 21:14:26 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id B3EDECE0FFF
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 17:41:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC422C34114;
+        Sun, 26 Jun 2022 17:41:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656105266;
-        bh=M02Pqdl06PN0RhqCIX1xGR0s1HU/l4fDArIvj6RFGtc=;
+        s=korg; t=1656265301;
+        bh=L80aZ83NbAqdRpvj9UVTcK7nDU1wJdfmCmXt1LI3A5E=;
         h=Date:To:From:Subject:From;
-        b=diorqSN+AUWWHmeOt5PIsh9ACkz5YUOfea/KPzsTgu2Oscjwp+tTZPfJqvLHAz8zb
-         3e9LEfktQxCCNrU+6xsVHhs2zBN7SMmyFW0qXjixywItdsjvkpSnYWYb8+Vwq0Qn/6
-         +YfLwKaVOiamS8DBZLX+PP+4rdMYZYF3bfQaXpNY=
-Date:   Fri, 24 Jun 2022 14:14:25 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        surenb@google.com, peterx@redhat.com, neilb@suse.de,
-        linmiaohe@huawei.com, david@redhat.com, apopple@nvidia.com,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=HvxOEVa49EwU61/wQTKeOB9iXN7ApVqFraJVdz4IYmP1dsXEYUTYH1wT/JVkXLn/8
+         Us7YDJ+NGSDLarpCobBl1zd4KG/dVCiwbJUmFjQmgm33l1rcCnb5nmtIBid6vAF1fJ
+         jMB6lpeItqMRkfUEu+iqsPxlOHiyzj5YlgRcaBDo=
+Date:   Sun, 26 Jun 2022 10:41:40 -0700
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        skhan@linuxfoundation.org, ryabinin.a.a@gmail.com,
+        glider@google.com, dvyukov@google.com, andreyknvl@gmail.com,
+        gautammenghani201@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure.patch added to mm-unstable branch
-Message-Id: <20220624211426.9836DC34114@smtp.kernel.org>
+Subject: + mm-kasan-fix-null-pointer-dereference-warning-in-qlink_to_cache.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220626174140.EC422C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmpressure: don't count userspace-induced reclaim as memory pressure
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure.patch
+     Subject: mm/kasan: fix null pointer dereference warning in qlink_to_cache()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-kasan-fix-null-pointer-dereference-warning-in-qlink_to_cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-fix-null-pointer-dereference-warning-in-qlink_to_cache.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,338 +66,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: vmpressure: don't count userspace-induced reclaim as memory pressure
-Date: Thu, 23 Jun 2022 00:44:52 +0000
+From: Gautam Menghani <gautammenghani201@gmail.com>
+Subject: mm/kasan: fix null pointer dereference warning in qlink_to_cache()
+Date: Sun, 26 Jun 2022 22:33:55 +0530
 
-Commit e22c6ed90aa9 ("mm: memcontrol: don't count limit-setting reclaim as
-memory pressure") made sure that memory reclaim that is induced by
-userspace (limit-setting, proactive reclaim, ..) is not counted as memory
-pressure for the purposes of psi.
+virt_to_slab() declared in slab.h can return NULL if the address does not
+belong to a slab.  This case is not handled in qlink_to_cache() in
+quarantine.c, which can cause a NULL pointer dereference in
+"virt_to_slab(qlink)->slab_cache".  This issue was discovered by fanalyzer
+(my gcc version: 12.1.1 20220507)
 
-Instead of counting psi inside try_to_free_mem_cgroup_pages(), callers
-from try_charge() and reclaim_high() wrap the call to
-try_to_free_mem_cgroup_pages() with psi handlers.
-
-However, vmpressure is still counted in these cases where reclaim is
-directly induced by userspace.  This patch makes sure vmpressure is not
-counted in those operations, in the same way as psi.  Since vmpressure
-calls need to happen deeper within the reclaim path, the same approach
-could not be followed.  Hence, a new "controlled" flag is added to struct
-scan_control to flag a reclaim operation that is controlled by userspace. 
-This flag is set by limit-setting and proactive reclaim operations, and is
-used to count vmpressure correctly.
-
-To prevent future divergence of psi and vmpressure, commit e22c6ed90aa9
-("mm: memcontrol: don't count limit-setting reclaim as memory pressure")
-is effectively reverted and the same flag is used to control psi as well.
-
-Link: https://lkml.kernel.org/r/20220623004452.1217326-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20220626170355.198913-1-gautammenghani201@gmail.com
+Signed-off-by: Gautam Menghani <gautammenghani201@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    5 ++++-
- mm/memcontrol.c      |   41 +++++++++++++++++++++++------------------
- mm/vmscan.c          |   36 ++++++++++++++++++++++++++----------
- 3 files changed, 53 insertions(+), 29 deletions(-)
+ mm/kasan/quarantine.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure
-+++ a/include/linux/swap.h
-@@ -411,10 +411,13 @@ extern void lru_cache_add_inactive_or_un
- extern unsigned long zone_reclaimable_pages(struct zone *zone);
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
-+
-+#define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
-+#define MEMCG_RECLAIM_CONTROLLED (1 << 2)
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 						  unsigned long nr_pages,
- 						  gfp_t gfp_mask,
--						  bool may_swap);
-+						  unsigned int reclaim_options);
- extern unsigned long mem_cgroup_shrink_node(struct mem_cgroup *mem,
- 						gfp_t gfp_mask, bool noswap,
- 						pg_data_t *pgdat,
---- a/mm/memcontrol.c~mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure
-+++ a/mm/memcontrol.c
-@@ -2453,20 +2453,16 @@ static unsigned long reclaim_high(struct
- 				  gfp_t gfp_mask)
+--- a/mm/kasan/quarantine.c~mm-kasan-fix-null-pointer-dereference-warning-in-qlink_to_cache
++++ a/mm/kasan/quarantine.c
+@@ -128,7 +128,13 @@ static unsigned long quarantine_batch_si
+ 
+ static struct kmem_cache *qlink_to_cache(struct qlist_node *qlink)
  {
- 	unsigned long nr_reclaimed = 0;
-+	unsigned int reclaim_options = MEMCG_RECLAIM_MAY_SWAP;
- 
- 	do {
--		unsigned long pflags;
--
- 		if (page_counter_read(&memcg->memory) <=
- 		    READ_ONCE(memcg->memory.high))
- 			continue;
--
- 		memcg_memory_event(memcg, MEMCG_HIGH);
--
--		psi_memstall_enter(&pflags);
- 		nr_reclaimed += try_to_free_mem_cgroup_pages(memcg, nr_pages,
--							     gfp_mask, true);
--		psi_memstall_leave(&pflags);
-+							     gfp_mask,
-+							     reclaim_options);
- 	} while ((memcg = parent_mem_cgroup(memcg)) &&
- 		 !mem_cgroup_is_root(memcg));
- 
-@@ -2710,9 +2706,8 @@ static int try_charge_memcg(struct mem_c
- 	struct page_counter *counter;
- 	unsigned long nr_reclaimed;
- 	bool passed_oom = false;
--	bool may_swap = true;
-+	unsigned int reclaim_options = MEMCG_RECLAIM_MAY_SWAP;
- 	bool drained = false;
--	unsigned long pflags;
- 
- retry:
- 	if (consume_stock(memcg, nr_pages))
-@@ -2727,7 +2722,7 @@ retry:
- 		mem_over_limit = mem_cgroup_from_counter(counter, memory);
- 	} else {
- 		mem_over_limit = mem_cgroup_from_counter(counter, memsw);
--		may_swap = false;
-+		reclaim_options &= ~MEMCG_RECLAIM_MAY_SWAP;
- 	}
- 
- 	if (batch > nr_pages) {
-@@ -2752,10 +2747,8 @@ retry:
- 
- 	memcg_memory_event(mem_over_limit, MEMCG_MAX);
- 
--	psi_memstall_enter(&pflags);
- 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
--						    gfp_mask, may_swap);
--	psi_memstall_leave(&pflags);
-+						    gfp_mask, reclaim_options);
- 
- 	if (mem_cgroup_margin(mem_over_limit) >= nr_pages)
- 		goto retry;
-@@ -3530,7 +3523,9 @@ static int mem_cgroup_resize_max(struct
- 	int ret;
- 	bool limits_invariant;
- 	struct page_counter *counter = memsw ? &memcg->memsw : &memcg->memory;
-+	unsigned int reclaim_options = memsw ? 0 : MEMCG_RECLAIM_MAY_SWAP;
- 
-+	reclaim_options |= MEMCG_RECLAIM_CONTROLLED;
- 	do {
- 		if (signal_pending(current)) {
- 			ret = -EINTR;
-@@ -3564,7 +3559,7 @@ static int mem_cgroup_resize_max(struct
- 		}
- 
- 		if (!try_to_free_mem_cgroup_pages(memcg, 1,
--					GFP_KERNEL, !memsw)) {
-+					GFP_KERNEL, reclaim_options)) {
- 			ret = -EBUSY;
- 			break;
- 		}
-@@ -3663,6 +3658,9 @@ unsigned long mem_cgroup_soft_limit_recl
- static int mem_cgroup_force_empty(struct mem_cgroup *memcg)
- {
- 	int nr_retries = MAX_RECLAIM_RETRIES;
-+	unsigned int reclaim_options;
+-	return virt_to_slab(qlink)->slab_cache;
++	struct slab *folio_slab = virt_to_slab(qlink);
 +
-+	reclaim_options = MEMCG_RECLAIM_CONTROLLED | MEMCG_RECLAIM_MAY_SWAP;
- 
- 	/* we call try-to-free pages for make this cgroup empty */
- 	lru_add_drain_all();
-@@ -3674,7 +3672,8 @@ static int mem_cgroup_force_empty(struct
- 		if (signal_pending(current))
- 			return -EINTR;
- 
--		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, true))
-+		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL,
-+						  reclaim_options))
- 			nr_retries--;
- 	}
- 
-@@ -6436,6 +6435,7 @@ static ssize_t memory_high_write(struct
- 	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
- 	bool drained = false;
- 	unsigned long high;
-+	unsigned int reclaim_options;
- 	int err;
- 
- 	buf = strstrip(buf);
-@@ -6444,6 +6444,7 @@ static ssize_t memory_high_write(struct
- 		return err;
- 
- 	page_counter_set_high(&memcg->memory, high);
-+	reclaim_options = MEMCG_RECLAIM_CONTROLLED | MEMCG_RECLAIM_MAY_SWAP;
- 
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
-@@ -6462,7 +6463,7 @@ static ssize_t memory_high_write(struct
- 		}
- 
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
--							 GFP_KERNEL, true);
-+						GFP_KERNEL, reclaim_options);
- 
- 		if (!reclaimed && !nr_retries--)
- 			break;
-@@ -6485,6 +6486,7 @@ static ssize_t memory_max_write(struct k
- 	unsigned int nr_reclaims = MAX_RECLAIM_RETRIES;
- 	bool drained = false;
- 	unsigned long max;
-+	unsigned int reclaim_options;
- 	int err;
- 
- 	buf = strstrip(buf);
-@@ -6493,6 +6495,7 @@ static ssize_t memory_max_write(struct k
- 		return err;
- 
- 	xchg(&memcg->memory.max, max);
-+	reclaim_options = MEMCG_RECLAIM_CONTROLLED | MEMCG_RECLAIM_MAY_SWAP;
- 
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
-@@ -6511,7 +6514,7 @@ static ssize_t memory_max_write(struct k
- 
- 		if (nr_reclaims) {
- 			if (!try_to_free_mem_cgroup_pages(memcg, nr_pages - max,
--							  GFP_KERNEL, true))
-+						GFP_KERNEL, reclaim_options))
- 				nr_reclaims--;
- 			continue;
- 		}
-@@ -6640,6 +6643,7 @@ static ssize_t memory_reclaim(struct ker
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
- 	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
- 	unsigned long nr_to_reclaim, nr_reclaimed = 0;
-+	unsigned int reclaim_options;
- 	int err;
- 
- 	buf = strstrip(buf);
-@@ -6647,6 +6651,7 @@ static ssize_t memory_reclaim(struct ker
- 	if (err)
- 		return err;
- 
-+	reclaim_options = MEMCG_RECLAIM_CONTROLLED | MEMCG_RECLAIM_MAY_SWAP;
- 	while (nr_reclaimed < nr_to_reclaim) {
- 		unsigned long reclaimed;
- 
-@@ -6663,7 +6668,7 @@ static ssize_t memory_reclaim(struct ker
- 
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
- 						nr_to_reclaim - nr_reclaimed,
--						GFP_KERNEL, true);
-+						GFP_KERNEL, reclaim_options);
- 
- 		if (!reclaimed && !nr_retries--)
- 			return -EAGAIN;
---- a/mm/vmscan.c~mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure
-+++ a/mm/vmscan.c
-@@ -101,6 +101,9 @@ struct scan_control {
- 	/* Can pages be swapped as part of reclaim? */
- 	unsigned int may_swap:1;
- 
-+	/* Reclaim is controlled by userspace */
-+	unsigned int controlled:1;
-+
- 	/*
- 	 * Cgroup memory below memory.low is protected as long as we
- 	 * don't threaten to OOM. If any cgroup is reclaimed at
-@@ -3175,9 +3178,10 @@ static void shrink_node_memcgs(pg_data_t
- 			    sc->priority);
- 
- 		/* Record the group's reclaim efficiency */
--		vmpressure(sc->gfp_mask, memcg, false,
--			   sc->nr_scanned - scanned,
--			   sc->nr_reclaimed - reclaimed);
-+		if (!sc->controlled)
-+			vmpressure(sc->gfp_mask, memcg, false,
-+				   sc->nr_scanned - scanned,
-+				   sc->nr_reclaimed - reclaimed);
- 
- 	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, NULL)));
++	if (!folio_slab) {
++		pr_warn("The address %p does not belong to a slab", qlink);
++		return NULL;
++	}
++	return folio_slab->slab_cache;
  }
-@@ -3300,9 +3304,10 @@ again:
- 	}
  
- 	/* Record the subtree's reclaim efficiency */
--	vmpressure(sc->gfp_mask, sc->target_mem_cgroup, true,
--		   sc->nr_scanned - nr_scanned,
--		   sc->nr_reclaimed - nr_reclaimed);
-+	if (!sc->controlled)
-+		vmpressure(sc->gfp_mask, sc->target_mem_cgroup, true,
-+			   sc->nr_scanned - nr_scanned,
-+			   sc->nr_reclaimed - nr_reclaimed);
- 
- 	if (sc->nr_reclaimed - nr_reclaimed)
- 		reclaimable = true;
-@@ -3584,8 +3589,9 @@ retry:
- 		__count_zid_vm_events(ALLOCSTALL, sc->reclaim_idx, 1);
- 
- 	do {
--		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
--				sc->priority);
-+		if (!sc->controlled)
-+			vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
-+					sc->priority);
- 		sc->nr_scanned = 0;
- 		shrink_zones(zonelist, sc);
- 
-@@ -3875,10 +3881,12 @@ unsigned long mem_cgroup_shrink_node(str
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 					   unsigned long nr_pages,
- 					   gfp_t gfp_mask,
--					   bool may_swap)
-+					   unsigned int reclaim_options)
- {
- 	unsigned long nr_reclaimed;
-+	unsigned long pflags;
- 	unsigned int noreclaim_flag;
-+	bool controlled_reclaim = reclaim_options & MEMCG_RECLAIM_CONTROLLED;
- 	struct scan_control sc = {
- 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
- 		.gfp_mask = (current_gfp_context(gfp_mask) & GFP_RECLAIM_MASK) |
-@@ -3888,7 +3896,8 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.priority = DEF_PRIORITY,
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
--		.may_swap = may_swap,
-+		.may_swap = !!(reclaim_options & MEMCG_RECLAIM_MAY_SWAP),
-+		.controlled = controlled_reclaim,
- 	};
- 	/*
- 	 * Traverse the ZONELIST_FALLBACK zonelist of the current node to put
-@@ -3898,12 +3907,19 @@ unsigned long try_to_free_mem_cgroup_pag
- 	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
- 
- 	set_task_reclaim_state(current, &sc.reclaim_state);
-+
- 	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask);
-+
-+	if (!controlled_reclaim)
-+		psi_memstall_enter(&pflags);
- 	noreclaim_flag = memalloc_noreclaim_save();
- 
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
- 
- 	memalloc_noreclaim_restore(noreclaim_flag);
-+	if (!controlled_reclaim)
-+		psi_memstall_leave(&pflags);
-+
- 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
- 	set_task_reclaim_state(current, NULL);
- 
+ static void *qlink_to_object(struct qlist_node *qlink, struct kmem_cache *cache)
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from gautammenghani201@gmail.com are
 
-mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure.patch
+mm-kasan-fix-null-pointer-dereference-warning-in-qlink_to_cache.patch
 
