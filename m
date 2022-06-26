@@ -2,147 +2,126 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F36FC43334
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 19:53:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2021C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 20:18:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231774AbiFZTxP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Jun 2022 15:53:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50672 "EHLO
+        id S231901AbiFZUSb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Jun 2022 16:18:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231773AbiFZTxN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 15:53:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D470D2DEC;
-        Sun, 26 Jun 2022 12:53:12 -0700 (PDT)
+        with ESMTP id S229986AbiFZUS1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 16:18:27 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7322D259
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 13:18:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 70D7E60F61;
-        Sun, 26 Jun 2022 19:53:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B45C2C34114;
-        Sun, 26 Jun 2022 19:53:11 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 093B8CE1006
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 20:18:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B089C34114;
+        Sun, 26 Jun 2022 20:18:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656273191;
-        bh=fQxNqVstwuBn24c+h85YTkf5W1h3U4M1Ef+uG6u/uIM=;
-        h=Date:From:To:Cc:Subject:From;
-        b=GtPgm4VjwOp36rF/hm4BgwW2aFUGbHejNWMiZiJvdpG/VPZD76qatnbaBOAtG7VI2
-         WfrquuwSoX5eTV2VBwcZJUAmGMDZd7rM7vY+j4eQ08Os28US44vCKlk7DBUVvSCGw+
-         66O2tZdbFmZ3P4omaDLgJ13fYgYcUlmB+c85tEOA=
-Date:   Sun, 26 Jun 2022 12:53:10 -0700
+        s=korg; t=1656274701;
+        bh=TANPpF6eCuK4kVgpucI4r7cS7u6laSgiY84QjWUStZQ=;
+        h=Date:To:From:Subject:From;
+        b=mwiHTVkkOGmTvGDwCkThYbMa5VrppDDDxB++y9FBBu6YNY5CcrEE5RuneA+npe/Wu
+         48rSMKoyt2zELnVCtwB5h2CbvSJstvRPqTVQrFW81zhEFm9mhPOP+59Xst8ji9O3ix
+         x6GTeHxtgfoZCgcBuKlcsYMgvAvkjz7o8dxCDE44=
+Date:   Sun, 26 Jun 2022 13:18:20 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wuchi.zero@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 5.19-rcX
-Message-Id: <20220626125310.83a3f4bb1b38bf9408d7c42c@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: + lib-radix-tree-remove-unused-argument-of-insert_entries.patch added to mm-nonmm-unstable branch
+Message-Id: <20220626201821.3B089C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-Linus,
+The patch titled
+     Subject: lib/radix-tree: remove unused argument of insert_entries
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-radix-tree-remove-unused-argument-of-insert_entries.patch
 
-please merge this batch of hotfixes.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-radix-tree-remove-unused-argument-of-insert_entries.patch
 
-The following changes since commit b13baccc3850ca8b8cccbf8ed9912dbaa0fdf7f3:
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Linux 5.19-rc2 (2022-06-12 16:11:37 -0700)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-06-26
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-for you to fetch changes up to e67679cc4264cf9b318af4e8616eaa2a7565db1f:
+------------------------------------------------------
+From: wuchi <wuchi.zero@gmail.com>
+Subject: lib/radix-tree: remove unused argument of insert_entries
+Date: Sat, 25 Jun 2022 21:53:24 +0800
 
-  mailmap: add entry for Christian Marangi (2022-06-16 19:11:32 -0700)
+insert_entries() doesn't use the 'bool replace' argument, and the function
+is only used locally, remove the argument.
 
-----------------------------------------------------------------
-Minor things, mainly - mailmap updates, MAINTAINERS updates, etc.
+The historical context of the unused argument is as follow:
 
-Fixes for post-5.18 changes:
+2: commit <3a08cd52c37c79> (radix tree: Remove multiorder support)
+  Remove the code related to macro CONFIG_RADIX_TREE_MULTIORDER
+to convert to the xArray.
+  Without the macro, there is no need to retain the argument.
 
-- fix for a damon boot hang, from SeongJae
+1: commit <175542f575723e> (radix-tree: add radix_tree_join)
+  Add insert_entries(..., bool replace) function, depending on the
+macro CONFIG_RADIX_TREE_MULTIORDER definition, the implementation
+is different. Notice that the implementation without the macro doesn't
+use the argument.
 
-- fix for a kfence warning splat, from Jason Donenfeld
+[Matthew Wilcox: add historical context for argument]
 
-- fix for zero-pfn pinning, from Alex Williamson
+Link: https://lkml.kernel.org/r/20220625135324.72574-1-wuchi.zero@gmail.com
+Signed-off-by: wuchi <wuchi.zero@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-- fix for fallocate hole punch clearing, from Mike Kravetz
+ lib/radix-tree.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Fixes pre-5.18 material:
+--- a/lib/radix-tree.c~lib-radix-tree-remove-unused-argument-of-insert_entries
++++ a/lib/radix-tree.c
+@@ -677,7 +677,7 @@ static void radix_tree_free_nodes(struct
+ }
+ 
+ static inline int insert_entries(struct radix_tree_node *node,
+-		void __rcu **slot, void *item, bool replace)
++		void __rcu **slot, void *item)
+ {
+ 	if (*slot)
+ 		return -EEXIST;
+@@ -711,7 +711,7 @@ int radix_tree_insert(struct radix_tree_
+ 	if (error)
+ 		return error;
+ 
+-	error = insert_entries(node, slot, item, false);
++	error = insert_entries(node, slot, item);
+ 	if (error < 0)
+ 		return error;
+ 
+_
 
-- fix for a performance regression, from Marcelo
+Patches currently in -mm which might be from wuchi.zero@gmail.com are
 
-- fix for a hwpoisining BUG from zhenwei pi
-
-----------------------------------------------------------------
-Abel Vesa (1):
-      MAINTAINERS: update Abel Vesa's email
-
-Alex Williamson (1):
-      mm: re-allow pinning of zero pfns
-
-Andrew Morton (1):
-      MAINTAINERS: update MM tree references
-
-Christian Marangi (1):
-      mailmap: add entry for Christian Marangi
-
-David Hildenbrand (1):
-      MAINTAINERS: add MEMORY HOT(UN)PLUG section and add David as reviewer
-
-Huacai Chen (1):
-      MAINTAINERS: add maillist information for LoongArch
-
-Jarkko Sakkinen (1):
-      mailmap: add alias for jarkko@profian.com
-
-Jason A. Donenfeld (1):
-      mm/kfence: select random number before taking raw lock
-
-Marcelo Tosatti (1):
-      mm: lru_cache_disable: use synchronize_rcu_expedited
-
-Miaohe Lin (1):
-      MAINTAINERS: add Miaohe Lin as a memory-failure reviewer
-
-Mike Kravetz (1):
-      hugetlbfs: zero partial pages during fallocate hole punch
-
-Petr Mladek (1):
-      kthread: make it clear that kthread_create_on_node() might be terminated by any fatal signal
-
-SeongJae Park (1):
-      mm/damon/reclaim: schedule 'damon_reclaim_timer' only after 'system_wq' is initialized
-
-Yang Li (1):
-      mm/page_isolation.c: fix one kernel-doc comment
-
-Yang Yang (1):
-      mm: memcontrol: reference to tools/cgroup/memcg_slabinfo.py
-
-zhenwei pi (1):
-      mm/memory-failure: disable unpoison once hw error happens
-
- .mailmap                      |  4 +++
- Documentation/vm/hwpoison.rst |  3 +-
- MAINTAINERS                   | 21 ++++++++++---
- drivers/base/memory.c         |  2 +-
- fs/hugetlbfs/inode.c          | 68 +++++++++++++++++++++++++++++++++----------
- include/linux/mm.h            |  3 +-
- kernel/kthread.c              | 14 ++++-----
- mm/damon/reclaim.c            |  8 +++++
- mm/hwpoison-inject.c          |  2 +-
- mm/kfence/core.c              |  7 +++--
- mm/madvise.c                  |  2 +-
- mm/memcontrol.c               |  2 +-
- mm/memory-failure.c           | 12 ++++++++
- mm/page_isolation.c           |  2 ++
- mm/swap.c                     |  2 +-
- 15 files changed, 117 insertions(+), 35 deletions(-)
+lib-debugobjects-fix-stat-count-and-optimize-debug_objects_mem_init.patch
+lib-lru_cache-fix-error-free-handing-in-lc_create.patch
+net-lib-once-remove-net_get_random_once_wait-macro.patch
+lib-error-inject-traverse-list-with-mutex.patch
+lib-radix-tree-remove-unused-argument-of-insert_entries.patch
 
