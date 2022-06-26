@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 988F1C43334
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 20:28:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DED64C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 20:28:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232240AbiFZU2B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Jun 2022 16:28:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46046 "EHLO
+        id S232217AbiFZU2E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Jun 2022 16:28:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232217AbiFZU1z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 16:27:55 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A673EB5
-        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 13:27:54 -0700 (PDT)
+        with ESMTP id S232233AbiFZU15 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 16:27:57 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA7F9F58
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 13:27:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 5E029CE1126
-        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 20:27:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DD71C34114;
-        Sun, 26 Jun 2022 20:27:50 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 25416CE1006
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 20:27:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8196FC341CA;
+        Sun, 26 Jun 2022 20:27:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656275270;
-        bh=BgypHAxxb5RwlHyZZNhBqaoiAhnEBjZBY1bpBaOUqRw=;
+        s=korg; t=1656275272;
+        bh=X4Nn7PT5YQ7Ytfl3ZA1dko7NcMluXWOtv3Qw7d8t15E=;
         h=Date:To:From:Subject:From;
-        b=XBMCh7cSXT2RdawO87mALBf7NogceN3d9lXzDYf1DGiJ5Y94XCjiwLq9lqpW0aN0i
-         QMf2jYxYqiudyU+l33bJhOBycsRkdN/j2oWjnRh8KYmX5dH6gS1hInoeh62ZeRLCgA
-         tggVkXZ0Y/BxEJ+ekON5RhRN/l5elyml8kBSd70o=
-Date:   Sun, 26 Jun 2022 13:27:50 -0700
+        b=RFs0ME6b7QDpuvGlc9qcNY6kBECyYeo4mrVmFwi2ng0sv2J7ap8CUHkjW0m2quU5b
+         BWxcjvwsuGAK3fW6fiDleH8VMBHMRmiUSS30GwSbTnv7rAp1ps1SzQcOK5WLNBE1UC
+         RaWAPuQNmPLTFVYE/aWOclKtd6nH5yVCF5WQdgyk=
+Date:   Sun, 26 Jun 2022 13:27:51 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com,
         willy@infradead.org, vbabka@suse.cz, surenb@google.com,
         shy828301@gmail.com, peterx@redhat.com, neilb@suse.de,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, zokeefe@google.com,
         aarcange@redhat.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-minor-cleanup-for-collapse_file.patch added to mm-unstable branch
-Message-Id: <20220626202750.9DD71C34114@smtp.kernel.org>
+Subject: + mm-khugepaged-use-helper-macro-__attr_rw.patch added to mm-unstable branch
+Message-Id: <20220626202752.8196FC341CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: minor cleanup for collapse_file
+     Subject: mm/khugepaged: use helper macro __ATTR_RW
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-minor-cleanup-for-collapse_file.patch
+     mm-khugepaged-use-helper-macro-__attr_rw.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-minor-cleanup-for-collapse_file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-use-helper-macro-__attr_rw.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,17 +69,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/khugepaged: minor cleanup for collapse_file
-Date: Sat, 25 Jun 2022 17:28:13 +0800
+Subject: mm/khugepaged: use helper macro __ATTR_RW
+Date: Sat, 25 Jun 2022 17:28:14 +0800
 
-nr_none is always 0 for non-shmem case because the page can be read from
-the backend store.  So when nr_none !  = 0, it must be in is_shmem case. 
-Also only adjust the nrpages and uncharge shmem when nr_none != 0 to save
-cpu cycles.
+Use helper macro __ATTR_RW to define the khugepaged attributes.  Minor
+readability improvement.
 
-Link: https://lkml.kernel.org/r/20220625092816.4856-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220625092816.4856-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Zach O'Keefe <zokeefe@google.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -89,40 +87,160 @@ Cc: NeilBrown <neilb@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/khugepaged.c |   67 ++++++++++++++++++++--------------------------
+ 1 file changed, 30 insertions(+), 37 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-minor-cleanup-for-collapse_file
+--- a/mm/khugepaged.c~mm-khugepaged-use-helper-macro-__attr_rw
 +++ a/mm/khugepaged.c
-@@ -1852,8 +1852,8 @@ out_unlock:
+@@ -147,8 +147,7 @@ static ssize_t scan_sleep_millisecs_stor
+ 	return count;
+ }
+ static struct kobj_attribute scan_sleep_millisecs_attr =
+-	__ATTR(scan_sleep_millisecs, 0644, scan_sleep_millisecs_show,
+-	       scan_sleep_millisecs_store);
++	__ATTR_RW(scan_sleep_millisecs);
  
- 	if (nr_none) {
- 		__mod_lruvec_page_state(new_page, NR_FILE_PAGES, nr_none);
--		if (is_shmem)
--			__mod_lruvec_page_state(new_page, NR_SHMEM, nr_none);
-+		/* nr_none is always 0 for non-shmem. */
-+		__mod_lruvec_page_state(new_page, NR_SHMEM, nr_none);
- 	}
+ static ssize_t alloc_sleep_millisecs_show(struct kobject *kobj,
+ 					  struct kobj_attribute *attr,
+@@ -175,8 +174,7 @@ static ssize_t alloc_sleep_millisecs_sto
+ 	return count;
+ }
+ static struct kobj_attribute alloc_sleep_millisecs_attr =
+-	__ATTR(alloc_sleep_millisecs, 0644, alloc_sleep_millisecs_show,
+-	       alloc_sleep_millisecs_store);
++	__ATTR_RW(alloc_sleep_millisecs);
  
- 	/* Join all the small entries into a single multi-index entry */
-@@ -1917,10 +1917,10 @@ xa_unlocked:
+ static ssize_t pages_to_scan_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr,
+@@ -200,8 +198,7 @@ static ssize_t pages_to_scan_store(struc
+ 	return count;
+ }
+ static struct kobj_attribute pages_to_scan_attr =
+-	__ATTR(pages_to_scan, 0644, pages_to_scan_show,
+-	       pages_to_scan_store);
++	__ATTR_RW(pages_to_scan);
  
- 		/* Something went wrong: roll back page cache changes */
- 		xas_lock_irq(&xas);
--		mapping->nrpages -= nr_none;
--
--		if (is_shmem)
-+		if (nr_none) {
-+			mapping->nrpages -= nr_none;
- 			shmem_uncharge(mapping->host, nr_none);
-+		}
+ static ssize_t pages_collapsed_show(struct kobject *kobj,
+ 				    struct kobj_attribute *attr,
+@@ -221,22 +218,21 @@ static ssize_t full_scans_show(struct ko
+ static struct kobj_attribute full_scans_attr =
+ 	__ATTR_RO(full_scans);
  
- 		xas_set(&xas, start);
- 		xas_for_each(&xas, page, end - 1) {
+-static ssize_t khugepaged_defrag_show(struct kobject *kobj,
+-				      struct kobj_attribute *attr, char *buf)
++static ssize_t defrag_show(struct kobject *kobj,
++			   struct kobj_attribute *attr, char *buf)
+ {
+ 	return single_hugepage_flag_show(kobj, attr, buf,
+ 					 TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG);
+ }
+-static ssize_t khugepaged_defrag_store(struct kobject *kobj,
+-				       struct kobj_attribute *attr,
+-				       const char *buf, size_t count)
++static ssize_t defrag_store(struct kobject *kobj,
++			    struct kobj_attribute *attr,
++			    const char *buf, size_t count)
+ {
+ 	return single_hugepage_flag_store(kobj, attr, buf, count,
+ 				 TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG);
+ }
+ static struct kobj_attribute khugepaged_defrag_attr =
+-	__ATTR(defrag, 0644, khugepaged_defrag_show,
+-	       khugepaged_defrag_store);
++	__ATTR_RW(defrag);
+ 
+ /*
+  * max_ptes_none controls if khugepaged should collapse hugepages over
+@@ -246,15 +242,15 @@ static struct kobj_attribute khugepaged_
+  * runs. Increasing max_ptes_none will instead potentially reduce the
+  * free memory in the system during the khugepaged scan.
+  */
+-static ssize_t khugepaged_max_ptes_none_show(struct kobject *kobj,
+-					     struct kobj_attribute *attr,
+-					     char *buf)
++static ssize_t max_ptes_none_show(struct kobject *kobj,
++				  struct kobj_attribute *attr,
++				  char *buf)
+ {
+ 	return sysfs_emit(buf, "%u\n", khugepaged_max_ptes_none);
+ }
+-static ssize_t khugepaged_max_ptes_none_store(struct kobject *kobj,
+-					      struct kobj_attribute *attr,
+-					      const char *buf, size_t count)
++static ssize_t max_ptes_none_store(struct kobject *kobj,
++				   struct kobj_attribute *attr,
++				   const char *buf, size_t count)
+ {
+ 	int err;
+ 	unsigned long max_ptes_none;
+@@ -268,19 +264,18 @@ static ssize_t khugepaged_max_ptes_none_
+ 	return count;
+ }
+ static struct kobj_attribute khugepaged_max_ptes_none_attr =
+-	__ATTR(max_ptes_none, 0644, khugepaged_max_ptes_none_show,
+-	       khugepaged_max_ptes_none_store);
++	__ATTR_RW(max_ptes_none);
+ 
+-static ssize_t khugepaged_max_ptes_swap_show(struct kobject *kobj,
+-					     struct kobj_attribute *attr,
+-					     char *buf)
++static ssize_t max_ptes_swap_show(struct kobject *kobj,
++				  struct kobj_attribute *attr,
++				  char *buf)
+ {
+ 	return sysfs_emit(buf, "%u\n", khugepaged_max_ptes_swap);
+ }
+ 
+-static ssize_t khugepaged_max_ptes_swap_store(struct kobject *kobj,
+-					      struct kobj_attribute *attr,
+-					      const char *buf, size_t count)
++static ssize_t max_ptes_swap_store(struct kobject *kobj,
++				   struct kobj_attribute *attr,
++				   const char *buf, size_t count)
+ {
+ 	int err;
+ 	unsigned long max_ptes_swap;
+@@ -295,19 +290,18 @@ static ssize_t khugepaged_max_ptes_swap_
+ }
+ 
+ static struct kobj_attribute khugepaged_max_ptes_swap_attr =
+-	__ATTR(max_ptes_swap, 0644, khugepaged_max_ptes_swap_show,
+-	       khugepaged_max_ptes_swap_store);
++	__ATTR_RW(max_ptes_swap);
+ 
+-static ssize_t khugepaged_max_ptes_shared_show(struct kobject *kobj,
+-					       struct kobj_attribute *attr,
+-					       char *buf)
++static ssize_t max_ptes_shared_show(struct kobject *kobj,
++				    struct kobj_attribute *attr,
++				    char *buf)
+ {
+ 	return sysfs_emit(buf, "%u\n", khugepaged_max_ptes_shared);
+ }
+ 
+-static ssize_t khugepaged_max_ptes_shared_store(struct kobject *kobj,
+-					      struct kobj_attribute *attr,
+-					      const char *buf, size_t count)
++static ssize_t max_ptes_shared_store(struct kobject *kobj,
++				     struct kobj_attribute *attr,
++				     const char *buf, size_t count)
+ {
+ 	int err;
+ 	unsigned long max_ptes_shared;
+@@ -322,8 +316,7 @@ static ssize_t khugepaged_max_ptes_share
+ }
+ 
+ static struct kobj_attribute khugepaged_max_ptes_shared_attr =
+-	__ATTR(max_ptes_shared, 0644, khugepaged_max_ptes_shared_show,
+-	       khugepaged_max_ptes_shared_store);
++	__ATTR_RW(max_ptes_shared);
+ 
+ static struct attribute *khugepaged_attr[] = {
+ 	&khugepaged_defrag_attr.attr,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
