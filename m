@@ -2,122 +2,103 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7E35C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 20:29:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B13CAC43334
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Jun 2022 20:32:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229803AbiFZU3J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Jun 2022 16:29:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46696 "EHLO
+        id S232077AbiFZUc0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Jun 2022 16:32:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229955AbiFZU3I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 16:29:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52A74E59
-        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 13:29:07 -0700 (PDT)
+        with ESMTP id S232072AbiFZUcZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Jun 2022 16:32:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C661327
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 13:32:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DB99560F85
-        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 20:29:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CC95C34114;
-        Sun, 26 Jun 2022 20:29:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA78060FBD
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jun 2022 20:32:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A27C341CA;
+        Sun, 26 Jun 2022 20:32:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656275346;
-        bh=l3I2dVF5+BmZo4D5V58C/UgwWp7d7Tub97SZfkjNOiU=;
+        s=korg; t=1656275543;
+        bh=GhXwuA2tGyYNt2aq8cs2XuFOcY9MipMv/m+T+yAMO88=;
         h=Date:To:From:Subject:From;
-        b=Mrsq08K0NtGoap/cF+39OaFpy7tbnWlqWQbSl/Jr1PylYmP6eSOfNuGmTvwnoSi8G
-         eR9ax6L2GzyLnVFvzRDhOZYRqgC/h44SaxF59o6Yf9Zz/O9DBkLnYgB0NzxKZk355e
-         aCgRxm3vy1UDemfaoZ6ZTchqaMY6RgXqszjve/RQ=
-Date:   Sun, 26 Jun 2022 13:29:05 -0700
-To:     mm-commits@vger.kernel.org, hughd@google.com, david@redhat.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=kTb0nm0RuPNv+fbi3etr9hkRHL6gxPT2PIbAoL8ma8vajamLoeRyyY5JjVK58vpLx
+         EWq+bgoGyUTtyuvWcb+ZRkvPHl6/UesOjtEaf9CuSEd/kzh7d61CsGAKcMYSQR6TpZ
+         3sVjpCF9GK9bWyHj9CLSnKeFmVF4JWmV78qZrdo8=
+Date:   Sun, 26 Jun 2022 13:32:22 -0700
+To:     mm-commits@vger.kernel.org, david@redhat.com, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] mm-swapfile-make-security_vm_enough_memory_mm-work-as-expected.patch removed from -mm tree
-Message-Id: <20220626202906.3CC95C34114@smtp.kernel.org>
+Subject: + mm-swapfile-fix-possible-data-races-of-inuse_pages-v3.patch added to mm-unstable branch
+Message-Id: <20220626203223.43A27C341CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/swapfile: make security_vm_enough_memory_mm() work as expected
-has been removed from the -mm tree.  Its filename was
-     mm-swapfile-make-security_vm_enough_memory_mm-work-as-expected.patch
+The patch titled
+     Subject: mm-swapfile-fix-possible-data-races-of-inuse_pages-v3
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swapfile-fix-possible-data-races-of-inuse_pages-v3.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-fix-possible-data-races-of-inuse_pages-v3.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile: make security_vm_enough_memory_mm() work as expected
-Date: Wed, 8 Jun 2022 22:40:29 +0800
+Subject: mm-swapfile-fix-possible-data-races-of-inuse_pages-v3
+Date: Sat, 25 Jun 2022 17:33:45 +0800
 
-Patch series "A few cleanup and fixup patches for swap", v2.
+use WRITE_ONCE to pair with READ_ONCE
 
-This series contains a cleaup patch to remove unneeded swap_cache_info
-statistics, and two bugfix patches to avoid possible data races of
-inuse_pages and so on.  More details can be found in the respective
-changelogs.
-
-
-This patch (of 3):
-
-security_vm_enough_memory_mm() checks whether a process has enough memory
-to allocate a new virtual mapping.  And total_swap_pages is considered as
-available memory while swapoff tries to make sure there's enough memory
-that can hold the swapped out memory.  But total_swap_pages contains the
-swap space that is being swapoff.  So security_vm_enough_memory_mm() will
-succeed even if there's no memory to hold the swapped out memory because
-total_swap_pages always greater than or equal to p->pages.
-
-In order to fix it, p->pages should be subtracted from total_swap_pages
-first and then check whether there's enough memory for inuse swap pages.
-
-Link: https://lkml.kernel.org/r/20220608144031.829-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220608144031.829-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220625093346.48894-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/swapfile.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-make-security_vm_enough_memory_mm-work-as-expected
+--- a/mm/swapfile.c~mm-swapfile-fix-possible-data-races-of-inuse_pages-v3
 +++ a/mm/swapfile.c
-@@ -2398,6 +2398,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	struct filename *pathname;
- 	int err, found = 0;
- 	unsigned int old_block_size;
-+	unsigned int inuse_pages;
- 
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
-@@ -2428,9 +2429,13 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 		spin_unlock(&swap_lock);
- 		goto out_dput;
+@@ -695,7 +695,7 @@ static void swap_range_alloc(struct swap
+ 		si->lowest_bit += nr_entries;
+ 	if (end == si->highest_bit)
+ 		WRITE_ONCE(si->highest_bit, si->highest_bit - nr_entries);
+-	si->inuse_pages += nr_entries;
++	WRITE_ONCE(si->inuse_pages, si->inuse_pages + nr_entries);
+ 	if (si->inuse_pages == si->pages) {
+ 		si->lowest_bit = si->max;
+ 		si->highest_bit = 0;
+@@ -732,7 +732,7 @@ static void swap_range_free(struct swap_
+ 			add_to_avail_list(si);
  	}
--	if (!security_vm_enough_memory_mm(current->mm, p->pages))
--		vm_unacct_memory(p->pages);
-+
-+	total_swap_pages -= p->pages;
-+	inuse_pages = READ_ONCE(p->inuse_pages);
-+	if (!security_vm_enough_memory_mm(current->mm, inuse_pages))
-+		vm_unacct_memory(inuse_pages);
- 	else {
-+		total_swap_pages += p->pages;
- 		err = -ENOMEM;
- 		spin_unlock(&swap_lock);
- 		goto out_dput;
-@@ -2453,7 +2458,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	}
- 	plist_del(&p->list, &swap_active_head);
- 	atomic_long_sub(p->pages, &nr_swap_pages);
--	total_swap_pages -= p->pages;
- 	p->flags &= ~SWP_WRITEOK;
- 	spin_unlock(&p->lock);
- 	spin_unlock(&swap_lock);
+ 	atomic_long_add(nr_entries, &nr_swap_pages);
+-	si->inuse_pages -= nr_entries;
++	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
+ 	if (si->flags & SWP_BLKDEV)
+ 		swap_slot_free_notify =
+ 			si->bdev->bd_disk->fops->swap_slot_free_notify;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
