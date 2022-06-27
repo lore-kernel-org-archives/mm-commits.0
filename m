@@ -2,63 +2,88 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A04DCCCA473
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jun 2022 05:54:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28682C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jun 2022 17:46:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231690AbiF0FyL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Jun 2022 01:54:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40304 "EHLO
+        id S235550AbiF0Rql (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Jun 2022 13:46:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229753AbiF0FyK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2022 01:54:10 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C52D2DC3;
-        Sun, 26 Jun 2022 22:54:09 -0700 (PDT)
+        with ESMTP id S237628AbiF0Rqk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2022 13:46:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01F89D111
+        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 10:46:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id B74F9CE112F;
-        Mon, 27 Jun 2022 05:54:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71A66C341C8;
-        Mon, 27 Jun 2022 05:54:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 805A8614ED
+        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 17:46:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF401C3411D;
+        Mon, 27 Jun 2022 17:46:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656309245;
-        bh=Sus3/9KJFbCudnP5NL9Wq/YGxqU1cqKDlw/yXzz/byE=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=PmnyKU2R6B3OwWkNwA71Bb3W4yu3aSzlU4JKpSGEYVhtUVgjXPiWii2v775TAVKXH
-         71qSOmGElh9zC6RSYT5QQRe4TkLChzhb4joLhhlzKZVtuPRAInPSRc5/29vrUHxJJQ
-         l6JnTSuBl/ebjvoqtCkynONE2ZRG51fMWyWayEE0=
-Date:   Sun, 26 Jun 2022 22:54:04 -0700
+        s=korg; t=1656351998;
+        bh=f8EMWkd5CZBvWCpDoDQIKWkRoyaUH4vWBBsdstGQwdI=;
+        h=Date:To:From:Subject:From;
+        b=JAUUj8VjTkdZDqRwCtsqa8nPPB79rvGQbZNaLMfgo9cme7p4wcgVvZ9yHYyGfJW0C
+         Urx+Gyt4kNCQxAl875VlyK32ddQ2JGw2+MRejnyAWh3fqS7BYJnK2Yj4jFBM49wtla
+         +1LlEnLCJf40I8GlT7OO5oMHq3XeZlk0m8b/CmUk=
+Date:   Mon, 27 Jun 2022 10:46:38 -0700
+To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
+        dingxiang@cmss.chinamobile.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Junxiao Bi <junxiao.bi@oracle.com>
-Cc:     "mm-commits@vger.kernel.org" <mm-commits@vger.kernel.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        "piaojun@huawei.com" <piaojun@huawei.com>,
-        "mark@fasheh.com" <mark@fasheh.com>,
-        "joseph.qi@linux.alibaba.com" <joseph.qi@linux.alibaba.com>,
-        "jlbec@evilplan.org" <jlbec@evilplan.org>,
-        "heming.zhao@suse.com" <heming.zhao@suse.com>,
-        "ghe@suse.com" <ghe@suse.com>,
-        "gechangwei@live.cn" <gechangwei@live.cn>,
-        "ocfs2-devel@oss.oracle.com" <ocfs2-devel@oss.oracle.com>
-Subject: Re: + revert-ocfs2-mount-shared-volume-without-ha-stack.patch added
- to mm-hotfixes-unstable branch
-Message-Id: <20220626225404.e12f34eb4d416c6e6184f9bf@linux-foundation.org>
-In-Reply-To: <0D22B946-B3D7-4137-BC22-2737CA00D92A@oracle.com>
-References: <20220626202113.CE8DAC34114@smtp.kernel.org>
-        <0D22B946-B3D7-4137-BC22-2737CA00D92A@oracle.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [merged] selftests-vm-fix-resource-leak-when-return-error.patch removed from -mm tree
+Message-Id: <20220627174638.CF401C3411D@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sun, 26 Jun 2022 23:18:44 +0000 Junxiao Bi <junxiao.bi@oracle.com> wrote:
 
-> Thanks for merging it to mm.
-> I see the “From” is “ Junxiao Bi via Ocfs2-devel <ocfs2-devel@oss.oracle.com>”, can you help fix that?
+The quilt patch titled
+     Subject: tools/testing/selftests/vm/ksm_tests.c: fix resource leak when return error
+has been removed from the -mm tree.  Its filename was
+     selftests-vm-fix-resource-leak-when-return-error.patch
 
-Thanks, I fixed that.
+This patch was dropped because it was merged into mainline or a subsystem tree
+
+------------------------------------------------------
+From: Ding Xiang <dingxiang@cmss.chinamobile.com>
+Subject: tools/testing/selftests/vm/ksm_tests.c: fix resource leak when return error
+Date: Wed, 15 Jun 2022 17:36:29 +0800
+
+When return on an error path, file handle need to be closed to prevent
+resource leak
+
+Link: https://lkml.kernel.org/r/20220615093629.1330809-1-dingxiang@cmss.chinamobile.com
+Signed-off-by: Ding Xiang <dingxiang@cmss.chinamobile.com>
+Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/vm/ksm_tests.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-fix-resource-leak-when-return-error
++++ a/tools/testing/selftests/vm/ksm_tests.c
+@@ -54,6 +54,7 @@ static int ksm_write_sysfs(const char *f
+ 	}
+ 	if (fprintf(f, "%lu", val) < 0) {
+ 		perror("fprintf");
++		fclose(f);
+ 		return 1;
+ 	}
+ 	fclose(f);
+@@ -72,6 +73,7 @@ static int ksm_read_sysfs(const char *fi
+ 	}
+ 	if (fscanf(f, "%lu", val) != 1) {
+ 		perror("fscanf");
++		fclose(f);
+ 		return 1;
+ 	}
+ 	fclose(f);
+_
+
+Patches currently in -mm which might be from dingxiang@cmss.chinamobile.com are
+
+
