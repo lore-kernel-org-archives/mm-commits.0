@@ -2,385 +2,148 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1EB1C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jun 2022 19:36:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE327C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jun 2022 19:40:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240395AbiF0Tgt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Jun 2022 15:36:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52298 "EHLO
+        id S239198AbiF0TkS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Jun 2022 15:40:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238413AbiF0Tgp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2022 15:36:45 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A261631D
-        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 12:36:44 -0700 (PDT)
+        with ESMTP id S231765AbiF0TkR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2022 15:40:17 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A532415A3A
+        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 12:40:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 07951B818D7
-        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 19:36:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7F48C3411D;
-        Mon, 27 Jun 2022 19:36:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 69F81B81AA7
+        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 19:40:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00E20C34115;
+        Mon, 27 Jun 2022 19:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656358601;
-        bh=ICaSRDj3TbgetIh6B/RVkDaUNBziCSFcstWGlPA8CEU=;
+        s=korg; t=1656358814;
+        bh=RWFMaV9zZhhpgypciXe+uWgEGzPBMj5nCojtz2FX3Ak=;
         h=Date:To:From:Subject:From;
-        b=E8fUqsjYl452nR2wn82jkFQnnJGGH//NW18fPYE3RSmlq7+C3ZP7zsxb/UNG/o8Yu
-         0N6LjcVcF2N9jEBFITRVXiIzmXKdWDVYO7PleLvQuhjAPrQxOdQ5prwmO5kYupJEBo
-         l1q07dHzEVmvtOTvtCqejlDg70t+XcMcGRwI64Hs=
-Date:   Mon, 27 Jun 2022 12:36:40 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        surenb@google.com, peterx@redhat.com, neilb@suse.de,
-        linmiaohe@huawei.com, david@redhat.com, apopple@nvidia.com,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=TM9DzHx4RMG97yAd6y2oE+LVL/ma3djlrbjy/f9+F06DBXit10cLeEflxXM/bl2Nh
+         hfQpM1EaAFzTO4SYEXk6oFebhcf4PiPG9q8URaiZwwStlptodzaz8LYYRAKx0Y561h
+         m5H6w22fDwOMgSSOtsV9lL5EzSqRaSLYe/9gDjdk=
+Date:   Mon, 27 Jun 2022 12:40:13 -0700
+To:     mm-commits@vger.kernel.org, dyoung@redhat.com, bhe@redhat.com,
+        ltao@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure.patch removed from -mm tree
-Message-Id: <20220627193641.A7F48C3411D@smtp.kernel.org>
+Subject: + kdump-round-up-the-total-memory-size-to-128m-for-crashkernel-reservation.patch added to mm-nonmm-unstable branch
+Message-Id: <20220627194014.00E20C34115@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: vmpressure: don't count userspace-induced reclaim as memory pressure
-has been removed from the -mm tree.  Its filename was
-     mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure.patch
+The patch titled
+     Subject: kdump: round up the total memory size to 128M for crashkernel reservation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kdump-round-up-the-total-memory-size-to-128m-for-crashkernel-reservation.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kdump-round-up-the-total-memory-size-to-128m-for-crashkernel-reservation.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: vmpressure: don't count userspace-induced reclaim as memory pressure
-Date: Thu, 23 Jun 2022 00:44:52 +0000
+From: Tao Liu <ltao@redhat.com>
+Subject: kdump: round up the total memory size to 128M for crashkernel reservation
+Date: Mon, 27 Jun 2022 15:44:41 +0800
 
-Commit e22c6ed90aa9 ("mm: memcontrol: don't count limit-setting reclaim as
-memory pressure") made sure that memory reclaim that is induced by
-userspace (limit-setting, proactive reclaim, ..) is not counted as memory
-pressure for the purposes of psi.
+The total memory size we get in kernel is usually slightly less than the
+actual memory size because BIOS/firmware will reserve some memory region. 
+So it won't export all memory as usable.
 
-Instead of counting psi inside try_to_free_mem_cgroup_pages(), callers
-from try_charge() and reclaim_high() wrap the call to
-try_to_free_mem_cgroup_pages() with psi handlers.
+E.g, on my x86_64 kvm guest with 1G memory, the total_mem value shows:
+UEFI boot with ovmf: 0x3faef000 Legacy boot kvm guest: 0x3ff7ec00
 
-However, vmpressure is still counted in these cases where reclaim is
-directly induced by userspace.  This patch makes sure vmpressure is not
-counted in those operations, in the same way as psi.  Since vmpressure
-calls need to happen deeper within the reclaim path, the same approach
-could not be followed.  Hence, a new "controlled" flag is added to struct
-scan_control to flag a reclaim operation that is controlled by userspace. 
-This flag is set by limit-setting and proactive reclaim operations, and is
-used to count vmpressure correctly.
+When specifying crashkernel=1G-2G:128M, if we have a 1G memory machine, we
+get total size 1023M from firmware.  Then it will not fall into 1G-2G,
+thus no memory reserved.  User will never know this, it is hard to let
+user know the exact total value in kernel.
 
-To prevent future divergence of psi and vmpressure, commit e22c6ed90aa9
-("mm: memcontrol: don't count limit-setting reclaim as memory pressure")
-is effectively reverted and the same flag is used to control psi as well.
+One way is to use dmi/smbios to get physical memory size, but it's not
+reliable as well.  According to Prarit hardware vendors sometimes screw
+this up.  Thus round up total size to 128M to work around this problem.
 
-Link: https://lkml.kernel.org/r/20220623004452.1217326-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Peter Xu <peterx@redhat.com>
+This patch is a resend of [1] and rebased onto v5.19-rc2, and the
+original credit goes to Dave Young.
+
+[1]: http://lists.infradead.org/pipermail/kexec/2018-April/020568.html
+
+Link: https://lkml.kernel.org/r/20220627074440.187222-1-ltao@redhat.com
+Signed-off-by: Tao Liu <ltao@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    5 ++++-
- mm/memcontrol.c      |   41 +++++++++++++++++++++++------------------
- mm/vmscan.c          |   36 ++++++++++++++++++++++++++----------
- 3 files changed, 53 insertions(+), 29 deletions(-)
+ kernel/crash_core.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/include/linux/swap.h~mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure
-+++ a/include/linux/swap.h
-@@ -411,10 +411,13 @@ extern void lru_cache_add_inactive_or_un
- extern unsigned long zone_reclaimable_pages(struct zone *zone);
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
-+
-+#define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
-+#define MEMCG_RECLAIM_CONTROLLED (1 << 2)
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 						  unsigned long nr_pages,
- 						  gfp_t gfp_mask,
--						  bool may_swap);
-+						  unsigned int reclaim_options);
- extern unsigned long mem_cgroup_shrink_node(struct mem_cgroup *mem,
- 						gfp_t gfp_mask, bool noswap,
- 						pg_data_t *pgdat,
---- a/mm/memcontrol.c~mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure
-+++ a/mm/memcontrol.c
-@@ -2453,20 +2453,16 @@ static unsigned long reclaim_high(struct
- 				  gfp_t gfp_mask)
+--- a/kernel/crash_core.c~kdump-round-up-the-total-memory-size-to-128m-for-crashkernel-reservation
++++ a/kernel/crash_core.c
+@@ -9,6 +9,7 @@
+ #include <linux/init.h>
+ #include <linux/utsname.h>
+ #include <linux/vmalloc.h>
++#include <linux/sizes.h>
+ 
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -45,6 +46,15 @@ static int __init parse_crashkernel_mem(
+ 					unsigned long long *crash_base)
  {
- 	unsigned long nr_reclaimed = 0;
-+	unsigned int reclaim_options = MEMCG_RECLAIM_MAY_SWAP;
+ 	char *cur = cmdline, *tmp;
++	unsigned long long total_mem = system_ram;
++
++	/*
++	 * Firmware sometimes reserves some memory regions for its own use,
++	 * so the system memory size is less than the actual physical memory
++	 * size. Work around this by rounding up the total size to 128M,
++	 * which is enough for most test cases.
++	 */
++	total_mem = roundup(total_mem, SZ_128M);
  
+ 	/* for each entry of the comma-separated list */
  	do {
--		unsigned long pflags;
--
- 		if (page_counter_read(&memcg->memory) <=
- 		    READ_ONCE(memcg->memory.high))
- 			continue;
--
- 		memcg_memory_event(memcg, MEMCG_HIGH);
--
--		psi_memstall_enter(&pflags);
- 		nr_reclaimed += try_to_free_mem_cgroup_pages(memcg, nr_pages,
--							     gfp_mask, true);
--		psi_memstall_leave(&pflags);
-+							     gfp_mask,
-+							     reclaim_options);
- 	} while ((memcg = parent_mem_cgroup(memcg)) &&
- 		 !mem_cgroup_is_root(memcg));
- 
-@@ -2710,9 +2706,8 @@ static int try_charge_memcg(struct mem_c
- 	struct page_counter *counter;
- 	unsigned long nr_reclaimed;
- 	bool passed_oom = false;
--	bool may_swap = true;
-+	unsigned int reclaim_options = MEMCG_RECLAIM_MAY_SWAP;
- 	bool drained = false;
--	unsigned long pflags;
- 
- retry:
- 	if (consume_stock(memcg, nr_pages))
-@@ -2727,7 +2722,7 @@ retry:
- 		mem_over_limit = mem_cgroup_from_counter(counter, memory);
- 	} else {
- 		mem_over_limit = mem_cgroup_from_counter(counter, memsw);
--		may_swap = false;
-+		reclaim_options &= ~MEMCG_RECLAIM_MAY_SWAP;
- 	}
- 
- 	if (batch > nr_pages) {
-@@ -2752,10 +2747,8 @@ retry:
- 
- 	memcg_memory_event(mem_over_limit, MEMCG_MAX);
- 
--	psi_memstall_enter(&pflags);
- 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
--						    gfp_mask, may_swap);
--	psi_memstall_leave(&pflags);
-+						    gfp_mask, reclaim_options);
- 
- 	if (mem_cgroup_margin(mem_over_limit) >= nr_pages)
- 		goto retry;
-@@ -3530,7 +3523,9 @@ static int mem_cgroup_resize_max(struct
- 	int ret;
- 	bool limits_invariant;
- 	struct page_counter *counter = memsw ? &memcg->memsw : &memcg->memory;
-+	unsigned int reclaim_options = memsw ? 0 : MEMCG_RECLAIM_MAY_SWAP;
- 
-+	reclaim_options |= MEMCG_RECLAIM_CONTROLLED;
- 	do {
- 		if (signal_pending(current)) {
- 			ret = -EINTR;
-@@ -3564,7 +3559,7 @@ static int mem_cgroup_resize_max(struct
+@@ -89,13 +99,13 @@ static int __init parse_crashkernel_mem(
+ 			return -EINVAL;
+ 		}
+ 		cur = tmp;
+-		if (size >= system_ram) {
++		if (size >= total_mem) {
+ 			pr_warn("crashkernel: invalid size\n");
+ 			return -EINVAL;
  		}
  
- 		if (!try_to_free_mem_cgroup_pages(memcg, 1,
--					GFP_KERNEL, !memsw)) {
-+					GFP_KERNEL, reclaim_options)) {
- 			ret = -EBUSY;
+ 		/* match ? */
+-		if (system_ram >= start && system_ram < end) {
++		if (total_mem >= start && total_mem < end) {
+ 			*crash_size = size;
  			break;
  		}
-@@ -3663,6 +3658,9 @@ unsigned long mem_cgroup_soft_limit_recl
- static int mem_cgroup_force_empty(struct mem_cgroup *memcg)
- {
- 	int nr_retries = MAX_RECLAIM_RETRIES;
-+	unsigned int reclaim_options;
-+
-+	reclaim_options = MEMCG_RECLAIM_CONTROLLED | MEMCG_RECLAIM_MAY_SWAP;
- 
- 	/* we call try-to-free pages for make this cgroup empty */
- 	lru_add_drain_all();
-@@ -3674,7 +3672,8 @@ static int mem_cgroup_force_empty(struct
- 		if (signal_pending(current))
- 			return -EINTR;
- 
--		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, true))
-+		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL,
-+						  reclaim_options))
- 			nr_retries--;
- 	}
- 
-@@ -6436,6 +6435,7 @@ static ssize_t memory_high_write(struct
- 	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
- 	bool drained = false;
- 	unsigned long high;
-+	unsigned int reclaim_options;
- 	int err;
- 
- 	buf = strstrip(buf);
-@@ -6444,6 +6444,7 @@ static ssize_t memory_high_write(struct
- 		return err;
- 
- 	page_counter_set_high(&memcg->memory, high);
-+	reclaim_options = MEMCG_RECLAIM_CONTROLLED | MEMCG_RECLAIM_MAY_SWAP;
- 
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
-@@ -6462,7 +6463,7 @@ static ssize_t memory_high_write(struct
- 		}
- 
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
--							 GFP_KERNEL, true);
-+						GFP_KERNEL, reclaim_options);
- 
- 		if (!reclaimed && !nr_retries--)
- 			break;
-@@ -6485,6 +6486,7 @@ static ssize_t memory_max_write(struct k
- 	unsigned int nr_reclaims = MAX_RECLAIM_RETRIES;
- 	bool drained = false;
- 	unsigned long max;
-+	unsigned int reclaim_options;
- 	int err;
- 
- 	buf = strstrip(buf);
-@@ -6493,6 +6495,7 @@ static ssize_t memory_max_write(struct k
- 		return err;
- 
- 	xchg(&memcg->memory.max, max);
-+	reclaim_options = MEMCG_RECLAIM_CONTROLLED | MEMCG_RECLAIM_MAY_SWAP;
- 
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
-@@ -6511,7 +6514,7 @@ static ssize_t memory_max_write(struct k
- 
- 		if (nr_reclaims) {
- 			if (!try_to_free_mem_cgroup_pages(memcg, nr_pages - max,
--							  GFP_KERNEL, true))
-+						GFP_KERNEL, reclaim_options))
- 				nr_reclaims--;
- 			continue;
- 		}
-@@ -6640,6 +6643,7 @@ static ssize_t memory_reclaim(struct ker
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
- 	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
- 	unsigned long nr_to_reclaim, nr_reclaimed = 0;
-+	unsigned int reclaim_options;
- 	int err;
- 
- 	buf = strstrip(buf);
-@@ -6647,6 +6651,7 @@ static ssize_t memory_reclaim(struct ker
- 	if (err)
- 		return err;
- 
-+	reclaim_options = MEMCG_RECLAIM_CONTROLLED | MEMCG_RECLAIM_MAY_SWAP;
- 	while (nr_reclaimed < nr_to_reclaim) {
- 		unsigned long reclaimed;
- 
-@@ -6663,7 +6668,7 @@ static ssize_t memory_reclaim(struct ker
- 
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
- 						nr_to_reclaim - nr_reclaimed,
--						GFP_KERNEL, true);
-+						GFP_KERNEL, reclaim_options);
- 
- 		if (!reclaimed && !nr_retries--)
- 			return -EAGAIN;
---- a/mm/vmscan.c~mm-vmpressure-dont-count-userspace-induced-reclaim-as-memory-pressure
-+++ a/mm/vmscan.c
-@@ -101,6 +101,9 @@ struct scan_control {
- 	/* Can pages be swapped as part of reclaim? */
- 	unsigned int may_swap:1;
- 
-+	/* Reclaim is controlled by userspace */
-+	unsigned int controlled:1;
-+
- 	/*
- 	 * Cgroup memory below memory.low is protected as long as we
- 	 * don't threaten to OOM. If any cgroup is reclaimed at
-@@ -3175,9 +3178,10 @@ static void shrink_node_memcgs(pg_data_t
- 			    sc->priority);
- 
- 		/* Record the group's reclaim efficiency */
--		vmpressure(sc->gfp_mask, memcg, false,
--			   sc->nr_scanned - scanned,
--			   sc->nr_reclaimed - reclaimed);
-+		if (!sc->controlled)
-+			vmpressure(sc->gfp_mask, memcg, false,
-+				   sc->nr_scanned - scanned,
-+				   sc->nr_reclaimed - reclaimed);
- 
- 	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, NULL)));
- }
-@@ -3300,9 +3304,10 @@ again:
- 	}
- 
- 	/* Record the subtree's reclaim efficiency */
--	vmpressure(sc->gfp_mask, sc->target_mem_cgroup, true,
--		   sc->nr_scanned - nr_scanned,
--		   sc->nr_reclaimed - nr_reclaimed);
-+	if (!sc->controlled)
-+		vmpressure(sc->gfp_mask, sc->target_mem_cgroup, true,
-+			   sc->nr_scanned - nr_scanned,
-+			   sc->nr_reclaimed - nr_reclaimed);
- 
- 	if (sc->nr_reclaimed - nr_reclaimed)
- 		reclaimable = true;
-@@ -3584,8 +3589,9 @@ retry:
- 		__count_zid_vm_events(ALLOCSTALL, sc->reclaim_idx, 1);
- 
- 	do {
--		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
--				sc->priority);
-+		if (!sc->controlled)
-+			vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
-+					sc->priority);
- 		sc->nr_scanned = 0;
- 		shrink_zones(zonelist, sc);
- 
-@@ -3875,10 +3881,12 @@ unsigned long mem_cgroup_shrink_node(str
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 					   unsigned long nr_pages,
- 					   gfp_t gfp_mask,
--					   bool may_swap)
-+					   unsigned int reclaim_options)
- {
- 	unsigned long nr_reclaimed;
-+	unsigned long pflags;
- 	unsigned int noreclaim_flag;
-+	bool controlled_reclaim = reclaim_options & MEMCG_RECLAIM_CONTROLLED;
- 	struct scan_control sc = {
- 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
- 		.gfp_mask = (current_gfp_context(gfp_mask) & GFP_RECLAIM_MASK) |
-@@ -3888,7 +3896,8 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.priority = DEF_PRIORITY,
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
--		.may_swap = may_swap,
-+		.may_swap = !!(reclaim_options & MEMCG_RECLAIM_MAY_SWAP),
-+		.controlled = controlled_reclaim,
- 	};
- 	/*
- 	 * Traverse the ZONELIST_FALLBACK zonelist of the current node to put
-@@ -3898,12 +3907,19 @@ unsigned long try_to_free_mem_cgroup_pag
- 	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
- 
- 	set_task_reclaim_state(current, &sc.reclaim_state);
-+
- 	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask);
-+
-+	if (!controlled_reclaim)
-+		psi_memstall_enter(&pflags);
- 	noreclaim_flag = memalloc_noreclaim_save();
- 
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
- 
- 	memalloc_noreclaim_restore(noreclaim_flag);
-+	if (!controlled_reclaim)
-+		psi_memstall_leave(&pflags);
-+
- 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
- 	set_task_reclaim_state(current, NULL);
- 
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from ltao@redhat.com are
 
+kdump-round-up-the-total-memory-size-to-128m-for-crashkernel-reservation.patch
 
