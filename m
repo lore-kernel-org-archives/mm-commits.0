@@ -2,148 +2,129 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2780C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jun 2022 19:03:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2BABC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jun 2022 19:06:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236263AbiF0TDO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Jun 2022 15:03:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52060 "EHLO
+        id S238517AbiF0TGE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Jun 2022 15:06:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235695AbiF0TDN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2022 15:03:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BF3A108B
-        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 12:03:12 -0700 (PDT)
+        with ESMTP id S237731AbiF0TGC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2022 15:06:02 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37DFB21B1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 12:06:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B7F69615E4
-        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 19:03:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1863BC3411D;
-        Mon, 27 Jun 2022 19:03:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CD0ACB81A96
+        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 19:05:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70BC6C3411D;
+        Mon, 27 Jun 2022 19:05:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656356591;
-        bh=RoerNX7Ojqha9F5ItAFwHjWxivbs9VNBvbxR8Vy5ahE=;
+        s=korg; t=1656356757;
+        bh=Muv00RZTeYqQloAph16A1HTf9SvjHOHOq90UPv81t0I=;
         h=Date:To:From:Subject:From;
-        b=DFW6Pt77GisSjKsaLIXrTT4+qMZlVfaMDpj4cwntwaYXj1B1fULZX8yotteiU7MyM
-         a9qdE8/uXXYlLk4hCauLzHgBuj+vVcb4853NnW6KNdYR3R3lyZW9mUlMZOgSKwCRjM
-         lkXxNPwdti15hDd/l2Jjh+JN62J2oho/9IS40iEQ=
-Date:   Mon, 27 Jun 2022 12:03:10 -0700
-To:     mm-commits@vger.kernel.org, urezki@gmail.com, ke.wang@unisoc.com,
-        hch@lst.de, zhaoyang.huang@unisoc.com, akpm@linux-foundation.org
+        b=gFRzdFdIdpV7nK/R0HmcbmrY64WXuMxT14DC6uWr+HRV1+ERLMChDtZLzxPARdyYK
+         QkVxsmHMkl5Ndb5YvObB5Vd37UvTk4vR+Q4lbwwNU6OQpbI4ye/M0O1kE2f4X1zOxW
+         prxIDCP1N4DqJTc9NGGHxy3BYMerO+Mo4nv1hStw=
+Date:   Mon, 27 Jun 2022 12:05:56 -0700
+To:     mm-commits@vger.kernel.org, tkjos@google.com, surenb@google.com,
+        maco@android.com, Liam.Howlett@oracle.com, joel@joelfernandes.org,
+        hridya@google.com, gregkh@linuxfoundation.org, brauner@kernel.org,
+        arve@android.com, liam.howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-fix-racing-of-vb-va-when-kasan-enabled.patch removed from -mm tree
-Message-Id: <20220627190311.1863BC3411D@smtp.kernel.org>
+Subject: + android-binder-fix-lockdep-check-on-clearing-vma.patch added to mm-unstable branch
+Message-Id: <20220627190557.70BC6C3411D@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: fix racing of vb->va when kasan enabled
-has been removed from the -mm tree.  Its filename was
-     mm-fix-racing-of-vb-va-when-kasan-enabled.patch
+The patch titled
+     Subject: android: binder: fix lockdep check on clearing vma
+has been added to the -mm mm-unstable branch.  Its filename is
+     android-binder-fix-lockdep-check-on-clearing-vma.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/android-binder-fix-lockdep-check-on-clearing-vma.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: mm: fix racing of vb->va when kasan enabled
-Date: Wed, 25 May 2022 10:52:44 +0800
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: android: binder: fix lockdep check on clearing vma
+Date: Mon, 27 Jun 2022 15:18:59 +0000
 
-Access to vb->va could be deemed as use after free when KASAN is enabled
-like below.  Fix it by expanding the mutex's range.
+When munmapping a vma, the mmap_lock can be degraded to a write before
+calling close() on the file handle.  The binder close() function calls
+binder_alloc_set_vma() to clear the vma address, which now has a lock dep
+check for writing on the mmap_lock.  Change the lockdep check to ensure
+the reading lock is held while clearing and keep the write check while
+writing.
 
-[   20.232335] ==================================================================
-[   20.232365] BUG: KASAN: use-after-free in _vm_unmap_aliases+0x164/0x364
-[   20.232376] Read of size 8 at addr ffffff80d84af780 by task modprobe/300
-[   20.232380]
-[   20.232395] CPU: 5 PID: 300 Comm: modprobe Tainted: G S       C O      5.4.161-android12-9-03238-gd43329d103de-ab20547 #1
-[   20.232401] Hardware name: Spreadtrum UMS512-1H10 SoC (DT)
-[   20.232407] Call trace:
-[   20.232419]  dump_backtrace+0x0/0x2b4
-[   20.232428]  show_stack+0x24/0x30
-[   20.232443]  dump_stack+0x15c/0x1f4
-[   20.232455]  print_address_description+0x88/0x568
-[   20.232465]  __kasan_report+0x1b8/0x1dc
-[   20.232474]  kasan_report+0x10/0x18
-[   20.232486]  __asan_report_load8_noabort+0x1c/0x24
-[   20.232495]  _vm_unmap_aliases+0x164/0x364
-[   20.232505]  vm_unmap_aliases+0x20/0x28
-[   20.232516]  change_memory_common+0x2c4/0x3ec
-[   20.232524]  set_memory_ro+0x30/0x3c
-[   20.232539]  module_enable_ro+0x144/0x3f0
-[   20.232547]  load_module+0x54c0/0x8248
-[   20.232555]  __se_sys_finit_module+0x174/0x1b0
-[   20.232564]  __arm64_sys_finit_module+0x78/0x88
-[   20.232573]  el0_svc_common+0x19c/0x354
-[   20.232581]  el0_svc_handler+0x48/0x54
-[   20.232591]  el0_svc+0x8/0xc
-[   20.232595]
-[   20.232602] Allocated by task 297:
-[   20.232615]  __kasan_kmalloc+0x130/0x1f8
-[   20.232625]  kasan_slab_alloc+0x14/0x1c
-[   20.232638]  kmem_cache_alloc+0x1dc/0x394
-[   20.232648]  alloc_vmap_area+0xb4/0x1630
-[   20.232657]  vm_map_ram+0x3ac/0x768
-[   20.232671]  z_erofs_decompress_generic+0x2f0/0x844
-[   20.232681]  z_erofs_decompress+0xa8/0x594
-[   20.232692]  z_erofs_decompress_pcluster+0xeb4/0x1458
-[   20.232702]  z_erofs_vle_unzip_wq+0xe4/0x140
-[   20.232715]  process_one_work+0x5c0/0x10ac
-[   20.232724]  worker_thread+0x888/0x1128
-[   20.232733]  kthread+0x290/0x304
-[   20.232744]  ret_from_fork+0x10/0x18
-[   20.232747]
-[   20.232752] Freed by task 51:
-[   20.232762]  __kasan_slab_free+0x1a0/0x270
-[   20.232772]  kasan_slab_free+0x10/0x1c
-[   20.232781]  slab_free_freelist_hook+0xd0/0x1ac
-[   20.232792]  kmem_cache_free+0x110/0x368
-[   20.232803]  __purge_vmap_area_lazy+0x524/0x13e4
-[   20.232813]  _vm_unmap_aliases+0x290/0x364
-[   20.232822]  __vunmap+0x45c/0x5c4
-[   20.232831]  vfree+0x74/0x16c
-[   20.232841]  module_memfree+0x44/0x7c
-[   20.232850]  do_free_init+0x5c/0xac
-[   20.232860]  process_one_work+0x5c0/0x10ac
-[   20.232869]  worker_thread+0xb3c/0x1128
-[   20.232877]  kthread+0x290/0x304
-[   20.232887]  ret_from_fork+0x10/0x18
-
-Link: https://lkml.kernel.org/r/1653447164-15017-1-git-send-email-zhaoyang.huang@unisoc.com
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Cc: ke.wang <ke.wang@unisoc.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20220627151857.2316964-1-Liam.Howlett@oracle.com
+Fixes: 472a68df605b ("android: binder: stop saving a pointer to the VMA")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: syzbot+da54fa8d793ca89c741f@syzkaller.appspotmail.com
+Acked-by: Todd Kjos <tkjos@google.com>
+Cc: "Arve Hjønnevåg" <arve@android.com>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hridya Valsaraju <hridya@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Martijn Coenen <maco@android.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/android/binder_alloc.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-fix-racing-of-vb-va-when-kasan-enabled
-+++ a/mm/vmalloc.c
-@@ -2088,7 +2088,7 @@ static void _vm_unmap_aliases(unsigned l
- 		return;
+--- a/drivers/android/binder_alloc.c~android-binder-fix-lockdep-check-on-clearing-vma
++++ a/drivers/android/binder_alloc.c
+@@ -315,12 +315,19 @@ static inline void binder_alloc_set_vma(
+ {
+ 	unsigned long vm_start = 0;
  
- 	might_sleep();
--
-+	mutex_lock(&vmap_purge_lock);
- 	for_each_possible_cpu(cpu) {
- 		struct vmap_block_queue *vbq = &per_cpu(vmap_block_queue, cpu);
- 		struct vmap_block *vb;
-@@ -2113,7 +2113,6 @@ static void _vm_unmap_aliases(unsigned l
- 		rcu_read_unlock();
++	/*
++	 * Allow clearing the vma with holding just the read lock to allow
++	 * munmapping downgrade of the write lock before freeing and closing the
++	 * file using binder_alloc_vma_close().
++	 */
+ 	if (vma) {
+ 		vm_start = vma->vm_start;
+ 		alloc->vma_vm_mm = vma->vm_mm;
++		mmap_assert_write_locked(alloc->vma_vm_mm);
++	} else {
++		mmap_assert_locked(alloc->vma_vm_mm);
  	}
  
--	mutex_lock(&vmap_purge_lock);
- 	purge_fragmented_blocks_allcpus();
- 	if (!__purge_vmap_area_lazy(start, end) && flush)
- 		flush_tlb_kernel_range(start, end);
+-	mmap_assert_write_locked(alloc->vma_vm_mm);
+ 	alloc->vma_addr = vm_start;
+ }
+ 
 _
 
-Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
+android-binder-fix-lockdep-check-on-clearing-vma.patch
+maple-tree-add-new-data-structure-fix.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
+mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
 
