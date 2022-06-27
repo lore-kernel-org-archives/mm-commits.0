@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E995C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jun 2022 20:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6929BC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jun 2022 20:06:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238760AbiF0UCR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Jun 2022 16:02:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43248 "EHLO
+        id S235941AbiF0UGw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Jun 2022 16:06:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238576AbiF0UCR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2022 16:02:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CD631C91C
-        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 13:02:16 -0700 (PDT)
+        with ESMTP id S238913AbiF0UGv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2022 16:06:51 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBAFF1DA76
+        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 13:06:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 384D7616CC
-        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 20:02:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BEF1C34115;
-        Mon, 27 Jun 2022 20:02:15 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 4F68CCE1D53
+        for <mm-commits@vger.kernel.org>; Mon, 27 Jun 2022 20:06:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DF91C34115;
+        Mon, 27 Jun 2022 20:06:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656360135;
-        bh=9A8TQnGXYbw8UrBekmao9kGhzCsS2ARfMAeeZZfWjpY=;
+        s=korg; t=1656360405;
+        bh=gbE8wTvk0pKri3nr2/Qf9pX3hA2CBpjUiBCunbXfQ8M=;
         h=Date:To:From:Subject:From;
-        b=ROTQTt5t+glmyXtNTGfHEPeQ6UnnDWOBPQLb7u9+979rTpthw75sqhANRgy0Zut+x
-         jDcooBQegxgzRhPHyNt1WhyWj+jbQ5q8LtwCfS0kAKYgkQjo64uuUpaBt9T0F3CSN0
-         U8FUqOF+GNjzPMHLrQDaZ3UPly+UQ3c60anNrkCA=
-Date:   Mon, 27 Jun 2022 13:02:14 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, yangtiezhu@loongson.cn,
-        akpm@linux-foundation.org
+        b=t7DNSyApAXY+/1FlLIRUWe5ytHm8ioLi0X7eVxojL7Dvd+Jeza/4TQq/Hp7d+eR4G
+         kdEn3PnripuE0KTWubMtz7PbjJtan7uslLN/MecZtguZKbod6hCBFdYYHylGEqU8yV
+         PYih0sDqzTTHNNgJQWoQXAED3Ioyw+WPboD0zI88=
+Date:   Mon, 27 Jun 2022 13:06:44 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        songmuchun@bytedance.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@suse.com,
+        vvs@openvz.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-make-lz4_decompress_safe_forceextdict-static.patch added to mm-nonmm-unstable branch
-Message-Id: <20220627200215.8BEF1C34115@smtp.kernel.org>
+Subject: + memcg-notify-about-global-mem_cgroup_id-space-depletion.patch added to mm-unstable branch
+Message-Id: <20220627200645.5DF91C34115@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: make LZ4_decompress_safe_forceExtDict() static
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-make-lz4_decompress_safe_forceextdict-static.patch
+     Subject: memcg: notify about global mem_cgroup_id space depletion
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-notify-about-global-mem_cgroup_id-space-depletion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-make-lz4_decompress_safe_forceextdict-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-notify-about-global-mem_cgroup_id-space-depletion.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,43 +66,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: lib: make LZ4_decompress_safe_forceExtDict() static
-Date: Mon, 27 Jun 2022 11:02:45 +0800
+From: Vasily Averin <vvs@openvz.org>
+Subject: memcg: notify about global mem_cgroup_id space depletion
+Date: Mon, 27 Jun 2022 05:11:26 +0300
 
-LZ4_decompress_safe_forceExtDict() is only used in
-lib/lz4/lz4_decompress.c, make it static to fix the build warning about
-"no previous prototype" [1].
+Currently, the host owner is not informed about the exhaustion of the
+global mem_cgroup_id space.  When this happens, systemd cannot start a new
+service and receives a unique -ENOSPC error code.  However, this can
+happen inside this container, persist in the log file of the local
+container, and may not be noticed by the host owner if he did not try to
+start any new services.
 
-[1] https://lore.kernel.org/lkml/202206260948.akgsho1q-lkp@intel.com/
-
-Link: https://lkml.kernel.org/r/1656298965-8698-1-git-send-email-yangtiezhu@loongson.cn
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Reported-by: kernel test robot <lkp@intel.com>
+Link: https://lkml.kernel.org/r/97bed1fd-f230-c2ea-1cb6-8230825a9a64@openvz.org
+Signed-off-by: Vasily Averin <vvs@openvz.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lz4/lz4_decompress.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/lz4/lz4_decompress.c~lib-make-lz4_decompress_safe_forceextdict-static
-+++ a/lib/lz4/lz4_decompress.c
-@@ -507,9 +507,9 @@ static int LZ4_decompress_safe_withSmall
- 				      (BYTE *)dest - prefixSize, NULL, 0);
- }
+--- a/mm/memcontrol.c~memcg-notify-about-global-mem_cgroup_id-space-depletion
++++ a/mm/memcontrol.c
+@@ -5286,6 +5286,8 @@ static struct mem_cgroup *mem_cgroup_all
+ 				 1, MEM_CGROUP_ID_MAX + 1, GFP_KERNEL);
+ 	if (memcg->id.id < 0) {
+ 		error = memcg->id.id;
++		if (error == -ENOSPC)
++			pr_notice_ratelimited("mem_cgroup_id space is exhausted\n");
+ 		goto fail;
+ 	}
  
--int LZ4_decompress_safe_forceExtDict(const char *source, char *dest,
--				     int compressedSize, int maxOutputSize,
--				     const void *dictStart, size_t dictSize)
-+static int LZ4_decompress_safe_forceExtDict(const char *source, char *dest,
-+					    int compressedSize, int maxOutputSize,
-+					    const void *dictStart, size_t dictSize)
- {
- 	return LZ4_decompress_generic(source, dest,
- 				      compressedSize, maxOutputSize,
 _
 
-Patches currently in -mm which might be from yangtiezhu@loongson.cn are
+Patches currently in -mm which might be from vvs@openvz.org are
 
-lib-make-lz4_decompress_safe_forceextdict-static.patch
+memcg-notify-about-global-mem_cgroup_id-space-depletion.patch
 
