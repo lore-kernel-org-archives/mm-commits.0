@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C1DDC43334
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jun 2022 19:40:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F06FDCCA47E
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jun 2022 19:53:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229599AbiF1Tk1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Jun 2022 15:40:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59976 "EHLO
+        id S233376AbiF1Tx6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Jun 2022 15:53:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229579AbiF1TkE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2022 15:40:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEE9A3A19B
-        for <mm-commits@vger.kernel.org>; Tue, 28 Jun 2022 12:31:47 -0700 (PDT)
+        with ESMTP id S233532AbiF1Twz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2022 15:52:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D502622537
+        for <mm-commits@vger.kernel.org>; Tue, 28 Jun 2022 12:52:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4520F61B91
-        for <mm-commits@vger.kernel.org>; Tue, 28 Jun 2022 19:30:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91628C341CE;
-        Tue, 28 Jun 2022 19:30:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5D52FB81FE2
+        for <mm-commits@vger.kernel.org>; Tue, 28 Jun 2022 19:51:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12770C3411D;
+        Tue, 28 Jun 2022 19:51:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656444646;
-        bh=oC8008+kXSZQLKyZrmpHKGRbZIkF+r6D15Q4gEB9zu8=;
+        s=korg; t=1656445918;
+        bh=TM/Y1GnqQOOonKajlPOVjXRzuhyyvX2VixHPeEeLvA4=;
         h=Date:To:From:Subject:From;
-        b=koCik0ITY7K8afwu0aNgnmNs6psPNT6mkxriSyhKSKXDMk/hlR1njS6W+aWecS6YO
-         ovZpCiUBhHc9cCZDwCrT6WhwI/dpO8CtWJFDycqN8I192GWnujY5TiqSfABHe9tcL0
-         ANmVBbNjFjiXSCLflZ4TFNXztzoSuoZrrHbZAUIU=
-Date:   Tue, 28 Jun 2022 12:30:45 -0700
-To:     mm-commits@vger.kernel.org, yuzhe@nfschina.com,
-        akpm@linux-foundation.org
+        b=UPAynfDw4+qLE4V6mcVxKridGSNCYwo4hq3WT6pK4pRH3QsBEhSWCL00WtOAxW1T/
+         GPOkj2jO+QDITxO2rF54suijcxDcu6ThK+9G/bUczHtta2pjuqelA46y5tlFhT1aSy
+         y4m0wKpV6YEVd8Ln8ZxLwkOnbkp57Er3WZjUZQPA=
+Date:   Tue, 28 Jun 2022 12:51:57 -0700
+To:     mm-commits@vger.kernel.org, lkp@intel.com,
+        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-mqueue-remove-unnecessary-void-conversions.patch added to mm-nonmm-unstable branch
-Message-Id: <20220628193046.91628C341CE@smtp.kernel.org>
+Subject: + arm64-hugetlb-implement-arm64-specific-hugetlb_mask_last_page-fix.patch added to mm-unstable branch
+Message-Id: <20220628195158.12770C3411D@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/mqueue: remove unnecessary (void*) conversion
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-mqueue-remove-unnecessary-void-conversions.patch
+     Subject: arm64-hugetlb-implement-arm64-specific-hugetlb_mask_last_page-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     arm64-hugetlb-implement-arm64-specific-hugetlb_mask_last_page-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-mqueue-remove-unnecessary-void-conversions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-hugetlb-implement-arm64-specific-hugetlb_mask_last_page-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,34 +64,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhe <yuzhe@nfschina.com>
-Subject: ipc/mqueue: remove unnecessary (void*) conversion
-Date: Tue, 28 Jun 2022 10:12:51 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: arm64-hugetlb-implement-arm64-specific-hugetlb_mask_last_page-fix
+Date: Mon, 27 Jun 2022 13:55:37 +0800
 
-Remove unnecessary void* type casting.
+I missed the case that '__PAGETABLE_PMD_FOLDED', was defined, which PUD is
+same with PMD.
 
-Link: https://lkml.kernel.org/r/20220628021251.17197-1-yuzhe@nfschina.com
-Signed-off-by: Yu Zhe <yuzhe@nfschina.com>
+Link: https://lkml.kernel.org/r/a14e7b39-6a8a-4609-b4a1-84ac574f5c96@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/mm/hugetlbpage.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/ipc/mqueue.c~ipc-mqueue-remove-unnecessary-void-conversions
-+++ a/ipc/mqueue.c
-@@ -489,7 +489,7 @@ static struct vfsmount *mq_create_mount(
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-implement-arm64-specific-hugetlb_mask_last_page-fix
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -373,8 +373,10 @@ unsigned long hugetlb_mask_last_page(str
+ 	unsigned long hp_size = huge_page_size(h);
  
- static void init_once(void *foo)
- {
--	struct mqueue_inode_info *p = (struct mqueue_inode_info *) foo;
-+	struct mqueue_inode_info *p = foo;
- 
- 	inode_init_once(&p->vfs_inode);
- }
+ 	switch (hp_size) {
++#ifndef __PAGETABLE_PMD_FOLDED
+ 	case PUD_SIZE:
+ 		return PGDIR_SIZE - PUD_SIZE;
++#endif
+ 	case CONT_PMD_SIZE:
+ 		return PUD_SIZE - CONT_PMD_SIZE;
+ 	case PMD_SIZE:
 _
 
-Patches currently in -mm which might be from yuzhe@nfschina.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-ipc-mqueue-remove-unnecessary-void-conversions.patch
+mm-damon-use-set_huge_pte_at-to-make-huge-pte-old.patch
+mm-hugetlb-remove-unnecessary-huge_ptep_set_access_flags-in-hugetlb_mcopy_atomic_pte.patch
+mm-rmap-simplify-the-hugetlb-handling-when-unmapping-or-migration.patch
+arm64-hugetlb-implement-arm64-specific-hugetlb_mask_last_page.patch
+arm64-hugetlb-implement-arm64-specific-hugetlb_mask_last_page-fix.patch
 
