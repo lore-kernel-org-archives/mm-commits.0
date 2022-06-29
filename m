@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7079AC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Jun 2022 23:34:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC473C43334
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Jun 2022 23:34:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231970AbiF2Xen (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Jun 2022 19:34:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42228 "EHLO
+        id S232032AbiF2Xe4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Jun 2022 19:34:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231983AbiF2XeT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jun 2022 19:34:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6B6B40A30
-        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 16:33:53 -0700 (PDT)
+        with ESMTP id S231938AbiF2XeY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jun 2022 19:34:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03B3640E5D
+        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 16:33:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E7E961E4A
-        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 23:33:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F70DC34114;
-        Wed, 29 Jun 2022 23:33:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 558CC61E4C
+        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 23:33:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA07BC34114;
+        Wed, 29 Jun 2022 23:33:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656545632;
-        bh=0h+DYCZ0Y6pSQZQCS93abirfMcDx3WBVkvUN5gSJ+y8=;
+        s=korg; t=1656545636;
+        bh=lq0t+bf8r7VL66Ig7OxHS3vX+rl0rRhSsWsYtzr9bfw=;
         h=Date:To:From:Subject:From;
-        b=N8HOL/wA/NneEQtQX1lHWJW0SdB4AOhoCmr3uxi3UDwi9wTQto8XNKhHQh8ozjOAJ
-         qDGj14qJV7V9DpZq0eY9N2XU5mO76S9ieHkNxdQnLcaucR+uT5jiLZBswSw3iaUjIp
-         /WTF6/NKgP8JzkTmmUSdaOoZScDoE0sPVrGEFQts=
-Date:   Wed, 29 Jun 2022 16:33:51 -0700
+        b=odvw+xQSuvNBBNzIY4whagWQ5Hq3e3rkkV0i1tF0d3XH7maRgXIxkaX7cXYlLy2uG
+         NTfC8X8/E6UFL3L3+AGlUi7mIuWfpfM2NQbcXFOPRvoiDJa8cEFaPzoZVZWdR3CMV4
+         xXOq2/CaYOK3GOAlrdCFphnZqK4izETU0qqdWMsY=
+Date:   Wed, 29 Jun 2022 16:33:56 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
         hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
-        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
+        apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-device-coherent-vma-selection-for-memory-migration.patch added to mm-unstable branch
-Message-Id: <20220629233352.7F70DC34114@smtp.kernel.org>
+Subject: + mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch added to mm-unstable branch
+Message-Id: <20220629233356.AA07BC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add device coherent vma selection for memory migration
+     Subject: mm/gup: migrate device coherent pages when pinning instead of failing
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-device-coherent-vma-selection-for-memory-migration.patch
+     mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-device-coherent-vma-selection-for-memory-migration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,19 +66,24 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alex Sierra <alex.sierra@amd.com>
-Subject: mm: add device coherent vma selection for memory migration
-Date: Tue, 28 Jun 2022 22:54:16 -0500
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/gup: migrate device coherent pages when pinning instead of failing
+Date: Tue, 28 Jun 2022 22:54:18 -0500
 
-This case is used to migrate pages from device memory, back to system
-memory.  Device coherent type memory is cache coherent from device and CPU
-point of view.
+Currently any attempts to pin a device coherent page will fail.  This is
+because device coherent pages need to be managed by a device driver, and
+pinning them would prevent a driver from migrating them off the device.
 
-Link: https://lkml.kernel.org/r/20220629035426.20013-5-alex.sierra@amd.com
-Signed-off-by: Alex Sierra <alex.sierra@amd.com>
+However this is no reason to fail pinning of these pages.  These are
+coherent and accessible from the CPU so can be migrated just like pinning
+ZONE_MOVABLE pages.  So instead of failing all attempts to pin them first
+try migrating them out of ZONE_DEVICE.
+
+[hch@lst.de: rebased to the split device memory checks, moved migrate_device_page to migrate_device.c]
+Link: https://lkml.kernel.org/r/20220629035426.20013-7-alex.sierra@amd.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Reviewed-by: Alistair Poppple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
@@ -87,61 +92,149 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    1 +
- mm/migrate_device.c     |   12 +++++++++---
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ mm/gup.c            |   47 +++++++++++++++++++++++++++++++++----
+ mm/internal.h       |    1 
+ mm/migrate_device.c |   53 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 96 insertions(+), 5 deletions(-)
 
---- a/include/linux/migrate.h~mm-add-device-coherent-vma-selection-for-memory-migration
-+++ a/include/linux/migrate.h
-@@ -148,6 +148,7 @@ static inline unsigned long migrate_pfn(
- enum migrate_vma_direction {
- 	MIGRATE_VMA_SELECT_SYSTEM = 1 << 0,
- 	MIGRATE_VMA_SELECT_DEVICE_PRIVATE = 1 << 1,
-+	MIGRATE_VMA_SELECT_DEVICE_COHERENT = 1 << 2,
- };
+--- a/mm/gup.c~mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing
++++ a/mm/gup.c
+@@ -1924,9 +1924,43 @@ static long check_and_migrate_movable_pa
+ 			continue;
+ 		prev_folio = folio;
  
- struct migrate_vma {
---- a/mm/migrate_device.c~mm-add-device-coherent-vma-selection-for-memory-migration
+-		if (folio_is_longterm_pinnable(folio))
++		/*
++		 * Device private pages will get faulted in during gup so it
++		 * shouldn't be possible to see one here.
++		 */
++		if (WARN_ON_ONCE(folio_is_device_private(folio))) {
++			ret = -EFAULT;
++			goto unpin_pages;
++		}
++
++		/*
++		 * Device coherent pages are managed by a driver and should not
++		 * be pinned indefinitely as it prevents the driver moving the
++		 * page. So when trying to pin with FOLL_LONGTERM instead try
++		 * to migrate the page out of device memory.
++		 */
++		if (folio_is_device_coherent(folio)) {
++			WARN_ON_ONCE(PageCompound(&folio->page));
++
++			/*
++			 * Migration will fail if the page is pinned, so convert
++			 * the pin on the source page to a normal reference.
++			 */
++			if (gup_flags & FOLL_PIN) {
++				get_page(&folio->page);
++				unpin_user_page(&folio->page);
++			}
++
++			pages[i] = migrate_device_page(&folio->page, gup_flags);
++			if (!pages[i]) {
++				ret = -EBUSY;
++				goto unpin_pages;
++			}
+ 			continue;
++		}
+ 
++		if (folio_is_longterm_pinnable(folio))
++			continue;
+ 		/*
+ 		 * Try to move out any movable page before pinning the range.
+ 		 */
+@@ -1962,10 +1996,13 @@ static long check_and_migrate_movable_pa
+ 	return nr_pages;
+ 
+ unpin_pages:
+-	if (gup_flags & FOLL_PIN) {
+-		unpin_user_pages(pages, nr_pages);
+-	} else {
+-		for (i = 0; i < nr_pages; i++)
++	for (i = 0; i < nr_pages; i++) {
++		if (!pages[i])
++			continue;
++
++		if (gup_flags & FOLL_PIN)
++			unpin_user_page(pages[i]);
++		else
+ 			put_page(pages[i]);
+ 	}
+ 
+--- a/mm/internal.h~mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing
++++ a/mm/internal.h
+@@ -851,6 +851,7 @@ int numa_migrate_prep(struct page *page,
+ 		      unsigned long addr, int page_nid, int *flags);
+ 
+ void free_zone_device_page(struct page *page);
++struct page *migrate_device_page(struct page *page, unsigned int gup_flags);
+ 
+ /*
+  * mm/gup.c
+--- a/mm/migrate_device.c~mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing
 +++ a/mm/migrate_device.c
-@@ -148,15 +148,21 @@ again:
- 			if (is_writable_device_private_entry(entry))
- 				mpfn |= MIGRATE_PFN_WRITE;
- 		} else {
--			if (!(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
--				goto next;
- 			pfn = pte_pfn(pte);
--			if (is_zero_pfn(pfn)) {
-+			if (is_zero_pfn(pfn) &&
-+			    (migrate->flags & MIGRATE_VMA_SELECT_SYSTEM)) {
- 				mpfn = MIGRATE_PFN_MIGRATE;
- 				migrate->cpages++;
- 				goto next;
- 			}
- 			page = vm_normal_page(migrate->vma, addr, pte);
-+			if (page && !is_zone_device_page(page) &&
-+			    !(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
-+				goto next;
-+			else if (page && is_device_coherent_page(page) &&
-+			    (!(migrate->flags & MIGRATE_VMA_SELECT_DEVICE_COHERENT) ||
-+			     page->pgmap->owner != migrate->pgmap_owner))
-+				goto next;
- 			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
- 			mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
- 		}
+@@ -794,3 +794,56 @@ void migrate_vma_finalize(struct migrate
+ 	}
+ }
+ EXPORT_SYMBOL(migrate_vma_finalize);
++
++/*
++ * Migrate a device coherent page back to normal memory.  The caller should have
++ * a reference on page which will be copied to the new page if migration is
++ * successful or dropped on failure.
++ */
++struct page *migrate_device_page(struct page *page, unsigned int gup_flags)
++{
++	unsigned long src_pfn, dst_pfn = 0;
++	struct migrate_vma args;
++	struct page *dpage;
++
++	lock_page(page);
++	src_pfn = migrate_pfn(page_to_pfn(page)) | MIGRATE_PFN_MIGRATE;
++	args.src = &src_pfn;
++	args.dst = &dst_pfn;
++	args.cpages = 1;
++	args.npages = 1;
++	args.vma = NULL;
++	migrate_vma_setup(&args);
++	if (!(src_pfn & MIGRATE_PFN_MIGRATE))
++		return NULL;
++
++	dpage = alloc_pages(GFP_USER | __GFP_NOWARN, 0);
++
++	/*
++	 * get/pin the new page now so we don't have to retry gup after
++	 * migrating. We already have a reference so this should never fail.
++	 */
++	if (dpage && WARN_ON_ONCE(!try_grab_page(dpage, gup_flags))) {
++		__free_pages(dpage, 0);
++		dpage = NULL;
++	}
++
++	if (dpage) {
++		lock_page(dpage);
++		dst_pfn = migrate_pfn(page_to_pfn(dpage));
++	}
++
++	migrate_vma_pages(&args);
++	if (src_pfn & MIGRATE_PFN_MIGRATE)
++		copy_highpage(dpage, page);
++	migrate_vma_finalize(&args);
++	if (dpage && !(src_pfn & MIGRATE_PFN_MIGRATE)) {
++		if (gup_flags & FOLL_PIN)
++			unpin_user_page(dpage);
++		else
++			put_page(dpage);
++		dpage = NULL;
++	}
++
++	return dpage;
++}
 _
 
-Patches currently in -mm which might be from alex.sierra@amd.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-mm-rename-is_pinnable_pages-to-is_pinnable_longterm_pages.patch
-mm-add-zone-device-coherent-type-memory-support.patch
-mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
-mm-add-device-coherent-vma-selection-for-memory-migration.patch
-drm-amdkfd-add-spm-support-for-svm.patch
-lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
-lib-test_hmm-add-module-param-for-zone-device-type.patch
-lib-add-support-for-device-coherent-type-in-test_hmm.patch
-tools-update-hmm-test-to-support-device-coherent-type.patch
-tools-update-test_hmm-script-to-support-sp-config.patch
-tools-add-hmm-gup-tests-for-device-coherent-type.patch
-tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
+mm-remove-the-vma-check-in-migrate_vma_setup.patch
+mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
 
