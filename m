@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5665BC43334
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Jun 2022 23:34:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7079AC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Jun 2022 23:34:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231959AbiF2Xem (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Jun 2022 19:34:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43150 "EHLO
+        id S231970AbiF2Xen (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Jun 2022 19:34:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231968AbiF2XeS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jun 2022 19:34:18 -0400
+        with ESMTP id S231983AbiF2XeT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jun 2022 19:34:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7B813B0
-        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 16:33:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6B6B40A30
+        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 16:33:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3001E61E20
-        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 23:33:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8383EC34114;
-        Wed, 29 Jun 2022 23:33:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E7E961E4A
+        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 23:33:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F70DC34114;
+        Wed, 29 Jun 2022 23:33:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656545630;
-        bh=5g/QnEqE66fuxrJ76qMSBBXHc64ntgJ0WOu42AcVHrU=;
+        s=korg; t=1656545632;
+        bh=0h+DYCZ0Y6pSQZQCS93abirfMcDx3WBVkvUN5gSJ+y8=;
         h=Date:To:From:Subject:From;
-        b=wqmJ8rN/6r22lbXXY5urJ4UttwubUsJ8JqSXWfbRHuD8AkuO7jFsJ4hTH0z6R9bTa
-         psHp5MYEqRoxi/1yjCS0jZLsooKtcPwrqNybx7RCQUR+BweW7U+6YnyM749gVi/lp4
-         krSnCHxZzOIe1Ha4K/tg2Q35dMUwgRT9vHEkfup0=
-Date:   Wed, 29 Jun 2022 16:33:49 -0700
+        b=N8HOL/wA/NneEQtQX1lHWJW0SdB4AOhoCmr3uxi3UDwi9wTQto8XNKhHQh8ozjOAJ
+         qDGj14qJV7V9DpZq0eY9N2XU5mO76S9ieHkNxdQnLcaucR+uT5jiLZBswSw3iaUjIp
+         /WTF6/NKgP8JzkTmmUSdaOoZScDoE0sPVrGEFQts=
+Date:   Wed, 29 Jun 2022 16:33:51 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
         hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
-        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix.patch added to mm-unstable branch
-Message-Id: <20220629233350.8383EC34114@smtp.kernel.org>
+Subject: + mm-add-device-coherent-vma-selection-for-memory-migration.patch added to mm-unstable branch
+Message-Id: <20220629233352.7F70DC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix
+     Subject: mm: add device coherent vma selection for memory migration
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix.patch
+     mm-add-device-coherent-vma-selection-for-memory-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-device-coherent-vma-selection-for-memory-migration.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +66,19 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix
-Date: Wed Jun 29 04:27:39 PM PDT 2022
+From: Alex Sierra <alex.sierra@amd.com>
+Subject: mm: add device coherent vma selection for memory migration
+Date: Tue, 28 Jun 2022 22:54:16 -0500
 
-fix comment typo, per David.  Re-layout comment
+This case is used to migrate pages from device memory, back to system
+memory.  Device coherent type memory is cache coherent from device and CPU
+point of view.
 
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Link: https://lkml.kernel.org/r/20220629035426.20013-5-alex.sierra@amd.com
+Signed-off-by: Alex Sierra <alex.sierra@amd.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Reviewed-by: Alistair Poppple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
@@ -85,51 +87,61 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/migrate.h |    1 +
+ mm/migrate_device.c     |   12 +++++++++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix
-+++ a/mm/memory.c
-@@ -632,16 +632,16 @@ struct page *vm_normal_page(struct vm_ar
- 			return NULL;
- 		if (is_zero_pfn(pfn))
- 			return NULL;
-+		/*
-+		 * NOTE: New users of ZONE_DEVICE will not set pte_devmap()
-+		 * and will have refcounts incremented on their struct pages
-+		 * when they are inserted into PTEs, thus they are safe to
-+		 * return here. Legacy ZONE_DEVICE pages that set pte_devmap()
-+		 * do not have refcounts. Example of legacy ZONE_DEVICE is
-+		 * MEMORY_DEVICE_FS_DAX type in pmem or virtio_fs drivers.
-+		 */
- 		if (pte_devmap(pte))
--/*
-- * NOTE: New uers of ZONE_DEVICE will not set pte_devmap() and will have
-- * refcounts incremented on their struct pages when they are inserted into
-- * PTEs, thus they are safe to return here. Legacy ZONE_DEVICE pages that set
-- * pte_devmap() do not have refcounts. Example of legacy ZONE_DEVICE is
-- * MEMORY_DEVICE_FS_DAX type in pmem or virtio_fs drivers.
-- */
- 			return NULL;
--
- 		print_bad_pte(vma, addr, pte, NULL);
- 		return NULL;
- 	}
+--- a/include/linux/migrate.h~mm-add-device-coherent-vma-selection-for-memory-migration
++++ a/include/linux/migrate.h
+@@ -148,6 +148,7 @@ static inline unsigned long migrate_pfn(
+ enum migrate_vma_direction {
+ 	MIGRATE_VMA_SELECT_SYSTEM = 1 << 0,
+ 	MIGRATE_VMA_SELECT_DEVICE_PRIVATE = 1 << 1,
++	MIGRATE_VMA_SELECT_DEVICE_COHERENT = 1 << 2,
+ };
+ 
+ struct migrate_vma {
+--- a/mm/migrate_device.c~mm-add-device-coherent-vma-selection-for-memory-migration
++++ a/mm/migrate_device.c
+@@ -148,15 +148,21 @@ again:
+ 			if (is_writable_device_private_entry(entry))
+ 				mpfn |= MIGRATE_PFN_WRITE;
+ 		} else {
+-			if (!(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
+-				goto next;
+ 			pfn = pte_pfn(pte);
+-			if (is_zero_pfn(pfn)) {
++			if (is_zero_pfn(pfn) &&
++			    (migrate->flags & MIGRATE_VMA_SELECT_SYSTEM)) {
+ 				mpfn = MIGRATE_PFN_MIGRATE;
+ 				migrate->cpages++;
+ 				goto next;
+ 			}
+ 			page = vm_normal_page(migrate->vma, addr, pte);
++			if (page && !is_zone_device_page(page) &&
++			    !(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
++				goto next;
++			else if (page && is_device_coherent_page(page) &&
++			    (!(migrate->flags & MIGRATE_VMA_SELECT_DEVICE_COHERENT) ||
++			     page->pgmap->owner != migrate->pgmap_owner))
++				goto next;
+ 			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
+ 			mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alex.sierra@amd.com are
 
-android-binder-stop-saving-a-pointer-to-the-vma-fix.patch
-mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers-fix.patch
-mm-shrinkers-add-scan-interface-for-shrinker-debugfs-fix-fix.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-handling-non-lru-pages-returned-by-vm_normal_pages-fix.patch
-mm-factor-helpers-for-memory_failure_dev_pagemap-fix.patch
-xfs-support-cow-in-fsdax-mode-fix.patch
-mm-thp-kill-transparent_hugepage_active-fix.patch
-mm-thp-kill-transparent_hugepage_active-fix-fix.patch
-mm-convert-destroy_compound_page-to-destroy_large_folio-fix.patch
-mm-madvise-minor-cleanup-for-swapin_walk_pmd_entry-fix.patch
-mm-docs-fix-comments-that-mention-mem_hotplug_end-fix.patch
+mm-rename-is_pinnable_pages-to-is_pinnable_longterm_pages.patch
+mm-add-zone-device-coherent-type-memory-support.patch
+mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
+mm-add-device-coherent-vma-selection-for-memory-migration.patch
+drm-amdkfd-add-spm-support-for-svm.patch
+lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
+lib-test_hmm-add-module-param-for-zone-device-type.patch
+lib-add-support-for-device-coherent-type-in-test_hmm.patch
+tools-update-hmm-test-to-support-device-coherent-type.patch
+tools-update-test_hmm-script-to-support-sp-config.patch
+tools-add-hmm-gup-tests-for-device-coherent-type.patch
+tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
 
