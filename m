@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40CA7C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Jun 2022 22:30:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97E7EC43334
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Jun 2022 22:31:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229632AbiF2Wat (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Jun 2022 18:30:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49238 "EHLO
+        id S229586AbiF2Wbz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Jun 2022 18:31:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229586AbiF2Wat (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jun 2022 18:30:49 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54F74D117
-        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 15:30:48 -0700 (PDT)
+        with ESMTP id S229552AbiF2Wbz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jun 2022 18:31:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5430611A22
+        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 15:31:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id B86A7CE27F1
-        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 22:30:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2CE1C34114;
-        Wed, 29 Jun 2022 22:30:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 139BAB82726
+        for <mm-commits@vger.kernel.org>; Wed, 29 Jun 2022 22:31:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C98C1C34114;
+        Wed, 29 Jun 2022 22:31:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656541844;
-        bh=rN50v6T43XW9RhsX3XXNg4IUfwrwOa+r19S60jKqOpU=;
+        s=korg; t=1656541911;
+        bh=4U+SzBbxlD2fc+c4WfHw66QObTKOOzco5ZLOikDKfJ0=;
         h=Date:To:From:Subject:From;
-        b=nkhkN7mjoefr2UasSUkQPP3UEl3Su+N8fGnZzFpXeXQp79GYIB+U/2GWRgH5WCVlK
-         C6ONcv4WoR8LN0EPf2XWXCF8NzDF1QGXswzS41Eeq/32ygaAQ9dFthKpapUHBaK4h6
-         AQlsIb19AsIlPv2M1JU0y/FBOD3eU1twtKpv3YnI=
-Date:   Wed, 29 Jun 2022 15:30:44 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        b=Qq4vexoUuZM+AJIWJMGLS2VRyIS9c2VrYarxCdJQYkrMqEAIaU2Ua04NxwmGpSkVb
+         aLJbztG8IeXBJvbxGzEZAdao3kTXJlZeZuwFeV4+ptphPyIs8KNtnpaYaMp5NSjrEk
+         QaeOjIwTqBQjoR2hwIFyEaN8kv0Lch4nt8BEfEiM=
+Date:   Wed, 29 Jun 2022 15:31:51 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        Liam.Howlett@oracle.com, liam.howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-start-tracking-vmas-with-maple-tree-fix.patch added to mm-unstable branch
-Message-Id: <20220629223044.C2CE1C34114@smtp.kernel.org>
+Subject: + maple-tree-add-new-data-structure-fix-2.patch added to mm-unstable branch
+Message-Id: <20220629223151.C98C1C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: reorder validate_mm_mt() checks
+     Subject: maple_tree: fix mas_spanning_rebalance() corner case
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-start-tracking-vmas-with-maple-tree-fix.patch
+     maple-tree-add-new-data-structure-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-start-tracking-vmas-with-maple-tree-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,44 +65,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mmap: reorder validate_mm_mt() checks
-Date: Tue, 28 Jun 2022 15:08:19 -0400
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: fix mas_spanning_rebalance() corner case
+Date: Wed, 29 Jun 2022 15:23:50 +0000
 
-Allows for detecting broken trees before attempting to iterate over the tree.
+When a node is insufficient during a spanning rebalance loop and
+mast_spanning_rebalance() is called to combine neighbouring nodes, the
+loop should not terminate regardless of if neighbours exist or not.  This
+will allow the data to be stored in the correct node.
 
-Link: https://lkml.kernel.org/r/20220629153127.p2k2cqkc7qy7f3vw@revolver
-Fixes: de4583ed958b (mm: start tracking VMAs with maple tree)
+Link: https://lkml.kernel.org/r/20220629152340.3451959-2-Liam.Howlett@oracle.com
+Fixes: 37a4d714b7d9 (maple_tree: fix underflow in mas_spanning_rebalance())
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/maple_tree.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-start-tracking-vmas-with-maple-tree-fix
-+++ a/mm/mmap.c
-@@ -392,6 +392,8 @@ static void validate_mm_mt(struct mm_str
- 	struct vm_area_struct *vma_mt, *vma = mm->mmap;
+--- a/lib/maple_tree.c~maple-tree-add-new-data-structure-fix-2
++++ a/lib/maple_tree.c
+@@ -3029,8 +3029,7 @@ static int mas_spanning_rebalance(struct
+ 		if (mas_is_root_limits(mast->orig_l))
+ 			break;
  
- 	MA_STATE(mas, mt, 0, 0);
-+
-+	mt_validate(&mm->mm_mt);
- 	mas_for_each(&mas, vma_mt, ULONG_MAX) {
- 		if (xa_is_zero(vma_mt))
- 			continue;
-@@ -440,7 +442,6 @@ static void validate_mm_mt(struct mm_str
+-		if (!mast_spanning_rebalance(mast))
+-			break;
++		mast_spanning_rebalance(mast);
  
+ 		/* rebalancing from other nodes may require another loop. */
+ 		if (!count)
+@@ -6521,6 +6520,7 @@ static inline void *mas_first_entry(stru
+ 	max = mas->max;
+ 	mas->offset = 0;
+ 	while (likely(!ma_is_leaf(mt))) {
++		MT_BUG_ON(mas->tree, mte_dead_node(mas->node));
+ 		slots = ma_slots(mn, mt);
+ 		pivots = ma_pivots(mn, mt);
+ 		max = pivots[0];
+@@ -6531,6 +6531,7 @@ static inline void *mas_first_entry(stru
+ 		mn = mas_mn(mas);
+ 		mt = mte_node_type(mas->node);
  	}
- 	VM_BUG_ON(vma);
--	mt_validate(&mm->mm_mt);
- }
- #else
- #define validate_mm_mt(root) do { } while (0)
++	MT_BUG_ON(mas->tree, mte_dead_node(mas->node));
+ 
+ 	mas->max = max;
+ 	slots = ma_slots(mn, mt);
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-android-binder-stop-saving-a-pointer-to-the-vma.patch
-mm-start-tracking-vmas-with-maple-tree-fix.patch
+android-binder-fix-lockdep-check-on-clearing-vma.patch
+maple-tree-add-new-data-structure-fix.patch
+maple-tree-add-new-data-structure-fix-2.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
+mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
 
