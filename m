@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F27FC43334
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Jul 2022 21:55:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCF35C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Jul 2022 22:00:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231327AbiGAVz6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Jul 2022 17:55:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40386 "EHLO
+        id S230212AbiGAWAR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Jul 2022 18:00:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231163AbiGAVz6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 17:55:58 -0400
+        with ESMTP id S230183AbiGAWAQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 18:00:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5100470AC3
-        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 14:55:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84C1A28737
+        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 15:00:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E207362359
-        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 21:55:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37BE9C3411E;
-        Fri,  1 Jul 2022 21:55:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0DECB623AF
+        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 22:00:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58AA7C341C8;
+        Fri,  1 Jul 2022 22:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656712556;
-        bh=2Z2KjptLZkkEs4GLbFc1O/1caNdv7wyMK5uRsLO4sqo=;
+        s=korg; t=1656712814;
+        bh=PcKo5cLWeU0Hcs9u6aLeIPeD71l4SOKt8lS+lSr3h2g=;
         h=Date:To:From:Subject:From;
-        b=uJk1cWl6OOQbRhVlrMvn2V5N47GZDMlPO3Tse7QvcwsLOQNhtyYn/E6pFcQ5Hc/qq
-         pvGFvbSBQ1kZ6h51n/9ZTsiXYi312bzE0hKQbxNg+eyDVzhW+Rrfkmc4YXzNLZpHjK
-         A+NqAfburBzmQ42nclbco6Mi1pwHQcSuqY7D7UZo=
-Date:   Fri, 01 Jul 2022 14:55:55 -0700
-To:     mm-commits@vger.kernel.org, void@manifault.com, ats@fb.com,
-        aneesh.kumar@linux.vnet.ibm.com, adam@wowsignal.io,
+        b=biriGceWzNNtFi0pNRFCwgZWml0J9+dfrzgNWWPn/zREMzIr+Kehh6E1439bHuHzm
+         DB+7uMVSrRWns/645o81647ovnlQgn3LRWFi7GcLjWuNtM5fykmibabQ6uJvLPUReu
+         NrskMrXd7YXi/bEyapANnCRh3F+sjxRMNXj3SMHU=
+Date:   Fri, 01 Jul 2022 15:00:13 -0700
+To:     mm-commits@vger.kernel.org, nborisov@suse.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-only-run-128tbswitch-with-5-level-paging-v6.patch added to mm-unstable branch
-Message-Id: <20220701215556.37BE9C3411E@smtp.kernel.org>
+Subject: + scripts-bloat-o-meter-switch-argument-parsing-to-using-argparse.patch added to mm-nonmm-unstable branch
+Message-Id: <20220701220014.58AA7C341C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests-vm-only-run-128tbswitch-with-5-level-paging-v6
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-only-run-128tbswitch-with-5-level-paging-v6.patch
+     Subject: scripts/bloat-o-meter: switch argument parsing to using argparse
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-bloat-o-meter-switch-argument-parsing-to-using-argparse.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-only-run-128tbswitch-with-5-level-paging-v6.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-bloat-o-meter-switch-argument-parsing-to-using-argparse.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,98 +64,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Adam Sindelar <adam@wowsignal.io>
-Subject: selftests-vm-only-run-128tbswitch-with-5-level-paging-v6
-Date: Fri, 1 Jul 2022 18:30:30 +0200
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: scripts/bloat-o-meter: switch argument parsing to using argparse
+Date: Fri, 1 Jul 2022 14:35:12 +0300
 
-fix formatting issues, rename "die" to "fail"
+This will facilitate further extension to the arguments the script takes. 
+As an added benefit it also produces saner usage output, where mutual
+exclusivity of the c|d|t parameters is clearly visible:
 
-Link: https://lkml.kernel.org/r/20220701163030.415735-1-adam@wowsignal.io
-Signed-off-by: Adam Sindelar <adam@wowsignal.io>
-Cc: David Vernet <void@manifault.com>
-Cc: Adam Sindelar <ats@fb.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+./scripts/bloat-o-meter  -h
+usage: bloat-o-meter [-h] [-c | -d | -t] file1 file2
+
+Simple script used to compare the symbol sizes of 2 object files
+
+positional arguments:
+  file1       First file to compare
+  file2       Second file to compare
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -c          categorize output based on symbol type
+  -d          Show delta of Data Section
+  -t          Show delta of text Section
+
+Link: https://lkml.kernel.org/r/20220701113513.1938008-1-nborisov@suse.com
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/va_128TBswitch.sh |   52 ++++++++---------
- 1 file changed, 26 insertions(+), 26 deletions(-)
+ scripts/bloat-o-meter |   40 +++++++++++++++++++++-------------------
+ 1 file changed, 21 insertions(+), 19 deletions(-)
 
---- a/tools/testing/selftests/vm/va_128TBswitch.sh~selftests-vm-only-run-128tbswitch-with-5-level-paging-v6
-+++ a/tools/testing/selftests/vm/va_128TBswitch.sh
-@@ -13,41 +13,41 @@ exitcode=1
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-switch-argument-parsing-to-using-argparse
++++ a/scripts/bloat-o-meter
+@@ -7,18 +7,20 @@
+ # This software may be used and distributed according to the terms
+ # of the GNU General Public License, incorporated herein by reference.
  
--die()
-+fail()
- {
--    echo "$1"
--    exit $exitcode
-+	echo "$1"
-+	exit $exitcode
- }
+-import sys, os, re
++import sys, os, re, argparse
+ from signal import signal, SIGPIPE, SIG_DFL
  
- check_supported_x86_64()
- {
--    local config="/proc/config.gz"
--    [[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
--    [[ -f "${config}" ]] || die "Cannot find kernel config in /proc or /boot"
--
--    # gzip -dcfq automatically handles both compressed and plaintext input.
--    # See man 1 gzip under '-f'.
--    local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
--
--    if [[ "${pg_table_levels}" -lt 5 ]]; then
--        echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
--        exit $ksft_skip
--    fi
-+	local config="/proc/config.gz"
-+	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
-+	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
+ signal(SIGPIPE, SIG_DFL)
+ 
+-if len(sys.argv) < 3:
+-    sys.stderr.write("usage: %s [option] file1 file2\n" % sys.argv[0])
+-    sys.stderr.write("The options are:\n")
+-    sys.stderr.write("-c	categorize output based on symbol type\n")
+-    sys.stderr.write("-d	Show delta of Data Section\n")
+-    sys.stderr.write("-t	Show delta of text Section\n")
+-    sys.exit(-1)
++parser = argparse.ArgumentParser(description="Simple script used to compare the symbol sizes of 2 object files")
++group = parser.add_mutually_exclusive_group()
++group.add_argument('-c', help='categorize output based on symbol type', action='store_true')
++group.add_argument('-d', help='Show delta of Data Section', action='store_true')
++group.add_argument('-t', help='Show delta of text Section', action='store_true')
++parser.add_argument('file1', help='First file to compare')
++parser.add_argument('file2', help='Second file to compare')
 +
-+	# gzip -dcfq automatically handles both compressed and plaintext input.
-+	# See man 1 gzip under '-f'.
-+	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
-+
-+	if [[ "${pg_table_levels}" -lt 5 ]]; then
-+		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
-+		exit $ksft_skip
-+	fi
- }
++args = parser.parse_args()
  
- check_test_requirements()
- {
--    # The test supports x86_64 and powerpc64. We currently have no useful
--    # eligibility check for powerpc64, and the test itself will reject other
--    # architectures.
--    case `uname -m` in
--        "x86_64")
--            check_supported_x86_64
--        ;;
--        *)
--            return 0
--        ;;
--    esac
-+	# The test supports x86_64 and powerpc64. We currently have no useful
-+	# eligibility check for powerpc64, and the test itself will reject other
-+	# architectures.
-+	case `uname -m` in
-+		"x86_64")
-+			check_supported_x86_64
-+		;;
-+		*)
-+			return 0
-+		;;
-+	esac
- }
+ re_NUMBER = re.compile(r'\.[0-9]+')
  
- check_test_requirements
+@@ -77,9 +79,9 @@ def calc(oldfile, newfile, format):
+     delta.reverse()
+     return grow, shrink, add, remove, up, down, delta, old, new, otot, ntot
+ 
+-def print_result(symboltype, symbolformat, argc):
++def print_result(symboltype, symbolformat):
+     grow, shrink, add, remove, up, down, delta, old, new, otot, ntot = \
+-    calc(sys.argv[argc - 1], sys.argv[argc], symbolformat)
++    calc(args.file1, args.file2, symbolformat)
+ 
+     print("add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
+           (add, remove, grow, shrink, up, -down, up-down))
+@@ -93,13 +95,13 @@ def print_result(symboltype, symbolforma
+         percent = 0
+     print("Total: Before=%d, After=%d, chg %+.2f%%" % (otot, ntot, percent))
+ 
+-if sys.argv[1] == "-c":
+-    print_result("Function", "tT", 3)
+-    print_result("Data", "dDbB", 3)
+-    print_result("RO Data", "rR", 3)
+-elif sys.argv[1] == "-d":
+-    print_result("Data", "dDbBrR", 3)
+-elif sys.argv[1] == "-t":
+-    print_result("Function", "tT", 3)
++if args.c:
++    print_result("Function", "tT")
++    print_result("Data", "dDbB")
++    print_result("RO Data", "rR")
++elif args.d:
++    print_result("Data", "dDbBrR")
++elif args.t:
++    print_result("Function", "tT")
+ else:
+-    print_result("Function", "tTdDbBrR", 2)
++    print_result("Function", "tTdDbBrR")
 _
 
-Patches currently in -mm which might be from adam@wowsignal.io are
+Patches currently in -mm which might be from nborisov@suse.com are
 
-selftests-vm-only-run-128tbswitch-with-5-level-paging.patch
-selftests-vm-only-run-128tbswitch-with-5-level-paging-v4.patch
-selftests-vm-only-run-128tbswitch-with-5-level-paging-v6.patch
+scripts-bloat-o-meter-switch-argument-parsing-to-using-argparse.patch
+scripts-bloat-o-meter-add-p-argument.patch
 
