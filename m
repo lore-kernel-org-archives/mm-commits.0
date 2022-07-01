@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA8CBC43334
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Jul 2022 22:46:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C23D0C43334
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Jul 2022 22:46:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231237AbiGAWqR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Jul 2022 18:46:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44862 "EHLO
+        id S231564AbiGAWqY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Jul 2022 18:46:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229496AbiGAWqR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 18:46:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11B7C7125C
-        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 15:46:15 -0700 (PDT)
+        with ESMTP id S229496AbiGAWqW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 18:46:22 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 285937124A
+        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 15:46:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8157662425
-        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 22:46:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB123C385A5;
-        Fri,  1 Jul 2022 22:46:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B15E5B8323C
+        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 22:46:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DAD5C341C8;
+        Fri,  1 Jul 2022 22:46:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656715574;
-        bh=00+TwJt0QGtiJ8ADcklIhh2j1swcFkTF4Fypl9zjXrw=;
+        s=korg; t=1656715578;
+        bh=sRKvjPaGC8TbA0+wJqYbtzh0aNaPv6h/RIQj6w3ascI=;
         h=Date:To:From:Subject:From;
-        b=z2DSC1oiak40JV6OplO0JM+Tn8CjAaJvcr7iCcI2Gl7uSEUWdyrlIFY2gr2U5ZlWk
-         +ZVT9yeW58U1aA6t+zQUe1tLdT0GxdSD27wvMKv93MlMkZ7n/sHLtunm13MS5q6oOE
-         XFBShnWzAyzmVGgBo650IIy+BoKVw1TOl4cKdeTQ=
-Date:   Fri, 01 Jul 2022 15:46:13 -0700
+        b=t29L4O5Qnmff+h3psZJsUEi03nvILZW2ILEpJUapLF+uvp3UJRpJo7Sf5GzktRoMQ
+         aS0TaY16Lf2Co6x0jvD7/mYcrGokwZY3BCNCdOhwihYB5ze9tGl6qpqgaZoGJ6FYWI
+         +iGjb0GtZYc3SqUc9YLozSKipIql+kSnqyJnWdm4=
+Date:   Fri, 01 Jul 2022 15:46:17 -0700
 To:     mm-commits@vger.kernel.org, ebiederm@xmission.com,
         naveen.n.rao@linux.vnet.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec_file-drop-weak-attribute-from-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20220701224614.CB123C385A5@smtp.kernel.org>
+Subject: + kexec-drop-weak-attribute-from-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20220701224618.4DAD5C341C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec_file: drop weak attribute from functions
+     Subject: kexec: drop weak attribute from functions
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec_file-drop-weak-attribute-from-functions.patch
+     kexec-drop-weak-attribute-from-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_file-drop-weak-attribute-from-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-drop-weak-attribute-from-functions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,246 +65,223 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: kexec_file: drop weak attribute from functions
-Date: Fri, 1 Jul 2022 13:04:04 +0530
+Subject: kexec: drop weak attribute from functions
+Date: Fri, 1 Jul 2022 13:04:05 +0530
 
-As requested
-(http://lkml.kernel.org/r/87ee0q7b92.fsf@email.froward.int.ebiederm.org),
-this series converts weak functions in kexec to use the #ifdef approach. 
+Drop __weak attribute from functions in kexec_core.c:
+- machine_kexec_post_load()
+- arch_kexec_protect_crashkres()
+- arch_kexec_unprotect_crashkres()
+- crash_free_reserved_phys_range()
 
-Quoting the 3e35142ef99fe ("kexec_file: drop weak attribute from
-arch_kexec_apply_relocations[_add]") changelog:
-
-: Since commit d1bcae833b32f1 ("ELF: Don't generate unused section symbols")
-: [1], binutils (v2.36+) started dropping section symbols that it thought
-: were unused.  This isn't an issue in general, but with kexec_file.c, gcc
-: is placing kexec_arch_apply_relocations[_add] into a separate
-: .text.unlikely section and the section symbol ".text.unlikely" is being
-: dropped.  Due to this, recordmcount is unable to find a non-weak symbol in
-: .text.unlikely to generate a relocation record against.
-
-
-This patch (of 2);
-
-Drop __weak attribute from functions in kexec_file.c:
-- arch_kexec_kernel_image_probe()
-- arch_kimage_file_post_load_cleanup()
-- arch_kexec_kernel_image_load()
-- arch_kexec_locate_mem_hole()
-- arch_kexec_kernel_verify_sig()
-
-arch_kexec_kernel_image_load() calls into kexec_image_load_default(), so
-drop the static attribute for the latter.
-
-arch_kexec_kernel_verify_sig() is not overridden by any architecture, so
-drop the __weak attribute.
-
-Link: https://lkml.kernel.org/r/cover.1656659357.git.naveen.n.rao@linux.vnet.ibm.com
-Link: https://lkml.kernel.org/r/2cd7ca1fe4d6bb6ca38e3283c717878388ed6788.1656659357.git.naveen.n.rao@linux.vnet.ibm.com
+Link: https://lkml.kernel.org/r/c0f6219e03cb399d166d518ab505095218a902dd.1656659357.git.naveen.n.rao@linux.vnet.ibm.com
 Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
 Suggested-by: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/kexec.h   |    4 +-
- arch/powerpc/include/asm/kexec.h |    9 +++++
- arch/s390/include/asm/kexec.h    |    3 +
- arch/x86/include/asm/kexec.h     |    6 +++
- include/linux/kexec.h            |   44 +++++++++++++++++++++++++----
- kernel/kexec_file.c              |   35 +----------------------
- 6 files changed, 61 insertions(+), 40 deletions(-)
+ arch/arm64/include/asm/kexec.h   |   16 ++++++++++++--
+ arch/powerpc/include/asm/kexec.h |    5 ++++
+ arch/s390/include/asm/kexec.h    |   11 +++++++++
+ arch/x86/include/asm/kexec.h     |    6 +++++
+ include/linux/kexec.h            |   32 +++++++++++++++++++++++++----
+ kernel/kexec_core.c              |   27 ------------------------
+ 6 files changed, 64 insertions(+), 33 deletions(-)
 
---- a/arch/arm64/include/asm/kexec.h~kexec_file-drop-weak-attribute-from-functions
+--- a/arch/arm64/include/asm/kexec.h~kexec-drop-weak-attribute-from-functions
 +++ a/arch/arm64/include/asm/kexec.h
-@@ -115,7 +115,9 @@ extern const struct kexec_file_ops kexec
- 
- struct kimage;
- 
--extern int arch_kimage_file_post_load_cleanup(struct kimage *image);
-+int arch_kimage_file_post_load_cleanup(struct kimage *image);
-+#define arch_kimage_file_post_load_cleanup arch_kimage_file_post_load_cleanup
+@@ -84,16 +84,30 @@ static inline void crash_setup_regs(stru
+ extern bool crash_is_nosave(unsigned long pfn);
+ extern void crash_prepare_suspend(void);
+ extern void crash_post_resume(void);
 +
- extern int load_other_segments(struct kimage *image,
- 		unsigned long kernel_load_addr, unsigned long kernel_size,
- 		char *initrd, unsigned long initrd_len,
---- a/arch/powerpc/include/asm/kexec.h~kexec_file-drop-weak-attribute-from-functions
++void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
++#define crash_free_reserved_phys_range crash_free_reserved_phys_range
+ #else
+ static inline bool crash_is_nosave(unsigned long pfn) {return false; }
+ static inline void crash_prepare_suspend(void) {}
+ static inline void crash_post_resume(void) {}
+ #endif
+ 
++struct kimage;
++
+ #if defined(CONFIG_KEXEC_CORE)
+ void cpu_soft_restart(unsigned long el2_switch, unsigned long entry,
+ 		      unsigned long arg0, unsigned long arg1,
+ 		      unsigned long arg2);
++
++int machine_kexec_post_load(struct kimage *image);
++#define machine_kexec_post_load machine_kexec_post_load
++
++void arch_kexec_protect_crashkres(void);
++#define arch_kexec_protect_crashkres arch_kexec_protect_crashkres
++
++void arch_kexec_unprotect_crashkres(void);
++#define arch_kexec_unprotect_crashkres arch_kexec_unprotect_crashkres
+ #endif
+ 
+ #define ARCH_HAS_KIMAGE_ARCH
+@@ -113,8 +127,6 @@ struct kimage_arch {
+ #ifdef CONFIG_KEXEC_FILE
+ extern const struct kexec_file_ops kexec_image_ops;
+ 
+-struct kimage;
+-
+ int arch_kimage_file_post_load_cleanup(struct kimage *image);
+ #define arch_kimage_file_post_load_cleanup arch_kimage_file_post_load_cleanup
+ 
+--- a/arch/powerpc/include/asm/kexec.h~kexec-drop-weak-attribute-from-functions
 +++ a/arch/powerpc/include/asm/kexec.h
-@@ -120,6 +120,15 @@ int setup_purgatory(struct kimage *image
- #ifdef CONFIG_PPC64
- struct kexec_buf;
+@@ -98,6 +98,11 @@ void relocate_new_kernel(unsigned long i
  
-+int arch_kexec_kernel_image_probe(struct kimage *image, void *buf, unsigned long buf_len);
-+#define arch_kexec_kernel_image_probe arch_kexec_kernel_image_probe
+ void kexec_copy_flush(struct kimage *image);
+ 
++#if defined(CONFIG_CRASH_DUMP) && defined(CONFIG_PPC_RTAS)
++void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
++#define crash_free_reserved_phys_range crash_free_reserved_phys_range
++#endif
 +
-+int arch_kimage_file_post_load_cleanup(struct kimage *image);
-+#define arch_kimage_file_post_load_cleanup arch_kimage_file_post_load_cleanup
-+
-+int arch_kexec_locate_mem_hole(struct kexec_buf *kbuf);
-+#define arch_kexec_locate_mem_hole arch_kexec_locate_mem_hole
-+
- int load_crashdump_segments_ppc64(struct kimage *image,
- 				  struct kexec_buf *kbuf);
- int setup_purgatory_ppc64(struct kimage *image, const void *slave_code,
---- a/arch/s390/include/asm/kexec.h~kexec_file-drop-weak-attribute-from-functions
+ #ifdef CONFIG_KEXEC_FILE
+ extern const struct kexec_file_ops kexec_elf64_ops;
+ 
+--- a/arch/s390/include/asm/kexec.h~kexec-drop-weak-attribute-from-functions
 +++ a/arch/s390/include/asm/kexec.h
-@@ -92,5 +92,8 @@ int arch_kexec_apply_relocations_add(str
- 				     const Elf_Shdr *relsec,
- 				     const Elf_Shdr *symtab);
- #define arch_kexec_apply_relocations_add arch_kexec_apply_relocations_add
+@@ -85,6 +85,17 @@ struct kimage_arch {
+ extern const struct kexec_file_ops s390_kexec_image_ops;
+ extern const struct kexec_file_ops s390_kexec_elf_ops;
+ 
++#ifdef CONFIG_CRASH_DUMP
++void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
++#define crash_free_reserved_phys_range crash_free_reserved_phys_range
 +
-+int arch_kimage_file_post_load_cleanup(struct kimage *image);
-+#define arch_kimage_file_post_load_cleanup arch_kimage_file_post_load_cleanup
- #endif
- #endif /*_S390_KEXEC_H */
---- a/arch/x86/include/asm/kexec.h~kexec_file-drop-weak-attribute-from-functions
++void arch_kexec_protect_crashkres(void);
++#define arch_kexec_protect_crashkres arch_kexec_protect_crashkres
++
++void arch_kexec_unprotect_crashkres(void);
++#define arch_kexec_unprotect_crashkres arch_kexec_unprotect_crashkres
++#endif
++
+ #ifdef CONFIG_KEXEC_FILE
+ struct purgatory_info;
+ int arch_kexec_apply_relocations_add(struct purgatory_info *pi,
+--- a/arch/x86/include/asm/kexec.h~kexec-drop-weak-attribute-from-functions
 +++ a/arch/x86/include/asm/kexec.h
-@@ -193,6 +193,12 @@ int arch_kexec_apply_relocations_add(str
- 				     const Elf_Shdr *relsec,
- 				     const Elf_Shdr *symtab);
- #define arch_kexec_apply_relocations_add arch_kexec_apply_relocations_add
-+
-+void *arch_kexec_kernel_image_load(struct kimage *image);
-+#define arch_kexec_kernel_image_load arch_kexec_kernel_image_load
-+
-+int arch_kimage_file_post_load_cleanup(struct kimage *image);
-+#define arch_kimage_file_post_load_cleanup arch_kimage_file_post_load_cleanup
- #endif
- #endif
+@@ -186,6 +186,12 @@ extern int arch_kexec_post_alloc_pages(v
+ extern void arch_kexec_pre_free_pages(void *vaddr, unsigned int pages);
+ #define arch_kexec_pre_free_pages arch_kexec_pre_free_pages
  
---- a/include/linux/kexec.h~kexec_file-drop-weak-attribute-from-functions
++void arch_kexec_protect_crashkres(void);
++#define arch_kexec_protect_crashkres arch_kexec_protect_crashkres
++
++void arch_kexec_unprotect_crashkres(void);
++#define arch_kexec_unprotect_crashkres arch_kexec_unprotect_crashkres
++
+ #ifdef CONFIG_KEXEC_FILE
+ struct purgatory_info;
+ int arch_kexec_apply_relocations_add(struct purgatory_info *pi,
+--- a/include/linux/kexec.h~kexec-drop-weak-attribute-from-functions
 +++ a/include/linux/kexec.h
-@@ -188,21 +188,53 @@ int kexec_purgatory_get_set_symbol(struc
- 				   void *buf, unsigned int size,
- 				   bool get_value);
- void *kexec_purgatory_get_symbol_addr(struct kimage *image, const char *name);
-+void *kexec_image_load_default(struct kimage *image);
+@@ -390,7 +390,10 @@ extern void machine_kexec_cleanup(struct
+ extern int kernel_kexec(void);
+ extern struct page *kimage_alloc_control_pages(struct kimage *image,
+ 						unsigned int order);
+-int machine_kexec_post_load(struct kimage *image);
 +
-+#ifndef arch_kexec_kernel_image_probe
-+static inline int
-+arch_kexec_kernel_image_probe(struct kimage *image, void *buf, unsigned long buf_len)
-+{
-+	return kexec_image_probe_default(image, buf, buf_len);
-+}
-+#endif
-+
-+#ifndef arch_kimage_file_post_load_cleanup
-+static inline int arch_kimage_file_post_load_cleanup(struct kimage *image)
-+{
-+	return kexec_image_post_load_cleanup_default(image);
-+}
-+#endif
-+
-+#ifndef arch_kexec_kernel_image_load
-+static inline void *arch_kexec_kernel_image_load(struct kimage *image)
-+{
-+	return kexec_image_load_default(image);
-+}
++#ifndef machine_kexec_post_load
++static inline int machine_kexec_post_load(struct kimage *image) { return 0; }
 +#endif
  
--/* Architectures may override the below functions */
--int arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
--				  unsigned long buf_len);
--void *arch_kexec_kernel_image_load(struct kimage *image);
--int arch_kimage_file_post_load_cleanup(struct kimage *image);
- #ifdef CONFIG_KEXEC_SIG
- int arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
- 				 unsigned long buf_len);
- #endif
--int arch_kexec_locate_mem_hole(struct kexec_buf *kbuf);
+ extern void __crash_kexec(struct pt_regs *);
+ extern void crash_kexec(struct pt_regs *);
+@@ -423,10 +426,21 @@ extern bool kexec_in_progress;
  
- extern int kexec_add_buffer(struct kexec_buf *kbuf);
- int kexec_locate_mem_hole(struct kexec_buf *kbuf);
+ int crash_shrink_memory(unsigned long new_size);
+ size_t crash_get_memory_size(void);
+-void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
  
-+#ifndef arch_kexec_locate_mem_hole
-+/**
-+ * arch_kexec_locate_mem_hole - Find free memory to place the segments.
-+ * @kbuf:                       Parameters for the memory search.
+-void arch_kexec_protect_crashkres(void);
+-void arch_kexec_unprotect_crashkres(void);
++#ifndef arch_kexec_protect_crashkres
++/*
++ * Protection mechanism for crashkernel reserved memory after
++ * the kdump kernel is loaded.
 + *
-+ * On success, kbuf->mem will have the start address of the memory region found.
-+ *
-+ * Return: 0 on success, negative errno on error.
++ * Provide an empty default implementation here -- architecture
++ * code may override this
 + */
-+static inline int arch_kexec_locate_mem_hole(struct kexec_buf *kbuf)
++static inline void arch_kexec_protect_crashkres(void) { }
++#endif
++
++#ifndef arch_kexec_unprotect_crashkres
++static inline void arch_kexec_unprotect_crashkres(void) { }
++#endif
+ 
+ #ifndef page_to_boot_pfn
+ static inline unsigned long page_to_boot_pfn(struct page *page)
+@@ -456,6 +470,16 @@ static inline phys_addr_t boot_phys_to_p
+ }
+ #endif
+ 
++#ifndef crash_free_reserved_phys_range
++static inline void crash_free_reserved_phys_range(unsigned long begin, unsigned long end)
 +{
-+	return kexec_locate_mem_hole(kbuf);
++	unsigned long addr;
++
++	for (addr = begin; addr < end; addr += PAGE_SIZE)
++		free_reserved_page(boot_pfn_to_page(addr >> PAGE_SHIFT));
 +}
 +#endif
 +
- /* Alignment required for elf header segment */
- #define ELF_CORE_HEADER_ALIGN   4096
+ static inline unsigned long virt_to_boot_phys(void *addr)
+ {
+ 	return phys_to_boot_phys(__pa((unsigned long)addr));
+--- a/kernel/kexec_core.c~kexec-drop-weak-attribute-from-functions
++++ a/kernel/kexec_core.c
+@@ -591,11 +591,6 @@ static void kimage_free_extra_pages(stru
  
---- a/kernel/kexec_file.c~kexec_file-drop-weak-attribute-from-functions
-+++ a/kernel/kexec_file.c
-@@ -56,14 +56,7 @@ int kexec_image_probe_default(struct kim
- 	return ret;
  }
  
--/* Architectures can provide this probe function */
--int __weak arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
--					 unsigned long buf_len)
+-int __weak machine_kexec_post_load(struct kimage *image)
 -{
--	return kexec_image_probe_default(image, buf, buf_len);
+-	return 0;
 -}
 -
--static void *kexec_image_load_default(struct kimage *image)
-+void *kexec_image_load_default(struct kimage *image)
+ void kimage_terminate(struct kimage *image)
  {
- 	if (!image->fops || !image->fops->load)
- 		return ERR_PTR(-ENOEXEC);
-@@ -74,11 +67,6 @@ static void *kexec_image_load_default(st
- 				 image->cmdline_buf_len);
+ 	if (*image->entry != 0)
+@@ -1020,15 +1015,6 @@ size_t crash_get_memory_size(void)
+ 	return size;
  }
  
--void * __weak arch_kexec_kernel_image_load(struct kimage *image)
+-void __weak crash_free_reserved_phys_range(unsigned long begin,
+-					   unsigned long end)
 -{
--	return kexec_image_load_default(image);
+-	unsigned long addr;
+-
+-	for (addr = begin; addr < end; addr += PAGE_SIZE)
+-		free_reserved_page(boot_pfn_to_page(addr >> PAGE_SHIFT));
 -}
 -
- int kexec_image_post_load_cleanup_default(struct kimage *image)
+ int crash_shrink_memory(unsigned long new_size)
  {
- 	if (!image->fops || !image->fops->cleanup)
-@@ -87,11 +75,6 @@ int kexec_image_post_load_cleanup_defaul
- 	return image->fops->cleanup(image->image_loader_data);
+ 	int ret = 0;
+@@ -1225,16 +1211,3 @@ int kernel_kexec(void)
+ 	mutex_unlock(&kexec_mutex);
+ 	return error;
  }
- 
--int __weak arch_kimage_file_post_load_cleanup(struct kimage *image)
--{
--	return kexec_image_post_load_cleanup_default(image);
--}
 -
- #ifdef CONFIG_KEXEC_SIG
- static int kexec_image_verify_sig_default(struct kimage *image, void *buf,
- 					  unsigned long buf_len)
-@@ -104,8 +87,7 @@ static int kexec_image_verify_sig_defaul
- 	return image->fops->verify_sig(buf, buf_len);
- }
- 
--int __weak arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
--					unsigned long buf_len)
-+int arch_kexec_kernel_verify_sig(struct kimage *image, void *buf, unsigned long buf_len)
- {
- 	return kexec_image_verify_sig_default(image, buf, buf_len);
- }
-@@ -617,19 +599,6 @@ int kexec_locate_mem_hole(struct kexec_b
- }
- 
- /**
-- * arch_kexec_locate_mem_hole - Find free memory to place the segments.
-- * @kbuf:                       Parameters for the memory search.
+-/*
+- * Protection mechanism for crashkernel reserved memory after
+- * the kdump kernel is loaded.
 - *
-- * On success, kbuf->mem will have the start address of the memory region found.
-- *
-- * Return: 0 on success, negative errno on error.
+- * Provide an empty default implementation here -- architecture
+- * code may override this
 - */
--int __weak arch_kexec_locate_mem_hole(struct kexec_buf *kbuf)
--{
--	return kexec_locate_mem_hole(kbuf);
--}
+-void __weak arch_kexec_protect_crashkres(void)
+-{}
 -
--/**
-  * kexec_add_buffer - place a buffer in a kexec segment
-  * @kbuf:	Buffer contents and memory parameters.
-  *
+-void __weak arch_kexec_unprotect_crashkres(void)
+-{}
 _
 
 Patches currently in -mm which might be from naveen.n.rao@linux.vnet.ibm.com are
