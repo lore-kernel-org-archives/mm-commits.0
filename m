@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33CE4C43334
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E23C4CCA479
 	for <mm-commits@archiver.kernel.org>; Sat,  2 Jul 2022 00:07:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229681AbiGBAHi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230388AbiGBAHi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 1 Jul 2022 20:07:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33136 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231283AbiGBAH1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 20:07:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6727B443E6
-        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 17:07:26 -0700 (PDT)
+        with ESMTP id S231350AbiGBAH0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 20:07:26 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CBEB4091E
+        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 17:07:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 01B46624F7
-        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 00:07:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55A6FC3411E;
-        Sat,  2 Jul 2022 00:07:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 37FB5B8326F
+        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 00:07:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB9EFC3411E;
+        Sat,  2 Jul 2022 00:07:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656720445;
-        bh=Vnfph3ckybgXVQf8zPaTsNwfrYjTEeZZUq6MoDA8mAE=;
+        s=korg; t=1656720443;
+        bh=dVaTnVTBZaddl3uILPgobpxv1Ue0dVJWp9WdF+tjtS8=;
         h=Date:To:From:Subject:From;
-        b=W215vAeF1ujT+8KQVx+Kf2aFtnnk29sB+/WDogFwwd6482t0A3yfIYnxJJNhMNvxt
-         0MAlCcbZd9QONMukx+j+y4ZzD3MaRhNgKTEiBmkgUorwI21eL/Fs86SOX0nzk7IzF+
-         xscPBF+bo960s96swCbEQuMAPp0xFmjR0A7NWB6A=
-Date:   Fri, 01 Jul 2022 17:07:24 -0700
-To:     mm-commits@vger.kernel.org, bcain@quicinc.com,
+        b=1KBuAA/zjmsoijFtWzIJKi5QUtJoFBwCSe0lLlbJf1fKVm/SDijMNzmVdLwRPFgli
+         jLAfreKS9uOG1HWGbRJJGdXS1e1QOgaV/WW3qmkEmptOhGas047zq7Mc9MV5a4fm4t
+         VSbHgRhblLJtdI/1qPoACsjvBuqb1gfn/BaAidwo=
+Date:   Fri, 01 Jul 2022 17:07:22 -0700
+To:     mm-commits@vger.kernel.org, guoren@kernel.org, chris@zankel.net,
         anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-mm-enable-arch_has_vm_get_page_prot.patch added to mm-unstable branch
-Message-Id: <20220702000725.55A6FC3411E@smtp.kernel.org>
+Subject: + xtensa-mm-enable-arch_has_vm_get_page_prot.patch added to mm-unstable branch
+Message-Id: <20220702000722.EB9EFC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+     Subject: xtensa/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 has been added to the -mm mm-unstable branch.  Its filename is
-     hexagon-mm-enable-arch_has_vm_get_page_prot.patch
+     xtensa-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-mm-enable-arch_has_vm_get_page_prot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xtensa-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,117 +65,87 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: hexagon/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
-Date: Thu, 30 Jun 2022 10:46:16 +0530
+Subject: xtensa/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+Date: Thu, 30 Jun 2022 10:46:15 +0530
 
 This enables ARCH_HAS_VM_GET_PAGE_PROT on the platform and exports
 standard vm_get_page_prot() implementation via DECLARE_VM_GET_PAGE_PROT,
 which looks up a private and static protection_map[] array.  Subsequently
 all __SXXX and __PXXX macros can be dropped which are no longer needed.
 
-Link: https://lkml.kernel.org/r/20220630051630.1718927-13-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20220630051630.1718927-12-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Brian Cain <bcain@quicinc.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Guo Ren <guoren@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/Kconfig               |    1 
- arch/hexagon/include/asm/pgtable.h |   27 -----------------
- arch/hexagon/mm/init.c             |   42 +++++++++++++++++++++++++++
- 3 files changed, 43 insertions(+), 27 deletions(-)
+ arch/xtensa/Kconfig               |    1 +
+ arch/xtensa/include/asm/pgtable.h |   18 ------------------
+ arch/xtensa/mm/init.c             |   20 ++++++++++++++++++++
+ 3 files changed, 21 insertions(+), 18 deletions(-)
 
---- a/arch/hexagon/include/asm/pgtable.h~hexagon-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/hexagon/include/asm/pgtable.h
-@@ -126,33 +126,6 @@ extern unsigned long _dflt_cache_att;
+--- a/arch/xtensa/include/asm/pgtable.h~xtensa-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/xtensa/include/asm/pgtable.h
+@@ -200,24 +200,6 @@
+  * What follows is the closest we can get by reasonable means..
+  * See linux/mm/mmap.c for protection_map[] array that uses these definitions.
   */
- #define CACHEDEF	(CACHE_DEFAULT << 6)
- 
--/* Private (copy-on-write) page protections. */
--#define __P000 __pgprot(_PAGE_PRESENT | _PAGE_USER | CACHEDEF)
--#define __P001 __pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_READ | CACHEDEF)
--#define __P010 __P000	/* Write-only copy-on-write */
--#define __P011 __P001	/* Read/Write copy-on-write */
--#define __P100 __pgprot(_PAGE_PRESENT | _PAGE_USER | \
--			_PAGE_EXECUTE | CACHEDEF)
--#define __P101 __pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_EXECUTE | \
--			_PAGE_READ | CACHEDEF)
--#define __P110 __P100	/* Write/execute copy-on-write */
--#define __P111 __P101	/* Read/Write/Execute, copy-on-write */
+-#define __P000	PAGE_NONE		/* private --- */
+-#define __P001	PAGE_READONLY		/* private --r */
+-#define __P010	PAGE_COPY		/* private -w- */
+-#define __P011	PAGE_COPY		/* private -wr */
+-#define __P100	PAGE_READONLY_EXEC	/* private x-- */
+-#define __P101	PAGE_READONLY_EXEC	/* private x-r */
+-#define __P110	PAGE_COPY_EXEC		/* private xw- */
+-#define __P111	PAGE_COPY_EXEC		/* private xwr */
 -
--/* Shared page protections. */
--#define __S000 __P000
--#define __S001 __P001
--#define __S010 __pgprot(_PAGE_PRESENT | _PAGE_USER | \
--			_PAGE_WRITE | CACHEDEF)
--#define __S011 __pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_READ | \
--			_PAGE_WRITE | CACHEDEF)
--#define __S100 __pgprot(_PAGE_PRESENT | _PAGE_USER | \
--			_PAGE_EXECUTE | CACHEDEF)
--#define __S101 __P101
--#define __S110 __pgprot(_PAGE_PRESENT | _PAGE_USER | \
--			_PAGE_EXECUTE | _PAGE_WRITE | CACHEDEF)
--#define __S111 __pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_READ | \
--			_PAGE_EXECUTE | _PAGE_WRITE | CACHEDEF)
+-#define __S000	PAGE_NONE		/* shared  --- */
+-#define __S001	PAGE_READONLY		/* shared  --r */
+-#define __S010	PAGE_SHARED		/* shared  -w- */
+-#define __S011	PAGE_SHARED		/* shared  -wr */
+-#define __S100	PAGE_READONLY_EXEC	/* shared  x-- */
+-#define __S101	PAGE_READONLY_EXEC	/* shared  x-r */
+-#define __S110	PAGE_SHARED_EXEC	/* shared  xw- */
+-#define __S111	PAGE_SHARED_EXEC	/* shared  xwr */
 -
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];  /* located in head.S */
+ #ifndef __ASSEMBLY__
  
- /*  HUGETLB not working currently  */
---- a/arch/hexagon/Kconfig~hexagon-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/hexagon/Kconfig
-@@ -6,6 +6,7 @@ config HEXAGON
- 	def_bool y
- 	select ARCH_32BIT_OFF_T
- 	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+ #define pte_ERROR(e) \
+--- a/arch/xtensa/Kconfig~xtensa-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/xtensa/Kconfig
+@@ -11,6 +11,7 @@ config XTENSA
+ 	select ARCH_HAS_DMA_SET_UNCACHED if MMU
+ 	select ARCH_HAS_STRNCPY_FROM_USER if !KASAN
+ 	select ARCH_HAS_STRNLEN_USER
 +	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select ARCH_NO_PREEMPT
- 	select DMA_GLOBAL_POOL
- 	# Other pending projects/to-do items.
---- a/arch/hexagon/mm/init.c~hexagon-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/hexagon/mm/init.c
-@@ -234,3 +234,45 @@ void __init setup_arch_memory(void)
- 	 *  which is called by start_kernel() later on in the process
- 	 */
+ 	select ARCH_USE_MEMTEST
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+--- a/arch/xtensa/mm/init.c~xtensa-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/xtensa/mm/init.c
+@@ -216,3 +216,23 @@ static int __init parse_memmap_opt(char
+ 	return 0;
  }
+ early_param("memmap", parse_memmap_opt);
 +
 +static const pgprot_t protection_map[16] = {
-+	[VM_NONE]					= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   CACHEDEF),
-+	[VM_READ]					= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_READ | CACHEDEF),
-+	[VM_WRITE]					= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   CACHEDEF),
-+	[VM_WRITE | VM_READ]				= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_READ | CACHEDEF),
-+	[VM_EXEC]					= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_EXECUTE | CACHEDEF),
-+	[VM_EXEC | VM_READ]				= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_EXECUTE | _PAGE_READ |
-+								   CACHEDEF),
-+	[VM_EXEC | VM_WRITE]				= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_EXECUTE | CACHEDEF),
-+	[VM_EXEC | VM_WRITE | VM_READ]			= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_EXECUTE | _PAGE_READ |
-+								   CACHEDEF),
-+	[VM_SHARED]                                     = __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   CACHEDEF),
-+	[VM_SHARED | VM_READ]				= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_READ | CACHEDEF),
-+	[VM_SHARED | VM_WRITE]				= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_WRITE | CACHEDEF),
-+	[VM_SHARED | VM_WRITE | VM_READ]		= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_READ | _PAGE_WRITE |
-+								   CACHEDEF),
-+	[VM_SHARED | VM_EXEC]				= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_EXECUTE | CACHEDEF),
-+	[VM_SHARED | VM_EXEC | VM_READ]			= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_EXECUTE | _PAGE_READ |
-+								   CACHEDEF),
-+	[VM_SHARED | VM_EXEC | VM_WRITE]		= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_EXECUTE | _PAGE_WRITE |
-+								   CACHEDEF),
-+	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= __pgprot(_PAGE_PRESENT | _PAGE_USER |
-+								   _PAGE_READ | _PAGE_EXECUTE |
-+								   _PAGE_WRITE | CACHEDEF)
++	[VM_NONE]					= PAGE_NONE,
++	[VM_READ]					= PAGE_READONLY,
++	[VM_WRITE]					= PAGE_COPY,
++	[VM_WRITE | VM_READ]				= PAGE_COPY,
++	[VM_EXEC]					= PAGE_READONLY_EXEC,
++	[VM_EXEC | VM_READ]				= PAGE_READONLY_EXEC,
++	[VM_EXEC | VM_WRITE]				= PAGE_COPY_EXEC,
++	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_COPY_EXEC,
++	[VM_SHARED]					= PAGE_NONE,
++	[VM_SHARED | VM_READ]				= PAGE_READONLY,
++	[VM_SHARED | VM_WRITE]				= PAGE_SHARED,
++	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_SHARED,
++	[VM_SHARED | VM_EXEC]				= PAGE_READONLY_EXEC,
++	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_READONLY_EXEC,
++	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_SHARED_EXEC,
++	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_SHARED_EXEC
 +};
 +DECLARE_VM_GET_PAGE_PROT
 _
