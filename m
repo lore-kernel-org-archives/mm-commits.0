@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3E00C43334
-	for <mm-commits@archiver.kernel.org>; Sat,  2 Jul 2022 00:07:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B4C3C433EF
+	for <mm-commits@archiver.kernel.org>; Sat,  2 Jul 2022 00:07:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229999AbiGBAHH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230124AbiGBAHH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 1 Jul 2022 20:07:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32830 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230124AbiGBAHF (ORCPT
+        with ESMTP id S230406AbiGBAHF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 20:07:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E157A369CB
-        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 17:07:03 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C87138795
+        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 17:07:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7AD76B8326F
-        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 00:07:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22440C3411E;
-        Sat,  2 Jul 2022 00:07:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A766624F4
+        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 00:07:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D38AC3411E;
+        Sat,  2 Jul 2022 00:07:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656720421;
-        bh=SUzIuI8pxiaB9GLwoXZLefdvtpTG+xiZJSfr1t9xSJw=;
+        s=korg; t=1656720423;
+        bh=15bstEuRZKG7EFYpsMTY/QMIngsvlN0lboJ2E1qPh08=;
         h=Date:To:From:Subject:From;
-        b=tPVFWpJ0R/2nfWEYaTLoRyNZWw5evY2sa+U9ja8cMG6cvuWhc23KjyoJAaE3V8GuQ
-         km1WFkqh6zrpPM89vkCU1eUwgEsvXzMo3PK+LGtLICwl9+xcIgSNz+iz+ywDgz3Kjo
-         uKmhqLmDo2P+m7pxCem/YwxiPI6u3X5DJDLWkJZo=
-Date:   Fri, 01 Jul 2022 17:07:00 -0700
-To:     mm-commits@vger.kernel.org, hch@infradead.org,
-        christophe.leroy@csgroup.eu, anshuman.khandual@arm.com,
-        akpm@linux-foundation.org
+        b=xXr2rH1zW/fRthddJ09/+gHw5x6oH1QOLSWkyUKQJjZ96oy1T0Vs1IhbMuopFwDBM
+         m/4I5LTC2gbdisG+WbRM//1D0xPzbw8jZ3K36NjT7dQVkfQySnjYugRnln3+e/aKfR
+         ANu6rbHwOs4Vtkbzr/8NDRGJ1WHofBX6+prafqt0=
+Date:   Fri, 01 Jul 2022 17:07:02 -0700
+To:     mm-commits@vger.kernel.org, paulus@samba.org, npiggin@gmail.com,
+        mpe@ellerman.id.au, christophe.leroy@csgroup.eu,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-define-declare_vm_get_page_prot.patch added to mm-unstable branch
-Message-Id: <20220702000701.22440C3411E@smtp.kernel.org>
+Subject: + powerpc-mm-move-protection_map-inside-the-platform.patch added to mm-unstable branch
+Message-Id: <20220702000703.5D38AC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: define DECLARE_VM_GET_PAGE_PROT
+     Subject: powerpc/mm: move protection_map[] inside the platform
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-define-declare_vm_get_page_prot.patch
+     powerpc-mm-move-protection_map-inside-the-platform.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-define-declare_vm_get_page_prot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-move-protection_map-inside-the-platform.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,102 +66,104 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/mmap: define DECLARE_VM_GET_PAGE_PROT
-Date: Thu, 30 Jun 2022 10:46:06 +0530
+Subject: powerpc/mm: move protection_map[] inside the platform
+Date: Thu, 30 Jun 2022 10:46:07 +0530
 
-This just converts the generic vm_get_page_prot() implementation into a
-new macro i.e DECLARE_VM_GET_PAGE_PROT which later can be used across
-platforms when enabling them with ARCH_HAS_VM_GET_PAGE_PROT.  This does
-not create any functional change.
+This moves protection_map[] inside the platform and while here, also
+enable ARCH_HAS_VM_GET_PAGE_PROT on 32 bit and nohash 64 (aka book3e/64)
+platforms via DECLARE_VM_GET_PAGE_PROT.
 
-Link: https://lkml.kernel.org/r/20220630051630.1718927-3-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20220630051630.1718927-4-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   28 ++++++++++++++++++++++++++++
- mm/mmap.c               |   26 +-------------------------
- 2 files changed, 29 insertions(+), 25 deletions(-)
+ arch/powerpc/Kconfig               |    2 +-
+ arch/powerpc/include/asm/pgtable.h |   20 +-------------------
+ arch/powerpc/mm/pgtable.c          |   24 ++++++++++++++++++++++++
+ 3 files changed, 26 insertions(+), 20 deletions(-)
 
---- a/include/linux/pgtable.h~mm-mmap-define-declare_vm_get_page_prot
-+++ a/include/linux/pgtable.h
-@@ -1689,4 +1689,32 @@ typedef unsigned int pgtbl_mod_mask;
- #define MAX_PTRS_PER_P4D PTRS_PER_P4D
- #endif
+--- a/arch/powerpc/include/asm/pgtable.h~powerpc-mm-move-protection_map-inside-the-platform
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -20,25 +20,6 @@ struct mm_struct;
+ #include <asm/nohash/pgtable.h>
+ #endif /* !CONFIG_PPC_BOOK3S */
  
-+/* description of effects of mapping type and prot in current implementation.
-+ * this is due to the limited x86 page protection hardware.  The expected
-+ * behavior is in parens:
-+ *
-+ * map_type	prot
-+ *		PROT_NONE	PROT_READ	PROT_WRITE	PROT_EXEC
-+ * MAP_SHARED	r: (no) no	r: (yes) yes	r: (no) yes	r: (no) yes
-+ *		w: (no) no	w: (no) no	w: (yes) yes	w: (no) no
-+ *		x: (no) no	x: (no) yes	x: (no) yes	x: (yes) yes
-+ *
-+ * MAP_PRIVATE	r: (no) no	r: (yes) yes	r: (no) yes	r: (no) yes
-+ *		w: (no) no	w: (no) no	w: (copy) copy	w: (no) no
-+ *		x: (no) no	x: (no) yes	x: (no) yes	x: (yes) yes
-+ *
-+ * On arm64, PROT_EXEC has the following behaviour for both MAP_SHARED and
-+ * MAP_PRIVATE (with Enhanced PAN supported):
-+ *								r: (no) no
-+ *								w: (no) no
-+ *								x: (yes) yes
-+ */
-+#define DECLARE_VM_GET_PAGE_PROT					\
-+pgprot_t vm_get_page_prot(unsigned long vm_flags)			\
-+{									\
-+		return protection_map[vm_flags &			\
-+			(VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)];	\
-+}									\
-+EXPORT_SYMBOL(vm_get_page_prot);
+-/* Note due to the way vm flags are laid out, the bits are XWR */
+-#define __P000	PAGE_NONE
+-#define __P001	PAGE_READONLY
+-#define __P010	PAGE_COPY
+-#define __P011	PAGE_COPY
+-#define __P100	PAGE_READONLY_X
+-#define __P101	PAGE_READONLY_X
+-#define __P110	PAGE_COPY_X
+-#define __P111	PAGE_COPY_X
+-
+-#define __S000	PAGE_NONE
+-#define __S001	PAGE_READONLY
+-#define __S010	PAGE_SHARED
+-#define __S011	PAGE_SHARED
+-#define __S100	PAGE_READONLY_X
+-#define __S101	PAGE_READONLY_X
+-#define __S110	PAGE_SHARED_X
+-#define __S111	PAGE_SHARED_X
+-
+ #ifndef __ASSEMBLY__
+ 
+ #ifndef MAX_PTRS_PER_PGD
+@@ -79,6 +60,7 @@ extern void paging_init(void);
+ void poking_init(void);
+ 
+ extern unsigned long ioremap_bot;
++extern const pgprot_t protection_map[16];
+ 
+ /*
+  * kern_addr_valid is intended to indicate whether an address is a valid
+--- a/arch/powerpc/Kconfig~powerpc-mm-move-protection_map-inside-the-platform
++++ a/arch/powerpc/Kconfig
+@@ -140,7 +140,7 @@ config PPC
+ 	select ARCH_HAS_TICK_BROADCAST		if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAS_UACCESS_FLUSHCACHE
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+-	select ARCH_HAS_VM_GET_PAGE_PROT	if PPC_BOOK3S_64
++	select ARCH_HAS_VM_GET_PAGE_PROT
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_KEEP_MEMBLOCK
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+--- a/arch/powerpc/mm/pgtable.c~powerpc-mm-move-protection_map-inside-the-platform
++++ a/arch/powerpc/mm/pgtable.c
+@@ -472,3 +472,27 @@ out:
+ 	return ret_pte;
+ }
+ EXPORT_SYMBOL_GPL(__find_linux_pte);
 +
- #endif /* _LINUX_PGTABLE_H */
---- a/mm/mmap.c~mm-mmap-define-declare_vm_get_page_prot
-+++ a/mm/mmap.c
-@@ -80,26 +80,6 @@ static void unmap_region(struct mm_struc
- 		struct vm_area_struct *next, unsigned long start,
- 		unsigned long end);
- 
--/* description of effects of mapping type and prot in current implementation.
-- * this is due to the limited x86 page protection hardware.  The expected
-- * behavior is in parens:
-- *
-- * map_type	prot
-- *		PROT_NONE	PROT_READ	PROT_WRITE	PROT_EXEC
-- * MAP_SHARED	r: (no) no	r: (yes) yes	r: (no) yes	r: (no) yes
-- *		w: (no) no	w: (no) no	w: (yes) yes	w: (no) no
-- *		x: (no) no	x: (no) yes	x: (no) yes	x: (yes) yes
-- *
-- * MAP_PRIVATE	r: (no) no	r: (yes) yes	r: (no) yes	r: (no) yes
-- *		w: (no) no	w: (no) no	w: (copy) copy	w: (no) no
-- *		x: (no) no	x: (no) yes	x: (no) yes	x: (yes) yes
-- *
-- * On arm64, PROT_EXEC has the following behaviour for both MAP_SHARED and
-- * MAP_PRIVATE (with Enhanced PAN supported):
-- *								r: (no) no
-- *								w: (no) no
-- *								x: (yes) yes
-- */
- #ifdef __P000
- pgprot_t protection_map[16] __ro_after_init = {
- 	[VM_NONE]					= __P000,
-@@ -122,11 +102,7 @@ pgprot_t protection_map[16] __ro_after_i
- #endif
- 
- #ifndef CONFIG_ARCH_HAS_VM_GET_PAGE_PROT
--pgprot_t vm_get_page_prot(unsigned long vm_flags)
--{
--	return protection_map[vm_flags & (VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)];
--}
--EXPORT_SYMBOL(vm_get_page_prot);
++/* Note due to the way vm flags are laid out, the bits are XWR */
++const pgprot_t protection_map[16] = {
++	[VM_NONE]					= PAGE_NONE,
++	[VM_READ]					= PAGE_READONLY,
++	[VM_WRITE]					= PAGE_COPY,
++	[VM_WRITE | VM_READ]				= PAGE_COPY,
++	[VM_EXEC]					= PAGE_READONLY_X,
++	[VM_EXEC | VM_READ]				= PAGE_READONLY_X,
++	[VM_EXEC | VM_WRITE]				= PAGE_COPY_X,
++	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_COPY_X,
++	[VM_SHARED]					= PAGE_NONE,
++	[VM_SHARED | VM_READ]				= PAGE_READONLY,
++	[VM_SHARED | VM_WRITE]				= PAGE_SHARED,
++	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_SHARED,
++	[VM_SHARED | VM_EXEC]				= PAGE_READONLY_X,
++	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_READONLY_X,
++	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_SHARED_X,
++	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_SHARED_X
++};
++
++#ifndef CONFIG_PPC_BOOK3S_64
 +DECLARE_VM_GET_PAGE_PROT
- #endif	/* CONFIG_ARCH_HAS_VM_GET_PAGE_PROT */
- 
- static pgprot_t vm_pgprot_modify(pgprot_t oldprot, unsigned long vm_flags)
++#endif
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
