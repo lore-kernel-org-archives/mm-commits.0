@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E255C433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  2 Jul 2022 20:39:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B316EC433EF
+	for <mm-commits@archiver.kernel.org>; Sat,  2 Jul 2022 20:39:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230180AbiGBUjq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 2 Jul 2022 16:39:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48102 "EHLO
+        id S230206AbiGBUjw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 2 Jul 2022 16:39:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229458AbiGBUjp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Jul 2022 16:39:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1B27659F
-        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 13:39:43 -0700 (PDT)
+        with ESMTP id S229441AbiGBUjt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Jul 2022 16:39:49 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A2396567
+        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 13:39:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E3B061043
-        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 20:39:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1472C34114;
-        Sat,  2 Jul 2022 20:39:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CEBECB80909
+        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 20:39:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D981C34114;
+        Sat,  2 Jul 2022 20:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656794382;
-        bh=mhNrG475POCeUq9RAKB72FgqliEbB7YOninaLqxQxks=;
+        s=korg; t=1656794385;
+        bh=i97jYDyrTTXXhrdK8BMSWcXQ7Bxp4GDM/KZcLfNyAkU=;
         h=Date:To:From:Subject:From;
-        b=bcwDohV7fVdkRh/UvJyqZjWSZACfMtqQ0X/RL3YsjJbXAhNLYCfZ0TTKvQ9uHBw6R
-         zc4BI7nIagpQOstwreac7FTZorp7+9CDFyJQ4ULofosdWC3J9RFDXh+iwA/GCgEJrb
-         qpZ8kHobOyA2RlCBN8l7+HTh10irwWRDkkSjVC2Y=
-Date:   Sat, 02 Jul 2022 13:39:42 -0700
+        b=ZhzlQgsHcaze364sxbXCriWMHdeEzOrE+Dc800jS63N67daPrizS72Pr5ZA++2P4C
+         NzevoEsV3m4q8qd5cZgQ9WN7uC1+vE9XnjDyfmQlQKycS6QuI7aeDNYRAfM+HbzqkQ
+         xZYW/VFrp3f+Rs+3kFTL/pW/LmLsOmsjwka8onLI=
+Date:   Sat, 02 Jul 2022 13:39:44 -0700
 To:     mm-commits@vger.kernel.org, yury.norov@gmail.com,
         vschneid@redhat.com, tglx@linutronix.de, peterz@infradead.org,
         mingo@redhat.com, hpa@zytor.com, gregkh@linuxfoundation.org,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, yury.norov@gmail.com,
         andriy.shevchenko@linux.intel.com, sander@svanheule.net,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + cpumask-fix-invalid-uniprocessor-mask-assumption.patch added to mm-nonmm-unstable branch
-Message-Id: <20220702203942.D1472C34114@smtp.kernel.org>
+Subject: + lib-test-introduce-cpumask-kunit-test-suite.patch added to mm-nonmm-unstable branch
+Message-Id: <20220702203945.6D981C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpumask: Fix invalid uniprocessor mask assumption
+     Subject: lib/test: ontroduce cpumask KUnit test suite
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     cpumask-fix-invalid-uniprocessor-mask-assumption.patch
+     lib-test-introduce-cpumask-kunit-test-suite.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cpumask-fix-invalid-uniprocessor-mask-assumption.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test-introduce-cpumask-kunit-test-suite.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,23 +69,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sander Vanheule <sander@svanheule.net>
-Subject: cpumask: Fix invalid uniprocessor mask assumption
-Date: Sat, 2 Jul 2022 18:08:25 +0200
+Subject: lib/test: ontroduce cpumask KUnit test suite
+Date: Sat, 2 Jul 2022 18:08:26 +0200
 
-On uniprocessor builds, any CPU mask is assumed to contain exactly one CPU
-(cpu0).  This assumption ignores the existence of empty masks, resulting
-in incorrect behaviour.
+Add a basic suite of tests for cpumask, providing some tests for empty and
+completely filled cpumasks.
 
-cpumask_first_zero(), cpumask_next_zero(), and for_each_cpu_not() don't
-provide behaviour matching the assumption that a UP mask is always "1",
-and instead provide behaviour matching the empty mask.
-
-Drop the incorrectly optimised code and use the generic implementations in
-all cases.
-
-Link: https://lkml.kernel.org/r/86bf3f005abba2d92120ddd0809235cab4f759a6.1656777646.git.sander@svanheule.net
+Link: https://lkml.kernel.org/r/c96980ec35c3bd23f17c3374bf42c22971545e85.1656777646.git.sander@svanheule.net
 Signed-off-by: Sander Vanheule <sander@svanheule.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -99,166 +91,180 @@ Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |   99 +++++++-------------------------------
- lib/Makefile            |    3 -
- lib/cpumask.c           |    2 
- 3 files changed, 22 insertions(+), 82 deletions(-)
+ lib/Kconfig.debug  |    9 ++
+ lib/Makefile       |    1 
+ lib/test_cpumask.c |  138 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 148 insertions(+)
 
---- a/include/linux/cpumask.h~cpumask-fix-invalid-uniprocessor-mask-assumption
-+++ a/include/linux/cpumask.h
-@@ -116,85 +116,6 @@ static __always_inline unsigned int cpum
- 	return cpu;
- }
+--- a/lib/Kconfig.debug~lib-test-introduce-cpumask-kunit-test-suite
++++ a/lib/Kconfig.debug
+@@ -2037,6 +2037,15 @@ config LKDTM
+ 	Documentation on how to use the module can be found in
+ 	Documentation/fault-injection/provoke-crashes.rst
  
--#if NR_CPUS == 1
--/* Uniprocessor.  Assume all masks are "1". */
--static inline unsigned int cpumask_first(const struct cpumask *srcp)
--{
--	return 0;
--}
--
--static inline unsigned int cpumask_first_zero(const struct cpumask *srcp)
--{
--	return 0;
--}
--
--static inline unsigned int cpumask_first_and(const struct cpumask *srcp1,
--					     const struct cpumask *srcp2)
--{
--	return 0;
--}
--
--static inline unsigned int cpumask_last(const struct cpumask *srcp)
--{
--	return 0;
--}
--
--/* Valid inputs for n are -1 and 0. */
--static inline unsigned int cpumask_next(int n, const struct cpumask *srcp)
--{
--	return n+1;
--}
--
--static inline unsigned int cpumask_next_zero(int n, const struct cpumask *srcp)
--{
--	return n+1;
--}
--
--static inline unsigned int cpumask_next_and(int n,
--					    const struct cpumask *srcp,
--					    const struct cpumask *andp)
--{
--	return n+1;
--}
--
--static inline unsigned int cpumask_next_wrap(int n, const struct cpumask *mask,
--					     int start, bool wrap)
--{
--	/* cpu0 unless stop condition, wrap and at cpu0, then nr_cpumask_bits */
--	return (wrap && n == 0);
--}
--
--/* cpu must be a valid cpu, ie 0, so there's no other choice. */
--static inline unsigned int cpumask_any_but(const struct cpumask *mask,
--					   unsigned int cpu)
--{
--	return 1;
--}
--
--static inline unsigned int cpumask_local_spread(unsigned int i, int node)
--{
--	return 0;
--}
--
--static inline int cpumask_any_and_distribute(const struct cpumask *src1p,
--					     const struct cpumask *src2p) {
--	return cpumask_first_and(src1p, src2p);
--}
--
--static inline int cpumask_any_distribute(const struct cpumask *srcp)
--{
--	return cpumask_first(srcp);
--}
--
--#define for_each_cpu(cpu, mask)			\
--	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
--#define for_each_cpu_not(cpu, mask)		\
--	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
--#define for_each_cpu_wrap(cpu, mask, start)	\
--	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask, (void)(start))
--#define for_each_cpu_and(cpu, mask1, mask2)	\
--	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask1, (void)mask2)
--#else
- /**
-  * cpumask_first - get the first cpu in a cpumask
-  * @srcp: the cpumask pointer
-@@ -260,10 +181,29 @@ static inline unsigned int cpumask_next_
- 
- int __pure cpumask_next_and(int n, const struct cpumask *, const struct cpumask *);
- int __pure cpumask_any_but(const struct cpumask *mask, unsigned int cpu);
++config TEST_CPUMASK
++	tristate "cpumask tests" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  Enable to turn on cpumask tests, running at boot or module load time.
 +
-+#if NR_CPUS == 1
-+/* Uniprocessor: there is only one valid CPU */
-+static inline unsigned int cpumask_local_spread(unsigned int i, int node)
++	  If unsure, say N.
++
+ config TEST_LIST_SORT
+ 	tristate "Linked list sorting test" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT
+--- a/lib/Makefile~lib-test-introduce-cpumask-kunit-test-suite
++++ a/lib/Makefile
+@@ -100,6 +100,7 @@ obj-$(CONFIG_TEST_HMM) += test_hmm.o
+ obj-$(CONFIG_TEST_FREE_PAGES) += test_free_pages.o
+ obj-$(CONFIG_KPROBES_SANITY_TEST) += test_kprobes.o
+ obj-$(CONFIG_TEST_REF_TRACKER) += test_ref_tracker.o
++obj-$(CONFIG_TEST_CPUMASK) += test_cpumask.o
+ CFLAGS_test_fprobe.o += $(CC_FLAGS_FTRACE)
+ obj-$(CONFIG_FPROBE_SANITY_TEST) += test_fprobe.o
+ #
+--- /dev/null
++++ a/lib/test_cpumask.c
+@@ -0,0 +1,138 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * KUnit tests for cpumask.
++ *
++ * Author: Sander Vanheule <sander@svanheule.net>
++ */
++
++#include <kunit/test.h>
++#include <linux/cpu.h>
++#include <linux/cpumask.h>
++
++#define EXPECT_FOR_EACH_CPU_EQ(test, mask)			\
++	do {							\
++		const cpumask_t *m = (mask);			\
++		int mask_weight = cpumask_weight(m);		\
++		int cpu, iter = 0;				\
++		for_each_cpu(cpu, m)				\
++			iter++;					\
++		KUNIT_EXPECT_EQ((test), mask_weight, iter);	\
++	} while (0)
++
++#define EXPECT_FOR_EACH_CPU_NOT_EQ(test, mask)					\
++	do {									\
++		const cpumask_t *m = (mask);					\
++		int mask_weight = cpumask_weight(m);				\
++		int cpu, iter = 0;						\
++		for_each_cpu_not(cpu, m)					\
++			iter++;							\
++		KUNIT_EXPECT_EQ((test), nr_cpu_ids - mask_weight, iter);	\
++	} while (0)
++
++#define EXPECT_FOR_EACH_CPU_WRAP_EQ(test, mask)			\
++	do {							\
++		const cpumask_t *m = (mask);			\
++		int mask_weight = cpumask_weight(m);		\
++		int cpu, iter = 0;				\
++		for_each_cpu_wrap(cpu, m, nr_cpu_ids / 2)	\
++			iter++;					\
++		KUNIT_EXPECT_EQ((test), mask_weight, iter);	\
++	} while (0)
++
++#define EXPECT_FOR_EACH_CPU_BUILTIN_EQ(test, name)		\
++	do {							\
++		int mask_weight = num_##name##_cpus();		\
++		int cpu, iter = 0;				\
++		for_each_##name##_cpu(cpu)			\
++			iter++;					\
++		KUNIT_EXPECT_EQ((test), mask_weight, iter);	\
++	} while (0)
++
++static cpumask_t mask_empty;
++static cpumask_t mask_all;
++
++static void test_cpumask_weight(struct kunit *test)
 +{
++	KUNIT_EXPECT_TRUE(test, cpumask_empty(&mask_empty));
++	KUNIT_EXPECT_TRUE(test, cpumask_full(cpu_possible_mask));
++	KUNIT_EXPECT_TRUE(test, cpumask_full(&mask_all));
++
++	KUNIT_EXPECT_EQ(test, 0, cpumask_weight(&mask_empty));
++	KUNIT_EXPECT_EQ(test, nr_cpu_ids, cpumask_weight(cpu_possible_mask));
++	KUNIT_EXPECT_EQ(test, nr_cpumask_bits, cpumask_weight(&mask_all));
++}
++
++static void test_cpumask_first(struct kunit *test)
++{
++	KUNIT_EXPECT_LE(test, nr_cpu_ids, cpumask_first(&mask_empty));
++	KUNIT_EXPECT_EQ(test, 0, cpumask_first(cpu_possible_mask));
++
++	KUNIT_EXPECT_EQ(test, 0, cpumask_first_zero(&mask_empty));
++	KUNIT_EXPECT_LE(test, nr_cpu_ids, cpumask_first_zero(cpu_possible_mask));
++}
++
++static void test_cpumask_last(struct kunit *test)
++{
++	KUNIT_EXPECT_LE(test, nr_cpumask_bits, cpumask_last(&mask_empty));
++	KUNIT_EXPECT_EQ(test, nr_cpumask_bits - 1, cpumask_last(cpu_possible_mask));
++}
++
++static void test_cpumask_next(struct kunit *test)
++{
++	KUNIT_EXPECT_EQ(test, 0, cpumask_next_zero(-1, &mask_empty));
++	KUNIT_EXPECT_LE(test, nr_cpu_ids, cpumask_next_zero(-1, cpu_possible_mask));
++
++	KUNIT_EXPECT_LE(test, nr_cpu_ids, cpumask_next(-1, &mask_empty));
++	KUNIT_EXPECT_EQ(test, 0, cpumask_next(-1, cpu_possible_mask));
++}
++
++static void test_cpumask_iterators(struct kunit *test)
++{
++	EXPECT_FOR_EACH_CPU_EQ(test, &mask_empty);
++	EXPECT_FOR_EACH_CPU_NOT_EQ(test, &mask_empty);
++	EXPECT_FOR_EACH_CPU_WRAP_EQ(test, &mask_empty);
++
++	EXPECT_FOR_EACH_CPU_EQ(test, cpu_possible_mask);
++	EXPECT_FOR_EACH_CPU_NOT_EQ(test, cpu_possible_mask);
++	EXPECT_FOR_EACH_CPU_WRAP_EQ(test, cpu_possible_mask);
++}
++
++static void test_cpumask_iterators_builtin(struct kunit *test)
++{
++	EXPECT_FOR_EACH_CPU_BUILTIN_EQ(test, possible);
++
++	/* Ensure the dynamic masks are stable while running the tests */
++	cpu_hotplug_disable();
++
++	EXPECT_FOR_EACH_CPU_BUILTIN_EQ(test, online);
++	EXPECT_FOR_EACH_CPU_BUILTIN_EQ(test, present);
++
++	cpu_hotplug_enable();
++}
++
++static int test_cpumask_init(struct kunit *test)
++{
++	cpumask_clear(&mask_empty);
++	cpumask_setall(&mask_all);
++
 +	return 0;
 +}
 +
-+static inline int cpumask_any_and_distribute(const struct cpumask *src1p,
-+					     const struct cpumask *src2p) {
-+	return cpumask_first_and(src1p, src2p);
-+}
++static struct kunit_case test_cpumask_cases[] = {
++	KUNIT_CASE(test_cpumask_weight),
++	KUNIT_CASE(test_cpumask_first),
++	KUNIT_CASE(test_cpumask_last),
++	KUNIT_CASE(test_cpumask_next),
++	KUNIT_CASE(test_cpumask_iterators),
++	KUNIT_CASE(test_cpumask_iterators_builtin),
++	{}
++};
 +
-+static inline int cpumask_any_distribute(const struct cpumask *srcp)
-+{
-+	return cpumask_first(srcp);
-+}
-+#else
- unsigned int cpumask_local_spread(unsigned int i, int node);
- int cpumask_any_and_distribute(const struct cpumask *src1p,
- 			       const struct cpumask *src2p);
- int cpumask_any_distribute(const struct cpumask *srcp);
-+#endif /* NR_CPUS */
- 
- /**
-  * for_each_cpu - iterate over every cpu in a mask
-@@ -324,7 +264,6 @@ extern int cpumask_next_wrap(int n, cons
- 	for ((cpu) = -1;						\
- 		(cpu) = cpumask_next_and((cpu), (mask1), (mask2)),	\
- 		(cpu) < nr_cpu_ids;)
--#endif /* SMP */
- 
- #define CPU_BITS_NONE						\
- {								\
---- a/lib/cpumask.c~cpumask-fix-invalid-uniprocessor-mask-assumption
-+++ a/lib/cpumask.c
-@@ -192,6 +192,7 @@ void __init free_bootmem_cpumask_var(cpu
- }
- #endif
- 
-+#if NR_CPUS > 1
- /**
-  * cpumask_local_spread - select the i'th cpu with local numa cpu's first
-  * @i: index number
-@@ -279,3 +280,4 @@ int cpumask_any_distribute(const struct
- 	return next;
- }
- EXPORT_SYMBOL(cpumask_any_distribute);
-+#endif /* NR_CPUS */
---- a/lib/Makefile~cpumask-fix-invalid-uniprocessor-mask-assumption
-+++ a/lib/Makefile
-@@ -35,10 +35,9 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
- 	 earlycpio.o seq_buf.o siphash.o dec_and_lock.o \
- 	 nmi_backtrace.o nodemask.o win_minmax.o memcat_p.o \
--	 buildid.o
-+	 buildid.o cpumask.o
- 
- lib-$(CONFIG_PRINTK) += dump_stack.o
--lib-$(CONFIG_SMP) += cpumask.o
- 
- lib-y	+= kobject.o klist.o
- obj-y	+= lockref.o
++static struct kunit_suite test_cpumask_suite = {
++	.name = "cpumask",
++	.init = test_cpumask_init,
++	.test_cases = test_cpumask_cases,
++};
++kunit_test_suite(test_cpumask_suite);
++
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from sander@svanheule.net are
