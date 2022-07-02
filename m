@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BE17C433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  2 Jul 2022 00:07:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E2FFC433EF
+	for <mm-commits@archiver.kernel.org>; Sat,  2 Jul 2022 00:07:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231320AbiGBAHr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Jul 2022 20:07:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33234 "EHLO
+        id S231361AbiGBAHz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Jul 2022 20:07:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231350AbiGBAHj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 20:07:39 -0400
+        with ESMTP id S231489AbiGBAHl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jul 2022 20:07:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 982C24163F
-        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 17:07:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C52C45040
+        for <mm-commits@vger.kernel.org>; Fri,  1 Jul 2022 17:07:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 336DD624F5
-        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 00:07:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82B1EC3411E;
-        Sat,  2 Jul 2022 00:07:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A2DA623EB
+        for <mm-commits@vger.kernel.org>; Sat,  2 Jul 2022 00:07:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E919EC3411E;
+        Sat,  2 Jul 2022 00:07:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656720457;
-        bh=qAhEF7aSMgqVfcljt/g+ktEzinUYa8I+2dJV97bmzew=;
+        s=korg; t=1656720460;
+        bh=k1vUvCFoRhgw6OhkH/s8jAk0PAEy9zhAZUgC1vLgLsg=;
         h=Date:To:From:Subject:From;
-        b=R8GfeClGz30kTrObeAKExpN/VfIdgjwENZELyvWvGB9bWuELTbmONmOi8mBxvXCm0
-         sV9xin2Cf8VGfrLyAEauh0NRpxlX6U87FBf/VNQFPdj14QHtZXxSl9Gck14xPgURxl
-         mQ0uN08GX7cAIA5CQFJJBuBm5F7GlZNgE8tC+uSI=
-Date:   Fri, 01 Jul 2022 17:07:36 -0700
-To:     mm-commits@vger.kernel.org, guoren@kernel.org,
-        geert@linux-m68k.org, anshuman.khandual@arm.com,
-        akpm@linux-foundation.org
+        b=yo0nUkROiq0C0T4cQhYyY1/4Ert4OGYK1r82FdjI7/E8GKJbu5tQ181S/8V9fUOpT
+         S/xxM0AxESQIYD9sl2QVvtRjAnBhOdgu1I8yFKZNDQ8BvNSEqB/59KXxAP5ng8rhrj
+         rb81RJ/dn2Y97HI2tbo2F0YT/CyDM4FfuT4+yRzE=
+Date:   Fri, 01 Jul 2022 17:07:39 -0700
+To:     mm-commits@vger.kernel.org, hca@linux.ibm.com, gor@linux.ibm.com,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + csky-mm-enable-arch_has_vm_get_page_prot.patch added to mm-unstable branch
-Message-Id: <20220702000737.82B1EC3411E@smtp.kernel.org>
+Subject: + s390-mm-enable-arch_has_vm_get_page_prot.patch added to mm-unstable branch
+Message-Id: <20220702000739.E919EC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: csky/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+     Subject: s390/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 has been added to the -mm mm-unstable branch.  Its filename is
-     csky-mm-enable-arch_has_vm_get_page_prot.patch
+     s390-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/csky-mm-enable-arch_has_vm_get_page_prot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,87 +65,86 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: csky/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
-Date: Thu, 30 Jun 2022 10:46:21 +0530
+Subject: s390/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+Date: Thu, 30 Jun 2022 10:46:22 +0530
 
 This enables ARCH_HAS_VM_GET_PAGE_PROT on the platform and exports
 standard vm_get_page_prot() implementation via DECLARE_VM_GET_PAGE_PROT,
 which looks up a private and static protection_map[] array.  Subsequently
 all __SXXX and __PXXX macros can be dropped which are no longer needed.
 
-Link: https://lkml.kernel.org/r/20220630051630.1718927-18-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20220630051630.1718927-19-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Guo Ren <guoren@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/Kconfig               |    1 +
- arch/csky/include/asm/pgtable.h |   18 ------------------
- arch/csky/mm/init.c             |   20 ++++++++++++++++++++
- 3 files changed, 21 insertions(+), 18 deletions(-)
+ arch/s390/Kconfig               |    1 +
+ arch/s390/include/asm/pgtable.h |   17 -----------------
+ arch/s390/mm/mmap.c             |   20 ++++++++++++++++++++
+ 3 files changed, 21 insertions(+), 17 deletions(-)
 
---- a/arch/csky/include/asm/pgtable.h~csky-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/csky/include/asm/pgtable.h
-@@ -77,24 +77,6 @@
- #define MAX_SWAPFILES_CHECK() \
- 		BUILD_BUG_ON(MAX_SWAPFILES_SHIFT != 5)
- 
+--- a/arch/s390/include/asm/pgtable.h~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/include/asm/pgtable.h
+@@ -424,23 +424,6 @@ static inline int is_module_addr(void *a
+  * implies read permission.
+  */
+          /*xwr*/
 -#define __P000	PAGE_NONE
--#define __P001	PAGE_READ
--#define __P010	PAGE_READ
--#define __P011	PAGE_READ
--#define __P100	PAGE_READ
--#define __P101	PAGE_READ
--#define __P110	PAGE_READ
--#define __P111	PAGE_READ
+-#define __P001	PAGE_RO
+-#define __P010	PAGE_RO
+-#define __P011	PAGE_RO
+-#define __P100	PAGE_RX
+-#define __P101	PAGE_RX
+-#define __P110	PAGE_RX
+-#define __P111	PAGE_RX
 -
 -#define __S000	PAGE_NONE
--#define __S001	PAGE_READ
--#define __S010	PAGE_WRITE
--#define __S011	PAGE_WRITE
--#define __S100	PAGE_READ
--#define __S101	PAGE_READ
--#define __S110	PAGE_WRITE
--#define __S111	PAGE_WRITE
--
- extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
- #define ZERO_PAGE(vaddr)	(virt_to_page(empty_zero_page))
+-#define __S001	PAGE_RO
+-#define __S010	PAGE_RW
+-#define __S011	PAGE_RW
+-#define __S100	PAGE_RX
+-#define __S101	PAGE_RX
+-#define __S110	PAGE_RWX
+-#define __S111	PAGE_RWX
  
---- a/arch/csky/Kconfig~csky-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/csky/Kconfig
-@@ -6,6 +6,7 @@ config CSKY
- 	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_SYNC_DMA_FOR_CPU
- 	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+ /*
+  * Segment entry (large page) protection definitions.
+--- a/arch/s390/Kconfig~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/Kconfig
+@@ -81,6 +81,7 @@ config S390
+ 	select ARCH_HAS_SYSCALL_WRAPPER
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+ 	select ARCH_HAS_VDSO_DATA
 +	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_QUEUED_RWLOCKS
- 	select ARCH_WANT_FRAME_POINTERS if !CPU_CK610 && $(cc-option,-mbacktrace)
---- a/arch/csky/mm/init.c~csky-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/csky/mm/init.c
-@@ -197,3 +197,23 @@ void __init fixaddr_init(void)
- 	vaddr = __fix_to_virt(__end_of_fixed_addresses - 1) & PMD_MASK;
- 	fixrange_init(vaddr, vaddr + PMD_SIZE, swapper_pg_dir);
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_INLINE_READ_LOCK
+ 	select ARCH_INLINE_READ_LOCK_BH
+--- a/arch/s390/mm/mmap.c~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/mm/mmap.c
+@@ -188,3 +188,23 @@ void arch_pick_mmap_layout(struct mm_str
+ 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
+ 	}
  }
 +
 +static const pgprot_t protection_map[16] = {
 +	[VM_NONE]					= PAGE_NONE,
-+	[VM_READ]					= PAGE_READ,
-+	[VM_WRITE]					= PAGE_READ,
-+	[VM_WRITE | VM_READ]				= PAGE_READ,
-+	[VM_EXEC]					= PAGE_READ,
-+	[VM_EXEC | VM_READ]				= PAGE_READ,
-+	[VM_EXEC | VM_WRITE]				= PAGE_READ,
-+	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_READ,
++	[VM_READ]					= PAGE_RO,
++	[VM_WRITE]					= PAGE_RO,
++	[VM_WRITE | VM_READ]				= PAGE_RO,
++	[VM_EXEC]					= PAGE_RX,
++	[VM_EXEC | VM_READ]				= PAGE_RX,
++	[VM_EXEC | VM_WRITE]				= PAGE_RX,
++	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_RX,
 +	[VM_SHARED]					= PAGE_NONE,
-+	[VM_SHARED | VM_READ]				= PAGE_READ,
-+	[VM_SHARED | VM_WRITE]				= PAGE_WRITE,
-+	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_WRITE,
-+	[VM_SHARED | VM_EXEC]				= PAGE_READ,
-+	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_READ,
-+	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_WRITE,
-+	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_WRITE
++	[VM_SHARED | VM_READ]				= PAGE_RO,
++	[VM_SHARED | VM_WRITE]				= PAGE_RW,
++	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_RW,
++	[VM_SHARED | VM_EXEC]				= PAGE_RX,
++	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_RX,
++	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_RWX,
++	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_RWX
 +};
 +DECLARE_VM_GET_PAGE_PROT
 _
