@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BFD1C433EF
-	for <mm-commits@archiver.kernel.org>; Sun,  3 Jul 2022 20:28:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B160C433EF
+	for <mm-commits@archiver.kernel.org>; Sun,  3 Jul 2022 20:28:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229746AbiGCU2U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 16:28:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40984 "EHLO
+        id S232354AbiGCU2b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 16:28:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232176AbiGCU2T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 16:28:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D452222A
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 13:28:16 -0700 (PDT)
+        with ESMTP id S231438AbiGCU22 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 16:28:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFABB1129
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 13:28:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 84A0DB80B86
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 20:28:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B566C341C6;
-        Sun,  3 Jul 2022 20:28:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 54C23611BC
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 20:28:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A40CFC341C6;
+        Sun,  3 Jul 2022 20:28:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656880094;
-        bh=gW4jzwELQKa6vF+TGaaD7hGCbQm6hQheNKbC52WXRK8=;
+        s=korg; t=1656880100;
+        bh=awexCQcMpoa7CarRn6xQfMOmsmFyLAKeE/SIrCBJWNg=;
         h=Date:To:From:Subject:From;
-        b=pz7vsiVABQFKbs3pPz/AdKRGCumodNg9XCrj1PsgYtNsYNFOJpcA4mSyQaUl7WAzV
-         VM3Qi6a8UUNYtXSJZeixC8BBfZMPVGRiMpZW6ujADXoEnGk7Ph1nnmcRnkigqeRMGg
-         GqCmSYMpN0Mi/Es0J1ZMew3e9x2TP0+MUh53Iuug=
-Date:   Sun, 03 Jul 2022 13:28:13 -0700
+        b=dM0Sk2Lf1Caqhbzn3GUkZDqtuxK5Ll18jGJ4es0GlQSRw1e92GrXAw//t90R2+Ifi
+         +/TzOxp6SO14oOOQNcBZ4r5XfBaf1VDJ+uj0I7YGy0/LRMXpZWGQkItj59+F/FXnGs
+         JOi03GieaHPXawXYkisvirsz7hFSKj0qWaxZZSkI=
+Date:   Sun, 03 Jul 2022 13:28:19 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         tsbogend@alpha.franken.de, kernel@xen0n.name, jcmvbkbc@gmail.com,
         James.Bottomley@HansenPartnership.com, guoren@kernel.org,
         dinguyen@kernel.org, deller@gmx.de, chenhuacai@kernel.org,
         arnd@arndb.de, rppt@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-drop-definitions-of-pte_order.patch added to mm-unstable branch
-Message-Id: <20220703202814.1B566C341C6@smtp.kernel.org>
+Subject: + nios2-drop-definition-of-pte_order.patch added to mm-unstable branch
+Message-Id: <20220703202820.A40CFC341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: drop definitions of PTE_ORDER
+     Subject: nios2: drop definition of PTE_ORDER
 has been added to the -mm mm-unstable branch.  Its filename is
-     mips-drop-definitions-of-pte_order.patch
+     nios2-drop-definition-of-pte_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-drop-definitions-of-pte_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nios2-drop-definition-of-pte_order.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mips: drop definitions of PTE_ORDER
-Date: Sun, 3 Jul 2022 17:11:54 +0300
+Subject: nios2: drop definition of PTE_ORDER
+Date: Sun, 3 Jul 2022 17:11:56 +0300
 
 This is the order of the page table allocation, not the order of a PTE. 
 Since its always hardwired to 0, simply drop it.
 
-Link: https://lkml.kernel.org/r/20220703141203.147893-6-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20220703141203.147893-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
@@ -89,132 +89,35 @@ Cc: Xuerui Wang <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable-32.h |    9 ++++-----
- arch/mips/include/asm/pgtable-64.h |   15 +++++----------
- arch/mips/kernel/asm-offsets.c     |    1 -
- arch/mips/mm/tlbex.c               |    2 +-
- 4 files changed, 10 insertions(+), 17 deletions(-)
+ arch/nios2/include/asm/pgtable.h |    3 +--
+ arch/nios2/mm/init.c             |    2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/arch/mips/include/asm/pgtable-32.h~mips-drop-definitions-of-pte_order
-+++ a/arch/mips/include/asm/pgtable-32.h
-@@ -62,9 +62,9 @@ extern int add_temporary_entry(unsigned
+--- a/arch/nios2/include/asm/pgtable.h~nios2-drop-definition-of-pte_order
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -53,10 +53,9 @@ struct mm_struct;
+ #define PAGE_COPY MKP(0, 0, 1)
  
- /* PGDIR_SHIFT determines what a third-level page table entry can map */
- #if defined(CONFIG_MIPS_HUGE_TLB_SUPPORT) && !defined(CONFIG_PHYS_ADDR_T_64BIT)
--# define PGDIR_SHIFT	(2 * PAGE_SHIFT + PTE_ORDER - PTE_T_LOG2 - 1)
-+# define PGDIR_SHIFT	(2 * PAGE_SHIFT - PTE_T_LOG2 - 1)
- #else
--# define PGDIR_SHIFT	(2 * PAGE_SHIFT + PTE_ORDER - PTE_T_LOG2)
-+# define PGDIR_SHIFT	(2 * PAGE_SHIFT - PTE_T_LOG2)
- #endif
- 
- #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
-@@ -83,13 +83,12 @@ extern int add_temporary_entry(unsigned
- #define PGD_ORDER	(__PGD_ORDER >= 0 ? __PGD_ORDER : 0)
- #define PUD_TABLE_ORDER	aieeee_attempt_to_allocate_pud
- #define PMD_TABLE_ORDER	aieeee_attempt_to_allocate_pmd
+ #define PGD_ORDER	0
 -#define PTE_ORDER	0
  
- #define PTRS_PER_PGD	(USER_PTRS_PER_PGD * 2)
- #if defined(CONFIG_MIPS_HUGE_TLB_SUPPORT) && !defined(CONFIG_PHYS_ADDR_T_64BIT)
--# define PTRS_PER_PTE	((PAGE_SIZE << PTE_ORDER) / sizeof(pte_t) / 2)
-+# define PTRS_PER_PTE	(PAGE_SIZE / sizeof(pte_t) / 2)
- #else
--# define PTRS_PER_PTE	((PAGE_SIZE << PTE_ORDER) / sizeof(pte_t))
-+# define PTRS_PER_PTE	(PAGE_SIZE / sizeof(pte_t))
- #endif
- 
- #define USER_PTRS_PER_PGD	(0x80000000UL/PGDIR_SIZE)
---- a/arch/mips/include/asm/pgtable-64.h~mips-drop-definitions-of-pte_order
-+++ a/arch/mips/include/asm/pgtable-64.h
-@@ -42,11 +42,11 @@
- 
- /* PGDIR_SHIFT determines what a third-level page table entry can map */
- #ifdef __PAGETABLE_PMD_FOLDED
--#define PGDIR_SHIFT	(PAGE_SHIFT + PAGE_SHIFT + PTE_ORDER - 3)
-+#define PGDIR_SHIFT	(PAGE_SHIFT + PAGE_SHIFT - 3)
- #else
- 
- /* PMD_SHIFT determines the size of the area a second-level page table can map */
--#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT + PTE_ORDER - 3))
-+#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT - 3))
- #define PMD_SIZE	(1UL << PMD_SHIFT)
- #define PMD_MASK	(~(PMD_SIZE-1))
- 
-@@ -86,19 +86,17 @@
- #ifdef CONFIG_PAGE_SIZE_4KB
- # ifdef CONFIG_MIPS_VA_BITS_48
- #  define PGD_ORDER		0
--#  define PUD_TABLE_ORDER		0
-+#  define PUD_TABLE_ORDER	0
- # else
- #  define PGD_ORDER		1
--#  define PUD_TABLE_ORDER		aieeee_attempt_to_allocate_pud
-+#  define PUD_TABLE_ORDER	aieeee_attempt_to_allocate_pud
- # endif
- #define PMD_TABLE_ORDER		0
--#define PTE_ORDER		0
- #endif
- #ifdef CONFIG_PAGE_SIZE_8KB
- #define PGD_ORDER		0
- #define PUD_TABLE_ORDER		aieeee_attempt_to_allocate_pud
- #define PMD_TABLE_ORDER		0
--#define PTE_ORDER		0
- #endif
- #ifdef CONFIG_PAGE_SIZE_16KB
- #ifdef CONFIG_MIPS_VA_BITS_48
-@@ -108,13 +106,11 @@
- #endif
- #define PUD_TABLE_ORDER		aieeee_attempt_to_allocate_pud
- #define PMD_TABLE_ORDER		0
--#define PTE_ORDER		0
- #endif
- #ifdef CONFIG_PAGE_SIZE_32KB
- #define PGD_ORDER		0
- #define PUD_TABLE_ORDER		aieeee_attempt_to_allocate_pud
- #define PMD_TABLE_ORDER		0
--#define PTE_ORDER		0
- #endif
- #ifdef CONFIG_PAGE_SIZE_64KB
- #define PGD_ORDER		0
-@@ -124,7 +120,6 @@
- #else
- #define PMD_TABLE_ORDER		aieeee_attempt_to_allocate_pmd
- #endif
--#define PTE_ORDER		0
- #endif
- 
  #define PTRS_PER_PGD	((PAGE_SIZE << PGD_ORDER) / sizeof(pgd_t))
-@@ -134,7 +129,7 @@
- #ifndef __PAGETABLE_PMD_FOLDED
- #define PTRS_PER_PMD	((PAGE_SIZE << PMD_TABLE_ORDER) / sizeof(pmd_t))
- #endif
 -#define PTRS_PER_PTE	((PAGE_SIZE << PTE_ORDER) / sizeof(pte_t))
 +#define PTRS_PER_PTE	(PAGE_SIZE / sizeof(pte_t))
  
- #define USER_PTRS_PER_PGD       ((TASK_SIZE64 / PGDIR_SIZE)?(TASK_SIZE64 / PGDIR_SIZE):1)
+ #define USER_PTRS_PER_PGD	\
+ 	(CONFIG_NIOS2_KERNEL_MMU_REGION_BASE / PGDIR_SIZE)
+--- a/arch/nios2/mm/init.c~nios2-drop-definition-of-pte_order
++++ a/arch/nios2/mm/init.c
+@@ -80,7 +80,7 @@ void __init mmu_init(void)
  
---- a/arch/mips/kernel/asm-offsets.c~mips-drop-definitions-of-pte_order
-+++ a/arch/mips/kernel/asm-offsets.c
-@@ -197,7 +197,6 @@ void output_mm_defines(void)
- 	DEFINE(_PTE_T_LOG2, PTE_T_LOG2);
- 	BLANK();
- 	DEFINE(_PGD_ORDER, PGD_ORDER);
--	DEFINE(_PTE_ORDER, PTE_ORDER);
- 	BLANK();
- 	DEFINE(_PMD_SHIFT, PMD_SHIFT);
- 	DEFINE(_PGDIR_SHIFT, PGDIR_SHIFT);
---- a/arch/mips/mm/tlbex.c~mips-drop-definitions-of-pte_order
-+++ a/arch/mips/mm/tlbex.c
-@@ -2065,7 +2065,7 @@ build_r4000_tlbchange_handler_head(u32 *
+ #define __page_aligned(order) __aligned(PAGE_SIZE << (order))
+ pgd_t swapper_pg_dir[PTRS_PER_PGD] __page_aligned(PGD_ORDER);
+-pte_t invalid_pte_table[PTRS_PER_PTE] __page_aligned(PTE_ORDER);
++pte_t invalid_pte_table[PTRS_PER_PTE] __aligned(PAGE_SIZE);
+ static struct page *kuser_page[1];
  
- 	UASM_i_MFC0(p, wr.r1, C0_BADVADDR);
- 	UASM_i_LW(p, wr.r2, 0, wr.r2);
--	UASM_i_SRL(p, wr.r1, wr.r1, PAGE_SHIFT + PTE_ORDER - PTE_T_LOG2);
-+	UASM_i_SRL(p, wr.r1, wr.r1, PAGE_SHIFT - PTE_T_LOG2);
- 	uasm_i_andi(p, wr.r1, wr.r1, (PTRS_PER_PTE - 1) << PTE_T_LOG2);
- 	UASM_i_ADDU(p, wr.r2, wr.r2, wr.r1);
- 
+ static int alloc_kuser_page(void)
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
