@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 096B1C43334
-	for <mm-commits@archiver.kernel.org>; Sun,  3 Jul 2022 22:43:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC52C43334
+	for <mm-commits@archiver.kernel.org>; Sun,  3 Jul 2022 22:43:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229551AbiGCWnt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 18:43:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35002 "EHLO
+        id S229866AbiGCWnw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 18:43:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbiGCWnt (ORCPT
+        with ESMTP id S229742AbiGCWnt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 18:43:49 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 599CA225
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 15:43:48 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0711D0;
+        Sun,  3 Jul 2022 15:43:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DF044B80CE7
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 22:43:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9402FC341CA;
-        Sun,  3 Jul 2022 22:43:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 822D761230;
+        Sun,  3 Jul 2022 22:43:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD677C341CA;
+        Sun,  3 Jul 2022 22:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656888225;
-        bh=A3mfdWOT8Nnh7dij6uHlEpcRQwT3Iz6pBFJ5THo576I=;
+        s=korg; t=1656888227;
+        bh=IQMXyxNM4abdWZZR5gbOtEBVM8W9XbSHb2PLmyPyrtU=;
         h=Date:To:From:Subject:From;
-        b=wFjw1j8+Snn0D6blXNDBiHWnWj1IPthEK3dSN4jNHeHOynI5qKSqccqN1ui8L59rN
-         VHJldG86a2uT5rypkRxlgrZzj1dMrZLJbB7VUUMzQv5i0+8R9kavnaBzLrTh76Q1ZM
-         yJQ8YUWiq0TDhkcG84HBe6WmjGbwagJwzLQJSLkI=
-Date:   Sun, 03 Jul 2022 15:43:44 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com,
-        Jonathan.Cameron@huawei.com, hch@lst.de, geert+renesas@glider.be,
-        akpm@linux-foundation.org
+        b=VY/p/UoYiyvTi4pWXorKZNEftM5NvTlyK+JUUm3KKmTRQErIJR5p3lIq62lA9/4eF
+         QRsYSzS84DCpmxsR9LMzxTymrWXcdlhSPw6DPBhnfuUj1pyqRXwgUUfRUTEknXwI4b
+         IvJSZMuQnEP6go/w378pI/e0Mz/9sXgXOLVetNJE=
+Date:   Sun, 03 Jul 2022 15:43:47 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        mike.kravetz@oracle.com, duanxiongchun@bytedance.com,
+        songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] sh-convert-nommu-ioreunmap-to-static-inline-functions.patch removed from -mm tree
-Message-Id: <20220703224345.9402FC341CA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-sparsemem-fix-missing-higher-order-allocation-splitting.patch removed from -mm tree
+Message-Id: <20220703224347.CD677C341CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,63 +42,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: sh: convert nommu io{re,un}map() to static inline functions
+     Subject: mm: sparsemem: fix missing higher order allocation splitting
 has been removed from the -mm tree.  Its filename was
-     sh-convert-nommu-ioreunmap-to-static-inline-functions.patch
+     mm-sparsemem-fix-missing-higher-order-allocation-splitting.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: sh: convert nommu io{re,un}map() to static inline functions
-Date: Mon, 20 Jun 2022 09:01:43 +0200
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: sparsemem: fix missing higher order allocation splitting
+Date: Mon, 20 Jun 2022 10:30:19 +0800
 
-Recently, nommu iounmap() was converted from a static inline function to a
-macro again, basically reverting commit 4580ba4ad2e6b8dd ("sh: Convert
-iounmap() macros to inline functions").  With -Werror, this leads to build
-failures like:
+Higher order allocations for vmemmap pages from buddy allocator must be
+able to be treated as indepdenent small pages as they can be freed
+individually by the caller.  There is no problem for higher order vmemmap
+pages allocated at boot time since each individual small page will be
+initialized at boot time.  However, it will be an issue for memory hotplug
+case since those higher order vmemmap pages are allocated from buddy
+allocator without initializing each individual small page's refcount.  The
+system will panic in put_page_testzero() when CONFIG_DEBUG_VM is enabled
+if the vmemmap page is freed.
 
-    drivers/iio/adc/xilinx-ams.c: In function `ams_iounmap_ps':
-    drivers/iio/adc/xilinx-ams.c:1195:14: error: unused variable `ams' [-Werror=unused-variable]
-     1195 |  struct ams *ams = data;
-	  |              ^~~
-
-Fix this by replacing the macros for ioremap() and iounmap() by static
-inline functions, based on <asm-generic/io.h>.
-
-Link: https://lkml.kernel.org/r/8d1b1766260961799b04035e7bc39a7f59729f72.1655708312.git.geert+renesas@glider.be
-Fixes: 13f1fc870dd74713 ("sh: move the ioremap implementation out of line")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Link: https://lkml.kernel.org/r/20220620023019.94257-1-songmuchun@bytedance.com
+Fixes: d8d55f5616cf ("mm: sparsemem: use page table lock to protect kernel pmd operations")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/io.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/sparse-vmemmap.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/arch/sh/include/asm/io.h~sh-convert-nommu-ioreunmap-to-static-inline-functions
-+++ a/arch/sh/include/asm/io.h
-@@ -271,8 +271,12 @@ static inline void __iomem *ioremap_prot
- #endif /* CONFIG_HAVE_IOREMAP_PROT */
+--- a/mm/sparse-vmemmap.c~mm-sparsemem-fix-missing-higher-order-allocation-splitting
++++ a/mm/sparse-vmemmap.c
+@@ -78,6 +78,14 @@ static int __split_vmemmap_huge_pmd(pmd_
  
- #else /* CONFIG_MMU */
--#define iounmap(addr)		do { } while (0)
--#define ioremap(offset, size)	((void __iomem *)(unsigned long)(offset))
-+static inline void __iomem *ioremap(phys_addr_t offset, size_t size)
-+{
-+	return (void __iomem *)(unsigned long)offset;
-+}
+ 	spin_lock(&init_mm.page_table_lock);
+ 	if (likely(pmd_leaf(*pmd))) {
++		/*
++		 * Higher order allocations from buddy allocator must be able to
++		 * be treated as indepdenent small pages (as they can be freed
++		 * individually).
++		 */
++		if (!PageReserved(page))
++			split_page(page, get_order(PMD_SIZE));
 +
-+static inline void iounmap(volatile void __iomem *addr) { }
- #endif /* CONFIG_MMU */
- 
- #define ioremap_uc	ioremap
+ 		/* Make pte visible before pmd. See comment in pmd_install(). */
+ 		smp_wmb();
+ 		pmd_populate_kernel(&init_mm, pmd, pgtable);
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-memory_hotplug-enumerate-all-supported-section-flags.patch
+mm-memory_hotplug-enumerate-all-supported-section-flags-v5.patch
+mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
+mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory-v5.patch
+mm-hugetlb-remove-minimum_order-variable.patch
+mm-memcontrol-remove-dead-code-and-comments.patch
+mm-rename-unlock_page_lruvec_irq-_irqrestore-to-lruvec_unlock_irq-_irqrestore.patch
+mm-memcontrol-prepare-objcg-api-for-non-kmem-usage.patch
+mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented.patch
+mm-vmscan-rework-move_pages_to_lru.patch
+mm-thp-make-split-queue-lock-safe-when-lru-pages-are-reparented.patch
+mm-memcontrol-make-all-the-callers-of-foliopage_memcg-safe.patch
+mm-memcontrol-introduce-memcg_reparent_ops.patch
+mm-memcontrol-use-obj_cgroup-apis-to-charge-the-lru-pages.patch
+mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-function.patch
+mm-hugetlb_vmemmap-delete-hugetlb_optimize_vmemmap_enabled.patch
+mm-hugetlb_vmemmap-optimize-vmemmap_optimize_mode-handling.patch
+mm-hugetlb_vmemmap-introduce-the-name-hvo.patch
+mm-hugetlb_vmemmap-move-vmemmap-code-related-to-hugetlb-to-hugetlb_vmemmapc.patch
+mm-hugetlb_vmemmap-replace-early_param-with-core_param.patch
+mm-hugetlb_vmemmap-improve-hugetlb_vmemmap-code-readability.patch
+mm-hugetlb_vmemmap-move-code-comments-to-vmemmap_deduprst.patch
+mm-hugetlb_vmemmap-use-ptrs_per_pte-instead-of-pmd_size-page_size.patch
 
