@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3394C433EF
-	for <mm-commits@archiver.kernel.org>; Sun,  3 Jul 2022 22:44:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 399BDCCA47F
+	for <mm-commits@archiver.kernel.org>; Sun,  3 Jul 2022 22:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229871AbiGCWoE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 18:44:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35070 "EHLO
+        id S229801AbiGCWoF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 18:44:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229922AbiGCWnx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 18:43:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84151C5B
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 15:43:52 -0700 (PDT)
+        with ESMTP id S229983AbiGCWny (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 18:43:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91EEDE24
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 15:43:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1257C6122B
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 22:43:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64A66C341C6;
-        Sun,  3 Jul 2022 22:43:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 367386122F
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 22:43:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87C6EC341C6;
+        Sun,  3 Jul 2022 22:43:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656888231;
-        bh=pCqxqCYeOSVSGSL1p0wD9JmpbjGaOm+Eg0qG6EEb1HY=;
+        s=korg; t=1656888232;
+        bh=QuwysOtJgA3YBvdJZ8CHlaosm5RiOvpBuD9rroTTpcE=;
         h=Date:To:From:Subject:From;
-        b=XBztadrUqWvYYKv+oyvyUsArYyiW+IQMpD4pTsfedYPudW6/xS2s7o+YIOFZl/zYH
-         VkjGToJFdvJHMUDVKAjHtaDXm7npD7U5oy4HoWMpjNq9pivlrm1lc5YVoIRB1tpNEP
-         C0tucAUoGFP392Oa0ekW6sgRew9jEb+uwOgSXUpQ=
-Date:   Sun, 03 Jul 2022 15:43:50 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        hch@lst.de, apopple@nvidia.com, alex.sierra@amd.com,
-        david@redhat.com, akpm@linux-foundation.org
+        b=k74zOKCmcAltb5WGvd12Ah3Hjdw0OZR4U/6gwMgIan5x55yCOGoj1OHnofV08tnCL
+         D3yTAf46XoyX9oXOKYsG3tw8Zzu/GW2cjtuAe5XH1KZQJntIPkBscipzK5r2DwoMe7
+         7PASKOsSX21FN2ul5IXPq1dsQO/zwz2YU/SnRcR0=
+Date:   Sun, 03 Jul 2022 15:43:51 -0700
+To:     mm-commits@vger.kernel.org, ptp@lysator.liu.se,
+        ciprian.craciun@gmail.com, konishi.ryusuke@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-rmap-fix-dereferencing-invalid-subpage-pointer-in-try_to_migrate_one.patch removed from -mm tree
-Message-Id: <20220703224351.64A66C341C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-incorrect-masking-of-permission-flags-for-symlinks.patch removed from -mm tree
+Message-Id: <20220703224352.87C6EC341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,133 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/rmap: fix dereferencing invalid subpage pointer in try_to_migrate_one()
+     Subject: nilfs2: fix incorrect masking of permission flags for symlinks
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-fix-dereferencing-invalid-subpage-pointer-in-try_to_migrate_one.patch
+     nilfs2-fix-incorrect-masking-of-permission-flags-for-symlinks.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: fix dereferencing invalid subpage pointer in try_to_migrate_one()
-Date: Thu, 23 Jun 2022 22:53:32 +0200
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix incorrect masking of permission flags for symlinks
+Date: Thu, 23 Jun 2022 17:54:01 +0900
 
-The subpage we calculate is an invalid pointer for device private pages,
-because device private pages are mapped via non-present device private
-entries, not ordinary present PTEs.
+The permission flags of newly created symlinks are wrongly dropped on
+nilfs2 with the current umask value even though symlinks should have 777
+(rwxrwxrwx) permissions:
 
-Let's just not compute broken pointers and fixup later.  Move the proper
-assignment of the correct subpage to the beginning of the function and
-assert that we really only have a single page in our folio.
+ $ umask
+ 0022
+ $ touch file && ln -s file symlink; ls -l file symlink
+ -rw-r--r--. 1 root root 0 Jun 23 16:29 file
+ lrwxr-xr-x. 1 root root 4 Jun 23 16:29 symlink -> file
 
-This currently results in a BUG when tying to compute anon_exclusive,
-because:
+This fixes the bug by inserting a missing check that excludes
+symlinks.
 
-[  528.727237] BUG: unable to handle page fault for address: ffffea1fffffffc0
-[  528.739585] #PF: supervisor read access in kernel mode
-[  528.745324] #PF: error_code(0x0000) - not-present page
-[  528.751062] PGD 44eaf2067 P4D 44eaf2067 PUD 0
-[  528.756026] Oops: 0000 [#1] PREEMPT SMP NOPTI
-[  528.760890] CPU: 120 PID: 18275 Comm: hmm-tests Not tainted 5.19.0-rc3-kfd-alex #257
-[  528.769542] Hardware name: AMD Corporation BardPeak/BardPeak, BIOS RTY1002BDS 09/17/2021
-[  528.778579] RIP: 0010:try_to_migrate_one+0x21a/0x1000
-[  528.784225] Code: f6 48 89 c8 48 2b 05 45 d1 6a 01 48 c1 f8 06 48 29
-c3 48 8b 45 a8 48 c1 e3 06 48 01 cb f6 41 18 01 48 89 85 50 ff ff ff 74
-0b <4c> 8b 33 49 c1 ee 11 41 83 e6 01 48 8b bd 48 ff ff ff e8 3f 99 02
-[  528.805194] RSP: 0000:ffffc90003cdfaa0 EFLAGS: 00010202
-[  528.811027] RAX: 00007ffff7ff4000 RBX: ffffea1fffffffc0 RCX: ffffeaffffffffc0
-[  528.818995] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffc90003cdfaf8
-[  528.826962] RBP: ffffc90003cdfb70 R08: 0000000000000000 R09: 0000000000000000
-[  528.834930] R10: ffffc90003cdf910 R11: 0000000000000002 R12: ffff888194450540
-[  528.842899] R13: ffff888160d057c0 R14: 0000000000000000 R15: 03ffffffffffffff
-[  528.850865] FS:  00007ffff7fdb740(0000) GS:ffff8883b0600000(0000) knlGS:0000000000000000
-[  528.859891] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  528.866308] CR2: ffffea1fffffffc0 CR3: 00000001562b4003 CR4: 0000000000770ee0
-[  528.874275] PKRU: 55555554
-[  528.877286] Call Trace:
-[  528.880016]  <TASK>
-[  528.882356]  ? lock_is_held_type+0xdf/0x130
-[  528.887033]  rmap_walk_anon+0x167/0x410
-[  528.891316]  try_to_migrate+0x90/0xd0
-[  528.895405]  ? try_to_unmap_one+0xe10/0xe10
-[  528.900074]  ? anon_vma_ctor+0x50/0x50
-[  528.904260]  ? put_anon_vma+0x10/0x10
-[  528.908347]  ? invalid_mkclean_vma+0x20/0x20
-[  528.913114]  migrate_vma_setup+0x5f4/0x750
-[  528.917691]  dmirror_devmem_fault+0x8c/0x250 [test_hmm]
-[  528.923532]  do_swap_page+0xac0/0xe50
-[  528.927623]  ? __lock_acquire+0x4b2/0x1ac0
-[  528.932199]  __handle_mm_fault+0x949/0x1440
-[  528.936876]  handle_mm_fault+0x13f/0x3e0
-[  528.941256]  do_user_addr_fault+0x215/0x740
-[  528.945928]  exc_page_fault+0x75/0x280
-[  528.950115]  asm_exc_page_fault+0x27/0x30
-[  528.954593] RIP: 0033:0x40366b
-...
-
-Link: https://lkml.kernel.org/r/20220623205332.319257-1-david@redhat.com
-Fixes: 6c287605fd56 ("mm: remember exclusively mapped anonymous pages with PG_anon_exclusive")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: "Sierra Guiza, Alejandro (Alex)" <alex.sierra@amd.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Tested-by: Alistair Popple <apopple@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Link: https://lkml.kernel.org/r/1655974441-5612-1-git-send-email-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: Tommy Pettersson <ptp@lysator.liu.se>
+Reported-by: Ciprian Craciun <ciprian.craciun@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ fs/nilfs2/nilfs.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/rmap.c~mm-rmap-fix-dereferencing-invalid-subpage-pointer-in-try_to_migrate_one
-+++ a/mm/rmap.c
-@@ -1899,8 +1899,23 @@ static bool try_to_migrate_one(struct fo
- 		/* Unexpected PMD-mapped THP? */
- 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
+--- a/fs/nilfs2/nilfs.h~nilfs2-fix-incorrect-masking-of-permission-flags-for-symlinks
++++ a/fs/nilfs2/nilfs.h
+@@ -198,6 +198,9 @@ static inline int nilfs_acl_chmod(struct
  
--		subpage = folio_page(folio,
--				pte_pfn(*pvmw.pte) - folio_pfn(folio));
-+		if (folio_is_zone_device(folio)) {
-+			/*
-+			 * Our PTE is a non-present device exclusive entry and
-+			 * calculating the subpage as for the common case would
-+			 * result in an invalid pointer.
-+			 *
-+			 * Since only PAGE_SIZE pages can currently be
-+			 * migrated, just set it to page. This will need to be
-+			 * changed when hugepage migrations to device private
-+			 * memory are supported.
-+			 */
-+			VM_BUG_ON_FOLIO(folio_nr_pages(folio) > 1, folio);
-+			subpage = &folio->page;
-+		} else {
-+			subpage = folio_page(folio,
-+					pte_pfn(*pvmw.pte) - folio_pfn(folio));
-+		}
- 		address = pvmw.address;
- 		anon_exclusive = folio_test_anon(folio) &&
- 				 PageAnonExclusive(subpage);
-@@ -1993,15 +2008,7 @@ static bool try_to_migrate_one(struct fo
- 			/*
- 			 * No need to invalidate here it will synchronize on
- 			 * against the special swap migration pte.
--			 *
--			 * The assignment to subpage above was computed from a
--			 * swap PTE which results in an invalid pointer.
--			 * Since only PAGE_SIZE pages can currently be
--			 * migrated, just set it to page. This will need to be
--			 * changed when hugepage migrations to device private
--			 * memory are supported.
- 			 */
--			subpage = &folio->page;
- 		} else if (PageHWPoison(subpage)) {
- 			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
- 			if (folio_test_hugetlb(folio)) {
+ static inline int nilfs_init_acl(struct inode *inode, struct inode *dir)
+ {
++	if (S_ISLNK(inode->i_mode))
++		return 0;
++
+ 	inode->i_mode &= ~current_umask();
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-mprotect-try-avoiding-write-faults-for-exclusive-anonymous-pages-when-changing-protection.patch
 
