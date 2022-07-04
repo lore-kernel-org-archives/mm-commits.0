@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7CE7C43334
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:09:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F062EC43334
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:10:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232725AbiGDBJy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:09:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39592 "EHLO
+        id S232803AbiGDBKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:10:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232659AbiGDBJo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A9F96274
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:43 -0700 (PDT)
+        with ESMTP id S232667AbiGDBJp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:45 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84F2362E6
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B3C5A611FA
+        by sin.source.kernel.org (Postfix) with ESMTPS id D3CB8CE1066
         for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 111E2C341C6;
-        Mon,  4 Jul 2022 01:09:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F098AC341C7;
+        Mon,  4 Jul 2022 01:09:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656896982;
-        bh=M9mjbeEkCXI2h4EBaRa33j/XfT3C+LbbeLrZr5mb+ZU=;
+        s=korg; t=1656896981;
+        bh=M/gPfIp9L1SFjfaOFylNusTuljkL4G47NVvUUwrBfN4=;
         h=Date:To:From:Subject:From;
-        b=sBJioj7oEqGRH2wFGMNy/QTRL5N8Oa5hm/YV2UssVjWfBtmxM8WhW6AcKfehymH7I
-         Fnk5lkIVVFdyTcTRQ3+8bN0Izy8Egr/MlTsjYdL/zvn3A/OwlV47YnkN3qb/wo1/mB
-         3vofbmT25oMikFZ+wSk/Ha0HaTBYcB9A1Dqe6EWk=
-Date:   Sun, 03 Jul 2022 18:09:41 -0700
+        b=oavM28cUm9mNv7/wS6QaIyJ+Z421nFbTMMSo+j2hLtYVoRnV/PLQ1e3eR6LVQRLOJ
+         1Ak83o4zeYaKXIJt1WmTUTl1bwAshBnxiHreAJC22Pcf77/RVi6hlruRXKECq4tZZy
+         IKNB3paxDURJX6vm20h9akNkQVLrT9HxUZe4+j40=
+Date:   Sun, 03 Jul 2022 18:09:40 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         kent.overstreet@gmail.com, hdanton@sina.com, dchinner@redhat.com,
         christophe.jaillet@wanadoo.fr, roman.gushchin@linux.dev,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers.patch removed from -mm tree
-Message-Id: <20220704010942.111E2C341C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-introduce-mem_cgroup_ino-and-mem_cgroup_get_from_ino.patch removed from -mm tree
+Message-Id: <20220704010940.F098AC341C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,325 +43,142 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: shrinkers: introduce debugfs interface for memory shrinkers
+     Subject: mm: memcontrol: introduce mem_cgroup_ino() and mem_cgroup_get_from_ino()
 has been removed from the -mm tree.  Its filename was
-     mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers.patch
+     mm-memcontrol-introduce-mem_cgroup_ino-and-mem_cgroup_get_from_ino.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: shrinkers: introduce debugfs interface for memory shrinkers
-Date: Tue, 31 May 2022 20:22:23 -0700
+Subject: mm: memcontrol: introduce mem_cgroup_ino() and mem_cgroup_get_from_ino()
+Date: Tue, 31 May 2022 20:22:22 -0700
 
-This commit introduces the /sys/kernel/debug/shrinker debugfs interface
-which provides an ability to observe the state of individual kernel memory
-shrinkers.
+Patch series "mm: introduce shrinker debugfs interface", v5.
 
-Because the feature adds some memory overhead (which shouldn't be large
-unless there is a huge amount of registered shrinkers), it's guarded by a
-config option (enabled by default).
+The only existing debugging mechanism is a couple of tracepoints in
+do_shrink_slab(): mm_shrink_slab_start and mm_shrink_slab_end.  They
+aren't covering everything though: shrinkers which report 0 objects will
+never show up, there is no support for memcg-aware shrinkers.  Shrinkers
+are identified by their scan function, which is not always enough (e.g. 
+hard to guess which super block's shrinker it is having only
+"super_cache_scan").
 
-This commit introduces the "count" interface for each shrinker registered
-in the system.
+To provide a better visibility and debug options for memory shrinkers this
+patchset introduces a /sys/kernel/debug/shrinker interface, to some extent
+similar to /sys/kernel/slab.
 
-The output is in the following format:
-<cgroup inode id> <nr of objects on node 0> <nr of objects on node 1>...
-<cgroup inode id> <nr of objects on node 0> <nr of objects on node 1>...
-...
+For each shrinker registered in the system a directory is created.  As
+now, the directory will contain only a "scan" file, which allows to get
+the number of managed objects for each memory cgroup (for memcg-aware
+shrinkers) and each numa node (for numa-aware shrinkers on a numa
+machine).  Other interfaces might be added in the future.
 
-To reduce the size of output on machines with many thousands cgroups, if
-the total number of objects on all nodes is 0, the line is omitted.
+To make debugging more pleasant, the patchset also names all shrinkers, so
+that debugfs entries can have meaningful names.
 
-If the shrinker is not memcg-aware or CONFIG_MEMCG is off, 0 is printed as
-cgroup inode id.  If the shrinker is not numa-aware, 0's are printed for
-all nodes except the first one.
 
-This commit gives debugfs entries simple numeric names, which are not very
-convenient.  The following commit in the series will provide shrinkers
-with more meaningful names.
+This patch (of 5):
 
-[akpm@linux-foundation.org: remove WARN_ON_ONCE(), per Roman]
-  Reported-by: syzbot+300d27c79fe6d4cbcc39@syzkaller.appspotmail.com
-Link: https://lkml.kernel.org/r/20220601032227.4076670-3-roman.gushchin@linux.dev
+Shrinker debugfs requires a way to represent memory cgroups without using
+full paths, both for displaying information and getting input from a user.
+
+Cgroup inode number is a perfect way, already used by bpf.
+
+This commit adds a couple of helper functions which will be used to handle
+memcg-aware shrinkers.
+
+Link: https://lkml.kernel.org/r/20220601032227.4076670-1-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20220601032227.4076670-2-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Kent Overstreet <kent.overstreet@gmail.com>
 Acked-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Hillf Danton <hdanton@sina.com>
+Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |   19 +++-
- lib/Kconfig.debug        |    9 +
- mm/Makefile              |    1 
- mm/shrinker_debug.c      |  168 +++++++++++++++++++++++++++++++++++++
- mm/vmscan.c              |    6 -
- 5 files changed, 200 insertions(+), 3 deletions(-)
+ include/linux/memcontrol.h |   21 +++++++++++++++++++++
+ mm/memcontrol.c            |   23 +++++++++++++++++++++++
+ 2 files changed, 44 insertions(+)
 
---- a/include/linux/shrinker.h~mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers
-+++ a/include/linux/shrinker.h
-@@ -73,6 +73,10 @@ struct shrinker {
- 	/* ID in shrinker_idr */
- 	int id;
- #endif
+--- a/include/linux/memcontrol.h~mm-memcontrol-introduce-mem_cgroup_ino-and-mem_cgroup_get_from_ino
++++ a/include/linux/memcontrol.h
+@@ -837,6 +837,15 @@ static inline unsigned short mem_cgroup_
+ }
+ struct mem_cgroup *mem_cgroup_from_id(unsigned short id);
+ 
 +#ifdef CONFIG_SHRINKER_DEBUG
-+	int debugfs_id;
-+	struct dentry *debugfs_entry;
++static inline unsigned long mem_cgroup_ino(struct mem_cgroup *memcg)
++{
++	return memcg ? cgroup_ino(memcg->css.cgroup) : 0;
++}
++
++struct mem_cgroup *mem_cgroup_get_from_ino(unsigned long ino);
 +#endif
- 	/* objs pending delete, per node */
- 	atomic_long_t *nr_deferred;
- };
-@@ -94,4 +98,17 @@ extern int register_shrinker(struct shri
- extern void unregister_shrinker(struct shrinker *shrinker);
- extern void free_prealloced_shrinker(struct shrinker *shrinker);
- extern void synchronize_shrinkers(void);
--#endif
 +
+ static inline struct mem_cgroup *mem_cgroup_from_seq(struct seq_file *m)
+ {
+ 	return mem_cgroup_from_css(seq_css(m));
+@@ -1343,6 +1352,18 @@ static inline struct mem_cgroup *mem_cgr
+ 	return NULL;
+ }
+ 
 +#ifdef CONFIG_SHRINKER_DEBUG
-+extern int shrinker_debugfs_add(struct shrinker *shrinker);
-+extern void shrinker_debugfs_remove(struct shrinker *shrinker);
-+#else /* CONFIG_SHRINKER_DEBUG */
-+static inline int shrinker_debugfs_add(struct shrinker *shrinker)
++static inline unsigned long mem_cgroup_ino(struct mem_cgroup *memcg)
 +{
 +	return 0;
 +}
-+static inline void shrinker_debugfs_remove(struct shrinker *shrinker)
++
++static inline struct mem_cgroup *mem_cgroup_get_from_ino(unsigned long ino)
 +{
++	return NULL;
 +}
-+#endif /* CONFIG_SHRINKER_DEBUG */
-+#endif /* _LINUX_SHRINKER_H */
---- a/lib/Kconfig.debug~mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers
-+++ a/lib/Kconfig.debug
-@@ -699,6 +699,15 @@ config DEBUG_OBJECTS_ENABLE_DEFAULT
- 	help
- 	  Debug objects boot parameter default value
++#endif
++
+ static inline struct mem_cgroup *mem_cgroup_from_seq(struct seq_file *m)
+ {
+ 	return NULL;
+--- a/mm/memcontrol.c~mm-memcontrol-introduce-mem_cgroup_ino-and-mem_cgroup_get_from_ino
++++ a/mm/memcontrol.c
+@@ -5088,6 +5088,29 @@ struct mem_cgroup *mem_cgroup_from_id(un
+ 	return idr_find(&mem_cgroup_idr, id);
+ }
  
-+config SHRINKER_DEBUG
-+	default y
-+	bool "Enable shrinker debugging support"
-+	depends on DEBUG_FS
-+	help
-+	  Say Y to enable the shrinker debugfs interface which provides
-+	  visibility into the kernel memory shrinkers subsystem.
-+	  Disable it to avoid an extra memory footprint.
-+
- config HAVE_DEBUG_KMEMLEAK
- 	bool
- 
---- a/mm/Makefile~mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers
-+++ a/mm/Makefile
-@@ -133,3 +133,4 @@ obj-$(CONFIG_PAGE_REPORTING) += page_rep
- obj-$(CONFIG_IO_MAPPING) += io-mapping.o
- obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
- obj-$(CONFIG_GENERIC_IOREMAP) += ioremap.o
-+obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
---- /dev/null
-+++ a/mm/shrinker_debug.c
-@@ -0,0 +1,168 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <linux/idr.h>
-+#include <linux/slab.h>
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+#include <linux/shrinker.h>
-+#include <linux/memcontrol.h>
-+
-+/* defined in vmscan.c */
-+extern struct rw_semaphore shrinker_rwsem;
-+extern struct list_head shrinker_list;
-+
-+static DEFINE_IDA(shrinker_debugfs_ida);
-+static struct dentry *shrinker_debugfs_root;
-+
-+static unsigned long shrinker_count_objects(struct shrinker *shrinker,
-+					    struct mem_cgroup *memcg,
-+					    unsigned long *count_per_node)
++#ifdef CONFIG_SHRINKER_DEBUG
++struct mem_cgroup *mem_cgroup_get_from_ino(unsigned long ino)
 +{
-+	unsigned long nr, total = 0;
-+	int nid;
-+
-+	for_each_node(nid) {
-+		if (nid == 0 || (shrinker->flags & SHRINKER_NUMA_AWARE)) {
-+			struct shrink_control sc = {
-+				.gfp_mask = GFP_KERNEL,
-+				.nid = nid,
-+				.memcg = memcg,
-+			};
-+
-+			nr = shrinker->count_objects(shrinker, &sc);
-+			if (nr == SHRINK_EMPTY)
-+				nr = 0;
-+		} else {
-+			nr = 0;
-+		}
-+
-+		count_per_node[nid] = nr;
-+		total += nr;
-+	}
-+
-+	return total;
-+}
-+
-+static int shrinker_debugfs_count_show(struct seq_file *m, void *v)
-+{
-+	struct shrinker *shrinker = m->private;
-+	unsigned long *count_per_node;
++	struct cgroup *cgrp;
++	struct cgroup_subsys_state *css;
 +	struct mem_cgroup *memcg;
-+	unsigned long total;
-+	bool memcg_aware;
-+	int ret, nid;
 +
-+	count_per_node = kcalloc(nr_node_ids, sizeof(unsigned long), GFP_KERNEL);
-+	if (!count_per_node)
-+		return -ENOMEM;
++	cgrp = cgroup_get_from_id(ino);
++	if (!cgrp)
++		return ERR_PTR(-ENOENT);
 +
-+	ret = down_read_killable(&shrinker_rwsem);
-+	if (ret) {
-+		kfree(count_per_node);
-+		return ret;
-+	}
-+	rcu_read_lock();
++	css = cgroup_get_e_css(cgrp, &memory_cgrp_subsys);
++	if (css)
++		memcg = container_of(css, struct mem_cgroup, css);
++	else
++		memcg = ERR_PTR(-ENOENT);
 +
-+	memcg_aware = shrinker->flags & SHRINKER_MEMCG_AWARE;
++	cgroup_put(cgrp);
 +
-+	memcg = mem_cgroup_iter(NULL, NULL, NULL);
-+	do {
-+		if (memcg && !mem_cgroup_online(memcg))
-+			continue;
-+
-+		total = shrinker_count_objects(shrinker,
-+					       memcg_aware ? memcg : NULL,
-+					       count_per_node);
-+		if (total) {
-+			seq_printf(m, "%lu", mem_cgroup_ino(memcg));
-+			for_each_node(nid)
-+				seq_printf(m, " %lu", count_per_node[nid]);
-+			seq_putc(m, '\n');
-+		}
-+
-+		if (!memcg_aware) {
-+			mem_cgroup_iter_break(NULL, memcg);
-+			break;
-+		}
-+
-+		if (signal_pending(current)) {
-+			mem_cgroup_iter_break(NULL, memcg);
-+			ret = -EINTR;
-+			break;
-+		}
-+	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
-+
-+	rcu_read_unlock();
-+	up_read(&shrinker_rwsem);
-+
-+	kfree(count_per_node);
-+	return ret;
++	return memcg;
 +}
-+DEFINE_SHOW_ATTRIBUTE(shrinker_debugfs_count);
++#endif
 +
-+int shrinker_debugfs_add(struct shrinker *shrinker)
-+{
-+	struct dentry *entry;
-+	char buf[16];
-+	int id;
-+
-+	lockdep_assert_held(&shrinker_rwsem);
-+
-+	/* debugfs isn't initialized yet, add debugfs entries later. */
-+	if (!shrinker_debugfs_root)
-+		return 0;
-+
-+	id = ida_alloc(&shrinker_debugfs_ida, GFP_KERNEL);
-+	if (id < 0)
-+		return id;
-+	shrinker->debugfs_id = id;
-+
-+	snprintf(buf, sizeof(buf), "%d", id);
-+
-+	/* create debugfs entry */
-+	entry = debugfs_create_dir(buf, shrinker_debugfs_root);
-+	if (IS_ERR(entry)) {
-+		ida_free(&shrinker_debugfs_ida, id);
-+		return PTR_ERR(entry);
-+	}
-+	shrinker->debugfs_entry = entry;
-+
-+	debugfs_create_file("count", 0220, entry, shrinker,
-+			    &shrinker_debugfs_count_fops);
-+	return 0;
-+}
-+
-+void shrinker_debugfs_remove(struct shrinker *shrinker)
-+{
-+	lockdep_assert_held(&shrinker_rwsem);
-+
-+	if (!shrinker->debugfs_entry)
-+		return;
-+
-+	debugfs_remove_recursive(shrinker->debugfs_entry);
-+	ida_free(&shrinker_debugfs_ida, shrinker->debugfs_id);
-+}
-+
-+static int __init shrinker_debugfs_init(void)
-+{
-+	struct shrinker *shrinker;
-+	struct dentry *dentry;
-+	int ret = 0;
-+
-+	dentry = debugfs_create_dir("shrinker", NULL);
-+	if (IS_ERR(dentry))
-+		return PTR_ERR(dentry);
-+	shrinker_debugfs_root = dentry;
-+
-+	/* Create debugfs entries for shrinkers registered at boot */
-+	down_write(&shrinker_rwsem);
-+	list_for_each_entry(shrinker, &shrinker_list, list)
-+		if (!shrinker->debugfs_entry) {
-+			ret = shrinker_debugfs_add(shrinker);
-+			if (ret)
-+				break;
-+		}
-+	up_write(&shrinker_rwsem);
-+
-+	return ret;
-+}
-+late_initcall(shrinker_debugfs_init);
---- a/mm/vmscan.c~mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers
-+++ a/mm/vmscan.c
-@@ -190,8 +190,8 @@ static void set_task_reclaim_state(struc
- 	task->reclaim_state = rs;
- }
- 
--static LIST_HEAD(shrinker_list);
--static DECLARE_RWSEM(shrinker_rwsem);
-+LIST_HEAD(shrinker_list);
-+DECLARE_RWSEM(shrinker_rwsem);
- 
- #ifdef CONFIG_MEMCG
- static int shrinker_nr_max;
-@@ -650,6 +650,7 @@ void register_shrinker_prepared(struct s
- 	down_write(&shrinker_rwsem);
- 	list_add_tail(&shrinker->list, &shrinker_list);
- 	shrinker->flags |= SHRINKER_REGISTERED;
-+	shrinker_debugfs_add(shrinker);
- 	up_write(&shrinker_rwsem);
- }
- 
-@@ -677,6 +678,7 @@ void unregister_shrinker(struct shrinker
- 	shrinker->flags &= ~SHRINKER_REGISTERED;
- 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
- 		unregister_memcg_shrinker(shrinker);
-+	shrinker_debugfs_remove(shrinker);
- 	up_write(&shrinker_rwsem);
- 
- 	kfree(shrinker->nr_deferred);
+ static int alloc_mem_cgroup_per_node_info(struct mem_cgroup *memcg, int node)
+ {
+ 	struct mem_cgroup_per_node *pn;
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
+mm-shrinkers-introduce-debugfs-interface-for-memory-shrinkers.patch
 mm-shrinkers-provide-shrinkers-with-names.patch
 mm-docs-document-shrinker-debugfs.patch
 tools-add-memcg_shrinkerpy.patch
