@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42241C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0705AC43334
 	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:11:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232977AbiGDBLF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:11:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39610 "EHLO
+        id S232943AbiGDBLE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:11:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232728AbiGDBKN (ORCPT
+        with ESMTP id S232651AbiGDBKN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:10:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10CF462E7
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:09 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C3996330
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AFAEDB80BD1
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55FCCC341C7;
-        Mon,  4 Jul 2022 01:10:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 46724B803F6
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5EF0C341C6;
+        Mon,  4 Jul 2022 01:10:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656897006;
-        bh=qg1EnvEsj7VxZnDcJAlNVRsANK3t06P5Uv4SifO9kSg=;
+        s=korg; t=1656897002;
+        bh=eST74YGLrLRDoI4saEj+NetbirsrVbcY+TgadmaSm1I=;
         h=Date:To:From:Subject:From;
-        b=leqgikkdIksK9heL9nG88NwfqUC2cj28KtPpBrpcn5PeCokvd4eC3D9kCqJ0NU8Ce
-         CYPxpqg2bAy0oEVuuxuWDIcilYJKC1r+66jgA0hoT0b7DAVveJNezRBLPmNp+V+B0e
-         KFqf4B+oXI5VxHzh1+aqPf3jBSVvOdgHFUSvj7ZU=
-Date:   Sun, 03 Jul 2022 18:10:05 -0700
-To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
+        b=Er/ocujmSYzw4AQXWgb/qRYwQu++jFpEaSK0ALYIqvIqb61USHnShxSIRabno24mo
+         7W2OB2lFBWUAwNqVuPGTP50GPs9IhOKS9XzIXlBrdyATextyr78+vzOhCZzPFGfZHt
+         zXNvSk2MbalQsEPXl+g/RwtNS621eL3ADoNeRARc=
+Date:   Sun, 03 Jul 2022 18:10:02 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-convert-reclaim_clean_pages_from_list-to-folios.patch removed from -mm tree
-Message-Id: <20220704011006.55FCCC341C7@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-damon-add-a-document-for-damon_lru_sort.patch removed from -mm tree
+Message-Id: <20220704011002.D5EF0C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,161 +41,336 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: convert reclaim_clean_pages_from_list() to folios
+     Subject: Docs/admin-guide/damon: add a document for DAMON_LRU_SORT
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-convert-reclaim_clean_pages_from_list-to-folios.patch
+     docs-admin-guide-damon-add-a-document-for-damon_lru_sort.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/vmscan: convert reclaim_clean_pages_from_list() to folios
-Date: Fri, 17 Jun 2022 16:42:44 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/admin-guide/damon: add a document for DAMON_LRU_SORT
+Date: Mon, 13 Jun 2022 19:23:01 +0000
 
-Patch series "nvert much of vmscan to folios"
+This commit documents the usage of DAMON_LRU_SORT for admins.
 
-vmscan always operates on folios since it puts the pages on the LRU list. 
-Switching all of these functions from pages to folios saves 1483 bytes of
-text from removing all the baggage around calling compound_page() and
-similar functions.
-
-
-This patch (of 5):
-
-This is a straightforward conversion which removes several hidden calls
-to compound_head, saving 330 bytes of kernel text.
-
-Link: https://lkml.kernel.org/r/20220617154248.700416-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20220617154248.700416-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Link: https://lkml.kernel.org/r/20220613192301.8817-10-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 ++++++
- mm/vmscan.c                |   22 +++++++++++-----------
- 2 files changed, 17 insertions(+), 11 deletions(-)
+ Documentation/admin-guide/mm/damon/index.rst    |    1 
+ Documentation/admin-guide/mm/damon/lru_sort.rst |  294 ++++++++++++++
+ 2 files changed, 295 insertions(+)
 
---- a/include/linux/page-flags.h~mm-vmscan-convert-reclaim_clean_pages_from_list-to-folios
-+++ a/include/linux/page-flags.h
-@@ -670,6 +670,12 @@ static __always_inline bool PageAnon(str
- 	return folio_test_anon(page_folio(page));
- }
- 
-+static __always_inline bool __folio_test_movable(const struct folio *folio)
-+{
-+	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) ==
-+			PAGE_MAPPING_MOVABLE;
-+}
+--- a/Documentation/admin-guide/mm/damon/index.rst~docs-admin-guide-damon-add-a-document-for-damon_lru_sort
++++ a/Documentation/admin-guide/mm/damon/index.rst
+@@ -14,3 +14,4 @@ optimize those.
+    start
+    usage
+    reclaim
++   lru_sort
+--- /dev/null
++++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
+@@ -0,0 +1,294 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
- static __always_inline int __PageMovable(struct page *page)
- {
- 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
---- a/mm/vmscan.c~mm-vmscan-convert-reclaim_clean_pages_from_list-to-folios
-+++ a/mm/vmscan.c
-@@ -2041,7 +2041,7 @@ keep:
- }
- 
- unsigned int reclaim_clean_pages_from_list(struct zone *zone,
--					    struct list_head *page_list)
-+					    struct list_head *folio_list)
- {
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
-@@ -2049,16 +2049,16 @@ unsigned int reclaim_clean_pages_from_li
- 	};
- 	struct reclaim_stat stat;
- 	unsigned int nr_reclaimed;
--	struct page *page, *next;
--	LIST_HEAD(clean_pages);
-+	struct folio *folio, *next;
-+	LIST_HEAD(clean_folios);
- 	unsigned int noreclaim_flag;
- 
--	list_for_each_entry_safe(page, next, page_list, lru) {
--		if (!PageHuge(page) && page_is_file_lru(page) &&
--		    !PageDirty(page) && !__PageMovable(page) &&
--		    !PageUnevictable(page)) {
--			ClearPageActive(page);
--			list_move(&page->lru, &clean_pages);
-+	list_for_each_entry_safe(folio, next, folio_list, lru) {
-+		if (!folio_test_hugetlb(folio) && folio_is_file_lru(folio) &&
-+		    !folio_test_dirty(folio) && !__folio_test_movable(folio) &&
-+		    !folio_test_unevictable(folio)) {
-+			folio_clear_active(folio);
-+			list_move(&folio->lru, &clean_folios);
- 		}
- 	}
- 
-@@ -2069,11 +2069,11 @@ unsigned int reclaim_clean_pages_from_li
- 	 * change in the future.
- 	 */
- 	noreclaim_flag = memalloc_noreclaim_save();
--	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
-+	nr_reclaimed = shrink_page_list(&clean_folios, zone->zone_pgdat, &sc,
- 					&stat, true);
- 	memalloc_noreclaim_restore(noreclaim_flag);
- 
--	list_splice(&clean_pages, page_list);
-+	list_splice(&clean_folios, folio_list);
- 	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
- 			    -(long)nr_reclaimed);
- 	/*
++=============================
++DAMON-based LRU-lists Sorting
++=============================
++
++DAMON-based LRU-lists Sorting (DAMON_LRU_SORT) is a static kernel module that
++aimed to be used for proactive and lightweight data access pattern based
++(de)prioritization of pages on their LRU-lists for making LRU-lists a more
++trusworthy data access pattern source.
++
++Where Proactive LRU-lists Sorting is Required?
++==============================================
++
++As page-granularity access checking overhead could be significant on huge
++systems, LRU lists are normally not proactively sorted but partially and
++reactively sorted for special events including specific user requests, system
++calls and memory pressure.  As a result, LRU lists are sometimes not so
++perfectly prepared to be used as a trustworthy access pattern source for some
++situations including reclamation target pages selection under sudden memory
++pressure.
++
++Because DAMON can identify access patterns of best-effort accuracy while
++inducing only user-specified range of overhead, proactively running
++DAMON_LRU_SORT could be helpful for making LRU lists more trustworthy access
++pattern source with low and controlled overhead.
++
++How It Works?
++=============
++
++DAMON_LRU_SORT finds hot pages (pages of memory regions that showing access
++rates that higher than a user-specified threshold) and cold pages (pages of
++memory regions that showing no access for a time that longer than a
++user-specified threshold) using DAMON, and prioritizes hot pages while
++deprioritizing cold pages on their LRU-lists.  To avoid it consuming too much
++CPU for the prioritizations, a CPU time usage limit can be configured.  Under
++the limit, it prioritizes and deprioritizes more hot and cold pages first,
++respectively.  System administrators can also configure under what situation
++this scheme should automatically activated and deactivated with three memory
++pressure watermarks.
++
++Its default parameters for hotness/coldness thresholds and CPU quota limit are
++conservatively chosen.  That is, the module under its default parameters could
++be widely used without harm for common situations while providing a level of
++benefits for systems having clear hot/cold access patterns under memory
++pressure while consuming only a limited small portion of CPU time.
++
++Interface: Module Parameters
++============================
++
++To use this feature, you should first ensure your system is running on a kernel
++that is built with ``CONFIG_DAMON_LRU_SORT=y``.
++
++To let sysadmins enable or disable it and tune for the given system,
++DAMON_LRU_SORT utilizes module parameters.  That is, you can put
++``damon_lru_sort.<parameter>=<value>`` on the kernel boot command line or write
++proper values to ``/sys/modules/damon_lru_sort/parameters/<parameter>`` files.
++
++Below are the description of each parameter.
++
++enabled
++-------
++
++Enable or disable DAMON_LRU_SORT.
++
++You can enable DAMON_LRU_SORT by setting the value of this parameter as ``Y``.
++Setting it as ``N`` disables DAMON_LRU_SORT.  Note that DAMON_LRU_SORT could do
++no real monitoring and LRU-lists sorting due to the watermarks-based activation
++condition.  Refer to below descriptions for the watermarks parameter for this.
++
++commit_inputs
++-------------
++
++Make DAMON_LRU_SORT reads the input parameters again, except ``enabled``.
++
++Input parameters that updated while DAMON_LRU_SORT is running are not applied
++by default.  Once this parameter is set as ``Y``, DAMON_LRU_SORT reads values
++of parametrs except ``enabled`` again.  Once the re-reading is done, this
++parameter is set as ``N``.  If invalid parameters are found while the
++re-reading, DAMON_LRU_SORT will be disabled.
++
++hot_thres_access_freq
++---------------------
++
++Access frequency threshold for hot memory regions identification in permil.
++
++If a memory region is accessed in frequency of this or higher, DAMON_LRU_SORT
++identifies the region as hot, and mark it as accessed on the LRU list, so that
++it could not be reclaimed under memory pressure.  50% by default.
++
++cold_min_age
++------------
++
++Time threshold for cold memory regions identification in microseconds.
++
++If a memory region is not accessed for this or longer time, DAMON_LRU_SORT
++identifies the region as cold, and mark it as unaccessed on the LRU list, so
++that it could be reclaimed first under memory pressure.  120 seconds by
++default.
++
++quota_ms
++--------
++
++Limit of time for trying the LRU lists sorting in milliseconds.
++
++DAMON_LRU_SORT tries to use only up to this time within a time window
++(quota_reset_interval_ms) for trying LRU lists sorting.  This can be used
++for limiting CPU consumption of DAMON_LRU_SORT.  If the value is zero, the
++limit is disabled.
++
++10 ms by default.
++
++quota_reset_interval_ms
++-----------------------
++
++The time quota charge reset interval in milliseconds.
++
++The charge reset interval for the quota of time (quota_ms).  That is,
++DAMON_LRU_SORT does not try LRU-lists sorting for more than quota_ms
++milliseconds or quota_sz bytes within quota_reset_interval_ms milliseconds.
++
++1 second by default.
++
++wmarks_interval
++---------------
++
++The watermarks check time interval in microseconds.
++
++Minimal time to wait before checking the watermarks, when DAMON_LRU_SORT is
++enabled but inactive due to its watermarks rule.  5 seconds by default.
++
++wmarks_high
++-----------
++
++Free memory rate (per thousand) for the high watermark.
++
++If free memory of the system in bytes per thousand bytes is higher than this,
++DAMON_LRU_SORT becomes inactive, so it does nothing but periodically checks the
++watermarks.  200 (20%) by default.
++
++wmarks_mid
++----------
++
++Free memory rate (per thousand) for the middle watermark.
++
++If free memory of the system in bytes per thousand bytes is between this and
++the low watermark, DAMON_LRU_SORT becomes active, so starts the monitoring and
++the LRU-lists sorting.  150 (15%) by default.
++
++wmarks_low
++----------
++
++Free memory rate (per thousand) for the low watermark.
++
++If free memory of the system in bytes per thousand bytes is lower than this,
++DAMON_LRU_SORT becomes inactive, so it does nothing but periodically checks the
++watermarks.  50 (5%) by default.
++
++sample_interval
++---------------
++
++Sampling interval for the monitoring in microseconds.
++
++The sampling interval of DAMON for the cold memory monitoring.  Please refer to
++the DAMON documentation (:doc:`usage`) for more detail.  5ms by default.
++
++aggr_interval
++-------------
++
++Aggregation interval for the monitoring in microseconds.
++
++The aggregation interval of DAMON for the cold memory monitoring.  Please
++refer to the DAMON documentation (:doc:`usage`) for more detail.  100ms by
++default.
++
++min_nr_regions
++--------------
++
++Minimum number of monitoring regions.
++
++The minimal number of monitoring regions of DAMON for the cold memory
++monitoring.  This can be used to set lower-bound of the monitoring quality.
++But, setting this too high could result in increased monitoring overhead.
++Please refer to the DAMON documentation (:doc:`usage`) for more detail.  10 by
++default.
++
++max_nr_regions
++--------------
++
++Maximum number of monitoring regions.
++
++The maximum number of monitoring regions of DAMON for the cold memory
++monitoring.  This can be used to set upper-bound of the monitoring overhead.
++However, setting this too low could result in bad monitoring quality.  Please
++refer to the DAMON documentation (:doc:`usage`) for more detail.  1000 by
++defaults.
++
++monitor_region_start
++--------------------
++
++Start of target memory region in physical address.
++
++The start physical address of memory region that DAMON_LRU_SORT will do work
++against.  By default, biggest System RAM is used as the region.
++
++monitor_region_end
++------------------
++
++End of target memory region in physical address.
++
++The end physical address of memory region that DAMON_LRU_SORT will do work
++against.  By default, biggest System RAM is used as the region.
++
++kdamond_pid
++-----------
++
++PID of the DAMON thread.
++
++If DAMON_LRU_SORT is enabled, this becomes the PID of the worker thread.  Else,
++-1.
++
++nr_lru_sort_tried_hot_regions
++-----------------------------
++
++Number of hot memory regions that tried to be LRU-sorted.
++
++bytes_lru_sort_tried_hot_regions
++--------------------------------
++
++Total bytes of hot memory regions that tried to be LRU-sorted.
++
++nr_lru_sorted_hot_regions
++-------------------------
++
++Number of hot memory regions that successfully be LRU-sorted.
++
++bytes_lru_sorted_hot_regions
++----------------------------
++
++Total bytes of hot memory regions that successfully be LRU-sorted.
++
++nr_hot_quota_exceeds
++--------------------
++
++Number of times that the time quota limit for hot regions have exceeded.
++
++nr_lru_sort_tried_cold_regions
++------------------------------
++
++Number of cold memory regions that tried to be LRU-sorted.
++
++bytes_lru_sort_tried_cold_regions
++---------------------------------
++
++Total bytes of cold memory regions that tried to be LRU-sorted.
++
++nr_lru_sorted_cold_regions
++--------------------------
++
++Number of cold memory regions that successfully be LRU-sorted.
++
++bytes_lru_sorted_cold_regions
++-----------------------------
++
++Total bytes of cold memory regions that successfully be LRU-sorted.
++
++nr_cold_quota_exceeds
++---------------------
++
++Number of times that the time quota limit for cold regions have exceeded.
++
++Example
++=======
++
++Below runtime example commands make DAMON_LRU_SORT to find memory regions
++having >=50% access frequency and LRU-prioritize while LRU-deprioritizing
++memory regions that not accessed for 120 seconds.  The prioritization and
++deprioritization is limited to be done using only up to 1% CPU time to avoid
++DAMON_LRU_SORT consuming too much CPU time for the (de)prioritization.  It also
++asks DAMON_LRU_SORT to do nothing if the system's free memory rate is more than
++50%, but start the real works if it becomes lower than 40%.  If DAMON_RECLAIM
++doesn't make progress and therefore the free memory rate becomes lower than
++20%, it asks DAMON_LRU_SORT to do nothing again, so that we can fall back to
++the LRU-list based page granularity reclamation. ::
++
++    # cd /sys/modules/damon_lru_sort/parameters
++    # echo 500 > hot_thres_access_freq
++    # echo 120000000 > cold_min_age
++    # echo 10 > quota_ms
++    # echo 1000 > quota_reset_interval_ms
++    # echo 500 > wmarks_high
++    # echo 400 > wmarks_mid
++    # echo 200 > wmarks_low
++    # echo Y > enabled
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-vmscan-convert-isolate_lru_pages-to-use-a-folio.patch
-mm-vmscan-convert-move_pages_to_lru-to-use-a-folio.patch
-mm-vmscan-convert-shrink_active_list-to-use-a-folio.patch
-mm-vmscan-convert-reclaim_pages-to-use-a-folio.patch
-mm-add-folios_put.patch
-mm-swap-add-folio_batch_move_lru.patch
-mm-swap-make-__pagevec_lru_add-static.patch
-mm-swap-convert-lru_add-to-a-folio_batch.patch
-mm-swap-convert-lru_deactivate_file-to-a-folio_batch.patch
-mm-swap-convert-lru_deactivate-to-a-folio_batch.patch
-mm-swap-convert-lru_lazyfree-to-a-folio_batch.patch
-mm-swap-convert-activate_page-to-a-folio_batch.patch
-mm-swap-rename-lru_pvecs-to-cpu_fbatches.patch
-mm-swap-pull-the-cpu-conditional-out-of-__lru_add_drain_all.patch
-mm-swap-optimise-lru_add_drain_cpu.patch
-mm-swap-convert-try_to_free_swap-to-use-a-folio.patch
-mm-swap-convert-release_pages-to-use-a-folio-internally.patch
-mm-swap-convert-put_pages_list-to-use-folios.patch
-mm-swap-convert-__put_page-to-__folio_put.patch
-mm-swap-convert-__put_single_page-to-__folio_put_small.patch
-mm-swap-convert-__put_compound_page-to-__folio_put_large.patch
-mm-swap-convert-__page_cache_release-to-use-a-folio.patch
-mm-convert-destroy_compound_page-to-destroy_large_folio.patch
-mm-convert-page_swap_flags-to-folio_swap_flags.patch
-mm-swap-convert-delete_from_swap_cache-to-take-a-folio.patch
-mm-swap-convert-__delete_from_swap_cache-to-a-folio.patch
-mm-add-vma-iterator.patch
-mmap-use-the-vma-iterator-in-count_vma_pages_range.patch
-proc-remove-vma-rbtree-use-from-nommu.patch
-arm64-remove-mmap-linked-list-from-vdso.patch
-parisc-remove-mmap-linked-list-from-cache-handling.patch
-powerpc-remove-mmap-linked-list-walks.patch
-s390-remove-vma-linked-list-walks.patch
-x86-remove-vma-linked-list-walks.patch
-xtensa-remove-vma-linked-list-walks.patch
-cxl-remove-vma-linked-list-walk.patch
-optee-remove-vma-linked-list-walk.patch
-um-remove-vma-linked-list-walk.patch
-coredump-remove-vma-linked-list-walk.patch
-exec-use-vma-iterator-instead-of-linked-list.patch
-fs-proc-task_mmu-stop-using-linked-list-and-highest_vm_end.patch
-acct-use-vma-iterator-instead-of-linked-list.patch
-perf-use-vma-iterator.patch
-sched-use-maple-tree-iterator-to-walk-vmas.patch
-fork-use-vma-iterator.patch
-mm-khugepaged-stop-using-vma-linked-list.patch
-mm-ksm-use-vma-iterators-instead-of-vma-linked-list.patch
-mm-mlock-use-vma-iterator-and-maple-state-instead-of-vma-linked-list.patch
-mm-pagewalk-use-vma_find-instead-of-vma-linked-list.patch
-i915-use-the-vma-iterator.patch
-nommu-remove-uses-of-vma-linked-list.patch
-mips-rename-pmd_order-to-pmd_table_order.patch
 
