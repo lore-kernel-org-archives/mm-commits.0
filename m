@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ED81C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 23:04:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23460C43334
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 23:04:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231825AbiGDXEe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Jul 2022 19:04:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49764 "EHLO
+        id S229582AbiGDXEq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Jul 2022 19:04:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233550AbiGDXE3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jul 2022 19:04:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43E19DEBE
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 16:04:28 -0700 (PDT)
+        with ESMTP id S233688AbiGDXEd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jul 2022 19:04:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AB7EF5A2
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 16:04:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C546C617A4
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 23:04:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 219CDC3411E;
-        Mon,  4 Jul 2022 23:04:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E953617A2
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 23:04:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E457FC341CB;
+        Mon,  4 Jul 2022 23:04:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656975867;
-        bh=L2Fn5mhzNe/4XHCtJjA6vZ5aShdLx+BHgR9a15YKb/k=;
+        s=korg; t=1656975869;
+        bh=1Dd+bwkoxcY4gx+XpviJb11fGWctFNtKepyaz3LxUuQ=;
         h=Date:To:From:Subject:From;
-        b=jHG/316iUOTO3xB3/8URsXOhOxqvlyIL1QjFBYIu4YROudQtq3Ex+MHyJo6v4wmcC
-         4h4b+WAIC7jK6brYEbjolwSklC3nGq159pxtU1RzBOe8w6Rzipy/5UhoAXU2rP6XsL
-         kct+h3m1bGynjp/ZyE0n6xRd6PX7lLz+UlIX0JRU=
-Date:   Mon, 04 Jul 2022 16:04:26 -0700
+        b=YU5wPJV79J116Rw7Vg0f2T/52LMSZettnyAxcgD1eXwuhZbxlVQzqpRVFZjgOqrv5
+         0UEfPMpjYiHggN5djwD8XmUitUgM8KJwlqW2FbGG/K1tiAyMYi8i7/gPdt113kOplF
+         nSijfiv7V69KmMABteLNsYhIMTTfswFo7ssM0ozI=
+Date:   Mon, 04 Jul 2022 16:04:28 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com,
         willy@infradead.org, songmuchun@bytedance.com, shy828301@gmail.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-comment-of-page_deferred_list.patch added to mm-unstable branch
-Message-Id: <20220704230427.219CDC3411E@smtp.kernel.org>
+Subject: + mm-huge_memory-correct-comment-of-prep_transhuge_page.patch added to mm-unstable branch
+Message-Id: <20220704230428.E457FC341CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory: fix comment of page_deferred_list
+     Subject: mm/huge_memory: correct comment of prep_transhuge_page
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-fix-comment-of-page_deferred_list.patch
+     mm-huge_memory-correct-comment-of-prep_transhuge_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-comment-of-page_deferred_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-correct-comment-of-prep_transhuge_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,16 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory: fix comment of page_deferred_list
-Date: Mon, 4 Jul 2022 21:21:58 +0800
+Subject: mm/huge_memory: correct comment of prep_transhuge_page
+Date: Mon, 4 Jul 2022 21:21:59 +0800
 
-The current comment is confusing because if global or memcg deferred list
-in the second tail page is occupied by compound_head, why we still use
-page[2].deferred_list here? I think it wants to say that Global or memcg
-deferred list in the first tail page is occupied by compound_mapcount and
-compound_pincount so we use the second tail page's deferred_list instead.
+We use page->mapping and page->index, instead of page->indexlru in second
+tail page as list_head. Correct it.
 
-Link: https://lkml.kernel.org/r/20220704132201.14611-14-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220704132201.14611-15-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -84,22 +81,20 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-fix-comment-of-page_deferred_list
-+++ a/include/linux/huge_mm.h
-@@ -294,8 +294,8 @@ static inline bool thp_migration_support
- static inline struct list_head *page_deferred_list(struct page *page)
+--- a/mm/huge_memory.c~mm-huge_memory-correct-comment-of-prep_transhuge_page
++++ a/mm/huge_memory.c
+@@ -681,7 +681,7 @@ static inline void split_queue_unlock_ir
+ void prep_transhuge_page(struct page *page)
  {
  	/*
--	 * Global or memcg deferred list in the second tail pages is
--	 * occupied by compound_head.
-+	 * See organization of tail pages of compound page in
-+	 * "struct page" definition.
+-	 * we use page->mapping and page->indexlru in second tail page
++	 * we use page->mapping and page->index in second tail page
+ 	 * as list_head: assuming THP order >= 2
  	 */
- 	return &page[2].deferred_list;
- }
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
