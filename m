@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FBE3C43334
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 00:02:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD78DC43334
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 00:03:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231840AbiGDACk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 20:02:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37650 "EHLO
+        id S229835AbiGDADK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 20:03:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231774AbiGDACk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 20:02:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2924660FA
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 17:02:39 -0700 (PDT)
+        with ESMTP id S229548AbiGDADJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 20:03:09 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8860A60EC
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 17:03:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BA53961255
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 00:02:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 178DEC341CA;
-        Mon,  4 Jul 2022 00:02:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 277EDB80909
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 00:03:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B21B7C341C6;
+        Mon,  4 Jul 2022 00:03:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656892958;
-        bh=TPMwt1003wczsieZlzUei4kErBVDh9QpHnJAUGiifkQ=;
+        s=korg; t=1656892985;
+        bh=Zwu78RNzvSJGoavK+w2kKPh3kGyKLa0yDIiYnjRee6E=;
         h=Date:To:From:Subject:From;
-        b=ur5BBXxA4CYV4gUHeVSI9n1n7S8D8AHNmtORcZhCNwAFHfN8iuHqFBj3xuyuQzSpe
-         9Vmu+boTZDgtJ/12mvoBx7CCje+NRKEdl9PIs9pGrEFlLUWCCme8asZsxTw7FJWTPz
-         8j6z6cbZIs7kJU4F4rKnZAUMm0lCikjgSS1ynOog=
-Date:   Sun, 03 Jul 2022 17:02:37 -0700
+        b=Y7yeH7jI2oGxmDgXhNHlxmx5BzThq35m5HIEsX1g2kyoCk9pvUc8ld/rzeb8wlVsO
+         YpAqxXpKyVq15wyKU3kWxjrlewPJ51kI/d2F0A3Sh0HuqQ7Ay6ouQf/N7cDOzuTDs1
+         3ARySr/ccPeviL3ztZNfL1zgncJ153PdRKMh90dk=
+Date:   Sun, 03 Jul 2022 17:03:05 -0700
 To:     mm-commits@vger.kernel.org, paulmck@kernel.org, osalvador@suse.de,
         mike.kravetz@oracle.com, duanxiongchun@bytedance.com,
         david@redhat.com, corbet@lwn.net, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memory_hotplug-enumerate-all-supported-section-flags-v5.patch removed from -mm tree
-Message-Id: <20220704000238.178DEC341CA@smtp.kernel.org>
+Subject: [folded-merged] mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory-v5.patch removed from -mm tree
+Message-Id: <20220704000305.B21B7C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,64 +43,128 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-memory_hotplug-enumerate-all-supported-section-flags-v5
+     Subject: mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory-v5
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-enumerate-all-supported-section-flags-v5.patch
+     mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory-v5.patch
 
-This patch was dropped because it was folded into mm-memory_hotplug-enumerate-all-supported-section-flags.patch
+This patch was dropped because it was folded into mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm-memory_hotplug-enumerate-all-supported-section-flags-v5
-Date: Mon, 20 Jun 2022 19:06:15 +0800
+Subject: mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory-v5
+Date: Mon, 20 Jun 2022 19:06:16 +0800
 
-replace enum with defines per David
- 
-Link: https://lkml.kernel.org/r/20220620110616.12056-2-songmuchun@bytedance.com
+walk vmemmap page tables to avoid false-positive
+
+Link: https://lkml.kernel.org/r/20220620110616.12056-3-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Co-developed-by: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/hugetlb_vmemmap.c |   69 ++++++++++++++++++++++++++---------------
+ 1 file changed, 44 insertions(+), 25 deletions(-)
 
---- a/include/linux/mmzone.h~mm-memory_hotplug-enumerate-all-supported-section-flags-v5
-+++ a/include/linux/mmzone.h
-@@ -1435,16 +1435,13 @@ enum {
- 	SECTION_MAP_LAST_BIT,
- };
+--- a/mm/hugetlb_vmemmap.c~mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory-v5
++++ a/mm/hugetlb_vmemmap.c
+@@ -10,6 +10,7 @@
+  */
+ #define pr_fmt(fmt)	"HugeTLB: " fmt
  
--enum {
--	SECTION_MARKED_PRESENT		= BIT(SECTION_MARKED_PRESENT_BIT),
--	SECTION_HAS_MEM_MAP		= BIT(SECTION_HAS_MEM_MAP_BIT),
--	SECTION_IS_ONLINE		= BIT(SECTION_IS_ONLINE_BIT),
--	SECTION_IS_EARLY		= BIT(SECTION_IS_EARLY_BIT),
-+#define SECTION_MARKED_PRESENT		BIT(SECTION_MARKED_PRESENT_BIT)
-+#define SECTION_HAS_MEM_MAP		BIT(SECTION_HAS_MEM_MAP_BIT)
-+#define SECTION_IS_ONLINE		BIT(SECTION_IS_ONLINE_BIT)
-+#define SECTION_IS_EARLY		BIT(SECTION_IS_EARLY_BIT)
- #ifdef CONFIG_ZONE_DEVICE
--	SECTION_TAINT_ZONE_DEVICE	= BIT(SECTION_TAINT_ZONE_DEVICE_BIT),
-+#define SECTION_TAINT_ZONE_DEVICE	BIT(SECTION_TAINT_ZONE_DEVICE_BIT)
- #endif
--};
++#include <linux/memory.h>
+ #include "hugetlb_vmemmap.h"
+ 
+ /*
+@@ -99,34 +100,52 @@ int hugetlb_vmemmap_alloc(struct hstate
+ static unsigned int vmemmap_optimizable_pages(struct hstate *h,
+ 					      struct page *head)
+ {
+-	struct mem_section *ms;
+-	struct page *vmemmap_page;
+-	unsigned long pfn = page_to_pfn(head);
 -
- #define SECTION_MAP_MASK		(~(BIT(SECTION_MAP_LAST_BIT) - 1))
- #define SECTION_NID_SHIFT		SECTION_MAP_LAST_BIT
+ 	if (READ_ONCE(vmemmap_optimize_mode) == VMEMMAP_OPTIMIZE_OFF)
+ 		return 0;
  
+-	ms = __pfn_to_section(pfn);
+-	vmemmap_page = sparse_decode_mem_map(ms->section_mem_map,
+-					     pfn_to_section_nr(pfn));
+-	/*
+-	 * Only the vmemmap pages' vmemmap may be marked as VmemmapSelfHosted.
+-	 *
+-	 * Due to HugeTLB alignment requirements, and the vmemmap pages being
+-	 * at the start of the hotplugged memory region. Checking any vmemmap
+-	 * page's vmemmap is fine.
+-	 *
+-	 * [      hotplugged memory     ]
+-	 * [ vmemmap ][  usable memory  ]
+-	 *   ^   |      |            |
+-	 *   +---+      |            |
+-	 *     ^        |            |
+-	 *     +--------+            |
+-	 *         ^                 |
+-	 *         +-----------------+
+-	 */
+-	if (PageVmemmapSelfHosted(vmemmap_page))
+-		return 0;
++	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG)) {
++		pmd_t *pmdp, pmd;
++		struct page *vmemmap_page;
++		unsigned long vaddr = (unsigned long)head;
++
++		/*
++		 * Only the vmemmap page's vmemmap page can be self-hosted.
++		 * Walking the page tables to find the backing page of the
++		 * vmemmap page.
++		 */
++		pmdp = pmd_off_k(vaddr);
++		/*
++		 * The READ_ONCE() is used to stabilize *pmdp in a register or
++		 * on the stack so that it will stop changing under the code.
++		 * The only concurrent operation where it can be changed is
++		 * split_vmemmap_huge_pmd() (*pmdp will be stable after this
++		 * operation).
++		 */
++		pmd = READ_ONCE(*pmdp);
++		if (pmd_leaf(pmd))
++			vmemmap_page = pmd_page(pmd) + pte_index(vaddr);
++		else
++			vmemmap_page = pte_page(*pte_offset_kernel(pmdp, vaddr));
++		/*
++		 * Due to HugeTLB alignment requirements and the vmemmap pages
++		 * being at the start of the hotplugged memory region in
++		 * memory_hotplug.memmap_on_memory case. Checking any vmemmap
++		 * page's vmemmap page if it is marked as VmemmapSelfHosted is
++		 * sufficient.
++		 *
++		 * [                  hotplugged memory                  ]
++		 * [        section        ][...][        section        ]
++		 * [ vmemmap ][              usable memory               ]
++		 *   ^   |     |                                        |
++		 *   +---+     |                                        |
++		 *     ^       |                                        |
++		 *     +-------+                                        |
++		 *          ^                                           |
++		 *          +-------------------------------------------+
++		 */
++		if (PageVmemmapSelfHosted(vmemmap_page))
++			return 0;
++	}
+ 
+ 	return hugetlb_optimize_vmemmap_pages(h);
+ }
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 mm-memory_hotplug-enumerate-all-supported-section-flags.patch
 mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory.patch
-mm-memory_hotplug-make-hugetlb_optimize_vmemmap-compatible-with-memmap_on_memory-v5.patch
 mm-hugetlb-remove-minimum_order-variable.patch
 mm-hugetlb_vmemmap-delete-hugetlb_optimize_vmemmap_enabled.patch
 mm-hugetlb_vmemmap-optimize-vmemmap_optimize_mode-handling.patch
