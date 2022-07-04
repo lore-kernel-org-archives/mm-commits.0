@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88894C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:40:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0691BC43334
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:40:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229960AbiGDBkd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:40:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56746 "EHLO
+        id S229933AbiGDBke (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:40:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229933AbiGDBk2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:40:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A901A6388
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:40:27 -0700 (PDT)
+        with ESMTP id S229917AbiGDBkd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:40:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94B8162DF
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:40:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 40DD461356
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:40:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94520C341C6;
-        Mon,  4 Jul 2022 01:40:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 30EA9612D8
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:40:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 843DCC341C6;
+        Mon,  4 Jul 2022 01:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656898826;
-        bh=YYyl/czXVwQ0101JjuaJhxXVt6ucscSQ+Z4HkewyuFs=;
+        s=korg; t=1656898831;
+        bh=U7q3TI041jOlUxYc2cZ1OtgNsNrGK63hkw0aruW+Sls=;
         h=Date:To:From:Subject:From;
-        b=F8Ib6m5246e2SPrJfmgDkXAfsBZ03T8E43hO1r8tX6+cxzP3oERdmk/jhE2To98bt
-         4mWjjjtGxk3/KSpKZnVGMSpI8zsxMgyPq7BO1J9RdOGxh31yaiRFDXB77a8h1wZFtE
-         4YR9LNSbAVL2O3qZUW+grK21wMBAShunq/HM+HEg=
-Date:   Sun, 03 Jul 2022 18:40:26 -0700
+        b=AAx7Zcl/WYWi4x8gD8Xerz7H3i+unG7mDEGW87G+ai2nCui/4MDkyof4W3EgYAc3b
+         8CXREVRo6sGQJXgxml2sOEUQZE4gAhGicfyhbzjgzF1JD+3P10R7wCJ5CTgN4mA3zl
+         h1AjtPaEYR3A4N7Dj6wKX8Ok0Eom/EHNHc8DXeSs=
+Date:   Sun, 03 Jul 2022 18:40:30 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
         liushixin2@huawei.com, linmiaohe@huawei.com, david@redhat.com,
         naoya.horiguchi@nec.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages.patch added to mm-unstable branch
-Message-Id: <20220704014026.94520C341C6@smtp.kernel.org>
+Subject: + mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages.patch added to mm-unstable branch
+Message-Id: <20220704014031.843DCC341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison, hugetlb: support saving mechanism of raw error pages
+     Subject: mm, hwpoison: set PG_hwpoison for busy hugetlb pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages.patch
+     mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,34 +67,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison, hugetlb: support saving mechanism of raw error pages
-Date: Mon, 4 Jul 2022 10:33:07 +0900
+Subject: mm, hwpoison: set PG_hwpoison for busy hugetlb pages
+Date: Mon, 4 Jul 2022 10:33:09 +0900
 
-When handling memory error on a hugetlb page, the error handler tries to
-dissolve and turn it into 4kB pages.  If it's successfully dissolved,
-PageHWPoison flag is moved to the raw error page, so that's all right. 
-However, dissolve sometimes fails, then the error page is left as
-hwpoisoned hugepage.  It's useful if we can retry to dissolve it to save
-healthy pages, but that's not possible now because the information about
-where the raw error pages is lost.
+If memory_failure() fails to grab page refcount on a hugetlb page because
+it's busy, it returns without setting PG_hwpoison on it.  This not only
+loses a chance of error containment, but breaks the rule that
+action_result() should be called only when memory_failure() do any of
+handling work (even if that's just setting PG_hwpoison).  This
+inconsistency could harm code maintainability.
 
-Use the private field of a few tail pages to keep that information.  The
-code path of shrinking hugepage pool uses this info to try delayed
-dissolve.  In order to remember multiple errors in a hugepage, a
-singly-linked list originated from SUBPAGE_INDEX_HWPOISON-th tail page is
-constructed.  Only simple operations (adding an entry or clearing all) are
-required and the list is assumed not to be very long, so this simple data
-structure should be enough.
+So set PG_hwpoison and call hugetlb_set_page_hwpoison() for such a case.
 
-If we failed to save raw error info, the hwpoison hugepage has errors on
-unknown subpage, then this new saving mechanism does not work any more, so
-disable saving new raw error info and freeing hwpoison hugepages.
-
-Link: https://lkml.kernel.org/r/20220704013312.2415700-5-naoya.horiguchi@linux.dev
+Link: https://lkml.kernel.org/r/20220704013312.2415700-7-naoya.horiguchi@linux.dev
+Fixes: 405ce051236c ("mm/hwpoison: fix race between hugetlb free/demotion and memory_failure_hugetlb()")
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Oscar Salvador <osalvador@suse.de>
@@ -102,238 +92,51 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   18 ++++++++
- mm/hugetlb.c            |   39 +++++++++---------
- mm/memory-failure.c     |   80 +++++++++++++++++++++++++++++++++++++-
- 3 files changed, 114 insertions(+), 23 deletions(-)
+ include/linux/mm.h  |    1 +
+ mm/memory-failure.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages
-+++ a/include/linux/hugetlb.h
-@@ -43,6 +43,9 @@ enum {
- 	SUBPAGE_INDEX_CGROUP_RSVD,	/* reuse page->private */
- 	__MAX_CGROUP_SUBPAGE_INDEX = SUBPAGE_INDEX_CGROUP_RSVD,
- #endif
-+#ifdef CONFIG_MEMORY_FAILURE
-+	SUBPAGE_INDEX_HWPOISON,
-+#endif
- 	__NR_USED_SUBPAGE,
+--- a/include/linux/mm.h~mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages
++++ a/include/linux/mm.h
+@@ -3242,6 +3242,7 @@ enum mf_flags {
+ 	MF_SOFT_OFFLINE = 1 << 3,
+ 	MF_UNPOISON = 1 << 4,
+ 	MF_SW_SIMULATED = 1 << 5,
++	MF_NO_RETRY = 1 << 6,
  };
- 
-@@ -551,7 +554,7 @@ generic_hugetlb_get_unmapped_area(struct
-  *	Synchronization:  Initially set after new page allocation with no
-  *	locking.  When examined and modified during migration processing
-  *	(isolate, migrate, putback) the hugetlb_lock is held.
-- * HPG_temporary - - Set on a page that is temporarily allocated from the buddy
-+ * HPG_temporary -- Set on a page that is temporarily allocated from the buddy
-  *	allocator.  Typically used for migration target pages when no pages
-  *	are available in the pool.  The hugetlb free page path will
-  *	immediately free pages with this flag set to the buddy allocator.
-@@ -561,6 +564,8 @@ generic_hugetlb_get_unmapped_area(struct
-  * HPG_freed - Set when page is on the free lists.
-  *	Synchronization: hugetlb_lock held for examination and modification.
-  * HPG_vmemmap_optimized - Set when the vmemmap pages of the page are freed.
-+ * HPG_raw_hwp_unreliable - Set when the hugetlb page has a hwpoison sub-page
-+ *     that is not tracked by raw_hwp_page list.
-  */
- enum hugetlb_page_flags {
- 	HPG_restore_reserve = 0,
-@@ -568,6 +573,7 @@ enum hugetlb_page_flags {
- 	HPG_temporary,
- 	HPG_freed,
- 	HPG_vmemmap_optimized,
-+	HPG_raw_hwp_unreliable,
- 	__NR_HPAGEFLAGS,
- };
- 
-@@ -614,6 +620,7 @@ HPAGEFLAG(Migratable, migratable)
- HPAGEFLAG(Temporary, temporary)
- HPAGEFLAG(Freed, freed)
- HPAGEFLAG(VmemmapOptimized, vmemmap_optimized)
-+HPAGEFLAG(RawHwpUnreliable, raw_hwp_unreliable)
- 
- #ifdef CONFIG_HUGETLB_PAGE
- 
-@@ -799,6 +806,15 @@ extern int dissolve_free_huge_page(struc
- extern int dissolve_free_huge_pages(unsigned long start_pfn,
- 				    unsigned long end_pfn);
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+extern int hugetlb_clear_page_hwpoison(struct page *hpage);
-+#else
-+static inline int hugetlb_clear_page_hwpoison(struct page *hpage)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
- #ifndef arch_hugetlb_migration_supported
- static inline bool arch_hugetlb_migration_supported(struct hstate *h)
---- a/mm/hugetlb.c~mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages
-+++ a/mm/hugetlb.c
-@@ -1535,17 +1535,15 @@ static void __update_and_free_page(struc
- 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
- 		return;
- 
--	if (hugetlb_vmemmap_alloc(h, page)) {
--		spin_lock_irq(&hugetlb_lock);
--		/*
--		 * If we cannot allocate vmemmap pages, just refuse to free the
--		 * page and put the page back on the hugetlb free list and treat
--		 * as a surplus page.
--		 */
--		add_hugetlb_page(h, page, true);
--		spin_unlock_irq(&hugetlb_lock);
--		return;
--	}
-+	if (hugetlb_vmemmap_restore(h, page))
-+		goto fail;
-+
-+	/*
-+	 * Move PageHWPoison flag from head page to the raw error pages,
-+	 * which makes any healthy subpages reusable.
-+	 */
-+	if (unlikely(PageHWPoison(page) && hugetlb_clear_page_hwpoison(page)))
-+		goto fail;
- 
- 	for (i = 0; i < pages_per_huge_page(h);
- 	     i++, subpage = mem_map_next(subpage, page, i)) {
-@@ -1566,6 +1564,16 @@ static void __update_and_free_page(struc
- 	} else {
- 		__free_pages(page, huge_page_order(h));
- 	}
-+	return;
-+fail:
-+	spin_lock_irq(&hugetlb_lock);
-+	/*
-+	 * If we cannot allocate vmemmap pages or cannot identify raw hwpoison
-+	 * subpages reliably, just refuse to free the page and put the page
-+	 * back on the hugetlb free list and treat as a surplus page.
-+	 */
-+	add_hugetlb_page(h, page, true);
-+	spin_unlock_irq(&hugetlb_lock);
- }
- 
- /*
-@@ -2109,15 +2117,6 @@ retry:
- 		 */
- 		rc = hugetlb_vmemmap_alloc(h, head);
- 		if (!rc) {
--			/*
--			 * Move PageHWPoison flag from head page to the raw
--			 * error page, which makes any subpages rather than
--			 * the error page reusable.
--			 */
--			if (PageHWPoison(head) && page != head) {
--				SetPageHWPoison(page);
--				ClearPageHWPoison(head);
--			}
- 			update_and_free_page(h, head, false);
- 		} else {
- 			spin_lock_irq(&hugetlb_lock);
---- a/mm/memory-failure.c~mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages
+ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+ 		      unsigned long count, int mf_flags);
+--- a/mm/memory-failure.c~mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages
 +++ a/mm/memory-failure.c
-@@ -1665,6 +1665,82 @@ EXPORT_SYMBOL_GPL(mf_dax_kill_procs);
- #endif /* CONFIG_FS_DAX */
- 
- /*
-+ * Struct raw_hwp_page represents information about "raw error page",
-+ * constructing singly linked list originated from ->private field of
-+ * SUBPAGE_INDEX_HWPOISON-th tail page.
-+ */
-+struct raw_hwp_page {
-+	struct llist_node node;
-+	struct page *page;
-+};
-+
-+static inline struct llist_head *raw_hwp_list_head(struct page *hpage)
-+{
-+	return (struct llist_head *)&page_private(hpage + SUBPAGE_INDEX_HWPOISON);
-+}
-+
-+static inline int hugetlb_set_page_hwpoison(struct page *hpage,
-+					struct page *page)
-+{
-+	struct llist_head *head;
-+	struct raw_hwp_page *raw_hwp;
-+	struct llist_node *t, *tnode;
-+	int ret;
-+
-+	/*
-+	 * Once the hwpoison hugepage has lost reliable raw error info,
-+	 * there is little meaning to keep additional error info precisely,
-+	 * so skip to add additional raw error info.
-+	 */
-+	if (HPageRawHwpUnreliable(hpage))
-+		return -EHWPOISON;
-+	head = raw_hwp_list_head(hpage);
-+	llist_for_each_safe(tnode, t, head->first) {
-+		struct raw_hwp_page *p = container_of(tnode, struct raw_hwp_page, node);
-+
-+		if (p->page == page)
-+			return -EHWPOISON;
-+	}
-+
-+	ret = TestSetPageHWPoison(hpage) ? -EHWPOISON : 0;
-+	/* the first error event will be counted in action_result(). */
-+	if (ret)
-+		num_poisoned_pages_inc();
-+
-+	raw_hwp = kmalloc(sizeof(struct raw_hwp_page), GFP_ATOMIC);
-+	if (raw_hwp) {
-+		raw_hwp->page = page;
-+		llist_add(&raw_hwp->node, head);
-+	} else {
-+		/*
-+		 * Failed to save raw error info.  We no longer trace all
-+		 * hwpoisoned subpages, and we need refuse to free/dissolve
-+		 * this hwpoisoned hugepage.
-+		 */
-+		SetHPageRawHwpUnreliable(hpage);
-+	}
-+	return ret;
-+}
-+
-+inline int hugetlb_clear_page_hwpoison(struct page *hpage)
-+{
-+	struct llist_head *head;
-+	struct llist_node *t, *tnode;
-+
-+	if (!HPageRawHwpUnreliable(hpage))
-+		ClearPageHWPoison(hpage);
-+	head = raw_hwp_list_head(hpage);
-+	llist_for_each_safe(tnode, t, head->first) {
-+		struct raw_hwp_page *p = container_of(tnode, struct raw_hwp_page, node);
-+
-+		SetPageHWPoison(p->page);
-+		kfree(p);
-+	}
-+	llist_del_all(head);
-+	return 0;
-+}
-+
-+/*
-  * Called from hugetlb code with hugetlb_lock held.
-  *
-  * Return values:
-@@ -1698,7 +1774,7 @@ int __get_huge_page_for_hwpoison(unsigne
- 		goto out;
+@@ -1782,7 +1782,8 @@ int __get_huge_page_for_hwpoison(unsigne
+ 			count_increased = true;
+ 	} else {
+ 		ret = -EBUSY;
+-		goto out;
++		if (!(flags & MF_NO_RETRY))
++			goto out;
  	}
  
--	if (TestSetPageHWPoison(head)) {
-+	if (hugetlb_set_page_hwpoison(head, page)) {
- 		ret = -EHWPOISON;
- 		goto out;
- 	}
-@@ -1751,7 +1827,7 @@ retry:
- 	lock_page(head);
+ 	if (hugetlb_set_page_hwpoison(head, page)) {
+@@ -1810,7 +1811,6 @@ static int try_memory_failure_hugetlb(un
+ 	struct page *p = pfn_to_page(pfn);
+ 	struct page *head;
+ 	unsigned long page_flags;
+-	bool retry = true;
  
- 	if (hwpoison_filter(p)) {
--		ClearPageHWPoison(head);
-+		hugetlb_clear_page_hwpoison(head);
- 		res = -EOPNOTSUPP;
- 		goto out;
- 	}
+ 	*hugetlb = 1;
+ retry:
+@@ -1826,8 +1826,8 @@ retry:
+ 		}
+ 		return res;
+ 	} else if (res == -EBUSY) {
+-		if (retry) {
+-			retry = false;
++		if (!(flags & MF_NO_RETRY)) {
++			flags |= MF_NO_RETRY;
+ 			goto retry;
+ 		}
+ 		action_result(pfn, MF_MSG_UNKNOWN, MF_IGNORED);
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
