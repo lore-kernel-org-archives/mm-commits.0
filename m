@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78A00C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:11:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A762C43334
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:11:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233009AbiGDBLG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:11:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39912 "EHLO
+        id S233020AbiGDBLH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:11:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232844AbiGDBKN (ORCPT
+        with ESMTP id S232842AbiGDBKN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:10:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 191A562F5
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:11 -0700 (PDT)
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D94362E6
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C5FF1B80BEB
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B976C341C7;
-        Mon,  4 Jul 2022 01:10:08 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id D1951CE02C2
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31688C341C6;
+        Mon,  4 Jul 2022 01:10:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656897008;
-        bh=W0myBk2IsdwSyDWB7mDWYKPgB1ZjzSzM00YulrFr1xw=;
+        s=korg; t=1656897005;
+        bh=ygZXoNXC+z/swScx1Q4SZMd3YkpSf430z2btDNgtp9c=;
         h=Date:To:From:Subject:From;
-        b=RRP7WYSW0+GdiPtwRugENaPxUNGoHIbeIVyKxJcJ6mjESve97jakDiU/OFn+eYnEC
-         s7ZZU67VUkAExyEcWewG9dmWKndpIRDjmOmqW0rfwQtf2CrbDngjP1vPRfwyTeQwx1
-         IM+1yhTHylmtkJMyGC60uv/+Q2CK86WBij4g1Tf0=
-Date:   Sun, 03 Jul 2022 18:10:07 -0700
-To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=be8OSvWLWj7egVQZJN4QePd2dX5p/RdPf1+taXESvp6M172Ah6eleCfW5JWVswGI7
+         d9MewSeYSe14HpyWsTgW6Fq+gBHA96Savt6nQuMlABpeHwpdhETugBUKJXnU+ayZhj
+         czFOYYym+oAUpydeZ4VhVVkeG2QRkGLgVs+qw/oI=
+Date:   Sun, 03 Jul 2022 18:10:04 -0700
+To:     mm-commits@vger.kernel.org, shy828301@gmail.com, peterx@redhat.com,
+        pcc@google.com, nadav.amit@gmail.com, mgorman@techsingularity.net,
+        hughd@google.com, dave.hansen@intel.com, aarcange@redhat.com,
+        david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-convert-move_pages_to_lru-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20220704011008.7B976C341C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mprotect-try-avoiding-write-faults-for-exclusive-anonymous-pages-when-changing-protection.patch removed from -mm tree
+Message-Id: <20220704011005.31688C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,182 +43,244 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: convert move_pages_to_lru() to use a folio
+     Subject: mm/mprotect: try avoiding write faults for exclusive anonymous pages when changing protection
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-convert-move_pages_to_lru-to-use-a-folio.patch
+     mm-mprotect-try-avoiding-write-faults-for-exclusive-anonymous-pages-when-changing-protection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/vmscan: convert move_pages_to_lru() to use a folio
-Date: Fri, 17 Jun 2022 16:42:46 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/mprotect: try avoiding write faults for exclusive anonymous pages when changing protection
+Date: Tue, 14 Jun 2022 11:36:29 +0200
 
-Remove a few hidden calls to compound_head, saving 387 bytes of text on
-my test configuration.
+Similar to our MM_CP_DIRTY_ACCT handling for shared, writable mappings, we
+can try mapping anonymous pages in a private writable mapping writable if
+they are exclusive, the PTE is already dirty, and no special handling
+applies.  Mapping the anonymous page writable is essentially the same
+thing the write fault handler would do in this case.
 
-Link: https://lkml.kernel.org/r/20220617154248.700416-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Special handling is required for uffd-wp and softdirty tracking, so take
+care of that properly.  Also, leave PROT_NONE handling alone for now; in
+the future, we could similarly extend the logic in do_numa_page() or use
+pte_mk_savedwrite() here.
+
+While this improves mprotect(PROT_READ)+mprotect(PROT_READ|PROT_WRITE)
+performance, it should also be a valuable optimization for uffd-wp, when
+un-protecting.
+
+This has been previously suggested by Peter Collingbourne in [1], relevant
+in the context of the Scudo memory allocator, before we had
+PageAnonExclusive.
+
+This commit doesn't add the same handling for PMDs (i.e., anonymous THP,
+anonymous hugetlb); benchmark results from Andrea indicate that there are
+minor performance gains, so it's might still be valuable to streamline
+that logic for all anonymous pages in the future.
+
+As we now also set MM_CP_DIRTY_ACCT for private mappings, let's rename it
+to MM_CP_TRY_CHANGE_WRITABLE, to make it clearer what's actually
+happening.
+
+Micro-benchmark courtesy of Andrea:
+
+===
+ #define _GNU_SOURCE
+ #include <sys/mman.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdio.h>
+ #include <unistd.h>
+
+ #define SIZE (1024*1024*1024)
+
+int main(int argc, char *argv[])
+{
+	char *p;
+	if (posix_memalign((void **)&p, sysconf(_SC_PAGESIZE)*512, SIZE))
+		perror("posix_memalign"), exit(1);
+	if (madvise(p, SIZE, argc > 1 ? MADV_HUGEPAGE : MADV_NOHUGEPAGE))
+		perror("madvise");
+	explicit_bzero(p, SIZE);
+	for (int loops = 0; loops < 40; loops++) {
+		if (mprotect(p, SIZE, PROT_READ))
+			perror("mprotect"), exit(1);
+		if (mprotect(p, SIZE, PROT_READ|PROT_WRITE))
+			perror("mprotect"), exit(1);
+		explicit_bzero(p, SIZE);
+	}
+}
+===
+
+Results on my Ryzen 9 3900X:
+
+Stock 10 runs (lower is better):   AVG 6.398s, STDEV 0.043
+Patched 10 runs (lower is better): AVG 3.780s, STDEV 0.026
+
+===
+
+[1] https://lkml.kernel.org/r/20210429214801.2583336-1-pcc@google.com
+
+Link: https://lkml.kernel.org/r/20220614093629.76309-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Peter Collingbourne <pcc@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   54 +++++++++++++++++++++++++-------------------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ include/linux/mm.h |    8 +++-
+ mm/mprotect.c      |   77 ++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 68 insertions(+), 17 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-convert-move_pages_to_lru-to-use-a-folio
-+++ a/mm/vmscan.c
-@@ -2308,8 +2308,8 @@ static int too_many_isolated(struct pgli
- }
- 
- /*
-- * move_pages_to_lru() moves pages from private @list to appropriate LRU list.
-- * On return, @list is reused as a list of pages to be freed by the caller.
-+ * move_pages_to_lru() moves folios from private @list to appropriate LRU list.
-+ * On return, @list is reused as a list of folios to be freed by the caller.
-  *
-  * Returns the number of pages moved to the given lruvec.
+--- a/include/linux/mm.h~mm-mprotect-try-avoiding-write-faults-for-exclusive-anonymous-pages-when-changing-protection
++++ a/include/linux/mm.h
+@@ -1962,8 +1962,12 @@ extern unsigned long move_page_tables(st
+  * for now all the callers are only use one of the flags at the same
+  * time.
   */
-@@ -2317,42 +2317,42 @@ static unsigned int move_pages_to_lru(st
- 				      struct list_head *list)
- {
- 	int nr_pages, nr_moved = 0;
--	LIST_HEAD(pages_to_free);
--	struct page *page;
-+	LIST_HEAD(folios_to_free);
+-/* Whether we should allow dirty bit accounting */
+-#define  MM_CP_DIRTY_ACCT                  (1UL << 0)
++/*
++ * Whether we should manually check if we can map individual PTEs writable,
++ * because something (e.g., COW, uffd-wp) blocks that from happening for all
++ * PTEs automatically in a writable mapping.
++ */
++#define  MM_CP_TRY_CHANGE_WRITABLE	   (1UL << 0)
+ /* Whether this protection change is for NUMA hints */
+ #define  MM_CP_PROT_NUMA                   (1UL << 1)
+ /* Whether this change is for write protecting */
+--- a/mm/mprotect.c~mm-mprotect-try-avoiding-write-faults-for-exclusive-anonymous-pages-when-changing-protection
++++ a/mm/mprotect.c
+@@ -38,6 +38,39 @@
  
- 	while (!list_empty(list)) {
--		page = lru_to_page(list);
--		VM_BUG_ON_PAGE(PageLRU(page), page);
--		list_del(&page->lru);
--		if (unlikely(!page_evictable(page))) {
-+		struct folio *folio = lru_to_folio(list);
+ #include "internal.h"
+ 
++static inline bool can_change_pte_writable(struct vm_area_struct *vma,
++					   unsigned long addr, pte_t pte)
++{
++	struct page *page;
 +
-+		VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
-+		list_del(&folio->lru);
-+		if (unlikely(!folio_evictable(folio))) {
- 			spin_unlock_irq(&lruvec->lru_lock);
--			putback_lru_page(page);
-+			folio_putback_lru(folio);
- 			spin_lock_irq(&lruvec->lru_lock);
- 			continue;
- 		}
++	VM_BUG_ON(!(vma->vm_flags & VM_WRITE) || pte_write(pte));
++
++	if (pte_protnone(pte) || !pte_dirty(pte))
++		return false;
++
++	/* Do we need write faults for softdirty tracking? */
++	if ((vma->vm_flags & VM_SOFTDIRTY) && !pte_soft_dirty(pte))
++		return false;
++
++	/* Do we need write faults for uffd-wp tracking? */
++	if (userfaultfd_pte_wp(vma, pte))
++		return false;
++
++	if (!(vma->vm_flags & VM_SHARED)) {
++		/*
++		 * We can only special-case on exclusive anonymous pages,
++		 * because we know that our write-fault handler similarly would
++		 * map them writable without any additional checks while holding
++		 * the PT lock.
++		 */
++		page = vm_normal_page(vma, addr, pte);
++		if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++			return false;
++	}
++
++	return true;
++}
++
+ static unsigned long change_pte_range(struct mmu_gather *tlb,
+ 		struct vm_area_struct *vma, pmd_t *pmd, unsigned long addr,
+ 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
+@@ -46,7 +79,6 @@ static unsigned long change_pte_range(st
+ 	spinlock_t *ptl;
+ 	unsigned long pages = 0;
+ 	int target_node = NUMA_NO_NODE;
+-	bool dirty_accountable = cp_flags & MM_CP_DIRTY_ACCT;
+ 	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
+ 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
+ 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
+@@ -137,21 +169,27 @@ static unsigned long change_pte_range(st
+ 				ptent = pte_wrprotect(ptent);
+ 				ptent = pte_mkuffd_wp(ptent);
+ 			} else if (uffd_wp_resolve) {
+-				/*
+-				 * Leave the write bit to be handled
+-				 * by PF interrupt handler, then
+-				 * things like COW could be properly
+-				 * handled.
+-				 */
+ 				ptent = pte_clear_uffd_wp(ptent);
+ 			}
  
- 		/*
--		 * The SetPageLRU needs to be kept here for list integrity.
-+		 * The folio_set_lru needs to be kept here for list integrity.
- 		 * Otherwise:
- 		 *   #0 move_pages_to_lru             #1 release_pages
--		 *   if !put_page_testzero
--		 *				      if (put_page_testzero())
--		 *				        !PageLRU //skip lru_lock
--		 *     SetPageLRU()
--		 *     list_add(&page->lru,)
--		 *                                        list_add(&page->lru,)
-+		 *   if (!folio_put_testzero())
-+		 *				      if (folio_put_testzero())
-+		 *				        !lru //skip lru_lock
-+		 *     folio_set_lru()
-+		 *     list_add(&folio->lru,)
-+		 *                                        list_add(&folio->lru,)
- 		 */
--		SetPageLRU(page);
-+		folio_set_lru(folio);
+-			/* Avoid taking write faults for known dirty pages */
+-			if (dirty_accountable && pte_dirty(ptent) &&
+-					(pte_soft_dirty(ptent) ||
+-					 !(vma->vm_flags & VM_SOFTDIRTY))) {
++			/*
++			 * In some writable, shared mappings, we might want
++			 * to catch actual write access -- see
++			 * vma_wants_writenotify().
++			 *
++			 * In all writable, private mappings, we have to
++			 * properly handle COW.
++			 *
++			 * In both cases, we can sometimes still change PTEs
++			 * writable and avoid the write-fault handler, for
++			 * example, if a PTE is already dirty and no other
++			 * COW or special handling is required.
++			 */
++			if ((cp_flags & MM_CP_TRY_CHANGE_WRITABLE) &&
++			    !pte_write(ptent) &&
++			    can_change_pte_writable(vma, addr, ptent))
+ 				ptent = pte_mkwrite(ptent);
+-			}
++
+ 			ptep_modify_prot_commit(vma, addr, pte, oldpte, ptent);
+ 			if (pte_needs_flush(oldpte, ptent))
+ 				tlb_flush_pte_range(tlb, addr, PAGE_SIZE);
+@@ -505,9 +543,9 @@ mprotect_fixup(struct mmu_gather *tlb, s
+ 	unsigned long oldflags = vma->vm_flags;
+ 	long nrpages = (end - start) >> PAGE_SHIFT;
+ 	unsigned long charged = 0;
++	bool try_change_writable;
+ 	pgoff_t pgoff;
+ 	int error;
+-	int dirty_accountable = 0;
  
--		if (unlikely(put_page_testzero(page))) {
--			__clear_page_lru_flags(page);
-+		if (unlikely(folio_put_testzero(folio))) {
-+			__folio_clear_lru_flags(folio);
+ 	if (newflags == oldflags) {
+ 		*pprev = vma;
+@@ -583,11 +621,20 @@ success:
+ 	 * held in write mode.
+ 	 */
+ 	vma->vm_flags = newflags;
+-	dirty_accountable = vma_wants_writenotify(vma, vma->vm_page_prot);
++	/*
++	 * We want to check manually if we can change individual PTEs writable
++	 * if we can't do that automatically for all PTEs in a mapping. For
++	 * private mappings, that's always the case when we have write
++	 * permissions as we properly have to handle COW.
++	 */
++	if (vma->vm_flags & VM_SHARED)
++		try_change_writable = vma_wants_writenotify(vma, vma->vm_page_prot);
++	else
++		try_change_writable = !!(vma->vm_flags & VM_WRITE);
+ 	vma_set_page_prot(vma);
  
--			if (unlikely(PageCompound(page))) {
-+			if (unlikely(folio_test_large(folio))) {
- 				spin_unlock_irq(&lruvec->lru_lock);
--				destroy_compound_page(page);
-+				destroy_compound_page(&folio->page);
- 				spin_lock_irq(&lruvec->lru_lock);
- 			} else
--				list_add(&page->lru, &pages_to_free);
-+				list_add(&folio->lru, &folios_to_free);
- 
- 			continue;
- 		}
-@@ -2361,18 +2361,18 @@ static unsigned int move_pages_to_lru(st
- 		 * All pages were isolated from the same lruvec (and isolation
- 		 * inhibits memcg migration).
- 		 */
--		VM_BUG_ON_PAGE(!folio_matches_lruvec(page_folio(page), lruvec), page);
--		add_page_to_lru_list(page, lruvec);
--		nr_pages = thp_nr_pages(page);
-+		VM_BUG_ON_FOLIO(!folio_matches_lruvec(folio, lruvec), folio);
-+		lruvec_add_folio(lruvec, folio);
-+		nr_pages = folio_nr_pages(folio);
- 		nr_moved += nr_pages;
--		if (PageActive(page))
-+		if (folio_test_active(folio))
- 			workingset_age_nonresident(lruvec, nr_pages);
- 	}
+ 	change_protection(tlb, vma, start, end, vma->vm_page_prot,
+-			  dirty_accountable ? MM_CP_DIRTY_ACCT : 0);
++			  try_change_writable ? MM_CP_TRY_CHANGE_WRITABLE : 0);
  
  	/*
- 	 * To save our caller's stack, now use input list for pages to free.
- 	 */
--	list_splice(&pages_to_free, list);
-+	list_splice(&folios_to_free, list);
- 
- 	return nr_moved;
- }
+ 	 * Private VM_LOCKED VMA becoming writable: trigger COW to avoid major
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-vmscan-convert-shrink_active_list-to-use-a-folio.patch
-mm-vmscan-convert-reclaim_pages-to-use-a-folio.patch
-mm-add-folios_put.patch
-mm-swap-add-folio_batch_move_lru.patch
-mm-swap-make-__pagevec_lru_add-static.patch
-mm-swap-convert-lru_add-to-a-folio_batch.patch
-mm-swap-convert-lru_deactivate_file-to-a-folio_batch.patch
-mm-swap-convert-lru_deactivate-to-a-folio_batch.patch
-mm-swap-convert-lru_lazyfree-to-a-folio_batch.patch
-mm-swap-convert-activate_page-to-a-folio_batch.patch
-mm-swap-rename-lru_pvecs-to-cpu_fbatches.patch
-mm-swap-pull-the-cpu-conditional-out-of-__lru_add_drain_all.patch
-mm-swap-optimise-lru_add_drain_cpu.patch
-mm-swap-convert-try_to_free_swap-to-use-a-folio.patch
-mm-swap-convert-release_pages-to-use-a-folio-internally.patch
-mm-swap-convert-put_pages_list-to-use-folios.patch
-mm-swap-convert-__put_page-to-__folio_put.patch
-mm-swap-convert-__put_single_page-to-__folio_put_small.patch
-mm-swap-convert-__put_compound_page-to-__folio_put_large.patch
-mm-swap-convert-__page_cache_release-to-use-a-folio.patch
-mm-convert-destroy_compound_page-to-destroy_large_folio.patch
-mm-convert-page_swap_flags-to-folio_swap_flags.patch
-mm-swap-convert-delete_from_swap_cache-to-take-a-folio.patch
-mm-swap-convert-__delete_from_swap_cache-to-a-folio.patch
-mm-add-vma-iterator.patch
-mmap-use-the-vma-iterator-in-count_vma_pages_range.patch
-proc-remove-vma-rbtree-use-from-nommu.patch
-arm64-remove-mmap-linked-list-from-vdso.patch
-parisc-remove-mmap-linked-list-from-cache-handling.patch
-powerpc-remove-mmap-linked-list-walks.patch
-s390-remove-vma-linked-list-walks.patch
-x86-remove-vma-linked-list-walks.patch
-xtensa-remove-vma-linked-list-walks.patch
-cxl-remove-vma-linked-list-walk.patch
-optee-remove-vma-linked-list-walk.patch
-um-remove-vma-linked-list-walk.patch
-coredump-remove-vma-linked-list-walk.patch
-exec-use-vma-iterator-instead-of-linked-list.patch
-fs-proc-task_mmu-stop-using-linked-list-and-highest_vm_end.patch
-acct-use-vma-iterator-instead-of-linked-list.patch
-perf-use-vma-iterator.patch
-sched-use-maple-tree-iterator-to-walk-vmas.patch
-fork-use-vma-iterator.patch
-mm-khugepaged-stop-using-vma-linked-list.patch
-mm-ksm-use-vma-iterators-instead-of-vma-linked-list.patch
-mm-mlock-use-vma-iterator-and-maple-state-instead-of-vma-linked-list.patch
-mm-pagewalk-use-vma_find-instead-of-vma-linked-list.patch
-i915-use-the-vma-iterator.patch
-nommu-remove-uses-of-vma-linked-list.patch
-mips-rename-pmd_order-to-pmd_table_order.patch
 
