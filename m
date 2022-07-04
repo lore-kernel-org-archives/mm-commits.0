@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF3EBC433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 00:05:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4B5CC433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:09:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232647AbiGDAFB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 20:05:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39040 "EHLO
+        id S229801AbiGDBJ0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:09:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229548AbiGDAE6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 20:04:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B89F60EC
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 17:04:57 -0700 (PDT)
+        with ESMTP id S229459AbiGDBJZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 596112DFF
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 36AC061298
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 00:04:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D3AC341C6;
-        Mon,  4 Jul 2022 00:04:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D70436130A
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36161C341CB;
+        Mon,  4 Jul 2022 01:09:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656893096;
-        bh=smhcneI3mPJAO81lNzUH8/zwBI93/qk6zRAnIGHmwsk=;
+        s=korg; t=1656896963;
+        bh=uaLAPEFkjqaD8OwpMcEsT9QCeolaW3hpoVhvK9L/1u0=;
         h=Date:To:From:Subject:From;
-        b=NbKEou8UWhBavlcIqnXCGAbmatFi61gLSK8BZ4+o3ftIX9BDFuThZpsLMU9bAXuOa
-         hxIq1sZZkmTmTqiHlGGLj8Tma5c9+bPvI7NSButPFSC3Vr+C4925CoZYywdmcZ4rXU
-         kVpI60xKppPmkZIRLcTstyBPCwR6/FYGajI0t6mo=
-Date:   Sun, 03 Jul 2022 17:04:55 -0700
-To:     mm-commits@vger.kernel.org, void@manifault.com, ats@fb.com,
-        aneesh.kumar@linux.vnet.ibm.com, adam@wowsignal.io,
+        b=s/9ohCdk0Yzn/QU3m4TBF2B+22GtgmJb4gde//XqUZVBH9IKi8rCMTfckL9cB9lgn
+         XT8ujzrIOztkTfxEnepBe+mUHr0GfKfUTzBEElm7GgKvm9UjJfp81RP/wJhcPuMxex
+         ruHBvUi2weoImSE/q6NwrupYUZKAcDOtFQdV4Xck=
+Date:   Sun, 03 Jul 2022 18:09:22 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, shy828301@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-vm-only-run-128tbswitch-with-5-level-paging-v6.patch removed from -mm tree
-Message-Id: <20220704000456.84D3AC341C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-use-the-correct-parameter-name-for-define_page_vma_walk.patch removed from -mm tree
+Message-Id: <20220704010923.36161C341CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,103 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests-vm-only-run-128tbswitch-with-5-level-paging-v6
+     Subject: mm: rmap: use the correct parameter name for DEFINE_PAGE_VMA_WALK
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-only-run-128tbswitch-with-5-level-paging-v6.patch
+     mm-rmap-use-the-correct-parameter-name-for-define_page_vma_walk.patch
 
-This patch was dropped because it was folded into selftests-vm-only-run-128tbswitch-with-5-level-paging.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Adam Sindelar <adam@wowsignal.io>
-Subject: selftests-vm-only-run-128tbswitch-with-5-level-paging-v6
-Date: Fri, 1 Jul 2022 18:30:30 +0200
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: rmap: use the correct parameter name for DEFINE_PAGE_VMA_WALK
 
-fix formatting issues, rename "die" to "fail"
+The parameter used by DEFINE_PAGE_VMA_WALK is _page not page, fix the
+parameter name.  It didn't cause any build error, it is probably because
+the only caller is write_protect_page() from ksm.c, which pass in page.
 
-Link: https://lkml.kernel.org/r/20220701163030.415735-1-adam@wowsignal.io
-Signed-off-by: Adam Sindelar <adam@wowsignal.io>
-Cc: David Vernet <void@manifault.com>
-Cc: Adam Sindelar <ats@fb.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Link: https://lkml.kernel.org/r/20220512174551.81279-1-shy828301@gmail.com
+Fixes: 2aff7a4755be ("mm: Convert page_vma_mapped_walk to work on PFNs")
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/va_128TBswitch.sh |   52 ++++++++---------
- 1 file changed, 26 insertions(+), 26 deletions(-)
+ include/linux/rmap.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/va_128TBswitch.sh~selftests-vm-only-run-128tbswitch-with-5-level-paging-v6
-+++ a/tools/testing/selftests/vm/va_128TBswitch.sh
-@@ -13,41 +13,41 @@ exitcode=1
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
- 
--die()
-+fail()
- {
--    echo "$1"
--    exit $exitcode
-+	echo "$1"
-+	exit $exitcode
- }
- 
- check_supported_x86_64()
- {
--    local config="/proc/config.gz"
--    [[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
--    [[ -f "${config}" ]] || die "Cannot find kernel config in /proc or /boot"
--
--    # gzip -dcfq automatically handles both compressed and plaintext input.
--    # See man 1 gzip under '-f'.
--    local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
--
--    if [[ "${pg_table_levels}" -lt 5 ]]; then
--        echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
--        exit $ksft_skip
--    fi
-+	local config="/proc/config.gz"
-+	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
-+	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
-+
-+	# gzip -dcfq automatically handles both compressed and plaintext input.
-+	# See man 1 gzip under '-f'.
-+	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
-+
-+	if [[ "${pg_table_levels}" -lt 5 ]]; then
-+		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
-+		exit $ksft_skip
-+	fi
- }
- 
- check_test_requirements()
- {
--    # The test supports x86_64 and powerpc64. We currently have no useful
--    # eligibility check for powerpc64, and the test itself will reject other
--    # architectures.
--    case `uname -m` in
--        "x86_64")
--            check_supported_x86_64
--        ;;
--        *)
--            return 0
--        ;;
--    esac
-+	# The test supports x86_64 and powerpc64. We currently have no useful
-+	# eligibility check for powerpc64, and the test itself will reject other
-+	# architectures.
-+	case `uname -m` in
-+		"x86_64")
-+			check_supported_x86_64
-+		;;
-+		*)
-+			return 0
-+		;;
-+	esac
- }
- 
- check_test_requirements
+--- a/include/linux/rmap.h~mm-rmap-use-the-correct-parameter-name-for-define_page_vma_walk
++++ a/include/linux/rmap.h
+@@ -325,8 +325,8 @@ struct page_vma_mapped_walk {
+ #define DEFINE_PAGE_VMA_WALK(name, _page, _vma, _address, _flags)	\
+ 	struct page_vma_mapped_walk name = {				\
+ 		.pfn = page_to_pfn(_page),				\
+-		.nr_pages = compound_nr(page),				\
+-		.pgoff = page_to_pgoff(page),				\
++		.nr_pages = compound_nr(_page),				\
++		.pgoff = page_to_pgoff(_page),				\
+ 		.vma = _vma,						\
+ 		.address = _address,					\
+ 		.flags = _flags,					\
 _
 
-Patches currently in -mm which might be from adam@wowsignal.io are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-selftests-vm-only-run-128tbswitch-with-5-level-paging.patch
+mm-pvmw-check-possible-huge-pmd-map-by-transhuge_vma_suitable.patch
+mm-khugepaged-check-thp-flag-in-hugepage_vma_check.patch
+mm-thp-consolidate-vma-size-check-to-transhuge_vma_suitable.patch
+mm-khugepaged-better-comments-for-anon-vma-check-in-hugepage_vma_revalidate.patch
+mm-thp-kill-transparent_hugepage_active.patch
+mm-thp-kill-__transhuge_page_enabled.patch
+mm-khugepaged-reorg-some-khugepaged-helpers.patch
+doc-proc-fix-the-description-to-thpeligible.patch
 
