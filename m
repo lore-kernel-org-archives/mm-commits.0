@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F41C2C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78EC1CCA47C
 	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:10:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230122AbiGDBKQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:10:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39556 "EHLO
+        id S232254AbiGDBKP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:10:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232659AbiGDBJz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:55 -0400
+        with ESMTP id S230122AbiGDBJ5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:57 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16CC4617D
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B29662F6
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C14D5B80C73
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66E43C341C7;
-        Mon,  4 Jul 2022 01:09:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BBFE1B803F6
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70148C341C6;
+        Mon,  4 Jul 2022 01:09:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656896992;
-        bh=is8OeKVyNZuxGyIc/eKRKKRAdu/odazKZIK7BkcUDBc=;
+        s=korg; t=1656896993;
+        bh=hkYRrh0LlqVfsxsTE43R5EKygJ7kbFoez4eCtGUw38U=;
         h=Date:To:From:Subject:From;
-        b=HM9oDYbsNbgSquYAizH0y42BG6ps7aF2d0vr0byu4crUd3BzNBkm2A1x8oiW3pN4F
-         FFvDgRQAvzHf+Dyh86+ve4nLvZ+nSvIoGcFweY24XHwNUPsa3qJ0BmMVMYx2v0vT09
-         4wPYQ56G6Izl1kIZR3GMU/kMAS8WOrQPsKWjLvI4=
-Date:   Sun, 03 Jul 2022 18:09:51 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        oleksiy.avramchenko@sony.com, npiggin@gmail.com, hch@infradead.org,
-        urezki@gmail.com, akpm@linux-foundation.org
+        b=XCB3rFLdflqkj5xhi27fXsWcINTtmXP0EQXzG1BFmHH4TCC/myijY4k40PARVGBvf
+         eFrjlBNg5vMtbTJA6wuuVt3cdPv3i5d2pPqkVdUOmn5Leu1dzxYivb+0yh9BA04Dr7
+         5/lLiYuEOOtDa82Kti7c/uDPurumMQ4ole1fz/+0=
+Date:   Sun, 03 Jul 2022 18:09:52 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com, hughd@google.com,
+        david@redhat.com, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-test_vmalloc-switch-to-prandom_u32.patch removed from -mm tree
-Message-Id: <20220704010952.66E43C341C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swapfile-fix-possible-data-races-of-inuse_pages.patch removed from -mm tree
+Message-Id: <20220704010953.70148C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,106 +41,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/test_vmalloc: switch to prandom_u32()
+     Subject: mm/swapfile: fix possible data races of inuse_pages
 has been removed from the -mm tree.  Its filename was
-     lib-test_vmalloc-switch-to-prandom_u32.patch
+     mm-swapfile-fix-possible-data-races-of-inuse_pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: lib/test_vmalloc: switch to prandom_u32()
-Date: Tue, 7 Jun 2022 11:34:49 +0200
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swapfile: fix possible data races of inuse_pages
+Date: Wed, 8 Jun 2022 22:40:30 +0800
 
-A get_random_bytes() function can cause a high contention if it is called
-across CPUs simultaneously.  Because it shares one lock per all CPUs:
+si->inuse_pages could still be accessed concurrently now.  The plain reads
+outside si->lock critical section, i.e.  swap_show and si_swapinfo, which
+results in data races.  READ_ONCE and WRITE_ONCE is used to fix such data
+races.  Note these data races should be ok because they're just used for
+showing swap info.
 
-<snip>
-   class name     con-bounces  contentions   waittime-min   waittime-max waittime-total   waittime-avg    acq-bounces   acquisitions   holdtime-min   holdtime-max holdtime-total   holdtime-avg
-   &crng->lock:   663145       665886        0.05           8.85         261966.66        0.39            7188152       13731279       0.04           11.89        2181582.30       0.16
-   -----------
-   &crng->lock    307835       [<00000000acba59cd>] _extract_crng+0x48/0x90
-   &crng->lock    358051       [<00000000f0075abc>] _crng_backtrack_protect+0x32/0x90
-   -----------
-   &crng->lock    234241       [<00000000f0075abc>] _crng_backtrack_protect+0x32/0x90
-   &crng->lock    431645       [<00000000acba59cd>] _extract_crng+0x48/0x90
-<snip>
-
-Switch from the get_random_bytes() to prandom_u32() that does not have any
-internal contention when a random value is needed for the tests.
-
-The reason is to minimize CPU cycles introduced by the test-suite itself
-from the vmalloc performance metrics.
-
-Link: https://lkml.kernel.org/r/20220607093449.3100-6-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+[linmiaohe@huawei.com: use WRITE_ONCE to pair with READ_ONCE]
+  Link: https://lkml.kernel.org/r/20220625093346.48894-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220608144031.829-3-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/swapfile.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/lib/test_vmalloc.c~lib-test_vmalloc-switch-to-prandom_u32
-+++ a/lib/test_vmalloc.c
-@@ -74,12 +74,13 @@ test_report_one_done(void)
+--- a/mm/swapfile.c~mm-swapfile-fix-possible-data-races-of-inuse_pages
++++ a/mm/swapfile.c
+@@ -695,7 +695,7 @@ static void swap_range_alloc(struct swap
+ 		si->lowest_bit += nr_entries;
+ 	if (end == si->highest_bit)
+ 		WRITE_ONCE(si->highest_bit, si->highest_bit - nr_entries);
+-	si->inuse_pages += nr_entries;
++	WRITE_ONCE(si->inuse_pages, si->inuse_pages + nr_entries);
+ 	if (si->inuse_pages == si->pages) {
+ 		si->lowest_bit = si->max;
+ 		si->highest_bit = 0;
+@@ -732,7 +732,7 @@ static void swap_range_free(struct swap_
+ 			add_to_avail_list(si);
+ 	}
+ 	atomic_long_add(nr_entries, &nr_swap_pages);
+-	si->inuse_pages -= nr_entries;
++	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
+ 	if (si->flags & SWP_BLKDEV)
+ 		swap_slot_free_notify =
+ 			si->bdev->bd_disk->fops->swap_slot_free_notify;
+@@ -2640,7 +2640,7 @@ static int swap_show(struct seq_file *sw
+ 	}
  
- static int random_size_align_alloc_test(void)
- {
--	unsigned long size, align, rnd;
-+	unsigned long size, align;
-+	unsigned int rnd;
- 	void *ptr;
- 	int i;
+ 	bytes = si->pages << (PAGE_SHIFT - 10);
+-	inuse = si->inuse_pages << (PAGE_SHIFT - 10);
++	inuse = READ_ONCE(si->inuse_pages) << (PAGE_SHIFT - 10);
  
- 	for (i = 0; i < test_loop_count; i++) {
--		get_random_bytes(&rnd, sizeof(rnd));
-+		rnd = prandom_u32();
+ 	file = si->swap_file;
+ 	len = seq_file_path(swap, file, " \t\n\\");
+@@ -3259,7 +3259,7 @@ void si_swapinfo(struct sysinfo *val)
+ 		struct swap_info_struct *si = swap_info[type];
  
- 		/*
- 		 * Maximum 1024 pages, if PAGE_SIZE is 4096.
-@@ -150,7 +151,7 @@ static int random_size_alloc_test(void)
- 	int i;
- 
- 	for (i = 0; i < test_loop_count; i++) {
--		get_random_bytes(&n, sizeof(i));
-+		n = prandom_u32();
- 		n = (n % 100) + 1;
- 
- 		p = vmalloc(n * PAGE_SIZE);
-@@ -294,14 +295,14 @@ pcpu_alloc_test(void)
- 	for (i = 0; i < 35000; i++) {
- 		unsigned int r;
- 
--		get_random_bytes(&r, sizeof(i));
-+		r = prandom_u32();
- 		size = (r % (PAGE_SIZE / 4)) + 1;
- 
- 		/*
- 		 * Maximum PAGE_SIZE
- 		 */
--		get_random_bytes(&r, sizeof(i));
--		align = 1 << ((i % 11) + 1);
-+		r = prandom_u32();
-+		align = 1 << ((r % 11) + 1);
- 
- 		pcpu[i] = __alloc_percpu(size, align);
- 		if (!pcpu[i])
-@@ -396,7 +397,7 @@ static void shuffle_array(int *arr, int
- 	int i, j;
- 
- 	for (i = n - 1; i > 0; i--)  {
--		get_random_bytes(&rnd, sizeof(rnd));
-+		rnd = prandom_u32();
- 
- 		/* Cut the range. */
- 		j = rnd % i;
+ 		if ((si->flags & SWP_USED) && !(si->flags & SWP_WRITEOK))
+-			nr_to_be_unused += si->inuse_pages;
++			nr_to_be_unused += READ_ONCE(si->inuse_pages);
+ 	}
+ 	val->freeswap = atomic_long_read(&nr_swap_pages) + nr_to_be_unused;
+ 	val->totalswap = total_swap_pages + nr_to_be_unused;
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-swap-remove-swap_cache_info-statistics.patch
+mm-madvise-minor-cleanup-for-swapin_walk_pmd_entry.patch
+mm-khugepaged-remove-unneeded-shmem_huge_enabled-check.patch
+mm-khugepaged-stop-swapping-in-page-when-vm_fault_retry-occurs.patch
+mm-khugepaged-trivial-typo-and-codestyle-cleanup.patch
+mm-khugepaged-minor-cleanup-for-collapse_file.patch
+mm-khugepaged-use-helper-macro-__attr_rw.patch
+mm-khugepaged-remove-unneeded-return-value-of-khugepaged_add_pte_mapped_thp.patch
+mm-khugepaged-try-to-free-transhuge-swapcache-when-possible.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
+filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
 
