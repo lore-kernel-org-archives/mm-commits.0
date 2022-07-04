@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 693A5CCA473
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:11:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78A00C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:11:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232995AbiGDBLF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:11:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39548 "EHLO
+        id S233009AbiGDBLG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:11:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232750AbiGDBKN (ORCPT
+        with ESMTP id S232844AbiGDBKN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:10:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E8EA62F3
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:10 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 191A562F5
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BCF0CB80C73
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65A09C341C6;
-        Mon,  4 Jul 2022 01:10:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C5FF1B80BEB
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B976C341C7;
+        Mon,  4 Jul 2022 01:10:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656897007;
-        bh=ZOvl8iv3+7jb3V2D4f7iFMFQkJXetLGR4Q0EqCAJnFI=;
+        s=korg; t=1656897008;
+        bh=W0myBk2IsdwSyDWB7mDWYKPgB1ZjzSzM00YulrFr1xw=;
         h=Date:To:From:Subject:From;
-        b=MLiMcaCP1/zbMU/ld+fGzIm+aTIi35yZSDfse8zuJHOr96e2bwjfa1OOiO+d03/O1
-         gXSub0l8lCRUi/tg2m/aNXai0x8WACVozbDcJsiWLBeiUyPhvVz4cw4bt5kKNBSIji
-         34on6LdMzkdcPntMk3dzMUObpgIIoz4Qp6QESSxw=
-Date:   Sun, 03 Jul 2022 18:10:06 -0700
+        b=RRP7WYSW0+GdiPtwRugENaPxUNGoHIbeIVyKxJcJ6mjESve97jakDiU/OFn+eYnEC
+         s7ZZU67VUkAExyEcWewG9dmWKndpIRDjmOmqW0rfwQtf2CrbDngjP1vPRfwyTeQwx1
+         IM+1yhTHylmtkJMyGC60uv/+Q2CK86WBij4g1Tf0=
+Date:   Sun, 03 Jul 2022 18:10:07 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-convert-isolate_lru_pages-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20220704011007.65A09C341C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-convert-move_pages_to_lru-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20220704011008.7B976C341C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,160 +41,134 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: convert isolate_lru_pages() to use a folio
+     Subject: mm/vmscan: convert move_pages_to_lru() to use a folio
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-convert-isolate_lru_pages-to-use-a-folio.patch
+     mm-vmscan-convert-move_pages_to_lru-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/vmscan: convert isolate_lru_pages() to use a folio
-Date: Fri, 17 Jun 2022 16:42:45 +0100
+Subject: mm/vmscan: convert move_pages_to_lru() to use a folio
+Date: Fri, 17 Jun 2022 16:42:46 +0100
 
-Remove a few hidden calls to compound_head, saving 279 bytes of text.
+Remove a few hidden calls to compound_head, saving 387 bytes of text on
+my test configuration.
 
-Link: https://lkml.kernel.org/r/20220617154248.700416-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617154248.700416-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   66 +++++++++++++++++++++++++-------------------------
- 1 file changed, 33 insertions(+), 33 deletions(-)
+ mm/vmscan.c |   54 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-convert-isolate_lru_pages-to-use-a-folio
+--- a/mm/vmscan.c~mm-vmscan-convert-move_pages_to_lru-to-use-a-folio
 +++ a/mm/vmscan.c
-@@ -160,17 +160,17 @@ struct scan_control {
- };
- 
- #ifdef ARCH_HAS_PREFETCHW
--#define prefetchw_prev_lru_page(_page, _base, _field)			\
-+#define prefetchw_prev_lru_folio(_folio, _base, _field)			\
- 	do {								\
--		if ((_page)->lru.prev != _base) {			\
--			struct page *prev;				\
-+		if ((_folio)->lru.prev != _base) {			\
-+			struct folio *prev;				\
- 									\
--			prev = lru_to_page(&(_page->lru));		\
-+			prev = lru_to_folio(&(_folio->lru));		\
- 			prefetchw(&prev->_field);			\
- 		}							\
- 	} while (0)
- #else
--#define prefetchw_prev_lru_page(_page, _base, _field) do { } while (0)
-+#define prefetchw_prev_lru_folio(_folio, _base, _field) do { } while (0)
- #endif
+@@ -2308,8 +2308,8 @@ static int too_many_isolated(struct pgli
+ }
  
  /*
-@@ -2139,72 +2139,72 @@ static unsigned long isolate_lru_pages(u
- 	unsigned long nr_skipped[MAX_NR_ZONES] = { 0, };
- 	unsigned long skipped = 0;
- 	unsigned long scan, total_scan, nr_pages;
--	LIST_HEAD(pages_skipped);
-+	LIST_HEAD(folios_skipped);
+- * move_pages_to_lru() moves pages from private @list to appropriate LRU list.
+- * On return, @list is reused as a list of pages to be freed by the caller.
++ * move_pages_to_lru() moves folios from private @list to appropriate LRU list.
++ * On return, @list is reused as a list of folios to be freed by the caller.
+  *
+  * Returns the number of pages moved to the given lruvec.
+  */
+@@ -2317,42 +2317,42 @@ static unsigned int move_pages_to_lru(st
+ 				      struct list_head *list)
+ {
+ 	int nr_pages, nr_moved = 0;
+-	LIST_HEAD(pages_to_free);
+-	struct page *page;
++	LIST_HEAD(folios_to_free);
  
- 	total_scan = 0;
- 	scan = 0;
- 	while (scan < nr_to_scan && !list_empty(src)) {
- 		struct list_head *move_to = src;
--		struct page *page;
-+		struct folio *folio;
+ 	while (!list_empty(list)) {
+-		page = lru_to_page(list);
+-		VM_BUG_ON_PAGE(PageLRU(page), page);
+-		list_del(&page->lru);
+-		if (unlikely(!page_evictable(page))) {
++		struct folio *folio = lru_to_folio(list);
++
++		VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
++		list_del(&folio->lru);
++		if (unlikely(!folio_evictable(folio))) {
+ 			spin_unlock_irq(&lruvec->lru_lock);
+-			putback_lru_page(page);
++			folio_putback_lru(folio);
+ 			spin_lock_irq(&lruvec->lru_lock);
+ 			continue;
+ 		}
  
--		page = lru_to_page(src);
--		prefetchw_prev_lru_page(page, src, flags);
-+		folio = lru_to_folio(src);
-+		prefetchw_prev_lru_folio(folio, src, flags);
+ 		/*
+-		 * The SetPageLRU needs to be kept here for list integrity.
++		 * The folio_set_lru needs to be kept here for list integrity.
+ 		 * Otherwise:
+ 		 *   #0 move_pages_to_lru             #1 release_pages
+-		 *   if !put_page_testzero
+-		 *				      if (put_page_testzero())
+-		 *				        !PageLRU //skip lru_lock
+-		 *     SetPageLRU()
+-		 *     list_add(&page->lru,)
+-		 *                                        list_add(&page->lru,)
++		 *   if (!folio_put_testzero())
++		 *				      if (folio_put_testzero())
++		 *				        !lru //skip lru_lock
++		 *     folio_set_lru()
++		 *     list_add(&folio->lru,)
++		 *                                        list_add(&folio->lru,)
+ 		 */
+-		SetPageLRU(page);
++		folio_set_lru(folio);
  
--		nr_pages = compound_nr(page);
+-		if (unlikely(put_page_testzero(page))) {
+-			__clear_page_lru_flags(page);
++		if (unlikely(folio_put_testzero(folio))) {
++			__folio_clear_lru_flags(folio);
+ 
+-			if (unlikely(PageCompound(page))) {
++			if (unlikely(folio_test_large(folio))) {
+ 				spin_unlock_irq(&lruvec->lru_lock);
+-				destroy_compound_page(page);
++				destroy_compound_page(&folio->page);
+ 				spin_lock_irq(&lruvec->lru_lock);
+ 			} else
+-				list_add(&page->lru, &pages_to_free);
++				list_add(&folio->lru, &folios_to_free);
+ 
+ 			continue;
+ 		}
+@@ -2361,18 +2361,18 @@ static unsigned int move_pages_to_lru(st
+ 		 * All pages were isolated from the same lruvec (and isolation
+ 		 * inhibits memcg migration).
+ 		 */
+-		VM_BUG_ON_PAGE(!folio_matches_lruvec(page_folio(page), lruvec), page);
+-		add_page_to_lru_list(page, lruvec);
+-		nr_pages = thp_nr_pages(page);
++		VM_BUG_ON_FOLIO(!folio_matches_lruvec(folio, lruvec), folio);
++		lruvec_add_folio(lruvec, folio);
 +		nr_pages = folio_nr_pages(folio);
- 		total_scan += nr_pages;
- 
--		if (page_zonenum(page) > sc->reclaim_idx) {
--			nr_skipped[page_zonenum(page)] += nr_pages;
--			move_to = &pages_skipped;
-+		if (folio_zonenum(folio) > sc->reclaim_idx) {
-+			nr_skipped[folio_zonenum(folio)] += nr_pages;
-+			move_to = &folios_skipped;
- 			goto move;
- 		}
- 
- 		/*
--		 * Do not count skipped pages because that makes the function
--		 * return with no isolated pages if the LRU mostly contains
--		 * ineligible pages.  This causes the VM to not reclaim any
--		 * pages, triggering a premature OOM.
--		 * Account all tail pages of THP.
-+		 * Do not count skipped folios because that makes the function
-+		 * return with no isolated folios if the LRU mostly contains
-+		 * ineligible folios.  This causes the VM to not reclaim any
-+		 * folios, triggering a premature OOM.
-+		 * Account all pages in a folio.
- 		 */
- 		scan += nr_pages;
- 
--		if (!PageLRU(page))
-+		if (!folio_test_lru(folio))
- 			goto move;
--		if (!sc->may_unmap && page_mapped(page))
-+		if (!sc->may_unmap && folio_mapped(folio))
- 			goto move;
- 
- 		/*
--		 * Be careful not to clear PageLRU until after we're
--		 * sure the page is not being freed elsewhere -- the
--		 * page release code relies on it.
-+		 * Be careful not to clear the lru flag until after we're
-+		 * sure the folio is not being freed elsewhere -- the
-+		 * folio release code relies on it.
- 		 */
--		if (unlikely(!get_page_unless_zero(page)))
-+		if (unlikely(!folio_try_get(folio)))
- 			goto move;
- 
--		if (!TestClearPageLRU(page)) {
--			/* Another thread is already isolating this page */
--			put_page(page);
-+		if (!folio_test_clear_lru(folio)) {
-+			/* Another thread is already isolating this folio */
-+			folio_put(folio);
- 			goto move;
- 		}
- 
- 		nr_taken += nr_pages;
--		nr_zone_taken[page_zonenum(page)] += nr_pages;
-+		nr_zone_taken[folio_zonenum(folio)] += nr_pages;
- 		move_to = dst;
- move:
--		list_move(&page->lru, move_to);
-+		list_move(&folio->lru, move_to);
+ 		nr_moved += nr_pages;
+-		if (PageActive(page))
++		if (folio_test_active(folio))
+ 			workingset_age_nonresident(lruvec, nr_pages);
  	}
  
  	/*
--	 * Splice any skipped pages to the start of the LRU list. Note that
-+	 * Splice any skipped folios to the start of the LRU list. Note that
- 	 * this disrupts the LRU order when reclaiming for lower zones but
- 	 * we cannot splice to the tail. If we did then the SWAP_CLUSTER_MAX
--	 * scanning would soon rescan the same pages to skip and waste lots
-+	 * scanning would soon rescan the same folios to skip and waste lots
- 	 * of cpu cycles.
+ 	 * To save our caller's stack, now use input list for pages to free.
  	 */
--	if (!list_empty(&pages_skipped)) {
-+	if (!list_empty(&folios_skipped)) {
- 		int zid;
+-	list_splice(&pages_to_free, list);
++	list_splice(&folios_to_free, list);
  
--		list_splice(&pages_skipped, src);
-+		list_splice(&folios_skipped, src);
- 		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
- 			if (!nr_skipped[zid])
- 				continue;
+ 	return nr_moved;
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
 
-mm-vmscan-convert-move_pages_to_lru-to-use-a-folio.patch
 mm-vmscan-convert-shrink_active_list-to-use-a-folio.patch
 mm-vmscan-convert-reclaim_pages-to-use-a-folio.patch
 mm-add-folios_put.patch
