@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C5D5C43334
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F41C2C433EF
 	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:10:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232735AbiGDBKP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:10:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39548 "EHLO
+        id S230122AbiGDBKQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:10:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232254AbiGDBJx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A996630A
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:52 -0700 (PDT)
+        with ESMTP id S232659AbiGDBJz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16CC4617D
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 04F87612E7
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CA2BC341C6;
-        Mon,  4 Jul 2022 01:09:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C14D5B80C73
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66E43C341C7;
+        Mon,  4 Jul 2022 01:09:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656896991;
-        bh=DhAix87Tul+5XB8HT5zXwxhV76baA07UbkYRLKTSp38=;
+        s=korg; t=1656896992;
+        bh=is8OeKVyNZuxGyIc/eKRKKRAdu/odazKZIK7BkcUDBc=;
         h=Date:To:From:Subject:From;
-        b=rdwGDe7a4/NtpMUVjXqKYeKRlryqR4mpGtnXWsg7+eMp8ifh5fYHv3rkEJjQxuzH/
-         atSUtjAkxEr/XGy2N09XykZ29duk0Zkpw4H2na3ZrysePeermjNthoyL+pmpTnAI5U
-         ayEKa5ojym4aDtbCMms9f/dulK771sY/wFYixPAE=
-Date:   Sun, 03 Jul 2022 18:09:50 -0700
+        b=HM9oDYbsNbgSquYAizH0y42BG6ps7aF2d0vr0byu4crUd3BzNBkm2A1x8oiW3pN4F
+         FFvDgRQAvzHf+Dyh86+ve4nLvZ+nSvIoGcFweY24XHwNUPsa3qJ0BmMVMYx2v0vT09
+         4wPYQ56G6Izl1kIZR3GMU/kMAS8WOrQPsKWjLvI4=
+Date:   Sun, 03 Jul 2022 18:09:51 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         oleksiy.avramchenko@sony.com, npiggin@gmail.com, hch@infradead.org,
-        bhe@redhat.com, urezki@gmail.com, akpm@linux-foundation.org
+        urezki@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-extend-__find_vmap_area-with-one-more-argument.patch removed from -mm tree
-Message-Id: <20220704010951.5CA2BC341C6@smtp.kernel.org>
+Subject: [merged mm-stable] lib-test_vmalloc-switch-to-prandom_u32.patch removed from -mm tree
+Message-Id: <20220704010952.66E43C341C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,27 +42,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: extend __find_vmap_area() with one more argument
+     Subject: lib/test_vmalloc: switch to prandom_u32()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-extend-__find_vmap_area-with-one-more-argument.patch
+     lib-test_vmalloc-switch-to-prandom_u32.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: extend __find_vmap_area() with one more argument
-Date: Tue, 7 Jun 2022 11:34:48 +0200
+Subject: lib/test_vmalloc: switch to prandom_u32()
+Date: Tue, 7 Jun 2022 11:34:49 +0200
 
-__find_vmap_area() finds a "vmap_area" based on passed address.  It scan
-the specific "vmap_area_root" rb-tree.  Extend the function with one extra
-argument, so any tree can be specified where the search has to be done.
+A get_random_bytes() function can cause a high contention if it is called
+across CPUs simultaneously.  Because it shares one lock per all CPUs:
 
-There is no functional change as a result of this patch.
+<snip>
+   class name     con-bounces  contentions   waittime-min   waittime-max waittime-total   waittime-avg    acq-bounces   acquisitions   holdtime-min   holdtime-max holdtime-total   holdtime-avg
+   &crng->lock:   663145       665886        0.05           8.85         261966.66        0.39            7188152       13731279       0.04           11.89        2181582.30       0.16
+   -----------
+   &crng->lock    307835       [<00000000acba59cd>] _extract_crng+0x48/0x90
+   &crng->lock    358051       [<00000000f0075abc>] _crng_backtrack_protect+0x32/0x90
+   -----------
+   &crng->lock    234241       [<00000000f0075abc>] _crng_backtrack_protect+0x32/0x90
+   &crng->lock    431645       [<00000000acba59cd>] _extract_crng+0x48/0x90
+<snip>
 
-Link: https://lkml.kernel.org/r/20220607093449.3100-5-urezki@gmail.com
+Switch from the get_random_bytes() to prandom_u32() that does not have any
+internal contention when a random value is needed for the tests.
+
+The reason is to minimize CPU cycles introduced by the test-suite itself
+from the vmalloc performance metrics.
+
+Link: https://lkml.kernel.org/r/20220607093449.3100-6-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -70,44 +83,65 @@ Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/test_vmalloc.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-extend-__find_vmap_area-with-one-more-argument
-+++ a/mm/vmalloc.c
-@@ -815,9 +815,9 @@ static struct vmap_area *find_vmap_area_
- 	return va;
- }
+--- a/lib/test_vmalloc.c~lib-test_vmalloc-switch-to-prandom_u32
++++ a/lib/test_vmalloc.c
+@@ -74,12 +74,13 @@ test_report_one_done(void)
  
--static struct vmap_area *__find_vmap_area(unsigned long addr)
-+static struct vmap_area *__find_vmap_area(unsigned long addr, struct rb_root *root)
+ static int random_size_align_alloc_test(void)
  {
--	struct rb_node *n = vmap_area_root.rb_node;
-+	struct rb_node *n = root->rb_node;
+-	unsigned long size, align, rnd;
++	unsigned long size, align;
++	unsigned int rnd;
+ 	void *ptr;
+ 	int i;
  
- 	addr = (unsigned long)kasan_reset_tag((void *)addr);
+ 	for (i = 0; i < test_loop_count; i++) {
+-		get_random_bytes(&rnd, sizeof(rnd));
++		rnd = prandom_u32();
  
-@@ -1834,7 +1834,7 @@ struct vmap_area *find_vmap_area(unsigne
- 	struct vmap_area *va;
+ 		/*
+ 		 * Maximum 1024 pages, if PAGE_SIZE is 4096.
+@@ -150,7 +151,7 @@ static int random_size_alloc_test(void)
+ 	int i;
  
- 	spin_lock(&vmap_area_lock);
--	va = __find_vmap_area(addr);
-+	va = __find_vmap_area(addr, &vmap_area_root);
- 	spin_unlock(&vmap_area_lock);
+ 	for (i = 0; i < test_loop_count; i++) {
+-		get_random_bytes(&n, sizeof(i));
++		n = prandom_u32();
+ 		n = (n % 100) + 1;
  
- 	return va;
-@@ -2577,7 +2577,7 @@ struct vm_struct *remove_vm_area(const v
- 	might_sleep();
+ 		p = vmalloc(n * PAGE_SIZE);
+@@ -294,14 +295,14 @@ pcpu_alloc_test(void)
+ 	for (i = 0; i < 35000; i++) {
+ 		unsigned int r;
  
- 	spin_lock(&vmap_area_lock);
--	va = __find_vmap_area((unsigned long)addr);
-+	va = __find_vmap_area((unsigned long)addr, &vmap_area_root);
- 	if (va && va->vm) {
- 		struct vm_struct *vm = va->vm;
+-		get_random_bytes(&r, sizeof(i));
++		r = prandom_u32();
+ 		size = (r % (PAGE_SIZE / 4)) + 1;
  
+ 		/*
+ 		 * Maximum PAGE_SIZE
+ 		 */
+-		get_random_bytes(&r, sizeof(i));
+-		align = 1 << ((i % 11) + 1);
++		r = prandom_u32();
++		align = 1 << ((r % 11) + 1);
+ 
+ 		pcpu[i] = __alloc_percpu(size, align);
+ 		if (!pcpu[i])
+@@ -396,7 +397,7 @@ static void shuffle_array(int *arr, int
+ 	int i, j;
+ 
+ 	for (i = n - 1; i > 0; i--)  {
+-		get_random_bytes(&rnd, sizeof(rnd));
++		rnd = prandom_u32();
+ 
+ 		/* Cut the range. */
+ 		j = rnd % i;
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
 
-lib-test_vmalloc-switch-to-prandom_u32.patch
 
