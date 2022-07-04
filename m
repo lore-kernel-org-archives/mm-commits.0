@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12CDCC43334
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:10:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F3FC433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:10:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232766AbiGDBKR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:10:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39746 "EHLO
+        id S232853AbiGDBK1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:10:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232772AbiGDBJ6 (ORCPT
+        with ESMTP id S232774AbiGDBJ6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F5CC630D
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:57 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05D066310
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 03707B80C73
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FA97C341C7;
-        Mon,  4 Jul 2022 01:09:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 96AC961303
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB684C341C6;
+        Mon,  4 Jul 2022 01:09:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656896994;
-        bh=gE7/RHgQ738pWcbkFJHRsmVqas46Jq19yHd21QndQrg=;
+        s=korg; t=1656896997;
+        bh=JmBis6MGSMq8GmYrJo0CMXI05X2C33/wkm/zdBUayro=;
         h=Date:To:From:Subject:From;
-        b=Rl1XgCEfLCkX2RwVpK18fgbo5pFK/f/mk/LVTpT+Q5l2mPSavgFR92SVjUNfIy92y
-         4C2YCTp6KcrECQ0wS2i00k2soGlJNEu6DGolSFxL5oy1Q99cHoT/BdZAOb7zg5h8Ny
-         C1/TLEIUPdIUGV34ChrAijKUvI6Yee9GSzRo3m/c=
-Date:   Sun, 03 Jul 2022 18:09:54 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        songmuchun@bytedance.com, hughd@google.com, david@redhat.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=ty2OYIsmmfMV8TNdKhdYA8iOuilUipqyOHRJ1IibHgF1TbEOMclopd78wJmqfS8SP
+         kWOts44IU/mX1cbmeqWcI4Ro/m7zWD1vZmqQWfBjFfYKz+s/xkyGIjLPNIpsLqkU+/
+         NX6Grhm/ENEVMfGXnVHjgbzamSieW8pYH6pjxoHs=
+Date:   Sun, 03 Jul 2022 18:09:56 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-remove-swap_cache_info-statistics.patch removed from -mm tree
-Message-Id: <20220704010954.9FA97C341C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-paddr-use-a-separate-function-for-damos_pageout-handling.patch removed from -mm tree
+Message-Id: <20220704010956.EB684C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,105 +41,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: remove swap_cache_info statistics
+     Subject: mm/damon/paddr: use a separate function for 'DAMOS_PAGEOUT' handling
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-swap_cache_info-statistics.patch
+     mm-damon-paddr-use-a-separate-function-for-damos_pageout-handling.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap: remove swap_cache_info statistics
-Date: Wed, 8 Jun 2022 22:40:31 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/paddr: use a separate function for 'DAMOS_PAGEOUT' handling
+Date: Mon, 13 Jun 2022 19:22:55 +0000
 
-swap_cache_info are not statistics that could be easily used to tune
-system performance because they are not easily accessile.  Also they can't
-provide really useful info when OOM occurs.  Remove these statistics can
-also help mitigate unneeded global swap_cache_info cacheline contention.
+This commit moves code for 'DAMOS_PAGEOUT' handling of the physical
+address space monitoring operations set to a separate function so that its
+caller, 'damon_pa_apply_scheme()', can be more easily extended for
+additional DAMOS actions later.
 
-Link: https://lkml.kernel.org/r/20220608144031.829-4-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20220613192301.8817-4-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ mm/damon/paddr.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-remove-swap_cache_info-statistics
-+++ a/mm/swap_state.c
-@@ -59,24 +59,11 @@ static bool enable_vma_readahead __read_
- #define GET_SWAP_RA_VAL(vma)					\
- 	(atomic_long_read(&(vma)->swap_readahead_info) ? : 4)
- 
--#define INC_CACHE_INFO(x)	data_race(swap_cache_info.x++)
--#define ADD_CACHE_INFO(x, nr)	data_race(swap_cache_info.x += (nr))
--
--static struct {
--	unsigned long add_total;
--	unsigned long del_total;
--	unsigned long find_success;
--	unsigned long find_total;
--} swap_cache_info;
--
- static atomic_t swapin_readahead_hits = ATOMIC_INIT(4);
- 
- void show_swap_cache_info(void)
- {
- 	printk("%lu pages in swap cache\n", total_swapcache_pages());
--	printk("Swap cache stats: add %lu, delete %lu, find %lu/%lu\n",
--		swap_cache_info.add_total, swap_cache_info.del_total,
--		swap_cache_info.find_success, swap_cache_info.find_total);
- 	printk("Free swap  = %ldkB\n",
- 		get_nr_swap_pages() << (PAGE_SHIFT - 10));
- 	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
-@@ -133,7 +120,6 @@ int add_to_swap_cache(struct page *page,
- 		address_space->nrpages += nr;
- 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
- 		__mod_lruvec_page_state(page, NR_SWAPCACHE, nr);
--		ADD_CACHE_INFO(add_total, nr);
- unlock:
- 		xas_unlock_irq(&xas);
- 	} while (xas_nomem(&xas, gfp));
-@@ -172,7 +158,6 @@ void __delete_from_swap_cache(struct pag
- 	address_space->nrpages -= nr;
- 	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
- 	__mod_lruvec_page_state(page, NR_SWAPCACHE, -nr);
--	ADD_CACHE_INFO(del_total, nr);
+--- a/mm/damon/paddr.c~mm-damon-paddr-use-a-separate-function-for-damos_pageout-handling
++++ a/mm/damon/paddr.c
+@@ -204,16 +204,11 @@ static unsigned int damon_pa_check_acces
+ 	return max_nr_accesses;
  }
  
- /**
-@@ -348,12 +333,10 @@ struct page *lookup_swap_cache(swp_entry
- 	page = find_get_page(swap_address_space(entry), swp_offset(entry));
- 	put_swap_device(si);
+-static unsigned long damon_pa_apply_scheme(struct damon_ctx *ctx,
+-		struct damon_target *t, struct damon_region *r,
+-		struct damos *scheme)
++static unsigned long damon_pa_pageout(struct damon_region *r)
+ {
+ 	unsigned long addr, applied;
+ 	LIST_HEAD(page_list);
  
--	INC_CACHE_INFO(find_total);
- 	if (page) {
- 		bool vma_ra = swap_use_vma_readahead();
- 		bool readahead;
+-	if (scheme->action != DAMOS_PAGEOUT)
+-		return 0;
+-
+ 	for (addr = r->ar.start; addr < r->ar.end; addr += PAGE_SIZE) {
+ 		struct page *page = damon_get_page(PHYS_PFN(addr));
  
--		INC_CACHE_INFO(find_success);
- 		/*
- 		 * At the moment, we don't support PG_readahead for anon THP
- 		 * so let's bail out rather than confusing the readahead stat.
+@@ -238,6 +233,19 @@ static unsigned long damon_pa_apply_sche
+ 	return applied * PAGE_SIZE;
+ }
+ 
++static unsigned long damon_pa_apply_scheme(struct damon_ctx *ctx,
++		struct damon_target *t, struct damon_region *r,
++		struct damos *scheme)
++{
++	switch (scheme->action) {
++	case DAMOS_PAGEOUT:
++		return damon_pa_pageout(r);
++	default:
++		break;
++	}
++	return 0;
++}
++
+ static int damon_pa_scheme_score(struct damon_ctx *context,
+ 		struct damon_target *t, struct damon_region *r,
+ 		struct damos *scheme)
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-madvise-minor-cleanup-for-swapin_walk_pmd_entry.patch
-mm-khugepaged-remove-unneeded-shmem_huge_enabled-check.patch
-mm-khugepaged-stop-swapping-in-page-when-vm_fault_retry-occurs.patch
-mm-khugepaged-trivial-typo-and-codestyle-cleanup.patch
-mm-khugepaged-minor-cleanup-for-collapse_file.patch
-mm-khugepaged-use-helper-macro-__attr_rw.patch
-mm-khugepaged-remove-unneeded-return-value-of-khugepaged_add_pte_mapped_thp.patch
-mm-khugepaged-try-to-free-transhuge-swapcache-when-possible.patch
-mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
-mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
-filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
+mm-damon-schemes-add-lru_prio-damos-action.patch
+docs-admin-guide-damon-sysfs-document-lru_prio-scheme-action.patch
+mm-damon-schemes-add-lru_deprio-action.patch
+docs-admin-guide-damon-sysfs-document-lru_deprio-scheme-action.patch
+mm-damon-introduce-damon-based-lru-lists-sorting.patch
+docs-admin-guide-damon-add-a-document-for-damon_lru_sort.patch
 
