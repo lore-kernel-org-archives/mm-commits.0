@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90B7FC43334
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC102CCA47C
 	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:11:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233038AbiGDBLM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232741AbiGDBLM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 3 Jul 2022 21:11:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39948 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232741AbiGDBKQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:10:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 669A762E5
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:15 -0700 (PDT)
+        with ESMTP id S232891AbiGDBKi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:10:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EE9C633F
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2116DB803F6
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C63F5C341CF;
-        Mon,  4 Jul 2022 01:10:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AE71C61305
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B447C341C7;
+        Mon,  4 Jul 2022 01:10:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656897012;
-        bh=u/igq8Yfe0nKL+mR+o/Y+Dn8yVWIrseGPXyivzOmhCg=;
+        s=korg; t=1656897027;
+        bh=GvAq213AXW8MiClCNhcY8tOIQbyxZnQ63CjZ8soZWRY=;
         h=Date:To:From:Subject:From;
-        b=lqLFYafO5kiXugxotpc8Zi8jeI6oKMOPARkmHAYkpPTxXnB3XLRzD+rJQRsPqpI7y
-         shTLVKQaqCOvlgBFu89tGnifIQ27sTLxEU0kv6t1R8A3WkdpTmj0GQMByd980ym6rb
-         WZL0EtoSKWkOiNCEXmbg1ADKrCNg6Ch74kiz69oU=
-Date:   Sun, 03 Jul 2022 18:10:12 -0700
+        b=r2MtZWg5xdrmqJNvrqmH9oDuTHwsUOUF4H8XMDmmDu+ezaeyiARAJ25Op8XT0mAtu
+         39hG0Lpx92RJM9jGrcnRvb21hiYt1f8VQ0LxtOvjZOZwI3fQwE2t8rjYM1e/d99V0p
+         EYsLWcVb0lBEId4NFTppPJWmm90tp5sS2lyyFpCk=
+Date:   Sun, 03 Jul 2022 18:10:26 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-add-folio_batch_move_lru.patch removed from -mm tree
-Message-Id: <20220704011012.C63F5C341CF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-convert-lru_deactivate-to-a-folio_batch.patch removed from -mm tree
+Message-Id: <20220704011027.0B447C341C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,182 +41,112 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: add folio_batch_move_lru()
+     Subject: mm/swap: convert lru_deactivate to a folio_batch
 has been removed from the -mm tree.  Its filename was
-     mm-swap-add-folio_batch_move_lru.patch
+     mm-swap-convert-lru_deactivate-to-a-folio_batch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/swap: add folio_batch_move_lru()
-Date: Fri, 17 Jun 2022 18:50:00 +0100
+Subject: mm/swap: convert lru_deactivate to a folio_batch
+Date: Fri, 17 Jun 2022 18:50:04 +0100
 
-Start converting the LRU from pagevecs to folio_batches.
+Using folios instead of pages shrinks deactivate_page() and
+lru_deactivate_fn() by 778 bytes between them.
 
-Combine the functionality of pagevec_add_and_need_flush() with
-pagevec_lru_move_fn() in the new folio_batch_add_and_move().
-
-Convert the lru_rotate pagevec to a folio_batch.
-
-Adds 223 bytes total to kernel text, because we're duplicating
-infrastructure.  This will be more than made up for in future patches.
-
-Link: https://lkml.kernel.org/r/20220617175020.717127-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617175020.717127-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   78 +++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 56 insertions(+), 22 deletions(-)
+ mm/swap.c |   38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
---- a/mm/swap.c~mm-swap-add-folio_batch_move_lru
+--- a/mm/swap.c~mm-swap-convert-lru_deactivate-to-a-folio_batch
 +++ a/mm/swap.c
-@@ -46,10 +46,10 @@
- /* How many pages do we try to swap or page in/out together? */
- int page_cluster;
- 
--/* Protecting only lru_rotate.pvec which requires disabling interrupts */
-+/* Protecting only lru_rotate.fbatch which requires disabling interrupts */
- struct lru_rotate {
+@@ -63,7 +63,7 @@ struct lru_pvecs {
  	local_lock_t lock;
--	struct pagevec pvec;
-+	struct folio_batch fbatch;
- };
- static DEFINE_PER_CPU(struct lru_rotate, lru_rotate) = {
- 	.lock = INIT_LOCAL_LOCK(lock),
-@@ -214,18 +214,6 @@ static void pagevec_lru_move_fn(struct p
- 	pagevec_reinit(pvec);
+ 	struct folio_batch lru_add;
+ 	struct folio_batch lru_deactivate_file;
+-	struct pagevec lru_deactivate;
++	struct folio_batch lru_deactivate;
+ 	struct pagevec lru_lazyfree;
+ #ifdef CONFIG_SMP
+ 	struct pagevec activate_page;
+@@ -623,15 +623,15 @@ static void lru_deactivate_file_fn(struc
+ 	}
  }
  
--static void pagevec_move_tail_fn(struct page *page, struct lruvec *lruvec)
--{
--	struct folio *folio = page_folio(page);
--
--	if (!folio_test_unevictable(folio)) {
--		lruvec_del_folio(lruvec, folio);
--		folio_clear_active(folio);
--		lruvec_add_folio_tail(lruvec, folio);
--		__count_vm_events(PGROTATED, folio_nr_pages(folio));
--	}
--}
--
- /* return true if pagevec needs to drain */
- static bool pagevec_add_and_need_flush(struct pagevec *pvec, struct page *page)
+-static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec)
++static void lru_deactivate_fn(struct lruvec *lruvec, struct folio *folio)
  {
-@@ -238,6 +226,52 @@ static bool pagevec_add_and_need_flush(s
- 	return ret;
- }
+-	if (PageActive(page) && !PageUnevictable(page)) {
+-		int nr_pages = thp_nr_pages(page);
++	if (folio_test_active(folio) && !folio_test_unevictable(folio)) {
++		long nr_pages = folio_nr_pages(folio);
  
-+typedef void (*move_fn_t)(struct lruvec *lruvec, struct folio *folio);
-+
-+static void folio_batch_move_lru(struct folio_batch *fbatch, move_fn_t move_fn)
-+{
-+	int i;
-+	struct lruvec *lruvec = NULL;
-+	unsigned long flags = 0;
-+
-+	for (i = 0; i < folio_batch_count(fbatch); i++) {
-+		struct folio *folio = fbatch->folios[i];
-+
-+		/* block memcg migration while the folio moves between lru */
-+		if (!folio_test_clear_lru(folio))
-+			continue;
-+
-+		lruvec = folio_lruvec_relock_irqsave(folio, lruvec, &flags);
-+		move_fn(lruvec, folio);
-+
-+		folio_set_lru(folio);
-+	}
-+
-+	if (lruvec)
-+		unlock_page_lruvec_irqrestore(lruvec, flags);
-+	folios_put(fbatch->folios, folio_batch_count(fbatch));
-+	folio_batch_init(fbatch);
-+}
-+
-+static void folio_batch_add_and_move(struct folio_batch *fbatch,
-+		struct folio *folio, move_fn_t move_fn)
-+{
-+	if (folio_batch_add(fbatch, folio) && !folio_test_large(folio) &&
-+	    !lru_cache_disabled())
-+		return;
-+	folio_batch_move_lru(fbatch, move_fn);
-+}
-+
-+static void lru_move_tail_fn(struct lruvec *lruvec, struct folio *folio)
-+{
-+	if (!folio_test_unevictable(folio)) {
+-		del_page_from_lru_list(page, lruvec);
+-		ClearPageActive(page);
+-		ClearPageReferenced(page);
+-		add_page_to_lru_list(page, lruvec);
 +		lruvec_del_folio(lruvec, folio);
 +		folio_clear_active(folio);
-+		lruvec_add_folio_tail(lruvec, folio);
-+		__count_vm_events(PGROTATED, folio_nr_pages(folio));
-+	}
-+}
-+
- /*
-  * Writeback is about to end against a folio which has been marked for
-  * immediate reclaim.  If it still appears to be reclaimable, move it
-@@ -249,14 +283,13 @@ void folio_rotate_reclaimable(struct fol
- {
- 	if (!folio_test_locked(folio) && !folio_test_dirty(folio) &&
- 	    !folio_test_unevictable(folio) && folio_test_lru(folio)) {
--		struct pagevec *pvec;
-+		struct folio_batch *fbatch;
- 		unsigned long flags;
++		folio_clear_referenced(folio);
++		lruvec_add_folio(lruvec, folio);
  
- 		folio_get(folio);
- 		local_lock_irqsave(&lru_rotate.lock, flags);
--		pvec = this_cpu_ptr(&lru_rotate.pvec);
--		if (pagevec_add_and_need_flush(pvec, &folio->page))
--			pagevec_lru_move_fn(pvec, pagevec_move_tail_fn);
-+		fbatch = this_cpu_ptr(&lru_rotate.fbatch);
-+		folio_batch_add_and_move(fbatch, folio, lru_move_tail_fn);
- 		local_unlock_irqrestore(&lru_rotate.lock, flags);
+ 		__count_vm_events(PGDEACTIVATE, nr_pages);
+ 		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
+@@ -690,9 +690,9 @@ void lru_add_drain_cpu(int cpu)
+ 	if (folio_batch_count(fbatch))
+ 		folio_batch_move_lru(fbatch, lru_deactivate_file_fn);
+ 
+-	pvec = &per_cpu(lru_pvecs.lru_deactivate, cpu);
+-	if (pagevec_count(pvec))
+-		pagevec_lru_move_fn(pvec, lru_deactivate_fn);
++	fbatch = &per_cpu(lru_pvecs.lru_deactivate, cpu);
++	if (folio_batch_count(fbatch))
++		folio_batch_move_lru(fbatch, lru_deactivate_fn);
+ 
+ 	pvec = &per_cpu(lru_pvecs.lru_lazyfree, cpu);
+ 	if (pagevec_count(pvec))
+@@ -736,14 +736,16 @@ void deactivate_file_folio(struct folio
+  */
+ void deactivate_page(struct page *page)
+ {
+-	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
+-		struct pagevec *pvec;
++	struct folio *folio = page_folio(page);
+ 
++	if (folio_test_lru(folio) && folio_test_active(folio) &&
++	    !folio_test_unevictable(folio)) {
++		struct folio_batch *fbatch;
++
++		folio_get(folio);
+ 		local_lock(&lru_pvecs.lock);
+-		pvec = this_cpu_ptr(&lru_pvecs.lru_deactivate);
+-		get_page(page);
+-		if (pagevec_add_and_need_flush(pvec, page))
+-			pagevec_lru_move_fn(pvec, lru_deactivate_fn);
++		fbatch = this_cpu_ptr(&lru_pvecs.lru_deactivate);
++		folio_batch_add_and_move(fbatch, folio, lru_deactivate_fn);
+ 		local_unlock(&lru_pvecs.lock);
  	}
  }
-@@ -595,19 +628,20 @@ static void lru_lazyfree_fn(struct page
-  */
- void lru_add_drain_cpu(int cpu)
- {
-+	struct folio_batch *fbatch;
- 	struct pagevec *pvec = &per_cpu(lru_pvecs.lru_add, cpu);
- 
- 	if (pagevec_count(pvec))
- 		__pagevec_lru_add(pvec);
- 
--	pvec = &per_cpu(lru_rotate.pvec, cpu);
-+	fbatch = &per_cpu(lru_rotate.fbatch, cpu);
- 	/* Disabling interrupts below acts as a compiler barrier. */
--	if (data_race(pagevec_count(pvec))) {
-+	if (data_race(folio_batch_count(fbatch))) {
- 		unsigned long flags;
- 
- 		/* No harm done if a racing interrupt already did this */
- 		local_lock_irqsave(&lru_rotate.lock, flags);
--		pagevec_lru_move_fn(pvec, pagevec_move_tail_fn);
-+		folio_batch_move_lru(fbatch, lru_move_tail_fn);
- 		local_unlock_irqrestore(&lru_rotate.lock, flags);
- 	}
- 
-@@ -824,7 +858,7 @@ static inline void __lru_add_drain_all(b
- 		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
- 
- 		if (pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
--		    data_race(pagevec_count(&per_cpu(lru_rotate.pvec, cpu))) ||
-+		    data_race(folio_batch_count(&per_cpu(lru_rotate.fbatch, cpu))) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
+@@ -896,7 +898,7 @@ static inline void __lru_add_drain_all(b
+ 		if (folio_batch_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
+ 		    data_race(folio_batch_count(&per_cpu(lru_rotate.fbatch, cpu))) ||
+ 		    folio_batch_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
+-		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
++		    folio_batch_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
  		    pagevec_count(&per_cpu(lru_pvecs.lru_lazyfree, cpu)) ||
+ 		    need_activate_page_drain(cpu) ||
+ 		    need_mlock_page_drain(cpu) ||
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
 
-mm-swap-make-__pagevec_lru_add-static.patch
-mm-swap-convert-lru_add-to-a-folio_batch.patch
-mm-swap-convert-lru_deactivate_file-to-a-folio_batch.patch
-mm-swap-convert-lru_deactivate-to-a-folio_batch.patch
 mm-swap-convert-lru_lazyfree-to-a-folio_batch.patch
 mm-swap-convert-activate_page-to-a-folio_batch.patch
 mm-swap-rename-lru_pvecs-to-cpu_fbatches.patch
