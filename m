@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADACDCCA473
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:10:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12CDCC43334
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:10:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232659AbiGDBKQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:10:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39736 "EHLO
+        id S232766AbiGDBKR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:10:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232769AbiGDBJ6 (ORCPT
+        with ESMTP id S232772AbiGDBJ6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:09:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F36562E5
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F5CC630D
         for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:09:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A07B461305
+        by ams.source.kernel.org (Postfix) with ESMTPS id 03707B80C73
         for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:09:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED297C341C6;
-        Mon,  4 Jul 2022 01:09:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FA97C341C7;
+        Mon,  4 Jul 2022 01:09:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656896996;
-        bh=dXf2tpcQ6PmYysrvTweqCF3HZeqh9zMkSGVCFiIya8I=;
+        s=korg; t=1656896994;
+        bh=gE7/RHgQ738pWcbkFJHRsmVqas46Jq19yHd21QndQrg=;
         h=Date:To:From:Subject:From;
-        b=0pz+YLOWLWb4wS3jbk+aQ9QnBjypRrejEkvdR0Zv5jIvKzPd8Uh4rq2bOWTwn401j
-         lG6KvFEaDo3bb7mC/J/wc5GMmbX0uaiUBeQdyylimPKT3/dlPZk7YU/xgJZA2Lyhzt
-         gGcDLS+qPk8RTZP778TJe8x1gxO045boRQKia4x4=
-Date:   Sun, 03 Jul 2022 18:09:55 -0700
-To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
-        akpm@linux-foundation.org
+        b=Rl1XgCEfLCkX2RwVpK18fgbo5pFK/f/mk/LVTpT+Q5l2mPSavgFR92SVjUNfIy92y
+         4C2YCTp6KcrECQ0wS2i00k2soGlJNEu6DGolSFxL5oy1Q99cHoT/BdZAOb7zg5h8Ny
+         C1/TLEIUPdIUGV34ChrAijKUvI6Yee9GSzRo3m/c=
+Date:   Sun, 03 Jul 2022 18:09:54 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        songmuchun@bytedance.com, hughd@google.com, david@redhat.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-dbgfs-add-and-use-mappings-between-schemes-action-inputs-and-damos_action-values.patch removed from -mm tree
-Message-Id: <20220704010955.ED297C341C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-remove-swap_cache_info-statistics.patch removed from -mm tree
+Message-Id: <20220704010954.9FA97C341C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,316 +42,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/dbgfs: add and use mappings between 'schemes' action inputs and 'damos_action' values
+     Subject: mm/swap: remove swap_cache_info statistics
 has been removed from the -mm tree.  Its filename was
-     mm-damon-dbgfs-add-and-use-mappings-between-schemes-action-inputs-and-damos_action-values.patch
+     mm-swap-remove-swap_cache_info-statistics.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/dbgfs: add and use mappings between 'schemes' action inputs and 'damos_action' values
-Date: Mon, 13 Jun 2022 19:22:53 +0000
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/swap: remove swap_cache_info statistics
+Date: Wed, 8 Jun 2022 22:40:31 +0800
 
-Patch series "Extend DAMOS for Proactive LRU-lists Sorting".
+swap_cache_info are not statistics that could be easily used to tune
+system performance because they are not easily accessile.  Also they can't
+provide really useful info when OOM occurs.  Remove these statistics can
+also help mitigate unneeded global swap_cache_info cacheline contention.
 
-Introduction
-============
-
-In short, this patchset 1) extends DAMON-based Operation Schemes (DAMOS)
-for low overhead data access pattern based LRU-lists sorting, and 2)
-implements a static kernel module for easy use of conservatively-tuned
-version of that using the extended DAMOS capability.
-
-Background
-----------
-
-As page-granularity access checking overhead could be significant on huge
-systems, LRU lists are normally not proactively sorted but partially and
-reactively sorted for special events including specific user requests,
-system calls and memory pressure.  As a result, LRU lists are sometimes
-not so perfectly prepared to be used as a trustworthy access pattern
-source for some situations including reclamation target pages selection
-under sudden memory pressure.
-
-DAMON-based Proactive LRU-lists Sorting
----------------------------------------
-
-Because DAMON can identify access patterns of best-effort accuracy while
-inducing only user-specified range of overhead, using DAMON for Proactive
-LRU-lists Sorting (PLRUS) could be helpful for this situation.  The idea
-is quite simple.  Find hot pages and cold pages using DAMON, and
-prioritize hot pages while deprioritizing cold pages on their LRU-lists.
-
-This patchset extends DAMON to support such schemes by introducing a
-couple of new DAMOS actions for prioritizing and deprioritizing memory
-regions of specific access patterns on their LRU-lists.  In detail, this
-patchset simply uses 'mark_page_accessed()' and 'deactivate_page()'
-functions for prioritization and deprioritization of pages on their LRU
-lists, respectively.
-
-To make the scheme easy to use without complex tuning for common
-situations, this patchset further implements a static kernel module called
-'DAMON_LRU_SORT' using the extended DAMOS functionality.  It proactively
-sorts LRU-lists using DAMON with conservatively chosen default
-hotness/coldness thresholds and small CPU usage quota limit.  That is, the
-module under its default parameters will make no harm for common situation
-but provide some level of benefit for systems having clear hot/cold access
-pattern under only memory pressure while consuming only limited small
-portion of CPU time.
-
-Related Works
--------------
-
-Proactive reclamation is well known to be helpful for reducing non-optimal
-reclamation target selection caused performance drops.  However, proactive
-reclamation is not a best option for some cases, because it could incur
-additional I/O.  For an example, it could be prohitive for systems using
-storage devices that total number of writes is limited, or cloud block
-storages that charges every I/O.
-
-Some proactive reclamation approaches[1,2] induce a level of memory
-pressure using memcg files or swappiness while monitoring PSI.  As
-reclamation target selection is still relying on the original LRU-lists
-mechanism, using DAMON-based proactive reclamation before inducing the
-proactive reclamation could allow more memory saving with same level of
-performance overhead, or less performance overhead with same level of
-memory saving.
-
-[1] https://blogs.oracle.com/linux/post/anticipating-your-memory-needs
-[2] https://www.pdl.cmu.edu/ftp/NVM/tmo_asplos22.pdf
-
-Evaluation
-==========
-
-In short, PLRUS achieves 10% memory PSI (some) reduction, 14% major page
-faults reduction, and 3.74% speedup under memory pressure.
-
-Setup
------
-
-To show the effect of PLRUS, I run PARSEC3 and SPLASH-2X benchmarks under
-below variant systems and measure a few metrics including the runtime of
-each workload, number of system-wide major page faults, and system-wide
-memory PSI (some).
-
-- orig: v5.18-rc4 based mm-unstable kernel + this patchset, but no DAMON scheme
-        applied.
-- mprs: Same to 'orig' but artificial memory pressure is induced.
-- plrus: Same to 'mprs' but a radically tuned PLRUS scheme is applied to the
-         entire physical address space of the system.
-
-For the artificial memory pressure, I set 'memory.limit_in_bytes' to 75%
-of the running workload's peak RSS, wait 1 second, remove the pressure by
-setting it to 200% of the peak RSS, wait 10 seconds, and repeat the
-procedure until the workload finishes[1].  I use zram based swap device. 
-The tests are automated[2].
-
-[1] https://github.com/awslabs/damon-tests/blob/next/perf/runners/back/0009_memcg_pressure.sh
-[2] https://github.com/awslabs/damon-tests/blob/next/perf/full_once_config.sh
-
-Radically Tuned PLRUS
----------------------
-
-To show effect of PLRUS on the PARSEC3/SPLASH-2X workloads which runs for
-no long time, we use radically tuned version of PLRUS.  The version asks
-DAMON to do the proactive LRU-lists sorting as below.
-
-1. Find any memory regions shown some accesses (approximately >=20 accesses per
-   100 sampling) and prioritize pages of the regions on their LRU lists using
-   up to 2% CPU time.  Under the CPU time limit, prioritize regions having
-   higher access frequency and kept the access frequency longer first.
-
-2. Find any memory regions shown no access for at least >=5 seconds and
-   deprioritize pages of the rgions on their LRU lists using up to 2% CPU time.
-   Under the CPU time limit, deprioritize regions that not accessed for longer
-   time first.
-
-Results
--------
-
-I repeat the tests 25 times and calculate average of the measured numbers.
-The results are as below:
-
-    metric               orig        mprs         plrus        plrus/mprs
-    runtime_seconds      190.06      292.83       281.87       0.96
-    pgmajfaults          852.55      8769420.00   7525040.00   0.86
-    memory_psi_some_us   106911.00   6943420.00   6220920.00   0.90
-
-The first row is for legend.  The first cell shows the metric that the
-following cells of the row shows.  Second, third, and fourth cells show
-the metrics under the configs shown at the first row of the cell, and the
-fifth cell shows the metric under 'plrus' divided by the metric under
-'mprs'.  Second row shows the averaged runtime of the workloads in
-seconds.  Third row shows the number of system-wide major page faults
-while the test was ongoing.  Fourth row shows the system-wide memory
-pressure stall for some processes in microseconds while the test was
-ongoing.
-
-In short, PLRUS achieves 10% memory PSI (some) reduction, 14% major page
-faults reduction, and 3.74% speedup under memory pressure.  We also
-confirmed the CPU usage of kdamond was 2.61% of single CPU, which is below
-4% as expected.
-
-Sequence of Patches
-===================
-
-The first and second patch cleans up DAMON debugfs interface and
-DAMOS_PAGEOUT handling code of physical address space monitoring
-operations implementation for easier extension of the code.
-
-The thrid and fourth patches implement a new DAMOS action called
-'lru_prio', which prioritizes pages under memory regions which have a
-user-specified access pattern, and document it, respectively.  The fifth
-and sixth patches implement yet another new DAMOS action called
-'lru_deprio', which deprioritizes pages under memory regions which have a
-user-specified access pattern, and document it, respectively.
-
-The seventh patch implements a static kernel module called
-'damon_lru_sort', which utilizes the DAMON-based proactive LRU-lists
-sorting under conservatively chosen default parameter.  Finally, the
-eighth patch documents 'damon_lru_sort'.
-
-
-This patch (of 8):
-
-DAMON debugfs interface assumes users will write 'damos_action' value
-directly to the 'schemes' file.  This makes adding new 'damos_action' in
-the middle of its definition breaks the backward compatibility of DAMON
-debugfs interface, as values of some 'damos_action' could be changed.  To
-mitigate the situation, this commit adds mappings between the user inputs
-and 'damos_action' value and makes DAMON debugfs code uses those.
-
-Link: https://lkml.kernel.org/r/20220613192301.8817-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20220613192301.8817-2-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20220608144031.829-4-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |   64 +++++++++++++++++++++++++++++++++++----------
- 1 file changed, 50 insertions(+), 14 deletions(-)
+ mm/swap_state.c |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-add-and-use-mappings-between-schemes-action-inputs-and-damos_action-values
-+++ a/mm/damon/dbgfs.c
-@@ -97,6 +97,31 @@ out:
- 	return ret;
- }
+--- a/mm/swap_state.c~mm-swap-remove-swap_cache_info-statistics
++++ a/mm/swap_state.c
+@@ -59,24 +59,11 @@ static bool enable_vma_readahead __read_
+ #define GET_SWAP_RA_VAL(vma)					\
+ 	(atomic_long_read(&(vma)->swap_readahead_info) ? : 4)
  
-+/*
-+ * Return corresponding dbgfs' scheme action value (int) for the given
-+ * damos_action if the given damos_action value is valid and supported by
-+ * dbgfs, negative error code otherwise.
-+ */
-+static int damos_action_to_dbgfs_scheme_action(enum damos_action action)
-+{
-+	switch (action) {
-+	case DAMOS_WILLNEED:
-+		return 0;
-+	case DAMOS_COLD:
-+		return 1;
-+	case DAMOS_PAGEOUT:
-+		return 2;
-+	case DAMOS_HUGEPAGE:
-+		return 3;
-+	case DAMOS_NOHUGEPAGE:
-+		return 4;
-+	case DAMOS_STAT:
-+		return 5;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
- static ssize_t sprint_schemes(struct damon_ctx *c, char *buf, ssize_t len)
+-#define INC_CACHE_INFO(x)	data_race(swap_cache_info.x++)
+-#define ADD_CACHE_INFO(x, nr)	data_race(swap_cache_info.x += (nr))
+-
+-static struct {
+-	unsigned long add_total;
+-	unsigned long del_total;
+-	unsigned long find_success;
+-	unsigned long find_total;
+-} swap_cache_info;
+-
+ static atomic_t swapin_readahead_hits = ATOMIC_INIT(4);
+ 
+ void show_swap_cache_info(void)
  {
- 	struct damos *s;
-@@ -109,7 +134,7 @@ static ssize_t sprint_schemes(struct dam
- 				s->min_sz_region, s->max_sz_region,
- 				s->min_nr_accesses, s->max_nr_accesses,
- 				s->min_age_region, s->max_age_region,
--				s->action,
-+				damos_action_to_dbgfs_scheme_action(s->action),
- 				s->quota.ms, s->quota.sz,
- 				s->quota.reset_interval,
- 				s->quota.weight_sz,
-@@ -160,18 +185,27 @@ static void free_schemes_arr(struct damo
- 	kfree(schemes);
+ 	printk("%lu pages in swap cache\n", total_swapcache_pages());
+-	printk("Swap cache stats: add %lu, delete %lu, find %lu/%lu\n",
+-		swap_cache_info.add_total, swap_cache_info.del_total,
+-		swap_cache_info.find_success, swap_cache_info.find_total);
+ 	printk("Free swap  = %ldkB\n",
+ 		get_nr_swap_pages() << (PAGE_SHIFT - 10));
+ 	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
+@@ -133,7 +120,6 @@ int add_to_swap_cache(struct page *page,
+ 		address_space->nrpages += nr;
+ 		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
+ 		__mod_lruvec_page_state(page, NR_SWAPCACHE, nr);
+-		ADD_CACHE_INFO(add_total, nr);
+ unlock:
+ 		xas_unlock_irq(&xas);
+ 	} while (xas_nomem(&xas, gfp));
+@@ -172,7 +158,6 @@ void __delete_from_swap_cache(struct pag
+ 	address_space->nrpages -= nr;
+ 	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
+ 	__mod_lruvec_page_state(page, NR_SWAPCACHE, -nr);
+-	ADD_CACHE_INFO(del_total, nr);
  }
  
--static bool damos_action_valid(int action)
-+/*
-+ * Return corresponding damos_action for the given dbgfs input for a scheme
-+ * action if the input is valid, negative error code otherwise.
-+ */
-+static enum damos_action dbgfs_scheme_action_to_damos_action(int dbgfs_action)
- {
--	switch (action) {
--	case DAMOS_WILLNEED:
--	case DAMOS_COLD:
--	case DAMOS_PAGEOUT:
--	case DAMOS_HUGEPAGE:
--	case DAMOS_NOHUGEPAGE:
--	case DAMOS_STAT:
--		return true;
-+	switch (dbgfs_action) {
-+	case 0:
-+		return DAMOS_WILLNEED;
-+	case 1:
-+		return DAMOS_COLD;
-+	case 2:
-+		return DAMOS_PAGEOUT;
-+	case 3:
-+		return DAMOS_HUGEPAGE;
-+	case 4:
-+		return DAMOS_NOHUGEPAGE;
-+	case 5:
-+		return DAMOS_STAT;
- 	default:
--		return false;
-+		return -EINVAL;
- 	}
- }
+ /**
+@@ -348,12 +333,10 @@ struct page *lookup_swap_cache(swp_entry
+ 	page = find_get_page(swap_address_space(entry), swp_offset(entry));
+ 	put_swap_device(si);
  
-@@ -189,7 +223,8 @@ static struct damos **str_to_schemes(con
- 	int pos = 0, parsed, ret;
- 	unsigned long min_sz, max_sz;
- 	unsigned int min_nr_a, max_nr_a, min_age, max_age;
--	unsigned int action;
-+	unsigned int action_input;
-+	enum damos_action action;
+-	INC_CACHE_INFO(find_total);
+ 	if (page) {
+ 		bool vma_ra = swap_use_vma_readahead();
+ 		bool readahead;
  
- 	schemes = kmalloc_array(max_nr_schemes, sizeof(scheme),
- 			GFP_KERNEL);
-@@ -204,7 +239,7 @@ static struct damos **str_to_schemes(con
- 		ret = sscanf(&str[pos],
- 				"%lu %lu %u %u %u %u %u %lu %lu %lu %u %u %u %u %lu %lu %lu %lu%n",
- 				&min_sz, &max_sz, &min_nr_a, &max_nr_a,
--				&min_age, &max_age, &action, &quota.ms,
-+				&min_age, &max_age, &action_input, &quota.ms,
- 				&quota.sz, &quota.reset_interval,
- 				&quota.weight_sz, &quota.weight_nr_accesses,
- 				&quota.weight_age, &wmarks.metric,
-@@ -212,7 +247,8 @@ static struct damos **str_to_schemes(con
- 				&wmarks.low, &parsed);
- 		if (ret != 18)
- 			break;
--		if (!damos_action_valid(action))
-+		action = dbgfs_scheme_action_to_damos_action(action_input);
-+		if ((int)action < 0)
- 			goto fail;
- 
- 		if (min_sz > max_sz || min_nr_a > max_nr_a || min_age > max_age)
+-		INC_CACHE_INFO(find_success);
+ 		/*
+ 		 * At the moment, we don't support PG_readahead for anon THP
+ 		 * so let's bail out rather than confusing the readahead stat.
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-damon-paddr-use-a-separate-function-for-damos_pageout-handling.patch
-mm-damon-schemes-add-lru_prio-damos-action.patch
-docs-admin-guide-damon-sysfs-document-lru_prio-scheme-action.patch
-mm-damon-schemes-add-lru_deprio-action.patch
-docs-admin-guide-damon-sysfs-document-lru_deprio-scheme-action.patch
-mm-damon-introduce-damon-based-lru-lists-sorting.patch
-docs-admin-guide-damon-add-a-document-for-damon_lru_sort.patch
+mm-madvise-minor-cleanup-for-swapin_walk_pmd_entry.patch
+mm-khugepaged-remove-unneeded-shmem_huge_enabled-check.patch
+mm-khugepaged-stop-swapping-in-page-when-vm_fault_retry-occurs.patch
+mm-khugepaged-trivial-typo-and-codestyle-cleanup.patch
+mm-khugepaged-minor-cleanup-for-collapse_file.patch
+mm-khugepaged-use-helper-macro-__attr_rw.patch
+mm-khugepaged-remove-unneeded-return-value-of-khugepaged_add_pte_mapped_thp.patch
+mm-khugepaged-try-to-free-transhuge-swapcache-when-possible.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
+filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
 
