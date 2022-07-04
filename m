@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FAF4C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:11:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C744C43334
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:11:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232774AbiGDBLI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:11:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39914 "EHLO
+        id S232824AbiGDBLK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:11:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232847AbiGDBKN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:10:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5024C62F8
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:11 -0700 (PDT)
+        with ESMTP id S232068AbiGDBKO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:10:14 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A9FC617D
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EBB51B80CEF
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ACAAC341C6;
-        Mon,  4 Jul 2022 01:10:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 26696B80BD1
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AB05C341C6;
+        Mon,  4 Jul 2022 01:10:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656897009;
-        bh=jSUqLGDs8F3YFYhZFPtx189SvuiVKaUiwC7CzxN9yFU=;
+        s=korg; t=1656897010;
+        bh=1D+1ratw6b36upeTV6wgfLpgWukBAprfCJ3AcgdprYg=;
         h=Date:To:From:Subject:From;
-        b=vWTkyI8+2XBdaW10l33R1HTPIp0QGRyQ9JNFqnFYUJLKvHd8y4+zz8tJsoqikwSB4
-         FJL8/32QBJaqHOAIzXU1epyyrHLefcRUtigGjKqSd7mpm9kj7fPvhKMmqqLb9jO0wR
-         oN5bIiMmliHaa1KTehbReUAM5vo1BPXgoTwBaJh4=
-Date:   Sun, 03 Jul 2022 18:10:08 -0700
+        b=tq8n/aft3scAuButl1sLO42MnadJQ4OPYwrnRyHLa5t7g585bSQDvMB76bfhgbqVB
+         s7x8p90tF7Ww6MN7Wdt5dZtPDgQKAWYQGtc4mIplyDdRkN/K8/qFY2CirPKiJB/twu
+         YAWl9hkyoaP8gm30E/9BmqaHH6mSUF21K3T0j0Zs=
+Date:   Sun, 03 Jul 2022 18:10:10 -0700
 To:     mm-commits@vger.kernel.org, hch@lst.de, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-convert-shrink_active_list-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20220704011009.8ACAAC341C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-convert-reclaim_pages-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20220704011010.9AB05C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,163 +41,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: convert shrink_active_list() to use a folio
+     Subject: mm/vmscan: convert reclaim_pages() to use a folio
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-convert-shrink_active_list-to-use-a-folio.patch
+     mm-vmscan-convert-reclaim_pages-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/vmscan: convert shrink_active_list() to use a folio
-Date: Fri, 17 Jun 2022 16:42:47 +0100
+Subject: mm/vmscan: convert reclaim_pages() to use a folio
+Date: Fri, 17 Jun 2022 16:42:48 +0100
 
-Remove a few hidden calls to compound_head, saving 411 bytes of text.
+Remove a few hidden calls to compound_head, saving 76 bytes of text.
 
-Link: https://lkml.kernel.org/r/20220617154248.700416-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220617154248.700416-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   61 +++++++++++++++++++++++---------------------------
- 1 file changed, 29 insertions(+), 32 deletions(-)
+ mm/vmscan.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-convert-shrink_active_list-to-use-a-folio
+--- a/mm/vmscan.c~mm-vmscan-convert-reclaim_pages-to-use-a-folio
 +++ a/mm/vmscan.c
-@@ -26,8 +26,7 @@
- #include <linux/file.h>
- #include <linux/writeback.h>
- #include <linux/blkdev.h>
--#include <linux/buffer_head.h>	/* for try_to_release_page(),
--					buffer_heads_over_limit */
-+#include <linux/buffer_head.h>	/* for buffer_heads_over_limit */
- #include <linux/mm_inline.h>
- #include <linux/backing-dev.h>
- #include <linux/rmap.h>
-@@ -2483,21 +2482,21 @@ shrink_inactive_list(unsigned long nr_to
+@@ -2619,34 +2619,33 @@ static unsigned int reclaim_page_list(st
+ 	return nr_reclaimed;
  }
  
- /*
-- * shrink_active_list() moves pages from the active LRU to the inactive LRU.
-+ * shrink_active_list() moves folios from the active LRU to the inactive LRU.
-  *
-- * We move them the other way if the page is referenced by one or more
-+ * We move them the other way if the folio is referenced by one or more
-  * processes.
-  *
-- * If the pages are mostly unmapped, the processing is fast and it is
-+ * If the folios are mostly unmapped, the processing is fast and it is
-  * appropriate to hold lru_lock across the whole operation.  But if
-- * the pages are mapped, the processing is slow (folio_referenced()), so
-- * we should drop lru_lock around each page.  It's impossible to balance
-- * this, so instead we remove the pages from the LRU while processing them.
-- * It is safe to rely on PG_active against the non-LRU pages in here because
-- * nobody will play with that bit on a non-LRU page.
-+ * the folios are mapped, the processing is slow (folio_referenced()), so
-+ * we should drop lru_lock around each folio.  It's impossible to balance
-+ * this, so instead we remove the folios from the LRU while processing them.
-+ * It is safe to rely on the active flag against the non-LRU folios in here
-+ * because nobody will play with that bit on a non-LRU folio.
-  *
-- * The downside is that we have to touch page->_refcount against each page.
-- * But we had to alter page->flags anyway.
-+ * The downside is that we have to touch folio->_refcount against each folio.
-+ * But we had to alter folio->flags anyway.
-  */
- static void shrink_active_list(unsigned long nr_to_scan,
- 			       struct lruvec *lruvec,
-@@ -2507,7 +2506,7 @@ static void shrink_active_list(unsigned
- 	unsigned long nr_taken;
- 	unsigned long nr_scanned;
- 	unsigned long vm_flags;
--	LIST_HEAD(l_hold);	/* The pages which were snipped off */
-+	LIST_HEAD(l_hold);	/* The folios which were snipped off */
- 	LIST_HEAD(l_active);
- 	LIST_HEAD(l_inactive);
- 	unsigned nr_deactivate, nr_activate;
-@@ -2532,23 +2531,21 @@ static void shrink_active_list(unsigned
+-unsigned long reclaim_pages(struct list_head *page_list)
++unsigned long reclaim_pages(struct list_head *folio_list)
+ {
+ 	int nid;
+ 	unsigned int nr_reclaimed = 0;
+-	LIST_HEAD(node_page_list);
+-	struct page *page;
++	LIST_HEAD(node_folio_list);
+ 	unsigned int noreclaim_flag;
  
- 	while (!list_empty(&l_hold)) {
- 		struct folio *folio;
--		struct page *page;
+-	if (list_empty(page_list))
++	if (list_empty(folio_list))
+ 		return nr_reclaimed;
  
- 		cond_resched();
- 		folio = lru_to_folio(&l_hold);
- 		list_del(&folio->lru);
--		page = &folio->page;
+ 	noreclaim_flag = memalloc_noreclaim_save();
  
--		if (unlikely(!page_evictable(page))) {
--			putback_lru_page(page);
-+		if (unlikely(!folio_evictable(folio))) {
-+			folio_putback_lru(folio);
+-	nid = page_to_nid(lru_to_page(page_list));
++	nid = folio_nid(lru_to_folio(folio_list));
+ 	do {
+-		page = lru_to_page(page_list);
++		struct folio *folio = lru_to_folio(folio_list);
+ 
+-		if (nid == page_to_nid(page)) {
+-			ClearPageActive(page);
+-			list_move(&page->lru, &node_page_list);
++		if (nid == folio_nid(folio)) {
++			folio_clear_active(folio);
++			list_move(&folio->lru, &node_folio_list);
  			continue;
  		}
  
- 		if (unlikely(buffer_heads_over_limit)) {
--			if (page_has_private(page) && trylock_page(page)) {
--				if (page_has_private(page))
--					try_to_release_page(page, 0);
--				unlock_page(page);
-+			if (folio_get_private(folio) && folio_trylock(folio)) {
-+				if (folio_get_private(folio))
-+					filemap_release_folio(folio, 0);
-+				folio_unlock(folio);
- 			}
- 		}
+-		nr_reclaimed += reclaim_page_list(&node_page_list, NODE_DATA(nid));
+-		nid = page_to_nid(lru_to_page(page_list));
+-	} while (!list_empty(page_list));
++		nr_reclaimed += reclaim_page_list(&node_folio_list, NODE_DATA(nid));
++		nid = folio_nid(lru_to_folio(folio_list));
++	} while (!list_empty(folio_list));
  
-@@ -2556,34 +2553,34 @@ static void shrink_active_list(unsigned
- 		if (folio_referenced(folio, 0, sc->target_mem_cgroup,
- 				     &vm_flags) != 0) {
- 			/*
--			 * Identify referenced, file-backed active pages and
-+			 * Identify referenced, file-backed active folios and
- 			 * give them one more trip around the active list. So
- 			 * that executable code get better chances to stay in
--			 * memory under moderate memory pressure.  Anon pages
-+			 * memory under moderate memory pressure.  Anon folios
- 			 * are not likely to be evicted by use-once streaming
--			 * IO, plus JVM can create lots of anon VM_EXEC pages,
-+			 * IO, plus JVM can create lots of anon VM_EXEC folios,
- 			 * so we ignore them here.
- 			 */
--			if ((vm_flags & VM_EXEC) && page_is_file_lru(page)) {
--				nr_rotated += thp_nr_pages(page);
--				list_add(&page->lru, &l_active);
-+			if ((vm_flags & VM_EXEC) && folio_is_file_lru(folio)) {
-+				nr_rotated += folio_nr_pages(folio);
-+				list_add(&folio->lru, &l_active);
- 				continue;
- 			}
- 		}
+-	nr_reclaimed += reclaim_page_list(&node_page_list, NODE_DATA(nid));
++	nr_reclaimed += reclaim_page_list(&node_folio_list, NODE_DATA(nid));
  
--		ClearPageActive(page);	/* we are de-activating */
--		SetPageWorkingset(page);
--		list_add(&page->lru, &l_inactive);
-+		folio_clear_active(folio);	/* we are de-activating */
-+		folio_set_workingset(folio);
-+		list_add(&folio->lru, &l_inactive);
- 	}
+ 	memalloc_noreclaim_restore(noreclaim_flag);
  
- 	/*
--	 * Move pages back to the lru list.
-+	 * Move folios back to the lru list.
- 	 */
- 	spin_lock_irq(&lruvec->lru_lock);
- 
- 	nr_activate = move_pages_to_lru(lruvec, &l_active);
- 	nr_deactivate = move_pages_to_lru(lruvec, &l_inactive);
--	/* Keep all free pages in l_active list */
-+	/* Keep all free folios in l_active list */
- 	list_splice(&l_inactive, &l_active);
- 
- 	__count_vm_events(PGDEACTIVATE, nr_deactivate);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
 
-mm-vmscan-convert-reclaim_pages-to-use-a-folio.patch
 mm-add-folios_put.patch
 mm-swap-add-folio_batch_move_lru.patch
 mm-swap-make-__pagevec_lru_add-static.patch
