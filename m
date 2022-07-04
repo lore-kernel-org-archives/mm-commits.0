@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70949CCA473
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:12:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52D1FC433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Jul 2022 01:13:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232486AbiGDBMp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Jul 2022 21:12:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39558 "EHLO
+        id S232919AbiGDBM7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Jul 2022 21:12:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231704AbiGDBLj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:11:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 253AF6316
-        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:52 -0700 (PDT)
+        with ESMTP id S232821AbiGDBLu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Jul 2022 21:11:50 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A529640E
+        for <mm-commits@vger.kernel.org>; Sun,  3 Jul 2022 18:10:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AEF6D6129E
-        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A90AC341C7;
-        Mon,  4 Jul 2022 01:10:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C7A20B80C73
+        for <mm-commits@vger.kernel.org>; Mon,  4 Jul 2022 01:10:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7333EC341C6;
+        Mon,  4 Jul 2022 01:10:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1656897051;
-        bh=Ok6Q4yoGlL02+nVQ6AHI8WFNJH55Nam+1IeJwlSrt9w=;
+        s=korg; t=1656897053;
+        bh=QttJQzXp7Z789aeOrWhqb1Icec3QXeSkfJwqmh7DCRc=;
         h=Date:To:From:Subject:From;
-        b=NjEcP+hnAJsgYf5lXFRoTtfTR5H1oy4NaC4qXdxYnVvUMqhAPupKAOIY3zFrLQbmD
-         ZNt2kZV+E1phUFRHvJHHLVe5QN1o3hIBPuBwzcJGUduWIZ417xblarwcKHaTtf6suI
-         wTeMKrbu3NgA2w8On9goFJxn0+ejXe0ylZyXnqcI=
-Date:   Sun, 03 Jul 2022 18:10:50 -0700
-To:     mm-commits@vger.kernel.org, jrdr.linux@gmail.com,
-        p76091292@gs.ncku.edu.tw, akpm@linux-foundation.org
+        b=mEsxMK+XIbFCp1FU82Ex9JGnKc16CdpqdJRQpoqjNaFeeJb4vwuuYDTg5CetPz4Q0
+         xkWumvvpMwyS52MlqG4xblJI1d0UzJZ5bQLUXh4N9F+khT7Zup1FPKh/b6kiru7x2P
+         kV61hD1spBhVTReBotnMzX6l7n7iYIojWfEUERik=
+Date:   Sun, 03 Jul 2022 18:10:52 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        cgel.zte@gmail.com, yang.yang29@zte.com.cn,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-docs-fix-comments-that-mention-mem_hotplug_end.patch removed from -mm tree
-Message-Id: <20220704011051.0A90AC341C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-make-the-annotations-of-available-memory-more-accurate.patch removed from -mm tree
+Message-Id: <20220704011053.7333EC341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,80 +42,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, docs: fix comments that mention mem_hotplug_end()
+     Subject: mm/page_alloc: make the annotations of available memory more accurate
 has been removed from the -mm tree.  Its filename was
-     mm-docs-fix-comments-that-mention-mem_hotplug_end.patch
+     mm-page_alloc-make-the-annotations-of-available-memory-more-accurate.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yun-Ze Li <p76091292@gs.ncku.edu.tw>
-Subject: mm, docs: fix comments that mention mem_hotplug_end()
-Date: Mon, 20 Jun 2022 07:15:16 +0000
+From: Yang Yang <yang.yang29@zte.com.cn>
+Subject: mm/page_alloc: make the annotations of available memory more accurate
+Date: Thu, 23 Jun 2022 02:08:34 +0000
 
-Comments that mention mem_hotplug_end() are confusing as there is no
-function called mem_hotplug_end().  Fix them by replacing all the
-occurences of mem_hotplug_end() in the comments with mem_hotplug_done().
+Not all systems use swap, so estimating available memory would help to
+prevent swapping or OOM of system that not use swap.
 
-[akpm@linux-foundation.org: grammatical fixes]
-Link: https://lkml.kernel.org/r/20220620071516.1286101-1-p76091292@gs.ncku.edu.tw
-Signed-off-by: Yun-Ze Li <p76091292@gs.ncku.edu.tw>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
+And we need to reserve some page cache to prevent swapping or thrashing. 
+If somebody is accessing the pages in pagecache, and if too much would be
+freed, most accesses might mean reading data from disk, i.e.  thrashing.
+
+Link: https://lkml.kernel.org/r/20220623020833.972979-1-yang.yang29@zte.com.cn
+Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
+Signed-off-by: CGEL ZTE <cgel.zte@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 +++---
- mm/compaction.c        |    2 +-
- mm/vmscan.c            |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmzone.h~mm-docs-fix-comments-that-mention-mem_hotplug_end
-+++ a/include/linux/mmzone.h
-@@ -591,8 +591,8 @@ struct zone {
- 	 * give them a chance of being in the same cacheline.
- 	 *
- 	 * Write access to present_pages at runtime should be protected by
--	 * mem_hotplug_begin/end(). Any reader who can't tolerant drift of
--	 * present_pages should get_online_mems() to get a stable value.
-+	 * mem_hotplug_begin/done(). Any reader who can't tolerant drift of
-+	 * present_pages should use get_online_mems() to get a stable value.
+--- a/mm/page_alloc.c~mm-page_alloc-make-the-annotations-of-available-memory-more-accurate
++++ a/mm/page_alloc.c
+@@ -5800,14 +5800,14 @@ long si_mem_available(void)
+ 
+ 	/*
+ 	 * Estimate the amount of memory available for userspace allocations,
+-	 * without causing swapping.
++	 * without causing swapping or OOM.
  	 */
- 	atomic_long_t		managed_pages;
- 	unsigned long		spanned_pages;
-@@ -870,7 +870,7 @@ typedef struct pglist_data {
- 	unsigned long nr_reclaim_start;	/* nr pages written while throttled
- 					 * when throttling started. */
- 	struct task_struct *kswapd;	/* Protected by
--					   mem_hotplug_begin/end() */
-+					   mem_hotplug_begin/done() */
- 	int kswapd_order;
- 	enum zone_type kswapd_highest_zoneidx;
+ 	available = global_zone_page_state(NR_FREE_PAGES) - totalreserve_pages;
  
---- a/mm/compaction.c~mm-docs-fix-comments-that-mention-mem_hotplug_end
-+++ a/mm/compaction.c
-@@ -3011,7 +3011,7 @@ void kcompactd_run(int nid)
- 
- /*
-  * Called by memory hotplug when all memory in a node is offlined. Caller must
-- * hold mem_hotplug_begin/end().
-+ * be holding mem_hotplug_begin/done().
-  */
- void kcompactd_stop(int nid)
- {
---- a/mm/vmscan.c~mm-docs-fix-comments-that-mention-mem_hotplug_end
-+++ a/mm/vmscan.c
-@@ -4645,7 +4645,7 @@ void kswapd_run(int nid)
- 
- /*
-  * Called by memory hotplug when all memory in a node is offlined.  Caller must
-- * hold mem_hotplug_begin/end().
-+ * be holding mem_hotplug_begin/done().
-  */
- void kswapd_stop(int nid)
- {
+ 	/*
+ 	 * Not all the page cache can be freed, otherwise the system will
+-	 * start swapping. Assume at least half of the page cache, or the
+-	 * low watermark worth of cache, needs to stay.
++	 * start swapping or thrashing. Assume at least half of the page
++	 * cache, or the low watermark worth of cache, needs to stay.
+ 	 */
+ 	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
+ 	pagecache -= min(pagecache / 2, wmark_low);
 _
 
-Patches currently in -mm which might be from p76091292@gs.ncku.edu.tw are
+Patches currently in -mm which might be from yang.yang29@zte.com.cn are
 
 
