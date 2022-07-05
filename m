@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2536C433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Jul 2022 21:17:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CE77C43334
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Jul 2022 21:21:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229535AbiGEVR6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Jul 2022 17:17:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48660 "EHLO
+        id S232366AbiGEVVC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Jul 2022 17:21:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229534AbiGEVR5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2022 17:17:57 -0400
+        with ESMTP id S229849AbiGEVVA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2022 17:21:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C619B13DC9;
-        Tue,  5 Jul 2022 14:17:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 723DD14037
+        for <mm-commits@vger.kernel.org>; Tue,  5 Jul 2022 14:20:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E4C261CC8;
-        Tue,  5 Jul 2022 21:17:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D417C341C7;
-        Tue,  5 Jul 2022 21:17:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0E90B61C81
+        for <mm-commits@vger.kernel.org>; Tue,  5 Jul 2022 21:20:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63697C341C8;
+        Tue,  5 Jul 2022 21:20:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657055875;
-        bh=XUyRH/1dhdKrw7qc8bL9oWo7NlvnVd5Ro3PgQ/6t8W0=;
+        s=korg; t=1657056058;
+        bh=CWiMONrLh8SUW5umNek1OOo6Dn817jr5mC04sT9omHE=;
         h=Date:To:From:Subject:From;
-        b=Ndw1KaFjl44poJqtZAllsvUxeo0c8voU/Vzmuaot8UGxt66gBW1m+F3Ab1tY9zw58
-         ozJh1emXwGtbjJrZIO6CI6H3rbIx/9K2bBGM+CWOQpIs6JJ37/lMIWnGklid5j8xyq
-         BhlIVzmsbmWgVGFax3v7pRLIk73yTt9Ks6tgXmLw=
-Date:   Tue, 05 Jul 2022 14:17:54 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        william.kucharski@oracle.com, stable@vger.kernel.org,
-        jhubbard@nvidia.com, jgg@ziepe.ca, jack@suse.cz,
-        dan.j.williams@intel.com, songmuchun@bytedance.com,
+        b=E5KR6RMpIFtlSNNyZJ9GVR3c9DiNPdNlLh/G7HrxfQaDJ66NRCJid9k6rSBC0cSok
+         fNc++3rof75eRNzGoEA0qGBFhsot/+TW4T+XUXPNF5F1uqUibb1SoxNnIa/Ed5gExU
+         r5kShFqgS3sd6120t4sKgL1HueS89jQhRM0zux6c=
+Date:   Tue, 05 Jul 2022 14:20:57 -0700
+To:     mm-commits@vger.kernel.org, tj@kernel.org, dennis@kernel.org,
+        cl@linux.com, catalin.marinas@arm.com, patrick.wang.shcn@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-missing-wake-up-event-for-fsdax-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220705211755.9D417C341C7@smtp.kernel.org>
+Subject: + mm-percpu-use-kmemleak_ignore_phys-instead-of-kmemleak_free.patch added to mm-unstable branch
+Message-Id: <20220705212058.63697C341C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix missing wake-up event for FSDAX pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-missing-wake-up-event-for-fsdax-pages.patch
+     Subject: mm: percpu: use kmemleak_ignore_phys() instead of kmemleak_free()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-percpu-use-kmemleak_ignore_phys-instead-of-kmemleak_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-missing-wake-up-event-for-fsdax-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-use-kmemleak_ignore_phys-instead-of-kmemleak_free.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,137 +65,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: fix missing wake-up event for FSDAX pages
-Date: Tue, 5 Jul 2022 20:35:32 +0800
+From: Patrick Wang <patrick.wang.shcn@gmail.com>
+Subject: mm: percpu: use kmemleak_ignore_phys() instead of kmemleak_free()
+Date: Tue, 5 Jul 2022 19:31:58 +0800
 
-FSDAX page refcounts are 1-based, rather than 0-based: if refcount is 1,
-then the page is freed.  The FSDAX pages can be pinned through GUP, then
-they will be unpinned via unpin_user_page() using a folio variant to put
-the page, however, folio variants did not consider this special case, the
-result will be to miss a wakeup event (like the user of
-__fuse_dax_break_layouts()).  Since FSDAX pages are only possible get by
-GUP users, so fix GUP instead of folio_put() to lower overhead.
+Kmemleak recently added a rbtree to store the objects allocted with
+physical address.  Those objects can't be freed with kmemleak_free().  Use
+kmemleak_ignore_phys() instead of kmemleak_free() for those objects.
 
-Link: https://lkml.kernel.org/r/20220705123532.283-1-songmuchun@bytedance.com
-Fixes: d8ddc099c6b3 ("mm/gup: Add gup_put_folio()")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220705113158.127600-1-patrick.wang.shcn@gmail.com
+Signed-off-by: Patrick Wang <patrick.wang.shcn@gmail.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   14 +++++++++-----
- mm/gup.c           |    6 ++++--
- mm/memremap.c      |    6 +++---
- 3 files changed, 16 insertions(+), 10 deletions(-)
+ mm/percpu.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-fix-missing-wake-up-event-for-fsdax-pages
-+++ a/include/linux/mm.h
-@@ -1130,23 +1130,27 @@ static inline bool is_zone_movable_page(
- #if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_FS_DAX)
- DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
+--- a/mm/percpu.c~mm-percpu-use-kmemleak_ignore_phys-instead-of-kmemleak_free
++++ a/mm/percpu.c
+@@ -3104,7 +3104,7 @@ int __init pcpu_embed_first_chunk(size_t
+ 			goto out_free_areas;
+ 		}
+ 		/* kmemleak tracks the percpu allocations separately */
+-		kmemleak_free(ptr);
++		kmemleak_ignore_phys(__pa(ptr));
+ 		areas[group] = ptr;
  
--bool __put_devmap_managed_page(struct page *page);
--static inline bool put_devmap_managed_page(struct page *page)
-+bool __put_devmap_managed_page_refs(struct page *page, int refs);
-+static inline bool put_devmap_managed_page_refs(struct page *page, int refs)
- {
- 	if (!static_branch_unlikely(&devmap_managed_key))
- 		return false;
- 	if (!is_zone_device_page(page))
- 		return false;
--	return __put_devmap_managed_page(page);
-+	return __put_devmap_managed_page_refs(page, refs);
- }
--
- #else /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
--static inline bool put_devmap_managed_page(struct page *page)
-+static inline bool put_devmap_managed_page_refs(struct page *page, int refs)
- {
- 	return false;
- }
- #endif /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
- 
-+static inline bool put_devmap_managed_page(struct page *page)
-+{
-+	return put_devmap_managed_page_refs(page, 1);
-+}
-+
- /* 127: arbitrary random number, small enough to assemble well */
- #define folio_ref_zero_or_close_to_overflow(folio) \
- 	((unsigned int) folio_ref_count(folio) + 127u <= 127u)
---- a/mm/gup.c~mm-fix-missing-wake-up-event-for-fsdax-pages
-+++ a/mm/gup.c
-@@ -87,7 +87,8 @@ retry:
- 	 * belongs to this folio.
- 	 */
- 	if (unlikely(page_folio(page) != folio)) {
--		folio_put_refs(folio, refs);
-+		if (!put_devmap_managed_page_refs(&folio->page, refs))
-+			folio_put_refs(folio, refs);
- 		goto retry;
+ 		base = min(ptr, base);
+@@ -3304,7 +3304,7 @@ int __init pcpu_page_first_chunk(size_t
+ 				goto enomem;
+ 			}
+ 			/* kmemleak tracks the percpu allocations separately */
+-			kmemleak_free(ptr);
++			kmemleak_ignore_phys(__pa(ptr));
+ 			pages[j++] = virt_to_page(ptr);
+ 		}
  	}
+@@ -3417,7 +3417,7 @@ void __init setup_per_cpu_areas(void)
+ 	if (!ai || !fc)
+ 		panic("Failed to allocate memory for percpu areas.");
+ 	/* kmemleak tracks the percpu allocations separately */
+-	kmemleak_free(fc);
++	kmemleak_ignore_phys(__pa(fc));
  
-@@ -176,7 +177,8 @@ static void gup_put_folio(struct folio *
- 			refs *= GUP_PIN_COUNTING_BIAS;
- 	}
- 
--	folio_put_refs(folio, refs);
-+	if (!put_devmap_managed_page_refs(&folio->page, refs))
-+		folio_put_refs(folio, refs);
- }
- 
- /**
---- a/mm/memremap.c~mm-fix-missing-wake-up-event-for-fsdax-pages
-+++ a/mm/memremap.c
-@@ -499,7 +499,7 @@ void free_zone_device_page(struct page *
- }
- 
- #ifdef CONFIG_FS_DAX
--bool __put_devmap_managed_page(struct page *page)
-+bool __put_devmap_managed_page_refs(struct page *page, int refs)
- {
- 	if (page->pgmap->type != MEMORY_DEVICE_FS_DAX)
- 		return false;
-@@ -509,9 +509,9 @@ bool __put_devmap_managed_page(struct pa
- 	 * refcount is 1, then the page is free and the refcount is
- 	 * stable because nobody holds a reference on the page.
- 	 */
--	if (page_ref_dec_return(page) == 1)
-+	if (page_ref_sub_return(page, refs) == 1)
- 		wake_up_var(&page->_refcount);
- 	return true;
- }
--EXPORT_SYMBOL(__put_devmap_managed_page);
-+EXPORT_SYMBOL(__put_devmap_managed_page_refs);
- #endif /* CONFIG_FS_DAX */
+ 	ai->dyn_size = unit_size;
+ 	ai->unit_size = unit_size;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from patrick.wang.shcn@gmail.com are
 
-mm-fix-missing-wake-up-event-for-fsdax-pages.patch
-mm-memcontrol-remove-dead-code-and-comments.patch
-mm-rename-unlock_page_lruvec_irq-_irqrestore-to-lruvec_unlock_irq-_irqrestore.patch
-mm-memcontrol-prepare-objcg-api-for-non-kmem-usage.patch
-mm-memcontrol-make-lruvec-lock-safe-when-lru-pages-are-reparented.patch
-mm-vmscan-rework-move_pages_to_lru.patch
-mm-thp-make-split-queue-lock-safe-when-lru-pages-are-reparented.patch
-mm-memcontrol-make-all-the-callers-of-foliopage_memcg-safe.patch
-mm-memcontrol-introduce-memcg_reparent_ops.patch
-mm-memcontrol-use-obj_cgroup-apis-to-charge-the-lru-pages.patch
-mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-function.patch
-mm-hugetlb_vmemmap-delete-hugetlb_optimize_vmemmap_enabled.patch
-mm-hugetlb_vmemmap-optimize-vmemmap_optimize_mode-handling.patch
-mm-hugetlb_vmemmap-introduce-the-name-hvo.patch
-mm-hugetlb_vmemmap-move-vmemmap-code-related-to-hugetlb-to-hugetlb_vmemmapc.patch
-mm-hugetlb_vmemmap-replace-early_param-with-core_param.patch
-mm-hugetlb_vmemmap-improve-hugetlb_vmemmap-code-readability.patch
-mm-hugetlb_vmemmap-move-code-comments-to-vmemmap_deduprst.patch
-mm-hugetlb_vmemmap-use-ptrs_per_pte-instead-of-pmd_size-page_size.patch
+mm-percpu-use-kmemleak_ignore_phys-instead-of-kmemleak_free.patch
 
