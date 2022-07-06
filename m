@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8696DC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jul 2022 20:34:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46EDDC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jul 2022 20:35:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233522AbiGFUee (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Jul 2022 16:34:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42872 "EHLO
+        id S233628AbiGFUfs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Jul 2022 16:35:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233270AbiGFUee (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2022 16:34:34 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2777D248CD
-        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 13:34:33 -0700 (PDT)
+        with ESMTP id S232596AbiGFUfs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2022 16:35:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3449524F06
+        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 13:35:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9F43DB81EDB
-        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 20:34:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42063C3411C;
-        Wed,  6 Jul 2022 20:34:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C56D7620ED
+        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 20:35:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20F62C3411C;
+        Wed,  6 Jul 2022 20:35:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657139670;
-        bh=ZBbyaXAD2CrmhMm7sFrCTwkNNrSeOOMUgWmKjmTw55Y=;
+        s=korg; t=1657139746;
+        bh=n0jgIpGilaJQC7b3r9P2DL7pvkmkhRQXGB65cnbiPoM=;
         h=Date:To:From:Subject:From;
-        b=nHYFfNbyXCfjjrQSTssYiyyhdnAa5S0y7OIk0qy0I3qGjXORfUNu5GV9QcqOSObq/
-         xRH4DNHMqn+NyzIicrcUVw2FlrKCh1mTKO45PBhdr5NtIsOlNCUS1WSG0I3AmAIzFr
-         C1Jw/GqGBDx2YjRKt7BHCUZWxCOUt2LHZZ0M3+cw=
-Date:   Wed, 06 Jul 2022 13:34:29 -0700
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        dalias@libc.org, anshuman.khandual@arm.com,
+        b=0y0rlwZozR40DIGBUoD8NEjcF2opXRyoREvQbQuRryKqPmQ3y15zjLkNN64X+ftVs
+         4E8wIR/kPRyl9gcFzVtHNA8VC7Nhr8PLbV4bKjjRfERk3322jVUYMlZm+iO8OtgiKL
+         EIq7i4UiWqg5ThDLeUvZEdLbD+EvwnJsQkoM9wns=
+Date:   Wed, 06 Jul 2022 13:35:45 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, ligang.bdlg@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-mm-enable-arch_has_vm_get_page_prot-fix.patch added to mm-unstable branch
-Message-Id: <20220706203430.42063C3411C@smtp.kernel.org>
+Subject: + mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch added to mm-unstable branch
+Message-Id: <20220706203546.20F62C3411C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: noMMU: fix vm_get_page_prot definition
+     Subject: mm, hugetlb: skip irrelevant nodes in show_free_areas()
 has been added to the -mm mm-unstable branch.  Its filename is
-     sh-mm-enable-arch_has_vm_get_page_prot-fix.patch
+     mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-mm-enable-arch_has_vm_get_page_prot-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,107 +65,130 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: sh: noMMU: fix vm_get_page_prot definition
-Date: Wed, 6 Jul 2022 11:10:02 +0530
+From: Gang Li <ligang.bdlg@bytedance.com>
+Subject: mm, hugetlb: skip irrelevant nodes in show_free_areas()
+Date: Wed, 6 Jul 2022 11:46:54 +0800
 
-Don't define protection_map and don't use DECLARE_VM_GET_PAGE_PROT in
-noMMU configs, because in that case the definition for vm_get_page_prot is
-provided by the include/linux/mm.h
+show_free_areas() allows to filter out node specific data which is
+irrelevant to the allocation request.  But hugetlb_show_meminfo() still
+shows hugetlb on all nodes, which is redundant and unnecessary.
 
-Link: https://lkml.kernel.org/r/20220706054002.1936820-1-anshuman.khandual@arm.com
-Fixes: 03a92d45899c ("sh/mm: enable ARCH_HAS_VM_GET_PAGE_PROT")
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
+Use show_mem_node_skip() to skip irrelevant nodes.  And replace
+hugetlb_show_meminfo() with hugetlb_show_meminfo_node(nid).
+
+before-and-after sample output of OOM:
+
+before:
+```
+[  214.362453] Node 1 active_anon:148kB inactive_anon:4050920kB active_file:112kB inactive_file:100kB
+[  214.375429] Node 1 Normal free:45100kB boost:0kB min:45576kB low:56968kB high:68360kB reserved_hig
+[  214.388334] lowmem_reserve[]: 0 0 0 0 0
+[  214.390251] Node 1 Normal: 423*4kB (UE) 320*8kB (UME) 187*16kB (UE) 117*32kB (UE) 57*64kB (UME) 20
+[  214.397626] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+[  214.401518] Node 1 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+```
+
+after:
+```
+[  145.069705] Node 1 active_anon:128kB inactive_anon:4049412kB active_file:56kB inactive_file:84kB u
+[  145.110319] Node 1 Normal free:45424kB boost:0kB min:45576kB low:56968kB high:68360kB reserved_hig
+[  145.152315] lowmem_reserve[]: 0 0 0 0 0
+[  145.155244] Node 1 Normal: 470*4kB (UME) 373*8kB (UME) 247*16kB (UME) 168*32kB (UE) 86*64kB (UME)
+[  145.164119] Node 1 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+```
+
+Link: https://lkml.kernel.org/r/20220706034655.1834-1-ligang.bdlg@bytedance.com
+Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/mmap.c |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ include/linux/hugetlb.h |    4 ++--
+ mm/hugetlb.c            |   18 ++++++++----------
+ mm/page_alloc.c         |    8 ++++++--
+ 3 files changed, 16 insertions(+), 14 deletions(-)
 
---- a/arch/sh/mm/mmap.c~sh-mm-enable-arch_has_vm_get_page_prot-fix
-+++ a/arch/sh/mm/mmap.c
-@@ -19,6 +19,26 @@ unsigned long shm_align_mask = PAGE_SIZE
- EXPORT_SYMBOL(shm_align_mask);
- 
- #ifdef CONFIG_MMU
-+static const pgprot_t protection_map[16] = {
-+	[VM_NONE]					= PAGE_NONE,
-+	[VM_READ]					= PAGE_READONLY,
-+	[VM_WRITE]					= PAGE_COPY,
-+	[VM_WRITE | VM_READ]				= PAGE_COPY,
-+	[VM_EXEC]					= PAGE_EXECREAD,
-+	[VM_EXEC | VM_READ]				= PAGE_EXECREAD,
-+	[VM_EXEC | VM_WRITE]				= PAGE_COPY,
-+	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_COPY,
-+	[VM_SHARED]					= PAGE_NONE,
-+	[VM_SHARED | VM_READ]				= PAGE_READONLY,
-+	[VM_SHARED | VM_WRITE]				= PAGE_WRITEONLY,
-+	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_SHARED,
-+	[VM_SHARED | VM_EXEC]				= PAGE_EXECREAD,
-+	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_EXECREAD,
-+	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_RWX,
-+	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_RWX
-+};
-+DECLARE_VM_GET_PAGE_PROT
-+
- /*
-  * To avoid cache aliases, we map the shared page with same color.
-  */
-@@ -162,23 +182,3 @@ int valid_mmap_phys_addr_range(unsigned
- {
- 	return 1;
+--- a/include/linux/hugetlb.h~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
++++ a/include/linux/hugetlb.h
+@@ -155,7 +155,7 @@ void __unmap_hugepage_range_final(struct
+ 			  struct page *ref_page, zap_flags_t zap_flags);
+ void hugetlb_report_meminfo(struct seq_file *);
+ int hugetlb_report_node_meminfo(char *buf, int len, int nid);
+-void hugetlb_show_meminfo(void);
++void hugetlb_show_meminfo_node(int nid);
+ unsigned long hugetlb_total_pages(void);
+ vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, unsigned int flags);
+@@ -301,7 +301,7 @@ static inline int hugetlb_report_node_me
+ 	return 0;
  }
--
--static const pgprot_t protection_map[16] = {
--	[VM_NONE]					= PAGE_NONE,
--	[VM_READ]					= PAGE_READONLY,
--	[VM_WRITE]					= PAGE_COPY,
--	[VM_WRITE | VM_READ]				= PAGE_COPY,
--	[VM_EXEC]					= PAGE_EXECREAD,
--	[VM_EXEC | VM_READ]				= PAGE_EXECREAD,
--	[VM_EXEC | VM_WRITE]				= PAGE_COPY,
--	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_COPY,
--	[VM_SHARED]					= PAGE_NONE,
--	[VM_SHARED | VM_READ]				= PAGE_READONLY,
--	[VM_SHARED | VM_WRITE]				= PAGE_WRITEONLY,
--	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_SHARED,
--	[VM_SHARED | VM_EXEC]				= PAGE_EXECREAD,
--	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_EXECREAD,
--	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_RWX,
--	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_RWX
--};
--DECLARE_VM_GET_PAGE_PROT
+ 
+-static inline void hugetlb_show_meminfo(void)
++static inline void hugetlb_show_meminfo_node(int nid)
+ {
+ }
+ 
+--- a/mm/hugetlb.c~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
++++ a/mm/hugetlb.c
+@@ -4490,22 +4490,20 @@ int hugetlb_report_node_meminfo(char *bu
+ 			     nid, h->surplus_huge_pages_node[nid]);
+ }
+ 
+-void hugetlb_show_meminfo(void)
++void hugetlb_show_meminfo_node(int nid)
+ {
+ 	struct hstate *h;
+-	int nid;
+ 
+ 	if (!hugepages_supported())
+ 		return;
+ 
+-	for_each_node_state(nid, N_MEMORY)
+-		for_each_hstate(h)
+-			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
+-				nid,
+-				h->nr_huge_pages_node[nid],
+-				h->free_huge_pages_node[nid],
+-				h->surplus_huge_pages_node[nid],
+-				huge_page_size(h) / SZ_1K);
++	for_each_hstate(h)
++		printk("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
++			nid,
++			h->nr_huge_pages_node[nid],
++			h->free_huge_pages_node[nid],
++			h->surplus_huge_pages_node[nid],
++			huge_page_size(h) / SZ_1K);
+ }
+ 
+ void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
+--- a/mm/page_alloc.c~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
++++ a/mm/page_alloc.c
+@@ -5963,7 +5963,7 @@ static void show_migration_types(unsigne
+ void show_free_areas(unsigned int filter, nodemask_t *nodemask)
+ {
+ 	unsigned long free_pcp = 0;
+-	int cpu;
++	int cpu, nid;
+ 	struct zone *zone;
+ 	pg_data_t *pgdat;
+ 
+@@ -6151,7 +6151,11 @@ void show_free_areas(unsigned int filter
+ 		printk(KERN_CONT "= %lukB\n", K(total));
+ 	}
+ 
+-	hugetlb_show_meminfo();
++	for_each_online_node(nid) {
++		if (show_mem_node_skip(filter, nid, nodemask))
++			continue;
++		hugetlb_show_meminfo_node(nid);
++	}
+ 
+ 	printk("%ld total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
+ 
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from ligang.bdlg@bytedance.com are
 
-mm-mmap-build-protect-protection_map-with-__p000.patch
-mm-mmap-define-declare_vm_get_page_prot.patch
-powerpc-mm-move-protection_map-inside-the-platform.patch
-sparc-mm-move-protection_map-inside-the-platform.patch
-arm64-mm-move-protection_map-inside-the-platform.patch
-x86-mm-move-protection_map-inside-the-platform.patch
-mm-mmap-build-protect-protection_map-with-arch_has_vm_get_page_prot.patch
-microblaze-mm-enable-arch_has_vm_get_page_prot.patch
-loongarch-mm-enable-arch_has_vm_get_page_prot.patch
-openrisc-mm-enable-arch_has_vm_get_page_prot.patch
-xtensa-mm-enable-arch_has_vm_get_page_prot.patch
-hexagon-mm-enable-arch_has_vm_get_page_prot.patch
-parisc-mm-enable-arch_has_vm_get_page_prot.patch
-alpha-mm-enable-arch_has_vm_get_page_prot.patch
-nios2-mm-enable-arch_has_vm_get_page_prot.patch
-riscv-mm-enable-arch_has_vm_get_page_prot.patch
-csky-mm-enable-arch_has_vm_get_page_prot.patch
-s390-mm-enable-arch_has_vm_get_page_prot.patch
-ia64-mm-enable-arch_has_vm_get_page_prot.patch
-mips-mm-enable-arch_has_vm_get_page_prot.patch
-m68k-mm-enable-arch_has_vm_get_page_prot.patch
-arc-mm-enable-arch_has_vm_get_page_prot.patch
-arm-mm-enable-arch_has_vm_get_page_prot.patch
-um-mm-enable-arch_has_vm_get_page_prot.patch
-sh-mm-enable-arch_has_vm_get_page_prot.patch
-sh-mm-enable-arch_has_vm_get_page_prot-fix.patch
-mm-mmap-drop-arch_has_vm_get_page_prot.patch
+mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch
 
