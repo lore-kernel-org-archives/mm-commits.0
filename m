@@ -2,192 +2,101 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE13C43334
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jul 2022 02:54:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF339C43334
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jul 2022 09:24:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229591AbiGFCy6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Jul 2022 22:54:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48256 "EHLO
+        id S231960AbiGFJYS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Jul 2022 05:24:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229617AbiGFCy6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jul 2022 22:54:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7F96E020
-        for <mm-commits@vger.kernel.org>; Tue,  5 Jul 2022 19:54:56 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7EC7CB81992
-        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 02:54:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2836FC341C7;
-        Wed,  6 Jul 2022 02:54:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657076094;
-        bh=kBkCIfXoDv7EkXNQnjWXtRYPpHrh8PgjUXfOmvhItN0=;
-        h=Date:To:From:Subject:From;
-        b=aoWfswXTd2vVMiNqMxa5+oWz4Pup15yksHFdszBQ7qsHErnmp0TcwadKpWf64gWMc
-         BN7pwC2zdZ20x+WWZ+wrovErdT46wBBGXEDGkaBKRCBXeLzlWANUw3DMuA4Vmq+myY
-         8lJooAYFdr6Ggf34kmYCp4YUim/TA+dmduZuXEws=
-Date:   Tue, 05 Jul 2022 19:54:53 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        liam.howlett@oracle.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple-tree-add-new-data-structure-fix-3.patch added to mm-unstable branch
-Message-Id: <20220706025454.2836FC341C7@smtp.kernel.org>
+        with ESMTP id S231173AbiGFJYR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2022 05:24:17 -0400
+Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DFCE17A86;
+        Wed,  6 Jul 2022 02:24:16 -0700 (PDT)
+Received: by mail-ej1-x636.google.com with SMTP id u12so25966873eja.8;
+        Wed, 06 Jul 2022 02:24:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=mH3EsXz6QKYwAcafuhaDfR4s9oNm5ypp5DWlodyKTRg=;
+        b=T2E05GBaGL/11rGkmcjP8ofYsha1Lg1NrGjhf6Vf6PTqLFE1sxhfYNGxKRyCaym7zt
+         7Cqy83eanVyRZ3X+FBg+xvSAC4LlkRn4bnPxuCe8rqoO9N3rwoA8jGPx6R7LlR4HY8ZX
+         K1+DpaK1ni2AqrjsGHjcPKXusGVUho0vbdAoRe0vmruxy3c+UrOK5bMxZ60uMSGHgkZ1
+         CNrR300sNqAAb2KamGxILiztzoP6sLO7e8kO9T4Yx81h0JzOFzK5+sj6GmAdmMjvOtKr
+         KzmCpnF3KgmBiu8gEcb/VKPj17cD1M0XqFnXR9R58KkQqsExDINO3zUTauu5WDfxlQOk
+         GGzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=mH3EsXz6QKYwAcafuhaDfR4s9oNm5ypp5DWlodyKTRg=;
+        b=Avkh0pU+FCY23zWyGjLTC2IgVHNS1IZmvDrgpNWA/6f+iBkUiEQ9JMg36QxaLr5E0d
+         jcZlfKx0LiLjm2o3TLZCqAEayhqw4XZRVOgh4FGMnMqjjBa447sySwCvV7nZFwItiYHS
+         4Db25bKKTocQp1g//4xCj9SBZYzdf11jN9gKZkZA12479sJRB4+03/yYLudvwAYpXAZG
+         j8TbPCoEbckn5GOu6tF9h9KHTFDZK6HqVBbwKEnx7JKCH3nmyzNzAd6Vz88zT6jInk/s
+         mnb2dFVL12TWlYiuZ5m1eQOxRuzDwmPpgkm52C+Lyi0RR3FN5r7NxPajc3PGZONcjUUk
+         z/aw==
+X-Gm-Message-State: AJIora+LsN3Ejv8IUK7TAifdTeMhE41h2IRgNeskF+SLoAvf33JEibJh
+        zWWEjmuTuXzBQyB4aWHE+wUVWrUt1cJY
+X-Google-Smtp-Source: AGRyM1vHsjMQWhvXLrUH9P2YfOB8CTmQmNkcv3PLEUqJjzfaQBpZuSMiCotecRvuygXLLFWawjsfpA==
+X-Received: by 2002:a17:906:2bc2:b0:726:d02f:dea with SMTP id n2-20020a1709062bc200b00726d02f0deamr38414559ejg.60.1657099455050;
+        Wed, 06 Jul 2022 02:24:15 -0700 (PDT)
+Received: from localhost.localdomain ([46.53.251.51])
+        by smtp.gmail.com with ESMTPSA id u5-20020a170906068500b00703671ebe65sm16937724ejb.198.2022.07.06.02.24.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Jul 2022 02:24:14 -0700 (PDT)
+Date:   Wed, 6 Jul 2022 12:24:12 +0300
+From:   Alexey Dobriyan <adobriyan@gmail.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Mark Hemment <markhemm@googlemail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        patrice.chotard@foss.st.com, Mikulas Patocka <mpatocka@redhat.com>,
+        Lukas Czerner <lczerner@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Hugh Dickins <hughd@google.com>, patches@lists.linux.dev,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Mel Gorman <mgorman@suse.de>
+Subject: Re: [PATCH -final] x86/clear_user: Make it faster
+Message-ID: <YsVUvK/zQaIW749P@localhost.localdomain>
+References: <CAHk-=whCmmipbBDips0OJ=UiBUjZfgBGYruoOsqcq2TVd5kBSA@mail.gmail.com>
+ <YnqqhmYv75p+xl73@zn.tnic>
+ <Ynq1nVpu1xCpjnXm@zn.tnic>
+ <YozQZMyQ0NDdD8cH@zn.tnic>
+ <YrMlVBoDxB21l/kD@zn.tnic>
+ <CAHk-=wgmOfipHDvshwooTV81hMh6FHieSvhgGVWZMX8w+E-2DQ@mail.gmail.com>
+ <YrN4DdR9HN0srNWe@zn.tnic>
+ <CAHk-=wj_MeMUnKyRDuQTiU1OmQ=gfZVZhcD=G7Uma=1gkKkzxg@mail.gmail.com>
+ <YrQ1PPB77PBWyaHs@zn.tnic>
+ <YsRuUl24zkhpE3s/@zn.tnic>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <YsRuUl24zkhpE3s/@zn.tnic>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, Jul 05, 2022 at 07:01:06PM +0200, Borislav Petkov wrote:
 
-The patch titled
-     Subject: maple_tree: Fix use of node for global range in mas_wr_spanning_store()
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple-tree-add-new-data-structure-fix-3.patch
+> +	asm volatile(
+> +		"1:\n\t"
+> +		ALTERNATIVE_3("rep stosb",
+> +			      "call clear_user_erms",	  ALT_NOT(X86_FEATURE_FSRM),
+> +			      "call clear_user_rep_good", ALT_NOT(X86_FEATURE_ERMS),
+> +			      "call clear_user_original", ALT_NOT(X86_FEATURE_REP_GOOD))
+> +		"2:\n"
+> +	       _ASM_EXTABLE_UA(1b, 2b)
+> +	       : "+&c" (size), "+&D" (addr), ASM_CALL_CONSTRAINT
+> +	       : "a" (0)
+> +		/* rep_good clobbers %rdx */
+> +	       : "rdx");
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-3.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: maple_tree: Fix use of node for global range in mas_wr_spanning_store()
-Date: Wed, 6 Jul 2022 02:05:37 +0000
-
-When writing a range with a NULL which expands to 0 - ULONG_MAX, don't use
-a node to store this value.  Instead, call mas_new_root() which will set
-the tree pointer to NULL and free all the nodes.
-
-Fix a comment for the allocations in mas_wr_spanning_store().
-
-Add mas_node_count_gfp() and use it to clean up mas_preallocate().
-
-Clean up mas_preallocate() and ensure the ma_state is safe on return.
-
-Update maple_tree.h to set alloc = NULL.
-
-Link: https://lkml.kernel.org/r/20220706020526.1869453-1-Liam.Howlett@oracle.com
-Fixes: d0aac5e48048 (Maple Tree: add new data structure)
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/maple_tree.h |    1 +
- lib/maple_tree.c           |   34 +++++++++++++++++++++++++++-------
- 2 files changed, 28 insertions(+), 7 deletions(-)
-
---- a/include/linux/maple_tree.h~maple-tree-add-new-data-structure-fix-3
-+++ a/include/linux/maple_tree.h
-@@ -434,6 +434,7 @@ struct ma_wr_state {
- 		.node = MAS_START,					\
- 		.min = 0,						\
- 		.max = ULONG_MAX,					\
-+		.alloc = NULL,						\
- 	}
- 
- #define MA_WR_STATE(name, ma_state, wr_entry)				\
---- a/lib/maple_tree.c~maple-tree-add-new-data-structure-fix-3
-+++ a/lib/maple_tree.c
-@@ -1293,18 +1293,32 @@ static inline void mas_free(struct ma_st
-  * there is not enough nodes.
-  * @mas: The maple state
-  * @count: The number of nodes needed
-+ * @gfp: the gfp flags
-  */
--static void mas_node_count(struct ma_state *mas, int count)
-+static void mas_node_count_gfp(struct ma_state *mas, int count, gfp_t gfp)
- {
- 	unsigned long allocated = mas_allocated(mas);
- 
- 	if (allocated < count) {
- 		mas_set_alloc_req(mas, count - allocated);
--		mas_alloc_nodes(mas, GFP_NOWAIT | __GFP_NOWARN);
-+		mas_alloc_nodes(mas, gfp);
- 	}
- }
- 
- /*
-+ * mas_node_count() - Check if enough nodes are allocated and request more if
-+ * there is not enough nodes.
-+ * @mas: The maple state
-+ * @count: The number of nodes needed
-+ *
-+ * Note: Uses GFP_NOWAIT | __GFP_NOWARN for gfp flags.
-+ */
-+static void mas_node_count(struct ma_state *mas, int count)
-+{
-+	return mas_node_count_gfp(mas, count, GFP_NOWAIT | __GFP_NOWARN);
-+}
-+
-+/*
-  * mas_start() - Sets up maple state for operations.
-  * @mas: The maple state.
-  *
-@@ -3962,7 +3976,7 @@ static inline int mas_wr_spanning_store(
- 	if (unlikely(!mas->index && mas->last == ULONG_MAX))
- 		return mas_new_root(mas, wr_mas->entry);
- 	/*
--	 * Node rebalancing may occur due to this store, so there may be two new
-+	 * Node rebalancing may occur due to this store, so there may be three new
- 	 * entries per level plus a new root.
- 	 */
- 	height = mas_mt_height(mas);
-@@ -3995,6 +4009,12 @@ static inline int mas_wr_spanning_store(
- 		mas->last = l_mas.last = r_mas.last;
- 	}
- 
-+	/* expanding NULLs may make this cover the entire range */
-+	if (!l_mas.index && r_mas.last == ULONG_MAX) {
-+		mas_set_range(mas, 0, ULONG_MAX);
-+		return mas_new_root(mas, wr_mas->entry);
-+	}
-+
- 	memset(&b_node, 0, sizeof(struct maple_big_node));
- 	/* Copy l_mas and store the value in b_node. */
- 	mas_store_b_node(&l_wr_mas, &b_node, l_wr_mas.node_end);
-@@ -5657,15 +5677,15 @@ int mas_preallocate(struct ma_state *mas
- {
- 	int ret;
- 
--	mas_set_alloc_req(mas, 1 + mas_mt_height(mas) * 3);
--	mas_alloc_nodes(mas, gfp);
-+	mas_node_count_gfp(mas, 1 + mas_mt_height(mas) * 3, gfp);
- 	if (likely(!mas_is_err(mas)))
- 		return 0;
- 
- 	mas_set_alloc_req(mas, 0);
--	mas_destroy(mas);
- 	ret = xa_err(mas->node);
--	mas->node = MAS_START;
-+	mas_reset(mas);
-+	mas_destroy(mas);
-+	mas_reset(mas);
- 	return ret;
- }
- 
-_
-
-Patches currently in -mm which might be from liam.howlett@oracle.com are
-
-android-binder-fix-lockdep-check-on-clearing-vma.patch
-maple-tree-add-new-data-structure-fix.patch
-maple-tree-add-new-data-structure-fix-2.patch
-maple-tree-add-new-data-structure-fix-3.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix-2.patch
-mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
-
+"+c" and "+D" should be enough for 1 instruction assembly?
