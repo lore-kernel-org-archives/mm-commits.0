@@ -2,39 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46EDDC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jul 2022 20:35:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C27FDC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Jul 2022 21:23:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233628AbiGFUfs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Jul 2022 16:35:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43790 "EHLO
+        id S231851AbiGFVX4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Jul 2022 17:23:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232596AbiGFUfs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2022 16:35:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3449524F06
-        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 13:35:47 -0700 (PDT)
+        with ESMTP id S229816AbiGFVXz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2022 17:23:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E7E817E0D
+        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 14:23:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C56D7620ED
-        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 20:35:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20F62C3411C;
-        Wed,  6 Jul 2022 20:35:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D4D31B81E1C
+        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 21:23:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 859C7C341C6;
+        Wed,  6 Jul 2022 21:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657139746;
-        bh=n0jgIpGilaJQC7b3r9P2DL7pvkmkhRQXGB65cnbiPoM=;
+        s=korg; t=1657142628;
+        bh=qmtz8FPVNKYqFBMOwAA0U3YRFVfMjio1IkpYHyojN/Y=;
         h=Date:To:From:Subject:From;
-        b=0y0rlwZozR40DIGBUoD8NEjcF2opXRyoREvQbQuRryKqPmQ3y15zjLkNN64X+ftVs
-         4E8wIR/kPRyl9gcFzVtHNA8VC7Nhr8PLbV4bKjjRfERk3322jVUYMlZm+iO8OtgiKL
-         EIq7i4UiWqg5ThDLeUvZEdLbD+EvwnJsQkoM9wns=
-Date:   Wed, 06 Jul 2022 13:35:45 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, ligang.bdlg@bytedance.com,
-        akpm@linux-foundation.org
+        b=lfgFgM3Yn41H2nikuT0JIrQ/Nz2ELISwsOEjOYG8j9uoDQ4AiZq7yXykSZhpRTHrQ
+         2eEYQyuB0NjtbxaV3bj5m+xzvuFwMebh+qXT61rBXsWMcJ5qDV9U+v5etOLBQtlmVb
+         +OQn6xMt0Um4irDi9kr7onQknU6wdPPRJFGTYF4Y=
+Date:   Wed, 06 Jul 2022 14:23:47 -0700
+To:     mm-commits@vger.kernel.org, sre@kernel.org,
+        skhan@linuxfoundation.org, ndesaulniers@google.com,
+        michal.lkml@markovi.net, mcgrof@kernel.org, masahiroy@kernel.org,
+        lucas.demarchi@intel.com, keescook@chromium.org,
+        john.ogness@linutronix.de, jani.nikula@linux.intel.com,
+        gregkh@linuxfoundation.org, gpiccoli@igalia.com,
+        dlatypov@google.com, corbet@lwn.net, brendanhiggins@google.com,
+        atomlin@redhat.com, andriy.shevchenko@linux.intel.com,
+        davidgow@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch added to mm-unstable branch
-Message-Id: <20220706203546.20F62C3411C@smtp.kernel.org>
+Subject: + panic-taint-kernel-if-tests-are-run.patch added to mm-nonmm-unstable branch
+Message-Id: <20220706212348.859C7C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: skip irrelevant nodes in show_free_areas()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch
+     Subject: panic: taint kernel if tests are run
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-taint-kernel-if-tests-are-run.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-taint-kernel-if-tests-are-run.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,130 +71,88 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gang Li <ligang.bdlg@bytedance.com>
-Subject: mm, hugetlb: skip irrelevant nodes in show_free_areas()
-Date: Wed, 6 Jul 2022 11:46:54 +0800
+From: David Gow <davidgow@google.com>
+Subject: panic: taint kernel if tests are run
+Date: Sat, 2 Jul 2022 12:09:56 +0800
 
-show_free_areas() allows to filter out node specific data which is
-irrelevant to the allocation request.  But hugetlb_show_meminfo() still
-shows hugetlb on all nodes, which is redundant and unnecessary.
+Most in-kernel tests (such as KUnit tests) are not supposed to run on
+production systems: they may do deliberately illegal things to trigger
+errors, and have security implications (for example, KUnit assertions will
+often deliberately leak kernel addresses).
 
-Use show_mem_node_skip() to skip irrelevant nodes.  And replace
-hugetlb_show_meminfo() with hugetlb_show_meminfo_node(nid).
+Add a new taint type, TAINT_TEST to signal that a test has been run.  This
+will be printed as 'N' (originally for kuNit, as every other sensible
+letter was taken.)
 
-before-and-after sample output of OOM:
+This should discourage people from running these tests on production
+systems, and to make it easier to tell if tests have been run accidentally
+(by loading the wrong configuration, etc.)
 
-before:
-```
-[  214.362453] Node 1 active_anon:148kB inactive_anon:4050920kB active_file:112kB inactive_file:100kB
-[  214.375429] Node 1 Normal free:45100kB boost:0kB min:45576kB low:56968kB high:68360kB reserved_hig
-[  214.388334] lowmem_reserve[]: 0 0 0 0 0
-[  214.390251] Node 1 Normal: 423*4kB (UE) 320*8kB (UME) 187*16kB (UE) 117*32kB (UE) 57*64kB (UME) 20
-[  214.397626] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-[  214.401518] Node 1 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-```
-
-after:
-```
-[  145.069705] Node 1 active_anon:128kB inactive_anon:4049412kB active_file:56kB inactive_file:84kB u
-[  145.110319] Node 1 Normal free:45424kB boost:0kB min:45576kB low:56968kB high:68360kB reserved_hig
-[  145.152315] lowmem_reserve[]: 0 0 0 0 0
-[  145.155244] Node 1 Normal: 470*4kB (UME) 373*8kB (UME) 247*16kB (UME) 168*32kB (UE) 86*64kB (UME)
-[  145.164119] Node 1 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-```
-
-Link: https://lkml.kernel.org/r/20220706034655.1834-1-ligang.bdlg@bytedance.com
-Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220702040959.3232874-1-davidgow@google.com
+Signed-off-by: David Gow <davidgow@google.com>
+Acked-by: Luis Chamberlain <mcgrof@kernel.org>
+Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Guilherme G. Piccoli <gpiccoli@igalia.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Daniel Latypov <dlatypov@google.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Lucas De Marchi <lucas.demarchi@intel.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 ++--
- mm/hugetlb.c            |   18 ++++++++----------
- mm/page_alloc.c         |    8 ++++++--
- 3 files changed, 16 insertions(+), 14 deletions(-)
+ Documentation/admin-guide/tainted-kernels.rst |    1 +
+ include/linux/panic.h                         |    3 ++-
+ kernel/panic.c                                |    1 +
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
-+++ a/include/linux/hugetlb.h
-@@ -155,7 +155,7 @@ void __unmap_hugepage_range_final(struct
- 			  struct page *ref_page, zap_flags_t zap_flags);
- void hugetlb_report_meminfo(struct seq_file *);
- int hugetlb_report_node_meminfo(char *buf, int len, int nid);
--void hugetlb_show_meminfo(void);
-+void hugetlb_show_meminfo_node(int nid);
- unsigned long hugetlb_total_pages(void);
- vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long address, unsigned int flags);
-@@ -301,7 +301,7 @@ static inline int hugetlb_report_node_me
- 	return 0;
- }
+--- a/Documentation/admin-guide/tainted-kernels.rst~panic-taint-kernel-if-tests-are-run
++++ a/Documentation/admin-guide/tainted-kernels.rst
+@@ -100,6 +100,7 @@ Bit  Log  Number  Reason that got the ke
+  15  _/K   32768  kernel has been live patched
+  16  _/X   65536  auxiliary taint, defined for and used by distros
+  17  _/T  131072  kernel was built with the struct randomization plugin
++ 18  _/N  262144  an in-kernel test has been run
+ ===  ===  ======  ========================================================
  
--static inline void hugetlb_show_meminfo(void)
-+static inline void hugetlb_show_meminfo_node(int nid)
- {
- }
+ Note: The character ``_`` is representing a blank in this table to make reading
+--- a/include/linux/panic.h~panic-taint-kernel-if-tests-are-run
++++ a/include/linux/panic.h
+@@ -68,7 +68,8 @@ static inline void set_arch_panic_timeou
+ #define TAINT_LIVEPATCH			15
+ #define TAINT_AUX			16
+ #define TAINT_RANDSTRUCT		17
+-#define TAINT_FLAGS_COUNT		18
++#define TAINT_TEST			18
++#define TAINT_FLAGS_COUNT		19
+ #define TAINT_FLAGS_MAX			((1UL << TAINT_FLAGS_COUNT) - 1)
  
---- a/mm/hugetlb.c~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
-+++ a/mm/hugetlb.c
-@@ -4490,22 +4490,20 @@ int hugetlb_report_node_meminfo(char *bu
- 			     nid, h->surplus_huge_pages_node[nid]);
- }
+ struct taint_flag {
+--- a/kernel/panic.c~panic-taint-kernel-if-tests-are-run
++++ a/kernel/panic.c
+@@ -428,6 +428,7 @@ const struct taint_flag taint_flags[TAIN
+ 	[ TAINT_LIVEPATCH ]		= { 'K', ' ', true },
+ 	[ TAINT_AUX ]			= { 'X', ' ', true },
+ 	[ TAINT_RANDSTRUCT ]		= { 'T', ' ', true },
++	[ TAINT_TEST ]			= { 'N', ' ', true },
+ };
  
--void hugetlb_show_meminfo(void)
-+void hugetlb_show_meminfo_node(int nid)
- {
- 	struct hstate *h;
--	int nid;
- 
- 	if (!hugepages_supported())
- 		return;
- 
--	for_each_node_state(nid, N_MEMORY)
--		for_each_hstate(h)
--			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
--				nid,
--				h->nr_huge_pages_node[nid],
--				h->free_huge_pages_node[nid],
--				h->surplus_huge_pages_node[nid],
--				huge_page_size(h) / SZ_1K);
-+	for_each_hstate(h)
-+		printk("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
-+			nid,
-+			h->nr_huge_pages_node[nid],
-+			h->free_huge_pages_node[nid],
-+			h->surplus_huge_pages_node[nid],
-+			huge_page_size(h) / SZ_1K);
- }
- 
- void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
---- a/mm/page_alloc.c~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
-+++ a/mm/page_alloc.c
-@@ -5963,7 +5963,7 @@ static void show_migration_types(unsigne
- void show_free_areas(unsigned int filter, nodemask_t *nodemask)
- {
- 	unsigned long free_pcp = 0;
--	int cpu;
-+	int cpu, nid;
- 	struct zone *zone;
- 	pg_data_t *pgdat;
- 
-@@ -6151,7 +6151,11 @@ void show_free_areas(unsigned int filter
- 		printk(KERN_CONT "= %lukB\n", K(total));
- 	}
- 
--	hugetlb_show_meminfo();
-+	for_each_online_node(nid) {
-+		if (show_mem_node_skip(filter, nid, nodemask))
-+			continue;
-+		hugetlb_show_meminfo_node(nid);
-+	}
- 
- 	printk("%ld total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
- 
+ /**
 _
 
-Patches currently in -mm which might be from ligang.bdlg@bytedance.com are
+Patches currently in -mm which might be from davidgow@google.com are
 
-mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch
+panic-taint-kernel-if-tests-are-run.patch
+module-panic-taint-the-kernel-when-selftest-modules-load.patch
+kunit-taint-the-kernel-when-kunit-tests-are-run.patch
+selftest-taint-kernel-when-test-module-loaded.patch
 
