@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0294BC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Jul 2022 17:57:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6249EC43334
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Jul 2022 19:54:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235767AbiGGR5X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Jul 2022 13:57:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60454 "EHLO
+        id S235994AbiGGTyF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Jul 2022 15:54:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235158AbiGGR5V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 13:57:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D668653D24
-        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 10:57:20 -0700 (PDT)
+        with ESMTP id S235918AbiGGTyD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 15:54:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93A67326F8
+        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 12:54:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 64EAE620A7
-        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 17:57:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBCE2C3411E;
-        Thu,  7 Jul 2022 17:57:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F391623D5
+        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 19:54:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5103DC3411E;
+        Thu,  7 Jul 2022 19:54:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657216639;
-        bh=j/Hu5bumjUp3thYmU5ZUUMB3hCU+CKS4zilsraafPSg=;
+        s=korg; t=1657223641;
+        bh=OTHUL2OTXBoYWTllSNYlaSzHk1a4iVlWeuP0swirBkg=;
         h=Date:To:From:Subject:From;
-        b=MPad1Q39yn6ITD4SUDv/x9qsMIF+dPqUtL5uMtF7ahIywETdlNS8gx4CBjx+3obAt
-         sgHTkF/0prvqp4mFIrqvw5R55PdGF+fcEY09kPUPNxWW/U5KCptB8ocjAQzowdlMV1
-         +WAYfvBgdSQQTjTZsHyavMeXk3+xMI/sdMBkL7so=
-Date:   Thu, 07 Jul 2022 10:57:19 -0700
-To:     mm-commits@vger.kernel.org, zhangxiaoxu5@huawei.com,
-        yi.zhang@huawei.com, liuyongqiang13@huawei.com, anton@tuxera.com,
-        chenxiaosong2@huawei.com, akpm@linux-foundation.org
+        b=JuMXaED9kAWtHc/hGJYSfKEFI2sjDxbb1g2lyXbaMhLWr8cX+ORCCAYHUf6Mwz3bW
+         +wpHWbN1dfxv3WrQnOfZpWwhiZUl46THB677HGsuWfToThO5xYy9XLOcArpA/KjsOa
+         1cVMmv48DINoBAyU25YQs2mtD40D0F69TRACfeoE=
+Date:   Thu, 07 Jul 2022 12:54:00 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
+        hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
+        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ntfs-fix-use-after-free-in-ntfs_ucsncmp.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220707175719.BBCE2C3411E@smtp.kernel.org>
+Subject: + mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch added to mm-unstable branch
+Message-Id: <20220707195401.5103DC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: fix use-after-free in ntfs_ucsncmp()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ntfs-fix-use-after-free-in-ntfs_ucsncmp.patch
+     Subject: mm: rename is_pinnable_pages to is_longterm_pinnable_pages
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-fix-use-after-free-in-ntfs_ucsncmp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,107 +66,170 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ChenXiaoSong <chenxiaosong2@huawei.com>
-Subject: ntfs: fix use-after-free in ntfs_ucsncmp()
-Date: Thu, 7 Jul 2022 18:53:29 +0800
+From: Alex Sierra <alex.sierra@amd.com>
+Subject: mm: rename is_pinnable_pages to is_longterm_pinnable_pages
+Date: Thu, 7 Jul 2022 14:03:35 -0500
 
-Syzkaller reported use-after-free bug as follows:
+Patch series "Add MEMORY_DEVICE_COHERENT for coherent device memory
+mapping", v8.
 
-==================================================================
-BUG: KASAN: use-after-free in ntfs_ucsncmp+0x123/0x130
-Read of size 2 at addr ffff8880751acee8 by task a.out/879
+This patch series introduces MEMORY_DEVICE_COHERENT, a type of memory
+owned by a device that can be mapped into CPU page tables like
+MEMORY_DEVICE_GENERIC and can also be migrated like MEMORY_DEVICE_PRIVATE.
 
-CPU: 7 PID: 879 Comm: a.out Not tainted 5.19.0-rc4-next-20220630-00001-gcc5218c8bd2c-dirty #7
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.0-0-gd239552ce722-prebuilt.qemu.org 04/01/2014
-Call Trace:
- <TASK>
- dump_stack_lvl+0x1c0/0x2b0
- print_address_description.constprop.0.cold+0xd4/0x484
- print_report.cold+0x55/0x232
- kasan_report+0xbf/0xf0
- ntfs_ucsncmp+0x123/0x130
- ntfs_are_names_equal.cold+0x2b/0x41
- ntfs_attr_find+0x43b/0xb90
- ntfs_attr_lookup+0x16d/0x1e0
- ntfs_read_locked_attr_inode+0x4aa/0x2360
- ntfs_attr_iget+0x1af/0x220
- ntfs_read_locked_inode+0x246c/0x5120
- ntfs_iget+0x132/0x180
- load_system_files+0x1cc6/0x3480
- ntfs_fill_super+0xa66/0x1cf0
- mount_bdev+0x38d/0x460
- legacy_get_tree+0x10d/0x220
- vfs_get_tree+0x93/0x300
- do_new_mount+0x2da/0x6d0
- path_mount+0x496/0x19d0
- __x64_sys_mount+0x284/0x300
- do_syscall_64+0x3b/0xc0
- entry_SYSCALL_64_after_hwframe+0x46/0xb0
-RIP: 0033:0x7f3f2118d9ea
-Code: 48 8b 0d a9 f4 0b 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 76 f4 0b 00 f7 d8 64 89 01 48
-RSP: 002b:00007ffc269deac8 EFLAGS: 00000202 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f3f2118d9ea
-RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007ffc269dec00
-RBP: 00007ffc269dec80 R08: 00007ffc269deb00 R09: 00007ffc269dec44
-R10: 0000000000000000 R11: 0000000000000202 R12: 000055f81ab1d220
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
- </TASK>
+This patch series is mostly self-contained except for a few places where
+it needs to update other subsystems to handle the new memory type.
 
-The buggy address belongs to the physical page:
-page:0000000085430378 refcount:1 mapcount:1 mapping:0000000000000000 index:0x555c6a81d pfn:0x751ac
-memcg:ffff888101f7e180
-anon flags: 0xfffffc00a0014(uptodate|lru|mappedtodisk|swapbacked|node=0|zone=1|lastcpupid=0x1fffff)
-raw: 000fffffc00a0014 ffffea0001bf2988 ffffea0001de2448 ffff88801712e201
-raw: 0000000555c6a81d 0000000000000000 0000000100000000 ffff888101f7e180
-page dumped because: kasan: bad access detected
+System stability and performance are not affected according to our ongoing
+testing, including xfstests.
 
-Memory state around the buggy address:
- ffff8880751acd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
- ffff8880751ace00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->ffff8880751ace80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-                                                          ^
- ffff8880751acf00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
- ffff8880751acf80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-==================================================================
+How it works: The system BIOS advertises the GPU device memory (aka VRAM)
+as SPM (special purpose memory) in the UEFI system address map.
 
-The reason is that struct ATTR_RECORD->name_offset is 6485, end address of
-name string is out of bounds.
+The amdgpu driver registers the memory with devmap as
+MEMORY_DEVICE_COHERENT using devm_memremap_pages.  The initial user for
+this hardware page migration capability is the Frontier supercomputer
+project.  This functionality is not AMD-specific.  We expect other GPU
+vendors to find this functionality useful, and possibly other hardware
+types in the future.
 
-Fix this by adding sanity check on end address of attibute name string.
+Our test nodes in the lab are similar to the Frontier configuration, with
+.5 TB of system memory plus 256 GB of device memory split across 4 GPUs,
+all in a single coherent address space.  Page migration is expected to
+improve application efficiency significantly.  We will report empirical
+results as they become available.
 
-Link: https://lkml.kernel.org/r/20220707105329.4020708-1-chenxiaosong2@huawei.com
-Signed-off-by: ChenXiaoSong <chenxiaosong2@huawei.com>
-Cc: Anton Altaparmakov <anton@tuxera.com>
-Cc: ChenXiaoSong <chenxiaosong2@huawei.com>
-Cc: Yongqiang Liu <liuyongqiang13@huawei.com>
-Cc: Zhang Yi <yi.zhang@huawei.com>
-Cc: Zhang Xiaoxu <zhangxiaoxu5@huawei.com>
+Coherent device type pages at gup are now migrated back to system memory
+if they are being pinned long-term (FOLL_LONGTERM).  The reason is, that
+long-term pinning would interfere with the device memory manager owning
+the device-coherent pages (e.g.  evictions in TTM).  These series
+incorporate Alistair Popple patches to do this migration from
+pin_user_pages() calls.  hmm_gup_test has been added to hmm-test to test
+different get user pages calls.
+
+This series includes handling of device-managed anonymous pages returned
+by vm_normal_pages.  Although they behave like normal pages for purposes
+of mapping in CPU page tables and for COW, they do not support LRU lists,
+NUMA migration or THP.
+
+We also introduced a FOLL_LRU flag that adds the same behaviour to
+follow_page and related APIs, to allow callers to specify that they expect
+to put pages on an LRU list.
+
+
+This patch (of 15):
+
+is_pinnable_page() and folio_is_pinnable() were renamed to
+is_longterm_pinnable_page() and folio_is_longterm_pinnable() respectively.
+These functions are used in the FOLL_LONGTERM flag context.
+
+Link: https://lkml.kernel.org/r/20220707190349.9778-1-alex.sierra@amd.com
+Link: https://lkml.kernel.org/r/20220707190349.9778-2-alex.sierra@amd.com
+Signed-off-by: Alex Sierra <alex.sierra@amd.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/attrib.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    8 ++++----
+ mm/gup.c           |    4 ++--
+ mm/gup_test.c      |    2 +-
+ mm/hugetlb.c       |    2 +-
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/fs/ntfs/attrib.c~ntfs-fix-use-after-free-in-ntfs_ucsncmp
-+++ a/fs/ntfs/attrib.c
-@@ -592,8 +592,12 @@ static int ntfs_attr_find(const ATTR_TYP
- 		a = (ATTR_RECORD*)((u8*)ctx->attr +
- 				le32_to_cpu(ctx->attr->length));
- 	for (;;	a = (ATTR_RECORD*)((u8*)a + le32_to_cpu(a->length))) {
--		if ((u8*)a < (u8*)ctx->mrec || (u8*)a > (u8*)ctx->mrec +
--				le32_to_cpu(ctx->mrec->bytes_allocated))
-+		u8 *mrec_end = (u8 *)ctx->mrec +
-+		               le32_to_cpu(ctx->mrec->bytes_allocated);
-+		u8 *name_end = (u8 *)a + le16_to_cpu(a->name_offset) +
-+		               a->name_length;
-+		if ((u8*)a < (u8*)ctx->mrec || (u8*)a > mrec_end ||
-+		    name_end > mrec_end)
- 			break;
- 		ctx->attr = a;
- 		if (unlikely(le32_to_cpu(a->type) > le32_to_cpu(type) ||
+--- a/include/linux/mm.h~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
++++ a/include/linux/mm.h
+@@ -1642,7 +1642,7 @@ static inline bool page_needs_cow_for_dm
+ 
+ /* MIGRATE_CMA and ZONE_MOVABLE do not allow pin pages */
+ #ifdef CONFIG_MIGRATION
+-static inline bool is_pinnable_page(struct page *page)
++static inline bool is_longterm_pinnable_page(struct page *page)
+ {
+ #ifdef CONFIG_CMA
+ 	int mt = get_pageblock_migratetype(page);
+@@ -1653,15 +1653,15 @@ static inline bool is_pinnable_page(stru
+ 	return !is_zone_movable_page(page) || is_zero_pfn(page_to_pfn(page));
+ }
+ #else
+-static inline bool is_pinnable_page(struct page *page)
++static inline bool is_longterm_pinnable_page(struct page *page)
+ {
+ 	return true;
+ }
+ #endif
+ 
+-static inline bool folio_is_pinnable(struct folio *folio)
++static inline bool folio_is_longterm_pinnable(struct folio *folio)
+ {
+-	return is_pinnable_page(&folio->page);
++	return is_longterm_pinnable_page(&folio->page);
+ }
+ 
+ static inline void set_page_zone(struct page *page, enum zone_type zone)
+--- a/mm/gup.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
++++ a/mm/gup.c
+@@ -134,7 +134,7 @@ struct folio *try_grab_folio(struct page
+ 		 * path.
+ 		 */
+ 		if (unlikely((flags & FOLL_LONGTERM) &&
+-			     !is_pinnable_page(page)))
++			     !is_longterm_pinnable_page(page)))
+ 			return NULL;
+ 
+ 		/*
+@@ -1926,7 +1926,7 @@ static long check_and_migrate_movable_pa
+ 			continue;
+ 		prev_folio = folio;
+ 
+-		if (folio_is_pinnable(folio))
++		if (folio_is_longterm_pinnable(folio))
+ 			continue;
+ 
+ 		/*
+--- a/mm/gup_test.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
++++ a/mm/gup_test.c
+@@ -53,7 +53,7 @@ static void verify_dma_pinned(unsigned i
+ 				dump_page(page, "gup_test failure");
+ 				break;
+ 			} else if (cmd == PIN_LONGTERM_BENCHMARK &&
+-				WARN(!is_pinnable_page(page),
++				WARN(!is_longterm_pinnable_page(page),
+ 				     "pages[%lu] is NOT pinnable but pinned\n",
+ 				     i)) {
+ 				dump_page(page, "gup_test failure");
+--- a/mm/hugetlb.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
++++ a/mm/hugetlb.c
+@@ -1129,7 +1129,7 @@ static struct page *dequeue_huge_page_no
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+ 	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
+-		if (pin && !is_pinnable_page(page))
++		if (pin && !is_longterm_pinnable_page(page))
+ 			continue;
+ 
+ 		if (PageHWPoison(page))
 _
 
-Patches currently in -mm which might be from chenxiaosong2@huawei.com are
+Patches currently in -mm which might be from alex.sierra@amd.com are
 
-ntfs-fix-use-after-free-in-ntfs_ucsncmp.patch
+mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
+mm-move-page-zone-helpers-into-new-header-specific-file.patch
+mm-add-zone-device-coherent-type-memory-support.patch
+mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
+mm-add-device-coherent-vma-selection-for-memory-migration.patch
+drm-amdkfd-add-spm-support-for-svm.patch
+lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
+lib-test_hmm-add-module-param-for-zone-device-type.patch
+lib-add-support-for-device-coherent-type-in-test_hmm.patch
+tools-update-hmm-test-to-support-device-coherent-type.patch
+tools-update-test_hmm-script-to-support-sp-config.patch
+tools-add-hmm-gup-tests-for-device-coherent-type.patch
+tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
 
