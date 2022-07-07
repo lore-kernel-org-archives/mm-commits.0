@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B40B5C43334
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Jul 2022 19:54:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07E6CC43334
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Jul 2022 19:54:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236367AbiGGTym (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Jul 2022 15:54:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36822 "EHLO
+        id S235764AbiGGTyn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Jul 2022 15:54:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235764AbiGGTyi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 15:54:38 -0400
+        with ESMTP id S235693AbiGGTyl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 15:54:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70A22326F8
-        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 12:54:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D8B332EEC
+        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 12:54:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F43B621AB
-        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 19:54:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62118C3411E;
-        Thu,  7 Jul 2022 19:54:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 297E1623DC
+        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 19:54:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78042C3411E;
+        Thu,  7 Jul 2022 19:54:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657223676;
-        bh=jGekut8OB3Ud1hnVmlZk/H4bapcYt4MwKaHeSCEfR74=;
+        s=korg; t=1657223678;
+        bh=2zXZD3P5zzdAXQxCbAlrp36CUJ2/95Hf+C8Ql3aOBfc=;
         h=Date:To:From:Subject:From;
-        b=Ym1/j/LX8wvtgXZ9eoal1Ccd0c1v0/32NmSZWuYfubt9BpFkBhoSRzzUVutTEGsEt
-         bOCQS3CeEoWYcfcHPFZcOOwrHpe/kO+FbNxwjsQSCRxljIpENhzu4uVTWpdXXkL0g+
-         P8O9mnehFf7zb6zzcdcZncxjFfAuWjWWjQW1MSXE=
-Date:   Thu, 07 Jul 2022 12:54:35 -0700
+        b=MQqWfSHB0sLIac2M8/XBuRDpLZLWbIiU0dRytK2FxX5i5798A/eYN609iDpWkO2Ki
+         gv9HOeN5Tyhout8DN+EgreCsDCJDuvu0/MonygQa3am4elb7S2z0MCJdPu22cFCnbe
+         qnRLonDh+RqPOTn7DSSQR5w3YK3V+BRZslCgI6AU=
+Date:   Thu, 07 Jul 2022 12:54:37 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
         hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
         apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-add-hmm-gup-tests-for-device-coherent-type.patch added to mm-unstable branch
-Message-Id: <20220707195436.62118C3411E@smtp.kernel.org>
+Subject: + tools-add-selftests-to-hmm-for-cow-in-device-memory.patch added to mm-unstable branch
+Message-Id: <20220707195438.78042C3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: add hmm gup tests for device coherent type
+     Subject: tools: add selftests to hmm for COW in device memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     tools-add-hmm-gup-tests-for-device-coherent-type.patch
+     tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-add-hmm-gup-tests-for-device-coherent-type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,19 +67,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alex Sierra <alex.sierra@amd.com>
-Subject: tools: add hmm gup tests for device coherent type
-Date: Thu, 7 Jul 2022 14:03:48 -0500
+Subject: tools: add selftests to hmm for COW in device memory
+Date: Thu, 7 Jul 2022 14:03:49 -0500
 
-The intention is to test hmm device coherent type under different get user
-pages paths.  Also, test gup with FOLL_LONGTERM flag set in device
-coherent pages.  These pages should get migrated back to system memory.
+The objective is to test device migration mechanism in pages marked as
+COW, for private and coherent device type.  In case of writing to COW
+private page(s), a page fault will migrate pages back to system memory
+first.  Then, these pages will be duplicated.  In case of COW device
+coherent type, pages are duplicated directly from device memory.
 
-Link: https://lkml.kernel.org/r/20220707190349.9778-15-alex.sierra@amd.com
+Link: https://lkml.kernel.org/r/20220707190349.9778-16-alex.sierra@amd.com
 Signed-off-by: Alex Sierra <alex.sierra@amd.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -87,72 +89,34 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hmm-tests.c |  110 +++++++++++++++++++++++
- 1 file changed, 110 insertions(+)
+ tools/testing/selftests/vm/hmm-tests.c |   80 +++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
 
---- a/tools/testing/selftests/vm/hmm-tests.c~tools-add-hmm-gup-tests-for-device-coherent-type
+--- a/tools/testing/selftests/vm/hmm-tests.c~tools-add-selftests-to-hmm-for-cow-in-device-memory
 +++ a/tools/testing/selftests/vm/hmm-tests.c
-@@ -36,6 +36,7 @@
-  * in the usual include/uapi/... directory.
-  */
- #include "../../../../lib/test_hmm_uapi.h"
-+#include "../../../../mm/gup_test.h"
- 
- struct hmm_buffer {
- 	void		*ptr;
-@@ -59,6 +60,9 @@ enum {
- #define NTIMES		10
- 
- #define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
-+/* Just the flags we need, copied from mm.h: */
-+#define FOLL_WRITE	0x01	/* check pte is writable */
-+#define FOLL_LONGTERM   0x10000 /* mapping lifetime is indefinite */
- 
- FIXTURE(hmm)
- {
-@@ -1764,4 +1768,110 @@ TEST_F(hmm, exclusive_cow)
+@@ -1874,4 +1874,84 @@ TEST_F(hmm, hmm_gup_test)
+ 	close(gup_fd);
  	hmm_buffer_free(buffer);
  }
- 
-+static int gup_test_exec(int gup_fd, unsigned long addr, int cmd,
-+			 int npages, int size, int flags)
-+{
-+	struct gup_test gup = {
-+		.nr_pages_per_call	= npages,
-+		.addr			= addr,
-+		.gup_flags		= FOLL_WRITE | flags,
-+		.size			= size,
-+	};
-+
-+	if (ioctl(gup_fd, cmd, &gup)) {
-+		perror("ioctl on error\n");
-+		return errno;
-+	}
-+
-+	return 0;
-+}
 +
 +/*
-+ * Test get user device pages through gup_test. Setting PIN_LONGTERM flag.
-+ * This should trigger a migration back to system memory for both, private
-+ * and coherent type pages.
-+ * This test makes use of gup_test module. Make sure GUP_TEST_CONFIG is added
-+ * to your configuration before you run it.
++ * Test copy-on-write in device pages.
++ * In case of writing to COW private page(s), a page fault will migrate pages
++ * back to system memory first. Then, these pages will be duplicated. In case
++ * of COW device coherent type, pages are duplicated directly from device
++ * memory.
 + */
-+TEST_F(hmm, hmm_gup_test)
++TEST_F(hmm, hmm_cow_in_device)
 +{
 +	struct hmm_buffer *buffer;
-+	int gup_fd;
 +	unsigned long npages;
 +	unsigned long size;
 +	unsigned long i;
 +	int *ptr;
 +	int ret;
 +	unsigned char *m;
-+
-+	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
-+	if (gup_fd == -1)
-+		SKIP(return, "Skipping test, could not find gup_test driver");
++	pid_t pid;
++	int status;
 +
 +	npages = 4;
 +	size = npages << self->page_shift;
@@ -176,48 +140,42 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		ptr[i] = i;
 +
 +	/* Migrate memory to device. */
++
 +	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
 +	ASSERT_EQ(ret, 0);
 +	ASSERT_EQ(buffer->cpages, npages);
-+	/* Check what the device read. */
-+	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], i);
 +
-+	ASSERT_EQ(gup_test_exec(gup_fd,
-+				(unsigned long)buffer->ptr,
-+				GUP_BASIC_TEST, 1, self->page_size, 0), 0);
-+	ASSERT_EQ(gup_test_exec(gup_fd,
-+				(unsigned long)buffer->ptr + 1 * self->page_size,
-+				GUP_FAST_BENCHMARK, 1, self->page_size, 0), 0);
-+	ASSERT_EQ(gup_test_exec(gup_fd,
-+				(unsigned long)buffer->ptr + 2 * self->page_size,
-+				PIN_FAST_BENCHMARK, 1, self->page_size, FOLL_LONGTERM), 0);
-+	ASSERT_EQ(gup_test_exec(gup_fd,
-+				(unsigned long)buffer->ptr + 3 * self->page_size,
-+				PIN_LONGTERM_BENCHMARK, 1, self->page_size, 0), 0);
++	pid = fork();
++	if (pid == -1)
++		ASSERT_EQ(pid, 0);
++	if (!pid) {
++		/* Child process waitd for SIGTERM from the parent. */
++		while (1) {
++		}
++		perror("Should not reach this\n");
++		exit(0);
++	}
++	/* Parent process writes to COW pages(s) and gets a
++	 * new copy in system. In case of device private pages,
++	 * this write causes a migration to system mem first.
++	 */
++	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ptr[i] = i;
++
++	/* Terminate child and wait */
++	EXPECT_EQ(0, kill(pid, SIGTERM));
++	EXPECT_EQ(pid, waitpid(pid, &status, 0));
++	EXPECT_NE(0, WIFSIGNALED(status));
++	EXPECT_EQ(SIGTERM, WTERMSIG(status));
 +
 +	/* Take snapshot to CPU pagetables */
 +	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
 +	ASSERT_EQ(ret, 0);
 +	ASSERT_EQ(buffer->cpages, npages);
 +	m = buffer->mirror;
-+	if (hmm_is_coherent_type(variant->device_number)) {
-+		ASSERT_EQ(HMM_DMIRROR_PROT_DEV_COHERENT_LOCAL | HMM_DMIRROR_PROT_WRITE, m[0]);
-+		ASSERT_EQ(HMM_DMIRROR_PROT_DEV_COHERENT_LOCAL | HMM_DMIRROR_PROT_WRITE, m[1]);
-+	} else {
-+		ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[0]);
-+		ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[1]);
-+	}
-+	ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[2]);
-+	ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[3]);
-+	/*
-+	 * Check again the content on the pages. Make sure there's no
-+	 * corrupted data.
-+	 */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], i);
++	for (i = 0; i < npages; i++)
++		ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[i]);
 +
-+	close(gup_fd);
 +	hmm_buffer_free(buffer);
 +}
  TEST_HARNESS_MAIN
