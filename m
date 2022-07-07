@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4B72C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Jul 2022 21:25:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D1B4C43334
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Jul 2022 17:47:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234159AbiGFVZE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Jul 2022 17:25:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50020 "EHLO
+        id S235568AbiGGRro (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Jul 2022 13:47:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234376AbiGFVZC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2022 17:25:02 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B87121838D
-        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 14:25:00 -0700 (PDT)
+        with ESMTP id S235635AbiGGRrn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 13:47:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A26E55C977;
+        Thu,  7 Jul 2022 10:47:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4CA8BB81E1C
-        for <mm-commits@vger.kernel.org>; Wed,  6 Jul 2022 21:24:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFB06C3411C;
-        Wed,  6 Jul 2022 21:24:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 12502620A6;
+        Thu,  7 Jul 2022 17:47:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64E9DC341C0;
+        Thu,  7 Jul 2022 17:47:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657142698;
-        bh=7lrF9kC5M+fBc9NF70fupYyHvF4ZtNGDr0DfD4STo+s=;
+        s=korg; t=1657216059;
+        bh=3aP6xJLpeoifWw1fIfq1b/9aP4YULhLH7y4W8nJ0Ngw=;
         h=Date:To:From:Subject:From;
-        b=0zj02KDXXy4cKIKKOZlas6fnsDtdiQ/hyoqE6C3Udvjof33Sv+b5JfQIOXB/izSW4
-         Dmp+mCc6P+Yj7SPKqEAsKCyTv3FaE5EbCQp1g11+biHt4Y3fBJOq5+iyIunbxRTFuA
-         St+9PWt1bYGI1EFMyye0+PMzopAyJQTjmwQdGLKM=
-Date:   Wed, 06 Jul 2022 14:24:57 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, npache@redhat.com,
-        jsavitz@redhat.com, akpm@linux-foundation.org
+        b=TpirIbQzYG7Dq8yH6IJenUbsBLUyL+IEqdGLxyMq8Ygo5qmSiH5w0ws93gwP/tFK1
+         1etr5mKv161n9ipcbCgeAeYiTiokBbMDLObUyvSdWtdMdA+bb6Nv7W/lbzAur8OLDT
+         ZPTVAbyCN0d/Ds3611Cfrt8xpSMNv+c/lyG6LWxI=
+Date:   Thu, 07 Jul 2022 10:47:38 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, hdanton@sina.com, ebiggers@kernel.org,
+        axelrasmussen@google.com, rppt@linux.ibm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-enable-running-select-groups-of-tests.patch added to mm-unstable branch
-Message-Id: <20220706212457.EFB06C3411C@smtp.kernel.org>
+Subject: + secretmem-fix-unhandled-fault-in-truncate.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220707174739.64E9DC341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: enable running select groups of tests
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-enable-running-select-groups-of-tests.patch
+     Subject: secretmem: fix unhandled fault in truncate
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     secretmem-fix-unhandled-fault-in-truncate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-enable-running-select-groups-of-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/secretmem-fix-unhandled-fault-in-truncate.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,438 +66,157 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joel Savitz <jsavitz@redhat.com>
-Subject: selftests/vm: enable running select groups of tests
-Date: Wed, 6 Jul 2022 16:54:51 -0400
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: secretmem: fix unhandled fault in truncate
+Date: Thu, 7 Jul 2022 19:56:50 +0300
 
-Our memory management kernel CI testing at Red Hat uses the VM selftests
-and we have run into two problems:
+syzkaller reports the following issue:
 
-First, our LTP tests overlap with the VM selftests.
+BUG: unable to handle page fault for address: ffff888021f7e005
+PGD 11401067 P4D 11401067 PUD 11402067 PMD 21f7d063 PTE 800fffffde081060
+Oops: 0002 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 3761 Comm: syz-executor281 Not tainted 5.19.0-rc4-syzkaller-00014-g941e3e791269 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:memset_erms+0x9/0x10 arch/x86/lib/memset_64.S:64
+Code: c1 e9 03 40 0f b6 f6 48 b8 01 01 01 01 01 01 01 01 48 0f af c6 f3 48 ab 89 d1 f3 aa 4c 89 c8 c3 90 49 89 f9 40 88 f0 48 89 d1 <f3> aa 4c 89 c8 c3 90 49 89 fa 40 0f b6 ce 48 b8 01 01 01 01 01 01
+RSP: 0018:ffffc9000329fa90 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: 0000000000001000 RCX: 0000000000000ffb
+RDX: 0000000000000ffb RSI: 0000000000000000 RDI: ffff888021f7e005
+RBP: ffffea000087df80 R08: 0000000000000001 R09: ffff888021f7e005
+R10: ffffed10043efdff R11: 0000000000000000 R12: 0000000000000005
+R13: 0000000000000000 R14: 0000000000001000 R15: 0000000000000ffb
+FS:  00007fb29d8b2700(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff888021f7e005 CR3: 0000000026e7b000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ zero_user_segments include/linux/highmem.h:272 [inline]
+ folio_zero_range include/linux/highmem.h:428 [inline]
+ truncate_inode_partial_folio+0x76a/0xdf0 mm/truncate.c:237
+ truncate_inode_pages_range+0x83b/0x1530 mm/truncate.c:381
+ truncate_inode_pages mm/truncate.c:452 [inline]
+ truncate_pagecache+0x63/0x90 mm/truncate.c:753
+ simple_setattr+0xed/0x110 fs/libfs.c:535
+ secretmem_setattr+0xae/0xf0 mm/secretmem.c:170
+ notify_change+0xb8c/0x12b0 fs/attr.c:424
+ do_truncate+0x13c/0x200 fs/open.c:65
+ do_sys_ftruncate+0x536/0x730 fs/open.c:193
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+RIP: 0033:0x7fb29d900899
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fb29d8b2318 EFLAGS: 00000246 ORIG_RAX: 000000000000004d
+RAX: ffffffffffffffda RBX: 00007fb29d988408 RCX: 00007fb29d900899
+RDX: 00007fb29d900899 RSI: 0000000000000005 RDI: 0000000000000003
+RBP: 00007fb29d988400 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fb29d98840c
+R13: 00007ffca01a23bf R14: 00007fb29d8b2400 R15: 0000000000022000
+ </TASK>
+Modules linked in:
+CR2: ffff888021f7e005
+---[ end trace 0000000000000000 ]---
 
-We want to avoid unhelpful redundancy in our testing practices.
+Eric Biggers suggested that this happens when
+secretmem_setattr()->simple_setattr() races with secretmem_fault() so that
+a page that is faulted in by secretmem_fault() (and thus removed from the
+direct map) is zeroed by inode truncation right afterwards.
 
-Second, we have observed the current run_vmtests.sh to report overall
-failure/ambiguous results in the case that a machine lacks the necessary
-hardware to perform one or more of the tests.  E.g.  ksm tests that
-require more than one numa node.
+Since do_truncate() takes inode_lock(), adding inode_lock_shared() to
+secretmem_fault() prevents the race.
 
-We want to be able to run the vm selftests suitable to particular hardware.
-
-Add the ability to run one or more groups of vm tests via run_vmtests.sh
-instead of simply all-or-none in order to solve these problems.
-
-Preserve existing default behavior of running all tests when the script is
-invoked with no arguments.
-
-Documentation of test groups is included in the patch as follows:
-
-    # ./run_vmtests.sh [ -h || --help ]
-
-    usage: ./tools/testing/selftests/vm/run_vmtests.sh [ -h | -t "<categories>"]
-      -t: specify specific categories to tests to run
-      -h: display this message
-
-    The default behavior is to run all tests.
-
-    Alternatively, specific groups tests can be run by passing a string
-    to the -t argument containing one or more of the following categories
-    separated by spaces:
-    - mmap
-	    tests for mmap(2)
-    - gup_test
-	    tests for gup using gup_test interface
-    - userfaultfd
-	    tests for  userfaultfd(2)
-    - compaction
-	    a test for the patch "Allow compaction of unevictable pages"
-    - mlock
-	    tests for mlock(2)
-    - mremap
-	    tests for mremap(2)
-    - hugevm
-	    tests for very large virtual address space
-    - vmalloc
-	    vmalloc smoke tests
-    - hmm
-	    hmm smoke tests
-    - madv_populate
-	    test memadvise(2) MADV_POPULATE_{READ,WRITE} options
-    - memfd_secret
-	    test memfd_secret(2)
-    - process_mrelease
-	    test process_mrelease(2)
-    - ksm
-	    ksm tests that do not require >=2 NUMA nodes
-    - ksm_numa
-	    ksm tests that require >=2 NUMA nodes
-    - pkey
-	    memory protection key tests
-    example: ./run_vmtests.sh -t "hmm mmap ksm"
-
-Changes from v2:
-	- rebase onto the mm-everyting branch in
-	https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git
-	- integrate this functionality with new the tests
-
-Changes from v1:
-	- use a command line argument to pass the test categories to the
-	  script instead of an environmet variable
-	- remove novel prints to avoid messing with extant parsers of this
-	  script
-	- update the usage text
-
-Link: https://lkml.kernel.org/r/20220706205451.4133254-1-jsavitz@redhat.com
-Signed-off-by: Joel Savitz <jsavitz@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
+Link: https://lkml.kernel.org/r/20220707165650.248088-1-rppt@kernel.org
+Reported-by: syzbot+9bd2b7adbd34b30b87e4@syzkaller.appspotmail.com
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Suggested-by: Eric Biggers <ebiggers@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/run_vmtests.sh |  239 +++++++++++++-------
- 1 file changed, 160 insertions(+), 79 deletions(-)
+ mm/secretmem.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-enable-running-select-groups-of-tests
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -1,6 +1,6 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
--#please run as root
-+# Please run as root
+--- a/mm/secretmem.c~secretmem-fix-unhandled-fault-in-truncate
++++ a/mm/secretmem.c
+@@ -55,22 +55,28 @@ static vm_fault_t secretmem_fault(struct
+ 	gfp_t gfp = vmf->gfp_mask;
+ 	unsigned long addr;
+ 	struct page *page;
++	vm_fault_t ret;
+ 	int err;
  
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
-@@ -8,15 +8,75 @@ ksft_skip=4
- mnt=./huge
- exitcode=0
+ 	if (((loff_t)vmf->pgoff << PAGE_SHIFT) >= i_size_read(inode))
+ 		return vmf_error(-EINVAL);
  
--#get huge pagesize and freepages from /proc/meminfo
--while read -r name size unit; do
--	if [ "$name" = "HugePages_Free:" ]; then
--		freepgs="$size"
--	fi
--	if [ "$name" = "Hugepagesize:" ]; then
--		hpgsize_KB="$size"
-+usage() {
-+	cat <<EOF
-+usage: ${BASH_SOURCE[0]:-$0} [ -h | -t "<categories>"]
-+  -t: specify specific categories to tests to run
-+  -h: display this message
++	inode_lock_shared(inode);
 +
-+The default behavior is to run all tests.
-+
-+Alternatively, specific groups tests can be run by passing a string
-+to the -t argument containing one or more of the following categories
-+separated by spaces:
-+- mmap
-+	tests for mmap(2)
-+- gup_test
-+	tests for gup using gup_test interface
-+- userfaultfd
-+	tests for  userfaultfd(2)
-+- compaction
-+	a test for the patch "Allow compaction of unevictable pages"
-+- mlock
-+	tests for mlock(2)
-+- mremap
-+	tests for mremap(2)
-+- hugevm
-+	tests for very large virtual address space
-+- vmalloc
-+	vmalloc smoke tests
-+- hmm
-+	hmm smoke tests
-+- madv_populate
-+	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
-+- memfd_secret
-+	test memfd_secret(2)
-+- process_mrelease
-+	test process_mrelease(2)
-+- ksm
-+	ksm tests that do not require >=2 NUMA nodes
-+- ksm_numa
-+	ksm tests that require >=2 NUMA nodes
-+- pkey
-+	memory protection key tests
-+example: ./run_vmtests.sh -t "hmm mmap ksm"
-+EOF
-+	exit 0
-+}
-+
-+
-+while getopts "ht:" OPT; do
-+	case ${OPT} in
-+		"h") usage ;;
-+		"t") TEST_ITEMS=${OPTARG} ;;
-+	esac
-+done
-+shift $((OPTIND -1))
-+
-+# default behavior: run all tests
-+TEST_ITEMS=${TEST_ITEMS:-default}
-+
-+test_selected() {
-+	if [ "$TEST_ITEMS" == "default" ]; then
-+		# If no TEST_ITEMS are specified, run all tests
-+		return 0
- 	fi
--done < /proc/meminfo
-+	echo ${TEST_ITEMS} | grep ${1} 2>&1 >/dev/null
-+	return ${?}
-+}
-+
-+# Hugepage setup only needed for hugetlb tests
-+if test_selected "hugetlb"; then
+ retry:
+ 	page = find_lock_page(mapping, offset);
+ 	if (!page) {
+ 		page = alloc_page(gfp | __GFP_ZERO);
+-		if (!page)
+-			return VM_FAULT_OOM;
++		if (!page) {
++			ret = VM_FAULT_OOM;
++			goto out;
++		}
  
- # Simple hugetlbfs tests have a hardcoded minimum requirement of
- # huge pages totaling 256MB (262144KB) in size.  The userfaultfd
-@@ -28,7 +88,17 @@ hpgsize_MB=$((hpgsize_KB / 1024))
- half_ufd_size_MB=$((((nr_cpus * hpgsize_MB + 127) / 128) * 128))
- needmem_KB=$((half_ufd_size_MB * 2 * 1024))
+ 		err = set_direct_map_invalid_noflush(page);
+ 		if (err) {
+ 			put_page(page);
+-			return vmf_error(err);
++			ret = vmf_error(err);
++			goto out;
+ 		}
  
--#set proper nr_hugepages
-+# get huge pagesize and freepages from /proc/meminfo
-+while read -r name size unit; do
-+	if [ "$name" = "HugePages_Free:" ]; then
-+		freepgs="$size"
-+	fi
-+	if [ "$name" = "Hugepagesize:" ]; then
-+		hpgsize_KB="$size"
-+	fi
-+done < /proc/meminfo
-+
-+# set proper nr_hugepages
- if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
- 	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
- 	needpgs=$((needmem_KB / hpgsize_KB))
-@@ -57,144 +127,155 @@ else
- 	exit 1
- fi
+ 		__SetPageUptodate(page);
+@@ -86,7 +92,8 @@ retry:
+ 			if (err == -EEXIST)
+ 				goto retry;
  
--#filter 64bit architectures
-+fi # test_selected "hugetlb"
-+
-+# filter 64bit architectures
- ARCH64STR="arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64"
- if [ -z "$ARCH" ]; then
- 	ARCH=$(uname -m 2>/dev/null | sed -e 's/aarch64.*/arm64/')
- fi
- VADDR64=0
--echo "$ARCH64STR" | grep "$ARCH" && VADDR64=1
-+echo "$ARCH64STR" | grep "$ARCH" &>/dev/null && VADDR64=1
+-			return vmf_error(err);
++			ret = vmf_error(err);
++			goto out;
+ 		}
  
- # Usage: run_test [test binary] [arbitrary test arguments...]
- run_test() {
--	local title="running $*"
--	local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
--	printf "%s\n%s\n%s\n" "$sep" "$title" "$sep"
--
--	"$@"
--	local ret=$?
--	if [ $ret -eq 0 ]; then
--		echo "[PASS]"
--	elif [ $ret -eq $ksft_skip ]; then
--		echo "[SKIP]"
--		exitcode=$ksft_skip
--	else
--		echo "[FAIL]"
--		exitcode=1
--	fi
-+	if test_selected ${CATEGORY}; then
-+		local title="running $*"
-+		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
-+		printf "%s\n%s\n%s\n" "$sep" "$title" "$sep"
+ 		addr = (unsigned long)page_address(page);
+@@ -94,7 +101,11 @@ retry:
+ 	}
+ 
+ 	vmf->page = page;
+-	return VM_FAULT_LOCKED;
++	ret = VM_FAULT_LOCKED;
 +
-+		"$@"
-+		local ret=$?
-+		if [ $ret -eq 0 ]; then
-+			echo "[PASS]"
-+		elif [ $ret -eq $ksft_skip ]; then
-+			echo "[SKIP]"
-+			exitcode=$ksft_skip
-+		else
-+			echo "[FAIL]"
-+			exitcode=1
-+		fi
-+	fi # test_selected
++out:
++	inode_unlock_shared(inode);
++	return ret;
  }
  
--mkdir "$mnt"
--mount -t hugetlbfs none "$mnt"
-+# setup only needed for hugetlb tests
-+if test_selected "hugetlb"; then
-+	mkdir "$mnt"
-+	mount -t hugetlbfs none "$mnt"
-+fi
- 
--run_test ./hugepage-mmap
-+CATEGORY="hugetlb" run_test ./hugepage-mmap
- 
- shmmax=$(cat /proc/sys/kernel/shmmax)
- shmall=$(cat /proc/sys/kernel/shmall)
- echo 268435456 > /proc/sys/kernel/shmmax
- echo 4194304 > /proc/sys/kernel/shmall
--run_test ./hugepage-shm
-+CATEGORY="hugetlb" run_test ./hugepage-shm
- echo "$shmmax" > /proc/sys/kernel/shmmax
- echo "$shmall" > /proc/sys/kernel/shmall
- 
--run_test ./map_hugetlb
-+CATEGORY="hugetlb" run_test ./map_hugetlb
- 
--run_test ./hugepage-mremap "$mnt"/huge_mremap
--rm -f "$mnt"/huge_mremap
-+CATEGORY="hugetlb" run_test ./hugepage-mremap "$mnt"/huge_mremap
-+test_selected "hugetlb" && rm -f "$mnt"/huge_mremap
- 
--run_test ./hugepage-vmemmap
-+CATEGORY="hugetlb" run_test ./hugepage-vmemmap
- 
--run_test ./hugetlb-madvise "$mnt"/madvise-test
--rm -f "$mnt"/madvise-test
-+CATEGORY="hugetlb" run_test ./hugetlb-madvise "$mnt"/madvise-test
-+test_selected "hugetlb" && rm -f "$mnt"/madvise-test
- 
--echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
--echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
--echo "      hugetlb regression testing."
-+if test_selected "hugetlb"; then
-+	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"
-+	echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
-+	echo "      hugetlb regression testing."
-+fi
- 
--run_test ./map_fixed_noreplace
-+CATEGORY="mmap" run_test ./map_fixed_noreplace
- 
- # get_user_pages_fast() benchmark
--run_test ./gup_test -u
-+CATEGORY="gup_test" run_test ./gup_test -u
- # pin_user_pages_fast() benchmark
--run_test ./gup_test -a
-+CATEGORY="gup_test" run_test ./gup_test -a
- # Dump pages 0, 19, and 4096, using pin_user_pages:
--run_test ./gup_test -ct -F 0x1 0 19 0x1000
-+CATEGORY="gup_test" run_test ./gup_test -ct -F 0x1 0 19 0x1000
- 
--run_test ./userfaultfd anon 20 16
--run_test ./userfaultfd anon:dev 20 16
-+CATEGORY="userfaultfd" run_test ./userfaultfd anon 20 16
-+CATEGORY="userfaultfd" run_test ./userfaultfd anon:dev 20 16
- # Hugetlb tests require source and destination huge pages. Pass in half the
- # size ($half_ufd_size_MB), which is used for *each*.
--run_test ./userfaultfd hugetlb "$half_ufd_size_MB" 32
--run_test ./userfaultfd hugetlb:dev "$half_ufd_size_MB" 32
--run_test ./userfaultfd hugetlb_shared "$half_ufd_size_MB" 32 "$mnt"/uffd-test
-+CATEGORY="userfaultfd" run_test ./userfaultfd hugetlb "$half_ufd_size_MB" 32
-+CATEGORY="userfaultfd" run_test ./userfaultfd hugetlb:dev "$half_ufd_size_MB" 32
-+CATEGORY="userfaultfd" run_test ./userfaultfd hugetlb_shared "$half_ufd_size_MB" 32 "$mnt"/uffd-test
- rm -f "$mnt"/uffd-test
--run_test ./userfaultfd hugetlb_shared:dev "$half_ufd_size_MB" 32 "$mnt"/uffd-test
-+CATEGORY="userfaultfd" run_test ./userfaultfd hugetlb_shared:dev "$half_ufd_size_MB" 32 "$mnt"/uffd-test
- rm -f "$mnt"/uffd-test
--run_test ./userfaultfd shmem 20 16
--run_test ./userfaultfd shmem:dev 20 16
-+CATEGORY="userfaultfd" run_test ./userfaultfd shmem 20 16
-+CATEGORY="userfaultfd" run_test ./userfaultfd shmem:dev 20 16
- 
--#cleanup
--umount "$mnt"
--rm -rf "$mnt"
--echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
-+# cleanup (only needed when running hugetlb tests)
-+if test_selected "hugetlb"; then
-+	umount "$mnt"
-+	rm -rf "$mnt"
-+	echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
-+fi
- 
--run_test ./compaction_test
-+CATEGORY="compaction" run_test ./compaction_test
- 
--run_test sudo -u nobody ./on-fault-limit
-+CATEGORY="mlock" run_test sudo -u nobody ./on-fault-limit
- 
--run_test ./map_populate
-+CATEGORY="mmap" run_test ./map_populate
- 
--run_test ./mlock-random-test
-+CATEGORY="mlock" run_test ./mlock-random-test
- 
--run_test ./mlock2-tests
-+CATEGORY="mlock" run_test ./mlock2-tests
- 
--run_test ./mrelease_test
-+CATEGORY="process_mrelease" run_test ./mrelease_test
- 
--run_test ./mremap_test
-+CATEGORY="mremap" run_test ./mremap_test
- 
--run_test ./thuge-gen
-+CATEGORY="hugetlb" run_test ./thuge-gen
- 
- if [ $VADDR64 -ne 0 ]; then
--	run_test ./virtual_address_range
-+	CATEGORY="hugevm" run_test ./virtual_address_range
- 
- 	# virtual address 128TB switch test
--	run_test ./va_128TBswitch.sh
-+	CATEGORY="hugevm" run_test ./va_128TBswitch.sh
- fi # VADDR64
- 
- # vmalloc stability smoke test
--run_test ./test_vmalloc.sh smoke
-+CATEGORY="vmalloc" run_test ./test_vmalloc.sh smoke
- 
--run_test ./mremap_dontunmap
-+CATEGORY="mremap" run_test ./mremap_dontunmap
- 
--run_test ./test_hmm.sh smoke
-+CATEGORY="hmm" run_test ./test_hmm.sh smoke
- 
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
--run_test ./madv_populate
-+CATEGORY="madv_populate" run_test ./madv_populate
- 
--run_test ./memfd_secret
-+CATEGORY="memfd_secret" run_test ./memfd_secret
- 
- # KSM MADV_MERGEABLE test with 10 identical pages
--run_test ./ksm_tests -M -p 10
-+CATEGORY="ksm" run_test ./ksm_tests -M -p 10
- # KSM unmerge test
--run_test ./ksm_tests -U
-+CATEGORY="ksm" run_test ./ksm_tests -U
- # KSM test with 10 zero pages and use_zero_pages = 0
--run_test ./ksm_tests -Z -p 10 -z 0
-+CATEGORY="ksm" run_test ./ksm_tests -Z -p 10 -z 0
- # KSM test with 10 zero pages and use_zero_pages = 1
--run_test ./ksm_tests -Z -p 10 -z 1
-+CATEGORY="ksm" run_test ./ksm_tests -Z -p 10 -z 1
- # KSM test with 2 NUMA nodes and merge_across_nodes = 1
--run_test ./ksm_tests -N -m 1
-+CATEGORY="ksm_numa" run_test ./ksm_tests -N -m 1
- # KSM test with 2 NUMA nodes and merge_across_nodes = 0
--run_test ./ksm_tests -N -m 0
-+CATEGORY="ksm_numa" run_test ./ksm_tests -N -m 0
- 
- # protection_keys tests
- if [ -x ./protection_keys_32 ]
- then
--	run_test ./protection_keys_32
-+	CATEGORY="pkey" run_test ./protection_keys_32
- fi
- 
- if [ -x ./protection_keys_64 ]
- then
--	run_test ./protection_keys_64
-+	CATEGORY="pkey" run_test ./protection_keys_64
- fi
- 
- exit $exitcode
+ static const struct vm_operations_struct secretmem_vm_ops = {
 _
 
-Patches currently in -mm which might be from jsavitz@redhat.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-selftests-vm-enable-running-select-groups-of-tests.patch
+secretmem-fix-unhandled-fault-in-truncate.patch
+csky-drop-definition-of-pte_order.patch
+csky-drop-definition-of-pgd_order.patch
+mips-rename-pud_order-to-pud_table_order.patch
+mips-drop-definitions-of-pte_order.patch
+mips-rename-pgd_order-to-pgd_table_order.patch
+nios2-drop-definition-of-pte_order.patch
+nios2-drop-definition-of-pgd_order.patch
+loongarch-drop-definition-of-pte_order.patch
+loongarch-drop-definition-of-pmd_order.patch
+loongarch-drop-definition-of-pud_order.patch
+loongarch-drop-definition-of-pgd_order.patch
+loongarch-drop-definition-of-pgd_order-v2.patch
+parisc-rename-pgd_order-to-pgd_table_order.patch
+xtensa-drop-definition-of-pgd_order.patch
+arm-heads-rename-pmd_order-to-pmd_entry_order.patch
 
