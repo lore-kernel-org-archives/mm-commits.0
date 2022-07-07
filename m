@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AB73C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Jul 2022 17:52:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0294BC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Jul 2022 17:57:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235882AbiGGRwg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Jul 2022 13:52:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57176 "EHLO
+        id S235767AbiGGR5X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Jul 2022 13:57:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236031AbiGGRwa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 13:52:30 -0400
+        with ESMTP id S235158AbiGGR5V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 13:57:21 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4715B59253
-        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 10:52:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D668653D24
+        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 10:57:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DB35B61452
-        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 17:52:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 364DBC3411E;
-        Thu,  7 Jul 2022 17:52:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 64EAE620A7
+        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 17:57:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBCE2C3411E;
+        Thu,  7 Jul 2022 17:57:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657216349;
-        bh=cN6ftKYjrACPMQ7Ozfn4b/Sv8BekRg2u80qNi/DkYxg=;
+        s=korg; t=1657216639;
+        bh=j/Hu5bumjUp3thYmU5ZUUMB3hCU+CKS4zilsraafPSg=;
         h=Date:To:From:Subject:From;
-        b=gFjRHc4JBu3O4k/2bYKvDRK+2+rMJI8cIFSqnVJFQNKsaWIS7tBgA0PezYG8TIfmM
-         LInUpIXFnOvJNVKIpj1gC0vRsb2zYGvwWCncVQlgLQG2eOfNLvn49/icqyYF0FkU5s
-         BtJ32ZG9aY/LFFJO7DJqWVTnvRHo+OFHumVX/xn8=
-Date:   Thu, 07 Jul 2022 10:52:28 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        peterz@infradead.org, alexandre.chartre@oracle.com,
-        penguin-kernel@I-love.SAKURA.ne.jp, akpm@linux-foundation.org
+        b=MPad1Q39yn6ITD4SUDv/x9qsMIF+dPqUtL5uMtF7ahIywETdlNS8gx4CBjx+3obAt
+         sgHTkF/0prvqp4mFIrqvw5R55PdGF+fcEY09kPUPNxWW/U5KCptB8ocjAQzowdlMV1
+         +WAYfvBgdSQQTjTZsHyavMeXk3+xMI/sdMBkL7so=
+Date:   Thu, 07 Jul 2022 10:57:19 -0700
+To:     mm-commits@vger.kernel.org, zhangxiaoxu5@huawei.com,
+        yi.zhang@huawei.com, liuyongqiang13@huawei.com, anton@tuxera.com,
+        chenxiaosong2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-smp_processor_id-fix-imbalanced-instrumentation_end-call.patch added to mm-nonmm-unstable branch
-Message-Id: <20220707175229.364DBC3411E@smtp.kernel.org>
+Subject: + ntfs-fix-use-after-free-in-ntfs_ucsncmp.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220707175719.BBCE2C3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/smp_processor_id: fix imbalanced instrumentation_end() call
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-smp_processor_id-fix-imbalanced-instrumentation_end-call.patch
+     Subject: ntfs: fix use-after-free in ntfs_ucsncmp()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ntfs-fix-use-after-free-in-ntfs_ucsncmp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-smp_processor_id-fix-imbalanced-instrumentation_end-call.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-fix-use-after-free-in-ntfs_ucsncmp.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,41 +65,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: lib/smp_processor_id: fix imbalanced instrumentation_end() call
-Date: Wed, 22 Jun 2022 14:46:31 +0900
+From: ChenXiaoSong <chenxiaosong2@huawei.com>
+Subject: ntfs: fix use-after-free in ntfs_ucsncmp()
+Date: Thu, 7 Jul 2022 18:53:29 +0800
 
-Currently instrumentation_end() won't be called if printk_ratelimit()
-returned false.
+Syzkaller reported use-after-free bug as follows:
 
-Link: https://lkml.kernel.org/r/a636d8e0-ad32-5888-acac-671f7f553bb3@I-love.SAKURA.ne.jp
-Fixes: 126f21f0e8d46e2c ("lib/smp_processor_id: Move it into noinstr section")
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alexandre Chartre <alexandre.chartre@oracle.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+==================================================================
+BUG: KASAN: use-after-free in ntfs_ucsncmp+0x123/0x130
+Read of size 2 at addr ffff8880751acee8 by task a.out/879
+
+CPU: 7 PID: 879 Comm: a.out Not tainted 5.19.0-rc4-next-20220630-00001-gcc5218c8bd2c-dirty #7
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.0-0-gd239552ce722-prebuilt.qemu.org 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0x1c0/0x2b0
+ print_address_description.constprop.0.cold+0xd4/0x484
+ print_report.cold+0x55/0x232
+ kasan_report+0xbf/0xf0
+ ntfs_ucsncmp+0x123/0x130
+ ntfs_are_names_equal.cold+0x2b/0x41
+ ntfs_attr_find+0x43b/0xb90
+ ntfs_attr_lookup+0x16d/0x1e0
+ ntfs_read_locked_attr_inode+0x4aa/0x2360
+ ntfs_attr_iget+0x1af/0x220
+ ntfs_read_locked_inode+0x246c/0x5120
+ ntfs_iget+0x132/0x180
+ load_system_files+0x1cc6/0x3480
+ ntfs_fill_super+0xa66/0x1cf0
+ mount_bdev+0x38d/0x460
+ legacy_get_tree+0x10d/0x220
+ vfs_get_tree+0x93/0x300
+ do_new_mount+0x2da/0x6d0
+ path_mount+0x496/0x19d0
+ __x64_sys_mount+0x284/0x300
+ do_syscall_64+0x3b/0xc0
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+RIP: 0033:0x7f3f2118d9ea
+Code: 48 8b 0d a9 f4 0b 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 76 f4 0b 00 f7 d8 64 89 01 48
+RSP: 002b:00007ffc269deac8 EFLAGS: 00000202 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f3f2118d9ea
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007ffc269dec00
+RBP: 00007ffc269dec80 R08: 00007ffc269deb00 R09: 00007ffc269dec44
+R10: 0000000000000000 R11: 0000000000000202 R12: 000055f81ab1d220
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+The buggy address belongs to the physical page:
+page:0000000085430378 refcount:1 mapcount:1 mapping:0000000000000000 index:0x555c6a81d pfn:0x751ac
+memcg:ffff888101f7e180
+anon flags: 0xfffffc00a0014(uptodate|lru|mappedtodisk|swapbacked|node=0|zone=1|lastcpupid=0x1fffff)
+raw: 000fffffc00a0014 ffffea0001bf2988 ffffea0001de2448 ffff88801712e201
+raw: 0000000555c6a81d 0000000000000000 0000000100000000 ffff888101f7e180
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880751acd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8880751ace00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8880751ace80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+                                                          ^
+ ffff8880751acf00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8880751acf80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================
+
+The reason is that struct ATTR_RECORD->name_offset is 6485, end address of
+name string is out of bounds.
+
+Fix this by adding sanity check on end address of attibute name string.
+
+Link: https://lkml.kernel.org/r/20220707105329.4020708-1-chenxiaosong2@huawei.com
+Signed-off-by: ChenXiaoSong <chenxiaosong2@huawei.com>
+Cc: Anton Altaparmakov <anton@tuxera.com>
+Cc: ChenXiaoSong <chenxiaosong2@huawei.com>
+Cc: Yongqiang Liu <liuyongqiang13@huawei.com>
+Cc: Zhang Yi <yi.zhang@huawei.com>
+Cc: Zhang Xiaoxu <zhangxiaoxu5@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/smp_processor_id.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ntfs/attrib.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/lib/smp_processor_id.c~lib-smp_processor_id-fix-imbalanced-instrumentation_end-call
-+++ a/lib/smp_processor_id.c
-@@ -47,9 +47,9 @@ unsigned int check_preemption_disabled(c
- 
- 	printk("caller is %pS\n", __builtin_return_address(0));
- 	dump_stack();
--	instrumentation_end();
- 
- out_enable:
-+	instrumentation_end();
- 	preempt_enable_no_resched_notrace();
- out:
- 	return this_cpu;
+--- a/fs/ntfs/attrib.c~ntfs-fix-use-after-free-in-ntfs_ucsncmp
++++ a/fs/ntfs/attrib.c
+@@ -592,8 +592,12 @@ static int ntfs_attr_find(const ATTR_TYP
+ 		a = (ATTR_RECORD*)((u8*)ctx->attr +
+ 				le32_to_cpu(ctx->attr->length));
+ 	for (;;	a = (ATTR_RECORD*)((u8*)a + le32_to_cpu(a->length))) {
+-		if ((u8*)a < (u8*)ctx->mrec || (u8*)a > (u8*)ctx->mrec +
+-				le32_to_cpu(ctx->mrec->bytes_allocated))
++		u8 *mrec_end = (u8 *)ctx->mrec +
++		               le32_to_cpu(ctx->mrec->bytes_allocated);
++		u8 *name_end = (u8 *)a + le16_to_cpu(a->name_offset) +
++		               a->name_length;
++		if ((u8*)a < (u8*)ctx->mrec || (u8*)a > mrec_end ||
++		    name_end > mrec_end)
+ 			break;
+ 		ctx->attr = a;
+ 		if (unlikely(le32_to_cpu(a->type) > le32_to_cpu(type) ||
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from chenxiaosong2@huawei.com are
 
-lib-smp_processor_id-fix-imbalanced-instrumentation_end-call.patch
+ntfs-fix-use-after-free-in-ntfs_ucsncmp.patch
 
