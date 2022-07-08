@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48E5BCCA480
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 21:05:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C63CCA47B
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 21:05:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240416AbiGHVFR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S240405AbiGHVFR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 8 Jul 2022 17:05:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56672 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240405AbiGHVFP (ORCPT
+        with ESMTP id S240425AbiGHVFP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:05:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFE40A025A
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:05:10 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEBA89FE04
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:05:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D488628E1
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:05:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB674C341C0;
-        Fri,  8 Jul 2022 21:05:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A5E8DB82998
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:05:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49ECFC341C0;
+        Fri,  8 Jul 2022 21:05:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657314310;
-        bh=w0JVjaATOQH+zJxeDV67tx8Jt8V9XhM8rP+c20gOyk4=;
+        s=korg; t=1657314307;
+        bh=zYp4gmsLIuH6Uz2h5IahAn48QSO2COzFP+w27X4DWBI=;
         h=Date:To:From:Subject:From;
-        b=a2Q+LV8CaC+S7JGJrTXJiT3rtt5zzt68yyMhjrlMHeWOfz4WukQANcbCRSCYj2z0y
-         9eYRwF8IiphS2DUmFH0cBlUtnPceMdREcgMy9yciKdJX0TqGcBqYxiecjsz5CQoS0f
-         IxZyec+5zZHoVFCCEs/Wlo8Ke8yJS9ir0a59W/8U=
-Date:   Fri, 08 Jul 2022 14:05:09 -0700
+        b=H44XlSEIVaBxjY96azalVXvy2gmWXVgSCuei/2KqYYgfDm11UV4ifapFNHVVqLUy7
+         Ta3auxx7LLI1zei/uM3zIE/C0MBbhXzwoil9CnTWHGbiBGFEvQKkZMn3pKXOXfEKKX
+         04kzkg3H+Ccv3V1LgBCL5L1Qjy61TX3yYKiRAAbo=
+Date:   Fri, 08 Jul 2022 14:05:04 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
         sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         arnd@arndb.de, alex.shi@linux.alibaba.com, aarcange@redhat.com,
         zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-add-madv_collapse-to-process_madvise.patch added to mm-unstable branch
-Message-Id: <20220708210509.DB674C341C0@smtp.kernel.org>
+Subject: + mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch added to mm-unstable branch
+Message-Id: <20220708210507.49ECFC341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: add MADV_COLLAPSE to process_madvise()
+     Subject: mm/madvise: add huge_memory:mm_madvise_collapse tracepoint
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-add-madv_collapse-to-process_madvise.patch
+     mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-add-madv_collapse-to-process_madvise.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,19 +75,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/madvise: add MADV_COLLAPSE to process_madvise()
-Date: Wed, 6 Jul 2022 16:59:30 -0700
+Subject: mm/madvise: add huge_memory:mm_madvise_collapse tracepoint
+Date: Wed, 6 Jul 2022 16:59:29 -0700
 
-Allow MADV_COLLAPSE behavior for process_madvise(2) if caller has
-CAP_SYS_ADMIN or is requesting collapse of it's own memory.
+Add a tracepoint to expose mm, address, and enum scan_result of each
+hugepage attempted to be collapsed by call to madvise(MADV_COLLAPSE).
 
-This is useful for the development of userspace agents that seek to
-optimize THP utilization system-wide by using userspace signals to
-prioritize what memory is most deserving of being THP-backed.
-
-Link: https://lkml.kernel.org/r/20220706235936.2197195-13-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220706235936.2197195-12-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -95,6 +90,7 @@ Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Kennelly <ckennelly@google.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
@@ -120,37 +116,51 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/trace/events/huge_memory.h |   22 ++++++++++++++++++++++
+ mm/khugepaged.c                    |    2 ++
+ 2 files changed, 24 insertions(+)
 
---- a/mm/madvise.c~mm-madvise-add-madv_collapse-to-process_madvise
-+++ a/mm/madvise.c
-@@ -1171,13 +1171,15 @@ madvise_behavior_valid(int behavior)
- }
+--- a/include/trace/events/huge_memory.h~mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint
++++ a/include/trace/events/huge_memory.h
+@@ -167,5 +167,27 @@ TRACE_EVENT(mm_collapse_huge_page_swapin
+ 		__entry->ret)
+ );
  
- static bool
--process_madvise_behavior_valid(int behavior)
-+process_madvise_behavior_valid(int behavior, struct task_struct *task)
- {
- 	switch (behavior) {
- 	case MADV_COLD:
- 	case MADV_PAGEOUT:
- 	case MADV_WILLNEED:
- 		return true;
-+	case MADV_COLLAPSE:
-+		return task == current || capable(CAP_SYS_ADMIN);
- 	default:
- 		return false;
- 	}
-@@ -1455,7 +1457,7 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 		goto free_iov;
- 	}
++TRACE_EVENT(mm_madvise_collapse,
++
++	TP_PROTO(struct mm_struct *mm, unsigned long addr, int result),
++
++	TP_ARGS(mm, addr, result),
++
++	TP_STRUCT__entry(__field(struct mm_struct *, mm)
++			 __field(unsigned long, addr)
++			 __field(int, result)
++	),
++
++	TP_fast_assign(__entry->mm = mm;
++		       __entry->addr = addr;
++		       __entry->result = result;
++	),
++
++	TP_printk("mm=%p addr=%#lx result=%s",
++		  __entry->mm,
++		  __entry->addr,
++		  __print_symbolic(__entry->result, SCAN_STATUS))
++);
++
+ #endif /* __HUGE_MEMORY_H */
+ #include <trace/define_trace.h>
+--- a/mm/khugepaged.c~mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint
++++ a/mm/khugepaged.c
+@@ -2438,6 +2438,8 @@ int madvise_collapse(struct vm_area_stru
+ 		if (!mmap_locked)
+ 			*prev = NULL;  /* Tell caller we dropped mmap_lock */
  
--	if (!process_madvise_behavior_valid(behavior)) {
-+	if (!process_madvise_behavior_valid(behavior, task)) {
- 		ret = -EINVAL;
- 		goto release_task;
- 	}
++		trace_mm_madvise_collapse(mm, addr, result);
++
+ 		switch (result) {
+ 		case SCAN_SUCCEED:
+ 		case SCAN_PMD_MAPPED:
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
