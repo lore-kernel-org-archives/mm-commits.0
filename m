@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C63CCA47B
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 21:05:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6ED9C43334
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 21:05:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240405AbiGHVFR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 17:05:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56674 "EHLO
+        id S240428AbiGHVF2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 17:05:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240425AbiGHVFP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:05:15 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEBA89FE04
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:05:09 -0700 (PDT)
+        with ESMTP id S240214AbiGHVFQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:05:16 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDEC0A2384
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:05:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A5E8DB82998
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:05:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49ECFC341C0;
-        Fri,  8 Jul 2022 21:05:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 720AAB82999
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:05:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CA8DC341C0;
+        Fri,  8 Jul 2022 21:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657314307;
-        bh=zYp4gmsLIuH6Uz2h5IahAn48QSO2COzFP+w27X4DWBI=;
+        s=korg; t=1657314312;
+        bh=PueGCR3FIVJPX+Arhlae6f/EjQ4Bfuca7USJi8bVK3A=;
         h=Date:To:From:Subject:From;
-        b=H44XlSEIVaBxjY96azalVXvy2gmWXVgSCuei/2KqYYgfDm11UV4ifapFNHVVqLUy7
-         Ta3auxx7LLI1zei/uM3zIE/C0MBbhXzwoil9CnTWHGbiBGFEvQKkZMn3pKXOXfEKKX
-         04kzkg3H+Ccv3V1LgBCL5L1Qjy61TX3yYKiRAAbo=
-Date:   Fri, 08 Jul 2022 14:05:04 -0700
+        b=WYL2Y/pVJ4c7IKHJXmpS+PQ6MmK74cbrQDBTIdumBb71rBqNKbvrfxBmlERSy3B/U
+         QxXQ4SIwz9XTS4gde0QSWHwX9CP7SkcAYApSTmSwHBY29XvSZZWjGEWzuf57Uq7EPo
+         yWrH7ATumHUWAducEHzr4qASBLGeFLjtlgoIb84c=
+Date:   Fri, 08 Jul 2022 14:05:11 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
         sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         arnd@arndb.de, alex.shi@linux.alibaba.com, aarcange@redhat.com,
         zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch added to mm-unstable branch
-Message-Id: <20220708210507.49ECFC341C0@smtp.kernel.org>
+Subject: + proc-smaps-add-pmdmappable-field-to-smaps.patch added to mm-unstable branch
+Message-Id: <20220708210512.1CA8DC341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: add huge_memory:mm_madvise_collapse tracepoint
+     Subject: proc/smaps: add PMDMappable field to smaps
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch
+     proc-smaps-add-pmdmappable-field-to-smaps.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-smaps-add-pmdmappable-field-to-smaps.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,13 +75,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/madvise: add huge_memory:mm_madvise_collapse tracepoint
-Date: Wed, 6 Jul 2022 16:59:29 -0700
+Subject: proc/smaps: add PMDMappable field to smaps
+Date: Wed, 6 Jul 2022 16:59:31 -0700
 
-Add a tracepoint to expose mm, address, and enum scan_result of each
-hugepage attempted to be collapsed by call to madvise(MADV_COLLAPSE).
+Add PMDMappable field to smaps output which informs the user if memory in
+the VMA can be PMD-mapped by MADV_COLLAPSE.
 
-Link: https://lkml.kernel.org/r/20220706235936.2197195-12-zokeefe@google.com
+The distinction from THPeligible is needed for two reasons:
+
+1) For THP, MADV_COLLAPSE is not coupled to THP sysfs controls, which
+   THPeligible reports.
+
+2) PMDMappable can also be used in HugeTLB fine-granularity mappings,
+   which are independent from THP.
+
+Link: https://lkml.kernel.org/r/20220706235936.2197195-14-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -116,51 +124,48 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   22 ++++++++++++++++++++++
- mm/khugepaged.c                    |    2 ++
- 2 files changed, 24 insertions(+)
+ Documentation/filesystems/proc.rst |   10 ++++++++--
+ fs/proc/task_mmu.c                 |    2 ++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint
-+++ a/include/trace/events/huge_memory.h
-@@ -167,5 +167,27 @@ TRACE_EVENT(mm_collapse_huge_page_swapin
- 		__entry->ret)
- );
+--- a/Documentation/filesystems/proc.rst~proc-smaps-add-pmdmappable-field-to-smaps
++++ a/Documentation/filesystems/proc.rst
+@@ -466,6 +466,7 @@ Memory Area, or VMA) there is a series o
+     MMUPageSize:           4 kB
+     Locked:                0 kB
+     THPeligible:           0
++    PMDMappable:           0
+     VmFlags: rd ex mr mw me dw
  
-+TRACE_EVENT(mm_madvise_collapse,
-+
-+	TP_PROTO(struct mm_struct *mm, unsigned long addr, int result),
-+
-+	TP_ARGS(mm, addr, result),
-+
-+	TP_STRUCT__entry(__field(struct mm_struct *, mm)
-+			 __field(unsigned long, addr)
-+			 __field(int, result)
-+	),
-+
-+	TP_fast_assign(__entry->mm = mm;
-+		       __entry->addr = addr;
-+		       __entry->result = result;
-+	),
-+
-+	TP_printk("mm=%p addr=%#lx result=%s",
-+		  __entry->mm,
-+		  __entry->addr,
-+		  __print_symbolic(__entry->result, SCAN_STATUS))
-+);
-+
- #endif /* __HUGE_MEMORY_H */
- #include <trace/define_trace.h>
---- a/mm/khugepaged.c~mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint
-+++ a/mm/khugepaged.c
-@@ -2438,6 +2438,8 @@ int madvise_collapse(struct vm_area_stru
- 		if (!mmap_locked)
- 			*prev = NULL;  /* Tell caller we dropped mmap_lock */
+ The first of these lines shows the same information as is displayed for the
+@@ -518,9 +519,14 @@ replaced by copy-on-write) part of the u
+ does not take into account swapped out page of underlying shmem objects.
+ "Locked" indicates whether the mapping is locked in memory or not.
  
-+		trace_mm_madvise_collapse(mm, addr, result);
++"PMDMappable" indicates if the memory can be mapped by PMDs - 1 if true, 0
++otherwise.  It just shows the current status. Note that this is memory
++operable on explicitly by MADV_COLLAPSE.
 +
- 		switch (result) {
- 		case SCAN_SUCCEED:
- 		case SCAN_PMD_MAPPED:
+ "THPeligible" indicates whether the mapping is eligible for allocating THP
+-pages as well as the THP is PMD mappable or not - 1 if true, 0 otherwise.
+-It just shows the current status.
++pages by the kernel, as well as the THP is PMD mappable or not - 1 if true, 0
++otherwise. It just shows the current status.  Note this is memory the kernel can
++transparently provide as THPs.
+ 
+ "VmFlags" field deserves a separate description. This member represents the
+ kernel flags associated with the particular virtual memory area in two letter
+--- a/fs/proc/task_mmu.c~proc-smaps-add-pmdmappable-field-to-smaps
++++ a/fs/proc/task_mmu.c
+@@ -867,6 +867,8 @@ static int show_smap(struct seq_file *m,
+ 
+ 	seq_printf(m, "THPeligible:    %d\n",
+ 		   hugepage_vma_check(vma, vma->vm_flags, true, false, true));
++	seq_printf(m, "PMDMappable:    %d\n",
++		   hugepage_vma_check(vma, vma->vm_flags, true, false, false));
+ 
+ 	if (arch_pkeys_enabled())
+ 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
