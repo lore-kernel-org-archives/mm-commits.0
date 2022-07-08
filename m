@@ -2,130 +2,158 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5760C43334
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 00:52:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C512AC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 00:54:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235859AbiGHAwI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Jul 2022 20:52:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53366 "EHLO
+        id S236341AbiGHAyY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Jul 2022 20:54:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229458AbiGHAwH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 20:52:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A358270E47
-        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 17:52:06 -0700 (PDT)
+        with ESMTP id S236365AbiGHAyX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2022 20:54:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7D3770E75
+        for <mm-commits@vger.kernel.org>; Thu,  7 Jul 2022 17:54:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 41543B823CC
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 00:52:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69EE9C3411E;
-        Fri,  8 Jul 2022 00:52:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C20560AF9
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 00:54:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5D57C341C0;
+        Fri,  8 Jul 2022 00:54:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657241523;
-        bh=paRWsZPGbGgjdJh+Kw0aMfHgfcD6DiPNmzpghJhkR7o=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=JFcuxPk2l5PfW3TjlmbPbzrm6O+xWJtzoU6b6oVJmG66qjzX/vIGv+3ldsYb5+hZo
-         QKh4pgrTnWzjgPgZTmcDUhkToy3YKmqIbRpaG46bRPJfs4/CZN99DfF+rI3nnwljhg
-         575LKaPfCVf5Do32gRKv93w/9brx6FQBJ9vyHV6Y=
-Date:   Thu, 7 Jul 2022 17:52:02 -0700
+        s=korg; t=1657241660;
+        bh=0zhKw67azLAML2nVaApBpfhnEEYNdC21KP2Fz3v/gOA=;
+        h=Date:To:From:Subject:From;
+        b=RsxnC3woF1TeOZa4IIFp4a/SDMHixkNsU3rgnOISOFoieu8EsAggv71SlNo2ZWAyG
+         kHBbu1iLdwevjnYBkhW3rfmg3dyJO9RRwI9zfdIxl1i0Ijc2WiZ987VTFz5t3kJFh8
+         3ZepZw4Kkw3THo7ampakGPNSNjeOavchBwXaxkAs=
+Date:   Thu, 07 Jul 2022 17:54:20 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
+        liushixin2@huawei.com, linmiaohe@huawei.com, david@redhat.com,
+        naoya.horiguchi@nec.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Yu Zhao <yuzhao@google.com>
-Cc:     Hugh Dickins <hughd@google.com>, Vlastimil Babka <vbabka@suse.cz>,
-        mm-commits@vger.kernel.org,
-        Nicolas Saenz Julienne <nsaenzju@redhat.com>,
-        Marcelo Tosatti <mtosatti@redhat.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        kernel test robot <lkp@intel.com>, dan.carpenter@oracle.com
-Subject: Re: + mm-page_alloc-protect-pcp-lists-with-a-spinlock-fix.patch
- added to mm-unstable branch
-Message-Id: <20220707175202.19c28f0f711f025c1dc233b6@linux-foundation.org>
-In-Reply-To: <CAOUHufZXmSfM78+uLhifozOQacbZX0xM9fjc52Bw5zi+nm8FgQ@mail.gmail.com>
-References: <20220707200919.90C41C3411E@smtp.kernel.org>
-        <fc7101bb-b9b9-4444-1d8b-4a28ce13f333@suse.cz>
-        <CAOUHufZEwtvOhKQZqBp7Lg41eC9tK7hyL_UOUb2RdLKva8U02g@mail.gmail.com>
-        <44ae6dd9-c290-ae4a-15e8-593a9cb587ad@suse.cz>
-        <2030965f-5f68-c5ea-80a0-34be503de47f@google.com>
-        <CAOUHufZXmSfM78+uLhifozOQacbZX0xM9fjc52Bw5zi+nm8FgQ@mail.gmail.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [to-be-updated] mm-hugetlb-make-pud_huge-and-follow_huge_pud-aware-of-non-present-pud-entry.patch removed from -mm tree
+Message-Id: <20220708005420.C5D57C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, 7 Jul 2022 18:35:12 -0600 Yu Zhao <yuzhao@google.com> wrote:
 
-> > This relentless drive towards mm-stable: I for one cannot keep up.
-> > I'd like to ask for slowing down a bit - my intention had been to
-> > reach testing maple tree again (it's not yet what I'd call stable),
-> > but this and a couple of other issues got in the way.  More mails
-> > to write.
-> 
-> Sorry for not being clear (it doesn't seem confusing to me because I
-> don't trust the bot):
-> 
-> There were two reports, the first one [1] tested v4 without the fix
-> [2]; the second one [3] tested v5 at patch 5/7 (not the whole series).
-> 
-> v4 + the fix is good; v5 the whole series is good.
-> 
-> Please do not drop patch 7/7 and do not add this fix.
+The quilt patch titled
+     Subject: mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present pud entry
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-make-pud_huge-and-follow_huge_pud-aware-of-non-present-pud-entry.patch
 
-As Vlastimil has sleuthed out that the
-"BUG:sleeping_function_called_from_invalid_context_at_mm/gup.c"
-reporter was using the v4 series, I've restored 7/7 ("mm/page_alloc:
-replace local_lock with normal spinlock") for tomorrow's linux-next.
+This patch was dropped because an updated version will be merged
 
-I retained this fix against 2/7 and reworked 7/7 appropriately.  So it
-is now
+------------------------------------------------------
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present pud entry
+Date: Mon, 4 Jul 2022 10:33:06 +0900
 
-/* Lock and remove page from the per-cpu list */
-static struct page *rmqueue_pcplist(struct zone *preferred_zone,
-			struct zone *zone, unsigned int order,
-			gfp_t gfp_flags, int migratetype,
-			unsigned int alloc_flags)
-{
-	struct per_cpu_pages *pcp;
-	struct list_head *list;
-	struct page *page;
-	unsigned long flags;
-	unsigned long __maybe_unused UP_flags;
+follow_pud_mask() does not support non-present pud entry now.  As long as
+I tested on x86_64 server, follow_pud_mask() still simply returns
+no_page_table() for non-present_pud_entry() due to pud_bad(), so no severe
+user-visible effect should happen.  But generally we should call
+follow_huge_pud() for non-present pud entry for 1GB hugetlb page.
 
-	/*
-	 * spin_trylock may fail due to a parallel drain. In the future, the
-	 * trylock will also protect against IRQ reentrancy.
-	 */
-	pcp_trylock_prepare(UP_flags);
-	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
-	if (!pcp) {
-		pcp_trylock_finish(UP_flags);
-		return NULL;
-	}
+Update pud_huge() and follow_huge_pud() to handle non-present pud entries.
+The changes are similar to previous works for pud entries commit
+e66f17ff7177 ("mm/hugetlb: take page table lock in follow_huge_pmd()") and
+commit cbef8478bee5 ("mm/hugetlb: pmd_huge() returns true for non-present
+hugepage").
 
-	/*
-	 * On allocation, reduce the number of pages that are batch freed.
-	 * See nr_pcp_free() where free_factor is increased for subsequent
-	 * frees.
-	 */
-	pcp->free_factor >>= 1;
-	list = &pcp->lists[order_to_pindex(migratetype, order)];
-	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
-	pcp_spin_unlock_irqrestore(pcp, flags);
-	pcp_trylock_finish(UP_flags);
-	if (page) {
-		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1);
-		zone_statistics(preferred_zone, zone, 1);
-	}
-	return page;
-}
+Link: https://lkml.kernel.org/r/20220704013312.2415700-4-naoya.horiguchi@linux.dev
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yang Shi <shy828301@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-btw, the leading comment implies (to me) that the page is to be locked.
-The comment could do with a rethink.
+ arch/x86/mm/hugetlbpage.c |    8 +++++++-
+ mm/hugetlb.c              |   32 ++++++++++++++++++++++++++++++--
+ 2 files changed, 37 insertions(+), 3 deletions(-)
 
+--- a/arch/x86/mm/hugetlbpage.c~mm-hugetlb-make-pud_huge-and-follow_huge_pud-aware-of-non-present-pud-entry
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -30,9 +30,15 @@ int pmd_huge(pmd_t pmd)
+ 		(pmd_val(pmd) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
+ }
+ 
++/*
++ * pud_huge() returns 1 if @pud is hugetlb related entry, that is normal
++ * hugetlb entry or non-present (migration or hwpoisoned) hugetlb entry.
++ * Otherwise, returns 0.
++ */
+ int pud_huge(pud_t pud)
+ {
+-	return !!(pud_val(pud) & _PAGE_PSE);
++	return !pud_none(pud) &&
++		(pud_val(pud) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+--- a/mm/hugetlb.c~mm-hugetlb-make-pud_huge-and-follow_huge_pud-aware-of-non-present-pud-entry
++++ a/mm/hugetlb.c
+@@ -6994,10 +6994,38 @@ struct page * __weak
+ follow_huge_pud(struct mm_struct *mm, unsigned long address,
+ 		pud_t *pud, int flags)
+ {
+-	if (flags & (FOLL_GET | FOLL_PIN))
++	struct page *page = NULL;
++	spinlock_t *ptl;
++	pte_t pte;
++
++	if (WARN_ON_ONCE(flags & FOLL_PIN))
+ 		return NULL;
+ 
+-	return pte_page(*(pte_t *)pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
++retry:
++	ptl = huge_pte_lock(hstate_sizelog(PUD_SHIFT), mm, (pte_t *)pud);
++	if (!pud_huge(*pud))
++		goto out;
++	pte = huge_ptep_get((pte_t *)pud);
++	if (pte_present(pte)) {
++		page = pud_page(*pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
++		if (WARN_ON_ONCE(!try_grab_page(page, flags))) {
++			page = NULL;
++			goto out;
++		}
++	} else {
++		if (is_hugetlb_entry_migration(pte)) {
++			spin_unlock(ptl);
++			__migration_entry_wait(mm, (pte_t *)pud, ptl);
++			goto retry;
++		}
++		/*
++		 * hwpoisoned entry is treated as no_page_table in
++		 * follow_page_mask().
++		 */
++	}
++out:
++	spin_unlock(ptl);
++	return page;
+ }
+ 
+ struct page * __weak
+_
+
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+
+mm-hugetlb-separate-path-for-hwpoison-entry-in-copy_hugetlb_page_range.patch
+mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages.patch
+mm-hwpoison-make-unpoison-aware-of-raw-error-info-in-hwpoisoned-hugepage.patch
+mm-hwpoison-make-unpoison-aware-of-raw-error-info-in-hwpoisoned-hugepage-fix.patch
+mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages.patch
+mm-hwpoison-make-__page_handle_poison-returns-int.patch
+mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch
+mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
 
