@@ -2,124 +2,132 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58E4BC43334
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 09:04:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94454C43334
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 19:53:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237583AbiGHJED (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 05:04:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58900 "EHLO
+        id S238536AbiGHTxq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 15:53:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237403AbiGHJEC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 05:04:02 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE4D51EC46
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 02:04:01 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S238512AbiGHTxp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 15:53:45 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DF5D2AC6B
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 12:53:44 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id ACFC521F4A;
-        Fri,  8 Jul 2022 09:04:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1657271040; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=GRLIQyoCtOFVjH2OSqZq2e9YgRzkJjcwx1lVHV9roj8=;
-        b=y26Q5Mm/febDRTosqbQ0J9hjEJn5SncaKrPM5ZgUtLchoxAh2kUMXZSGCR1e+JsCRpN1Ea
-        +XSrpdNLMGhUcqErmucTz9y8Uf2Ng4iKtuwkt6+rWL80UruflLcjU1Jeb7VXuwm/7vysBM
-        a/sHemSrSykRvF0qVqTlFZOGPQq0J7k=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1657271040;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=GRLIQyoCtOFVjH2OSqZq2e9YgRzkJjcwx1lVHV9roj8=;
-        b=ZqZKc70dn6jG5hRP8L3hgc/eGiK/DZKsDhpH/1U1xnnV5JUBCXeGHdOElUJNiaLx1uB7YJ
-        RYZjpCdvD8VvGBBQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 7F83D13B24;
-        Fri,  8 Jul 2022 09:04:00 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id RFZ/HgDzx2LNPgAAMHmgww
-        (envelope-from <vbabka@suse.cz>); Fri, 08 Jul 2022 09:04:00 +0000
-Message-ID: <ca2c4c67-f87e-fb50-5920-c6a84924915b@suse.cz>
-Date:   Fri, 8 Jul 2022 11:04:00 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: + mm-page_alloc-protect-pcp-lists-with-a-spinlock-fix.patch added
- to mm-unstable branch
-Content-Language: en-US
-To:     Dan Carpenter <dan.carpenter@oracle.com>
-Cc:     Yu Zhao <yuzhao@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org,
-        Nicolas Saenz Julienne <nsaenzju@redhat.com>,
-        Marcelo Tosatti <mtosatti@redhat.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        kernel test robot <lkp@intel.com>,
-        Hugh Dickins <hughd@google.com>
-References: <20220707200919.90C41C3411E@smtp.kernel.org>
- <fc7101bb-b9b9-4444-1d8b-4a28ce13f333@suse.cz>
- <CAOUHufZEwtvOhKQZqBp7Lg41eC9tK7hyL_UOUb2RdLKva8U02g@mail.gmail.com>
- <44ae6dd9-c290-ae4a-15e8-593a9cb587ad@suse.cz> <20220708074106.GI2316@kadam>
-From:   Vlastimil Babka <vbabka@suse.cz>
-In-Reply-To: <20220708074106.GI2316@kadam>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        by ams.source.kernel.org (Postfix) with ESMTPS id CB878B82915
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 19:53:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63D4BC341C0;
+        Fri,  8 Jul 2022 19:53:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1657310021;
+        bh=YmgogVgBmdgBAVJXNljbZfccyMnpSvn4RHpr0+5JbEQ=;
+        h=Date:To:From:Subject:From;
+        b=yuYNx2O8cYhJ0WB09Iz/poePkN8IKpDKkfW8aeyiEyapRneFTd0YVmjN29iZllThl
+         Fxo2HizRno+s4Bxo6/sdb4vANsk0OcPegfqXPabY8HhVZv1sJ21kr9aZ68LrXB8T7Z
+         /cx3QWIRnwzJwuf3g0AL9MaBPGP4SJs8+FGAqyZ4=
+Date:   Fri, 08 Jul 2022 12:53:40 -0700
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        ubizjak@gmail.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch added to mm-unstable branch
+Message-Id: <20220708195341.63D4BC341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 7/8/22 09:41, Dan Carpenter wrote:
-> On Fri, Jul 08, 2022 at 12:21:45AM +0200, Vlastimil Babka wrote:
->> >> > ------------------------------------------------------
->> >> > From: Andrew Morton <akpm@linux-foundation.org>
->> >> > Subject: mm-page_alloc-protect-pcp-lists-with-a-spinlock-fix
->> >> > Date: Thu Jul  7 01:06:35 PM PDT 2022
->> >> >
->> >> > add missing local_unlock_irqrestore() on contention path
->> >>
->> >> Doh, that's true and something to fix, although patch 7 did remove the bug
->> >> later in the same series so that wouldn't explain the lkp report for patch
->> >> 7. The reason lkp test robot complained was AFAICS that it was testing v4,
->> >> as I just replied there.
->> > 
->> > Sorry I didn't bother to reply until now: it did test v5, at this
->> > commit, not the whole series.
->> 
->> I meant this report that appears to be for v4 (full series including patch 7):
->> https://lore.kernel.org/all/YsFk%2FqU+QtWun04h@xsang-OptiPlex-9020/ 
->> That reported a bug due to missing unpin that was previously reported for v4
->> and fixed in v5.
->> 
->> I'm not aware of a lkp report for v5 (found only Dan's) but yeah, hitting
->> the (similar but not identical) bug fixed by this -fix would indeed be
->> possible in v5 if patch 7 was not applied.
-> 
-> My report is the LKP report?
 
-Oh, right, sorry, I missed that the mail from you contains also Reported-by:
-kernel test robot <lkp@intel.com>
+The patch titled
+     Subject: mm/page_alloc: use try_cmpxchg in set_pfnblock_flags_mask
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch
 
-> Some of the Smatch warnings from LKP get sent to me and then I look them
-> over and either delete them or hit forward.  I don't have visibility
-> into the LKP process more than just looking over the warnings so I can't
-> say how it picks which patches to test off the mailing list.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch
 
-Thanks for the clarification!
-Vlastimil
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-> regards,
-> dan carpenter
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: mm/page_alloc: use try_cmpxchg in set_pfnblock_flags_mask
+Date: Fri, 8 Jul 2022 16:07:36 +0200
+
+Use try_cmpxchg instead of cmpxchg in set_pfnblock_flags_mask.  x86
+CMPXCHG instruction returns success in ZF flag, so this change saves a
+compare after cmpxchg (and related move instruction in front of cmpxchg). 
+The main loop improves from:
+
+    1c5d:	48 89 c2             	mov    %rax,%rdx
+    1c60:	48 89 c1             	mov    %rax,%rcx
+    1c63:	48 21 fa             	and    %rdi,%rdx
+    1c66:	4c 09 c2             	or     %r8,%rdx
+    1c69:	f0 48 0f b1 16       	lock cmpxchg %rdx,(%rsi)
+    1c6e:	48 39 c1             	cmp    %rax,%rcx
+    1c71:	75 ea                	jne    1c5d <...>
+
+to:
+
+    1c60:	48 89 ca             	mov    %rcx,%rdx
+    1c63:	48 21 c2             	and    %rax,%rdx
+    1c66:	4c 09 c2             	or     %r8,%rdx
+    1c69:	f0 48 0f b1 16       	lock cmpxchg %rdx,(%rsi)
+    1c6e:	75 f0                	jne    1c60 <...>
+
+Link: https://lkml.kernel.org/r/20220708140736.8737-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/page_alloc.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+--- a/mm/page_alloc.c~mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask
++++ a/mm/page_alloc.c
+@@ -602,7 +602,7 @@ void set_pfnblock_flags_mask(struct page
+ {
+ 	unsigned long *bitmap;
+ 	unsigned long bitidx, word_bitidx;
+-	unsigned long old_word, word;
++	unsigned long word;
+ 
+ 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
+ 	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
+@@ -618,12 +618,8 @@ void set_pfnblock_flags_mask(struct page
+ 	flags <<= bitidx;
+ 
+ 	word = READ_ONCE(bitmap[word_bitidx]);
+-	for (;;) {
+-		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
+-		if (word == old_word)
+-			break;
+-		word = old_word;
+-	}
++	do {
++	} while (!try_cmpxchg(&bitmap[word_bitidx], &word, (word & ~mask) | flags));
+ }
+ 
+ void set_pageblock_migratetype(struct page *page, int migratetype)
+_
+
+Patches currently in -mm which might be from ubizjak@gmail.com are
+
+mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch
+compiler-gcch-remove-ancient-workaround-for-gcc-pr-58670.patch
 
