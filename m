@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94454C43334
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 19:53:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD623C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 19:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238536AbiGHTxq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 15:53:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58736 "EHLO
+        id S238515AbiGHT45 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 15:56:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238512AbiGHTxp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 15:53:45 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DF5D2AC6B
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 12:53:44 -0700 (PDT)
+        with ESMTP id S238512AbiGHT44 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 15:56:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACD3772ECA
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 12:56:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CB878B82915
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 19:53:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63D4BC341C0;
-        Fri,  8 Jul 2022 19:53:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6786EB8294E
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 19:56:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06791C341C0;
+        Fri,  8 Jul 2022 19:56:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657310021;
-        bh=YmgogVgBmdgBAVJXNljbZfccyMnpSvn4RHpr0+5JbEQ=;
+        s=korg; t=1657310213;
+        bh=U1ZdF9KQSqaVHbvAicItpcD+5Q+2JU6MaXTv9smB0i0=;
         h=Date:To:From:Subject:From;
-        b=yuYNx2O8cYhJ0WB09Iz/poePkN8IKpDKkfW8aeyiEyapRneFTd0YVmjN29iZllThl
-         Fxo2HizRno+s4Bxo6/sdb4vANsk0OcPegfqXPabY8HhVZv1sJ21kr9aZ68LrXB8T7Z
-         /cx3QWIRnwzJwuf3g0AL9MaBPGP4SJs8+FGAqyZ4=
-Date:   Fri, 08 Jul 2022 12:53:40 -0700
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
-        ubizjak@gmail.com, akpm@linux-foundation.org
+        b=ElW1UwuTGZTGPU8mSjt9n3rWMQw9cjq35HNeBFRDuaktydCoc4fNSriwYX0xq+5oV
+         Jt9ohqlAMDVMux36JFisKTKYm4WwdOAa7euuATJqBuHGxRNwM3RsFTxwYTNT/3Oky5
+         shfdTMlFvdfi3mJmedVd1krdqUTU2RM7wUKgp4sY=
+Date:   Fri, 08 Jul 2022 12:56:52 -0700
+To:     mm-commits@vger.kernel.org, yj.chiang@mediatek.com,
+        tzimmermann@suse.de, thunder.leizhen@huawei.com,
+        matthias.bgg@gmail.com, jacob.e.keller@intel.com,
+        hdegoede@redhat.com, mark-pk.tsai@mediatek.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch added to mm-unstable branch
-Message-Id: <20220708195341.63D4BC341C0@smtp.kernel.org>
+Subject: + lib-devres-use-numa-aware-allocation.patch added to mm-nonmm-unstable branch
+Message-Id: <20220708195653.06791C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: use try_cmpxchg in set_pfnblock_flags_mask
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch
+     Subject: lib: devres: use numa aware allocation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-devres-use-numa-aware-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-devres-use-numa-aware-allocation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,70 +67,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: mm/page_alloc: use try_cmpxchg in set_pfnblock_flags_mask
-Date: Fri, 8 Jul 2022 16:07:36 +0200
+From: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
+Subject: lib: devres: use numa aware allocation
+Date: Fri, 8 Jul 2022 21:19:47 +0800
 
-Use try_cmpxchg instead of cmpxchg in set_pfnblock_flags_mask.  x86
-CMPXCHG instruction returns success in ZF flag, so this change saves a
-compare after cmpxchg (and related move instruction in front of cmpxchg). 
-The main loop improves from:
+Allocate device resource from local node memory when the numa locality of
+the device is specified.
 
-    1c5d:	48 89 c2             	mov    %rax,%rdx
-    1c60:	48 89 c1             	mov    %rax,%rcx
-    1c63:	48 21 fa             	and    %rdi,%rdx
-    1c66:	4c 09 c2             	or     %r8,%rdx
-    1c69:	f0 48 0f b1 16       	lock cmpxchg %rdx,(%rsi)
-    1c6e:	48 39 c1             	cmp    %rax,%rcx
-    1c71:	75 ea                	jne    1c5d <...>
-
-to:
-
-    1c60:	48 89 ca             	mov    %rcx,%rdx
-    1c63:	48 21 c2             	and    %rax,%rdx
-    1c66:	4c 09 c2             	or     %r8,%rdx
-    1c69:	f0 48 0f b1 16       	lock cmpxchg %rdx,(%rsi)
-    1c6e:	75 f0                	jne    1c60 <...>
-
-Link: https://lkml.kernel.org/r/20220708140736.8737-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20220708131952.14500-1-mark-pk.tsai@mediatek.com
+Signed-off-by: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: YJ Chiang <yj.chiang@mediatek.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Jacob Keller <jacob.e.keller@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ lib/devres.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask
-+++ a/mm/page_alloc.c
-@@ -602,7 +602,7 @@ void set_pfnblock_flags_mask(struct page
+--- a/lib/devres.c~lib-devres-use-numa-aware-allocation
++++ a/lib/devres.c
+@@ -29,7 +29,8 @@ static void __iomem *__devm_ioremap(stru
  {
- 	unsigned long *bitmap;
- 	unsigned long bitidx, word_bitidx;
--	unsigned long old_word, word;
-+	unsigned long word;
+ 	void __iomem **ptr, *addr = NULL;
  
- 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
- 	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
-@@ -618,12 +618,8 @@ void set_pfnblock_flags_mask(struct page
- 	flags <<= bitidx;
+-	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
++	ptr = devres_alloc_node(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL,
++				dev_to_node(dev));
+ 	if (!ptr)
+ 		return NULL;
  
- 	word = READ_ONCE(bitmap[word_bitidx]);
--	for (;;) {
--		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
--		if (word == old_word)
--			break;
--		word = old_word;
--	}
-+	do {
-+	} while (!try_cmpxchg(&bitmap[word_bitidx], &word, (word & ~mask) | flags));
- }
+@@ -292,7 +293,8 @@ void __iomem *devm_ioport_map(struct dev
+ {
+ 	void __iomem **ptr, *addr;
  
- void set_pageblock_migratetype(struct page *page, int migratetype)
+-	ptr = devres_alloc(devm_ioport_map_release, sizeof(*ptr), GFP_KERNEL);
++	ptr = devres_alloc_node(devm_ioport_map_release, sizeof(*ptr), GFP_KERNEL,
++				dev_to_node(dev));
+ 	if (!ptr)
+ 		return NULL;
+ 
+@@ -366,7 +368,8 @@ void __iomem * const *pcim_iomap_table(s
+ 	if (dr)
+ 		return dr->table;
+ 
+-	new_dr = devres_alloc(pcim_iomap_release, sizeof(*new_dr), GFP_KERNEL);
++	new_dr = devres_alloc_node(pcim_iomap_release, sizeof(*new_dr), GFP_KERNEL,
++				   dev_to_node(&pdev->dev));
+ 	if (!new_dr)
+ 		return NULL;
+ 	dr = devres_get(&pdev->dev, new_dr, NULL, NULL);
+@@ -548,7 +551,8 @@ int devm_arch_phys_wc_add(struct device
+ 	int *mtrr;
+ 	int ret;
+ 
+-	mtrr = devres_alloc(devm_arch_phys_ac_add_release, sizeof(*mtrr), GFP_KERNEL);
++	mtrr = devres_alloc_node(devm_arch_phys_ac_add_release, sizeof(*mtrr), GFP_KERNEL,
++				 dev_to_node(dev));
+ 	if (!mtrr)
+ 		return -ENOMEM;
+ 
+@@ -593,7 +597,8 @@ int devm_arch_io_reserve_memtype_wc(stru
+ 	struct arch_io_reserve_memtype_wc_devres *dr;
+ 	int ret;
+ 
+-	dr = devres_alloc(devm_arch_io_free_memtype_wc_release, sizeof(*dr), GFP_KERNEL);
++	dr = devres_alloc_node(devm_arch_io_free_memtype_wc_release, sizeof(*dr), GFP_KERNEL,
++			       dev_to_node(dev));
+ 	if (!dr)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from mark-pk.tsai@mediatek.com are
 
-mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch
-compiler-gcch-remove-ancient-workaround-for-gcc-pr-58670.patch
+lib-devres-use-numa-aware-allocation.patch
 
