@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23DFACCA47F
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 20:35:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6988BCCA483
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 20:35:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240115AbiGHUf5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 16:35:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60952 "EHLO
+        id S240153AbiGHUf6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 16:35:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240127AbiGHUfx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 16:35:53 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAE929B197
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 13:35:51 -0700 (PDT)
+        with ESMTP id S240167AbiGHUf4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 16:35:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E5AB9CE3A
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 13:35:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 57F6DCE2D2B
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 20:35:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF7DCC341C0;
-        Fri,  8 Jul 2022 20:35:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 229FFB824C0
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 20:35:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD625C341C0;
+        Fri,  8 Jul 2022 20:35:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657312548;
-        bh=P8lJsmuN2E95v7QlrVtN5XoYV48Lyqs8bZIIadPMrEg=;
+        s=korg; t=1657312552;
+        bh=qkbJpxHdc2qA6BJ3taEE7SRolKlq/tc7F27JSVPsvog=;
         h=Date:To:From:Subject:From;
-        b=CaHymnJJRDNbWLIUw1zSyaHYTnJ66zKLcaB+mGNFu5KJ2dMsadNTv+UsdNsDM/cJ+
-         K47n7gyXlgAlRColOLc6d+M9lD3verS2hVEo4CEn5IyBSDwSmZNL8yAP/pMFyUSCeu
-         Je/ms8JflGJGitpC8EtXVoWA+y8ndHBB4Tf6+QOY=
-Date:   Fri, 08 Jul 2022 13:35:48 -0700
+        b=P0IPYoOap7yI+LaOyb+LOcW6QH7LFrFwpN3bTcSHr1600HaQoZmclml+5cc4RRkPm
+         N4m1zdeHFIqvho7tFTKXz3xnDVFWZzV+udPcjz228rvIcAF3cT30NLywc9moP7Csyq
+         msjCHAZkoh9GD95/A9vex/ESgQ2Cq9kNUKma6DEM=
+Date:   Fri, 08 Jul 2022 13:35:52 -0700
 To:     mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk,
         miklos@szeredi.hu, dhowells@redhat.com, raven@themaw.net,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + autofs-use-inode-permission-method-for-write-access.patch added to mm-nonmm-unstable branch
-Message-Id: <20220708203548.AF7DCC341C0@smtp.kernel.org>
+Subject: + autofs-use-dentry-info-count-instead-of-simple_empty.patch added to mm-nonmm-unstable branch
+Message-Id: <20220708203552.BD625C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: use inode permission method for write access
+     Subject: autofs: use dentry info count instead of simple_empty()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     autofs-use-inode-permission-method-for-write-access.patch
+     autofs-use-dentry-info-count-instead-of-simple_empty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/autofs-use-inode-permission-method-for-write-access.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/autofs-use-dentry-info-count-instead-of-simple_empty.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,22 +66,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ian Kent <raven@themaw.net>
-Subject: autofs: use inode permission method for write access
-Date: Fri, 08 Jul 2022 09:43:01 +0800
+Subject: autofs: use dentry info count instead of simple_empty()
+Date: Fri, 08 Jul 2022 09:43:12 +0800
 
-Patch series "autofs: misc patches".
+The dentry info.  field count is used to check if a dentry is in use
+during expire.  But, to be used for this the count field must account for
+the presence of child dentries in a directory dentry.
 
-This series contains several patches that resulted mostly from comments
-made by Al Viro (quite a long time ago now).
+Therefore it can also be used to check for an empty directory dentry which
+can be done without having to to take an additional lock or account for
+the presence of a readdir cursor dentry as is done by simple_empty().
 
-
-This patch (of 5):
-
-Eliminate some code duplication from mkdir/rmdir/symlink/unlink methods by
-using the inode operation .permission().
-
-Link: https://lkml.kernel.org/r/165724445154.30914.10970894936827635879.stgit@donald.themaw.net
-Link: https://lkml.kernel.org/r/165724458096.30914.13499431569758625806.stgit@donald.themaw.net
+Link: https://lkml.kernel.org/r/165724459238.30914.1504611159945950108.stgit@donald.themaw.net
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: David Howells <dhowells@redhat.com>
@@ -89,127 +85,105 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs/root.c |   63 +++++++++++++++------------------------------
- 1 file changed, 22 insertions(+), 41 deletions(-)
+ fs/autofs/autofs_i.h |    5 +++++
+ fs/autofs/expire.c   |    2 +-
+ fs/autofs/root.c     |   18 ++++++++----------
+ 3 files changed, 14 insertions(+), 11 deletions(-)
 
---- a/fs/autofs/root.c~autofs-use-inode-permission-method-for-write-access
-+++ a/fs/autofs/root.c
-@@ -10,6 +10,7 @@
- 
- #include "autofs_i.h"
- 
-+static int autofs_dir_permission(struct user_namespace *, struct inode *, int);
- static int autofs_dir_symlink(struct user_namespace *, struct inode *,
- 			      struct dentry *, const char *);
- static int autofs_dir_unlink(struct inode *, struct dentry *);
-@@ -50,6 +51,7 @@ const struct file_operations autofs_dir_
- 
- const struct inode_operations autofs_dir_inode_operations = {
- 	.lookup		= autofs_lookup,
-+	.permission	= autofs_dir_permission,
- 	.unlink		= autofs_dir_unlink,
- 	.symlink	= autofs_dir_symlink,
- 	.mkdir		= autofs_dir_mkdir,
-@@ -526,11 +528,30 @@ static struct dentry *autofs_lookup(stru
- 	return NULL;
+--- a/fs/autofs/autofs_i.h~autofs-use-dentry-info-count-instead-of-simple_empty
++++ a/fs/autofs/autofs_i.h
+@@ -148,6 +148,11 @@ static inline int autofs_oz_mode(struct
+ 		 task_pgrp(current) == sbi->oz_pgrp);
  }
  
-+static int autofs_dir_permission(struct user_namespace *mnt_userns,
-+				 struct inode *inode, int mask)
++static inline bool autofs_empty(struct autofs_info *ino)
 +{
-+	if (mask & MAY_WRITE) {
-+		struct autofs_sb_info *sbi = autofs_sbi(inode->i_sb);
-+
-+		if (!autofs_oz_mode(sbi))
-+			return -EACCES;
-+
-+		/* autofs_oz_mode() needs to allow path walks when the
-+		 * autofs mount is catatonic but the state of an autofs
-+		 * file system needs to be preserved over restarts.
-+		 */
-+		if (sbi->flags & AUTOFS_SBI_CATATONIC)
-+			return -EACCES;
-+	}
-+
-+	return generic_permission(mnt_userns, inode, mask);
++	return ino->count < 2;
 +}
 +
- static int autofs_dir_symlink(struct user_namespace *mnt_userns,
- 			      struct inode *dir, struct dentry *dentry,
- 			      const char *symname)
+ struct inode *autofs_get_inode(struct super_block *, umode_t);
+ void autofs_free_ino(struct autofs_info *);
+ 
+--- a/fs/autofs/expire.c~autofs-use-dentry-info-count-instead-of-simple_empty
++++ a/fs/autofs/expire.c
+@@ -371,7 +371,7 @@ static struct dentry *should_expire(stru
+ 		return NULL;
+ 	}
+ 
+-	if (simple_empty(dentry))
++	if (autofs_empty(ino))
+ 		return NULL;
+ 
+ 	/* Case 2: tree mount, expire iff entire tree is not busy */
+--- a/fs/autofs/root.c~autofs-use-dentry-info-count-instead-of-simple_empty
++++ a/fs/autofs/root.c
+@@ -79,6 +79,7 @@ static int autofs_dir_open(struct inode
  {
--	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
- 	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	struct autofs_info *p_ino;
- 	struct inode *inode;
-@@ -539,16 +560,6 @@ static int autofs_dir_symlink(struct use
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs_dentry_ino(dentry);
  
- 	pr_debug("%s <- %pd\n", symname, dentry);
+ 	pr_debug("file=%p dentry=%p %pd\n", file, dentry, dentry);
  
--	if (!autofs_oz_mode(sbi))
--		return -EACCES;
--
--	/* autofs_oz_mode() needs to allow path walks when the
--	 * autofs mount is catatonic but the state of an autofs
--	 * file system needs to be preserved over restarts.
--	 */
--	if (sbi->flags & AUTOFS_SBI_CATATONIC)
--		return -EACCES;
--
- 	BUG_ON(!ino);
+@@ -95,7 +96,7 @@ static int autofs_dir_open(struct inode
+ 	 * it.
+ 	 */
+ 	spin_lock(&sbi->lookup_lock);
+-	if (!path_is_mountpoint(&file->f_path) && simple_empty(dentry)) {
++	if (!path_is_mountpoint(&file->f_path) && autofs_empty(ino)) {
+ 		spin_unlock(&sbi->lookup_lock);
+ 		return -ENOENT;
+ 	}
+@@ -364,7 +365,7 @@ static struct vfsmount *autofs_d_automou
+ 		 * the mount never trigger mounts themselves (they have an
+ 		 * autofs trigger mount mounted on them). But v4 pseudo direct
+ 		 * mounts do need the leaves to trigger mounts. In this case
+-		 * we have no choice but to use the list_empty() check and
++		 * we have no choice but to use the autofs_empty() check and
+ 		 * require user space behave.
+ 		 */
+ 		if (sbi->version > 4) {
+@@ -373,7 +374,7 @@ static struct vfsmount *autofs_d_automou
+ 				goto done;
+ 			}
+ 		} else {
+-			if (!simple_empty(dentry)) {
++			if (!autofs_empty(ino)) {
+ 				spin_unlock(&sbi->fs_lock);
+ 				goto done;
+ 			}
+@@ -428,9 +429,8 @@ static int autofs_d_manage(const struct
  
- 	autofs_clean_ino(ino);
-@@ -601,16 +612,6 @@ static int autofs_dir_unlink(struct inod
- 	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	struct autofs_info *p_ino;
- 
--	if (!autofs_oz_mode(sbi))
--		return -EACCES;
--
--	/* autofs_oz_mode() needs to allow path walks when the
--	 * autofs mount is catatonic but the state of an autofs
--	 * file system needs to be preserved over restarts.
--	 */
--	if (sbi->flags & AUTOFS_SBI_CATATONIC)
--		return -EACCES;
--
- 	ino->count--;
- 	p_ino = autofs_dentry_ino(dentry->d_parent);
- 	p_ino->count--;
-@@ -683,16 +684,6 @@ static int autofs_dir_rmdir(struct inode
- 
- 	pr_debug("dentry %p, removing %pd\n", dentry, dentry);
- 
--	if (!autofs_oz_mode(sbi))
--		return -EACCES;
--
--	/* autofs_oz_mode() needs to allow path walks when the
--	 * autofs mount is catatonic but the state of an autofs
--	 * file system needs to be preserved over restarts.
--	 */
--	if (sbi->flags & AUTOFS_SBI_CATATONIC)
--		return -EACCES;
--
- 	if (ino->count != 1)
- 		return -ENOTEMPTY;
- 
-@@ -726,16 +717,6 @@ static int autofs_dir_mkdir(struct user_
- 	struct autofs_info *p_ino;
- 	struct inode *inode;
- 
--	if (!autofs_oz_mode(sbi))
--		return -EACCES;
--
--	/* autofs_oz_mode() needs to allow path walks when the
--	 * autofs mount is catatonic but the state of an autofs
--	 * file system needs to be preserved over restarts.
--	 */
--	if (sbi->flags & AUTOFS_SBI_CATATONIC)
--		return -EACCES;
--
- 	pr_debug("dentry %p, creating %pd\n", dentry, dentry);
- 
- 	BUG_ON(!ino);
+ 	if (rcu_walk) {
+ 		/* We don't need fs_lock in rcu_walk mode,
+-		 * just testing 'AUTOFS_INFO_NO_RCU' is enough.
+-		 * simple_empty() takes a spinlock, so leave it
+-		 * to last.
++		 * just testing 'AUTOFS_INF_WANT_EXPIRE' is enough.
++		 *
+ 		 * We only return -EISDIR when certain this isn't
+ 		 * a mount-trap.
+ 		 */
+@@ -443,9 +443,7 @@ static int autofs_d_manage(const struct
+ 		inode = d_inode_rcu(dentry);
+ 		if (inode && S_ISLNK(inode->i_mode))
+ 			return -EISDIR;
+-		if (list_empty(&dentry->d_subdirs))
+-			return 0;
+-		if (!simple_empty(dentry))
++		if (!autofs_empty(ino))
+ 			return -EISDIR;
+ 		return 0;
+ 	}
+@@ -465,7 +463,7 @@ static int autofs_d_manage(const struct
+ 		 * we can avoid needless calls ->d_automount() and avoid
+ 		 * an incorrect ELOOP error return.
+ 		 */
+-		if ((!path_is_mountpoint(path) && !simple_empty(dentry)) ||
++		if ((!path_is_mountpoint(path) && !autofs_empty(ino)) ||
+ 		    (d_really_is_positive(dentry) && d_is_symlink(dentry)))
+ 			status = -EISDIR;
+ 	}
 _
 
 Patches currently in -mm which might be from raven@themaw.net are
