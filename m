@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 201DACCA480
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7762CCCA483
 	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 21:04:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240345AbiGHVE5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 17:04:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56402 "EHLO
+        id S240108AbiGHVE6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 17:04:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240108AbiGHVEz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:04:55 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84E492C121
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:04:53 -0700 (PDT)
+        with ESMTP id S240297AbiGHVE4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:04:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44B5A2BB2F
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:04:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0739EB82996
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:04:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94CD9C341C0;
-        Fri,  8 Jul 2022 21:04:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C3AF062918
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:04:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 153C1C341C0;
+        Fri,  8 Jul 2022 21:04:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657314290;
-        bh=8yvbgy0vx5P/pNmRzFRDUcnYk5pa35bloueNYgR6eg4=;
+        s=korg; t=1657314294;
+        bh=lxCWef8SE6yiRktgGlfNyEsmXp5+o77d91fi52XjwIk=;
         h=Date:To:From:Subject:From;
-        b=EVa3w6seg4hNZHhN94KzMLaowtfGez7ZNREgx+vDzlUZ6I6KqCdDH+bwgQt/QJHch
-         8SrfRQ+cq3E0GIDdeBHj0iojyscwgbsjI8OoLX1CYcktuAGHXmEnUQIsosrgbXCsGq
-         E4Yh0iZDewW0u3sVcW399MmyQCIwOKCKWl2RhT+8=
-Date:   Fri, 08 Jul 2022 14:04:50 -0700
+        b=bX2ThLJuo1SvBtQbIwzhnqvaFLP923CSwwdUMYwj6kVJ7cJ721U94FMNuwTa8grJP
+         zQKTjwlLh5Vcns2TwKn+wH9XQAb0BNOVYHJbUVRVFmsf/b2t4l3ckdd/1caJSefeaL
+         9uAdWFqPkbuS5VsxM+BKub5gyaO3GH1tPpZxOt2w=
+Date:   Fri, 08 Jul 2022 14:04:53 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
         sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         arnd@arndb.de, alex.shi@linux.alibaba.com, aarcange@redhat.com,
         zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check.patch added to mm-unstable branch
-Message-Id: <20220708210450.94CD9C341C0@smtp.kernel.org>
+Subject: + mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch added to mm-unstable branch
+Message-Id: <20220708210454.153C1C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: add flag to enforce sysfs THP in hugepage_vma_check()
+     Subject: mm/khugepaged: record SCAN_PMD_MAPPED when scan_pmd() finds hugepage
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check.patch
+     mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,29 +75,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/thp: add flag to enforce sysfs THP in hugepage_vma_check()
-Date: Wed, 6 Jul 2022 16:59:25 -0700
+Subject: mm/khugepaged: record SCAN_PMD_MAPPED when scan_pmd() finds hugepage
+Date: Wed, 6 Jul 2022 16:59:26 -0700
 
-MADV_COLLAPSE is not coupled to the kernel-oriented sysfs THP settings[1].
+When scanning an anon pmd to see if it's eligible for collapse, return
+SCAN_PMD_MAPPED if the pmd already maps a hugepage.  Note that
+SCAN_PMD_MAPPED is different from SCAN_PAGE_COMPOUND used in the
+file-collapse path, since the latter might identify pte-mapped compound
+pages.  This is required by MADV_COLLAPSE which necessarily needs to know
+what hugepage-aligned/sized regions are already pmd-mapped.
 
-hugepage_vma_check() is the authority on determining if a VMA is eligible
-for THP allocation/collapse, and currently enforces the sysfs THP
-settings.  Add a flag to disable these checks.  For now, only apply this
-arg to anon and file, which use /sys/kernel/transparent_hugepage/enabled. 
-We can expand this to shmem, which uses
-/sys/kernel/transparent_hugepage/shmem_enabled, later.
+In order to determine if a pmd already maps a hugepage, refactor
+mm_find_pmd():
 
-Use this flag in collapse_pte_mapped_thp() where previously the VMA flags
-passed to hugepage_vma_check() were OR'd with VM_HUGEPAGE to elide the
-VM_HUGEPAGE check in "madvise" THP mode.  Prior to "mm: khugepaged: check
-THP flag in hugepage_vma_check()", this check also didn't check "never"
-THP mode.  As such, this restores the previous behavior of
-collapse_pte_mapped_thp() where sysfs THP settings are ignored.  See
-comment in code for justification why this is OK.
+Return mm_find_pmd() to it's pre-commit f72e7dcdd252 ("mm: let mm_find_pmd
+fix buggy race with THP fault") behavior.  ksm was the only caller that
+explicitly wanted a pte-mapping pmd, so open code the pte-mapping logic
+there (pmd_present() and pmd_trans_huge() checks).
 
-[1] https://lore.kernel.org/linux-mm/CAAa6QmQxay1_=Pmt8oCX2-Va18t44FV-Vs-WsQt_6+qBks4nZA@mail.gmail.com/
+Undo revert change in commit f72e7dcdd252 ("mm: let mm_find_pmd fix buggy
+race with THP fault") that open-coded split_huge_pmd_address() pmd lookup
+and use mm_find_pmd() instead.
 
-Link: https://lkml.kernel.org/r/20220706235936.2197195-8-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220706235936.2197195-9-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -132,176 +132,240 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c      |    2 +-
- include/linux/huge_mm.h |    9 ++++-----
- mm/huge_memory.c        |   14 ++++++--------
- mm/khugepaged.c         |   25 ++++++++++++++-----------
- mm/memory.c             |    4 ++--
- 5 files changed, 27 insertions(+), 27 deletions(-)
+ include/trace/events/huge_memory.h |    1 
+ mm/huge_memory.c                   |   18 --------
+ mm/internal.h                      |    2 
+ mm/khugepaged.c                    |   60 +++++++++++++++++++++------
+ mm/ksm.c                           |   10 ++++
+ mm/rmap.c                          |   15 ++----
+ 6 files changed, 67 insertions(+), 39 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check
-+++ a/fs/proc/task_mmu.c
-@@ -866,7 +866,7 @@ static int show_smap(struct seq_file *m,
- 	__show_smap(m, &mss, false);
- 
- 	seq_printf(m, "THPeligible:    %d\n",
--		   hugepage_vma_check(vma, vma->vm_flags, true, false));
-+		   hugepage_vma_check(vma, vma->vm_flags, true, false, true));
- 
- 	if (arch_pkeys_enabled())
- 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
---- a/include/linux/huge_mm.h~mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check
-+++ a/include/linux/huge_mm.h
-@@ -168,9 +168,8 @@ static inline bool file_thp_enabled(stru
- 	       !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
- }
- 
--bool hugepage_vma_check(struct vm_area_struct *vma,
--			unsigned long vm_flags,
--			bool smaps, bool in_pf);
-+bool hugepage_vma_check(struct vm_area_struct *vma, unsigned long vm_flags,
-+			bool smaps, bool in_pf, bool enforce_sysfs);
- 
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
-@@ -321,8 +320,8 @@ static inline bool transhuge_vma_suitabl
- }
- 
- static inline bool hugepage_vma_check(struct vm_area_struct *vma,
--				       unsigned long vm_flags,
--				       bool smaps, bool in_pf)
-+				      unsigned long vm_flags, bool smaps,
-+				      bool in_pf, bool enforce_sysfs)
- {
- 	return false;
- }
---- a/mm/huge_memory.c~mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check
+--- a/include/trace/events/huge_memory.h~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
++++ a/include/trace/events/huge_memory.h
+@@ -11,6 +11,7 @@
+ 	EM( SCAN_FAIL,			"failed")			\
+ 	EM( SCAN_SUCCEED,		"succeeded")			\
+ 	EM( SCAN_PMD_NULL,		"pmd_null")			\
++	EM( SCAN_PMD_MAPPED,		"page_pmd_mapped")		\
+ 	EM( SCAN_EXCEED_NONE_PTE,	"exceed_none_pte")		\
+ 	EM( SCAN_EXCEED_SWAP_PTE,	"exceed_swap_pte")		\
+ 	EM( SCAN_EXCEED_SHARED_PTE,	"exceed_shared_pte")		\
+--- a/mm/huge_memory.c~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
 +++ a/mm/huge_memory.c
-@@ -69,9 +69,8 @@ static atomic_t huge_zero_refcount;
- struct page *huge_zero_page __read_mostly;
- unsigned long huge_zero_pfn __read_mostly = ~0UL;
- 
--bool hugepage_vma_check(struct vm_area_struct *vma,
--			unsigned long vm_flags,
--			bool smaps, bool in_pf)
-+bool hugepage_vma_check(struct vm_area_struct *vma, unsigned long vm_flags,
-+			bool smaps, bool in_pf, bool enforce_sysfs)
+@@ -2363,25 +2363,11 @@ out:
+ void split_huge_pmd_address(struct vm_area_struct *vma, unsigned long address,
+ 		bool freeze, struct folio *folio)
  {
- 	if (!vma->vm_mm)		/* vdso */
- 		return false;
-@@ -120,11 +119,10 @@ bool hugepage_vma_check(struct vm_area_s
- 	if (!in_pf && shmem_file(vma->vm_file))
- 		return shmem_huge_enabled(vma);
+-	pgd_t *pgd;
+-	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
++	pmd_t *pmd = mm_find_pmd(vma->vm_mm, address);
  
--	if (!hugepage_flags_enabled())
--		return false;
+-	pgd = pgd_offset(vma->vm_mm, address);
+-	if (!pgd_present(*pgd))
++	if (!pmd)
+ 		return;
+ 
+-	p4d = p4d_offset(pgd, address);
+-	if (!p4d_present(*p4d))
+-		return;
 -
--	/* THP settings require madvise. */
--	if (!(vm_flags & VM_HUGEPAGE) && !hugepage_flags_always())
-+	/* Enforce sysfs THP requirements as necessary */
-+	if (enforce_sysfs &&
-+	    (!hugepage_flags_enabled() || (!(vm_flags & VM_HUGEPAGE) &&
-+					   !hugepage_flags_always())))
- 		return false;
- 
- 	/* Only regular file is valid */
---- a/mm/khugepaged.c~mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check
-+++ a/mm/khugepaged.c
-@@ -478,7 +478,7 @@ void khugepaged_enter_vma(struct vm_area
- {
- 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
- 	    hugepage_flags_enabled()) {
--		if (hugepage_vma_check(vma, vm_flags, false, false))
-+		if (hugepage_vma_check(vma, vm_flags, false, false, true))
- 			__khugepaged_enter(vma->vm_mm);
- 	}
+-	pud = pud_offset(p4d, address);
+-	if (!pud_present(*pud))
+-		return;
+-
+-	pmd = pmd_offset(pud, address);
+-
+ 	__split_huge_pmd(vma, pmd, address, freeze, folio);
  }
-@@ -844,7 +844,8 @@ static bool khugepaged_alloc_page(struct
+ 
+--- a/mm/internal.h~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
++++ a/mm/internal.h
+@@ -188,7 +188,7 @@ extern void reclaim_throttle(pg_data_t *
+ /*
+  * in mm/rmap.c:
   */
+-extern pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
++pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
  
- static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
--		struct vm_area_struct **vmap)
-+				   struct vm_area_struct **vmap,
-+				   struct collapse_control *cc)
- {
- 	struct vm_area_struct *vma;
+ /*
+  * in mm/page_alloc.c
+--- a/mm/khugepaged.c~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
++++ a/mm/khugepaged.c
+@@ -28,6 +28,7 @@ enum scan_result {
+ 	SCAN_FAIL,
+ 	SCAN_SUCCEED,
+ 	SCAN_PMD_NULL,
++	SCAN_PMD_MAPPED,
+ 	SCAN_EXCEED_NONE_PTE,
+ 	SCAN_EXCEED_SWAP_PTE,
+ 	SCAN_EXCEED_SHARED_PTE,
+@@ -871,6 +872,45 @@ static int hugepage_vma_revalidate(struc
+ 	return SCAN_SUCCEED;
+ }
  
-@@ -855,7 +856,8 @@ static int hugepage_vma_revalidate(struc
- 	if (!vma)
- 		return SCAN_VMA_NULL;
- 
--	if (!hugepage_vma_check(vma, vma->vm_flags, false, false))
-+	if (!hugepage_vma_check(vma, vma->vm_flags, false, false,
-+				cc->is_khugepaged))
- 		return SCAN_VMA_CHECK;
- 	/*
- 	 * Anon VMA expected, the address may be unmapped then
-@@ -974,7 +976,7 @@ static int collapse_huge_page(struct mm_
++static int find_pmd_or_thp_or_none(struct mm_struct *mm,
++				   unsigned long address,
++				   pmd_t **pmd)
++{
++	pmd_t pmde;
++
++	*pmd = mm_find_pmd(mm, address);
++	if (!*pmd)
++		return SCAN_PMD_NULL;
++
++	pmde = pmd_read_atomic(*pmd);
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	/* See comments in pmd_none_or_trans_huge_or_clear_bad() */
++	barrier();
++#endif
++	if (!pmd_present(pmde))
++		return SCAN_PMD_NULL;
++	if (pmd_trans_huge(pmde))
++		return SCAN_PMD_MAPPED;
++	if (pmd_bad(pmde))
++		return SCAN_PMD_NULL;
++	return SCAN_SUCCEED;
++}
++
++static int check_pmd_still_valid(struct mm_struct *mm,
++				 unsigned long address,
++				 pmd_t *pmd)
++{
++	pmd_t *new_pmd;
++	int result = find_pmd_or_thp_or_none(mm, address, &new_pmd);
++
++	if (result != SCAN_SUCCEED)
++		return result;
++	if (new_pmd != pmd)
++		return SCAN_FAIL;
++	return SCAN_SUCCEED;
++}
++
+ /*
+  * Bring missing pages in from swap, to complete THP collapse.
+  * Only done if khugepaged_scan_pmd believes it is worthwhile.
+@@ -982,9 +1022,8 @@ static int collapse_huge_page(struct mm_
  		goto out_nolock;
+ 	}
  
- 	mmap_read_lock(mm);
--	result = hugepage_vma_revalidate(mm, address, &vma);
-+	result = hugepage_vma_revalidate(mm, address, &vma, cc);
- 	if (result != SCAN_SUCCEED) {
+-	pmd = mm_find_pmd(mm, address);
+-	if (!pmd) {
+-		result = SCAN_PMD_NULL;
++	result = find_pmd_or_thp_or_none(mm, address, &pmd);
++	if (result != SCAN_SUCCEED) {
  		mmap_read_unlock(mm);
  		goto out_nolock;
-@@ -1006,7 +1008,7 @@ static int collapse_huge_page(struct mm_
- 	 * handled by the anon_vma lock + PG_lock.
- 	 */
- 	mmap_write_lock(mm);
--	result = hugepage_vma_revalidate(mm, address, &vma);
-+	result = hugepage_vma_revalidate(mm, address, &vma, cc);
+ 	}
+@@ -1012,7 +1051,8 @@ static int collapse_huge_page(struct mm_
  	if (result != SCAN_SUCCEED)
  		goto out_up_write;
  	/* check if the pmd is still valid */
-@@ -1350,12 +1352,13 @@ void collapse_pte_mapped_thp(struct mm_s
- 		return;
+-	if (mm_find_pmd(mm, address) != pmd)
++	result = check_pmd_still_valid(mm, address, pmd);
++	if (result != SCAN_SUCCEED)
+ 		goto out_up_write;
  
- 	/*
--	 * This vm_flags may not have VM_HUGEPAGE if the page was not
--	 * collapsed by this mm. But we can still collapse if the page is
--	 * the valid THP. Add extra VM_HUGEPAGE so hugepage_vma_check()
--	 * will not fail the vma for missing VM_HUGEPAGE
-+	 * If we are here, we've succeeded in replacing all the native pages
-+	 * in the page cache with a single hugepage. If a mm were to fault-in
-+	 * this memory (mapped by a suitably aligned VMA), we'd get the hugepage
-+	 * and map it by a PMD, regardless of sysfs THP settings. As such, let's
-+	 * analogously elide sysfs THP settings here.
- 	 */
--	if (!hugepage_vma_check(vma, vma->vm_flags | VM_HUGEPAGE, false, false))
-+	if (!hugepage_vma_check(vma, vma->vm_flags, false, false, false))
- 		return;
+ 	anon_vma_lock_write(vma->anon_vma);
+@@ -1115,11 +1155,9 @@ static int khugepaged_scan_pmd(struct mm
  
- 	/* Keep pmd pgtable for uffd-wp; see comment in retract_page_tables() */
-@@ -2042,7 +2045,7 @@ static unsigned int khugepaged_scan_mm_s
- 			progress++;
- 			break;
- 		}
--		if (!hugepage_vma_check(vma, vma->vm_flags, false, false)) {
-+		if (!hugepage_vma_check(vma, vma->vm_flags, false, false, true)) {
- skip:
- 			progress++;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 
+-	pmd = mm_find_pmd(mm, address);
+-	if (!pmd) {
+-		result = SCAN_PMD_NULL;
++	result = find_pmd_or_thp_or_none(mm, address, &pmd);
++	if (result != SCAN_SUCCEED)
+ 		goto out;
+-	}
+ 
+ 	memset(cc->node_load, 0, sizeof(cc->node_load));
+ 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+@@ -1373,8 +1411,7 @@ void collapse_pte_mapped_thp(struct mm_s
+ 	if (!PageHead(hpage))
+ 		goto drop_hpage;
+ 
+-	pmd = mm_find_pmd(mm, haddr);
+-	if (!pmd)
++	if (find_pmd_or_thp_or_none(mm, haddr, &pmd) != SCAN_SUCCEED)
+ 		goto drop_hpage;
+ 
+ 	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
+@@ -1492,8 +1529,7 @@ static void retract_page_tables(struct a
+ 		if (vma->vm_end < addr + HPAGE_PMD_SIZE)
  			continue;
---- a/mm/memory.c~mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check
-+++ a/mm/memory.c
-@@ -5002,7 +5002,7 @@ static vm_fault_t __handle_mm_fault(stru
- 		return VM_FAULT_OOM;
- retry_pud:
- 	if (pud_none(*vmf.pud) &&
--	    hugepage_vma_check(vma, vm_flags, false, true)) {
-+	    hugepage_vma_check(vma, vm_flags, false, true, true)) {
- 		ret = create_huge_pud(&vmf);
- 		if (!(ret & VM_FAULT_FALLBACK))
- 			return ret;
-@@ -5036,7 +5036,7 @@ retry_pud:
- 		goto retry_pud;
+ 		mm = vma->vm_mm;
+-		pmd = mm_find_pmd(mm, addr);
+-		if (!pmd)
++		if (find_pmd_or_thp_or_none(mm, addr, &pmd) != SCAN_SUCCEED)
+ 			continue;
+ 		/*
+ 		 * We need exclusive mmap_lock to retract page table.
+--- a/mm/ksm.c~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
++++ a/mm/ksm.c
+@@ -1136,6 +1136,7 @@ static int replace_page(struct vm_area_s
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t *pmd;
++	pmd_t pmde;
+ 	pte_t *ptep;
+ 	pte_t newpte;
+ 	spinlock_t *ptl;
+@@ -1150,6 +1151,15 @@ static int replace_page(struct vm_area_s
+ 	pmd = mm_find_pmd(mm, addr);
+ 	if (!pmd)
+ 		goto out;
++	/*
++	 * Some THP functions use the sequence pmdp_huge_clear_flush(), set_pmd_at()
++	 * without holding anon_vma lock for write.  So when looking for a
++	 * genuine pmde (in which to find pte), test present and !THP together.
++	 */
++	pmde = *pmd;
++	barrier();
++	if (!pmd_present(pmde) || pmd_trans_huge(pmde))
++		goto out;
  
- 	if (pmd_none(*vmf.pmd) &&
--	    hugepage_vma_check(vma, vm_flags, false, true)) {
-+	    hugepage_vma_check(vma, vm_flags, false, true, true)) {
- 		ret = create_huge_pmd(&vmf);
- 		if (!(ret & VM_FAULT_FALLBACK))
- 			return ret;
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm, addr,
+ 				addr + PAGE_SIZE);
+--- a/mm/rmap.c~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
++++ a/mm/rmap.c
+@@ -767,13 +767,17 @@ unsigned long page_address_in_vma(struct
+ 	return vma_address(page, vma);
+ }
+ 
++/*
++ * Returns the actual pmd_t* where we expect 'address' to be mapped from, or
++ * NULL if it doesn't exist.  No guarantees / checks on what the pmd_t*
++ * represents.
++ */
+ pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address)
+ {
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd = NULL;
+-	pmd_t pmde;
+ 
+ 	pgd = pgd_offset(mm, address);
+ 	if (!pgd_present(*pgd))
+@@ -788,15 +792,6 @@ pmd_t *mm_find_pmd(struct mm_struct *mm,
+ 		goto out;
+ 
+ 	pmd = pmd_offset(pud, address);
+-	/*
+-	 * Some THP functions use the sequence pmdp_huge_clear_flush(), set_pmd_at()
+-	 * without holding anon_vma lock for write.  So when looking for a
+-	 * genuine pmde (in which to find pte), test present and !THP together.
+-	 */
+-	pmde = *pmd;
+-	barrier();
+-	if (!pmd_present(pmde) || pmd_trans_huge(pmde))
+-		pmd = NULL;
+ out:
+ 	return pmd;
+ }
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
