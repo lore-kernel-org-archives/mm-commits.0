@@ -2,41 +2,46 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B14C5C43334
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 20:27:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DDEDC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 20:31:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240106AbiGHU1m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 16:27:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50760 "EHLO
+        id S239864AbiGHUbO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 16:31:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239928AbiGHU1e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 16:27:34 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B0E0904E2
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 13:27:33 -0700 (PDT)
+        with ESMTP id S238904AbiGHUbO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 16:31:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FC1D904F4
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 13:31:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 147F7B80522
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 20:27:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFD85C341C7;
-        Fri,  8 Jul 2022 20:27:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C3DE762896
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 20:31:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 108EBC341C0;
+        Fri,  8 Jul 2022 20:31:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657312050;
-        bh=SR6NhVqdexN+IMqPVhawH5Ac0D5ocT9FVsgxwrY4W4k=;
+        s=korg; t=1657312272;
+        bh=CsnDlsP7X8P5xp0u2dwsbTdfDbpejRNjY0ajpvS1ojU=;
         h=Date:To:From:Subject:From;
-        b=zXDwsu6/Gg3dok4Jx14RinQcsV8+1cKNvw6OETmtZttl6IzjG/Co3sWOOO1KT6mOT
-         JM0WjSlcLmtz1FrLsaWNbcRwRFkX/mmn/2LvJi1fzaLp30RMU5w1UJRRvhHdLd2oGH
-         PkbBBRFwfnyw6fEAZ2X06kqWmMOaPHySYqKUFYAI=
-Date:   Fri, 08 Jul 2022 13:27:30 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
-        lkp@intel.com, liushixin2@huawei.com, linmiaohe@huawei.com,
-        david@redhat.com, naoya.horiguchi@nec.com,
+        b=RNK9cmRoWgvJZImAsWLoOordys5zOGFwupsymGmoL0Y9Ns+zoU5Mc7JMFIgb+v27s
+         scLq+vdS6Px70C5hO4E4NQWdngKO/LLKPYEUK6ZA7j4PW6ZhBQs5i6H+6i61wODOlQ
+         JvsuoiXVZnYkdwuqsuvQlCr8hbFIQDGPXZ/cnOQs=
+Date:   Fri, 08 Jul 2022 13:31:11 -0700
+To:     mm-commits@vger.kernel.org, sre@kernel.org,
+        skhan@linuxfoundation.org, ndesaulniers@google.com,
+        nathan@kernel.org, michal.lkml@markovi.net, mcgrof@kernel.org,
+        masahiroy@kernel.org, lucas.demarchi@intel.com,
+        keescook@chromium.org, john.ogness@linutronix.de,
+        jani.nikula@linux.intel.com, gregkh@linuxfoundation.org,
+        gpiccoli@igalia.com, dlatypov@google.com, corbet@lwn.net,
+        brendanhiggins@google.com, atomlin@redhat.com,
+        andriy.shevchenko@linux.intel.com, davidgow@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch added to mm-unstable branch
-Message-Id: <20220708202730.BFD85C341C7@smtp.kernel.org>
+Subject: + panic-taint-kernel-if-tests-are-run.patch added to mm-nonmm-unstable branch
+Message-Id: <20220708203112.108EBC341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: enable memory error handling on 1GB hugepage
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
+     Subject: panic: taint kernel if tests are run
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-taint-kernel-if-tests-are-run.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-taint-kernel-if-tests-are-run.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,94 +72,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: enable memory error handling on 1GB hugepage
-Date: Fri, 8 Jul 2022 14:36:53 +0900
+From: David Gow <davidgow@google.com>
+Subject: panic: taint kernel if tests are run
+Date: Fri, 8 Jul 2022 12:48:44 +0800
 
-Now error handling code is prepared, so remove the blocking code and
-enable memory error handling on 1GB hugepage.
+Most in-kernel tests (such as KUnit tests) are not supposed to run on
+production systems: they may do deliberately illegal things to trigger
+errors, and have security implications (for example, KUnit assertions will
+often deliberately leak kernel addresses).
 
-Link: https://lkml.kernel.org/r/20220708053653.964464-9-naoya.horiguchi@linux.dev
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
+Add a new taint type, TAINT_TEST to signal that a test has been run.  This
+will be printed as 'N' (originally for kuNit, as every other sensible
+letter was taken.)
+
+This should discourage people from running these tests on production
+systems, and to make it easier to tell if tests have been run accidentally
+(by loading the wrong configuration, etc.)
+
+Link: https://lkml.kernel.org/r/20220708044847.531566-1-davidgow@google.com
+Signed-off-by: David Gow <davidgow@google.com>
+Acked-by: Luis Chamberlain <mcgrof@kernel.org>
+Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Guilherme G. Piccoli <gpiccoli@igalia.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Daniel Latypov <dlatypov@google.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Lucas De Marchi <lucas.demarchi@intel.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    1 -
- include/ras/ras_event.h |    1 -
- mm/memory-failure.c     |   16 ----------------
- 3 files changed, 18 deletions(-)
+ Documentation/admin-guide/tainted-kernels.rst |    1 +
+ include/linux/panic.h                         |    3 ++-
+ kernel/panic.c                                |    1 +
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
-+++ a/include/linux/mm.h
-@@ -3241,7 +3241,6 @@ enum mf_action_page_type {
- 	MF_MSG_DIFFERENT_COMPOUND,
- 	MF_MSG_HUGE,
- 	MF_MSG_FREE_HUGE,
--	MF_MSG_NON_PMD_HUGE,
- 	MF_MSG_UNMAP_FAILED,
- 	MF_MSG_DIRTY_SWAPCACHE,
- 	MF_MSG_CLEAN_SWAPCACHE,
---- a/include/ras/ras_event.h~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
-+++ a/include/ras/ras_event.h
-@@ -360,7 +360,6 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_DIFFERENT_COMPOUND, "different compound page after locking" ) \
- 	EM ( MF_MSG_HUGE, "huge page" )					\
- 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
--	EM ( MF_MSG_NON_PMD_HUGE, "non-pmd-sized huge page" )		\
- 	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
- 	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
- 	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
---- a/mm/memory-failure.c~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
-+++ a/mm/memory-failure.c
-@@ -765,7 +765,6 @@ static const char * const action_page_ty
- 	[MF_MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
- 	[MF_MSG_HUGE]			= "huge page",
- 	[MF_MSG_FREE_HUGE]		= "free huge page",
--	[MF_MSG_NON_PMD_HUGE]		= "non-pmd-sized huge page",
- 	[MF_MSG_UNMAP_FAILED]		= "unmapping failed page",
- 	[MF_MSG_DIRTY_SWAPCACHE]	= "dirty swapcache page",
- 	[MF_MSG_CLEAN_SWAPCACHE]	= "clean swapcache page",
-@@ -1873,21 +1872,6 @@ retry:
+--- a/Documentation/admin-guide/tainted-kernels.rst~panic-taint-kernel-if-tests-are-run
++++ a/Documentation/admin-guide/tainted-kernels.rst
+@@ -100,6 +100,7 @@ Bit  Log  Number  Reason that got the ke
+  15  _/K   32768  kernel has been live patched
+  16  _/X   65536  auxiliary taint, defined for and used by distros
+  17  _/T  131072  kernel was built with the struct randomization plugin
++ 18  _/N  262144  an in-kernel test has been run
+ ===  ===  ======  ========================================================
  
- 	page_flags = head->flags;
+ Note: The character ``_`` is representing a blank in this table to make reading
+--- a/include/linux/panic.h~panic-taint-kernel-if-tests-are-run
++++ a/include/linux/panic.h
+@@ -68,7 +68,8 @@ static inline void set_arch_panic_timeou
+ #define TAINT_LIVEPATCH			15
+ #define TAINT_AUX			16
+ #define TAINT_RANDSTRUCT		17
+-#define TAINT_FLAGS_COUNT		18
++#define TAINT_TEST			18
++#define TAINT_FLAGS_COUNT		19
+ #define TAINT_FLAGS_MAX			((1UL << TAINT_FLAGS_COUNT) - 1)
  
--	/*
--	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
--	 * simply disable it. In order to make it work properly, we need
--	 * make sure that:
--	 *  - conversion of a pud that maps an error hugetlb into hwpoison
--	 *    entry properly works, and
--	 *  - other mm code walking over page table is aware of pud-aligned
--	 *    hwpoison entries.
--	 */
--	if (huge_page_size(page_hstate(head)) > PMD_SIZE) {
--		action_result(pfn, MF_MSG_NON_PMD_HUGE, MF_IGNORED);
--		res = -EBUSY;
--		goto out;
--	}
--
- 	if (!hwpoison_user_mappings(p, pfn, flags, head)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
+ struct taint_flag {
+--- a/kernel/panic.c~panic-taint-kernel-if-tests-are-run
++++ a/kernel/panic.c
+@@ -428,6 +428,7 @@ const struct taint_flag taint_flags[TAIN
+ 	[ TAINT_LIVEPATCH ]		= { 'K', ' ', true },
+ 	[ TAINT_AUX ]			= { 'X', ' ', true },
+ 	[ TAINT_RANDSTRUCT ]		= { 'T', ' ', true },
++	[ TAINT_TEST ]			= { 'N', ' ', true },
+ };
+ 
+ /**
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from davidgow@google.com are
 
-mm-hugetlb-separate-path-for-hwpoison-entry-in-copy_hugetlb_page_range.patch
-mm-hugetlb-check-gigantic_page_runtime_supported-in-return_unused_surplus_pages.patch
-mm-hugetlb-make-pud_huge-and-follow_huge_pud-aware-of-non-present-pud-entry.patch
-mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages.patch
-mm-hwpoison-make-unpoison-aware-of-raw-error-info-in-hwpoisoned-hugepage.patch
-mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages.patch
-mm-hwpoison-make-__page_handle_poison-returns-int.patch
-mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch
-mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
+panic-taint-kernel-if-tests-are-run.patch
+module-panic-taint-the-kernel-when-selftest-modules-load.patch
+kunit-taint-the-kernel-when-kunit-tests-are-run.patch
+selftest-taint-kernel-when-test-module-loaded.patch
 
