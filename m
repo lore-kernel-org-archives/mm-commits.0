@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 535C3CCA480
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB087CCA482
 	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 21:05:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239718AbiGHVFk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 17:05:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56836 "EHLO
+        id S239478AbiGHVFl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 17:05:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239498AbiGHVFX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:05:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3241A0279
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:05:22 -0700 (PDT)
+        with ESMTP id S240297AbiGHVFU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:05:20 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB8489FE04
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:05:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A13462916
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:05:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B086AC341C0;
-        Fri,  8 Jul 2022 21:05:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5ED79B82998
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:05:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2935C341C0;
+        Fri,  8 Jul 2022 21:05:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657314321;
-        bh=8bUmu/bzml+ORnv6/Fma60bs1yq/vtYudKqmk+oj3kM=;
+        s=korg; t=1657314317;
+        bh=ZxKV+N2czHgBZISFQA7BlQ/d9DcvYRPvQVnsjujHbl4=;
         h=Date:To:From:Subject:From;
-        b=bo+FRspVfV6+YIPm+fG8oAO974gc0iE3jmq0ntSX4+ttHu7YUwJLPeWAuP/++5Ov5
-         F9fMMge/PjA8Dj+bRfAjMVXOR0VqLPezNK/qKedXA7GrJmz/PeVxZud6vt2G/bKEjJ
-         l39IA6qONhtT81vkIeUPbYS13YryOGfHidQ1d+K8=
-Date:   Fri, 08 Jul 2022 14:05:21 -0700
+        b=PS+7Vtpp2+fzGh5YiCaH44ocwAkhMY1WYggGDc8HShfvxLrYYcq2yuK7aYUdnTrFp
+         1/HlhMU05D2upchJ+iHfabqHSiUsL74bmDlTY8y9706nBMhJktu0g5PzaIEpirTpdX
+         MGiLqaZl/1WoqLd6rOI3dnWmZUb4qbpxTD6IR/Is=
+Date:   Fri, 08 Jul 2022 14:05:16 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
         sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         arnd@arndb.de, alex.shi@linux.alibaba.com, aarcange@redhat.com,
         zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-add-selftest-to-verify-recollapse-of-thps.patch added to mm-unstable branch
-Message-Id: <20220708210521.B086AC341C0@smtp.kernel.org>
+Subject: + selftests-vm-dedup-hugepage-allocation-logic.patch added to mm-unstable branch
+Message-Id: <20220708210516.F2935C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: add selftest to verify recollapse of THPs
+     Subject: selftests/vm: dedup hugepage allocation logic
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-add-selftest-to-verify-recollapse-of-thps.patch
+     selftests-vm-dedup-hugepage-allocation-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-add-selftest-to-verify-recollapse-of-thps.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-dedup-hugepage-allocation-logic.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,16 +75,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: selftests/vm: add selftest to verify recollapse of THPs
-Date: Wed, 6 Jul 2022 16:59:35 -0700
+Subject: selftests/vm: dedup hugepage allocation logic
+Date: Wed, 6 Jul 2022 16:59:33 -0700
 
-Add selftest specific to madvise collapse context that tests MADV_COLLAPSE
-is "successful" if a hugepage-aligned/sized region is already pmd-mapped.
+The code
 
-This test also verifies that MADV_COLLAPSE can collapse memory into THPs
-even in "madvise" THP mode and the memory isn't marked VM_HUGEPAGE.
+	p = alloc_mapping();
+	printf("Allocate huge page...");
+	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
+	fill_memory(p, 0, hpage_pmd_size);
+	if (check_huge(p))
+		success("OK");
+	else
+		fail("Fail");
 
-Link: https://lkml.kernel.org/r/20220706235936.2197195-18-zokeefe@google.com
+Is repeated many times in different tests.  Add a helper, alloc_hpage()
+to handle this.
+
+Link: https://lkml.kernel.org/r/20220706235936.2197195-16-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -119,56 +127,108 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/khugepaged.c |   31 ++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ tools/testing/selftests/vm/khugepaged.c |   62 ++++++++--------------
+ 1 file changed, 23 insertions(+), 39 deletions(-)
 
---- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-add-selftest-to-verify-recollapse-of-thps
+--- a/tools/testing/selftests/vm/khugepaged.c~selftests-vm-dedup-hugepage-allocation-logic
 +++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -990,6 +990,36 @@ static void collapse_max_ptes_shared(str
- 	munmap(p, hpage_pmd_size);
+@@ -461,6 +461,25 @@ static void fill_memory(int *p, unsigned
+ 		p[i * page_size / sizeof(*p)] = i + 0xdead0000;
  }
  
-+static void madvise_collapse_existing_thps(void)
++/*
++ * Returns pmd-mapped hugepage in VMA marked VM_HUGEPAGE, filled with
++ * validate_memory()'able contents.
++ */
++static void *alloc_hpage(void)
 +{
 +	void *p;
-+	int err;
 +
 +	p = alloc_mapping();
++	printf("Allocate huge page...");
++	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
 +	fill_memory(p, 0, hpage_pmd_size);
-+
-+	printf("Collapse fully populated PTE table...");
-+	/*
-+	 * Note that we don't set MADV_HUGEPAGE here, which
-+	 * also tests that VM_HUGEPAGE isn't required for
-+	 * MADV_COLLAPSE in "madvise" mode.
-+	 */
-+	err = madvise(p, hpage_pmd_size, MADV_COLLAPSE);
-+	if (err == 0 && check_huge(p)) {
++	if (check_huge(p))
 +		success("OK");
-+		printf("Re-collapse PMD-mapped hugepage");
-+		err = madvise(p, hpage_pmd_size, MADV_COLLAPSE);
-+		if (err == 0 && check_huge(p))
-+			success("OK");
-+		else
-+			fail("Fail");
-+	} else {
++	else
 +		fail("Fail");
-+	}
-+	validate_memory(p, 0, hpage_pmd_size);
-+	munmap(p, hpage_pmd_size);
++	return p;
 +}
 +
- int main(int argc, const char **argv)
+ static void validate_memory(int *p, unsigned long start, unsigned long end)
  {
- 	struct collapse_context c;
-@@ -1057,6 +1087,7 @@ int main(int argc, const char **argv)
- 		collapse_fork(&c);
- 		collapse_fork_compound(&c);
- 		collapse_max_ptes_shared(&c);
-+		madvise_collapse_existing_thps();
- 	}
+ 	int i;
+@@ -682,15 +701,7 @@ static void collapse_single_pte_entry_co
+ {
+ 	void *p;
  
- 	restore_settings(0);
+-	p = alloc_mapping();
+-
+-	printf("Allocate huge page...");
+-	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
+-	fill_memory(p, 0, hpage_pmd_size);
+-	if (check_huge(p))
+-		success("OK");
+-	else
+-		fail("Fail");
++	p = alloc_hpage();
+ 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
+ 
+ 	printf("Split huge page leaving single PTE mapping compound page...");
+@@ -710,16 +721,7 @@ static void collapse_full_of_compound(st
+ {
+ 	void *p;
+ 
+-	p = alloc_mapping();
+-
+-	printf("Allocate huge page...");
+-	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
+-	fill_memory(p, 0, hpage_pmd_size);
+-	if (check_huge(p))
+-		success("OK");
+-	else
+-		fail("Fail");
+-
++	p = alloc_hpage();
+ 	printf("Split huge page leaving single PTE page table full of compound pages...");
+ 	madvise(p, page_size, MADV_NOHUGEPAGE);
+ 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
+@@ -837,16 +839,7 @@ static void collapse_fork_compound(struc
+ 	int wstatus;
+ 	void *p;
+ 
+-	p = alloc_mapping();
+-
+-	printf("Allocate huge page...");
+-	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
+-	fill_memory(p, 0, hpage_pmd_size);
+-	if (check_huge(p))
+-		success("OK");
+-	else
+-		fail("Fail");
+-
++	p = alloc_hpage();
+ 	printf("Share huge page over fork()...");
+ 	if (!fork()) {
+ 		/* Do not touch settings on child exit */
+@@ -896,16 +889,7 @@ static void collapse_max_ptes_shared(str
+ 	int wstatus;
+ 	void *p;
+ 
+-	p = alloc_mapping();
+-
+-	printf("Allocate huge page...");
+-	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
+-	fill_memory(p, 0, hpage_pmd_size);
+-	if (check_huge(p))
+-		success("OK");
+-	else
+-		fail("Fail");
+-
++	p = alloc_hpage();
+ 	printf("Share huge page over fork()...");
+ 	if (!fork()) {
+ 		/* Do not touch settings on child exit */
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
