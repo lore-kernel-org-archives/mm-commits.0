@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2ACEC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 20:27:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B14C5C43334
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 20:27:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240084AbiGHU1j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 16:27:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50730 "EHLO
+        id S240106AbiGHU1m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 16:27:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239499AbiGHU1a (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 16:27:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8A2188F1F
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 13:27:29 -0700 (PDT)
+        with ESMTP id S239928AbiGHU1e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 16:27:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B0E0904E2
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 13:27:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 673D66286E
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 20:27:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB6A7C341C0;
-        Fri,  8 Jul 2022 20:27:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 147F7B80522
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 20:27:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFD85C341C7;
+        Fri,  8 Jul 2022 20:27:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657312048;
-        bh=gdGwygjom5C2sWMy3ooJBuqkikhVFFW8B6YgWKWt10s=;
+        s=korg; t=1657312050;
+        bh=SR6NhVqdexN+IMqPVhawH5Ac0D5ocT9FVsgxwrY4W4k=;
         h=Date:To:From:Subject:From;
-        b=rqByxQOcLUQVdtQsNc5B61bGIk7I7MRG61hAkE1yTeNRYgpUjGkXRTVmQZIS4mtXz
-         9dqh+tEIiy7ujqVUqg62YQ9jkMRZDZhCiToa1uAf5Glsgqqn9xw7xUPg76bAbEkpiO
-         30lknHgoHnrFkWL2dI/VxemrCKgidYZoJJCtuOBc=
-Date:   Fri, 08 Jul 2022 13:27:28 -0700
+        b=zXDwsu6/Gg3dok4Jx14RinQcsV8+1cKNvw6OETmtZttl6IzjG/Co3sWOOO1KT6mOT
+         JM0WjSlcLmtz1FrLsaWNbcRwRFkX/mmn/2LvJi1fzaLp30RMU5w1UJRRvhHdLd2oGH
+         PkbBBRFwfnyw6fEAZ2X06kqWmMOaPHySYqKUFYAI=
+Date:   Fri, 08 Jul 2022 13:27:30 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
         lkp@intel.com, liushixin2@huawei.com, linmiaohe@huawei.com,
         david@redhat.com, naoya.horiguchi@nec.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch added to mm-unstable branch
-Message-Id: <20220708202728.BB6A7C341C0@smtp.kernel.org>
+Subject: + mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch added to mm-unstable branch
+Message-Id: <20220708202730.BFD85C341C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: skip raw hwpoison page in freeing 1GB hugepage
+     Subject: mm, hwpoison: enable memory error handling on 1GB hugepage
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch
+     mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,36 +68,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: skip raw hwpoison page in freeing 1GB hugepage
-Date: Fri, 8 Jul 2022 14:36:52 +0900
+Subject: mm, hwpoison: enable memory error handling on 1GB hugepage
+Date: Fri, 8 Jul 2022 14:36:53 +0900
 
-Currently if memory_failure() (modified to remove blocking code with
-subsequent patch) is called on a page in some 1GB hugepage, memory error
-handling fails and the raw error page gets into leaked state.  The impact
-is small in production systems (just leaked single 4kB page), but this
-limits the testability because unpoison doesn't work for it.  We can no
-longer create 1GB hugepage on the 1GB physical address range with such
-leaked pages, that's not useful when testing on small systems.
+Now error handling code is prepared, so remove the blocking code and
+enable memory error handling on 1GB hugepage.
 
-When a hwpoison page in a 1GB hugepage is handled, it's caught by the
-PageHWPoison check in free_pages_prepare() because the 1GB hugepage is
-broken down into raw error pages before coming to this point:
-
-        if (unlikely(PageHWPoison(page)) && !order) {
-                ...
-                return false;
-        }
-
-Then, the page is not sent to buddy and the page refcount is left 0.
-
-Originally this check is supposed to work when the error page is freed
-from page_handle_poison() (that is called from soft-offline), but now we
-are opening another path to call it, so the callers of
-__page_handle_poison() need to handle the case by considering the return
-value 0 as success.  Then page refcount for hwpoison is properly
-incremented so unpoison works.
-
-Link: https://lkml.kernel.org/r/20220708053653.964464-8-naoya.horiguchi@linux.dev
+Link: https://lkml.kernel.org/r/20220708053653.964464-9-naoya.horiguchi@linux.dev
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -110,46 +87,63 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/mm.h      |    1 -
+ include/ras/ras_event.h |    1 -
+ mm/memory-failure.c     |   16 ----------------
+ 3 files changed, 18 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage
+--- a/include/linux/mm.h~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
++++ a/include/linux/mm.h
+@@ -3241,7 +3241,6 @@ enum mf_action_page_type {
+ 	MF_MSG_DIFFERENT_COMPOUND,
+ 	MF_MSG_HUGE,
+ 	MF_MSG_FREE_HUGE,
+-	MF_MSG_NON_PMD_HUGE,
+ 	MF_MSG_UNMAP_FAILED,
+ 	MF_MSG_DIRTY_SWAPCACHE,
+ 	MF_MSG_CLEAN_SWAPCACHE,
+--- a/include/ras/ras_event.h~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
++++ a/include/ras/ras_event.h
+@@ -360,7 +360,6 @@ TRACE_EVENT(aer_event,
+ 	EM ( MF_MSG_DIFFERENT_COMPOUND, "different compound page after locking" ) \
+ 	EM ( MF_MSG_HUGE, "huge page" )					\
+ 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
+-	EM ( MF_MSG_NON_PMD_HUGE, "non-pmd-sized huge page" )		\
+ 	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
+ 	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
+ 	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
+--- a/mm/memory-failure.c~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
 +++ a/mm/memory-failure.c
-@@ -1084,7 +1084,6 @@ static int me_huge_page(struct page_stat
- 		res = truncate_error_page(hpage, page_to_pfn(p), mapping);
- 		unlock_page(hpage);
- 	} else {
--		res = MF_FAILED;
- 		unlock_page(hpage);
- 		/*
- 		 * migration entry prevents later access on error hugepage,
-@@ -1092,9 +1091,11 @@ static int me_huge_page(struct page_stat
- 		 * subpages.
- 		 */
- 		put_page(hpage);
--		if (__page_handle_poison(p) > 0) {
-+		if (__page_handle_poison(p) >= 0) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
-+		} else {
-+			res = MF_FAILED;
- 		}
- 	}
+@@ -765,7 +765,6 @@ static const char * const action_page_ty
+ 	[MF_MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
+ 	[MF_MSG_HUGE]			= "huge page",
+ 	[MF_MSG_FREE_HUGE]		= "free huge page",
+-	[MF_MSG_NON_PMD_HUGE]		= "non-pmd-sized huge page",
+ 	[MF_MSG_UNMAP_FAILED]		= "unmapping failed page",
+ 	[MF_MSG_DIRTY_SWAPCACHE]	= "dirty swapcache page",
+ 	[MF_MSG_CLEAN_SWAPCACHE]	= "clean swapcache page",
+@@ -1873,21 +1872,6 @@ retry:
  
-@@ -1860,10 +1861,11 @@ retry:
- 	 */
- 	if (res == 0) {
- 		unlock_page(head);
--		res = MF_FAILED;
--		if (__page_handle_poison(p) > 0) {
-+		if (__page_handle_poison(p) >= 0) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
-+		} else {
-+			res = MF_FAILED;
- 		}
- 		action_result(pfn, MF_MSG_FREE_HUGE, res);
- 		return res == MF_RECOVERED ? 0 : -EBUSY;
+ 	page_flags = head->flags;
+ 
+-	/*
+-	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
+-	 * simply disable it. In order to make it work properly, we need
+-	 * make sure that:
+-	 *  - conversion of a pud that maps an error hugetlb into hwpoison
+-	 *    entry properly works, and
+-	 *  - other mm code walking over page table is aware of pud-aligned
+-	 *    hwpoison entries.
+-	 */
+-	if (huge_page_size(page_hstate(head)) > PMD_SIZE) {
+-		action_result(pfn, MF_MSG_NON_PMD_HUGE, MF_IGNORED);
+-		res = -EBUSY;
+-		goto out;
+-	}
+-
+ 	if (!hwpoison_user_mappings(p, pfn, flags, head)) {
+ 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
+ 		res = -EBUSY;
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
