@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7762CCCA483
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 21:04:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52761CCA47B
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Jul 2022 21:04:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240108AbiGHVE6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Jul 2022 17:04:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56404 "EHLO
+        id S240320AbiGHVE5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Jul 2022 17:04:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240297AbiGHVE4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:04:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44B5A2BB2F
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:04:55 -0700 (PDT)
+        with ESMTP id S240418AbiGHVEx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2022 17:04:53 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27A10A0256
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 14:04:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C3AF062918
-        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:04:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 153C1C341C0;
-        Fri,  8 Jul 2022 21:04:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 99177B804A4
+        for <mm-commits@vger.kernel.org>; Fri,  8 Jul 2022 21:04:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A6D1C341C0;
+        Fri,  8 Jul 2022 21:04:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657314294;
-        bh=lxCWef8SE6yiRktgGlfNyEsmXp5+o77d91fi52XjwIk=;
+        s=korg; t=1657314288;
+        bh=axzoUf+kzeTV0ncPBjxcDKPS5hdF6N5784UN8lZUj8c=;
         h=Date:To:From:Subject:From;
-        b=bX2ThLJuo1SvBtQbIwzhnqvaFLP923CSwwdUMYwj6kVJ7cJ721U94FMNuwTa8grJP
-         zQKTjwlLh5Vcns2TwKn+wH9XQAb0BNOVYHJbUVRVFmsf/b2t4l3ckdd/1caJSefeaL
-         9uAdWFqPkbuS5VsxM+BKub5gyaO3GH1tPpZxOt2w=
-Date:   Fri, 08 Jul 2022 14:04:53 -0700
+        b=HGZBB7+uqhwU1Dfl45/4wLja57l+giCpReshBgpfFepVkzXdQ/rnA/tq9vLUSNuOh
+         bH5CHaRodIU4RBDLIhHeiM+iDREPpboTv4LkIH5dK/Gx/mwgpXP7geiB3FqQCSkszP
+         bU+38Q75ZzzG24hUQCnIDSj1gLBDXCswgARhdjyE=
+Date:   Fri, 08 Jul 2022 14:04:47 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
         sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         arnd@arndb.de, alex.shi@linux.alibaba.com, aarcange@redhat.com,
         zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch added to mm-unstable branch
-Message-Id: <20220708210454.153C1C341C0@smtp.kernel.org>
+Subject: + mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior.patch added to mm-unstable branch
+Message-Id: <20220708210448.3A6D1C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: record SCAN_PMD_MAPPED when scan_pmd() finds hugepage
+     Subject: mm/khugepaged: add flag to predicate khugepaged-only behavior
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
+     mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,29 +75,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/khugepaged: record SCAN_PMD_MAPPED when scan_pmd() finds hugepage
-Date: Wed, 6 Jul 2022 16:59:26 -0700
+Subject: mm/khugepaged: add flag to predicate khugepaged-only behavior
+Date: Wed, 6 Jul 2022 16:59:24 -0700
 
-When scanning an anon pmd to see if it's eligible for collapse, return
-SCAN_PMD_MAPPED if the pmd already maps a hugepage.  Note that
-SCAN_PMD_MAPPED is different from SCAN_PAGE_COMPOUND used in the
-file-collapse path, since the latter might identify pte-mapped compound
-pages.  This is required by MADV_COLLAPSE which necessarily needs to know
-what hugepage-aligned/sized regions are already pmd-mapped.
+Add .is_khugepaged flag to struct collapse_control so khugepaged-specific
+behavior can be elided by MADV_COLLAPSE context.
 
-In order to determine if a pmd already maps a hugepage, refactor
-mm_find_pmd():
+Start by protecting khugepaged-specific heuristics by this flag.  In
+MADV_COLLAPSE, the user presumably has reason to believe the collapse will
+be beneficial and khugepaged heuristics shouldn't prevent the user from
+doing so:
 
-Return mm_find_pmd() to it's pre-commit f72e7dcdd252 ("mm: let mm_find_pmd
-fix buggy race with THP fault") behavior.  ksm was the only caller that
-explicitly wanted a pte-mapping pmd, so open code the pte-mapping logic
-there (pmd_present() and pmd_trans_huge() checks).
+1) sysfs-controlled knobs khugepaged_max_ptes_[none|swap|shared]
 
-Undo revert change in commit f72e7dcdd252 ("mm: let mm_find_pmd fix buggy
-race with THP fault") that open-coded split_huge_pmd_address() pmd lookup
-and use mm_find_pmd() instead.
+2) requirement that some pages in region being collapsed be young or
+   referenced
 
-Link: https://lkml.kernel.org/r/20220706235936.2197195-9-zokeefe@google.com
+Link: https://lkml.kernel.org/r/20220706235936.2197195-7-zokeefe@google.com
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -132,240 +126,182 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    1 
- mm/huge_memory.c                   |   18 --------
- mm/internal.h                      |    2 
- mm/khugepaged.c                    |   60 +++++++++++++++++++++------
- mm/ksm.c                           |   10 ++++
- mm/rmap.c                          |   15 ++----
- 6 files changed, 67 insertions(+), 39 deletions(-)
+ mm/khugepaged.c |   62 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 43 insertions(+), 19 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
-+++ a/include/trace/events/huge_memory.h
-@@ -11,6 +11,7 @@
- 	EM( SCAN_FAIL,			"failed")			\
- 	EM( SCAN_SUCCEED,		"succeeded")			\
- 	EM( SCAN_PMD_NULL,		"pmd_null")			\
-+	EM( SCAN_PMD_MAPPED,		"page_pmd_mapped")		\
- 	EM( SCAN_EXCEED_NONE_PTE,	"exceed_none_pte")		\
- 	EM( SCAN_EXCEED_SWAP_PTE,	"exceed_swap_pte")		\
- 	EM( SCAN_EXCEED_SHARED_PTE,	"exceed_shared_pte")		\
---- a/mm/huge_memory.c~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
-+++ a/mm/huge_memory.c
-@@ -2363,25 +2363,11 @@ out:
- void split_huge_pmd_address(struct vm_area_struct *vma, unsigned long address,
- 		bool freeze, struct folio *folio)
- {
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
-+	pmd_t *pmd = mm_find_pmd(vma->vm_mm, address);
- 
--	pgd = pgd_offset(vma->vm_mm, address);
--	if (!pgd_present(*pgd))
-+	if (!pmd)
- 		return;
- 
--	p4d = p4d_offset(pgd, address);
--	if (!p4d_present(*p4d))
--		return;
--
--	pud = pud_offset(p4d, address);
--	if (!pud_present(*pud))
--		return;
--
--	pmd = pmd_offset(pud, address);
--
- 	__split_huge_pmd(vma, pmd, address, freeze, folio);
- }
- 
---- a/mm/internal.h~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
-+++ a/mm/internal.h
-@@ -188,7 +188,7 @@ extern void reclaim_throttle(pg_data_t *
- /*
-  * in mm/rmap.c:
-  */
--extern pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
-+pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
- 
- /*
-  * in mm/page_alloc.c
---- a/mm/khugepaged.c~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
+--- a/mm/khugepaged.c~mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior
 +++ a/mm/khugepaged.c
-@@ -28,6 +28,7 @@ enum scan_result {
- 	SCAN_FAIL,
- 	SCAN_SUCCEED,
- 	SCAN_PMD_NULL,
-+	SCAN_PMD_MAPPED,
- 	SCAN_EXCEED_NONE_PTE,
- 	SCAN_EXCEED_SWAP_PTE,
- 	SCAN_EXCEED_SHARED_PTE,
-@@ -871,6 +872,45 @@ static int hugepage_vma_revalidate(struc
- 	return SCAN_SUCCEED;
- }
+@@ -73,6 +73,8 @@ static DECLARE_WAIT_QUEUE_HEAD(khugepage
+  * default collapse hugepages if there is at least one pte mapped like
+  * it would have happened if the vma was large enough during page
+  * fault.
++ *
++ * Note that these are only respected if collapse was initiated by khugepaged.
+  */
+ static unsigned int khugepaged_max_ptes_none __read_mostly;
+ static unsigned int khugepaged_max_ptes_swap __read_mostly;
+@@ -86,6 +88,8 @@ static struct kmem_cache *mm_slot_cache
+ #define MAX_PTE_MAPPED_THP 8
  
-+static int find_pmd_or_thp_or_none(struct mm_struct *mm,
-+				   unsigned long address,
-+				   pmd_t **pmd)
-+{
-+	pmd_t pmde;
+ struct collapse_control {
++	bool is_khugepaged;
 +
-+	*pmd = mm_find_pmd(mm, address);
-+	if (!*pmd)
-+		return SCAN_PMD_NULL;
-+
-+	pmde = pmd_read_atomic(*pmd);
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	/* See comments in pmd_none_or_trans_huge_or_clear_bad() */
-+	barrier();
-+#endif
-+	if (!pmd_present(pmde))
-+		return SCAN_PMD_NULL;
-+	if (pmd_trans_huge(pmde))
-+		return SCAN_PMD_MAPPED;
-+	if (pmd_bad(pmde))
-+		return SCAN_PMD_NULL;
-+	return SCAN_SUCCEED;
-+}
-+
-+static int check_pmd_still_valid(struct mm_struct *mm,
-+				 unsigned long address,
-+				 pmd_t *pmd)
-+{
-+	pmd_t *new_pmd;
-+	int result = find_pmd_or_thp_or_none(mm, address, &new_pmd);
-+
-+	if (result != SCAN_SUCCEED)
-+		return result;
-+	if (new_pmd != pmd)
-+		return SCAN_FAIL;
-+	return SCAN_SUCCEED;
-+}
-+
- /*
-  * Bring missing pages in from swap, to complete THP collapse.
-  * Only done if khugepaged_scan_pmd believes it is worthwhile.
-@@ -982,9 +1022,8 @@ static int collapse_huge_page(struct mm_
- 		goto out_nolock;
- 	}
+ 	/* Num pages scanned per node */
+ 	int node_load[MAX_NUMNODES];
  
--	pmd = mm_find_pmd(mm, address);
--	if (!pmd) {
--		result = SCAN_PMD_NULL;
-+	result = find_pmd_or_thp_or_none(mm, address, &pmd);
-+	if (result != SCAN_SUCCEED) {
- 		mmap_read_unlock(mm);
- 		goto out_nolock;
- 	}
-@@ -1012,7 +1051,8 @@ static int collapse_huge_page(struct mm_
- 	if (result != SCAN_SUCCEED)
- 		goto out_up_write;
- 	/* check if the pmd is still valid */
--	if (mm_find_pmd(mm, address) != pmd)
-+	result = check_pmd_still_valid(mm, address, pmd);
-+	if (result != SCAN_SUCCEED)
- 		goto out_up_write;
- 
- 	anon_vma_lock_write(vma->anon_vma);
-@@ -1115,11 +1155,9 @@ static int khugepaged_scan_pmd(struct mm
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 
--	pmd = mm_find_pmd(mm, address);
--	if (!pmd) {
--		result = SCAN_PMD_NULL;
-+	result = find_pmd_or_thp_or_none(mm, address, &pmd);
-+	if (result != SCAN_SUCCEED)
- 		goto out;
--	}
- 
- 	memset(cc->node_load, 0, sizeof(cc->node_load));
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
-@@ -1373,8 +1411,7 @@ void collapse_pte_mapped_thp(struct mm_s
- 	if (!PageHead(hpage))
- 		goto drop_hpage;
- 
--	pmd = mm_find_pmd(mm, haddr);
--	if (!pmd)
-+	if (find_pmd_or_thp_or_none(mm, haddr, &pmd) != SCAN_SUCCEED)
- 		goto drop_hpage;
- 
- 	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
-@@ -1492,8 +1529,7 @@ static void retract_page_tables(struct a
- 		if (vma->vm_end < addr + HPAGE_PMD_SIZE)
- 			continue;
- 		mm = vma->vm_mm;
--		pmd = mm_find_pmd(mm, addr);
--		if (!pmd)
-+		if (find_pmd_or_thp_or_none(mm, addr, &pmd) != SCAN_SUCCEED)
- 			continue;
- 		/*
- 		 * We need exclusive mmap_lock to retract page table.
---- a/mm/ksm.c~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
-+++ a/mm/ksm.c
-@@ -1136,6 +1136,7 @@ static int replace_page(struct vm_area_s
+@@ -554,6 +558,7 @@ static bool is_refcount_suitable(struct
+ static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
+ 					unsigned long address,
+ 					pte_t *pte,
++					struct collapse_control *cc,
+ 					struct list_head *compound_pagelist)
  {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t *pmd;
-+	pmd_t pmde;
- 	pte_t *ptep;
- 	pte_t newpte;
- 	spinlock_t *ptl;
-@@ -1150,6 +1151,15 @@ static int replace_page(struct vm_area_s
- 	pmd = mm_find_pmd(mm, addr);
- 	if (!pmd)
- 		goto out;
-+	/*
-+	 * Some THP functions use the sequence pmdp_huge_clear_flush(), set_pmd_at()
-+	 * without holding anon_vma lock for write.  So when looking for a
-+	 * genuine pmde (in which to find pte), test present and !THP together.
-+	 */
-+	pmde = *pmd;
-+	barrier();
-+	if (!pmd_present(pmde) || pmd_trans_huge(pmde))
-+		goto out;
+ 	struct page *page = NULL;
+@@ -567,7 +572,8 @@ static int __collapse_huge_page_isolate(
+ 		if (pte_none(pteval) || (pte_present(pteval) &&
+ 				is_zero_pfn(pte_pfn(pteval)))) {
+ 			if (!userfaultfd_armed(vma) &&
+-			    ++none_or_zero <= khugepaged_max_ptes_none) {
++			    (++none_or_zero <= khugepaged_max_ptes_none ||
++			     !cc->is_khugepaged)) {
+ 				continue;
+ 			} else {
+ 				result = SCAN_EXCEED_NONE_PTE;
+@@ -587,8 +593,8 @@ static int __collapse_huge_page_isolate(
  
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm, addr,
- 				addr + PAGE_SIZE);
---- a/mm/rmap.c~mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage
-+++ a/mm/rmap.c
-@@ -767,13 +767,17 @@ unsigned long page_address_in_vma(struct
- 	return vma_address(page, vma);
- }
+ 		VM_BUG_ON_PAGE(!PageAnon(page), page);
  
-+/*
-+ * Returns the actual pmd_t* where we expect 'address' to be mapped from, or
-+ * NULL if it doesn't exist.  No guarantees / checks on what the pmd_t*
-+ * represents.
-+ */
- pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd = NULL;
--	pmd_t pmde;
+-		if (page_mapcount(page) > 1 &&
+-				++shared > khugepaged_max_ptes_shared) {
++		if (cc->is_khugepaged && page_mapcount(page) > 1 &&
++		    ++shared > khugepaged_max_ptes_shared) {
+ 			result = SCAN_EXCEED_SHARED_PTE;
+ 			count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+ 			goto out;
+@@ -654,10 +660,14 @@ static int __collapse_huge_page_isolate(
+ 		if (PageCompound(page))
+ 			list_add_tail(&page->lru, compound_pagelist);
+ next:
+-		/* There should be enough young pte to collapse the page */
+-		if (pte_young(pteval) ||
+-		    page_is_young(page) || PageReferenced(page) ||
+-		    mmu_notifier_test_young(vma->vm_mm, address))
++		/*
++		 * If collapse was initiated by khugepaged, check that there is
++		 * enough young pte to justify collapsing the page
++		 */
++		if (cc->is_khugepaged &&
++		    (pte_young(pteval) || page_is_young(page) ||
++		     PageReferenced(page) || mmu_notifier_test_young(vma->vm_mm,
++								     address)))
+ 			referenced++;
  
- 	pgd = pgd_offset(mm, address);
- 	if (!pgd_present(*pgd))
-@@ -788,15 +792,6 @@ pmd_t *mm_find_pmd(struct mm_struct *mm,
- 		goto out;
+ 		if (pte_write(pteval))
+@@ -666,7 +676,7 @@ next:
  
- 	pmd = pmd_offset(pud, address);
--	/*
--	 * Some THP functions use the sequence pmdp_huge_clear_flush(), set_pmd_at()
--	 * without holding anon_vma lock for write.  So when looking for a
--	 * genuine pmde (in which to find pte), test present and !THP together.
--	 */
--	pmde = *pmd;
--	barrier();
--	if (!pmd_present(pmde) || pmd_trans_huge(pmde))
--		pmd = NULL;
- out:
- 	return pmd;
- }
+ 	if (unlikely(!writable)) {
+ 		result = SCAN_PAGE_RO;
+-	} else if (unlikely(!referenced)) {
++	} else if (unlikely(cc->is_khugepaged && !referenced)) {
+ 		result = SCAN_LACK_REFERENCED_PAGE;
+ 	} else {
+ 		result = SCAN_SUCCEED;
+@@ -745,6 +755,7 @@ static void khugepaged_alloc_sleep(void)
+ 
+ 
+ struct collapse_control khugepaged_collapse_control = {
++	.is_khugepaged = true,
+ 	.last_target_node = NUMA_NO_NODE,
+ };
+ 
+@@ -1023,7 +1034,7 @@ static int collapse_huge_page(struct mm_
+ 	mmu_notifier_invalidate_range_end(&range);
+ 
+ 	spin_lock(pte_ptl);
+-	result =  __collapse_huge_page_isolate(vma, address, pte,
++	result =  __collapse_huge_page_isolate(vma, address, pte, cc,
+ 					       &compound_pagelist);
+ 	spin_unlock(pte_ptl);
+ 
+@@ -1114,7 +1125,8 @@ static int khugepaged_scan_pmd(struct mm
+ 	     _pte++, _address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+ 		if (is_swap_pte(pteval)) {
+-			if (++unmapped <= khugepaged_max_ptes_swap) {
++			if (++unmapped <= khugepaged_max_ptes_swap ||
++			    !cc->is_khugepaged) {
+ 				/*
+ 				 * Always be strict with uffd-wp
+ 				 * enabled swap entries.  Please see
+@@ -1133,7 +1145,8 @@ static int khugepaged_scan_pmd(struct mm
+ 		}
+ 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
+ 			if (!userfaultfd_armed(vma) &&
+-			    ++none_or_zero <= khugepaged_max_ptes_none) {
++			    (++none_or_zero <= khugepaged_max_ptes_none ||
++			     !cc->is_khugepaged)) {
+ 				continue;
+ 			} else {
+ 				result = SCAN_EXCEED_NONE_PTE;
+@@ -1163,8 +1176,9 @@ static int khugepaged_scan_pmd(struct mm
+ 			goto out_unmap;
+ 		}
+ 
+-		if (page_mapcount(page) > 1 &&
+-				++shared > khugepaged_max_ptes_shared) {
++		if (cc->is_khugepaged &&
++		    page_mapcount(page) > 1 &&
++		    ++shared > khugepaged_max_ptes_shared) {
+ 			result = SCAN_EXCEED_SHARED_PTE;
+ 			count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+ 			goto out_unmap;
+@@ -1218,14 +1232,22 @@ static int khugepaged_scan_pmd(struct mm
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out_unmap;
+ 		}
+-		if (pte_young(pteval) ||
+-		    page_is_young(page) || PageReferenced(page) ||
+-		    mmu_notifier_test_young(vma->vm_mm, address))
++
++		/*
++		 * If collapse was initiated by khugepaged, check that there is
++		 * enough young pte to justify collapsing the page
++		 */
++		if (cc->is_khugepaged &&
++		    (pte_young(pteval) || page_is_young(page) ||
++		     PageReferenced(page) || mmu_notifier_test_young(vma->vm_mm,
++								     address)))
+ 			referenced++;
+ 	}
+ 	if (!writable) {
+ 		result = SCAN_PAGE_RO;
+-	} else if (!referenced || (unmapped && referenced < HPAGE_PMD_NR/2)) {
++	} else if (cc->is_khugepaged &&
++		   (!referenced ||
++		    (unmapped && referenced < HPAGE_PMD_NR / 2))) {
+ 		result = SCAN_LACK_REFERENCED_PAGE;
+ 	} else {
+ 		result = SCAN_SUCCEED;
+@@ -1894,7 +1916,8 @@ static int khugepaged_scan_file(struct m
+ 			continue;
+ 
+ 		if (xa_is_value(page)) {
+-			if (++swap > khugepaged_max_ptes_swap) {
++			if (cc->is_khugepaged &&
++			    ++swap > khugepaged_max_ptes_swap) {
+ 				result = SCAN_EXCEED_SWAP_PTE;
+ 				count_vm_event(THP_SCAN_EXCEED_SWAP_PTE);
+ 				break;
+@@ -1945,7 +1968,8 @@ static int khugepaged_scan_file(struct m
+ 	rcu_read_unlock();
+ 
+ 	if (result == SCAN_SUCCEED) {
+-		if (present < HPAGE_PMD_NR - khugepaged_max_ptes_none) {
++		if (present < HPAGE_PMD_NR - khugepaged_max_ptes_none &&
++		    cc->is_khugepaged) {
+ 			result = SCAN_EXCEED_NONE_PTE;
+ 			count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
+ 		} else {
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
