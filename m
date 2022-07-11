@@ -2,104 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45BEDC43334
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Jul 2022 18:39:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB64C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Jul 2022 20:03:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229641AbiGKSjg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Jul 2022 14:39:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59066 "EHLO
+        id S229870AbiGKUC7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Jul 2022 16:02:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229815AbiGKSjf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2022 14:39:35 -0400
+        with ESMTP id S229470AbiGKUC7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2022 16:02:59 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F1911A06B
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 11:39:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AA4D419BD
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 13:02:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 839D9614FD
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 18:39:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B170FC34115;
-        Mon, 11 Jul 2022 18:39:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657564769;
-        bh=BYsrA8KKx3xlSRmwidRWo7VAKKANq51PxfdGGj5w/xU=;
-        h=Date:From:To:Cc:Subject:From;
-        b=wAIULtYMBCSOfFG9WOcAig+sNAQLOBCqrWQBewkXN+5P2bKsixfHZeg9Fv1j5tCmg
-         3QLQ679/d9eB6tmwMCoCtkVoAubtFGZXN72by8qc+uLd2U5TNQiGKO4XEVIe9C2CWk
-         i354kw4L5EtGHm6Fpx6LDJpK0f/qfJ40UMYfNSDs=
-Date:   Mon, 11 Jul 2022 11:39:28 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
-Subject: [GIT PULL] hotfixes for 5.19-rc7
-Message-Id: <20220711113928.6ff2bf870a502a46eb89f871@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 37CC9615EF
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 20:02:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 96550C34115;
+        Mon, 11 Jul 2022 20:02:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1657569777;
+        bh=23Z+TiojObnR+swp1j3AqEf2EBgF58icSbr4KkTQEZk=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=tPfuWlt9lq+7wl9FhuQzXLpbk2KeHWpMUrpEuEgkKeb4cCzq7XSKOyi0NPsedCqGn
+         KVRNFN1ONOUFSraXjBXay6EsZD97Sk/ITjTEhMbAgjyCoAZW79/yxKs/n6gvK+SJ3y
+         jNAtctRPtdItltpyFBz8TJYb1QQpZUW06GxdfLnlhAGW0c3f5UYmFWeZjkThSdOnJD
+         +7bViCVBV1uY5sb9VkInUjPuC97SEPWeDyQ6Ur7BcSMn6KfeSJdYTUWMR0u48+e96J
+         FW/0udjc+QOMZD8sx106LzfXB95dATT0nMvMRUSBCf95geNsFPCuDn6L9Jf1/DnO3v
+         52pQ5LcSNS1EA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 83388E45222;
+        Mon, 11 Jul 2022 20:02:57 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 5.19-rc7
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20220711113928.6ff2bf870a502a46eb89f871@linux-foundation.org>
+References: <20220711113928.6ff2bf870a502a46eb89f871@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20220711113928.6ff2bf870a502a46eb89f871@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-07-11
+X-PR-Tracked-Commit-Id: 14c99d65941538aa33edd8dc7b1bbbb593c324a2
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 8e59a6a7a4fa0bbcd174ea75f1da9531d3857937
+Message-Id: <165756977753.22959.12363960405573420560.pr-tracker-bot@kernel.org>
+Date:   Mon, 11 Jul 2022 20:02:57 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        mm-commits@vger.kernel.org, linux-mm@kvack.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The pull request you sent on Mon, 11 Jul 2022 11:39:28 -0700:
 
-Linus,
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-07-11
 
-please merge another batch of hotfixes.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/8e59a6a7a4fa0bbcd174ea75f1da9531d3857937
 
-The following changes since commit 03c765b0e3b4cb5063276b086c76f7a612856a9a:
+Thank you!
 
-  Linux 5.19-rc4 (2022-06-26 14:22:10 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-07-11
-
-for you to fetch changes up to 14c99d65941538aa33edd8dc7b1bbbb593c324a2:
-
-  mm: split huge PUD on wp_huge_pud fallback (2022-07-03 15:42:33 -0700)
-
-----------------------------------------------------------------
-Mainly MM fixes.  About half for issues which were introduced after 5.18
-and the remainder for longer-term issues.
-
-----------------------------------------------------------------
-Axel Rasmussen (1):
-      mm: userfaultfd: fix UFFDIO_CONTINUE on fallocated shmem pages
-
-Bagas Sanjaya (1):
-      Documentation: highmem: use literal block for code example in highmem.h comment
-
-Baolin Wang (1):
-      mm/damon: use set_huge_pte_at() to make huge pte old
-
-David Hildenbrand (1):
-      mm/rmap: fix dereferencing invalid subpage pointer in try_to_migrate_one()
-
-Geert Uytterhoeven (1):
-      sh: convert nommu io{re,un}map() to static inline functions
-
-Gowans, James (1):
-      mm: split huge PUD on wp_huge_pud fallback
-
-Muchun Song (1):
-      mm: sparsemem: fix missing higher order allocation splitting
-
-Ryusuke Konishi (1):
-      nilfs2: fix incorrect masking of permission flags for symlinks
-
-YueHaibing (1):
-      riscv/mm: fix build error while PAGE_TABLE_CHECK enabled without MMU
-
- arch/riscv/Kconfig       |  2 +-
- arch/sh/include/asm/io.h |  8 ++++++--
- fs/nilfs2/nilfs.h        |  3 +++
- include/linux/highmem.h  | 18 +++++++++---------
- mm/damon/vaddr.c         |  3 +--
- mm/memory.c              | 27 ++++++++++++++-------------
- mm/rmap.c                | 27 +++++++++++++++++----------
- mm/sparse-vmemmap.c      |  8 ++++++++
- mm/userfaultfd.c         |  5 ++++-
- 9 files changed, 63 insertions(+), 38 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
