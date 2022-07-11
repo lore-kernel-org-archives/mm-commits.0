@@ -2,68 +2,120 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB64C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Jul 2022 20:03:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3D97C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Jul 2022 20:28:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229870AbiGKUC7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Jul 2022 16:02:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58548 "EHLO
+        id S231950AbiGKU2p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Jul 2022 16:28:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229470AbiGKUC7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2022 16:02:59 -0400
+        with ESMTP id S231758AbiGKU2a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2022 16:28:30 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AA4D419BD
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 13:02:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27160814A0;
+        Mon, 11 Jul 2022 13:26:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 37CC9615EF
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 20:02:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 96550C34115;
-        Mon, 11 Jul 2022 20:02:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1657569777;
-        bh=23Z+TiojObnR+swp1j3AqEf2EBgF58icSbr4KkTQEZk=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=tPfuWlt9lq+7wl9FhuQzXLpbk2KeHWpMUrpEuEgkKeb4cCzq7XSKOyi0NPsedCqGn
-         KVRNFN1ONOUFSraXjBXay6EsZD97Sk/ITjTEhMbAgjyCoAZW79/yxKs/n6gvK+SJ3y
-         jNAtctRPtdItltpyFBz8TJYb1QQpZUW06GxdfLnlhAGW0c3f5UYmFWeZjkThSdOnJD
-         +7bViCVBV1uY5sb9VkInUjPuC97SEPWeDyQ6Ur7BcSMn6KfeSJdYTUWMR0u48+e96J
-         FW/0udjc+QOMZD8sx106LzfXB95dATT0nMvMRUSBCf95geNsFPCuDn6L9Jf1/DnO3v
-         52pQ5LcSNS1EA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 83388E45222;
-        Mon, 11 Jul 2022 20:02:57 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 5.19-rc7
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20220711113928.6ff2bf870a502a46eb89f871@linux-foundation.org>
-References: <20220711113928.6ff2bf870a502a46eb89f871@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20220711113928.6ff2bf870a502a46eb89f871@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-07-11
-X-PR-Tracked-Commit-Id: 14c99d65941538aa33edd8dc7b1bbbb593c324a2
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 8e59a6a7a4fa0bbcd174ea75f1da9531d3857937
-Message-Id: <165756977753.22959.12363960405573420560.pr-tracker-bot@kernel.org>
-Date:   Mon, 11 Jul 2022 20:02:57 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        mm-commits@vger.kernel.org, linux-mm@kvack.org
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9E6116160E;
+        Mon, 11 Jul 2022 20:26:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E95ECC341C0;
+        Mon, 11 Jul 2022 20:26:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1657571186;
+        bh=MsUPYVM2OliJqD7tBhTdBbemW3qATIT+p1+8SDLV5ck=;
+        h=Date:To:From:Subject:From;
+        b=DRZHydq1Z/pa15YhjoMpHHXiWD+coEOyg6r2pkbu+HxuqWvRNfrffNELXDnNxCpEG
+         BbfF9zSfadzGDx/b2MJoWiShJ0FXDqPgDxNEsrMhkascs8iBSNZP9oRQTmf0BNYV5M
+         9NdCQsmRdB00AWOFSbyMm4FvfoL0SAgMEww3K5NQ=
+Date:   Mon, 11 Jul 2022 13:26:24 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        songmuchun@bytedance.com, mike.kravetz@oracle.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + hugetlb-fix-memoryleak-in-hugetlb_mcopy_atomic_pte.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220711202625.E95ECC341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Mon, 11 Jul 2022 11:39:28 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-07-11
+The patch titled
+     Subject: hugetlb: fix memoryleak in hugetlb_mcopy_atomic_pte
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     hugetlb-fix-memoryleak-in-hugetlb_mcopy_atomic_pte.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/8e59a6a7a4fa0bbcd174ea75f1da9531d3857937
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-fix-memoryleak-in-hugetlb_mcopy_atomic_pte.patch
 
-Thank you!
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: hugetlb: fix memoryleak in hugetlb_mcopy_atomic_pte
+Date: Sat, 9 Jul 2022 17:26:29 +0800
+
+When alloc_huge_page fails, *pagep is set to NULL without put_page first.
+So the hugepage indicated by *pagep is leaked.
+
+Link: https://lkml.kernel.org/r/20220709092629.54291-1-linmiaohe@huawei.com
+Fixes: 8cc5fcbb5be8 ("mm, hugetlb: fix racy resv_huge_pages underflow on UFFDIO_COPY")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/mm/hugetlb.c~hugetlb-fix-memoryleak-in-hugetlb_mcopy_atomic_pte
++++ a/mm/hugetlb.c
+@@ -5952,6 +5952,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 
+ 		page = alloc_huge_page(dst_vma, dst_addr, 0);
+ 		if (IS_ERR(page)) {
++			put_page(*pagep);
+ 			ret = -ENOMEM;
+ 			*pagep = NULL;
+ 			goto out;
+_
+
+Patches currently in -mm which might be from linmiaohe@huawei.com are
+
+hugetlb-fix-memoryleak-in-hugetlb_mcopy_atomic_pte.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
+filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
+mm-huge_memory-use-flush_pmd_tlb_range-in-move_huge_pmd.patch
+mm-huge_memory-access-vm_page_prot-with-read_once-in-remove_migration_pmd.patch
+mm-huge_memory-fix-comment-of-__pud_trans_huge_lock.patch
+mm-huge_memory-use-helper-touch_pud-in-huge_pud_set_accessed.patch
+mm-huge_memory-use-helper-touch_pmd-in-huge_pmd_set_accessed.patch
+mm-huge_memory-rename-mmun_start-to-haddr-in-remove_migration_pmd.patch
+mm-huge_memory-use-helper-function-vma_lookup-in-split_huge_pages_pid.patch
+mm-huge_memory-use-helper-macro-__attr_rw.patch
+mm-huge_memory-fix-comment-in-zap_huge_pud.patch
+mm-huge_memory-check-pmd_present-first-in-is_huge_zero_pmd.patch
+mm-huge_memory-try-to-free-subpage-in-swapcache-when-possible.patch
+mm-huge_memory-minor-cleanup-for-split_huge_pages_all.patch
+mm-huge_memory-fix-comment-of-page_deferred_list.patch
+mm-huge_memory-correct-comment-of-prep_transhuge_page.patch
+mm-huge_memory-comment-the-subtly-logic-in-__split_huge_pmd.patch
+mm-huge_memory-use-helper-macro-is_err_or_null-in-split_huge_pages_pid.patch
+
