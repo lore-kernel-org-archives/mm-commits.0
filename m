@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C504C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Jul 2022 20:31:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B64CC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Jul 2022 20:31:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230271AbiGKUbW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Jul 2022 16:31:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54308 "EHLO
+        id S231575AbiGKUb2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Jul 2022 16:31:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229796AbiGKUbD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2022 16:31:03 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CF8B8E1EE
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 13:28:49 -0700 (PDT)
+        with ESMTP id S231806AbiGKUbG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2022 16:31:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC0268E1D9
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 13:28:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 71E09B81201
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 20:28:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C9A4C341C0;
-        Mon, 11 Jul 2022 20:28:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 118DF615FE
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jul 2022 20:28:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 580CFC34115;
+        Mon, 11 Jul 2022 20:28:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657571306;
-        bh=hD+0SqXx78k/rObLELpeknwHpwg4ziP5xbCK++YjWUY=;
+        s=korg; t=1657571304;
+        bh=sxLLTqUfv0cXtyG9QhhK5PFbiQAULVAqZJA6mKvPrYA=;
         h=Date:To:From:Subject:From;
-        b=EvH/kdLIel/lxcthHE2bluDA0jqUNC1bU0uI5o7cnyzkC5GrdqcmAYPlTPmzQ9Qqs
-         nsl5FwSBNW/OeUTzLE+Joclt5sxfbyaC6AAZ+0kshVj82dFoWdvvqnTTRRYUSJYcob
-         /NXaMGSOVC/i/qC/GQDlKqXYbYfMzok+Dj8GNxwE=
-Date:   Mon, 11 Jul 2022 13:28:25 -0700
+        b=Vzf01aVP6SYS2uW4kUEGBFYEaL3XtDTfPRiwNGgap5W7jgFp+d/+3CK8dGrRr6bqB
+         awW8ammRveNK+vQnzWTE2Wa1Y1eCXy+7lOLu30JYrwvCwdJpWsNgJ6B3dR/ICIBUto
+         RXEGViYfWoZmOE69olMJth1VzgzQhjNyNWOJps1A=
+Date:   Mon, 11 Jul 2022 13:28:23 -0700
 To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-fix-obsolete-comment-of-find_extend_vma.patch added to mm-unstable branch
-Message-Id: <20220711202826.0C9A4C341C0@smtp.kernel.org>
+Subject: + mm-page_vma_mappedc-use-helper-function-huge_pte_lock.patch added to mm-unstable branch
+Message-Id: <20220711202824.580CFC34115@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: fix obsolete comment of find_extend_vma
+     Subject: mm/page_vma_mapped.c: use helper function huge_pte_lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-fix-obsolete-comment-of-find_extend_vma.patch
+     mm-page_vma_mappedc-use-helper-function-huge_pte_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-fix-obsolete-comment-of-find_extend_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mappedc-use-helper-function-huge_pte_lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,31 +65,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mmap: fix obsolete comment of find_extend_vma
-Date: Sat, 9 Jul 2022 17:25:27 +0800
+Subject: mm/page_vma_mapped.c: use helper function huge_pte_lock
+Date: Sat, 9 Jul 2022 17:24:40 +0800
 
-mmget_still_valid() has already been removed via commit 4d45e75a9955 ("mm:
-remove the now-unnecessary mmget_still_valid() hack").  Update the
-corresponding comment.
+Use helper function huge_pte_lock() to lock the huge pte to simplify the
+code a bit.  No functional change intended.
 
-Link: https://lkml.kernel.org/r/20220709092527.47778-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220709092440.43018-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page_vma_mapped.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-fix-obsolete-comment-of-find_extend_vma
-+++ a/mm/mmap.c
-@@ -2126,7 +2126,6 @@ find_extend_vma(struct mm_struct *mm, un
- 	vma = find_vma_prev(mm, addr, &prev);
- 	if (vma && (vma->vm_start <= addr))
- 		return vma;
--	/* don't alter vm_end if the coredump is running */
- 	if (!prev || expand_stack(prev, addr))
- 		return NULL;
- 	if (prev->vm_flags & VM_LOCKED)
+--- a/mm/page_vma_mapped.c~mm-page_vma_mappedc-use-helper-function-huge_pte_lock
++++ a/mm/page_vma_mapped.c
+@@ -174,8 +174,7 @@ bool page_vma_mapped_walk(struct page_vm
+ 		if (!pvmw->pte)
+ 			return false;
+ 
+-		pvmw->ptl = huge_pte_lockptr(hstate, mm, pvmw->pte);
+-		spin_lock(pvmw->ptl);
++		pvmw->ptl = huge_pte_lock(hstate, mm, pvmw->pte);
+ 		if (!check_pte(pvmw))
+ 			return not_found(pvmw);
+ 		return true;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
