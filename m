@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 410F1C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 15:09:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8366CC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 15:32:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231764AbiGMPJU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jul 2022 11:09:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46014 "EHLO
+        id S231612AbiGMPcS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 11:32:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236861AbiGMPJM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 11:09:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E7D0DEE
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 08:09:11 -0700 (PDT)
+        with ESMTP id S230284AbiGMPcS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 11:32:18 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EF1E4D178
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 08:32:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 034B160B9F
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 15:09:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CEB4C34114;
-        Wed, 13 Jul 2022 15:09:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0B884B81FC6
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 15:32:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B254EC34114;
+        Wed, 13 Jul 2022 15:32:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657724950;
-        bh=wJmFwpBSqBA/ORS8aNGA7gHFRevrfBGNgzKWUOzdEK4=;
+        s=korg; t=1657726334;
+        bh=uLgdOd7M5sV5d0HoG0N/qXz8v3XoNyxUqRvocEru32w=;
         h=Date:To:From:Subject:From;
-        b=2ey7Z1Yt2U/izb4QT2kQZUYaabAC7NQ4UMvzQv3H/HfyiEVxcZok0BjFYozvDkFXS
-         LnhNonIzM8KBrmN7qYWoLgHkthDzbkwHi6yvJPQIBLRUXe47eNA0e9N8Kn92j3emNl
-         /oe/RKRaVLDAIwz7XfwkJo1zQ7nTfVihEc+mt1W4=
-Date:   Wed, 13 Jul 2022 08:09:09 -0700
-To:     mm-commits@vger.kernel.org, johannes.thumshirn@wdc.com,
-        jack@suse.cz, xiujianfeng@huawei.com, akpm@linux-foundation.org
+        b=zo02xCUU0vQ4CYaJ+9I8LrnH7gotNMrVjdMoBE5eB8fTqQ5wdD/iFHxM+A5rb9f7z
+         f5hNnBzkLl4maPvQu7VtBNCUPmMXtZxltphZeoVWIwU5oJEPYDC4mvTOqierrptCNZ
+         0KrWOHPWgHw3pyj1G6I9LX3TVf1+DJO65CHbJhOw=
+Date:   Wed, 13 Jul 2022 08:32:13 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com, lkp@intel.com,
+        dan.carpenter@oracle.com, jrdr.linux@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-cleanup-bdi_sched_wait.patch added to mm-unstable branch
-Message-Id: <20220713150910.4CEB4C34114@smtp.kernel.org>
+Subject: + mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch added to mm-unstable branch
+Message-Id: <20220713153214.B254EC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback: cleanup bdi_sched_wait()
+     Subject: mm/khugepaged: Avoid possible memory leak in failure path
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-cleanup-bdi_sched_wait.patch
+     mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-cleanup-bdi_sched_wait.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,43 +65,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: writeback: cleanup bdi_sched_wait()
-Date: Wed, 13 Jul 2022 20:53:14 +0800
+From: Souptick Joarder <jrdr.linux@gmail.com>
+Subject: mm/khugepaged: Avoid possible memory leak in failure path
+Date: Wed, 13 Jul 2022 08:11:09 +0530
 
-bdi_sched_wait() is no longer used since commit 839a8e8660b6 ("writeback:
-replace custom worker pool implementation with unbound workqueue"), so
-remove it.
 
-Link: https://lkml.kernel.org/r/20220713125314.171345-1-xiujianfeng@huawei.com
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Johannes Thumshirn <johannes.thumshirn@wdc.com>
+smatch warnings:
+mm/khugepaged.c:2409 madvise_collapse() warn: possible memory
+leak of 'cc'
+
+Avoiding possible memory leak.
+
+Link: https://lkml.kernel.org/r/20220713024109.62810-1-jrdr.linux@gmail.com
+Signed-off-by: Souptick Joarder (HPE) <jrdr.linux@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/khugepaged.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/backing-dev.h~writeback-cleanup-bdi_sched_wait
-+++ a/include/linux/backing-dev.h
-@@ -140,12 +140,6 @@ static inline bool mapping_can_writeback
- 	return inode_to_bdi(mapping->host)->capabilities & BDI_CAP_WRITEBACK;
- }
+--- a/mm/khugepaged.c~mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix
++++ a/mm/khugepaged.c
+@@ -2396,12 +2396,6 @@ int madvise_collapse(struct vm_area_stru
+ 	BUG_ON(vma->vm_start > start);
+ 	BUG_ON(vma->vm_end < end);
  
--static inline int bdi_sched_wait(void *word)
--{
--	schedule();
--	return 0;
--}
+-	cc = kmalloc(sizeof(*cc), GFP_KERNEL);
+-	if (!cc)
+-		return -ENOMEM;
+-	cc->is_khugepaged = false;
+-	cc->last_target_node = NUMA_NO_NODE;
 -
- #ifdef CONFIG_CGROUP_WRITEBACK
+ 	*prev = vma;
  
- struct bdi_writeback *wb_get_lookup(struct backing_dev_info *bdi,
+ 	/* TODO: Support file/shmem */
+@@ -2414,6 +2408,12 @@ int madvise_collapse(struct vm_area_stru
+ 	if (!hugepage_vma_check(vma, vma->vm_flags, false, false, false))
+ 		return -EINVAL;
+ 
++	cc = kmalloc(sizeof(*cc), GFP_KERNEL);
++	if (!cc)
++		return -ENOMEM;
++	cc->is_khugepaged = false;
++	cc->last_target_node = NUMA_NO_NODE;
++
+ 	mmgrab(mm);
+ 	lru_add_drain_all();
+ 
 _
 
-Patches currently in -mm which might be from xiujianfeng@huawei.com are
+Patches currently in -mm which might be from jrdr.linux@gmail.com are
 
-mm-mprotect-remove-the-redundant-initialization-for-error.patch
-writeback-cleanup-bdi_sched_wait.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch
 
