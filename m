@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B2EEC43334
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 14:56:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E604FC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 15:05:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231786AbiGMO4J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jul 2022 10:56:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59372 "EHLO
+        id S236816AbiGMPFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 11:05:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235692AbiGMO4E (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 10:56:04 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D27593D5BA
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 07:56:01 -0700 (PDT)
+        with ESMTP id S236817AbiGMPFc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 11:05:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 267B441D3D
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 08:05:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 756DEB82019
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 14:56:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1474FC34114;
-        Wed, 13 Jul 2022 14:55:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 948D2B81FE9
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 15:05:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 309B3C34114;
+        Wed, 13 Jul 2022 15:05:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657724159;
-        bh=PbDhBQUOzz2OatvsXIyHsDSUJvlb3NPshIHUo/LEz2c=;
+        s=korg; t=1657724726;
+        bh=WvQADkjFFIFn0BylqJmQG2mXWUvKoQ3mQ9/ZLAvZ3pI=;
         h=Date:To:From:Subject:From;
-        b=JZWixKk5VSQBsA1RbE4D7xUglC8A/ydlg9VI9Z8t71mysbwvEsoLIYaW7Lm0IZ248
-         YV29yU6ZD7+ml63xPjV/7RV6kke+S9vA2rHtkGda/X3x5lZGaEX4faKwY8CgAzCBZv
-         rV1m2Hl7YQwQ9x2o3sxnCbARpj+pti9XF5qOdOkE=
-Date:   Wed, 13 Jul 2022 07:55:58 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, riel@surriel.com,
-        kirill.shutemov@linux.intel.com, clm@fb.com, josef@toxicpanda.com,
+        b=ts6zUgE39MDvxAVQ5eDkeKj1aald7Zi+ooctub1NyeI9STLcSOUzb70Q80tAnKN48
+         TgkrAZAyA5hGKFGBAdIU5ID0J/79dfbaxR2vbjla+VGQFTSj5lXdKm+/ljUOvY+/xC
+         QwYUHCbDUv9upUqzFawU6zqnvW/j38oxH/lom2Nw=
+Date:   Wed, 13 Jul 2022 08:05:25 -0700
+To:     mm-commits@vger.kernel.org, yukuai3@huawei.com,
+        yi.zhang@huawei.com, willy@infradead.org, viro@zeniv.linux.org.uk,
+        kaleshsingh@google.com, ebiederm@xmission.com, bhe@redhat.com,
+        bfoster@redhat.com, adobriyan@gmail.com, chengzhihao1@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220713145559.1474FC34114@smtp.kernel.org>
+Subject: + proc-fix-a-dentry-lock-race-between-release_task-and-lookup.patch added to mm-nonmm-unstable branch
+Message-Id: <20220713150526.309B3C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2.patch
+     Subject: proc: fix a dentry lock race between release_task and lookup
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     proc-fix-a-dentry-lock-race-between-release_task-and-lookup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-fix-a-dentry-lock-race-between-release_task-and-lookup.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,42 +67,163 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2
-Date: Wed, 13 Jul 2022 10:13:37 -0400
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+Subject: proc: fix a dentry lock race between release_task and lookup
+Date: Wed, 13 Jul 2022 21:00:29 +0800
 
-Link: https://lkml.kernel.org/r/e90c8f0dbae836632b669c2afc434006a00d4a67.1657721478.git.josef@toxicpanda.com
-Fixes: f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Signed-off-by: Chris Mason <clm@fb.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Commit 7bc3e6e55acf06 ("proc: Use a list of inodes to flush from proc")
+moved proc_flush_task() behind __exit_signal().  Then, process systemd can
+take long period high cpu usage during releasing task in following
+concurrent processes:
+
+  systemd                                 ps
+kernel_waitid                 stat(/proc/tgid)
+  do_wait                       filename_lookup
+    wait_consider_task            lookup_fast
+      release_task
+        __exit_signal
+          __unhash_process
+            detach_pid
+              __change_pid // remove task->pid_links
+                                     d_revalidate -> pid_revalidate  // 0
+                                     d_invalidate(/proc/tgid)
+                                       shrink_dcache_parent(/proc/tgid)
+                                         d_walk(/proc/tgid)
+                                           spin_lock_nested(/proc/tgid/fd)
+                                           // iterating opened fd
+        proc_flush_pid                                    |
+           d_invalidate (/proc/tgid/fd)                   |
+              shrink_dcache_parent(/proc/tgid/fd)         |
+                shrink_dentry_list(subdirs)               ↓
+                  shrink_lock_dentry(/proc/tgid/fd) --> race on dentry lock
+
+Function d_invalidate() will remove dentry from hash firstly, but why does
+proc_flush_pid() process dentry '/proc/tgid/fd' before dentry
+'/proc/tgid'?  That's because proc_pid_make_inode() adds proc inode in
+reverse order by invoking hlist_add_head_rcu().  But proc should not add
+any inodes under '/proc/tgid' except '/proc/tgid/task/pid', fix it by
+adding inode into 'pid->inodes' only if the inode is /proc/tgid or
+/proc/tgid/task/pid.
+
+Performance regression:
+Create 200 tasks, each task open one file for 50,000 times. Kill all
+tasks when opened files exceed 10,000,000 (cat /proc/sys/fs/file-nr).
+
+Before fix:
+$ time killall -wq aa
+  real    4m40.946s   # During this period, we can see 'ps' and 'systemd'
+			taking high cpu usage.
+
+After fix:
+$ time killall -wq aa
+  real    1m20.732s   # During this period, we can see 'systemd' taking
+			high cpu usage.
+
+Link: https://lkml.kernel.org/r/20220713130029.4133533-1-chengzhihao1@huawei.com
+Fixes: 7bc3e6e55acf06 ("proc: Use a list of inodes to flush from proc")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=216054
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
+Suggested-by: Brian Foster <bfoster@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Yu Kuai <yukuai3@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/proc/base.c |   46 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 38 insertions(+), 8 deletions(-)
 
---- a/mm/memory.c~mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2
-+++ a/mm/memory.c
-@@ -4369,7 +4369,10 @@ vm_fault_t finish_fault(struct vm_fault
- 			return VM_FAULT_OOM;
- 	}
+--- a/fs/proc/base.c~proc-fix-a-dentry-lock-race-between-release_task-and-lookup
++++ a/fs/proc/base.c
+@@ -1885,7 +1885,7 @@ void proc_pid_evict_inode(struct proc_in
+ 	put_pid(pid);
+ }
  
--	/* See comment in handle_pte_fault() */
-+	/*
-+	 * See comment in handle_pte_fault() for how this scenario happens, we
-+	 * need to return NOPAGE so that we drop this page.
-+	 */
- 	if (pmd_devmap_trans_unstable(vmf->pmd))
- 		return VM_FAULT_NOPAGE;
+-struct inode *proc_pid_make_inode(struct super_block * sb,
++struct inode *proc_pid_make_inode(struct super_block *sb,
+ 				  struct task_struct *task, umode_t mode)
+ {
+ 	struct inode * inode;
+@@ -1914,11 +1914,6 @@ struct inode *proc_pid_make_inode(struct
+ 
+ 	/* Let the pid remember us for quick removal */
+ 	ei->pid = pid;
+-	if (S_ISDIR(mode)) {
+-		spin_lock(&pid->lock);
+-		hlist_add_head_rcu(&ei->sibling_inodes, &pid->inodes);
+-		spin_unlock(&pid->lock);
+-	}
+ 
+ 	task_dump_owner(task, 0, &inode->i_uid, &inode->i_gid);
+ 	security_task_to_inode(task, inode);
+@@ -1931,6 +1926,39 @@ out_unlock:
+ 	return NULL;
+ }
+ 
++/*
++ * Generating an inode and adding it into @pid->inodes, so that task will
++ * invalidate inode's dentry before being released.
++ *
++ * This helper is used for creating dir-type entries under '/proc' and
++ * '/proc/<tgid>/task'. Other entries(eg. fd, stat) under '/proc/<tgid>'
++ * can be released by invalidating '/proc/<tgid>' dentry.
++ * In theory, dentries under '/proc/<tgid>/task' can also be released by
++ * invalidating '/proc/<tgid>' dentry, we reserve it to handle single
++ * thread exiting situation: Any one of threads should invalidate its
++ * '/proc/<tgid>/task/<pid>' dentry before released.
++ */
++static struct inode *proc_pid_make_base_inode(struct super_block *sb,
++				struct task_struct *task, umode_t mode)
++{
++	struct inode *inode;
++	struct proc_inode *ei;
++	struct pid *pid;
++
++	inode = proc_pid_make_inode(sb, task, mode);
++	if (!inode)
++		return NULL;
++
++	/* Let proc_flush_pid find this directory inode */
++	ei = PROC_I(inode);
++	pid = ei->pid;
++	spin_lock(&pid->lock);
++	hlist_add_head_rcu(&ei->sibling_inodes, &pid->inodes);
++	spin_unlock(&pid->lock);
++
++	return inode;
++}
++
+ int pid_getattr(struct user_namespace *mnt_userns, const struct path *path,
+ 		struct kstat *stat, u32 request_mask, unsigned int query_flags)
+ {
+@@ -3372,7 +3400,8 @@ static struct dentry *proc_pid_instantia
+ {
+ 	struct inode *inode;
+ 
+-	inode = proc_pid_make_inode(dentry->d_sb, task, S_IFDIR | S_IRUGO | S_IXUGO);
++	inode = proc_pid_make_base_inode(dentry->d_sb, task,
++					 S_IFDIR | S_IRUGO | S_IXUGO);
+ 	if (!inode)
+ 		return ERR_PTR(-ENOENT);
+ 
+@@ -3674,7 +3703,8 @@ static struct dentry *proc_task_instanti
+ 	struct task_struct *task, const void *ptr)
+ {
+ 	struct inode *inode;
+-	inode = proc_pid_make_inode(dentry->d_sb, task, S_IFDIR | S_IRUGO | S_IXUGO);
++	inode = proc_pid_make_base_inode(dentry->d_sb, task,
++					 S_IFDIR | S_IRUGO | S_IXUGO);
+ 	if (!inode)
+ 		return ERR_PTR(-ENOENT);
  
 _
 
-Patches currently in -mm which might be from josef@toxicpanda.com are
+Patches currently in -mm which might be from chengzhihao1@huawei.com are
 
-mm-fix-page-leak-with-multiple-threads-mapping-the-same-page.patch
-mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2.patch
+proc-fix-a-dentry-lock-race-between-release_task-and-lookup.patch
 
