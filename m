@@ -2,142 +2,116 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4408EC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 17:36:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1F33C43334
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 17:58:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236436AbiGMRgs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jul 2022 13:36:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56762 "EHLO
+        id S231512AbiGMR6k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 13:58:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236470AbiGMRgp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 13:36:45 -0400
+        with ESMTP id S229772AbiGMR6j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 13:58:39 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E2982CCBA
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 10:36:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3706E5F42
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 10:58:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3D95BB82113
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 17:36:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB579C3411E;
-        Wed, 13 Jul 2022 17:36:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CFE41B820DB
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 17:58:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6466FC3411E;
+        Wed, 13 Jul 2022 17:58:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657733795;
-        bh=4osfcf4cDw+x/Df3Udsmf9qMKuG/4E5aXMKqbLCgjT0=;
+        s=korg; t=1657735115;
+        bh=tlLPMDBaBI2+YpHu1+CgYoqAGjdmbRJGj2kcZm5h0Cw=;
         h=Date:To:From:Subject:From;
-        b=D6bgr715R8raMnYCAUo4X3IHWFN1y4k+Uj5eJR9yCiVpUXjHHMcLcIRD0lIDjWvsd
-         Dcu52dP4C7KHXsOCK9Oz/YEiDFCpvZNaWGbv8LXV/KUOvGUmSGnqq0PjApnG78blAR
-         HxIOpJQWSJEb2/Azr8lFiAlMCqc+x64VcQB6CdLo=
-Date:   Wed, 13 Jul 2022 10:36:35 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
-        lkp@intel.com, liushixin2@huawei.com, linmiaohe@huawei.com,
-        david@redhat.com, naoya.horiguchi@nec.com,
+        b=Qx+A+gwoNG3RVsucexxGbJZXCjjYBXLcL9awEeNREAgcvotchEoxx3wYeC/TVfC+/
+         ITWpLOlkZO3ZKRSgX5yOfBZkuZ8ioKmSSZbW9+DDINY39IcAHE8BmN2bumZ/UwL+5X
+         xG/OmIiF52FzOhZc66nj6+MH9XCSPVS1i15B9eFI=
+Date:   Wed, 13 Jul 2022 10:58:34 -0700
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        agordeev@linux.ibm.com, liam.howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch removed from -mm tree
-Message-Id: <20220713173635.BB579C3411E@smtp.kernel.org>
+Subject: + maple-tree-add-new-data-structure-fix-5.patch added to mm-unstable branch
+Message-Id: <20220713175835.6466FC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm, hwpoison: skip raw hwpoison page in freeing 1GB hugepage
-has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch
+The patch titled
+     Subject: maple_tree: fix mas_empty_area_rev() search exhaustion at root node
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple-tree-add-new-data-structure-fix-5.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-5.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: skip raw hwpoison page in freeing 1GB hugepage
-Date: Fri, 8 Jul 2022 14:36:52 +0900
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: fix mas_empty_area_rev() search exhaustion at root node
+Date: Tue, 12 Jul 2022 01:50:36 +0000
 
-Currently if memory_failure() (modified to remove blocking code with
-subsequent patch) is called on a page in some 1GB hugepage, memory error
-handling fails and the raw error page gets into leaked state.  The impact
-is small in production systems (just leaked single 4kB page), but this
-limits the testability because unpoison doesn't work for it.  We can no
-longer create 1GB hugepage on the 1GB physical address range with such
-leaked pages, that's not useful when testing on small systems.
+When the possibilities of finding a gap are exhausted at the root node,
+the error code was not returned which results in returning a range that
+is currently occupied.  Add the necessary check for the error code and
+return to the caller.
 
-When a hwpoison page in a 1GB hugepage is handled, it's caught by the
-PageHWPoison check in free_pages_prepare() because the 1GB hugepage is
-broken down into raw error pages before coming to this point:
-
-        if (unlikely(PageHWPoison(page)) && !order) {
-                ...
-                return false;
-        }
-
-Then, the page is not sent to buddy and the page refcount is left 0.
-
-Originally this check is supposed to work when the error page is freed
-from page_handle_poison() (that is called from soft-offline), but now we
-are opening another path to call it, so the callers of
-__page_handle_poison() need to handle the case by considering the return
-value 0 as success.  Then page refcount for hwpoison is properly
-incremented so unpoison works.
-
-Link: https://lkml.kernel.org/r/20220708053653.964464-8-naoya.horiguchi@linux.dev
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/20220712014957.4064879-1-Liam.Howlett@oracle.com
+Fixes: d0aac5e48048 (Maple Tree: add new data structure)
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Tested-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ lib/maple_tree.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage
-+++ a/mm/memory-failure.c
-@@ -1084,7 +1084,6 @@ static int me_huge_page(struct page_stat
- 		res = truncate_error_page(hpage, page_to_pfn(p), mapping);
- 		unlock_page(hpage);
- 	} else {
--		res = MF_FAILED;
- 		unlock_page(hpage);
- 		/*
- 		 * migration entry prevents later access on error hugepage,
-@@ -1092,9 +1091,11 @@ static int me_huge_page(struct page_stat
- 		 * subpages.
- 		 */
- 		put_page(hpage);
--		if (__page_handle_poison(p) > 0) {
-+		if (__page_handle_poison(p) >= 0) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
-+		} else {
-+			res = MF_FAILED;
+--- a/lib/maple_tree.c~maple-tree-add-new-data-structure-fix-5
++++ a/lib/maple_tree.c
+@@ -5287,6 +5287,9 @@ int mas_empty_area_rev(struct ma_state *
  		}
  	}
  
-@@ -1860,10 +1861,11 @@ retry:
- 	 */
- 	if (res == 0) {
- 		unlock_page(head);
--		res = MF_FAILED;
--		if (__page_handle_poison(p) > 0) {
-+		if (__page_handle_poison(p) >= 0) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
-+		} else {
-+			res = MF_FAILED;
- 		}
- 		action_result(pfn, MF_MSG_FREE_HUGE, res);
- 		return res == MF_RECOVERED ? 0 : -EBUSY;
++	if (mas_is_err(mas))
++		return xa_err(mas->node);
++
+ 	if (unlikely(mas->offset == MAPLE_NODE_SLOTS))
+ 		return -EBUSY;
+ 
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-mm-hugetlb-separate-path-for-hwpoison-entry-in-copy_hugetlb_page_range.patch
-mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
+android-binder-fix-lockdep-check-on-clearing-vma.patch
+maple-tree-add-new-data-structure-fix.patch
+maple-tree-add-new-data-structure-fix-2.patch
+maple-tree-add-new-data-structure-fix-3.patch
+maple-tree-add-new-data-structure-fix-4.patch
+maple-tree-add-new-data-structure-fix-5.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix-2.patch
+lib-test_maple_tree-add-testing-for-maple-tree-fix-3.patch
+mm-mmap-change-do_brk_flags-to-expand-existing-vma-and-add-do_brk_munmap-fix.patch
+mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch
+mm-remove-the-vma-linked-list-fix-3.patch
+mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
 
