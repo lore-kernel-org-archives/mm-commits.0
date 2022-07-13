@@ -2,146 +2,142 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CAA7C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 18:21:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8646C43334
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 18:26:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236582AbiGMSVz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jul 2022 14:21:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57586 "EHLO
+        id S236518AbiGMS0g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 14:26:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231754AbiGMSVy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 14:21:54 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DE632CE20;
-        Wed, 13 Jul 2022 11:21:53 -0700 (PDT)
+        with ESMTP id S236649AbiGMS0d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 14:26:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85D7C2E9D0
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 11:26:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 29ACB61D59;
-        Wed, 13 Jul 2022 18:21:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C06DC34114;
-        Wed, 13 Jul 2022 18:21:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 54F02B8211B
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 18:26:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBB93C34114;
+        Wed, 13 Jul 2022 18:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657736512;
-        bh=la1r15x4KQLNGJA82valO7UZA8IXV/V5m6AHmO1sSv8=;
+        s=korg; t=1657736790;
+        bh=jCRtRWNg8H0zFrNfo2/ByVdR9ZHJc7/aT8DoYRKPzKg=;
         h=Date:To:From:Subject:From;
-        b=plPx68RCPjJzbM0nqp1RHw/Ge0jXx70eRyfx93EV0V/oSr+MFl9/0SzwKdckjBVEw
-         wD4Q3V3nKIJU6ALKFfNVBoSXu+Fz0noymAxoM6dxDunARMwImha4AtCXVyxDYFRo9l
-         hrmjU40GR+Ap4qoPXWXpd7Oqrgby4tWO7cTgq3vY=
-Date:   Wed, 13 Jul 2022 11:21:51 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        rppt@linux.ibm.com, peterx@redhat.com, jthoughton@google.com,
-        jack@suse.cz, david@redhat.com, aarcange@redhat.com,
-        namit@vmware.com, akpm@linux-foundation.org
+        b=MqKkUG1zxH9qvq1eGb7eRFaqt0E1wgRFK9QPtbp0iYmwigvYUZIl3nB3MUb9REJT/
+         tcKR2TY/dFFW5ebqroWMXgxvMCBFrX7gCQHQ03NSYObOmBfYGW4+5ZoQ24PEe1+5Cj
+         hhfJ0c69902qkuKPYxlbtsX34m9UGTrDT8rO+eWs=
+Date:   Wed, 13 Jul 2022 11:26:29 -0700
+To:     mm-commits@vger.kernel.org, sre@kernel.org,
+        skhan@linuxfoundation.org, ndesaulniers@google.com,
+        nathan@kernel.org, michal.lkml@markovi.net, mcgrof@kernel.org,
+        masahiroy@kernel.org, lucas.demarchi@intel.com,
+        keescook@chromium.org, john.ogness@linutronix.de,
+        jani.nikula@linux.intel.com, gregkh@linuxfoundation.org,
+        gpiccoli@igalia.com, dlatypov@google.com, corbet@lwn.net,
+        brendanhiggins@google.com, atomlin@redhat.com,
+        andriy.shevchenko@linux.intel.com, davidgow@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-provide-properly-masked-address-for-huge-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220713182152.6C06DC34114@smtp.kernel.org>
+Subject: [merged] panic-taint-kernel-if-tests-are-run.patch removed from -mm tree
+Message-Id: <20220713182629.EBB93C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: userfaultfd: provide properly masked address for huge-pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     userfaultfd-provide-properly-masked-address-for-huge-pages.patch
+The quilt patch titled
+     Subject: panic: taint kernel if tests are run
+has been removed from the -mm tree.  Its filename was
+     panic-taint-kernel-if-tests-are-run.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-provide-properly-masked-address-for-huge-pages.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: userfaultfd: provide properly masked address for huge-pages
-Date: Mon, 11 Jul 2022 09:59:06 -0700
+From: David Gow <davidgow@google.com>
+Subject: panic: taint kernel if tests are run
+Date: Fri, 8 Jul 2022 12:48:44 +0800
 
-Commit 824ddc601adc ("userfaultfd: provide unmasked address on
-page-fault") was introduced to fix an old bug, in which the offset in the
-address of a page-fault was masked.  Concerns were raised - although were
-never backed by actual code - that some userspace code might break because
-the bug has been around for quite a while.  To address these concerns a
-new flag was introduced, and only when this flag is set by the user,
-userfaultfd provides the exact address of the page-fault.
+Most in-kernel tests (such as KUnit tests) are not supposed to run on
+production systems: they may do deliberately illegal things to trigger
+errors, and have security implications (for example, KUnit assertions will
+often deliberately leak kernel addresses).
 
-The commit however had a bug, and if the flag is unset, the offset was
-always masked based on a base-page granularity.  Yet, for huge-pages, the
-behavior prior to the commit was that the address is masked to the
-huge-page granulrity.
+Add a new taint type, TAINT_TEST to signal that a test has been run.  This
+will be printed as 'N' (originally for kuNit, as every other sensible
+letter was taken.)
 
-While there are no reports on real breakage, fix this issue.  If the flag
-is unset, use the address with the masking that was done before.
+This should discourage people from running these tests on production
+systems, and to make it easier to tell if tests have been run accidentally
+(by loading the wrong configuration, etc.)
 
-Link: https://lkml.kernel.org/r/20220711165906.2682-1-namit@vmware.com
-Fixes: 824ddc601adc ("userfaultfd: provide unmasked address on page-fault")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Reported-by: James Houghton <jthoughton@google.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: James Houghton <jthoughton@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220708044847.531566-1-davidgow@google.com
+Signed-off-by: David Gow <davidgow@google.com>
+Acked-by: Luis Chamberlain <mcgrof@kernel.org>
+Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Guilherme G. Piccoli <gpiccoli@igalia.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Daniel Latypov <dlatypov@google.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Lucas De Marchi <lucas.demarchi@intel.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ Documentation/admin-guide/tainted-kernels.rst |    1 +
+ include/linux/panic.h                         |    3 ++-
+ kernel/panic.c                                |    1 +
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/userfaultfd.c~userfaultfd-provide-properly-masked-address-for-huge-pages
-+++ a/fs/userfaultfd.c
-@@ -192,17 +192,19 @@ static inline void msg_init(struct uffd_
- }
+--- a/Documentation/admin-guide/tainted-kernels.rst~panic-taint-kernel-if-tests-are-run
++++ a/Documentation/admin-guide/tainted-kernels.rst
+@@ -100,6 +100,7 @@ Bit  Log  Number  Reason that got the ke
+  15  _/K   32768  kernel has been live patched
+  16  _/X   65536  auxiliary taint, defined for and used by distros
+  17  _/T  131072  kernel was built with the struct randomization plugin
++ 18  _/N  262144  an in-kernel test has been run
+ ===  ===  ======  ========================================================
  
- static inline struct uffd_msg userfault_msg(unsigned long address,
-+					    unsigned long real_address,
- 					    unsigned int flags,
- 					    unsigned long reason,
- 					    unsigned int features)
- {
- 	struct uffd_msg msg;
-+
- 	msg_init(&msg);
- 	msg.event = UFFD_EVENT_PAGEFAULT;
+ Note: The character ``_`` is representing a blank in this table to make reading
+--- a/include/linux/panic.h~panic-taint-kernel-if-tests-are-run
++++ a/include/linux/panic.h
+@@ -68,7 +68,8 @@ static inline void set_arch_panic_timeou
+ #define TAINT_LIVEPATCH			15
+ #define TAINT_AUX			16
+ #define TAINT_RANDSTRUCT		17
+-#define TAINT_FLAGS_COUNT		18
++#define TAINT_TEST			18
++#define TAINT_FLAGS_COUNT		19
+ #define TAINT_FLAGS_MAX			((1UL << TAINT_FLAGS_COUNT) - 1)
  
--	if (!(features & UFFD_FEATURE_EXACT_ADDRESS))
--		address &= PAGE_MASK;
--	msg.arg.pagefault.address = address;
-+	msg.arg.pagefault.address = (features & UFFD_FEATURE_EXACT_ADDRESS) ?
-+				    real_address : address;
-+
- 	/*
- 	 * These flags indicate why the userfault occurred:
- 	 * - UFFD_PAGEFAULT_FLAG_WP indicates a write protect fault.
-@@ -488,8 +490,8 @@ vm_fault_t handle_userfault(struct vm_fa
+ struct taint_flag {
+--- a/kernel/panic.c~panic-taint-kernel-if-tests-are-run
++++ a/kernel/panic.c
+@@ -428,6 +428,7 @@ const struct taint_flag taint_flags[TAIN
+ 	[ TAINT_LIVEPATCH ]		= { 'K', ' ', true },
+ 	[ TAINT_AUX ]			= { 'X', ' ', true },
+ 	[ TAINT_RANDSTRUCT ]		= { 'T', ' ', true },
++	[ TAINT_TEST ]			= { 'N', ' ', true },
+ };
  
- 	init_waitqueue_func_entry(&uwq.wq, userfaultfd_wake_function);
- 	uwq.wq.private = current;
--	uwq.msg = userfault_msg(vmf->real_address, vmf->flags, reason,
--			ctx->features);
-+	uwq.msg = userfault_msg(vmf->address, vmf->real_address, vmf->flags,
-+				reason, ctx->features);
- 	uwq.ctx = ctx;
- 	uwq.waken = false;
- 
+ /**
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from davidgow@google.com are
 
-userfaultfd-provide-properly-masked-address-for-huge-pages.patch
+module-panic-taint-the-kernel-when-selftest-modules-load.patch
+kunit-taint-the-kernel-when-kunit-tests-are-run.patch
+selftest-taint-kernel-when-test-module-loaded.patch
 
