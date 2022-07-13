@@ -2,120 +2,211 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECEBEC43334
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 18:35:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 286FCCCA479
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 20:42:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232199AbiGMSfQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jul 2022 14:35:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38776 "EHLO
+        id S237130AbiGMUmY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 16:42:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232114AbiGMSfP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 14:35:15 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B9F92ED40
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 11:35:14 -0700 (PDT)
+        with ESMTP id S237117AbiGMUmX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 16:42:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5ADD3121C
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 13:42:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1DE47B82123
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 18:35:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9FD4C34114;
-        Wed, 13 Jul 2022 18:35:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 461BA61E2E
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 20:42:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A5ACC34114;
+        Wed, 13 Jul 2022 20:42:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657737311;
-        bh=Zc9jMBcDPpuK7d0g9tK3iRokuo2RqEaEwcavwWzh56M=;
+        s=korg; t=1657744941;
+        bh=MWnhcw6nDU+IzP0Kg4UPiGN4+eLiwX7cnnHyRO5XF9I=;
         h=Date:To:From:Subject:From;
-        b=PJc3DbvodLaoSRuvSa5e+HnKHB6tOWADnacrVG7XSLCcZBQSalxilxfcRHvj3BT8A
-         vKBQ/oR/t27S3yiVJYb7w+2BSNcoDBozLm5mMx8dy4G0MkyidZkyooBI8QAgGcC1Tg
-         f17LA1JcRnh3wQAE9xnMRwNNupNsCbpjSIy6D3ok=
-Date:   Wed, 13 Jul 2022 11:35:10 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com,
-        dan.carpenter@oracle.com, zokeefe@google.com,
-        akpm@linux-foundation.org
+        b=yp1xnovY/CntacyYcUvD4jMrAs2XrXD1M5xT94+Rwq4GSqqvedOcRglWI5XxG5IiP
+         EjTPy33QpP/1gaRUH84bSGqIYbAvvmtZwW+sOrl3m2Zw8c4v3gnlLb2hg7Dih1dMJv
+         BF8PGdAfjPAXPJS0NcaJD3A3gdYWXp0HwkpgzsbA=
+Date:   Wed, 13 Jul 2022 13:42:20 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        hughd@google.com, tytso@mit.edu, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch added to mm-unstable branch
-Message-Id: <20220713183511.A9FD4C34114@smtp.kernel.org>
+Subject: [failures] mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs.patch removed from -mm tree
+Message-Id: <20220713204221.8A5ACC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/khugepaged: add missing kfree() to madvise_collapse()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
+The quilt patch titled
+     Subject: mm/shmem: add support for FS_IOC_[SG]ETFLAGS for tmpfs
+has been removed from the -mm tree.  Its filename was
+     mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/khugepaged: add missing kfree() to madvise_collapse()
-Date: Wed, 13 Jul 2022 09:18:51 -0700
+From: "Theodore Ts'o" <tytso@mit.edu>
+Subject: mm/shmem: add support for FS_IOC_[SG]ETFLAGS for tmpfs
+Date: Wed, 13 Jul 2022 10:52:34 -0400
 
-smatch warnings:
-mm/khugepaged.c:2409 madvise_collapse() warn: possible memory leak of
-'cc'
+This allows userspace to set flags like FS_APPEND_FL, FS_IMMUTABLE_FL,
+FS_NODUMP_FL, etc., like all other standard Linux file systems.
 
-Link: https://lore.kernel.org/linux-mm/202207100715.TBIYQ4fc-lkp@intel.com/
-Link: https://lore.kernel.org/linux-mm/20220713024109.62810-1-jrdr.linux@gmail.com/
-Link: https://lkml.kernel.org/r/20220713161851.1879439-1-zokeefe@google.com
-Fixes: 3f7416127072 ("mm/madvise: introduce MADV_COLLAPSE sync hugepage collapse")
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Link: https://lkml.kernel.org/r/20220713145234.2356641-1-tytso@mit.edu
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/shmem_fs.h |   11 ++++++
+ mm/shmem.c               |   65 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 75 insertions(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2
-+++ a/mm/khugepaged.c
-@@ -2468,6 +2468,7 @@ out_maybelock:
- out_nolock:
- 	mmap_assert_locked(mm);
- 	mmdrop(mm);
-+	kfree(cc);
+--- a/include/linux/shmem_fs.h~mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs
++++ a/include/linux/shmem_fs.h
+@@ -25,9 +25,20 @@ struct shmem_inode_info {
+ 	struct simple_xattrs	xattrs;		/* list of xattrs */
+ 	atomic_t		stop_eviction;	/* hold when working on inode */
+ 	struct timespec64	i_crtime;	/* file creation time */
++	unsigned int		fsflags;	/* flags for FS_IOC_[SG]ETFLAGS */
+ 	struct inode		vfs_inode;
+ };
  
- 	return thps == ((hend - hstart) >> HPAGE_PMD_SHIFT) ? 0
- 			: madvise_collapse_errno(last_fail);
++#define SHMEM_FL_USER_VISIBLE FS_FL_USER_VISIBLE
++#define SHMEM_FL_USER_MODIFIABLE FS_FL_USER_MODIFIABLE
++#define SHMEM_FL_INHERITED FS_FL_USER_MODIFIABLE
++
++/* Flags that are appropriate for regular files (all but dir-specific ones). */
++#define SHMEM_REG_FLMASK (~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
++
++/* Flags that are appropriate for non-directories/regular files. */
++#define SHMEM_OTHER_FLMASK (FS_NODUMP_FL | FS_NOATIME_FL)
++
+ struct shmem_sb_info {
+ 	unsigned long max_blocks;   /* How many blocks are allowed */
+ 	struct percpu_counter used_blocks;  /* How many are allocated */
+--- a/mm/shmem.c~mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs
++++ a/mm/shmem.c
+@@ -28,6 +28,7 @@
+ #include <linux/ramfs.h>
+ #include <linux/pagemap.h>
+ #include <linux/file.h>
++#include <linux/fileattr.h>
+ #include <linux/mm.h>
+ #include <linux/random.h>
+ #include <linux/sched/signal.h>
+@@ -1058,6 +1059,15 @@ static int shmem_getattr(struct user_nam
+ 		shmem_recalc_inode(inode);
+ 		spin_unlock_irq(&info->lock);
+ 	}
++	if (info->fsflags & EXT2_APPEND_FL)
++		stat->attributes |= STATX_ATTR_APPEND;
++	if (info->fsflags & EXT2_IMMUTABLE_FL)
++		stat->attributes |= STATX_ATTR_IMMUTABLE;
++	if (info->fsflags & EXT2_NODUMP_FL)
++		stat->attributes |= STATX_ATTR_NODUMP;
++	stat->attributes_mask |= (STATX_ATTR_APPEND |
++			STATX_ATTR_IMMUTABLE |
++			STATX_ATTR_NODUMP);
+ 	generic_fillattr(&init_user_ns, inode, stat);
+ 
+ 	if (shmem_is_huge(NULL, inode, 0))
+@@ -2272,7 +2282,18 @@ static int shmem_mmap(struct file *file,
+ 	return 0;
+ }
+ 
+-static struct inode *shmem_get_inode(struct super_block *sb, const struct inode *dir,
++/* Mask out flags that are inappropriate for the given type of inode. */
++static unsigned shmem_mask_flags(umode_t mode, __u32 flags)
++{
++	if (S_ISDIR(mode))
++		return flags;
++	else if (S_ISREG(mode))
++		return flags & SHMEM_REG_FLMASK;
++	else
++		return flags & SHMEM_OTHER_FLMASK;
++}
++
++static struct inode *shmem_get_inode(struct super_block *sb, struct inode *dir,
+ 				     umode_t mode, dev_t dev, unsigned long flags)
+ {
+ 	struct inode *inode;
+@@ -2297,6 +2318,9 @@ static struct inode *shmem_get_inode(str
+ 		info->seals = F_SEAL_SEAL;
+ 		info->flags = flags & VM_NORESERVE;
+ 		info->i_crtime = inode->i_mtime;
++		info->fsflags = (dir == NULL) ? 0 :
++			SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
++		info->fsflags = shmem_mask_flags(mode, info->fsflags);
+ 		INIT_LIST_HEAD(&info->shrinklist);
+ 		INIT_LIST_HEAD(&info->swaplist);
+ 		simple_xattrs_init(&info->xattrs);
+@@ -2813,6 +2837,41 @@ out:
+ 	return error;
+ }
+ 
++int shmem_fileattr_get(struct dentry *dentry, struct fileattr *fa)
++{
++	struct shmem_inode_info *info = SHMEM_I(d_inode(dentry));
++
++	fileattr_fill_flags(fa, info->fsflags & SHMEM_FL_USER_VISIBLE);
++
++	return 0;
++}
++
++
++
++int shmem_fileattr_set(struct user_namespace *mnt_userns,
++		       struct dentry *dentry, struct fileattr *fa)
++{
++	struct inode *inode = d_inode(dentry);
++	struct shmem_inode_info *info = SHMEM_I(inode);
++
++	if (fileattr_has_fsx(fa))
++		return -EOPNOTSUPP;
++
++	info->fsflags = (fa->flags & ~SHMEM_FL_USER_MODIFIABLE) |
++		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
++
++	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
++	if (info->fsflags & FS_APPEND_FL)
++		inode->i_flags |= S_APPEND;
++	if (info->fsflags & FS_IMMUTABLE_FL)
++		inode->i_flags |= S_IMMUTABLE;
++	if (info->fsflags & FS_NOATIME_FL)
++		inode->i_flags |= S_NOATIME;
++
++	inode->i_ctime = current_time(inode);
++	return 0;
++}
++
+ static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(dentry->d_sb);
+@@ -3825,6 +3884,8 @@ static const struct inode_operations shm
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.listxattr	= shmem_listxattr,
+ 	.set_acl	= simple_set_acl,
++	.fileattr_get	= shmem_fileattr_get,
++	.fileattr_set	= shmem_fileattr_set,
+ #endif
+ };
+ 
+@@ -3844,6 +3905,8 @@ static const struct inode_operations shm
+ #endif
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.listxattr	= shmem_listxattr,
++	.fileattr_get	= shmem_fileattr_get,
++	.fileattr_set	= shmem_fileattr_set,
+ #endif
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	.setattr	= shmem_setattr,
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from tytso@mit.edu are
 
-mm-khugepaged-remove-redundant-transhuge_vma_suitable-check.patch
-mm-khugepaged-add-struct-collapse_control.patch
-mm-khugepaged-dedup-and-simplify-hugepage-alloc-and-charging.patch
-mm-khugepaged-pipe-enum-scan_result-codes-back-to-callers.patch
-mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior.patch
-mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check.patch
-mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
-mm-madvise-introduce-madv_collapse-sync-hugepage-collapse.patch
-mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
-mm-khugepaged-rename-prefix-of-shared-collapse-functions.patch
-mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch
-mm-madvise-add-madv_collapse-to-process_madvise.patch
-proc-smaps-add-pmdmappable-field-to-smaps.patch
-selftests-vm-modularize-collapse-selftests.patch
-selftests-vm-dedup-hugepage-allocation-logic.patch
-selftests-vm-add-madv_collapse-collapse-context-to-selftests.patch
-selftests-vm-add-selftest-to-verify-recollapse-of-thps.patch
-selftests-vm-add-selftest-to-verify-multi-thp-collapse.patch
 
