@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86941C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 18:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECEBEC43334
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 18:35:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230481AbiGMSab (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jul 2022 14:30:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35624 "EHLO
+        id S232199AbiGMSfQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 14:35:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230451AbiGMSaa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 14:30:30 -0400
+        with ESMTP id S232114AbiGMSfP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 14:35:15 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EF7812D3B
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 11:30:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B9F92ED40
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 11:35:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4EAFBB82121
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 18:30:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBC8DC34114;
-        Wed, 13 Jul 2022 18:30:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1DE47B82123
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 18:35:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9FD4C34114;
+        Wed, 13 Jul 2022 18:35:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657737027;
-        bh=trC7UQOmtKUiQuIw9WCq48KeNXigG7ci7gp9UEVP01M=;
+        s=korg; t=1657737311;
+        bh=Zc9jMBcDPpuK7d0g9tK3iRokuo2RqEaEwcavwWzh56M=;
         h=Date:To:From:Subject:From;
-        b=R2cSmLvk5n3DVuT8FkJY5z0p3oZlqAQjHEhoh1ZGuidjufU6dA6ZnPdioD00zy04p
-         dgiAw4cqs6psLxiUgQSOfKNuTPOoGOsymJzpefaBDZ3q77td8ZWMTGOC84B4a1pOcK
-         qoBAZv/fmyjNsMczthbwO4io1M1FzPxTCH9P9Tuk=
-Date:   Wed, 13 Jul 2022 11:30:25 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, jrdr.linux@gmail.com,
+        b=PJc3DbvodLaoSRuvSa5e+HnKHB6tOWADnacrVG7XSLCcZBQSalxilxfcRHvj3BT8A
+         vKBQ/oR/t27S3yiVJYb7w+2BSNcoDBozLm5mMx8dy4G0MkyidZkyooBI8QAgGcC1Tg
+         f17LA1JcRnh3wQAE9xnMRwNNupNsCbpjSIy6D3ok=
+Date:   Wed, 13 Jul 2022 11:35:10 -0700
+To:     mm-commits@vger.kernel.org, lkp@intel.com,
+        dan.carpenter@oracle.com, zokeefe@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ia64-old_rr4-added-under-config_hugetlb_page.patch added to mm-nonmm-unstable branch
-Message-Id: <20220713183026.DBC8DC34114@smtp.kernel.org>
+Subject: + mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch added to mm-unstable branch
+Message-Id: <20220713183511.A9FD4C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: old_rr4 added under CONFIG_HUGETLB_PAGE
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ia64-old_rr4-added-under-config_hugetlb_page.patch
+     Subject: mm/khugepaged: add missing kfree() to madvise_collapse()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ia64-old_rr4-added-under-config_hugetlb_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,48 +65,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Souptick Joarder (HPE)" <jrdr.linux@gmail.com>
-Subject: ia64: old_rr4 added under CONFIG_HUGETLB_PAGE
-Date: Sun, 26 Jun 2022 07:51:14 +0530
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/khugepaged: add missing kfree() to madvise_collapse()
+Date: Wed, 13 Jul 2022 09:18:51 -0700
 
-kernel test robot throws below warning ->
+smatch warnings:
+mm/khugepaged.c:2409 madvise_collapse() warn: possible memory leak of
+'cc'
 
-arch/ia64/include/asm/mmu_context.h: In function 'reload_context':
-   arch/ia64/include/asm/mmu_context.h:127:48: warning: variable
-'old_rr4' set but not used [-Wunused-but-set-variable]
-     127 |         unsigned long rr0, rr1, rr2, rr3, rr4, old_rr4;
-
-Add it under CONFIG_HUGETLB_PAGE
-
-Link: https://lkml.kernel.org/r/20220626022114.4020-1-jrdr.linux@gmail.com
-Signed-off-by: Souptick Joarder (HPE) <jrdr.linux@gmail.com>
+Link: https://lore.kernel.org/linux-mm/202207100715.TBIYQ4fc-lkp@intel.com/
+Link: https://lore.kernel.org/linux-mm/20220713024109.62810-1-jrdr.linux@gmail.com/
+Link: https://lkml.kernel.org/r/20220713161851.1879439-1-zokeefe@google.com
+Fixes: 3f7416127072 ("mm/madvise: introduce MADV_COLLAPSE sync hugepage collapse")
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
 Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/mmu_context.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/khugepaged.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/ia64/include/asm/mmu_context.h~ia64-old_rr4-added-under-config_hugetlb_page
-+++ a/arch/ia64/include/asm/mmu_context.h
-@@ -124,9 +124,12 @@ reload_context (nv_mm_context_t context)
- {
- 	unsigned long rid;
- 	unsigned long rid_incr = 0;
--	unsigned long rr0, rr1, rr2, rr3, rr4, old_rr4;
-+	unsigned long rr0, rr1, rr2, rr3, rr4;
+--- a/mm/khugepaged.c~mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2
++++ a/mm/khugepaged.c
+@@ -2468,6 +2468,7 @@ out_maybelock:
+ out_nolock:
+ 	mmap_assert_locked(mm);
+ 	mmdrop(mm);
++	kfree(cc);
  
-+#ifdef CONFIG_HUGETLB_PAGE
-+	unsigned long old_rr4;
- 	old_rr4 = ia64_get_rr(RGN_BASE(RGN_HPAGE));
-+#endif
- 	rid = context << 3;	/* make space for encoding the region number */
- 	rid_incr = 1 << 8;
- 
+ 	return thps == ((hend - hstart) >> HPAGE_PMD_SHIFT) ? 0
+ 			: madvise_collapse_errno(last_fail);
 _
 
-Patches currently in -mm which might be from jrdr.linux@gmail.com are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch
-ia64-old_rr4-added-under-config_hugetlb_page.patch
+mm-khugepaged-remove-redundant-transhuge_vma_suitable-check.patch
+mm-khugepaged-add-struct-collapse_control.patch
+mm-khugepaged-dedup-and-simplify-hugepage-alloc-and-charging.patch
+mm-khugepaged-pipe-enum-scan_result-codes-back-to-callers.patch
+mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior.patch
+mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check.patch
+mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
+mm-khugepaged-rename-prefix-of-shared-collapse-functions.patch
+mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch
+mm-madvise-add-madv_collapse-to-process_madvise.patch
+proc-smaps-add-pmdmappable-field-to-smaps.patch
+selftests-vm-modularize-collapse-selftests.patch
+selftests-vm-dedup-hugepage-allocation-logic.patch
+selftests-vm-add-madv_collapse-collapse-context-to-selftests.patch
+selftests-vm-add-selftest-to-verify-recollapse-of-thps.patch
+selftests-vm-add-selftest-to-verify-multi-thp-collapse.patch
 
