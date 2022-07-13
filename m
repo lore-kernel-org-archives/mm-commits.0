@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 286FCCCA479
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 20:42:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2086AC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 20:42:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237130AbiGMUmY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jul 2022 16:42:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36004 "EHLO
+        id S230026AbiGMUmZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 16:42:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237117AbiGMUmX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 16:42:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5ADD3121C
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 13:42:22 -0700 (PDT)
+        with ESMTP id S237132AbiGMUmY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 16:42:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D73153121C
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 13:42:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 461BA61E2E
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 20:42:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A5ACC34114;
-        Wed, 13 Jul 2022 20:42:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 61C2E61D3E
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 20:42:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFE18C3411E;
+        Wed, 13 Jul 2022 20:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657744941;
-        bh=MWnhcw6nDU+IzP0Kg4UPiGN4+eLiwX7cnnHyRO5XF9I=;
+        s=korg; t=1657744942;
+        bh=Ocy2Rm+SbQLqEk+Jz8YqONO4iwJDnRbdhkFTeDBHgd0=;
         h=Date:To:From:Subject:From;
-        b=yp1xnovY/CntacyYcUvD4jMrAs2XrXD1M5xT94+Rwq4GSqqvedOcRglWI5XxG5IiP
-         EjTPy33QpP/1gaRUH84bSGqIYbAvvmtZwW+sOrl3m2Zw8c4v3gnlLb2hg7Dih1dMJv
-         BF8PGdAfjPAXPJS0NcaJD3A3gdYWXp0HwkpgzsbA=
-Date:   Wed, 13 Jul 2022 13:42:20 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        hughd@google.com, tytso@mit.edu, akpm@linux-foundation.org
+        b=aEriQDELSoC211Fd8QFLoQzkLbGGxoWRccGtbMhhGJwCdulDAXjaXHPLeVRfoQ0q+
+         QJCDNti/y3XfCBCDrEMKuxBxb6p1IqGkG6frGLkg9+SEYa9Xap748MzmVMZXZe1F8H
+         +fSWc9fNR0Qn9SLtXarNI4OemKVl5lGIza5g47f8=
+Date:   Wed, 13 Jul 2022 13:42:21 -0700
+To:     mm-commits@vger.kernel.org, tytso@mit.edu,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs.patch removed from -mm tree
-Message-Id: <20220713204221.8A5ACC34114@smtp.kernel.org>
+Subject: [failures] mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs-fix.patch removed from -mm tree
+Message-Id: <20220713204222.AFE18C3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,172 +41,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/shmem: add support for FS_IOC_[SG]ETFLAGS for tmpfs
+     Subject: mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs-fix
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs.patch
+     mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs-fix.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: "Theodore Ts'o" <tytso@mit.edu>
-Subject: mm/shmem: add support for FS_IOC_[SG]ETFLAGS for tmpfs
-Date: Wed, 13 Jul 2022 10:52:34 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs-fix
+Date: Wed Jul 13 08:48:24 AM PDT 2022
 
-This allows userspace to set flags like FS_APPEND_FL, FS_IMMUTABLE_FL,
-FS_NODUMP_FL, etc., like all other standard Linux file systems.
+remove extra newlines
 
-Link: https://lkml.kernel.org/r/20220713145234.2356641-1-tytso@mit.edu
-Signed-off-by: Theodore Ts'o <tytso@mit.edu>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |   11 ++++++
- mm/shmem.c               |   65 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 75 insertions(+), 1 deletion(-)
+ mm/shmem.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/shmem_fs.h~mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs
-+++ a/include/linux/shmem_fs.h
-@@ -25,9 +25,20 @@ struct shmem_inode_info {
- 	struct simple_xattrs	xattrs;		/* list of xattrs */
- 	atomic_t		stop_eviction;	/* hold when working on inode */
- 	struct timespec64	i_crtime;	/* file creation time */
-+	unsigned int		fsflags;	/* flags for FS_IOC_[SG]ETFLAGS */
- 	struct inode		vfs_inode;
- };
- 
-+#define SHMEM_FL_USER_VISIBLE FS_FL_USER_VISIBLE
-+#define SHMEM_FL_USER_MODIFIABLE FS_FL_USER_MODIFIABLE
-+#define SHMEM_FL_INHERITED FS_FL_USER_MODIFIABLE
-+
-+/* Flags that are appropriate for regular files (all but dir-specific ones). */
-+#define SHMEM_REG_FLMASK (~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
-+
-+/* Flags that are appropriate for non-directories/regular files. */
-+#define SHMEM_OTHER_FLMASK (FS_NODUMP_FL | FS_NOATIME_FL)
-+
- struct shmem_sb_info {
- 	unsigned long max_blocks;   /* How many blocks are allowed */
- 	struct percpu_counter used_blocks;  /* How many are allocated */
---- a/mm/shmem.c~mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs
+--- a/mm/shmem.c~mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs-fix
 +++ a/mm/shmem.c
-@@ -28,6 +28,7 @@
- #include <linux/ramfs.h>
- #include <linux/pagemap.h>
- #include <linux/file.h>
-+#include <linux/fileattr.h>
- #include <linux/mm.h>
- #include <linux/random.h>
- #include <linux/sched/signal.h>
-@@ -1058,6 +1059,15 @@ static int shmem_getattr(struct user_nam
- 		shmem_recalc_inode(inode);
- 		spin_unlock_irq(&info->lock);
- 	}
-+	if (info->fsflags & EXT2_APPEND_FL)
-+		stat->attributes |= STATX_ATTR_APPEND;
-+	if (info->fsflags & EXT2_IMMUTABLE_FL)
-+		stat->attributes |= STATX_ATTR_IMMUTABLE;
-+	if (info->fsflags & EXT2_NODUMP_FL)
-+		stat->attributes |= STATX_ATTR_NODUMP;
-+	stat->attributes_mask |= (STATX_ATTR_APPEND |
-+			STATX_ATTR_IMMUTABLE |
-+			STATX_ATTR_NODUMP);
- 	generic_fillattr(&init_user_ns, inode, stat);
- 
- 	if (shmem_is_huge(NULL, inode, 0))
-@@ -2272,7 +2282,18 @@ static int shmem_mmap(struct file *file,
+@@ -2846,8 +2846,6 @@ int shmem_fileattr_get(struct dentry *de
  	return 0;
  }
  
--static struct inode *shmem_get_inode(struct super_block *sb, const struct inode *dir,
-+/* Mask out flags that are inappropriate for the given type of inode. */
-+static unsigned shmem_mask_flags(umode_t mode, __u32 flags)
-+{
-+	if (S_ISDIR(mode))
-+		return flags;
-+	else if (S_ISREG(mode))
-+		return flags & SHMEM_REG_FLMASK;
-+	else
-+		return flags & SHMEM_OTHER_FLMASK;
-+}
-+
-+static struct inode *shmem_get_inode(struct super_block *sb, struct inode *dir,
- 				     umode_t mode, dev_t dev, unsigned long flags)
+-
+-
+ int shmem_fileattr_set(struct user_namespace *mnt_userns,
+ 		       struct dentry *dentry, struct fileattr *fa)
  {
- 	struct inode *inode;
-@@ -2297,6 +2318,9 @@ static struct inode *shmem_get_inode(str
- 		info->seals = F_SEAL_SEAL;
- 		info->flags = flags & VM_NORESERVE;
- 		info->i_crtime = inode->i_mtime;
-+		info->fsflags = (dir == NULL) ? 0 :
-+			SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
-+		info->fsflags = shmem_mask_flags(mode, info->fsflags);
- 		INIT_LIST_HEAD(&info->shrinklist);
- 		INIT_LIST_HEAD(&info->swaplist);
- 		simple_xattrs_init(&info->xattrs);
-@@ -2813,6 +2837,41 @@ out:
- 	return error;
- }
- 
-+int shmem_fileattr_get(struct dentry *dentry, struct fileattr *fa)
-+{
-+	struct shmem_inode_info *info = SHMEM_I(d_inode(dentry));
-+
-+	fileattr_fill_flags(fa, info->fsflags & SHMEM_FL_USER_VISIBLE);
-+
-+	return 0;
-+}
-+
-+
-+
-+int shmem_fileattr_set(struct user_namespace *mnt_userns,
-+		       struct dentry *dentry, struct fileattr *fa)
-+{
-+	struct inode *inode = d_inode(dentry);
-+	struct shmem_inode_info *info = SHMEM_I(inode);
-+
-+	if (fileattr_has_fsx(fa))
-+		return -EOPNOTSUPP;
-+
-+	info->fsflags = (fa->flags & ~SHMEM_FL_USER_MODIFIABLE) |
-+		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
-+
-+	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
-+	if (info->fsflags & FS_APPEND_FL)
-+		inode->i_flags |= S_APPEND;
-+	if (info->fsflags & FS_IMMUTABLE_FL)
-+		inode->i_flags |= S_IMMUTABLE;
-+	if (info->fsflags & FS_NOATIME_FL)
-+		inode->i_flags |= S_NOATIME;
-+
-+	inode->i_ctime = current_time(inode);
-+	return 0;
-+}
-+
- static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
- {
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(dentry->d_sb);
-@@ -3825,6 +3884,8 @@ static const struct inode_operations shm
- #ifdef CONFIG_TMPFS_XATTR
- 	.listxattr	= shmem_listxattr,
- 	.set_acl	= simple_set_acl,
-+	.fileattr_get	= shmem_fileattr_get,
-+	.fileattr_set	= shmem_fileattr_set,
- #endif
- };
- 
-@@ -3844,6 +3905,8 @@ static const struct inode_operations shm
- #endif
- #ifdef CONFIG_TMPFS_XATTR
- 	.listxattr	= shmem_listxattr,
-+	.fileattr_get	= shmem_fileattr_get,
-+	.fileattr_set	= shmem_fileattr_set,
- #endif
- #ifdef CONFIG_TMPFS_POSIX_ACL
- 	.setattr	= shmem_setattr,
 _
 
-Patches currently in -mm which might be from tytso@mit.edu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+ntfs-fix-use-after-free-in-ntfs_ucsncmp-v3-checkpatch-fixes.patch
+android-binder-stop-saving-a-pointer-to-the-vma-fix.patch
+mm-remove-the-vma-linked-list-fix-2-fix.patch
+mm-drop-oom-code-from-exit_mmap-fix-fix.patch
+mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
+mm-factor-helpers-for-memory_failure_dev_pagemap-fix.patch
+xfs-support-cow-in-fsdax-mode-fix.patch
+mm-thp-kill-transparent_hugepage_active-fix.patch
+mm-thp-kill-transparent_hugepage_active-fix-fix.patch
+mm-page_alloc-protect-pcp-lists-with-a-spinlock-fix.patch
 
