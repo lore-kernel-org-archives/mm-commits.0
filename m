@@ -2,59 +2,105 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67B7FC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Jul 2022 14:31:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B2EEC43334
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 14:56:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230011AbiGLObR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Jul 2022 10:31:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49720 "EHLO
+        id S231786AbiGMO4J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 10:56:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229924AbiGLObR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2022 10:31:17 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B137165A1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Jul 2022 07:31:16 -0700 (PDT)
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Lj34D3QgLzVfjq;
-        Tue, 12 Jul 2022 22:27:24 +0800 (CST)
-Received: from kwepemm600015.china.huawei.com (7.193.23.52) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Tue, 12 Jul 2022 22:30:47 +0800
-Received: from [10.174.176.52] (10.174.176.52) by
- kwepemm600015.china.huawei.com (7.193.23.52) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Tue, 12 Jul 2022 22:30:46 +0800
-Message-ID: <09f298f7-be26-579c-8e62-c617ce64a2ec@huawei.com>
-Date:   Tue, 12 Jul 2022 22:30:45 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.2.1
-Subject: Re: + ntfs-fix-use-after-free-in-ntfs_ucsncmp-v3.patch added to
- mm-hotfixes-unstable branch
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        <mm-commits@vger.kernel.org>, <zhangxiaoxu5@huawei.com>,
-        <yi.zhang@huawei.com>, <yin31149@gmail.com>,
-        <liuyongqiang13@huawei.com>, <anton@tuxera.com>
-References: <20220711204127.65342C341C0@smtp.kernel.org>
-From:   "chenxiaosong (A)" <chenxiaosong2@huawei.com>
-In-Reply-To: <20220711204127.65342C341C0@smtp.kernel.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.174.176.52]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- kwepemm600015.china.huawei.com (7.193.23.52)
-X-CFilter-Loop: Reflected
+        with ESMTP id S235692AbiGMO4E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 10:56:04 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D27593D5BA
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 07:56:01 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 756DEB82019
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 14:56:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1474FC34114;
+        Wed, 13 Jul 2022 14:55:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1657724159;
+        bh=PbDhBQUOzz2OatvsXIyHsDSUJvlb3NPshIHUo/LEz2c=;
+        h=Date:To:From:Subject:From;
+        b=JZWixKk5VSQBsA1RbE4D7xUglC8A/ydlg9VI9Z8t71mysbwvEsoLIYaW7Lm0IZ248
+         YV29yU6ZD7+ml63xPjV/7RV6kke+S9vA2rHtkGda/X3x5lZGaEX4faKwY8CgAzCBZv
+         rV1m2Hl7YQwQ9x2o3sxnCbARpj+pti9XF5qOdOkE=
+Date:   Wed, 13 Jul 2022 07:55:58 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, riel@surriel.com,
+        kirill.shutemov@linux.intel.com, clm@fb.com, josef@toxicpanda.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220713145559.1474FC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-在 2022/7/12 4:41, Andrew Morton 写道:
 
-> Cleanup quggested by Hawkins Jiawei
+The patch titled
+     Subject: mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2.patch
 
-Hi Andrew:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2.patch
 
-Is "quggested" typo? Do you mean "suggested"?
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2
+Date: Wed, 13 Jul 2022 10:13:37 -0400
+
+Link: https://lkml.kernel.org/r/e90c8f0dbae836632b669c2afc434006a00d4a67.1657721478.git.josef@toxicpanda.com
+Fixes: f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Signed-off-by: Chris Mason <clm@fb.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/mm/memory.c~mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2
++++ a/mm/memory.c
+@@ -4369,7 +4369,10 @@ vm_fault_t finish_fault(struct vm_fault
+ 			return VM_FAULT_OOM;
+ 	}
+ 
+-	/* See comment in handle_pte_fault() */
++	/*
++	 * See comment in handle_pte_fault() for how this scenario happens, we
++	 * need to return NOPAGE so that we drop this page.
++	 */
+ 	if (pmd_devmap_trans_unstable(vmf->pmd))
+ 		return VM_FAULT_NOPAGE;
+ 
+_
+
+Patches currently in -mm which might be from josef@toxicpanda.com are
+
+mm-fix-page-leak-with-multiple-threads-mapping-the-same-page.patch
+mm-fix-page-leak-with-multiple-threads-mapping-the-same-page-v2.patch
 
