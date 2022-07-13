@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 287EBC43334
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 15:33:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B06FC43334
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Jul 2022 15:49:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233839AbiGMPdT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Jul 2022 11:33:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39230 "EHLO
+        id S237005AbiGMPtJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Jul 2022 11:49:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231841AbiGMPdT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 11:33:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59B4F4D4C9
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 08:33:18 -0700 (PDT)
+        with ESMTP id S231580AbiGMPtF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2022 11:49:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A83331A390
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 08:49:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0BED4B81FC6
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 15:33:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CFC7C34114;
-        Wed, 13 Jul 2022 15:33:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 402FB6192C
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jul 2022 15:49:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FD2AC34114;
+        Wed, 13 Jul 2022 15:49:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657726395;
-        bh=FTNxHm6b49DoUvexCyq0ZEmJo+nPkFVmveIVjO19SaA=;
+        s=korg; t=1657727343;
+        bh=rtmyDsLmnlcoDnz/oiMyf4rZdyZF/rnx/GQSGNnd+9o=;
         h=Date:To:From:Subject:From;
-        b=qCvqmBWMVb3qlbmdkey8cy0UnCI1P8AokoNGfcx95z3YblgZ8VwkLF7tai9e+/7/Q
-         jIB5ODRA0prkKAmm4+vRXqj6BXM4WdZVlsLRlqMCU82GjPAjvtlDLdI8WPYeqSb9hI
-         UeuuMymqaPrbmclzO14eZ/58T0q+SNutMF9BRDEw=
-Date:   Wed, 13 Jul 2022 08:33:14 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        Liam.Howlett@oracle.com, liam.howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=YU43s2VZ8G3SwlBDMC59IUqxKiPvwm80FwMxE03RXF1zlggz3icYp7N2kk1FBPTaS
+         Mi9+G9gwzYjPSsYPnwZF6zAyOQUQ+4iZ9tqPazNexQ7FOnOMIGTx1wcX4b46v6zlYy
+         ri8/qNn5P3OySgNmj+A1hnRlKcfe3VSSGCLG7r3k=
+Date:   Wed, 13 Jul 2022 08:49:02 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        hughd@google.com, tytso@mit.edu, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple-tree-add-new-data-structure-fix-4.patch added to mm-unstable branch
-Message-Id: <20220713153315.9CFC7C34114@smtp.kernel.org>
+Subject: + mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs.patch added to mm-unstable branch
+Message-Id: <20220713154903.8FD2AC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: fix out of bounds access on mas_wr_node_walk()
+     Subject: mm/shmem: add support for FS_IOC_[SG]ETFLAGS for tmpfs
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple-tree-add-new-data-structure-fix-4.patch
+     mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix-4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,49 +64,166 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: maple_tree: fix out of bounds access on mas_wr_node_walk()
-Date: Wed, 13 Jul 2022 02:13:12 +0000
+From: "Theodore Ts'o" <tytso@mit.edu>
+Subject: mm/shmem: add support for FS_IOC_[SG]ETFLAGS for tmpfs
+Date: Wed, 13 Jul 2022 10:52:34 -0400
 
-When walking the node, check to see if offset is within the range of
-pivots before reading that pivot, otherwise return the max of the node.
+This allows userspace to set flags like FS_APPEND_FL, FS_IMMUTABLE_FL,
+FS_NODUMP_FL, etc., like all other standard Linux file systems.
 
-Link: https://lkml.kernel.org/r/20220713021256.542856-1-Liam.Howlett@oracle.com
-Fixes: d0aac5e48048 (Maple Tree: add new data structure)
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20220713145234.2356641-1-tytso@mit.edu
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/shmem_fs.h |   11 ++++++
+ mm/shmem.c               |   65 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 75 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple-tree-add-new-data-structure-fix-4
-+++ a/lib/maple_tree.c
-@@ -2254,10 +2254,10 @@ static inline void mas_wr_node_walk(stru
- 					       wr_mas->pivots, mas->max);
- 	offset = mas->offset;
- 	min = mas_safe_min(mas, wr_mas->pivots, offset);
--	max = wr_mas->pivots[offset];
- 	if (unlikely(offset == count))
--		goto max; /* may have been set to zero */
-+		goto max;
+--- a/include/linux/shmem_fs.h~mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs
++++ a/include/linux/shmem_fs.h
+@@ -25,9 +25,20 @@ struct shmem_inode_info {
+ 	struct simple_xattrs	xattrs;		/* list of xattrs */
+ 	atomic_t		stop_eviction;	/* hold when working on inode */
+ 	struct timespec64	i_crtime;	/* file creation time */
++	unsigned int		fsflags;	/* flags for FS_IOC_[SG]ETFLAGS */
+ 	struct inode		vfs_inode;
+ };
  
-+	max = wr_mas->pivots[offset];
- 	index = mas->index;
- 	if (unlikely(index <= max))
- 		goto done;
++#define SHMEM_FL_USER_VISIBLE FS_FL_USER_VISIBLE
++#define SHMEM_FL_USER_MODIFIABLE FS_FL_USER_MODIFIABLE
++#define SHMEM_FL_INHERITED FS_FL_USER_MODIFIABLE
++
++/* Flags that are appropriate for regular files (all but dir-specific ones). */
++#define SHMEM_REG_FLMASK (~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
++
++/* Flags that are appropriate for non-directories/regular files. */
++#define SHMEM_OTHER_FLMASK (FS_NODUMP_FL | FS_NOATIME_FL)
++
+ struct shmem_sb_info {
+ 	unsigned long max_blocks;   /* How many blocks are allowed */
+ 	struct percpu_counter used_blocks;  /* How many are allocated */
+--- a/mm/shmem.c~mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs
++++ a/mm/shmem.c
+@@ -28,6 +28,7 @@
+ #include <linux/ramfs.h>
+ #include <linux/pagemap.h>
+ #include <linux/file.h>
++#include <linux/fileattr.h>
+ #include <linux/mm.h>
+ #include <linux/random.h>
+ #include <linux/sched/signal.h>
+@@ -1058,6 +1059,15 @@ static int shmem_getattr(struct user_nam
+ 		shmem_recalc_inode(inode);
+ 		spin_unlock_irq(&info->lock);
+ 	}
++	if (info->fsflags & EXT2_APPEND_FL)
++		stat->attributes |= STATX_ATTR_APPEND;
++	if (info->fsflags & EXT2_IMMUTABLE_FL)
++		stat->attributes |= STATX_ATTR_IMMUTABLE;
++	if (info->fsflags & EXT2_NODUMP_FL)
++		stat->attributes |= STATX_ATTR_NODUMP;
++	stat->attributes_mask |= (STATX_ATTR_APPEND |
++			STATX_ATTR_IMMUTABLE |
++			STATX_ATTR_NODUMP);
+ 	generic_fillattr(&init_user_ns, inode, stat);
+ 
+ 	if (shmem_is_huge(NULL, inode, 0))
+@@ -2272,7 +2282,18 @@ static int shmem_mmap(struct file *file,
+ 	return 0;
+ }
+ 
+-static struct inode *shmem_get_inode(struct super_block *sb, const struct inode *dir,
++/* Mask out flags that are inappropriate for the given type of inode. */
++static unsigned shmem_mask_flags(umode_t mode, __u32 flags)
++{
++	if (S_ISDIR(mode))
++		return flags;
++	else if (S_ISREG(mode))
++		return flags & SHMEM_REG_FLMASK;
++	else
++		return flags & SHMEM_OTHER_FLMASK;
++}
++
++static struct inode *shmem_get_inode(struct super_block *sb, struct inode *dir,
+ 				     umode_t mode, dev_t dev, unsigned long flags)
+ {
+ 	struct inode *inode;
+@@ -2297,6 +2318,9 @@ static struct inode *shmem_get_inode(str
+ 		info->seals = F_SEAL_SEAL;
+ 		info->flags = flags & VM_NORESERVE;
+ 		info->i_crtime = inode->i_mtime;
++		info->fsflags = (dir == NULL) ? 0 :
++			SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
++		info->fsflags = shmem_mask_flags(mode, info->fsflags);
+ 		INIT_LIST_HEAD(&info->shrinklist);
+ 		INIT_LIST_HEAD(&info->swaplist);
+ 		simple_xattrs_init(&info->xattrs);
+@@ -2813,6 +2837,41 @@ out:
+ 	return error;
+ }
+ 
++int shmem_fileattr_get(struct dentry *dentry, struct fileattr *fa)
++{
++	struct shmem_inode_info *info = SHMEM_I(d_inode(dentry));
++
++	fileattr_fill_flags(fa, info->fsflags & SHMEM_FL_USER_VISIBLE);
++
++	return 0;
++}
++
++
++
++int shmem_fileattr_set(struct user_namespace *mnt_userns,
++		       struct dentry *dentry, struct fileattr *fa)
++{
++	struct inode *inode = d_inode(dentry);
++	struct shmem_inode_info *info = SHMEM_I(inode);
++
++	if (fileattr_has_fsx(fa))
++		return -EOPNOTSUPP;
++
++	info->fsflags = (fa->flags & ~SHMEM_FL_USER_MODIFIABLE) |
++		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
++
++	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
++	if (info->fsflags & FS_APPEND_FL)
++		inode->i_flags |= S_APPEND;
++	if (info->fsflags & FS_IMMUTABLE_FL)
++		inode->i_flags |= S_IMMUTABLE;
++	if (info->fsflags & FS_NOATIME_FL)
++		inode->i_flags |= S_NOATIME;
++
++	inode->i_ctime = current_time(inode);
++	return 0;
++}
++
+ static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(dentry->d_sb);
+@@ -3825,6 +3884,8 @@ static const struct inode_operations shm
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.listxattr	= shmem_listxattr,
+ 	.set_acl	= simple_set_acl,
++	.fileattr_get	= shmem_fileattr_get,
++	.fileattr_set	= shmem_fileattr_set,
+ #endif
+ };
+ 
+@@ -3844,6 +3905,8 @@ static const struct inode_operations shm
+ #endif
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.listxattr	= shmem_listxattr,
++	.fileattr_get	= shmem_fileattr_get,
++	.fileattr_set	= shmem_fileattr_set,
+ #endif
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	.setattr	= shmem_setattr,
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from tytso@mit.edu are
 
-android-binder-fix-lockdep-check-on-clearing-vma.patch
-maple-tree-add-new-data-structure-fix.patch
-maple-tree-add-new-data-structure-fix-2.patch
-maple-tree-add-new-data-structure-fix-3.patch
-maple-tree-add-new-data-structure-fix-4.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix.patch
-lib-test_maple_tree-add-testing-for-maple-tree-fix-2.patch
-mm-remove-the-vma-linked-list-fix-3.patch
-mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
+mm-shmem-add-support-for-fs_ioc_etflags-for-tmpfs.patch
 
