@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ECBDC43334
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Jul 2022 23:25:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3F7DC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Jul 2022 23:25:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229725AbiGOXZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Jul 2022 19:25:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51946 "EHLO
+        id S230072AbiGOXZX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Jul 2022 19:25:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229625AbiGOXZT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2022 19:25:19 -0400
+        with ESMTP id S229625AbiGOXZW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2022 19:25:22 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1C52A1B4
-        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 16:25:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD6884BD1A
+        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 16:25:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 65AFBB82EFD
-        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 23:25:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CD2C34115;
-        Fri, 15 Jul 2022 23:25:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2DAF9B82EFC
+        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 23:25:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C49D1C34115;
+        Fri, 15 Jul 2022 23:25:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657927515;
-        bh=hWX/HEHAHCaWfxTWun9MpB9n5+/zF/JupwszkJaJXr8=;
+        s=korg; t=1657927517;
+        bh=WTobbqhEfjXZKjP6Ax8ecmr+z/4idKJ/PPOjLuQffvs=;
         h=Date:To:From:Subject:From;
-        b=mI7nnmEaW1MfIm6IXMi/hJF82Ovid6uWtdbihKKjOzeWvlYeyMLONQ8Vy9cYFXhjM
-         7FJ5fhd0jzS8WsC5KBa4WsDB8RadbfBXRnfI3VgRgTXMgcKmFn+jzMVH8lF/JpfLQq
-         cCIo7MnYZdUsd7BXRp09b9ThJ5AHgh/YH7Fnds6I=
-Date:   Fri, 15 Jul 2022 16:25:14 -0700
+        b=TtI/eFOtRJyVrEc209VigRq0/AH6Q71B4KvP96KBBNTFxe0ZhtOaMb8tQl4iI0O/3
+         c04TWVuXggqlCKPowMp3v3/hPSz8Y8V0262RZT2025utM+BFU7TPrdp3ajeOm6lHoW
+         lbKFHrptpphUZeXaWHe0BtJrFjfzN3BgD0y4htrE=
+Date:   Fri, 15 Jul 2022 16:25:17 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
         hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
         apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch added to mm-unstable branch
-Message-Id: <20220715232514.F1CD2C34115@smtp.kernel.org>
+Subject: + mm-move-page-zone-helpers-from-mmh-to-mmzoneh.patch added to mm-unstable branch
+Message-Id: <20220715232517.C49D1C34115@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rename is_pinnable_page() to is_longterm_pinnable_page()
+     Subject: mm: move page zone helpers from mm.h to mmzone.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
+     mm-move-page-zone-helpers-from-mmh-to-mmzoneh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-page-zone-helpers-from-mmh-to-mmzoneh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,154 +67,217 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alex Sierra <alex.sierra@amd.com>
-Subject: mm: rename is_pinnable_page() to is_longterm_pinnable_page()
-Date: Fri, 15 Jul 2022 10:05:08 -0500
+Subject: mm: move page zone helpers from mm.h to mmzone.h
+Date: Fri, 15 Jul 2022 10:05:09 -0500
 
-Patch series "Add MEMORY_DEVICE_COHERENT for coherent device memory
-mapping", v9.
+It makes more sense to have these helpers in zone specific header
+file, rather than the generic mm.h
 
-This patch series introduces MEMORY_DEVICE_COHERENT, a type of memory
-owned by a device that can be mapped into CPU page tables like
-MEMORY_DEVICE_GENERIC and can also be migrated like MEMORY_DEVICE_PRIVATE.
-
-This patch series is mostly self-contained except for a few places where
-it needs to update other subsystems to handle the new memory type.
-
-System stability and performance are not affected according to our ongoing
-testing, including xfstests.
-
-How it works: The system BIOS advertises the GPU device memory (aka VRAM)
-as SPM (special purpose memory) in the UEFI system address map.
-
-The amdgpu driver registers the memory with devmap as
-MEMORY_DEVICE_COHERENT using devm_memremap_pages.  The initial user for
-this hardware page migration capability is the Frontier supercomputer
-project.  This functionality is not AMD-specific.  We expect other GPU
-vendors to find this functionality useful, and possibly other hardware
-types in the future.
-
-Our test nodes in the lab are similar to the Frontier configuration, with
-.5 TB of system memory plus 256 GB of device memory split across 4 GPUs,
-all in a single coherent address space.  Page migration is expected to
-improve application efficiency significantly.  We will report empirical
-results as they become available.
-
-Coherent device type pages at gup are now migrated back to system memory
-if they are being pinned long-term (FOLL_LONGTERM).  The reason is, that
-long-term pinning would interfere with the device memory manager owning
-the device-coherent pages (e.g.  evictions in TTM).  These series
-incorporate Alistair Popple patches to do this migration from
-pin_user_pages() calls.  hmm_gup_test has been added to hmm-test to test
-different get user pages calls.
-
-This series includes handling of device-managed anonymous pages returned
-by vm_normal_pages.  Although they behave like normal pages for purposes
-of mapping in CPU page tables and for COW, they do not support LRU lists,
-NUMA migration or THP.
-
-We also introduced a FOLL_LRU flag that adds the same behaviour to
-follow_page and related APIs, to allow callers to specify that they expect
-to put pages on an LRU list.
-
-
-This patch (of 14):
-
-is_pinnable_page() and folio_is_pinnable() are renamed to
-is_longterm_pinnable_page() and folio_is_longterm_pinnable() respectively.
-These functions are used in the FOLL_LONGTERM flag context.
-
-Link: https://lkml.kernel.org/r/20220715150521.18165-1-alex.sierra@amd.com
-Link: https://lkml.kernel.org/r/20220715150521.18165-2-alex.sierra@amd.com
+Link: https://lkml.kernel.org/r/20220715150521.18165-3-alex.sierra@amd.com
 Signed-off-by: Alex Sierra <alex.sierra@amd.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    8 ++++----
- mm/gup.c           |    4 ++--
- mm/gup_test.c      |    2 +-
- mm/hugetlb.c       |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/memremap.h |    2 
+ include/linux/mm.h       |   78 ------------------------------------
+ include/linux/mmzone.h   |   80 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 81 insertions(+), 79 deletions(-)
 
---- a/include/linux/mm.h~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
+--- a/include/linux/memremap.h~mm-move-page-zone-helpers-from-mmh-to-mmzoneh
++++ a/include/linux/memremap.h
+@@ -2,7 +2,7 @@
+ #ifndef _LINUX_MEMREMAP_H_
+ #define _LINUX_MEMREMAP_H_
+ 
+-#include <linux/mm.h>
++#include <linux/mmzone.h>
+ #include <linux/range.h>
+ #include <linux/ioport.h>
+ #include <linux/percpu-refcount.h>
+--- a/include/linux/mm.h~mm-move-page-zone-helpers-from-mmh-to-mmzoneh
 +++ a/include/linux/mm.h
-@@ -1642,7 +1642,7 @@ static inline bool page_needs_cow_for_dm
+@@ -1076,84 +1076,6 @@ vm_fault_t finish_mkwrite_fault(struct v
+  *   back into memory.
+  */
  
- /* MIGRATE_CMA and ZONE_MOVABLE do not allow pin pages */
- #ifdef CONFIG_MIGRATION
--static inline bool is_pinnable_page(struct page *page)
-+static inline bool is_longterm_pinnable_page(struct page *page)
- {
- #ifdef CONFIG_CMA
- 	int mt = get_pageblock_migratetype(page);
-@@ -1653,15 +1653,15 @@ static inline bool is_pinnable_page(stru
- 	return !is_zone_movable_page(page) || is_zero_pfn(page_to_pfn(page));
+-/*
+- * The zone field is never updated after free_area_init_core()
+- * sets it, so none of the operations on it need to be atomic.
+- */
+-
+-/* Page flags: | [SECTION] | [NODE] | ZONE | [LAST_CPUPID] | ... | FLAGS | */
+-#define SECTIONS_PGOFF		((sizeof(unsigned long)*8) - SECTIONS_WIDTH)
+-#define NODES_PGOFF		(SECTIONS_PGOFF - NODES_WIDTH)
+-#define ZONES_PGOFF		(NODES_PGOFF - ZONES_WIDTH)
+-#define LAST_CPUPID_PGOFF	(ZONES_PGOFF - LAST_CPUPID_WIDTH)
+-#define KASAN_TAG_PGOFF		(LAST_CPUPID_PGOFF - KASAN_TAG_WIDTH)
+-
+-/*
+- * Define the bit shifts to access each section.  For non-existent
+- * sections we define the shift as 0; that plus a 0 mask ensures
+- * the compiler will optimise away reference to them.
+- */
+-#define SECTIONS_PGSHIFT	(SECTIONS_PGOFF * (SECTIONS_WIDTH != 0))
+-#define NODES_PGSHIFT		(NODES_PGOFF * (NODES_WIDTH != 0))
+-#define ZONES_PGSHIFT		(ZONES_PGOFF * (ZONES_WIDTH != 0))
+-#define LAST_CPUPID_PGSHIFT	(LAST_CPUPID_PGOFF * (LAST_CPUPID_WIDTH != 0))
+-#define KASAN_TAG_PGSHIFT	(KASAN_TAG_PGOFF * (KASAN_TAG_WIDTH != 0))
+-
+-/* NODE:ZONE or SECTION:ZONE is used to ID a zone for the buddy allocator */
+-#ifdef NODE_NOT_IN_PAGE_FLAGS
+-#define ZONEID_SHIFT		(SECTIONS_SHIFT + ZONES_SHIFT)
+-#define ZONEID_PGOFF		((SECTIONS_PGOFF < ZONES_PGOFF)? \
+-						SECTIONS_PGOFF : ZONES_PGOFF)
+-#else
+-#define ZONEID_SHIFT		(NODES_SHIFT + ZONES_SHIFT)
+-#define ZONEID_PGOFF		((NODES_PGOFF < ZONES_PGOFF)? \
+-						NODES_PGOFF : ZONES_PGOFF)
+-#endif
+-
+-#define ZONEID_PGSHIFT		(ZONEID_PGOFF * (ZONEID_SHIFT != 0))
+-
+-#define ZONES_MASK		((1UL << ZONES_WIDTH) - 1)
+-#define NODES_MASK		((1UL << NODES_WIDTH) - 1)
+-#define SECTIONS_MASK		((1UL << SECTIONS_WIDTH) - 1)
+-#define LAST_CPUPID_MASK	((1UL << LAST_CPUPID_SHIFT) - 1)
+-#define KASAN_TAG_MASK		((1UL << KASAN_TAG_WIDTH) - 1)
+-#define ZONEID_MASK		((1UL << ZONEID_SHIFT) - 1)
+-
+-static inline enum zone_type page_zonenum(const struct page *page)
+-{
+-	ASSERT_EXCLUSIVE_BITS(page->flags, ZONES_MASK << ZONES_PGSHIFT);
+-	return (page->flags >> ZONES_PGSHIFT) & ZONES_MASK;
+-}
+-
+-static inline enum zone_type folio_zonenum(const struct folio *folio)
+-{
+-	return page_zonenum(&folio->page);
+-}
+-
+-#ifdef CONFIG_ZONE_DEVICE
+-static inline bool is_zone_device_page(const struct page *page)
+-{
+-	return page_zonenum(page) == ZONE_DEVICE;
+-}
+-extern void memmap_init_zone_device(struct zone *, unsigned long,
+-				    unsigned long, struct dev_pagemap *);
+-#else
+-static inline bool is_zone_device_page(const struct page *page)
+-{
+-	return false;
+-}
+-#endif
+-
+-static inline bool folio_is_zone_device(const struct folio *folio)
+-{
+-	return is_zone_device_page(&folio->page);
+-}
+-
+-static inline bool is_zone_movable_page(const struct page *page)
+-{
+-	return page_zonenum(page) == ZONE_MOVABLE;
+-}
+-
+ #if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_FS_DAX)
+ DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
+ 
+--- a/include/linux/mmzone.h~mm-move-page-zone-helpers-from-mmh-to-mmzoneh
++++ a/include/linux/mmzone.h
+@@ -730,6 +730,86 @@ static inline bool zone_is_empty(struct
+ 	return zone->spanned_pages == 0;
  }
- #else
--static inline bool is_pinnable_page(struct page *page)
-+static inline bool is_longterm_pinnable_page(struct page *page)
- {
- 	return true;
- }
- #endif
  
--static inline bool folio_is_pinnable(struct folio *folio)
-+static inline bool folio_is_longterm_pinnable(struct folio *folio)
- {
--	return is_pinnable_page(&folio->page);
-+	return is_longterm_pinnable_page(&folio->page);
- }
- 
- static inline void set_page_zone(struct page *page, enum zone_type zone)
---- a/mm/gup.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
-+++ a/mm/gup.c
-@@ -134,7 +134,7 @@ struct folio *try_grab_folio(struct page
- 		 * path.
- 		 */
- 		if (unlikely((flags & FOLL_LONGTERM) &&
--			     !is_pinnable_page(page)))
-+			     !is_longterm_pinnable_page(page)))
- 			return NULL;
- 
- 		/*
-@@ -1926,7 +1926,7 @@ static long check_and_migrate_movable_pa
- 			continue;
- 		prev_folio = folio;
- 
--		if (folio_is_pinnable(folio))
-+		if (folio_is_longterm_pinnable(folio))
- 			continue;
- 
- 		/*
---- a/mm/gup_test.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
-+++ a/mm/gup_test.c
-@@ -53,7 +53,7 @@ static void verify_dma_pinned(unsigned i
- 				dump_page(page, "gup_test failure");
- 				break;
- 			} else if (cmd == PIN_LONGTERM_BENCHMARK &&
--				WARN(!is_pinnable_page(page),
-+				WARN(!is_longterm_pinnable_page(page),
- 				     "pages[%lu] is NOT pinnable but pinned\n",
- 				     i)) {
- 				dump_page(page, "gup_test failure");
---- a/mm/hugetlb.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
-+++ a/mm/hugetlb.c
-@@ -1129,7 +1129,7 @@ static struct page *dequeue_huge_page_no
- 
- 	lockdep_assert_held(&hugetlb_lock);
- 	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
--		if (pin && !is_pinnable_page(page))
-+		if (pin && !is_longterm_pinnable_page(page))
- 			continue;
- 
- 		if (PageHWPoison(page))
++#ifndef BUILD_VDSO32_64
++/*
++ * The zone field is never updated after free_area_init_core()
++ * sets it, so none of the operations on it need to be atomic.
++ */
++
++/* Page flags: | [SECTION] | [NODE] | ZONE | [LAST_CPUPID] | ... | FLAGS | */
++#define SECTIONS_PGOFF		((sizeof(unsigned long)*8) - SECTIONS_WIDTH)
++#define NODES_PGOFF		(SECTIONS_PGOFF - NODES_WIDTH)
++#define ZONES_PGOFF		(NODES_PGOFF - ZONES_WIDTH)
++#define LAST_CPUPID_PGOFF	(ZONES_PGOFF - LAST_CPUPID_WIDTH)
++#define KASAN_TAG_PGOFF		(LAST_CPUPID_PGOFF - KASAN_TAG_WIDTH)
++
++/*
++ * Define the bit shifts to access each section.  For non-existent
++ * sections we define the shift as 0; that plus a 0 mask ensures
++ * the compiler will optimise away reference to them.
++ */
++#define SECTIONS_PGSHIFT	(SECTIONS_PGOFF * (SECTIONS_WIDTH != 0))
++#define NODES_PGSHIFT		(NODES_PGOFF * (NODES_WIDTH != 0))
++#define ZONES_PGSHIFT		(ZONES_PGOFF * (ZONES_WIDTH != 0))
++#define LAST_CPUPID_PGSHIFT	(LAST_CPUPID_PGOFF * (LAST_CPUPID_WIDTH != 0))
++#define KASAN_TAG_PGSHIFT	(KASAN_TAG_PGOFF * (KASAN_TAG_WIDTH != 0))
++
++/* NODE:ZONE or SECTION:ZONE is used to ID a zone for the buddy allocator */
++#ifdef NODE_NOT_IN_PAGE_FLAGS
++#define ZONEID_SHIFT		(SECTIONS_SHIFT + ZONES_SHIFT)
++#define ZONEID_PGOFF		((SECTIONS_PGOFF < ZONES_PGOFF) ? \
++						SECTIONS_PGOFF : ZONES_PGOFF)
++#else
++#define ZONEID_SHIFT		(NODES_SHIFT + ZONES_SHIFT)
++#define ZONEID_PGOFF		((NODES_PGOFF < ZONES_PGOFF) ? \
++						NODES_PGOFF : ZONES_PGOFF)
++#endif
++
++#define ZONEID_PGSHIFT		(ZONEID_PGOFF * (ZONEID_SHIFT != 0))
++
++#define ZONES_MASK		((1UL << ZONES_WIDTH) - 1)
++#define NODES_MASK		((1UL << NODES_WIDTH) - 1)
++#define SECTIONS_MASK		((1UL << SECTIONS_WIDTH) - 1)
++#define LAST_CPUPID_MASK	((1UL << LAST_CPUPID_SHIFT) - 1)
++#define KASAN_TAG_MASK		((1UL << KASAN_TAG_WIDTH) - 1)
++#define ZONEID_MASK		((1UL << ZONEID_SHIFT) - 1)
++
++static inline enum zone_type page_zonenum(const struct page *page)
++{
++	ASSERT_EXCLUSIVE_BITS(page->flags, ZONES_MASK << ZONES_PGSHIFT);
++	return (page->flags >> ZONES_PGSHIFT) & ZONES_MASK;
++}
++
++static inline enum zone_type folio_zonenum(const struct folio *folio)
++{
++	return page_zonenum(&folio->page);
++}
++
++#ifdef CONFIG_ZONE_DEVICE
++static inline bool is_zone_device_page(const struct page *page)
++{
++	return page_zonenum(page) == ZONE_DEVICE;
++}
++extern void memmap_init_zone_device(struct zone *, unsigned long,
++				    unsigned long, struct dev_pagemap *);
++#else
++static inline bool is_zone_device_page(const struct page *page)
++{
++	return false;
++}
++#endif
++
++static inline bool folio_is_zone_device(const struct folio *folio)
++{
++	return is_zone_device_page(&folio->page);
++}
++
++static inline bool is_zone_movable_page(const struct page *page)
++{
++	return page_zonenum(page) == ZONE_MOVABLE;
++}
++#endif
++
+ /*
+  * Return true if [start_pfn, start_pfn + nr_pages) range has a non-empty
+  * intersection with the given zone
 _
 
 Patches currently in -mm which might be from alex.sierra@amd.com are
