@@ -2,272 +2,234 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D81ACCA480
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Jul 2022 23:12:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ECBDC43334
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Jul 2022 23:25:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230188AbiGOXMR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Jul 2022 19:12:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41064 "EHLO
+        id S229725AbiGOXZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Jul 2022 19:25:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231540AbiGOXMQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2022 19:12:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1472154C91
-        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 16:12:16 -0700 (PDT)
+        with ESMTP id S229625AbiGOXZT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2022 19:25:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1C52A1B4
+        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 16:25:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A64BC61E3E
-        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 23:12:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 090ECC3411E;
-        Fri, 15 Jul 2022 23:12:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 65AFBB82EFD
+        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 23:25:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CD2C34115;
+        Fri, 15 Jul 2022 23:25:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657926735;
-        bh=1O9HITfZTCNjG/8TWBjwaRzOOvMas8FPYTBWz/+izIY=;
+        s=korg; t=1657927515;
+        bh=hWX/HEHAHCaWfxTWun9MpB9n5+/zF/JupwszkJaJXr8=;
         h=Date:To:From:Subject:From;
-        b=skpyeSbct6FGwOs5zxTXmiKkNNhgdTgqZBNnBoAxABHQ+jh7lpPNyZFJwrJyVy8yX
-         CsL/c8ObFEY1WVMccESUzrqee3HQMHMdTY2IqBHrvAG51IR1Aqt1h2OKrWzmQRwVag
-         fpnzX9N44MX5lKNqius1TqcgfA/58/W2jeuHAmwg=
-Date:   Fri, 15 Jul 2022 16:12:14 -0700
-To:     mm-commits@vger.kernel.org, ebiederm@xmission.com,
-        naveen.n.rao@linux.vnet.ibm.com, akpm@linux-foundation.org
+        b=mI7nnmEaW1MfIm6IXMi/hJF82Ovid6uWtdbihKKjOzeWvlYeyMLONQ8Vy9cYFXhjM
+         7FJ5fhd0jzS8WsC5KBa4WsDB8RadbfBXRnfI3VgRgTXMgcKmFn+jzMVH8lF/JpfLQq
+         cCIo7MnYZdUsd7BXRp09b9ThJ5AHgh/YH7Fnds6I=
+Date:   Fri, 15 Jul 2022 16:25:14 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
+        hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
+        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kexec-drop-weak-attribute-from-functions.patch removed from -mm tree
-Message-Id: <20220715231215.090ECC3411E@smtp.kernel.org>
+Subject: + mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch added to mm-unstable branch
+Message-Id: <20220715232514.F1CD2C34115@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: kexec: drop weak attribute from functions
-has been removed from the -mm tree.  Its filename was
-     kexec-drop-weak-attribute-from-functions.patch
+The patch titled
+     Subject: mm: rename is_pinnable_page() to is_longterm_pinnable_page()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: kexec: drop weak attribute from functions
-Date: Fri, 1 Jul 2022 13:04:05 +0530
+From: Alex Sierra <alex.sierra@amd.com>
+Subject: mm: rename is_pinnable_page() to is_longterm_pinnable_page()
+Date: Fri, 15 Jul 2022 10:05:08 -0500
 
-Drop __weak attribute from functions in kexec_core.c:
-- machine_kexec_post_load()
-- arch_kexec_protect_crashkres()
-- arch_kexec_unprotect_crashkres()
-- crash_free_reserved_phys_range()
+Patch series "Add MEMORY_DEVICE_COHERENT for coherent device memory
+mapping", v9.
 
-Link: https://lkml.kernel.org/r/c0f6219e03cb399d166d518ab505095218a902dd.1656659357.git.naveen.n.rao@linux.vnet.ibm.com
-Signed-off-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-Suggested-by: Eric Biederman <ebiederm@xmission.com>
+This patch series introduces MEMORY_DEVICE_COHERENT, a type of memory
+owned by a device that can be mapped into CPU page tables like
+MEMORY_DEVICE_GENERIC and can also be migrated like MEMORY_DEVICE_PRIVATE.
+
+This patch series is mostly self-contained except for a few places where
+it needs to update other subsystems to handle the new memory type.
+
+System stability and performance are not affected according to our ongoing
+testing, including xfstests.
+
+How it works: The system BIOS advertises the GPU device memory (aka VRAM)
+as SPM (special purpose memory) in the UEFI system address map.
+
+The amdgpu driver registers the memory with devmap as
+MEMORY_DEVICE_COHERENT using devm_memremap_pages.  The initial user for
+this hardware page migration capability is the Frontier supercomputer
+project.  This functionality is not AMD-specific.  We expect other GPU
+vendors to find this functionality useful, and possibly other hardware
+types in the future.
+
+Our test nodes in the lab are similar to the Frontier configuration, with
+.5 TB of system memory plus 256 GB of device memory split across 4 GPUs,
+all in a single coherent address space.  Page migration is expected to
+improve application efficiency significantly.  We will report empirical
+results as they become available.
+
+Coherent device type pages at gup are now migrated back to system memory
+if they are being pinned long-term (FOLL_LONGTERM).  The reason is, that
+long-term pinning would interfere with the device memory manager owning
+the device-coherent pages (e.g.  evictions in TTM).  These series
+incorporate Alistair Popple patches to do this migration from
+pin_user_pages() calls.  hmm_gup_test has been added to hmm-test to test
+different get user pages calls.
+
+This series includes handling of device-managed anonymous pages returned
+by vm_normal_pages.  Although they behave like normal pages for purposes
+of mapping in CPU page tables and for COW, they do not support LRU lists,
+NUMA migration or THP.
+
+We also introduced a FOLL_LRU flag that adds the same behaviour to
+follow_page and related APIs, to allow callers to specify that they expect
+to put pages on an LRU list.
+
+
+This patch (of 14):
+
+is_pinnable_page() and folio_is_pinnable() are renamed to
+is_longterm_pinnable_page() and folio_is_longterm_pinnable() respectively.
+These functions are used in the FOLL_LONGTERM flag context.
+
+Link: https://lkml.kernel.org/r/20220715150521.18165-1-alex.sierra@amd.com
+Link: https://lkml.kernel.org/r/20220715150521.18165-2-alex.sierra@amd.com
+Signed-off-by: Alex Sierra <alex.sierra@amd.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/kexec.h   |   16 ++++++++++++--
- arch/powerpc/include/asm/kexec.h |    5 ++++
- arch/s390/include/asm/kexec.h    |   11 +++++++++
- arch/x86/include/asm/kexec.h     |    6 +++++
- include/linux/kexec.h            |   32 +++++++++++++++++++++++++----
- kernel/kexec_core.c              |   27 ------------------------
- 6 files changed, 64 insertions(+), 33 deletions(-)
+ include/linux/mm.h |    8 ++++----
+ mm/gup.c           |    4 ++--
+ mm/gup_test.c      |    2 +-
+ mm/hugetlb.c       |    2 +-
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/arch/arm64/include/asm/kexec.h~kexec-drop-weak-attribute-from-functions
-+++ a/arch/arm64/include/asm/kexec.h
-@@ -84,16 +84,30 @@ static inline void crash_setup_regs(stru
- extern bool crash_is_nosave(unsigned long pfn);
- extern void crash_prepare_suspend(void);
- extern void crash_post_resume(void);
-+
-+void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
-+#define crash_free_reserved_phys_range crash_free_reserved_phys_range
+--- a/include/linux/mm.h~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
++++ a/include/linux/mm.h
+@@ -1642,7 +1642,7 @@ static inline bool page_needs_cow_for_dm
+ 
+ /* MIGRATE_CMA and ZONE_MOVABLE do not allow pin pages */
+ #ifdef CONFIG_MIGRATION
+-static inline bool is_pinnable_page(struct page *page)
++static inline bool is_longterm_pinnable_page(struct page *page)
+ {
+ #ifdef CONFIG_CMA
+ 	int mt = get_pageblock_migratetype(page);
+@@ -1653,15 +1653,15 @@ static inline bool is_pinnable_page(stru
+ 	return !is_zone_movable_page(page) || is_zero_pfn(page_to_pfn(page));
+ }
  #else
- static inline bool crash_is_nosave(unsigned long pfn) {return false; }
- static inline void crash_prepare_suspend(void) {}
- static inline void crash_post_resume(void) {}
- #endif
- 
-+struct kimage;
-+
- #if defined(CONFIG_KEXEC_CORE)
- void cpu_soft_restart(unsigned long el2_switch, unsigned long entry,
- 		      unsigned long arg0, unsigned long arg1,
- 		      unsigned long arg2);
-+
-+int machine_kexec_post_load(struct kimage *image);
-+#define machine_kexec_post_load machine_kexec_post_load
-+
-+void arch_kexec_protect_crashkres(void);
-+#define arch_kexec_protect_crashkres arch_kexec_protect_crashkres
-+
-+void arch_kexec_unprotect_crashkres(void);
-+#define arch_kexec_unprotect_crashkres arch_kexec_unprotect_crashkres
- #endif
- 
- #define ARCH_HAS_KIMAGE_ARCH
-@@ -113,8 +127,6 @@ struct kimage_arch {
- #ifdef CONFIG_KEXEC_FILE
- extern const struct kexec_file_ops kexec_image_ops;
- 
--struct kimage;
--
- int arch_kimage_file_post_load_cleanup(struct kimage *image);
- #define arch_kimage_file_post_load_cleanup arch_kimage_file_post_load_cleanup
- 
---- a/arch/powerpc/include/asm/kexec.h~kexec-drop-weak-attribute-from-functions
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -98,6 +98,11 @@ void relocate_new_kernel(unsigned long i
- 
- void kexec_copy_flush(struct kimage *image);
- 
-+#if defined(CONFIG_CRASH_DUMP) && defined(CONFIG_PPC_RTAS)
-+void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
-+#define crash_free_reserved_phys_range crash_free_reserved_phys_range
-+#endif
-+
- #ifdef CONFIG_KEXEC_FILE
- extern const struct kexec_file_ops kexec_elf64_ops;
- 
---- a/arch/s390/include/asm/kexec.h~kexec-drop-weak-attribute-from-functions
-+++ a/arch/s390/include/asm/kexec.h
-@@ -85,6 +85,17 @@ struct kimage_arch {
- extern const struct kexec_file_ops s390_kexec_image_ops;
- extern const struct kexec_file_ops s390_kexec_elf_ops;
- 
-+#ifdef CONFIG_CRASH_DUMP
-+void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
-+#define crash_free_reserved_phys_range crash_free_reserved_phys_range
-+
-+void arch_kexec_protect_crashkres(void);
-+#define arch_kexec_protect_crashkres arch_kexec_protect_crashkres
-+
-+void arch_kexec_unprotect_crashkres(void);
-+#define arch_kexec_unprotect_crashkres arch_kexec_unprotect_crashkres
-+#endif
-+
- #ifdef CONFIG_KEXEC_FILE
- struct purgatory_info;
- int arch_kexec_apply_relocations_add(struct purgatory_info *pi,
---- a/arch/x86/include/asm/kexec.h~kexec-drop-weak-attribute-from-functions
-+++ a/arch/x86/include/asm/kexec.h
-@@ -186,6 +186,12 @@ extern int arch_kexec_post_alloc_pages(v
- extern void arch_kexec_pre_free_pages(void *vaddr, unsigned int pages);
- #define arch_kexec_pre_free_pages arch_kexec_pre_free_pages
- 
-+void arch_kexec_protect_crashkres(void);
-+#define arch_kexec_protect_crashkres arch_kexec_protect_crashkres
-+
-+void arch_kexec_unprotect_crashkres(void);
-+#define arch_kexec_unprotect_crashkres arch_kexec_unprotect_crashkres
-+
- #ifdef CONFIG_KEXEC_FILE
- struct purgatory_info;
- int arch_kexec_apply_relocations_add(struct purgatory_info *pi,
---- a/include/linux/kexec.h~kexec-drop-weak-attribute-from-functions
-+++ a/include/linux/kexec.h
-@@ -390,7 +390,10 @@ extern void machine_kexec_cleanup(struct
- extern int kernel_kexec(void);
- extern struct page *kimage_alloc_control_pages(struct kimage *image,
- 						unsigned int order);
--int machine_kexec_post_load(struct kimage *image);
-+
-+#ifndef machine_kexec_post_load
-+static inline int machine_kexec_post_load(struct kimage *image) { return 0; }
-+#endif
- 
- extern void __crash_kexec(struct pt_regs *);
- extern void crash_kexec(struct pt_regs *);
-@@ -423,10 +426,21 @@ extern bool kexec_in_progress;
- 
- int crash_shrink_memory(unsigned long new_size);
- size_t crash_get_memory_size(void);
--void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
- 
--void arch_kexec_protect_crashkres(void);
--void arch_kexec_unprotect_crashkres(void);
-+#ifndef arch_kexec_protect_crashkres
-+/*
-+ * Protection mechanism for crashkernel reserved memory after
-+ * the kdump kernel is loaded.
-+ *
-+ * Provide an empty default implementation here -- architecture
-+ * code may override this
-+ */
-+static inline void arch_kexec_protect_crashkres(void) { }
-+#endif
-+
-+#ifndef arch_kexec_unprotect_crashkres
-+static inline void arch_kexec_unprotect_crashkres(void) { }
-+#endif
- 
- #ifndef page_to_boot_pfn
- static inline unsigned long page_to_boot_pfn(struct page *page)
-@@ -456,6 +470,16 @@ static inline phys_addr_t boot_phys_to_p
+-static inline bool is_pinnable_page(struct page *page)
++static inline bool is_longterm_pinnable_page(struct page *page)
+ {
+ 	return true;
  }
  #endif
  
-+#ifndef crash_free_reserved_phys_range
-+static inline void crash_free_reserved_phys_range(unsigned long begin, unsigned long end)
-+{
-+	unsigned long addr;
-+
-+	for (addr = begin; addr < end; addr += PAGE_SIZE)
-+		free_reserved_page(boot_pfn_to_page(addr >> PAGE_SHIFT));
-+}
-+#endif
-+
- static inline unsigned long virt_to_boot_phys(void *addr)
+-static inline bool folio_is_pinnable(struct folio *folio)
++static inline bool folio_is_longterm_pinnable(struct folio *folio)
  {
- 	return phys_to_boot_phys(__pa((unsigned long)addr));
---- a/kernel/kexec_core.c~kexec-drop-weak-attribute-from-functions
-+++ a/kernel/kexec_core.c
-@@ -591,11 +591,6 @@ static void kimage_free_extra_pages(stru
- 
+-	return is_pinnable_page(&folio->page);
++	return is_longterm_pinnable_page(&folio->page);
  }
  
--int __weak machine_kexec_post_load(struct kimage *image)
--{
--	return 0;
--}
--
- void kimage_terminate(struct kimage *image)
- {
- 	if (*image->entry != 0)
-@@ -1020,15 +1015,6 @@ size_t crash_get_memory_size(void)
- 	return size;
- }
+ static inline void set_page_zone(struct page *page, enum zone_type zone)
+--- a/mm/gup.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
++++ a/mm/gup.c
+@@ -134,7 +134,7 @@ struct folio *try_grab_folio(struct page
+ 		 * path.
+ 		 */
+ 		if (unlikely((flags & FOLL_LONGTERM) &&
+-			     !is_pinnable_page(page)))
++			     !is_longterm_pinnable_page(page)))
+ 			return NULL;
  
--void __weak crash_free_reserved_phys_range(unsigned long begin,
--					   unsigned long end)
--{
--	unsigned long addr;
--
--	for (addr = begin; addr < end; addr += PAGE_SIZE)
--		free_reserved_page(boot_pfn_to_page(addr >> PAGE_SHIFT));
--}
--
- int crash_shrink_memory(unsigned long new_size)
- {
- 	int ret = 0;
-@@ -1225,16 +1211,3 @@ int kernel_kexec(void)
- 	mutex_unlock(&kexec_mutex);
- 	return error;
- }
--
--/*
-- * Protection mechanism for crashkernel reserved memory after
-- * the kdump kernel is loaded.
-- *
-- * Provide an empty default implementation here -- architecture
-- * code may override this
-- */
--void __weak arch_kexec_protect_crashkres(void)
--{}
--
--void __weak arch_kexec_unprotect_crashkres(void)
--{}
+ 		/*
+@@ -1926,7 +1926,7 @@ static long check_and_migrate_movable_pa
+ 			continue;
+ 		prev_folio = folio;
+ 
+-		if (folio_is_pinnable(folio))
++		if (folio_is_longterm_pinnable(folio))
+ 			continue;
+ 
+ 		/*
+--- a/mm/gup_test.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
++++ a/mm/gup_test.c
+@@ -53,7 +53,7 @@ static void verify_dma_pinned(unsigned i
+ 				dump_page(page, "gup_test failure");
+ 				break;
+ 			} else if (cmd == PIN_LONGTERM_BENCHMARK &&
+-				WARN(!is_pinnable_page(page),
++				WARN(!is_longterm_pinnable_page(page),
+ 				     "pages[%lu] is NOT pinnable but pinned\n",
+ 				     i)) {
+ 				dump_page(page, "gup_test failure");
+--- a/mm/hugetlb.c~mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages
++++ a/mm/hugetlb.c
+@@ -1129,7 +1129,7 @@ static struct page *dequeue_huge_page_no
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+ 	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
+-		if (pin && !is_pinnable_page(page))
++		if (pin && !is_longterm_pinnable_page(page))
+ 			continue;
+ 
+ 		if (PageHWPoison(page))
 _
 
-Patches currently in -mm which might be from naveen.n.rao@linux.vnet.ibm.com are
+Patches currently in -mm which might be from alex.sierra@amd.com are
 
+mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
+mm-move-page-zone-helpers-from-mmh-to-mmzoneh.patch
+mm-add-zone-device-coherent-type-memory-support.patch
+mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
+mm-add-device-coherent-vma-selection-for-memory-migration.patch
+drm-amdkfd-add-spm-support-for-svm.patch
+lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
+lib-test_hmm-add-module-param-for-zone-device-type.patch
+lib-add-support-for-device-coherent-type-in-test_hmm.patch
+tools-update-hmm-test-to-support-device-coherent-type.patch
+tools-update-test_hmm-script-to-support-sp-config.patch
+tools-add-hmm-gup-tests-for-device-coherent-type.patch
+tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
 
