@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25FD5C43334
-	for <mm-commits@archiver.kernel.org>; Sat, 16 Jul 2022 22:52:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD6CFC43334
+	for <mm-commits@archiver.kernel.org>; Sat, 16 Jul 2022 22:55:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229941AbiGPWwZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jul 2022 18:52:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54314 "EHLO
+        id S232333AbiGPWzq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jul 2022 18:55:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229501AbiGPWwY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 18:52:24 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12D10192A8
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 15:52:24 -0700 (PDT)
+        with ESMTP id S229501AbiGPWzp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 18:55:45 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C957186DB
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 15:55:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CFCBDB80CE9
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 22:52:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71D93C34114;
-        Sat, 16 Jul 2022 22:52:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 14377B80CB1
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 22:55:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91604C34114;
+        Sat, 16 Jul 2022 22:55:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658011941;
-        bh=+a3/2uNb+HW54+Pn3EgxSGRsHm6e40AKp2n7L3Wrrd8=;
+        s=korg; t=1658012141;
+        bh=Azuf56Dm6k8DQrEavzEfJPGwhdI0t44feQFBs4bMUnM=;
         h=Date:To:From:Subject:From;
-        b=IEGb9RZJnb21Ivoa1NaZi1fVkbdu+F8c6ceaUSEHUE4/OrCsehfVQZPsAlAuvCVqU
-         n9vU6LFsUi4zPOqo1DQ3avvpniEy/Rom1PBT3b8lrqqlKEge5ownJy1/+ldJXn1nTk
-         Pt1m3g8CqAyxwqpKzizie9JFz7+DhEejFfnzHfPA=
-Date:   Sat, 16 Jul 2022 15:52:20 -0700
-To:     mm-commits@vger.kernel.org, kernel-bot@kylinos.cn,
-        joseph.qi@linux.alibaba.com, yijiangshan@kylinos.cn,
+        b=Ju5WpTPkI8aDP5dHwJF1zI2q3tribUi8Qmazpjl9SnAF5nImIZa3JEHjWZ6475Zzy
+         szg5V5HrOFV4XrCEm3l349NzM5xvA0MJBK1MAGVDb4aQhD4ZibWUtExy+QfSikogNp
+         kapYqXVpcSLlLQAyWINAsynK48R1jFyiaT5ryboI=
+Date:   Sat, 16 Jul 2022 15:55:40 -0700
+To:     mm-commits@vger.kernel.org, xuqiang36@huawei.com, will@kernel.org,
+        rppt@linux.ibm.com, darren@os.amperecomputing.com,
+        anshuman.khandual@arm.com, zhouguanghui1@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-ocfs2-fix-spelling-typo-in-comment.patch added to mm-nonmm-unstable branch
-Message-Id: <20220716225221.71D93C34114@smtp.kernel.org>
+Subject: + memblockarm64-expand-the-static-memblock-memory-table.patch added to mm-unstable branch
+Message-Id: <20220716225541.91604C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ocfs2: Fix spelling typo in comment
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-ocfs2-fix-spelling-typo-in-comment.patch
+     Subject: memblock,arm64: expand the static memblock memory table
+has been added to the -mm mm-unstable branch.  Its filename is
+     memblockarm64-expand-the-static-memblock-memory-table.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-ocfs2-fix-spelling-typo-in-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memblockarm64-expand-the-static-memblock-memory-table.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,36 +66,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiangshan Yi <yijiangshan@kylinos.cn>
-Subject: fs/ocfs2: Fix spelling typo in comment
-Date: Fri, 15 Jul 2022 14:00:35 +0800
+From: Zhou Guanghui <zhouguanghui1@huawei.com>
+Subject: memblock,arm64: expand the static memblock memory table
+Date: Wed, 15 Jun 2022 10:27:42 +0000
 
-Fix spelling typo in comment.
+In a system(Huawei Ascend ARM64 SoC) using HBM, a multi-bit ECC error
+occurs, and the BIOS will mark the corresponding area (for example, 2 MB)
+as unusable.  When the system restarts next time, these areas are not
+reported or reported as EFI_UNUSABLE_MEMORY.  Both cases lead to an
+increase in the number of memblocks, whereas EFI_UNUSABLE_MEMORY leads to
+a larger number of memblocks.
 
-Link: https://lkml.kernel.org/r/20220715060035.632903-1-13667453960@163.com
-Signed-off-by: Jiangshan Yi <yijiangshan@kylinos.cn>
-Reported-by: k2ci <kernel-bot@kylinos.cn>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+For example, if the EFI_UNUSABLE_MEMORY type is reported:
+...
+memory[0x92]    [0x0000200834a00000-0x0000200835bfffff], 0x0000000001200000 bytes on node 7 flags: 0x0
+memory[0x93]    [0x0000200835c00000-0x0000200835dfffff], 0x0000000000200000 bytes on node 7 flags: 0x4
+memory[0x94]    [0x0000200835e00000-0x00002008367fffff], 0x0000000000a00000 bytes on node 7 flags: 0x0
+memory[0x95]    [0x0000200836800000-0x00002008369fffff], 0x0000000000200000 bytes on node 7 flags: 0x4
+memory[0x96]    [0x0000200836a00000-0x0000200837bfffff], 0x0000000001200000 bytes on node 7 flags: 0x0
+memory[0x97]    [0x0000200837c00000-0x0000200837dfffff], 0x0000000000200000 bytes on node 7 flags: 0x4
+memory[0x98]    [0x0000200837e00000-0x000020087fffffff], 0x0000000048200000 bytes on node 7 flags: 0x0
+memory[0x99]    [0x0000200880000000-0x0000200bcfffffff], 0x0000000350000000 bytes on node 6 flags: 0x0
+memory[0x9a]    [0x0000200bd0000000-0x0000200bd01fffff], 0x0000000000200000 bytes on node 6 flags: 0x4
+memory[0x9b]    [0x0000200bd0200000-0x0000200bd07fffff], 0x0000000000600000 bytes on node 6 flags: 0x0
+memory[0x9c]    [0x0000200bd0800000-0x0000200bd09fffff], 0x0000000000200000 bytes on node 6 flags: 0x4
+memory[0x9d]    [0x0000200bd0a00000-0x0000200fcfffffff], 0x00000003ff600000 bytes on node 6 flags: 0x0
+memory[0x9e]    [0x0000200fd0000000-0x0000200fd01fffff], 0x0000000000200000 bytes on node 6 flags: 0x4
+memory[0x9f]    [0x0000200fd0200000-0x0000200fffffffff], 0x000000002fe00000 bytes on node 6 flags: 0x0
+...
+
+The EFI memory map is parsed to construct the memblock arrays before the
+memblock arrays can be resized.  As the result, memory regions beyond
+INIT_MEMBLOCK_REGIONS are lost.
+
+Add a new macro INIT_MEMBLOCK_MEMORY_REGIONS to replace
+INIT_MEMBLOCK_REGTIONS to define the size of the static memblock.memory
+array.
+
+Allow overriding memblock.memory array size with architecture defined
+INIT_MEMBLOCK_MEMORY_REGIONS and make arm64 to set
+INIT_MEMBLOCK_MEMORY_REGIONS to 1024 when CONFIG_EFI is enabled.
+
+Link: https://lkml.kernel.org/r/20220615102742.96450-1-zhouguanghui1@huawei.com
+Signed-off-by: Zhou Guanghui <zhouguanghui1@huawei.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Tested-by: Darren Hart <darren@os.amperecomputing.com>
+Acked-by: Will Deacon <will@kernel.org>		[arm64]
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Xu Qiang <xuqiang36@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/include/asm/memory.h |    9 +++++++++
+ mm/memblock.c                   |   14 +++++++++-----
+ 2 files changed, 18 insertions(+), 5 deletions(-)
 
---- a/fs/ocfs2/quota_global.c~fs-ocfs2-fix-spelling-typo-in-comment
-+++ a/fs/ocfs2/quota_global.c
-@@ -412,7 +412,7 @@ out_unlock:
- 	goto out_err;
- }
+--- a/arch/arm64/include/asm/memory.h~memblockarm64-expand-the-static-memblock-memory-table
++++ a/arch/arm64/include/asm/memory.h
+@@ -364,6 +364,15 @@ void dump_mem_limit(void);
+ # define INIT_MEMBLOCK_RESERVED_REGIONS	(INIT_MEMBLOCK_REGIONS + NR_CPUS + 1)
+ #endif
  
--/* Write information to global quota file. Expects exlusive lock on quota
-+/* Write information to global quota file. Expects exclusive lock on quota
-  * file inode and quota info */
- static int __ocfs2_global_write_info(struct super_block *sb, int type)
- {
++/*
++ * memory regions which marked with flag MEMBLOCK_NOMAP(for example, the memory
++ * of the EFI_UNUSABLE_MEMORY type) may divide a continuous memory block into
++ * multiple parts. As a result, the number of memory regions is large.
++ */
++#ifdef CONFIG_EFI
++#define INIT_MEMBLOCK_MEMORY_REGIONS	(INIT_MEMBLOCK_REGIONS * 8)
++#endif
++
+ #include <asm-generic/memory_model.h>
+ 
+ #endif /* __ASM_MEMORY_H */
+--- a/mm/memblock.c~memblockarm64-expand-the-static-memblock-memory-table
++++ a/mm/memblock.c
+@@ -29,6 +29,10 @@
+ # define INIT_MEMBLOCK_RESERVED_REGIONS		INIT_MEMBLOCK_REGIONS
+ #endif
+ 
++#ifndef INIT_MEMBLOCK_MEMORY_REGIONS
++#define INIT_MEMBLOCK_MEMORY_REGIONS		INIT_MEMBLOCK_REGIONS
++#endif
++
+ /**
+  * DOC: memblock overview
+  *
+@@ -55,9 +59,9 @@
+  * the allocator metadata. The "memory" and "reserved" types are nicely
+  * wrapped with struct memblock. This structure is statically
+  * initialized at build time. The region arrays are initially sized to
+- * %INIT_MEMBLOCK_REGIONS for "memory" and %INIT_MEMBLOCK_RESERVED_REGIONS
+- * for "reserved". The region array for "physmem" is initially sized to
+- * %INIT_PHYSMEM_REGIONS.
++ * %INIT_MEMBLOCK_MEMORY_REGIONS for "memory" and
++ * %INIT_MEMBLOCK_RESERVED_REGIONS for "reserved". The region array
++ * for "physmem" is initially sized to %INIT_PHYSMEM_REGIONS.
+  * The memblock_allow_resize() enables automatic resizing of the region
+  * arrays during addition of new regions. This feature should be used
+  * with care so that memory allocated for the region array will not
+@@ -102,7 +106,7 @@ unsigned long min_low_pfn;
+ unsigned long max_pfn;
+ unsigned long long max_possible_pfn;
+ 
+-static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
++static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_MEMORY_REGIONS] __initdata_memblock;
+ static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_RESERVED_REGIONS] __initdata_memblock;
+ #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
+ static struct memblock_region memblock_physmem_init_regions[INIT_PHYSMEM_REGIONS];
+@@ -111,7 +115,7 @@ static struct memblock_region memblock_p
+ struct memblock memblock __initdata_memblock = {
+ 	.memory.regions		= memblock_memory_init_regions,
+ 	.memory.cnt		= 1,	/* empty dummy entry */
+-	.memory.max		= INIT_MEMBLOCK_REGIONS,
++	.memory.max		= INIT_MEMBLOCK_MEMORY_REGIONS,
+ 	.memory.name		= "memory",
+ 
+ 	.reserved.regions	= memblock_reserved_init_regions,
 _
 
-Patches currently in -mm which might be from yijiangshan@kylinos.cn are
+Patches currently in -mm which might be from zhouguanghui1@huawei.com are
 
-fs-ocfs2-fix-spelling-typo-in-comment.patch
+memblockarm64-expand-the-static-memblock-memory-table.patch
 
