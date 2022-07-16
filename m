@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C27ACCA47F
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Jul 2022 23:26:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A74BC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 16 Jul 2022 22:51:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232723AbiGOX0c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Jul 2022 19:26:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53122 "EHLO
+        id S232279AbiGPWvP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jul 2022 18:51:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232557AbiGOX0N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2022 19:26:13 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E42FB936AD
-        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 16:25:51 -0700 (PDT)
+        with ESMTP id S232636AbiGPWvN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 18:51:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F68E1F2F7
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 15:51:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 50E64CE324F
-        for <mm-commits@vger.kernel.org>; Fri, 15 Jul 2022 23:25:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60DA6C34115;
-        Fri, 15 Jul 2022 23:25:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EF73061331
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 22:51:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DFD5C34114;
+        Sat, 16 Jul 2022 22:51:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1657927548;
-        bh=KAkYVGIx251rOJ5WpFvCb7KRoHsWyWFJBDU6HrvMZ2E=;
+        s=korg; t=1658011868;
+        bh=lAuE9bqg1hp3shDp4m7PAKXyCYsNhfui95sfC7IMx3s=;
         h=Date:To:From:Subject:From;
-        b=ho48H6hrhEciXQasU4689sEFdKZf27C//dwrDZZTBNfoGYAVfw2xBEA19PNJNXZOj
-         NY7L3VbCr826IrdupTZlwRoLE8pjVWAl7OVI5O+r/celGMOcbw+HLOdmDPSyHF9ZyL
-         cB7NTsLr7+mnXsGR1Xq5vJNCK03Mnnif639zOmmM=
-Date:   Fri, 15 Jul 2022 16:25:47 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        rcampbell@nvidia.com, jglisse@redhat.com, jgg@nvidia.com,
-        hch@lst.de, Felix.Kuehling@amd.com, david@redhat.com,
-        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
+        b=QIjFuRC51gxM5ErBv/1qlM604gACzexcsla22fIMBn9Y7FZ//BRP2NzqfKvzVyIb1
+         ymSpCmq92bP31pY+HbpUSsjH3oYaCTyarWJJo6RgcScWOG40TWAcFWJc1gsbe5t1uz
+         XM1BZrjLByiiFV5pVM6ZACnclqdZfYLwcFn4dPsM=
+Date:   Sat, 16 Jul 2022 15:51:07 -0700
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-add-selftests-to-hmm-for-cow-in-device-memory.patch added to mm-unstable branch
-Message-Id: <20220715232548.60DA6C34115@smtp.kernel.org>
+Subject: + mm-remove-obsolete-comment-in-do_fault_around.patch added to mm-unstable branch
+Message-Id: <20220716225108.4DFD5C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: add selftests to hmm for COW in device memory
+     Subject: mm: remove obsolete comment in do_fault_around()
 has been added to the -mm mm-unstable branch.  Its filename is
-     tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
+     mm-remove-obsolete-comment-in-do_fault_around.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-obsolete-comment-in-do_fault_around.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,134 +64,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alex Sierra <alex.sierra@amd.com>
-Subject: tools: add selftests to hmm for COW in device memory
-Date: Fri, 15 Jul 2022 10:05:21 -0500
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm: remove obsolete comment in do_fault_around()
+Date: Sat, 16 Jul 2022 16:03:59 +0800
 
-The objective is to test device migration mechanism in pages marked as
-COW, for private and coherent device type.  In case of writing to COW
-private page(s), a page fault will migrate pages back to system memory
-first.  Then, these pages will be duplicated.  In case of COW device
-coherent type, pages are duplicated directly from device memory.
+Since commit 7267ec008b5c ("mm: postpone page table allocation until we
+have page to map"), do_fault_around is not called with page table lock
+held.  Cleanup the corresponding comments.
 
-Link: https://lkml.kernel.org/r/20220715150521.18165-15-alex.sierra@amd.com
-Signed-off-by: Alex Sierra <alex.sierra@amd.com>
-Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Link: https://lkml.kernel.org/r/20220716080359.38791-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hmm-tests.c |   80 +++++++++++++++++++++++
- 1 file changed, 80 insertions(+)
+ mm/memory.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/tools/testing/selftests/vm/hmm-tests.c~tools-add-selftests-to-hmm-for-cow-in-device-memory
-+++ a/tools/testing/selftests/vm/hmm-tests.c
-@@ -1874,4 +1874,84 @@ TEST_F(hmm, hmm_gup_test)
- 	close(gup_fd);
- 	hmm_buffer_free(buffer);
- }
-+
-+/*
-+ * Test copy-on-write in device pages.
-+ * In case of writing to COW private page(s), a page fault will migrate pages
-+ * back to system memory first. Then, these pages will be duplicated. In case
-+ * of COW device coherent type, pages are duplicated directly from device
-+ * memory.
-+ */
-+TEST_F(hmm, hmm_cow_in_device)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages;
-+	unsigned long size;
-+	unsigned long i;
-+	int *ptr;
-+	int ret;
-+	unsigned char *m;
-+	pid_t pid;
-+	int status;
-+
-+	npages = 4;
-+	size = npages << self->page_shift;
-+
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
-+
-+	buffer->fd = -1;
-+	buffer->size = size;
-+	buffer->mirror = malloc(size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+
-+	buffer->ptr = mmap(NULL, size,
-+			   PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANONYMOUS,
-+			   buffer->fd, 0);
-+	ASSERT_NE(buffer->ptr, MAP_FAILED);
-+
-+	/* Initialize buffer in system memory. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ptr[i] = i;
-+
-+	/* Migrate memory to device. */
-+
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	pid = fork();
-+	if (pid == -1)
-+		ASSERT_EQ(pid, 0);
-+	if (!pid) {
-+		/* Child process waitd for SIGTERM from the parent. */
-+		while (1) {
-+		}
-+		perror("Should not reach this\n");
-+		exit(0);
-+	}
-+	/* Parent process writes to COW pages(s) and gets a
-+	 * new copy in system. In case of device private pages,
-+	 * this write causes a migration to system mem first.
-+	 */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ptr[i] = i;
-+
-+	/* Terminate child and wait */
-+	EXPECT_EQ(0, kill(pid, SIGTERM));
-+	EXPECT_EQ(pid, waitpid(pid, &status, 0));
-+	EXPECT_NE(0, WIFSIGNALED(status));
-+	EXPECT_EQ(SIGTERM, WTERMSIG(status));
-+
-+	/* Take snapshot to CPU pagetables */
-+	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+	m = buffer->mirror;
-+	for (i = 0; i < npages; i++)
-+		ASSERT_EQ(HMM_DMIRROR_PROT_WRITE, m[i]);
-+
-+	hmm_buffer_free(buffer);
-+}
- TEST_HARNESS_MAIN
+--- a/mm/memory.c~mm-remove-obsolete-comment-in-do_fault_around
++++ a/mm/memory.c
+@@ -4458,10 +4458,6 @@ late_initcall(fault_around_debugfs);
+  * It uses vm_ops->map_pages() to map the pages, which skips the page if it's
+  * not ready to be mapped: not up-to-date, locked, etc.
+  *
+- * This function is called with the page table lock taken. In the split ptlock
+- * case the page table lock only protects only those entries which belong to
+- * the page table corresponding to the fault address.
+- *
+  * This function doesn't cross the VMA boundaries, in order to call map_pages()
+  * only once.
+  *
 _
 
-Patches currently in -mm which might be from alex.sierra@amd.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-rename-is_pinnable_pages-to-is_longterm_pinnable_pages.patch
-mm-move-page-zone-helpers-from-mmh-to-mmzoneh.patch
-mm-add-zone-device-coherent-type-memory-support.patch
-mm-handling-non-lru-pages-returned-by-vm_normal_pages.patch
-mm-add-device-coherent-vma-selection-for-memory-migration.patch
-drm-amdkfd-add-spm-support-for-svm.patch
-lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
-lib-test_hmm-add-module-param-for-zone-device-type.patch
-lib-add-support-for-device-coherent-type-in-test_hmm.patch
-tools-update-hmm-test-to-support-device-coherent-type.patch
-tools-update-test_hmm-script-to-support-sp-config.patch
-tools-add-hmm-gup-tests-for-device-coherent-type.patch
-tools-add-selftests-to-hmm-for-cow-in-device-memory.patch
+hugetlb-fix-memoryleak-in-hugetlb_mcopy_atomic_pte.patch
+mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
+filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
+mm-huge_memory-use-flush_pmd_tlb_range-in-move_huge_pmd.patch
+mm-huge_memory-access-vm_page_prot-with-read_once-in-remove_migration_pmd.patch
+mm-huge_memory-fix-comment-of-__pud_trans_huge_lock.patch
+mm-huge_memory-use-helper-touch_pud-in-huge_pud_set_accessed.patch
+mm-huge_memory-use-helper-touch_pmd-in-huge_pmd_set_accessed.patch
+mm-huge_memory-rename-mmun_start-to-haddr-in-remove_migration_pmd.patch
+mm-huge_memory-use-helper-function-vma_lookup-in-split_huge_pages_pid.patch
+mm-huge_memory-use-helper-macro-__attr_rw.patch
+mm-huge_memory-fix-comment-in-zap_huge_pud.patch
+mm-huge_memory-check-pmd_present-first-in-is_huge_zero_pmd.patch
+mm-huge_memory-try-to-free-subpage-in-swapcache-when-possible.patch
+mm-huge_memory-minor-cleanup-for-split_huge_pages_all.patch
+mm-huge_memory-fix-comment-of-page_deferred_list.patch
+mm-huge_memory-correct-comment-of-prep_transhuge_page.patch
+mm-huge_memory-comment-the-subtly-logic-in-__split_huge_pmd.patch
+mm-huge_memory-use-helper-macro-is_err_or_null-in-split_huge_pages_pid.patch
+mm-page_vma_mappedc-use-helper-function-huge_pte_lock.patch
+mm-mmap-fix-obsolete-comment-of-find_extend_vma.patch
+mm-remove-obsolete-comment-in-do_fault_around.patch
 
