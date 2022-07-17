@@ -2,225 +2,173 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 178CCC43334
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 01:01:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 360F5C43334
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 01:04:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229619AbiGQBBy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jul 2022 21:01:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60140 "EHLO
+        id S229836AbiGQBET (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jul 2022 21:04:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229544AbiGQBBx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 21:01:53 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 162CB1A807
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 18:01:52 -0700 (PDT)
+        with ESMTP id S230518AbiGQBES (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 21:04:18 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F31ACB4A9
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 18:04:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C23E2B80AE1
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 01:01:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71699C34114;
-        Sun, 17 Jul 2022 01:01:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A73C3B80D28
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 01:04:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48353C34114;
+        Sun, 17 Jul 2022 01:04:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658019709;
-        bh=8UaL7OcdKxbplUhCoBriTQxYoXFwafIx6EYRTsfDyBU=;
+        s=korg; t=1658019852;
+        bh=xyTQlI9UeMcS3KqyDODj/VHvMAaUpnkS+NplDgmWC6w=;
         h=Date:To:From:Subject:From;
-        b=NL1wCZUFCkdj+NLfsiDRK8DgeT+cr0RaKxB7nG1cMJi3oeUFjJIwmvA7PPr3hnl5Y
-         IvBjp/PMDvZAfbT/JtfGqzgN6wWeG3cKRQLQKX9b8vIBgvUtIv0oAeoaqWNKom3ISp
-         SoP23P79gVYKgoEfL122CZmUfkM2+Lby49LwOCco=
-Date:   Sat, 16 Jul 2022 18:01:48 -0700
-To:     mm-commits@vger.kernel.org, hughd@google.com, tytso@mit.edu,
-        akpm@linux-foundation.org
+        b=16pcd1SNep/yaXiob9AKShtDV4FIKFusghBxvsNlWVrTnrKo7xymR3eL71+Lnhhmf
+         19OBFBt0DzYDVit9rnKpbMH/IEXD95lH2s8CBId3d5a3JP6QDLu/qA5ZgBCUaiM9xt
+         bRSPhZYkF0wG376MO8XNLpk8WjZ09Kyqwvgzwt9Y=
+Date:   Sat, 16 Jul 2022 18:04:11 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
+        vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
+        sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
+        rientjes@google.com, peterx@redhat.com, pasha.tatashin@soleen.com,
+        minchan@kernel.org, mhocko@suse.com, mattst88@gmail.com,
+        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
+        jcmvbkbc@gmail.com, James.Bottomley@HansenPartnership.com,
+        ink@jurassic.park.msu.ru, hughd@google.com, deller@gmx.de,
+        david@redhat.com, ckennelly@google.com, chris@zankel.net,
+        axelrasmussen@google.com, axboe@kernel.dk, asml.silence@gmail.com,
+        arnd@arndb.de, alex.shi@linux.alibaba.com, aarcange@redhat.com,
+        zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch added to mm-unstable branch
-Message-Id: <20220717010149.71699C34114@smtp.kernel.org>
+Subject: [withdrawn] proc-smaps-add-pmdmappable-field-to-smaps.patch removed from -mm tree
+Message-Id: <20220717010412.48353C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/shmem: support FS_IOC_[SG]ETFLAGS in tmpfs
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch
+The quilt patch titled
+     Subject: proc/smaps: add PMDMappable field to smaps
+has been removed from the -mm tree.  Its filename was
+     proc-smaps-add-pmdmappable-field-to-smaps.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: "Theodore Ts'o" <tytso@mit.edu>
-Subject: mm/shmem: support FS_IOC_[SG]ETFLAGS in tmpfs
-Date: Thu, 14 Jul 2022 21:59:12 -0400
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: proc/smaps: add PMDMappable field to smaps
+Date: Wed, 6 Jul 2022 16:59:31 -0700
 
-This allows userspace to set flags like FS_APPEND_FL, FS_IMMUTABLE_FL,
-FS_NODUMP_FL, etc., like all other standard Linux file systems.
+Add PMDMappable field to smaps output which informs the user if memory in
+the VMA can be PMD-mapped by MADV_COLLAPSE.
 
-Link: https://lkml.kernel.org/r/20220715015912.2560575-1-tytso@mit.edu
-Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+The distinction from THPeligible is needed for two reasons:
+
+1) For THP, MADV_COLLAPSE is not coupled to THP sysfs controls, which
+   THPeligible reports.
+
+2) PMDMappable can also be used in HugeTLB fine-granularity mappings,
+   which are independent from THP.
+
+Link: https://lkml.kernel.org/r/20220706235936.2197195-14-zokeefe@google.com
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Chris Kennelly <ckennelly@google.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Helge Deller <deller@gmx.de>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |   11 ++++++
- mm/shmem.c               |   63 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 73 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.rst |   10 ++++++++--
+ fs/proc/task_mmu.c                 |    2 ++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
---- a/include/linux/shmem_fs.h~mm-shmem-support-fs_ioc_etflags-in-tmpfs
-+++ a/include/linux/shmem_fs.h
-@@ -25,9 +25,20 @@ struct shmem_inode_info {
- 	struct simple_xattrs	xattrs;		/* list of xattrs */
- 	atomic_t		stop_eviction;	/* hold when working on inode */
- 	struct timespec64	i_crtime;	/* file creation time */
-+	unsigned int		fsflags;	/* flags for FS_IOC_[SG]ETFLAGS */
- 	struct inode		vfs_inode;
- };
+--- a/Documentation/filesystems/proc.rst~proc-smaps-add-pmdmappable-field-to-smaps
++++ a/Documentation/filesystems/proc.rst
+@@ -466,6 +466,7 @@ Memory Area, or VMA) there is a series o
+     MMUPageSize:           4 kB
+     Locked:                0 kB
+     THPeligible:           0
++    PMDMappable:           0
+     VmFlags: rd ex mr mw me dw
  
-+#define SHMEM_FL_USER_VISIBLE FS_FL_USER_VISIBLE
-+#define SHMEM_FL_USER_MODIFIABLE FS_FL_USER_MODIFIABLE
-+#define SHMEM_FL_INHERITED FS_FL_USER_MODIFIABLE
-+
-+/* Flags that are appropriate for regular files (all but dir-specific ones). */
-+#define SHMEM_REG_FLMASK (~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
-+
-+/* Flags that are appropriate for non-directories/regular files. */
-+#define SHMEM_OTHER_FLMASK (FS_NODUMP_FL | FS_NOATIME_FL)
-+
- struct shmem_sb_info {
- 	unsigned long max_blocks;   /* How many blocks are allowed */
- 	struct percpu_counter used_blocks;  /* How many are allocated */
---- a/mm/shmem.c~mm-shmem-support-fs_ioc_etflags-in-tmpfs
-+++ a/mm/shmem.c
-@@ -28,6 +28,7 @@
- #include <linux/ramfs.h>
- #include <linux/pagemap.h>
- #include <linux/file.h>
-+#include <linux/fileattr.h>
- #include <linux/mm.h>
- #include <linux/random.h>
- #include <linux/sched/signal.h>
-@@ -1058,6 +1059,15 @@ static int shmem_getattr(struct user_nam
- 		shmem_recalc_inode(inode);
- 		spin_unlock_irq(&info->lock);
- 	}
-+	if (info->fsflags & FS_APPEND_FL)
-+		stat->attributes |= STATX_ATTR_APPEND;
-+	if (info->fsflags & FS_IMMUTABLE_FL)
-+		stat->attributes |= STATX_ATTR_IMMUTABLE;
-+	if (info->fsflags & FS_NODUMP_FL)
-+		stat->attributes |= STATX_ATTR_NODUMP;
-+	stat->attributes_mask |= (STATX_ATTR_APPEND |
-+			STATX_ATTR_IMMUTABLE |
-+			STATX_ATTR_NODUMP);
- 	generic_fillattr(&init_user_ns, inode, stat);
+ The first of these lines shows the same information as is displayed for the
+@@ -518,9 +519,14 @@ replaced by copy-on-write) part of the u
+ does not take into account swapped out page of underlying shmem objects.
+ "Locked" indicates whether the mapping is locked in memory or not.
  
- 	if (shmem_is_huge(NULL, inode, 0))
-@@ -2272,7 +2282,18 @@ static int shmem_mmap(struct file *file,
- 	return 0;
- }
++"PMDMappable" indicates if the memory can be mapped by PMDs - 1 if true, 0
++otherwise.  It just shows the current status. Note that this is memory
++operable on explicitly by MADV_COLLAPSE.
++
+ "THPeligible" indicates whether the mapping is eligible for allocating THP
+-pages as well as the THP is PMD mappable or not - 1 if true, 0 otherwise.
+-It just shows the current status.
++pages by the kernel, as well as the THP is PMD mappable or not - 1 if true, 0
++otherwise. It just shows the current status.  Note this is memory the kernel can
++transparently provide as THPs.
  
--static struct inode *shmem_get_inode(struct super_block *sb, const struct inode *dir,
-+/* Mask out flags that are inappropriate for the given type of inode. */
-+static unsigned shmem_mask_flags(umode_t mode, __u32 flags)
-+{
-+	if (S_ISDIR(mode))
-+		return flags;
-+	else if (S_ISREG(mode))
-+		return flags & SHMEM_REG_FLMASK;
-+	else
-+		return flags & SHMEM_OTHER_FLMASK;
-+}
-+
-+static struct inode *shmem_get_inode(struct super_block *sb, struct inode *dir,
- 				     umode_t mode, dev_t dev, unsigned long flags)
- {
- 	struct inode *inode;
-@@ -2297,6 +2318,9 @@ static struct inode *shmem_get_inode(str
- 		info->seals = F_SEAL_SEAL;
- 		info->flags = flags & VM_NORESERVE;
- 		info->i_crtime = inode->i_mtime;
-+		info->fsflags = (dir == NULL) ? 0 :
-+			SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
-+		info->fsflags = shmem_mask_flags(mode, info->fsflags);
- 		INIT_LIST_HEAD(&info->shrinklist);
- 		INIT_LIST_HEAD(&info->swaplist);
- 		simple_xattrs_init(&info->xattrs);
-@@ -2813,6 +2837,39 @@ out:
- 	return error;
- }
+ "VmFlags" field deserves a separate description. This member represents the
+ kernel flags associated with the particular virtual memory area in two letter
+--- a/fs/proc/task_mmu.c~proc-smaps-add-pmdmappable-field-to-smaps
++++ a/fs/proc/task_mmu.c
+@@ -867,6 +867,8 @@ static int show_smap(struct seq_file *m,
  
-+static int shmem_fileattr_get(struct dentry *dentry, struct fileattr *fa)
-+{
-+	struct shmem_inode_info *info = SHMEM_I(d_inode(dentry));
-+
-+	fileattr_fill_flags(fa, info->fsflags & SHMEM_FL_USER_VISIBLE);
-+
-+	return 0;
-+}
-+
-+static int shmem_fileattr_set(struct user_namespace *mnt_userns,
-+			      struct dentry *dentry, struct fileattr *fa)
-+{
-+	struct inode *inode = d_inode(dentry);
-+	struct shmem_inode_info *info = SHMEM_I(inode);
-+
-+	if (fileattr_has_fsx(fa))
-+		return -EOPNOTSUPP;
-+
-+	info->fsflags = (info->fsflags & ~SHMEM_FL_USER_MODIFIABLE) |
-+		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
-+
-+	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
-+	if (info->fsflags & FS_APPEND_FL)
-+		inode->i_flags |= S_APPEND;
-+	if (info->fsflags & FS_IMMUTABLE_FL)
-+		inode->i_flags |= S_IMMUTABLE;
-+	if (info->fsflags & FS_NOATIME_FL)
-+		inode->i_flags |= S_NOATIME;
-+
-+	inode->i_ctime = current_time(inode);
-+	return 0;
-+}
-+
- static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
- {
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(dentry->d_sb);
-@@ -3825,6 +3882,8 @@ static const struct inode_operations shm
- #ifdef CONFIG_TMPFS_XATTR
- 	.listxattr	= shmem_listxattr,
- 	.set_acl	= simple_set_acl,
-+	.fileattr_get	= shmem_fileattr_get,
-+	.fileattr_set	= shmem_fileattr_set,
- #endif
- };
+ 	seq_printf(m, "THPeligible:    %d\n",
+ 		   hugepage_vma_check(vma, vma->vm_flags, true, false, true));
++	seq_printf(m, "PMDMappable:    %d\n",
++		   hugepage_vma_check(vma, vma->vm_flags, true, false, false));
  
-@@ -3844,6 +3903,8 @@ static const struct inode_operations shm
- #endif
- #ifdef CONFIG_TMPFS_XATTR
- 	.listxattr	= shmem_listxattr,
-+	.fileattr_get	= shmem_fileattr_get,
-+	.fileattr_set	= shmem_fileattr_set,
- #endif
- #ifdef CONFIG_TMPFS_POSIX_ACL
- 	.setattr	= shmem_setattr,
+ 	if (arch_pkeys_enabled())
+ 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
 _
 
-Patches currently in -mm which might be from tytso@mit.edu are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch
+mm-khugepaged-remove-redundant-transhuge_vma_suitable-check.patch
+mm-khugepaged-add-struct-collapse_control.patch
+mm-khugepaged-dedup-and-simplify-hugepage-alloc-and-charging.patch
+mm-khugepaged-pipe-enum-scan_result-codes-back-to-callers.patch
+mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior.patch
+mm-thp-add-flag-to-enforce-sysfs-thp-in-hugepage_vma_check.patch
+mm-khugepaged-record-scan_pmd_mapped-when-scan_pmd-finds-hugepage.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse.patch
+mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix-2.patch
+mm-khugepaged-rename-prefix-of-shared-collapse-functions.patch
+mm-madvise-add-huge_memory-mm_madvise_collapse-tracepoint.patch
+mm-madvise-add-madv_collapse-to-process_madvise.patch
+selftests-vm-modularize-collapse-selftests.patch
+selftests-vm-dedup-hugepage-allocation-logic.patch
+selftests-vm-add-madv_collapse-collapse-context-to-selftests.patch
+selftests-vm-add-selftest-to-verify-recollapse-of-thps.patch
+selftests-vm-add-selftest-to-verify-multi-thp-collapse.patch
 
