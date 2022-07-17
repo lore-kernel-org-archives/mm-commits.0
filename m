@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1299C43334
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 00:36:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB76FC433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 00:40:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230003AbiGQAgG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jul 2022 20:36:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49780 "EHLO
+        id S229544AbiGQAkx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jul 2022 20:40:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229619AbiGQAgF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 20:36:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD024E091
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 17:36:04 -0700 (PDT)
+        with ESMTP id S229505AbiGQAkw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 20:40:52 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D12013D38
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 17:40:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6893960C11
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 00:36:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8125C34114;
-        Sun, 17 Jul 2022 00:36:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3C468B8015A
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 00:40:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9A17C34115;
+        Sun, 17 Jul 2022 00:40:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658018163;
-        bh=NpgjethCN6fYBbA2JejrTn9G4+Xcl9QXQpsKdbnAIok=;
+        s=korg; t=1658018448;
+        bh=kJXmn1rIifMo7yX8D0sOBUK4pcwTl794roOpbikpguc=;
         h=Date:To:From:Subject:From;
-        b=0ZduSohac2dwYq7Qbwkpm8vz1ZUekT0T2F/+4c+wZd6HynTPbIROYw1Su+YNQGy3i
-         Fhu2wDx0jzhRyht9NPCgA2w0veLeK7Cq9xv6oTWUV0Pi7ziMUTyw7/UAd1osG07ugG
-         P4MJMYuti9Xt1oEL/064QZ5I9h9Po1Wu92PKHi1U=
-Date:   Sat, 16 Jul 2022 17:36:03 -0700
-To:     mm-commits@vger.kernel.org, johannes.thumshirn@wdc.com,
-        jack@suse.cz, xiujianfeng@huawei.com, akpm@linux-foundation.org
+        b=k68OAXHD+hgJIZQrkyUSOJRT9gq/uRIc8ZdK534iQ347sUt48AXslQEWk2PDVO4Dv
+         SvJFCq2d9yA9RuijB0y/I92zNRKyg3W0UQZexZ4rV9gDySa2Sw9hOiwhQqGMn/LP0P
+         zxO9lHlaEddD3Q3cD1N+mhQEE06pOzYtllUSjCJY=
+Date:   Sat, 16 Jul 2022 17:40:48 -0700
+To:     mm-commits@vger.kernel.org, Conor.Dooley@microchip.com,
+        ben.dooks@sifive.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-cleanup-inode_to_wb_is_valid.patch added to mm-unstable branch
-Message-Id: <20220717003603.B8125C34114@smtp.kernel.org>
+Subject: + kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs.patch added to mm-nonmm-unstable branch
+Message-Id: <20220717004048.D9A17C34115@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback: remove inode_to_wb_is_valid()
-has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-cleanup-inode_to_wb_is_valid.patch
+     Subject: kernel/hung_task: fix address space of proc_dohung_task_timeout_secs
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-cleanup-inode_to_wb_is_valid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,61 +64,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: writeback: remove inode_to_wb_is_valid()
-Date: Thu, 14 Jul 2022 16:41:47 +0800
+From: Ben Dooks <ben.dooks@sifive.com>
+Subject: kernel/hung_task: fix address space of proc_dohung_task_timeout_secs
+Date: Thu, 14 Jul 2022 08:47:44 +0100
 
-inode_to_wb_is_valid() is no longer used since commit fe55d563d417
-("remove inode_congested()"), remove it.
+The proc_dohung_task_timeout_secs() function is incorrectly marked
+as having a __user buffer as argument 3. However this is not the
+case and it is casing multiple sparse warnings. Fix the following
+warnings by removing __user from the argument:
 
-Link: https://lkml.kernel.org/r/20220714084147.140324-1-xiujianfeng@huawei.com
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Reviewed-by: Johannes Thumshirn <johannes.thumshirn@wdc.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+kernel/hung_task.c:237:52: warning: incorrect type in argument 3 (different address spaces)
+kernel/hung_task.c:237:52:    expected void *
+kernel/hung_task.c:237:52:    got void [noderef] __user *buffer
+kernel/hung_task.c:287:35: warning: incorrect type in initializer (incompatible argument 3 (different address spaces))
+kernel/hung_task.c:287:35:    expected int ( [usertype] *proc_handler )( ... )
+kernel/hung_task.c:287:35:    got int ( * )( ... )
+kernel/hung_task.c:295:35: warning: incorrect type in initializer (incompatible argument 3 (different address spaces))
+kernel/hung_task.c:295:35:    expected int ( [usertype] *proc_handler )( ... )
+kernel/hung_task.c:295:35:    got int ( * )( ... )
+
+Link: https://lkml.kernel.org/r/20220714074744.189017-1-ben.dooks@sifive.com
+Signed-off-by: Ben Dooks <ben.dooks@sifive.com>
+Cc: <Conor.Dooley@microchip.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |   17 -----------------
- 1 file changed, 17 deletions(-)
+ kernel/hung_task.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/backing-dev.h~writeback-cleanup-inode_to_wb_is_valid
-+++ a/include/linux/backing-dev.h
-@@ -230,18 +230,6 @@ wb_get_create_current(struct backing_dev
- }
- 
- /**
-- * inode_to_wb_is_valid - test whether an inode has a wb associated
-- * @inode: inode of interest
-- *
-- * Returns %true if @inode has a wb associated.  May be called without any
-- * locking.
-- */
--static inline bool inode_to_wb_is_valid(struct inode *inode)
--{
--	return inode->i_wb;
--}
--
--/**
-  * inode_to_wb - determine the wb of an inode
-  * @inode: inode of interest
-  *
-@@ -339,11 +327,6 @@ wb_get_create_current(struct backing_dev
- 	return &bdi->wb;
- }
- 
--static inline bool inode_to_wb_is_valid(struct inode *inode)
--{
--	return true;
--}
--
- static inline struct bdi_writeback *inode_to_wb(struct inode *inode)
+--- a/kernel/hung_task.c~kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs
++++ a/kernel/hung_task.c
+@@ -229,7 +229,7 @@ static long hung_timeout_jiffies(unsigne
+  * Process updating of timeout sysctl
+  */
+ static int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
+-				  void __user *buffer,
++				  void *buffer,
+ 				  size_t *lenp, loff_t *ppos)
  {
- 	return &inode_to_bdi(inode)->wb;
+ 	int ret;
 _
 
-Patches currently in -mm which might be from xiujianfeng@huawei.com are
+Patches currently in -mm which might be from ben.dooks@sifive.com are
 
-mm-mprotect-remove-the-redundant-initialization-for-error.patch
-writeback-cleanup-bdi_sched_wait.patch
-writeback-cleanup-inode_to_wb_is_valid.patch
+kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs.patch
 
