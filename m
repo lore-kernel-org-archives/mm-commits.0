@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DA68C43334
-	for <mm-commits@archiver.kernel.org>; Sat, 16 Jul 2022 23:01:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D98AC433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 00:34:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232822AbiGPXBo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jul 2022 19:01:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58290 "EHLO
+        id S229676AbiGQAej (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jul 2022 20:34:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232810AbiGPXBo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 19:01:44 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B669F1B79E
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 16:01:42 -0700 (PDT)
+        with ESMTP id S229619AbiGQAei (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 20:34:38 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE2A3654A
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 17:34:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 746A3B80D1E
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 23:01:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E235C34114;
-        Sat, 16 Jul 2022 23:01:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 20710B8015A
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 00:34:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CB4FC34114;
+        Sun, 17 Jul 2022 00:34:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658012500;
-        bh=dV3SnFXTjLzyooGpCu/fYRUQBNF6yPD2Vml+yNoyF08=;
+        s=korg; t=1658018074;
+        bh=9UcsWKciknVq6yAV4Hs0JA6bt+oh3CfES9BCO2k3TaY=;
         h=Date:To:From:Subject:From;
-        b=GvANCb2ocCH/nmGel+GHV6IN+GH2FizsNu87lOdWcaOS8p5RbQm8RgD7lUq15NBNG
-         x8YovTAzciOqOIAXk1BJ1ZQqxIsAT4bDMe1ISO20KSG9p3Red1pu6UAviMM3thKVhe
-         w+YtN9Y+CewklXp4Jm1nyJrJJJVbc3MAZVJZUjRg=
-Date:   Sat, 16 Jul 2022 16:01:39 -0700
-To:     mm-commits@vger.kernel.org, dave.rodgman@arm.com, corbet@lwn.net,
-        yijiangshan@kylinos.cn, akpm@linux-foundation.org
+        b=iK07zGnya14C7FwE2iLaZKsgUMMz6ZCaHgb8cUdL5y60ZmEGBqVdARlGFQixpi7qT
+         pdQf71cZF+A42AHvKOoZAE9VE3VwQofuiHRDM7hGHcnH16Srqcg8s0VJ23I6UI+5na
+         IltLVj8RVmkUr0tGgC3XzjV14z40y3h97zMYNxSo=
+Date:   Sat, 16 Jul 2022 17:34:33 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, hdanton@sina.com,
+        ebiggers@kernel.org, axelrasmussen@google.com, rppt@linux.ibm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-lzo-lzo1x_compressc-replace-ternary-operator-with-min-and-min_t.patch added to mm-nonmm-unstable branch
-Message-Id: <20220716230140.0E235C34114@smtp.kernel.org>
+Subject: + secretmem-fix-unhandled-fault-in-truncate-v3.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220717003434.8CB4FC34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/lzo/lzo1x_compress.c: replace ternary operator with min() and min_t()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-lzo-lzo1x_compressc-replace-ternary-operator-with-min-and-min_t.patch
+     Subject: secretmem: fix unhandled fault in truncate
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     secretmem-fix-unhandled-fault-in-truncate-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-lzo-lzo1x_compressc-replace-ternary-operator-with-min-and-min_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/secretmem-fix-unhandled-fault-in-truncate-v3.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,55 +65,88 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiangshan Yi <yijiangshan@kylinos.cn>
-Subject: lib/lzo/lzo1x_compress.c: replace ternary operator with min() and min_t()
-Date: Thu, 14 Jul 2022 09:54:41 +0800
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: secretmem: fix unhandled fault in truncate
+Date: Thu, 14 Jul 2022 12:13:37 +0300
 
-Fix the following coccicheck warning:
+v3: use invalidate_lock rather than inode_lock
+v2: use inode_lock_shared() rather than add a new rw_sem to secretmem
 
-lib/lzo/lzo1x_compress.c:54: WARNING opportunity for min().
-lib/lzo/lzo1x_compress.c:329: WARNING opportunity for min().
-
-min() and min_t() macro is defined in include/linux/minmax.h.  It avoids
-multiple evaluations of the arguments when non-constant and performs
-strict type-checking.
-
-Link: https://lkml.kernel.org/r/20220714015441.1313036-1-13667453960@163.com
-Signed-off-by: Jiangshan Yi <yijiangshan@kylinos.cn>
-Cc: Dave Rodgman <dave.rodgman@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20220714091337.412297-1-rppt@kernel.org
+Reported-by: syzbot+9bd2b7adbd34b30b87e4@syzkaller.appspotmail.com
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Suggested-by: Eric Biggers <ebiggers@kernel.org>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lzo/lzo1x_compress.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/secretmem.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
---- a/lib/lzo/lzo1x_compress.c~lib-lzo-lzo1x_compressc-replace-ternary-operator-with-min-and-min_t
-+++ a/lib/lzo/lzo1x_compress.c
-@@ -50,9 +50,7 @@ next:
+--- a/mm/secretmem.c~secretmem-fix-unhandled-fault-in-truncate-v3
++++ a/mm/secretmem.c
+@@ -61,7 +61,7 @@ static vm_fault_t secretmem_fault(struct
+ 	if (((loff_t)vmf->pgoff << PAGE_SHIFT) >= i_size_read(inode))
+ 		return vmf_error(-EINVAL);
  
- 		if (dv == 0 && bitstream_version) {
- 			const unsigned char *ir = ip + 4;
--			const unsigned char *limit = ip_end
--				< (ip + MAX_ZERO_RUN_LENGTH + 1)
--				? ip_end : ip + MAX_ZERO_RUN_LENGTH + 1;
-+			const unsigned char *limit = min(ip_end, ip + MAX_ZERO_RUN_LENGTH + 1);
- #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) && \
- 	defined(LZO_FAST_64BIT_MEMORY_ACCESS)
- 			u64 dv64;
-@@ -326,7 +324,7 @@ static int lzogeneric1x_1_compress(const
- 	data_start = op;
+-	inode_lock_shared(inode);
++	filemap_invalidate_lock_shared(mapping);
  
- 	while (l > 20) {
--		size_t ll = l <= (m4_max_offset + 1) ? l : (m4_max_offset + 1);
-+		size_t ll = min_t(size_t, l, m4_max_offset + 1);
- 		uintptr_t ll_end = (uintptr_t) ip + ll;
- 		if ((ll_end + ((t + ll) >> 5)) <= ll_end)
- 			break;
+ retry:
+ 	page = find_lock_page(mapping, offset);
+@@ -104,7 +104,7 @@ retry:
+ 	ret = VM_FAULT_LOCKED;
+ 
+ out:
+-	inode_unlock_shared(inode);
++	filemap_invalidate_unlock_shared(mapping);
+ 	return ret;
+ }
+ 
+@@ -173,12 +173,20 @@ static int secretmem_setattr(struct user
+ 			     struct dentry *dentry, struct iattr *iattr)
+ {
+ 	struct inode *inode = d_inode(dentry);
++	struct address_space *mapping = inode->i_mapping;
+ 	unsigned int ia_valid = iattr->ia_valid;
++	int ret;
++
++	filemap_invalidate_lock(mapping);
+ 
+ 	if ((ia_valid & ATTR_SIZE) && inode->i_size)
+-		return -EINVAL;
++		ret = -EINVAL;
++	else
++		ret = simple_setattr(mnt_userns, dentry, iattr);
+ 
+-	return simple_setattr(mnt_userns, dentry, iattr);
++	filemap_invalidate_unlock(mapping);
++
++	return ret;
+ }
+ 
+ static const struct inode_operations secretmem_iops = {
 _
 
-Patches currently in -mm which might be from yijiangshan@kylinos.cn are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-fs-ocfs2-fix-spelling-typo-in-comment.patch
-lib-lzo-lzo1x_compressc-replace-ternary-operator-with-min-and-min_t.patch
+secretmem-fix-unhandled-fault-in-truncate.patch
+secretmem-fix-unhandled-fault-in-truncate-v3.patch
+csky-drop-definition-of-pte_order.patch
+csky-drop-definition-of-pgd_order.patch
+mips-rename-pud_order-to-pud_table_order.patch
+mips-drop-definitions-of-pte_order.patch
+mips-rename-pgd_order-to-pgd_table_order.patch
+nios2-drop-definition-of-pte_order.patch
+nios2-drop-definition-of-pgd_order.patch
+loongarch-drop-definition-of-pte_order.patch
+loongarch-drop-definition-of-pmd_order.patch
+loongarch-drop-definition-of-pud_order.patch
+loongarch-drop-definition-of-pgd_order.patch
+loongarch-drop-definition-of-pgd_order-v2.patch
+parisc-rename-pgd_order-to-pgd_table_order.patch
+xtensa-drop-definition-of-pgd_order.patch
+arm-heads-rename-pmd_order-to-pmd_entry_order.patch
 
