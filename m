@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C343CC43334
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 00:53:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 178CCC43334
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 01:01:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229836AbiGQAxj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jul 2022 20:53:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56914 "EHLO
+        id S229619AbiGQBBy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jul 2022 21:01:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232050AbiGQAxi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 20:53:38 -0400
+        with ESMTP id S229544AbiGQBBx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 21:01:53 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C705C1C93F
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 17:53:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 162CB1A807
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 18:01:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 638B8B80D25
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 00:53:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D60AC34114;
-        Sun, 17 Jul 2022 00:53:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C23E2B80AE1
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 01:01:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71699C34114;
+        Sun, 17 Jul 2022 01:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658019214;
-        bh=Ys9OW0kHCyxd8JDZjjZt59mmJepgOSC83AGo1hyPCaU=;
+        s=korg; t=1658019709;
+        bh=8UaL7OcdKxbplUhCoBriTQxYoXFwafIx6EYRTsfDyBU=;
         h=Date:To:From:Subject:From;
-        b=0gTmbTwwQbxep7+0gp/q7WwWH6HmiQdZNBonwtLIPdYmTOVSHIebTprax4hNoBH3U
-         /qIU9y7TNDcDBV2u6tJbd50EoFzZWowU7FH/C4LbeDsCjVTa16jrCFv4gceKqfezZC
-         Qbjro+yXBFDWFtGZolDDBL1rylB8i7XYWayb9aas=
-Date:   Sat, 16 Jul 2022 17:53:33 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
-        lkp@intel.com, liushixin2@huawei.com, linmiaohe@huawei.com,
-        david@redhat.com, naoya.horiguchi@nec.com,
+        b=NL1wCZUFCkdj+NLfsiDRK8DgeT+cr0RaKxB7nG1cMJi3oeUFjJIwmvA7PPr3hnl5Y
+         IvBjp/PMDvZAfbT/JtfGqzgN6wWeG3cKRQLQKX9b8vIBgvUtIv0oAeoaqWNKom3ISp
+         SoP23P79gVYKgoEfL122CZmUfkM2+Lby49LwOCco=
+Date:   Sat, 16 Jul 2022 18:01:48 -0700
+To:     mm-commits@vger.kernel.org, hughd@google.com, tytso@mit.edu,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch added to mm-unstable branch
-Message-Id: <20220717005334.1D60AC34114@smtp.kernel.org>
+Subject: + mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch added to mm-unstable branch
+Message-Id: <20220717010149.71699C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: enable memory error handling on 1GB hugepage
+     Subject: mm/shmem: support FS_IOC_[SG]ETFLAGS in tmpfs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
+     mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,94 +64,163 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: enable memory error handling on 1GB hugepage
-Date: Thu, 14 Jul 2022 13:24:20 +0900
+From: "Theodore Ts'o" <tytso@mit.edu>
+Subject: mm/shmem: support FS_IOC_[SG]ETFLAGS in tmpfs
+Date: Thu, 14 Jul 2022 21:59:12 -0400
 
-Now error handling code is prepared, so remove the blocking code and
-enable memory error handling on 1GB hugepage.
+This allows userspace to set flags like FS_APPEND_FL, FS_IMMUTABLE_FL,
+FS_NODUMP_FL, etc., like all other standard Linux file systems.
 
-Link: https://lkml.kernel.org/r/20220714042420.1847125-9-naoya.horiguchi@linux.dev
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/20220715015912.2560575-1-tytso@mit.edu
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    1 -
- include/ras/ras_event.h |    1 -
- mm/memory-failure.c     |   16 ----------------
- 3 files changed, 18 deletions(-)
+ include/linux/shmem_fs.h |   11 ++++++
+ mm/shmem.c               |   63 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 73 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
-+++ a/include/linux/mm.h
-@@ -3241,7 +3241,6 @@ enum mf_action_page_type {
- 	MF_MSG_DIFFERENT_COMPOUND,
- 	MF_MSG_HUGE,
- 	MF_MSG_FREE_HUGE,
--	MF_MSG_NON_PMD_HUGE,
- 	MF_MSG_UNMAP_FAILED,
- 	MF_MSG_DIRTY_SWAPCACHE,
- 	MF_MSG_CLEAN_SWAPCACHE,
---- a/include/ras/ras_event.h~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
-+++ a/include/ras/ras_event.h
-@@ -360,7 +360,6 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_DIFFERENT_COMPOUND, "different compound page after locking" ) \
- 	EM ( MF_MSG_HUGE, "huge page" )					\
- 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
--	EM ( MF_MSG_NON_PMD_HUGE, "non-pmd-sized huge page" )		\
- 	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
- 	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
- 	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
---- a/mm/memory-failure.c~mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage
-+++ a/mm/memory-failure.c
-@@ -765,7 +765,6 @@ static const char * const action_page_ty
- 	[MF_MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
- 	[MF_MSG_HUGE]			= "huge page",
- 	[MF_MSG_FREE_HUGE]		= "free huge page",
--	[MF_MSG_NON_PMD_HUGE]		= "non-pmd-sized huge page",
- 	[MF_MSG_UNMAP_FAILED]		= "unmapping failed page",
- 	[MF_MSG_DIRTY_SWAPCACHE]	= "dirty swapcache page",
- 	[MF_MSG_CLEAN_SWAPCACHE]	= "clean swapcache page",
-@@ -1887,21 +1886,6 @@ retry:
+--- a/include/linux/shmem_fs.h~mm-shmem-support-fs_ioc_etflags-in-tmpfs
++++ a/include/linux/shmem_fs.h
+@@ -25,9 +25,20 @@ struct shmem_inode_info {
+ 	struct simple_xattrs	xattrs;		/* list of xattrs */
+ 	atomic_t		stop_eviction;	/* hold when working on inode */
+ 	struct timespec64	i_crtime;	/* file creation time */
++	unsigned int		fsflags;	/* flags for FS_IOC_[SG]ETFLAGS */
+ 	struct inode		vfs_inode;
+ };
  
- 	page_flags = head->flags;
++#define SHMEM_FL_USER_VISIBLE FS_FL_USER_VISIBLE
++#define SHMEM_FL_USER_MODIFIABLE FS_FL_USER_MODIFIABLE
++#define SHMEM_FL_INHERITED FS_FL_USER_MODIFIABLE
++
++/* Flags that are appropriate for regular files (all but dir-specific ones). */
++#define SHMEM_REG_FLMASK (~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
++
++/* Flags that are appropriate for non-directories/regular files. */
++#define SHMEM_OTHER_FLMASK (FS_NODUMP_FL | FS_NOATIME_FL)
++
+ struct shmem_sb_info {
+ 	unsigned long max_blocks;   /* How many blocks are allowed */
+ 	struct percpu_counter used_blocks;  /* How many are allocated */
+--- a/mm/shmem.c~mm-shmem-support-fs_ioc_etflags-in-tmpfs
++++ a/mm/shmem.c
+@@ -28,6 +28,7 @@
+ #include <linux/ramfs.h>
+ #include <linux/pagemap.h>
+ #include <linux/file.h>
++#include <linux/fileattr.h>
+ #include <linux/mm.h>
+ #include <linux/random.h>
+ #include <linux/sched/signal.h>
+@@ -1058,6 +1059,15 @@ static int shmem_getattr(struct user_nam
+ 		shmem_recalc_inode(inode);
+ 		spin_unlock_irq(&info->lock);
+ 	}
++	if (info->fsflags & FS_APPEND_FL)
++		stat->attributes |= STATX_ATTR_APPEND;
++	if (info->fsflags & FS_IMMUTABLE_FL)
++		stat->attributes |= STATX_ATTR_IMMUTABLE;
++	if (info->fsflags & FS_NODUMP_FL)
++		stat->attributes |= STATX_ATTR_NODUMP;
++	stat->attributes_mask |= (STATX_ATTR_APPEND |
++			STATX_ATTR_IMMUTABLE |
++			STATX_ATTR_NODUMP);
+ 	generic_fillattr(&init_user_ns, inode, stat);
  
--	/*
--	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
--	 * simply disable it. In order to make it work properly, we need
--	 * make sure that:
--	 *  - conversion of a pud that maps an error hugetlb into hwpoison
--	 *    entry properly works, and
--	 *  - other mm code walking over page table is aware of pud-aligned
--	 *    hwpoison entries.
--	 */
--	if (huge_page_size(page_hstate(head)) > PMD_SIZE) {
--		action_result(pfn, MF_MSG_NON_PMD_HUGE, MF_IGNORED);
--		res = -EBUSY;
--		goto out;
--	}
--
- 	if (!hwpoison_user_mappings(p, pfn, flags, head)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
+ 	if (shmem_is_huge(NULL, inode, 0))
+@@ -2272,7 +2282,18 @@ static int shmem_mmap(struct file *file,
+ 	return 0;
+ }
+ 
+-static struct inode *shmem_get_inode(struct super_block *sb, const struct inode *dir,
++/* Mask out flags that are inappropriate for the given type of inode. */
++static unsigned shmem_mask_flags(umode_t mode, __u32 flags)
++{
++	if (S_ISDIR(mode))
++		return flags;
++	else if (S_ISREG(mode))
++		return flags & SHMEM_REG_FLMASK;
++	else
++		return flags & SHMEM_OTHER_FLMASK;
++}
++
++static struct inode *shmem_get_inode(struct super_block *sb, struct inode *dir,
+ 				     umode_t mode, dev_t dev, unsigned long flags)
+ {
+ 	struct inode *inode;
+@@ -2297,6 +2318,9 @@ static struct inode *shmem_get_inode(str
+ 		info->seals = F_SEAL_SEAL;
+ 		info->flags = flags & VM_NORESERVE;
+ 		info->i_crtime = inode->i_mtime;
++		info->fsflags = (dir == NULL) ? 0 :
++			SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
++		info->fsflags = shmem_mask_flags(mode, info->fsflags);
+ 		INIT_LIST_HEAD(&info->shrinklist);
+ 		INIT_LIST_HEAD(&info->swaplist);
+ 		simple_xattrs_init(&info->xattrs);
+@@ -2813,6 +2837,39 @@ out:
+ 	return error;
+ }
+ 
++static int shmem_fileattr_get(struct dentry *dentry, struct fileattr *fa)
++{
++	struct shmem_inode_info *info = SHMEM_I(d_inode(dentry));
++
++	fileattr_fill_flags(fa, info->fsflags & SHMEM_FL_USER_VISIBLE);
++
++	return 0;
++}
++
++static int shmem_fileattr_set(struct user_namespace *mnt_userns,
++			      struct dentry *dentry, struct fileattr *fa)
++{
++	struct inode *inode = d_inode(dentry);
++	struct shmem_inode_info *info = SHMEM_I(inode);
++
++	if (fileattr_has_fsx(fa))
++		return -EOPNOTSUPP;
++
++	info->fsflags = (info->fsflags & ~SHMEM_FL_USER_MODIFIABLE) |
++		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
++
++	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
++	if (info->fsflags & FS_APPEND_FL)
++		inode->i_flags |= S_APPEND;
++	if (info->fsflags & FS_IMMUTABLE_FL)
++		inode->i_flags |= S_IMMUTABLE;
++	if (info->fsflags & FS_NOATIME_FL)
++		inode->i_flags |= S_NOATIME;
++
++	inode->i_ctime = current_time(inode);
++	return 0;
++}
++
+ static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(dentry->d_sb);
+@@ -3825,6 +3882,8 @@ static const struct inode_operations shm
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.listxattr	= shmem_listxattr,
+ 	.set_acl	= simple_set_acl,
++	.fileattr_get	= shmem_fileattr_get,
++	.fileattr_set	= shmem_fileattr_set,
+ #endif
+ };
+ 
+@@ -3844,6 +3903,8 @@ static const struct inode_operations shm
+ #endif
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.listxattr	= shmem_listxattr,
++	.fileattr_get	= shmem_fileattr_get,
++	.fileattr_set	= shmem_fileattr_set,
+ #endif
+ #ifdef CONFIG_TMPFS_POSIX_ACL
+ 	.setattr	= shmem_setattr,
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from tytso@mit.edu are
 
-mm-hugetlb-separate-path-for-hwpoison-entry-in-copy_hugetlb_page_range.patch
-mm-hugetlb-check-gigantic_page_runtime_supported-in-return_unused_surplus_pages.patch
-mm-hugetlb-make-pud_huge-and-follow_huge_pud-aware-of-non-present-pud-entry.patch
-mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages.patch
-mm-hwpoison-make-unpoison-aware-of-raw-error-info-in-hwpoisoned-hugepage.patch
-mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages.patch
-mm-hwpoison-make-__page_handle_poison-returns-int.patch
-mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch
-mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
+mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch
 
