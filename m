@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09B99C43334
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 04:38:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D3A5C43334
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 04:38:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232692AbiGQEh6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 00:37:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50624 "EHLO
+        id S232755AbiGQEiE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 00:38:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232660AbiGQEh5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 00:37:57 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91BCE22285
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 21:37:56 -0700 (PDT)
+        with ESMTP id S232706AbiGQEh6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 00:37:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5577F22289;
+        Sat, 16 Jul 2022 21:37:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2D3A8B80D2A
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 04:37:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C49EBC3411E;
-        Sun, 17 Jul 2022 04:37:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D541C60EBA;
+        Sun, 17 Jul 2022 04:37:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34791C3411E;
+        Sun, 17 Jul 2022 04:37:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658032673;
-        bh=dJZIqAczUq0saSEd/DhplcIErKltctJuYgoRyFDOGJo=;
+        s=korg; t=1658032676;
+        bh=tBcUcdeAIImk8OfatCBc+zbL4ZGh0aMtIoTQpnUf8wI=;
         h=Date:To:From:Subject:From;
-        b=cgUfeiy7Ynkwo6xUkbpYl6G0qIAyDztdWodNh3PQmzpHpX0SnTvZwGBA0IYj+40G1
-         N6Mk6pUz6ey4GQ2UYNyj7bkOg5mCxN0iY2UmvGARTu2ku1DgIoChw+Y6TcXV/njIUO
-         jBXEKxuvHg+bEOW+VwGElcVDv+srIESMIBek74n8=
-Date:   Sat, 16 Jul 2022 21:37:53 -0700
-To:     mm-commits@vger.kernel.org, yukuai3@huawei.com,
-        yi.zhang@huawei.com, luomeng12@huawei.com, hughd@google.com,
-        chengzhihao1@huawei.com, wangzhaolong1@huawei.com,
+        b=tZxmwp4VYL5R8j3JJg7HV0dK/0aSOCBSq++HMwGr3SZcjug01oxzWdOpY9q1nprW+
+         dRtyohoSmD/s4mFUG4x64nGqXNJVr1huiihDCQjPrC19plS12pEmeGPr1mcWVgzYBe
+         od8iu1lELsnnUKrbnS5kRngk5pcElwCQS8JwyZU4=
+Date:   Sat, 16 Jul 2022 21:37:55 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, riel@surriel.com,
+        kirill.shutemov@linux.intel.com, clm@fb.com, josef@toxicpanda.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] tmpfs-fix-the-issue-that-the-mount-and-remount-results-are-inconsistent.patch removed from -mm tree
-Message-Id: <20220717043753.C49EBC3411E@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-page-leak-with-multiple-threads-mapping-the-same-page.patch removed from -mm tree
+Message-Id: <20220717043756.34791C3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,76 +43,83 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: tmpfs: fix the issue that the mount and remount results are inconsistent.
+     Subject: mm: fix page leak with multiple threads mapping the same page
 has been removed from the -mm tree.  Its filename was
-     tmpfs-fix-the-issue-that-the-mount-and-remount-results-are-inconsistent.patch
+     mm-fix-page-leak-with-multiple-threads-mapping-the-same-page.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhaoLong Wang <wangzhaolong1@huawei.com>
-Subject: tmpfs: fix the issue that the mount and remount results are inconsistent.
-Date: Wed, 29 Jun 2022 20:43:24 +0800
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: mm: fix page leak with multiple threads mapping the same page
+Date: Tue, 5 Jul 2022 16:00:36 -0400
 
-An undefined-behavior issue has not been completely fixed since commit
-d14f5efadd84 ("tmpfs: fix undefined-behaviour in shmem_reconfigure()"). 
-In the commit, check in the shmem_reconfigure() is added in remount
-process to avoid the Ubsan problem.  However, the check is not added to
-the mount process.  It causes inconsistent results between mount and
-remount.  The operations to reproduce the problem in user mode as follows:
+We have an application with a lot of threads that use a shared mmap backed
+by tmpfs mounted with -o huge=within_size.  This application started
+leaking loads of huge pages when we upgraded to a recent kernel.
 
-If nr_blocks is set to 0x8000000000000000, the mounting is successful.
+Using the page ref tracepoints and a BPF program written by Tejun Heo we
+were able to determine that these pages would have multiple refcounts from
+the page fault path, but when it came to unmap time we wouldn't drop the
+number of refs we had added from the faults.
 
-  # mount tmpfs /dev/shm/ -t tmpfs -o nr_blocks=0x8000000000000000
+I wrote a reproducer that mmap'ed a file backed by tmpfs with -o
+huge=always, and then spawned 20 threads all looping faulting random
+offsets in this map, while using madvise(MADV_DONTNEED) randomly for huge
+page aligned ranges.  This very quickly reproduced the problem.
 
-However, when -o remount is used, the mount fails because of the
-check in the shmem_reconfigure()
+The problem here is that we check for the case that we have multiple
+threads faulting in a range that was previously unmapped.  One thread maps
+the PMD, the other thread loses the race and then returns 0.  However at
+this point we already have the page, and we are no longer putting this
+page into the processes address space, and so we leak the page.  We
+actually did the correct thing prior to f9ce0be71d1f, however it looks
+like Kirill copied what we do in the anonymous page case.  In the
+anonymous page case we don't yet have a page, so we don't have to drop a
+reference on anything.  Previously we did the correct thing for file based
+faults by returning VM_FAULT_NOPAGE so we correctly drop the reference on
+the page we faulted in.
 
-  # mount tmpfs /dev/shm/ -t tmpfs -o remount,nr_blocks=0x8000000000000000
-  mount: /dev/shm: mount point not mounted or bad option.
+Fix this by returning VM_FAULT_NOPAGE in the pmd_devmap_trans_unstable()
+case, this makes us drop the ref on the page properly, and now my
+reproducer no longer leaks the huge pages.
 
-Therefore, add checks in the shmem_parse_one() function and remove the
-check in shmem_reconfigure() to avoid this problem.
-
-Link: https://lkml.kernel.org/r/20220629124324.1640807-1-wangzhaolong1@huawei.com
-Signed-off-by: ZhaoLong Wang <wangzhaolong1@huawei.com>
-Cc: Luo Meng <luomeng12@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Yu Kuai <yukuai3@huawei.com>
-Cc: Zhihao Cheng <chengzhihao1@huawei.com>
-Cc: Zhang Yi <yi.zhang@huawei.com>
+[josef@toxicpanda.com: v2]
+  Link: https://lkml.kernel.org/r/e90c8f0dbae836632b669c2afc434006a00d4a67.1657721478.git.josef@toxicpanda.com
+Link: https://lkml.kernel.org/r/2b798acfd95c9ab9395fe85e8d5a835e2e10a920.1657051137.git.josef@toxicpanda.com
+Fixes: f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Signed-off-by: Chris Mason <clm@fb.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/memory.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~tmpfs-fix-the-issue-that-the-mount-and-remount-results-are-inconsistent
-+++ a/mm/shmem.c
-@@ -3392,7 +3392,7 @@ static int shmem_parse_one(struct fs_con
- 		break;
- 	case Opt_nr_blocks:
- 		ctx->blocks = memparse(param->string, &rest);
--		if (*rest)
-+		if (*rest || ctx->blocks > S64_MAX)
- 			goto bad_value;
- 		ctx->seen |= SHMEM_SEEN_BLOCKS;
- 		break;
-@@ -3514,10 +3514,7 @@ static int shmem_reconfigure(struct fs_c
+--- a/mm/memory.c~mm-fix-page-leak-with-multiple-threads-mapping-the-same-page
++++ a/mm/memory.c
+@@ -4369,9 +4369,12 @@ vm_fault_t finish_fault(struct vm_fault
+ 			return VM_FAULT_OOM;
+ 	}
  
- 	raw_spin_lock(&sbinfo->stat_lock);
- 	inodes = sbinfo->max_inodes - sbinfo->free_inodes;
--	if (ctx->blocks > S64_MAX) {
--		err = "Number of blocks too large";
--		goto out;
--	}
-+
- 	if ((ctx->seen & SHMEM_SEEN_BLOCKS) && ctx->blocks) {
- 		if (!sbinfo->max_blocks) {
- 			err = "Cannot retroactively limit size";
+-	/* See comment in handle_pte_fault() */
++	/*
++	 * See comment in handle_pte_fault() for how this scenario happens, we
++	 * need to return NOPAGE so that we drop this page.
++	 */
+ 	if (pmd_devmap_trans_unstable(vmf->pmd))
+-		return 0;
++		return VM_FAULT_NOPAGE;
+ 
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
+ 				      vmf->address, &vmf->ptl);
 _
 
-Patches currently in -mm which might be from wangzhaolong1@huawei.com are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
 
