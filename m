@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5E65CCA479
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 00:49:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 016FCC43334
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 00:53:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229815AbiGQAtt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jul 2022 20:49:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55366 "EHLO
+        id S230314AbiGQAxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jul 2022 20:53:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229505AbiGQAts (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 20:49:48 -0400
+        with ESMTP id S229678AbiGQAxU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 20:53:20 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90B9418E08;
-        Sat, 16 Jul 2022 17:49:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93DF11C912
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 17:53:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2CC1960C5E;
-        Sun, 17 Jul 2022 00:49:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AD93C34114;
-        Sun, 17 Jul 2022 00:49:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 30DBE60C53
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 00:53:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82C05C34114;
+        Sun, 17 Jul 2022 00:53:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658018986;
-        bh=03ckahG4RpL5078XVx//YiGFkTjWdle++Sm4anjeOqY=;
+        s=korg; t=1658019198;
+        bh=G0WYOxFWsCK4eB3TFJCNThBBQWnm05G5lg2wiZo5dfk=;
         h=Date:To:From:Subject:From;
-        b=sqcKJc2Gt3nj4Gf0+AdqYp4BlvxdiV2xT/5YSytF4TlYgg4tZ5ZS3kAUAuyJGvihI
-         fGNGWl2doQIYiz8mJHMx0KUXG4EhQ8ypVIWJT3/9UCsV8kMCzJa1gBpkJUKqoTAqLe
-         wcJMpHuETNxEuNEqMeyYgTDBegB8+w9kybvLY5kw=
-Date:   Sat, 16 Jul 2022 17:49:45 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
-        niejianglei2021@163.com, akpm@linux-foundation.org
+        b=PcxgPs7i3bdfrQwtiAl7Wc/yY6CF2KSnQ4dKGt2w4qru6OuIH5r4JdlS1alSgo75I
+         aCbEdky9Z3pZggDPtRcU6AkSzBHhf+n+KPDH8JZnjG0t36nTocHokFYidBw35AVCyG
+         JYtSAYyDaWn4R/rpZ/Uq5OqqracDdOwi3clN7dMM=
+Date:   Sat, 16 Jul 2022 17:53:17 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shy828301@gmail.com, osalvador@suse.de, mike.kravetz@oracle.com,
+        lkp@intel.com, liushixin2@huawei.com, linmiaohe@huawei.com,
+        david@redhat.com, naoya.horiguchi@nec.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-fix-potential-memory-leak-in-damon_reclaim_init.patch added to mm-unstable branch
-Message-Id: <20220717004946.7AD93C34114@smtp.kernel.org>
+Subject: + mm-hugetlb-check-gigantic_page_runtime_supported-in-return_unused_surplus_pages.patch added to mm-unstable branch
+Message-Id: <20220717005318.82C05C34114@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/reclaim: fix potential memory leak in damon_reclaim_init()
+     Subject: mm/hugetlb: check gigantic_page_runtime_supported() in return_unused_surplus_pages()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-reclaim-fix-potential-memory-leak-in-damon_reclaim_init.patch
+     mm-hugetlb-check-gigantic_page_runtime_supported-in-return_unused_surplus_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-fix-potential-memory-leak-in-damon_reclaim_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-check-gigantic_page_runtime_supported-in-return_unused_surplus_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,45 +67,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jianglei Nie <niejianglei2021@163.com>
-Subject: mm/damon/reclaim: fix potential memory leak in damon_reclaim_init()
-Date: Thu, 14 Jul 2022 14:37:46 +0800
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hugetlb: check gigantic_page_runtime_supported() in return_unused_surplus_pages()
+Date: Thu, 14 Jul 2022 13:24:13 +0900
 
-damon_reclaim_init() allocates a memory chunk for ctx with
-damon_new_ctx().  When damon_select_ops() fails, ctx is not released,
-which will lead to a memory leak.
+Patch series "mm, hwpoison: enable 1GB hugepage support", v7.
 
-We should release the ctx with damon_destroy_ctx() when damon_select_ops()
-fails to fix the memory leak.
 
-Link: https://lkml.kernel.org/r/20220714063746.2343549-1-niejianglei2021@163.com
-Fixes: 4d69c3457821 ("mm/damon/reclaim: use damon_select_ops() instead of damon_{v,p}a_set_operations()")
-Signed-off-by: Jianglei Nie <niejianglei2021@163.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+This patch (of 8):
+
+I found a weird state of 1GB hugepage pool, caused by the following
+procedure:
+
+  - run a process reserving all free 1GB hugepages,
+  - shrink free 1GB hugepage pool to zero (i.e. writing 0 to
+    /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages), then
+  - kill the reserving process.
+
+, then all the hugepages are free *and* surplus at the same time.
+
+  $ cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+  3
+  $ cat /sys/kernel/mm/hugepages/hugepages-1048576kB/free_hugepages
+  3
+  $ cat /sys/kernel/mm/hugepages/hugepages-1048576kB/resv_hugepages
+  0
+  $ cat /sys/kernel/mm/hugepages/hugepages-1048576kB/surplus_hugepages
+  3
+
+This state is resolved by reserving and allocating the pages then freeing
+them again, so this seems not to result in serious problem.  But it's a
+little surprising (shrinking pool suddenly fails).
+
+This behavior is caused by hstate_is_gigantic() check in
+return_unused_surplus_pages().  This was introduced so long ago in 2008 by
+commit aa888a74977a ("hugetlb: support larger than MAX_ORDER"), and at
+that time the gigantic pages were not supposed to be allocated/freed at
+run-time.  Now kernel can support runtime allocation/free, so let's check
+gigantic_page_runtime_supported() together.
+
+Link: https://lkml.kernel.org/r/20220714042420.1847125-1-naoya.horiguchi@linux.dev
+Link: https://lkml.kernel.org/r/20220714042420.1847125-2-naoya.horiguchi@linux.dev
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-fix-potential-memory-leak-in-damon_reclaim_init
-+++ a/mm/damon/reclaim.c
-@@ -435,8 +435,10 @@ static int __init damon_reclaim_init(voi
- 	if (!ctx)
- 		return -ENOMEM;
+--- a/mm/hugetlb.c~mm-hugetlb-check-gigantic_page_runtime_supported-in-return_unused_surplus_pages
++++ a/mm/hugetlb.c
+@@ -2432,8 +2432,7 @@ static void return_unused_surplus_pages(
+ 	/* Uncommit the reservation */
+ 	h->resv_huge_pages -= unused_resv_pages;
  
--	if (damon_select_ops(ctx, DAMON_OPS_PADDR))
-+	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
-+		damon_destroy_ctx(ctx);
- 		return -EINVAL;
-+	}
+-	/* Cannot return gigantic pages currently */
+-	if (hstate_is_gigantic(h))
++	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+ 		goto out;
  
- 	ctx->callback.after_wmarks_check = damon_reclaim_after_wmarks_check;
- 	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
+ 	/*
 _
 
-Patches currently in -mm which might be from niejianglei2021@163.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-mm-damon-reclaim-fix-potential-memory-leak-in-damon_reclaim_init.patch
+mm-hugetlb-separate-path-for-hwpoison-entry-in-copy_hugetlb_page_range.patch
+mm-hugetlb-check-gigantic_page_runtime_supported-in-return_unused_surplus_pages.patch
+mm-hugetlb-make-pud_huge-and-follow_huge_pud-aware-of-non-present-pud-entry.patch
+mm-hwpoison-hugetlb-support-saving-mechanism-of-raw-error-pages.patch
+mm-hwpoison-make-unpoison-aware-of-raw-error-info-in-hwpoisoned-hugepage.patch
+mm-hwpoison-set-pg_hwpoison-for-busy-hugetlb-pages.patch
+mm-hwpoison-make-__page_handle_poison-returns-int.patch
+mm-hwpoison-skip-raw-hwpoison-page-in-freeing-1gb-hugepage.patch
+mm-hwpoison-enable-memory-error-handling-on-1gb-hugepage.patch
 
