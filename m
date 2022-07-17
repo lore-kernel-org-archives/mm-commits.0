@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FB32CCA481
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 04:37:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67622C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 04:37:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232621AbiGQEho (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 00:37:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50430 "EHLO
+        id S232667AbiGQEhz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 00:37:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231672AbiGQEhn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 00:37:43 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAB59220CE;
-        Sat, 16 Jul 2022 21:37:41 -0700 (PDT)
+        with ESMTP id S232659AbiGQEhy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 00:37:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF392220D6
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 21:37:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 61981B8097A;
-        Sun, 17 Jul 2022 04:37:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5616C3411E;
-        Sun, 17 Jul 2022 04:37:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 35D1460EBA
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 04:37:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E24EC341CA;
+        Sun, 17 Jul 2022 04:37:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658032659;
-        bh=TgePP8OUopno1wKCZMsIhJJaTxjYEZXFgy9TmROnRq8=;
+        s=korg; t=1658032672;
+        bh=c1q6j7Y+l4hQ9X/EFpmGJu73e6kmiyqS/Lt4HFyh6pk=;
         h=Date:To:From:Subject:From;
-        b=QbHl3SNOCFaf7HLA128d2s7Ecy2L49gSGZqKkEkPtF/YO0zrpdWwI6YjHNTm2P25J
-         a0URdTtWGaa7JWt01FXggdAnzcx7Z11XrIMmD1MLTHrYkZVNaYPNYSSMFyp/s514UW
-         8olZAhPv3DKqd6c84Jpsu8Ntd1V6J27i7AY5VigM=
-Date:   Sat, 16 Jul 2022 21:37:38 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        stable@vger.kernel.org, avagin@gmail.com, akpm@linux-foundation.org
+        b=pS766ecR52mts/iyd2V3YhED9F2y5XXIC5HiAlErSCIIsLMvPRmAGu4QJ1qt7fS+S
+         le6VRkCx3E9q7pdTXdYwF5h7b+xW9MceB3S4n0nk3X2SsvmYZnQ1d41ypaWLZHydeB
+         1/Y6lY3u0sU9a88Q6y8ZgSbd0k0eZtLi+Tl0TQsQ=
+Date:   Sat, 16 Jul 2022 21:37:51 -0700
+To:     mm-commits@vger.kernel.org, geert+renesas@glider.be,
+        elver@google.com, catalin.marinas@arm.com, yee.lee@mediatek.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fs-sendfile-handles-o_nonblock-of-out_fd.patch removed from -mm tree
-Message-Id: <20220717043738.E5616C3411E@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kfence-apply-kmemleak_ignore_phys-on-early-allocated-pool.patch removed from -mm tree
+Message-Id: <20220717043752.8E24EC341CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,129 +42,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs: sendfile handles O_NONBLOCK of out_fd
+     Subject: mm: kfence: apply kmemleak_ignore_phys on early allocated pool
 has been removed from the -mm tree.  Its filename was
-     fs-sendfile-handles-o_nonblock-of-out_fd.patch
+     mm-kfence-apply-kmemleak_ignore_phys-on-early-allocated-pool.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@gmail.com>
-Subject: fs: sendfile handles O_NONBLOCK of out_fd
+From: Yee Lee <yee.lee@mediatek.com>
+Subject: mm: kfence: apply kmemleak_ignore_phys on early allocated pool
+Date: Tue, 28 Jun 2022 19:37:11 +0800
 
-sendfile has to return EAGAIN if out_fd is nonblocking and the write into
-it would block.
+This patch solves two issues.
 
-Here is a small reproducer for the problem:
+(1) The pool allocated by memblock needs to unregister from
+kmemleak scanning. Apply kmemleak_ignore_phys to replace the
+original kmemleak_free as its address now is stored in the phys tree.
 
-#define _GNU_SOURCE /* See feature_test_macros(7) */
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/sendfile.h>
+(2) The pool late allocated by page-alloc doesn't need to unregister.
+Move out the freeing operation from its call path.
 
-
-#define FILE_SIZE (1UL << 30)
-int main(int argc, char **argv) {
-        int p[2], fd;
-
-        if (pipe2(p, O_NONBLOCK))
-                return 1;
-
-        fd = open(argv[1], O_RDWR | O_TMPFILE, 0666);
-        if (fd < 0)
-                return 1;
-        ftruncate(fd, FILE_SIZE);
-
-        if (sendfile(p[1], fd, 0, FILE_SIZE) == -1) {
-                fprintf(stderr, "FAIL\n");
-        }
-        if (sendfile(p[1], fd, 0, FILE_SIZE) != -1 || errno != EAGAIN) {
-                fprintf(stderr, "FAIL\n");
-        }
-        return 0;
-}
-
-It worked before b964bf53e540, it is stuck after b964bf53e540, and it
-works again with this fix.
-
-This regression occurred because do_splice_direct() calls pipe_write
-that handles O_NONBLOCK.  Here is a trace log from the reproducer:
-
- 1)               |  __x64_sys_sendfile64() {
- 1)               |    do_sendfile() {
- 1)               |      __fdget()
- 1)               |      rw_verify_area()
- 1)               |      __fdget()
- 1)               |      rw_verify_area()
- 1)               |      do_splice_direct() {
- 1)               |        rw_verify_area()
- 1)               |        splice_direct_to_actor() {
- 1)               |          do_splice_to() {
- 1)               |            rw_verify_area()
- 1)               |            generic_file_splice_read()
- 1) + 74.153 us   |          }
- 1)               |          direct_splice_actor() {
- 1)               |            iter_file_splice_write() {
- 1)               |              __kmalloc()
- 1)   0.148 us    |              pipe_lock();
- 1)   0.153 us    |              splice_from_pipe_next.part.0();
- 1)   0.162 us    |              page_cache_pipe_buf_confirm();
-... 16 times
- 1)   0.159 us    |              page_cache_pipe_buf_confirm();
- 1)               |              vfs_iter_write() {
- 1)               |                do_iter_write() {
- 1)               |                  rw_verify_area()
- 1)               |                  do_iter_readv_writev() {
- 1)               |                    pipe_write() {
- 1)               |                      mutex_lock()
- 1)   0.153 us    |                      mutex_unlock();
- 1)   1.368 us    |                    }
- 1)   1.686 us    |                  }
- 1)   5.798 us    |                }
- 1)   6.084 us    |              }
- 1)   0.174 us    |              kfree();
- 1)   0.152 us    |              pipe_unlock();
- 1) + 14.461 us   |            }
- 1) + 14.783 us   |          }
- 1)   0.164 us    |          page_cache_pipe_buf_release();
-... 16 times
- 1)   0.161 us    |          page_cache_pipe_buf_release();
- 1)               |          touch_atime()
- 1) + 95.854 us   |        }
- 1) + 99.784 us   |      }
- 1) ! 107.393 us  |    }
- 1) ! 107.699 us  |  }
-
-Link: https://lkml.kernel.org/r/20220415005015.525191-1-avagin@gmail.com
-Fixes: b964bf53e540 ("teach sendfile(2) to handle send-to-pipe directly")
-Signed-off-by: Andrei Vagin <avagin@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220628113714.7792-2-yee.lee@mediatek.com
+Fixes: 0c24e061196c21d5 ("mm: kmemleak: add rbtree and store physical address for objects allocated with PA")
+Signed-off-by: Yee Lee <yee.lee@mediatek.com>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/kfence/core.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/fs/read_write.c~fs-sendfile-handles-o_nonblock-of-out_fd
-+++ a/fs/read_write.c
-@@ -1263,6 +1263,9 @@ static ssize_t do_sendfile(int out_fd, i
- 					  count, fl);
- 		file_end_write(out.file);
- 	} else {
-+		if (out.file->f_flags & O_NONBLOCK)
-+			fl |= SPLICE_F_NONBLOCK;
-+
- 		retval = splice_file_to_pipe(in.file, opipe, &pos, count, fl);
+--- a/mm/kfence/core.c~mm-kfence-apply-kmemleak_ignore_phys-on-early-allocated-pool
++++ a/mm/kfence/core.c
+@@ -603,14 +603,6 @@ static unsigned long kfence_init_pool(vo
+ 		addr += 2 * PAGE_SIZE;
  	}
  
+-	/*
+-	 * The pool is live and will never be deallocated from this point on.
+-	 * Remove the pool object from the kmemleak object tree, as it would
+-	 * otherwise overlap with allocations returned by kfence_alloc(), which
+-	 * are registered with kmemleak through the slab post-alloc hook.
+-	 */
+-	kmemleak_free(__kfence_pool);
+-
+ 	return 0;
+ }
+ 
+@@ -623,8 +615,16 @@ static bool __init kfence_init_pool_earl
+ 
+ 	addr = kfence_init_pool();
+ 
+-	if (!addr)
++	if (!addr) {
++		/*
++		 * The pool is live and will never be deallocated from this point on.
++		 * Ignore the pool object from the kmemleak phys object tree, as it would
++		 * otherwise overlap with allocations returned by kfence_alloc(), which
++		 * are registered with kmemleak through the slab post-alloc hook.
++		 */
++		kmemleak_ignore_phys(__pa(__kfence_pool));
+ 		return true;
++	}
+ 
+ 	/*
+ 	 * Only release unprotected pages, and do not try to go back and change
 _
 
-Patches currently in -mm which might be from avagin@gmail.com are
+Patches currently in -mm which might be from yee.lee@mediatek.com are
 
 
