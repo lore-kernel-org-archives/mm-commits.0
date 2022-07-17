@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB76FC433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 00:40:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F907C43334
+	for <mm-commits@archiver.kernel.org>; Sun, 17 Jul 2022 00:44:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229544AbiGQAkx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Jul 2022 20:40:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51656 "EHLO
+        id S229619AbiGQAoV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Jul 2022 20:44:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229505AbiGQAkw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 20:40:52 -0400
+        with ESMTP id S229505AbiGQAoV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Jul 2022 20:44:21 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D12013D38
-        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 17:40:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C141511153
+        for <mm-commits@vger.kernel.org>; Sat, 16 Jul 2022 17:44:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3C468B8015A
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 00:40:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9A17C34115;
-        Sun, 17 Jul 2022 00:40:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 69D96B80D22
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 00:44:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17D7DC3411C;
+        Sun, 17 Jul 2022 00:44:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658018448;
-        bh=kJXmn1rIifMo7yX8D0sOBUK4pcwTl794roOpbikpguc=;
+        s=korg; t=1658018657;
+        bh=GHXht3wd+p8WNHLtlBplAazJoCeSakviorb6PZbJdlI=;
         h=Date:To:From:Subject:From;
-        b=k68OAXHD+hgJIZQrkyUSOJRT9gq/uRIc8ZdK534iQ347sUt48AXslQEWk2PDVO4Dv
-         SvJFCq2d9yA9RuijB0y/I92zNRKyg3W0UQZexZ4rV9gDySa2Sw9hOiwhQqGMn/LP0P
-         zxO9lHlaEddD3Q3cD1N+mhQEE06pOzYtllUSjCJY=
-Date:   Sat, 16 Jul 2022 17:40:48 -0700
-To:     mm-commits@vger.kernel.org, Conor.Dooley@microchip.com,
-        ben.dooks@sifive.com, akpm@linux-foundation.org
+        b=m2LkVO7l5N6w8JUsEDPfMrnalmDYb7Y2Tv1RTPCA6q3zZLaywRNG04ZPOS9e7Z/FO
+         m6DPa7SZsUQvJaQhaXKa8drGp15+vNA1ftyTdUaRF5NQ4KCmBQJYlM+gDmajuIpXZa
+         uVYxEQe7TwRfhlKXKpz8jF6sBrJG9wSnXUYpP1dQ=
+Date:   Sat, 16 Jul 2022 17:44:16 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        ngupta@vflare.org, minchan@kernel.org, axboe@kernel.dk,
+        teawater@antgroup.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs.patch added to mm-nonmm-unstable branch
-Message-Id: <20220717004048.D9A17C34115@smtp.kernel.org>
+Subject: + zsmalloc-zs_malloc-return-err_ptr-if-fail.patch added to mm-unstable branch
+Message-Id: <20220717004417.17D7DC3411C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/hung_task: fix address space of proc_dohung_task_timeout_secs
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs.patch
+     Subject: zsmalloc: zs_malloc: return ERR_PTR on failure
+has been added to the -mm mm-unstable branch.  Its filename is
+     zsmalloc-zs_malloc-return-err_ptr-if-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-zs_malloc-return-err_ptr-if-fail.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,48 +65,100 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ben Dooks <ben.dooks@sifive.com>
-Subject: kernel/hung_task: fix address space of proc_dohung_task_timeout_secs
-Date: Thu, 14 Jul 2022 08:47:44 +0100
+From: Hui Zhu <teawater@antgroup.com>
+Subject: zsmalloc: zs_malloc: return ERR_PTR on failure
+Date: Thu, 14 Jul 2022 16:07:57 +0800
 
-The proc_dohung_task_timeout_secs() function is incorrectly marked
-as having a __user buffer as argument 3. However this is not the
-case and it is casing multiple sparse warnings. Fix the following
-warnings by removing __user from the argument:
+zs_malloc returns 0 if it fails.  zs_zpool_malloc will return -1 when
+zs_malloc return 0.  But -1 makes the return value unclear.
 
-kernel/hung_task.c:237:52: warning: incorrect type in argument 3 (different address spaces)
-kernel/hung_task.c:237:52:    expected void *
-kernel/hung_task.c:237:52:    got void [noderef] __user *buffer
-kernel/hung_task.c:287:35: warning: incorrect type in initializer (incompatible argument 3 (different address spaces))
-kernel/hung_task.c:287:35:    expected int ( [usertype] *proc_handler )( ... )
-kernel/hung_task.c:287:35:    got int ( * )( ... )
-kernel/hung_task.c:295:35: warning: incorrect type in initializer (incompatible argument 3 (different address spaces))
-kernel/hung_task.c:295:35:    expected int ( [usertype] *proc_handler )( ... )
-kernel/hung_task.c:295:35:    got int ( * )( ... )
+For example, when zswap_frontswap_store calls zs_malloc through
+zs_zpool_malloc, it will return -1 to its caller.  The other return value
+is -EINVAL, -ENODEV or something else.
 
-Link: https://lkml.kernel.org/r/20220714074744.189017-1-ben.dooks@sifive.com
-Signed-off-by: Ben Dooks <ben.dooks@sifive.com>
-Cc: <Conor.Dooley@microchip.com>
+This commit changes zs_malloc to return ERR_PTR on failure.  It didn't
+just let zs_zpool_malloc return -ENOMEM becaue zs_malloc has two types of
+failure:
+
+- size is not OK return -EINVAL
+- memory alloc fail return -ENOMEM.
+
+Link: https://lkml.kernel.org/r/20220714080757.12161-1-teawater@gmail.com
+Signed-off-by: Hui Zhu <teawater@antgroup.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    4 ++--
+ mm/zsmalloc.c                 |   13 ++++++++-----
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
---- a/kernel/hung_task.c~kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs
-+++ a/kernel/hung_task.c
-@@ -229,7 +229,7 @@ static long hung_timeout_jiffies(unsigne
-  * Process updating of timeout sysctl
-  */
- static int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
--				  void __user *buffer,
-+				  void *buffer,
- 				  size_t *lenp, loff_t *ppos)
+--- a/drivers/block/zram/zram_drv.c~zsmalloc-zs_malloc-return-err_ptr-if-fail
++++ a/drivers/block/zram/zram_drv.c
+@@ -1389,9 +1389,9 @@ static int __zram_bvec_write(struct zram
+ 			__GFP_HIGHMEM |
+ 			__GFP_MOVABLE);
+ 
+-	if (unlikely(!handle)) {
++	if (IS_ERR((void *)handle)) {
+ 		zcomp_stream_put(zram->comp);
+-		return -ENOMEM;
++		return PTR_ERR((void *)handle);
+ 	}
+ 
+ 	alloced_pages = zs_get_total_pages(zram->mem_pool);
+--- a/mm/zsmalloc.c~zsmalloc-zs_malloc-return-err_ptr-if-fail
++++ a/mm/zsmalloc.c
+@@ -399,7 +399,10 @@ static int zs_zpool_malloc(void *pool, s
+ 			unsigned long *handle)
  {
- 	int ret;
+ 	*handle = zs_malloc(pool, size, gfp);
+-	return *handle ? 0 : -1;
++
++	if (IS_ERR((void *)(*handle)))
++		return PTR_ERR((void *)*handle);
++	return 0;
+ }
+ static void zs_zpool_free(void *pool, unsigned long handle)
+ {
+@@ -1400,7 +1403,7 @@ static unsigned long obj_malloc(struct z
+  * @gfp: gfp flags when allocating object
+  *
+  * On success, handle to the allocated object is returned,
+- * otherwise 0.
++ * otherwise an ERR_PTR().
+  * Allocation requests with size > ZS_MAX_ALLOC_SIZE will fail.
+  */
+ unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp)
+@@ -1411,11 +1414,11 @@ unsigned long zs_malloc(struct zs_pool *
+ 	struct zspage *zspage;
+ 
+ 	if (unlikely(!size || size > ZS_MAX_ALLOC_SIZE))
+-		return 0;
++		return (unsigned long)ERR_PTR(-EINVAL);
+ 
+ 	handle = cache_alloc_handle(pool, gfp);
+ 	if (!handle)
+-		return 0;
++		return (unsigned long)ERR_PTR(-ENOMEM);
+ 
+ 	/* extra space in chunk to keep the handle */
+ 	size += ZS_HANDLE_SIZE;
+@@ -1440,7 +1443,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 	zspage = alloc_zspage(pool, class, gfp);
+ 	if (!zspage) {
+ 		cache_free_handle(pool, handle);
+-		return 0;
++		return (unsigned long)ERR_PTR(-ENOMEM);
+ 	}
+ 
+ 	spin_lock(&class->lock);
 _
 
-Patches currently in -mm which might be from ben.dooks@sifive.com are
+Patches currently in -mm which might be from teawater@antgroup.com are
 
-kernel-hung_task-fix-address-space-of-proc_dohung_task_timeout_secs.patch
+zsmalloc-zs_malloc-return-err_ptr-if-fail.patch
 
