@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F24F6CCA480
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:21:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64CC4C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:22:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233200AbiGRAV5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:21:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58324 "EHLO
+        id S233210AbiGRAWA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:22:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233212AbiGRAUe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B1D03B8
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:45 -0700 (PDT)
+        with ESMTP id S233231AbiGRAUg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:36 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E50121092
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8EA5160F32
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4388C341C0;
-        Mon, 18 Jul 2022 00:18:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 60F8EB80E27
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11D71C341C0;
+        Mon, 18 Jul 2022 00:18:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103524;
-        bh=Coj0AAaQmXlGKWCe2Az0ugt+KvNzCsBV93RTal0U1nQ=;
+        s=korg; t=1658103525;
+        bh=zPwhysMqKne0fsfENQCWijIpSfRyvEz1mMA8DO4E2l8=;
         h=Date:To:From:Subject:From;
-        b=ZF4Wvy4n6qTZrIWwT+T6MpOcn/x6nOj7JOAAUsP8Ozn7FzzvLMbLK7+VJuWp21EOH
-         CbRwyOuZ1Vwh2nDZGYSr5G3LZAATFK7vOR9YTKuFqkFc8aFHg/+nZQ8oYE6RCBf017
-         3jwPQhbQboPnaA6NG2BB85F01cHxJ3piGLr4MKpE=
-Date:   Sun, 17 Jul 2022 17:18:43 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, ligang.bdlg@bytedance.com,
-        akpm@linux-foundation.org
+        b=DvkcmLBIS1+EEF/RmCvMVPSJEi6MHdXtzfp3b2cvWnqStTVNcXzxe5a5JZPiNuCxd
+         xefUgXTFlwt8WKlgVUShgZOToOq0DkBoSIeIltjcbfcwrdMamxqnSrl05ln51ISJPW
+         dX4piHrFC9ZZm1qKYbsRCaJ1HwFWKVADdtFAH3Sg=
+Date:   Sun, 17 Jul 2022 17:18:44 -0700
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        ubizjak@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch removed from -mm tree
-Message-Id: <20220718001843.E4388C341C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch removed from -mm tree
+Message-Id: <20220718001845.11D71C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,137 +41,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, hugetlb: skip irrelevant nodes in show_free_areas()
+     Subject: mm/page_alloc: use try_cmpxchg in set_pfnblock_flags_mask
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas.patch
+     mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gang Li <ligang.bdlg@bytedance.com>
-Subject: mm, hugetlb: skip irrelevant nodes in show_free_areas()
-Date: Wed, 6 Jul 2022 11:46:54 +0800
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: mm/page_alloc: use try_cmpxchg in set_pfnblock_flags_mask
+Date: Fri, 8 Jul 2022 16:07:36 +0200
 
-show_free_areas() allows to filter out node specific data which is
-irrelevant to the allocation request.  But hugetlb_show_meminfo() still
-shows hugetlb on all nodes, which is redundant and unnecessary.
+Use try_cmpxchg instead of cmpxchg in set_pfnblock_flags_mask.  x86
+CMPXCHG instruction returns success in ZF flag, so this change saves a
+compare after cmpxchg (and related move instruction in front of cmpxchg). 
+The main loop improves from:
 
-Use show_mem_node_skip() to skip irrelevant nodes.  And replace
-hugetlb_show_meminfo() with hugetlb_show_meminfo_node(nid).
+    1c5d:	48 89 c2             	mov    %rax,%rdx
+    1c60:	48 89 c1             	mov    %rax,%rcx
+    1c63:	48 21 fa             	and    %rdi,%rdx
+    1c66:	4c 09 c2             	or     %r8,%rdx
+    1c69:	f0 48 0f b1 16       	lock cmpxchg %rdx,(%rsi)
+    1c6e:	48 39 c1             	cmp    %rax,%rcx
+    1c71:	75 ea                	jne    1c5d <...>
 
-before-and-after sample output of OOM:
+to:
 
-before:
-```
-[  214.362453] Node 1 active_anon:148kB inactive_anon:4050920kB active_file:112kB inactive_file:100kB
-[  214.375429] Node 1 Normal free:45100kB boost:0kB min:45576kB low:56968kB high:68360kB reserved_hig
-[  214.388334] lowmem_reserve[]: 0 0 0 0 0
-[  214.390251] Node 1 Normal: 423*4kB (UE) 320*8kB (UME) 187*16kB (UE) 117*32kB (UE) 57*64kB (UME) 20
-[  214.397626] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-[  214.401518] Node 1 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-```
+    1c60:	48 89 ca             	mov    %rcx,%rdx
+    1c63:	48 21 c2             	and    %rax,%rdx
+    1c66:	4c 09 c2             	or     %r8,%rdx
+    1c69:	f0 48 0f b1 16       	lock cmpxchg %rdx,(%rsi)
+    1c6e:	75 f0                	jne    1c60 <...>
 
-after:
-```
-[  145.069705] Node 1 active_anon:128kB inactive_anon:4049412kB active_file:56kB inactive_file:84kB u
-[  145.110319] Node 1 Normal free:45424kB boost:0kB min:45576kB low:56968kB high:68360kB reserved_hig
-[  145.152315] lowmem_reserve[]: 0 0 0 0 0
-[  145.155244] Node 1 Normal: 470*4kB (UME) 373*8kB (UME) 247*16kB (UME) 168*32kB (UE) 86*64kB (UME)
-[  145.164119] Node 1 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-```
-
-Link: https://lkml.kernel.org/r/20220706034655.1834-1-ligang.bdlg@bytedance.com
-Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220708140736.8737-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 ++--
- mm/hugetlb.c            |   18 ++++++++----------
- mm/page_alloc.c         |    8 ++++++--
- 3 files changed, 16 insertions(+), 14 deletions(-)
+ mm/page_alloc.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
-+++ a/include/linux/hugetlb.h
-@@ -152,7 +152,7 @@ void __unmap_hugepage_range_final(struct
- 			  struct page *ref_page, zap_flags_t zap_flags);
- void hugetlb_report_meminfo(struct seq_file *);
- int hugetlb_report_node_meminfo(char *buf, int len, int nid);
--void hugetlb_show_meminfo(void);
-+void hugetlb_show_meminfo_node(int nid);
- unsigned long hugetlb_total_pages(void);
- vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long address, unsigned int flags);
-@@ -298,7 +298,7 @@ static inline int hugetlb_report_node_me
- 	return 0;
- }
- 
--static inline void hugetlb_show_meminfo(void)
-+static inline void hugetlb_show_meminfo_node(int nid)
- {
- }
- 
---- a/mm/hugetlb.c~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
-+++ a/mm/hugetlb.c
-@@ -4477,22 +4477,20 @@ int hugetlb_report_node_meminfo(char *bu
- 			     nid, h->surplus_huge_pages_node[nid]);
- }
- 
--void hugetlb_show_meminfo(void)
-+void hugetlb_show_meminfo_node(int nid)
- {
- 	struct hstate *h;
--	int nid;
- 
- 	if (!hugepages_supported())
- 		return;
- 
--	for_each_node_state(nid, N_MEMORY)
--		for_each_hstate(h)
--			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
--				nid,
--				h->nr_huge_pages_node[nid],
--				h->free_huge_pages_node[nid],
--				h->surplus_huge_pages_node[nid],
--				huge_page_size(h) / SZ_1K);
-+	for_each_hstate(h)
-+		printk("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
-+			nid,
-+			h->nr_huge_pages_node[nid],
-+			h->free_huge_pages_node[nid],
-+			h->surplus_huge_pages_node[nid],
-+			huge_page_size(h) / SZ_1K);
- }
- 
- void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
---- a/mm/page_alloc.c~mm-hugetlb-skip-irrelevant-nodes-in-show_free_areas
+--- a/mm/page_alloc.c~mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask
 +++ a/mm/page_alloc.c
-@@ -6022,7 +6022,7 @@ static void show_migration_types(unsigne
- void show_free_areas(unsigned int filter, nodemask_t *nodemask)
+@@ -602,7 +602,7 @@ void set_pfnblock_flags_mask(struct page
  {
- 	unsigned long free_pcp = 0;
--	int cpu;
-+	int cpu, nid;
- 	struct zone *zone;
- 	pg_data_t *pgdat;
+ 	unsigned long *bitmap;
+ 	unsigned long bitidx, word_bitidx;
+-	unsigned long old_word, word;
++	unsigned long word;
  
-@@ -6210,7 +6210,11 @@ void show_free_areas(unsigned int filter
- 		printk(KERN_CONT "= %lukB\n", K(total));
- 	}
+ 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
+ 	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
+@@ -618,12 +618,8 @@ void set_pfnblock_flags_mask(struct page
+ 	flags <<= bitidx;
  
--	hugetlb_show_meminfo();
-+	for_each_online_node(nid) {
-+		if (show_mem_node_skip(filter, nid, nodemask))
-+			continue;
-+		hugetlb_show_meminfo_node(nid);
-+	}
+ 	word = READ_ONCE(bitmap[word_bitidx]);
+-	for (;;) {
+-		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
+-		if (word == old_word)
+-			break;
+-		word = old_word;
+-	}
++	do {
++	} while (!try_cmpxchg(&bitmap[word_bitidx], &word, (word & ~mask) | flags));
+ }
  
- 	printk("%ld total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
- 
+ void set_pageblock_migratetype(struct page *page, int migratetype)
 _
 
-Patches currently in -mm which might be from ligang.bdlg@bytedance.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
+compiler-gcch-remove-ancient-workaround-for-gcc-pr-58670.patch
 
