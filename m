@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DAFACCA480
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:18:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62EA2CCA485
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:18:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233041AbiGRASO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233175AbiGRASO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 17 Jul 2022 20:18:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57634 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232644AbiGRARR (ORCPT
+        with ESMTP id S233158AbiGRARR (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:17:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E60AB86C
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AC9213CDF
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D153660EE9
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FE97C3411E;
-        Mon, 18 Jul 2022 00:17:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8FDE460F0B
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0DBEC385A5;
+        Mon, 18 Jul 2022 00:17:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103428;
-        bh=YpE2m1Delol/s+bp+a1meBb3l5jU3+2pyWD7MyW0lAs=;
+        s=korg; t=1658103431;
+        bh=eS98tXDT63rzJS+blBSpz4ersjvBv37Q8HEyqW2i9V8=;
         h=Date:To:From:Subject:From;
-        b=CWYRG2focn1OXoTpI8JYl3L/xVTe0SsTwCCrRAU81/t5AAzCtbgbMxq9BVeeFCq/N
-         deqTzTAExGtQbms9OCra3GShl12imSIA3LvD1V8ecbX1j8zn81E+tfhCA9D709jqWX
-         HKAF95xKaanJrBVvjM1GXfOUgD2bfEQ/1HvgUwAg=
-Date:   Sun, 17 Jul 2022 17:17:07 -0700
+        b=S1ANFN61d0sVITnaO6wfJkTydw8zCawSu4neZuF66f9GxFJuBAtshvD2MqtkUGYJO
+         xsTeG0cZdWLHTdmhR0xs0W2lvyKOjn8xZVAQQ5omA8K6/cjtKyA6a9rIHydXZxWOyc
+         PNfFEvmiEP4R1RgZplk2JcJGeI5n41gnKBtO8WFM=
+Date:   Sun, 17 Jul 2022 17:17:10 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
-        songmuchun@bytedance.com, peterx@redhat.com,
+        songmuchun@bytedance.com, sfr@canb.auug.org.au, peterx@redhat.com,
         paul.walmsley@sifive.com, naoya.horiguchi@linux.dev,
         mhocko@suse.com, lkp@intel.com, jthoughton@google.com,
         eike-kernel@sf-tec.de, david@redhat.com, catalin.marinas@arm.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         almasrymina@google.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-skip-to-end-of-pt-page-mapping-when-pte-not-present.patch removed from -mm tree
-Message-Id: <20220718001708.2FE97C3411E@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-do-not-update-address-in-huge_pmd_unshare.patch removed from -mm tree
+Message-Id: <20220718001710.E0DBEC385A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,239 +48,224 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlb: skip to end of PT page mapping when pte not present
+     Subject: hugetlb: do not update address in huge_pmd_unshare
 has been removed from the -mm tree.  Its filename was
-     hugetlb-skip-to-end-of-pt-page-mapping-when-pte-not-present.patch
+     hugetlb-do-not-update-address-in-huge_pmd_unshare.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: skip to end of PT page mapping when pte not present
-Date: Tue, 21 Jun 2022 16:56:17 -0700
+Subject: hugetlb: do not update address in huge_pmd_unshare
+Date: Tue, 21 Jun 2022 16:56:19 -0700
 
-Patch series "hugetlb: speed up linear address scanning", v2.
+As an optimization for loops sequentially processing hugetlb address
+ranges, huge_pmd_unshare would update a passed address if it unshared a
+pmd.  Updating a loop control variable outside the loop like this is
+generally a bad idea.  These loops are now using hugetlb_mask_last_page to
+optimize scanning when non-present ptes are discovered.  The same can be
+done when huge_pmd_unshare returns 1 indicating a pmd was unshared.
 
-At unmap, fork and remap time hugetlb address ranges are linearly scanned.
-We can optimize these scans if the ranges are sparsely populated.
+Remove address update from huge_pmd_unshare.  Change the passed argument
+type and update all callers.  In loops sequentially processing addresses
+use hugetlb_mask_last_page to update address if pmd is unshared.
 
-Also, enable page table "Lazy copy" for hugetlb at fork.
-
-NOTE: Architectures not defining CONFIG_ARCH_WANT_GENERAL_HUGETLB need to
-add an arch specific version hugetlb_mask_last_page() to take advantage of
-sparse address scanning improvements.  Baolin Wang added the routine for
-arm64.  Other architectures which could be optimized are: ia64, mips,
-parisc, powerpc, s390, sh and sparc.
-
-
-This patch (of 4):
-
-HugeTLB address ranges are linearly scanned during fork, unmap and remap
-operations.  If a non-present entry is encountered, the code currently
-continues to the next huge page aligned address.  However, a non-present
-entry implies that the page table page for that entry is not present. 
-Therefore, the linear scan can skip to the end of range mapped by the page
-table page.  This can speed operations on large sparsely populated hugetlb
-mappings.
-
-Create a new routine hugetlb_mask_last_page() that will return an address
-mask.  When the mask is ORed with an address, the result will be the
-address of the last huge page mapped by the associated page table page. 
-Use this mask to update addresses in routines which linearly scan hugetlb
-address ranges when a non-present pte is encountered.
-
-hugetlb_mask_last_page is related to the implementation of huge_pte_offset
-as hugetlb_mask_last_page is called when huge_pte_offset returns NULL. 
-This patch only provides a complete hugetlb_mask_last_page implementation
-when CONFIG_ARCH_WANT_GENERAL_HUGETLB is defined.  Architectures which
-provide their own versions of huge_pte_offset can also provide their own
-version of hugetlb_mask_last_page.
-
-Link: https://lkml.kernel.org/r/20220621235620.291305-1-mike.kravetz@oracle.com
-Link: https://lkml.kernel.org/r/20220621235620.291305-2-mike.kravetz@oracle.com
+[sfr@canb.auug.org.au: fix an unused variable warning/error]
+  Link: https://lkml.kernel.org/r/20220622171117.70850960@canb.auug.org.au
+Link: https://lkml.kernel.org/r/20220621235620.291305-4-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Acked-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Mina Almasry <almasrymina@google.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 
- mm/hugetlb.c            |   56 ++++++++++++++++++++++++++++++++++----
- 2 files changed, 52 insertions(+), 5 deletions(-)
+ include/linux/hugetlb.h |    4 +--
+ mm/hugetlb.c            |   44 ++++++++++++++------------------------
+ mm/rmap.c               |    4 +--
+ 3 files changed, 21 insertions(+), 31 deletions(-)
 
---- a/include/linux/hugetlb.h~hugetlb-skip-to-end-of-pt-page-mapping-when-pte-not-present
+--- a/include/linux/hugetlb.h~hugetlb-do-not-update-address-in-huge_pmd_unshare
 +++ a/include/linux/hugetlb.h
-@@ -194,6 +194,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 			unsigned long addr, unsigned long sz);
- pte_t *huge_pte_offset(struct mm_struct *mm,
+@@ -196,7 +196,7 @@ pte_t *huge_pte_offset(struct mm_struct
  		       unsigned long addr, unsigned long sz);
-+unsigned long hugetlb_mask_last_page(struct hstate *h);
+ unsigned long hugetlb_mask_last_page(struct hstate *h);
  int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
- 				unsigned long *addr, pte_t *ptep);
+-				unsigned long *addr, pte_t *ptep);
++				unsigned long addr, pte_t *ptep);
  void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
---- a/mm/hugetlb.c~hugetlb-skip-to-end-of-pt-page-mapping-when-pte-not-present
+ 				unsigned long *start, unsigned long *end);
+ struct page *follow_huge_addr(struct mm_struct *mm, unsigned long address,
+@@ -243,7 +243,7 @@ static inline struct address_space *huge
+ 
+ static inline int huge_pmd_unshare(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+-					unsigned long *addr, pte_t *ptep)
++					unsigned long addr, pte_t *ptep)
+ {
+ 	return 0;
+ }
+--- a/mm/hugetlb.c~hugetlb-do-not-update-address-in-huge_pmd_unshare
 +++ a/mm/hugetlb.c
-@@ -4727,6 +4727,7 @@ int copy_hugetlb_page_range(struct mm_st
- 	unsigned long npages = pages_per_huge_page(h);
- 	struct address_space *mapping = src_vma->vm_file->f_mapping;
- 	struct mmu_notifier_range range;
-+	unsigned long last_addr_mask;
- 	int ret = 0;
- 
- 	if (cow) {
-@@ -4746,11 +4747,14 @@ int copy_hugetlb_page_range(struct mm_st
- 		i_mmap_lock_read(mapping);
- 	}
- 
-+	last_addr_mask = hugetlb_mask_last_page(h);
- 	for (addr = src_vma->vm_start; addr < src_vma->vm_end; addr += sz) {
- 		spinlock_t *src_ptl, *dst_ptl;
- 		src_pte = huge_pte_offset(src, addr, sz);
--		if (!src_pte)
-+		if (!src_pte) {
-+			addr |= last_addr_mask;
- 			continue;
-+		}
- 		dst_pte = huge_pte_alloc(dst, dst_vma, addr, sz);
- 		if (!dst_pte) {
- 			ret = -ENOMEM;
-@@ -4767,8 +4771,10 @@ int copy_hugetlb_page_range(struct mm_st
- 		 * after taking the lock below.
- 		 */
- 		dst_entry = huge_ptep_get(dst_pte);
--		if ((dst_pte == src_pte) || !huge_pte_none(dst_entry))
-+		if ((dst_pte == src_pte) || !huge_pte_none(dst_entry)) {
-+			addr |= last_addr_mask;
- 			continue;
-+		}
- 
- 		dst_ptl = huge_pte_lock(h, dst, dst_pte);
- 		src_ptl = huge_pte_lockptr(h, src, src_pte);
-@@ -4928,6 +4934,7 @@ int move_hugetlb_page_tables(struct vm_a
- 	unsigned long sz = huge_page_size(h);
+@@ -4935,7 +4935,6 @@ int move_hugetlb_page_tables(struct vm_a
  	struct mm_struct *mm = vma->vm_mm;
  	unsigned long old_end = old_addr + len;
-+	unsigned long last_addr_mask;
- 	unsigned long old_addr_copy;
+ 	unsigned long last_addr_mask;
+-	unsigned long old_addr_copy;
  	pte_t *src_pte, *dst_pte;
  	struct mmu_notifier_range range;
-@@ -4943,12 +4950,16 @@ int move_hugetlb_page_tables(struct vm_a
- 	flush_cache_range(vma, range.start, range.end);
- 
- 	mmu_notifier_invalidate_range_start(&range);
-+	last_addr_mask = hugetlb_mask_last_page(h);
- 	/* Prevent race with file truncation */
- 	i_mmap_lock_write(mapping);
- 	for (; old_addr < old_end; old_addr += sz, new_addr += sz) {
- 		src_pte = huge_pte_offset(mm, old_addr, sz);
--		if (!src_pte)
-+		if (!src_pte) {
-+			old_addr |= last_addr_mask;
-+			new_addr |= last_addr_mask;
- 			continue;
-+		}
+ 	bool shared_pmd = false;
+@@ -4963,14 +4962,10 @@ int move_hugetlb_page_tables(struct vm_a
  		if (huge_pte_none(huge_ptep_get(src_pte)))
  			continue;
  
-@@ -4993,6 +5004,7 @@ static void __unmap_hugepage_range(struc
- 	struct hstate *h = hstate_vma(vma);
- 	unsigned long sz = huge_page_size(h);
- 	struct mmu_notifier_range range;
-+	unsigned long last_addr_mask;
- 	bool force_flush = false;
- 
- 	WARN_ON(!is_vm_hugetlb_page(vma));
-@@ -5013,11 +5025,14 @@ static void __unmap_hugepage_range(struc
- 				end);
- 	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
- 	mmu_notifier_invalidate_range_start(&range);
-+	last_addr_mask = hugetlb_mask_last_page(h);
- 	address = start;
- 	for (; address < end; address += sz) {
- 		ptep = huge_pte_offset(mm, address, sz);
--		if (!ptep)
-+		if (!ptep) {
-+			address |= last_addr_mask;
+-		/* old_addr arg to huge_pmd_unshare() is a pointer and so the
+-		 * arg may be modified. Pass a copy instead to preserve the
+-		 * value in old_addr.
+-		 */
+-		old_addr_copy = old_addr;
+-
+-		if (huge_pmd_unshare(mm, vma, &old_addr_copy, src_pte)) {
++		if (huge_pmd_unshare(mm, vma, old_addr, src_pte)) {
+ 			shared_pmd = true;
++			old_addr |= last_addr_mask;
++			new_addr |= last_addr_mask;
  			continue;
-+		}
+ 		}
+ 
+@@ -5035,10 +5030,11 @@ static void __unmap_hugepage_range(struc
+ 		}
  
  		ptl = huge_pte_lock(h, mm, ptep);
- 		if (huge_pmd_unshare(mm, vma, &address, ptep)) {
-@@ -6285,6 +6300,7 @@ unsigned long hugetlb_change_protection(
- 	unsigned long pages = 0, psize = huge_page_size(h);
- 	bool shared_pmd = false;
- 	struct mmu_notifier_range range;
-+	unsigned long last_addr_mask;
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
- 
-@@ -6301,12 +6317,15 @@ unsigned long hugetlb_change_protection(
- 	flush_cache_range(vma, range.start, range.end);
- 
- 	mmu_notifier_invalidate_range_start(&range);
-+	last_addr_mask = hugetlb_mask_last_page(h);
- 	i_mmap_lock_write(vma->vm_file->f_mapping);
- 	for (; address < end; address += psize) {
- 		spinlock_t *ptl;
- 		ptep = huge_pte_offset(mm, address, psize);
--		if (!ptep)
-+		if (!ptep) {
+-		if (huge_pmd_unshare(mm, vma, &address, ptep)) {
++		if (huge_pmd_unshare(mm, vma, address, ptep)) {
+ 			spin_unlock(ptl);
+ 			tlb_flush_pmd_range(tlb, address & PUD_MASK, PUD_SIZE);
+ 			force_flush = true;
 +			address |= last_addr_mask;
  			continue;
-+		}
+ 		}
+ 
+@@ -6327,7 +6323,7 @@ unsigned long hugetlb_change_protection(
+ 			continue;
+ 		}
  		ptl = huge_pte_lock(h, mm, ptep);
- 		if (huge_pmd_unshare(mm, vma, &address, ptep)) {
+-		if (huge_pmd_unshare(mm, vma, &address, ptep)) {
++		if (huge_pmd_unshare(mm, vma, address, ptep)) {
  			/*
-@@ -6856,6 +6875,33 @@ pte_t *huge_pte_offset(struct mm_struct
- 	return (pte_t *)pmd;
+ 			 * When uffd-wp is enabled on the vma, unshare
+ 			 * shouldn't happen at all.  Warn about it if it
+@@ -6337,6 +6333,7 @@ unsigned long hugetlb_change_protection(
+ 			pages++;
+ 			spin_unlock(ptl);
+ 			shared_pmd = true;
++			address |= last_addr_mask;
+ 			continue;
+ 		}
+ 		pte = huge_ptep_get(ptep);
+@@ -6759,11 +6756,11 @@ out:
+  *	    0 the underlying pte page is not shared, or it is the last user
+  */
+ int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
+-					unsigned long *addr, pte_t *ptep)
++					unsigned long addr, pte_t *ptep)
+ {
+-	pgd_t *pgd = pgd_offset(mm, *addr);
+-	p4d_t *p4d = p4d_offset(pgd, *addr);
+-	pud_t *pud = pud_offset(p4d, *addr);
++	pgd_t *pgd = pgd_offset(mm, addr);
++	p4d_t *p4d = p4d_offset(pgd, addr);
++	pud_t *pud = pud_offset(p4d, addr);
+ 
+ 	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
+ 	BUG_ON(page_count(virt_to_page(ptep)) == 0);
+@@ -6773,14 +6770,6 @@ int huge_pmd_unshare(struct mm_struct *m
+ 	pud_clear(pud);
+ 	put_page(virt_to_page(ptep));
+ 	mm_dec_nr_pmds(mm);
+-	/*
+-	 * This update of passed address optimizes loops sequentially
+-	 * processing addresses in increments of huge page size (PMD_SIZE
+-	 * in this case).  By clearing the pud, a PUD_SIZE area is unmapped.
+-	 * Update address to the 'last page' in the cleared area so that
+-	 * calling loop can move to first page past this area.
+-	 */
+-	*addr |= PUD_SIZE - PMD_SIZE;
+ 	return 1;
  }
  
-+/*
-+ * Return a mask that can be used to update an address to the last huge
-+ * page in a page table page mapping size.  Used to skip non-present
-+ * page table entries when linearly scanning address ranges.  Architectures
-+ * with unique huge page to page table relationships can define their own
-+ * version of this routine.
-+ */
-+unsigned long hugetlb_mask_last_page(struct hstate *h)
-+{
-+	unsigned long hp_size = huge_page_size(h);
-+
-+	if (hp_size == PUD_SIZE)
-+		return P4D_SIZE - PUD_SIZE;
-+	else if (hp_size == PMD_SIZE)
-+		return PUD_SIZE - PMD_SIZE;
-+	else
-+		return 0UL;
-+}
-+
-+#else
-+
-+/* See description above.  Architectures can provide their own version. */
-+__weak unsigned long hugetlb_mask_last_page(struct hstate *h)
-+{
-+	return 0UL;
-+}
-+
- #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
+@@ -6792,7 +6781,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ }
  
- /*
+ int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
+-				unsigned long *addr, pte_t *ptep)
++				unsigned long addr, pte_t *ptep)
+ {
+ 	return 0;
+ }
+@@ -6899,6 +6888,10 @@ unsigned long hugetlb_mask_last_page(str
+ /* See description above.  Architectures can provide their own version. */
+ __weak unsigned long hugetlb_mask_last_page(struct hstate *h)
+ {
++#ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
++	if (huge_page_size(h) == PMD_SIZE)
++		return PUD_SIZE - PMD_SIZE;
++#endif
+ 	return 0UL;
+ }
+ 
+@@ -7125,14 +7118,11 @@ void hugetlb_unshare_all_pmds(struct vm_
+ 	mmu_notifier_invalidate_range_start(&range);
+ 	i_mmap_lock_write(vma->vm_file->f_mapping);
+ 	for (address = start; address < end; address += PUD_SIZE) {
+-		unsigned long tmp = address;
+-
+ 		ptep = huge_pte_offset(mm, address, sz);
+ 		if (!ptep)
+ 			continue;
+ 		ptl = huge_pte_lock(h, mm, ptep);
+-		/* We don't want 'address' to be changed */
+-		huge_pmd_unshare(mm, vma, &tmp, ptep);
++		huge_pmd_unshare(mm, vma, address, ptep);
+ 		spin_unlock(ptl);
+ 	}
+ 	flush_hugetlb_tlb_range(vma, start, end);
+--- a/mm/rmap.c~hugetlb-do-not-update-address-in-huge_pmd_unshare
++++ a/mm/rmap.c
+@@ -1559,7 +1559,7 @@ static bool try_to_unmap_one(struct foli
+ 			 * do this outside rmap routines.
+ 			 */
+ 			VM_BUG_ON(!anon && !(flags & TTU_RMAP_LOCKED));
+-			if (!anon && huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
++			if (!anon && huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
+ 				flush_tlb_range(vma, range.start, range.end);
+ 				mmu_notifier_invalidate_range(mm, range.start,
+ 							      range.end);
+@@ -1920,7 +1920,7 @@ static bool try_to_migrate_one(struct fo
+ 			 * do this outside rmap routines.
+ 			 */
+ 			VM_BUG_ON(!anon && !(flags & TTU_RMAP_LOCKED));
+-			if (!anon && huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
++			if (!anon && huge_pmd_unshare(mm, vma, address, pvmw.pte)) {
+ 				flush_tlb_range(vma, range.start, range.end);
+ 				mmu_notifier_invalidate_range(mm, range.start,
+ 							      range.end);
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
