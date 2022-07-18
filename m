@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5787C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:22:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E11CCCA480
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:22:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233231AbiGRAWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:22:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58104 "EHLO
+        id S229862AbiGRAWD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:22:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233233AbiGRAUg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:36 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3170113E
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:48 -0700 (PDT)
+        with ESMTP id S229783AbiGRAUp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:45 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E40E263D
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7D7B2B80EE7
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15AFDC341CA;
-        Mon, 18 Jul 2022 00:18:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5D839B80EEF
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C361C341C0;
+        Mon, 18 Jul 2022 00:18:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103526;
-        bh=1sFwvtXdgYUrNFU/fY99tigKUwMyASN7vfNic7UD4Jk=;
+        s=korg; t=1658103527;
+        bh=04VgPt4ovXcqR1JLTqGsxNPKf9Zm26fa3cIEjA9g/k0=;
         h=Date:To:From:Subject:From;
-        b=W8e72uRH7yQ2rnd13zk5MXxbP7U+8An03NintBxEQNpuhOED+SmbL/tQFd3nqdupe
-         eubs4V4KWlXZyDm7bRat2G+/wIvHmXOG0W77B4c1gLJPA2MOh4HXAxzb+e3aMGRdiu
-         fDJtmeeDHfCBZkV5oaiHxyJPdHTJypoQIqSSJwxo=
-Date:   Sun, 17 Jul 2022 17:18:45 -0700
+        b=ZuATnQWlT0/OvdwWzRi9hcfm+96SCHLiPGeu+UQoXPkfKWc11qGo+jWE/v+Y/dApW
+         txWXB44I5QqpX9yIHkXv8a79mNPyjRb5FnLzKsIPuJlPIWnVsPRIB5LKmB2bxvmoo1
+         mm6WEWyGWJI6MwdJCdotFdZ6YyILmXxsH8oT8FVY=
+Date:   Sun, 17 Jul 2022 17:18:46 -0700
 To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_vma_mappedc-use-helper-function-huge_pte_lock.patch removed from -mm tree
-Message-Id: <20220718001846.15AFDC341CA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-fix-obsolete-comment-of-find_extend_vma.patch removed from -mm tree
+Message-Id: <20220718001847.0C361C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,41 +41,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_vma_mapped.c: use helper function huge_pte_lock
+     Subject: mm/mmap: fix obsolete comment of find_extend_vma
 has been removed from the -mm tree.  Its filename was
-     mm-page_vma_mappedc-use-helper-function-huge_pte_lock.patch
+     mm-mmap-fix-obsolete-comment-of-find_extend_vma.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_vma_mapped.c: use helper function huge_pte_lock
-Date: Sat, 9 Jul 2022 17:24:40 +0800
+Subject: mm/mmap: fix obsolete comment of find_extend_vma
+Date: Sat, 9 Jul 2022 17:25:27 +0800
 
-Use helper function huge_pte_lock() to lock the huge pte to simplify the
-code a bit.  No functional change intended.
+mmget_still_valid() has already been removed via commit 4d45e75a9955 ("mm:
+remove the now-unnecessary mmget_still_valid() hack").  Update the
+corresponding comment.
 
-Link: https://lkml.kernel.org/r/20220709092440.43018-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220709092527.47778-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mmap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mappedc-use-helper-function-huge_pte_lock
-+++ a/mm/page_vma_mapped.c
-@@ -174,8 +174,7 @@ bool page_vma_mapped_walk(struct page_vm
- 		if (!pvmw->pte)
- 			return false;
- 
--		pvmw->ptl = huge_pte_lockptr(hstate, mm, pvmw->pte);
--		spin_lock(pvmw->ptl);
-+		pvmw->ptl = huge_pte_lock(hstate, mm, pvmw->pte);
- 		if (!check_pte(pvmw))
- 			return not_found(pvmw);
- 		return true;
+--- a/mm/mmap.c~mm-mmap-fix-obsolete-comment-of-find_extend_vma
++++ a/mm/mmap.c
+@@ -2541,7 +2541,6 @@ find_extend_vma(struct mm_struct *mm, un
+ 	vma = find_vma_prev(mm, addr, &prev);
+ 	if (vma && (vma->vm_start <= addr))
+ 		return vma;
+-	/* don't alter vm_end if the coredump is running */
+ 	if (!prev || expand_stack(prev, addr))
+ 		return NULL;
+ 	if (prev->vm_flags & VM_LOCKED)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
