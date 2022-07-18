@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E15B9C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:21:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B53C1C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:21:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231415AbiGRAVo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233287AbiGRAVo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 17 Jul 2022 20:21:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58074 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232254AbiGRAUT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 465ED14D03
+        with ESMTP id S233087AbiGRAUU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE22414D08
         for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E5E6FB80E27
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 996DAC3411E;
-        Mon, 18 Jul 2022 00:18:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5259C60F54
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A930DC3411E;
+        Mon, 18 Jul 2022 00:18:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103511;
-        bh=V63RxILzeL7vCJ+a4earrKo4Ir+qhYqEvAnQVczZGRo=;
+        s=korg; t=1658103513;
+        bh=jGRy5JtKii3iHfz+fTuEUNIEgK3E6s+aLz8c2ZfOODw=;
         h=Date:To:From:Subject:From;
-        b=nGjNBRw3ERqetBMWZRlob3Lu+JpyX9AFClrJKsgbuP94/wroWP3o9O1koxZ+zQt1y
-         6/UBDJF6Fl91u3RSAHRUgLaG9Ua8QCgRM4XEPNwEEia0XET4JEkaZ+pNYLWx8KZimc
-         W/8eP92pH2sYHCO+y/sYaP06oGCJooy+cDlwwSG4=
-Date:   Sun, 17 Jul 2022 17:18:31 -0700
+        b=AJg/aiq9Q7FTrwviaQm4c/q3p6IywzbUj4fAz8Egef7WEwFRk8gYN757rBLsGCTk4
+         dNjsBKYly+7djTCqUd7kOxgNa18SHGTAUwB4w4Trvm36P/2kmoVFLSNlpo5FD1IPSZ
+         fLs/+mvJiBLcgOUfNPE19mQiq5A2uMsSXg/xbiiI=
+Date:   Sun, 17 Jul 2022 17:18:33 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com,
         willy@infradead.org, songmuchun@bytedance.com, shy828301@gmail.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-use-helper-function-vma_lookup-in-split_huge_pages_pid.patch removed from -mm tree
-Message-Id: <20220718001831.996DAC3411E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-fix-comment-in-zap_huge_pud.patch removed from -mm tree
+Message-Id: <20220718001833.A930DC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,48 +42,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: use helper function vma_lookup in split_huge_pages_pid
+     Subject: mm/huge_memory: fix comment in zap_huge_pud
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-use-helper-function-vma_lookup-in-split_huge_pages_pid.patch
+     mm-huge_memory-fix-comment-in-zap_huge_pud.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory: use helper function vma_lookup in split_huge_pages_pid
-Date: Mon, 4 Jul 2022 21:21:52 +0800
+Subject: mm/huge_memory: fix comment in zap_huge_pud
+Date: Mon, 4 Jul 2022 21:21:54 +0800
 
-Use helper function vma_lookup to lookup the needed vma to simplify the
-code. Minor readability improvement.
+The comment about deposited pgtable is borrowed from zap_huge_pmd but
+there's no deposited pgtable stuff for huge pud in zap_huge_pud. Remove
+it to avoid confusion.
 
-Link: https://lkml.kernel.org/r/20220704132201.14611-8-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220704132201.14611-10-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-use-helper-function-vma_lookup-in-split_huge_pages_pid
+--- a/mm/huge_memory.c~mm-huge_memory-fix-comment-in-zap_huge_pud
 +++ a/mm/huge_memory.c
-@@ -2941,10 +2941,10 @@ static int split_huge_pages_pid(int pid,
- 	 * table filled with PTE-mapped THPs, each of which is distinct.
- 	 */
- 	for (addr = vaddr_start; addr < vaddr_end; addr += PAGE_SIZE) {
--		struct vm_area_struct *vma = find_vma(mm, addr);
-+		struct vm_area_struct *vma = vma_lookup(mm, addr);
- 		struct page *page;
- 
--		if (!vma || addr < vma->vm_start)
-+		if (!vma)
- 			break;
- 
- 		/* skip special VMA and hugetlb VMA */
+@@ -1913,12 +1913,7 @@ int zap_huge_pud(struct mmu_gather *tlb,
+ 	ptl = __pud_trans_huge_lock(pud, vma);
+ 	if (!ptl)
+ 		return 0;
+-	/*
+-	 * For architectures like ppc64 we look at deposited pgtable
+-	 * when calling pudp_huge_get_and_clear. So do the
+-	 * pgtable_trans_huge_withdraw after finishing pudp related
+-	 * operations.
+-	 */
++
+ 	pudp_huge_get_and_clear_full(tlb->mm, addr, pud, tlb->fullmm);
+ 	tlb_remove_pud_tlb_entry(tlb, pud, addr);
+ 	if (vma_is_special_huge(vma)) {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
