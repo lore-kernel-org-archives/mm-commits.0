@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F712CCA480
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:21:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99AB1C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233163AbiGRAVg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:21:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57012 "EHLO
+        id S233216AbiGRAVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:21:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233186AbiGRAUF (ORCPT
+        with ESMTP id S233217AbiGRAUF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B10BE140D7
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:31 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B032A140F7
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4289E60F57
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 933EAC3411E;
-        Mon, 18 Jul 2022 00:18:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4FE6F60F32
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4336C341C0;
+        Mon, 18 Jul 2022 00:18:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103510;
-        bh=23zLI8dWyyKQGjEHnrs72vlW3WnbN2MvrmcWw2maDDU=;
+        s=korg; t=1658103512;
+        bh=ap0UmQpHl5rNEjtCDDzxZxtZfwebaX68REXdYd4tq/0=;
         h=Date:To:From:Subject:From;
-        b=Az6o75L3ugLWfXL0pBIR7fkyAlgiZzWSYEItjuIWwQS0u6MU5YWWSj0vhJ18xyF0k
-         lBiw8BgcYGaTN9ZLXWNl/+YcycaaE9yO/ky+96YntJ0UIucPvJtjrSkLvYi2wGM2eb
-         LOsUGGBj+xJq7RH5WW/bzJw021mIwJz0itYA20Tc=
-Date:   Sun, 17 Jul 2022 17:18:30 -0700
+        b=QJHQ1O5PcTzYrMO9cDgcl3bmZtz5uXog/P+7djxApJYFrVla5hkZSd2oOXvqpes0o
+         6uhOO/z7EvuFq954EufvcBl9uOPNgH8bDHKtR/ZCuXdCwEz7aNX2UZEJF2hCK55PAw
+         daz0IwuC83F9zrKV0NB8RhIrayNPLCzsWoQWqft8=
+Date:   Sun, 17 Jul 2022 17:18:32 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com,
         willy@infradead.org, songmuchun@bytedance.com, shy828301@gmail.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-rename-mmun_start-to-haddr-in-remove_migration_pmd.patch removed from -mm tree
-Message-Id: <20220718001830.933EAC3411E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-use-helper-macro-__attr_rw.patch removed from -mm tree
+Message-Id: <20220718001832.A4336C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,24 +42,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: rename mmun_start to haddr in remove_migration_pmd
+     Subject: mm/huge_memory: use helper macro __ATTR_RW
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-rename-mmun_start-to-haddr-in-remove_migration_pmd.patch
+     mm-huge_memory-use-helper-macro-__attr_rw.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory: rename mmun_start to haddr in remove_migration_pmd
-Date: Mon, 4 Jul 2022 21:21:51 +0800
+Subject: mm/huge_memory: use helper macro __ATTR_RW
+Date: Mon, 4 Jul 2022 21:21:53 +0800
 
-mmun_start indicates mmu_notifier start address but there's no mmu_notifier
-stuff in remove_migration_pmd. This will make it hard to get the meaning of
-mmun_start. Rename it to haddr to avoid confusing readers and also imporve
-readability.
+Use helper macro __ATTR_RW to define use_zero_page_attr, defrag_attr and
+enabled_attr to make code more clear. Minor readability improvement.
 
-Link: https://lkml.kernel.org/r/20220704132201.14611-7-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220704132201.14611-9-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -68,35 +66,42 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-rename-mmun_start-to-haddr-in-remove_migration_pmd
+--- a/mm/huge_memory.c~mm-huge_memory-use-helper-macro-__attr_rw
 +++ a/mm/huge_memory.c
-@@ -3180,7 +3180,7 @@ void remove_migration_pmd(struct page_vm
- 	struct vm_area_struct *vma = pvmw->vma;
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long address = pvmw->address;
--	unsigned long mmun_start = address & HPAGE_PMD_MASK;
-+	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	pmd_t pmde;
- 	swp_entry_t entry;
- 
-@@ -3203,12 +3203,12 @@ void remove_migration_pmd(struct page_vm
- 		if (!is_readable_migration_entry(entry))
- 			rmap_flags |= RMAP_EXCLUSIVE;
- 
--		page_add_anon_rmap(new, vma, mmun_start, rmap_flags);
-+		page_add_anon_rmap(new, vma, haddr, rmap_flags);
- 	} else {
- 		page_add_file_rmap(new, vma, true);
+@@ -276,8 +276,8 @@ static ssize_t enabled_store(struct kobj
  	}
- 	VM_BUG_ON(pmd_write(pmde) && PageAnon(new) && !PageAnonExclusive(new));
--	set_pmd_at(mm, mmun_start, pvmw->pmd, pmde);
-+	set_pmd_at(mm, haddr, pvmw->pmd, pmde);
+ 	return ret;
+ }
+-static struct kobj_attribute enabled_attr =
+-	__ATTR(enabled, 0644, enabled_show, enabled_store);
++
++static struct kobj_attribute enabled_attr = __ATTR_RW(enabled);
  
- 	/* No need to invalidate - it was non-present before */
- 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
+ ssize_t single_hugepage_flag_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf,
+@@ -366,8 +366,7 @@ static ssize_t defrag_store(struct kobje
+ 
+ 	return count;
+ }
+-static struct kobj_attribute defrag_attr =
+-	__ATTR(defrag, 0644, defrag_show, defrag_store);
++static struct kobj_attribute defrag_attr = __ATTR_RW(defrag);
+ 
+ static ssize_t use_zero_page_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
+@@ -381,8 +380,7 @@ static ssize_t use_zero_page_store(struc
+ 	return single_hugepage_flag_store(kobj, attr, buf, count,
+ 				 TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
+ }
+-static struct kobj_attribute use_zero_page_attr =
+-	__ATTR(use_zero_page, 0644, use_zero_page_show, use_zero_page_store);
++static struct kobj_attribute use_zero_page_attr = __ATTR_RW(use_zero_page);
+ 
+ static ssize_t hpage_pmd_size_show(struct kobject *kobj,
+ 				   struct kobj_attribute *attr, char *buf)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
