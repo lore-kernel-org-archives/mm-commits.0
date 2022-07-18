@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9553ACCA486
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4970CCA487
 	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:33:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232853AbiGRAdg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:33:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39084 "EHLO
+        id S232987AbiGRAdh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:33:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233119AbiGRAdJ (ORCPT
+        with ESMTP id S233113AbiGRAdJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:33:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C652515729
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:32:57 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E41831570F
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:32:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 71FE2B80EE7
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:32:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ACC6C3411E;
-        Mon, 18 Jul 2022 00:32:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6B17CB80EF2
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:32:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 105B3C341C0;
+        Mon, 18 Jul 2022 00:32:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658104375;
-        bh=pyBmKnFL4OzoJ4hX7sJNdmWS1yZaEu/mqfiJb4Q3BWY=;
+        s=korg; t=1658104374;
+        bh=qnxZaG8HptYXm2n463/m+1eKZVZZhfx5ubr7qQwBaoY=;
         h=Date:To:From:Subject:From;
-        b=hPkWlI/ghFprtnldbOtBllCYGQWes1wIt6kVRP6mvn2rnfNhqJ+Ffycr1oWV6+FSR
-         28y1uoPDlV1rkc8nCYL5924H4by7m2FcCamz+e+o13pPidt4mYh4+z9FEM28bAFSZb
-         EOObxNEqFfOc5FziQwp1+gTYiFkpBVuVi6Psd24w=
-Date:   Sun, 17 Jul 2022 17:32:54 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, jrdr.linux@gmail.com,
+        b=mrpUhr42XrcpBz7UvPr1vGVcDdizg0VYRCvMsM48DMVZjA8Xi5HKtWwMbVrqnn2NW
+         +M0NdwcHqZsGS9TBDimMJ337jtvmbw19kAfMLcPaEOJiCD/ioUqG0VExiUA+gtcSJ5
+         ixaDiAMiyzQWOicKuzvIVy3IAL5odbKoF5bEDHU0=
+Date:   Sun, 17 Jul 2022 17:32:53 -0700
+To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
+        dylanbhatch@google.com, adobriyan@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ia64-old_rr4-added-under-config_hugetlb_page.patch removed from -mm tree
-Message-Id: <20220718003255.1ACC6C3411E@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] proc-fix-test-for-vsyscall=xonly-boot-option.patch removed from -mm tree
+Message-Id: <20220718003254.105B3C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,55 +42,180 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ia64: old_rr4 added under CONFIG_HUGETLB_PAGE
+     Subject: proc: fix test for "vsyscall=xonly" boot option
 has been removed from the -mm tree.  Its filename was
-     ia64-old_rr4-added-under-config_hugetlb_page.patch
+     proc-fix-test-for-vsyscall=xonly-boot-option.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Souptick Joarder (HPE)" <jrdr.linux@gmail.com>
-Subject: ia64: old_rr4 added under CONFIG_HUGETLB_PAGE
-Date: Sun, 26 Jun 2022 07:51:14 +0530
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: fix test for "vsyscall=xonly" boot option
+Date: Tue, 12 Jul 2022 17:51:45 +0300
 
-kernel test robot throws below warning ->
+Booting with vsyscall=xonly results in the following vsyscall VMA:
 
-arch/ia64/include/asm/mmu_context.h: In function 'reload_context':
-   arch/ia64/include/asm/mmu_context.h:127:48: warning: variable
-'old_rr4' set but not used [-Wunused-but-set-variable]
-     127 |         unsigned long rr0, rr1, rr2, rr3, rr4, old_rr4;
+	ffffffffff600000-ffffffffff601000 --xp ... [vsyscall]
 
-Add it under CONFIG_HUGETLB_PAGE
 
-Link: https://lkml.kernel.org/r/20220626022114.4020-1-jrdr.linux@gmail.com
-Signed-off-by: Souptick Joarder (HPE) <jrdr.linux@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
+Test does read from fixed vsyscall address to determine if kernel
+supports vsyscall page but it doesn't work because, well, vsyscall
+page is execute only.
+
+Fix test by trying to execute from the first byte of the page which
+contains gettimeofday() stub. This should work because vsyscall
+entry points have stable addresses by design.
+
+	Alexey, avoiding parsing .config, /proc/config.gz and
+	/proc/cmdline at all costs.
+
+Link: https://lkml.kernel.org/r/Ys2KgeiEMboU8Ytu@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: <dylanbhatch@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/mmu_context.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ tools/testing/selftests/proc/proc-pid-vm.c |   75 +++++++++++++++++--
+ 1 file changed, 68 insertions(+), 7 deletions(-)
 
---- a/arch/ia64/include/asm/mmu_context.h~ia64-old_rr4-added-under-config_hugetlb_page
-+++ a/arch/ia64/include/asm/mmu_context.h
-@@ -124,9 +124,12 @@ reload_context (nv_mm_context_t context)
+--- a/tools/testing/selftests/proc/proc-pid-vm.c~proc-fix-test-for-vsyscall=xonly-boot-option
++++ a/tools/testing/selftests/proc/proc-pid-vm.c
+@@ -211,10 +211,19 @@ static int make_exe(const uint8_t *paylo
+ }
+ #endif
+ 
+-static bool g_vsyscall = false;
++/*
++ * 0: vsyscall VMA doesn't exist	vsyscall=none
++ * 1: vsyscall VMA is r-xp		vsyscall=emulate
++ * 2: vsyscall VMA is --xp		vsyscall=xonly
++ */
++static int g_vsyscall;
++static const char *str_vsyscall;
+ 
+-static const char str_vsyscall[] =
++static const char str_vsyscall_0[] = "";
++static const char str_vsyscall_1[] =
+ "ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n";
++static const char str_vsyscall_2[] =
++"ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]\n";
+ 
+ #ifdef __x86_64__
+ static void sigaction_SIGSEGV(int _, siginfo_t *__, void *___)
+@@ -223,7 +232,7 @@ static void sigaction_SIGSEGV(int _, sig
+ }
+ 
+ /*
+- * vsyscall page can't be unmapped, probe it with memory load.
++ * vsyscall page can't be unmapped, probe it directly.
+  */
+ static void vsyscall(void)
  {
- 	unsigned long rid;
- 	unsigned long rid_incr = 0;
--	unsigned long rr0, rr1, rr2, rr3, rr4, old_rr4;
-+	unsigned long rr0, rr1, rr2, rr3, rr4;
+@@ -246,13 +255,52 @@ static void vsyscall(void)
+ 		act.sa_sigaction = sigaction_SIGSEGV;
+ 		(void)sigaction(SIGSEGV, &act, NULL);
  
-+#ifdef CONFIG_HUGETLB_PAGE
-+	unsigned long old_rr4;
- 	old_rr4 = ia64_get_rr(RGN_BASE(RGN_HPAGE));
-+#endif
- 	rid = context << 3;	/* make space for encoding the region number */
- 	rid_incr = 1 << 8;
++		/* gettimeofday(NULL, NULL); */
++		asm volatile (
++			"call %P0"
++			:
++			: "i" (0xffffffffff600000), "D" (NULL), "S" (NULL)
++			: "rax", "rcx", "r11"
++		);
++		exit(0);
++	}
++	waitpid(pid, &wstatus, 0);
++	if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) == 0) {
++		/* vsyscall page exists and is executable. */
++	} else {
++		/* vsyscall page doesn't exist. */
++		g_vsyscall = 0;
++		return;
++	}
++
++	pid = fork();
++	if (pid < 0) {
++		fprintf(stderr, "fork, errno %d\n", errno);
++		exit(1);
++	}
++	if (pid == 0) {
++		struct rlimit rlim = {0, 0};
++		(void)setrlimit(RLIMIT_CORE, &rlim);
++
++		/* Hide "segfault at ffffffffff600000" messages. */
++		struct sigaction act;
++		memset(&act, 0, sizeof(struct sigaction));
++		act.sa_flags = SA_SIGINFO;
++		act.sa_sigaction = sigaction_SIGSEGV;
++		(void)sigaction(SIGSEGV, &act, NULL);
++
+ 		*(volatile int *)0xffffffffff600000UL;
+ 		exit(0);
+ 	}
+ 	waitpid(pid, &wstatus, 0);
+ 	if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) == 0) {
+-		g_vsyscall = true;
++		/* vsyscall page is readable and executable. */
++		g_vsyscall = 1;
++		return;
+ 	}
++
++	/* vsyscall page is executable but unreadable. */
++	g_vsyscall = 2;
+ }
  
+ int main(void)
+@@ -261,6 +309,19 @@ int main(void)
+ 	int exec_fd;
+ 
+ 	vsyscall();
++	switch (g_vsyscall) {
++	case 0:
++		str_vsyscall = str_vsyscall_0;
++		break;
++	case 1:
++		str_vsyscall = str_vsyscall_1;
++		break;
++	case 2:
++		str_vsyscall = str_vsyscall_2;
++		break;
++	default:
++		abort();
++	}
+ 
+ 	atexit(ate);
+ 
+@@ -314,7 +375,7 @@ int main(void)
+ 
+ 	/* Test /proc/$PID/maps */
+ 	{
+-		const size_t len = strlen(buf0) + (g_vsyscall ? strlen(str_vsyscall) : 0);
++		const size_t len = strlen(buf0) + strlen(str_vsyscall);
+ 		char buf[256];
+ 		ssize_t rv;
+ 		int fd;
+@@ -327,7 +388,7 @@ int main(void)
+ 		rv = read(fd, buf, sizeof(buf));
+ 		assert(rv == len);
+ 		assert(memcmp(buf, buf0, strlen(buf0)) == 0);
+-		if (g_vsyscall) {
++		if (g_vsyscall > 0) {
+ 			assert(memcmp(buf + strlen(buf0), str_vsyscall, strlen(str_vsyscall)) == 0);
+ 		}
+ 	}
+@@ -374,7 +435,7 @@ int main(void)
+ 			assert(memmem(buf, rv, S[i], strlen(S[i])));
+ 		}
+ 
+-		if (g_vsyscall) {
++		if (g_vsyscall > 0) {
+ 			assert(memmem(buf, rv, str_vsyscall, strlen(str_vsyscall)));
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from jrdr.linux@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-madvise-introduce-madv_collapse-sync-hugepage-collapse-fix.patch
 
