@@ -2,43 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30E77C43334
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 843EBC433EF
 	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232803AbiGRARI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232868AbiGRARI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 17 Jul 2022 20:17:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56974 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232868AbiGRAQs (ORCPT
+        with ESMTP id S233035AbiGRAQs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:16:48 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2F4B101C5
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DE0DFD39
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 47D03B80EBC
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0A4FC3411E;
-        Mon, 18 Jul 2022 00:16:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CD365B80EEA
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7524AC3411E;
+        Mon, 18 Jul 2022 00:16:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103405;
-        bh=/Ynf2YL/7eh67SONoxKbfHyyXyXQI1gzXEQrTmTF7Go=;
+        s=korg; t=1658103402;
+        bh=L5nSc7ASfzvQzxAwOPOI0dKRnobygfgm5tEod/x2LnY=;
         h=Date:To:From:Subject:From;
-        b=dJMYAd/AVCww9xd4nvmg0UUYs5P1BEzZ/refxi5CYnXGwtai+pXBLbx3I6c0LY8Wi
-         b9G3m6B+fI8bhTus2Lf9rv4cZNGbeREq+3jgm1HNw+hmSjcEtslPTXbQHtaWI4rFRf
-         7okfVE5UPV8rQi+DWMDbes+QICqNPvBcLpd5zZEY=
-Date:   Sun, 17 Jul 2022 17:16:44 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, riteshh@linux.ibm.com, rgoldwyn@suse.de,
-        rgoldwyn@suse.com, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
-        jane.chu@oracle.com, hch@lst.de, djwong@kernel.org,
-        david@fromorbit.com, dan.j.williams@intel.com,
-        dan.j.wiliams@intel.com, ruansy.fnst@fujitsu.com,
-        akpm@linux-foundation.org
+        b=fDOyloNYZjfKK/6e/CmfYKfPZvwF8m+TyShwUITomc9079z+YwzxyjUtQZ4Hk1qo1
+         u8KJEUTrHueufsf7AWdWXowPp9wbN/hH+CGQUCyJw+SYXYxOW6LqNpFlmj0+63S9Rq
+         sBCkB1UasF/1IS/bnTrafseIT/A3h/cec80f/Skc=
+Date:   Sun, 17 Jul 2022 17:16:41 -0700
+To:     mm-commits@vger.kernel.org, zhengbin13@huawei.com,
+        willy@infradead.org, viro@zeniv.linux.org.uk,
+        riteshh@linux.ibm.com, rgoldwyn@suse.de, rgoldwyn@suse.com,
+        naoya.horiguchi@nec.com, linmiaohe@huawei.com, jane.chu@oracle.com,
+        hch@lst.de, djwong@kernel.org, david@fromorbit.com,
+        dan.j.williams@intel.com, dan.j.wiliams@intel.com,
+        ruansy.fnst@fujitsu.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fsdax-introduce-dax_lock_mapping_entry.patch removed from -mm tree
-Message-Id: <20220718001644.F0A4FC3411E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-factor-helpers-for-memory_failure_dev_pagemap.patch removed from -mm tree
+Message-Id: <20220718001642.7524AC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,148 +46,253 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fsdax: introduce dax_lock_mapping_entry()
+     Subject: mm: factor helpers for memory_failure_dev_pagemap
 has been removed from the -mm tree.  Its filename was
-     fsdax-introduce-dax_lock_mapping_entry.patch
+     mm-factor-helpers-for-memory_failure_dev_pagemap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: fsdax: introduce dax_lock_mapping_entry()
-Date: Fri, 3 Jun 2022 13:37:28 +0800
+Subject: mm: factor helpers for memory_failure_dev_pagemap
+Date: Fri, 3 Jun 2022 13:37:26 +0800
 
-The current dax_lock_page() locks dax entry by obtaining mapping and index
-in page.  To support 1-to-N RMAP in NVDIMM, we need a new function to lock
-a specific dax entry corresponding to this file's mapping,index.  And
-output the page corresponding to the specific dax entry for caller use.
+memory_failure_dev_pagemap code is a bit complex before introduce RMAP
+feature for fsdax.  So it is needed to factor some helper functions to
+simplify these code.
 
-Link: https://lkml.kernel.org/r/20220603053738.1218681-5-ruansy.fnst@fujitsu.com
+[akpm@linux-foundation.org: fix CONFIG_HUGETLB_PAGE=n build]
+[zhengbin13@huawei.com: fix redefinition of mf_generic_kill_procs]
+  Link: https://lkml.kernel.org/r/20220628112143.1170473-1-zhengbin13@huawei.com
+Link: https://lkml.kernel.org/r/20220603053738.1218681-3-ruansy.fnst@fujitsu.com
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Zheng Bin <zhengbin13@huawei.com>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Dan Williams <dan.j.wiliams@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
 Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Ritesh Harjani <riteshh@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |   63 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h |   15 ++++++++++
- 2 files changed, 78 insertions(+)
+ mm/memory-failure.c |  171 +++++++++++++++++++++++-------------------
+ 1 file changed, 95 insertions(+), 76 deletions(-)
 
---- a/fs/dax.c~fsdax-introduce-dax_lock_mapping_entry
-+++ a/fs/dax.c
-@@ -456,6 +456,69 @@ void dax_unlock_page(struct page *page,
+--- a/mm/memory-failure.c~mm-factor-helpers-for-memory_failure_dev_pagemap
++++ a/mm/memory-failure.c
+@@ -1499,6 +1499,95 @@ static int try_to_split_thp_page(struct
+ 	return 0;
  }
  
- /*
-+ * dax_lock_mapping_entry - Lock the DAX entry corresponding to a mapping
-+ * @mapping: the file's mapping whose entry we want to lock
-+ * @index: the offset within this file
-+ * @page: output the dax page corresponding to this dax entry
-+ *
-+ * Return: A cookie to pass to dax_unlock_mapping_entry() or 0 if the entry
-+ * could not be locked.
-+ */
-+dax_entry_t dax_lock_mapping_entry(struct address_space *mapping, pgoff_t index,
-+		struct page **page)
++static void unmap_and_kill(struct list_head *to_kill, unsigned long pfn,
++		struct address_space *mapping, pgoff_t index, int flags)
 +{
-+	XA_STATE(xas, NULL, 0);
-+	void *entry;
++	struct to_kill *tk;
++	unsigned long size = 0;
 +
-+	rcu_read_lock();
-+	for (;;) {
-+		entry = NULL;
-+		if (!dax_mapping(mapping))
-+			break;
++	list_for_each_entry(tk, to_kill, nd)
++		if (tk->size_shift)
++			size = max(size, 1UL << tk->size_shift);
 +
-+		xas.xa = &mapping->i_pages;
-+		xas_lock_irq(&xas);
-+		xas_set(&xas, index);
-+		entry = xas_load(&xas);
-+		if (dax_is_locked(entry)) {
-+			rcu_read_unlock();
-+			wait_entry_unlocked(&xas, entry);
-+			rcu_read_lock();
-+			continue;
-+		}
-+		if (!entry ||
-+		    dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
-+			/*
-+			 * Because we are looking for entry from file's mapping
-+			 * and index, so the entry may not be inserted for now,
-+			 * or even a zero/empty entry.  We don't think this is
-+			 * an error case.  So, return a special value and do
-+			 * not output @page.
-+			 */
-+			entry = (void *)~0UL;
-+		} else {
-+			*page = pfn_to_page(dax_to_pfn(entry));
-+			dax_lock_entry(&xas, entry);
-+		}
-+		xas_unlock_irq(&xas);
++	if (size) {
++		/*
++		 * Unmap the largest mapping to avoid breaking up device-dax
++		 * mappings which are constant size. The actual size of the
++		 * mapping being torn down is communicated in siginfo, see
++		 * kill_proc()
++		 */
++		loff_t start = (index << PAGE_SHIFT) & ~(size - 1);
++
++		unmap_mapping_range(mapping, start, size, 0);
++	}
++
++	kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
++}
++
++static int mf_generic_kill_procs(unsigned long long pfn, int flags,
++		struct dev_pagemap *pgmap)
++{
++	struct page *page = pfn_to_page(pfn);
++	LIST_HEAD(to_kill);
++	dax_entry_t cookie;
++	int rc = 0;
++
++	/*
++	 * Pages instantiated by device-dax (not filesystem-dax)
++	 * may be compound pages.
++	 */
++	page = compound_head(page);
++
++	/*
++	 * Prevent the inode from being freed while we are interrogating
++	 * the address_space, typically this would be handled by
++	 * lock_page(), but dax pages do not use the page lock. This
++	 * also prevents changes to the mapping of this pfn until
++	 * poison signaling is complete.
++	 */
++	cookie = dax_lock_page(page);
++	if (!cookie)
++		return -EBUSY;
++
++	if (hwpoison_filter(page)) {
++		rc = -EOPNOTSUPP;
++		goto unlock;
++	}
++
++	switch (pgmap->type) {
++	case MEMORY_DEVICE_PRIVATE:
++	case MEMORY_DEVICE_COHERENT:
++		/*
++		 * TODO: Handle device pages which may need coordination
++		 * with device-side memory.
++		 */
++		rc = -ENXIO;
++		goto unlock;
++	default:
 +		break;
 +	}
-+	rcu_read_unlock();
-+	return (dax_entry_t)entry;
++
++	/*
++	 * Use this flag as an indication that the dax page has been
++	 * remapped UC to prevent speculative consumption of poison.
++	 */
++	SetPageHWPoison(page);
++
++	/*
++	 * Unlike System-RAM there is no possibility to swap in a
++	 * different physical page at a given virtual address, so all
++	 * userspace consumption of ZONE_DEVICE memory necessitates
++	 * SIGBUS (i.e. MF_MUST_KILL)
++	 */
++	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
++	collect_procs(page, &to_kill, true);
++
++	unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
++unlock:
++	dax_unlock_page(page, cookie);
++	return rc;
 +}
 +
-+void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index,
-+		dax_entry_t cookie)
-+{
-+	XA_STATE(xas, &mapping->i_pages, index);
-+
-+	if (cookie == ~0UL)
-+		return;
-+
-+	dax_unlock_entry(&xas, (void *)cookie);
-+}
-+
-+/*
-  * Find page cache entry at given index. If it is a DAX entry, return it
-  * with the entry locked. If the page cache doesn't contain an entry at
-  * that index, add a locked empty entry.
---- a/include/linux/dax.h~fsdax-introduce-dax_lock_mapping_entry
-+++ a/include/linux/dax.h
-@@ -161,6 +161,10 @@ struct page *dax_layout_busy_page(struct
- struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
- dax_entry_t dax_lock_page(struct page *page);
- void dax_unlock_page(struct page *page, dax_entry_t cookie);
-+dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
-+		unsigned long index, struct page **page);
-+void dax_unlock_mapping_entry(struct address_space *mapping,
-+		unsigned long index, dax_entry_t cookie);
- #else
- static inline struct page *dax_layout_busy_page(struct address_space *mapping)
- {
-@@ -188,6 +192,17 @@ static inline dax_entry_t dax_lock_page(
- static inline void dax_unlock_page(struct page *page, dax_entry_t cookie)
- {
+ /*
+  * Called from hugetlb code with hugetlb_lock held.
+  *
+@@ -1634,23 +1723,20 @@ out:
+ 	unlock_page(head);
+ 	return res;
  }
 +
-+static inline dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
-+		unsigned long index, struct page **page)
-+{
-+	return 0;
-+}
+ #else
+ static inline int try_memory_failure_hugetlb(unsigned long pfn, int flags, int *hugetlb)
+ {
+ 	return 0;
+ }
+-#endif
 +
-+static inline void dax_unlock_mapping_entry(struct address_space *mapping,
-+		unsigned long index, dax_entry_t cookie)
-+{
-+}
- #endif
++#endif	/* CONFIG_HUGETLB_PAGE */
  
- int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
+ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		struct dev_pagemap *pgmap)
+ {
+ 	struct page *page = pfn_to_page(pfn);
+-	unsigned long size = 0;
+-	struct to_kill *tk;
+-	LIST_HEAD(tokill);
+-	int rc = -EBUSY;
+-	loff_t start;
+-	dax_entry_t cookie;
++	int rc = -ENXIO;
+ 
+ 	if (flags & MF_COUNT_INCREASED)
+ 		/*
+@@ -1659,77 +1745,10 @@ static int memory_failure_dev_pagemap(un
+ 		put_page(page);
+ 
+ 	/* device metadata space is not recoverable */
+-	if (!pgmap_pfn_valid(pgmap, pfn)) {
+-		rc = -ENXIO;
+-		goto out;
+-	}
+-
+-	/*
+-	 * Pages instantiated by device-dax (not filesystem-dax)
+-	 * may be compound pages.
+-	 */
+-	page = compound_head(page);
+-
+-	/*
+-	 * Prevent the inode from being freed while we are interrogating
+-	 * the address_space, typically this would be handled by
+-	 * lock_page(), but dax pages do not use the page lock. This
+-	 * also prevents changes to the mapping of this pfn until
+-	 * poison signaling is complete.
+-	 */
+-	cookie = dax_lock_page(page);
+-	if (!cookie)
++	if (!pgmap_pfn_valid(pgmap, pfn))
+ 		goto out;
+ 
+-	if (hwpoison_filter(page)) {
+-		rc = -EOPNOTSUPP;
+-		goto unlock;
+-	}
+-
+-	switch (pgmap->type) {
+-	case MEMORY_DEVICE_PRIVATE:
+-	case MEMORY_DEVICE_COHERENT:
+-		/*
+-		 * TODO: Handle device pages which may need coordination
+-		 * with device-side memory.
+-		 */
+-		goto unlock;
+-	default:
+-		break;
+-	}
+-
+-	/*
+-	 * Use this flag as an indication that the dax page has been
+-	 * remapped UC to prevent speculative consumption of poison.
+-	 */
+-	SetPageHWPoison(page);
+-
+-	/*
+-	 * Unlike System-RAM there is no possibility to swap in a
+-	 * different physical page at a given virtual address, so all
+-	 * userspace consumption of ZONE_DEVICE memory necessitates
+-	 * SIGBUS (i.e. MF_MUST_KILL)
+-	 */
+-	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+-	collect_procs(page, &tokill, true);
+-
+-	list_for_each_entry(tk, &tokill, nd)
+-		if (tk->size_shift)
+-			size = max(size, 1UL << tk->size_shift);
+-	if (size) {
+-		/*
+-		 * Unmap the largest mapping to avoid breaking up
+-		 * device-dax mappings which are constant size. The
+-		 * actual size of the mapping being torn down is
+-		 * communicated in siginfo, see kill_proc()
+-		 */
+-		start = (page->index << PAGE_SHIFT) & ~(size - 1);
+-		unmap_mapping_range(page->mapping, start, size, 0);
+-	}
+-	kill_procs(&tokill, true, false, pfn, flags);
+-	rc = 0;
+-unlock:
+-	dax_unlock_page(page, cookie);
++	rc = mf_generic_kill_procs(pfn, flags, pgmap);
+ out:
+ 	/* drop pgmap ref acquired in caller */
+ 	put_dev_pagemap(pgmap);
 _
 
 Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
