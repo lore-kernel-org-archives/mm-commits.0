@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBFFDCCA481
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55074CCA485
 	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:21:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231429AbiGRAVQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233278AbiGRAVQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 17 Jul 2022 20:21:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57360 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231499AbiGRATi (ORCPT
+        with ESMTP id S231429AbiGRATi (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:19:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B886140B5
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28F06140AC
         for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DFB960F4B
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F82BC341C0;
-        Mon, 18 Jul 2022 00:18:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CD2E8B80EEA
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A5DCC341CA;
+        Mon, 18 Jul 2022 00:18:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103506;
-        bh=ZS1m+qKbW+S8kAj2FD2SIaC84xsSMc7Evi4XbpIfU9M=;
+        s=korg; t=1658103505;
+        bh=2Yg3dsK99GxEjsiDIsB12ocsFnoA84hbNaEdyX5VraY=;
         h=Date:To:From:Subject:From;
-        b=qbml/pXLYtt4+QKrWKf+OnE1BB9AQNOJU0+6Ax6bTeyy5nCo1u9TL4vX/DvxMr8Sh
-         5qRdjxRuRBG1x65bnQgew3EizzCklFccjIaLY3p+RppOxlXlR1yxvUWCy1V/cyawSY
-         TGODkfvwiDfElo0PByarPhfTQOiv1Vvz1Ld0Lyf0=
-Date:   Sun, 17 Jul 2022 17:18:25 -0700
+        b=SVvqsV2YpclqdZbIBGk4V16jsvIT5QlMw9HLXUxE/2hjGtDOxNX08awiCuVajpAEj
+         oRoANmrn/fYseF4rXLF5J8NjCQ1V4pHQJmmjPo6l0FISAjKcTrzLHuq5zqt2Wdkla1
+         54CsIFZivl2qyOsuLeXxq65mkPU2bLewBMv+yWVQ=
+Date:   Sun, 17 Jul 2022 17:18:24 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com,
         willy@infradead.org, songmuchun@bytedance.com, shy828301@gmail.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-access-vm_page_prot-with-read_once-in-remove_migration_pmd.patch removed from -mm tree
-Message-Id: <20220718001826.6F82BC341C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-use-flush_pmd_tlb_range-in-move_huge_pmd.patch removed from -mm tree
+Message-Id: <20220718001825.6A5DCC341CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,45 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: access vm_page_prot with READ_ONCE in remove_migration_pmd
+     Subject: mm/huge_memory: use flush_pmd_tlb_range in move_huge_pmd
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-access-vm_page_prot-with-read_once-in-remove_migration_pmd.patch
+     mm-huge_memory-use-flush_pmd_tlb_range-in-move_huge_pmd.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/huge_memory: access vm_page_prot with READ_ONCE in remove_migration_pmd
-Date: Mon, 4 Jul 2022 21:21:47 +0800
+Subject: mm/huge_memory: use flush_pmd_tlb_range in move_huge_pmd
+Date: Mon, 4 Jul 2022 21:21:46 +0800
 
-vma->vm_page_prot is read lockless from the rmap_walk, it may be updated
-concurrently.  Using READ_ONCE to prevent the risk of reading intermediate
-values.
+Patch series "A few cleanup patches for huge_memory", v3.
 
-Link: https://lkml.kernel.org/r/20220704132201.14611-3-linmiaohe@huawei.com
+This series contains a few cleaup patches to remove duplicated codes,
+add/use helper functions, fix some obsolete comments and so on.  More
+details can be found in the respective changelogs.
+
+
+This patch (of 16):
+
+Arches with special requirements for evicting THP backing TLB entries can
+implement flush_pmd_tlb_range.  Otherwise also, it can help optimize TLB
+flush in THP regime.  Using flush_pmd_tlb_range to take advantage of this
+in move_huge_pmd.
+
+Link: https://lkml.kernel.org/r/20220704132201.14611-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220704132201.14611-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Zach O'Keefe <zokeefe@google.com>
 Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/huge_memory.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-access-vm_page_prot-with-read_once-in-remove_migration_pmd
+--- a/mm/huge_memory.c~mm-huge_memory-use-flush_pmd_tlb_range-in-move_huge_pmd
 +++ a/mm/huge_memory.c
-@@ -3205,7 +3205,7 @@ void remove_migration_pmd(struct page_vm
- 
- 	entry = pmd_to_swp_entry(*pvmw->pmd);
- 	get_page(new);
--	pmde = pmd_mkold(mk_huge_pmd(new, vma->vm_page_prot));
-+	pmde = pmd_mkold(mk_huge_pmd(new, READ_ONCE(vma->vm_page_prot)));
- 	if (pmd_swp_soft_dirty(*pvmw->pmd))
- 		pmde = pmd_mksoft_dirty(pmde);
- 	if (is_writable_migration_entry(entry))
+@@ -1749,7 +1749,7 @@ bool move_huge_pmd(struct vm_area_struct
+ 		pmd = move_soft_dirty_pmd(pmd);
+ 		set_pmd_at(mm, new_addr, new_pmd, pmd);
+ 		if (force_flush)
+-			flush_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
++			flush_pmd_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
+ 		if (new_ptl != old_ptl)
+ 			spin_unlock(new_ptl);
+ 		spin_unlock(old_ptl);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
