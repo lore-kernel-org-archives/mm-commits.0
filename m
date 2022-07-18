@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72396C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:19:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BBB4C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:19:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233274AbiGRATG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:19:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57092 "EHLO
+        id S233113AbiGRATN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:19:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233216AbiGRARo (ORCPT
+        with ESMTP id S233217AbiGRARo (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:17:44 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3273813D78
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:27 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3099813D76
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CACB7B80EBC
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F436C3411E;
-        Mon, 18 Jul 2022 00:17:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D29C4B80EE8
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 709CCC3411E;
+        Mon, 18 Jul 2022 00:17:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103445;
-        bh=0OB8Hq8+csFAPFQgi0AqHwEUJ4g5j3hdmm+c4P/B0AY=;
+        s=korg; t=1658103443;
+        bh=ODTIEAG1pf0QWzWsMTFCnpbkJYgz5/Jyp+ehc7sCAjk=;
         h=Date:To:From:Subject:From;
-        b=pqfgL3dDE7uLQZI+0BxNxegkPSsELH9a+l1xK4UY/oiubDwrq0RUprQadihRs0RFc
-         fC4FVap2vjAFtMeFBm/g5SRqpnDjakpyD+pAcNM9FCxlCBAZDTCYHuo7gpM5fO9i29
-         Qa/6h8rKQtz0IRnHrI0wduXgcqm+KI+ujd13pLkQ=
-Date:   Sun, 17 Jul 2022 17:17:24 -0700
+        b=GidHHsty9OypoCYkaBCBaP7dlFBcRCUVVuLOyvhzsNBNxKKnPy5g3HO6SXy1xGAh0
+         Md7kWzJdaeFC2eNszKoY5H5ua0C/Wnm8cDLXDY2xJBiMaD9GhutHxytGkAbkUBp3O3
+         N3QnCY6Vl3+33LV7ZOLV7enniHNZC17JOCLlutco=
+Date:   Sun, 17 Jul 2022 17:17:22 -0700
 To:     mm-commits@vger.kernel.org, jgg@nvidia.com, glider@google.com,
         elver@google.com, dvyukov@google.com, linus.walleij@linaro.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kfence-pass-a-pointer-to-virt_to_page.patch removed from -mm tree
-Message-Id: <20220718001725.7F436C3411E@smtp.kernel.org>
+Subject: [merged mm-stable] lib-test_free_pagesc-pass-a-pointer-to-virt_to_page.patch removed from -mm tree
+Message-Id: <20220718001723.709CCC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,66 +42,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: kfence: pass a pointer to virt_to_page()
+     Subject: lib/test_free_pages.c: pass a pointer to virt_to_page()
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-pass-a-pointer-to-virt_to_page.patch
+     lib-test_free_pagesc-pass-a-pointer-to-virt_to_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: mm: kfence: pass a pointer to virt_to_page()
-Date: Thu, 30 Jun 2022 10:41:22 +0200
+Subject: lib/test_free_pages.c: pass a pointer to virt_to_page()
+Date: Thu, 30 Jun 2022 10:41:20 +0200
 
-Functions that work on a pointer to virtual memory such as virt_to_pfn()
-and users of that function such as virt_to_page() are supposed to pass a
-pointer to virtual memory, ideally a (void *) or other pointer.  However
-since many architectures implement virt_to_pfn() as a macro, this function
-becomes polymorphic and accepts both a (unsigned long) and a (void *).
+In a recent change to the Arm architecture with the end goal of removing
+highmem we need to convert virt_to_phys() and virt_to_pfn() to static
+inline functions.
 
-If we instead implement a proper virt_to_pfn(void *addr) function the
-following happens (occurred on arch/arm):
+This will make them strongly typed.
 
-mm/kfence/core.c:558:30: warning: passing argument 1
+However since virt_to_* is always implemented as macros they have become
+polymorphic and accept both (void *) and e.g.  unsigned long as arguments.
+
+Other functions such as virt_to_page() simply wrap virt_to_pfn() and get
+affected indirectly.
+
+To be able to proceed, patch mm to use (void *) as argument to affected
+functions in all instances.
+
+
+This patch (of 5):
+
+A pointer into virtual memory is represented by a (void *) not an u32, so
+the compiler warns:
+
+lib/test_free_pages.c:20:50: warning: passing argument 1
   of 'virt_to_pfn' makes pointer from integer without a
   cast [-Wint-conversion]
 
-In one case we can refer to __kfence_pool directly (and that is a proper
-(char *) pointer) and in the other call site we use an explicit cast.
+Fix this with an explicit cast.
 
-Link: https://lkml.kernel.org/r/20220630084124.691207-4-linus.walleij@linaro.org
+Link: https://lkml.kernel.org/r/20220630084124.691207-1-linus.walleij@linaro.org
+Link: https://lkml.kernel.org/r/20220630084124.691207-2-linus.walleij@linaro.org
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/test_free_pages.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kfence/core.c~mm-kfence-pass-a-pointer-to-virt_to_page
-+++ a/mm/kfence/core.c
-@@ -546,7 +546,7 @@ static unsigned long kfence_init_pool(vo
- 	if (!arch_kfence_init_pool())
- 		return addr;
+--- a/lib/test_free_pages.c~lib-test_free_pagesc-pass-a-pointer-to-virt_to_page
++++ a/lib/test_free_pages.c
+@@ -17,7 +17,7 @@ static void test_free_pages(gfp_t gfp)
  
--	pages = virt_to_page(addr);
-+	pages = virt_to_page(__kfence_pool);
+ 	for (i = 0; i < 1000 * 1000; i++) {
+ 		unsigned long addr = __get_free_pages(gfp, 3);
+-		struct page *page = virt_to_page(addr);
++		struct page *page = virt_to_page((void *)addr);
  
- 	/*
- 	 * Set up object pages: they must have PG_slab set, to avoid freeing
-@@ -660,7 +660,7 @@ static bool kfence_init_pool_late(void)
- 	/* Same as above. */
- 	free_size = KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool);
- #ifdef CONFIG_CONTIG_ALLOC
--	free_contig_range(page_to_pfn(virt_to_page(addr)), free_size / PAGE_SIZE);
-+	free_contig_range(page_to_pfn(virt_to_page((void *)addr)), free_size / PAGE_SIZE);
- #else
- 	free_pages_exact((void *)addr, free_size);
- #endif
+ 		/* Simulate page cache getting a speculative reference */
+ 		get_page(page);
 _
 
 Patches currently in -mm which might be from linus.walleij@linaro.org are
