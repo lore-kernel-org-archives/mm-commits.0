@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64CC4C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:22:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5787C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:22:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233210AbiGRAWA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:22:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58314 "EHLO
+        id S233231AbiGRAWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:22:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233231AbiGRAUg (ORCPT
+        with ESMTP id S233233AbiGRAUg (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:36 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E50121092
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:47 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3170113E
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 60F8EB80E27
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11D71C341C0;
-        Mon, 18 Jul 2022 00:18:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7D7B2B80EE7
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15AFDC341CA;
+        Mon, 18 Jul 2022 00:18:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103525;
-        bh=zPwhysMqKne0fsfENQCWijIpSfRyvEz1mMA8DO4E2l8=;
+        s=korg; t=1658103526;
+        bh=1sFwvtXdgYUrNFU/fY99tigKUwMyASN7vfNic7UD4Jk=;
         h=Date:To:From:Subject:From;
-        b=DvkcmLBIS1+EEF/RmCvMVPSJEi6MHdXtzfp3b2cvWnqStTVNcXzxe5a5JZPiNuCxd
-         xefUgXTFlwt8WKlgVUShgZOToOq0DkBoSIeIltjcbfcwrdMamxqnSrl05ln51ISJPW
-         dX4piHrFC9ZZm1qKYbsRCaJ1HwFWKVADdtFAH3Sg=
-Date:   Sun, 17 Jul 2022 17:18:44 -0700
-To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
-        ubizjak@gmail.com, akpm@linux-foundation.org
+        b=W8e72uRH7yQ2rnd13zk5MXxbP7U+8An03NintBxEQNpuhOED+SmbL/tQFd3nqdupe
+         eubs4V4KWlXZyDm7bRat2G+/wIvHmXOG0W77B4c1gLJPA2MOh4HXAxzb+e3aMGRdiu
+         fDJtmeeDHfCBZkV5oaiHxyJPdHTJypoQIqSSJwxo=
+Date:   Sun, 17 Jul 2022 17:18:45 -0700
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch removed from -mm tree
-Message-Id: <20220718001845.11D71C341C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_vma_mappedc-use-helper-function-huge_pte_lock.patch removed from -mm tree
+Message-Id: <20220718001846.15AFDC341CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,77 +41,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: use try_cmpxchg in set_pfnblock_flags_mask
+     Subject: mm/page_vma_mapped.c: use helper function huge_pte_lock
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask.patch
+     mm-page_vma_mappedc-use-helper-function-huge_pte_lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: mm/page_alloc: use try_cmpxchg in set_pfnblock_flags_mask
-Date: Fri, 8 Jul 2022 16:07:36 +0200
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/page_vma_mapped.c: use helper function huge_pte_lock
+Date: Sat, 9 Jul 2022 17:24:40 +0800
 
-Use try_cmpxchg instead of cmpxchg in set_pfnblock_flags_mask.  x86
-CMPXCHG instruction returns success in ZF flag, so this change saves a
-compare after cmpxchg (and related move instruction in front of cmpxchg). 
-The main loop improves from:
+Use helper function huge_pte_lock() to lock the huge pte to simplify the
+code a bit.  No functional change intended.
 
-    1c5d:	48 89 c2             	mov    %rax,%rdx
-    1c60:	48 89 c1             	mov    %rax,%rcx
-    1c63:	48 21 fa             	and    %rdi,%rdx
-    1c66:	4c 09 c2             	or     %r8,%rdx
-    1c69:	f0 48 0f b1 16       	lock cmpxchg %rdx,(%rsi)
-    1c6e:	48 39 c1             	cmp    %rax,%rcx
-    1c71:	75 ea                	jne    1c5d <...>
-
-to:
-
-    1c60:	48 89 ca             	mov    %rcx,%rdx
-    1c63:	48 21 c2             	and    %rax,%rdx
-    1c66:	4c 09 c2             	or     %r8,%rdx
-    1c69:	f0 48 0f b1 16       	lock cmpxchg %rdx,(%rsi)
-    1c6e:	75 f0                	jne    1c60 <...>
-
-Link: https://lkml.kernel.org/r/20220708140736.8737-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20220709092440.43018-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ mm/page_vma_mapped.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-try_cmpxchg-in-set_pfnblock_flags_mask
-+++ a/mm/page_alloc.c
-@@ -602,7 +602,7 @@ void set_pfnblock_flags_mask(struct page
- {
- 	unsigned long *bitmap;
- 	unsigned long bitidx, word_bitidx;
--	unsigned long old_word, word;
-+	unsigned long word;
+--- a/mm/page_vma_mapped.c~mm-page_vma_mappedc-use-helper-function-huge_pte_lock
++++ a/mm/page_vma_mapped.c
+@@ -174,8 +174,7 @@ bool page_vma_mapped_walk(struct page_vm
+ 		if (!pvmw->pte)
+ 			return false;
  
- 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
- 	BUILD_BUG_ON(MIGRATE_TYPES > (1 << PB_migratetype_bits));
-@@ -618,12 +618,8 @@ void set_pfnblock_flags_mask(struct page
- 	flags <<= bitidx;
- 
- 	word = READ_ONCE(bitmap[word_bitidx]);
--	for (;;) {
--		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
--		if (word == old_word)
--			break;
--		word = old_word;
--	}
-+	do {
-+	} while (!try_cmpxchg(&bitmap[word_bitidx], &word, (word & ~mask) | flags));
- }
- 
- void set_pageblock_migratetype(struct page *page, int migratetype)
+-		pvmw->ptl = huge_pte_lockptr(hstate, mm, pvmw->pte);
+-		spin_lock(pvmw->ptl);
++		pvmw->ptl = huge_pte_lock(hstate, mm, pvmw->pte);
+ 		if (!check_pte(pvmw))
+ 			return not_found(pvmw);
+ 		return true;
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-compiler-gcch-remove-ancient-workaround-for-gcc-pr-58670.patch
+mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
+filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
+mm-remove-obsolete-comment-in-do_fault_around.patch
 
