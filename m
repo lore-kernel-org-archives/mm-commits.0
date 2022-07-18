@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64ECFCCA480
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ECB9C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233221AbiGRARo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:17:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57358 "EHLO
+        id S233025AbiGRARp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:17:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233083AbiGRARF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:17:05 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B21CA11C35
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:55 -0700 (PDT)
+        with ESMTP id S233100AbiGRARG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:17:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CE2B12762
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 23943CE1152
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 584BEC3411E;
-        Mon, 18 Jul 2022 00:16:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CBB3560F44
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C071C341C0;
+        Mon, 18 Jul 2022 00:16:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103412;
-        bh=0A3H3NHEnPevrvkII7LdT2LquZshCWOhxtNmD8vJPhs=;
+        s=korg; t=1658103417;
+        bh=L64oPBk7Zh+b/2qqvvfG46njt0ItthtUOqjGWsOMtaY=;
         h=Date:To:From:Subject:From;
-        b=pVpVkmkawsI/JgfyrY+l+HzkjrNYDA/cVcsDuuMXZSQo9ALdEmnZcQU5UPypj+OAq
-         WdAKcN9BggHos8LlLkT8Yg2rmztZfQtJPA7hfseQo4t/42TxoFsT9E/eeYWL062Mb9
-         Qilz2250ASp9xKYu5aabTbYXq8cT3XMa75cy1Ev4=
-Date:   Sun, 17 Jul 2022 17:16:51 -0700
+        b=WNzQCaUVu7QEuYiYeQ+9Z7oHTewuBtLnSDcKi7gxahwJFMq7Vs7dvnCdku5VJSpDO
+         q8AmH4JO90VaneIAjjqayXii9UZ7b65cot/9iJsU15qiAFsa5n/BVz+3fM6DPTDbn4
+         57v/TcvdCw8ydMix4dh86lTFiRLM5h9EbcU9ALkA=
+Date:   Sun, 17 Jul 2022 17:16:56 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, riteshh@linux.ibm.com, rgoldwyn@suse.de,
         rgoldwyn@suse.com, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         dan.j.wiliams@intel.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fsdax-replace-mmap-entry-in-case-of-cow.patch removed from -mm tree
-Message-Id: <20220718001652.584BEC3411E@smtp.kernel.org>
+Subject: [merged mm-stable] xfs-add-dax-dedupe-support.patch removed from -mm tree
+Message-Id: <20220718001657.2C071C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,232 +46,172 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fsdax: replace mmap entry in case of CoW
+     Subject: xfs: add dax dedupe support
 has been removed from the -mm tree.  Its filename was
-     fsdax-replace-mmap-entry-in-case-of-cow.patch
+     xfs-add-dax-dedupe-support.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: fsdax: replace mmap entry in case of CoW
-Date: Fri, 3 Jun 2022 13:37:34 +0800
+Subject: xfs: add dax dedupe support
+Date: Fri, 3 Jun 2022 13:37:38 +0800
 
-Replace the existing entry to the newly allocated one in case of CoW. 
-Also, we mark the entry as PAGECACHE_TAG_TOWRITE so writeback marks this
-entry as writeprotected.  This helps us snapshots so new write pagefaults
-after snapshots trigger a CoW.
+Introduce xfs_mmaplock_two_inodes_and_break_dax_layout() for dax files who
+are going to be deduped.  After that, call compare range function only
+when files are both DAX or not.
 
-Link: https://lkml.kernel.org/r/20220603053738.1218681-11-ruansy.fnst@fujitsu.com
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Link: https://lkml.kernel.org/r/20220603053738.1218681-15-ruansy.fnst@fujitsu.com
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ritesh Harjani <riteshh@linux.ibm.com>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Dan Williams <dan.j.wiliams@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
 Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Ritesh Harjani <riteshh@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   77 ++++++++++++++++++++++++++++-------------------------
- 1 file changed, 42 insertions(+), 35 deletions(-)
+ fs/xfs/xfs_file.c    |    2 -
+ fs/xfs/xfs_inode.c   |   69 ++++++++++++++++++++++++++++++++++++++---
+ fs/xfs/xfs_inode.h   |    1 
+ fs/xfs/xfs_reflink.c |    4 +-
+ 4 files changed, 69 insertions(+), 7 deletions(-)
 
---- a/fs/dax.c~fsdax-replace-mmap-entry-in-case-of-cow
-+++ a/fs/dax.c
-@@ -830,22 +830,42 @@ static int copy_cow_page_dax(struct vm_f
+--- a/fs/xfs/xfs_file.c~xfs-add-dax-dedupe-support
++++ a/fs/xfs/xfs_file.c
+@@ -808,7 +808,7 @@ xfs_wait_dax_page(
+ 	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
  }
  
- /*
-+ * MAP_SYNC on a dax mapping guarantees dirty metadata is
-+ * flushed on write-faults (non-cow), but not read-faults.
-+ */
-+static bool dax_fault_is_synchronous(const struct iomap_iter *iter,
-+		struct vm_area_struct *vma)
+-static int
++int
+ xfs_break_dax_layouts(
+ 	struct inode		*inode,
+ 	bool			*retry)
+--- a/fs/xfs/xfs_inode.c~xfs-add-dax-dedupe-support
++++ a/fs/xfs/xfs_inode.c
+@@ -3767,6 +3767,50 @@ retry:
+ 	return 0;
+ }
+ 
++static int
++xfs_mmaplock_two_inodes_and_break_dax_layout(
++	struct xfs_inode	*ip1,
++	struct xfs_inode	*ip2)
 +{
-+	return (iter->flags & IOMAP_WRITE) && (vma->vm_flags & VM_SYNC) &&
-+		(iter->iomap.flags & IOMAP_F_DIRTY);
++	int			error;
++	bool			retry;
++	struct page		*page;
++
++	if (ip1->i_ino > ip2->i_ino)
++		swap(ip1, ip2);
++
++again:
++	retry = false;
++	/* Lock the first inode */
++	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
++	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
++	if (error || retry) {
++		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++		if (error == 0 && retry)
++			goto again;
++		return error;
++	}
++
++	if (ip1 == ip2)
++		return 0;
++
++	/* Nested lock the second inode */
++	xfs_ilock(ip2, xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1));
++	/*
++	 * We cannot use xfs_break_dax_layouts() directly here because it may
++	 * need to unlock & lock the XFS_MMAPLOCK_EXCL which is not suitable
++	 * for this nested lock case.
++	 */
++	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
++	if (page && page_ref_count(page) != 1) {
++		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
++		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++		goto again;
++	}
++
++	return 0;
 +}
 +
-+static bool dax_fault_is_cow(const struct iomap_iter *iter)
-+{
-+	return (iter->flags & IOMAP_WRITE) &&
-+		(iter->iomap.flags & IOMAP_F_SHARED);
-+}
-+
-+/*
-  * By this point grab_mapping_entry() has ensured that we have a locked entry
-  * of the appropriate size so we don't have to worry about downgrading PMDs to
-  * PTEs.  If we happen to be trying to insert a PTE and there is a PMD
-  * already in the tree, we will skip the insertion and just dirty the PMD as
-  * appropriate.
-  */
--static void *dax_insert_entry(struct xa_state *xas,
--		struct address_space *mapping, struct vm_fault *vmf,
--		void *entry, pfn_t pfn, unsigned long flags, bool dirty)
-+static void *dax_insert_entry(struct xa_state *xas, struct vm_fault *vmf,
-+		const struct iomap_iter *iter, void *entry, pfn_t pfn,
-+		unsigned long flags)
- {
-+	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	void *new_entry = dax_make_entry(pfn, flags);
-+	bool dirty = !dax_fault_is_synchronous(iter, vmf->vma);
-+	bool cow = dax_fault_is_cow(iter);
- 
- 	if (dirty)
- 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 
--	if (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE)) {
-+	if (cow || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
- 		unsigned long index = xas->xa_index;
- 		/* we are replacing a zero page with block mapping */
- 		if (dax_is_pmd_entry(entry))
-@@ -857,12 +877,12 @@ static void *dax_insert_entry(struct xa_
- 
- 	xas_reset(xas);
- 	xas_lock_irq(xas);
--	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
-+	if (cow || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
- 		void *old;
- 
- 		dax_disassociate_entry(entry, mapping, false);
- 		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address,
--				false);
-+				cow);
- 		/*
- 		 * Only swap our new entry into the page cache if the current
- 		 * entry is a zero page or an empty entry.  If a normal PTE or
-@@ -882,6 +902,9 @@ static void *dax_insert_entry(struct xa_
- 	if (dirty)
- 		xas_set_mark(xas, PAGECACHE_TAG_DIRTY);
- 
-+	if (cow)
-+		xas_set_mark(xas, PAGECACHE_TAG_TOWRITE);
-+
- 	xas_unlock_irq(xas);
- 	return entry;
- }
-@@ -1123,17 +1146,15 @@ static int dax_iomap_cow_copy(loff_t pos
-  * If this page is ever written to we will re-fault and change the mapping to
-  * point to real DAX storage instead.
-  */
--static vm_fault_t dax_load_hole(struct xa_state *xas,
--		struct address_space *mapping, void **entry,
--		struct vm_fault *vmf)
-+static vm_fault_t dax_load_hole(struct xa_state *xas, struct vm_fault *vmf,
-+		const struct iomap_iter *iter, void **entry)
- {
--	struct inode *inode = mapping->host;
-+	struct inode *inode = iter->inode;
- 	unsigned long vaddr = vmf->address;
- 	pfn_t pfn = pfn_to_pfn_t(my_zero_pfn(vaddr));
- 	vm_fault_t ret;
- 
--	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
--			DAX_ZERO_PAGE, false);
-+	*entry = dax_insert_entry(xas, vmf, iter, *entry, pfn, DAX_ZERO_PAGE);
- 
- 	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
- 	trace_dax_load_hole(inode, vmf, ret);
-@@ -1142,7 +1163,7 @@ static vm_fault_t dax_load_hole(struct x
- 
- #ifdef CONFIG_FS_DAX_PMD
- static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
--		const struct iomap *iomap, void **entry)
-+		const struct iomap_iter *iter, void **entry)
- {
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
-@@ -1160,8 +1181,8 @@ static vm_fault_t dax_pmd_load_hole(stru
- 		goto fallback;
- 
- 	pfn = page_to_pfn_t(zero_page);
--	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
--			DAX_PMD | DAX_ZERO_PAGE, false);
-+	*entry = dax_insert_entry(xas, vmf, iter, *entry, pfn,
-+				  DAX_PMD | DAX_ZERO_PAGE);
- 
- 	if (arch_needs_pgtable_deposit()) {
- 		pgtable = pte_alloc_one(vma->vm_mm);
-@@ -1194,7 +1215,7 @@ fallback:
- }
- #else
- static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
--		const struct iomap *iomap, void **entry)
-+		const struct iomap_iter *iter, void **entry)
- {
- 	return VM_FAULT_FALLBACK;
- }
-@@ -1440,17 +1461,6 @@ static vm_fault_t dax_fault_return(int e
- }
- 
  /*
-- * MAP_SYNC on a dax mapping guarantees dirty metadata is
-- * flushed on write-faults (non-cow), but not read-faults.
-- */
--static bool dax_fault_is_synchronous(unsigned long flags,
--		struct vm_area_struct *vma, const struct iomap *iomap)
--{
--	return (flags & IOMAP_WRITE) && (vma->vm_flags & VM_SYNC)
--		&& (iomap->flags & IOMAP_F_DIRTY);
--}
--
--/*
-  * When handling a synchronous page fault and the inode need a fsync, we can
-  * insert the PTE/PMD into page tables only after that fsync happened. Skip
-  * insertion for now and return the pfn so that caller can insert it after the
-@@ -1507,13 +1517,11 @@ static vm_fault_t dax_fault_iter(struct
- 		const struct iomap_iter *iter, pfn_t *pfnp,
- 		struct xa_state *xas, void **entry, bool pmd)
+  * Lock two inodes so that userspace cannot initiate I/O via file syscalls or
+  * mmap activity.
+@@ -3781,8 +3825,19 @@ xfs_ilock2_io_mmap(
+ 	ret = xfs_iolock_two_inodes_and_break_layout(VFS_I(ip1), VFS_I(ip2));
+ 	if (ret)
+ 		return ret;
+-	filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
+-				    VFS_I(ip2)->i_mapping);
++
++	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
++		ret = xfs_mmaplock_two_inodes_and_break_dax_layout(ip1, ip2);
++		if (ret) {
++			inode_unlock(VFS_I(ip2));
++			if (ip1 != ip2)
++				inode_unlock(VFS_I(ip1));
++			return ret;
++		}
++	} else
++		filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
++					    VFS_I(ip2)->i_mapping);
++
+ 	return 0;
+ }
+ 
+@@ -3792,8 +3847,14 @@ xfs_iunlock2_io_mmap(
+ 	struct xfs_inode	*ip1,
+ 	struct xfs_inode	*ip2)
  {
--	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	const struct iomap *iomap = &iter->iomap;
- 	const struct iomap *srcmap = &iter->srcmap;
- 	size_t size = pmd ? PMD_SIZE : PAGE_SIZE;
- 	loff_t pos = (loff_t)xas->xa_index << PAGE_SHIFT;
--	bool write = vmf->flags & FAULT_FLAG_WRITE;
--	bool sync = dax_fault_is_synchronous(iter->flags, vmf->vma, iomap);
-+	bool write = iter->flags & IOMAP_WRITE;
- 	unsigned long entry_flags = pmd ? DAX_PMD : 0;
- 	int err = 0;
- 	pfn_t pfn;
-@@ -1526,8 +1534,8 @@ static vm_fault_t dax_fault_iter(struct
- 	if (!write &&
- 	    (iomap->type == IOMAP_UNWRITTEN || iomap->type == IOMAP_HOLE)) {
- 		if (!pmd)
--			return dax_load_hole(xas, mapping, entry, vmf);
--		return dax_pmd_load_hole(xas, vmf, iomap, entry);
-+			return dax_load_hole(xas, vmf, iter, entry);
-+		return dax_pmd_load_hole(xas, vmf, iter, entry);
- 	}
+-	filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
+-				      VFS_I(ip2)->i_mapping);
++	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
++		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
++		if (ip1 != ip2)
++			xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++	} else
++		filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
++					      VFS_I(ip2)->i_mapping);
++
+ 	inode_unlock(VFS_I(ip2));
+ 	if (ip1 != ip2)
+ 		inode_unlock(VFS_I(ip1));
+--- a/fs/xfs/xfs_inode.h~xfs-add-dax-dedupe-support
++++ a/fs/xfs/xfs_inode.h
+@@ -467,6 +467,7 @@ xfs_itruncate_extents(
+ }
  
- 	if (iomap->type != IOMAP_MAPPED && !(iomap->flags & IOMAP_F_SHARED)) {
-@@ -1539,8 +1547,7 @@ static vm_fault_t dax_fault_iter(struct
- 	if (err)
- 		return pmd ? VM_FAULT_FALLBACK : dax_fault_return(err);
+ /* from xfs_file.c */
++int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
+ int	xfs_break_layouts(struct inode *inode, uint *iolock,
+ 		enum layout_break_reason reason);
  
--	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn, entry_flags,
--				  write && !sync);
-+	*entry = dax_insert_entry(xas, vmf, iter, *entry, pfn, entry_flags);
+--- a/fs/xfs/xfs_reflink.c~xfs-add-dax-dedupe-support
++++ a/fs/xfs/xfs_reflink.c
+@@ -1363,8 +1363,8 @@ xfs_reflink_remap_prep(
+ 	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
+ 		goto out_unlock;
  
- 	if (write &&
- 	    srcmap->type != IOMAP_HOLE && srcmap->addr != iomap->addr) {
-@@ -1549,7 +1556,7 @@ static vm_fault_t dax_fault_iter(struct
- 			return dax_fault_return(err);
- 	}
+-	/* Don't share DAX file data for now. */
+-	if (IS_DAX(inode_in) || IS_DAX(inode_out))
++	/* Don't share DAX file data with non-DAX file. */
++	if (IS_DAX(inode_in) != IS_DAX(inode_out))
+ 		goto out_unlock;
  
--	if (sync)
-+	if (dax_fault_is_synchronous(iter, vmf->vma))
- 		return dax_fault_synchronous_pfnp(pfnp, pfn);
- 
- 	/* insert PMD pfn */
+ 	if (!IS_DAX(inode_in))
 _
 
 Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
