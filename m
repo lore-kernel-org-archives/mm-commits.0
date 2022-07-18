@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D8BDCCA481
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30E77C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232865AbiGRARG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:17:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56970 "EHLO
+        id S232803AbiGRARI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:17:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233025AbiGRAQs (ORCPT
+        with ESMTP id S232868AbiGRAQs (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:16:48 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C2FAE084
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2F4B101C5
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A2E18B80EE8
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49363C341CD;
-        Mon, 18 Jul 2022 00:16:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 47D03B80EBC
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0A4FC3411E;
+        Mon, 18 Jul 2022 00:16:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103401;
-        bh=A83rPeg/XShpoZN4eaKzVFsrSbMKMnE32D698fNLaok=;
+        s=korg; t=1658103405;
+        bh=/Ynf2YL/7eh67SONoxKbfHyyXyXQI1gzXEQrTmTF7Go=;
         h=Date:To:From:Subject:From;
-        b=m2bYINoucvDkLdpqsJNlc9DbomjQMhgIhiU61dZIoujryzsVcvArNnXs5+en98K3N
-         yTQIGSHrq8WrzeuML9RWCKhM4q19TW9EgslUP327dywErFuXjlnUlzjBoWusuBmdeb
-         FQiCgMJd1lXcDIR3AYZrjiv25COyycMpdD/M09ag=
-Date:   Sun, 17 Jul 2022 17:16:40 -0700
+        b=dJMYAd/AVCww9xd4nvmg0UUYs5P1BEzZ/refxi5CYnXGwtai+pXBLbx3I6c0LY8Wi
+         b9G3m6B+fI8bhTus2Lf9rv4cZNGbeREq+3jgm1HNw+hmSjcEtslPTXbQHtaWI4rFRf
+         7okfVE5UPV8rQi+DWMDbes+QICqNPvBcLpd5zZEY=
+Date:   Sun, 17 Jul 2022 17:16:44 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, riteshh@linux.ibm.com, rgoldwyn@suse.de,
         rgoldwyn@suse.com, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         dan.j.wiliams@intel.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] dax-introduce-holder-for-dax_device.patch removed from -mm tree
-Message-Id: <20220718001641.49363C341CD@smtp.kernel.org>
+Subject: [merged mm-stable] fsdax-introduce-dax_lock_mapping_entry.patch removed from -mm tree
+Message-Id: <20220718001644.F0A4FC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,459 +46,148 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: dax: introduce holder for dax_device
+     Subject: fsdax: introduce dax_lock_mapping_entry()
 has been removed from the -mm tree.  Its filename was
-     dax-introduce-holder-for-dax_device.patch
+     fsdax-introduce-dax_lock_mapping_entry.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: dax: introduce holder for dax_device
-Date: Fri, 3 Jun 2022 13:37:25 +0800
+Subject: fsdax: introduce dax_lock_mapping_entry()
+Date: Fri, 3 Jun 2022 13:37:28 +0800
 
-Patch series "v14 fsdax-rmap + v11 fsdax-reflink", v2.
+The current dax_lock_page() locks dax entry by obtaining mapping and index
+in page.  To support 1-to-N RMAP in NVDIMM, we need a new function to lock
+a specific dax entry corresponding to this file's mapping,index.  And
+output the page corresponding to the specific dax entry for caller use.
 
-The patchset fsdax-rmap is aimed to support shared pages tracking for
-fsdax.
-
-It moves owner tracking from dax_assocaite_entry() to pmem device driver,
-by introducing an interface ->memory_failure() for struct pagemap.  This
-interface is called by memory_failure() in mm, and implemented by pmem
-device.
-
-Then call holder operations to find the filesystem which the corrupted
-data located in, and call filesystem handler to track files or metadata
-associated with this page.
-
-Finally we are able to try to fix the corrupted data in filesystem and do
-other necessary processing, such as killing processes who are using the
-files affected.
-
-The call trace is like this:
-memory_failure()
-|* fsdax case
-|------------
-|pgmap->ops->memory_failure()      => pmem_pgmap_memory_failure()
-| dax_holder_notify_failure()      =>
-|  dax_device->holder_ops->notify_failure() =>
-|                                     - xfs_dax_notify_failure()
-|  |* xfs_dax_notify_failure()
-|  |--------------------------
-|  |   xfs_rmap_query_range()
-|  |    xfs_dax_failure_fn()
-|  |    * corrupted on metadata
-|  |       try to recover data, call xfs_force_shutdown()
-|  |    * corrupted on file data
-|  |       try to recover data, call mf_dax_kill_procs()
-|* normal case
-|-------------
-|mf_generic_kill_procs()
-
-
-The patchset fsdax-reflink attempts to add CoW support for fsdax, and
-takes XFS, which has both reflink and fsdax features, as an example.
-
-One of the key mechanisms needed to be implemented in fsdax is CoW.  Copy
-the data from srcmap before we actually write data to the destination
-iomap.  And we just copy range in which data won't be changed.
-
-Another mechanism is range comparison.  In page cache case, readpage() is
-used to load data on disk to page cache in order to be able to compare
-data.  In fsdax case, readpage() does not work.  So, we need another
-compare data with direct access support.
-
-With the two mechanisms implemented in fsdax, we are able to make reflink
-and fsdax work together in XFS.
-
-
-This patch (of 14):
-
-To easily track filesystem from a pmem device, we introduce a holder for
-dax_device structure, and also its operation.  This holder is used to
-remember who is using this dax_device:
-
- - When it is the backend of a filesystem, the holder will be the
-   instance of this filesystem.
- - When this pmem device is one of the targets in a mapped device, the
-   holder will be this mapped device.  In this case, the mapped device
-   has its own dax_device and it will follow the first rule.  So that we
-   can finally track to the filesystem we needed.
-
-The holder and holder_ops will be set when filesystem is being mounted,
-or an target device is being activated.
-
-Link: https://lkml.kernel.org/r/20220603053738.1218681-1-ruansy.fnst@fujitsu.com
-Link: https://lkml.kernel.org/r/20220603053738.1218681-2-ruansy.fnst@fujitsu.com
+Link: https://lkml.kernel.org/r/20220603053738.1218681-5-ruansy.fnst@fujitsu.com
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dan Williams <dan.j.wiliams@intel.com>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Dan Williams <dan.j.wiliams@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Ritesh Harjani <riteshh@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/super.c |   67 +++++++++++++++++++++++++++++++++++++++++-
- drivers/md/dm.c     |    2 -
- fs/erofs/super.c    |   10 +++---
- fs/ext2/super.c     |    7 ++--
- fs/ext4/super.c     |    9 +++--
- fs/xfs/xfs_buf.c    |    5 +--
- include/linux/dax.h |   33 +++++++++++++++-----
- 7 files changed, 110 insertions(+), 23 deletions(-)
+ fs/dax.c            |   63 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dax.h |   15 ++++++++++
+ 2 files changed, 78 insertions(+)
 
---- a/drivers/dax/super.c~dax-introduce-holder-for-dax_device
-+++ a/drivers/dax/super.c
-@@ -22,6 +22,8 @@
-  * @private: dax driver private data
-  * @flags: state and boolean properties
-  * @ops: operations for this device
-+ * @holder_data: holder of a dax_device: could be filesystem or mapped device
-+ * @holder_ops: operations for the inner holder
-  */
- struct dax_device {
- 	struct inode inode;
-@@ -29,6 +31,8 @@ struct dax_device {
- 	void *private;
- 	unsigned long flags;
- 	const struct dax_operations *ops;
-+	void *holder_data;
-+	const struct dax_holder_operations *holder_ops;
- };
- 
- static dev_t dax_devt;
-@@ -71,8 +75,11 @@ EXPORT_SYMBOL_GPL(dax_remove_host);
-  * fs_dax_get_by_bdev() - temporary lookup mechanism for filesystem-dax
-  * @bdev: block device to find a dax_device for
-  * @start_off: returns the byte offset into the dax_device that @bdev starts
-+ * @holder: filesystem or mapped device inside the dax_device
-+ * @ops: operations for the inner holder
-  */
--struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev, u64 *start_off)
-+struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev, u64 *start_off,
-+		void *holder, const struct dax_holder_operations *ops)
- {
- 	struct dax_device *dax_dev;
- 	u64 part_size;
-@@ -92,11 +99,26 @@ struct dax_device *fs_dax_get_by_bdev(st
- 	dax_dev = xa_load(&dax_hosts, (unsigned long)bdev->bd_disk);
- 	if (!dax_dev || !dax_alive(dax_dev) || !igrab(&dax_dev->inode))
- 		dax_dev = NULL;
-+	else if (holder) {
-+		if (!cmpxchg(&dax_dev->holder_data, NULL, holder))
-+			dax_dev->holder_ops = ops;
-+		else
-+			dax_dev = NULL;
-+	}
- 	dax_read_unlock(id);
- 
- 	return dax_dev;
+--- a/fs/dax.c~fsdax-introduce-dax_lock_mapping_entry
++++ a/fs/dax.c
+@@ -456,6 +456,69 @@ void dax_unlock_page(struct page *page,
  }
- EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-+
-+void fs_put_dax(struct dax_device *dax_dev, void *holder)
-+{
-+	if (dax_dev && holder &&
-+	    cmpxchg(&dax_dev->holder_data, holder, NULL) == holder)
-+		dax_dev->holder_ops = NULL;
-+	put_dax(dax_dev);
-+}
-+EXPORT_SYMBOL_GPL(fs_put_dax);
- #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
  
- enum dax_device_flags {
-@@ -204,6 +226,29 @@ size_t dax_recovery_write(struct dax_dev
- }
- EXPORT_SYMBOL_GPL(dax_recovery_write);
- 
-+int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
-+			      u64 len, int mf_flags)
-+{
-+	int rc, id;
-+
-+	id = dax_read_lock();
-+	if (!dax_alive(dax_dev)) {
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	if (!dax_dev->holder_ops) {
-+		rc = -EOPNOTSUPP;
-+		goto out;
-+	}
-+
-+	rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
-+out:
-+	dax_read_unlock(id);
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
-+
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_wb_cache_pmem(void *addr, size_t size);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-@@ -277,8 +322,15 @@ void kill_dax(struct dax_device *dax_dev
- 	if (!dax_dev)
- 		return;
- 
-+	if (dax_dev->holder_data != NULL)
-+		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
-+
- 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
- 	synchronize_srcu(&dax_srcu);
-+
-+	/* clear holder data */
-+	dax_dev->holder_ops = NULL;
-+	dax_dev->holder_data = NULL;
- }
- EXPORT_SYMBOL_GPL(kill_dax);
- 
-@@ -421,6 +473,19 @@ void put_dax(struct dax_device *dax_dev)
- EXPORT_SYMBOL_GPL(put_dax);
- 
- /**
-+ * dax_holder() - obtain the holder of a dax device
-+ * @dax_dev: a dax_device instance
-+
-+ * Return: the holder's data which represents the holder if registered,
-+ * otherwize NULL.
+ /*
++ * dax_lock_mapping_entry - Lock the DAX entry corresponding to a mapping
++ * @mapping: the file's mapping whose entry we want to lock
++ * @index: the offset within this file
++ * @page: output the dax page corresponding to this dax entry
++ *
++ * Return: A cookie to pass to dax_unlock_mapping_entry() or 0 if the entry
++ * could not be locked.
 + */
-+void *dax_holder(struct dax_device *dax_dev)
++dax_entry_t dax_lock_mapping_entry(struct address_space *mapping, pgoff_t index,
++		struct page **page)
 +{
-+	return dax_dev->holder_data;
-+}
-+EXPORT_SYMBOL_GPL(dax_holder);
++	XA_STATE(xas, NULL, 0);
++	void *entry;
 +
-+/**
-  * inode_dax: convert a public inode into its dax_dev
-  * @inode: An inode with i_cdev pointing to a dax_dev
-  *
---- a/drivers/md/dm.c~dax-introduce-holder-for-dax_device
-+++ a/drivers/md/dm.c
-@@ -758,7 +758,7 @@ static int open_table_device(struct tabl
- 	}
- 
- 	td->dm_dev.bdev = bdev;
--	td->dm_dev.dax_dev = fs_dax_get_by_bdev(bdev, &part_off);
-+	td->dm_dev.dax_dev = fs_dax_get_by_bdev(bdev, &part_off, NULL, NULL);
- 	return 0;
- }
- 
---- a/fs/erofs/super.c~dax-introduce-holder-for-dax_device
-+++ a/fs/erofs/super.c
-@@ -255,7 +255,8 @@ static int erofs_init_device(struct erof
- 		if (IS_ERR(bdev))
- 			return PTR_ERR(bdev);
- 		dif->bdev = bdev;
--		dif->dax_dev = fs_dax_get_by_bdev(bdev, &dif->dax_part_off);
-+		dif->dax_dev = fs_dax_get_by_bdev(bdev, &dif->dax_part_off,
-+						  NULL, NULL);
- 	}
- 
- 	dif->blocks = le32_to_cpu(dis->blocks);
-@@ -720,7 +721,8 @@ static int erofs_fc_fill_super(struct su
- 		}
- 
- 		sbi->dax_dev = fs_dax_get_by_bdev(sb->s_bdev,
--						  &sbi->dax_part_off);
-+						  &sbi->dax_part_off,
-+						  NULL, NULL);
- 	}
- 
- 	err = erofs_read_superblock(sb);
-@@ -812,7 +814,7 @@ static int erofs_release_device_info(int
- {
- 	struct erofs_device_info *dif = ptr;
- 
--	fs_put_dax(dif->dax_dev);
-+	fs_put_dax(dif->dax_dev, NULL);
- 	if (dif->bdev)
- 		blkdev_put(dif->bdev, FMODE_READ | FMODE_EXCL);
- 	erofs_fscache_unregister_cookie(&dif->fscache);
-@@ -886,7 +888,7 @@ static void erofs_kill_sb(struct super_b
- 		return;
- 
- 	erofs_free_dev_context(sbi->devs);
--	fs_put_dax(sbi->dax_dev);
-+	fs_put_dax(sbi->dax_dev, NULL);
- 	erofs_fscache_unregister_cookie(&sbi->s_fscache);
- 	erofs_fscache_unregister_fs(sb);
- 	kfree(sbi->opt.fsid);
---- a/fs/ext2/super.c~dax-introduce-holder-for-dax_device
-+++ a/fs/ext2/super.c
-@@ -171,7 +171,7 @@ static void ext2_put_super (struct super
- 	brelse (sbi->s_sbh);
- 	sb->s_fs_info = NULL;
- 	kfree(sbi->s_blockgroup_lock);
--	fs_put_dax(sbi->s_daxdev);
-+	fs_put_dax(sbi->s_daxdev, NULL);
- 	kfree(sbi);
- }
- 
-@@ -835,7 +835,8 @@ static int ext2_fill_super(struct super_
- 	}
- 	sb->s_fs_info = sbi;
- 	sbi->s_sb_block = sb_block;
--	sbi->s_daxdev = fs_dax_get_by_bdev(sb->s_bdev, &sbi->s_dax_part_off);
-+	sbi->s_daxdev = fs_dax_get_by_bdev(sb->s_bdev, &sbi->s_dax_part_off,
-+					   NULL, NULL);
- 
- 	spin_lock_init(&sbi->s_lock);
- 	ret = -EINVAL;
-@@ -1204,7 +1205,7 @@ failed_mount_group_desc:
- failed_mount:
- 	brelse(bh);
- failed_sbi:
--	fs_put_dax(sbi->s_daxdev);
-+	fs_put_dax(sbi->s_daxdev, NULL);
- 	sb->s_fs_info = NULL;
- 	kfree(sbi->s_blockgroup_lock);
- 	kfree(sbi);
---- a/fs/ext4/super.c~dax-introduce-holder-for-dax_device
-+++ a/fs/ext4/super.c
-@@ -1307,7 +1307,7 @@ static void ext4_put_super(struct super_
- 	if (sbi->s_chksum_driver)
- 		crypto_free_shash(sbi->s_chksum_driver);
- 	kfree(sbi->s_blockgroup_lock);
--	fs_put_dax(sbi->s_daxdev);
-+	fs_put_dax(sbi->s_daxdev, NULL);
- 	fscrypt_free_dummy_policy(&sbi->s_dummy_enc_policy);
- #if IS_ENABLED(CONFIG_UNICODE)
- 	utf8_unload(sb->s_encoding);
-@@ -4272,7 +4272,7 @@ static void ext4_free_sbi(struct ext4_sb
- 		return;
- 
- 	kfree(sbi->s_blockgroup_lock);
--	fs_put_dax(sbi->s_daxdev);
-+	fs_put_dax(sbi->s_daxdev, NULL);
- 	kfree(sbi);
- }
- 
-@@ -4284,7 +4284,8 @@ static struct ext4_sb_info *ext4_alloc_s
- 	if (!sbi)
- 		return NULL;
- 
--	sbi->s_daxdev = fs_dax_get_by_bdev(sb->s_bdev, &sbi->s_dax_part_off);
-+	sbi->s_daxdev = fs_dax_get_by_bdev(sb->s_bdev, &sbi->s_dax_part_off,
-+					   NULL, NULL);
- 
- 	sbi->s_blockgroup_lock =
- 		kzalloc(sizeof(struct blockgroup_lock), GFP_KERNEL);
-@@ -4296,7 +4297,7 @@ static struct ext4_sb_info *ext4_alloc_s
- 	sbi->s_sb = sb;
- 	return sbi;
- err_out:
--	fs_put_dax(sbi->s_daxdev);
-+	fs_put_dax(sbi->s_daxdev, NULL);
- 	kfree(sbi);
- 	return NULL;
- }
---- a/fs/xfs/xfs_buf.c~dax-introduce-holder-for-dax_device
-+++ a/fs/xfs/xfs_buf.c
-@@ -1911,7 +1911,7 @@ xfs_free_buftarg(
- 	list_lru_destroy(&btp->bt_lru);
- 
- 	blkdev_issue_flush(btp->bt_bdev);
--	fs_put_dax(btp->bt_daxdev);
-+	fs_put_dax(btp->bt_daxdev, NULL);
- 
- 	kmem_free(btp);
- }
-@@ -1964,7 +1964,8 @@ xfs_alloc_buftarg(
- 	btp->bt_mount = mp;
- 	btp->bt_dev =  bdev->bd_dev;
- 	btp->bt_bdev = bdev;
--	btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off);
-+	btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off, NULL,
-+					    NULL);
- 
- 	/*
- 	 * Buffer IO error rate limiting. Limit it to no more than 10 messages
---- a/include/linux/dax.h~dax-introduce-holder-for-dax_device
++	rcu_read_lock();
++	for (;;) {
++		entry = NULL;
++		if (!dax_mapping(mapping))
++			break;
++
++		xas.xa = &mapping->i_pages;
++		xas_lock_irq(&xas);
++		xas_set(&xas, index);
++		entry = xas_load(&xas);
++		if (dax_is_locked(entry)) {
++			rcu_read_unlock();
++			wait_entry_unlocked(&xas, entry);
++			rcu_read_lock();
++			continue;
++		}
++		if (!entry ||
++		    dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
++			/*
++			 * Because we are looking for entry from file's mapping
++			 * and index, so the entry may not be inserted for now,
++			 * or even a zero/empty entry.  We don't think this is
++			 * an error case.  So, return a special value and do
++			 * not output @page.
++			 */
++			entry = (void *)~0UL;
++		} else {
++			*page = pfn_to_page(dax_to_pfn(entry));
++			dax_lock_entry(&xas, entry);
++		}
++		xas_unlock_irq(&xas);
++		break;
++	}
++	rcu_read_unlock();
++	return (dax_entry_t)entry;
++}
++
++void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index,
++		dax_entry_t cookie)
++{
++	XA_STATE(xas, &mapping->i_pages, index);
++
++	if (cookie == ~0UL)
++		return;
++
++	dax_unlock_entry(&xas, (void *)cookie);
++}
++
++/*
+  * Find page cache entry at given index. If it is a DAX entry, return it
+  * with the entry locked. If the page cache doesn't contain an entry at
+  * that index, add a locked empty entry.
+--- a/include/linux/dax.h~fsdax-introduce-dax_lock_mapping_entry
 +++ a/include/linux/dax.h
-@@ -43,8 +43,21 @@ struct dax_operations {
- 			void *addr, size_t bytes, struct iov_iter *iter);
- };
- 
-+struct dax_holder_operations {
-+	/*
-+	 * notify_failure - notify memory failure into inner holder device
-+	 * @dax_dev: the dax device which contains the holder
-+	 * @offset: offset on this dax device where memory failure occurs
-+	 * @len: length of this memory failure event
-+	 * @flags: action flags for memory failure handler
-+	 */
-+	int (*notify_failure)(struct dax_device *dax_dev, u64 offset,
-+			u64 len, int mf_flags);
-+};
+@@ -161,6 +161,10 @@ struct page *dax_layout_busy_page(struct
+ struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
+ dax_entry_t dax_lock_page(struct page *page);
+ void dax_unlock_page(struct page *page, dax_entry_t cookie);
++dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
++		unsigned long index, struct page **page);
++void dax_unlock_mapping_entry(struct address_space *mapping,
++		unsigned long index, dax_entry_t cookie);
+ #else
+ static inline struct page *dax_layout_busy_page(struct address_space *mapping)
+ {
+@@ -188,6 +192,17 @@ static inline dax_entry_t dax_lock_page(
+ static inline void dax_unlock_page(struct page *page, dax_entry_t cookie)
+ {
+ }
 +
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
-+void *dax_holder(struct dax_device *dax_dev);
- void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
-@@ -66,6 +79,10 @@ static inline bool daxdev_mapping_suppor
- 	return dax_synchronous(dax_dev);
- }
- #else
-+static inline void *dax_holder(struct dax_device *dax_dev)
++static inline dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
++		unsigned long index, struct page **page)
 +{
-+	return NULL;
++	return 0;
 +}
- static inline struct dax_device *alloc_dax(void *private,
- 		const struct dax_operations *ops)
- {
-@@ -114,12 +131,9 @@ struct writeback_control;
- #if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
- int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk);
- void dax_remove_host(struct gendisk *disk);
--struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev,
--		u64 *start_off);
--static inline void fs_put_dax(struct dax_device *dax_dev)
--{
--	put_dax(dax_dev);
--}
-+struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev, u64 *start_off,
-+		void *holder, const struct dax_holder_operations *ops);
-+void fs_put_dax(struct dax_device *dax_dev, void *holder);
- #else
- static inline int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk)
- {
-@@ -129,11 +143,12 @@ static inline void dax_remove_host(struc
- {
- }
- static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev,
--		u64 *start_off)
-+		u64 *start_off, void *holder,
-+		const struct dax_holder_operations *ops)
- {
- 	return NULL;
- }
--static inline void fs_put_dax(struct dax_device *dax_dev)
-+static inline void fs_put_dax(struct dax_device *dax_dev, void *holder)
- {
- }
- #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
-@@ -203,6 +218,8 @@ size_t dax_copy_to_iter(struct dax_devic
- 		size_t bytes, struct iov_iter *i);
- int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
- 			size_t nr_pages);
-+int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off, u64 len,
-+		int mf_flags);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
++
++static inline void dax_unlock_mapping_entry(struct address_space *mapping,
++		unsigned long index, dax_entry_t cookie)
++{
++}
+ #endif
  
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
 _
 
 Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
