@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C757C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:21:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9530C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:21:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229801AbiGRAVS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:21:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56992 "EHLO
+        id S233111AbiGRAVe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:21:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232361AbiGRATq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:19:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65807140AE
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:27 -0700 (PDT)
+        with ESMTP id S233152AbiGRAUE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:20:04 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F4F213D11
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:18:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B218DB80E27
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66193C341C0;
-        Mon, 18 Jul 2022 00:18:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 376EE60F54
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:18:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F187C3411E;
+        Mon, 18 Jul 2022 00:18:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103504;
-        bh=b5cpEmD9qjmu72p6gxykVziCh/pXFRHMLEhcHRRjezI=;
+        s=korg; t=1658103509;
+        bh=+pcOF807697q5fpYBSDqogPguHiGHbordP1c72fcwpU=;
         h=Date:To:From:Subject:From;
-        b=F/J5hhmpX54SpM3fAfiN3NZebGIEV9SAUkxiH4kzTqlLzk2Pknc8Fy0AIUk+uSoHG
-         EOkwMVPIjg5txuK+aM95Mm5FmAs8jcW9TE2SX+1D01hslYBzzkCGd7rub0io3g7kBK
-         huoswwHePdt8xA4VW3rWLLlQaMaBAJIQC07WHlAc=
-Date:   Sun, 17 Jul 2022 17:18:23 -0700
-To:     mm-commits@vger.kernel.org, rmk+kernel@armlinux.org.uk,
-        rppt@linux.ibm.com, akpm@linux-foundation.org
+        b=FzCBjHVP7knn+30tik/k1PrNXYubbcz266mYzOJNpy6zG3Z8F2gBasVfK4by1De7W
+         HeYkFc+ZWgUe022M/BXw4zL9hOaPANaC7lrdSNCzN/3O408SE6GnfVRazNJHS9xDIj
+         d35pyYZvT7fV5J4K867oYtNt9lQpSGQ8fpnHGw8E=
+Date:   Sun, 17 Jul 2022 17:18:28 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        willy@infradead.org, songmuchun@bytedance.com, shy828301@gmail.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm-heads-rename-pmd_order-to-pmd_entry_order.patch removed from -mm tree
-Message-Id: <20220718001824.66193C341C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-use-helper-touch_pmd-in-huge_pmd_set_accessed.patch removed from -mm tree
+Message-Id: <20220718001829.8F187C3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,143 +42,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ARM: head.S: rename PMD_ORDER to PMD_ENTRY_ORDER
+     Subject: mm/huge_memory: use helper touch_pmd in huge_pmd_set_accessed
 has been removed from the -mm tree.  Its filename was
-     arm-heads-rename-pmd_order-to-pmd_entry_order.patch
+     mm-huge_memory-use-helper-touch_pmd-in-huge_pmd_set_accessed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: ARM: head.S: rename PMD_ORDER to PMD_ENTRY_ORDER
-Date: Tue, 5 Jul 2022 18:47:08 +0300
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/huge_memory: use helper touch_pmd in huge_pmd_set_accessed
+Date: Mon, 4 Jul 2022 21:21:50 +0800
 
-PMD_ORDER denotes order of magnitude for a PMD entry, i.e PMD entry size
-is 2 ^ PMD_ORDER.
+Use helper touch_pmd to set pmd accessed to simplify the code and improve
+the readability. No functional change intended.
 
-Rename PMD_ORDER to PMD_ENTRY_ORDER to allow a generic definition of
-PMD_ORDER as order of a PMD allocation: (PMD_SHIFT - PAGE_SHIFT).
-
-Link: https://lkml.kernel.org/r/20220705154708.181258-16-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
+Link: https://lkml.kernel.org/r/20220704132201.14611-6-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/head.S |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ mm/huge_memory.c |   22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
 
---- a/arch/arm/kernel/head.S~arm-heads-rename-pmd_order-to-pmd_entry_order
-+++ a/arch/arm/kernel/head.S
-@@ -38,10 +38,10 @@
- #ifdef CONFIG_ARM_LPAE
- 	/* LPAE requires an additional page for the PGD */
- #define PG_DIR_SIZE	0x5000
--#define PMD_ORDER	3
-+#define PMD_ENTRY_ORDER	3	/* PMD entry size is 2^PMD_ENTRY_ORDER */
- #else
- #define PG_DIR_SIZE	0x4000
--#define PMD_ORDER	2
-+#define PMD_ENTRY_ORDER	2
- #endif
+--- a/mm/huge_memory.c~mm-huge_memory-use-helper-touch_pmd-in-huge_pmd_set_accessed
++++ a/mm/huge_memory.c
+@@ -1020,15 +1020,15 @@ EXPORT_SYMBOL_GPL(vmf_insert_pfn_pud_pro
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
  
- 	.globl	swapper_pg_dir
-@@ -240,7 +240,7 @@ __create_page_tables:
- 	mov	r6, r6, lsr #SECTION_SHIFT
+ static void touch_pmd(struct vm_area_struct *vma, unsigned long addr,
+-		pmd_t *pmd, int flags)
++		      pmd_t *pmd, bool write)
+ {
+ 	pmd_t _pmd;
  
- 1:	orr	r3, r7, r5, lsl #SECTION_SHIFT	@ flags + kernel base
--	str	r3, [r4, r5, lsl #PMD_ORDER]	@ identity mapping
-+	str	r3, [r4, r5, lsl #PMD_ENTRY_ORDER]	@ identity mapping
- 	cmp	r5, r6
- 	addlo	r5, r5, #1			@ next section
- 	blo	1b
-@@ -250,7 +250,7 @@ __create_page_tables:
- 	 * set two variables to indicate the physical start and end of the
- 	 * kernel.
- 	 */
--	add	r0, r4, #KERNEL_OFFSET >> (SECTION_SHIFT - PMD_ORDER)
-+	add	r0, r4, #KERNEL_OFFSET >> (SECTION_SHIFT - PMD_ENTRY_ORDER)
- 	ldr	r6, =(_end - 1)
- 	adr_l	r5, kernel_sec_start		@ _pa(kernel_sec_start)
- #if defined CONFIG_CPU_ENDIAN_BE8 || defined CONFIG_CPU_ENDIAN_BE32
-@@ -259,8 +259,8 @@ __create_page_tables:
- 	str	r8, [r5]			@ Save physical start of kernel (LE)
- #endif
- 	orr	r3, r8, r7			@ Add the MMU flags
--	add	r6, r4, r6, lsr #(SECTION_SHIFT - PMD_ORDER)
--1:	str	r3, [r0], #1 << PMD_ORDER
-+	add	r6, r4, r6, lsr #(SECTION_SHIFT - PMD_ENTRY_ORDER)
-+1:	str	r3, [r0], #1 << PMD_ENTRY_ORDER
- 	add	r3, r3, #1 << SECTION_SHIFT
- 	cmp	r0, r6
- 	bls	1b
-@@ -280,14 +280,14 @@ __create_page_tables:
- 	mov	r3, pc
- 	mov	r3, r3, lsr #SECTION_SHIFT
- 	orr	r3, r7, r3, lsl #SECTION_SHIFT
--	add	r0, r4,  #(XIP_START & 0xff000000) >> (SECTION_SHIFT - PMD_ORDER)
--	str	r3, [r0, #((XIP_START & 0x00f00000) >> SECTION_SHIFT) << PMD_ORDER]!
-+	add	r0, r4,  #(XIP_START & 0xff000000) >> (SECTION_SHIFT - PMD_ENTRY_ORDER)
-+	str	r3, [r0, #((XIP_START & 0x00f00000) >> SECTION_SHIFT) << PMD_ENTRY_ORDER]!
- 	ldr	r6, =(_edata_loc - 1)
--	add	r0, r0, #1 << PMD_ORDER
--	add	r6, r4, r6, lsr #(SECTION_SHIFT - PMD_ORDER)
-+	add	r0, r0, #1 << PMD_ENTRY_ORDER
-+	add	r6, r4, r6, lsr #(SECTION_SHIFT - PMD_ENTRY_ORDER)
- 1:	cmp	r0, r6
- 	add	r3, r3, #1 << SECTION_SHIFT
--	strls	r3, [r0], #1 << PMD_ORDER
-+	strls	r3, [r0], #1 << PMD_ENTRY_ORDER
- 	bls	1b
- #endif
+ 	_pmd = pmd_mkyoung(*pmd);
+-	if (flags & FOLL_WRITE)
++	if (write)
+ 		_pmd = pmd_mkdirty(_pmd);
+ 	if (pmdp_set_access_flags(vma, addr & HPAGE_PMD_MASK,
+-				pmd, _pmd, flags & FOLL_WRITE))
++				  pmd, _pmd, write))
+ 		update_mmu_cache_pmd(vma, addr, pmd);
+ }
  
-@@ -297,10 +297,10 @@ __create_page_tables:
- 	 */
- 	mov	r0, r2, lsr #SECTION_SHIFT
- 	cmp	r2, #0
--	ldrne	r3, =FDT_FIXED_BASE >> (SECTION_SHIFT - PMD_ORDER)
-+	ldrne	r3, =FDT_FIXED_BASE >> (SECTION_SHIFT - PMD_ENTRY_ORDER)
- 	addne	r3, r3, r4
- 	orrne	r6, r7, r0, lsl #SECTION_SHIFT
--	strne	r6, [r3], #1 << PMD_ORDER
-+	strne	r6, [r3], #1 << PMD_ENTRY_ORDER
- 	addne	r6, r6, #1 << SECTION_SHIFT
- 	strne	r6, [r3]
+@@ -1061,7 +1061,7 @@ struct page *follow_devmap_pmd(struct vm
+ 		return NULL;
  
-@@ -319,7 +319,7 @@ __create_page_tables:
- 	addruart r7, r3, r0
+ 	if (flags & FOLL_TOUCH)
+-		touch_pmd(vma, addr, pmd, flags);
++		touch_pmd(vma, addr, pmd, flags & FOLL_WRITE);
  
- 	mov	r3, r3, lsr #SECTION_SHIFT
--	mov	r3, r3, lsl #PMD_ORDER
-+	mov	r3, r3, lsl #PMD_ENTRY_ORDER
+ 	/*
+ 	 * device mapped pages can only be returned if the
+@@ -1298,21 +1298,13 @@ unlock:
  
- 	add	r0, r4, r3
- 	mov	r3, r7, lsr #SECTION_SHIFT
-@@ -349,7 +349,7 @@ __create_page_tables:
- 	 * If we're using the NetWinder or CATS, we also need to map
- 	 * in the 16550-type serial port for the debug messages
- 	 */
--	add	r0, r4, #0xff000000 >> (SECTION_SHIFT - PMD_ORDER)
-+	add	r0, r4, #0xff000000 >> (SECTION_SHIFT - PMD_ENTRY_ORDER)
- 	orr	r3, r7, #0x7c000000
- 	str	r3, [r0]
- #endif
-@@ -359,10 +359,10 @@ __create_page_tables:
- 	 * Similar reasons here - for debug.  This is
- 	 * only for Acorn RiscPC architectures.
- 	 */
--	add	r0, r4, #0x02000000 >> (SECTION_SHIFT - PMD_ORDER)
-+	add	r0, r4, #0x02000000 >> (SECTION_SHIFT - PMD_ENTRY_ORDER)
- 	orr	r3, r7, #0x02000000
- 	str	r3, [r0]
--	add	r0, r4, #0xd8000000 >> (SECTION_SHIFT - PMD_ORDER)
-+	add	r0, r4, #0xd8000000 >> (SECTION_SHIFT - PMD_ENTRY_ORDER)
- 	str	r3, [r0]
- #endif
- #endif
+ void huge_pmd_set_accessed(struct vm_fault *vmf)
+ {
+-	pmd_t entry;
+-	unsigned long haddr;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+-	pmd_t orig_pmd = vmf->orig_pmd;
+ 
+ 	vmf->ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
+-	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd)))
++	if (unlikely(!pmd_same(*vmf->pmd, vmf->orig_pmd)))
+ 		goto unlock;
+ 
+-	entry = pmd_mkyoung(orig_pmd);
+-	if (write)
+-		entry = pmd_mkdirty(entry);
+-	haddr = vmf->address & HPAGE_PMD_MASK;
+-	if (pmdp_set_access_flags(vmf->vma, haddr, vmf->pmd, entry, write))
+-		update_mmu_cache_pmd(vmf->vma, vmf->address, vmf->pmd);
++	touch_pmd(vmf->vma, vmf->address, vmf->pmd, write);
+ 
+ unlock:
+ 	spin_unlock(vmf->ptl);
+@@ -1448,7 +1440,7 @@ struct page *follow_trans_huge_pmd(struc
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	if (flags & FOLL_TOUCH)
+-		touch_pmd(vma, addr, pmd, flags);
++		touch_pmd(vma, addr, pmd, flags & FOLL_WRITE);
+ 
+ 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
+ 	VM_BUG_ON_PAGE(!PageCompound(page) && !is_zone_device_page(page), page);
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
+filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
+mm-remove-obsolete-comment-in-do_fault_around.patch
 
