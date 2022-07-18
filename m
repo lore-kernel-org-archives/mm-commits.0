@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAB7CCCA480
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74C16CCA485
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232923AbiGRARK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232967AbiGRARK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 17 Jul 2022 20:17:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57092 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232986AbiGRAQv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:16:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0CB3B86C
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:49 -0700 (PDT)
+        with ESMTP id S232906AbiGRAQt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:16:49 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCBC0AE45
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5684360F35
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA926C3411E;
-        Mon, 18 Jul 2022 00:16:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7FC25B80DAF
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F142C341C0;
+        Mon, 18 Jul 2022 00:16:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103408;
-        bh=GQRpuRkEwc9WdERuQyGdaqpp5uLy5fbxqADtwIJ/pF8=;
+        s=korg; t=1658103406;
+        bh=WjzRcs610YX7MMy0hX1TxuvktfZhDEOOm097nJooLE8=;
         h=Date:To:From:Subject:From;
-        b=fqUPdrs+pS1YPXXghAxT1wwaETV9DPDRXxFFbDuEmNI8MIcXn2IIz2t/VWS8rfel5
-         fRwWMmTd8xujaZA8XIX1+viFBhDtwFFn+PmYn220nhNfPS6JuIBoznzppraoMUWioc
-         qRvURR4Dde94kfSmFj3e+pWB4ZSpoLtNYrlShFHI=
-Date:   Sun, 17 Jul 2022 17:16:48 -0700
+        b=f2sKBeKCgENb9Ax69NVaIGNVHcog1hs8FVsEaoc2yeadWSTU6FieNjjBgYIx2Nwvr
+         VVgPwiWNwBNeOKT+WxBZjZ3F1fxyTi6OeuJeag3xTgTQvboEWzNs+SwgSv1oryAnme
+         jkm1smAJ/7Ic+4JZwsscAkcTZ0cCFcPGiEKVfcEA=
+Date:   Sun, 17 Jul 2022 17:16:45 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, riteshh@linux.ibm.com, rgoldwyn@suse.de,
         rgoldwyn@suse.com, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         dan.j.wiliams@intel.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fsdax-set-a-cow-flag-when-associate-reflink-mappings.patch removed from -mm tree
-Message-Id: <20220718001648.AA926C3411E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-mf_dax_kill_procs-for-fsdax-case.patch removed from -mm tree
+Message-Id: <20220718001646.2F142C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,149 +46,206 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fsdax: set a CoW flag when associate reflink mappings
+     Subject: mm: introduce mf_dax_kill_procs() for fsdax case
 has been removed from the -mm tree.  Its filename was
-     fsdax-set-a-cow-flag-when-associate-reflink-mappings.patch
+     mm-introduce-mf_dax_kill_procs-for-fsdax-case.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: fsdax: set a CoW flag when associate reflink mappings
-Date: Fri, 3 Jun 2022 13:37:31 +0800
+Subject: mm: introduce mf_dax_kill_procs() for fsdax case
+Date: Fri, 3 Jun 2022 13:37:29 +0800
 
-Introduce a PAGE_MAPPING_DAX_COW flag to support association with CoW file
-mappings.  In this case, since the dax-rmap has already took the
-responsibility to look up for shared files by given dax page, the
-page->mapping is no longer to used for rmap but for marking that this dax
-page is shared.  And to make sure disassociation works fine, we use
-page->index as refcount, and clear page->mapping to the initial state when
-page->index is decreased to 0.
+This new function is a variant of mf_generic_kill_procs that accepts a
+file, offset pair instead of a struct to support multiple files sharing a
+DAX mapping.  It is intended to be called by the file systems as part of
+the memory_failure handler after the file system performed a reverse
+mapping from the storage address to the file and file offset.
 
-With the help of this new flag, it is able to distinguish normal case and
-CoW case, and keep the warning in normal case.
-
-Link: https://lkml.kernel.org/r/20220603053738.1218681-8-ruansy.fnst@fujitsu.com
+Link: https://lkml.kernel.org/r/20220603053738.1218681-6-ruansy.fnst@fujitsu.com
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Dan Williams <dan.j.wiliams@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
 Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Ritesh Harjani <riteshh@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                   |   50 ++++++++++++++++++++++++++++-------
- include/linux/page-flags.h |    6 ++++
- 2 files changed, 47 insertions(+), 9 deletions(-)
+ include/linux/mm.h  |    2 
+ mm/memory-failure.c |   96 +++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 88 insertions(+), 10 deletions(-)
 
---- a/fs/dax.c~fsdax-set-a-cow-flag-when-associate-reflink-mappings
-+++ a/fs/dax.c
-@@ -334,13 +334,35 @@ static unsigned long dax_end_pfn(void *e
- 	for (pfn = dax_to_pfn(entry); \
- 			pfn < dax_end_pfn(entry); pfn++)
+--- a/include/linux/mm.h~mm-introduce-mf_dax_kill_procs-for-fsdax-case
++++ a/include/linux/mm.h
+@@ -3178,6 +3178,8 @@ enum mf_flags {
+ 	MF_UNPOISON = 1 << 4,
+ 	MF_SW_SIMULATED = 1 << 5,
+ };
++int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
++		      unsigned long count, int mf_flags);
+ extern int memory_failure(unsigned long pfn, int flags);
+ extern void memory_failure_queue(unsigned long pfn, int flags);
+ extern void memory_failure_queue_kick(int cpu);
+--- a/mm/memory-failure.c~mm-introduce-mf_dax_kill_procs-for-fsdax-case
++++ a/mm/memory-failure.c
+@@ -297,10 +297,9 @@ void shake_page(struct page *p)
+ }
+ EXPORT_SYMBOL_GPL(shake_page);
  
-+static inline bool dax_mapping_is_cow(struct address_space *mapping)
-+{
-+	return (unsigned long)mapping == PAGE_MAPPING_DAX_COW;
-+}
-+
- /*
-- * TODO: for reflink+dax we need a way to associate a single page with
-- * multiple address_space instances at different linear_page_index()
-- * offsets.
-+ * Set the page->mapping with FS_DAX_MAPPING_COW flag, increase the refcount.
-+ */
-+static inline void dax_mapping_set_cow(struct page *page)
-+{
-+	if ((uintptr_t)page->mapping != PAGE_MAPPING_DAX_COW) {
-+		/*
-+		 * Reset the index if the page was already mapped
-+		 * regularly before.
-+		 */
-+		if (page->mapping)
-+			page->index = 1;
-+		page->mapping = (void *)PAGE_MAPPING_DAX_COW;
-+	}
-+	page->index++;
-+}
-+
-+/*
-+ * When it is called in dax_insert_entry(), the cow flag will indicate that
-+ * whether this entry is shared by multiple files.  If so, set the page->mapping
-+ * FS_DAX_MAPPING_COW, and use page->index as refcount.
-  */
- static void dax_associate_entry(void *entry, struct address_space *mapping,
--		struct vm_area_struct *vma, unsigned long address)
-+		struct vm_area_struct *vma, unsigned long address, bool cow)
+-static unsigned long dev_pagemap_mapping_shift(struct page *page,
+-		struct vm_area_struct *vma)
++static unsigned long dev_pagemap_mapping_shift(struct vm_area_struct *vma,
++		unsigned long address)
  {
- 	unsigned long size = dax_entry_size(entry), pfn, index;
- 	int i = 0;
-@@ -352,9 +374,13 @@ static void dax_associate_entry(void *en
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
+-	unsigned long address = vma_address(page, vma);
+ 	unsigned long ret = 0;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -340,10 +339,14 @@ static unsigned long dev_pagemap_mapping
+ /*
+  * Schedule a process for later kill.
+  * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
++ *
++ * Notice: @fsdax_pgoff is used only when @p is a fsdax page.
++ *   In other cases, such as anonymous and file-backend page, the address to be
++ *   killed can be caculated by @p itself.
+  */
+ static void add_to_kill(struct task_struct *tsk, struct page *p,
+-		       struct vm_area_struct *vma,
+-		       struct list_head *to_kill)
++			pgoff_t fsdax_pgoff, struct vm_area_struct *vma,
++			struct list_head *to_kill)
+ {
+ 	struct to_kill *tk;
  
--		WARN_ON_ONCE(page->mapping);
--		page->mapping = mapping;
--		page->index = index + i++;
-+		if (cow) {
-+			dax_mapping_set_cow(page);
-+		} else {
-+			WARN_ON_ONCE(page->mapping);
-+			page->mapping = mapping;
-+			page->index = index + i++;
-+		}
+@@ -354,9 +357,15 @@ static void add_to_kill(struct task_stru
  	}
+ 
+ 	tk->addr = page_address_in_vma(p, vma);
+-	if (is_zone_device_page(p))
+-		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
+-	else
++	if (is_zone_device_page(p)) {
++		/*
++		 * Since page->mapping is not used for fsdax, we need
++		 * calculate the address based on the vma.
++		 */
++		if (p->pgmap->type == MEMORY_DEVICE_FS_DAX)
++			tk->addr = vma_pgoff_address(fsdax_pgoff, 1, vma);
++		tk->size_shift = dev_pagemap_mapping_shift(vma, tk->addr);
++	} else
+ 		tk->size_shift = page_shift(compound_head(p));
+ 
+ 	/*
+@@ -505,7 +514,7 @@ static void collect_procs_anon(struct pa
+ 			if (!page_mapped_in_vma(page, vma))
+ 				continue;
+ 			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, vma, to_kill);
++				add_to_kill(t, page, 0, vma, to_kill);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+@@ -541,13 +550,41 @@ static void collect_procs_file(struct pa
+ 			 * to be informed of all such data corruptions.
+ 			 */
+ 			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, vma, to_kill);
++				add_to_kill(t, page, 0, vma, to_kill);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+ 	i_mmap_unlock_read(mapping);
  }
  
-@@ -370,7 +396,12 @@ static void dax_disassociate_entry(void
- 		struct page *page = pfn_to_page(pfn);
- 
- 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
--		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
-+		if (dax_mapping_is_cow(page->mapping)) {
-+			/* keep the CoW flag if this page is still shared */
-+			if (page->index-- > 0)
-+				continue;
-+		} else
-+			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
- 		page->mapping = NULL;
- 		page->index = 0;
- 	}
-@@ -830,7 +861,8 @@ static void *dax_insert_entry(struct xa_
- 		void *old;
- 
- 		dax_disassociate_entry(entry, mapping, false);
--		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
-+		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address,
-+				false);
- 		/*
- 		 * Only swap our new entry into the page cache if the current
- 		 * entry is a zero page or an empty entry.  If a normal PTE or
---- a/include/linux/page-flags.h~fsdax-set-a-cow-flag-when-associate-reflink-mappings
-+++ a/include/linux/page-flags.h
-@@ -661,6 +661,12 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
- #define PAGE_MAPPING_KSM	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
- #define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
- 
++#ifdef CONFIG_FS_DAX
 +/*
-+ * Different with flags above, this flag is used only for fsdax mode.  It
-+ * indicates that this page->mapping is now under reflink case.
++ * Collect processes when the error hit a fsdax page.
 + */
-+#define PAGE_MAPPING_DAX_COW	0x1
++static void collect_procs_fsdax(struct page *page,
++		struct address_space *mapping, pgoff_t pgoff,
++		struct list_head *to_kill)
++{
++	struct vm_area_struct *vma;
++	struct task_struct *tsk;
 +
- static __always_inline bool folio_mapping_flags(struct folio *folio)
- {
- 	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) != 0;
++	i_mmap_lock_read(mapping);
++	read_lock(&tasklist_lock);
++	for_each_process(tsk) {
++		struct task_struct *t = task_early_kill(tsk, true);
++
++		if (!t)
++			continue;
++		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
++			if (vma->vm_mm == t->mm)
++				add_to_kill(t, page, pgoff, vma, to_kill);
++		}
++	}
++	read_unlock(&tasklist_lock);
++	i_mmap_unlock_read(mapping);
++}
++#endif /* CONFIG_FS_DAX */
++
+ /*
+  * Collect the processes who have the corrupted page mapped to kill.
+  */
+@@ -1588,6 +1625,45 @@ unlock:
+ 	return rc;
+ }
+ 
++#ifdef CONFIG_FS_DAX
++/**
++ * mf_dax_kill_procs - Collect and kill processes who are using this file range
++ * @mapping:	address_space of the file in use
++ * @index:	start pgoff of the range within the file
++ * @count:	length of the range, in unit of PAGE_SIZE
++ * @mf_flags:	memory failure flags
++ */
++int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
++		unsigned long count, int mf_flags)
++{
++	LIST_HEAD(to_kill);
++	dax_entry_t cookie;
++	struct page *page;
++	size_t end = index + count;
++
++	mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
++
++	for (; index < end; index++) {
++		page = NULL;
++		cookie = dax_lock_mapping_entry(mapping, index, &page);
++		if (!cookie)
++			return -EBUSY;
++		if (!page)
++			goto unlock;
++
++		SetPageHWPoison(page);
++
++		collect_procs_fsdax(page, mapping, index, &to_kill);
++		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
++				index, mf_flags);
++unlock:
++		dax_unlock_mapping_entry(mapping, index, cookie);
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mf_dax_kill_procs);
++#endif /* CONFIG_FS_DAX */
++
+ /*
+  * Called from hugetlb code with hugetlb_lock held.
+  *
 _
 
 Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
