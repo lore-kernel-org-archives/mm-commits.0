@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18C22C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F222FC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232934AbiGRARS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:17:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56984 "EHLO
+        id S233064AbiGRARm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:17:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232300AbiGRARF (ORCPT
+        with ESMTP id S233068AbiGRARF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:17:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 912C695BD
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:52 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B245B11C38
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CE29560F42
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 295A3C3411E;
-        Mon, 18 Jul 2022 00:16:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4C32E60F43
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A290AC3411E;
+        Mon, 18 Jul 2022 00:16:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103411;
-        bh=mxQnG7B3OcxlMKSze2QOAGs+iRy/zRe4PJeQtGUw57o=;
+        s=korg; t=1658103414;
+        bh=1/o4yE+ElCzkRHGoukC2stPZwDFxycBls31fp2SorGw=;
         h=Date:To:From:Subject:From;
-        b=ox85BmE27R5eKUnotVo2m8hr1nMH8FnO9H51k1xgCTG6Lt3vJbki+vSBnc8q788j9
-         d1DDevGznM56OLTu/SP54QBluwjUqYvR6GmuHbPaf94pGiYaZHgnQWefxk0CwqB4Dn
-         FkSxrBnaw+2RsuJfI3w87wcpPRGgV0B+JmLjP+Qk=
-Date:   Sun, 17 Jul 2022 17:16:50 -0700
+        b=Rcty9w7Q2XCUzxswAE16UlsicGyq7lZ27eV+yRdtZcy5yusPzKeZO19XZKvd72YL+
+         rxggQh37c+PHW215EKgmnL1IHpchmdQbtuhowW/7iUHZVsEK9gCNEofyOYsfP7scZL
+         U5M3ETEhl56oTS6KArnPbti2zoxEdAn+U7jMJx/I=
+Date:   Sun, 17 Jul 2022 17:16:54 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, riteshh@linux.ibm.com, rgoldwyn@suse.de,
         rgoldwyn@suse.com, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         dan.j.wiliams@intel.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fsdax-introduce-dax_iomap_cow_copy.patch removed from -mm tree
-Message-Id: <20220718001651.295A3C3411E@smtp.kernel.org>
+Subject: [merged mm-stable] fsdax-dedup-file-range-to-use-a-compare-function.patch removed from -mm tree
+Message-Id: <20220718001654.A290AC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,37 +46,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fsdax: introduce dax_iomap_cow_copy()
+     Subject: fsdax: dedup file range to use a compare function
 has been removed from the -mm tree.  Its filename was
-     fsdax-introduce-dax_iomap_cow_copy.patch
+     fsdax-dedup-file-range-to-use-a-compare-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: fsdax: introduce dax_iomap_cow_copy()
-Date: Fri, 3 Jun 2022 13:37:33 +0800
+Subject: fsdax: dedup file range to use a compare function
+Date: Fri, 3 Jun 2022 13:37:36 +0800
 
-In the case where the iomap is a write operation and iomap is not equal to
-srcmap after iomap_begin, we consider it is a CoW operation.
+With dax we cannot deal with readpage() etc.  So, we create a dax
+comparison function which is similar with vfs_dedupe_file_range_compare().
+And introduce dax_remap_file_range_prep() for filesystem use.
 
-In this case, the destination (iomap->addr) points to a newly allocated
-extent.  It is needed to copy the data from srcmap to the extent.  In
-theory, it is better to copy the head and tail ranges which is outside of
-the non-aligned area instead of copying the whole aligned range.  But in
-dax page fault, it will always be an aligned range.  So copy the whole
-range in this case.
-
-Link: https://lkml.kernel.org/r/20220603053738.1218681-10-ruansy.fnst@fujitsu.com
+Link: https://lkml.kernel.org/r/20220603053738.1218681-13-ruansy.fnst@fujitsu.com
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Dan Williams <dan.j.wiliams@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
 Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -86,173 +80,224 @@ Cc: Ritesh Harjani <riteshh@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   88 +++++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 83 insertions(+), 5 deletions(-)
+ fs/dax.c             |   82 +++++++++++++++++++++++++++++++++++++++++
+ fs/remap_range.c     |   31 +++++++++++++--
+ fs/xfs/xfs_reflink.c |    8 +++-
+ include/linux/dax.h  |    8 ++++
+ include/linux/fs.h   |   12 ++++--
+ 5 files changed, 130 insertions(+), 11 deletions(-)
 
---- a/fs/dax.c~fsdax-introduce-dax_iomap_cow_copy
+--- a/fs/dax.c~fsdax-dedup-file-range-to-use-a-compare-function
 +++ a/fs/dax.c
-@@ -1062,6 +1062,60 @@ out:
- 	return rc;
+@@ -1873,3 +1873,85 @@ vm_fault_t dax_finish_sync_fault(struct
+ 	return dax_insert_pfn_mkwrite(vmf, pfn, order);
  }
- 
-+/**
-+ * dax_iomap_cow_copy - Copy the data from source to destination before write
-+ * @pos:	address to do copy from.
-+ * @length:	size of copy operation.
-+ * @align_size:	aligned w.r.t align_size (either PMD_SIZE or PAGE_SIZE)
-+ * @srcmap:	iomap srcmap
-+ * @daddr:	destination address to copy to.
-+ *
-+ * This can be called from two places. Either during DAX write fault (page
-+ * aligned), to copy the length size data to daddr. Or, while doing normal DAX
-+ * write operation, dax_iomap_actor() might call this to do the copy of either
-+ * start or end unaligned address. In the latter case the rest of the copy of
-+ * aligned ranges is taken care by dax_iomap_actor() itself.
-+ */
-+static int dax_iomap_cow_copy(loff_t pos, uint64_t length, size_t align_size,
-+		const struct iomap *srcmap, void *daddr)
+ EXPORT_SYMBOL_GPL(dax_finish_sync_fault);
++
++static loff_t dax_range_compare_iter(struct iomap_iter *it_src,
++		struct iomap_iter *it_dest, u64 len, bool *same)
 +{
-+	loff_t head_off = pos & (align_size - 1);
-+	size_t size = ALIGN(head_off + length, align_size);
-+	loff_t end = pos + length;
-+	loff_t pg_end = round_up(end, align_size);
-+	bool copy_all = head_off == 0 && end == pg_end;
-+	void *saddr = 0;
-+	int ret = 0;
++	const struct iomap *smap = &it_src->iomap;
++	const struct iomap *dmap = &it_dest->iomap;
++	loff_t pos1 = it_src->pos, pos2 = it_dest->pos;
++	void *saddr, *daddr;
++	int id, ret;
 +
-+	ret = dax_iomap_direct_access(srcmap, pos, size, &saddr, NULL);
-+	if (ret)
-+		return ret;
++	len = min(len, min(smap->length, dmap->length));
 +
-+	if (copy_all) {
-+		ret = copy_mc_to_kernel(daddr, saddr, length);
-+		return ret ? -EIO : 0;
++	if (smap->type == IOMAP_HOLE && dmap->type == IOMAP_HOLE) {
++		*same = true;
++		return len;
 +	}
 +
-+	/* Copy the head part of the range */
-+	if (head_off) {
-+		ret = copy_mc_to_kernel(daddr, saddr, head_off);
-+		if (ret)
-+			return -EIO;
++	if (smap->type == IOMAP_HOLE || dmap->type == IOMAP_HOLE) {
++		*same = false;
++		return 0;
 +	}
 +
-+	/* Copy the tail part of the range */
-+	if (end < pg_end) {
-+		loff_t tail_off = head_off + length;
-+		loff_t tail_len = pg_end - end;
++	id = dax_read_lock();
++	ret = dax_iomap_direct_access(smap, pos1, ALIGN(pos1 + len, PAGE_SIZE),
++				      &saddr, NULL);
++	if (ret < 0)
++		goto out_unlock;
 +
-+		ret = copy_mc_to_kernel(daddr + tail_off, saddr + tail_off,
-+					tail_len);
-+		if (ret)
-+			return -EIO;
-+	}
-+	return 0;
++	ret = dax_iomap_direct_access(dmap, pos2, ALIGN(pos2 + len, PAGE_SIZE),
++				      &daddr, NULL);
++	if (ret < 0)
++		goto out_unlock;
++
++	*same = !memcmp(saddr, daddr, len);
++	if (!*same)
++		len = 0;
++	dax_read_unlock(id);
++	return len;
++
++out_unlock:
++	dax_read_unlock(id);
++	return -EIO;
 +}
 +
- /*
-  * The user has performed a load from a hole in the file.  Allocating a new
-  * page in the file would cause excessive storage usage for workloads with
-@@ -1232,15 +1286,17 @@ static loff_t dax_iomap_iter(const struc
- 		struct iov_iter *iter)
- {
- 	const struct iomap *iomap = &iomi->iomap;
-+	const struct iomap *srcmap = &iomi->srcmap;
- 	loff_t length = iomap_length(iomi);
- 	loff_t pos = iomi->pos;
- 	struct dax_device *dax_dev = iomap->dax_dev;
- 	loff_t end = pos + length, done = 0;
-+	bool write = iov_iter_rw(iter) == WRITE;
- 	ssize_t ret = 0;
- 	size_t xfer;
- 	int id;
- 
--	if (iov_iter_rw(iter) == READ) {
-+	if (!write) {
- 		end = min(end, i_size_read(iomi->inode));
- 		if (pos >= end)
- 			return 0;
-@@ -1249,7 +1305,12 @@ static loff_t dax_iomap_iter(const struc
- 			return iov_iter_zero(min(length, end - pos), iter);
- 	}
- 
--	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
-+	/*
-+	 * In DAX mode, enforce either pure overwrites of written extents, or
-+	 * writes to unwritten extents as part of a copy-on-write operation.
-+	 */
-+	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED &&
-+			!(iomap->flags & IOMAP_F_SHARED)))
- 		return -EIO;
- 
- 	/*
-@@ -1291,6 +1352,14 @@ static loff_t dax_iomap_iter(const struc
- 			break;
- 		}
- 
-+		if (write &&
-+		    srcmap->type != IOMAP_HOLE && srcmap->addr != iomap->addr) {
-+			ret = dax_iomap_cow_copy(pos, length, PAGE_SIZE, srcmap,
-+						 kaddr);
-+			if (ret)
-+				break;
++int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
++		struct inode *dst, loff_t dstoff, loff_t len, bool *same,
++		const struct iomap_ops *ops)
++{
++	struct iomap_iter src_iter = {
++		.inode		= src,
++		.pos		= srcoff,
++		.len		= len,
++		.flags		= IOMAP_DAX,
++	};
++	struct iomap_iter dst_iter = {
++		.inode		= dst,
++		.pos		= dstoff,
++		.len		= len,
++		.flags		= IOMAP_DAX,
++	};
++	int ret;
++
++	while ((ret = iomap_iter(&src_iter, ops)) > 0) {
++		while ((ret = iomap_iter(&dst_iter, ops)) > 0) {
++			dst_iter.processed = dax_range_compare_iter(&src_iter,
++						&dst_iter, len, same);
 +		}
-+
- 		map_len = PFN_PHYS(map_len);
- 		kaddr += offset;
- 		map_len -= offset;
-@@ -1300,7 +1369,7 @@ static loff_t dax_iomap_iter(const struc
- 		if (recovery)
- 			xfer = dax_recovery_write(dax_dev, pgoff, kaddr,
- 					map_len, iter);
--		else if (iov_iter_rw(iter) == WRITE)
-+		else if (write)
- 			xfer = dax_copy_from_iter(dax_dev, pgoff, kaddr,
- 					map_len, iter);
- 		else
-@@ -1440,6 +1509,7 @@ static vm_fault_t dax_fault_iter(struct
- {
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	const struct iomap *iomap = &iter->iomap;
-+	const struct iomap *srcmap = &iter->srcmap;
- 	size_t size = pmd ? PMD_SIZE : PAGE_SIZE;
- 	loff_t pos = (loff_t)xas->xa_index << PAGE_SHIFT;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-@@ -1447,6 +1517,7 @@ static vm_fault_t dax_fault_iter(struct
- 	unsigned long entry_flags = pmd ? DAX_PMD : 0;
- 	int err = 0;
- 	pfn_t pfn;
-+	void *kaddr;
- 
- 	if (!pmd && vmf->cow_page)
- 		return dax_fault_cow_page(vmf, iter);
-@@ -1459,18 +1530,25 @@ static vm_fault_t dax_fault_iter(struct
- 		return dax_pmd_load_hole(xas, vmf, iomap, entry);
- 	}
- 
--	if (iomap->type != IOMAP_MAPPED) {
-+	if (iomap->type != IOMAP_MAPPED && !(iomap->flags & IOMAP_F_SHARED)) {
- 		WARN_ON_ONCE(1);
- 		return pmd ? VM_FAULT_FALLBACK : VM_FAULT_SIGBUS;
- 	}
- 
--	err = dax_iomap_direct_access(&iter->iomap, pos, size, NULL, &pfn);
-+	err = dax_iomap_direct_access(iomap, pos, size, &kaddr, &pfn);
- 	if (err)
- 		return pmd ? VM_FAULT_FALLBACK : dax_fault_return(err);
- 
- 	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn, entry_flags,
- 				  write && !sync);
- 
-+	if (write &&
-+	    srcmap->type != IOMAP_HOLE && srcmap->addr != iomap->addr) {
-+		err = dax_iomap_cow_copy(pos, size, size, srcmap, kaddr);
-+		if (err)
-+			return dax_fault_return(err);
++		if (ret <= 0)
++			src_iter.processed = ret;
 +	}
++	return ret;
++}
 +
- 	if (sync)
- 		return dax_fault_synchronous_pfnp(pfnp, pfn);
++int dax_remap_file_range_prep(struct file *file_in, loff_t pos_in,
++			      struct file *file_out, loff_t pos_out,
++			      loff_t *len, unsigned int remap_flags,
++			      const struct iomap_ops *ops)
++{
++	return __generic_remap_file_range_prep(file_in, pos_in, file_out,
++					       pos_out, len, remap_flags, ops);
++}
++EXPORT_SYMBOL_GPL(dax_remap_file_range_prep);
+--- a/fs/remap_range.c~fsdax-dedup-file-range-to-use-a-compare-function
++++ a/fs/remap_range.c
+@@ -14,6 +14,7 @@
+ #include <linux/compat.h>
+ #include <linux/mount.h>
+ #include <linux/fs.h>
++#include <linux/dax.h>
+ #include "internal.h"
  
+ #include <linux/uaccess.h>
+@@ -271,9 +272,11 @@ out_error:
+  * If there's an error, then the usual negative error code is returned.
+  * Otherwise returns 0 with *len set to the request length.
+  */
+-int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+-				  struct file *file_out, loff_t pos_out,
+-				  loff_t *len, unsigned int remap_flags)
++int
++__generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
++				struct file *file_out, loff_t pos_out,
++				loff_t *len, unsigned int remap_flags,
++				const struct iomap_ops *dax_read_ops)
+ {
+ 	struct inode *inode_in = file_inode(file_in);
+ 	struct inode *inode_out = file_inode(file_out);
+@@ -333,8 +336,18 @@ int generic_remap_file_range_prep(struct
+ 	if (remap_flags & REMAP_FILE_DEDUP) {
+ 		bool		is_same = false;
+ 
+-		ret = vfs_dedupe_file_range_compare(file_in, pos_in,
+-				file_out, pos_out, *len, &is_same);
++		if (*len == 0)
++			return 0;
++
++		if (!IS_DAX(inode_in))
++			ret = vfs_dedupe_file_range_compare(file_in, pos_in,
++					file_out, pos_out, *len, &is_same);
++		else if (dax_read_ops)
++			ret = dax_dedupe_file_range_compare(inode_in, pos_in,
++					inode_out, pos_out, *len, &is_same,
++					dax_read_ops);
++		else
++			return -EINVAL;
+ 		if (ret)
+ 			return ret;
+ 		if (!is_same)
+@@ -352,6 +365,14 @@ int generic_remap_file_range_prep(struct
+ 
+ 	return ret;
+ }
++
++int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
++				  struct file *file_out, loff_t pos_out,
++				  loff_t *len, unsigned int remap_flags)
++{
++	return __generic_remap_file_range_prep(file_in, pos_in, file_out,
++					       pos_out, len, remap_flags, NULL);
++}
+ EXPORT_SYMBOL(generic_remap_file_range_prep);
+ 
+ loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+--- a/fs/xfs/xfs_reflink.c~fsdax-dedup-file-range-to-use-a-compare-function
++++ a/fs/xfs/xfs_reflink.c
+@@ -1367,8 +1367,12 @@ xfs_reflink_remap_prep(
+ 	if (IS_DAX(inode_in) || IS_DAX(inode_out))
+ 		goto out_unlock;
+ 
+-	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
+-			len, remap_flags);
++	if (!IS_DAX(inode_in))
++		ret = generic_remap_file_range_prep(file_in, pos_in, file_out,
++				pos_out, len, remap_flags);
++	else
++		ret = dax_remap_file_range_prep(file_in, pos_in, file_out,
++				pos_out, len, remap_flags, &xfs_read_iomap_ops);
+ 	if (ret || *len == 0)
+ 		goto out_unlock;
+ 
+--- a/include/linux/dax.h~fsdax-dedup-file-range-to-use-a-compare-function
++++ a/include/linux/dax.h
+@@ -246,6 +246,14 @@ vm_fault_t dax_finish_sync_fault(struct
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+ 				      pgoff_t index);
++int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
++				  struct inode *dest, loff_t destoff,
++				  loff_t len, bool *is_same,
++				  const struct iomap_ops *ops);
++int dax_remap_file_range_prep(struct file *file_in, loff_t pos_in,
++			      struct file *file_out, loff_t pos_out,
++			      loff_t *len, unsigned int remap_flags,
++			      const struct iomap_ops *ops);
+ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+--- a/include/linux/fs.h~fsdax-dedup-file-range-to-use-a-compare-function
++++ a/include/linux/fs.h
+@@ -74,6 +74,7 @@ struct fsverity_operations;
+ struct fs_context;
+ struct fs_parameter_spec;
+ struct fileattr;
++struct iomap_ops;
+ 
+ extern void __init inode_init(void);
+ extern void __init inode_init_early(void);
+@@ -2070,10 +2071,13 @@ extern ssize_t vfs_copy_file_range(struc
+ extern ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
+ 				       struct file *file_out, loff_t pos_out,
+ 				       size_t len, unsigned int flags);
+-extern int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+-					 struct file *file_out, loff_t pos_out,
+-					 loff_t *count,
+-					 unsigned int remap_flags);
++int __generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
++				    struct file *file_out, loff_t pos_out,
++				    loff_t *len, unsigned int remap_flags,
++				    const struct iomap_ops *dax_read_ops);
++int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
++				  struct file *file_out, loff_t pos_out,
++				  loff_t *count, unsigned int remap_flags);
+ extern loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+ 				  struct file *file_out, loff_t pos_out,
+ 				  loff_t len, unsigned int remap_flags);
 _
 
 Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
