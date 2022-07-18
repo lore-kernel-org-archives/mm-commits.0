@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEBA5CCA485
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A90C3CCA480
 	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:19:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232987AbiGRATO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232908AbiGRATO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 17 Jul 2022 20:19:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57652 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233250AbiGRASN (ORCPT
+        with ESMTP id S233254AbiGRASN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:18:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 647F313E14
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:38 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92C2E13E1A
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 00DA8B80EE8
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80970C3411E;
-        Mon, 18 Jul 2022 00:17:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 30F8160EED
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80D5CC3411E;
+        Mon, 18 Jul 2022 00:17:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103455;
-        bh=i7aeI5J0sL1DEPhMT5Qx5XdIN8c5ubwJKrq5mwrfXU4=;
+        s=korg; t=1658103458;
+        bh=uHdSt5rsiaUzu34nHyB6ekBTykQrQa6rDX2o9N0i/ow=;
         h=Date:To:From:Subject:From;
-        b=Rvs4XWPcke26ORYvgXL1aO/DDuJ/mXPMfB6HEq0iHoK1BaVpguRwq6jUeEm2lO0pC
-         ZEgv81UYuLc+45yKTjal1NU24dLChJPTfb4AXYZelN7uTgrOhdz6B8t1jZZoAp1TJY
-         Rv3VUXBU1v5OIyuaIWtKJ7aKmwhB7xqP4W7n5Mj4=
-Date:   Sun, 17 Jul 2022 17:17:34 -0700
+        b=PwWiWJtiFqag3w3wyvH1u/bfvZTBRFRzv03Mq1TSMG8ExAZuSg1kMGznH09sUOGFe
+         FBEe4a4p/zA79l02ZEQP5EVIr04CD955i/vyzFKnLMOS9fmA8+kiU6pfuS6Z7XsF11
+         bxeei/Y8lZ9DODKFuG9XD7ZpywF5S4wHbNWJMUnI=
+Date:   Sun, 17 Jul 2022 17:17:37 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         will@kernel.org, vgupta@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, shorne@gmail.com, sam@ravnborg.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, bcain@quicinc.com, arnd@arndb.de,
         anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-mm-move-protection_map-inside-the-platform.patch removed from -mm tree
-Message-Id: <20220718001735.80970C3411E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-build-protect-protection_map-with-arch_has_vm_get_page_prot.patch removed from -mm tree
+Message-Id: <20220718001738.80D5CC3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,28 +53,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: arm64/mm: move protection_map[] inside the platform
+     Subject: mm/mmap: build protect protection_map[] with ARCH_HAS_VM_GET_PAGE_PROT
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-move-protection_map-inside-the-platform.patch
+     mm-mmap-build-protect-protection_map-with-arch_has_vm_get_page_prot.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: arm64/mm: move protection_map[] inside the platform
-Date: Mon, 11 Jul 2022 12:35:39 +0530
+Subject: mm/mmap: build protect protection_map[] with ARCH_HAS_VM_GET_PAGE_PROT
+Date: Mon, 11 Jul 2022 12:35:41 +0530
 
-This moves protection_map[] inside the platform and makes it a static.
+Now that protection_map[] has been moved inside those platforms that
+enable ARCH_HAS_VM_GET_PAGE_PROT.  Hence generic protection_map[] array
+now can be protected with CONFIG_ARCH_HAS_VM_GET_PAGE_PROT intead of
+__P000.
 
-Link: https://lkml.kernel.org/r/20220711070600.2378316-6-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20220711070600.2378316-8-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chris Zankel <chris@zankel.net>
@@ -104,71 +105,47 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Will Deacon <will@kernel.org>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable-prot.h |   18 ------------------
- arch/arm64/mm/mmap.c                  |   21 +++++++++++++++++++++
- 2 files changed, 21 insertions(+), 18 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/mmap.c          |    5 +----
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable-prot.h~arm64-mm-move-protection_map-inside-the-platform
-+++ a/arch/arm64/include/asm/pgtable-prot.h
-@@ -89,24 +89,6 @@ extern bool arm64_use_ng_mappings;
- #define PAGE_READONLY_EXEC	__pgprot(_PAGE_DEFAULT | PTE_USER | PTE_RDONLY | PTE_NG | PTE_PXN)
- #define PAGE_EXECONLY		__pgprot(_PAGE_DEFAULT | PTE_RDONLY | PTE_NG | PTE_PXN)
+--- a/include/linux/mm.h~mm-mmap-build-protect-protection_map-with-arch_has_vm_get_page_prot
++++ a/include/linux/mm.h
+@@ -425,7 +425,7 @@ extern unsigned int kobjsize(const void
+  * mapping from the currently active vm_flags protection bits (the
+  * low four bits) to a page protection mask..
+  */
+-#ifdef __P000
++#ifndef CONFIG_ARCH_HAS_VM_GET_PAGE_PROT
+ extern pgprot_t protection_map[16];
+ #endif
  
--#define __P000  PAGE_NONE
--#define __P001  PAGE_READONLY
--#define __P010  PAGE_READONLY
--#define __P011  PAGE_READONLY
--#define __P100  PAGE_READONLY_EXEC	/* PAGE_EXECONLY if Enhanced PAN */
--#define __P101  PAGE_READONLY_EXEC
--#define __P110  PAGE_READONLY_EXEC
--#define __P111  PAGE_READONLY_EXEC
+--- a/mm/mmap.c~mm-mmap-build-protect-protection_map-with-arch_has_vm_get_page_prot
++++ a/mm/mmap.c
+@@ -81,7 +81,7 @@ static void unmap_region(struct mm_struc
+ 		struct vm_area_struct *vma, struct vm_area_struct *prev,
+ 		unsigned long start, unsigned long end);
+ 
+-#ifdef __P000
++#ifndef CONFIG_ARCH_HAS_VM_GET_PAGE_PROT
+ pgprot_t protection_map[16] __ro_after_init = {
+ 	[VM_NONE]					= __P000,
+ 	[VM_READ]					= __P001,
+@@ -100,9 +100,6 @@ pgprot_t protection_map[16] __ro_after_i
+ 	[VM_SHARED | VM_EXEC | VM_WRITE]		= __S110,
+ 	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= __S111
+ };
+-#endif
 -
--#define __S000  PAGE_NONE
--#define __S001  PAGE_READONLY
--#define __S010  PAGE_SHARED
--#define __S011  PAGE_SHARED
--#define __S100  PAGE_READONLY_EXEC	/* PAGE_EXECONLY if Enhanced PAN */
--#define __S101  PAGE_READONLY_EXEC
--#define __S110  PAGE_SHARED_EXEC
--#define __S111  PAGE_SHARED_EXEC
--
- #endif /* __ASSEMBLY__ */
+-#ifndef CONFIG_ARCH_HAS_VM_GET_PAGE_PROT
+ DECLARE_VM_GET_PAGE_PROT
+ #endif	/* CONFIG_ARCH_HAS_VM_GET_PAGE_PROT */
  
- #endif /* __ASM_PGTABLE_PROT_H */
---- a/arch/arm64/mm/mmap.c~arm64-mm-move-protection_map-inside-the-platform
-+++ a/arch/arm64/mm/mmap.c
-@@ -13,6 +13,27 @@
- #include <asm/cpufeature.h>
- #include <asm/page.h>
- 
-+static pgprot_t protection_map[16] __ro_after_init = {
-+	[VM_NONE]					= PAGE_NONE,
-+	[VM_READ]					= PAGE_READONLY,
-+	[VM_WRITE]					= PAGE_READONLY,
-+	[VM_WRITE | VM_READ]				= PAGE_READONLY,
-+	/* PAGE_EXECONLY if Enhanced PAN */
-+	[VM_EXEC]					= PAGE_READONLY_EXEC,
-+	[VM_EXEC | VM_READ]				= PAGE_READONLY_EXEC,
-+	[VM_EXEC | VM_WRITE]				= PAGE_READONLY_EXEC,
-+	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_READONLY_EXEC,
-+	[VM_SHARED]					= PAGE_NONE,
-+	[VM_SHARED | VM_READ]				= PAGE_READONLY,
-+	[VM_SHARED | VM_WRITE]				= PAGE_SHARED,
-+	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_SHARED,
-+	/* PAGE_EXECONLY if Enhanced PAN */
-+	[VM_SHARED | VM_EXEC]				= PAGE_READONLY_EXEC,
-+	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_READONLY_EXEC,
-+	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_SHARED_EXEC,
-+	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_SHARED_EXEC
-+};
-+
- /*
-  * You really shouldn't be using read() or write() on /dev/mem.  This might go
-  * away in the future.
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
