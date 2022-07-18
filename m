@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51311C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:20:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93B11CCA481
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:20:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233172AbiGRAUE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:20:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58046 "EHLO
+        id S233192AbiGRAUF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:20:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58050 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233183AbiGRASa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:18:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F316713E3E
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:54 -0700 (PDT)
+        with ESMTP id S233190AbiGRASb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:18:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5389613F10
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 76E98B80E27
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23C6EC3411E;
-        Mon, 18 Jul 2022 00:17:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E35D760F46
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36983C3411E;
+        Mon, 18 Jul 2022 00:17:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103472;
-        bh=TvEHdPpLKExBB3t+IkGMueWHiL96XyDOl9h6ttbMQpU=;
+        s=korg; t=1658103475;
+        bh=AvXQAHixcgOmN6V2EEsAHGOhaf6T5v+cNCwEwtEZ4P0=;
         h=Date:To:From:Subject:From;
-        b=TCsQ7EMpsIoXoHlaLA6XK2+rCRbLRp1XCv9k5jnQPWfiXSWSU+ObI3+okVLTxPra5
-         2ovxC3udST7o+idG/14iipmP8o0/5ChXCTv5MYJs3fufWCP/P33eF7sOiuBS6yZcV5
-         /h5i15liMsZ2GiIMF+7lJtVaPkvLiqX7mUpd3Tjc=
-Date:   Sun, 17 Jul 2022 17:17:51 -0700
+        b=2rcsPoeXJDY9MfofoQCdS2dVrVflj0JRH+yPyfHezkXn5g341HKwwgbeEVVxGsxyr
+         Svx0GwYYf/esAg4qSQpCCEU5RHP5+yc2k+QpV+mFWD5zld0KKW19HuJr8QtrHj7KFc
+         IpiKUMI79G28P+OFKJQ7bb9PmtcnKan0SsHXK/WE=
+Date:   Sun, 17 Jul 2022 17:17:54 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         will@kernel.org, vgupta@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, shorne@gmail.com, sam@ravnborg.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, bcain@quicinc.com, arnd@arndb.de,
         anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] riscv-mm-enable-arch_has_vm_get_page_prot.patch removed from -mm tree
-Message-Id: <20220718001752.23C6EC3411E@smtp.kernel.org>
+Subject: [merged mm-stable] s390-mm-enable-arch_has_vm_get_page_prot.patch removed from -mm tree
+Message-Id: <20220718001755.36983C3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,27 +53,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: riscv/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+     Subject: s390/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
 has been removed from the -mm tree.  Its filename was
-     riscv-mm-enable-arch_has_vm_get_page_prot.patch
+     s390-mm-enable-arch_has_vm_get_page_prot.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: riscv/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
-Date: Mon, 11 Jul 2022 12:35:50 +0530
+Subject: s390/mm: enable ARCH_HAS_VM_GET_PAGE_PROT
+Date: Mon, 11 Jul 2022 12:35:52 +0530
 
 This enables ARCH_HAS_VM_GET_PAGE_PROT on the platform and exports
 standard vm_get_page_prot() implementation via DECLARE_VM_GET_PAGE_PROT,
 which looks up a private and static protection_map[] array.  Subsequently
 all __SXXX and __PXXX macros can be dropped which are no longer needed.
 
-Link: https://lkml.kernel.org/r/20220711070600.2378316-17-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20220711070600.2378316-19-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -85,7 +85,6 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Guo Ren <guoren@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
@@ -94,7 +93,9 @@ Cc: Jonas Bonn <jonas@southpole.se>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Simek <monstr@monstr.eu>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Rich Felker <dalias@libc.org>
 Cc: Russell King <linux@armlinux.org.uk>
@@ -102,7 +103,6 @@ Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Stafford Horne <shorne@gmail.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
@@ -110,79 +110,73 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig               |    1 +
- arch/riscv/include/asm/pgtable.h |   20 --------------------
- arch/riscv/mm/init.c             |   20 ++++++++++++++++++++
- 3 files changed, 21 insertions(+), 20 deletions(-)
+ arch/s390/Kconfig               |    1 +
+ arch/s390/include/asm/pgtable.h |   17 -----------------
+ arch/s390/mm/mmap.c             |   20 ++++++++++++++++++++
+ 3 files changed, 21 insertions(+), 17 deletions(-)
 
---- a/arch/riscv/include/asm/pgtable.h~riscv-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -186,26 +186,6 @@ extern struct pt_alloc_ops pt_ops __init
- 
- extern pgd_t swapper_pg_dir[];
- 
--/* MAP_PRIVATE permissions: xwr (copy-on-write) */
+--- a/arch/s390/include/asm/pgtable.h~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/include/asm/pgtable.h
+@@ -424,23 +424,6 @@ static inline int is_module_addr(void *a
+  * implies read permission.
+  */
+          /*xwr*/
 -#define __P000	PAGE_NONE
--#define __P001	PAGE_READ
--#define __P010	PAGE_COPY
--#define __P011	PAGE_COPY
--#define __P100	PAGE_EXEC
--#define __P101	PAGE_READ_EXEC
--#define __P110	PAGE_COPY_EXEC
--#define __P111	PAGE_COPY_READ_EXEC
+-#define __P001	PAGE_RO
+-#define __P010	PAGE_RO
+-#define __P011	PAGE_RO
+-#define __P100	PAGE_RX
+-#define __P101	PAGE_RX
+-#define __P110	PAGE_RX
+-#define __P111	PAGE_RX
 -
--/* MAP_SHARED permissions: xwr */
 -#define __S000	PAGE_NONE
--#define __S001	PAGE_READ
--#define __S010	PAGE_SHARED
--#define __S011	PAGE_SHARED
--#define __S100	PAGE_EXEC
--#define __S101	PAGE_READ_EXEC
--#define __S110	PAGE_SHARED_EXEC
--#define __S111	PAGE_SHARED_EXEC
--
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline int pmd_present(pmd_t pmd)
- {
---- a/arch/riscv/Kconfig~riscv-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/riscv/Kconfig
-@@ -32,6 +32,7 @@ config RISCV
- 	select ARCH_HAS_STRICT_MODULE_RWX if MMU && !XIP_KERNEL
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAS_UBSAN_SANITIZE_ALL
-+	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select ARCH_OPTIONAL_KERNEL_RWX if ARCH_HAS_STRICT_KERNEL_RWX
- 	select ARCH_OPTIONAL_KERNEL_RWX_DEFAULT
- 	select ARCH_STACKWALK
---- a/arch/riscv/mm/init.c~riscv-mm-enable-arch_has_vm_get_page_prot
-+++ a/arch/riscv/mm/init.c
-@@ -288,6 +288,26 @@ static pmd_t __maybe_unused early_dtb_pm
- #define early_pg_dir           ((pgd_t *)XIP_FIXUP(early_pg_dir))
- #endif /* CONFIG_XIP_KERNEL */
+-#define __S001	PAGE_RO
+-#define __S010	PAGE_RW
+-#define __S011	PAGE_RW
+-#define __S100	PAGE_RX
+-#define __S101	PAGE_RX
+-#define __S110	PAGE_RWX
+-#define __S111	PAGE_RWX
  
+ /*
+  * Segment entry (large page) protection definitions.
+--- a/arch/s390/Kconfig~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/Kconfig
+@@ -81,6 +81,7 @@ config S390
+ 	select ARCH_HAS_SYSCALL_WRAPPER
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+ 	select ARCH_HAS_VDSO_DATA
++	select ARCH_HAS_VM_GET_PAGE_PROT
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_INLINE_READ_LOCK
+ 	select ARCH_INLINE_READ_LOCK_BH
+--- a/arch/s390/mm/mmap.c~s390-mm-enable-arch_has_vm_get_page_prot
++++ a/arch/s390/mm/mmap.c
+@@ -188,3 +188,23 @@ void arch_pick_mmap_layout(struct mm_str
+ 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
+ 	}
+ }
++
 +static const pgprot_t protection_map[16] = {
 +	[VM_NONE]					= PAGE_NONE,
-+	[VM_READ]					= PAGE_READ,
-+	[VM_WRITE]					= PAGE_COPY,
-+	[VM_WRITE | VM_READ]				= PAGE_COPY,
-+	[VM_EXEC]					= PAGE_EXEC,
-+	[VM_EXEC | VM_READ]				= PAGE_READ_EXEC,
-+	[VM_EXEC | VM_WRITE]				= PAGE_COPY_EXEC,
-+	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_COPY_READ_EXEC,
++	[VM_READ]					= PAGE_RO,
++	[VM_WRITE]					= PAGE_RO,
++	[VM_WRITE | VM_READ]				= PAGE_RO,
++	[VM_EXEC]					= PAGE_RX,
++	[VM_EXEC | VM_READ]				= PAGE_RX,
++	[VM_EXEC | VM_WRITE]				= PAGE_RX,
++	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_RX,
 +	[VM_SHARED]					= PAGE_NONE,
-+	[VM_SHARED | VM_READ]				= PAGE_READ,
-+	[VM_SHARED | VM_WRITE]				= PAGE_SHARED,
-+	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_SHARED,
-+	[VM_SHARED | VM_EXEC]				= PAGE_EXEC,
-+	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_READ_EXEC,
-+	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_SHARED_EXEC,
-+	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_SHARED_EXEC
++	[VM_SHARED | VM_READ]				= PAGE_RO,
++	[VM_SHARED | VM_WRITE]				= PAGE_RW,
++	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_RW,
++	[VM_SHARED | VM_EXEC]				= PAGE_RX,
++	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_RX,
++	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_RWX,
++	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_RWX
 +};
 +DECLARE_VM_GET_PAGE_PROT
-+
- void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t prot)
- {
- 	unsigned long addr = __fix_to_virt(idx);
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
