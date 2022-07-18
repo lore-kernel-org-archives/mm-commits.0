@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60362C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:18:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2412DCCA480
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:18:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233206AbiGRASx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233000AbiGRASx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 17 Jul 2022 20:18:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58062 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233000AbiGRARn (ORCPT
+        with ESMTP id S232852AbiGRARn (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:17:43 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 822D513D4A
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:22 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D74D713D04
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:17:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3139DB80EE7
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD667C3411E;
-        Mon, 18 Jul 2022 00:17:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 59319B80EE6
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:17:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08E53C341C0;
+        Mon, 18 Jul 2022 00:17:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103439;
-        bh=91FJjWeJYzH+21Fw8poZ6JLhTgl3V2erP+UW545ePSI=;
+        s=korg; t=1658103441;
+        bh=owjkUYBOsPqe27X7Ymaq2IftS/88YnXoflllhVRch6c=;
         h=Date:To:From:Subject:From;
-        b=ylMxlURJtqjCjTjwy+z2EoWyeoUQ4YGDHyYZw4tr39mbzpLdnAMkC2ssdR+cy143E
-         Zikj2XGtPRt85kbsBo487Lv3N3piCFJetdSeJgbzgaV8P28vVwX8Z4UDMeT1VzhmU8
-         jIHSCANMJrezQGRuU6bqmwPJ9o0uLmZE1AQOBVEk=
-Date:   Sun, 17 Jul 2022 17:17:19 -0700
+        b=CaV5iTjZiwPfbcfLL8YGj7oO5E3M3dLH1gLkrIrUb16dU1dlQppXtJ3htzbEOauMh
+         6hCdFDWm1mRd+e0M5vnsF3d2GYRwO2ENT2jnMx+Knbk514DZQJXR5bY7kDmt17e4Ah
+         A3l5D4qvey4+fKhABifAYGDu6nKaq03c45eOmrgg=
+Date:   Sun, 17 Jul 2022 17:17:20 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, vbabka@suse.cz,
-        mtosatti@redhat.com, m.szyprowski@samsung.com, minchan@kernel.org,
-        mhocko@kernel.org, mgorman@techsingularity.net, hughd@google.com,
-        nsaenzju@redhat.com, akpm@linux-foundation.org
+        nsaenzju@redhat.com, mtosatti@redhat.com, m.szyprowski@samsung.com,
+        minchan@kernel.org, mhocko@kernel.org, hughd@google.com,
+        mgorman@techsingularity.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-remotely-drain-per-cpu-lists.patch removed from -mm tree
-Message-Id: <20220718001719.CD667C3411E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-replace-local_lock-with-normal-spinlock.patch removed from -mm tree
+Message-Id: <20220718001721.08E53C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,56 +43,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: remotely drain per-cpu lists
+     Subject: mm/page_alloc: replace local_lock with normal spinlock
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remotely-drain-per-cpu-lists.patch
+     mm-page_alloc-replace-local_lock-with-normal-spinlock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nicolas Saenz Julienne <nsaenzju@redhat.com>
-Subject: mm/page_alloc: remotely drain per-cpu lists
-Date: Fri, 24 Jun 2022 13:54:22 +0100
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: replace local_lock with normal spinlock
+Date: Fri, 24 Jun 2022 13:54:23 +0100
 
-Some setups, notably NOHZ_FULL CPUs, are too busy to handle the per-cpu
-drain work queued by __drain_all_pages().  So introduce a new mechanism to
-remotely drain the per-cpu lists.  It is made possible by remotely locking
-'struct per_cpu_pages' new per-cpu spinlocks.  A benefit of this new
-scheme is that drain operations are now migration safe.
+struct per_cpu_pages is no longer strictly local as PCP lists can be
+drained remotely using a lock for protection.  While the use of local_lock
+works, it goes against the intent of local_lock which is for "pure CPU
+local concurrency control mechanisms and not suited for inter-CPU
+concurrency control" (Documentation/locking/locktypes.rst)
 
-There was no observed performance degradation vs.  the previous scheme. 
-Both netperf and hackbench were run in parallel to triggering the
-__drain_all_pages(NULL, true) code path around ~100 times per second.  The
-new scheme performs a bit better (~5%), although the important point here
-is there are no performance regressions vs.  the previous mechanism. 
-Per-cpu lists draining happens only in slow paths.
+local_lock protects against migration between when the percpu pointer is
+accessed and the pcp->lock acquired.  The lock acquisition is a preemption
+point so in the worst case, a task could migrate to another NUMA node and
+accidentally allocate remote memory.  The main requirement is to pin the
+task to a CPU that is suitable for PREEMPT_RT and !PREEMPT_RT.
 
-Minchan Kim tested an earlier version and reported;
+Replace local_lock with helpers that pin a task to a CPU, lookup the
+per-cpu structure and acquire the embedded lock.  It's similar to
+local_lock without breaking the intent behind the API.  It is not a
+complete API as only the parts needed for PCP-alloc are implemented but in
+theory, the generic helpers could be promoted to a general API if there
+was demand for an embedded lock within a per-cpu struct with a guarantee
+that the per-cpu structure locked matches the running CPU and cannot use
+get_cpu_var due to RT concerns.  PCP requires these semantics to avoid
+accidentally allocating remote memory.
 
-	My workload is not NOHZ CPUs but run apps under heavy memory
-	pressure so they goes to direct reclaim and be stuck on
-	drain_all_pages until work on workqueue run.
-
-	unit: nanosecond
-	max(dur)        avg(dur)                count(dur)
-	166713013       487511.77786438033      1283
-
-	From traces, system encountered the drain_all_pages 1283 times and
-	worst case was 166ms and avg was 487us.
-
-	The other problem was alloc_contig_range in CMA. The PCP draining
-	takes several hundred millisecond sometimes though there is no
-	memory pressure or a few of pages to be migrated out but CPU were
-	fully booked.
-
-	Your patch perfectly removed those wasted time.
-
-Link: https://lkml.kernel.org/r/20220624125423.6126-7-mgorman@techsingularity.net
-Signed-off-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+[mgorman@techsingularity.net: use pcp_spin_trylock_irqsave instead of pcpu_spin_trylock_irqsave]
+  Link: https://lkml.kernel.org/r/20220627084645.GA27531@techsingularity.net
+Link: https://lkml.kernel.org/r/20220624125423.6126-8-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Tested-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
+Tested-by: Nicolas Saenz Julienne <nsaenzju@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
@@ -101,136 +94,272 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   58 +++-------------------------------------------
- 1 file changed, 4 insertions(+), 54 deletions(-)
+ mm/page_alloc.c |  140 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 95 insertions(+), 45 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remotely-drain-per-cpu-lists
+--- a/mm/page_alloc.c~mm-page_alloc-replace-local_lock-with-normal-spinlock
 +++ a/mm/page_alloc.c
-@@ -165,13 +165,7 @@ DEFINE_PER_CPU(int, _numa_mem_);		/* Ker
- EXPORT_PER_CPU_SYMBOL(_numa_mem_);
+@@ -126,13 +126,6 @@ typedef int __bitwise fpi_t;
+ static DEFINE_MUTEX(pcp_batch_high_lock);
+ #define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
+ 
+-struct pagesets {
+-	local_lock_t lock;
+-};
+-static DEFINE_PER_CPU(struct pagesets, pagesets) = {
+-	.lock = INIT_LOCAL_LOCK(lock),
+-};
+-
+ #if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT)
+ /*
+  * On SMP, spin_trylock is sufficient protection.
+@@ -147,6 +140,83 @@ static DEFINE_PER_CPU(struct pagesets, p
+ #define pcp_trylock_finish(flags)	local_irq_restore(flags)
  #endif
  
--/* work_structs for global per-cpu drains */
--struct pcpu_drain {
--	struct zone *zone;
--	struct work_struct work;
--};
- static DEFINE_MUTEX(pcpu_drain_mutex);
--static DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
++/*
++ * Locking a pcp requires a PCP lookup followed by a spinlock. To avoid
++ * a migration causing the wrong PCP to be locked and remote memory being
++ * potentially allocated, pin the task to the CPU for the lookup+lock.
++ * preempt_disable is used on !RT because it is faster than migrate_disable.
++ * migrate_disable is used on RT because otherwise RT spinlock usage is
++ * interfered with and a high priority task cannot preempt the allocator.
++ */
++#ifndef CONFIG_PREEMPT_RT
++#define pcpu_task_pin()		preempt_disable()
++#define pcpu_task_unpin()	preempt_enable()
++#else
++#define pcpu_task_pin()		migrate_disable()
++#define pcpu_task_unpin()	migrate_enable()
++#endif
++
++/*
++ * Generic helper to lookup and a per-cpu variable with an embedded spinlock.
++ * Return value should be used with equivalent unlock helper.
++ */
++#define pcpu_spin_lock(type, member, ptr)				\
++({									\
++	type *_ret;							\
++	pcpu_task_pin();						\
++	_ret = this_cpu_ptr(ptr);					\
++	spin_lock(&_ret->member);					\
++	_ret;								\
++})
++
++#define pcpu_spin_lock_irqsave(type, member, ptr, flags)		\
++({									\
++	type *_ret;							\
++	pcpu_task_pin();						\
++	_ret = this_cpu_ptr(ptr);					\
++	spin_lock_irqsave(&_ret->member, flags);			\
++	_ret;								\
++})
++
++#define pcpu_spin_trylock_irqsave(type, member, ptr, flags)		\
++({									\
++	type *_ret;							\
++	pcpu_task_pin();						\
++	_ret = this_cpu_ptr(ptr);					\
++	if (!spin_trylock_irqsave(&_ret->member, flags)) {		\
++		pcpu_task_unpin();					\
++		_ret = NULL;						\
++	}								\
++	_ret;								\
++})
++
++#define pcpu_spin_unlock(member, ptr)					\
++({									\
++	spin_unlock(&ptr->member);					\
++	pcpu_task_unpin();						\
++})
++
++#define pcpu_spin_unlock_irqrestore(member, ptr, flags)			\
++({									\
++	spin_unlock_irqrestore(&ptr->member, flags);			\
++	pcpu_task_unpin();						\
++})
++
++/* struct per_cpu_pages specific helpers. */
++#define pcp_spin_lock(ptr)						\
++	pcpu_spin_lock(struct per_cpu_pages, lock, ptr)
++
++#define pcp_spin_lock_irqsave(ptr, flags)				\
++	pcpu_spin_lock_irqsave(struct per_cpu_pages, lock, ptr, flags)
++
++#define pcp_spin_trylock_irqsave(ptr, flags)				\
++	pcpu_spin_trylock_irqsave(struct per_cpu_pages, lock, ptr, flags)
++
++#define pcp_spin_unlock(ptr)						\
++	pcpu_spin_unlock(lock, ptr)
++
++#define pcp_spin_unlock_irqrestore(ptr, flags)				\
++	pcpu_spin_unlock_irqrestore(lock, ptr, flags)
+ #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
+ DEFINE_PER_CPU(int, numa_node);
+ EXPORT_PER_CPU_SYMBOL(numa_node);
+@@ -1485,10 +1555,7 @@ static void free_pcppages_bulk(struct zo
+ 	/* Ensure requested pindex is drained first. */
+ 	pindex = pindex - 1;
  
- #ifdef CONFIG_GCC_PLUGIN_LATENT_ENTROPY
- volatile unsigned long latent_entropy __latent_entropy;
-@@ -3109,9 +3103,6 @@ static int rmqueue_bulk(struct zone *zon
-  * Called from the vmstat counter updater to drain pagesets of this
-  * currently executing processor on remote nodes after they have
-  * expired.
-- *
-- * Note that this function must be called with the thread pinned to
-- * a single processor.
-  */
- void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp)
- {
-@@ -3136,10 +3127,6 @@ void drain_zone_pages(struct zone *zone,
+-	/*
+-	 * local_lock_irq held so equivalent to spin_lock_irqsave for
+-	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
+-	 */
++	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
+ 	spin_lock(&zone->lock);
+ 	isolated_pageblocks = has_isolate_pageblock(zone);
  
- /*
-  * Drain pcplists of the indicated processor and zone.
-- *
-- * The processor must either be the current processor and the
-- * thread pinned to the current processor or a processor that
-- * is not online.
-  */
- static void drain_pages_zone(unsigned int cpu, struct zone *zone)
+@@ -3056,10 +3123,7 @@ static int rmqueue_bulk(struct zone *zon
  {
-@@ -3158,10 +3145,6 @@ static void drain_pages_zone(unsigned in
+ 	int i, allocated = 0;
  
- /*
-  * Drain pcplists of all zones on the indicated processor.
-- *
-- * The processor must either be the current processor and the
-- * thread pinned to the current processor or a processor that
-- * is not online.
-  */
- static void drain_pages(unsigned int cpu)
- {
-@@ -3174,9 +3157,6 @@ static void drain_pages(unsigned int cpu
+-	/*
+-	 * local_lock_irq held so equivalent to spin_lock_irqsave for
+-	 * both PREEMPT_RT and non-PREEMPT_RT configurations.
+-	 */
++	/* Caller must hold IRQ-safe pcp->lock so IRQs are disabled. */
+ 	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+ 		struct page *page = __rmqueue(zone, order, migratetype,
+@@ -3431,18 +3495,16 @@ void free_unref_page(struct page *page,
+ 		migratetype = MIGRATE_MOVABLE;
+ 	}
  
- /*
-  * Spill all of this CPU's per-cpu pages back into the buddy allocator.
-- *
-- * The CPU has to be pinned. When zone parameter is non-NULL, spill just
-- * the single zone's pages.
-  */
- void drain_local_pages(struct zone *zone)
- {
-@@ -3188,24 +3168,6 @@ void drain_local_pages(struct zone *zone
- 		drain_pages(cpu);
+-	local_lock_irqsave(&pagesets.lock, flags);
+ 	zone = page_zone(page);
+ 	pcp_trylock_prepare(UP_flags);
+-	pcp = this_cpu_ptr(zone->per_cpu_pageset);
+-	if (spin_trylock(&pcp->lock)) {
++	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	if (pcp) {
+ 		free_unref_page_commit(zone, pcp, page, migratetype, order);
+-		spin_unlock(&pcp->lock);
++		pcp_spin_unlock_irqrestore(pcp, flags);
+ 	} else {
+ 		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
+ 	}
+ 	pcp_trylock_finish(UP_flags);
+-	local_unlock_irqrestore(&pagesets.lock, flags);
  }
  
--static void drain_local_pages_wq(struct work_struct *work)
--{
--	struct pcpu_drain *drain;
--
--	drain = container_of(work, struct pcpu_drain, work);
--
--	/*
--	 * drain_all_pages doesn't use proper cpu hotplug protection so
--	 * we can race with cpu offline when the WQ can move this from
--	 * a cpu pinned worker to an unbound one. We can operate on a different
--	 * cpu which is alright but we also have to make sure to not move to
--	 * a different one.
--	 */
--	migrate_disable();
--	drain_local_pages(drain->zone);
--	migrate_enable();
--}
--
  /*
-  * The implementation of drain_all_pages(), exposing an extra parameter to
-  * drain on all cpus.
-@@ -3227,13 +3189,6 @@ static void __drain_all_pages(struct zon
- 	static cpumask_t cpus_with_pcps;
+@@ -3477,17 +3539,16 @@ void free_unref_page_list(struct list_he
+ 		}
+ 	}
  
+-	local_lock_irqsave(&pagesets.lock, flags);
+ 	list_for_each_entry_safe(page, next, list, lru) {
+ 		struct zone *zone = page_zone(page);
+ 
+ 		/* Different zone, different pcp lock. */
+ 		if (zone != locked_zone) {
+ 			if (pcp)
+-				spin_unlock(&pcp->lock);
++				pcp_spin_unlock_irqrestore(pcp, flags);
++
+ 			locked_zone = zone;
+-			pcp = this_cpu_ptr(zone->per_cpu_pageset);
+-			spin_lock(&pcp->lock);
++			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
+ 		}
+ 
+ 		/*
+@@ -3506,18 +3567,14 @@ void free_unref_page_list(struct list_he
+ 		 * a large list of pages to free.
+ 		 */
+ 		if (++batch_count == SWAP_CLUSTER_MAX) {
+-			spin_unlock(&pcp->lock);
+-			local_unlock_irqrestore(&pagesets.lock, flags);
++			pcp_spin_unlock_irqrestore(pcp, flags);
+ 			batch_count = 0;
+-			local_lock_irqsave(&pagesets.lock, flags);
+-			pcp = this_cpu_ptr(locked_zone->per_cpu_pageset);
+-			spin_lock(&pcp->lock);
++			pcp = pcp_spin_lock_irqsave(locked_zone->per_cpu_pageset, flags);
+ 		}
+ 	}
+ 
+ 	if (pcp)
+-		spin_unlock(&pcp->lock);
+-	local_unlock_irqrestore(&pagesets.lock, flags);
++		pcp_spin_unlock_irqrestore(pcp, flags);
+ }
+ 
+ /*
+@@ -3732,17 +3789,14 @@ static struct page *rmqueue_pcplist(stru
+ 	unsigned long flags;
+ 	unsigned long __maybe_unused UP_flags;
+ 
+-	local_lock_irqsave(&pagesets.lock, flags);
+-
  	/*
--	 * Make sure nobody triggers this path before mm_percpu_wq is fully
--	 * initialized.
--	 */
--	if (WARN_ON_ONCE(!mm_percpu_wq))
--		return;
--
--	/*
- 	 * Do not drain if one is already in progress unless it's specific to
- 	 * a zone. Such callers are primarily CMA and memory hotplug and need
- 	 * the drain to be complete when the call returns.
-@@ -3282,14 +3237,11 @@ static void __drain_all_pages(struct zon
+ 	 * spin_trylock may fail due to a parallel drain. In the future, the
+ 	 * trylock will also protect against IRQ reentrancy.
+ 	 */
+-	pcp = this_cpu_ptr(zone->per_cpu_pageset);
+ 	pcp_trylock_prepare(UP_flags);
+-	if (!spin_trylock(&pcp->lock)) {
++	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	if (!pcp) {
+ 		pcp_trylock_finish(UP_flags);
+-		local_unlock_irqrestore(&pagesets.lock, flags);
+ 		return NULL;
  	}
  
- 	for_each_cpu(cpu, &cpus_with_pcps) {
--		struct pcpu_drain *drain = per_cpu_ptr(&pcpu_drain, cpu);
--
--		drain->zone = zone;
--		INIT_WORK(&drain->work, drain_local_pages_wq);
--		queue_work_on(cpu, mm_percpu_wq, &drain->work);
-+		if (zone)
-+			drain_pages_zone(cpu, zone);
-+		else
-+			drain_pages(cpu);
- 	}
--	for_each_cpu(cpu, &cpus_with_pcps)
--		flush_work(&per_cpu_ptr(&pcpu_drain, cpu)->work);
+@@ -3754,9 +3808,8 @@ static struct page *rmqueue_pcplist(stru
+ 	pcp->free_factor >>= 1;
+ 	list = &pcp->lists[order_to_pindex(migratetype, order)];
+ 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
+-	spin_unlock(&pcp->lock);
++	pcp_spin_unlock_irqrestore(pcp, flags);
+ 	pcp_trylock_finish(UP_flags);
+-	local_unlock_irqrestore(&pagesets.lock, flags);
+ 	if (page) {
+ 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1);
+ 		zone_statistics(preferred_zone, zone, 1);
+@@ -5358,10 +5411,9 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		goto failed;
  
- 	mutex_unlock(&pcpu_drain_mutex);
- }
-@@ -3298,8 +3250,6 @@ static void __drain_all_pages(struct zon
-  * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
-  *
-  * When zone parameter is non-NULL, spill just the single zone's pages.
-- *
-- * Note that this can be extremely slow as the draining happens in a workqueue.
-  */
- void drain_all_pages(struct zone *zone)
- {
+ 	/* Is a parallel drain in progress? */
+-	local_lock_irqsave(&pagesets.lock, flags);
+ 	pcp_trylock_prepare(UP_flags);
+-	pcp = this_cpu_ptr(zone->per_cpu_pageset);
+-	if (!spin_trylock(&pcp->lock))
++	pcp = pcp_spin_trylock_irqsave(zone->per_cpu_pageset, flags);
++	if (!pcp)
+ 		goto failed_irq;
+ 
+ 	/* Attempt the batch allocation */
+@@ -5379,7 +5431,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		if (unlikely(!page)) {
+ 			/* Try and allocate at least one page */
+ 			if (!nr_account) {
+-				spin_unlock(&pcp->lock);
++				pcp_spin_unlock_irqrestore(pcp, flags);
+ 				goto failed_irq;
+ 			}
+ 			break;
+@@ -5394,9 +5446,8 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 		nr_populated++;
+ 	}
+ 
+-	spin_unlock(&pcp->lock);
++	pcp_spin_unlock_irqrestore(pcp, flags);
+ 	pcp_trylock_finish(UP_flags);
+-	local_unlock_irqrestore(&pagesets.lock, flags);
+ 
+ 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
+ 	zone_statistics(ac.preferred_zoneref->zone, zone, nr_account);
+@@ -5406,7 +5457,6 @@ out:
+ 
+ failed_irq:
+ 	pcp_trylock_finish(UP_flags);
+-	local_unlock_irqrestore(&pagesets.lock, flags);
+ 
+ failed:
+ 	page = __alloc_pages(gfp, 0, preferred_nid, nodemask);
 _
 
-Patches currently in -mm which might be from nsaenzju@redhat.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
