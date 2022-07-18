@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BA2C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BBF6C43334
 	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:33:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232477AbiGRAdQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:33:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39054 "EHLO
+        id S232841AbiGRAdR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:33:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232841AbiGRAdH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:33:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE9DC140C4
+        with ESMTP id S233059AbiGRAdA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:33:00 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41AA8140AE
         for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:32:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5618160FB0
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:32:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A83BBC341C0;
-        Mon, 18 Jul 2022 00:32:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E0502B80EE7
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:32:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94089C341C0;
+        Mon, 18 Jul 2022 00:32:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658104366;
-        bh=kUQPi3DZfxs63yr3YWcGwQKYwJ5QWgLH5GuopX8XgVU=;
+        s=korg; t=1658104364;
+        bh=F/36xC0YSXqJmx9+RpGPrN7jrNCgD81bPDOYd4SmT3w=;
         h=Date:To:From:Subject:From;
-        b=wIzNsiKo41bxk9xcZrlW9B6x6ZkaRYT5Ai8pkrcg94IGJInXc5esgf79i2XhD+8VI
-         vIod5L9dcojXakRBhupjJ3uaoSb8jh79ULyl4Cz+tlWP8fEbLsc3PW+dtz1yBeqGG0
-         E372wi5i1ifHzDpE5vvYID77ZR6nqwBVi1ZMp9yQ=
-Date:   Sun, 17 Jul 2022 17:32:46 -0700
-To:     mm-commits@vger.kernel.org, yj.chiang@mediatek.com,
-        tzimmermann@suse.de, thunder.leizhen@huawei.com,
-        matthias.bgg@gmail.com, jacob.e.keller@intel.com,
-        hdegoede@redhat.com, mark-pk.tsai@mediatek.com,
+        b=cniSUFmSKxD5+GUoo+xV9FAU0qTD2r0dLez6uWYc1Kh74Du3yj0tfJVLYty+8C+qa
+         gkYxvqA3c7aC09UEF0EEo1hHvNwGU8w+WA2HQNQ21zNchqsFKFif2MRvg3mspezc5x
+         po3i7putDaa2c7/n7/65bV/bgMXUqImP8Obq6oLA=
+Date:   Sun, 17 Jul 2022 17:32:44 -0700
+To:     mm-commits@vger.kernel.org, yury.norov@gmail.com,
+        vschneid@redhat.com, tglx@linutronix.de, peterz@infradead.org,
+        mingo@redhat.com, hpa@zytor.com, gregkh@linuxfoundation.org,
+        elver@google.com, dave.hansen@linux.intel.com, bp@alien8.de,
+        andriy.shevchenko@linux.intel.com, sander@svanheule.net,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-devres-use-numa-aware-allocation.patch removed from -mm tree
-Message-Id: <20220718003246.A83BBC341C0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] cpumask-update-cpumask_next_wrap-signature.patch removed from -mm tree
+Message-Id: <20220718003244.94089C341C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,89 +45,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib: devres: use numa aware allocation
+     Subject: cpumask: update cpumask_next_wrap() signature
 has been removed from the -mm tree.  Its filename was
-     lib-devres-use-numa-aware-allocation.patch
+     cpumask-update-cpumask_next_wrap-signature.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
-Subject: lib: devres: use numa aware allocation
-Date: Fri, 8 Jul 2022 21:19:47 +0800
+From: Sander Vanheule <sander@svanheule.net>
+Subject: cpumask: update cpumask_next_wrap() signature
+Date: Sat, 2 Jul 2022 18:08:28 +0200
 
-Allocate device resource from local node memory when the numa locality of
-the device is specified.
+The extern specifier is not needed for this declaration, so drop it.  The
+function also depends only on the input parameters, and has no side
+effects, so it can be marked __pure like other functions in cpumask.h.
 
-Link: https://lkml.kernel.org/r/20220708131952.14500-1-mark-pk.tsai@mediatek.com
-Signed-off-by: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: YJ Chiang <yj.chiang@mediatek.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Jacob Keller <jacob.e.keller@intel.com>
+Link: https://lkml.kernel.org/r/72ab755695b74bb5fbaa756ae4c0edd708d172f1.1656777646.git.sander@svanheule.net
+Signed-off-by: Sander Vanheule <sander@svanheule.net>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devres.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ include/linux/cpumask.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/devres.c~lib-devres-use-numa-aware-allocation
-+++ a/lib/devres.c
-@@ -29,7 +29,8 @@ static void __iomem *__devm_ioremap(stru
- {
- 	void __iomem **ptr, *addr = NULL;
+--- a/include/linux/cpumask.h~cpumask-update-cpumask_next_wrap-signature
++++ a/include/linux/cpumask.h
+@@ -229,7 +229,7 @@ int cpumask_any_distribute(const struct
+ 		(cpu) = cpumask_next_zero((cpu), (mask)),	\
+ 		(cpu) < nr_cpu_ids;)
  
--	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
-+	ptr = devres_alloc_node(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL,
-+				dev_to_node(dev));
- 	if (!ptr)
- 		return NULL;
+-extern int cpumask_next_wrap(int n, const struct cpumask *mask, int start, bool wrap);
++int __pure cpumask_next_wrap(int n, const struct cpumask *mask, int start, bool wrap);
  
-@@ -292,7 +293,8 @@ void __iomem *devm_ioport_map(struct dev
- {
- 	void __iomem **ptr, *addr;
- 
--	ptr = devres_alloc(devm_ioport_map_release, sizeof(*ptr), GFP_KERNEL);
-+	ptr = devres_alloc_node(devm_ioport_map_release, sizeof(*ptr), GFP_KERNEL,
-+				dev_to_node(dev));
- 	if (!ptr)
- 		return NULL;
- 
-@@ -366,7 +368,8 @@ void __iomem * const *pcim_iomap_table(s
- 	if (dr)
- 		return dr->table;
- 
--	new_dr = devres_alloc(pcim_iomap_release, sizeof(*new_dr), GFP_KERNEL);
-+	new_dr = devres_alloc_node(pcim_iomap_release, sizeof(*new_dr), GFP_KERNEL,
-+				   dev_to_node(&pdev->dev));
- 	if (!new_dr)
- 		return NULL;
- 	dr = devres_get(&pdev->dev, new_dr, NULL, NULL);
-@@ -548,7 +551,8 @@ int devm_arch_phys_wc_add(struct device
- 	int *mtrr;
- 	int ret;
- 
--	mtrr = devres_alloc(devm_arch_phys_ac_add_release, sizeof(*mtrr), GFP_KERNEL);
-+	mtrr = devres_alloc_node(devm_arch_phys_ac_add_release, sizeof(*mtrr), GFP_KERNEL,
-+				 dev_to_node(dev));
- 	if (!mtrr)
- 		return -ENOMEM;
- 
-@@ -593,7 +597,8 @@ int devm_arch_io_reserve_memtype_wc(stru
- 	struct arch_io_reserve_memtype_wc_devres *dr;
- 	int ret;
- 
--	dr = devres_alloc(devm_arch_io_free_memtype_wc_release, sizeof(*dr), GFP_KERNEL);
-+	dr = devres_alloc_node(devm_arch_io_free_memtype_wc_release, sizeof(*dr), GFP_KERNEL,
-+			       dev_to_node(dev));
- 	if (!dr)
- 		return -ENOMEM;
- 
+ /**
+  * for_each_cpu_wrap - iterate over every cpu in a mask, starting at a specified location
 _
 
-Patches currently in -mm which might be from mark-pk.tsai@mediatek.com are
+Patches currently in -mm which might be from sander@svanheule.net are
 
 
