@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7167C43334
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F61CC433EF
 	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:33:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232254AbiGRAdB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:33:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38434 "EHLO
+        id S233038AbiGRAdA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:33:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232868AbiGRAck (ORCPT
+        with ESMTP id S232841AbiGRAck (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:32:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08D8C13EBD
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71E6113E18
         for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:32:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 86ACB60FB0
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:32:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7185C3411E;
-        Mon, 18 Jul 2022 00:32:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 32D29B80EE8
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:32:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA007C3411E;
+        Mon, 18 Jul 2022 00:32:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658104358;
-        bh=NR/s9AI+qOZfZD/r8A/OGNq7zr8YTYJ3J6shd71R0Qw=;
+        s=korg; t=1658104357;
+        bh=sSOYdDgzNGWIl3dugP/5sua/WKqSWYYnvYVuZ+B/cbY=;
         h=Date:To:From:Subject:From;
-        b=QeRrPbDjYQh8ei/fqiSApUBNniCp0BiE7wGutMC+ZFhCYz5+qJflcf15sDMTcaTaL
-         PvDUrLEgY0AFrFfD1AQ8SD3JOFdncG06L9H5W1TXHLK6L8mETpotto0iBw5SujsoZ1
-         2I5v0POnt2GXU/dNoqHiAEu7sQDsZfx3mBw+tcIA=
-Date:   Sun, 17 Jul 2022 17:32:38 -0700
-To:     mm-commits@vger.kernel.org, nborisov@suse.com,
+        b=YZK1lMC0EFxQHK8kqWM2Iyj6p8DjqnUU4QPhcbwJfp1B+kn/beZybhZaRwm3EtfxY
+         MdDfhUc5mpohvlDDfr5cnGHqpspD47gFzEUwEuueoKMPxGnK2XIJQ2x/B/wSINe/sW
+         xHp7O4yE55fUcHvoSFmnIksFjr85d7/iI8bwaI48=
+Date:   Sun, 17 Jul 2022 17:32:36 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        torvalds@linux-foundation.org, stable@kernel.org,
+        shakeelb@google.com, rpenyaev@suse.de, r@hev.cc, khazhy@google.com,
+        jbaron@akamai.com, edumazet@google.com, bsegall@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-bloat-o-meter-add-p-argument.patch removed from -mm tree
-Message-Id: <20220718003238.D7185C3411E@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] epoll-autoremove-wakers-even-more-aggressively.patch removed from -mm tree
+Message-Id: <20220718003236.DA007C3411E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,59 +44,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scripts/bloat-o-meter: add -p argument
+     Subject: epoll: autoremove wakers even more aggressively
 has been removed from the -mm tree.  Its filename was
-     scripts-bloat-o-meter-add-p-argument.patch
+     epoll-autoremove-wakers-even-more-aggressively.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nikolay Borisov <nborisov@suse.com>
-Subject: scripts/bloat-o-meter: add -p argument
-Date: Fri, 1 Jul 2022 14:35:13 +0300
+From: Benjamin Segall <bsegall@google.com>
+Subject: epoll: autoremove wakers even more aggressively
+Date: Wed, 15 Jun 2022 14:24:23 -0700
 
-When doing cross platform development on a machine sometimes it might be
-useful to invoke bloat-o-meter for files which haven't been build with the
-native toolchain.  In cases when the host nm doesn't support the target
-one then a toolchain-specific nm could be used.  Add this ability by
-adding the -p allowing invocations as:
+If a process is killed or otherwise exits while having active network
+connections and many threads waiting on epoll_wait, the threads will all
+be woken immediately, but not removed from ep->wq.  Then when network
+traffic scans ep->wq in wake_up, every wakeup attempt will fail, and will
+not remove the entries from the list.
 
-./scripts/bloat-o-meter -p riscv64-unknown-linux-gnu- file1.o file2.o
+This means that the cost of the wakeup attempt is far higher than usual,
+does not decrease, and this also competes with the dying threads trying to
+actually make progress and remove themselves from the wq.
 
-Link: https://lkml.kernel.org/r/20220701113513.1938008-2-nborisov@suse.com
-Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Handle this by removing visited epoll wq entries unconditionally, rather
+than only when the wakeup succeeds - the structure of ep_poll means that
+the only potential loss is the timed_out->eavail heuristic, which now can
+race and result in a redundant ep_send_events attempt.  (But only when
+incoming data and a timeout actually race, not on every timeout)
+
+Shakeel added:
+
+: We are seeing this issue in production with real workloads and it has
+: caused hard lockups.  Particularly network heavy workloads with a lot
+: of threads in epoll_wait() can easily trigger this issue if they get
+: killed (oom-killed in our case).
+
+Link: https://lkml.kernel.org/r/xm26fsjotqda.fsf@google.com
+Signed-off-by: Ben Segall <bsegall@google.com>
+Tested-by: Shakeel Butt <shakeelb@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Roman Penyaev <rpenyaev@suse.de>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Khazhismel Kumykov <khazhy@google.com>
+Cc: Heiher <r@hev.cc>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/eventpoll.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-add-p-argument
-+++ a/scripts/bloat-o-meter
-@@ -17,6 +17,7 @@ group = parser.add_mutually_exclusive_gr
- group.add_argument('-c', help='categorize output based on symbol type', action='store_true')
- group.add_argument('-d', help='Show delta of Data Section', action='store_true')
- group.add_argument('-t', help='Show delta of text Section', action='store_true')
-+parser.add_argument('-p', dest='prefix', help='Arch prefix for the tool being used. Useful in cross build scenarios')
- parser.add_argument('file1', help='First file to compare')
- parser.add_argument('file2', help='Second file to compare')
+--- a/fs/eventpoll.c~epoll-autoremove-wakers-even-more-aggressively
++++ a/fs/eventpoll.c
+@@ -1747,6 +1747,21 @@ static struct timespec64 *ep_timeout_to_
+ 	return to;
+ }
  
-@@ -26,7 +27,11 @@ re_NUMBER = re.compile(r'\.[0-9]+')
- 
- def getsizes(file, format):
-     sym = {}
--    with os.popen("nm --size-sort " + file) as f:
-+    nm = "nm"
-+    if args.prefix:
-+        nm = "{}nm".format(args.prefix)
++/*
++ * autoremove_wake_function, but remove even on failure to wake up, because we
++ * know that default_wake_function/ttwu will only fail if the thread is already
++ * woken, and in that case the ep_poll loop will remove the entry anyways, not
++ * try to reuse it.
++ */
++static int ep_autoremove_wake_function(struct wait_queue_entry *wq_entry,
++				       unsigned int mode, int sync, void *key)
++{
++	int ret = default_wake_function(wq_entry, mode, sync, key);
 +
-+    with os.popen("{} --size-sort {}".format(nm, file)) as f:
-         for line in f:
-             if line.startswith("\n") or ":" in line:
-                 continue
++	list_del_init(&wq_entry->entry);
++	return ret;
++}
++
+ /**
+  * ep_poll - Retrieves ready events, and delivers them to the caller-supplied
+  *           event buffer.
+@@ -1828,8 +1843,15 @@ static int ep_poll(struct eventpoll *ep,
+ 		 * normal wakeup path no need to call __remove_wait_queue()
+ 		 * explicitly, thus ep->lock is not taken, which halts the
+ 		 * event delivery.
++		 *
++		 * In fact, we now use an even more aggressive function that
++		 * unconditionally removes, because we don't reuse the wait
++		 * entry between loop iterations. This lets us also avoid the
++		 * performance issue if a process is killed, causing all of its
++		 * threads to wake up without being removed normally.
+ 		 */
+ 		init_wait(&wait);
++		wait.func = ep_autoremove_wake_function;
+ 
+ 		write_lock_irq(&ep->lock);
+ 		/*
 _
 
-Patches currently in -mm which might be from nborisov@suse.com are
+Patches currently in -mm which might be from bsegall@google.com are
 
 
