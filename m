@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91C27C43334
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6F31C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Jul 2022 00:17:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232906AbiGRARL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 17 Jul 2022 20:17:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56976 "EHLO
+        id S232986AbiGRARR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 17 Jul 2022 20:17:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232908AbiGRAQu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:16:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABAB49FE0
-        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:48 -0700 (PDT)
+        with ESMTP id S232987AbiGRAQv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 17 Jul 2022 20:16:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBE2C101CE
+        for <mm-commits@vger.kernel.org>; Sun, 17 Jul 2022 17:16:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DBBB60F0E
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76C52C3411E;
-        Mon, 18 Jul 2022 00:16:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7AF0460F40
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jul 2022 00:16:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDBC7C341CA;
+        Mon, 18 Jul 2022 00:16:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658103407;
-        bh=mUlflBNeo7J1uq3jPExSxQYP8hxqEoyHELADF/B2bic=;
+        s=korg; t=1658103409;
+        bh=rn/3pNGUW7wz7lrgzblyRMynd9Spx0lJyjI2Q3WrcF0=;
         h=Date:To:From:Subject:From;
-        b=pw4xJpGOwz/tVB5T2wysf1UbGU3olNNqGT09IHRzeCc/PlnXHV5jUQLUaX0qJTjgM
-         6QSOJjpV4S8hSCQe3ooGYx8Vdps1zuxCF3FjsJcEwSQubYnAuOErwfcqhRtHxHuKxk
-         Rj0Uqqg9pGRk5UVIVRaG857TsRyg+2r8DF5RfR4o=
-Date:   Sun, 17 Jul 2022 17:16:46 -0700
+        b=k/IuApm8JAJvs8/QpP6xNR4v+m7CvTRpDDL1kw9mZOfvEBmisWggdPd7JactjD8kL
+         8la2I6pJ14DmbPghEO/RBbsAnraDP4ZLLQzD0DOfs01UNRlOxnnS/91cVRewP7HPxh
+         1Hfvex6OpBrh14i7RqaGBQhYvlmr2zMW4BzXoqdw=
+Date:   Sun, 17 Jul 2022 17:16:49 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, riteshh@linux.ibm.com, rgoldwyn@suse.de,
         rgoldwyn@suse.com, naoya.horiguchi@nec.com, linmiaohe@huawei.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         dan.j.wiliams@intel.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] xfs-implement-notify_failure-for-xfs.patch removed from -mm tree
-Message-Id: <20220718001647.76C52C3411E@smtp.kernel.org>
+Subject: [merged mm-stable] fsdax-output-address-in-dax_iomap_pfn-and-rename-it.patch removed from -mm tree
+Message-Id: <20220718001649.CDBC7C341CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,37 +46,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: xfs: implement ->notify_failure() for XFS
+     Subject: fsdax: output address in dax_iomap_pfn() and rename it
 has been removed from the -mm tree.  Its filename was
-     xfs-implement-notify_failure-for-xfs.patch
+     fsdax-output-address-in-dax_iomap_pfn-and-rename-it.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: xfs: implement ->notify_failure() for XFS
-Date: Fri, 3 Jun 2022 13:37:30 +0800
+Subject: fsdax: output address in dax_iomap_pfn() and rename it
+Date: Fri, 3 Jun 2022 13:37:32 +0800
 
-Introduce xfs_notify_failure.c to handle failure related works, such as
-implement ->notify_failure(), register/unregister dax holder in xfs, and
-so on.
+Add address output in dax_iomap_pfn() in order to perform a memcpy() in
+CoW case.  Since this function both output address and pfn, rename it to
+dax_iomap_direct_access().
 
-If the rmap feature of XFS enabled, we can query it to find files and
-metadata which are associated with the corrupt data.  For now all we do is
-kill processes with that file mapped into their address spaces, but future
-patches could actually do something about corrupt metadata.
-
-After that, the memory failure needs to notify the processes who are using
-those files.
-
-Link: https://lkml.kernel.org/r/20220603053738.1218681-7-ruansy.fnst@fujitsu.com
+[ruansy.fnst@fujitsu.com: initialize `rc', per Dan]
+  Link: https://lore.kernel.org/linux-fsdevel/Yp8FUZnO64Qvyx5G@kili/
+  Link: https://lkml.kernel.org/r/20220607143837.161174-1-ruansy.fnst@fujitsu.com
+Link: https://lkml.kernel.org/r/20220603053738.1218681-9-ruansy.fnst@fujitsu.com
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Ritesh Harjani <riteshh@linux.ibm.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Dan Williams <dan.j.wiliams@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
@@ -84,326 +80,62 @@ Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Ritesh Harjani <riteshh@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/Makefile             |    5 
- fs/xfs/xfs_buf.c            |   11 +
- fs/xfs/xfs_fsops.c          |    3 
- fs/xfs/xfs_mount.h          |    1 
- fs/xfs/xfs_notify_failure.c |  220 ++++++++++++++++++++++++++++++++++
- fs/xfs/xfs_super.h          |    1 
- 6 files changed, 238 insertions(+), 3 deletions(-)
+ fs/dax.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
---- a/fs/xfs/Makefile~xfs-implement-notify_failure-for-xfs
-+++ a/fs/xfs/Makefile
-@@ -129,6 +129,11 @@ xfs-$(CONFIG_SYSCTL)		+= xfs_sysctl.o
- xfs-$(CONFIG_COMPAT)		+= xfs_ioctl32.o
- xfs-$(CONFIG_EXPORTFS_BLOCK_OPS)	+= xfs_pnfs.o
- 
-+# notify failure
-+ifeq ($(CONFIG_MEMORY_FAILURE),y)
-+xfs-$(CONFIG_FS_DAX)		+= xfs_notify_failure.o
-+endif
-+
- # online scrub/repair
- ifeq ($(CONFIG_XFS_ONLINE_SCRUB),y)
- 
---- a/fs/xfs/xfs_buf.c~xfs-implement-notify_failure-for-xfs
-+++ a/fs/xfs/xfs_buf.c
-@@ -5,6 +5,7 @@
-  */
- #include "xfs.h"
- #include <linux/backing-dev.h>
-+#include <linux/dax.h>
- 
- #include "xfs_shared.h"
- #include "xfs_format.h"
-@@ -1911,7 +1912,7 @@ xfs_free_buftarg(
- 	list_lru_destroy(&btp->bt_lru);
- 
- 	blkdev_issue_flush(btp->bt_bdev);
--	fs_put_dax(btp->bt_daxdev, NULL);
-+	fs_put_dax(btp->bt_daxdev, btp->bt_mount);
- 
- 	kmem_free(btp);
+--- a/fs/dax.c~fsdax-output-address-in-dax_iomap_pfn-and-rename-it
++++ a/fs/dax.c
+@@ -1026,20 +1026,22 @@ int dax_writeback_mapping_range(struct a
  }
-@@ -1958,14 +1959,18 @@ xfs_alloc_buftarg(
- 	struct block_device	*bdev)
+ EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
+ 
+-static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
+-			 pfn_t *pfnp)
++static int dax_iomap_direct_access(const struct iomap *iomap, loff_t pos,
++		size_t size, void **kaddr, pfn_t *pfnp)
  {
- 	xfs_buftarg_t		*btp;
-+	const struct dax_holder_operations *ops = NULL;
+ 	pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
+-	int id, rc;
++	int id, rc = 0;
+ 	long length;
  
-+#if defined(CONFIG_FS_DAX) && defined(CONFIG_MEMORY_FAILURE)
-+	ops = &xfs_dax_holder_operations;
-+#endif
- 	btp = kmem_zalloc(sizeof(*btp), KM_NOFS);
+ 	id = dax_read_lock();
+ 	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+-				   DAX_ACCESS, NULL, pfnp);
++				   DAX_ACCESS, kaddr, pfnp);
+ 	if (length < 0) {
+ 		rc = length;
+ 		goto out;
+ 	}
++	if (!pfnp)
++		goto out_check_addr;
+ 	rc = -EINVAL;
+ 	if (PFN_PHYS(length) < size)
+ 		goto out;
+@@ -1049,6 +1051,12 @@ static int dax_iomap_pfn(const struct io
+ 	if (length > 1 && !pfn_t_devmap(*pfnp))
+ 		goto out;
+ 	rc = 0;
++
++out_check_addr:
++	if (!kaddr)
++		goto out;
++	if (!*kaddr)
++		rc = -EFAULT;
+ out:
+ 	dax_read_unlock(id);
+ 	return rc;
+@@ -1456,7 +1464,7 @@ static vm_fault_t dax_fault_iter(struct
+ 		return pmd ? VM_FAULT_FALLBACK : VM_FAULT_SIGBUS;
+ 	}
  
- 	btp->bt_mount = mp;
- 	btp->bt_dev =  bdev->bd_dev;
- 	btp->bt_bdev = bdev;
--	btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off, NULL,
--					    NULL);
-+	btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off,
-+					    mp, ops);
- 
- 	/*
- 	 * Buffer IO error rate limiting. Limit it to no more than 10 messages
---- a/fs/xfs/xfs_fsops.c~xfs-implement-notify_failure-for-xfs
-+++ a/fs/xfs/xfs_fsops.c
-@@ -528,6 +528,9 @@ xfs_do_force_shutdown(
- 	} else if (flags & SHUTDOWN_CORRUPT_INCORE) {
- 		tag = XFS_PTAG_SHUTDOWN_CORRUPT;
- 		why = "Corruption of in-memory data";
-+	} else if (flags & SHUTDOWN_CORRUPT_ONDISK) {
-+		tag = XFS_PTAG_SHUTDOWN_CORRUPT;
-+		why = "Corruption of on-disk metadata";
- 	} else {
- 		tag = XFS_PTAG_SHUTDOWN_IOERROR;
- 		why = "Metadata I/O Error";
---- a/fs/xfs/xfs_mount.h~xfs-implement-notify_failure-for-xfs
-+++ a/fs/xfs/xfs_mount.h
-@@ -454,6 +454,7 @@ void xfs_do_force_shutdown(struct xfs_mo
- #define SHUTDOWN_LOG_IO_ERROR	(1u << 1) /* write attempt to the log failed */
- #define SHUTDOWN_FORCE_UMOUNT	(1u << 2) /* shutdown from a forced unmount */
- #define SHUTDOWN_CORRUPT_INCORE	(1u << 3) /* corrupt in-memory structures */
-+#define SHUTDOWN_CORRUPT_ONDISK	(1u << 4)  /* corrupt metadata on device */
- 
- #define XFS_SHUTDOWN_STRINGS \
- 	{ SHUTDOWN_META_IO_ERROR,	"metadata_io" }, \
---- /dev/null
-+++ a/fs/xfs/xfs_notify_failure.c
-@@ -0,0 +1,220 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (c) 2022 Fujitsu.  All Rights Reserved.
-+ */
-+
-+#include "xfs.h"
-+#include "xfs_shared.h"
-+#include "xfs_format.h"
-+#include "xfs_log_format.h"
-+#include "xfs_trans_resv.h"
-+#include "xfs_mount.h"
-+#include "xfs_alloc.h"
-+#include "xfs_bit.h"
-+#include "xfs_btree.h"
-+#include "xfs_inode.h"
-+#include "xfs_icache.h"
-+#include "xfs_rmap.h"
-+#include "xfs_rmap_btree.h"
-+#include "xfs_rtalloc.h"
-+#include "xfs_trans.h"
-+
-+#include <linux/mm.h>
-+#include <linux/dax.h>
-+
-+struct failure_info {
-+	xfs_agblock_t		startblock;
-+	xfs_extlen_t		blockcount;
-+	int			mf_flags;
-+};
-+
-+static pgoff_t
-+xfs_failure_pgoff(
-+	struct xfs_mount		*mp,
-+	const struct xfs_rmap_irec	*rec,
-+	const struct failure_info	*notify)
-+{
-+	loff_t				pos = XFS_FSB_TO_B(mp, rec->rm_offset);
-+
-+	if (notify->startblock > rec->rm_startblock)
-+		pos += XFS_FSB_TO_B(mp,
-+				notify->startblock - rec->rm_startblock);
-+	return pos >> PAGE_SHIFT;
-+}
-+
-+static unsigned long
-+xfs_failure_pgcnt(
-+	struct xfs_mount		*mp,
-+	const struct xfs_rmap_irec	*rec,
-+	const struct failure_info	*notify)
-+{
-+	xfs_agblock_t			end_rec;
-+	xfs_agblock_t			end_notify;
-+	xfs_agblock_t			start_cross;
-+	xfs_agblock_t			end_cross;
-+
-+	start_cross = max(rec->rm_startblock, notify->startblock);
-+
-+	end_rec = rec->rm_startblock + rec->rm_blockcount;
-+	end_notify = notify->startblock + notify->blockcount;
-+	end_cross = min(end_rec, end_notify);
-+
-+	return XFS_FSB_TO_B(mp, end_cross - start_cross) >> PAGE_SHIFT;
-+}
-+
-+static int
-+xfs_dax_failure_fn(
-+	struct xfs_btree_cur		*cur,
-+	const struct xfs_rmap_irec	*rec,
-+	void				*data)
-+{
-+	struct xfs_mount		*mp = cur->bc_mp;
-+	struct xfs_inode		*ip;
-+	struct failure_info		*notify = data;
-+	int				error = 0;
-+
-+	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
-+	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
-+		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
-+		return -EFSCORRUPTED;
-+	}
-+
-+	/* Get files that incore, filter out others that are not in use. */
-+	error = xfs_iget(mp, cur->bc_tp, rec->rm_owner, XFS_IGET_INCORE,
-+			 0, &ip);
-+	/* Continue the rmap query if the inode isn't incore */
-+	if (error == -ENODATA)
-+		return 0;
-+	if (error)
-+		return error;
-+
-+	error = mf_dax_kill_procs(VFS_I(ip)->i_mapping,
-+				  xfs_failure_pgoff(mp, rec, notify),
-+				  xfs_failure_pgcnt(mp, rec, notify),
-+				  notify->mf_flags);
-+	xfs_irele(ip);
-+	return error;
-+}
-+
-+static int
-+xfs_dax_notify_ddev_failure(
-+	struct xfs_mount	*mp,
-+	xfs_daddr_t		daddr,
-+	xfs_daddr_t		bblen,
-+	int			mf_flags)
-+{
-+	struct xfs_trans	*tp = NULL;
-+	struct xfs_btree_cur	*cur = NULL;
-+	struct xfs_buf		*agf_bp = NULL;
-+	int			error = 0;
-+	xfs_fsblock_t		fsbno = XFS_DADDR_TO_FSB(mp, daddr);
-+	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
-+	xfs_fsblock_t		end_fsbno = XFS_DADDR_TO_FSB(mp, daddr + bblen);
-+	xfs_agnumber_t		end_agno = XFS_FSB_TO_AGNO(mp, end_fsbno);
-+
-+	error = xfs_trans_alloc_empty(mp, &tp);
-+	if (error)
-+		return error;
-+
-+	for (; agno <= end_agno; agno++) {
-+		struct xfs_rmap_irec	ri_low = { };
-+		struct xfs_rmap_irec	ri_high;
-+		struct failure_info	notify;
-+		struct xfs_agf		*agf;
-+		xfs_agblock_t		agend;
-+
-+		error = xfs_alloc_read_agf(mp, tp, agno, 0, &agf_bp);
-+		if (error)
-+			break;
-+
-+		cur = xfs_rmapbt_init_cursor(mp, tp, agf_bp, agf_bp->b_pag);
-+
-+		/*
-+		 * Set the rmap range from ri_low to ri_high, which represents
-+		 * a [start, end] where we looking for the files or metadata.
-+		 */
-+		memset(&ri_high, 0xFF, sizeof(ri_high));
-+		ri_low.rm_startblock = XFS_FSB_TO_AGBNO(mp, fsbno);
-+		if (agno == end_agno)
-+			ri_high.rm_startblock = XFS_FSB_TO_AGBNO(mp, end_fsbno);
-+
-+		agf = agf_bp->b_addr;
-+		agend = min(be32_to_cpu(agf->agf_length),
-+				ri_high.rm_startblock);
-+		notify.startblock = ri_low.rm_startblock;
-+		notify.blockcount = agend - ri_low.rm_startblock;
-+
-+		error = xfs_rmap_query_range(cur, &ri_low, &ri_high,
-+				xfs_dax_failure_fn, &notify);
-+		xfs_btree_del_cursor(cur, error);
-+		xfs_trans_brelse(tp, agf_bp);
-+		if (error)
-+			break;
-+
-+		fsbno = XFS_AGB_TO_FSB(mp, agno + 1, 0);
-+	}
-+
-+	xfs_trans_cancel(tp);
-+	return error;
-+}
-+
-+static int
-+xfs_dax_notify_failure(
-+	struct dax_device	*dax_dev,
-+	u64			offset,
-+	u64			len,
-+	int			mf_flags)
-+{
-+	struct xfs_mount	*mp = dax_holder(dax_dev);
-+	u64			ddev_start;
-+	u64			ddev_end;
-+
-+	if (!(mp->m_sb.sb_flags & SB_BORN)) {
-+		xfs_warn(mp, "filesystem is not ready for notify_failure()!");
-+		return -EIO;
-+	}
-+
-+	if (mp->m_rtdev_targp && mp->m_rtdev_targp->bt_daxdev == dax_dev) {
-+		xfs_warn(mp,
-+			 "notify_failure() not supported on realtime device!");
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
-+	    mp->m_logdev_targp != mp->m_ddev_targp) {
-+		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
-+		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
-+		return -EFSCORRUPTED;
-+	}
-+
-+	if (!xfs_has_rmapbt(mp)) {
-+		xfs_warn(mp, "notify_failure() needs rmapbt enabled!");
-+		return -EOPNOTSUPP;
-+	}
-+
-+	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
-+	ddev_end = ddev_start + bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
-+
-+	/* Ignore the range out of filesystem area */
-+	if (offset + len < ddev_start)
-+		return -ENXIO;
-+	if (offset > ddev_end)
-+		return -ENXIO;
-+
-+	/* Calculate the real range when it touches the boundary */
-+	if (offset > ddev_start)
-+		offset -= ddev_start;
-+	else {
-+		len -= ddev_start - offset;
-+		offset = 0;
-+	}
-+	if (offset + len > ddev_end)
-+		len -= ddev_end - offset;
-+
-+	return xfs_dax_notify_ddev_failure(mp, BTOBB(offset), BTOBB(len),
-+			mf_flags);
-+}
-+
-+const struct dax_holder_operations xfs_dax_holder_operations = {
-+	.notify_failure		= xfs_dax_notify_failure,
-+};
---- a/fs/xfs/xfs_super.h~xfs-implement-notify_failure-for-xfs
-+++ a/fs/xfs/xfs_super.h
-@@ -92,6 +92,7 @@ extern xfs_agnumber_t xfs_set_inode_allo
- 
- extern const struct export_operations xfs_export_operations;
- extern const struct quotactl_ops xfs_quotactl_operations;
-+extern const struct dax_holder_operations xfs_dax_holder_operations;
- 
- extern void xfs_reinit_percpu_counters(struct xfs_mount *mp);
+-	err = dax_iomap_pfn(&iter->iomap, pos, size, &pfn);
++	err = dax_iomap_direct_access(&iter->iomap, pos, size, NULL, &pfn);
+ 	if (err)
+ 		return pmd ? VM_FAULT_FALLBACK : dax_fault_return(err);
  
 _
 
