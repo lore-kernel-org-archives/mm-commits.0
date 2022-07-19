@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA62FC43334
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jul 2022 23:20:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8D07C43334
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jul 2022 23:38:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229585AbiGSXUO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jul 2022 19:20:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43276 "EHLO
+        id S237631AbiGSXiP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jul 2022 19:38:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233767AbiGSXUM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2022 19:20:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A593DA1A6
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 16:20:10 -0700 (PDT)
+        with ESMTP id S235061AbiGSXiO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2022 19:38:14 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5C534E60F
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 16:38:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4538761207
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 23:20:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 980D3C341CA;
-        Tue, 19 Jul 2022 23:20:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8ECE4B81DA0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 23:38:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20CDEC341C6;
+        Tue, 19 Jul 2022 23:38:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658272809;
-        bh=x6pUxLfzQa2nsi1iVyfkRG9JzTBbbQCeMX9szdZRn7I=;
+        s=korg; t=1658273891;
+        bh=35R3QYiuZyc/4szlG97iTBE47QifczEQCcxmVZQ2LMU=;
         h=Date:To:From:Subject:From;
-        b=xZeEikJqyUFimRxGVHwMFrwAlMieu0EP2MF4cANjSSZy+iO9xvujqTEaZmxHWBIeS
-         7IVbgR2S3obbhy6XiLTm1v2H9MbD6HbSDagkcjwaSIrQhCmLRRuFkEadtMyYkDhO3s
-         ITun+4rDCpqQJjYRJ60AbgXRgwOnR3F0N2FhV2C4=
-Date:   Tue, 19 Jul 2022 16:20:08 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shuah@kernel.org, mike.kravetz@oracle.com, almasrymina@google.com,
-        dan.carpenter@oracle.com, akpm@linux-foundation.org
+        b=NDWZ4k0wQiz2JZBPc6Y04v6V6gCpa/UomKbo8R0ZTyjtu4sPeEP5Nq7UzKV3vre9u
+         oyCWj9Eh7f/38Wi4oHZZ2kv8RChjp2F5LHOpzDGKW6JEMcGQXOD22BsxaiS05QpnX+
+         7e99cIPuqaVvtyTSa1rbgwmyvYEzrjYpfED/fse4=
+Date:   Tue, 19 Jul 2022 16:38:10 -0700
+To:     mm-commits@vger.kernel.org, neilb@suse.de, jack@suse.cz,
+        xiujianfeng@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-vm-uninitialized-variable-in-main.patch added to mm-unstable branch
-Message-Id: <20220719232009.980D3C341CA@smtp.kernel.org>
+Subject: + bdi-remove-enum-wb_congested_state.patch added to mm-nonmm-unstable branch
+Message-Id: <20220719233811.20CDEC341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/vm: uninitialized variable in main()
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-vm-uninitialized-variable-in-main.patch
+     Subject: bdi: remove enum wb_congested_state
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     bdi-remove-enum-wb_congested_state.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-vm-uninitialized-variable-in-main.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bdi-remove-enum-wb_congested_state.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,40 +64,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: selftest/vm: uninitialized variable in main()
-Date: Tue, 19 Jul 2022 12:04:14 +0300
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: bdi: remove enum wb_congested_state
+Date: Tue, 19 Jul 2022 16:33:49 +0800
 
-Initialize "length" to zero by default.
+enum wb_congested_state and the member 'congested' in bdi_writeback are
+useless since commit a88f2096d5a2 ("remove congestion tracking
+framework"), so remove it.
 
-Link: https://lkml.kernel.org/r/YtZzjvHXVXMXxpXO@kili
-Fixes: ff712a627f72 ("selftests/vm: cleanup hugetlb file after mremap test")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220719083349.87547-1-xiujianfeng@huawei.com
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugepage-mremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/backing-dev-defs.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/tools/testing/selftests/vm/hugepage-mremap.c~selftest-vm-uninitialized-variable-in-main
-+++ a/tools/testing/selftests/vm/hugepage-mremap.c
-@@ -107,7 +107,7 @@ static void register_region_with_uffd(ch
+--- a/include/linux/backing-dev-defs.h~bdi-remove-enum-wb_congested_state
++++ a/include/linux/backing-dev-defs.h
+@@ -28,11 +28,6 @@ enum wb_state {
+ 	WB_start_all,		/* nr_pages == 0 (all) work pending */
+ };
  
- int main(int argc, char *argv[])
- {
--	size_t length;
-+	size_t length = 0;
+-enum wb_congested_state {
+-	WB_async_congested,	/* The async (write) queue is getting full */
+-	WB_sync_congested,	/* The sync queue is getting full */
+-};
+-
+ enum wb_stat_item {
+ 	WB_RECLAIMABLE,
+ 	WB_WRITEBACK,
+@@ -122,8 +117,6 @@ struct bdi_writeback {
+ 	atomic_t writeback_inodes;	/* number of inodes under writeback */
+ 	struct percpu_counter stat[NR_WB_STAT_ITEMS];
  
- 	if (argc != 2 && argc != 3) {
- 		printf("Usage: %s [length_in_MB] <hugetlb_file>\n", argv[0]);
+-	unsigned long congested;	/* WB_[a]sync_congested flags */
+-
+ 	unsigned long bw_time_stamp;	/* last time write bw is updated */
+ 	unsigned long dirtied_stamp;
+ 	unsigned long written_stamp;	/* pages written at bw_time_stamp */
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
-selftests-vm-silence-uninitialized-variable-warning.patch
-selftest-vm-uninitialized-variable-in-main.patch
+writeback-cleanup-inode_to_wb_is_valid.patch
+bdi-remove-enum-wb_congested_state.patch
 
