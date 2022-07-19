@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32DBDC43334
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jul 2022 19:05:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0504C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jul 2022 19:05:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230190AbiGSTEd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jul 2022 15:04:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55750 "EHLO
+        id S234810AbiGSTFE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jul 2022 15:05:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235397AbiGSTEC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2022 15:04:02 -0400
+        with ESMTP id S231549AbiGSTEp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2022 15:04:45 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB64E52FD4
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 12:04:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B105E52FCB
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 12:04:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F470617D0
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 19:04:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 686FCC341C6;
-        Tue, 19 Jul 2022 19:04:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4630B617D0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 19:04:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DFFBC341C6;
+        Tue, 19 Jul 2022 19:04:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658257440;
-        bh=3m1t3Hi9dnOjBxJuoWJqmRANtm9EzJKz+Q8USdyOYkA=;
+        s=korg; t=1658257483;
+        bh=eRk1XKQ+AoD4pUizHvR8om7mugg5TCzX96tItWN9Ej4=;
         h=Date:To:From:Subject:From;
-        b=Aj4dKLAyKVreEzFdQzWXiX7MFGaSymFZzHR6nj/FrUelnuqUoodznmpqUGabkiZ6c
-         JaGm+P+680Xv4IES2vQKVqpNQdKVurPP5nIPOKe8i1bqDDzRITEM6JzWy4lousgLbD
-         ndQc85WKTbC87kSza+1QQI9YHhiDTXQaIk0qfNxg=
-Date:   Tue, 19 Jul 2022 12:03:59 -0700
+        b=z9G7Uu+m5mUe+QDyjVNkhizrNh4s7J96eULXr6V60tHtLv3ZhtahNAQdbdZ6N6CFX
+         Z3YnXygJ9+I65Ns9CqcPFHxSsR6QL4ti2B4DGT5+BRktFlmmKj3cez5WL3phUv1YkJ
+         rxr+4O8ppAxa1V2ykvjPeWiexsaRev9QKY23oIlg=
+Date:   Tue, 19 Jul 2022 12:04:42 -0700
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         hughd@google.com, liam.howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch added to mm-unstable branch
-Message-Id: <20220719190400.686FCC341C6@smtp.kernel.org>
+Subject: + mm-start-tracking-vmas-with-maple-tree-fix.patch added to mm-unstable branch
+Message-Id: <20220719190443.5DFFBC341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap: remove unroll from vma_expand()
+     Subject: mmap: remove unroll from __vma_adjust()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch
+     mm-start-tracking-vmas-with-maple-tree-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-start-tracking-vmas-with-maple-tree-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,55 +66,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mmap: remove unroll from vma_expand()
-Date: Tue, 19 Jul 2022 18:50:01 +0000
+Subject: mmap: remove unroll from __vma_adjust()
+Date: Tue, 19 Jul 2022 18:49:48 +0000
 
-Undoing the anon vma work is no necessary since it will be handled by
-the caller in the freeing of the VMA, or in the OOM that is happening.
+If __vma_adjust() fails, then there is no reason to undo the anon vma work
+since it will be done in the caller or we have been OOMed.
 
-Link: https://lkml.kernel.org/r/20220719184959.3360032-1-Liam.Howlett@oracle.com
-Fixes: d8bb385648a5 (mm/mmap: use advanced maple tree API for mmap_region())
+Link: https://lkml.kernel.org/r/20220719184938.3359932-1-Liam.Howlett@oracle.com
+Fixes: 83651ef5048d (mm: start tracking VMAs with maple tree)
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Suggested-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/mmap.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix
+--- a/mm/mmap.c~mm-start-tracking-vmas-with-maple-tree-fix
 +++ a/mm/mmap.c
-@@ -623,7 +623,6 @@ inline int vma_expand(struct ma_state *m
- 	struct anon_vma *anon_vma = vma->anon_vma;
- 	struct file *file = vma->vm_file;
- 	bool remove_next = false;
--	bool anon_cloned = false;
- 
- 	if (next && (vma != next) && (end == next->vm_end)) {
- 		remove_next = true;
-@@ -635,7 +634,6 @@ inline int vma_expand(struct ma_state *m
- 			error = anon_vma_clone(vma, next);
- 			if (error)
- 				return error;
--			anon_cloned = true;
+@@ -923,12 +923,8 @@ int __vma_adjust(struct vm_area_struct *
  		}
  	}
+ 	vma_adjust_trans_huge(orig_vma, start, end, adjust_next);
+-
+-	if (mas_preallocate(&mas, vma, GFP_KERNEL)) {
+-		if (exporter && exporter->anon_vma)
+-			unlink_anon_vmas(importer);
++	if (mas_preallocate(&mas, vma, GFP_KERNEL))
+ 		return -ENOMEM;
+-	}
  
-@@ -718,8 +716,6 @@ inline int vma_expand(struct ma_state *m
- 	return 0;
- 
- nomem:
--	if (anon_cloned)
--		unlink_anon_vmas(vma);
- 	return -ENOMEM;
- }
- 
+ 	if (file) {
+ 		mapping = file->f_mapping;
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
 
 android-binder-fix-lockdep-check-on-clearing-vma.patch
 maple-tree-add-new-data-structure-fix.patch
+mm-start-tracking-vmas-with-maple-tree-fix.patch
 mm-mmap-use-advanced-maple-tree-api-for-mmap_region-fix.patch
 mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
 
