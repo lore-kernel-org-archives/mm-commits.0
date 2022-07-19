@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92649C43334
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jul 2022 23:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01C11C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jul 2022 23:19:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229916AbiGSXB4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jul 2022 19:01:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57230 "EHLO
+        id S232470AbiGSXTP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jul 2022 19:19:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236072AbiGSXBp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2022 19:01:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 076DC48EBB
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 16:01:45 -0700 (PDT)
+        with ESMTP id S229585AbiGSXTO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2022 19:19:14 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32F7561DB9
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 16:19:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 976EF609FB
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 23:01:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA27EC341C6;
-        Tue, 19 Jul 2022 23:01:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E5D6CB81DA0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 23:19:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81704C341C6;
+        Tue, 19 Jul 2022 23:19:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658271704;
-        bh=FE3w+RG0/b+8VOchHVmeO3hmgUZj/vDMjrUlfdhUbLs=;
+        s=korg; t=1658272751;
+        bh=ZcK1ax/Sm0LNjLxcMyier6ZbP7FdwijjCOlevJqcSh4=;
         h=Date:To:From:Subject:From;
-        b=ONkztNTg3XW/0VdzC/YQeDhznLwYB+vwIeoWgioE1JuxR8zwM8QI/NSN0kezvIgft
-         aQkCZfHNxfKVATGZHNcQk0c2RXK6YH3yCtIOvGu/bIhggmGMP+oIONM/qUfBmscT4Q
-         uFql+HN+ljLX8fsR8CMga4bnK9lsdBFQ8UYXlPWQ=
-Date:   Tue, 19 Jul 2022 16:01:43 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org,
-        mike.kravetz@oracle.com, dan.carpenter@oracle.com,
+        b=MXQJ1aYBYM8TSibSHU9dc80G9hhxwXxA2+INE133n93mzKqm1FWue/spcNuUywOBc
+         +AfiZn+kW5znaEQ0cgJzP5jpETBXH2jtm8HCz1DFtQUEQ9gyHFXdOs+v4zCbRfWZ07
+         D30mDCXRJCrHKVWlH7SwrE6VDeyUriXiNRcixGfU=
+Date:   Tue, 19 Jul 2022 16:19:10 -0700
+To:     mm-commits@vger.kernel.org, sashal@kernel.org, minchan@kernel.org,
+        iamjoonsoo.kim@lge.com, quic_yingangl@quicinc.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-vm-silence-uninitialized-variable-warning.patch added to mm-unstable branch
-Message-Id: <20220719230143.DA27EC341C6@smtp.kernel.org>
+Subject: + mm-cma_debugc-align-the-name-buffer-length-as-struct-cma.patch added to mm-unstable branch
+Message-Id: <20220719231911.81704C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/testing/selftests/vm/hugetlb-madvise.c: silence uninitialized variable warning
+     Subject: mm/cma_debug.c: align the name buffer length as struct cma
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-vm-silence-uninitialized-variable-warning.patch
+     mm-cma_debugc-align-the-name-buffer-length-as-struct-cma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-vm-silence-uninitialized-variable-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma_debugc-align-the-name-buffer-length-as-struct-cma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,45 +65,35 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: tools/testing/selftests/vm/hugetlb-madvise.c: silence uninitialized variable warning
-Date: Tue, 19 Jul 2022 12:42:48 +0300
+From: Kassey Li <quic_yingangl@quicinc.com>
+Subject: mm/cma_debug.c: align the name buffer length as struct cma
+Date: Tue, 19 Jul 2022 17:15:54 +0800
 
-This code just reads from memory without caring about the data itself. 
-However static checkers complain that "tmp" is never properly initialized.
-Initialize it to zero and change the name to "dummy" to show that we
-don't care about the value stored in it.
-
-Link: https://lkml.kernel.org/r/YtZ8mKJmktA2GaHB@kili
-Fixes: c4b6cb884011 ("selftests/vm: add hugetlb madvise MADV_DONTNEED MADV_REMOVE test")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20220719091554.27864-1-quic_yingangl@quicinc.com
+Signed-off-by: Kassey Li <quic_yingangl@quicinc.com>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugetlb-madvise.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/cma_debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/hugetlb-madvise.c~selftests-vm-silence-uninitialized-variable-warning
-+++ a/tools/testing/selftests/vm/hugetlb-madvise.c
-@@ -89,10 +89,11 @@ void write_fault_pages(void *addr, unsig
- 
- void read_fault_pages(void *addr, unsigned long nr_pages)
+--- a/mm/cma_debug.c~mm-cma_debugc-align-the-name-buffer-length-as-struct-cma
++++ a/mm/cma_debug.c
+@@ -163,7 +163,7 @@ DEFINE_DEBUGFS_ATTRIBUTE(cma_alloc_fops,
+ static void cma_debugfs_add_one(struct cma *cma, struct dentry *root_dentry)
  {
--	unsigned long i, tmp;
-+	unsigned long dummy = 0;
-+	unsigned long i;
+ 	struct dentry *tmp;
+-	char name[16];
++	char name[CMA_MAX_NAME];
  
- 	for (i = 0; i < nr_pages; i++)
--		tmp += *((unsigned long *)(addr + (i * huge_page_size)));
-+		dummy += *((unsigned long *)(addr + (i * huge_page_size)));
- }
+ 	scnprintf(name, sizeof(name), "cma-%s", cma->name);
  
- int main(int argc, char **argv)
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from quic_yingangl@quicinc.com are
 
-selftests-vm-silence-uninitialized-variable-warning.patch
+mm-cma_debugc-align-the-name-buffer-length-as-struct-cma.patch
 
