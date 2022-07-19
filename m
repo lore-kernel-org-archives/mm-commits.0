@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B845C43334
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Jul 2022 22:57:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D79CCC43334
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Jul 2022 22:59:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229565AbiGSW5o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Jul 2022 18:57:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53976 "EHLO
+        id S231312AbiGSW7n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Jul 2022 18:59:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238289AbiGSW5n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2022 18:57:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD496624B8
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 15:57:42 -0700 (PDT)
+        with ESMTP id S234570AbiGSW7c (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2022 18:59:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A99D62A5A
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 15:59:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4DB4860B9B
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 22:57:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A394CC341C6;
-        Tue, 19 Jul 2022 22:57:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4E70BB81DAF
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jul 2022 22:59:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 007C2C341C6;
+        Tue, 19 Jul 2022 22:59:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658271461;
-        bh=kXCXVs8L/IKATTNPE+rgHjCQZTmiVO0aH77OSLDDlsg=;
+        s=korg; t=1658271569;
+        bh=94THp4gLpEoPmXtExArBAG87nA4ZpDD6Nzn318h/Ckg=;
         h=Date:To:From:Subject:From;
-        b=cDO02y1blxq38KjAa7hD6uAcdiSac315hVKDu4TR2RUn3hfUm1+ylj1gSYx8MDCi5
-         wYlJ+SZuBI2LlxnJElMNU2fjVJktJUeAo3VIbTgIQ2yGTyCNUKqebcA0GBxm2Tj6ww
-         Idq3MjnT1yza3DNjyj3YUdHj6bYWYXKXOVBp6q5I=
-Date:   Tue, 19 Jul 2022 15:57:40 -0700
-To:     mm-commits@vger.kernel.org, xiang@kernel.org,
+        b=BtYpnzhLfJqepyUWlaHpQ4SQWh4w/tjYc6atMBdxFd8ltA8v9uhGj6TyUS77FCTCI
+         TmKXyC3VmV8FhaPWyPM7MX/1WBnkkZW5ayihPC4n3NlV9VUChrVHkAdGXHw2jEswta
+         yV17R/g1qO88dP6QQkimACFRq2ETOzO3SwOmIU2c=
+Date:   Tue, 19 Jul 2022 15:59:28 -0700
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-gao-xiangs-email-addresses.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220719225741.A394CC341C6@smtp.kernel.org>
+Subject: + mm-mempolicy-remove-unneeded-out-label.patch added to mm-unstable branch
+Message-Id: <20220719225929.007C2C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: update Gao Xiang's email addresses
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-update-gao-xiangs-email-addresses.patch
+     Subject: mm/mempolicy: remove unneeded out label
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mempolicy-remove-unneeded-out-label.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-gao-xiangs-email-addresses.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-remove-unneeded-out-label.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,40 +64,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gao Xiang <xiang@kernel.org>
-Subject: mailmap: update Gao Xiang's email addresses
-Date: Tue, 19 Jul 2022 23:42:46 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mempolicy: remove unneeded out label
+Date: Tue, 19 Jul 2022 19:52:33 +0800
 
-I've been in Alibaba Cloud for more than one year, mainly to address
-cloud-native challenges (such as high-performance container images) for
-open source communities.
+We can use unlock label to unlock ptl and return ret directly to remove
+the unneeded out label and reduce the size of mempolicy.o.  No functional
+change intended.
 
-Update my email addresses on behalf of my current employer (Alibaba Cloud)
-to support all my (team) work in this area.  Also add an outdated
-@redhat.com address of me.
+[Before]
+   text	   data	    bss	    dec	    hex	filename
+  26702	   3972	   6168	  36842	   8fea	mm/mempolicy.o
 
-Link: https://lkml.kernel.org/r/20220719154246.62970-1-xiang@kernel.org
-Signed-off-by: Gao Xiang <xiang@kernel.org>
+[After]
+   text	   data	    bss	    dec	    hex	filename
+  26662	   3972	   6168	  36802	   8fc2	mm/mempolicy.o
+
+Link: https://lkml.kernel.org/r/20220719115233.6706-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/mempolicy.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/.mailmap~mailmap-update-gao-xiangs-email-addresses
-+++ a/.mailmap
-@@ -132,6 +132,8 @@ Frank Rowand <frowand.list@gmail.com> <f
- Frank Zago <fzago@systemfabricworks.com>
- Gao Xiang <xiang@kernel.org> <gaoxiang25@huawei.com>
- Gao Xiang <xiang@kernel.org> <hsiangkao@aol.com>
-+Gao Xiang <xiang@kernel.org> <hsiangkao@linux.alibaba.com>
-+Gao Xiang <xiang@kernel.org> <hsiangkao@redhat.com>
- Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@de.ibm.com>
- Gerald Schaefer <gerald.schaefer@linux.ibm.com> <gerald.schaefer@de.ibm.com>
- Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@linux.vnet.ibm.com>
+--- a/mm/mempolicy.c~mm-mempolicy-remove-unneeded-out-label
++++ a/mm/mempolicy.c
+@@ -466,9 +466,8 @@ static int queue_pages_pmd(pmd_t *pmd, s
+ 	}
+ 	page = pmd_page(*pmd);
+ 	if (is_huge_zero_page(page)) {
+-		spin_unlock(ptl);
+ 		walk->action = ACTION_CONTINUE;
+-		goto out;
++		goto unlock;
+ 	}
+ 	if (!queue_pages_required(page, qp))
+ 		goto unlock;
+@@ -485,7 +484,6 @@ static int queue_pages_pmd(pmd_t *pmd, s
+ 		ret = -EIO;
+ unlock:
+ 	spin_unlock(ptl);
+-out:
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from xiang@kernel.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mailmap-update-gao-xiangs-email-addresses.patch
+mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
+filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
+mm-remove-obsolete-comment-in-do_fault_around.patch
+mm-remove-unneeded-pageanon-check-in-restore_exclusive_pte.patch
+mm-mempolicy-remove-unneeded-out-label.patch
 
