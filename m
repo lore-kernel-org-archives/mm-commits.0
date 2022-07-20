@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 204E1C43334
-	for <mm-commits@archiver.kernel.org>; Wed, 20 Jul 2022 16:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A249CCA480
+	for <mm-commits@archiver.kernel.org>; Wed, 20 Jul 2022 16:44:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231817AbiGTQoB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 20 Jul 2022 12:44:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42266 "EHLO
+        id S231586AbiGTQoR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 20 Jul 2022 12:44:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233075AbiGTQn6 (ORCPT
+        with ESMTP id S233188AbiGTQn6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jul 2022 12:43:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2181966AD6
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jul 2022 09:43:52 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3545266AE1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jul 2022 09:43:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BED9DB82149
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jul 2022 16:43:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B719C3411E;
-        Wed, 20 Jul 2022 16:43:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B658A61DC9
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jul 2022 16:43:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10DEDC341C7;
+        Wed, 20 Jul 2022 16:43:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658335429;
-        bh=KLeXErz1FTCl/jmk5xDM4ZLwcNs9KDGqapHk76EEynU=;
+        s=korg; t=1658335433;
+        bh=oYJk9Doadd+7Ai9uTfWgJcJjzWptBJddxpEfypBaGPw=;
         h=Date:To:From:Subject:From;
-        b=0jOnrJJuvWWR8fUmfXn3ukKSNI+2jZenNTNX6FPkdiACKpd6y6CVQ3t9mtV7j/W/z
-         yZGJJ32lQSO6O/qp4vd8AijjzM5ANwJLMzvd4DQ9Dztp4S5GGntBDWwOAZePqhut87
-         s59+2wvK3uRf1FzgD583uKS1KtRiAV82SYSwlPdA=
-Date:   Wed, 20 Jul 2022 09:43:48 -0700
+        b=UBk1GO5/aHjwVRir8DmBQ8THFv20h1AcOXmvX3qxiFasQ75TQ3SEkkusHQ7I50sGa
+         TSan9AgwyUSbN601xZ0UfsyBcnVp1kbCkIGd55hBX/fY55nWxU1pz9BcGleAZUlYfh
+         CRBbkE8VMxWI9ktcrE3IXq/2ca0H9dG6Edf+jqy0=
+Date:   Wed, 20 Jul 2022 09:43:52 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         vbabka@suse.cz, tsbogend@alpha.franken.de, songliubraving@fb.com,
         sj@kernel.org, shy828301@gmail.com, rongwei.wang@linux.alibaba.com,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
         asml.silence@gmail.com, arnd@arndb.de, alex.shi@linux.alibaba.com,
         aarcange@redhat.com, zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-add-struct-collapse_control-fix.patch added to mm-unstable branch
-Message-Id: <20220720164349.3B719C3411E@smtp.kernel.org>
+Subject: + mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior-fix.patch added to mm-unstable branch
+Message-Id: <20220720164353.10DEDC341C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: use minimal bits to store num page < HPAGE_PMD_NR
+     Subject: mm/khugepaged: consistently order cc->is_khugepaged and pte_* checks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-add-struct-collapse_control-fix.patch
+     mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-add-struct-collapse_control-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,20 +76,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/khugepaged: use minimal bits to store num page < HPAGE_PMD_NR
-Date: Wed, 20 Jul 2022 07:06:00 -0700
+Subject: mm/khugepaged: consistently order cc->is_khugepaged and pte_* checks
+Date: Wed, 20 Jul 2022 07:06:01 -0700
 
-Minimally, node_load[] entries just need to be able to hold the maximum
-value of HPAGE_PMD_NR, which is compile-time defined per-arch based on
-PMD_SHIFT and PAGE_SHIFT.  node_load[] is only written either via
-memset(), or with via post-increment.  struct collapse_control may be
-allocated via kmalloc() in other collapse contexts, and MAX_NUMNODES may
-be arbitrarily large.  #define the underlying type of node_load[] based
-off HPAGE_PMD_NR to avoid excessive memory allocated for this struct.
+cc->is_khugepaged is used to predicate the khugepaged-only behavior of
+enforcing khugepaged heuristics limited by the sysfs knobs
+khugepaged_max_ptes_[none|swap|shared].
 
-Link: https://lkml.kernel.org/r/20220720140603.1958773-2-zokeefe@google.com
-Link: https://lore.kernel.org/linux-mm/Ys2CeIm%2FQmQwWh9a@google.com/
-Fixes: 3b07f3bb225a ("mm/khugepaged: add struct collapse_control")
+In branches where khugepaged_max_ptes_* is checked, consistently check
+cc->is_khugepaged first.  Also, local counters (for comparison vs
+khugepaged_max_ptes_* limits) were previously incremented in the
+comparison expression.  Some of these counters (unmapped) are additionally
+used outside of khugepaged_max_ptes_* enforcement, and all counters are
+communicated in tracepoints.  Move the correct accounting of these
+counters before branching statements to avoid future errors due to C's
+short-circuiting evaluation.
+
+Link: https://lkml.kernel.org/r/20220720140603.1958773-3-zokeefe@google.com
+Link: https://lore.kernel.org/linux-mm/Ys2qJm6FaOQcxkha@google.com/
+Fixes: 9fab4752a181 ("mm/khugepaged: add flag to predicate khugepaged-only behavior")
 Signed-off-by: Zach O'Keefe <zokeefe@google.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -127,25 +132,112 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   49 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 29 insertions(+), 20 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-add-struct-collapse_control-fix
+--- a/mm/khugepaged.c~mm-khugepaged-add-flag-to-predicate-khugepaged-only-behavior-fix
 +++ a/mm/khugepaged.c
-@@ -87,8 +87,11 @@ static struct kmem_cache *mm_slot_cache
+@@ -574,9 +574,10 @@ static int __collapse_huge_page_isolate(
+ 		pte_t pteval = *_pte;
+ 		if (pte_none(pteval) || (pte_present(pteval) &&
+ 				is_zero_pfn(pte_pfn(pteval)))) {
++			++none_or_zero;
+ 			if (!userfaultfd_armed(vma) &&
+-			    (++none_or_zero <= khugepaged_max_ptes_none ||
+-			     !cc->is_khugepaged)) {
++			    (!cc->is_khugepaged ||
++			     none_or_zero <= khugepaged_max_ptes_none)) {
+ 				continue;
+ 			} else {
+ 				result = SCAN_EXCEED_NONE_PTE;
+@@ -596,11 +597,14 @@ static int __collapse_huge_page_isolate(
  
- struct collapse_control {
- 	/* Num pages scanned per node */
--	int node_load[MAX_NUMNODES];
--
-+#if HPAGE_PMD_ORDER < 16
-+	u16 node_load[MAX_NUMNODES];
-+#else
-+	u32 node_load[MAX_NUMNODES];
-+#endif
- 	/* Last target selected in khugepaged_find_target_node() */
- 	int last_target_node;
- };
+ 		VM_BUG_ON_PAGE(!PageAnon(page), page);
+ 
+-		if (cc->is_khugepaged && page_mapcount(page) > 1 &&
+-		    ++shared > khugepaged_max_ptes_shared) {
+-			result = SCAN_EXCEED_SHARED_PTE;
+-			count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+-			goto out;
++		if (page_mapcount(page) > 1) {
++			++shared;
++			if (cc->is_khugepaged &&
++			    shared > khugepaged_max_ptes_shared) {
++				result = SCAN_EXCEED_SHARED_PTE;
++				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
++				goto out;
++			}
+ 		}
+ 
+ 		if (PageCompound(page)) {
+@@ -1130,8 +1134,9 @@ static int khugepaged_scan_pmd(struct mm
+ 	     _pte++, _address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+ 		if (is_swap_pte(pteval)) {
+-			if (++unmapped <= khugepaged_max_ptes_swap ||
+-			    !cc->is_khugepaged) {
++			++unmapped;
++			if (!cc->is_khugepaged ||
++			    unmapped <= khugepaged_max_ptes_swap) {
+ 				/*
+ 				 * Always be strict with uffd-wp
+ 				 * enabled swap entries.  Please see
+@@ -1149,9 +1154,10 @@ static int khugepaged_scan_pmd(struct mm
+ 			}
+ 		}
+ 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++			++none_or_zero;
+ 			if (!userfaultfd_armed(vma) &&
+-			    (++none_or_zero <= khugepaged_max_ptes_none ||
+-			     !cc->is_khugepaged)) {
++			    (!cc->is_khugepaged ||
++			     none_or_zero <= khugepaged_max_ptes_none)) {
+ 				continue;
+ 			} else {
+ 				result = SCAN_EXCEED_NONE_PTE;
+@@ -1181,12 +1187,14 @@ static int khugepaged_scan_pmd(struct mm
+ 			goto out_unmap;
+ 		}
+ 
+-		if (cc->is_khugepaged &&
+-		    page_mapcount(page) > 1 &&
+-		    ++shared > khugepaged_max_ptes_shared) {
+-			result = SCAN_EXCEED_SHARED_PTE;
+-			count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+-			goto out_unmap;
++		if (page_mapcount(page) > 1) {
++			++shared;
++			if (cc->is_khugepaged &&
++			    shared > khugepaged_max_ptes_shared) {
++				result = SCAN_EXCEED_SHARED_PTE;
++				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
++				goto out_unmap;
++			}
+ 		}
+ 
+ 		page = compound_head(page);
+@@ -1922,8 +1930,9 @@ static int khugepaged_scan_file(struct m
+ 			continue;
+ 
+ 		if (xa_is_value(page)) {
++			++swap;
+ 			if (cc->is_khugepaged &&
+-			    ++swap > khugepaged_max_ptes_swap) {
++			    swap > khugepaged_max_ptes_swap) {
+ 				result = SCAN_EXCEED_SWAP_PTE;
+ 				count_vm_event(THP_SCAN_EXCEED_SWAP_PTE);
+ 				break;
+@@ -1974,8 +1983,8 @@ static int khugepaged_scan_file(struct m
+ 	rcu_read_unlock();
+ 
+ 	if (result == SCAN_SUCCEED) {
+-		if (present < HPAGE_PMD_NR - khugepaged_max_ptes_none &&
+-		    cc->is_khugepaged) {
++		if (cc->is_khugepaged &&
++		    present < HPAGE_PMD_NR - khugepaged_max_ptes_none) {
+ 			result = SCAN_EXCEED_NONE_PTE;
+ 			count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
+ 		} else {
 _
 
 Patches currently in -mm which might be from zokeefe@google.com are
