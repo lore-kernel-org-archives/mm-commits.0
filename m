@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E0A2C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jul 2022 22:29:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98184C43334
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jul 2022 22:31:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236901AbiGYW3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Jul 2022 18:29:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37844 "EHLO
+        id S230292AbiGYWbB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Jul 2022 18:31:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236539AbiGYW3g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2022 18:29:36 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E684925C40;
-        Mon, 25 Jul 2022 15:29:34 -0700 (PDT)
+        with ESMTP id S230242AbiGYWbB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2022 18:31:01 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F04CD13E95
+        for <mm-commits@vger.kernel.org>; Mon, 25 Jul 2022 15:30:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8B71AB80ECE;
-        Mon, 25 Jul 2022 22:29:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39A55C341C6;
-        Mon, 25 Jul 2022 22:29:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BD7F6B80E4E
+        for <mm-commits@vger.kernel.org>; Mon, 25 Jul 2022 22:30:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EA42C341C6;
+        Mon, 25 Jul 2022 22:30:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658788172;
-        bh=MAgqhNDnYcdyI4UWI/N0oBdQ7KQ21/cAC5vDXoRtqTU=;
+        s=korg; t=1658788257;
+        bh=e5gOucRdqKmHrPxWE8fpsJoMwhK6CQVNHNlwwJ3nXKM=;
         h=Date:To:From:Subject:From;
-        b=iMtaF9zwFga4q9TNTW/9cz+Tz+zgPMDqRRJedYNIE5JFkPxorqqcyA91+IMg+A/wu
-         FENEmJP4Rtk98fyxPGnhsVAOfk7BZ/+68lOSFvD6xyZ6iPhHgMxH/BuWVSIOnijV81
-         UGCRN8O6kBJSgW74sGOtGWP2yaHYMg7k5INVAqpk=
-Date:   Mon, 25 Jul 2022 15:29:31 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        Philip.Yang@amd.com, jgg@nvidia.com, felix.kuehling@amd.com,
-        apopple@nvidia.com, rcampbell@nvidia.com, akpm@linux-foundation.org
+        b=QTC2pqK6LNUe4yvt5utxpXIcarib6W2IF9HFLKGcXqEli2eb69/dVJGmkJSjOFj9E
+         pzXkt7BCoMU6KktDtiLKe/L5kU+WPKau3ob2zr3EoT1TsX3vNXrcCzNFHMDojDpl+f
+         /S/dhBMCEDGaAcr1NJhgvi2lJCTKDTPUpB6z7s3Q=
+Date:   Mon, 25 Jul 2022 15:30:56 -0700
+To:     mm-commits@vger.kernel.org, Philip.Yang@amd.com, jgg@nvidia.com,
+        felix.kuehling@amd.com, apopple@nvidia.com, rcampbell@nvidia.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hmm-fault-non-owner-device-private-entries.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220725222932.39A55C341C6@smtp.kernel.org>
+Subject: + mm-hmm-add-a-test-for-cross-device-private-faults.patch added to mm-unstable branch
+Message-Id: <20220725223057.6EA42C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm: fault non-owner device private entries
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hmm-fault-non-owner-device-private-entries.patch
+     Subject: mm/hmm: add a test for cross device private faults
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hmm-add-a-test-for-cross-device-private-faults.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-fault-non-owner-device-private-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-add-a-test-for-cross-device-private-faults.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,78 +66,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/hmm: fault non-owner device private entries
-Date: Mon, 25 Jul 2022 11:36:14 -0700
+Subject: mm/hmm: add a test for cross device private faults
+Date: Mon, 25 Jul 2022 11:36:15 -0700
 
-If hmm_range_fault() is called with the HMM_PFN_REQ_FAULT flag and a
-device private PTE is found, the hmm_range::dev_private_owner page is used
-to determine if the device private page should not be faulted in. 
-However, if the device private page is not owned by the caller,
-hmm_range_fault() returns an error instead of calling migrate_to_ram() to
-fault in the page.
+Add a simple test case for when hmm_range_fault() is called with the
+HMM_PFN_REQ_FAULT flag and a device private PTE is found for a device
+other than the hmm_range::dev_private_owner.  This should cause the page
+to be faulted back to system memory from the other device and the PFN
+returned in the output array.
 
-For example, if a page is migrated to GPU private memory and a RDMA fault
-capable NIC tries to read the migrated page, without this patch it will
-get an error.  With this patch, the page will be migrated back to system
-memory and the NIC will be able to read the data.
-
-Link: https://lkml.kernel.org/r/20220725183615.4118795-2-rcampbell@nvidia.com
-Fixes: 76612d6ce4cc ("mm/hmm: reorganize how !pte_present is handled in hmm_vma_handle_pte()")
+Link: https://lkml.kernel.org/r/20220725183615.4118795-3-rcampbell@nvidia.com
 Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reported-by: Felix Kuehling <felix.kuehling@amd.com>
+Cc: Felix Kuehling <felix.kuehling@amd.com>
 Cc: Philip Yang <Philip.Yang@amd.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ tools/testing/selftests/vm/hmm-tests.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/hmm.c~mm-hmm-fault-non-owner-device-private-entries
-+++ a/mm/hmm.c
-@@ -212,14 +212,6 @@ int hmm_vma_handle_pmd(struct mm_walk *w
- 		unsigned long end, unsigned long hmm_pfns[], pmd_t pmd);
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+--- a/tools/testing/selftests/vm/hmm-tests.c~mm-hmm-add-a-test-for-cross-device-private-faults
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -1603,9 +1603,19 @@ TEST_F(hmm2, double_map)
+ 	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
+ 		ASSERT_EQ(ptr[i], i);
  
--static inline bool hmm_is_device_private_entry(struct hmm_range *range,
--		swp_entry_t entry)
--{
--	return is_device_private_entry(entry) &&
--		pfn_swap_entry_to_page(entry)->pgmap->owner ==
--		range->dev_private_owner;
--}
--
- static inline unsigned long pte_to_hmm_pfn_flags(struct hmm_range *range,
- 						 pte_t pte)
- {
-@@ -252,10 +244,12 @@ static int hmm_vma_handle_pte(struct mm_
- 		swp_entry_t entry = pte_to_swp_entry(pte);
- 
- 		/*
--		 * Never fault in device private pages, but just report
--		 * the PFN even if not present.
-+		 * Don't fault in device private pages owned by the caller,
-+		 * just report the PFN.
- 		 */
--		if (hmm_is_device_private_entry(range, entry)) {
-+		if (is_device_private_entry(entry) &&
-+		    pfn_swap_entry_to_page(entry)->pgmap->owner ==
-+		    range->dev_private_owner) {
- 			cpu_flags = HMM_PFN_VALID;
- 			if (is_writable_device_private_entry(entry))
- 				cpu_flags |= HMM_PFN_WRITE;
-@@ -273,6 +267,9 @@ static int hmm_vma_handle_pte(struct mm_
- 		if (!non_swap_entry(entry))
- 			goto fault;
- 
-+		if (is_device_private_entry(entry))
-+			goto fault;
+-	/* Punch a hole after the first page address. */
+-	ret = munmap(buffer->ptr + self->page_size, self->page_size);
++	/* Migrate pages to device 1 and try to read from device 0. */
++	ret = hmm_dmirror_cmd(self->fd1, HMM_DMIRROR_MIGRATE, buffer, npages);
+ 	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
 +
- 		if (is_device_exclusive_entry(entry))
- 			goto fault;
++	ret = hmm_dmirror_cmd(self->fd0, HMM_DMIRROR_READ, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++	ASSERT_EQ(buffer->faults, 1);
++
++	/* Check what device 0 read. */
++	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
++		ASSERT_EQ(ptr[i], i);
  
+ 	hmm_buffer_free(buffer);
+ }
 _
 
 Patches currently in -mm which might be from rcampbell@nvidia.com are
