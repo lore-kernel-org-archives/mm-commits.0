@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 625EFC43334
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jul 2022 18:47:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA1A2C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jul 2022 18:57:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235951AbiGYSrm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Jul 2022 14:47:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55258 "EHLO
+        id S229908AbiGYS5M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Jul 2022 14:57:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229753AbiGYSrl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2022 14:47:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 322882B1;
-        Mon, 25 Jul 2022 11:47:41 -0700 (PDT)
+        with ESMTP id S229544AbiGYS5L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2022 14:57:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D737DBE1C
+        for <mm-commits@vger.kernel.org>; Mon, 25 Jul 2022 11:57:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C172260ED9;
-        Mon, 25 Jul 2022 18:47:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21470C341C6;
-        Mon, 25 Jul 2022 18:47:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 905E0B810AA
+        for <mm-commits@vger.kernel.org>; Mon, 25 Jul 2022 18:57:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D6B8C341C6;
+        Mon, 25 Jul 2022 18:57:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658774860;
-        bh=eBsZ6f+ACMnNJls1sE0EwiTefDO6vWpt3zJ4rcotMZY=;
+        s=korg; t=1658775427;
+        bh=N8xxs5uCXgdeTYkHduIdLIqdFNdBGarlZhxt3g2Wwjw=;
         h=Date:To:From:Subject:From;
-        b=2GZJo33TZRkieW41SS+xTGRTpWNUCyMg4ttM7VCgLzSHvuaOHn2FSsS/4AKUGPKid
-         ZbMEyPPeTkdeB1OHFRoGczlSD5KINBn0jBARoneqXftZsTHIzOEx6V7g/+IkqYbRgx
-         a20eWTjLbFFu+NrBauE7Iq27l6d30GkqXoZmIzmY=
-Date:   Mon, 25 Jul 2022 11:47:39 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        songmuchun@bytedance.com, shakeelb@google.com,
-        mike.kravetz@oracle.com, keescook@chromium.org,
-        almasrymina@google.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=KO443ZKI1wUCQTZU9REcILLZ9Mt9EzA5dHyrSD9NXm8wxh1JGX8u8Zm2Y5evZL49/
+         5luMkt5FMkRDQYrb23/kM2HT4So5Ongtr58GkNT2QPZGwROhd8wWvIMLGvHx+IAnnl
+         bJamPlQPo6HG8g1njDQgnWjN4E+4J6chXidtVnHI=
+Date:   Mon, 25 Jul 2022 11:57:06 -0700
+To:     mm-commits@vger.kernel.org, peterx@redhat.com,
+        axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat.patch added to mm-unstable branch
-Message-Id: <20220725184740.21470C341C6@smtp.kernel.org>
+Subject: + userfaultfd-dont-fail-on-unrecognized-features.patch added to mm-unstable branch
+Message-Id: <20220725185707.2D6B8C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: fix wrong hugetlb cgroup numa stat
+     Subject: userfaultfd: don't fail on unrecognized features
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat.patch
+     userfaultfd-dont-fail-on-unrecognized-features.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-dont-fail-on-unrecognized-features.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,49 +64,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb_cgroup: fix wrong hugetlb cgroup numa stat
-Date: Sat, 23 Jul 2022 15:38:04 +0800
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd: don't fail on unrecognized features
+Date: Fri, 22 Jul 2022 13:15:13 -0700
 
-We forget to set cft->private for numa stat file.  As a result, numa stat
-of hstates[0] is always showed for all hstates.  Encode the hstates index
-into cft->private to fix this issue.
+The basic interaction for setting up a userfaultfd is, userspace issues
+a UFFDIO_API ioctl, and passes in a set of zero or more feature flags,
+indicating the features they would prefer to use.
 
-Link: https://lkml.kernel.org/r/20220723073804.53035-1-linmiaohe@huawei.com
-Fixes: f47761999052 ("hugetlb: add hugetlb.*.numa_stat file")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: <stable@vger.kernel.org>
+Of course, different kernels may support different sets of features
+(depending on kernel version, kconfig options, architecture, etc).
+Userspace's expectations may also not match: perhaps it was built
+against newer kernel headers, which defined some features the kernel
+it's running on doesn't support.
+
+Currently, if userspace passes in a flag we don't recognize, the
+initialization fails and we return -EINVAL. This isn't great, though.
+Userspace doesn't have an obvious way to react to this; sure, one of the
+features I asked for was unavailable, but which one? The only option it
+has is to turn off things "at random" and hope something works.
+
+Instead, modify UFFDIO_API to just ignore any unrecognized feature
+flags. The interaction is now that the initialization will succeed, and
+as always we return the *subset* of feature flags that can actually be
+used back to userspace.
+
+Now userspace has an obvious way to react: it checks if any flags it
+asked for are missing. If so, it can conclude this kernel doesn't
+support those, and it can either resign itself to not using them, or
+fail with an error on its own, or whatever else.
+
+Link: https://lkml.kernel.org/r/20220722201513.1624158-1-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/userfaultfd.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat
-+++ a/mm/hugetlb_cgroup.c
-@@ -772,6 +772,7 @@ static void __init __hugetlb_cgroup_file
- 	/* Add the numa stat file */
- 	cft = &h->cgroup_files_dfl[6];
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
-+	cft->private = MEMFILE_PRIVATE(idx, 0);
- 	cft->seq_show = hugetlb_cgroup_read_numa_stat;
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
- 
+--- a/fs/userfaultfd.c~userfaultfd-dont-fail-on-unrecognized-features
++++ a/fs/userfaultfd.c
+@@ -1947,10 +1947,8 @@ static int userfaultfd_api(struct userfa
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_api, buf, sizeof(uffdio_api)))
+ 		goto out;
+-	features = uffdio_api.features;
+-	ret = -EINVAL;
+-	if (uffdio_api.api != UFFD_API || (features & ~UFFD_API_FEATURES))
+-		goto err_out;
++	/* Ignore unsupported features (userspace built against newer kernel) */
++	features = uffdio_api.features & UFFD_API_FEATURES;
+ 	ret = -EPERM;
+ 	if ((features & UFFD_FEATURE_EVENT_FORK) && !capable(CAP_SYS_PTRACE))
+ 		goto err_out;
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch
-mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
-mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
-filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
-mm-remove-obsolete-comment-in-do_fault_around.patch
-mm-remove-unneeded-pageanon-check-in-restore_exclusive_pte.patch
-mm-mempolicy-remove-unneeded-out-label.patch
-hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat.patch
+userfaultfd-dont-fail-on-unrecognized-features.patch
 
