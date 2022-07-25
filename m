@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA891C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Jul 2022 18:42:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 625EFC43334
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Jul 2022 18:47:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235544AbiGYSmc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Jul 2022 14:42:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52630 "EHLO
+        id S235951AbiGYSrm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Jul 2022 14:47:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55258 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230468AbiGYSmb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2022 14:42:31 -0400
+        with ESMTP id S229753AbiGYSrl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2022 14:47:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0B0B1F2E2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Jul 2022 11:42:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 322882B1;
+        Mon, 25 Jul 2022 11:47:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4D20860B08
-        for <mm-commits@vger.kernel.org>; Mon, 25 Jul 2022 18:42:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AA02C341C6;
-        Mon, 25 Jul 2022 18:42:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C172260ED9;
+        Mon, 25 Jul 2022 18:47:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21470C341C6;
+        Mon, 25 Jul 2022 18:47:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658774549;
-        bh=Ho3mGabnfH+2UPcvWsxs82kObgTS231Dc0bd5oAEtIM=;
+        s=korg; t=1658774860;
+        bh=eBsZ6f+ACMnNJls1sE0EwiTefDO6vWpt3zJ4rcotMZY=;
         h=Date:To:From:Subject:From;
-        b=BBqkOz1W9A+lfaksjRTMSB3RpC0RC0ZK1+t2JrmCMsHpctFg20pXPWIAWeRxigjwA
-         /2zoz+ROrNmiez6FO3U1mOpM1hqWgdIm3Gsxy/ZeYBW9NWtEOhJ7EtAwFtyBEJo8As
-         hBa6oIv/57KTd7iz5l+t+iSik+iEJhmMX4u7Wcoc=
-Date:   Mon, 25 Jul 2022 11:42:28 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
+        b=2GZJo33TZRkieW41SS+xTGRTpWNUCyMg4ttM7VCgLzSHvuaOHn2FSsS/4AKUGPKid
+         ZbMEyPPeTkdeB1OHFRoGczlSD5KINBn0jBARoneqXftZsTHIzOEx6V7g/+IkqYbRgx
+         a20eWTjLbFFu+NrBauE7Iq27l6d30GkqXoZmIzmY=
+Date:   Mon, 25 Jul 2022 11:47:39 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        songmuchun@bytedance.com, shakeelb@google.com,
+        mike.kravetz@oracle.com, keescook@chromium.org,
+        almasrymina@google.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-add-some-hopefully-insightful-comments.patch added to mm-nonmm-unstable branch
-Message-Id: <20220725184229.9AA02C341C6@smtp.kernel.org>
+Subject: + hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat.patch added to mm-unstable branch
+Message-Id: <20220725184740.21470C341C6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: add some (hopefully) insightful comments
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-add-some-hopefully-insightful-comments.patch
+     Subject: hugetlb_cgroup: fix wrong hugetlb cgroup numa stat
+has been added to the -mm mm-unstable branch.  Its filename is
+     hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-add-some-hopefully-insightful-comments.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,113 +67,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: add some (hopefully) insightful comments
-Date: Sat, 23 Jul 2022 20:09:07 +0300
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: hugetlb_cgroup: fix wrong hugetlb cgroup numa stat
+Date: Sat, 23 Jul 2022 15:38:04 +0800
 
-* /proc/${pid}/net status
-* removing PDE vs last close stuff (again!)
-* random small stuff
+We forget to set cft->private for numa stat file.  As a result, numa stat
+of hstates[0] is always showed for all hstates.  Encode the hstates index
+into cft->private to fix this issue.
 
-Link: https://lkml.kernel.org/r/YtwrM6sDC0OQ53YB@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/20220723073804.53035-1-linmiaohe@huawei.com
+Fixes: f47761999052 ("hugetlb: add hugetlb.*.numa_stat file")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c    |    4 ++++
- fs/proc/inode.c    |   17 ++++++++++++-----
- fs/proc/proc_net.c |    6 ++++++
- fs/proc/root.c     |    5 +++++
- 4 files changed, 27 insertions(+), 5 deletions(-)
+ mm/hugetlb_cgroup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/proc/array.c~proc-add-some-hopefully-insightful-comments
-+++ a/fs/proc/array.c
-@@ -99,6 +99,10 @@ void proc_task_name(struct seq_file *m,
- {
- 	char tcomm[64];
- 
-+	/*
-+	 * Test before PF_KTHREAD because all workqueue worker threads are
-+	 * kernel threads.
-+	 */
- 	if (p->flags & PF_WQ_WORKER)
- 		wq_worker_comm(tcomm, sizeof(tcomm), p);
- 	else if (p->flags & PF_KTHREAD)
---- a/fs/proc/inode.c~proc-add-some-hopefully-insightful-comments
-+++ a/fs/proc/inode.c
-@@ -212,7 +212,15 @@ static void unuse_pde(struct proc_dir_en
- 		complete(pde->pde_unload_completion);
- }
- 
--/* pde is locked on entry, unlocked on exit */
-+/*
-+ * At most 2 contexts can enter this function: the one doing the last
-+ * close on the descriptor and whoever is deleting PDE itself.
-+ *
-+ * First to enter calls ->proc_release hook and signals its completion
-+ * to the second one which waits and then does nothing.
-+ *
-+ * PDE is locked on entry, unlocked on exit.
-+ */
- static void close_pdeo(struct proc_dir_entry *pde, struct pde_opener *pdeo)
- 	__releases(&pde->pde_unload_lock)
- {
-@@ -222,9 +230,6 @@ static void close_pdeo(struct proc_dir_e
- 	 *
- 	 * rmmod (remove_proc_entry() et al) can't delete an entry and proceed:
- 	 * "struct file" needs to be available at the right moment.
--	 *
--	 * Therefore, first process to enter this function does ->release() and
--	 * signals its completion to the other process which does nothing.
- 	 */
- 	if (pdeo->closing) {
- 		/* somebody else is doing that, just wait */
-@@ -238,10 +243,12 @@ static void close_pdeo(struct proc_dir_e
- 
- 		pdeo->closing = true;
- 		spin_unlock(&pde->pde_unload_lock);
-+
- 		file = pdeo->file;
- 		pde->proc_ops->proc_release(file_inode(file), file);
-+
- 		spin_lock(&pde->pde_unload_lock);
--		/* After ->release. */
-+		/* Strictly after ->proc_release, see above. */
- 		list_del(&pdeo->lh);
- 		c = pdeo->c;
- 		spin_unlock(&pde->pde_unload_lock);
---- a/fs/proc/proc_net.c~proc-add-some-hopefully-insightful-comments
-+++ a/fs/proc/proc_net.c
-@@ -350,6 +350,12 @@ static __net_init int proc_net_ns_init(s
- 	kgid_t gid;
- 	int err;
- 
-+	/*
-+	 * This PDE acts only as an anchor for /proc/${pid}/net hierarchy.
-+	 * Corresponding inode (PDE(inode) == net->proc_net) is never
-+	 * instantiated therefore blanket zeroing is fine.
-+	 * net->proc_net_stat inode is instantiated normally.
-+	 */
- 	err = -ENOMEM;
- 	netd = kmem_cache_zalloc(proc_dir_entry_cache, GFP_KERNEL);
- 	if (!netd)
---- a/fs/proc/root.c~proc-add-some-hopefully-insightful-comments
-+++ a/fs/proc/root.c
-@@ -302,6 +302,11 @@ void __init proc_root_init(void)
- 	proc_mkdir("bus", NULL);
- 	proc_sys_init();
- 
-+	/*
-+	 * Last things last. It is not like userspace processes eager
-+	 * to open /proc files exist at this point but register last
-+	 * anyway.
-+	 */
- 	register_filesystem(&proc_fs_type);
- }
+--- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat
++++ a/mm/hugetlb_cgroup.c
+@@ -772,6 +772,7 @@ static void __init __hugetlb_cgroup_file
+ 	/* Add the numa stat file */
+ 	cft = &h->cgroup_files_dfl[6];
+ 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
++	cft->private = MEMFILE_PRIVATE(idx, 0);
+ 	cft->seq_show = hugetlb_cgroup_read_numa_stat;
+ 	cft->flags = CFTYPE_NOT_ON_ROOT;
  
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-proc-add-some-hopefully-insightful-comments.patch
+mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+mm-mmapc-fix-missing-call-to-vm_unacct_memory-in-mmap_region.patch
+filemap-minor-cleanup-for-filemap_write_and_wait_range.patch
+mm-remove-obsolete-comment-in-do_fault_around.patch
+mm-remove-unneeded-pageanon-check-in-restore_exclusive_pte.patch
+mm-mempolicy-remove-unneeded-out-label.patch
+hugetlb_cgroup-fix-wrong-hugetlb-cgroup-numa-stat.patch
 
