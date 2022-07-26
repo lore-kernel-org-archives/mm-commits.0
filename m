@@ -2,69 +2,307 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26FCEC00140
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 18:50:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92486C00140
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 19:00:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229969AbiGZSue (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jul 2022 14:50:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34158 "EHLO
+        id S231599AbiGZTA1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jul 2022 15:00:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229493AbiGZSud (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 14:50:33 -0400
+        with ESMTP id S239556AbiGZTA0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 15:00:26 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6E4ADA5;
-        Tue, 26 Jul 2022 11:50:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 595B91153
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 12:00:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 43C5A612D4;
-        Tue, 26 Jul 2022 18:50:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59B22C433D7;
-        Tue, 26 Jul 2022 18:50:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DDE9161506
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 19:00:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3903AC433D7;
+        Tue, 26 Jul 2022 19:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658861430;
-        bh=/5gd7QG+BicB+4FI0G/7NWSJ43W5Y9zaAjOgMutftug=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=dYxHJ1v5pBWoYrGo1dhUgt45sbg8vUQ1LLPPLy4jOh9idJ2m39rjGhLLE0jpbRHoc
-         wrf47MaC1DBqOAuXjCt69wyPs9o+ETmir9R+PKBOcHHsrG9uIz2GVzSsEIKyAW89r9
-         tYTzrYb69kR93S4VoVlXbZ2NW17opBBi2YsJHt3U=
-Date:   Tue, 26 Jul 2022 11:50:29 -0700
+        s=korg; t=1658862022;
+        bh=oNdyqjDltHSxnN+3VQ0S6Wl2cEzekjQMFvfOAeZauGQ=;
+        h=Date:To:From:Subject:From;
+        b=ZXAJGtQ+PLbVrTUTf4nCnn1jF3840nUskJ38+7d3ILf6PV8zZnKfSTbamhyfAtjvI
+         97lmvI6+YUbGQbULYWx8bYJRq/q6PX92MbXt/WIQ5f8Yq5qkZTlD9N0NdZx1llblzN
+         Nig2jqcJqqvyuA81d+v19EeLebESD1V+/56CPBEg=
+Date:   Tue, 26 Jul 2022 12:00:21 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc:     Michal Hocko <mhocko@suse.com>, mm-commits@vger.kernel.org,
-        syzbot+2d2aeadc6ce1e1f11d45@syzkaller.appspotmail.com,
-        shakeelb@google.com, roman.gushchin@linux.dev, hannes@cmpxchg.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: + mm-memcontrol-fix-potential-oom_lock-recursion-deadlock.patch
- added to mm-unstable branch
-Message-Id: <20220726115029.ead4b2dfcd8b3df8e31ccc00@linux-foundation.org>
-In-Reply-To: <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
-References: <20220725220032.B4C30C341C8@smtp.kernel.org>
-        <Yt+iWGnA06DjsHz9@dhcp22.suse.cz>
-        <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: + mm-memory-failure-convert-to-pr_fmt.patch added to mm-unstable branch
+Message-Id: <20220726190022.3903AC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, 26 Jul 2022 20:31:17 +0900 Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp> wrote:
 
-> syzbot is reporting GFP_KERNEL allocation with oom_lock held when
-> reporting memcg OOM [1]. If this allocation triggers the global OOM
-> situation then the system can livelock because the GFP_KERNEL allocation
-> with oom_lock held cannot trigger the global OOM killer because
-> __alloc_pages_may_oom() fails to hold oom_lock.
-> 
-> Fix this problem by removing the allocation from memory_stat_format()
-> completely, and pass static buffer when calling from memcg OOM path.
-> 
-> Note that the caller holding filesystem lock was the trigger for syzbot
-> to report this locking dependency. Doing GFP_KERNEL allocation with
-> filesystem lock held can deadlock the system even without involving OOM
-> situation.
+The patch titled
+     Subject: mm: memory-failure: convert to pr_fmt()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory-failure-convert-to-pr_fmt.patch
 
-I used the above as the new changelog text.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-convert-to-pr_fmt.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory-failure: convert to pr_fmt()
+Date: Tue, 26 Jul 2022 16:10:46 +0800
+
+Use pr_fmt to prefix pr_<level> output.
+
+Link: https://lkml.kernel.org/r/20220726081046.10742-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memory-failure.c |   56 +++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 30 deletions(-)
+
+--- a/mm/memory-failure.c~mm-memory-failure-convert-to-pr_fmt
++++ a/mm/memory-failure.c
+@@ -33,6 +33,9 @@
+  * are rare we hope to get away with this. This avoids impacting the core 
+  * VM.
+  */
++
++#define pr_fmt(fmt) "Memory failure: " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/page-flags.h>
+@@ -258,7 +261,7 @@ static int kill_proc(struct to_kill *tk,
+ 	short addr_lsb = tk->size_shift;
+ 	int ret = 0;
+ 
+-	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
++	pr_err("%#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
+ 			pfn, t->comm, t->pid);
+ 
+ 	if ((flags & MF_ACTION_REQUIRED) && (t == current))
+@@ -276,7 +279,7 @@ static int kill_proc(struct to_kill *tk,
+ 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
+ 				      addr_lsb, t);  /* synchronous? */
+ 	if (ret < 0)
+-		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
++		pr_info("Error sending signal to %s:%d: %d\n",
+ 			t->comm, t->pid, ret);
+ 	return ret;
+ }
+@@ -358,7 +361,7 @@ static void add_to_kill(struct task_stru
+ 
+ 	tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
+ 	if (!tk) {
+-		pr_err("Memory failure: Out of memory while machine check handling\n");
++		pr_err("Out of memory while machine check handling\n");
+ 		return;
+ 	}
+ 
+@@ -385,7 +388,7 @@ static void add_to_kill(struct task_stru
+ 	 * has a mapping for the page.
+ 	 */
+ 	if (tk->addr == -EFAULT) {
+-		pr_info("Memory failure: Unable to find user space address %lx in %s\n",
++		pr_info("Unable to find user space address %lx in %s\n",
+ 			page_to_pfn(p), tsk->comm);
+ 	} else if (tk->size_shift == 0) {
+ 		kfree(tk);
+@@ -418,7 +421,7 @@ static void kill_procs(struct list_head
+ 			 * signal and then access the memory. Just kill it.
+ 			 */
+ 			if (fail || tk->addr == -EFAULT) {
+-				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
++				pr_err("%#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
+ 				       pfn, tk->tsk->comm, tk->tsk->pid);
+ 				do_send_sig_info(SIGKILL, SEND_SIG_PRIV,
+ 						 tk->tsk, PIDTYPE_PID);
+@@ -431,7 +434,7 @@ static void kill_procs(struct list_head
+ 			 * process anyways.
+ 			 */
+ 			else if (kill_proc(tk, pfn, flags) < 0)
+-				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
++				pr_err("%#lx: Cannot send advisory machine check signal to %s:%d\n",
+ 				       pfn, tk->tsk->comm, tk->tsk->pid);
+ 		}
+ 		put_task_struct(tk->tsk);
+@@ -821,12 +824,10 @@ static int truncate_error_page(struct pa
+ 		int err = mapping->a_ops->error_remove_page(mapping, p);
+ 
+ 		if (err != 0) {
+-			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
+-				pfn, err);
++			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
+ 		} else if (page_has_private(p) &&
+ 			   !try_to_release_page(p, GFP_NOIO)) {
+-			pr_info("Memory failure: %#lx: failed to release buffers\n",
+-				pfn);
++			pr_info("%#lx: failed to release buffers\n", pfn);
+ 		} else {
+ 			ret = MF_RECOVERED;
+ 		}
+@@ -838,8 +839,7 @@ static int truncate_error_page(struct pa
+ 		if (invalidate_inode_page(p))
+ 			ret = MF_RECOVERED;
+ 		else
+-			pr_info("Memory failure: %#lx: Failed to invalidate\n",
+-				pfn);
++			pr_info("%#lx: Failed to invalidate\n",	pfn);
+ 	}
+ 
+ 	return ret;
+@@ -869,7 +869,7 @@ static bool has_extra_refcount(struct pa
+ 		count -= 1;
+ 
+ 	if (count > 0) {
+-		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
++		pr_err("%#lx: %s still referenced by %d users\n",
+ 		       page_to_pfn(p), action_page_types[ps->type], count);
+ 		return true;
+ 	}
+@@ -893,7 +893,7 @@ static int me_kernel(struct page_state *
+  */
+ static int me_unknown(struct page_state *ps, struct page *p)
+ {
+-	pr_err("Memory failure: %#lx: Unknown page state\n", page_to_pfn(p));
++	pr_err("%#lx: Unknown page state\n", page_to_pfn(p));
+ 	unlock_page(p);
+ 	return MF_FAILED;
+ }
+@@ -1179,7 +1179,7 @@ static void action_result(unsigned long
+ 	trace_memory_failure_event(pfn, type, result);
+ 
+ 	num_poisoned_pages_inc();
+-	pr_err("Memory failure: %#lx: recovery action for %s: %s\n",
++	pr_err("%#lx: recovery action for %s: %s\n",
+ 		pfn, action_page_types[type], action_name[result]);
+ }
+ 
+@@ -1254,8 +1254,7 @@ static int __get_hwpoison_page(struct pa
+ 		if (head == compound_head(page))
+ 			return 1;
+ 
+-		pr_info("Memory failure: %#lx cannot catch tail\n",
+-			page_to_pfn(page));
++		pr_info("%#lx cannot catch tail\n", page_to_pfn(page));
+ 		put_page(head);
+ 	}
+ 
+@@ -1318,7 +1317,7 @@ try_again:
+ 	}
+ out:
+ 	if (ret == -EIO)
+-		pr_err("Memory failure: %#lx: unhandlable page.\n", page_to_pfn(p));
++		pr_err("%#lx: unhandlable page.\n", page_to_pfn(p));
+ 
+ 	return ret;
+ }
+@@ -1417,13 +1416,12 @@ static bool hwpoison_user_mappings(struc
+ 		return true;
+ 
+ 	if (PageKsm(p)) {
+-		pr_err("Memory failure: %#lx: can't handle KSM pages.\n", pfn);
++		pr_err("%#lx: can't handle KSM pages.\n", pfn);
+ 		return false;
+ 	}
+ 
+ 	if (PageSwapCache(p)) {
+-		pr_err("Memory failure: %#lx: keeping poisoned page in swap cache\n",
+-			pfn);
++		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
+ 		ttu |= TTU_IGNORE_HWPOISON;
+ 	}
+ 
+@@ -1441,7 +1439,7 @@ static bool hwpoison_user_mappings(struc
+ 		} else {
+ 			kill = 0;
+ 			ttu |= TTU_IGNORE_HWPOISON;
+-			pr_info("Memory failure: %#lx: corrupted page was clean: dropped without side effects\n",
++			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
+ 				pfn);
+ 		}
+ 	}
+@@ -1470,14 +1468,14 @@ static bool hwpoison_user_mappings(struc
+ 			try_to_unmap(folio, ttu|TTU_RMAP_LOCKED);
+ 			i_mmap_unlock_write(mapping);
+ 		} else
+-			pr_info("Memory failure: %#lx: could not lock mapping for mapped huge page\n", pfn);
++			pr_info("%#lx: could not lock mapping for mapped huge page\n", pfn);
+ 	} else {
+ 		try_to_unmap(folio, ttu);
+ 	}
+ 
+ 	unmap_success = !page_mapped(hpage);
+ 	if (!unmap_success)
+-		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
++		pr_err("%#lx: failed to unmap page (mapcount=%d)\n",
+ 		       pfn, page_mapcount(hpage));
+ 
+ 	/*
+@@ -1844,7 +1842,7 @@ retry:
+ 		*hugetlb = 0;
+ 		return 0;
+ 	} else if (res == -EHWPOISON) {
+-		pr_err("Memory failure: %#lx: already hardware poisoned\n", pfn);
++		pr_err("%#lx: already hardware poisoned\n", pfn);
+ 		if (flags & MF_ACTION_REQUIRED) {
+ 			head = compound_head(p);
+ 			res = kill_accessing_process(current, page_to_pfn(head), flags);
+@@ -2003,8 +2001,7 @@ int memory_failure(unsigned long pfn, in
+ 				goto unlock_mutex;
+ 			}
+ 		}
+-		pr_err("Memory failure: %#lx: memory outside kernel control\n",
+-			pfn);
++		pr_err("%#lx: memory outside kernel control\n", pfn);
+ 		res = -ENXIO;
+ 		goto unlock_mutex;
+ 	}
+@@ -2015,8 +2012,7 @@ try_again:
+ 		goto unlock_mutex;
+ 
+ 	if (TestSetPageHWPoison(p)) {
+-		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+-			pfn);
++		pr_err("%#lx: already hardware poisoned\n", pfn);
+ 		res = -EHWPOISON;
+ 		if (flags & MF_ACTION_REQUIRED)
+ 			res = kill_accessing_process(current, pfn, flags);
+@@ -2232,7 +2228,7 @@ void memory_failure_queue(unsigned long
+ 	if (kfifo_put(&mf_cpu->fifo, entry))
+ 		schedule_work_on(smp_processor_id(), &mf_cpu->work);
+ 	else
+-		pr_err("Memory failure: buffer overflow when queuing memory failure at %#lx\n",
++		pr_err("buffer overflow when queuing memory failure at %#lx\n",
+ 		       pfn);
+ 	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
+ 	put_cpu_var(memory_failure_cpu);
+_
+
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+
+mm-cleanup-is_highmem.patch
+mm-use-is_zone_movable_page-helper.patch
+mm-memory-failure-convert-to-pr_fmt.patch
+
