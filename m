@@ -2,121 +2,69 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F94BC00140
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 18:41:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26FCEC00140
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 18:50:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233364AbiGZSlr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jul 2022 14:41:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55696 "EHLO
+        id S229969AbiGZSue (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jul 2022 14:50:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230515AbiGZSlq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 14:41:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F35A2D1DC
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 11:41:45 -0700 (PDT)
+        with ESMTP id S229493AbiGZSud (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 14:50:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6E4ADA5;
+        Tue, 26 Jul 2022 11:50:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3C8C1614DE
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 18:41:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C50BC433C1;
-        Tue, 26 Jul 2022 18:41:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 43C5A612D4;
+        Tue, 26 Jul 2022 18:50:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59B22C433D7;
+        Tue, 26 Jul 2022 18:50:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658860904;
-        bh=LoZiTuox9hRkfufgt56r3HornmoNrDdZ70Ub3CQngYE=;
-        h=Date:To:From:Subject:From;
-        b=cU4TIvVSJG4oAeGw2lIyq11Ex64t6YAGTlrWwfT1nzKYv3bjWoaRqySbJombiSXa7
-         6M2eG7FxUgTrGfhPqR+0tMXKcPAFp+i4UHpsjHcqDkTFPr8dRejMm7a3Muq+S9Zbsd
-         LXtV0GecKDiYXS/VnXjUDCguIL/V3DvHfzc6f+LM=
-Date:   Tue, 26 Jul 2022 11:41:43 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        s=korg; t=1658861430;
+        bh=/5gd7QG+BicB+4FI0G/7NWSJ43W5Y9zaAjOgMutftug=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=dYxHJ1v5pBWoYrGo1dhUgt45sbg8vUQ1LLPPLy4jOh9idJ2m39rjGhLLE0jpbRHoc
+         wrf47MaC1DBqOAuXjCt69wyPs9o+ETmir9R+PKBOcHHsrG9uIz2GVzSsEIKyAW89r9
+         tYTzrYb69kR93S4VoVlXbZ2NW17opBBi2YsJHt3U=
+Date:   Tue, 26 Jul 2022 11:50:29 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-is_zone_movable_page-helper.patch added to mm-unstable branch
-Message-Id: <20220726184144.8C50BC433C1@smtp.kernel.org>
+To:     Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc:     Michal Hocko <mhocko@suse.com>, mm-commits@vger.kernel.org,
+        syzbot+2d2aeadc6ce1e1f11d45@syzkaller.appspotmail.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, hannes@cmpxchg.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: + mm-memcontrol-fix-potential-oom_lock-recursion-deadlock.patch
+ added to mm-unstable branch
+Message-Id: <20220726115029.ead4b2dfcd8b3df8e31ccc00@linux-foundation.org>
+In-Reply-To: <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
+References: <20220725220032.B4C30C341C8@smtp.kernel.org>
+        <Yt+iWGnA06DjsHz9@dhcp22.suse.cz>
+        <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, 26 Jul 2022 20:31:17 +0900 Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp> wrote:
 
-The patch titled
-     Subject: mm: use is_zone_movable_page() helper
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-is_zone_movable_page-helper.patch
+> syzbot is reporting GFP_KERNEL allocation with oom_lock held when
+> reporting memcg OOM [1]. If this allocation triggers the global OOM
+> situation then the system can livelock because the GFP_KERNEL allocation
+> with oom_lock held cannot trigger the global OOM killer because
+> __alloc_pages_may_oom() fails to hold oom_lock.
+> 
+> Fix this problem by removing the allocation from memory_stat_format()
+> completely, and pass static buffer when calling from memcg OOM path.
+> 
+> Note that the caller holding filesystem lock was the trigger for syzbot
+> to report this locking dependency. Doing GFP_KERNEL allocation with
+> filesystem lock held can deadlock the system even without involving OOM
+> situation.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-is_zone_movable_page-helper.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: use is_zone_movable_page() helper
-Date: Tue, 26 Jul 2022 21:11:35 +0800
-
-Use is_zone_movable_page() helper to simplify code.
-
-Link: https://lkml.kernel.org/r/20220726131135.146912-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/virtio/virtio_mem.c |    6 ++----
- mm/memory_hotplug.c         |    2 +-
- 2 files changed, 3 insertions(+), 5 deletions(-)
-
---- a/drivers/virtio/virtio_mem.c~mm-use-is_zone_movable_page-helper
-+++ a/drivers/virtio/virtio_mem.c
-@@ -862,8 +862,7 @@ static void virtio_mem_sbm_notify_online
- 					 unsigned long mb_id,
- 					 unsigned long start_pfn)
- {
--	const bool is_movable = page_zonenum(pfn_to_page(start_pfn)) ==
--				ZONE_MOVABLE;
-+	const bool is_movable = is_zone_movable_page(pfn_to_page(start_pfn));
- 	int new_state;
- 
- 	switch (virtio_mem_sbm_get_mb_state(vm, mb_id)) {
-@@ -1158,8 +1157,7 @@ static void virtio_mem_fake_online(unsig
-  */
- static int virtio_mem_fake_offline(unsigned long pfn, unsigned long nr_pages)
- {
--	const bool is_movable = page_zonenum(pfn_to_page(pfn)) ==
--				ZONE_MOVABLE;
-+	const bool is_movable = is_zone_movable_page(pfn_to_page(pfn));
- 	int rc, retry_count;
- 
- 	/*
---- a/mm/memory_hotplug.c~mm-use-is_zone_movable_page-helper
-+++ a/mm/memory_hotplug.c
-@@ -932,7 +932,7 @@ static struct zone *auto_movable_zone_fo
- 			if (!page)
- 				continue;
- 			/* If anything is !MOVABLE online the rest !MOVABLE. */
--			if (page_zonenum(page) != ZONE_MOVABLE)
-+			if (!is_zone_movable_page(page))
- 				goto kernel_zone;
- 			online_pages += PAGES_PER_SECTION;
- 		}
-_
-
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
-
-mm-cleanup-is_highmem.patch
-mm-use-is_zone_movable_page-helper.patch
-
+I used the above as the new changelog text.
