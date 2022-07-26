@@ -2,123 +2,126 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7A6FC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 12:05:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4132EC00140
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 18:35:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238685AbiGZMFB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jul 2022 08:05:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44826 "EHLO
+        id S229969AbiGZSfG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jul 2022 14:35:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232953AbiGZMFA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 08:05:00 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 616CA2559B;
-        Tue, 26 Jul 2022 05:04:57 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S233382AbiGZSfF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 14:35:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03062205EF
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 11:35:05 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 1C7C41FCE9;
-        Tue, 26 Jul 2022 12:04:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1658837096; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=oFxbdUTxOSfpkrpCjQtHF0t41MaySwoFvQqoE727Q9s=;
-        b=ZGY9/QLugeGs5TEHzW25VmqHmJuYByAfJlkb76S3UNSN4HgP+VCyNv6rsIwc0TGYxqityd
-        FpRMqa8MH5sWTBr6YUxTbsYre82gDHy66GSwnYHn79prhInjqCCjAQegLcTZq6WzewNPIH
-        FYTBKcUNgXeCttkiOg+N8dsfIQdtdHw=
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id F140613322;
-        Tue, 26 Jul 2022 12:04:55 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id vudbOGfY32JFdAAAMHmgww
-        (envelope-from <mhocko@suse.com>); Tue, 26 Jul 2022 12:04:55 +0000
-Date:   Tue, 26 Jul 2022 14:04:55 +0200
-From:   Michal Hocko <mhocko@suse.com>
-To:     Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc:     mm-commits@vger.kernel.org,
-        syzbot+2d2aeadc6ce1e1f11d45@syzkaller.appspotmail.com,
-        shakeelb@google.com, roman.gushchin@linux.dev, hannes@cmpxchg.org,
-        akpm@linux-foundation.org, linux-kernel@vger.kernel.org
-Subject: Re: + mm-memcontrol-fix-potential-oom_lock-recursion-deadlock.patch
- added to mm-unstable branch
-Message-ID: <Yt/YZ8zVabIpJXw4@dhcp22.suse.cz>
-References: <20220725220032.B4C30C341C8@smtp.kernel.org>
- <Yt+iWGnA06DjsHz9@dhcp22.suse.cz>
- <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 93CAF614A9
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 18:35:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE11EC433C1;
+        Tue, 26 Jul 2022 18:35:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1658860504;
+        bh=OAPe4IW04yoBGr20UGMnlclDmXuiqMDW8lg+Ptf7twk=;
+        h=Date:To:From:Subject:From;
+        b=OY0KgmALp4QOH1qC3XzEfuTyaZw89eFnXt9i609aNin3nHfjaNk1E0m5L58axTDDU
+         DlkdkSsVRODwN9muCVdF+DwFSBzYNvABZ50+4HuoLh3oT5Ep5pwHLgoO5DO/DyPZ/X
+         32Ts1orb0dEjZeIY32IWjcIYslu97a+ErkKXX3XA=
+Date:   Tue, 26 Jul 2022 11:35:03 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-cleanup-is_highmem.patch added to mm-unstable branch
+Message-Id: <20220726183503.DE11EC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue 26-07-22 20:31:17, Tetsuo Handa wrote:
-> On 2022/07/26 17:14, Michal Hocko wrote:
-> > As we have concluded there are two issues possible here which would be
-> > great to have reflected in the changelog.
-> > 
-> > On Mon 25-07-22 15:00:32, Andrew Morton wrote:
-> >> From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-> >> Subject: mm: memcontrol: fix potential oom_lock recursion deadlock
-> >> Date: Fri, 22 Jul 2022 19:45:39 +0900
-> >>
-> >> syzbot is reporting GFP_KERNEL allocation with oom_lock held when
-> >> reporting memcg OOM [1].  Such allocation request might deadlock the
-> >> system, for __alloc_pages_may_oom() cannot invoke global OOM killer due to
-> >> oom_lock being already held by the caller.
-> > 
-> > I would phrase it like this:
-> 
-> This report is difficult to explain correctly.
-> 
-> > syzbot is reporting GFP_KERNEL allocation with oom_lock held when
-> > reporting memcg OOM [1].
-> 
-> Correct. But
-> 
-> >                          This is problematic because this creates a
-> > dependency between GFP_NOFS and GFP_KERNEL over oom_lock which could
-> > dead lock the system.
-> 
-> oom_lock is irrelevant when trying GFP_KERNEL allocation from GFP_NOFS
-> context. Therefore, something like:
 
-I meant to say there is a dependency chain
-	potential_fs_lock
-	GFP_NOFS
-				oom_lock
-				GFP_KERNEL
-				potentiaL_lock
-	oom_lock
+The patch titled
+     Subject: mm: cleanup is_highmem()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-cleanup-is_highmem.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cleanup-is_highmem.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: cleanup is_highmem()
+Date: Tue, 26 Jul 2022 21:18:16 +0800
+
+It is unnecessary to add CONFIG_HIGHMEM check in is_highmem(), which has
+been done in is_highmem_idx(), and move is_highmem() close to
+is_highmem_idx().  This has no functional impact.
+
+Link: https://lkml.kernel.org/r/20220726131816.149075-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/mmzone.h |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+--- a/include/linux/mmzone.h~mm-cleanup-is_highmem
++++ a/include/linux/mmzone.h
+@@ -1137,15 +1137,6 @@ static inline int is_highmem_idx(enum zo
+ #endif
+ }
  
-> ----------
-> syzbot is reporting GFP_KERNEL allocation with oom_lock held when
-> reporting memcg OOM [1]. If this allocation triggers the global OOM
-> situation then the system can livelock because the GFP_KERNEL allocation
-> with oom_lock held cannot trigger the global OOM killer because
-> __alloc_pages_may_oom() fails to hold oom_lock.
-> 
-> Fix this problem by removing the allocation from memory_stat_format()
-> completely, and pass static buffer when calling from memcg OOM path.
-> 
-> Note that the caller holding filesystem lock was the trigger for syzbot
-> to report this locking dependency. Doing GFP_KERNEL allocation with
-> filesystem lock held can deadlock the system even without involving OOM
-> situation.
-> ----------
+-#ifdef CONFIG_ZONE_DMA
+-bool has_managed_dma(void);
+-#else
+-static inline bool has_managed_dma(void)
+-{
+-	return false;
+-}
+-#endif
+-
+ /**
+  * is_highmem - helper function to quickly check if a struct zone is a
+  *              highmem zone or not.  This is an attempt to keep references
+@@ -1155,12 +1146,17 @@ static inline bool has_managed_dma(void)
+  */
+ static inline int is_highmem(struct zone *zone)
+ {
+-#ifdef CONFIG_HIGHMEM
+ 	return is_highmem_idx(zone_idx(zone));
++}
++
++#ifdef CONFIG_ZONE_DMA
++bool has_managed_dma(void);
+ #else
+-	return 0;
+-#endif
++static inline bool has_managed_dma(void)
++{
++	return false;
+ }
++#endif
+ 
+ /* These two functions are used to setup the per zone pages min values */
+ struct ctl_table;
+_
 
-But this sounds good as well.
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-Thanks!
+mm-cleanup-is_highmem.patch
 
--- 
-Michal Hocko
-SUSE Labs
