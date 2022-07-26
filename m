@@ -2,99 +2,123 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E9B5C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 11:31:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7A6FC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 12:05:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233116AbiGZLbl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jul 2022 07:31:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44266 "EHLO
+        id S238685AbiGZMFB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jul 2022 08:05:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230198AbiGZLbk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 07:31:40 -0400
-Received: from www262.sakura.ne.jp (www262.sakura.ne.jp [202.181.97.72])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32E6F2873B
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 04:31:40 -0700 (PDT)
-Received: from fsav118.sakura.ne.jp (fsav118.sakura.ne.jp [27.133.134.245])
-        by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTP id 26QBVHaw054373;
-        Tue, 26 Jul 2022 20:31:17 +0900 (JST)
-        (envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
-Received: from www262.sakura.ne.jp (202.181.97.72)
- by fsav118.sakura.ne.jp (F-Secure/fsigk_smtp/550/fsav118.sakura.ne.jp);
- Tue, 26 Jul 2022 20:31:17 +0900 (JST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/fsav118.sakura.ne.jp)
-Received: from [192.168.1.9] (M106072142033.v4.enabler.ne.jp [106.72.142.33])
-        (authenticated bits=0)
-        by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTPSA id 26QBVHmF054370
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NO);
-        Tue, 26 Jul 2022 20:31:17 +0900 (JST)
-        (envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
-Message-ID: <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
-Date:   Tue, 26 Jul 2022 20:31:17 +0900
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: + mm-memcontrol-fix-potential-oom_lock-recursion-deadlock.patch
- added to mm-unstable branch
-Content-Language: en-US
-To:     Michal Hocko <mhocko@suse.com>
+        with ESMTP id S232953AbiGZMFA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 08:05:00 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 616CA2559B;
+        Tue, 26 Jul 2022 05:04:57 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 1C7C41FCE9;
+        Tue, 26 Jul 2022 12:04:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1658837096; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=oFxbdUTxOSfpkrpCjQtHF0t41MaySwoFvQqoE727Q9s=;
+        b=ZGY9/QLugeGs5TEHzW25VmqHmJuYByAfJlkb76S3UNSN4HgP+VCyNv6rsIwc0TGYxqityd
+        FpRMqa8MH5sWTBr6YUxTbsYre82gDHy66GSwnYHn79prhInjqCCjAQegLcTZq6WzewNPIH
+        FYTBKcUNgXeCttkiOg+N8dsfIQdtdHw=
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id F140613322;
+        Tue, 26 Jul 2022 12:04:55 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id vudbOGfY32JFdAAAMHmgww
+        (envelope-from <mhocko@suse.com>); Tue, 26 Jul 2022 12:04:55 +0000
+Date:   Tue, 26 Jul 2022 14:04:55 +0200
+From:   Michal Hocko <mhocko@suse.com>
+To:     Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Cc:     mm-commits@vger.kernel.org,
         syzbot+2d2aeadc6ce1e1f11d45@syzkaller.appspotmail.com,
         shakeelb@google.com, roman.gushchin@linux.dev, hannes@cmpxchg.org,
         akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+Subject: Re: + mm-memcontrol-fix-potential-oom_lock-recursion-deadlock.patch
+ added to mm-unstable branch
+Message-ID: <Yt/YZ8zVabIpJXw4@dhcp22.suse.cz>
 References: <20220725220032.B4C30C341C8@smtp.kernel.org>
  <Yt+iWGnA06DjsHz9@dhcp22.suse.cz>
-From:   Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-In-Reply-To: <Yt+iWGnA06DjsHz9@dhcp22.suse.cz>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+ <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ac3a7af1-08c6-e2de-b93c-327ce6839830@I-love.SAKURA.ne.jp>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 2022/07/26 17:14, Michal Hocko wrote:
-> As we have concluded there are two issues possible here which would be
-> great to have reflected in the changelog.
+On Tue 26-07-22 20:31:17, Tetsuo Handa wrote:
+> On 2022/07/26 17:14, Michal Hocko wrote:
+> > As we have concluded there are two issues possible here which would be
+> > great to have reflected in the changelog.
+> > 
+> > On Mon 25-07-22 15:00:32, Andrew Morton wrote:
+> >> From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+> >> Subject: mm: memcontrol: fix potential oom_lock recursion deadlock
+> >> Date: Fri, 22 Jul 2022 19:45:39 +0900
+> >>
+> >> syzbot is reporting GFP_KERNEL allocation with oom_lock held when
+> >> reporting memcg OOM [1].  Such allocation request might deadlock the
+> >> system, for __alloc_pages_may_oom() cannot invoke global OOM killer due to
+> >> oom_lock being already held by the caller.
+> > 
+> > I would phrase it like this:
 > 
-> On Mon 25-07-22 15:00:32, Andrew Morton wrote:
->> From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
->> Subject: mm: memcontrol: fix potential oom_lock recursion deadlock
->> Date: Fri, 22 Jul 2022 19:45:39 +0900
->>
->> syzbot is reporting GFP_KERNEL allocation with oom_lock held when
->> reporting memcg OOM [1].  Such allocation request might deadlock the
->> system, for __alloc_pages_may_oom() cannot invoke global OOM killer due to
->> oom_lock being already held by the caller.
+> This report is difficult to explain correctly.
 > 
-> I would phrase it like this:
+> > syzbot is reporting GFP_KERNEL allocation with oom_lock held when
+> > reporting memcg OOM [1].
+> 
+> Correct. But
+> 
+> >                          This is problematic because this creates a
+> > dependency between GFP_NOFS and GFP_KERNEL over oom_lock which could
+> > dead lock the system.
+> 
+> oom_lock is irrelevant when trying GFP_KERNEL allocation from GFP_NOFS
+> context. Therefore, something like:
 
-This report is difficult to explain correctly.
-
+I meant to say there is a dependency chain
+	potential_fs_lock
+	GFP_NOFS
+				oom_lock
+				GFP_KERNEL
+				potentiaL_lock
+	oom_lock
+ 
+> ----------
 > syzbot is reporting GFP_KERNEL allocation with oom_lock held when
-> reporting memcg OOM [1].
+> reporting memcg OOM [1]. If this allocation triggers the global OOM
+> situation then the system can livelock because the GFP_KERNEL allocation
+> with oom_lock held cannot trigger the global OOM killer because
+> __alloc_pages_may_oom() fails to hold oom_lock.
+> 
+> Fix this problem by removing the allocation from memory_stat_format()
+> completely, and pass static buffer when calling from memcg OOM path.
+> 
+> Note that the caller holding filesystem lock was the trigger for syzbot
+> to report this locking dependency. Doing GFP_KERNEL allocation with
+> filesystem lock held can deadlock the system even without involving OOM
+> situation.
+> ----------
 
-Correct. But
+But this sounds good as well.
 
->                          This is problematic because this creates a
-> dependency between GFP_NOFS and GFP_KERNEL over oom_lock which could
-> dead lock the system.
+Thanks!
 
-oom_lock is irrelevant when trying GFP_KERNEL allocation from GFP_NOFS
-context. Therefore, something like:
-
-----------
-syzbot is reporting GFP_KERNEL allocation with oom_lock held when
-reporting memcg OOM [1]. If this allocation triggers the global OOM
-situation then the system can livelock because the GFP_KERNEL allocation
-with oom_lock held cannot trigger the global OOM killer because
-__alloc_pages_may_oom() fails to hold oom_lock.
-
-Fix this problem by removing the allocation from memory_stat_format()
-completely, and pass static buffer when calling from memcg OOM path.
-
-Note that the caller holding filesystem lock was the trigger for syzbot
-to report this locking dependency. Doing GFP_KERNEL allocation with
-filesystem lock held can deadlock the system even without involving OOM
-situation.
-----------
-
+-- 
+Michal Hocko
+SUSE Labs
