@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22365C00144
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 18:39:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 932DCC00140
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 18:39:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239601AbiGZSi7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jul 2022 14:38:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53522 "EHLO
+        id S230287AbiGZSjT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jul 2022 14:39:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230287AbiGZSi5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 14:38:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E8FE32ED7
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 11:38:57 -0700 (PDT)
+        with ESMTP id S239621AbiGZSjA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 14:39:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D2AF33358
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 11:39:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C21B561490
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 18:38:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23F8FC433D7;
-        Tue, 26 Jul 2022 18:38:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C757D614C8
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 18:38:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 244E8C433D6;
+        Tue, 26 Jul 2022 18:38:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658860736;
-        bh=gcXp1MC464opaR21EIzBZXCpokd3OCLCq/4gOddeiMg=;
+        s=korg; t=1658860739;
+        bh=GXue9696G+Ngrs5HG3yEsLxiX5Cy9q2zyKSywz7TCWk=;
         h=Date:To:From:Subject:From;
-        b=sN9KnKmTJE5TFwsLVOCa9dQq2AI/UGO3DAnrs+FTAX6PkrJZDR/0ATIHice6r0Rk0
-         tWHekElRpIyCwRjrhvcUOZc11xsevNZNbtj33zjYxuulHkObZE8flb3i/NeX8fDAmC
-         omrfU8Wi1wUTzpdk4G6SkU0a9O3DRG9XeeCxOyKM=
-Date:   Tue, 26 Jul 2022 11:38:55 -0700
+        b=l5Y5cEhT5G6Gwk9cCIIU1N5KTuqR1MqIC43RCtbiAnDJYbJ86P8tfE6s5MAShLSzG
+         PLIBayvYMVHMv7WCcTFpgxT0RzTfwrDPTbk5YuKGiy6juDs6oMnD/JgwIZuzcUwGv9
+         wd5k9Gnfkcf03CwsLS9dlpj2+FAPX7WI8P1ORO6Q=
+Date:   Tue, 26 Jul 2022 11:38:58 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlbfs-remove-unneeded-header-file.patch added to mm-unstable branch
-Message-Id: <20220726183856.23F8FC433D7@smtp.kernel.org>
+Subject: + hugetlbfs-fix-inaccurate-comment-in-hugetlbfs_statfs.patch added to mm-unstable branch
+Message-Id: <20220726183859.244E8C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: remove unneeded header file
+     Subject: hugetlbfs: fix inaccurate comment in hugetlbfs_statfs()
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlbfs-remove-unneeded-header-file.patch
+     hugetlbfs-fix-inaccurate-comment-in-hugetlbfs_statfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-remove-unneeded-header-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-fix-inaccurate-comment-in-hugetlbfs_statfs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,31 +66,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlbfs: remove unneeded header file
-Date: Tue, 26 Jul 2022 22:29:16 +0800
+Subject: hugetlbfs: fix inaccurate comment in hugetlbfs_statfs()
+Date: Tue, 26 Jul 2022 22:29:18 +0800
 
-The header file signal.h is unneeded now. Remove it.
+In some cases, e.g.  when size option is not specified, f_blocks, f_bavail
+and f_bfree will be set to -1 instead of 0.  Likewise, when nr_inodes
+isn't specified, f_files and f_ffree will be set to -1 too.  Update the
+comment to make this clear.
 
-Link: https://lkml.kernel.org/r/20220726142918.51693-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220726142918.51693-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: <songmuchun@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-unneeded-header-file
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-inaccurate-comment-in-hugetlbfs_statfs
 +++ a/fs/hugetlbfs/inode.c
-@@ -11,7 +11,6 @@
- 
- #include <linux/thread_info.h>
- #include <asm/current.h>
--#include <linux/sched/signal.h>		/* remove ASAP */
- #include <linux/falloc.h>
- #include <linux/fs.h>
- #include <linux/mount.h>
+@@ -1090,7 +1090,7 @@ static int hugetlbfs_statfs(struct dentr
+ 	buf->f_bsize = huge_page_size(h);
+ 	if (sbinfo) {
+ 		spin_lock(&sbinfo->stat_lock);
+-		/* If no limits set, just report 0 for max/free/used
++		/* If no limits set, just report 0 or -1 for max/free/used
+ 		 * blocks, like simple_statfs() */
+ 		if (sbinfo->spool) {
+ 			long free_pages;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
