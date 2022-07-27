@@ -2,307 +2,130 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92486C00140
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Jul 2022 19:00:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E35CC00144
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jul 2022 01:25:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231599AbiGZTA1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jul 2022 15:00:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39874 "EHLO
+        id S233040AbiG0BZj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jul 2022 21:25:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239556AbiGZTA0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 15:00:26 -0400
+        with ESMTP id S230014AbiG0BZi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 21:25:38 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 595B91153
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 12:00:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5221418B11;
+        Tue, 26 Jul 2022 18:25:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DDE9161506
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 19:00:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3903AC433D7;
-        Tue, 26 Jul 2022 19:00:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DA9A56174B;
+        Wed, 27 Jul 2022 01:25:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37AC9C433D6;
+        Wed, 27 Jul 2022 01:25:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658862022;
-        bh=oNdyqjDltHSxnN+3VQ0S6Wl2cEzekjQMFvfOAeZauGQ=;
+        s=korg; t=1658885136;
+        bh=lS1HCw/z9MMA8YEFiepqFCpyk8tYouQ+Q9DvnneSAXg=;
         h=Date:To:From:Subject:From;
-        b=ZXAJGtQ+PLbVrTUTf4nCnn1jF3840nUskJ38+7d3ILf6PV8zZnKfSTbamhyfAtjvI
-         97lmvI6+YUbGQbULYWx8bYJRq/q6PX92MbXt/WIQ5f8Yq5qkZTlD9N0NdZx1llblzN
-         Nig2jqcJqqvyuA81d+v19EeLebESD1V+/56CPBEg=
-Date:   Tue, 26 Jul 2022 12:00:21 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=d95+KD/xBAHKwNlJmDzZ1qHqJWSM/aCGmZ7NpIdd5xEcWHdvsB8j/T1A0wXo8HJeU
+         oBhK1kSKXtPjp/1H+elwf+SmaEUSWVrpcdB8RSeaa5ILD+C1fFxqSibP6be6XzxZqW
+         /9go/Mo1Ekq++nQ+MjwIU/yfDxE4PaQp758KEPTk=
+Date:   Tue, 26 Jul 2022 18:25:34 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        rppt@linux.ibm.com, peterx@redhat.com, jthoughton@google.com,
+        jack@suse.cz, david@redhat.com, aarcange@redhat.com,
+        namit@vmware.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-convert-to-pr_fmt.patch added to mm-unstable branch
-Message-Id: <20220726190022.3903AC433D7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] userfaultfd-provide-properly-masked-address-for-huge-pages.patch removed from -mm tree
+Message-Id: <20220727012536.37AC9C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: memory-failure: convert to pr_fmt()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-convert-to-pr_fmt.patch
+The quilt patch titled
+     Subject: userfaultfd: provide properly masked address for huge-pages
+has been removed from the -mm tree.  Its filename was
+     userfaultfd-provide-properly-masked-address-for-huge-pages.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-convert-to-pr_fmt.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory-failure: convert to pr_fmt()
-Date: Tue, 26 Jul 2022 16:10:46 +0800
+From: Nadav Amit <namit@vmware.com>
+Subject: userfaultfd: provide properly masked address for huge-pages
+Date: Mon, 11 Jul 2022 09:59:06 -0700
 
-Use pr_fmt to prefix pr_<level> output.
+Commit 824ddc601adc ("userfaultfd: provide unmasked address on
+page-fault") was introduced to fix an old bug, in which the offset in the
+address of a page-fault was masked.  Concerns were raised - although were
+never backed by actual code - that some userspace code might break because
+the bug has been around for quite a while.  To address these concerns a
+new flag was introduced, and only when this flag is set by the user,
+userfaultfd provides the exact address of the page-fault.
 
-Link: https://lkml.kernel.org/r/20220726081046.10742-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+The commit however had a bug, and if the flag is unset, the offset was
+always masked based on a base-page granularity.  Yet, for huge-pages, the
+behavior prior to the commit was that the address is masked to the
+huge-page granulrity.
+
+While there are no reports on real breakage, fix this issue.  If the flag
+is unset, use the address with the masking that was done before.
+
+Link: https://lkml.kernel.org/r/20220711165906.2682-1-namit@vmware.com
+Fixes: 824ddc601adc ("userfaultfd: provide unmasked address on page-fault")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Reported-by: James Houghton <jthoughton@google.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: James Houghton <jthoughton@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   56 +++++++++++++++++++-----------------------
- 1 file changed, 26 insertions(+), 30 deletions(-)
+ fs/userfaultfd.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-convert-to-pr_fmt
-+++ a/mm/memory-failure.c
-@@ -33,6 +33,9 @@
-  * are rare we hope to get away with this. This avoids impacting the core 
-  * VM.
-  */
-+
-+#define pr_fmt(fmt) "Memory failure: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/page-flags.h>
-@@ -258,7 +261,7 @@ static int kill_proc(struct to_kill *tk,
- 	short addr_lsb = tk->size_shift;
- 	int ret = 0;
- 
--	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
-+	pr_err("%#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
- 			pfn, t->comm, t->pid);
- 
- 	if ((flags & MF_ACTION_REQUIRED) && (t == current))
-@@ -276,7 +279,7 @@ static int kill_proc(struct to_kill *tk,
- 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
- 				      addr_lsb, t);  /* synchronous? */
- 	if (ret < 0)
--		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
-+		pr_info("Error sending signal to %s:%d: %d\n",
- 			t->comm, t->pid, ret);
- 	return ret;
+--- a/fs/userfaultfd.c~userfaultfd-provide-properly-masked-address-for-huge-pages
++++ a/fs/userfaultfd.c
+@@ -192,17 +192,19 @@ static inline void msg_init(struct uffd_
  }
-@@ -358,7 +361,7 @@ static void add_to_kill(struct task_stru
  
- 	tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
- 	if (!tk) {
--		pr_err("Memory failure: Out of memory while machine check handling\n");
-+		pr_err("Out of memory while machine check handling\n");
- 		return;
- 	}
- 
-@@ -385,7 +388,7 @@ static void add_to_kill(struct task_stru
- 	 * has a mapping for the page.
- 	 */
- 	if (tk->addr == -EFAULT) {
--		pr_info("Memory failure: Unable to find user space address %lx in %s\n",
-+		pr_info("Unable to find user space address %lx in %s\n",
- 			page_to_pfn(p), tsk->comm);
- 	} else if (tk->size_shift == 0) {
- 		kfree(tk);
-@@ -418,7 +421,7 @@ static void kill_procs(struct list_head
- 			 * signal and then access the memory. Just kill it.
- 			 */
- 			if (fail || tk->addr == -EFAULT) {
--				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
-+				pr_err("%#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 				do_send_sig_info(SIGKILL, SEND_SIG_PRIV,
- 						 tk->tsk, PIDTYPE_PID);
-@@ -431,7 +434,7 @@ static void kill_procs(struct list_head
- 			 * process anyways.
- 			 */
- 			else if (kill_proc(tk, pfn, flags) < 0)
--				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
-+				pr_err("%#lx: Cannot send advisory machine check signal to %s:%d\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 		}
- 		put_task_struct(tk->tsk);
-@@ -821,12 +824,10 @@ static int truncate_error_page(struct pa
- 		int err = mapping->a_ops->error_remove_page(mapping, p);
- 
- 		if (err != 0) {
--			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
--				pfn, err);
-+			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
- 		} else if (page_has_private(p) &&
- 			   !try_to_release_page(p, GFP_NOIO)) {
--			pr_info("Memory failure: %#lx: failed to release buffers\n",
--				pfn);
-+			pr_info("%#lx: failed to release buffers\n", pfn);
- 		} else {
- 			ret = MF_RECOVERED;
- 		}
-@@ -838,8 +839,7 @@ static int truncate_error_page(struct pa
- 		if (invalidate_inode_page(p))
- 			ret = MF_RECOVERED;
- 		else
--			pr_info("Memory failure: %#lx: Failed to invalidate\n",
--				pfn);
-+			pr_info("%#lx: Failed to invalidate\n",	pfn);
- 	}
- 
- 	return ret;
-@@ -869,7 +869,7 @@ static bool has_extra_refcount(struct pa
- 		count -= 1;
- 
- 	if (count > 0) {
--		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
-+		pr_err("%#lx: %s still referenced by %d users\n",
- 		       page_to_pfn(p), action_page_types[ps->type], count);
- 		return true;
- 	}
-@@ -893,7 +893,7 @@ static int me_kernel(struct page_state *
-  */
- static int me_unknown(struct page_state *ps, struct page *p)
+ static inline struct uffd_msg userfault_msg(unsigned long address,
++					    unsigned long real_address,
+ 					    unsigned int flags,
+ 					    unsigned long reason,
+ 					    unsigned int features)
  {
--	pr_err("Memory failure: %#lx: Unknown page state\n", page_to_pfn(p));
-+	pr_err("%#lx: Unknown page state\n", page_to_pfn(p));
- 	unlock_page(p);
- 	return MF_FAILED;
- }
-@@ -1179,7 +1179,7 @@ static void action_result(unsigned long
- 	trace_memory_failure_event(pfn, type, result);
+ 	struct uffd_msg msg;
++
+ 	msg_init(&msg);
+ 	msg.event = UFFD_EVENT_PAGEFAULT;
  
- 	num_poisoned_pages_inc();
--	pr_err("Memory failure: %#lx: recovery action for %s: %s\n",
-+	pr_err("%#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
- }
- 
-@@ -1254,8 +1254,7 @@ static int __get_hwpoison_page(struct pa
- 		if (head == compound_head(page))
- 			return 1;
- 
--		pr_info("Memory failure: %#lx cannot catch tail\n",
--			page_to_pfn(page));
-+		pr_info("%#lx cannot catch tail\n", page_to_pfn(page));
- 		put_page(head);
- 	}
- 
-@@ -1318,7 +1317,7 @@ try_again:
- 	}
- out:
- 	if (ret == -EIO)
--		pr_err("Memory failure: %#lx: unhandlable page.\n", page_to_pfn(p));
-+		pr_err("%#lx: unhandlable page.\n", page_to_pfn(p));
- 
- 	return ret;
- }
-@@ -1417,13 +1416,12 @@ static bool hwpoison_user_mappings(struc
- 		return true;
- 
- 	if (PageKsm(p)) {
--		pr_err("Memory failure: %#lx: can't handle KSM pages.\n", pfn);
-+		pr_err("%#lx: can't handle KSM pages.\n", pfn);
- 		return false;
- 	}
- 
- 	if (PageSwapCache(p)) {
--		pr_err("Memory failure: %#lx: keeping poisoned page in swap cache\n",
--			pfn);
-+		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
- 		ttu |= TTU_IGNORE_HWPOISON;
- 	}
- 
-@@ -1441,7 +1439,7 @@ static bool hwpoison_user_mappings(struc
- 		} else {
- 			kill = 0;
- 			ttu |= TTU_IGNORE_HWPOISON;
--			pr_info("Memory failure: %#lx: corrupted page was clean: dropped without side effects\n",
-+			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
- 				pfn);
- 		}
- 	}
-@@ -1470,14 +1468,14 @@ static bool hwpoison_user_mappings(struc
- 			try_to_unmap(folio, ttu|TTU_RMAP_LOCKED);
- 			i_mmap_unlock_write(mapping);
- 		} else
--			pr_info("Memory failure: %#lx: could not lock mapping for mapped huge page\n", pfn);
-+			pr_info("%#lx: could not lock mapping for mapped huge page\n", pfn);
- 	} else {
- 		try_to_unmap(folio, ttu);
- 	}
- 
- 	unmap_success = !page_mapped(hpage);
- 	if (!unmap_success)
--		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
-+		pr_err("%#lx: failed to unmap page (mapcount=%d)\n",
- 		       pfn, page_mapcount(hpage));
- 
+-	if (!(features & UFFD_FEATURE_EXACT_ADDRESS))
+-		address &= PAGE_MASK;
+-	msg.arg.pagefault.address = address;
++	msg.arg.pagefault.address = (features & UFFD_FEATURE_EXACT_ADDRESS) ?
++				    real_address : address;
++
  	/*
-@@ -1844,7 +1842,7 @@ retry:
- 		*hugetlb = 0;
- 		return 0;
- 	} else if (res == -EHWPOISON) {
--		pr_err("Memory failure: %#lx: already hardware poisoned\n", pfn);
-+		pr_err("%#lx: already hardware poisoned\n", pfn);
- 		if (flags & MF_ACTION_REQUIRED) {
- 			head = compound_head(p);
- 			res = kill_accessing_process(current, page_to_pfn(head), flags);
-@@ -2003,8 +2001,7 @@ int memory_failure(unsigned long pfn, in
- 				goto unlock_mutex;
- 			}
- 		}
--		pr_err("Memory failure: %#lx: memory outside kernel control\n",
--			pfn);
-+		pr_err("%#lx: memory outside kernel control\n", pfn);
- 		res = -ENXIO;
- 		goto unlock_mutex;
- 	}
-@@ -2015,8 +2012,7 @@ try_again:
- 		goto unlock_mutex;
+ 	 * These flags indicate why the userfault occurred:
+ 	 * - UFFD_PAGEFAULT_FLAG_WP indicates a write protect fault.
+@@ -488,8 +490,8 @@ vm_fault_t handle_userfault(struct vm_fa
  
- 	if (TestSetPageHWPoison(p)) {
--		pr_err("Memory failure: %#lx: already hardware poisoned\n",
--			pfn);
-+		pr_err("%#lx: already hardware poisoned\n", pfn);
- 		res = -EHWPOISON;
- 		if (flags & MF_ACTION_REQUIRED)
- 			res = kill_accessing_process(current, pfn, flags);
-@@ -2232,7 +2228,7 @@ void memory_failure_queue(unsigned long
- 	if (kfifo_put(&mf_cpu->fifo, entry))
- 		schedule_work_on(smp_processor_id(), &mf_cpu->work);
- 	else
--		pr_err("Memory failure: buffer overflow when queuing memory failure at %#lx\n",
-+		pr_err("buffer overflow when queuing memory failure at %#lx\n",
- 		       pfn);
- 	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
- 	put_cpu_var(memory_failure_cpu);
+ 	init_waitqueue_func_entry(&uwq.wq, userfaultfd_wake_function);
+ 	uwq.wq.private = current;
+-	uwq.msg = userfault_msg(vmf->real_address, vmf->flags, reason,
+-			ctx->features);
++	uwq.msg = userfault_msg(vmf->address, vmf->real_address, vmf->flags,
++				reason, ctx->features);
+ 	uwq.ctx = ctx;
+ 	uwq.waken = false;
+ 
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from namit@vmware.com are
 
-mm-cleanup-is_highmem.patch
-mm-use-is_zone_movable_page-helper.patch
-mm-memory-failure-convert-to-pr_fmt.patch
 
