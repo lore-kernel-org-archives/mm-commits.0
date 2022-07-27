@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E35CC00144
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Jul 2022 01:25:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD73FC00144
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Jul 2022 01:25:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233040AbiG0BZj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Jul 2022 21:25:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40988 "EHLO
+        id S239832AbiG0BZr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Jul 2022 21:25:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230014AbiG0BZi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 21:25:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5221418B11;
-        Tue, 26 Jul 2022 18:25:37 -0700 (PDT)
+        with ESMTP id S230014AbiG0BZl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2022 21:25:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D91118B11
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2022 18:25:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DA9A56174B;
-        Wed, 27 Jul 2022 01:25:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37AC9C433D6;
-        Wed, 27 Jul 2022 01:25:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B5C4FB81F12
+        for <mm-commits@vger.kernel.org>; Wed, 27 Jul 2022 01:25:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 528C3C433D7;
+        Wed, 27 Jul 2022 01:25:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1658885136;
-        bh=lS1HCw/z9MMA8YEFiepqFCpyk8tYouQ+Q9DvnneSAXg=;
+        s=korg; t=1658885137;
+        bh=mKa4j3mZ0RLD10zt78YNcdzFYzwq7X+mRoRFylI7ijI=;
         h=Date:To:From:Subject:From;
-        b=d95+KD/xBAHKwNlJmDzZ1qHqJWSM/aCGmZ7NpIdd5xEcWHdvsB8j/T1A0wXo8HJeU
-         oBhK1kSKXtPjp/1H+elwf+SmaEUSWVrpcdB8RSeaa5ILD+C1fFxqSibP6be6XzxZqW
-         /9go/Mo1Ekq++nQ+MjwIU/yfDxE4PaQp758KEPTk=
-Date:   Tue, 26 Jul 2022 18:25:34 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        rppt@linux.ibm.com, peterx@redhat.com, jthoughton@google.com,
-        jack@suse.cz, david@redhat.com, aarcange@redhat.com,
-        namit@vmware.com, akpm@linux-foundation.org
+        b=eo2EDssRXFK37pf64/iXRjjyw8il2fUacEGXxj6u0667LnJH+sdMYcGI1n8usEpNg
+         Jy+AmIWmUXOyyS4/+LbIXOddkwKqunLMO55TANMz48xk+1vLzTfdviDTh0sn2zEsf3
+         xhdVSa3jBkmIWRWRbZLJVmb5Fu6bXY2XKk4Jb0po=
+Date:   Tue, 26 Jul 2022 18:25:35 -0700
+To:     mm-commits@vger.kernel.org, xiang@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] userfaultfd-provide-properly-masked-address-for-huge-pages.patch removed from -mm tree
-Message-Id: <20220727012536.37AC9C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-update-gao-xiangs-email-addresses.patch removed from -mm tree
+Message-Id: <20220727012537.528C3C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,89 +41,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: userfaultfd: provide properly masked address for huge-pages
+     Subject: mailmap: update Gao Xiang's email addresses
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-provide-properly-masked-address-for-huge-pages.patch
+     mailmap-update-gao-xiangs-email-addresses.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: userfaultfd: provide properly masked address for huge-pages
-Date: Mon, 11 Jul 2022 09:59:06 -0700
+From: Gao Xiang <xiang@kernel.org>
+Subject: mailmap: update Gao Xiang's email addresses
+Date: Tue, 19 Jul 2022 23:42:46 +0800
 
-Commit 824ddc601adc ("userfaultfd: provide unmasked address on
-page-fault") was introduced to fix an old bug, in which the offset in the
-address of a page-fault was masked.  Concerns were raised - although were
-never backed by actual code - that some userspace code might break because
-the bug has been around for quite a while.  To address these concerns a
-new flag was introduced, and only when this flag is set by the user,
-userfaultfd provides the exact address of the page-fault.
+I've been in Alibaba Cloud for more than one year, mainly to address
+cloud-native challenges (such as high-performance container images) for
+open source communities.
 
-The commit however had a bug, and if the flag is unset, the offset was
-always masked based on a base-page granularity.  Yet, for huge-pages, the
-behavior prior to the commit was that the address is masked to the
-huge-page granulrity.
+Update my email addresses on behalf of my current employer (Alibaba Cloud)
+to support all my (team) work in this area.  Also add an outdated
+@redhat.com address of me.
 
-While there are no reports on real breakage, fix this issue.  If the flag
-is unset, use the address with the masking that was done before.
-
-Link: https://lkml.kernel.org/r/20220711165906.2682-1-namit@vmware.com
-Fixes: 824ddc601adc ("userfaultfd: provide unmasked address on page-fault")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Reported-by: James Houghton <jthoughton@google.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: James Houghton <jthoughton@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220719154246.62970-1-xiang@kernel.org
+Signed-off-by: Gao Xiang <xiang@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/userfaultfd.c~userfaultfd-provide-properly-masked-address-for-huge-pages
-+++ a/fs/userfaultfd.c
-@@ -192,17 +192,19 @@ static inline void msg_init(struct uffd_
- }
- 
- static inline struct uffd_msg userfault_msg(unsigned long address,
-+					    unsigned long real_address,
- 					    unsigned int flags,
- 					    unsigned long reason,
- 					    unsigned int features)
- {
- 	struct uffd_msg msg;
-+
- 	msg_init(&msg);
- 	msg.event = UFFD_EVENT_PAGEFAULT;
- 
--	if (!(features & UFFD_FEATURE_EXACT_ADDRESS))
--		address &= PAGE_MASK;
--	msg.arg.pagefault.address = address;
-+	msg.arg.pagefault.address = (features & UFFD_FEATURE_EXACT_ADDRESS) ?
-+				    real_address : address;
-+
- 	/*
- 	 * These flags indicate why the userfault occurred:
- 	 * - UFFD_PAGEFAULT_FLAG_WP indicates a write protect fault.
-@@ -488,8 +490,8 @@ vm_fault_t handle_userfault(struct vm_fa
- 
- 	init_waitqueue_func_entry(&uwq.wq, userfaultfd_wake_function);
- 	uwq.wq.private = current;
--	uwq.msg = userfault_msg(vmf->real_address, vmf->flags, reason,
--			ctx->features);
-+	uwq.msg = userfault_msg(vmf->address, vmf->real_address, vmf->flags,
-+				reason, ctx->features);
- 	uwq.ctx = ctx;
- 	uwq.waken = false;
- 
+--- a/.mailmap~mailmap-update-gao-xiangs-email-addresses
++++ a/.mailmap
+@@ -132,6 +132,8 @@ Frank Rowand <frowand.list@gmail.com> <f
+ Frank Zago <fzago@systemfabricworks.com>
+ Gao Xiang <xiang@kernel.org> <gaoxiang25@huawei.com>
+ Gao Xiang <xiang@kernel.org> <hsiangkao@aol.com>
++Gao Xiang <xiang@kernel.org> <hsiangkao@linux.alibaba.com>
++Gao Xiang <xiang@kernel.org> <hsiangkao@redhat.com>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@de.ibm.com>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <gerald.schaefer@de.ibm.com>
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com> <geraldsc@linux.vnet.ibm.com>
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from xiang@kernel.org are
 
 
