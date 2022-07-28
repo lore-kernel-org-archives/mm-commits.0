@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A6E6C04A68
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Jul 2022 19:01:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8EB0C04A68
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Jul 2022 22:45:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232817AbiG1TBZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Jul 2022 15:01:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56590 "EHLO
+        id S230098AbiG1WpT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Jul 2022 18:45:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229793AbiG1TBW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2022 15:01:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCA6A193E3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Jul 2022 12:01:20 -0700 (PDT)
+        with ESMTP id S229614AbiG1WpS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2022 18:45:18 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A2A5175B7
+        for <mm-commits@vger.kernel.org>; Thu, 28 Jul 2022 15:45:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A09E7B824FE
-        for <mm-commits@vger.kernel.org>; Thu, 28 Jul 2022 19:01:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44D6EC433D6;
-        Thu, 28 Jul 2022 19:01:18 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id DA6CECE26A6
+        for <mm-commits@vger.kernel.org>; Thu, 28 Jul 2022 22:45:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B50F7C433C1;
+        Thu, 28 Jul 2022 22:45:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659034878;
-        bh=TApIYMNiZ7XLSuByd9fc73TZ6ptZv67i06g33mHdsTk=;
+        s=korg; t=1659048313;
+        bh=53/94pKKBSVTeMC22yeQBMpogfSBGRwW+39TpzIkO4Y=;
         h=Date:To:From:Subject:From;
-        b=BCmNqPsIu6DHxpK3k4khpLXkDuRcLvRhxtwQZHpGlcfPJwSHeW3nlwbnTyS5o1Uv3
-         6x7QaLODetuwAPCk2s1BJ3dNCZW7IwdLsVatpaPbPbvApLPy5ZhqSKS0bhIHeykc21
-         /7pzKOl3mfOR2s0VHJfKGG5y1MUUVwhpp8K1pEzE=
-Date:   Thu, 28 Jul 2022 12:01:17 -0700
-To:     mm-commits@vger.kernel.org, kuba@kernel.org, chen45464546@163.com,
-        alexanderduyck@fb.com, mlombard@redhat.com,
+        b=U6IqC8FlcqiTFi5D97xqX+ooq4qHqYKOSGF5/yTwETouPaXh7YpyzHe4hT62aj35c
+         RZ+DpJALjctU6LQamXwcsMxZrwROplq26qrMtsOhlBeAXt2dVFJQTdwv1jmPPK4tVt
+         LkIz4CuSjmFhyf0LWRpxaG+vRkc+tPYpi/vNIa0Q=
+Date:   Thu, 28 Jul 2022 15:45:12 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-prevent-page_frag_alloc-from-corrupting-the-memory.patch added to mm-unstable branch
-Message-Id: <20220728190118.44D6EC433D6@smtp.kernel.org>
+Subject: + mm-memory-failure-convert-to-pr_fmt-v2.patch added to mm-unstable branch
+Message-Id: <20220728224513.B50F7C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: prevent page_frag_alloc() from corrupting the memory
+     Subject: mm-memory-failure-convert-to-pr_fmt-v2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-prevent-page_frag_alloc-from-corrupting-the-memory.patch
+     mm-memory-failure-convert-to-pr_fmt-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prevent-page_frag_alloc-from-corrupting-the-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-convert-to-pr_fmt-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,56 +65,36 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Maurizio Lombardi <mlombard@redhat.com>
-Subject: mm: prevent page_frag_alloc() from corrupting the memory
-Date: Fri, 15 Jul 2022 14:50:13 +0200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm-memory-failure-convert-to-pr_fmt-v2
+Date: Wed, 27 Jul 2022 11:25:11 +0800
 
-A number of drivers call page_frag_alloc() with a fragment's size >
-PAGE_SIZE.
-
-In low memory conditions, __page_frag_cache_refill() may fail the order
-3 cache allocation and fall back to order 0; In this case, the cache
-will be smaller than the fragment, causing memory corruptions.
-
-Prevent this from happening by checking if the newly allocated cache is
-large enough for the fragment; if not, the allocation will fail and
-page_frag_alloc() will return NULL.
-
-Link: https://lkml.kernel.org/r/20220715125013.247085-1-mlombard@redhat.com
-Signed-off-by: Maurizio Lombardi <mlombard@redhat.com>
-Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
-Cc: Chen Lin <chen45464546@163.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
+Link: https://lkml.kernel.org/r/20220727032511.145506-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/memory-failure.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_alloc.c~mm-prevent-page_frag_alloc-from-corrupting-the-memory
-+++ a/mm/page_alloc.c
-@@ -5697,6 +5697,18 @@ refill:
- 		/* reset page count bias and offset to start of new frag */
- 		nc->pagecnt_bias = PAGE_FRAG_CACHE_MAX_SIZE + 1;
- 		offset = size - fragsz;
-+		if (unlikely(offset < 0)) {
-+			/*
-+			 * The caller is trying to allocate a fragment
-+			 * with fragsz > PAGE_SIZE but the cache isn't big
-+			 * enough to satisfy the request, this may
-+			 * happen in low memory conditions.
-+			 * We don't release the cache page because
-+			 * it could make memory pressure worse
-+			 * so we simply return NULL here.
-+			 */
-+			return NULL;
-+		}
- 	}
+--- a/mm/memory-failure.c~mm-memory-failure-convert-to-pr_fmt-v2
++++ a/mm/memory-failure.c
+@@ -2285,6 +2285,7 @@ static int __init memory_failure_init(vo
+ }
+ core_initcall(memory_failure_init);
  
- 	nc->pagecnt_bias--;
++#undef pr_fmt
+ #define unpoison_pr_info(fmt, pfn, rs)			\
+ ({							\
+ 	if (__ratelimit(rs))				\
 _
 
-Patches currently in -mm which might be from mlombard@redhat.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-prevent-page_frag_alloc-from-corrupting-the-memory.patch
+mm-cleanup-is_highmem.patch
+mm-use-is_zone_movable_page-helper.patch
+mm-memory-failure-convert-to-pr_fmt.patch
+mm-memory-failure-convert-to-pr_fmt-v2.patch
 
