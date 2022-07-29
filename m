@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B06CC00144
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Jul 2022 18:48:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2258C19F2A
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Jul 2022 18:48:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230396AbiG2SsZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 14:48:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41966 "EHLO
+        id S237474AbiG2Ss0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 14:48:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235560AbiG2SsY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 14:48:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F201065821
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 11:48:23 -0700 (PDT)
+        with ESMTP id S237395AbiG2SsZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 14:48:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 134D566108;
+        Fri, 29 Jul 2022 11:48:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A62761F74
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:48:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6123C433C1;
-        Fri, 29 Jul 2022 18:48:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A35F561F86;
+        Fri, 29 Jul 2022 18:48:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF5C0C433D6;
+        Fri, 29 Jul 2022 18:48:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659120502;
-        bh=WwkX3lZSFc82PG8hpagO8rPmqnZczH9ZqVPy7Ax0sek=;
+        s=korg; t=1659120504;
+        bh=Jw+MS2XOzOX9nlcY9Y+hYRSD0w/LI06xyzjZ9Lduzjs=;
         h=Date:To:From:Subject:From;
-        b=A2S0HdwGVUB4Hlw1I1uKPPeukGs/blOGj/1obbTAyor96UurVWzKfbKFvOJJhxIie
-         U9K794ZOMAzC+Ev61Wt7QfTvxeJlbIl0qLaXqrc9vDVr+nXNDGzCMB0+Fw0E3OdECK
-         k+i2XkSv6gymfWKQyiAjNivqpbKHwF8BsuzZyJM0=
-Date:   Fri, 29 Jul 2022 11:48:22 -0700
-To:     mm-commits@vger.kernel.org, ytk.lee@samsung.com, vbabka@suse.cz,
-        stable@vger.kerenl.org, minchan@kernel.org, mhocko@kernel.org,
-        mgorman@techsingularity.net, hannes@cmpxchg.org,
-        gh21.hong@samsung.com, bhe@redhat.com, jaewon31.kim@samsung.com,
-        akpm@linux-foundation.org
+        b=x6E0xov5bfzfjLXivgp9lekAXF82voEucSRiW0H3M4cKWDZFfMQJ//ptuMvpLsOLZ
+         U2D+xvlsSxrs5LfzIZjl02XHdxCAPUmlgu03GpFp1WvnLuWFwr8lmjfuYyL/6zrtnW
+         sb5nqxwcO4BcSxp6nP6NFfEa8ueg806ENGaRPQfc=
+Date:   Fri, 29 Jul 2022 11:48:23 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        Philip.Yang@amd.com, jgg@nvidia.com, felix.kuehling@amd.com,
+        apopple@nvidia.com, rcampbell@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] page_alloc-fix-invalid-watemark-check-on-a-negative-value.patch removed from -mm tree
-Message-Id: <20220729184822.D6123C433C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hmm-fault-non-owner-device-private-entries.patch removed from -mm tree
+Message-Id: <20220729184823.EF5C0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,81 +42,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: page_alloc: fix invalid watermark check on a negative value
+     Subject: mm/hmm: fault non-owner device private entries
 has been removed from the -mm tree.  Its filename was
-     page_alloc-fix-invalid-watemark-check-on-a-negative-value.patch
+     mm-hmm-fault-non-owner-device-private-entries.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: page_alloc: fix invalid watermark check on a negative value
-Date: Mon, 25 Jul 2022 18:52:12 +0900
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm/hmm: fault non-owner device private entries
+Date: Mon, 25 Jul 2022 11:36:14 -0700
 
-There was a report that a task is waiting at the
-throttle_direct_reclaim. The pgscan_direct_throttle in vmstat was
-increasing.
+If hmm_range_fault() is called with the HMM_PFN_REQ_FAULT flag and a
+device private PTE is found, the hmm_range::dev_private_owner page is used
+to determine if the device private page should not be faulted in. 
+However, if the device private page is not owned by the caller,
+hmm_range_fault() returns an error instead of calling migrate_to_ram() to
+fault in the page.
 
-This is a bug where zone_watermark_fast returns true even when the free
-is very low. The commit f27ce0e14088 ("page_alloc: consider highatomic
-reserve in watermark fast") changed the watermark fast to consider
-highatomic reserve. But it did not handle a negative value case which
-can be happened when reserved_highatomic pageblock is bigger than the
-actual free.
+For example, if a page is migrated to GPU private memory and a RDMA fault
+capable NIC tries to read the migrated page, without this patch it will
+get an error.  With this patch, the page will be migrated back to system
+memory and the NIC will be able to read the data.
 
-If watermark is considered as ok for the negative value, allocating
-contexts for order-0 will consume all free pages without direct reclaim,
-and finally free page may become depleted except highatomic free.
-
-Then allocating contexts may fall into throttle_direct_reclaim. This
-symptom may easily happen in a system where wmark min is low and other
-reclaimers like kswapd does not make free pages quickly.
-
-Handle the negative case by using MIN.
-
-Link: https://lkml.kernel.org/r/20220725095212.25388-1-jaewon31.kim@samsung.com
-Fixes: f27ce0e14088 ("page_alloc: consider highatomic reserve in watermark fast")
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Reported-by: GyeongHwan Hong <gh21.hong@samsung.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yong-Taek Lee <ytk.lee@samsung.com>
-Cc: <stable@vger.kerenl.org>
+Link: https://lkml.kernel.org/r/20220727000837.4128709-2-rcampbell@nvidia.com
+Link: https://lkml.kernel.org/r/20220725183615.4118795-2-rcampbell@nvidia.com
+Fixes: 08ddddda667b ("mm/hmm: check the device private page owner in hmm_range_fault()")
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Reported-by: Felix Kuehling <felix.kuehling@amd.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Philip Yang <Philip.Yang@amd.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/hmm.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
---- a/mm/page_alloc.c~page_alloc-fix-invalid-watemark-check-on-a-negative-value
-+++ a/mm/page_alloc.c
-@@ -3968,11 +3968,15 @@ static inline bool zone_watermark_fast(s
- 	 * need to be calculated.
- 	 */
- 	if (!order) {
--		long fast_free;
-+		long usable_free;
-+		long reserved;
+--- a/mm/hmm.c~mm-hmm-fault-non-owner-device-private-entries
++++ a/mm/hmm.c
+@@ -212,14 +212,6 @@ int hmm_vma_handle_pmd(struct mm_walk *w
+ 		unsigned long end, unsigned long hmm_pfns[], pmd_t pmd);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--		fast_free = free_pages;
--		fast_free -= __zone_watermark_unusable_free(z, 0, alloc_flags);
--		if (fast_free > mark + z->lowmem_reserve[highest_zoneidx])
-+		usable_free = free_pages;
-+		reserved = __zone_watermark_unusable_free(z, 0, alloc_flags);
+-static inline bool hmm_is_device_private_entry(struct hmm_range *range,
+-		swp_entry_t entry)
+-{
+-	return is_device_private_entry(entry) &&
+-		pfn_swap_entry_to_page(entry)->pgmap->owner ==
+-		range->dev_private_owner;
+-}
+-
+ static inline unsigned long pte_to_hmm_pfn_flags(struct hmm_range *range,
+ 						 pte_t pte)
+ {
+@@ -252,10 +244,12 @@ static int hmm_vma_handle_pte(struct mm_
+ 		swp_entry_t entry = pte_to_swp_entry(pte);
+ 
+ 		/*
+-		 * Never fault in device private pages, but just report
+-		 * the PFN even if not present.
++		 * Don't fault in device private pages owned by the caller,
++		 * just report the PFN.
+ 		 */
+-		if (hmm_is_device_private_entry(range, entry)) {
++		if (is_device_private_entry(entry) &&
++		    pfn_swap_entry_to_page(entry)->pgmap->owner ==
++		    range->dev_private_owner) {
+ 			cpu_flags = HMM_PFN_VALID;
+ 			if (is_writable_device_private_entry(entry))
+ 				cpu_flags |= HMM_PFN_WRITE;
+@@ -273,6 +267,9 @@ static int hmm_vma_handle_pte(struct mm_
+ 		if (!non_swap_entry(entry))
+ 			goto fault;
+ 
++		if (is_device_private_entry(entry))
++			goto fault;
 +
-+		/* reserved may over estimate high-atomic reserves. */
-+		usable_free -= min(usable_free, reserved);
-+		if (usable_free > mark + z->lowmem_reserve[highest_zoneidx])
- 			return true;
- 	}
+ 		if (is_device_exclusive_entry(entry))
+ 			goto fault;
  
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from rcampbell@nvidia.com are
 
+mm-hmm-add-a-test-for-cross-device-private-faults.patch
 
