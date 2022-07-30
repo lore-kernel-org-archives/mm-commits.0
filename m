@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A7FEC00144
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 00:56:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29BA2C00144
+	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:08:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231613AbiG3A4v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 20:56:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56384 "EHLO
+        id S239465AbiG3BIM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 21:08:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229599AbiG3A4u (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 20:56:50 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01A87804AE
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 17:56:50 -0700 (PDT)
+        with ESMTP id S229599AbiG3BIL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:08:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF3FD3B979
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AEB97B829FD
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 00:56:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59E11C433C1;
-        Sat, 30 Jul 2022 00:56:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4AB93619EE
+        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 939ECC433D7;
+        Sat, 30 Jul 2022 01:08:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659142607;
-        bh=jNqsCj0T2Fey0OLX4fyP56JkBc1Y6r/ht2pRNj5/q4I=;
+        s=korg; t=1659143289;
+        bh=1SOiYh4NIAKzMLz7dX1pm7S56fx3IPM6usXqBgQjW3o=;
         h=Date:To:From:Subject:From;
-        b=0CcY6s6UT7QnCh0TOqeL+qdwlLrYk6/dt4fTGxiQG8tYoXeGU+/MXGCMlk/VgyYwZ
-         SNC0GUBRymqQTGUYSlUeMO48wOsqOt3N1gefTA31aA/L2qnIeVDiuMWfMnfa/GKyuw
-         KyD5ww9y6kSszETtbk3nrYafss2qPiOZdUtLc7mE=
-Date:   Fri, 29 Jul 2022 17:56:46 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=njvCjpIwcAgahAAc2aMxZyss92dNIlTA+qRrnv5cAlY8Bg5c8kHRBs8/TB9xGQYat
+         YcGq6M1zJ3iLm94RWESoeHYH8sxtC2sCXyJXlapaeD4y+zYHu6q0A8RVz0SzszEzsm
+         anMXVbSm2wLX2XkGJvXvx1wx9EgFZtLoVN5UgH2Y=
+Date:   Fri, 29 Jul 2022 18:08:08 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
+        vbabka@suse.cz, sj@kernel.org, Liam.Howlett@oracle.com,
+        dhowells@redhat.com, catalin.marinas@arm.com,
+        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memory-failure-convert-to-pr_fmt-v3.patch removed from -mm tree
-Message-Id: <20220730005647.59E11C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mips-rename-mt_init-to-mips_mt_init.patch removed from -mm tree
+Message-Id: <20220730010809.939ECC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,50 +43,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-memory-failure-convert-to-pr_fmt-v3
+     Subject: mips: rename mt_init to mips_mt_init
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-convert-to-pr_fmt-v3.patch
+     mips-rename-mt_init-to-mips_mt_init.patch
 
-This patch was dropped because it was folded into mm-memory-failure-convert-to-pr_fmt.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm-memory-failure-convert-to-pr_fmt-v3
-Date: Fri, 29 Jul 2022 11:19:19 +0800
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: mips: rename mt_init to mips_mt_init
 
-Use pr_fmt to prefix all pr_<level> output, but unpoison_memory()
-and soft_offline_page() are used by error injection, which have
-own prefixes like "Unpoison:" and "soft offline:", meanwhile,
-soft_offline_page() could be used by memory hotremove, so reset
-pr_fmt before unpoison_pr_info definition to keep the original
-output for them.
+Move mt_init out of the way for the maple tree.  Use mips_mt prefix to
+match the rest of the functions in the file.
 
-Link: https://lkml.kernel.org/r/20220729031919.72331-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20220504002554.654642-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/mips/kernel/mips-mt.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-convert-to-pr_fmt-v3
-+++ a/mm/memory-failure.c
-@@ -2285,6 +2285,8 @@ static int __init memory_failure_init(vo
- }
- core_initcall(memory_failure_init);
+--- a/arch/mips/kernel/mips-mt.c~mips-rename-mt_init-to-mips_mt_init
++++ a/arch/mips/kernel/mips-mt.c
+@@ -230,7 +230,7 @@ void mips_mt_set_cpuoptions(void)
  
-+#undef pr_fmt
-+#define pr_fmt(fmt)	"" fmt
- #define unpoison_pr_info(fmt, pfn, rs)			\
- ({							\
- 	if (__ratelimit(rs))				\
+ struct class *mt_class;
+ 
+-static int __init mt_init(void)
++static int __init mips_mt_init(void)
+ {
+ 	struct class *mtc;
+ 
+@@ -243,4 +243,4 @@ static int __init mt_init(void)
+ 	return 0;
+ }
+ 
+-subsys_initcall(mt_init);
++subsys_initcall(mips_mt_init);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-mm-cleanup-is_highmem.patch
-mm-use-is_zone_movable_page-helper.patch
-mm-memory-failure-convert-to-pr_fmt.patch
 
