@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8145EC00144
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 00:54:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C703EC00144
+	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 00:54:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230121AbiG3AyO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 20:54:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54280 "EHLO
+        id S239475AbiG3Ayw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 20:54:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229599AbiG3AyN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 20:54:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DC1872EE4
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 17:54:12 -0700 (PDT)
+        with ESMTP id S229599AbiG3Ayv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 20:54:51 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8398B72EF0
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 17:54:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1031661537
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 00:54:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64E6AC433D7;
-        Sat, 30 Jul 2022 00:54:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1D3CDB829FD
+        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 00:54:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB85FC433D6;
+        Sat, 30 Jul 2022 00:54:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659142451;
-        bh=v8j+3W1vkHOXpQiKGZEspKwMFfFZm70OJhXJGxf7jZ0=;
+        s=korg; t=1659142485;
+        bh=8gU947xz3A+bL+0QENzmFfXDfRwKDrnaI2I2n08Gv34=;
         h=Date:To:From:Subject:From;
-        b=yA/FARToozWCJS7506rr6+WonfNeHMfhQlvP7F2dOF3MjZS39SdhGTp0c5BEhNUBh
-         K6mQl/ldOjk51i90onGILaWjsqNlszCzsbOIZd+Q8AfAzFPTPI6BOzBwpJK55Kwei9
-         7J+Z6MpbM6MztYpGCj2BhWQZ/1QxTJasE2sW1lP0=
-Date:   Fri, 29 Jul 2022 17:54:10 -0700
-To:     mm-commits@vger.kernel.org, penguin-kernel@i-love.sakura.ne.jp,
-        roman.gushchin@linux.dev, akpm@linux-foundation.org
+        b=WGkU2ppZLOZnmLxZnJvGaXY9dcholj8XNLei8R0OuT5+c0Uk4eCUiSyxMJK0eX0y9
+         bFMCcVbaHHhY0bauSEvyXm5bHhPfTL1I/G7vDbFQ1WRzMGYwseV9kpZ+smIM4ItXu7
+         iEQaP/mEQu85Dnr8MVCMMv1yKq6SWcwE47Gd3oG8=
+Date:   Fri, 29 Jul 2022 17:54:44 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tkjos@android.com,
+        surenb@google.com, minchan@kernel.org, maco@android.com,
+        Liam.Howlett@oracle.com, joel@joelfernandes.org, hridya@google.com,
+        gregkh@linuxfoundation.org, brauner@kernel.org,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-shrinkers-fix-double-kfree-on-shrinker-name-fix.patch removed from -mm tree
-Message-Id: <20220730005411.64E6AC433D7@smtp.kernel.org>
+Subject: [folded-merged] android-binder-stop-saving-a-pointer-to-the-vma-fix.patch removed from -mm tree
+Message-Id: <20220730005445.AB85FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,64 +44,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-shrinkers-fix-double-kfree-on-shrinker-name-fix
+     Subject: android-binder-stop-saving-a-pointer-to-the-vma-fix
 has been removed from the -mm tree.  Its filename was
-     mm-shrinkers-fix-double-kfree-on-shrinker-name-fix.patch
+     android-binder-stop-saving-a-pointer-to-the-vma-fix.patch
 
-This patch was dropped because it was folded into mm-shrinkers-fix-double-kfree-on-shrinker-name.patch
+This patch was dropped because it was folded into android-binder-stop-saving-a-pointer-to-the-vma.patch
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm-shrinkers-fix-double-kfree-on-shrinker-name-fix
-Date: Wed, 20 Jul 2022 09:29:45 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: android-binder-stop-saving-a-pointer-to-the-vma-fix
+Date: Tue Jun 21 07:16:17 PM PDT 2022
 
-zero shrinker->name in all cases where shrinker->name is freed
+fix drivers/android/binder_alloc_selftest.c
 
-Link: https://lkml.kernel.org/r/YtgteTnQTgyuKUSY@castle
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+drivers/android/binder_alloc_selftest.c: In function 'binder_selftest_alloc':
+drivers/android/binder_alloc_selftest.c:290:43: error: 'struct binder_alloc' has no member named 'vma'
+  290 |         if (!binder_selftest_run || !alloc->vma)
+
+
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hridya Valsaraju <hridya@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Martijn Coenen <maco@android.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Todd Kjos <tkjos@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker_debug.c |    1 +
- mm/vmscan.c         |    5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/android/binder_alloc_selftest.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/shrinker_debug.c~mm-shrinkers-fix-double-kfree-on-shrinker-name-fix
-+++ a/mm/shrinker_debug.c
-@@ -251,6 +251,7 @@ void shrinker_debugfs_remove(struct shri
- 	lockdep_assert_held(&shrinker_rwsem);
- 
- 	kfree_const(shrinker->name);
-+	shrinker->name = NULL;
- 
- 	if (!shrinker->debugfs_entry)
+--- a/drivers/android/binder_alloc_selftest.c~android-binder-stop-saving-a-pointer-to-the-vma-fix
++++ a/drivers/android/binder_alloc_selftest.c
+@@ -287,7 +287,7 @@ void binder_selftest_alloc(struct binder
+ 	if (!binder_selftest_run)
  		return;
---- a/mm/vmscan.c~mm-shrinkers-fix-double-kfree-on-shrinker-name-fix
-+++ a/mm/vmscan.c
-@@ -644,8 +644,10 @@ int prealloc_shrinker(struct shrinker *s
- 		return -ENOMEM;
- 
- 	err = __prealloc_shrinker(shrinker);
--	if (err)
-+	if (err) {
- 		kfree_const(shrinker->name);
-+		shrinker->name = NULL;
-+	}
- 
- 	return err;
- }
-@@ -660,6 +662,7 @@ void free_prealloced_shrinker(struct shr
- {
- #ifdef CONFIG_SHRINKER_DEBUG
- 	kfree_const(shrinker->name);
-+	shrinker->name = NULL;
- #endif
- 	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
- 		down_write(&shrinker_rwsem);
+ 	mutex_lock(&binder_selftest_lock);
+-	if (!binder_selftest_run || !alloc->vma)
++	if (!binder_selftest_run || !alloc->vma_addr)
+ 		goto done;
+ 	pr_info("STARTED\n");
+ 	binder_selftest_alloc_offset(alloc, end_offset, 0);
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-shrinkers-fix-double-kfree-on-shrinker-name.patch
-mm-memcontrol-do-not-miss-memcg_max-events-for-enforced-allocations.patch
+android-binder-stop-saving-a-pointer-to-the-vma.patch
+mm-shmem-support-fs_ioc_etflags-in-tmpfs-fix.patch
 
