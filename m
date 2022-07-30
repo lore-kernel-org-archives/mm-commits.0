@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA19C19F2B
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:09:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90DD1C00144
+	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:10:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239744AbiG3BJn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 21:09:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35266 "EHLO
+        id S239838AbiG3BKC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 21:10:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239743AbiG3BI5 (ORCPT
+        with ESMTP id S239746AbiG3BI5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:08:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0971987F7C
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:53 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94E1382FA5
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 97A0661BB6
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E99FBC433D7;
-        Sat, 30 Jul 2022 01:08:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 36DD5B82929
+        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9210C433D6;
+        Sat, 30 Jul 2022 01:08:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659143332;
-        bh=b0RpMbujAbsBOYSznN0SwanrmkWkmivsdO2jiJL5yBE=;
+        s=korg; t=1659143333;
+        bh=lDQ55HP6ZmmVp6zNTBfVWszkP0EuOgaF5+DhJU+D7SQ=;
         h=Date:To:From:Subject:From;
-        b=PPPFZRobH9aho8XKvlLF+eWql5IASYpHrUnTe1emyRMcshQdDl9hz0jJeflPMjEOP
-         jV00UjKZaLOcJnxuqVtqKZ23l74rDZmBg7HqPAFcgwrrNhPo9q/VqjTEdI6eQzeFl3
-         bLchFZSysXzyXhnm0XIXLu7BDlBGsTdUjtTL135g=
-Date:   Fri, 29 Jul 2022 18:08:51 -0700
-To:     mm-commits@vger.kernel.org, pankaj.gupta@amd.com,
-        jasowang@redhat.com, david@redhat.com, wangkefeng.wang@huawei.com,
+        b=wR1qfxY+dusQI2hN7FqrNDUB6A91I7yo/BqY/DJ0F4877AZtuyScSOTsXvWmTd0TV
+         a0mYpkHjptXoFE5pnMRkqEC8ZzierIERhkkaBh5jT9SmH6eh8IreHoOsZU0Qsd8LJk
+         4b286M7Acef/zhNcQDnBj36qsKlryUfTeS1VPrx8=
+Date:   Fri, 29 Jul 2022 18:08:52 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-is_zone_movable_page-helper.patch removed from -mm tree
-Message-Id: <20220730010851.E99FBC433D7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-convert-to-pr_fmt.patch removed from -mm tree
+Message-Id: <20220730010852.E9210C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,65 +42,262 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: use is_zone_movable_page() helper
+     Subject: mm: memory-failure: convert to pr_fmt()
 has been removed from the -mm tree.  Its filename was
-     mm-use-is_zone_movable_page-helper.patch
+     mm-memory-failure-convert-to-pr_fmt.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: use is_zone_movable_page() helper
-Date: Tue, 26 Jul 2022 21:11:35 +0800
+Subject: mm: memory-failure: convert to pr_fmt()
+Date: Tue, 26 Jul 2022 16:10:46 +0800
 
-Use is_zone_movable_page() helper to simplify code.
+Use pr_fmt to prefix all pr_<level> output, but unpoison_memory() and
+soft_offline_page() are used by error injection, which have own prefixes
+like "Unpoison:" and "soft offline:", meanwhile, soft_offline_page() could
+be used by memory hotremove, so reset pr_fmt before unpoison_pr_info
+definition to keep the original output for them.
 
-Link: https://lkml.kernel.org/r/20220726131135.146912-1-wangkefeng.wang@huawei.com
+[wangkefeng.wang@huawei.com: v3]
+  Link: https://lkml.kernel.org/r/20220729031919.72331-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20220726081046.10742-1-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
-Acked-by: Jason Wang <jasowang@redhat.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_mem.c |    6 ++----
- mm/memory_hotplug.c         |    2 +-
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ mm/memory-failure.c |   58 ++++++++++++++++++++----------------------
+ 1 file changed, 28 insertions(+), 30 deletions(-)
 
---- a/drivers/virtio/virtio_mem.c~mm-use-is_zone_movable_page-helper
-+++ a/drivers/virtio/virtio_mem.c
-@@ -862,8 +862,7 @@ static void virtio_mem_sbm_notify_online
- 					 unsigned long mb_id,
- 					 unsigned long start_pfn)
- {
--	const bool is_movable = page_zonenum(pfn_to_page(start_pfn)) ==
--				ZONE_MOVABLE;
-+	const bool is_movable = is_zone_movable_page(pfn_to_page(start_pfn));
- 	int new_state;
- 
- 	switch (virtio_mem_sbm_get_mb_state(vm, mb_id)) {
-@@ -1158,8 +1157,7 @@ static void virtio_mem_fake_online(unsig
+--- a/mm/memory-failure.c~mm-memory-failure-convert-to-pr_fmt
++++ a/mm/memory-failure.c
+@@ -33,6 +33,9 @@
+  * are rare we hope to get away with this. This avoids impacting the core 
+  * VM.
   */
- static int virtio_mem_fake_offline(unsigned long pfn, unsigned long nr_pages)
++
++#define pr_fmt(fmt) "Memory failure: " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/page-flags.h>
+@@ -252,7 +255,7 @@ static int kill_proc(struct to_kill *tk,
+ 	short addr_lsb = tk->size_shift;
+ 	int ret = 0;
+ 
+-	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
++	pr_err("%#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
+ 			pfn, t->comm, t->pid);
+ 
+ 	if ((flags & MF_ACTION_REQUIRED) && (t == current))
+@@ -270,7 +273,7 @@ static int kill_proc(struct to_kill *tk,
+ 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
+ 				      addr_lsb, t);  /* synchronous? */
+ 	if (ret < 0)
+-		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
++		pr_info("Error sending signal to %s:%d: %d\n",
+ 			t->comm, t->pid, ret);
+ 	return ret;
+ }
+@@ -352,7 +355,7 @@ static void add_to_kill(struct task_stru
+ 
+ 	tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
+ 	if (!tk) {
+-		pr_err("Memory failure: Out of memory while machine check handling\n");
++		pr_err("Out of memory while machine check handling\n");
+ 		return;
+ 	}
+ 
+@@ -379,7 +382,7 @@ static void add_to_kill(struct task_stru
+ 	 * has a mapping for the page.
+ 	 */
+ 	if (tk->addr == -EFAULT) {
+-		pr_info("Memory failure: Unable to find user space address %lx in %s\n",
++		pr_info("Unable to find user space address %lx in %s\n",
+ 			page_to_pfn(p), tsk->comm);
+ 	} else if (tk->size_shift == 0) {
+ 		kfree(tk);
+@@ -412,7 +415,7 @@ static void kill_procs(struct list_head
+ 			 * signal and then access the memory. Just kill it.
+ 			 */
+ 			if (fail || tk->addr == -EFAULT) {
+-				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
++				pr_err("%#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
+ 				       pfn, tk->tsk->comm, tk->tsk->pid);
+ 				do_send_sig_info(SIGKILL, SEND_SIG_PRIV,
+ 						 tk->tsk, PIDTYPE_PID);
+@@ -425,7 +428,7 @@ static void kill_procs(struct list_head
+ 			 * process anyways.
+ 			 */
+ 			else if (kill_proc(tk, pfn, flags) < 0)
+-				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
++				pr_err("%#lx: Cannot send advisory machine check signal to %s:%d\n",
+ 				       pfn, tk->tsk->comm, tk->tsk->pid);
+ 		}
+ 		put_task_struct(tk->tsk);
+@@ -816,12 +819,10 @@ static int truncate_error_page(struct pa
+ 		int err = mapping->a_ops->error_remove_page(mapping, p);
+ 
+ 		if (err != 0) {
+-			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
+-				pfn, err);
++			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
+ 		} else if (page_has_private(p) &&
+ 			   !try_to_release_page(p, GFP_NOIO)) {
+-			pr_info("Memory failure: %#lx: failed to release buffers\n",
+-				pfn);
++			pr_info("%#lx: failed to release buffers\n", pfn);
+ 		} else {
+ 			ret = MF_RECOVERED;
+ 		}
+@@ -833,8 +834,7 @@ static int truncate_error_page(struct pa
+ 		if (invalidate_inode_page(p))
+ 			ret = MF_RECOVERED;
+ 		else
+-			pr_info("Memory failure: %#lx: Failed to invalidate\n",
+-				pfn);
++			pr_info("%#lx: Failed to invalidate\n",	pfn);
+ 	}
+ 
+ 	return ret;
+@@ -864,7 +864,7 @@ static bool has_extra_refcount(struct pa
+ 		count -= 1;
+ 
+ 	if (count > 0) {
+-		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
++		pr_err("%#lx: %s still referenced by %d users\n",
+ 		       page_to_pfn(p), action_page_types[ps->type], count);
+ 		return true;
+ 	}
+@@ -888,7 +888,7 @@ static int me_kernel(struct page_state *
+  */
+ static int me_unknown(struct page_state *ps, struct page *p)
  {
--	const bool is_movable = page_zonenum(pfn_to_page(pfn)) ==
--				ZONE_MOVABLE;
-+	const bool is_movable = is_zone_movable_page(pfn_to_page(pfn));
- 	int rc, retry_count;
+-	pr_err("Memory failure: %#lx: Unknown page state\n", page_to_pfn(p));
++	pr_err("%#lx: Unknown page state\n", page_to_pfn(p));
+ 	unlock_page(p);
+ 	return MF_FAILED;
+ }
+@@ -1173,7 +1173,7 @@ static void action_result(unsigned long
+ 	trace_memory_failure_event(pfn, type, result);
+ 
+ 	num_poisoned_pages_inc();
+-	pr_err("Memory failure: %#lx: recovery action for %s: %s\n",
++	pr_err("%#lx: recovery action for %s: %s\n",
+ 		pfn, action_page_types[type], action_name[result]);
+ }
+ 
+@@ -1248,8 +1248,7 @@ static int __get_hwpoison_page(struct pa
+ 		if (head == compound_head(page))
+ 			return 1;
+ 
+-		pr_info("Memory failure: %#lx cannot catch tail\n",
+-			page_to_pfn(page));
++		pr_info("%#lx cannot catch tail\n", page_to_pfn(page));
+ 		put_page(head);
+ 	}
+ 
+@@ -1312,7 +1311,7 @@ try_again:
+ 	}
+ out:
+ 	if (ret == -EIO)
+-		pr_err("Memory failure: %#lx: unhandlable page.\n", page_to_pfn(p));
++		pr_err("%#lx: unhandlable page.\n", page_to_pfn(p));
+ 
+ 	return ret;
+ }
+@@ -1411,13 +1410,12 @@ static bool hwpoison_user_mappings(struc
+ 		return true;
+ 
+ 	if (PageKsm(p)) {
+-		pr_err("Memory failure: %#lx: can't handle KSM pages.\n", pfn);
++		pr_err("%#lx: can't handle KSM pages.\n", pfn);
+ 		return false;
+ 	}
+ 
+ 	if (PageSwapCache(p)) {
+-		pr_err("Memory failure: %#lx: keeping poisoned page in swap cache\n",
+-			pfn);
++		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
+ 		ttu |= TTU_IGNORE_HWPOISON;
+ 	}
+ 
+@@ -1435,7 +1433,7 @@ static bool hwpoison_user_mappings(struc
+ 		} else {
+ 			kill = 0;
+ 			ttu |= TTU_IGNORE_HWPOISON;
+-			pr_info("Memory failure: %#lx: corrupted page was clean: dropped without side effects\n",
++			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
+ 				pfn);
+ 		}
+ 	}
+@@ -1464,14 +1462,14 @@ static bool hwpoison_user_mappings(struc
+ 			try_to_unmap(folio, ttu|TTU_RMAP_LOCKED);
+ 			i_mmap_unlock_write(mapping);
+ 		} else
+-			pr_info("Memory failure: %#lx: could not lock mapping for mapped huge page\n", pfn);
++			pr_info("%#lx: could not lock mapping for mapped huge page\n", pfn);
+ 	} else {
+ 		try_to_unmap(folio, ttu);
+ 	}
+ 
+ 	unmap_success = !page_mapped(hpage);
+ 	if (!unmap_success)
+-		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
++		pr_err("%#lx: failed to unmap page (mapcount=%d)\n",
+ 		       pfn, page_mapcount(hpage));
  
  	/*
---- a/mm/memory_hotplug.c~mm-use-is_zone_movable_page-helper
-+++ a/mm/memory_hotplug.c
-@@ -932,7 +932,7 @@ static struct zone *auto_movable_zone_fo
- 			if (!page)
- 				continue;
- 			/* If anything is !MOVABLE online the rest !MOVABLE. */
--			if (page_zonenum(page) != ZONE_MOVABLE)
-+			if (!is_zone_movable_page(page))
- 				goto kernel_zone;
- 			online_pages += PAGES_PER_SECTION;
+@@ -1732,7 +1730,7 @@ retry:
+ 		*hugetlb = 0;
+ 		return 0;
+ 	} else if (res == -EHWPOISON) {
+-		pr_err("Memory failure: %#lx: already hardware poisoned\n", pfn);
++		pr_err("%#lx: already hardware poisoned\n", pfn);
+ 		if (flags & MF_ACTION_REQUIRED) {
+ 			head = compound_head(p);
+ 			res = kill_accessing_process(current, page_to_pfn(head), flags);
+@@ -1901,8 +1899,7 @@ int memory_failure(unsigned long pfn, in
+ 				goto unlock_mutex;
+ 			}
  		}
+-		pr_err("Memory failure: %#lx: memory outside kernel control\n",
+-			pfn);
++		pr_err("%#lx: memory outside kernel control\n", pfn);
+ 		res = -ENXIO;
+ 		goto unlock_mutex;
+ 	}
+@@ -1913,8 +1910,7 @@ try_again:
+ 		goto unlock_mutex;
+ 
+ 	if (TestSetPageHWPoison(p)) {
+-		pr_err("Memory failure: %#lx: already hardware poisoned\n",
+-			pfn);
++		pr_err("%#lx: already hardware poisoned\n", pfn);
+ 		res = -EHWPOISON;
+ 		if (flags & MF_ACTION_REQUIRED)
+ 			res = kill_accessing_process(current, pfn, flags);
+@@ -2130,7 +2126,7 @@ void memory_failure_queue(unsigned long
+ 	if (kfifo_put(&mf_cpu->fifo, entry))
+ 		schedule_work_on(smp_processor_id(), &mf_cpu->work);
+ 	else
+-		pr_err("Memory failure: buffer overflow when queuing memory failure at %#lx\n",
++		pr_err("buffer overflow when queuing memory failure at %#lx\n",
+ 		       pfn);
+ 	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
+ 	put_cpu_var(memory_failure_cpu);
+@@ -2187,6 +2183,8 @@ static int __init memory_failure_init(vo
+ }
+ core_initcall(memory_failure_init);
+ 
++#undef pr_fmt
++#define pr_fmt(fmt)	"" fmt
+ #define unpoison_pr_info(fmt, pfn, rs)			\
+ ({							\
+ 	if (__ratelimit(rs))				\
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
