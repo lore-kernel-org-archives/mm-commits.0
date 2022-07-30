@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F2FDC19F2B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9A12C19F29
 	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:08:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239690AbiG3BIl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S239604AbiG3BIl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 29 Jul 2022 21:08:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34748 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239604AbiG3BI0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:08:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F64F82103
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:25 -0700 (PDT)
+        with ESMTP id S239645AbiG3BIc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:08:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 971C582F81;
+        Fri, 29 Jul 2022 18:08:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A7BD61C5D
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C868C433C1;
-        Sat, 30 Jul 2022 01:08:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 40BB5B82922;
+        Sat, 30 Jul 2022 01:08:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE148C433C1;
+        Sat, 30 Jul 2022 01:08:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659143304;
-        bh=i3dZ8uxlOdl3zV7z5mtzJiAxqsfOCok0k8k5ESPMcGE=;
+        s=korg; t=1659143305;
+        bh=tHEGa8mazQJPWNnxEBc8I/W8u2gQ35FZyowey+91he0=;
         h=Date:To:From:Subject:From;
-        b=n2GxMzS7f5hgpJvWCZ9iORvCEgcz6TxlUCkaYDVoOE1IatYNLQyLyjmAliy48LmH6
-         xqnJxD9JHY/mxgEZaxe69h2wDjIArVb+S1i9VkMLZxW5IJ0KXkaNy6WLPbUG8RlOaB
-         vd5VNTjxR6PxR9g9ai2IZBGArllH962Wt88Avi2g=
-Date:   Fri, 29 Jul 2022 18:08:23 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        surenb@google.com, songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, rientjes@google.com, peterx@redhat.com,
-        neilb@suse.de, mhocko@suse.com, linmiaohe@huawei.com,
-        hannes@cmpxchg.org, david@redhat.com, apopple@nvidia.com,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=ejJkKV7Tyt2GdfVgYxfKT7xJHXZsWtH4nyDgtExJj+qLyrOWz0AiUWw1QOiIJLFBz
+         L7JXHkzAsHEhuZmMNfPpUemPBQgy904lfqRJvXeYS6CIsffXhFtmFleHJ2uPEQIngH
+         cndNc6enM/4IU7FdQuPVinqrTm72RiVMioLhLQ9k=
+Date:   Fri, 29 Jul 2022 18:08:25 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
+        niejianglei2021@163.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure.patch removed from -mm tree
-Message-Id: <20220730010824.8C868C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-reclaim-fix-potential-memory-leak-in-damon_reclaim_init.patch removed from -mm tree
+Message-Id: <20220730010825.CE148C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,277 +41,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: vmpressure: don't count proactive reclaim in vmpressure
+     Subject: mm/damon/reclaim: fix potential memory leak in damon_reclaim_init()
 has been removed from the -mm tree.  Its filename was
-     mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure.patch
+     mm-damon-reclaim-fix-potential-memory-leak-in-damon_reclaim_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: vmpressure: don't count proactive reclaim in vmpressure
-Date: Thu, 14 Jul 2022 06:49:18 +0000
+From: Jianglei Nie <niejianglei2021@163.com>
+Subject: mm/damon/reclaim: fix potential memory leak in damon_reclaim_init()
+Date: Thu, 14 Jul 2022 14:37:46 +0800
 
-memory.reclaim is a cgroup v2 interface that allows users to proactively
-reclaim memory from a memcg, without real memory pressure.  Reclaim
-operations invoke vmpressure, which is used: (a) To notify userspace of
-reclaim efficiency in cgroup v1, and (b) As a signal for a memcg being
-under memory pressure for networking (see
-mem_cgroup_under_socket_pressure()).
+damon_reclaim_init() allocates a memory chunk for ctx with
+damon_new_ctx().  When damon_select_ops() fails, ctx is not released,
+which will lead to a memory leak.
 
-For (a), vmpressure notifications in v1 are not affected by this change
-since memory.reclaim is a v2 feature.
+We should release the ctx with damon_destroy_ctx() when damon_select_ops()
+fails to fix the memory leak.
 
-For (b), the effects of the vmpressure signal (according to Shakeel [1])
-are as follows:
-1. Reducing send and receive buffers of the current socket.
-2. May drop packets on the rx path.
-3. May throttle current thread on the tx path.
-
-Since proactive reclaim is invoked directly by userspace, not by memory
-pressure, it makes sense not to throttle networking.  Hence, this change
-makes sure that proactive reclaim caused by memory.reclaim does not
-trigger vmpressure.
-
-[1] https://lore.kernel.org/lkml/CALvZod68WdrXEmBpOkadhB5GPYmCXaDZzXH=yyGOCAjFRn4NDQ@mail.gmail.com/
-
-[yosryahmed@google.com: update documentation]
-  Link: https://lkml.kernel.org/r/20220721173015.2643248-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20220714064918.2576464-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20220714063746.2343549-1-niejianglei2021@163.com
+Fixes: 4d69c3457821 ("mm/damon/reclaim: use damon_select_ops() instead of damon_{v,p}a_set_operations()")
+Signed-off-by: Jianglei Nie <niejianglei2021@163.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    7 +++++
- include/linux/swap.h                    |    5 +++-
- mm/memcontrol.c                         |   24 +++++++++++--------
- mm/vmscan.c                             |   27 +++++++++++++---------
- 4 files changed, 42 insertions(+), 21 deletions(-)
+ mm/damon/reclaim.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1229,6 +1229,13 @@ PAGE_SIZE multiple when read back.
- 	the target cgroup. If less bytes are reclaimed than the
- 	specified amount, -EAGAIN is returned.
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-fix-potential-memory-leak-in-damon_reclaim_init
++++ a/mm/damon/reclaim.c
+@@ -435,8 +435,10 @@ static int __init damon_reclaim_init(voi
+ 	if (!ctx)
+ 		return -ENOMEM;
  
-+	Please note that the proactive reclaim (triggered by this
-+	interface) is not meant to indicate memory pressure on the
-+	memory cgroup. Therefore socket memory balancing triggered by
-+	the memory reclaim normally is not exercised in this case.
-+	This means that the networking layer will not adapt based on
-+	reclaim induced by memory.reclaim.
-+
-   memory.peak
- 	A read-only single value file which exists on non-root
- 	cgroups.
---- a/include/linux/swap.h~mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure
-+++ a/include/linux/swap.h
-@@ -411,10 +411,13 @@ extern void lru_cache_add_inactive_or_un
- extern unsigned long zone_reclaimable_pages(struct zone *zone);
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
-+
-+#define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
-+#define MEMCG_RECLAIM_PROACTIVE (1 << 2)
- extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 						  unsigned long nr_pages,
- 						  gfp_t gfp_mask,
--						  bool may_swap);
-+						  unsigned int reclaim_options);
- extern unsigned long mem_cgroup_shrink_node(struct mem_cgroup *mem,
- 						gfp_t gfp_mask, bool noswap,
- 						pg_data_t *pgdat,
---- a/mm/memcontrol.c~mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure
-+++ a/mm/memcontrol.c
-@@ -2330,7 +2330,8 @@ static unsigned long reclaim_high(struct
+-	if (damon_select_ops(ctx, DAMON_OPS_PADDR))
++	if (damon_select_ops(ctx, DAMON_OPS_PADDR)) {
++		damon_destroy_ctx(ctx);
+ 		return -EINVAL;
++	}
  
- 		psi_memstall_enter(&pflags);
- 		nr_reclaimed += try_to_free_mem_cgroup_pages(memcg, nr_pages,
--							     gfp_mask, true);
-+							gfp_mask,
-+							MEMCG_RECLAIM_MAY_SWAP);
- 		psi_memstall_leave(&pflags);
- 	} while ((memcg = parent_mem_cgroup(memcg)) &&
- 		 !mem_cgroup_is_root(memcg));
-@@ -2575,7 +2576,7 @@ static int try_charge_memcg(struct mem_c
- 	struct page_counter *counter;
- 	unsigned long nr_reclaimed;
- 	bool passed_oom = false;
--	bool may_swap = true;
-+	unsigned int reclaim_options = MEMCG_RECLAIM_MAY_SWAP;
- 	bool drained = false;
- 	bool raised_max_event = false;
- 	unsigned long pflags;
-@@ -2593,7 +2594,7 @@ retry:
- 		mem_over_limit = mem_cgroup_from_counter(counter, memory);
- 	} else {
- 		mem_over_limit = mem_cgroup_from_counter(counter, memsw);
--		may_swap = false;
-+		reclaim_options &= ~MEMCG_RECLAIM_MAY_SWAP;
- 	}
- 
- 	if (batch > nr_pages) {
-@@ -2621,7 +2622,7 @@ retry:
- 
- 	psi_memstall_enter(&pflags);
- 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
--						    gfp_mask, may_swap);
-+						    gfp_mask, reclaim_options);
- 	psi_memstall_leave(&pflags);
- 
- 	if (mem_cgroup_margin(mem_over_limit) >= nr_pages)
-@@ -3439,8 +3440,8 @@ static int mem_cgroup_resize_max(struct
- 			continue;
- 		}
- 
--		if (!try_to_free_mem_cgroup_pages(memcg, 1,
--					GFP_KERNEL, !memsw)) {
-+		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL,
-+					memsw ? 0 : MEMCG_RECLAIM_MAY_SWAP)) {
- 			ret = -EBUSY;
- 			break;
- 		}
-@@ -3550,7 +3551,8 @@ static int mem_cgroup_force_empty(struct
- 		if (signal_pending(current))
- 			return -EINTR;
- 
--		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, true))
-+		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL,
-+						  MEMCG_RECLAIM_MAY_SWAP))
- 			nr_retries--;
- 	}
- 
-@@ -6302,7 +6304,7 @@ static ssize_t memory_high_write(struct
- 		}
- 
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
--							 GFP_KERNEL, true);
-+					GFP_KERNEL, MEMCG_RECLAIM_MAY_SWAP);
- 
- 		if (!reclaimed && !nr_retries--)
- 			break;
-@@ -6351,7 +6353,7 @@ static ssize_t memory_max_write(struct k
- 
- 		if (nr_reclaims) {
- 			if (!try_to_free_mem_cgroup_pages(memcg, nr_pages - max,
--							  GFP_KERNEL, true))
-+					GFP_KERNEL, MEMCG_RECLAIM_MAY_SWAP))
- 				nr_reclaims--;
- 			continue;
- 		}
-@@ -6480,6 +6482,7 @@ static ssize_t memory_reclaim(struct ker
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
- 	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
- 	unsigned long nr_to_reclaim, nr_reclaimed = 0;
-+	unsigned int reclaim_options;
- 	int err;
- 
- 	buf = strstrip(buf);
-@@ -6487,6 +6490,7 @@ static ssize_t memory_reclaim(struct ker
- 	if (err)
- 		return err;
- 
-+	reclaim_options	= MEMCG_RECLAIM_MAY_SWAP | MEMCG_RECLAIM_PROACTIVE;
- 	while (nr_reclaimed < nr_to_reclaim) {
- 		unsigned long reclaimed;
- 
-@@ -6503,7 +6507,7 @@ static ssize_t memory_reclaim(struct ker
- 
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
- 						nr_to_reclaim - nr_reclaimed,
--						GFP_KERNEL, true);
-+						GFP_KERNEL, reclaim_options);
- 
- 		if (!reclaimed && !nr_retries--)
- 			return -EAGAIN;
---- a/mm/vmscan.c~mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure
-+++ a/mm/vmscan.c
-@@ -101,6 +101,9 @@ struct scan_control {
- 	/* Can pages be swapped as part of reclaim? */
- 	unsigned int may_swap:1;
- 
-+	/* Proactive reclaim invoked by userspace through memory.reclaim */
-+	unsigned int proactive:1;
-+
- 	/*
- 	 * Cgroup memory below memory.low is protected as long as we
- 	 * don't threaten to OOM. If any cgroup is reclaimed at
-@@ -3180,9 +3183,10 @@ static void shrink_node_memcgs(pg_data_t
- 			    sc->priority);
- 
- 		/* Record the group's reclaim efficiency */
--		vmpressure(sc->gfp_mask, memcg, false,
--			   sc->nr_scanned - scanned,
--			   sc->nr_reclaimed - reclaimed);
-+		if (!sc->proactive)
-+			vmpressure(sc->gfp_mask, memcg, false,
-+				   sc->nr_scanned - scanned,
-+				   sc->nr_reclaimed - reclaimed);
- 
- 	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, NULL)));
- }
-@@ -3305,9 +3309,10 @@ again:
- 	}
- 
- 	/* Record the subtree's reclaim efficiency */
--	vmpressure(sc->gfp_mask, sc->target_mem_cgroup, true,
--		   sc->nr_scanned - nr_scanned,
--		   sc->nr_reclaimed - nr_reclaimed);
-+	if (!sc->proactive)
-+		vmpressure(sc->gfp_mask, sc->target_mem_cgroup, true,
-+			   sc->nr_scanned - nr_scanned,
-+			   sc->nr_reclaimed - nr_reclaimed);
- 
- 	if (sc->nr_reclaimed - nr_reclaimed)
- 		reclaimable = true;
-@@ -3589,8 +3594,9 @@ retry:
- 		__count_zid_vm_events(ALLOCSTALL, sc->reclaim_idx, 1);
- 
- 	do {
--		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
--				sc->priority);
-+		if (!sc->proactive)
-+			vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
-+					sc->priority);
- 		sc->nr_scanned = 0;
- 		shrink_zones(zonelist, sc);
- 
-@@ -3880,7 +3886,7 @@ unsigned long mem_cgroup_shrink_node(str
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 					   unsigned long nr_pages,
- 					   gfp_t gfp_mask,
--					   bool may_swap)
-+					   unsigned int reclaim_options)
- {
- 	unsigned long nr_reclaimed;
- 	unsigned int noreclaim_flag;
-@@ -3893,7 +3899,8 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.priority = DEF_PRIORITY,
- 		.may_writepage = !laptop_mode,
- 		.may_unmap = 1,
--		.may_swap = may_swap,
-+		.may_swap = !!(reclaim_options & MEMCG_RECLAIM_MAY_SWAP),
-+		.proactive = !!(reclaim_options & MEMCG_RECLAIM_PROACTIVE),
- 	};
- 	/*
- 	 * Traverse the ZONELIST_FALLBACK zonelist of the current node to put
+ 	ctx->callback.after_wmarks_check = damon_reclaim_after_wmarks_check;
+ 	ctx->callback.after_aggregation = damon_reclaim_after_aggregation;
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from niejianglei2021@163.com are
 
 
