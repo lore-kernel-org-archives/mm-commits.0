@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6F88C3F6B0
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:13:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67C83C19F2B
+	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:13:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239558AbiG3BNP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 21:13:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39286 "EHLO
+        id S239714AbiG3BNQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 21:13:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239664AbiG3BNO (ORCPT
+        with ESMTP id S239684AbiG3BNO (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:13:14 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91D1C2ACA
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:13:12 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 744B4101E3
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:13:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3EA97B82925
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:13:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7151C433D6;
-        Sat, 30 Jul 2022 01:13:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DEBCD61C3A
+        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:13:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F9D1C433B5;
+        Sat, 30 Jul 2022 01:13:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659143590;
-        bh=sBpqRcCo7ducIWGa5jSdgHNPuOyB5laiGw0eMxIrQhI=;
+        s=korg; t=1659143592;
+        bh=+kcJE95LpCkKU/Fj71vzEx5DWTD5Y7nKbU1spFN40K0=;
         h=Date:To:From:Subject:From;
-        b=iexuB5IYdN+1hcoWGUAIZUMM1ategPViFIWy+X2WHFiDPR6BptIFIzP1+ym+l+9AN
-         Al9FkNOicdE8pEJT/5YLdRxZEQUqyzEmr+g/kW4L+xOSVbUMmNisB86X0TyvcijnJE
-         04bhQWbXAL0kCZiKd7xqiXLRyuQ9SYFrQXI0VJEs=
-Date:   Fri, 29 Jul 2022 18:13:09 -0700
-To:     mm-commits@vger.kernel.org, zhengliang6@huawei.com,
-        yi.zhang@huawei.com, Xiongwei.Song@windriver.com,
-        willy@infradead.org, phillip@squashfs.org.uk,
-        m.szyprowski@samsung.com, miaoxie@huawei.com, lkp@intel.com,
-        houtao1@huawei.com, akpm@linux-foundation.org, hsinyi@chromium.org,
-        akpm@linux-foundation.org
+        b=oMH8xmoJpCdMIGB/fKS2EFj5c/usuu/oEC4zGSkzsaBFlhctO+CSKi3X74l8GkE+H
+         KNzghalO6J3JzET3rkqeFOP76ycBwUABUFZIhsW52S3hFpfa56u+OjCN08jx/0S8ZA
+         L/oBduqa9uVs3k8Pnf8+n9g7ukLMJmROLRSS30T0=
+Date:   Fri, 29 Jul 2022 18:13:11 -0700
+To:     mm-commits@vger.kernel.org, dave.rodgman@arm.com, corbet@lwn.net,
+        yijiangshan@kylinos.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] squashfs-implement-readahead.patch removed from -mm tree
-Message-Id: <20220730011309.E7151C433D6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-lzo-lzo1x_compressc-replace-ternary-operator-with-min-and-min_t.patch removed from -mm tree
+Message-Id: <20220730011312.3F9D1C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,159 +41,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: squashfs: implement readahead
+     Subject: lib/lzo/lzo1x_compress.c: replace ternary operator with min() and min_t()
 has been removed from the -mm tree.  Its filename was
-     squashfs-implement-readahead.patch
+     lib-lzo-lzo1x_compressc-replace-ternary-operator-with-min-and-min_t.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hsin-Yi Wang <hsinyi@chromium.org>
-Subject: squashfs: implement readahead
-Date: Fri, 17 Jun 2022 16:38:13 +0800
+From: Jiangshan Yi <yijiangshan@kylinos.cn>
+Subject: lib/lzo/lzo1x_compress.c: replace ternary operator with min() and min_t()
+Date: Thu, 14 Jul 2022 09:54:41 +0800
 
-Implement readahead callback for squashfs.  It will read datablocks which
-cover pages in readahead request.  For a few cases it will not mark page
-as uptodate, including:
+Fix the following coccicheck warning:
 
-- file end is 0.
-- zero filled blocks.
-- current batch of pages isn't in the same datablock.
-- decompressor error.
+lib/lzo/lzo1x_compress.c:54: WARNING opportunity for min().
+lib/lzo/lzo1x_compress.c:329: WARNING opportunity for min().
 
-Otherwise pages will be marked as uptodate.  The unhandled pages will be
-updated by readpage later.
+min() and min_t() macro is defined in include/linux/minmax.h.  It avoids
+multiple evaluations of the arguments when non-constant and performs
+strict type-checking.
 
-Link: https://lkml.kernel.org/r/20220617083810.337573-4-hsinyi@chromium.org
-Signed-off-by: Hsin-Yi Wang <hsinyi@chromium.org>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Reported-by: Matthew Wilcox <willy@infradead.org>
-Reported-by: Phillip Lougher <phillip@squashfs.org.uk>
-Reported-by: Xiongwei Song <Xiongwei.Song@windriver.com>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hou Tao <houtao1@huawei.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Miao Xie <miaoxie@huawei.com>
-Cc: Zhang Yi <yi.zhang@huawei.com>
-Cc: Zheng Liang <zhengliang6@huawei.com>
+Link: https://lkml.kernel.org/r/20220714015441.1313036-1-13667453960@163.com
+Signed-off-by: Jiangshan Yi <yijiangshan@kylinos.cn>
+Tested-by: Dave Rodgman <dave.rodgman@arm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file.c |   92 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 91 insertions(+), 1 deletion(-)
+ lib/lzo/lzo1x_compress.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/fs/squashfs/file.c~squashfs-implement-readahead
-+++ a/fs/squashfs/file.c
-@@ -39,6 +39,7 @@
- #include "squashfs_fs_sb.h"
- #include "squashfs_fs_i.h"
- #include "squashfs.h"
-+#include "page_actor.h"
+--- a/lib/lzo/lzo1x_compress.c~lib-lzo-lzo1x_compressc-replace-ternary-operator-with-min-and-min_t
++++ a/lib/lzo/lzo1x_compress.c
+@@ -50,9 +50,7 @@ next:
  
- /*
-  * Locate cache slot in range [offset, index] for specified inode.  If
-@@ -495,7 +496,96 @@ out:
- 	return 0;
- }
+ 		if (dv == 0 && bitstream_version) {
+ 			const unsigned char *ir = ip + 4;
+-			const unsigned char *limit = ip_end
+-				< (ip + MAX_ZERO_RUN_LENGTH + 1)
+-				? ip_end : ip + MAX_ZERO_RUN_LENGTH + 1;
++			const unsigned char *limit = min(ip_end, ip + MAX_ZERO_RUN_LENGTH + 1);
+ #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) && \
+ 	defined(LZO_FAST_64BIT_MEMORY_ACCESS)
+ 			u64 dv64;
+@@ -326,7 +324,7 @@ static int lzogeneric1x_1_compress(const
+ 	data_start = op;
  
-+static void squashfs_readahead(struct readahead_control *ractl)
-+{
-+	struct inode *inode = ractl->mapping->host;
-+	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
-+	size_t mask = (1UL << msblk->block_log) - 1;
-+	unsigned short shift = msblk->block_log - PAGE_SHIFT;
-+	loff_t start = readahead_pos(ractl) & ~mask;
-+	size_t len = readahead_length(ractl) + readahead_pos(ractl) - start;
-+	struct squashfs_page_actor *actor;
-+	unsigned int nr_pages = 0;
-+	struct page **pages;
-+	int i, file_end = i_size_read(inode) >> msblk->block_log;
-+	unsigned int max_pages = 1UL << shift;
-+
-+	readahead_expand(ractl, start, (len | mask) + 1);
-+
-+	if (file_end == 0)
-+		return;
-+
-+	pages = kmalloc_array(max_pages, sizeof(void *), GFP_KERNEL);
-+	if (!pages)
-+		return;
-+
-+	for (;;) {
-+		pgoff_t index;
-+		int res, bsize;
-+		u64 block = 0;
-+		unsigned int expected;
-+
-+		nr_pages = __readahead_batch(ractl, pages, max_pages);
-+		if (!nr_pages)
-+			break;
-+
-+		if (readahead_pos(ractl) >= i_size_read(inode))
-+			goto skip_pages;
-+
-+		index = pages[0]->index >> shift;
-+		if ((pages[nr_pages - 1]->index >> shift) != index)
-+			goto skip_pages;
-+
-+		expected = index == file_end ?
-+			   (i_size_read(inode) & (msblk->block_size - 1)) :
-+			    msblk->block_size;
-+
-+		bsize = read_blocklist(inode, index, &block);
-+		if (bsize == 0)
-+			goto skip_pages;
-+
-+		actor = squashfs_page_actor_init_special(msblk, pages, nr_pages,
-+							 expected);
-+		if (!actor)
-+			goto skip_pages;
-+
-+		res = squashfs_read_data(inode->i_sb, block, bsize, NULL, actor);
-+
-+		kfree(actor);
-+
-+		if (res == expected) {
-+			int bytes;
-+
-+			/* Last page (if present) may have trailing bytes not filled */
-+			bytes = res % PAGE_SIZE;
-+			if (pages[nr_pages - 1]->index == file_end && bytes)
-+				memzero_page(pages[nr_pages - 1], bytes,
-+					     PAGE_SIZE - bytes);
-+
-+			for (i = 0; i < nr_pages; i++) {
-+				flush_dcache_page(pages[i]);
-+				SetPageUptodate(pages[i]);
-+			}
-+		}
-+
-+		for (i = 0; i < nr_pages; i++) {
-+			unlock_page(pages[i]);
-+			put_page(pages[i]);
-+		}
-+	}
-+
-+	kfree(pages);
-+	return;
-+
-+skip_pages:
-+	for (i = 0; i < nr_pages; i++) {
-+		unlock_page(pages[i]);
-+		put_page(pages[i]);
-+	}
-+	kfree(pages);
-+}
- 
- const struct address_space_operations squashfs_aops = {
--	.read_folio = squashfs_read_folio
-+	.read_folio = squashfs_read_folio,
-+	.readahead = squashfs_readahead
- };
+ 	while (l > 20) {
+-		size_t ll = l <= (m4_max_offset + 1) ? l : (m4_max_offset + 1);
++		size_t ll = min_t(size_t, l, m4_max_offset + 1);
+ 		uintptr_t ll_end = (uintptr_t) ip + ll;
+ 		if ((ll_end + ((t + ll) >> 5)) <= ll_end)
+ 			break;
 _
 
-Patches currently in -mm which might be from hsinyi@chromium.org are
+Patches currently in -mm which might be from yijiangshan@kylinos.cn are
 
 
