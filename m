@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9192C00144
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:08:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9CF8C00144
+	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:08:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239646AbiG3BIc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 21:08:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34720 "EHLO
+        id S239656AbiG3BIk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 21:08:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239591AbiG3BIZ (ORCPT
+        with ESMTP id S239595AbiG3BIZ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:08:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D436D820D8
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:23 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76BB1820F4
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 93435B829FD
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46C5CC433C1;
-        Sat, 30 Jul 2022 01:08:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0983761C50
+        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B902C433D6;
+        Sat, 30 Jul 2022 01:08:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659143301;
-        bh=t1IuVB983e/KdnVxuWzi8r4RmwhL1kwt4AUjfUUOGro=;
+        s=korg; t=1659143303;
+        bh=epzeoL0YjLsTL7Oc6IgvOfE/uZLQAt8DtE/moywtD38=;
         h=Date:To:From:Subject:From;
-        b=sti42Yez0q5M33UMyVIsua4bmjPwy1/Z3j4EXIvlpuCizy7dxCdjjg32vwol16w2X
-         7nrxmm+ZrPkCaTSn3qV0t7eSkNVEwg4cWQvx5LjSAKBEY365hwbqs3psP3MNBqbvkt
-         /5NZnCZ79CZon5KUi52uV+r5bMANoIUihdXGEXDA=
-Date:   Fri, 29 Jul 2022 18:08:20 -0700
-To:     mm-commits@vger.kernel.org, xuqiang36@huawei.com, will@kernel.org,
-        rppt@linux.ibm.com, darren@os.amperecomputing.com,
-        anshuman.khandual@arm.com, zhouguanghui1@huawei.com,
-        akpm@linux-foundation.org
+        b=qvy8a5rNLmhaVDWUEaW3X7H+Z4nn57P/X19CXtR0yPVTma9sucoPTH89est+vB5Sp
+         u75I/PHLW4P8A8ulbvNJUtP6UJJwRYmpbTe7KP78PC+Mm6vdYjje4k23HPiX0EWm9r
+         Pes+Mz6CsoxQM1J9RyK2gBj44hAv/Z7b6Dl/gr9s=
+Date:   Fri, 29 Jul 2022 18:08:22 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        ngupta@vflare.org, minchan@kernel.org, axboe@kernel.dk,
+        teawater@antgroup.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memblockarm64-expand-the-static-memblock-memory-table.patch removed from -mm tree
-Message-Id: <20220730010821.46C5CC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] zsmalloc-zs_malloc-return-err_ptr-if-fail.patch removed from -mm tree
+Message-Id: <20220730010823.5B902C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,133 +42,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memblock,arm64: expand the static memblock memory table
+     Subject: zsmalloc: zs_malloc: return ERR_PTR on failure
 has been removed from the -mm tree.  Its filename was
-     memblockarm64-expand-the-static-memblock-memory-table.patch
+     zsmalloc-zs_malloc-return-err_ptr-if-fail.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhou Guanghui <zhouguanghui1@huawei.com>
-Subject: memblock,arm64: expand the static memblock memory table
-Date: Wed, 15 Jun 2022 10:27:42 +0000
+From: Hui Zhu <teawater@antgroup.com>
+Subject: zsmalloc: zs_malloc: return ERR_PTR on failure
+Date: Thu, 14 Jul 2022 16:07:57 +0800
 
-In a system(Huawei Ascend ARM64 SoC) using HBM, a multi-bit ECC error
-occurs, and the BIOS will mark the corresponding area (for example, 2 MB)
-as unusable.  When the system restarts next time, these areas are not
-reported or reported as EFI_UNUSABLE_MEMORY.  Both cases lead to an
-increase in the number of memblocks, whereas EFI_UNUSABLE_MEMORY leads to
-a larger number of memblocks.
+zs_malloc returns 0 if it fails.  zs_zpool_malloc will return -1 when
+zs_malloc return 0.  But -1 makes the return value unclear.
 
-For example, if the EFI_UNUSABLE_MEMORY type is reported:
-...
-memory[0x92]    [0x0000200834a00000-0x0000200835bfffff], 0x0000000001200000 bytes on node 7 flags: 0x0
-memory[0x93]    [0x0000200835c00000-0x0000200835dfffff], 0x0000000000200000 bytes on node 7 flags: 0x4
-memory[0x94]    [0x0000200835e00000-0x00002008367fffff], 0x0000000000a00000 bytes on node 7 flags: 0x0
-memory[0x95]    [0x0000200836800000-0x00002008369fffff], 0x0000000000200000 bytes on node 7 flags: 0x4
-memory[0x96]    [0x0000200836a00000-0x0000200837bfffff], 0x0000000001200000 bytes on node 7 flags: 0x0
-memory[0x97]    [0x0000200837c00000-0x0000200837dfffff], 0x0000000000200000 bytes on node 7 flags: 0x4
-memory[0x98]    [0x0000200837e00000-0x000020087fffffff], 0x0000000048200000 bytes on node 7 flags: 0x0
-memory[0x99]    [0x0000200880000000-0x0000200bcfffffff], 0x0000000350000000 bytes on node 6 flags: 0x0
-memory[0x9a]    [0x0000200bd0000000-0x0000200bd01fffff], 0x0000000000200000 bytes on node 6 flags: 0x4
-memory[0x9b]    [0x0000200bd0200000-0x0000200bd07fffff], 0x0000000000600000 bytes on node 6 flags: 0x0
-memory[0x9c]    [0x0000200bd0800000-0x0000200bd09fffff], 0x0000000000200000 bytes on node 6 flags: 0x4
-memory[0x9d]    [0x0000200bd0a00000-0x0000200fcfffffff], 0x00000003ff600000 bytes on node 6 flags: 0x0
-memory[0x9e]    [0x0000200fd0000000-0x0000200fd01fffff], 0x0000000000200000 bytes on node 6 flags: 0x4
-memory[0x9f]    [0x0000200fd0200000-0x0000200fffffffff], 0x000000002fe00000 bytes on node 6 flags: 0x0
-...
+For example, when zswap_frontswap_store calls zs_malloc through
+zs_zpool_malloc, it will return -1 to its caller.  The other return value
+is -EINVAL, -ENODEV or something else.
 
-The EFI memory map is parsed to construct the memblock arrays before the
-memblock arrays can be resized.  As the result, memory regions beyond
-INIT_MEMBLOCK_REGIONS are lost.
+This commit changes zs_malloc to return ERR_PTR on failure.  It didn't
+just let zs_zpool_malloc return -ENOMEM becaue zs_malloc has two types of
+failure:
 
-Add a new macro INIT_MEMBLOCK_MEMORY_REGIONS to replace
-INIT_MEMBLOCK_REGTIONS to define the size of the static memblock.memory
-array.
+- size is not OK return -EINVAL
+- memory alloc fail return -ENOMEM.
 
-Allow overriding memblock.memory array size with architecture defined
-INIT_MEMBLOCK_MEMORY_REGIONS and make arm64 to set
-INIT_MEMBLOCK_MEMORY_REGIONS to 1024 when CONFIG_EFI is enabled.
-
-Link: https://lkml.kernel.org/r/20220615102742.96450-1-zhouguanghui1@huawei.com
-Signed-off-by: Zhou Guanghui <zhouguanghui1@huawei.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Tested-by: Darren Hart <darren@os.amperecomputing.com>
-Acked-by: Will Deacon <will@kernel.org>		[arm64]
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Xu Qiang <xuqiang36@huawei.com>
+Link: https://lkml.kernel.org/r/20220714080757.12161-1-teawater@gmail.com
+Signed-off-by: Hui Zhu <teawater@antgroup.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/memory.h |    9 +++++++++
- mm/memblock.c                   |   14 +++++++++-----
- 2 files changed, 18 insertions(+), 5 deletions(-)
+ drivers/block/zram/zram_drv.c |    4 ++--
+ mm/zsmalloc.c                 |   13 ++++++++-----
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
---- a/arch/arm64/include/asm/memory.h~memblockarm64-expand-the-static-memblock-memory-table
-+++ a/arch/arm64/include/asm/memory.h
-@@ -364,6 +364,15 @@ void dump_mem_limit(void);
- # define INIT_MEMBLOCK_RESERVED_REGIONS	(INIT_MEMBLOCK_REGIONS + NR_CPUS + 1)
- #endif
+--- a/drivers/block/zram/zram_drv.c~zsmalloc-zs_malloc-return-err_ptr-if-fail
++++ a/drivers/block/zram/zram_drv.c
+@@ -1389,9 +1389,9 @@ static int __zram_bvec_write(struct zram
+ 			__GFP_HIGHMEM |
+ 			__GFP_MOVABLE);
  
-+/*
-+ * memory regions which marked with flag MEMBLOCK_NOMAP(for example, the memory
-+ * of the EFI_UNUSABLE_MEMORY type) may divide a continuous memory block into
-+ * multiple parts. As a result, the number of memory regions is large.
-+ */
-+#ifdef CONFIG_EFI
-+#define INIT_MEMBLOCK_MEMORY_REGIONS	(INIT_MEMBLOCK_REGIONS * 8)
-+#endif
+-	if (unlikely(!handle)) {
++	if (IS_ERR((void *)handle)) {
+ 		zcomp_stream_put(zram->comp);
+-		return -ENOMEM;
++		return PTR_ERR((void *)handle);
+ 	}
+ 
+ 	alloced_pages = zs_get_total_pages(zram->mem_pool);
+--- a/mm/zsmalloc.c~zsmalloc-zs_malloc-return-err_ptr-if-fail
++++ a/mm/zsmalloc.c
+@@ -399,7 +399,10 @@ static int zs_zpool_malloc(void *pool, s
+ 			unsigned long *handle)
+ {
+ 	*handle = zs_malloc(pool, size, gfp);
+-	return *handle ? 0 : -1;
 +
- #include <asm-generic/memory_model.h>
- 
- #endif /* __ASM_MEMORY_H */
---- a/mm/memblock.c~memblockarm64-expand-the-static-memblock-memory-table
-+++ a/mm/memblock.c
-@@ -29,6 +29,10 @@
- # define INIT_MEMBLOCK_RESERVED_REGIONS		INIT_MEMBLOCK_REGIONS
- #endif
- 
-+#ifndef INIT_MEMBLOCK_MEMORY_REGIONS
-+#define INIT_MEMBLOCK_MEMORY_REGIONS		INIT_MEMBLOCK_REGIONS
-+#endif
-+
- /**
-  * DOC: memblock overview
++	if (IS_ERR((void *)(*handle)))
++		return PTR_ERR((void *)*handle);
++	return 0;
+ }
+ static void zs_zpool_free(void *pool, unsigned long handle)
+ {
+@@ -1400,7 +1403,7 @@ static unsigned long obj_malloc(struct z
+  * @gfp: gfp flags when allocating object
   *
-@@ -55,9 +59,9 @@
-  * the allocator metadata. The "memory" and "reserved" types are nicely
-  * wrapped with struct memblock. This structure is statically
-  * initialized at build time. The region arrays are initially sized to
-- * %INIT_MEMBLOCK_REGIONS for "memory" and %INIT_MEMBLOCK_RESERVED_REGIONS
-- * for "reserved". The region array for "physmem" is initially sized to
-- * %INIT_PHYSMEM_REGIONS.
-+ * %INIT_MEMBLOCK_MEMORY_REGIONS for "memory" and
-+ * %INIT_MEMBLOCK_RESERVED_REGIONS for "reserved". The region array
-+ * for "physmem" is initially sized to %INIT_PHYSMEM_REGIONS.
-  * The memblock_allow_resize() enables automatic resizing of the region
-  * arrays during addition of new regions. This feature should be used
-  * with care so that memory allocated for the region array will not
-@@ -102,7 +106,7 @@ unsigned long min_low_pfn;
- unsigned long max_pfn;
- unsigned long long max_possible_pfn;
+  * On success, handle to the allocated object is returned,
+- * otherwise 0.
++ * otherwise an ERR_PTR().
+  * Allocation requests with size > ZS_MAX_ALLOC_SIZE will fail.
+  */
+ unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp)
+@@ -1411,11 +1414,11 @@ unsigned long zs_malloc(struct zs_pool *
+ 	struct zspage *zspage;
  
--static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
-+static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_MEMORY_REGIONS] __initdata_memblock;
- static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_RESERVED_REGIONS] __initdata_memblock;
- #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
- static struct memblock_region memblock_physmem_init_regions[INIT_PHYSMEM_REGIONS];
-@@ -111,7 +115,7 @@ static struct memblock_region memblock_p
- struct memblock memblock __initdata_memblock = {
- 	.memory.regions		= memblock_memory_init_regions,
- 	.memory.cnt		= 1,	/* empty dummy entry */
--	.memory.max		= INIT_MEMBLOCK_REGIONS,
-+	.memory.max		= INIT_MEMBLOCK_MEMORY_REGIONS,
- 	.memory.name		= "memory",
+ 	if (unlikely(!size || size > ZS_MAX_ALLOC_SIZE))
+-		return 0;
++		return (unsigned long)ERR_PTR(-EINVAL);
  
- 	.reserved.regions	= memblock_reserved_init_regions,
+ 	handle = cache_alloc_handle(pool, gfp);
+ 	if (!handle)
+-		return 0;
++		return (unsigned long)ERR_PTR(-ENOMEM);
+ 
+ 	/* extra space in chunk to keep the handle */
+ 	size += ZS_HANDLE_SIZE;
+@@ -1440,7 +1443,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 	zspage = alloc_zspage(pool, class, gfp);
+ 	if (!zspage) {
+ 		cache_free_handle(pool, handle);
+-		return 0;
++		return (unsigned long)ERR_PTR(-ENOMEM);
+ 	}
+ 
+ 	spin_lock(&class->lock);
 _
 
-Patches currently in -mm which might be from zhouguanghui1@huawei.com are
+Patches currently in -mm which might be from teawater@antgroup.com are
 
 
