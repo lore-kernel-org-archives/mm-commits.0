@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90DD1C00144
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:10:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E25BC00144
+	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:13:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239838AbiG3BKC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 21:10:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35270 "EHLO
+        id S239596AbiG3BNL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 21:13:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239746AbiG3BI5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:08:57 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94E1382FA5
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:55 -0700 (PDT)
+        with ESMTP id S230121AbiG3BNK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:13:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E7FFE33
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:13:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 36DD5B82929
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9210C433D6;
-        Sat, 30 Jul 2022 01:08:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3830361B74
+        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:13:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81CBFC433C1;
+        Sat, 30 Jul 2022 01:13:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659143333;
-        bh=lDQ55HP6ZmmVp6zNTBfVWszkP0EuOgaF5+DhJU+D7SQ=;
+        s=korg; t=1659143587;
+        bh=kII37Holzcz/MaJkSMz5WGW4LNEkow5wNbpgNO9l1oM=;
         h=Date:To:From:Subject:From;
-        b=wR1qfxY+dusQI2hN7FqrNDUB6A91I7yo/BqY/DJ0F4877AZtuyScSOTsXvWmTd0TV
-         a0mYpkHjptXoFE5pnMRkqEC8ZzierIERhkkaBh5jT9SmH6eh8IreHoOsZU0Qsd8LJk
-         4b286M7Acef/zhNcQDnBj36qsKlryUfTeS1VPrx8=
-Date:   Fri, 29 Jul 2022 18:08:52 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=zySJ4VbspyHI34aqhCzm6bhl+6ZMrxUbG6HhMhi2OQtx+RTSciq86dPnl9CyJz5ig
+         Y1OgHkfUoGfs/Yh8739xP8n1rvLxPxlZovkas0uIW0SGMH1a+gDeqQE4v0IzGaguJO
+         w8xS0EzyBqwOgm/8SNE5jS4W0FaZ87Z13xxgJ7mA=
+Date:   Fri, 29 Jul 2022 18:13:06 -0700
+To:     mm-commits@vger.kernel.org, zhengliang6@huawei.com,
+        yi.zhang@huawei.com, Xiongwei.Song@windriver.com,
+        willy@infradead.org, phillip@squashfs.org.uk,
+        m.szyprowski@samsung.com, miaoxie@huawei.com, lkp@intel.com,
+        houtao1@huawei.com, hsinyi@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-convert-to-pr_fmt.patch removed from -mm tree
-Message-Id: <20220730010852.E9210C433D6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch removed from -mm tree
+Message-Id: <20220730011307.81CBFC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,264 +44,112 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: convert to pr_fmt()
+     Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-convert-to-pr_fmt.patch
+     revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory-failure: convert to pr_fmt()
-Date: Tue, 26 Jul 2022 16:10:46 +0800
+From: Hsin-Yi Wang <hsinyi@chromium.org>
+Subject: Revert "squashfs: provide backing_dev_info in order to disable read-ahead"
+Date: Fri, 17 Jun 2022 16:38:09 +0800
 
-Use pr_fmt to prefix all pr_<level> output, but unpoison_memory() and
-soft_offline_page() are used by error injection, which have own prefixes
-like "Unpoison:" and "soft offline:", meanwhile, soft_offline_page() could
-be used by memory hotremove, so reset pr_fmt before unpoison_pr_info
-definition to keep the original output for them.
+Patch series "Implement readahead for squashfs", v7.
 
-[wangkefeng.wang@huawei.com: v3]
-  Link: https://lkml.kernel.org/r/20220729031919.72331-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20220726081046.10742-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Commit 9eec1d897139("squashfs: provide backing_dev_info in order to
+disable read-ahead") mitigates the performance drop issue for squashfs by
+closing readahead for it.
+
+This series implements readahead callback for squashfs.
+
+
+This patch (of 4):
+
+This reverts 9eec1d897139e5 ("squashfs: provide backing_dev_info in order
+to disable read-ahead").
+
+Revert closing the readahead to squashfs since the readahead callback for
+squashfs is implemented.
+
+Link: https://lkml.kernel.org/r/20220617083810.337573-1-hsinyi@chromium.org
+Link: https://lkml.kernel.org/r/20220617083810.337573-2-hsinyi@chromium.org
+Signed-off-by: Hsin-Yi Wang <hsinyi@chromium.org>
+Suggested-by: Xiongwei Song <Xiongwei.Song@windriver.com>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Zheng Liang <zhengliang6@huawei.com>
+Cc: Zhang Yi <yi.zhang@huawei.com>
+Cc: Hou Tao <houtao1@huawei.com>
+Cc: Miao Xie <miaoxie@huawei.com>
+
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   58 ++++++++++++++++++++----------------------
- 1 file changed, 28 insertions(+), 30 deletions(-)
+ fs/squashfs/super.c |   33 ---------------------------------
+ 1 file changed, 33 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-convert-to-pr_fmt
-+++ a/mm/memory-failure.c
-@@ -33,6 +33,9 @@
-  * are rare we hope to get away with this. This avoids impacting the core 
-  * VM.
-  */
-+
-+#define pr_fmt(fmt) "Memory failure: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/page-flags.h>
-@@ -252,7 +255,7 @@ static int kill_proc(struct to_kill *tk,
- 	short addr_lsb = tk->size_shift;
- 	int ret = 0;
+--- a/fs/squashfs/super.c~revert-squashfs-provide-backing_dev_info-in-order-to-disable-read-ahead
++++ a/fs/squashfs/super.c
+@@ -29,7 +29,6 @@
+ #include <linux/module.h>
+ #include <linux/magic.h>
+ #include <linux/xattr.h>
+-#include <linux/backing-dev.h>
  
--	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
-+	pr_err("%#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
- 			pfn, t->comm, t->pid);
- 
- 	if ((flags & MF_ACTION_REQUIRED) && (t == current))
-@@ -270,7 +273,7 @@ static int kill_proc(struct to_kill *tk,
- 		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
- 				      addr_lsb, t);  /* synchronous? */
- 	if (ret < 0)
--		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
-+		pr_info("Error sending signal to %s:%d: %d\n",
- 			t->comm, t->pid, ret);
- 	return ret;
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+@@ -113,24 +112,6 @@ static const struct squashfs_decompresso
+ 	return decompressor;
  }
-@@ -352,7 +355,7 @@ static void add_to_kill(struct task_stru
  
- 	tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
- 	if (!tk) {
--		pr_err("Memory failure: Out of memory while machine check handling\n");
-+		pr_err("Out of memory while machine check handling\n");
- 		return;
- 	}
+-static int squashfs_bdi_init(struct super_block *sb)
+-{
+-	int err;
+-	unsigned int major = MAJOR(sb->s_dev);
+-	unsigned int minor = MINOR(sb->s_dev);
+-
+-	bdi_put(sb->s_bdi);
+-	sb->s_bdi = &noop_backing_dev_info;
+-
+-	err = super_setup_bdi_name(sb, "squashfs_%u_%u", major, minor);
+-	if (err)
+-		return err;
+-
+-	sb->s_bdi->ra_pages = 0;
+-	sb->s_bdi->io_pages = 0;
+-
+-	return 0;
+-}
  
-@@ -379,7 +382,7 @@ static void add_to_kill(struct task_stru
- 	 * has a mapping for the page.
- 	 */
- 	if (tk->addr == -EFAULT) {
--		pr_info("Memory failure: Unable to find user space address %lx in %s\n",
-+		pr_info("Unable to find user space address %lx in %s\n",
- 			page_to_pfn(p), tsk->comm);
- 	} else if (tk->size_shift == 0) {
- 		kfree(tk);
-@@ -412,7 +415,7 @@ static void kill_procs(struct list_head
- 			 * signal and then access the memory. Just kill it.
- 			 */
- 			if (fail || tk->addr == -EFAULT) {
--				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
-+				pr_err("%#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 				do_send_sig_info(SIGKILL, SEND_SIG_PRIV,
- 						 tk->tsk, PIDTYPE_PID);
-@@ -425,7 +428,7 @@ static void kill_procs(struct list_head
- 			 * process anyways.
- 			 */
- 			else if (kill_proc(tk, pfn, flags) < 0)
--				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
-+				pr_err("%#lx: Cannot send advisory machine check signal to %s:%d\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 		}
- 		put_task_struct(tk->tsk);
-@@ -816,12 +819,10 @@ static int truncate_error_page(struct pa
- 		int err = mapping->a_ops->error_remove_page(mapping, p);
- 
- 		if (err != 0) {
--			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
--				pfn, err);
-+			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
- 		} else if (page_has_private(p) &&
- 			   !try_to_release_page(p, GFP_NOIO)) {
--			pr_info("Memory failure: %#lx: failed to release buffers\n",
--				pfn);
-+			pr_info("%#lx: failed to release buffers\n", pfn);
- 		} else {
- 			ret = MF_RECOVERED;
- 		}
-@@ -833,8 +834,7 @@ static int truncate_error_page(struct pa
- 		if (invalidate_inode_page(p))
- 			ret = MF_RECOVERED;
- 		else
--			pr_info("Memory failure: %#lx: Failed to invalidate\n",
--				pfn);
-+			pr_info("%#lx: Failed to invalidate\n",	pfn);
- 	}
- 
- 	return ret;
-@@ -864,7 +864,7 @@ static bool has_extra_refcount(struct pa
- 		count -= 1;
- 
- 	if (count > 0) {
--		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
-+		pr_err("%#lx: %s still referenced by %d users\n",
- 		       page_to_pfn(p), action_page_types[ps->type], count);
- 		return true;
- 	}
-@@ -888,7 +888,7 @@ static int me_kernel(struct page_state *
-  */
- static int me_unknown(struct page_state *ps, struct page *p)
+ static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
  {
--	pr_err("Memory failure: %#lx: Unknown page state\n", page_to_pfn(p));
-+	pr_err("%#lx: Unknown page state\n", page_to_pfn(p));
- 	unlock_page(p);
- 	return MF_FAILED;
- }
-@@ -1173,7 +1173,7 @@ static void action_result(unsigned long
- 	trace_memory_failure_event(pfn, type, result);
+@@ -146,20 +127,6 @@ static int squashfs_fill_super(struct su
  
- 	num_poisoned_pages_inc();
--	pr_err("Memory failure: %#lx: recovery action for %s: %s\n",
-+	pr_err("%#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
- }
+ 	TRACE("Entered squashfs_fill_superblock\n");
  
-@@ -1248,8 +1248,7 @@ static int __get_hwpoison_page(struct pa
- 		if (head == compound_head(page))
- 			return 1;
- 
--		pr_info("Memory failure: %#lx cannot catch tail\n",
--			page_to_pfn(page));
-+		pr_info("%#lx cannot catch tail\n", page_to_pfn(page));
- 		put_page(head);
- 	}
- 
-@@ -1312,7 +1311,7 @@ try_again:
- 	}
- out:
- 	if (ret == -EIO)
--		pr_err("Memory failure: %#lx: unhandlable page.\n", page_to_pfn(p));
-+		pr_err("%#lx: unhandlable page.\n", page_to_pfn(p));
- 
- 	return ret;
- }
-@@ -1411,13 +1410,12 @@ static bool hwpoison_user_mappings(struc
- 		return true;
- 
- 	if (PageKsm(p)) {
--		pr_err("Memory failure: %#lx: can't handle KSM pages.\n", pfn);
-+		pr_err("%#lx: can't handle KSM pages.\n", pfn);
- 		return false;
- 	}
- 
- 	if (PageSwapCache(p)) {
--		pr_err("Memory failure: %#lx: keeping poisoned page in swap cache\n",
--			pfn);
-+		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
- 		ttu |= TTU_IGNORE_HWPOISON;
- 	}
- 
-@@ -1435,7 +1433,7 @@ static bool hwpoison_user_mappings(struc
- 		} else {
- 			kill = 0;
- 			ttu |= TTU_IGNORE_HWPOISON;
--			pr_info("Memory failure: %#lx: corrupted page was clean: dropped without side effects\n",
-+			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
- 				pfn);
- 		}
- 	}
-@@ -1464,14 +1462,14 @@ static bool hwpoison_user_mappings(struc
- 			try_to_unmap(folio, ttu|TTU_RMAP_LOCKED);
- 			i_mmap_unlock_write(mapping);
- 		} else
--			pr_info("Memory failure: %#lx: could not lock mapping for mapped huge page\n", pfn);
-+			pr_info("%#lx: could not lock mapping for mapped huge page\n", pfn);
- 	} else {
- 		try_to_unmap(folio, ttu);
- 	}
- 
- 	unmap_success = !page_mapped(hpage);
- 	if (!unmap_success)
--		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
-+		pr_err("%#lx: failed to unmap page (mapcount=%d)\n",
- 		       pfn, page_mapcount(hpage));
- 
- 	/*
-@@ -1732,7 +1730,7 @@ retry:
- 		*hugetlb = 0;
- 		return 0;
- 	} else if (res == -EHWPOISON) {
--		pr_err("Memory failure: %#lx: already hardware poisoned\n", pfn);
-+		pr_err("%#lx: already hardware poisoned\n", pfn);
- 		if (flags & MF_ACTION_REQUIRED) {
- 			head = compound_head(p);
- 			res = kill_accessing_process(current, page_to_pfn(head), flags);
-@@ -1901,8 +1899,7 @@ int memory_failure(unsigned long pfn, in
- 				goto unlock_mutex;
- 			}
- 		}
--		pr_err("Memory failure: %#lx: memory outside kernel control\n",
--			pfn);
-+		pr_err("%#lx: memory outside kernel control\n", pfn);
- 		res = -ENXIO;
- 		goto unlock_mutex;
- 	}
-@@ -1913,8 +1910,7 @@ try_again:
- 		goto unlock_mutex;
- 
- 	if (TestSetPageHWPoison(p)) {
--		pr_err("Memory failure: %#lx: already hardware poisoned\n",
--			pfn);
-+		pr_err("%#lx: already hardware poisoned\n", pfn);
- 		res = -EHWPOISON;
- 		if (flags & MF_ACTION_REQUIRED)
- 			res = kill_accessing_process(current, pfn, flags);
-@@ -2130,7 +2126,7 @@ void memory_failure_queue(unsigned long
- 	if (kfifo_put(&mf_cpu->fifo, entry))
- 		schedule_work_on(smp_processor_id(), &mf_cpu->work);
- 	else
--		pr_err("Memory failure: buffer overflow when queuing memory failure at %#lx\n",
-+		pr_err("buffer overflow when queuing memory failure at %#lx\n",
- 		       pfn);
- 	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
- 	put_cpu_var(memory_failure_cpu);
-@@ -2187,6 +2183,8 @@ static int __init memory_failure_init(vo
- }
- core_initcall(memory_failure_init);
- 
-+#undef pr_fmt
-+#define pr_fmt(fmt)	"" fmt
- #define unpoison_pr_info(fmt, pfn, rs)			\
- ({							\
- 	if (__ratelimit(rs))				\
+-	/*
+-	 * squashfs provides 'backing_dev_info' in order to disable read-ahead. For
+-	 * squashfs, I/O is not deferred, it is done immediately in read_folio,
+-	 * which means the user would always have to wait their own I/O. So the effect
+-	 * of readahead is very weak for squashfs. squashfs_bdi_init will set
+-	 * sb->s_bdi->ra_pages and sb->s_bdi->io_pages to 0 and close readahead for
+-	 * squashfs.
+-	 */
+-	err = squashfs_bdi_init(sb);
+-	if (err) {
+-		errorf(fc, "squashfs init bdi failed");
+-		return err;
+-	}
+-
+ 	sb->s_fs_info = kzalloc(sizeof(*msblk), GFP_KERNEL);
+ 	if (sb->s_fs_info == NULL) {
+ 		ERROR("Failed to allocate squashfs_sb_info\n");
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from hsinyi@chromium.org are
 
 
