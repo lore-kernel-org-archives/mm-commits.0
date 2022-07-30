@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88B26C00144
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 00:55:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 785FFC00144
+	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 00:56:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239572AbiG3Azr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 20:55:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55986 "EHLO
+        id S231485AbiG3A4O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 20:56:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231613AbiG3Azp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 20:55:45 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33BF5F5AF
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 17:55:44 -0700 (PDT)
+        with ESMTP id S229599AbiG3A4O (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 20:56:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60E1880498
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 17:56:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D9A27B829FD
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 00:55:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84A04C433C1;
-        Sat, 30 Jul 2022 00:55:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F06D961723
+        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 00:56:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52881C433C1;
+        Sat, 30 Jul 2022 00:56:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659142541;
-        bh=+UkgObl0CaS+7kp6YCWd99bSo6mqBLmaIn+soVjViqI=;
+        s=korg; t=1659142572;
+        bh=QEn/DBxbhEfswJQrr4toVOToe2bjXoDJ3OOMv8t1EF0=;
         h=Date:To:From:Subject:From;
-        b=mrSAagjzJLsSrf/RDvZsUPcfzKTybWQsqViXk5YN2KDgBPydJC+xRLqepvVPnsYmZ
-         q1qw6rLmxegFpvEhvlzSh2dtS8rmrmXH8KuIZII6qAia8BjJo1c82DO7QYuKoAlzvl
-         qxzHFbwF8gGNQPNb6GcK4E+OlvpyzZe2uNhvoL9w=
-Date:   Fri, 29 Jul 2022 17:55:40 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        surenb@google.com, songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, peterx@redhat.com, neilb@suse.de,
-        mhocko@suse.com, linmiaohe@huawei.com, hannes@cmpxchg.org,
-        david@redhat.com, apopple@nvidia.com, yosryahmed@google.com,
+        b=pTJRr8pDRweoqMpxs2sxF0klrZXlrdwsvSvV64XQc71qK9Twpod6xYPlm97Pwkfrg
+         7RW/SMkKrhQbd1LTrktUe7e2iH+Zc9It43tDosI7pD66PKPx2lRie1cHYCLKdngofi
+         xT9MgeGzCq+uFheGk6GLdAqI/jT05KrKMIp35G2o=
+Date:   Fri, 29 Jul 2022 17:56:11 -0700
+To:     mm-commits@vger.kernel.org, tytso@mit.edu, sfr@canb.auug.org.au,
+        hughd@google.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure-v5.patch removed from -mm tree
-Message-Id: <20220730005541.84A04C433C1@smtp.kernel.org>
+Subject: [folded-merged] mm-shmem-support-fs_ioc_etflags-in-tmpfs-fix.patch removed from -mm tree
+Message-Id: <20220730005612.52881C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,59 +42,114 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure-v5
+     Subject: mm-shmem-support-fs_ioc_etflags-in-tmpfs-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure-v5.patch
+     mm-shmem-support-fs_ioc_etflags-in-tmpfs-fix.patch
 
-This patch was dropped because it was folded into mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure.patch
+This patch was dropped because it was folded into mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure-v5
-Date: Thu, 21 Jul 2022 17:30:15 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-shmem-support-fs_ioc_etflags-in-tmpfs-fix
+Date: Mon Jul 18 03:51:33 PM PDT 2022
 
-update documentation
+fix CONFIG_TMPFS_XATTR=n warnings
 
-Link: https://lkml.kernel.org/r/20220721173015.2643248-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/shmem.c |   67 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 34 insertions(+), 33 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure-v5
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1229,6 +1229,13 @@ PAGE_SIZE multiple when read back.
- 	the target cgroup. If less bytes are reclaimed than the
- 	specified amount, -EAGAIN is returned.
+--- a/mm/shmem.c~mm-shmem-support-fs_ioc_etflags-in-tmpfs-fix
++++ a/mm/shmem.c
+@@ -2837,39 +2837,6 @@ out:
+ 	return error;
+ }
  
-+	Please note that the proactive reclaim (triggered by this
-+	interface) is not meant to indicate memory pressure on the
-+	memory cgroup. Therefore socket memory balancing triggered by
-+	the memory reclaim normally is not exercised in this case.
-+	This means that the networking layer will not adapt based on
-+	reclaim induced by memory.reclaim.
+-static int shmem_fileattr_get(struct dentry *dentry, struct fileattr *fa)
+-{
+-	struct shmem_inode_info *info = SHMEM_I(d_inode(dentry));
+-
+-	fileattr_fill_flags(fa, info->fsflags & SHMEM_FL_USER_VISIBLE);
+-
+-	return 0;
+-}
+-
+-static int shmem_fileattr_set(struct user_namespace *mnt_userns,
+-			      struct dentry *dentry, struct fileattr *fa)
+-{
+-	struct inode *inode = d_inode(dentry);
+-	struct shmem_inode_info *info = SHMEM_I(inode);
+-
+-	if (fileattr_has_fsx(fa))
+-		return -EOPNOTSUPP;
+-
+-	info->fsflags = (info->fsflags & ~SHMEM_FL_USER_MODIFIABLE) |
+-		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
+-
+-	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
+-	if (info->fsflags & FS_APPEND_FL)
+-		inode->i_flags |= S_APPEND;
+-	if (info->fsflags & FS_IMMUTABLE_FL)
+-		inode->i_flags |= S_IMMUTABLE;
+-	if (info->fsflags & FS_NOATIME_FL)
+-		inode->i_flags |= S_NOATIME;
+-
+-	inode->i_ctime = current_time(inode);
+-	return 0;
+-}
+-
+ static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(dentry->d_sb);
+@@ -3195,6 +3162,40 @@ static const char *shmem_get_link(struct
+ }
+ 
+ #ifdef CONFIG_TMPFS_XATTR
 +
-   memory.peak
- 	A read-only single value file which exists on non-root
- 	cgroups.
++static int shmem_fileattr_get(struct dentry *dentry, struct fileattr *fa)
++{
++	struct shmem_inode_info *info = SHMEM_I(d_inode(dentry));
++
++	fileattr_fill_flags(fa, info->fsflags & SHMEM_FL_USER_VISIBLE);
++
++	return 0;
++}
++
++static int shmem_fileattr_set(struct user_namespace *mnt_userns,
++			      struct dentry *dentry, struct fileattr *fa)
++{
++	struct inode *inode = d_inode(dentry);
++	struct shmem_inode_info *info = SHMEM_I(inode);
++
++	if (fileattr_has_fsx(fa))
++		return -EOPNOTSUPP;
++
++	info->fsflags = (info->fsflags & ~SHMEM_FL_USER_MODIFIABLE) |
++		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
++
++	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
++	if (info->fsflags & FS_APPEND_FL)
++		inode->i_flags |= S_APPEND;
++	if (info->fsflags & FS_IMMUTABLE_FL)
++		inode->i_flags |= S_IMMUTABLE;
++	if (info->fsflags & FS_NOATIME_FL)
++		inode->i_flags |= S_NOATIME;
++
++	inode->i_ctime = current_time(inode);
++	return 0;
++}
++
+ /*
+  * Superblocks without xattr inode operations may get some security.* xattr
+  * support from the LSM "for free". As soon as we have any other xattrs
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmpressure-dont-count-proactive-reclaim-in-vmpressure.patch
+mm-shmem-support-fs_ioc_etflags-in-tmpfs.patch
 
