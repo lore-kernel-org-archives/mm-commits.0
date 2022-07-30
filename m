@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A171C00144
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:09:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B282C00144
+	for <mm-commits@archiver.kernel.org>; Sat, 30 Jul 2022 01:09:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239724AbiG3BJX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Jul 2022 21:09:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35230 "EHLO
+        id S239796AbiG3BJe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Jul 2022 21:09:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239725AbiG3BI4 (ORCPT
+        with ESMTP id S239732AbiG3BI4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2022 21:08:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F34A082F81
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:42 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F1DB86C16
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jul 2022 18:08:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 83E84619EE
-        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D906CC433C1;
-        Sat, 30 Jul 2022 01:08:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CB779B82929
+        for <mm-commits@vger.kernel.org>; Sat, 30 Jul 2022 01:08:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A7AAC433D7;
+        Sat, 30 Jul 2022 01:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659143321;
-        bh=NdIV+v+VYydrTfflLWW+7bTymAdLRdcoA5ZgSJZP6wA=;
+        s=korg; t=1659143320;
+        bh=EbhuxDiQ8WgYa4LE5OEDflurMBo+XCM6V3vaUTDhxpY=;
         h=Date:To:From:Subject:From;
-        b=Log0WNNofIQiSu0ZVJ+kAPAI4bY6PAeVtzmySNHPdbFcmMGRBFjO5f1njNguSnpfK
-         EMDDrklFICFIlXPoAqXni1Io/hFmGKiJCzWI9vyOTJjRCiAQ7q7eGDcNSNh1O/zbzK
-         FP0E2EKY8Wl4n1x5Edejjaf9RrmHeClu4FBJex8k=
-Date:   Fri, 29 Jul 2022 18:08:41 -0700
-To:     mm-commits@vger.kernel.org, nadav.amit@gmail.com, david@redhat.com,
-        aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
+        b=vgdP5Lzi7QZ2ODC3lbn3ha7T0OSpEeXfzaKHOi1Hv0VTXjtmGG4JQqqqgGV0+hYgK
+         kfaoQtippApKMSNMqSdaRx7ibpWM4WHYBJxcr9VHNBXD1Lk40BUDC1PZyle9y5xzkY
+         swLjHq9a39a2mldRqoF2Wz+dMsLLNCjgSYYIPBFA=
+Date:   Fri, 29 Jul 2022 18:08:40 -0700
+To:     mm-commits@vger.kernel.org,
+        syzbot+2d2aeadc6ce1e1f11d45@syzkaller.appspotmail.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@suse.com,
+        hannes@cmpxchg.org, penguin-kernel@I-love.SAKURA.ne.jp,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mprotect-fix-soft-dirty-check-in-can_change_pte_writable.patch removed from -mm tree
-Message-Id: <20220730010841.D906CC433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-fix-potential-oom_lock-recursion-deadlock.patch removed from -mm tree
+Message-Id: <20220730010840.8A7AAC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,190 +44,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mprotect: fix soft-dirty check in can_change_pte_writable()
+     Subject: mm: memcontrol: fix potential oom_lock recursion deadlock
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-fix-soft-dirty-check-in-can_change_pte_writable.patch
+     mm-memcontrol-fix-potential-oom_lock-recursion-deadlock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/mprotect: fix soft-dirty check in can_change_pte_writable()
-Date: Mon, 25 Jul 2022 10:20:46 -0400
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm: memcontrol: fix potential oom_lock recursion deadlock
+Date: Fri, 22 Jul 2022 19:45:39 +0900
 
-Patch series "mm/mprotect: Fix soft-dirty checks", v4.
+syzbot is reporting GFP_KERNEL allocation with oom_lock held when
+reporting memcg OOM [1].  If this allocation triggers the global OOM
+situation then the system can livelock because the GFP_KERNEL
+allocation with oom_lock held cannot trigger the global OOM killer
+because __alloc_pages_may_oom() fails to hold oom_lock.
 
+Fix this problem by removing the allocation from memory_stat_format()
+completely, and pass static buffer when calling from memcg OOM path.
 
-This patch (of 3):
+Note that the caller holding filesystem lock was the trigger for syzbot
+to report this locking dependency.  Doing GFP_KERNEL allocation with
+filesystem lock held can deadlock the system even without involving OOM
+situation.
 
-The check wanted to make sure when soft-dirty tracking is enabled we won't
-grant write bit by accident, as a page fault is needed for dirty tracking.
-The intention is correct but we didn't check it right because
-VM_SOFTDIRTY set actually means soft-dirty tracking disabled.  Fix it.
-
-There's another thing tricky about soft-dirty is that, we can't check the
-vma flag !(vma_flags & VM_SOFTDIRTY) directly but only check it after we
-checked CONFIG_MEM_SOFT_DIRTY because otherwise VM_SOFTDIRTY will be
-defined as zero, and !(vma_flags & VM_SOFTDIRTY) will constantly return
-true.  To avoid misuse, introduce a helper for checking whether vma has
-soft-dirty tracking enabled.
-
-We can easily verify this with any exclusive anonymous page, like program
-below:
-
-=======8<======
-  #include <stdio.h>
-  #include <unistd.h>
-  #include <stdlib.h>
-  #include <assert.h>
-  #include <inttypes.h>
-  #include <stdint.h>
-  #include <sys/types.h>
-  #include <sys/mman.h>
-  #include <sys/types.h>
-  #include <sys/stat.h>
-  #include <unistd.h>
-  #include <fcntl.h>
-  #include <stdbool.h>
-
-  #define BIT_ULL(nr)                   (1ULL << (nr))
-  #define PM_SOFT_DIRTY                 BIT_ULL(55)
-
-  unsigned int psize;
-  char *page;
-
-  uint64_t pagemap_read_vaddr(int fd, void *vaddr)
-  {
-      uint64_t value;
-      int ret;
-
-      ret = pread(fd, &value, sizeof(uint64_t),
-                  ((uint64_t)vaddr >> 12) * sizeof(uint64_t));
-      assert(ret == sizeof(uint64_t));
-
-      return value;
-  }
-
-  void clear_refs_write(void)
-  {
-      int fd = open("/proc/self/clear_refs", O_RDWR);
-
-      assert(fd >= 0);
-      write(fd, "4", 2);
-      close(fd);
-  }
-
-  #define  check_soft_dirty(str, expect)  do {                            \
-          bool dirty = pagemap_read_vaddr(fd, page) & PM_SOFT_DIRTY;      \
-          if (dirty != expect) {                                          \
-              printf("ERROR: %s, soft-dirty=%d (expect: %d)
-", str, dirty, expect); \
-              exit(-1);                                                   \
-          }                                                               \
-  } while (0)
-
-  int main(void)
-  {
-      int fd = open("/proc/self/pagemap", O_RDONLY);
-
-      assert(fd >= 0);
-      psize = getpagesize();
-      page = mmap(NULL, psize, PROT_READ|PROT_WRITE,
-                  MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-      assert(page != MAP_FAILED);
-
-      *page = 1;
-      check_soft_dirty("Just faulted in page", 1);
-      clear_refs_write();
-      check_soft_dirty("Clear_refs written", 0);
-      mprotect(page, psize, PROT_READ);
-      check_soft_dirty("Marked RO", 0);
-      mprotect(page, psize, PROT_READ|PROT_WRITE);
-      check_soft_dirty("Marked RW", 0);
-      *page = 2;
-      check_soft_dirty("Wrote page again", 1);
-
-      munmap(page, psize);
-      close(fd);
-      printf("Test passed.
-");
-
-      return 0;
-  }
-=======8<======
-
-Here we attach a Fixes to commit 64fe24a3e05e only for easy tracking, as
-this patch won't apply to a tree before that point.  However the commit
-wasn't the source of problem, but instead 64e455079e1b.  It's just that
-after 64fe24a3e05e anonymous memory will also suffer from this problem
-with mprotect().
-
-Link: https://lkml.kernel.org/r/20220725142048.30450-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20220725142048.30450-2-peterx@redhat.com
-Fixes: 64e455079e1b ("mm: softdirty: enable write notifications on VMAs after VM_SOFTDIRTY cleared")
-Fixes: 64fe24a3e05e ("mm/mprotect: try avoiding write faults for exclusive anonymous pages when changing protection")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: https://syzkaller.appspot.com/bug?extid=2d2aeadc6ce1e1f11d45 [1]
+Link: https://lkml.kernel.org/r/86afb39f-8c65-bec2-6cfc-c5e3cd600c0b@I-love.SAKURA.ne.jp
+Fixes: c8713d0b23123759 ("mm: memcontrol: dump memory.stat during cgroup OOM")
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: syzbot <syzbot+2d2aeadc6ce1e1f11d45@syzkaller.appspotmail.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   18 ++++++++++++++++++
- mm/mmap.c     |    2 +-
- mm/mprotect.c |    2 +-
- 3 files changed, 20 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
---- a/mm/internal.h~mm-mprotect-fix-soft-dirty-check-in-can_change_pte_writable
-+++ a/mm/internal.h
-@@ -862,4 +862,22 @@ struct folio *try_grab_folio(struct page
+--- a/mm/memcontrol.c~mm-memcontrol-fix-potential-oom_lock-recursion-deadlock
++++ a/mm/memcontrol.c
+@@ -1490,14 +1490,12 @@ static const unsigned int memcg_vm_event
+ #endif
+ };
  
- DECLARE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
+-static char *memory_stat_format(struct mem_cgroup *memcg)
++static void memory_stat_format(struct mem_cgroup *memcg, char *buf, int bufsize)
+ {
+ 	struct seq_buf s;
+ 	int i;
  
-+static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
-+{
-+	/*
-+	 * NOTE: we must check this before VM_SOFTDIRTY on soft-dirty
-+	 * enablements, because when without soft-dirty being compiled in,
-+	 * VM_SOFTDIRTY is defined as 0x0, then !(vm_flags & VM_SOFTDIRTY)
-+	 * will be constantly true.
-+	 */
-+	if (!IS_ENABLED(CONFIG_MEM_SOFT_DIRTY))
-+		return false;
+-	seq_buf_init(&s, kmalloc(PAGE_SIZE, GFP_KERNEL), PAGE_SIZE);
+-	if (!s.buffer)
+-		return NULL;
++	seq_buf_init(&s, buf, bufsize);
+ 
+ 	/*
+ 	 * Provide statistics on the state of the memory subsystem as
+@@ -1539,8 +1537,6 @@ static char *memory_stat_format(struct m
+ 
+ 	/* The above should easily fit into one page */
+ 	WARN_ON_ONCE(seq_buf_has_overflowed(&s));
+-
+-	return s.buffer;
+ }
+ 
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+@@ -1576,7 +1572,10 @@ void mem_cgroup_print_oom_context(struct
+  */
+ void mem_cgroup_print_oom_meminfo(struct mem_cgroup *memcg)
+ {
+-	char *buf;
++	/* Use static buffer, for the caller is holding oom_lock. */
++	static char buf[PAGE_SIZE];
 +
-+	/*
-+	 * Soft-dirty is kind of special: its tracking is enabled when the
-+	 * vma flags not set.
-+	 */
-+	return !(vma->vm_flags & VM_SOFTDIRTY);
-+}
-+
- #endif	/* __MM_INTERNAL_H */
---- a/mm/mmap.c~mm-mprotect-fix-soft-dirty-check-in-can_change_pte_writable
-+++ a/mm/mmap.c
-@@ -1647,7 +1647,7 @@ int vma_wants_writenotify(struct vm_area
- 		return 0;
++	lockdep_assert_held(&oom_lock);
  
- 	/* Do we need to track softdirty? */
--	if (IS_ENABLED(CONFIG_MEM_SOFT_DIRTY) && !(vm_flags & VM_SOFTDIRTY))
-+	if (vma_soft_dirty_enabled(vma))
- 		return 1;
+ 	pr_info("memory: usage %llukB, limit %llukB, failcnt %lu\n",
+ 		K((u64)page_counter_read(&memcg->memory)),
+@@ -1597,11 +1596,8 @@ void mem_cgroup_print_oom_meminfo(struct
+ 	pr_info("Memory cgroup stats for ");
+ 	pr_cont_cgroup_path(memcg->css.cgroup);
+ 	pr_cont(":");
+-	buf = memory_stat_format(memcg);
+-	if (!buf)
+-		return;
++	memory_stat_format(memcg, buf, sizeof(buf));
+ 	pr_info("%s", buf);
+-	kfree(buf);
+ }
  
- 	/* Specialty mapping? */
---- a/mm/mprotect.c~mm-mprotect-fix-soft-dirty-check-in-can_change_pte_writable
-+++ a/mm/mprotect.c
-@@ -49,7 +49,7 @@ static inline bool can_change_pte_writab
- 		return false;
+ /*
+@@ -6405,11 +6401,11 @@ static int memory_events_local_show(stru
+ static int memory_stat_show(struct seq_file *m, void *v)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+-	char *buf;
++	char *buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
  
- 	/* Do we need write faults for softdirty tracking? */
--	if ((vma->vm_flags & VM_SOFTDIRTY) && !pte_soft_dirty(pte))
-+	if (vma_soft_dirty_enabled(vma) && !pte_soft_dirty(pte))
- 		return false;
- 
- 	/* Do we need write faults for uffd-wp tracking? */
+-	buf = memory_stat_format(memcg);
+ 	if (!buf)
+ 		return -ENOMEM;
++	memory_stat_format(memcg, buf, PAGE_SIZE);
+ 	seq_puts(m, buf);
+ 	kfree(buf);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
 
