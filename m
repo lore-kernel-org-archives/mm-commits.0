@@ -2,96 +2,128 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9073DC00140
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Aug 2022 00:08:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F170EC00140
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Aug 2022 01:52:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238581AbiHFAH7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Aug 2022 20:07:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39826 "EHLO
+        id S238833AbiHFBws convert rfc822-to-8bit (ORCPT
+        <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Aug 2022 21:52:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230490AbiHFAH5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Aug 2022 20:07:57 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91A242CE32;
-        Fri,  5 Aug 2022 17:07:56 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3D9F4B82958;
-        Sat,  6 Aug 2022 00:07:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A213CC433D7;
-        Sat,  6 Aug 2022 00:07:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1659744474;
-        bh=PfJfJYAbTxS2WokCLPTsBpIupwUds+UHgvCXpLuh+R0=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=lC4FldhtWQsnjCMBN7iciqnBHW0kBte0m7iTQfO9pdgAESNcpbzp/CcU7vnE13h6Y
-         h6tExZIJCH525F0pgrgd4t5gc4XiINT4bYz21VxYs5iyNHUcJK5JHfbe9UWiWssqC6
-         uFowiDAirlHIIqbuOXpuOVG4NkwOKvN9VbwFNq+U=
-Date:   Fri, 5 Aug 2022 17:07:52 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Roman Gushchin <roman.gushchin@linux.dev>
+        with ESMTP id S238769AbiHFBws (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Aug 2022 21:52:48 -0400
+X-Greylist: delayed 550 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 05 Aug 2022 18:52:46 PDT
+Received: from relay.hostedemail.com (smtprelay0015.hostedemail.com [216.40.44.15])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E19C8B87D
+        for <mm-commits@vger.kernel.org>; Fri,  5 Aug 2022 18:52:46 -0700 (PDT)
+Received: from omf13.hostedemail.com (a10.router.float.18 [10.200.18.1])
+        by unirelay05.hostedemail.com (Postfix) with ESMTP id 8EF7A406F2;
+        Sat,  6 Aug 2022 01:43:34 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf13.hostedemail.com (Postfix) with ESMTPA id C544920010;
+        Sat,  6 Aug 2022 01:43:32 +0000 (UTC)
+Message-ID: <12695fa86c0e3e062077b5e11a66234d9404e4a2.camel@perches.com>
+Subject: Re: [GIT PULL] MM updates for 5.20-rc1
+From:   Joe Perches <joe@perches.com>
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Roman Gushchin <roman.gushchin@linux.dev>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         Kent Overstreet <kent.overstreet@gmail.com>,
         mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, Dave Chinner <dchinner@redhat.com>,
-        Joe Perches <joe@perches.com>
-Subject: Re: [GIT PULL] MM updates for 5.20-rc1
-Message-Id: <20220805170752.d609551360017d60903e5e75@linux-foundation.org>
-In-Reply-To: <Yu2wDNcOYE0RdkA3@P9FQF9L96D.corp.robot.car>
+        linux-kernel@vger.kernel.org, Dave Chinner <dchinner@redhat.com>
+Date:   Fri, 05 Aug 2022 18:43:32 -0700
+In-Reply-To: <20220805170752.d609551360017d60903e5e75@linux-foundation.org>
 References: <20220803133541.18b82ec9344ed0e8b975fe5b@linux-foundation.org>
-        <CAHk-=wiOSXvk=70tpR9E1tvDmCf8s-81bT+92aE-iKocxdTsyw@mail.gmail.com>
-        <Yu2wDNcOYE0RdkA3@P9FQF9L96D.corp.robot.car>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+         <CAHk-=wiOSXvk=70tpR9E1tvDmCf8s-81bT+92aE-iKocxdTsyw@mail.gmail.com>
+         <Yu2wDNcOYE0RdkA3@P9FQF9L96D.corp.robot.car>
+         <20220805170752.d609551360017d60903e5e75@linux-foundation.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8BIT
+User-Agent: Evolution 3.44.1-0ubuntu1 
+MIME-Version: 1.0
+X-Stat-Signature: qyrp8argzkghi98fkgmfsdzcootm5dgb
+X-Rspamd-Server: rspamout08
+X-Rspamd-Queue-Id: C544920010
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-Session-ID: U2FsdGVkX1/PQT5mEc4qSatyOMKaUxBPL8ydPsKALW0=
+X-HE-Tag: 1659750212-509346
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, 5 Aug 2022 17:04:28 -0700 Roman Gushchin <roman.gushchin@linux.dev> wrote:
+On Fri, 2022-08-05 at 17:07 -0700, Andrew Morton wrote:
+> On Fri, 5 Aug 2022 17:04:28 -0700 Roman Gushchin <roman.gushchin@linux.dev> wrote:
+> 
+> > On Fri, Aug 05, 2022 at 04:32:34PM -0700, Linus Torvalds wrote:
+> > > On Wed, Aug 3, 2022 at 1:35 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+> > > > 
+> > > > - memcg debug/visibility work from Roman Gushchin
+> > > 
+> > > Well, not just memcg.
+> > > 
+> > > There's that new CONFIG_SHRINKER_DEBUG too.
+> > > 
+> > > Which looks like yet another "people add Kconfig options incorrectly".
+> > > 
+> > > We don't make new features "default y" unless there's some truly
+> > > pressing reason for it (ie "99.9% of all people will want this" or "we
+> > > used to always compile this in, now it's optional").
+> > 
+> > Hi Linus!
+> > 
+> > It actually was 'default n' in one of the earlier version of the patchset
+> > and has been switched to 'default y' based on the following feedback from
+> > Dave Chinner (https://lore.kernel.org/lkml/YmiWK56bOHyrr64u@rh/):
+> > 
+> >     No. The argument that "if we turn it off there's no overhead" means
+> >     one of two things:
+> > 
+> >     1. nobody turns it on and it never gets tested and so bitrots and is
+> >     useless, or
+> >     2. distro's all turn it on because some tool they ship or customer
+> >     they ship to wants it.
+> > 
+> >     Either way, hiding it behind a config option is not an acceptible
+> >     solution for mering poorly thought out infrastructure.
+> > 
+> > Personally I think that the feature is not that useful for the majority
+> > of users (this is why default was n), but it's not adding much of the
+> > overhead, so I had no strong reasons to oppose Dave.
+> > Cc'ing him just in case.
+> > 
+> 
+> We should have changelogged these considerations.
+> 
+> I've asked Joe if checkpatch can get a "default y" detector, to draw
+> attention to this in the future.
 
-> On Fri, Aug 05, 2022 at 04:32:34PM -0700, Linus Torvalds wrote:
-> > On Wed, Aug 3, 2022 at 1:35 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> > >
-> > > - memcg debug/visibility work from Roman Gushchin
-> > 
-> > Well, not just memcg.
-> > 
-> > There's that new CONFIG_SHRINKER_DEBUG too.
-> > 
-> > Which looks like yet another "people add Kconfig options incorrectly".
-> > 
-> > We don't make new features "default y" unless there's some truly
-> > pressing reason for it (ie "99.9% of all people will want this" or "we
-> > used to always compile this in, now it's optional").
-> 
-> Hi Linus!
-> 
-> It actually was 'default n' in one of the earlier version of the patchset
-> and has been switched to 'default y' based on the following feedback from
-> Dave Chinner (https://lore.kernel.org/lkml/YmiWK56bOHyrr64u@rh/):
-> 
->     No. The argument that "if we turn it off there's no overhead" means
->     one of two things:
-> 
->     1. nobody turns it on and it never gets tested and so bitrots and is
->     useless, or
->     2. distro's all turn it on because some tool they ship or customer
->     they ship to wants it.
-> 
->     Either way, hiding it behind a config option is not an acceptible
->     solution for mering poorly thought out infrastructure.
-> 
-> Personally I think that the feature is not that useful for the majority
-> of users (this is why default was n), but it's not adding much of the
-> overhead, so I had no strong reasons to oppose Dave.
-> Cc'ing him just in case.
-> 
+Perhaps:
+---
+ scripts/checkpatch.pl | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-We should have changelogged these considerations.
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index bf7c5abeefaad..1abec0cd217e6 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -3523,6 +3523,19 @@ sub process {
+ 			}
+ 		}
+ 
++# check new Kconfig entries for default=y
++# Only applies when adding the entry originally and if the entry is not
++# conditional on anything like default y if <foo>
++		if ($realfile =~ /Kconfig/ &&
++		    !$file &&
++		    $line =~ /\+\s*default\s+y\s*$/i) {
++			if (WARN("KCONFIG_DEFAULT_Y",
++				 "Kconfig entries should generally not be default y\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$fixlinenr] =~ s/default(\s+)y/default${1}n/;
++			}
++		}
++
+ # check MAINTAINERS entries
+ 		if ($realfile =~ /^MAINTAINERS$/) {
+ # check MAINTAINERS entries for the right form
 
-I've asked Joe if checkpatch can get a "default y" detector, to draw
-attention to this in the future.
