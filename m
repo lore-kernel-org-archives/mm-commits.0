@@ -2,69 +2,85 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB765C25B08
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Aug 2022 23:40:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2029BC00140
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Aug 2022 00:04:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241910AbiHEXkH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Aug 2022 19:40:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52154 "EHLO
+        id S232791AbiHFAEh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Aug 2022 20:04:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241920AbiHEXkF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Aug 2022 19:40:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB21F7821D;
-        Fri,  5 Aug 2022 16:40:04 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 67E78614C6;
-        Fri,  5 Aug 2022 23:40:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 367B2C433C1;
-        Fri,  5 Aug 2022 23:40:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1659742804;
-        bh=lFkcazodv0eT9g8xMN2SYHeA8H5Gka0Bc/opl9Iswzw=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=SeZp8c4gaW9xnYN5eqV+iRsQkdr+8vO8LYRAG9a9eYxGUdxNFCLZ6qsI6X4Gdwnvb
-         ovCoXARkoGeLKtJzaWgy0vrw5aWqwd6MKDj4mE1xtL1ZMF4/Nv4QbcVYw31fYE514D
-         1Vjj3+pOCrAzC5+Pi/0pIrhynpP1+84HPQEXoSHzFtJU6+3GI7tz5++n8Lh/v0dCXb
-         YEuVdRNwPT1ZO3J0Fz7dWGZ337HQGvmCqQM7C852izNyZM0JSVC9klSZQNEbADLtZu
-         njSrONEvwN51HNHRpVQWWH4ryuaP1dgtcqX6K6uyxR4fWTqDdxTTaCxdYZBoIIFBeN
-         9y3+e4taT80wg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 19957C43142;
-        Fri,  5 Aug 2022 23:40:04 +0000 (UTC)
-Subject: Re: [GIT PULL] MM updates for 5.20-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20220803133541.18b82ec9344ed0e8b975fe5b@linux-foundation.org>
-References: <20220803133541.18b82ec9344ed0e8b975fe5b@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20220803133541.18b82ec9344ed0e8b975fe5b@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-08-03
-X-PR-Tracked-Commit-Id: 360614c01f81f48a89d8b13f8fa69c3ae0a1f5c7
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 6614a3c3164a5df2b54abb0b3559f51041cf705b
-Message-Id: <165974280408.17862.1430140279382151006.pr-tracker-bot@kernel.org>
-Date:   Fri, 05 Aug 2022 23:40:04 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        with ESMTP id S230490AbiHFAEg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 Aug 2022 20:04:36 -0400
+Received: from out0.migadu.com (out0.migadu.com [IPv6:2001:41d0:2:267::])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F94C1EAD6;
+        Fri,  5 Aug 2022 17:04:35 -0700 (PDT)
+Date:   Fri, 5 Aug 2022 17:04:28 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1659744273;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=SNPSSSNCcsODM6FcDFTB0/QY2xvnSXXiMzXUqFnL7G8=;
+        b=FXngCiEGbKvBUUX68HPXzkns0r27XmBrR+fYTljzWMaejRXpC9hRR4viZ8aYC+gc0IktZM
+        y3QjaRpKHUXg+3r+d7U67kpVNj7nf2HYBHqBMJuL19JyLOVtve5YQyaSHgqsA/bkihSR28
+        5aplmwopU8LWek5bL786EIuMKHeFqfA=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Roman Gushchin <roman.gushchin@linux.dev>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Kent Overstreet <kent.overstreet@gmail.com>,
         mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
+        linux-kernel@vger.kernel.org, Dave Chinner <dchinner@redhat.com>
+Subject: Re: [GIT PULL] MM updates for 5.20-rc1
+Message-ID: <Yu2wDNcOYE0RdkA3@P9FQF9L96D.corp.robot.car>
+References: <20220803133541.18b82ec9344ed0e8b975fe5b@linux-foundation.org>
+ <CAHk-=wiOSXvk=70tpR9E1tvDmCf8s-81bT+92aE-iKocxdTsyw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHk-=wiOSXvk=70tpR9E1tvDmCf8s-81bT+92aE-iKocxdTsyw@mail.gmail.com>
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Wed, 3 Aug 2022 13:35:41 -0700:
+On Fri, Aug 05, 2022 at 04:32:34PM -0700, Linus Torvalds wrote:
+> On Wed, Aug 3, 2022 at 1:35 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+> >
+> > - memcg debug/visibility work from Roman Gushchin
+> 
+> Well, not just memcg.
+> 
+> There's that new CONFIG_SHRINKER_DEBUG too.
+> 
+> Which looks like yet another "people add Kconfig options incorrectly".
+> 
+> We don't make new features "default y" unless there's some truly
+> pressing reason for it (ie "99.9% of all people will want this" or "we
+> used to always compile this in, now it's optional").
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-08-03
+Hi Linus!
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/6614a3c3164a5df2b54abb0b3559f51041cf705b
+It actually was 'default n' in one of the earlier version of the patchset
+and has been switched to 'default y' based on the following feedback from
+Dave Chinner (https://lore.kernel.org/lkml/YmiWK56bOHyrr64u@rh/):
 
-Thank you!
+    No. The argument that "if we turn it off there's no overhead" means
+    one of two things:
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+    1. nobody turns it on and it never gets tested and so bitrots and is
+    useless, or
+    2. distro's all turn it on because some tool they ship or customer
+    they ship to wants it.
+
+    Either way, hiding it behind a config option is not an acceptible
+    solution for mering poorly thought out infrastructure.
+
+Personally I think that the feature is not that useful for the majority
+of users (this is why default was n), but it's not adding much of the
+overhead, so I had no strong reasons to oppose Dave.
+Cc'ing him just in case.
+
+Thanks!
