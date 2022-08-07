@@ -2,69 +2,87 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A5FEC19F2A
-	for <mm-commits@archiver.kernel.org>; Sun,  7 Aug 2022 17:57:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C69DC25B0C
+	for <mm-commits@archiver.kernel.org>; Sun,  7 Aug 2022 20:11:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235258AbiHGR5u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 7 Aug 2022 13:57:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44602 "EHLO
+        id S230153AbiHGUL3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 7 Aug 2022 16:11:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235241AbiHGR5s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 7 Aug 2022 13:57:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59FF5BED;
-        Sun,  7 Aug 2022 10:57:46 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S229672AbiHGUL1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 7 Aug 2022 16:11:27 -0400
+Received: from polaris.svanheule.net (polaris.svanheule.net [IPv6:2a00:c98:2060:a004:1::200])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0BC15FBA
+        for <mm-commits@vger.kernel.org>; Sun,  7 Aug 2022 13:11:26 -0700 (PDT)
+Received: from [IPv6:2a02:a03f:eaf9:8401:aa9f:5d01:1b2a:e3cd] (unknown [IPv6:2a02:a03f:eaf9:8401:aa9f:5d01:1b2a:e3cd])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E109C60EA4;
-        Sun,  7 Aug 2022 17:57:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 126F9C433D6;
-        Sun,  7 Aug 2022 17:57:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1659895065;
-        bh=rfsJP6qGplLrh6u+8ra+xecrNARhjyYecJMGbhQAnvE=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=aQLpW8yJsIjzt1nkODhgNJWF4h+8K8VCiTeMjShNZGmxvpRzVL9DG0a3QRxl1E87A
-         wtpXxgVV24oeRBYzdU2cgwVyWwYR5c/wuZ4lRzqgN0rHPZPjLSTDo5l/CElkpameuL
-         z6WIp1km/n5e6cvUmGDyyvPhoz7Ik8BxkFXNx8frIqqEB9yRZEE39Ng8NTqoDfCJec
-         bw0VIYLVgkXPi0g8n4qwUuqdoYh0ZTSC9A9WIx0saaFGT+wru9zRk81xNO+bT+6R3X
-         fxHesIdM8FO7jsvztoyRZP33XZ5TE+yfu3t2kneeIdetA1PMdgLGKZ2ZrqTqpbae6Q
-         OkxdPdh9c4Nbg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 00FF6C43142;
-        Sun,  7 Aug 2022 17:57:45 +0000 (UTC)
-Subject: Re: [GIT PULL] non-MM updates for 5.20-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20220806214150.9a96339c1d343b003a48a3a0@linux-foundation.org>
-References: <20220806214150.9a96339c1d343b003a48a3a0@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20220806214150.9a96339c1d343b003a48a3a0@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2022-08-06-2
-X-PR-Tracked-Commit-Id: b99695580bfc1f91364023c673681ddb88e375dc
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: eb5699ba31558bdb2cee6ebde3d0a68091e47dce
-Message-Id: <165989506499.6057.14827201987918707189.pr-tracker-bot@kernel.org>
-Date:   Sun, 07 Aug 2022 17:57:44 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
+        (Authenticated sender: sander@svanheule.net)
+        by polaris.svanheule.net (Postfix) with ESMTPSA id 32325307CA8;
+        Sun,  7 Aug 2022 22:11:25 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=svanheule.net;
+        s=mail1707; t=1659903085;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ymDkx+JldOv/GZk0PGEetSEs66nYGiv9dNyw1yHkQkA=;
+        b=i6qoBe5uS4o90uIM5oc5NYx48rQkiJ+SZuNCfSHaEs8fwZ6MMuiC92BqPs0P/zJCe3TouZ
+        g1erSf78m4PWqQrYM+/311l7rUMNolHrD10hQeCBUcDbHI/QH/JcSMGaLMCSxZPqwpTCAs
+        N4wYZSv4UbLxMRlJfeYXw3bwLavDe/WLd3ZtGpFyIjJA9ywZmoisvDWFNV4oR14T8LkNJj
+        ut0ZwJfAgm9NcaZYoyW2hdvEn3fr7aaLnmN8uTXxt7lZWd2HDVLbZ7Zgl2gN2vwy+b9s0h
+        5aK/VF4DKYQSaRiY2sTkqiMWtSJvAnXl6vculfVjnPLWGKIT4hCxisq7QAUWcw==
+Message-ID: <9b191d64cc5285eebda1ccf24241bae30c128961.camel@svanheule.net>
+Subject: Re: [GIT PULL] MM updates for 5.20-rc1
+From:   Sander Vanheule <sander@svanheule.net>
+To:     Yury Norov <yury.norov@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
+        linux-mm@kvack.org
+Date:   Sun, 07 Aug 2022 22:11:23 +0200
+In-Reply-To: <Yu9KPCxGYUUROdlC@yury-laptop>
+References: <Yu9KPCxGYUUROdlC@yury-laptop>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.44.3 (3.44.3-1.fc36) 
+MIME-Version: 1.0
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Sat, 6 Aug 2022 21:41:50 -0700:
+Hi Yury, Andrew,
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2022-08-06-2
+On Sat, 2022-08-06 at 22:14 -0700, Yury Norov wrote:
+> Hi Andrew,
+>=20
+> > Sander Vanheule (5):
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 x86/cacheinfo: move shared cache map def=
+initions
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 cpumask: add UP optimised for_each_*_cpu=
+ versions
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 cpumask: Fix invalid uniprocessor mask a=
+ssumption
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 lib/test: introduce cpumask KUnit test s=
+uite
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 cpumask: update cpumask_next_wrap() sign=
+ature
+>=20
+> I think, Sander has a new version for this:
+>=20
+> https://lore.kernel.org/all/YuV1J7Zt+NzkrWeV@yury-laptop/T/#ma2d7613315f3=
+31fac83d8bd5ae22ef740945569ao
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/eb5699ba31558bdb2cee6ebde3d0a68091e47dce
+Looks like v4 was merged with the non-MM updates:
 
-Thank you!
+https://lore.kernel.org/all/165989506499.6057.14827201987918707189.pr-track=
+er-bot@kernel.org/
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+I'll have to write a follow-up to cover the v4/v5 differences, since there =
+were
+still some significant changes.
+
+Best,
+Sander
