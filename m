@@ -2,81 +2,69 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE53FC19F2A
-	for <mm-commits@archiver.kernel.org>; Sun,  7 Aug 2022 05:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A5FEC19F2A
+	for <mm-commits@archiver.kernel.org>; Sun,  7 Aug 2022 17:57:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232390AbiHGFOl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 7 Aug 2022 01:14:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41932 "EHLO
+        id S235258AbiHGR5u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 7 Aug 2022 13:57:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229503AbiHGFOk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 7 Aug 2022 01:14:40 -0400
-Received: from mail-qk1-x72f.google.com (mail-qk1-x72f.google.com [IPv6:2607:f8b0:4864:20::72f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 715BFEE0C;
-        Sat,  6 Aug 2022 22:14:38 -0700 (PDT)
-Received: by mail-qk1-x72f.google.com with SMTP id k19so200595qkj.7;
-        Sat, 06 Aug 2022 22:14:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc;
-        bh=V8UVz/JJ92x87N8mDUF2jufqQ9issBtcACsOaWjPvSc=;
-        b=ku9Y4zOjklrVKKJ0eLvuf615qLNYTXZrj3Oje2fyPBp4NVmplmO+zhYlG5+W9rrGjD
-         5cUBpouVPMEQWNLJx4RNd43EVSZQiIS8M0ohJuyq46fJXgphAxfBLgZXnoMew0EOvkU1
-         oQg31GgWTEJ1SbGb0tsAhUE2pE8TGGJyejaasjY5feIq2QhDWVwVE8aDu8Qo52p5ZmGj
-         hl265fsLMWHdAfXPnlWpk1zOkpC08t4KbAr2DZ7RDEffPPUcNO1PNd/X9oB4FkiOPRT0
-         JtyUft3GX1jVT7BXEXYReioZSCVvn8ZRBMNvV7cb+ANuVu5SiDaMIfYXlglRt/ylPG4l
-         xfVg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc;
-        bh=V8UVz/JJ92x87N8mDUF2jufqQ9issBtcACsOaWjPvSc=;
-        b=OEyYPfbaXuaZ7HeudF4LL6yLtaF9Q0fz9uY4T/wkYTqfsSETQpijuJfq40TXUVTa/7
-         eY5NBkRZsoEmDBceWxwfxlcIzs4GjC7pu8aLiQE9Vbf7hgtxDr+dKKGTDB+ahJZRJCJI
-         68pD1hhQ/qBj4yg9qE8/DZV4RzAKGzFBgM+lOEIWUSxvQynnESN9vnZfmDbSuAVmIHh3
-         1Y2GX5nzQS+ovvaWeEwY4n/wf7Ef9qkLE8FzgiW9La+vtDcHwyZvtMJ2Eqsbzd5GoXkg
-         khPV+p5w6naIa8ptBG905BLwn8vbinCtj3SnDE8e+X6eW2SIn/vZNIbmVSNX8UVVPJgd
-         rVVg==
-X-Gm-Message-State: ACgBeo2j+L88QiXY7cHnJrxkbrx+0g9fy4jkM8qHw8tZMZP39NLPaA5C
-        i2dZKCsYfbBOE5euMa/ODpU=
-X-Google-Smtp-Source: AA6agR5E+alD9yxHjHQl1ufq23nIMjuxNubS2qqDr9pcYwmxxFwjncl8ZKY+QtEEjAGTS8+77CtUVw==
-X-Received: by 2002:a05:620a:170d:b0:6b8:fd9c:da91 with SMTP id az13-20020a05620a170d00b006b8fd9cda91mr9873421qkb.683.1659849277505;
-        Sat, 06 Aug 2022 22:14:37 -0700 (PDT)
-Received: from localhost ([2601:c4:c432:d7:b6be:7200:aee8:de91])
-        by smtp.gmail.com with ESMTPSA id k19-20020ae9f113000000b006b5e50057basm6441461qkg.95.2022.08.06.22.14.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 06 Aug 2022 22:14:37 -0700 (PDT)
-Date:   Sat, 6 Aug 2022 22:14:36 -0700
-From:   Yury Norov <yury.norov@gmail.com>
+        with ESMTP id S235241AbiHGR5s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 7 Aug 2022 13:57:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59FF5BED;
+        Sun,  7 Aug 2022 10:57:46 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E109C60EA4;
+        Sun,  7 Aug 2022 17:57:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 126F9C433D6;
+        Sun,  7 Aug 2022 17:57:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1659895065;
+        bh=rfsJP6qGplLrh6u+8ra+xecrNARhjyYecJMGbhQAnvE=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=aQLpW8yJsIjzt1nkODhgNJWF4h+8K8VCiTeMjShNZGmxvpRzVL9DG0a3QRxl1E87A
+         wtpXxgVV24oeRBYzdU2cgwVyWwYR5c/wuZ4lRzqgN0rHPZPjLSTDo5l/CElkpameuL
+         z6WIp1km/n5e6cvUmGDyyvPhoz7Ik8BxkFXNx8frIqqEB9yRZEE39Ng8NTqoDfCJec
+         bw0VIYLVgkXPi0g8n4qwUuqdoYh0ZTSC9A9WIx0saaFGT+wru9zRk81xNO+bT+6R3X
+         fxHesIdM8FO7jsvztoyRZP33XZ5TE+yfu3t2kneeIdetA1PMdgLGKZ2ZrqTqpbae6Q
+         OkxdPdh9c4Nbg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 00FF6C43142;
+        Sun,  7 Aug 2022 17:57:45 +0000 (UTC)
+Subject: Re: [GIT PULL] non-MM updates for 5.20-rc1
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20220806214150.9a96339c1d343b003a48a3a0@linux-foundation.org>
+References: <20220806214150.9a96339c1d343b003a48a3a0@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20220806214150.9a96339c1d343b003a48a3a0@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2022-08-06-2
+X-PR-Tracked-Commit-Id: b99695580bfc1f91364023c673681ddb88e375dc
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: eb5699ba31558bdb2cee6ebde3d0a68091e47dce
+Message-Id: <165989506499.6057.14827201987918707189.pr-tracker-bot@kernel.org>
+Date:   Sun, 07 Aug 2022 17:57:44 +0000
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     yury.norov@gmail.com,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Sander Vanheule <sander@svanheule.net>,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
-        linux-mm@kvack.org
-Subject: Re: [GIT PULL] MM updates for 5.20-rc1
-Message-ID: <Yu9KPCxGYUUROdlC@yury-laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Andrew,
+The pull request you sent on Sat, 6 Aug 2022 21:41:50 -0700:
 
-> Sander Vanheule (5):
->       x86/cacheinfo: move shared cache map definitions
->       cpumask: add UP optimised for_each_*_cpu versions
->       cpumask: Fix invalid uniprocessor mask assumption
->       lib/test: introduce cpumask KUnit test suite
->       cpumask: update cpumask_next_wrap() signature
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2022-08-06-2
 
-I think, Sander has a new version for this:
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/eb5699ba31558bdb2cee6ebde3d0a68091e47dce
 
-https://lore.kernel.org/all/YuV1J7Zt+NzkrWeV@yury-laptop/T/#ma2d7613315f331fac83d8bd5ae22ef740945569ao
+Thank you!
 
-Thanks,
-Yury
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
