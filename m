@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E825C3F6B0
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Aug 2022 01:14:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83500C25B0C
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Aug 2022 01:14:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233391AbiHIBOa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Aug 2022 21:14:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57602 "EHLO
+        id S233226AbiHIBOb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Aug 2022 21:14:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233226AbiHIBOX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Aug 2022 21:14:23 -0400
+        with ESMTP id S244737AbiHIBOY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Aug 2022 21:14:24 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5F3F1DA61
-        for <mm-commits@vger.kernel.org>; Mon,  8 Aug 2022 18:14:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D5C41DA67
+        for <mm-commits@vger.kernel.org>; Mon,  8 Aug 2022 18:14:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 51C82B81116
-        for <mm-commits@vger.kernel.org>; Tue,  9 Aug 2022 01:14:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02573C433B5;
-        Tue,  9 Aug 2022 01:14:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E3BDAB80EED
+        for <mm-commits@vger.kernel.org>; Tue,  9 Aug 2022 01:14:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A7D5C433B5;
+        Tue,  9 Aug 2022 01:14:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660007658;
-        bh=SH+r2ONQsgRiLHSR1/CoGkDADLjjvV3uIjRyyrOME4s=;
+        s=korg; t=1660007661;
+        bh=qtqVSyMW0nFuS2VwxsU4ipOP1kCoMbtNGARl8VTfGTM=;
         h=Date:To:From:Subject:From;
-        b=p5rS0Y4jRmL1m9j9/2es/NAIrYS6VYuK//9genJMP+2x9CUiH+f0PBNPoKVkofu6v
-         S75qJAHURji1Gz85qX71y7vkWVeXCqsoklpRJUZ98SX9nkQ4wKS7BfO+7WPUQvVnkD
-         GFC5wDg0AAPB3I/4+1eb+Z9oBeKBmNNRlCdTZZ6U=
-Date:   Mon, 08 Aug 2022 18:14:17 -0700
+        b=y8bUd899R3vM9TIDB/jsNStccsSL/syiOW10jMihaQ6uca0l6na76FubF9+6YAKQ5
+         x5b/WTlj5VL8SpEF7bmC0f6tN4C8XsG/waZTsBoUQUWxvviONyzlCVv2eNzitvmS7Q
+         e5avVl1R3af27V5n3xabtXmh+BQfVL4RvJCj0ohA=
+Date:   Mon, 08 Aug 2022 18:14:21 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, osalvador@suse.de,
         mike.kravetz@oracle.com, duanxiongchun@bytedance.com,
         david@redhat.com, corbet@lwn.net, catalin.marinas@arm.com,
         anshuman.khandual@arm.com, songmuchun@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_vmemmap-move-vmemmap-code-related-to-hugetlb-to-hugetlb_vmemmapc.patch removed from -mm tree
-Message-Id: <20220809011418.02573C433B5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_vmemmap-move-code-comments-to-vmemmap_deduprst.patch removed from -mm tree
+Message-Id: <20220809011421.9A7D5C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,887 +44,208 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: hugetlb_vmemmap: move vmemmap code related to HugeTLB to hugetlb_vmemmap.c
+     Subject: mm: hugetlb_vmemmap: move code comments to vmemmap_dedup.rst
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_vmemmap-move-vmemmap-code-related-to-hugetlb-to-hugetlb_vmemmapc.patch
+     mm-hugetlb_vmemmap-move-code-comments-to-vmemmap_deduprst.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb_vmemmap: move vmemmap code related to HugeTLB to hugetlb_vmemmap.c
-Date: Tue, 28 Jun 2022 17:22:31 +0800
+Subject: mm: hugetlb_vmemmap: move code comments to vmemmap_dedup.rst
+Date: Tue, 28 Jun 2022 17:22:34 +0800
 
-When I first introduced vmemmap manipulation functions related to HugeTLB,
-I thought those functions may be reused by other modules (e.g.  using
-similar approach to optimize vmemmap pages, unfortunately, the DAX used
-the same approach but does not use those functions).  After two years, we
-didn't see any other users.  So move those functions to hugetlb_vmemmap.c.
-Code movement without any functional change.
+All the comments which explains how HVO works are moved to
+vmemmap_dedup.rst since
 
-Link: https://lkml.kernel.org/r/20220628092235.91270-5-songmuchun@bytedance.com
+  commit 4917f55b4ef9 ("mm/sparse-vmemmap: improve memory savings for compound devmaps")
+
+except some comments above page_fixed_fake_head().  This commit moves
+those comments to vmemmap_dedup.rst and improve vmemmap_dedup.rst as well.
+
+Link: https://lkml.kernel.org/r/20220628092235.91270-8-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Will Deacon <will@kernel.org>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |    7 
- mm/hugetlb_vmemmap.c |  399 ++++++++++++++++++++++++++++++++++++++++-
- mm/sparse-vmemmap.c  |  399 -----------------------------------------
- 3 files changed, 398 insertions(+), 407 deletions(-)
+ Documentation/mm/vmemmap_dedup.rst |   70 ++++++++++++++++++---------
+ include/linux/page-flags.h         |   15 -----
+ 2 files changed, 49 insertions(+), 36 deletions(-)
 
---- a/include/linux/mm.h~mm-hugetlb_vmemmap-move-vmemmap-code-related-to-hugetlb-to-hugetlb_vmemmapc
-+++ a/include/linux/mm.h
-@@ -3142,13 +3142,6 @@ static inline void print_vma_addr(char *
- }
- #endif
+--- a/Documentation/mm/vmemmap_dedup.rst~mm-hugetlb_vmemmap-move-code-comments-to-vmemmap_deduprst
++++ a/Documentation/mm/vmemmap_dedup.rst
+@@ -9,23 +9,23 @@ HugeTLB
  
--#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
--int vmemmap_remap_free(unsigned long start, unsigned long end,
--		       unsigned long reuse);
--int vmemmap_remap_alloc(unsigned long start, unsigned long end,
--			unsigned long reuse, gfp_t gfp_mask);
--#endif
--
- void *sparse_buffer_alloc(unsigned long size);
- struct page * __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-move-vmemmap-code-related-to-hugetlb-to-hugetlb_vmemmapc
-+++ a/mm/hugetlb_vmemmap.c
-@@ -10,9 +10,31 @@
+ This section is to explain how HugeTLB Vmemmap Optimization (HVO) works.
+ 
+-The struct page structures (page structs) are used to describe a physical
+-page frame. By default, there is a one-to-one mapping from a page frame to
+-it's corresponding page struct.
++The ``struct page`` structures are used to describe a physical page frame. By
++default, there is a one-to-one mapping from a page frame to it's corresponding
++``struct page``.
+ 
+ HugeTLB pages consist of multiple base page size pages and is supported by many
+ architectures. See Documentation/admin-guide/mm/hugetlbpage.rst for more
+ details. On the x86-64 architecture, HugeTLB pages of size 2MB and 1GB are
+ currently supported. Since the base page size on x86 is 4KB, a 2MB HugeTLB page
+ consists of 512 base pages and a 1GB HugeTLB page consists of 4096 base pages.
+-For each base page, there is a corresponding page struct.
++For each base page, there is a corresponding ``struct page``.
+ 
+-Within the HugeTLB subsystem, only the first 4 page structs are used to
+-contain unique information about a HugeTLB page. __NR_USED_SUBPAGE provides
+-this upper limit. The only 'useful' information in the remaining page structs
++Within the HugeTLB subsystem, only the first 4 ``struct page`` are used to
++contain unique information about a HugeTLB page. ``__NR_USED_SUBPAGE`` provides
++this upper limit. The only 'useful' information in the remaining ``struct page``
+ is the compound_head field, and this field is the same for all tail pages.
+ 
+-By removing redundant page structs for HugeTLB pages, memory can be returned
++By removing redundant ``struct page`` for HugeTLB pages, memory can be returned
+ to the buddy allocator for other uses.
+ 
+ Different architectures support different HugeTLB pages. For example, the
+@@ -46,7 +46,7 @@ page.
+ |              |   64KB    |    2MB    |  512MB    |    16GB   |           |
+ +--------------+-----------+-----------+-----------+-----------+-----------+
+ 
+-When the system boot up, every HugeTLB page has more than one struct page
++When the system boot up, every HugeTLB page has more than one ``struct page``
+ structs which size is (unit: pages)::
+ 
+    struct_size = HugeTLB_Size / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
+@@ -76,10 +76,10 @@ Where n is how many pte entries which on
+ n is (PAGE_SIZE / sizeof(pte_t)).
+ 
+ This optimization only supports 64-bit system, so the value of sizeof(pte_t)
+-is 8. And this optimization also applicable only when the size of struct page
+-is a power of two. In most cases, the size of struct page is 64 bytes (e.g.
++is 8. And this optimization also applicable only when the size of ``struct page``
++is a power of two. In most cases, the size of ``struct page`` is 64 bytes (e.g.
+ x86-64 and arm64). So if we use pmd level mapping for a HugeTLB page, the
+-size of struct page structs of it is 8 page frames which size depends on the
++size of ``struct page`` structs of it is 8 page frames which size depends on the
+ size of the base page.
+ 
+ For the HugeTLB page of the pud level mapping, then::
+@@ -88,7 +88,7 @@ For the HugeTLB page of the pud level ma
+                = PAGE_SIZE / 8 * 8 (pages)
+                = PAGE_SIZE (pages)
+ 
+-Where the struct_size(pmd) is the size of the struct page structs of a
++Where the struct_size(pmd) is the size of the ``struct page`` structs of a
+ HugeTLB page of the pmd level mapping.
+ 
+ E.g.: A 2MB HugeTLB page on x86_64 consists in 8 page frames while 1GB
+@@ -96,7 +96,7 @@ HugeTLB page consists in 4096.
+ 
+ Next, we take the pmd level mapping of the HugeTLB page as an example to
+ show the internal implementation of this optimization. There are 8 pages
+-struct page structs associated with a HugeTLB page which is pmd mapped.
++``struct page`` structs associated with a HugeTLB page which is pmd mapped.
+ 
+ Here is how things look before optimization::
+ 
+@@ -124,10 +124,10 @@ Here is how things look before optimizat
+  +-----------+
+ 
+ The value of page->compound_head is the same for all tail pages. The first
+-page of page structs (page 0) associated with the HugeTLB page contains the 4
+-page structs necessary to describe the HugeTLB. The only use of the remaining
+-pages of page structs (page 1 to page 7) is to point to page->compound_head.
+-Therefore, we can remap pages 1 to 7 to page 0. Only 1 page of page structs
++page of ``struct page`` (page 0) associated with the HugeTLB page contains the 4
++``struct page`` necessary to describe the HugeTLB. The only use of the remaining
++pages of ``struct page`` (page 1 to page 7) is to point to page->compound_head.
++Therefore, we can remap pages 1 to 7 to page 0. Only 1 page of ``struct page``
+ will be used for each HugeTLB page. This will allow us to free the remaining
+ 7 pages to the buddy allocator.
+ 
+@@ -169,13 +169,37 @@ entries that can be cached in a single T
+ 
+ The contiguous bit is used to increase the mapping size at the pmd and pte
+ (last) level. So this type of HugeTLB page can be optimized only when its
+-size of the struct page structs is greater than 1 page.
++size of the ``struct page`` structs is greater than **1** page.
+ 
+ Notice: The head vmemmap page is not freed to the buddy allocator and all
+ tail vmemmap pages are mapped to the head vmemmap page frame. So we can see
+-more than one struct page struct with PG_head (e.g. 8 per 2 MB HugeTLB page)
+-associated with each HugeTLB page. The compound_head() can handle this
+-correctly (more details refer to the comment above compound_head()).
++more than one ``struct page`` struct with ``PG_head`` (e.g. 8 per 2 MB HugeTLB
++page) associated with each HugeTLB page. The ``compound_head()`` can handle
++this correctly. There is only **one** head ``struct page``, the tail
++``struct page`` with ``PG_head`` are fake head ``struct page``.  We need an
++approach to distinguish between those two different types of ``struct page`` so
++that ``compound_head()`` can return the real head ``struct page`` when the
++parameter is the tail ``struct page`` but with ``PG_head``. The following code
++snippet describes how to distinguish between real and fake head ``struct page``.
++
++.. code-block:: c
++
++	if (test_bit(PG_head, &page->flags)) {
++		unsigned long head = READ_ONCE(page[1].compound_head);
++
++		if (head & 1) {
++			if (head == (unsigned long)page + 1)
++				/* head struct page */
++			else
++				/* tail struct page */
++		} else {
++			/* head struct page */
++		}
++	}
++
++We can safely access the field of the **page[1]** with ``PG_head`` because the
++page is a compound page composed with at least two contiguous pages.
++The implementation refers to ``page_fixed_fake_head()``.
+ 
+ Device DAX
+ ==========
+@@ -189,7 +213,7 @@ PMD_SIZE (2M on x86_64) and PUD_SIZE (1G
+ 
+ The differences with HugeTLB are relatively minor.
+ 
+-It only use 3 page structs for storing all information as opposed
++It only use 3 ``struct page`` for storing all information as opposed
+ to 4 on HugeTLB pages.
+ 
+ There's no remapping of vmemmap given that device-dax memory is not part of
+--- a/include/linux/page-flags.h~mm-hugetlb_vmemmap-move-code-comments-to-vmemmap_deduprst
++++ a/include/linux/page-flags.h
+@@ -208,19 +208,8 @@ enum pageflags {
+ DECLARE_STATIC_KEY_FALSE(hugetlb_optimize_vmemmap_key);
+ 
+ /*
+- * If HVO is enabled, the head vmemmap page frame is reused and all of the tail
+- * vmemmap addresses map to the head vmemmap page frame (furture details can
+- * refer to the figure at the head of the mm/hugetlb_vmemmap.c).  In other
+- * words, there are more than one page struct with PG_head associated with each
+- * HugeTLB page.  We __know__ that there is only one head page struct, the tail
+- * page structs with PG_head are fake head page structs.  We need an approach
+- * to distinguish between those two different types of page structs so that
+- * compound_head() can return the real head page struct when the parameter is
+- * the tail page struct but with PG_head.
+- *
+- * The page_fixed_fake_head() returns the real head page struct if the @page is
+- * fake page head, otherwise, returns @page which can either be a true page
+- * head or tail.
++ * Return the real head page struct iff the @page is a fake head page, otherwise
++ * return the @page itself. See Documentation/mm/vmemmap_dedup.rst.
   */
- #define pr_fmt(fmt)	"HugeTLB: " fmt
- 
--#include <linux/memory.h>
-+#include <linux/pgtable.h>
-+#include <linux/bootmem_info.h>
-+#include <asm/pgalloc.h>
-+#include <asm/tlbflush.h>
- #include "hugetlb_vmemmap.h"
- 
-+/**
-+ * struct vmemmap_remap_walk - walk vmemmap page table
-+ *
-+ * @remap_pte:		called for each lowest-level entry (PTE).
-+ * @nr_walked:		the number of walked pte.
-+ * @reuse_page:		the page which is reused for the tail vmemmap pages.
-+ * @reuse_addr:		the virtual address of the @reuse_page page.
-+ * @vmemmap_pages:	the list head of the vmemmap pages that can be freed
-+ *			or is mapped from.
-+ */
-+struct vmemmap_remap_walk {
-+	void			(*remap_pte)(pte_t *pte, unsigned long addr,
-+					     struct vmemmap_remap_walk *walk);
-+	unsigned long		nr_walked;
-+	struct page		*reuse_page;
-+	unsigned long		reuse_addr;
-+	struct list_head	*vmemmap_pages;
-+};
-+
- /*
-  * There are a lot of struct page structures associated with each HugeTLB page.
-  * For tail pages, the value of compound_head is the same. So we can reuse first
-@@ -23,6 +45,381 @@
- #define RESERVE_VMEMMAP_NR		1U
- #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
- 
-+static int __split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
-+{
-+	pmd_t __pmd;
-+	int i;
-+	unsigned long addr = start;
-+	struct page *page = pmd_page(*pmd);
-+	pte_t *pgtable = pte_alloc_one_kernel(&init_mm);
-+
-+	if (!pgtable)
-+		return -ENOMEM;
-+
-+	pmd_populate_kernel(&init_mm, &__pmd, pgtable);
-+
-+	for (i = 0; i < PMD_SIZE / PAGE_SIZE; i++, addr += PAGE_SIZE) {
-+		pte_t entry, *pte;
-+		pgprot_t pgprot = PAGE_KERNEL;
-+
-+		entry = mk_pte(page + i, pgprot);
-+		pte = pte_offset_kernel(&__pmd, addr);
-+		set_pte_at(&init_mm, addr, pte, entry);
-+	}
-+
-+	spin_lock(&init_mm.page_table_lock);
-+	if (likely(pmd_leaf(*pmd))) {
-+		/*
-+		 * Higher order allocations from buddy allocator must be able to
-+		 * be treated as indepdenent small pages (as they can be freed
-+		 * individually).
-+		 */
-+		if (!PageReserved(page))
-+			split_page(page, get_order(PMD_SIZE));
-+
-+		/* Make pte visible before pmd. See comment in pmd_install(). */
-+		smp_wmb();
-+		pmd_populate_kernel(&init_mm, pmd, pgtable);
-+		flush_tlb_kernel_range(start, start + PMD_SIZE);
-+	} else {
-+		pte_free_kernel(&init_mm, pgtable);
-+	}
-+	spin_unlock(&init_mm.page_table_lock);
-+
-+	return 0;
-+}
-+
-+static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
-+{
-+	int leaf;
-+
-+	spin_lock(&init_mm.page_table_lock);
-+	leaf = pmd_leaf(*pmd);
-+	spin_unlock(&init_mm.page_table_lock);
-+
-+	if (!leaf)
-+		return 0;
-+
-+	return __split_vmemmap_huge_pmd(pmd, start);
-+}
-+
-+static void vmemmap_pte_range(pmd_t *pmd, unsigned long addr,
-+			      unsigned long end,
-+			      struct vmemmap_remap_walk *walk)
-+{
-+	pte_t *pte = pte_offset_kernel(pmd, addr);
-+
-+	/*
-+	 * The reuse_page is found 'first' in table walk before we start
-+	 * remapping (which is calling @walk->remap_pte).
-+	 */
-+	if (!walk->reuse_page) {
-+		walk->reuse_page = pte_page(*pte);
-+		/*
-+		 * Because the reuse address is part of the range that we are
-+		 * walking, skip the reuse address range.
-+		 */
-+		addr += PAGE_SIZE;
-+		pte++;
-+		walk->nr_walked++;
-+	}
-+
-+	for (; addr != end; addr += PAGE_SIZE, pte++) {
-+		walk->remap_pte(pte, addr, walk);
-+		walk->nr_walked++;
-+	}
-+}
-+
-+static int vmemmap_pmd_range(pud_t *pud, unsigned long addr,
-+			     unsigned long end,
-+			     struct vmemmap_remap_walk *walk)
-+{
-+	pmd_t *pmd;
-+	unsigned long next;
-+
-+	pmd = pmd_offset(pud, addr);
-+	do {
-+		int ret;
-+
-+		ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK);
-+		if (ret)
-+			return ret;
-+
-+		next = pmd_addr_end(addr, end);
-+		vmemmap_pte_range(pmd, addr, next, walk);
-+	} while (pmd++, addr = next, addr != end);
-+
-+	return 0;
-+}
-+
-+static int vmemmap_pud_range(p4d_t *p4d, unsigned long addr,
-+			     unsigned long end,
-+			     struct vmemmap_remap_walk *walk)
-+{
-+	pud_t *pud;
-+	unsigned long next;
-+
-+	pud = pud_offset(p4d, addr);
-+	do {
-+		int ret;
-+
-+		next = pud_addr_end(addr, end);
-+		ret = vmemmap_pmd_range(pud, addr, next, walk);
-+		if (ret)
-+			return ret;
-+	} while (pud++, addr = next, addr != end);
-+
-+	return 0;
-+}
-+
-+static int vmemmap_p4d_range(pgd_t *pgd, unsigned long addr,
-+			     unsigned long end,
-+			     struct vmemmap_remap_walk *walk)
-+{
-+	p4d_t *p4d;
-+	unsigned long next;
-+
-+	p4d = p4d_offset(pgd, addr);
-+	do {
-+		int ret;
-+
-+		next = p4d_addr_end(addr, end);
-+		ret = vmemmap_pud_range(p4d, addr, next, walk);
-+		if (ret)
-+			return ret;
-+	} while (p4d++, addr = next, addr != end);
-+
-+	return 0;
-+}
-+
-+static int vmemmap_remap_range(unsigned long start, unsigned long end,
-+			       struct vmemmap_remap_walk *walk)
-+{
-+	unsigned long addr = start;
-+	unsigned long next;
-+	pgd_t *pgd;
-+
-+	VM_BUG_ON(!PAGE_ALIGNED(start));
-+	VM_BUG_ON(!PAGE_ALIGNED(end));
-+
-+	pgd = pgd_offset_k(addr);
-+	do {
-+		int ret;
-+
-+		next = pgd_addr_end(addr, end);
-+		ret = vmemmap_p4d_range(pgd, addr, next, walk);
-+		if (ret)
-+			return ret;
-+	} while (pgd++, addr = next, addr != end);
-+
-+	/*
-+	 * We only change the mapping of the vmemmap virtual address range
-+	 * [@start + PAGE_SIZE, end), so we only need to flush the TLB which
-+	 * belongs to the range.
-+	 */
-+	flush_tlb_kernel_range(start + PAGE_SIZE, end);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Free a vmemmap page. A vmemmap page can be allocated from the memblock
-+ * allocator or buddy allocator. If the PG_reserved flag is set, it means
-+ * that it allocated from the memblock allocator, just free it via the
-+ * free_bootmem_page(). Otherwise, use __free_page().
-+ */
-+static inline void free_vmemmap_page(struct page *page)
-+{
-+	if (PageReserved(page))
-+		free_bootmem_page(page);
-+	else
-+		__free_page(page);
-+}
-+
-+/* Free a list of the vmemmap pages */
-+static void free_vmemmap_page_list(struct list_head *list)
-+{
-+	struct page *page, *next;
-+
-+	list_for_each_entry_safe(page, next, list, lru) {
-+		list_del(&page->lru);
-+		free_vmemmap_page(page);
-+	}
-+}
-+
-+static void vmemmap_remap_pte(pte_t *pte, unsigned long addr,
-+			      struct vmemmap_remap_walk *walk)
-+{
-+	/*
-+	 * Remap the tail pages as read-only to catch illegal write operation
-+	 * to the tail pages.
-+	 */
-+	pgprot_t pgprot = PAGE_KERNEL_RO;
-+	pte_t entry = mk_pte(walk->reuse_page, pgprot);
-+	struct page *page = pte_page(*pte);
-+
-+	list_add_tail(&page->lru, walk->vmemmap_pages);
-+	set_pte_at(&init_mm, addr, pte, entry);
-+}
-+
-+/*
-+ * How many struct page structs need to be reset. When we reuse the head
-+ * struct page, the special metadata (e.g. page->flags or page->mapping)
-+ * cannot copy to the tail struct page structs. The invalid value will be
-+ * checked in the free_tail_pages_check(). In order to avoid the message
-+ * of "corrupted mapping in tail page". We need to reset at least 3 (one
-+ * head struct page struct and two tail struct page structs) struct page
-+ * structs.
-+ */
-+#define NR_RESET_STRUCT_PAGE		3
-+
-+static inline void reset_struct_pages(struct page *start)
-+{
-+	int i;
-+	struct page *from = start + NR_RESET_STRUCT_PAGE;
-+
-+	for (i = 0; i < NR_RESET_STRUCT_PAGE; i++)
-+		memcpy(start + i, from, sizeof(*from));
-+}
-+
-+static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
-+				struct vmemmap_remap_walk *walk)
-+{
-+	pgprot_t pgprot = PAGE_KERNEL;
-+	struct page *page;
-+	void *to;
-+
-+	BUG_ON(pte_page(*pte) != walk->reuse_page);
-+
-+	page = list_first_entry(walk->vmemmap_pages, struct page, lru);
-+	list_del(&page->lru);
-+	to = page_to_virt(page);
-+	copy_page(to, (void *)walk->reuse_addr);
-+	reset_struct_pages(to);
-+
-+	set_pte_at(&init_mm, addr, pte, mk_pte(page, pgprot));
-+}
-+
-+/**
-+ * vmemmap_remap_free - remap the vmemmap virtual address range [@start, @end)
-+ *			to the page which @reuse is mapped to, then free vmemmap
-+ *			which the range are mapped to.
-+ * @start:	start address of the vmemmap virtual address range that we want
-+ *		to remap.
-+ * @end:	end address of the vmemmap virtual address range that we want to
-+ *		remap.
-+ * @reuse:	reuse address.
-+ *
-+ * Return: %0 on success, negative error code otherwise.
-+ */
-+static int vmemmap_remap_free(unsigned long start, unsigned long end,
-+			      unsigned long reuse)
-+{
-+	int ret;
-+	LIST_HEAD(vmemmap_pages);
-+	struct vmemmap_remap_walk walk = {
-+		.remap_pte	= vmemmap_remap_pte,
-+		.reuse_addr	= reuse,
-+		.vmemmap_pages	= &vmemmap_pages,
-+	};
-+
-+	/*
-+	 * In order to make remapping routine most efficient for the huge pages,
-+	 * the routine of vmemmap page table walking has the following rules
-+	 * (see more details from the vmemmap_pte_range()):
-+	 *
-+	 * - The range [@start, @end) and the range [@reuse, @reuse + PAGE_SIZE)
-+	 *   should be continuous.
-+	 * - The @reuse address is part of the range [@reuse, @end) that we are
-+	 *   walking which is passed to vmemmap_remap_range().
-+	 * - The @reuse address is the first in the complete range.
-+	 *
-+	 * So we need to make sure that @start and @reuse meet the above rules.
-+	 */
-+	BUG_ON(start - reuse != PAGE_SIZE);
-+
-+	mmap_read_lock(&init_mm);
-+	ret = vmemmap_remap_range(reuse, end, &walk);
-+	if (ret && walk.nr_walked) {
-+		end = reuse + walk.nr_walked * PAGE_SIZE;
-+		/*
-+		 * vmemmap_pages contains pages from the previous
-+		 * vmemmap_remap_range call which failed.  These
-+		 * are pages which were removed from the vmemmap.
-+		 * They will be restored in the following call.
-+		 */
-+		walk = (struct vmemmap_remap_walk) {
-+			.remap_pte	= vmemmap_restore_pte,
-+			.reuse_addr	= reuse,
-+			.vmemmap_pages	= &vmemmap_pages,
-+		};
-+
-+		vmemmap_remap_range(reuse, end, &walk);
-+	}
-+	mmap_read_unlock(&init_mm);
-+
-+	free_vmemmap_page_list(&vmemmap_pages);
-+
-+	return ret;
-+}
-+
-+static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
-+				   gfp_t gfp_mask, struct list_head *list)
-+{
-+	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
-+	int nid = page_to_nid((struct page *)start);
-+	struct page *page, *next;
-+
-+	while (nr_pages--) {
-+		page = alloc_pages_node(nid, gfp_mask, 0);
-+		if (!page)
-+			goto out;
-+		list_add_tail(&page->lru, list);
-+	}
-+
-+	return 0;
-+out:
-+	list_for_each_entry_safe(page, next, list, lru)
-+		__free_pages(page, 0);
-+	return -ENOMEM;
-+}
-+
-+/**
-+ * vmemmap_remap_alloc - remap the vmemmap virtual address range [@start, end)
-+ *			 to the page which is from the @vmemmap_pages
-+ *			 respectively.
-+ * @start:	start address of the vmemmap virtual address range that we want
-+ *		to remap.
-+ * @end:	end address of the vmemmap virtual address range that we want to
-+ *		remap.
-+ * @reuse:	reuse address.
-+ * @gfp_mask:	GFP flag for allocating vmemmap pages.
-+ *
-+ * Return: %0 on success, negative error code otherwise.
-+ */
-+static int vmemmap_remap_alloc(unsigned long start, unsigned long end,
-+			       unsigned long reuse, gfp_t gfp_mask)
-+{
-+	LIST_HEAD(vmemmap_pages);
-+	struct vmemmap_remap_walk walk = {
-+		.remap_pte	= vmemmap_restore_pte,
-+		.reuse_addr	= reuse,
-+		.vmemmap_pages	= &vmemmap_pages,
-+	};
-+
-+	/* See the comment in the vmemmap_remap_free(). */
-+	BUG_ON(start - reuse != PAGE_SIZE);
-+
-+	if (alloc_vmemmap_page_list(start, end, gfp_mask, &vmemmap_pages))
-+		return -ENOMEM;
-+
-+	mmap_read_lock(&init_mm);
-+	vmemmap_remap_range(reuse, end, &walk);
-+	mmap_read_unlock(&init_mm);
-+
-+	return 0;
-+}
-+
- DEFINE_STATIC_KEY_FALSE(hugetlb_optimize_vmemmap_key);
- EXPORT_SYMBOL(hugetlb_optimize_vmemmap_key);
- 
---- a/mm/sparse-vmemmap.c~mm-hugetlb_vmemmap-move-vmemmap-code-related-to-hugetlb-to-hugetlb_vmemmapc
-+++ a/mm/sparse-vmemmap.c
-@@ -27,408 +27,9 @@
- #include <linux/spinlock.h>
- #include <linux/vmalloc.h>
- #include <linux/sched.h>
--#include <linux/pgtable.h>
--#include <linux/bootmem_info.h>
- 
- #include <asm/dma.h>
- #include <asm/pgalloc.h>
--#include <asm/tlbflush.h>
--
--#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
--/**
-- * struct vmemmap_remap_walk - walk vmemmap page table
-- *
-- * @remap_pte:		called for each lowest-level entry (PTE).
-- * @nr_walked:		the number of walked pte.
-- * @reuse_page:		the page which is reused for the tail vmemmap pages.
-- * @reuse_addr:		the virtual address of the @reuse_page page.
-- * @vmemmap_pages:	the list head of the vmemmap pages that can be freed
-- *			or is mapped from.
-- */
--struct vmemmap_remap_walk {
--	void (*remap_pte)(pte_t *pte, unsigned long addr,
--			  struct vmemmap_remap_walk *walk);
--	unsigned long nr_walked;
--	struct page *reuse_page;
--	unsigned long reuse_addr;
--	struct list_head *vmemmap_pages;
--};
--
--static int __split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
--{
--	pmd_t __pmd;
--	int i;
--	unsigned long addr = start;
--	struct page *page = pmd_page(*pmd);
--	pte_t *pgtable = pte_alloc_one_kernel(&init_mm);
--
--	if (!pgtable)
--		return -ENOMEM;
--
--	pmd_populate_kernel(&init_mm, &__pmd, pgtable);
--
--	for (i = 0; i < PMD_SIZE / PAGE_SIZE; i++, addr += PAGE_SIZE) {
--		pte_t entry, *pte;
--		pgprot_t pgprot = PAGE_KERNEL;
--
--		entry = mk_pte(page + i, pgprot);
--		pte = pte_offset_kernel(&__pmd, addr);
--		set_pte_at(&init_mm, addr, pte, entry);
--	}
--
--	spin_lock(&init_mm.page_table_lock);
--	if (likely(pmd_leaf(*pmd))) {
--		/*
--		 * Higher order allocations from buddy allocator must be able to
--		 * be treated as indepdenent small pages (as they can be freed
--		 * individually).
--		 */
--		if (!PageReserved(page))
--			split_page(page, get_order(PMD_SIZE));
--
--		/* Make pte visible before pmd. See comment in pmd_install(). */
--		smp_wmb();
--		pmd_populate_kernel(&init_mm, pmd, pgtable);
--		flush_tlb_kernel_range(start, start + PMD_SIZE);
--	} else {
--		pte_free_kernel(&init_mm, pgtable);
--	}
--	spin_unlock(&init_mm.page_table_lock);
--
--	return 0;
--}
--
--static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
--{
--	int leaf;
--
--	spin_lock(&init_mm.page_table_lock);
--	leaf = pmd_leaf(*pmd);
--	spin_unlock(&init_mm.page_table_lock);
--
--	if (!leaf)
--		return 0;
--
--	return __split_vmemmap_huge_pmd(pmd, start);
--}
--
--static void vmemmap_pte_range(pmd_t *pmd, unsigned long addr,
--			      unsigned long end,
--			      struct vmemmap_remap_walk *walk)
--{
--	pte_t *pte = pte_offset_kernel(pmd, addr);
--
--	/*
--	 * The reuse_page is found 'first' in table walk before we start
--	 * remapping (which is calling @walk->remap_pte).
--	 */
--	if (!walk->reuse_page) {
--		walk->reuse_page = pte_page(*pte);
--		/*
--		 * Because the reuse address is part of the range that we are
--		 * walking, skip the reuse address range.
--		 */
--		addr += PAGE_SIZE;
--		pte++;
--		walk->nr_walked++;
--	}
--
--	for (; addr != end; addr += PAGE_SIZE, pte++) {
--		walk->remap_pte(pte, addr, walk);
--		walk->nr_walked++;
--	}
--}
--
--static int vmemmap_pmd_range(pud_t *pud, unsigned long addr,
--			     unsigned long end,
--			     struct vmemmap_remap_walk *walk)
--{
--	pmd_t *pmd;
--	unsigned long next;
--
--	pmd = pmd_offset(pud, addr);
--	do {
--		int ret;
--
--		ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK);
--		if (ret)
--			return ret;
--
--		next = pmd_addr_end(addr, end);
--		vmemmap_pte_range(pmd, addr, next, walk);
--	} while (pmd++, addr = next, addr != end);
--
--	return 0;
--}
--
--static int vmemmap_pud_range(p4d_t *p4d, unsigned long addr,
--			     unsigned long end,
--			     struct vmemmap_remap_walk *walk)
--{
--	pud_t *pud;
--	unsigned long next;
--
--	pud = pud_offset(p4d, addr);
--	do {
--		int ret;
--
--		next = pud_addr_end(addr, end);
--		ret = vmemmap_pmd_range(pud, addr, next, walk);
--		if (ret)
--			return ret;
--	} while (pud++, addr = next, addr != end);
--
--	return 0;
--}
--
--static int vmemmap_p4d_range(pgd_t *pgd, unsigned long addr,
--			     unsigned long end,
--			     struct vmemmap_remap_walk *walk)
--{
--	p4d_t *p4d;
--	unsigned long next;
--
--	p4d = p4d_offset(pgd, addr);
--	do {
--		int ret;
--
--		next = p4d_addr_end(addr, end);
--		ret = vmemmap_pud_range(p4d, addr, next, walk);
--		if (ret)
--			return ret;
--	} while (p4d++, addr = next, addr != end);
--
--	return 0;
--}
--
--static int vmemmap_remap_range(unsigned long start, unsigned long end,
--			       struct vmemmap_remap_walk *walk)
--{
--	unsigned long addr = start;
--	unsigned long next;
--	pgd_t *pgd;
--
--	VM_BUG_ON(!PAGE_ALIGNED(start));
--	VM_BUG_ON(!PAGE_ALIGNED(end));
--
--	pgd = pgd_offset_k(addr);
--	do {
--		int ret;
--
--		next = pgd_addr_end(addr, end);
--		ret = vmemmap_p4d_range(pgd, addr, next, walk);
--		if (ret)
--			return ret;
--	} while (pgd++, addr = next, addr != end);
--
--	/*
--	 * We only change the mapping of the vmemmap virtual address range
--	 * [@start + PAGE_SIZE, end), so we only need to flush the TLB which
--	 * belongs to the range.
--	 */
--	flush_tlb_kernel_range(start + PAGE_SIZE, end);
--
--	return 0;
--}
--
--/*
-- * Free a vmemmap page. A vmemmap page can be allocated from the memblock
-- * allocator or buddy allocator. If the PG_reserved flag is set, it means
-- * that it allocated from the memblock allocator, just free it via the
-- * free_bootmem_page(). Otherwise, use __free_page().
-- */
--static inline void free_vmemmap_page(struct page *page)
--{
--	if (PageReserved(page))
--		free_bootmem_page(page);
--	else
--		__free_page(page);
--}
--
--/* Free a list of the vmemmap pages */
--static void free_vmemmap_page_list(struct list_head *list)
--{
--	struct page *page, *next;
--
--	list_for_each_entry_safe(page, next, list, lru) {
--		list_del(&page->lru);
--		free_vmemmap_page(page);
--	}
--}
--
--static void vmemmap_remap_pte(pte_t *pte, unsigned long addr,
--			      struct vmemmap_remap_walk *walk)
--{
--	/*
--	 * Remap the tail pages as read-only to catch illegal write operation
--	 * to the tail pages.
--	 */
--	pgprot_t pgprot = PAGE_KERNEL_RO;
--	pte_t entry = mk_pte(walk->reuse_page, pgprot);
--	struct page *page = pte_page(*pte);
--
--	list_add_tail(&page->lru, walk->vmemmap_pages);
--	set_pte_at(&init_mm, addr, pte, entry);
--}
--
--/*
-- * How many struct page structs need to be reset. When we reuse the head
-- * struct page, the special metadata (e.g. page->flags or page->mapping)
-- * cannot copy to the tail struct page structs. The invalid value will be
-- * checked in the free_tail_pages_check(). In order to avoid the message
-- * of "corrupted mapping in tail page". We need to reset at least 3 (one
-- * head struct page struct and two tail struct page structs) struct page
-- * structs.
-- */
--#define NR_RESET_STRUCT_PAGE		3
--
--static inline void reset_struct_pages(struct page *start)
--{
--	int i;
--	struct page *from = start + NR_RESET_STRUCT_PAGE;
--
--	for (i = 0; i < NR_RESET_STRUCT_PAGE; i++)
--		memcpy(start + i, from, sizeof(*from));
--}
--
--static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
--				struct vmemmap_remap_walk *walk)
--{
--	pgprot_t pgprot = PAGE_KERNEL;
--	struct page *page;
--	void *to;
--
--	BUG_ON(pte_page(*pte) != walk->reuse_page);
--
--	page = list_first_entry(walk->vmemmap_pages, struct page, lru);
--	list_del(&page->lru);
--	to = page_to_virt(page);
--	copy_page(to, (void *)walk->reuse_addr);
--	reset_struct_pages(to);
--
--	set_pte_at(&init_mm, addr, pte, mk_pte(page, pgprot));
--}
--
--/**
-- * vmemmap_remap_free - remap the vmemmap virtual address range [@start, @end)
-- *			to the page which @reuse is mapped to, then free vmemmap
-- *			which the range are mapped to.
-- * @start:	start address of the vmemmap virtual address range that we want
-- *		to remap.
-- * @end:	end address of the vmemmap virtual address range that we want to
-- *		remap.
-- * @reuse:	reuse address.
-- *
-- * Return: %0 on success, negative error code otherwise.
-- */
--int vmemmap_remap_free(unsigned long start, unsigned long end,
--		       unsigned long reuse)
--{
--	int ret;
--	LIST_HEAD(vmemmap_pages);
--	struct vmemmap_remap_walk walk = {
--		.remap_pte	= vmemmap_remap_pte,
--		.reuse_addr	= reuse,
--		.vmemmap_pages	= &vmemmap_pages,
--	};
--
--	/*
--	 * In order to make remapping routine most efficient for the huge pages,
--	 * the routine of vmemmap page table walking has the following rules
--	 * (see more details from the vmemmap_pte_range()):
--	 *
--	 * - The range [@start, @end) and the range [@reuse, @reuse + PAGE_SIZE)
--	 *   should be continuous.
--	 * - The @reuse address is part of the range [@reuse, @end) that we are
--	 *   walking which is passed to vmemmap_remap_range().
--	 * - The @reuse address is the first in the complete range.
--	 *
--	 * So we need to make sure that @start and @reuse meet the above rules.
--	 */
--	BUG_ON(start - reuse != PAGE_SIZE);
--
--	mmap_read_lock(&init_mm);
--	ret = vmemmap_remap_range(reuse, end, &walk);
--	if (ret && walk.nr_walked) {
--		end = reuse + walk.nr_walked * PAGE_SIZE;
--		/*
--		 * vmemmap_pages contains pages from the previous
--		 * vmemmap_remap_range call which failed.  These
--		 * are pages which were removed from the vmemmap.
--		 * They will be restored in the following call.
--		 */
--		walk = (struct vmemmap_remap_walk) {
--			.remap_pte	= vmemmap_restore_pte,
--			.reuse_addr	= reuse,
--			.vmemmap_pages	= &vmemmap_pages,
--		};
--
--		vmemmap_remap_range(reuse, end, &walk);
--	}
--	mmap_read_unlock(&init_mm);
--
--	free_vmemmap_page_list(&vmemmap_pages);
--
--	return ret;
--}
--
--static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
--				   gfp_t gfp_mask, struct list_head *list)
--{
--	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
--	int nid = page_to_nid((struct page *)start);
--	struct page *page, *next;
--
--	while (nr_pages--) {
--		page = alloc_pages_node(nid, gfp_mask, 0);
--		if (!page)
--			goto out;
--		list_add_tail(&page->lru, list);
--	}
--
--	return 0;
--out:
--	list_for_each_entry_safe(page, next, list, lru)
--		__free_pages(page, 0);
--	return -ENOMEM;
--}
--
--/**
-- * vmemmap_remap_alloc - remap the vmemmap virtual address range [@start, end)
-- *			 to the page which is from the @vmemmap_pages
-- *			 respectively.
-- * @start:	start address of the vmemmap virtual address range that we want
-- *		to remap.
-- * @end:	end address of the vmemmap virtual address range that we want to
-- *		remap.
-- * @reuse:	reuse address.
-- * @gfp_mask:	GFP flag for allocating vmemmap pages.
-- *
-- * Return: %0 on success, negative error code otherwise.
-- */
--int vmemmap_remap_alloc(unsigned long start, unsigned long end,
--			unsigned long reuse, gfp_t gfp_mask)
--{
--	LIST_HEAD(vmemmap_pages);
--	struct vmemmap_remap_walk walk = {
--		.remap_pte	= vmemmap_restore_pte,
--		.reuse_addr	= reuse,
--		.vmemmap_pages	= &vmemmap_pages,
--	};
--
--	/* See the comment in the vmemmap_remap_free(). */
--	BUG_ON(start - reuse != PAGE_SIZE);
--
--	if (alloc_vmemmap_page_list(start, end, gfp_mask, &vmemmap_pages))
--		return -ENOMEM;
--
--	mmap_read_lock(&init_mm);
--	vmemmap_remap_range(reuse, end, &walk);
--	mmap_read_unlock(&init_mm);
--
--	return 0;
--}
--#endif /* CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP */
- 
- /*
-  * Allocate a block of memory to be used to back the virtual memory map
+ static __always_inline const struct page *page_fixed_fake_head(const struct page *page)
+ {
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
