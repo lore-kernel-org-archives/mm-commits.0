@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2F36C19F2D
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 02:03:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FF02C19F2D
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 02:14:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229771AbiHJCDq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Aug 2022 22:03:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51482 "EHLO
+        id S229918AbiHJCOZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Aug 2022 22:14:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229621AbiHJCDp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2022 22:03:45 -0400
+        with ESMTP id S229460AbiHJCOZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2022 22:14:25 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9941780F49;
-        Tue,  9 Aug 2022 19:03:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A91D7E331
+        for <mm-commits@vger.kernel.org>; Tue,  9 Aug 2022 19:14:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 23C1761283;
-        Wed, 10 Aug 2022 02:03:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FF4BC433D6;
-        Wed, 10 Aug 2022 02:03:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DAE70612A8
+        for <mm-commits@vger.kernel.org>; Wed, 10 Aug 2022 02:14:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FDE2C433C1;
+        Wed, 10 Aug 2022 02:14:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660097023;
-        bh=EAbo9w3jt2AJHXfRcNdU1Fyy3s3DrLAbGOG+QoG0sJw=;
+        s=korg; t=1660097663;
+        bh=tK556/FM5izFmY5bMc1e593a1H9/TgsJ3o5O9WkRxmo=;
         h=Date:To:From:Subject:From;
-        b=bv1i+ZvssrG54AY8g+xJFTcMDHXSQbLyieI0Fs3XwYHlpoEAF3cZhMJpry5/Ep0Rf
-         3g+N6TNPtCoC31aQcSHOrXIBTvbT6puDc1lQFIPBoyqn0YIf8074EdQNGQhSyL6DIK
-         Dou3Vp1VOvtT+xha1asm1IBSkyQTZc10lfTO0FX8=
-Date:   Tue, 09 Aug 2022 19:03:42 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        anton@tuxera.com, chenxiaosong2@huawei.com,
-        akpm@linux-foundation.org
+        b=u7Mw+zAM3tQuff5f9QPcRqB4PmCHoU6zYyM+xQvLJ7vGIIR8I3JObAgpRAgLjORqC
+         SvzBIMbcjI56qYodTHJ9mrpa7equebBq8wP/MKzIFcf6TgyyT+GuE08ldKEfkb8nvk
+         fsMNysZ5gT4M2PfN9UlZBrYc7p/KVRLi8w5/rdSU=
+Date:   Tue, 09 Aug 2022 19:14:22 -0700
+To:     mm-commits@vger.kernel.org, hch@lst.de, felix.kuehling@amd.com,
+        david@redhat.com, apopple@nvidia.com, alex.sierra@amd.com,
+        alex.williamson@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ntfs-fix-bug_on-in-ntfs_lookup_inode_by_name.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220810020343.6FF4BC433D6@smtp.kernel.org>
+Subject: + mm-re-allow-pinning-of-zero-pfns-again.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220810021423.2FDE2C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: fix BUG_ON in ntfs_lookup_inode_by_name()
+     Subject: mm: re-allow pinning of zero pfns (again)
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ntfs-fix-bug_on-in-ntfs_lookup_inode_by_name.patch
+     mm-re-allow-pinning-of-zero-pfns-again.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-fix-bug_on-in-ntfs_lookup_inode_by_name.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-re-allow-pinning-of-zero-pfns-again.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,85 +65,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ChenXiaoSong <chenxiaosong2@huawei.com>
-Subject: ntfs: fix BUG_ON in ntfs_lookup_inode_by_name()
-Date: Tue, 9 Aug 2022 14:47:30 +0800
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: mm: re-allow pinning of zero pfns (again)
+Date: Mon, 08 Aug 2022 22:42:24 -0600
 
-Syzkaller reported BUG_ON as follows:
+The below referenced commit makes the same error as 1c563432588d ("mm: fix
+is_pinnable_page against a cma page"), re-interpreting the logic to
+exclude pinning of the zero page, which breaks device assignment with
+vfio.
 
-------------[ cut here ]------------
-kernel BUG at fs/ntfs/dir.c:86!
-invalid opcode: 0000 [#1] PREEMPT SMP KASAN PTI
-CPU: 3 PID: 758 Comm: a.out Not tainted 5.19.0-next-20220808 #5
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.0-0-gd239552ce722-prebuilt.qemu.org 04/01/2014
-RIP: 0010:ntfs_lookup_inode_by_name+0xd11/0x2d10
-Code: ff e9 b9 01 00 00 e8 1e fe d6 fe 48 8b 7d 98 49 8d 5d 07 e8 91 85 29 ff 48 c7 45 98 00 00 00 00 e9 5a fb ff ff e8 ff fd d6 fe <0f> 0b e8 f8 fd d6 fe 0f 0b e8 f1 fd d6 fe 48 8b b5 50 ff ff ff 4c
-RSP: 0018:ffff888079607978 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: 0000000000008000 RCX: 0000000000000000
-RDX: ffff88807cf10000 RSI: ffffffff82a4a081 RDI: 0000000000000003
-RBP: ffff888079607a70 R08: 0000000000000001 R09: ffff88807a6d01d7
-R10: ffffed100f4da03a R11: 0000000000000000 R12: ffff88800f0fb110
-R13: ffff88800f0ee000 R14: ffff88800f0fb000 R15: 0000000000000001
-FS:  00007f33b63c7540(0000) GS:ffff888108580000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f33b635c090 CR3: 000000000f39e005 CR4: 0000000000770ee0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-PKRU: 55555554
-Call Trace:
- <TASK>
- load_system_files+0x1f7f/0x3620
- ntfs_fill_super+0xa01/0x1be0
- mount_bdev+0x36a/0x440
- ntfs_mount+0x3a/0x50
- legacy_get_tree+0xfb/0x210
- vfs_get_tree+0x8f/0x2f0
- do_new_mount+0x30a/0x760
- path_mount+0x4de/0x1880
- __x64_sys_mount+0x2b3/0x340
- do_syscall_64+0x38/0x90
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7f33b62ff9ea
-Code: 48 8b 0d a9 f4 0b 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 76 f4 0b 00 f7 d8 64 89 01 48
-RSP: 002b:00007ffd0c471aa8 EFLAGS: 00000202 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f33b62ff9ea
-RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007ffd0c471be0
-RBP: 00007ffd0c471c60 R08: 00007ffd0c471ae0 R09: 00007ffd0c471c24
-R10: 0000000000000000 R11: 0000000000000202 R12: 000055bac5afc160
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
- </TASK>
-Modules linked in:
----[ end trace 0000000000000000 ]---
-
-Fix this by adding sanity check on extended system files' directory inode
-to ensure that it is directory, just like ntfs_extend_init() when mounting
-ntfs3.
-
-Link: https://lkml.kernel.org/r/20220809064730.2316892-1-chenxiaosong2@huawei.com
-Signed-off-by: ChenXiaoSong <chenxiaosong2@huawei.com>
-Cc: Anton Altaparmakov <anton@tuxera.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/all/165490039431.944052.12458624139225785964.stgit@omen
+Link: https://lkml.kernel.org/r/166002010021.381133.11357879752637949308.stgit@omen
+Fixes: f25cbb7a95a2 ("mm: add zone device coherent type memory support")
+Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
+Cc: Alex Sierra <alex.sierra@amd.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Felix Kuehling <felix.kuehling@amd.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/fs/ntfs/super.c~ntfs-fix-bug_on-in-ntfs_lookup_inode_by_name
-+++ a/fs/ntfs/super.c
-@@ -2092,7 +2092,8 @@ get_ctx_vol_failed:
- 	// TODO: Initialize security.
- 	/* Get the extended system files' directory inode. */
- 	vol->extend_ino = ntfs_iget(sb, FILE_Extend);
--	if (IS_ERR(vol->extend_ino) || is_bad_inode(vol->extend_ino)) {
-+	if (IS_ERR(vol->extend_ino) || is_bad_inode(vol->extend_ino) ||
-+	    !S_ISDIR(vol->extend_ino->i_mode)) {
- 		if (!IS_ERR(vol->extend_ino))
- 			iput(vol->extend_ino);
- 		ntfs_error(sb, "Failed to load $Extend.");
+--- a/include/linux/mm.h~mm-re-allow-pinning-of-zero-pfns-again
++++ a/include/linux/mm.h
+@@ -1544,9 +1544,8 @@ static inline bool is_longterm_pinnable_
+ 	if (mt == MIGRATE_CMA || mt == MIGRATE_ISOLATE)
+ 		return false;
+ #endif
+-	return !(is_device_coherent_page(page) ||
+-		 is_zone_movable_page(page) ||
+-		 is_zero_pfn(page_to_pfn(page)));
++	return !(is_device_coherent_page(page) || is_zone_movable_page(page)) ||
++	       is_zero_pfn(page_to_pfn(page));
+ }
+ #else
+ static inline bool is_longterm_pinnable_page(struct page *page)
 _
 
-Patches currently in -mm which might be from chenxiaosong2@huawei.com are
+Patches currently in -mm which might be from alex.williamson@redhat.com are
 
-ntfs-fix-bug_on-in-ntfs_lookup_inode_by_name.patch
+mm-re-allow-pinning-of-zero-pfns-again.patch
 
