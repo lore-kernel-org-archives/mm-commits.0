@@ -2,41 +2,68 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF8CBC00140
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 14:00:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CB7BC19F2A
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 18:33:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232834AbiHJOAk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Aug 2022 10:00:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38760 "EHLO
+        id S233152AbiHJSdp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Aug 2022 14:33:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231821AbiHJOAj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2022 10:00:39 -0400
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7F0361B08;
-        Wed, 10 Aug 2022 07:00:36 -0700 (PDT)
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id 7597D68C7B; Wed, 10 Aug 2022 16:00:31 +0200 (CEST)
-Date:   Wed, 10 Aug 2022 16:00:30 +0200
-From:   Christoph Hellwig <hch@lst.de>
+        with ESMTP id S233203AbiHJSdk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2022 14:33:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F289B8C00D;
+        Wed, 10 Aug 2022 11:33:39 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 56B846145D;
+        Wed, 10 Aug 2022 18:33:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id B64D4C433D6;
+        Wed, 10 Aug 2022 18:33:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1660156418;
+        bh=7qK90/kn/gxyJyTJJTPr6rA6+HNihlzJiRT7wGzKqd4=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=CSqp5kjNqsG+0brEj4OJIDUKO5z6KvXsfZMM44x69LT8Fxj14Q5yWbEe24BQI2+/5
+         pUs8c4wFUP++ws6W4tgG8osZacNOJely/vDK7fICCQfAcKlOIRTEQkqqgqIeaUeXse
+         1hK2rDYhrFvI2qBeb/9VGZ7DJbEb51oROcinU0xjBEYKSr5d6LDtFJIC2pt6PP+tT5
+         ffz1zALeaO+t9T9QTM6rAGjSKScapuAO9bqPzvxHL+PGyJcLcTFNmq8Z+T5zTzQmu8
+         4fVtLOM2IIKEoUIQODUMNVWFrLkVgwMNUl7bshfu+ZjEm+wkZQCBtjtP+QJohg4wAL
+         ZSPRFjUML9bzg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A4497C43142;
+        Wed, 10 Aug 2022 18:33:38 +0000 (UTC)
+Subject: Re: [GIT PULL] remaining MM updates for 5.20-r1
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20220809181742.30eb3ee4071d2b8bb81bc959@linux-foundation.org>
+References: <20220809181742.30eb3ee4071d2b8bb81bc959@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20220809181742.30eb3ee4071d2b8bb81bc959@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-08-09
+X-PR-Tracked-Commit-Id: a9e9c93966afdaae74a6a7533552391646b93f2c
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: b1701d5e29eb0a102aa3393319b3e4eb1a19c6ea
+Message-Id: <166015641866.32353.16807249015696861.pr-tracker-bot@kernel.org>
+Date:   Wed, 10 Aug 2022 18:33:38 +0000
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        john.p.donnelly@oracle.com, hch@lst.de, david@redhat.com,
-        bhe@redhat.com, mhocko@suse.com
-Subject: Re: + dma-pool-do-not-complain-if-dma-pool-is-not-allocated.patch
- added to mm-hotfixes-unstable branch
-Message-ID: <20220810140030.GA24195@lst.de>
-References: <20220810013308.5E23AC433C1@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220810013308.5E23AC433C1@smtp.kernel.org>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-This is really material for the dma-mapping tree (besides the obvious
-coding style problem).  I'll try to unwind through the thread ASAP
-once I've got more burning issues of my plate and will see it it
-otherwise makes sense and pick it up in the proper tree if so.
+The pull request you sent on Tue, 9 Aug 2022 18:17:42 -0700:
+
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-08-09
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/b1701d5e29eb0a102aa3393319b3e4eb1a19c6ea
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
