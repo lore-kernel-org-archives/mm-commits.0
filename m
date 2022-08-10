@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3394C25B07
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 22:29:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 407B1C00140
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 22:34:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229487AbiHJW3d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Aug 2022 18:29:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60892 "EHLO
+        id S233526AbiHJWeY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Aug 2022 18:34:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231214AbiHJW3T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2022 18:29:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBFE88D3F8
-        for <mm-commits@vger.kernel.org>; Wed, 10 Aug 2022 15:29:18 -0700 (PDT)
+        with ESMTP id S233468AbiHJWeX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2022 18:34:23 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5400AE0C5;
+        Wed, 10 Aug 2022 15:34:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9DD8BB81E93
-        for <mm-commits@vger.kernel.org>; Wed, 10 Aug 2022 22:29:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 563AEC433D6;
-        Wed, 10 Aug 2022 22:29:16 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 07902B81EAC;
+        Wed, 10 Aug 2022 22:34:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5531C433C1;
+        Wed, 10 Aug 2022 22:34:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660170556;
-        bh=5CFRU6oSLfRA9hbz0GZdKCT26fau5DOeZVsxj15Atuw=;
+        s=korg; t=1660170859;
+        bh=h1w59x0nilG7MlwHoQNAlNWwsL0G4Z5o38QQ4AyZNcI=;
         h=Date:To:From:Subject:From;
-        b=1b8cwwbqG6Bzok8ZEKXImlCEopU9t7YXZD2WAVfQgiR3mlJRaDXaDp3L7163UStLo
-         w/9lKkxF5VjF5x/oOOshp1bUIoXteEtSgf0ozN3d7DCqIhct6KyHGuuJaZZRbyCSYC
-         r83ulwzQ8hr5x7hbaPXr+JajVRrv0stGH/f2olPM=
-Date:   Wed, 10 Aug 2022 15:29:15 -0700
-To:     mm-commits@vger.kernel.org, gregkh@linuxfoundation.org,
-        arnd@arndb.de, alan@lxorguk.ukuu.org.uk, dan.carpenter@oracle.com,
-        akpm@linux-foundation.org
+        b=sTqkOgQ1mvLT95Flh+FNMTXQvTzldixL5F02kohw3K4rzny/c2BgEJ9Wt9RV+DaHk
+         x6MRXBu9T9nVcsomUMTIggC+zxzWHecsR7ZmdZHs3WRhVsEbqrMjhM32OZbmthC65m
+         oQufMDiMH1c63hqEjZfzDif0s3qgBAz3Fda4n88I=
+Date:   Wed, 10 Aug 2022 15:34:18 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        senozhatsky@chromium.org, ngupta@vflare.org, minchan@kernel.org,
+        lczerner@redhat.com, ddrokosov@sberdevices.ru,
+        avromanov@sberdevices.ru, jslaby@suse.cz, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + get_maintainer-add-alan-to-get_maintainerignore.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220810222916.563AEC433D6@smtp.kernel.org>
+Subject: + revert-zram-remove-double-compression-logic.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220810223419.A5531C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: add Alan to .get_maintainer.ignore
+     Subject: Revert "zram: remove double compression logic"
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     get_maintainer-add-alan-to-get_maintainerignore.patch
+     revert-zram-remove-double-compression-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainer-add-alan-to-get_maintainerignore.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-zram-remove-double-compression-logic.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,33 +66,155 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: get_maintainer: add Alan to .get_maintainer.ignore
-Date: Wed, 10 Aug 2022 12:18:08 +0300
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: Revert "zram: remove double compression logic"
+Date: Wed, 10 Aug 2022 09:06:09 +0200
 
-Alan asked to be added to the .get_maintainer.ignore list.
+This reverts commit e7be8d1dd983156b ("zram: remove double compression
+logic") as it causes zram failures.  It does not revert cleanly, PTR_ERR
+handling was introduced in the meantime.  This is handled by appropriate
+IS_ERR.
 
-Link: https://lkml.kernel.org/r/YvN30KhO9aD5Sza9@kili
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+When under memory pressure, zs_malloc() can fail.  Before the above
+commit, the allocation was retried with direct reclaim enabled (GFP_NOIO).
+After the commit, it is not -- only __GFP_KSWAPD_RECLAIM is tried.
+
+So when the failure occurs under memory pressure, the overlaying
+filesystem such as ext2 (mounted by ext4 module in this case) can emit
+failures, making the (file)system unusable:
+  EXT4-fs warning (device zram0): ext4_end_bio:343: I/O error 10 writing to inode 16386 starting block 159744)
+  Buffer I/O error on device zram0, logical block 159744
+
+With direct reclaim, memory is really reclaimed and allocation succeeds,
+eventually.  In the worst case, the oom killer is invoked, which is proper
+outcome if user sets up zram too large (in comparison to available RAM).
+
+This very diff doesn't apply to 5.19 (stable) cleanly (see PTR_ERR note
+above). Use revert of e7be8d1dd983 directly.
+
+Link: https://bugzilla.suse.com/show_bug.cgi?id=1202203
+Link: https://lkml.kernel.org/r/20220810070609.14402-1-jslaby@suse.cz
+Fixes: e7be8d1dd983 ("zram: remove double compression logic")
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Alexey Romanov <avromanov@sberdevices.ru>
+Cc: Dmitry Rokosov <ddrokosov@sberdevices.ru>
+Cc: Lukas Czerner <lczerner@redhat.com>
+Cc: <stable@vger.kernel.org>	[5.19]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .get_maintainer.ignore |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/block/zram/zram_drv.c |   42 ++++++++++++++++++++++++--------
+ drivers/block/zram/zram_drv.h |    1 
+ 2 files changed, 33 insertions(+), 10 deletions(-)
 
---- a/.get_maintainer.ignore~get_maintainer-add-alan-to-get_maintainerignore
-+++ a/.get_maintainer.ignore
-@@ -1,2 +1,4 @@
-+Alan Cox <alan@lxorguk.ukuu.org.uk>
-+Alan Cox <root@hraefn.swansea.linux.org.uk>
- Christoph Hellwig <hch@lst.de>
- Marc Gonzalez <marc.w.gonzalez@free.fr>
+--- a/drivers/block/zram/zram_drv.c~revert-zram-remove-double-compression-logic
++++ a/drivers/block/zram/zram_drv.c
+@@ -1146,14 +1146,15 @@ static ssize_t bd_stat_show(struct devic
+ static ssize_t debug_stat_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	int version = 2;
++	int version = 1;
+ 	struct zram *zram = dev_to_zram(dev);
+ 	ssize_t ret;
+ 
+ 	down_read(&zram->init_lock);
+ 	ret = scnprintf(buf, PAGE_SIZE,
+-			"version: %d\n%8llu\n",
++			"version: %d\n%8llu %8llu\n",
+ 			version,
++			(u64)atomic64_read(&zram->stats.writestall),
+ 			(u64)atomic64_read(&zram->stats.miss_free));
+ 	up_read(&zram->init_lock);
+ 
+@@ -1351,7 +1352,7 @@ static int __zram_bvec_write(struct zram
+ {
+ 	int ret = 0;
+ 	unsigned long alloced_pages;
+-	unsigned long handle = 0;
++	unsigned long handle = -ENOMEM;
+ 	unsigned int comp_len = 0;
+ 	void *src, *dst, *mem;
+ 	struct zcomp_strm *zstrm;
+@@ -1369,6 +1370,7 @@ static int __zram_bvec_write(struct zram
+ 	}
+ 	kunmap_atomic(mem);
+ 
++compress_again:
+ 	zstrm = zcomp_stream_get(zram->comp);
+ 	src = kmap_atomic(page);
+ 	ret = zcomp_compress(zstrm, src, &comp_len);
+@@ -1377,20 +1379,39 @@ static int __zram_bvec_write(struct zram
+ 	if (unlikely(ret)) {
+ 		zcomp_stream_put(zram->comp);
+ 		pr_err("Compression failed! err=%d\n", ret);
++		zs_free(zram->mem_pool, handle);
+ 		return ret;
+ 	}
+ 
+ 	if (comp_len >= huge_class_size)
+ 		comp_len = PAGE_SIZE;
+-
+-	handle = zs_malloc(zram->mem_pool, comp_len,
+-			__GFP_KSWAPD_RECLAIM |
+-			__GFP_NOWARN |
+-			__GFP_HIGHMEM |
+-			__GFP_MOVABLE);
+-
++	/*
++	 * handle allocation has 2 paths:
++	 * a) fast path is executed with preemption disabled (for
++	 *  per-cpu streams) and has __GFP_DIRECT_RECLAIM bit clear,
++	 *  since we can't sleep;
++	 * b) slow path enables preemption and attempts to allocate
++	 *  the page with __GFP_DIRECT_RECLAIM bit set. we have to
++	 *  put per-cpu compression stream and, thus, to re-do
++	 *  the compression once handle is allocated.
++	 *
++	 * if we have a 'non-null' handle here then we are coming
++	 * from the slow path and handle has already been allocated.
++	 */
++	if (IS_ERR((void *)handle))
++		handle = zs_malloc(zram->mem_pool, comp_len,
++				__GFP_KSWAPD_RECLAIM |
++				__GFP_NOWARN |
++				__GFP_HIGHMEM |
++				__GFP_MOVABLE);
+ 	if (IS_ERR((void *)handle)) {
+ 		zcomp_stream_put(zram->comp);
++		atomic64_inc(&zram->stats.writestall);
++		handle = zs_malloc(zram->mem_pool, comp_len,
++				GFP_NOIO | __GFP_HIGHMEM |
++				__GFP_MOVABLE);
++		if (!IS_ERR((void *)handle))
++			goto compress_again;
+ 		return PTR_ERR((void *)handle);
+ 	}
+ 
+@@ -1948,6 +1969,7 @@ static int zram_add(void)
+ 	if (ZRAM_LOGICAL_BLOCK_SIZE == PAGE_SIZE)
+ 		blk_queue_max_write_zeroes_sectors(zram->disk->queue, UINT_MAX);
+ 
++	blk_queue_flag_set(QUEUE_FLAG_STABLE_WRITES, zram->disk->queue);
+ 	ret = device_add_disk(NULL, zram->disk, zram_disk_groups);
+ 	if (ret)
+ 		goto out_cleanup_disk;
+--- a/drivers/block/zram/zram_drv.h~revert-zram-remove-double-compression-logic
++++ a/drivers/block/zram/zram_drv.h
+@@ -81,6 +81,7 @@ struct zram_stats {
+ 	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
+ 	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
++	atomic64_t writestall;		/* no. of write slow paths */
+ 	atomic64_t miss_free;		/* no. of missed free */
+ #ifdef	CONFIG_ZRAM_WRITEBACK
+ 	atomic64_t bd_count;		/* no. of pages in backing device */
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
-get_maintainer-add-alan-to-get_maintainerignore.patch
+revert-zram-remove-double-compression-logic.patch
 
