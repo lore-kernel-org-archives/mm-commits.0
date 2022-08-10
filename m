@@ -2,121 +2,160 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A64ADC19F2D
-	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 01:17:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D65F4C19F2D
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 01:31:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229967AbiHJBRq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Aug 2022 21:17:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41648 "EHLO
+        id S229869AbiHJBal (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Aug 2022 21:30:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229862AbiHJBRp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2022 21:17:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D32A606A4;
-        Tue,  9 Aug 2022 18:17:44 -0700 (PDT)
+        with ESMTP id S230012AbiHJBaS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2022 21:30:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22046137
+        for <mm-commits@vger.kernel.org>; Tue,  9 Aug 2022 18:30:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CD0B161233;
-        Wed, 10 Aug 2022 01:17:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09280C433D7;
-        Wed, 10 Aug 2022 01:17:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B241061255
+        for <mm-commits@vger.kernel.org>; Wed, 10 Aug 2022 01:30:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0847FC433C1;
+        Wed, 10 Aug 2022 01:30:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660094263;
-        bh=kLAFyrpdrl8QdNdjD7r3oy6bGtZvjGcHF8LMVdgzi6g=;
-        h=Date:From:To:Cc:Subject:From;
-        b=RHKKtGkMx0G/oNfkv3eQ6tyCYu3amobQfOBC/CwgtQrSicHVhU48mFnhnAYW5kf3x
-         6xWd82pTqiQArk1ZqUkXDXFFBr7HaNNRKiXQ7NFdp3zwdjLWpWH8FhnvYMjzyUTnbL
-         8/C2y/qW/EOsf1/A7QnXDUhaVOGzo26U3Wg78kh8=
-Date:   Tue, 9 Aug 2022 18:17:42 -0700
+        s=korg; t=1660095015;
+        bh=+TtklDUhekqwzPOgJBVcT1H5jYzG3WoHU+6YH/KVvCQ=;
+        h=Date:To:From:Subject:From;
+        b=eimkyu5dXODAgECLPSHqa8Xtj7hc4q+HvZING7tVuMH9UAl8boc2okc0sqFxHuker
+         jWrPi3Qrifr0Pd87wqdn0vOWpQ0SzocftJe7VEk8vMKRSTCtJTxjYiP3VKLRpV+0dI
+         2iqhYsu1UF/5YQhcm6d8AawmoT3UQoRNfId1QXTo=
+Date:   Tue, 09 Aug 2022 18:30:14 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tkjos@android.com,
+        surenb@google.com, omosnace@redhat.com, minchan@kernel.org,
+        maco@android.com, Liam.Howlett@oracle.com, joel@joelfernandes.org,
+        hridya@google.com, gregkh@linuxfoundation.org, cmllamas@google.com,
+        brauner@kernel.org, arve@android.com, liam.howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] remaining MM updates for 5.20-r1
-Message-Id: <20220809181742.30eb3ee4071d2b8bb81bc959@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: + binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220810013015.0847FC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-Three patch series - two that perform cleanups and one feature.
+The patch titled
+     Subject: binder_alloc: add missing mmap_lock calls when using the VMA
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
 
-The following changes since commit c8a684e2e110376c58f0bfa30fb3855d1e319670:
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Merge tag 'leds-5.20-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/pavel/linux-leds (2022-08-08 11:36:21 -0700)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-08-09
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-for you to fetch changes up to a9e9c93966afdaae74a6a7533552391646b93f2c:
+------------------------------------------------------
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: binder_alloc: add missing mmap_lock calls when using the VMA
+Date: Tue, 9 Aug 2022 16:06:31 +0000
 
-  Documentation/mm: add details about kmap_local_page() and preemption (2022-08-08 18:06:46 -0700)
+Take the mmap_read_lock() when using the VMA in binder_alloc_print_pages()
+and when checking for a VMA in binder_alloc_new_buf_locked().
 
-----------------------------------------------------------------
-- hugetlb_vmemmap cleanups from Muchun Song
+It is worth noting binder_alloc_new_buf_locked() drops the VMA read lock
+after it verifies a VMA exists, but may be taken again deeper in the call
+stack, if necessary.
 
-- hardware poisoning support for 1GB hugepages, from Naoya Horiguchi
+Link: https://lkml.kernel.org/r/20220809160618.1052539-1-Liam.Howlett@oracle.com
+Fixes: a43cfc87caaf ("android: binder: stop saving a pointer to the VMA")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Ondrej Mosnacek <omosnace@redhat.com>
+Reported-by: syzbot+a7b60a176ec13cafb793@syzkaller.appspotmail.com
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hridya Valsaraju <hridya@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Martijn Coenen <maco@android.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Todd Kjos <tkjos@android.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Arve Hjønnevåg" <arve@android.com>
+Cc: Carlos Llamas <cmllamas@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-- highmem documentation fixups from Fabio De Francesco
+ drivers/android/binder_alloc.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
-----------------------------------------------------------------
-Fabio M. De Francesco (7):
-      highmem: remove unneeded spaces in kmap_local_page() kdocs
-      highmem: specify that kmap_local_page() is callable from interrupts
-      Documentation/mm: don't kmap*() pages which can't come from HIGHMEM
-      Documentation/mm: avoid invalid use of addresses from kmap_local_page()
-      Documentation/mm: rrefer kmap_local_page() and avoid kmap()
-      highmem: delete a sentence from kmap_local_page() kdocs
-      Documentation/mm: add details about kmap_local_page() and preemption
+--- a/drivers/android/binder_alloc.c~binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma
++++ a/drivers/android/binder_alloc.c
+@@ -402,12 +402,15 @@ static struct binder_buffer *binder_allo
+ 	size_t size, data_offsets_size;
+ 	int ret;
+ 
++	mmap_read_lock(alloc->vma_vm_mm);
+ 	if (!binder_alloc_get_vma(alloc)) {
++		mmap_read_unlock(alloc->vma_vm_mm);
+ 		binder_alloc_debug(BINDER_DEBUG_USER_ERROR,
+ 				   "%d: binder_alloc_buf, no vma\n",
+ 				   alloc->pid);
+ 		return ERR_PTR(-ESRCH);
+ 	}
++	mmap_read_unlock(alloc->vma_vm_mm);
+ 
+ 	data_offsets_size = ALIGN(data_size, sizeof(void *)) +
+ 		ALIGN(offsets_size, sizeof(void *));
+@@ -929,17 +932,23 @@ void binder_alloc_print_pages(struct seq
+ 	 * Make sure the binder_alloc is fully initialized, otherwise we might
+ 	 * read inconsistent state.
+ 	 */
+-	if (binder_alloc_get_vma(alloc) != NULL) {
+-		for (i = 0; i < alloc->buffer_size / PAGE_SIZE; i++) {
+-			page = &alloc->pages[i];
+-			if (!page->page_ptr)
+-				free++;
+-			else if (list_empty(&page->lru))
+-				active++;
+-			else
+-				lru++;
+-		}
++
++	mmap_read_lock(alloc->vma_vm_mm);
++	if (binder_alloc_get_vma(alloc) == NULL)
++		goto uninitialized;
++
++	for (i = 0; i < alloc->buffer_size / PAGE_SIZE; i++) {
++		page = &alloc->pages[i];
++		if (!page->page_ptr)
++			free++;
++		else if (list_empty(&page->lru))
++			active++;
++		else
++			lru++;
+ 	}
++
++uninitialized:
++	mmap_read_unlock(alloc->vma_vm_mm);
+ 	mutex_unlock(&alloc->mutex);
+ 	seq_printf(m, "  pages: %d:%d:%d\n", active, lru, free);
+ 	seq_printf(m, "  pages high watermark: %zu\n", alloc->pages_high);
+_
 
-Muchun Song (8):
-      mm: hugetlb_vmemmap: delete hugetlb_optimize_vmemmap_enabled()
-      mm: hugetlb_vmemmap: optimize vmemmap_optimize_mode handling
-      mm: hugetlb_vmemmap: introduce the name HVO
-      mm: hugetlb_vmemmap: move vmemmap code related to HugeTLB to hugetlb_vmemmap.c
-      mm: hugetlb_vmemmap: replace early_param() with core_param()
-      mm: hugetlb_vmemmap: improve hugetlb_vmemmap code readability
-      mm: hugetlb_vmemmap: move code comments to vmemmap_dedup.rst
-      mm: hugetlb_vmemmap: use PTRS_PER_PTE instead of PMD_SIZE / PAGE_SIZE
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-Naoya Horiguchi (8):
-      mm/hugetlb: check gigantic_page_runtime_supported() in return_unused_surplus_pages()
-      mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present pud entry
-      mm, hwpoison, hugetlb: support saving mechanism of raw error pages
-      mm, hwpoison: make unpoison aware of raw error info in hwpoisoned hugepage
-      mm, hwpoison: set PG_hwpoison for busy hugetlb pages
-      mm, hwpoison: make __page_handle_poison returns int
-      mm, hwpoison: skip raw hwpoison page in freeing 1GB hugepage
-      mm, hwpoison: enable memory error handling on 1GB hugepage
-
- Documentation/admin-guide/kernel-parameters.txt |   7 +-
- Documentation/admin-guide/mm/hugetlbpage.rst    |   4 +-
- Documentation/admin-guide/mm/memory-hotplug.rst |   4 +-
- Documentation/admin-guide/sysctl/vm.rst         |   3 +-
- Documentation/mm/highmem.rst                    |  31 +-
- Documentation/mm/vmemmap_dedup.rst              |  72 ++-
- arch/arm64/mm/flush.c                           |  13 +-
- arch/x86/mm/hugetlbpage.c                       |   8 +-
- fs/Kconfig                                      |  12 +-
- include/linux/highmem.h                         |   7 +-
- include/linux/hugetlb.h                         |  24 +-
- include/linux/mm.h                              |   9 +-
- include/linux/page-flags.h                      |  32 +-
- include/linux/swapops.h                         |   9 +
- include/linux/sysctl.h                          |   4 +
- include/ras/ras_event.h                         |   1 -
- mm/hugetlb.c                                    |  73 ++-
- mm/hugetlb_vmemmap.c                            | 589 ++++++++++++++++++------
- mm/hugetlb_vmemmap.h                            |  45 +-
- mm/memory-failure.c                             | 179 +++++--
- mm/sparse-vmemmap.c                             | 399 ----------------
- 21 files changed, 823 insertions(+), 702 deletions(-)
+binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
 
