@@ -2,99 +2,121 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86E06C25B0C
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Aug 2022 01:15:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A64ADC19F2D
+	for <mm-commits@archiver.kernel.org>; Wed, 10 Aug 2022 01:17:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244649AbiHIBPm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Aug 2022 21:15:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57772 "EHLO
+        id S229967AbiHJBRq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Aug 2022 21:17:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244736AbiHIBPL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 8 Aug 2022 21:15:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 514FF1E3D5
-        for <mm-commits@vger.kernel.org>; Mon,  8 Aug 2022 18:14:44 -0700 (PDT)
+        with ESMTP id S229862AbiHJBRp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2022 21:17:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D32A606A4;
+        Tue,  9 Aug 2022 18:17:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1292EB81116
-        for <mm-commits@vger.kernel.org>; Tue,  9 Aug 2022 01:14:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C307EC433C1;
-        Tue,  9 Aug 2022 01:14:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CD0B161233;
+        Wed, 10 Aug 2022 01:17:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09280C433D7;
+        Wed, 10 Aug 2022 01:17:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660007681;
-        bh=9pZRJ843bwyC96KKTvome1O3uDyAGRxpm7G512qi/oM=;
-        h=Date:To:From:Subject:From;
-        b=u7/lhyerA6La8OP6pVrWbv1SLuUC/X+DX+EyZh6hFzyHkajHloi4ylOPIFAbSQ9sc
-         Ki7nHfyhocgFk65LKFQgCjUK2GtbM3umS4sqA8XNa1Er4njkXpXfs9IPQydidwNQeI
-         xXJy2nuQ+RNxY85xe5m3OF72aFolxTySetFqHkWw=
-Date:   Mon, 08 Aug 2022 18:14:41 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
-        vbabka@suse.cz, tglx@linutronix.de, rppt@linux.ibm.com,
-        pcc@google.com, ira.weiny@intel.com, corbet@lwn.net,
-        catalin.marinas@arm.com, bigeasy@linutronix.de,
-        fmdefrancesco@gmail.com, akpm@linux-foundation.org
+        s=korg; t=1660094263;
+        bh=kLAFyrpdrl8QdNdjD7r3oy6bGtZvjGcHF8LMVdgzi6g=;
+        h=Date:From:To:Cc:Subject:From;
+        b=RHKKtGkMx0G/oNfkv3eQ6tyCYu3amobQfOBC/CwgtQrSicHVhU48mFnhnAYW5kf3x
+         6xWd82pTqiQArk1ZqUkXDXFFBr7HaNNRKiXQ7NFdp3zwdjLWpWH8FhnvYMjzyUTnbL
+         8/C2y/qW/EOsf1/A7QnXDUhaVOGzo26U3Wg78kh8=
+Date:   Tue, 9 Aug 2022 18:17:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] highmem-delete-a-sentence-from-kmap_local_page-kdocs.patch removed from -mm tree
-Message-Id: <20220809011441.C307EC433C1@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] remaining MM updates for 5.20-r1
+Message-Id: <20220809181742.30eb3ee4071d2b8bb81bc959@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: highmem: delete a sentence from kmap_local_page() kdocs
-has been removed from the -mm tree.  Its filename was
-     highmem-delete-a-sentence-from-kmap_local_page-kdocs.patch
+Three patch series - two that perform cleanups and one feature.
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-------------------------------------------------------
-From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Subject: highmem: delete a sentence from kmap_local_page() kdocs
-Date: Thu, 28 Jul 2022 17:48:43 +0200
+The following changes since commit c8a684e2e110376c58f0bfa30fb3855d1e319670:
 
-kmap_local_page() should always be preferred in place of kmap() and
-kmap_atomic().  "Only use when really necessary." is not consistent with
-the Documentation/mm/highmem.rst and these kdocs it embeds.
+  Merge tag 'leds-5.20-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/pavel/linux-leds (2022-08-08 11:36:21 -0700)
 
-Therefore, delete the above-mentioned sentence from kdocs.
+are available in the Git repository at:
 
-Link: https://lkml.kernel.org/r/20220728154844.10874-7-fmdefrancesco@gmail.com
-Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
-Suggested-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2022-08-09
 
- include/linux/highmem.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+for you to fetch changes up to a9e9c93966afdaae74a6a7533552391646b93f2c:
 
---- a/include/linux/highmem.h~highmem-delete-a-sentence-from-kmap_local_page-kdocs
-+++ a/include/linux/highmem.h
-@@ -86,8 +86,7 @@ static inline void kmap_flush_unused(voi
-  * temporarily mapped.
-  *
-  * While it is significantly faster than kmap() for the higmem case it
-- * comes with restrictions about the pointer validity. Only use when really
-- * necessary.
-+ * comes with restrictions about the pointer validity.
-  *
-  * On HIGHMEM enabled systems mapping a highmem page has the side effect of
-  * disabling migration in order to keep the virtual address stable across
-_
+  Documentation/mm: add details about kmap_local_page() and preemption (2022-08-08 18:06:46 -0700)
 
-Patches currently in -mm which might be from fmdefrancesco@gmail.com are
+----------------------------------------------------------------
+- hugetlb_vmemmap cleanups from Muchun Song
 
+- hardware poisoning support for 1GB hugepages, from Naoya Horiguchi
+
+- highmem documentation fixups from Fabio De Francesco
+
+----------------------------------------------------------------
+Fabio M. De Francesco (7):
+      highmem: remove unneeded spaces in kmap_local_page() kdocs
+      highmem: specify that kmap_local_page() is callable from interrupts
+      Documentation/mm: don't kmap*() pages which can't come from HIGHMEM
+      Documentation/mm: avoid invalid use of addresses from kmap_local_page()
+      Documentation/mm: rrefer kmap_local_page() and avoid kmap()
+      highmem: delete a sentence from kmap_local_page() kdocs
+      Documentation/mm: add details about kmap_local_page() and preemption
+
+Muchun Song (8):
+      mm: hugetlb_vmemmap: delete hugetlb_optimize_vmemmap_enabled()
+      mm: hugetlb_vmemmap: optimize vmemmap_optimize_mode handling
+      mm: hugetlb_vmemmap: introduce the name HVO
+      mm: hugetlb_vmemmap: move vmemmap code related to HugeTLB to hugetlb_vmemmap.c
+      mm: hugetlb_vmemmap: replace early_param() with core_param()
+      mm: hugetlb_vmemmap: improve hugetlb_vmemmap code readability
+      mm: hugetlb_vmemmap: move code comments to vmemmap_dedup.rst
+      mm: hugetlb_vmemmap: use PTRS_PER_PTE instead of PMD_SIZE / PAGE_SIZE
+
+Naoya Horiguchi (8):
+      mm/hugetlb: check gigantic_page_runtime_supported() in return_unused_surplus_pages()
+      mm/hugetlb: make pud_huge() and follow_huge_pud() aware of non-present pud entry
+      mm, hwpoison, hugetlb: support saving mechanism of raw error pages
+      mm, hwpoison: make unpoison aware of raw error info in hwpoisoned hugepage
+      mm, hwpoison: set PG_hwpoison for busy hugetlb pages
+      mm, hwpoison: make __page_handle_poison returns int
+      mm, hwpoison: skip raw hwpoison page in freeing 1GB hugepage
+      mm, hwpoison: enable memory error handling on 1GB hugepage
+
+ Documentation/admin-guide/kernel-parameters.txt |   7 +-
+ Documentation/admin-guide/mm/hugetlbpage.rst    |   4 +-
+ Documentation/admin-guide/mm/memory-hotplug.rst |   4 +-
+ Documentation/admin-guide/sysctl/vm.rst         |   3 +-
+ Documentation/mm/highmem.rst                    |  31 +-
+ Documentation/mm/vmemmap_dedup.rst              |  72 ++-
+ arch/arm64/mm/flush.c                           |  13 +-
+ arch/x86/mm/hugetlbpage.c                       |   8 +-
+ fs/Kconfig                                      |  12 +-
+ include/linux/highmem.h                         |   7 +-
+ include/linux/hugetlb.h                         |  24 +-
+ include/linux/mm.h                              |   9 +-
+ include/linux/page-flags.h                      |  32 +-
+ include/linux/swapops.h                         |   9 +
+ include/linux/sysctl.h                          |   4 +
+ include/ras/ras_event.h                         |   1 -
+ mm/hugetlb.c                                    |  73 ++-
+ mm/hugetlb_vmemmap.c                            | 589 ++++++++++++++++++------
+ mm/hugetlb_vmemmap.h                            |  45 +-
+ mm/memory-failure.c                             | 179 +++++--
+ mm/sparse-vmemmap.c                             | 399 ----------------
+ 21 files changed, 823 insertions(+), 702 deletions(-)
 
