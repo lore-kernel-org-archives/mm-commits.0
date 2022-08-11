@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3992FC00140
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 01:25:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58EE2C00140
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 01:26:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230251AbiHKBZq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Aug 2022 21:25:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57856 "EHLO
+        id S233459AbiHKB0u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Aug 2022 21:26:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58444 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233506AbiHKBZo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2022 21:25:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B47AA65670
-        for <mm-commits@vger.kernel.org>; Wed, 10 Aug 2022 18:25:43 -0700 (PDT)
+        with ESMTP id S233449AbiHKB0t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2022 21:26:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04F1E83BC1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Aug 2022 18:26:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A1B661199
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 01:25:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A68CBC433D6;
-        Thu, 11 Aug 2022 01:25:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 905A46119D
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 01:26:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E114DC433D6;
+        Thu, 11 Aug 2022 01:26:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660181142;
-        bh=jNe1WGqGYBnM1Hk6Ex7L3F0Om4Ar59E6AZRIHUlHvnU=;
+        s=korg; t=1660181208;
+        bh=t3xFInQPraOVLI3WBAjdFMVIDowbJD8gYLbzmKEUHTU=;
         h=Date:To:From:Subject:From;
-        b=GuqV0+Y40SOyKxCy2eUBMuObqvs44bI3/TjqrX+TDARmVxpfHtu4ClKuqUZDXluid
-         RaryrMh4D0Q05Cpv+lM753uWPJ+ZsJ3WkDUBwLeMNNU3Pymb5eAWnd9jFqq9ay/Jl6
-         AdLbp4MPZztqj2Pa+lg4JgE/HP71jHGCIKgf8vkk=
-Date:   Wed, 10 Aug 2022 18:25:41 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
-        shy828301@gmail.com, khlebnikov@openvz.org, david@redhat.com,
-        peterx@redhat.com, akpm@linux-foundation.org
+        b=qKUiDaDpZxSmqKi/0YBMz7tgDDqQQwIF3al/Th6FSA+CQfAvHUv3aD2WBS7aagmLp
+         67Bp5d04DNfuAOo51Ck2Oo9Wp99owAKoqL3nlY3j7BO72CnIaLqKLBru9akKJE0SGI
+         EWgfVSDBLdkLjCVeYSa5k+GJy64nx3A7kbjej324=
+Date:   Wed, 10 Aug 2022 18:26:47 -0700
+To:     mm-commits@vger.kernel.org, longman@redhat.com,
+        ebiederm@xmission.com, dave@stgolabs.net, 1vier1@web.de,
+        manfred@colorfullife.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220811012542.A68CBC433D6@smtp.kernel.org>
+Subject: + ipc-utilc-cleanup-and-improve-sysvipc_find_ipc-v3.patch added to mm-nonmm-unstable branch
+Message-Id: <20220811012647.E114DC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/smaps: don't access young/dirty bit if pte unpresent
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent.patch
+     Subject: ipc/util.c: cleanup and improve sysvipc_find_ipc()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ipc-utilc-cleanup-and-improve-sysvipc_find_ipc-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-utilc-cleanup-and-improve-sysvipc_find_ipc-v3.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,91 +65,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/smaps: don't access young/dirty bit if pte unpresent
-Date: Fri, 5 Aug 2022 12:00:03 -0400
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/util.c: cleanup and improve sysvipc_find_ipc()
+Date: Fri, 5 Aug 2022 13:57:33 +0200
 
-These bits should only be valid when the ptes are present.  Introducing
-two booleans for it and set it to false when !pte_present() for both pte
-and pmd accountings.
+sysvipc_find_ipc() can be simplified further:
 
-The bug is found during code reading and no real world issue reported, but
-logically such an error can cause incorrect readings for either smaps or
-smaps_rollup output on quite a few fields.
+- It uses a for() loop to locate the next entry in the idr.
+  This can be replaced with idr_get_next().
 
-For example, it could cause over-estimate on values like Shared_Dirty,
-Private_Dirty, Referenced.  Or it could also cause under-estimate on
-values like LazyFree, Shared_Clean, Private_Clean.
+- It receives two parameters (pos - which is actually
+  an idr index and not a position, and new_pos, which
+  is really a position).
+  One parameter is sufficient.
 
-Link: https://lkml.kernel.org/r/20220805160003.58929-1-peterx@redhat.com
-Fixes: b1d4d9e0cbd0 ("proc/smaps: carefully handle migration entries")
-Fixes: c94b6923fa0a ("/proc/PID/smaps: Add PMD migration entry parsing")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Huang Ying <ying.huang@intel.com>
+Link: https://lore.kernel.org/all/20210903052020.3265-3-manfred@colorfullife.com/
+Link: https://lkml.kernel.org/r/20220805115733.104763-1-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: Waiman Long <longman@redhat.com>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: <1vier1@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ ipc/util.c |   53 ++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 32 insertions(+), 21 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent
-+++ a/fs/proc/task_mmu.c
-@@ -527,10 +527,12 @@ static void smaps_pte_entry(pte_t *pte,
- 	struct vm_area_struct *vma = walk->vma;
- 	bool locked = !!(vma->vm_flags & VM_LOCKED);
- 	struct page *page = NULL;
--	bool migration = false;
-+	bool migration = false, young = false, dirty = false;
- 
- 	if (pte_present(*pte)) {
- 		page = vm_normal_page(vma, addr, *pte);
-+		young = pte_young(*pte);
-+		dirty = pte_dirty(*pte);
- 	} else if (is_swap_pte(*pte)) {
- 		swp_entry_t swpent = pte_to_swp_entry(*pte);
- 
-@@ -560,8 +562,7 @@ static void smaps_pte_entry(pte_t *pte,
- 	if (!page)
- 		return;
- 
--	smaps_account(mss, page, false, pte_young(*pte), pte_dirty(*pte),
--		      locked, migration);
-+	smaps_account(mss, page, false, young, dirty, locked, migration);
+--- a/ipc/util.c~ipc-utilc-cleanup-and-improve-sysvipc_find_ipc-v3
++++ a/ipc/util.c
+@@ -782,28 +782,37 @@ struct pid_namespace *ipc_seq_pid_ns(str
+ 	return iter->pid_ns;
  }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -572,11 +573,13 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	struct vm_area_struct *vma = walk->vma;
- 	bool locked = !!(vma->vm_flags & VM_LOCKED);
- 	struct page *page = NULL;
--	bool migration = false;
-+	bool migration = false, young = false, dirty = false;
+-/*
+- * This routine locks the ipc structure found at least at position pos.
++/**
++ * sysvipc_find_ipc - Find and lock the ipc structure based on seq pos
++ * @ids: ipc identifier set
++ * @pos: expected position
++ *
++ * The function finds an ipc structure, based on the sequence file
++ * position @pos. If there is no ipc structure at position @pos, then
++ * the successor is selected.
++ * If a structure is found, then it is locked (both rcu_read_lock() and
++ * ipc_lock_object()) and  @pos is set to the position needed to locate
++ * the found ipc structure.
++ * If nothing is found (i.e. EOF), @pos is not modified.
++ *
++ * The function returns the found ipc structure, or NULL at EOF.
+  */
+-static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t pos,
+-					      loff_t *new_pos)
++static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t *pos)
+ {
+-	struct kern_ipc_perm *ipc = NULL;
+-	int max_idx = ipc_get_maxidx(ids);
++	int tmpidx;
++	struct kern_ipc_perm *ipc;
++
++	/* convert from position to idr index -> "-1" */
++	tmpidx = *pos - 1;
  
- 	if (pmd_present(*pmd)) {
- 		/* FOLL_DUMP will return -EFAULT on huge zero page */
- 		page = follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
-+		young = pmd_young(*pmd);
-+		dirty = pmd_dirty(*pmd);
- 	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
- 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
+-	if (max_idx == -1 || pos > max_idx)
+-		goto out;
++	ipc = idr_get_next(&ids->ipcs_idr, &tmpidx);
++	if (ipc != NULL) {
++		rcu_read_lock();
++		ipc_lock_object(ipc);
  
-@@ -596,8 +599,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	else
- 		mss->file_thp += HPAGE_PMD_SIZE;
- 
--	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd),
--		      locked, migration);
-+	smaps_account(mss, page, true, young, dirty, locked, migration);
+-	for (; pos <= max_idx; pos++) {
+-		ipc = idr_find(&ids->ipcs_idr, pos);
+-		if (ipc != NULL) {
+-			rcu_read_lock();
+-			ipc_lock_object(ipc);
+-			break;
+-		}
++		/* convert from idr index to position  -> "+1" */
++		*pos = tmpidx + 1;
+ 	}
+-out:
+-	*new_pos = pos + 1;
+ 	return ipc;
  }
- #else
- static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
+ 
+@@ -817,11 +826,13 @@ static void *sysvipc_proc_next(struct se
+ 	if (ipc && ipc != SEQ_START_TOKEN)
+ 		ipc_unlock(ipc);
+ 
+-	return sysvipc_find_ipc(&iter->ns->ids[iface->ids], *pos, pos);
++	/* Next -> search for *pos+1 */
++	(*pos)++;
++	return sysvipc_find_ipc(&iter->ns->ids[iface->ids], pos);
+ }
+ 
+ /*
+- * File positions: pos 0 -> header, pos n -> ipc id = n - 1.
++ * File positions: pos 0 -> header, pos n -> ipc idx = n - 1.
+  * SeqFile iterator: iterator value locked ipc pointer or SEQ_TOKEN_START.
+  */
+ static void *sysvipc_proc_start(struct seq_file *s, loff_t *pos)
+@@ -846,8 +857,8 @@ static void *sysvipc_proc_start(struct s
+ 	if (*pos == 0)
+ 		return SEQ_START_TOKEN;
+ 
+-	/* Find the (pos-1)th ipc */
+-	return sysvipc_find_ipc(ids, *pos - 1, pos);
++	/* Otherwise return the correct ipc structure */
++	return sysvipc_find_ipc(ids, pos);
+ }
+ 
+ static void sysvipc_proc_stop(struct seq_file *s, void *it)
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent.patch
+ipc-utilc-cleanup-and-improve-sysvipc_find_ipc-v3.patch
 
