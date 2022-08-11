@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 249F0C19F2A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:30:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E72BDC19F2A
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:38:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235962AbiHKVaI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 17:30:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35686 "EHLO
+        id S234259AbiHKVin (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Aug 2022 17:38:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235221AbiHKVaH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:30:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0628A9D8ED
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:30:06 -0700 (PDT)
+        with ESMTP id S234075AbiHKVim (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:38:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 899049F759
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:38:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AC926B822A2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:30:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5264BC433C1;
-        Thu, 11 Aug 2022 21:30:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 167B9614A3
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:38:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52C15C433C1;
+        Thu, 11 Aug 2022 21:38:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660253403;
-        bh=0mhgb32ELQCtsMFdgHG09yIecwi2v6347x2yK3VcvoA=;
+        s=korg; t=1660253919;
+        bh=b4WMb+jon/5sOEomQtnpYpwGTv+1n+yuUuMrZ+/UaTM=;
         h=Date:To:From:Subject:From;
-        b=EY8vj9UUiPAUBw/B735loMT3VDaxOPS8Ci0xQsv9bYK+ArlObdtWnJaSdbjp5x2om
-         hZ0xAhPdwxAR9S9ZVfPbt9xLVi56anEEglRLACnPPPoWROlNZZiq/mqmIWYQwvv3cv
-         ebcnfALeQjbeEVQVTq72ofufVm+GaGLvtHJ7v88c=
-Date:   Thu, 11 Aug 2022 14:30:02 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        songmuchun@bytedance.com, richard.weiyang@linux.alibaba.com,
-        mhocko@kernel.org, mgorman@techsingularity.net,
-        wuyun.abel@bytedance.com, akpm@linux-foundation.org
+        b=0QPzR+iRJbH3piBMnzRBO0xH/vSU3JlnFxogB+OV6+kZ7L9erS9ozwQu7mCbJxSzf
+         /lEdc4D4DYFl698E32doyFZdTy8T1kU96CfNaKrIGkcpoqYp1CGMCg6CxgJVPPiB7+
+         z+EG2SyVKaYwD069boIoObyA8pB55RCOIEJdNFpg=
+Date:   Thu, 11 Aug 2022 14:38:38 -0700
+To:     mm-commits@vger.kernel.org, ysato@users.osdn.me, vgupta@kernel.org,
+        tsbogend@alpha.franken.de, rth@twiddle.net, richard@nod.at,
+        monstr@monstr.eu, mattst88@gmail.com, keescook@chromium.org,
+        johannes@sipsolutions.net, jcmvbkbc@gmail.com,
+        ink@jurassic.park.msu.ru, dinguyen@kernel.org, dalias@libc.org,
+        chris@zankel.net, anton.ivanov@cambridgegreys.com, arnd@arndb.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-fix-lock-contention-on-mems_allowed.patch added to mm-unstable branch
-Message-Id: <20220811213003.5264BC433C1@smtp.kernel.org>
+Subject: + treewide-defconfig-address-renamed-config_debug_info=y.patch added to mm-nonmm-unstable branch
+Message-Id: <20220811213839.52C15C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: fix lock contention on mems_allowed
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-fix-lock-contention-on-mems_allowed.patch
+     Subject: treewide: defconfig: address renamed CONFIG_DEBUG_INFO=y
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     treewide-defconfig-address-renamed-config_debug_info=y.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-lock-contention-on-mems_allowed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-defconfig-address-renamed-config_debug_info=y.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,109 +69,492 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Abel Wu <wuyun.abel@bytedance.com>
-Subject: mm/mempolicy: fix lock contention on mems_allowed
-Date: Thu, 11 Aug 2022 20:41:57 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: treewide: defconfig: address renamed CONFIG_DEBUG_INFO=y
+Date: Thu, 11 Aug 2022 13:44:34 +0200
 
-The mems_allowed field can be modified by other tasks, so it isn't safe to
-access it with alloc_lock unlocked even in the current process context.
+CONFIG_DEBUG_INFO is now implicitly selected if one picks one of the
+explicit options that could be DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT,
+DEBUG_INFO_DWARF4, DEBUG_INFO_DWARF5.
 
-Say there are two tasks: A from cpusetA is performing set_mempolicy(2),
-and B is changing cpusetA's cpuset.mems:
+This was actually not what I had in mind when I suggested making it a
+'choice' statement, but it's too late to change again now, and the Kconfig
+logic is more sensible in the new form.
 
-  A (set_mempolicy)		B (echo xx > cpuset.mems)
-  -------------------------------------------------------
-  pol = mpol_new();
-				update_tasks_nodemask(cpusetA) {
-				  foreach t in cpusetA {
-				    cpuset_change_task_nodemask(t) {
-  mpol_set_nodemask(pol) {
-				      task_lock(t); // t could be A
-    new = f(A->mems_allowed);
-				      update t->mems_allowed;
-    pol.create(pol, new);
-				      task_unlock(t);
-  }
-				    }
-				  }
-				}
-  task_lock(A);
-  A->mempolicy = pol;
-  task_unlock(A);
+Change any defconfig file that had CONFIG_DEBUG_INFO enabled but did not
+pick DWARF4 or DWARF5 explicitly to now pick the toolchain default.
 
-In this case A's pol->nodes is computed by old mems_allowed, and could
-be inconsistent with A's new mems_allowed.
-
-While it is different when replacing vmas' policy: the pol->nodes is
-gone wild only when current_cpuset_is_being_rebound():
-
-  A (mbind)			B (echo xx > cpuset.mems)
-  -------------------------------------------------------
-  pol = mpol_new();
-  mmap_write_lock(A->mm);
-				cpuset_being_rebound = cpusetA;
-				update_tasks_nodemask(cpusetA) {
-				  foreach t in cpusetA {
-				    cpuset_change_task_nodemask(t) {
-  mpol_set_nodemask(pol) {
-				      task_lock(t); // t could be A
-    mask = f(A->mems_allowed);
-				      update t->mems_allowed;
-    pol.create(pol, mask);
-				      task_unlock(t);
-  }
-				    }
-  foreach v in A->mm {
-    if (cpuset_being_rebound == cpusetA)
-      pol.rebind(pol, cpuset.mems);
-    v->vma_policy = pol;
-  }
-  mmap_write_unlock(A->mm);
-				    mmap_write_lock(t->mm);
-				    mpol_rebind_mm(t->mm);
-				    mmap_write_unlock(t->mm);
-				  }
-				}
-				cpuset_being_rebound = NULL;
-
-In this case, the cpuset.mems, which has already done updating, is finally
-used for calculating pol->nodes, rather than A->mems_allowed.  So it is OK
-to call mpol_set_nodemask() with alloc_lock unlocked when doing mbind(2).
-
-Link: https://lkml.kernel.org/r/20220811124157.74888-1-wuyun.abel@bytedance.com
-Fixes: 78b132e9bae9 ("mm/mempolicy: remove or narrow the lock on current")
-Signed-off-by: Abel Wu <wuyun.abel@bytedance.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20220811114609.2097335-1-arnd@kernel.org
+Fixes: f9b3cd245784 ("Kconfig.debug: make DEBUG_INFO selectable from a choice")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Yoshinori Sato <ysato@users.osdn.me>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/alpha/configs/defconfig                |    2 +-
+ arch/arc/configs/tb10x_defconfig            |    2 +-
+ arch/microblaze/configs/mmu_defconfig       |    2 +-
+ arch/mips/configs/bcm47xx_defconfig         |    2 +-
+ arch/mips/configs/cavium_octeon_defconfig   |    2 +-
+ arch/mips/configs/ci20_defconfig            |    2 +-
+ arch/mips/configs/cu1000-neo_defconfig      |    2 +-
+ arch/mips/configs/cu1830-neo_defconfig      |    2 +-
+ arch/mips/configs/generic_defconfig         |    2 +-
+ arch/mips/configs/omega2p_defconfig         |    2 +-
+ arch/mips/configs/qi_lb60_defconfig         |    2 +-
+ arch/mips/configs/vocore2_defconfig         |    2 +-
+ arch/nios2/configs/10m50_defconfig          |    2 +-
+ arch/nios2/configs/3c120_defconfig          |    2 +-
+ arch/sh/configs/apsh4a3a_defconfig          |    2 +-
+ arch/sh/configs/apsh4ad0a_defconfig         |    2 +-
+ arch/sh/configs/edosk7760_defconfig         |    2 +-
+ arch/sh/configs/magicpanelr2_defconfig      |    2 +-
+ arch/sh/configs/polaris_defconfig           |    2 +-
+ arch/sh/configs/r7780mp_defconfig           |    2 +-
+ arch/sh/configs/r7785rp_defconfig           |    2 +-
+ arch/sh/configs/rsk7203_defconfig           |    2 +-
+ arch/sh/configs/sdk7780_defconfig           |    2 +-
+ arch/sh/configs/se7712_defconfig            |    2 +-
+ arch/sh/configs/se7721_defconfig            |    2 +-
+ arch/sh/configs/sh2007_defconfig            |    2 +-
+ arch/sh/configs/sh7757lcr_defconfig         |    2 +-
+ arch/sh/configs/sh7785lcr_32bit_defconfig   |    2 +-
+ arch/sh/configs/urquell_defconfig           |    2 +-
+ arch/um/configs/i386_defconfig              |    2 +-
+ arch/um/configs/x86_64_defconfig            |    2 +-
+ arch/xtensa/configs/audio_kc705_defconfig   |    2 +-
+ arch/xtensa/configs/cadence_csp_defconfig   |    2 +-
+ arch/xtensa/configs/generic_kc705_defconfig |    2 +-
+ arch/xtensa/configs/nommu_kc705_defconfig   |    2 +-
+ arch/xtensa/configs/smp_lx200_defconfig     |    2 +-
+ arch/xtensa/configs/virt_defconfig          |    2 +-
+ arch/xtensa/configs/xip_kc705_defconfig     |    2 +-
+ 38 files changed, 38 insertions(+), 38 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-lock-contention-on-mems_allowed
-+++ a/mm/mempolicy.c
-@@ -853,12 +853,14 @@ static long do_set_mempolicy(unsigned sh
- 		goto out;
- 	}
- 
-+	task_lock(current);
- 	ret = mpol_set_nodemask(new, nodes, scratch);
- 	if (ret) {
-+		task_unlock(current);
- 		mpol_put(new);
- 		goto out;
- 	}
--	task_lock(current);
-+
- 	old = current->mempolicy;
- 	current->mempolicy = new;
- 	if (new && new->mode == MPOL_INTERLEAVE)
+--- a/arch/alpha/configs/defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/alpha/configs/defconfig
+@@ -65,7 +65,7 @@ CONFIG_NFSD=m
+ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DEBUG_KERNEL=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_ALPHA_LEGACY_START_ADDRESS=y
+ CONFIG_MATHEMU=y
+ CONFIG_CRYPTO_HMAC=y
+--- a/arch/arc/configs/tb10x_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/arc/configs/tb10x_defconfig
+@@ -90,7 +90,7 @@ CONFIG_TMPFS=y
+ CONFIG_CONFIGFS_FS=y
+ # CONFIG_MISC_FILESYSTEMS is not set
+ # CONFIG_NETWORK_FILESYSTEMS is not set
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_DEBUG_FS=y
+ CONFIG_HEADERS_INSTALL=y
+--- a/arch/microblaze/configs/mmu_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/microblaze/configs/mmu_defconfig
+@@ -83,7 +83,7 @@ CONFIG_CIFS=y
+ CONFIG_CIFS_STATS2=y
+ CONFIG_ENCRYPTED_KEYS=y
+ CONFIG_DMA_CMA=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_KGDB=y
+ CONFIG_KGDB_TESTS=y
+ CONFIG_KGDB_KDB=y
+--- a/arch/mips/configs/bcm47xx_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/bcm47xx_defconfig
+@@ -72,7 +72,7 @@ CONFIG_LEDS_TRIGGER_TIMER=y
+ CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
+ CONFIG_CRC32_SARWATE=y
+ CONFIG_PRINTK_TIME=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_DEBUG_INFO_REDUCED=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_DEBUG_FS=y
+--- a/arch/mips/configs/cavium_octeon_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/cavium_octeon_defconfig
+@@ -162,7 +162,7 @@ CONFIG_CRYPTO_SHA1_OCTEON=m
+ CONFIG_CRYPTO_SHA256_OCTEON=m
+ CONFIG_CRYPTO_SHA512_OCTEON=m
+ CONFIG_CRYPTO_DES=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_DEBUG_FS=y
+ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_SCHED_DEBUG is not set
+--- a/arch/mips/configs/ci20_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/ci20_defconfig
+@@ -199,7 +199,7 @@ CONFIG_NLS_UTF8=y
+ CONFIG_DMA_CMA=y
+ CONFIG_CMA_SIZE_MBYTES=32
+ CONFIG_PRINTK_TIME=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DEBUG_FS=y
+--- a/arch/mips/configs/cu1000-neo_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/cu1000-neo_defconfig
+@@ -113,7 +113,7 @@ CONFIG_PRINTK_TIME=y
+ CONFIG_CONSOLE_LOGLEVEL_DEFAULT=15
+ CONFIG_CONSOLE_LOGLEVEL_QUIET=15
+ CONFIG_MESSAGE_LOGLEVEL_DEFAULT=7
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DEBUG_FS=y
+--- a/arch/mips/configs/cu1830-neo_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/cu1830-neo_defconfig
+@@ -116,7 +116,7 @@ CONFIG_PRINTK_TIME=y
+ CONFIG_CONSOLE_LOGLEVEL_DEFAULT=15
+ CONFIG_CONSOLE_LOGLEVEL_QUIET=15
+ CONFIG_MESSAGE_LOGLEVEL_DEFAULT=7
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DEBUG_FS=y
+--- a/arch/mips/configs/generic_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/generic_defconfig
+@@ -83,7 +83,7 @@ CONFIG_ROOT_NFS=y
+ # CONFIG_XZ_DEC_ARMTHUMB is not set
+ # CONFIG_XZ_DEC_SPARC is not set
+ CONFIG_PRINTK_TIME=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_DEBUG_INFO_REDUCED=y
+ CONFIG_DEBUG_FS=y
+ # CONFIG_SCHED_DEBUG is not set
+--- a/arch/mips/configs/omega2p_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/omega2p_defconfig
+@@ -116,7 +116,7 @@ CONFIG_CRYPTO_LZO=y
+ CONFIG_CRC16=y
+ CONFIG_XZ_DEC=y
+ CONFIG_PRINTK_TIME=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_DEBUG_FS=y
+ CONFIG_MAGIC_SYSRQ=y
+--- a/arch/mips/configs/qi_lb60_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/qi_lb60_defconfig
+@@ -166,7 +166,7 @@ CONFIG_NLS_UTF8=y
+ CONFIG_FONTS=y
+ CONFIG_FONT_SUN8x16=y
+ CONFIG_PRINTK_TIME=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_READABLE_ASM=y
+ CONFIG_KGDB=y
+--- a/arch/mips/configs/vocore2_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/mips/configs/vocore2_defconfig
+@@ -116,7 +116,7 @@ CONFIG_CRYPTO_LZO=y
+ CONFIG_CRC16=y
+ CONFIG_XZ_DEC=y
+ CONFIG_PRINTK_TIME=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_DEBUG_FS=y
+ CONFIG_MAGIC_SYSRQ=y
+--- a/arch/nios2/configs/10m50_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/nios2/configs/10m50_defconfig
+@@ -74,4 +74,4 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3_ACL=y
+ CONFIG_ROOT_NFS=y
+ CONFIG_SUNRPC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+--- a/arch/nios2/configs/3c120_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/nios2/configs/3c120_defconfig
+@@ -71,4 +71,4 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3_ACL=y
+ CONFIG_ROOT_NFS=y
+ CONFIG_SUNRPC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+--- a/arch/sh/configs/apsh4a3a_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/apsh4a3a_defconfig
+@@ -85,7 +85,7 @@ CONFIG_DEBUG_FS=y
+ CONFIG_DEBUG_KERNEL=y
+ # CONFIG_DEBUG_PREEMPT is not set
+ # CONFIG_DEBUG_BUGVERBOSE is not set
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ # CONFIG_FTRACE is not set
+ # CONFIG_CRYPTO_ANSI_CPRNG is not set
+ # CONFIG_CRYPTO_HW is not set
+--- a/arch/sh/configs/apsh4ad0a_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/apsh4ad0a_defconfig
+@@ -116,7 +116,7 @@ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DEBUG_KERNEL=y
+ CONFIG_DEBUG_SHIRQ=y
+ CONFIG_DETECT_HUNG_TASK=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_DEBUG_VM=y
+ CONFIG_DWARF_UNWINDER=y
+ # CONFIG_CRYPTO_ANSI_CPRNG is not set
+--- a/arch/sh/configs/edosk7760_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/edosk7760_defconfig
+@@ -107,7 +107,7 @@ CONFIG_DEBUG_SHIRQ=y
+ CONFIG_DETECT_HUNG_TASK=y
+ # CONFIG_SCHED_DEBUG is not set
+ CONFIG_TIMER_STATS=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_CRYPTO=y
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_DES=y
+--- a/arch/sh/configs/magicpanelr2_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/magicpanelr2_defconfig
+@@ -84,7 +84,7 @@ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DEBUG_KERNEL=y
+ # CONFIG_SCHED_DEBUG is not set
+ CONFIG_DEBUG_KOBJECT=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_FRAME_POINTER=y
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
+--- a/arch/sh/configs/polaris_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/polaris_defconfig
+@@ -79,5 +79,5 @@ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_DEBUG_RT_MUTEXES=y
+ CONFIG_DEBUG_LOCK_ALLOC=y
+ CONFIG_DEBUG_SPINLOCK_SLEEP=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_DEBUG_SG=y
+--- a/arch/sh/configs/r7780mp_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/r7780mp_defconfig
+@@ -101,7 +101,7 @@ CONFIG_DEBUG_FS=y
+ CONFIG_DEBUG_KERNEL=y
+ CONFIG_DETECT_HUNG_TASK=y
+ # CONFIG_DEBUG_PREEMPT is not set
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_CRYPTO_ECB=m
+ CONFIG_CRYPTO_PCBC=m
+ CONFIG_CRYPTO_HMAC=y
+--- a/arch/sh/configs/r7785rp_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/r7785rp_defconfig
+@@ -96,7 +96,7 @@ CONFIG_DEBUG_KERNEL=y
+ # CONFIG_DEBUG_PREEMPT is not set
+ CONFIG_DEBUG_LOCK_ALLOC=y
+ CONFIG_DEBUG_LOCKING_API_SELFTESTS=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_SH_STANDARD_BIOS=y
+ CONFIG_DEBUG_STACK_USAGE=y
+ CONFIG_4KSTACKS=y
+--- a/arch/sh/configs/rsk7203_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/rsk7203_defconfig
+@@ -112,7 +112,7 @@ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_DEBUG_OBJECTS=y
+ CONFIG_DEBUG_MUTEXES=y
+ CONFIG_DEBUG_SPINLOCK_SLEEP=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_DEBUG_VM=y
+ CONFIG_DEBUG_LIST=y
+ CONFIG_DEBUG_SG=y
+--- a/arch/sh/configs/sdk7780_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/sdk7780_defconfig
+@@ -131,7 +131,7 @@ CONFIG_DEBUG_KERNEL=y
+ CONFIG_DETECT_HUNG_TASK=y
+ # CONFIG_SCHED_DEBUG is not set
+ CONFIG_TIMER_STATS=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_SH_STANDARD_BIOS=y
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_DES=y
+--- a/arch/sh/configs/se7712_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/se7712_defconfig
+@@ -93,7 +93,7 @@ CONFIG_CRAMFS=y
+ CONFIG_NFS_FS=y
+ CONFIG_ROOT_NFS=y
+ CONFIG_DEBUG_KERNEL=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_FRAME_POINTER=y
+ CONFIG_CRYPTO_ECB=m
+ CONFIG_CRYPTO_PCBC=m
+--- a/arch/sh/configs/se7721_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/se7721_defconfig
+@@ -121,7 +121,7 @@ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_CODEPAGE_932=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_DEBUG_KERNEL=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_FRAME_POINTER=y
+ # CONFIG_CRYPTO_ANSI_CPRNG is not set
+ CONFIG_CRC_CCITT=y
+--- a/arch/sh/configs/sh2007_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/sh2007_defconfig
+@@ -159,7 +159,7 @@ CONFIG_DEBUG_FS=y
+ CONFIG_DEBUG_KERNEL=y
+ # CONFIG_DETECT_SOFTLOCKUP is not set
+ # CONFIG_SCHED_DEBUG is not set
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_FRAME_POINTER=y
+ CONFIG_SH_STANDARD_BIOS=y
+ CONFIG_CRYPTO_NULL=y
+--- a/arch/sh/configs/sh7757lcr_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/sh7757lcr_defconfig
+@@ -80,6 +80,6 @@ CONFIG_NLS_ISO8859_1=y
+ CONFIG_DEBUG_KERNEL=y
+ # CONFIG_SCHED_DEBUG is not set
+ # CONFIG_DEBUG_BUGVERBOSE is not set
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ # CONFIG_FTRACE is not set
+ # CONFIG_CRYPTO_ANSI_CPRNG is not set
+--- a/arch/sh/configs/sh7785lcr_32bit_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/sh7785lcr_32bit_defconfig
+@@ -141,7 +141,7 @@ CONFIG_DEBUG_KMEMLEAK=y
+ CONFIG_DEBUG_SPINLOCK=y
+ CONFIG_DEBUG_MUTEXES=y
+ CONFIG_DEBUG_SPINLOCK_SLEEP=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_LATENCYTOP=y
+ # CONFIG_FTRACE is not set
+ CONFIG_CRYPTO_HMAC=y
+--- a/arch/sh/configs/urquell_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/sh/configs/urquell_defconfig
+@@ -139,7 +139,7 @@ CONFIG_PRINTK_TIME=y
+ CONFIG_DEBUG_FS=y
+ CONFIG_DEBUG_KERNEL=y
+ CONFIG_DETECT_HUNG_TASK=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_FRAME_POINTER=y
+ # CONFIG_FTRACE is not set
+ # CONFIG_DUMP_CODE is not set
+--- a/arch/um/configs/i386_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/um/configs/i386_defconfig
+@@ -69,5 +69,5 @@ CONFIG_JOLIET=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_NLS=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_DEBUG_KERNEL=y
+--- a/arch/um/configs/x86_64_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/um/configs/x86_64_defconfig
+@@ -67,6 +67,6 @@ CONFIG_JOLIET=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_NLS=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_FRAME_WARN=1024
+ CONFIG_DEBUG_KERNEL=y
+--- a/arch/xtensa/configs/audio_kc705_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/xtensa/configs/audio_kc705_defconfig
+@@ -120,7 +120,7 @@ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DYNAMIC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_LOCKUP_DETECTOR=y
+ # CONFIG_SCHED_DEBUG is not set
+--- a/arch/xtensa/configs/cadence_csp_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/xtensa/configs/cadence_csp_defconfig
+@@ -100,7 +100,7 @@ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DYNAMIC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_LOCKUP_DETECTOR=y
+ # CONFIG_SCHED_DEBUG is not set
+--- a/arch/xtensa/configs/generic_kc705_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/xtensa/configs/generic_kc705_defconfig
+@@ -107,7 +107,7 @@ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DYNAMIC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_LOCKUP_DETECTOR=y
+ # CONFIG_SCHED_DEBUG is not set
+--- a/arch/xtensa/configs/nommu_kc705_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/xtensa/configs/nommu_kc705_defconfig
+@@ -105,7 +105,7 @@ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DYNAMIC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ # CONFIG_FRAME_POINTER is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DEBUG_VM=y
+--- a/arch/xtensa/configs/smp_lx200_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/xtensa/configs/smp_lx200_defconfig
+@@ -111,7 +111,7 @@ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DYNAMIC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DEBUG_VM=y
+ CONFIG_LOCKUP_DETECTOR=y
+--- a/arch/xtensa/configs/virt_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/xtensa/configs/virt_defconfig
+@@ -97,7 +97,7 @@ CONFIG_CRYPTO_DEV_VIRTIO=y
+ CONFIG_FONTS=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DYNAMIC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_SCHED_DEBUG is not set
+ CONFIG_SCHEDSTATS=y
+--- a/arch/xtensa/configs/xip_kc705_defconfig~treewide-defconfig-address-renamed-config_debug_info=y
++++ a/arch/xtensa/configs/xip_kc705_defconfig
+@@ -102,7 +102,7 @@ CONFIG_CRYPTO_LZO=y
+ CONFIG_CRYPTO_ANSI_CPRNG=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DYNAMIC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_DETECT_HUNG_TASK=y
+ # CONFIG_SCHED_DEBUG is not set
 _
 
-Patches currently in -mm which might be from wuyun.abel@bytedance.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-mempolicy-fix-lock-contention-on-mems_allowed.patch
+treewide-defconfig-address-renamed-config_debug_info=y.patch
 
