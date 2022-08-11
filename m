@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FA22C19F2D
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F481C19F2A
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:20:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235882AbiHKVR7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 17:17:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54016 "EHLO
+        id S236128AbiHKVUr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Aug 2022 17:20:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235896AbiHKVR4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:17:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D342C9AFF4
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:17:55 -0700 (PDT)
+        with ESMTP id S236042AbiHKVUo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:20:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4E789BB74
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:20:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8B88AB8229F
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:17:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 361BCC433C1;
-        Thu, 11 Aug 2022 21:17:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 42ABE61465
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:20:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BE6CC433C1;
+        Thu, 11 Aug 2022 21:20:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660252673;
-        bh=bMqi4vS4vE4bFMRTQR4f8PFlnnzuaG6AmtOqqCYCAD4=;
+        s=korg; t=1660252842;
+        bh=Id5K/D/tZX3SD+SGRrzQ7i2cq2Lf5LIgNWgWBE3BM+s=;
         h=Date:To:From:Subject:From;
-        b=zD+g+0FP9kN2S1JRhxKx0tC3RgG35l1LVLBKYJaLAaUnLEgDOSpGMl6U+J66TOzCJ
-         HYzEkif0CMOms2PxM75+UVBV5S7LvKiBwYG10grz7/JjlRSab7wDBJG9HVxi5UF6lY
-         gSg6Sk7UfxXIuFwyzTKIXPBJtoPO8FAa+63ZwwIQ=
-Date:   Thu, 11 Aug 2022 14:17:52 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
-        nadav.amit@gmail.com, minchan@kernel.org, kirill@shutemov.name,
-        hughd@google.com, david@redhat.com, apopple@nvidia.com,
-        andi.kleen@intel.com, aarcange@redhat.com, peterx@redhat.com,
+        b=W+A7x7V780GZn9EKQa45Qm+o74gv/HqRecLg73/tWXtJ0NVYxcH7LTxSfda+GbyW+
+         tht02775uuCAhbL5UJO0iQXsxCL8HO8o9A+IdLX/18swy6uq94OVCfO3QWwgDECP1X
+         mn0FOGKCo/zG+IltK0bCPO0IF09zcUX6hrCNJwH4=
+Date:   Thu, 11 Aug 2022 14:20:41 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-cache-swap-migration-a-d-bits-support.patch added to mm-unstable branch
-Message-Id: <20220811211753.361BCC433C1@smtp.kernel.org>
+Subject: + zsmalloc-zs_object_copy-add-clarifying-comment.patch added to mm-unstable branch
+Message-Id: <20220811212042.8BE6CC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: cache swap migration A/D bits support
+     Subject: zsmalloc: zs_object_copy: add clarifying comment
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-cache-swap-migration-a-d-bits-support.patch
+     zsmalloc-zs_object_copy-add-clarifying-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cache-swap-migration-a-d-bits-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-zs_object_copy-add-clarifying-comment.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,117 +65,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/swap: cache swap migration A/D bits support
-Date: Thu, 11 Aug 2022 12:13:31 -0400
+From: Alexey Romanov <avromanov@sberdevices.ru>
+Subject: zsmalloc: zs_object_copy: add clarifying comment
+Date: Thu, 11 Aug 2022 18:37:54 +0300
 
-Introduce a variable swap_migration_ad_supported to cache whether the arch
-supports swap migration A/D bits.
+Patch series "tidy up zsmalloc implementation"
 
-Here one thing to mention is that SWP_MIG_TOTAL_BITS will internally
-reference the other macro MAX_PHYSMEM_BITS, which is a function call on
-x86 (constant on all the rest of archs).
+This patchset remove some unnecessary checks and adds a clarifying
+comment.  While analysing zs_object_copy() function code, I spent some
+time to understand what the call kunmap_atomic(d_addr) is for.  It seems
+that this point is not trivial and it is worth adding a comment.
 
-It's safe to reference it in swapfile_init() because when reaching here
-we're already during initcalls level 4 so we must have initialized 5-level
-pgtable for x86_64 (right after early_identify_cpu() finishes).
 
-- start_kernel
-  - setup_arch
-    - early_cpu_init
-      - get_cpu_cap --> fetch from CPUID (including X86_FEATURE_LA57)
-      - early_identify_cpu --> clear X86_FEATURE_LA57 (if early lvl5 not enabled (USE_EARLY_PGTABLE_L5))
-  - arch_call_rest_init
-    - rest_init
-      - kernel_init
-        - kernel_init_freeable
-          - do_basic_setup
-            - do_initcalls --> calls swapfile_init() (initcall level 4)
+This patch (of 2):
 
-This should slightly speed up the migration swap entry handlings.
+It's not obvious why kunmap_atomic(d_addr) call is needed.
 
-Link: https://lkml.kernel.org/r/20220811161331.37055-8-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Link: https://lkml.kernel.org/r/20220811153755.16102-1-avromanov@sberdevices.ru
+Link: https://lkml.kernel.org/r/20220811153755.16102-2-avromanov@sberdevices.ru
+Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapfile.h |    2 ++
- include/linux/swapops.h  |    7 +------
- mm/swapfile.c            |    8 ++++++++
- 3 files changed, 11 insertions(+), 6 deletions(-)
+ mm/zsmalloc.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/swapfile.h~mm-swap-cache-swap-migration-a-d-bits-support
-+++ a/include/linux/swapfile.h
-@@ -10,5 +10,7 @@ extern struct swap_info_struct *swap_inf
- extern unsigned long generic_max_swapfile_size(void);
- /* Maximum swapfile size supported for the arch (not inclusive). */
- extern unsigned long swapfile_maximum_size;
-+/* Whether swap migration entry supports storing A/D bits for the arch */
-+extern bool swap_migration_ad_supported;
+--- a/mm/zsmalloc.c~zsmalloc-zs_object_copy-add-clarifying-comment
++++ a/mm/zsmalloc.c
+@@ -1555,6 +1555,12 @@ static void zs_object_copy(struct size_c
+ 		d_off += size;
+ 		d_size -= size;
  
- #endif /* _LINUX_SWAPFILE_H */
---- a/include/linux/swapops.h~mm-swap-cache-swap-migration-a-d-bits-support
-+++ a/include/linux/swapops.h
-@@ -301,13 +301,8 @@ static inline swp_entry_t make_writable_
-  */
- static inline bool migration_entry_supports_ad(void)
- {
--	/*
--	 * max_swapfile_size() returns the max supported swp-offset plus 1.
--	 * We can support the migration A/D bits iff the pfn swap entry has
--	 * the offset large enough to cover all of them (PFN, A & D bits).
--	 */
- #ifdef CONFIG_SWAP
--	return swapfile_maximum_size >= (1UL << SWP_MIG_TOTAL_BITS);
-+	return swap_migration_ad_supported;
- #else  /* CONFIG_SWAP */
- 	return false;
- #endif	/* CONFIG_SWAP */
---- a/mm/swapfile.c~mm-swap-cache-swap-migration-a-d-bits-support
-+++ a/mm/swapfile.c
-@@ -64,6 +64,9 @@ EXPORT_SYMBOL_GPL(nr_swap_pages);
- long total_swap_pages;
- static int least_priority = -1;
- unsigned long swapfile_maximum_size;
-+#ifdef CONFIG_MIGRATION
-+bool swap_migration_ad_supported;
-+#endif	/* CONFIG_MIGRATION */
- 
- static const char Bad_file[] = "Bad swap file entry ";
- static const char Unused_file[] = "Unused swap file entry ";
-@@ -3680,6 +3683,11 @@ static int __init swapfile_init(void)
- 
- 	swapfile_maximum_size = arch_max_swapfile_size();
- 
-+#ifdef CONFIG_MIGRATION
-+	if (swapfile_maximum_size >= (1UL << SWP_MIG_TOTAL_BITS))
-+		swap_migration_ad_supported = true;
-+#endif	/* CONFIG_MIGRATION */
-+
- 	return 0;
- }
- subsys_initcall(swapfile_init);
++		/* Calling kunmap_atomic(d_addr) is necessary. kunmap_atomic() calls
++		 * must occurs in reverse order of calls to kmap_atomic().
++		 * So, to call kunmap_atomic(s_addr) we should first call kunmap_atomic(d_addr).
++		 * For more details see:
++		 * https://lore.kernel.org/linux-mm/5512421D.4000603@samsung.com/
++		 */
+ 		if (s_off >= PAGE_SIZE) {
+ 			kunmap_atomic(d_addr);
+ 			kunmap_atomic(s_addr);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from avromanov@sberdevices.ru are
 
-mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent.patch
-mm-uffd-reset-write-protection-when-unregister-with-wp-mode.patch
-mm-x86-use-swp_type_bits-in-3-level-swap-macros.patch
-mm-swap-comment-all-the-ifdef-in-swapopsh.patch
-mm-swap-add-swp_offset_pfn-to-fetch-pfn-from-swap-entry.patch
-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
-mm-remember-young-dirty-bit-for-page-migrations.patch
-mm-swap-cache-maximum-swapfile-size-when-init-swap.patch
-mm-swap-cache-swap-migration-a-d-bits-support.patch
+zsmalloc-zs_object_copy-add-clarifying-comment.patch
+zsmalloc-remove-unnecessary-size_class-null-check.patch
 
