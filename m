@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F659C19F2A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:25:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 249F0C19F2A
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:30:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231283AbiHKVZR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 17:25:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59808 "EHLO
+        id S235962AbiHKVaI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Aug 2022 17:30:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233668AbiHKVZQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:25:16 -0400
+        with ESMTP id S235221AbiHKVaH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:30:07 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D646E9B
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:25:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0628A9D8ED
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:30:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 463EBB82076
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:25:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0D5BC433D6;
-        Thu, 11 Aug 2022 21:25:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AC926B822A2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:30:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5264BC433C1;
+        Thu, 11 Aug 2022 21:30:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660253112;
-        bh=fuwYEpVOU01YrcgvDrW9xGSDhNp9lf5/V4g0HfJsop0=;
+        s=korg; t=1660253403;
+        bh=0mhgb32ELQCtsMFdgHG09yIecwi2v6347x2yK3VcvoA=;
         h=Date:To:From:Subject:From;
-        b=XVNXlnFQR5Mm1Dd8blvrq6zVz0K+AWWqM35a4K6L/ytlQUAtF9GNKWBCUgHo+iGox
-         XBKymsUfvJ9sYEN5o9mcDVSy0+rLU7BElxRaRv5+Gvs+rD1cqcq/flgbAHc9CQi7CF
-         xz8wYtOlAT9lKS7CnM/kEKv7ree4mcOgOlynuu5c=
-Date:   Thu, 11 Aug 2022 14:25:11 -0700
+        b=EY8vj9UUiPAUBw/B735loMT3VDaxOPS8Ci0xQsv9bYK+ArlObdtWnJaSdbjp5x2om
+         hZ0xAhPdwxAR9S9ZVfPbt9xLVi56anEEglRLACnPPPoWROlNZZiq/mqmIWYQwvv3cv
+         ebcnfALeQjbeEVQVTq72ofufVm+GaGLvtHJ7v88c=
+Date:   Thu, 11 Aug 2022 14:30:02 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        quic_pkondeti@quicinc.com, minchan@kernel.org, david@redhat.com,
-        quic_charante@quicinc.com, akpm@linux-foundation.org
+        songmuchun@bytedance.com, richard.weiyang@linux.alibaba.com,
+        mhocko@kernel.org, mgorman@techsingularity.net,
+        wuyun.abel@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma_debug-show-complete-cma-name-in-debugfs-directories.patch added to mm-unstable branch
-Message-Id: <20220811212511.E0D5BC433D6@smtp.kernel.org>
+Subject: + mm-mempolicy-fix-lock-contention-on-mems_allowed.patch added to mm-unstable branch
+Message-Id: <20220811213003.5264BC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma_debug: show complete cma name in debugfs directories
+     Subject: mm/mempolicy: fix lock contention on mems_allowed
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma_debug-show-complete-cma-name-in-debugfs-directories.patch
+     mm-mempolicy-fix-lock-contention-on-mems_allowed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma_debug-show-complete-cma-name-in-debugfs-directories.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-lock-contention-on-mems_allowed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,82 +66,109 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Charan Teja Kalla <quic_charante@quicinc.com>
-Subject: mm/cma_debug: show complete cma name in debugfs directories
-Date: Thu, 11 Aug 2022 18:45:29 +0530
+From: Abel Wu <wuyun.abel@bytedance.com>
+Subject: mm/mempolicy: fix lock contention on mems_allowed
+Date: Thu, 11 Aug 2022 20:41:57 +0800
 
-Currently only 12 characters of the cma name is being used as the debug
-directories where as the cma name can be of length CMA_MAX_NAME(=64)
-characters.  One side problem with this is having 2 cma's with first
-common 12 characters would end up in trying to create directories with
-same name and fails with -EEXIST thus can limit cma debug functionality.
+The mems_allowed field can be modified by other tasks, so it isn't safe to
+access it with alloc_lock unlocked even in the current process context.
 
-The 'cma-' prefix is used initially where cma areas don't have any names
-and are represented by simple integer values.  Since now each cma would be
-having its own name, drop 'cma-' prefix for the cma debug directories as
-they are clearly evident that they are for cma debug through creating them
-in /sys/kernel/debug/cma/ path.
+Say there are two tasks: A from cpusetA is performing set_mempolicy(2),
+and B is changing cpusetA's cpuset.mems:
 
-Link: https://lkml.kernel.org/r/1660223729-22461-1-git-send-email-quic_charante@quicinc.com
-Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Pavan Kondeti <quic_pkondeti@quicinc.com>
-Cc: Minchan Kim <minchan@kernel.org>
+  A (set_mempolicy)		B (echo xx > cpuset.mems)
+  -------------------------------------------------------
+  pol = mpol_new();
+				update_tasks_nodemask(cpusetA) {
+				  foreach t in cpusetA {
+				    cpuset_change_task_nodemask(t) {
+  mpol_set_nodemask(pol) {
+				      task_lock(t); // t could be A
+    new = f(A->mems_allowed);
+				      update t->mems_allowed;
+    pol.create(pol, new);
+				      task_unlock(t);
+  }
+				    }
+				  }
+				}
+  task_lock(A);
+  A->mempolicy = pol;
+  task_unlock(A);
+
+In this case A's pol->nodes is computed by old mems_allowed, and could
+be inconsistent with A's new mems_allowed.
+
+While it is different when replacing vmas' policy: the pol->nodes is
+gone wild only when current_cpuset_is_being_rebound():
+
+  A (mbind)			B (echo xx > cpuset.mems)
+  -------------------------------------------------------
+  pol = mpol_new();
+  mmap_write_lock(A->mm);
+				cpuset_being_rebound = cpusetA;
+				update_tasks_nodemask(cpusetA) {
+				  foreach t in cpusetA {
+				    cpuset_change_task_nodemask(t) {
+  mpol_set_nodemask(pol) {
+				      task_lock(t); // t could be A
+    mask = f(A->mems_allowed);
+				      update t->mems_allowed;
+    pol.create(pol, mask);
+				      task_unlock(t);
+  }
+				    }
+  foreach v in A->mm {
+    if (cpuset_being_rebound == cpusetA)
+      pol.rebind(pol, cpuset.mems);
+    v->vma_policy = pol;
+  }
+  mmap_write_unlock(A->mm);
+				    mmap_write_lock(t->mm);
+				    mpol_rebind_mm(t->mm);
+				    mmap_write_unlock(t->mm);
+				  }
+				}
+				cpuset_being_rebound = NULL;
+
+In this case, the cpuset.mems, which has already done updating, is finally
+used for calculating pol->nodes, rather than A->mems_allowed.  So it is OK
+to call mpol_set_nodemask() with alloc_lock unlocked when doing mbind(2).
+
+Link: https://lkml.kernel.org/r/20220811124157.74888-1-wuyun.abel@bytedance.com
+Fixes: 78b132e9bae9 ("mm/mempolicy: remove or narrow the lock on current")
+Signed-off-by: Abel Wu <wuyun.abel@bytedance.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/cma_debugfs.rst |   10 +++++-----
- mm/cma_debug.c                               |    5 +----
- 2 files changed, 6 insertions(+), 9 deletions(-)
+ mm/mempolicy.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/cma_debugfs.rst~mm-cma_debug-show-complete-cma-name-in-debugfs-directories
-+++ a/Documentation/admin-guide/mm/cma_debugfs.rst
-@@ -5,10 +5,10 @@ CMA Debugfs Interface
- The CMA debugfs interface is useful to retrieve basic information out of the
- different CMA areas and to test allocation/release in each of the areas.
+--- a/mm/mempolicy.c~mm-mempolicy-fix-lock-contention-on-mems_allowed
++++ a/mm/mempolicy.c
+@@ -853,12 +853,14 @@ static long do_set_mempolicy(unsigned sh
+ 		goto out;
+ 	}
  
--Each CMA zone represents a directory under <debugfs>/cma/, indexed by the
--kernel's CMA index. So the first CMA zone would be:
-+Each CMA area represents a directory under <debugfs>/cma/, represented by
-+its CMA name like below:
- 
--	<debugfs>/cma/cma-0
-+	<debugfs>/cma/<cma_name>
- 
- The structure of the files created under that directory is as follows:
- 
-@@ -18,8 +18,8 @@ The structure of the files created under
-  - [RO] bitmap: The bitmap of page states in the zone.
-  - [WO] alloc: Allocate N pages from that CMA area. For example::
- 
--	echo 5 > <debugfs>/cma/cma-2/alloc
-+	echo 5 > <debugfs>/cma/<cma_name>/alloc
- 
--would try to allocate 5 pages from the cma-2 area.
-+would try to allocate 5 pages from the 'cma_name' area.
- 
-  - [WO] free: Free N pages from that CMA area, similar to the above.
---- a/mm/cma_debug.c~mm-cma_debug-show-complete-cma-name-in-debugfs-directories
-+++ a/mm/cma_debug.c
-@@ -163,11 +163,8 @@ DEFINE_DEBUGFS_ATTRIBUTE(cma_alloc_fops,
- static void cma_debugfs_add_one(struct cma *cma, struct dentry *root_dentry)
- {
- 	struct dentry *tmp;
--	char name[CMA_MAX_NAME];
- 
--	scnprintf(name, sizeof(name), "cma-%s", cma->name);
--
--	tmp = debugfs_create_dir(name, root_dentry);
-+	tmp = debugfs_create_dir(cma->name, root_dentry);
- 
- 	debugfs_create_file("alloc", 0200, tmp, cma, &cma_alloc_fops);
- 	debugfs_create_file("free", 0200, tmp, cma, &cma_free_fops);
++	task_lock(current);
+ 	ret = mpol_set_nodemask(new, nodes, scratch);
+ 	if (ret) {
++		task_unlock(current);
+ 		mpol_put(new);
+ 		goto out;
+ 	}
+-	task_lock(current);
++
+ 	old = current->mempolicy;
+ 	current->mempolicy = new;
+ 	if (new && new->mode == MPOL_INTERLEAVE)
 _
 
-Patches currently in -mm which might be from quic_charante@quicinc.com are
+Patches currently in -mm which might be from wuyun.abel@bytedance.com are
 
-mm-page_ext-remove-unused-variable-in-offline_page_ext.patch
-mm-fix-use-after-free-of-page_ext-after-race-with-memory-offline.patch
-mm-cma_debug-show-complete-cma-name-in-debugfs-directories.patch
+mm-mempolicy-fix-lock-contention-on-mems_allowed.patch
 
