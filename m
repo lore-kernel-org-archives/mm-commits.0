@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD425C19F2A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:48:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BF1CC19F2A
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:49:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231284AbiHKVsW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 17:48:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54892 "EHLO
+        id S231131AbiHKVtl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Aug 2022 17:49:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231283AbiHKVsV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:48:21 -0400
+        with ESMTP id S229833AbiHKVtk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:49:40 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E4F59F743
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:48:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F28C9F76E
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:49:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2B350614DD
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:48:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E1CEC433D6;
-        Thu, 11 Aug 2022 21:48:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EECF9614CC
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:49:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 414DEC433D6;
+        Thu, 11 Aug 2022 21:49:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660254499;
-        bh=myBhsTQVGHkzmaYxyu9RWYddTI2tX97aLDrEfuPtYh4=;
+        s=korg; t=1660254579;
+        bh=ofwF1IaS0oKFWQ6gQzfyyvO8ShorY+c13DeVRuUB1lM=;
         h=Date:To:From:Subject:From;
-        b=pGW2u7ygmYu7eswVEUKiACJqrWHnb3+foYuCmjVH7ya39AalPEqDQGz0Rfv7Ge0mK
-         r+iWzgwTQc5fJHXdQCzgWlT+BMpeBu+fgDl8ejGkOCp4gLFbA1goO6Gh+GFMlYySBj
-         sXZlj92nLfffFw6uJ7ebavkF6k8pYvZdyfibTd/E=
-Date:   Thu, 11 Aug 2022 14:48:18 -0700
-To:     mm-commits@vger.kernel.org, tytso@mit.edu, rburny@google.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=LBchvRlfancuzdgLPSVmj7592lqtstxO6xfyZ8tOfjki5Gv0dIXzM32c1/nulkT2m
+         lfbPpgSYX3DCHgn+MnF592l9EnZWQTH+i1jLGcJ7fvdGXohkzKsDN1QXNW8ATlsQMz
+         OwFUdmW/rfrtxrk87IrfdiNG0HoEMsyf/seUET+Q=
+Date:   Thu, 11 Aug 2022 14:49:38 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        rburny@google.com, djwong@kernel.org, hughd@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-fix-chattr-fsflags-support-in-tmpfs.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220811214819.7E1CEC433D6@smtp.kernel.org>
+Subject: + mm-shmem-tmpfs-fallocate-use-file_modified.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220811214939.414DEC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/shmem: fix chattr fsflags support in tmpfs
+     Subject: mm/shmem: tmpfs fallocate use file_modified()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-fix-chattr-fsflags-support-in-tmpfs.patch
+     mm-shmem-tmpfs-fallocate-use-file_modified.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fix-chattr-fsflags-support-in-tmpfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-tmpfs-fallocate-use-file_modified.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,152 +66,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/shmem: fix chattr fsflags support in tmpfs
-Date: Wed, 10 Aug 2022 21:51:09 -0700 (PDT)
+Subject: mm/shmem: tmpfs fallocate use file_modified()
+Date: Wed, 10 Aug 2022 21:55:36 -0700 (PDT)
 
-ext[234] have always allowed unimplemented chattr flags to be set, but
-other filesystems have tended to be stricter.  Follow the stricter
-approach for tmpfs: I don't want to have to explain why csu attributes
-don't actually work, and we won't need to update the chattr(1) manpage;
-and it's never wrong to start off strict, relaxing later if persuaded. 
-Allow only a (append only) i (immutable) A (no atime) and d (no dump).
+5.18 fixed the btrfs and ext4 fallocates to use file_modified(), as xfs
+was already doing, to drop privileges: and fstests generic/{683,684,688}
+expect this.  There's no need to argue over keep-size allocation (which
+could just update ctime): fix shmem_fallocate() to behave the same way.
 
-Although lsattr showed 'A' inherited, the NOATIME behavior was not being
-inherited: because nothing sync'ed FS_NOATIME_FL to S_NOATIME.  Add
-shmem_set_inode_flags() to sync the flags, using inode_set_flags() to
-avoid that instant of lost immutablility during fileattr_set().
-
-But that change switched generic/079 from passing to failing: because
-FS_IMMUTABLE_FL and FS_APPEND_FL had been unconventionally included in the
-INHERITED fsflags: remove them and generic/079 is back to passing.
-
-Link: https://lkml.kernel.org/r/2961dcb0-ddf3-b9f0-3268-12a4ff996856@google.com
-Fixes: e408e695f5f1 ("mm/shmem: support FS_IOC_[SG]ETFLAGS in tmpfs")
+Link: https://lkml.kernel.org/r/39c5e62-4896-7795-c0a0-f79c50d4909@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Radoslaw Burny <rburny@google.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |   13 ++------
- mm/shmem.c               |   54 +++++++++++++++++++++----------------
- 2 files changed, 35 insertions(+), 32 deletions(-)
+ mm/shmem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/shmem_fs.h~mm-shmem-fix-chattr-fsflags-support-in-tmpfs
-+++ a/include/linux/shmem_fs.h
-@@ -29,15 +29,10 @@ struct shmem_inode_info {
- 	struct inode		vfs_inode;
- };
- 
--#define SHMEM_FL_USER_VISIBLE FS_FL_USER_VISIBLE
--#define SHMEM_FL_USER_MODIFIABLE FS_FL_USER_MODIFIABLE
--#define SHMEM_FL_INHERITED FS_FL_USER_MODIFIABLE
--
--/* Flags that are appropriate for regular files (all but dir-specific ones). */
--#define SHMEM_REG_FLMASK (~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
--
--/* Flags that are appropriate for non-directories/regular files. */
--#define SHMEM_OTHER_FLMASK (FS_NODUMP_FL | FS_NOATIME_FL)
-+#define SHMEM_FL_USER_VISIBLE		FS_FL_USER_VISIBLE
-+#define SHMEM_FL_USER_MODIFIABLE \
-+	(FS_IMMUTABLE_FL | FS_APPEND_FL | FS_NODUMP_FL | FS_NOATIME_FL)
-+#define SHMEM_FL_INHERITED		(FS_NODUMP_FL | FS_NOATIME_FL)
- 
- struct shmem_sb_info {
- 	unsigned long max_blocks;   /* How many blocks are allowed */
---- a/mm/shmem.c~mm-shmem-fix-chattr-fsflags-support-in-tmpfs
+--- a/mm/shmem.c~mm-shmem-tmpfs-fallocate-use-file_modified
 +++ a/mm/shmem.c
-@@ -2282,16 +2282,34 @@ static int shmem_mmap(struct file *file,
- 	return 0;
- }
+@@ -2840,12 +2840,13 @@ static long shmem_fallocate(struct file
  
--/* Mask out flags that are inappropriate for the given type of inode. */
--static unsigned shmem_mask_flags(umode_t mode, __u32 flags)
-+#ifdef CONFIG_TMPFS_XATTR
-+static int shmem_initxattrs(struct inode *, const struct xattr *, void *);
-+
-+/*
-+ * chattr's fsflags are unrelated to extended attributes,
-+ * but tmpfs has chosen to enable them under the same config option.
-+ */
-+static void shmem_set_inode_flags(struct inode *inode, unsigned int fsflags)
-+{
-+	unsigned int i_flags = 0;
-+
-+	if (fsflags & FS_NOATIME_FL)
-+		i_flags |= S_NOATIME;
-+	if (fsflags & FS_APPEND_FL)
-+		i_flags |= S_APPEND;
-+	if (fsflags & FS_IMMUTABLE_FL)
-+		i_flags |= S_IMMUTABLE;
-+	/*
-+	 * But FS_NODUMP_FL does not require any action in i_flags.
-+	 */
-+	inode_set_flags(inode, i_flags, S_NOATIME | S_APPEND | S_IMMUTABLE);
-+}
-+#else
-+static void shmem_set_inode_flags(struct inode *inode, unsigned int fsflags)
- {
--	if (S_ISDIR(mode))
--		return flags;
--	else if (S_ISREG(mode))
--		return flags & SHMEM_REG_FLMASK;
--	else
--		return flags & SHMEM_OTHER_FLMASK;
- }
-+#define shmem_initxattrs NULL
-+#endif
- 
- static struct inode *shmem_get_inode(struct super_block *sb, struct inode *dir,
- 				     umode_t mode, dev_t dev, unsigned long flags)
-@@ -2320,7 +2338,8 @@ static struct inode *shmem_get_inode(str
- 		info->i_crtime = inode->i_mtime;
- 		info->fsflags = (dir == NULL) ? 0 :
- 			SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
--		info->fsflags = shmem_mask_flags(mode, info->fsflags);
-+		if (info->fsflags)
-+			shmem_set_inode_flags(inode, info->fsflags);
- 		INIT_LIST_HEAD(&info->shrinklist);
- 		INIT_LIST_HEAD(&info->swaplist);
- 		simple_xattrs_init(&info->xattrs);
-@@ -2469,12 +2488,6 @@ out_unacct_blocks:
- static const struct inode_operations shmem_symlink_inode_operations;
- static const struct inode_operations shmem_short_symlink_operations;
- 
--#ifdef CONFIG_TMPFS_XATTR
--static int shmem_initxattrs(struct inode *, const struct xattr *, void *);
--#else
--#define shmem_initxattrs NULL
--#endif
--
- static int
- shmem_write_begin(struct file *file, struct address_space *mapping,
- 			loff_t pos, unsigned len,
-@@ -3180,18 +3193,13 @@ static int shmem_fileattr_set(struct use
- 
- 	if (fileattr_has_fsx(fa))
- 		return -EOPNOTSUPP;
-+	if (fa->flags & ~SHMEM_FL_USER_MODIFIABLE)
-+		return -EOPNOTSUPP;
- 
- 	info->fsflags = (info->fsflags & ~SHMEM_FL_USER_MODIFIABLE) |
- 		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
- 
--	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
--	if (info->fsflags & FS_APPEND_FL)
--		inode->i_flags |= S_APPEND;
--	if (info->fsflags & FS_IMMUTABLE_FL)
--		inode->i_flags |= S_IMMUTABLE;
--	if (info->fsflags & FS_NOATIME_FL)
--		inode->i_flags |= S_NOATIME;
--
-+	shmem_set_inode_flags(inode, info->fsflags);
- 	inode->i_ctime = current_time(inode);
- 	return 0;
+ 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
+ 		i_size_write(inode, offset + len);
+-	inode->i_ctime = current_time(inode);
+ undone:
+ 	spin_lock(&inode->i_lock);
+ 	inode->i_private = NULL;
+ 	spin_unlock(&inode->i_lock);
+ out:
++	if (!error)
++		file_modified(file);
+ 	inode_unlock(inode);
+ 	return error;
  }
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
 mm-shmem-fix-chattr-fsflags-support-in-tmpfs.patch
+mm-shmem-tmpfs-fallocate-use-file_modified.patch
+mm-shmem-shmem_replace_page-remember-nr_shmem.patch
 
