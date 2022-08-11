@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D540C25B06
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:17:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FA22C19F2D
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:18:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235862AbiHKVR6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 17:17:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53998 "EHLO
+        id S235882AbiHKVR7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Aug 2022 17:17:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235882AbiHKVRy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:17:54 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D57269AFF3
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:17:52 -0700 (PDT)
+        with ESMTP id S235896AbiHKVR4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:17:56 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D342C9AFF4
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:17:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 94A16B822A0
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:17:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4331AC433C1;
-        Thu, 11 Aug 2022 21:17:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8B88AB8229F
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:17:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 361BCC433C1;
+        Thu, 11 Aug 2022 21:17:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660252670;
-        bh=nch9wki/g/+TYr2uO9esrhIzIw1eJS456Rlf3aRvNbY=;
+        s=korg; t=1660252673;
+        bh=bMqi4vS4vE4bFMRTQR4f8PFlnnzuaG6AmtOqqCYCAD4=;
         h=Date:To:From:Subject:From;
-        b=0FWj4w92VsfDTLyvD7JQ+8izT1tqr5wfEv9zRJUJum3YZ2hF4ISReNBa6fzZbkSSt
-         dU88paDqW8YHx6ddQ2ECCciyeEjokDb8rguNns1Z6d9id27K3YYQQ4JwplfCJ79965
-         TxsTCh9+wt91IfHMp7tIi1p/ZqN5ZMphJoDMQiYc=
-Date:   Thu, 11 Aug 2022 14:17:49 -0700
+        b=zD+g+0FP9kN2S1JRhxKx0tC3RgG35l1LVLBKYJaLAaUnLEgDOSpGMl6U+J66TOzCJ
+         HYzEkif0CMOms2PxM75+UVBV5S7LvKiBwYG10grz7/JjlRSab7wDBJG9HVxi5UF6lY
+         gSg6Sk7UfxXIuFwyzTKIXPBJtoPO8FAa+63ZwwIQ=
+Date:   Thu, 11 Aug 2022 14:17:52 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
         nadav.amit@gmail.com, minchan@kernel.org, kirill@shutemov.name,
         hughd@google.com, david@redhat.com, apopple@nvidia.com,
         andi.kleen@intel.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-cache-maximum-swapfile-size-when-init-swap.patch added to mm-unstable branch
-Message-Id: <20220811211750.4331AC433C1@smtp.kernel.org>
+Subject: + mm-swap-cache-swap-migration-a-d-bits-support.patch added to mm-unstable branch
+Message-Id: <20220811211753.361BCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: cache maximum swapfile size when init swap
+     Subject: mm/swap: cache swap migration A/D bits support
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-cache-maximum-swapfile-size-when-init-swap.patch
+     mm-swap-cache-swap-migration-a-d-bits-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cache-maximum-swapfile-size-when-init-swap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cache-swap-migration-a-d-bits-support.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,34 +68,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/swap: cache maximum swapfile size when init swap
-Date: Thu, 11 Aug 2022 12:13:30 -0400
+Subject: mm/swap: cache swap migration A/D bits support
+Date: Thu, 11 Aug 2022 12:13:31 -0400
 
-We used to have swapfile_maximum_size() fetching a maximum value of
-swapfile size per-arch.
+Introduce a variable swap_migration_ad_supported to cache whether the arch
+supports swap migration A/D bits.
 
-As the caller of max_swapfile_size() grows, this patch introduce a
-variable "swapfile_maximum_size" and cache the value of old
-max_swapfile_size(), so that we don't need to calculate the value every
-time.
+Here one thing to mention is that SWP_MIG_TOTAL_BITS will internally
+reference the other macro MAX_PHYSMEM_BITS, which is a function call on
+x86 (constant on all the rest of archs).
 
-Caching the value in swapfile_init() is safe because when reaching the
-phase we should have initialized all the relevant information.  Here the
-major arch to take care of is x86, which defines the max swapfile size
-based on L1TF mitigation.
-
-Here both X86_BUG_L1TF or l1tf_mitigation should have been setup properly
-when reaching swapfile_init().  As a reference, the code path looks like
-this for x86:
+It's safe to reference it in swapfile_init() because when reaching here
+we're already during initcalls level 4 so we must have initialized 5-level
+pgtable for x86_64 (right after early_identify_cpu() finishes).
 
 - start_kernel
   - setup_arch
     - early_cpu_init
-      - early_identify_cpu --> setup X86_BUG_L1TF
-  - parse_early_param
-    - l1tf_cmdline --> set l1tf_mitigation
-  - check_bugs
-    - l1tf_select_mitigation --> set l1tf_mitigation
+      - get_cpu_cap --> fetch from CPUID (including X86_FEATURE_LA57)
+      - early_identify_cpu --> clear X86_FEATURE_LA57 (if early lvl5 not enabled (USE_EARLY_PGTABLE_L5))
   - arch_call_rest_init
     - rest_init
       - kernel_init
@@ -103,15 +94,9 @@ this for x86:
           - do_basic_setup
             - do_initcalls --> calls swapfile_init() (initcall level 4)
 
-The swapfile size only depends on swp pte format on non-x86 archs, so
-caching it is safe too.
+This should slightly speed up the migration swap entry handlings.
 
-Since at it, rename max_swapfile_size() to arch_max_swapfile_size()
-because arch can define its own function, so it's more straightforward to
-have "arch_" as its prefix.  At the meantime, export swapfile_maximum_size
-to replace the old usages of max_swapfile_size().
-
-Link: https://lkml.kernel.org/r/20220811161331.37055-7-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220811161331.37055-8-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andi Kleen <andi.kleen@intel.com>
@@ -126,78 +111,58 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c       |    2 +-
- include/linux/swapfile.h |    3 ++-
- include/linux/swapops.h  |    2 +-
- mm/swapfile.c            |    7 +++++--
- 4 files changed, 9 insertions(+), 5 deletions(-)
+ include/linux/swapfile.h |    2 ++
+ include/linux/swapops.h  |    7 +------
+ mm/swapfile.c            |    8 ++++++++
+ 3 files changed, 11 insertions(+), 6 deletions(-)
 
---- a/arch/x86/mm/init.c~mm-swap-cache-maximum-swapfile-size-when-init-swap
-+++ a/arch/x86/mm/init.c
-@@ -1054,7 +1054,7 @@ void update_cache_mode_entry(unsigned en
- }
- 
- #ifdef CONFIG_SWAP
--unsigned long max_swapfile_size(void)
-+unsigned long arch_max_swapfile_size(void)
- {
- 	unsigned long pages;
- 
---- a/include/linux/swapfile.h~mm-swap-cache-maximum-swapfile-size-when-init-swap
+--- a/include/linux/swapfile.h~mm-swap-cache-swap-migration-a-d-bits-support
 +++ a/include/linux/swapfile.h
-@@ -8,6 +8,7 @@
-  */
- extern struct swap_info_struct *swap_info[];
+@@ -10,5 +10,7 @@ extern struct swap_info_struct *swap_inf
  extern unsigned long generic_max_swapfile_size(void);
--extern unsigned long max_swapfile_size(void);
-+/* Maximum swapfile size supported for the arch (not inclusive). */
-+extern unsigned long swapfile_maximum_size;
+ /* Maximum swapfile size supported for the arch (not inclusive). */
+ extern unsigned long swapfile_maximum_size;
++/* Whether swap migration entry supports storing A/D bits for the arch */
++extern bool swap_migration_ad_supported;
  
  #endif /* _LINUX_SWAPFILE_H */
---- a/include/linux/swapops.h~mm-swap-cache-maximum-swapfile-size-when-init-swap
+--- a/include/linux/swapops.h~mm-swap-cache-swap-migration-a-d-bits-support
 +++ a/include/linux/swapops.h
-@@ -307,7 +307,7 @@ static inline bool migration_entry_suppo
- 	 * the offset large enough to cover all of them (PFN, A & D bits).
- 	 */
+@@ -301,13 +301,8 @@ static inline swp_entry_t make_writable_
+  */
+ static inline bool migration_entry_supports_ad(void)
+ {
+-	/*
+-	 * max_swapfile_size() returns the max supported swp-offset plus 1.
+-	 * We can support the migration A/D bits iff the pfn swap entry has
+-	 * the offset large enough to cover all of them (PFN, A & D bits).
+-	 */
  #ifdef CONFIG_SWAP
--	return max_swapfile_size() >= (1UL << SWP_MIG_TOTAL_BITS);
-+	return swapfile_maximum_size >= (1UL << SWP_MIG_TOTAL_BITS);
+-	return swapfile_maximum_size >= (1UL << SWP_MIG_TOTAL_BITS);
++	return swap_migration_ad_supported;
  #else  /* CONFIG_SWAP */
  	return false;
  #endif	/* CONFIG_SWAP */
---- a/mm/swapfile.c~mm-swap-cache-maximum-swapfile-size-when-init-swap
+--- a/mm/swapfile.c~mm-swap-cache-swap-migration-a-d-bits-support
 +++ a/mm/swapfile.c
-@@ -63,6 +63,7 @@ EXPORT_SYMBOL_GPL(nr_swap_pages);
- /* protected with swap_lock. reading in vm_swap_full() doesn't need lock */
+@@ -64,6 +64,9 @@ EXPORT_SYMBOL_GPL(nr_swap_pages);
  long total_swap_pages;
  static int least_priority = -1;
-+unsigned long swapfile_maximum_size;
+ unsigned long swapfile_maximum_size;
++#ifdef CONFIG_MIGRATION
++bool swap_migration_ad_supported;
++#endif	/* CONFIG_MIGRATION */
  
  static const char Bad_file[] = "Bad swap file entry ";
  static const char Unused_file[] = "Unused swap file entry ";
-@@ -2816,7 +2817,7 @@ unsigned long generic_max_swapfile_size(
- }
+@@ -3680,6 +3683,11 @@ static int __init swapfile_init(void)
  
- /* Can be overridden by an architecture for additional checks. */
--__weak unsigned long max_swapfile_size(void)
-+__weak unsigned long arch_max_swapfile_size(void)
- {
- 	return generic_max_swapfile_size();
- }
-@@ -2856,7 +2857,7 @@ static unsigned long read_swap_header(st
- 	p->cluster_next = 1;
- 	p->cluster_nr = 0;
+ 	swapfile_maximum_size = arch_max_swapfile_size();
  
--	maxpages = max_swapfile_size();
-+	maxpages = swapfile_maximum_size;
- 	last_page = swap_header->info.last_page;
- 	if (!last_page) {
- 		pr_warn("Empty swap-file\n");
-@@ -3677,6 +3678,8 @@ static int __init swapfile_init(void)
- 	for_each_node(nid)
- 		plist_head_init(&swap_avail_heads[nid]);
- 
-+	swapfile_maximum_size = arch_max_swapfile_size();
++#ifdef CONFIG_MIGRATION
++	if (swapfile_maximum_size >= (1UL << SWP_MIG_TOTAL_BITS))
++		swap_migration_ad_supported = true;
++#endif	/* CONFIG_MIGRATION */
 +
  	return 0;
  }
