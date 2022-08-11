@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3405DC25B06
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 23:08:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D69EC25B06
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 23:12:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236614AbiHKXIC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 19:08:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41088 "EHLO
+        id S236373AbiHKXMG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Aug 2022 19:12:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236178AbiHKXIB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 19:08:01 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9644EA061B
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 16:08:00 -0700 (PDT)
+        with ESMTP id S236178AbiHKXMG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 19:12:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EA328D3FF
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 16:12:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4D85AB822F6
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 23:07:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E043CC433D6;
-        Thu, 11 Aug 2022 23:07:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D91F361536
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 23:12:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 274C3C433C1;
+        Thu, 11 Aug 2022 23:12:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660259278;
-        bh=1nLoFT0eORXl/o0D0yJYIfqLDhaDkMyUopMt+ERrnCg=;
+        s=korg; t=1660259524;
+        bh=nWWYMoZqy7aPOjrekqtR/QmXV1m/WwqZFjHeJZIJLU4=;
         h=Date:To:From:Subject:From;
-        b=DXewEi42g0UcfvfE/Q1rVGF8xOWCPafTMuuncqEJxB2C5HFpg+IUbfoGpFo1y+oSX
-         p6/qo+0iN9J1FZDP1Jk87oVefIW6E4iqwyHPxneLNyGwH5jYy41vJw2Egz1Sv+eRdd
-         /jI49nvlz/0Of0+AW1AY7YlLuRL/i07Oum9da3eY=
-Date:   Thu, 11 Aug 2022 16:07:57 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        kasong@tencent.com, akpm@linux-foundation.org
+        b=jCRKJiqjREzZCs9hYi05bbIdDqfT1nGzZvi1utkRSUNTv/DWwR7vZ+2G4/xBfTiD/
+         RVOwAvDPLFi5pbwHhyBDXvKwVlpWULaa4tzb9jh0bH9817JIX/c/Ru0UaWeOJE/50Y
+         EEF6U8XK49DRUUxnMDRp1a5R27IGAi36m6PitUQg=
+Date:   Thu, 11 Aug 2022 16:12:03 -0700
+To:     mm-commits@vger.kernel.org, wsa@kernel.org,
+        michael.hennerich@analog.com, lars@metafoo.de, jic23@kernel.org,
+        jbhayana@google.com, ddrokosov@sberdevices.ru,
+        daniel.lezcano@linaro.org, andy.shevchenko@gmail.com,
+        andriy.shevchenko@linux.intel.com, DDRokosov@sberdevices.ru,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-util-reduce-stack-usage-of-folio_mapcount.patch added to mm-unstable branch
-Message-Id: <20220811230757.E043CC433D6@smtp.kernel.org>
+Subject: + units-complement-the-set-of-hz-units.patch added to mm-nonmm-unstable branch
+Message-Id: <20220811231204.274C3C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/util: reduce stack usage of folio_mapcount
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-util-reduce-stack-usage-of-folio_mapcount.patch
+     Subject: units: complement the set of Hz units
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     units-complement-the-set-of-hz-units.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-util-reduce-stack-usage-of-folio_mapcount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/units-complement-the-set-of-hz-units.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,54 +68,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/util: reduce stack usage of folio_mapcount
-Date: Tue, 2 Aug 2022 01:31:55 +0800
+From: Dmitry Rokosov <DDRokosov@sberdevices.ru>
+Subject: units: complement the set of Hz units
+Date: Mon, 1 Aug 2022 14:37:25 +0000
 
-folio_entire_mapcount() will call PageHeadHuge which is a function call,
-and blocks the compiler from recognizing this redundant load.
+Patch series "units: complement the set of Hz units", v3.
 
-After rearranging the code, stack usage is dropped from 32 to 24, and
-the function size is smaller (tested on GCC 12):
+During msa311 accel IIO driver development
 
-Before:
-Stack usage:
-mm/util.c:845:5:folio_mapcount  32      static
-Size:
-0000000000000ea0 00000000000000c7 T folio_mapcount
+https://lore.kernel.org/linux-iio/20220616104211.9257-1-ddrokosov@sberdevices.ru/
 
-After:
-Stack usage:
-mm/util.c:845:5:folio_mapcount  24      static
-Size:
-0000000000000ea0 00000000000000b0 T folio_mapcount
+Andy requested to use proper units in the hz->ms calculation.  Current
+units.h header doesn't have milli, micro and nano HZ coefficients, so some
+drivers (in the IIO subsystem) implement their own copies for that.
 
-Link: https://lkml.kernel.org/r/20220801173155.92008-1-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+The current patchset resolves such a problem and intoduces general
+MILLIHZ_PER_HZ, MICROHZ_PER_HZ and NANOHZ_PER_HZ definitions in the
+units.h, and fixes all drivers which duplicate these units.
+
+
+This patch (of 3):
+
+Currently, Hz units do not have milli, micro and nano Hz coefficients.
+Some drivers (IIO especially) use their analogues to calculate
+appropriate Hz values. This patch includes them to units.h definitions,
+so they can be used from different kernel places.
+
+Link: https://lkml.kernel.org/r/20220801143811.14817-1-ddrokosov@sberdevices.ru
+Link: https://lkml.kernel.org/r/20220801143811.14817-2-ddrokosov@sberdevices.ru
+Signed-off-by: Dmitry Rokosov <ddrokosov@sberdevices.ru>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Wolfram Sang <wsa@kernel.org>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Jyoti Bhayana <jbhayana@google.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/units.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/util.c~mm-util-reduce-stack-usage-of-folio_mapcount
-+++ a/mm/util.c
-@@ -850,10 +850,10 @@ int folio_mapcount(struct folio *folio)
- 		return atomic_read(&folio->_mapcount) + 1;
+--- a/include/linux/units.h~units-complement-the-set-of-hz-units
++++ a/include/linux/units.h
+@@ -20,6 +20,9 @@
+ #define PICO	1000000000000ULL
+ #define FEMTO	1000000000000000ULL
  
- 	compound = folio_entire_mapcount(folio);
--	nr = folio_nr_pages(folio);
- 	if (folio_test_hugetlb(folio))
- 		return compound;
- 	ret = compound;
-+	nr = folio_nr_pages(folio);
- 	for (i = 0; i < nr; i++)
- 		ret += atomic_read(&folio_page(folio, i)->_mapcount) + 1;
- 	/* File pages has compound_mapcount included in _mapcount */
++#define NANOHZ_PER_HZ		1000000000UL
++#define MICROHZ_PER_HZ		1000000UL
++#define MILLIHZ_PER_HZ		1000UL
+ #define HZ_PER_KHZ		1000UL
+ #define KHZ_PER_MHZ		1000UL
+ #define HZ_PER_MHZ		1000000UL
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from DDRokosov@sberdevices.ru are
 
-mm-util-reduce-stack-usage-of-folio_mapcount.patch
+units-complement-the-set-of-hz-units.patch
+iio-accel-adxl345-use-hz-macro-from-unitsh.patch
+iio-common-scmi_sensors-use-hz-macro-from-unitsh.patch
 
