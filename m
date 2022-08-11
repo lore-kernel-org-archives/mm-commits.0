@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4942CC19F2A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:52:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4060C19F2A
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 21:55:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234955AbiHKVwK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 17:52:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60168 "EHLO
+        id S234075AbiHKVzc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Aug 2022 17:55:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233840AbiHKVwJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:52:09 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 869B4175A5
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:52:07 -0700 (PDT)
+        with ESMTP id S233840AbiHKVzb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 17:55:31 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 937381BEA3
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 14:55:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 061B9CE23E9
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:52:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64911C433D6;
-        Thu, 11 Aug 2022 21:52:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 53FD2B82076
+        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 21:55:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E641AC433C1;
+        Thu, 11 Aug 2022 21:55:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660254724;
-        bh=j0ehTZ+xzZC/8yaXJbRwSVHWBZz+6HUvKrqiUum6yRQ=;
+        s=korg; t=1660254928;
+        bh=P8pwld5hBYbH5PuvpsEUw+MubQ7NIjil11BN+iSbq1A=;
         h=Date:To:From:Subject:From;
-        b=pGxTiYlxXOiatksomlj0yFwIOE1LKZ/wsI2egxGS7RP5ES/XGDSsvSqk/XIeHFBL/
-         x3lkcFNkH0pu0OyAb6G1qM1acV/xrT+28iEaWKAc/6tcDxUOAQofuSPLJJ6a0SX1JE
-         vVcN5UemhXmJdYw4dE1am/ogW8YLL07mknPyZ9hc=
-Date:   Thu, 11 Aug 2022 14:52:03 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        iamjoonsoo.kim@lge.com, david@redhat.com, corbet@lwn.net,
-        cgel.zte@gmail.com, bsingharora@gmail.com, yang.yang29@zte.com.cn,
-        akpm@linux-foundation.org
+        b=KFbmrkFAnlBS3CrAX1gAx7/y0uPHM58gj7J89QNc1Tinwz1BfSkxRIJwV6a+BhIY0
+         xCg8NIS53tcrqoJeblJbRQk1y/ioPEQF+JpV94v21sEFEvEApxQ87KGhrBasCjQcna
+         3lJTcoYP/bpQM2SID8y+5pgfOMNEfS5WKpFEygSQ=
+Date:   Thu, 11 Aug 2022 14:55:27 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, mhocko@suse.com, dave.hansen@intel.com,
+        bwidawsk@kernel.org, feng.tang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-make-the-accounting-of-thrashing-more-consistent.patch added to mm-unstable branch
-Message-Id: <20220811215204.64911C433D6@smtp.kernel.org>
+Subject: + mm-hugetlb-add-dedicated-func-to-get-allowed-nodemask-for-current-process.patch added to mm-unstable branch
+Message-Id: <20220811215527.E641AC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: filemap: make the accounting of thrashing more consistent
+     Subject: mm/hugetlb: add dedicated func to get 'allowed' nodemask for current process
 has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-make-the-accounting-of-thrashing-more-consistent.patch
+     mm-hugetlb-add-dedicated-func-to-get-allowed-nodemask-for-current-process.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-make-the-accounting-of-thrashing-more-consistent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-add-dedicated-func-to-get-allowed-nodemask-for-current-process.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,108 +65,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: filemap: make the accounting of thrashing more consistent
-Date: Fri, 5 Aug 2022 03:38:39 +0000
+From: Feng Tang <feng.tang@intel.com>
+Subject: mm/hugetlb: add dedicated func to get 'allowed' nodemask for current process
+Date: Fri, 5 Aug 2022 08:59:03 +0800
 
-Once upon a time, we only support accounting thrashing of page cache. 
-Then Joonsoo introduced workingset detection for anonymous pages and we
-gained the ability to account thrashing of them[1].
+Muchun Song found that after MPOL_PREFERRED_MANY policy was introduced in
+commit b27abaccf8e8 ("mm/mempolicy: add MPOL_PREFERRED_MANY for multiple
+preferred nodes"), the policy_nodemask_current()'s semantics for this new
+policy has been changed, which returns 'preferred' nodes instead of
+'allowed' nodes.
 
-So let delayacct account both the thrashing of page cache and anonymous
-pages, this could make the codes more consistent and simpler.
+With the changed semantic of policy_nodemask_current, a task with
+MPOL_PREFERRED_MANY policy could fail to get its reservation even though
+it can fall back to other nodes (either defined by cpusets or all online
+nodes) for that reservation failing mmap calles unnecessarily early.
 
-[1] commit aae466b0052e ("mm/swap: implement workingset detection for anonymous LRU")
+The fix is to not consider MPOL_PREFERRED_MANY for reservations at all
+because they, unlike MPOL_MBIND, do not pose any actual hard constrain.
 
-Link: https://lkml.kernel.org/r/20220805033838.1714674-1-yang.yang29@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Signed-off-by: CGEL ZTE <cgel.zte@gmail.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Michal suggested the policy_nodemask_current() is only used by hugetlb,
+and could be moved to hugetlb code with more explicit name to enforce the
+'allowed' semantics for which only MPOL_BIND policy matters.
+
+apply_policy_zone() is made extern to be called in hugetlb code and its
+return value is changed to bool.
+
+[1]. https://lore.kernel.org/lkml/20220801084207.39086-1-songmuchun@bytedance.com/t/
+
+Link: https://lkml.kernel.org/r/20220805005903.95563-1-feng.tang@intel.com
+Fixes: b27abaccf8e8 ("mm/mempolicy: add MPOL_PREFERRED_MANY for multiple preferred nodes")
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Reported-by: Muchun Song <songmuchun@bytedance.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ben Widawsky <bwidawsk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |    2 -
- mm/filemap.c                                  |   18 +++-------------
- 2 files changed, 5 insertions(+), 15 deletions(-)
+ include/linux/mempolicy.h |   13 +------------
+ mm/hugetlb.c              |   24 ++++++++++++++++++++----
+ mm/mempolicy.c            |    2 +-
+ 3 files changed, 22 insertions(+), 17 deletions(-)
 
---- a/Documentation/accounting/delay-accounting.rst~filemap-make-the-accounting-of-thrashing-more-consistent
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -13,7 +13,7 @@ a) waiting for a CPU (while being runnab
- b) completion of synchronous block I/O initiated by the task
- c) swapping in pages
- d) memory reclaim
--e) thrashing page cache
-+e) thrashing
- f) direct compact
- g) write-protect copy
+--- a/include/linux/mempolicy.h~mm-hugetlb-add-dedicated-func-to-get-allowed-nodemask-for-current-process
++++ a/include/linux/mempolicy.h
+@@ -151,13 +151,6 @@ extern bool mempolicy_in_oom_domain(stru
+ 				const nodemask_t *mask);
+ extern nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy);
  
---- a/mm/filemap.c~filemap-make-the-accounting-of-thrashing-more-consistent
-+++ a/mm/filemap.c
-@@ -1221,15 +1221,11 @@ static inline int folio_wait_bit_common(
- 	struct wait_page_queue wait_page;
- 	wait_queue_entry_t *wait = &wait_page.wait;
- 	bool thrashing = false;
--	bool delayacct = false;
- 	unsigned long pflags;
+-static inline nodemask_t *policy_nodemask_current(gfp_t gfp)
+-{
+-	struct mempolicy *mpol = get_task_policy(current);
+-
+-	return policy_nodemask(gfp, mpol);
+-}
+-
+ extern unsigned int mempolicy_slab_node(void);
  
- 	if (bit_nr == PG_locked &&
- 	    !folio_test_uptodate(folio) && folio_test_workingset(folio)) {
--		if (!folio_test_swapbacked(folio)) {
--			delayacct_thrashing_start();
--			delayacct = true;
--		}
-+		delayacct_thrashing_start();
- 		psi_memstall_enter(&pflags);
- 		thrashing = true;
- 	}
-@@ -1329,8 +1325,7 @@ repeat:
- 	finish_wait(q, wait);
- 
- 	if (thrashing) {
--		if (delayacct)
--			delayacct_thrashing_end();
-+		delayacct_thrashing_end();
- 		psi_memstall_leave(&pflags);
- 	}
- 
-@@ -1378,17 +1373,13 @@ void migration_entry_wait_on_locked(swp_
- 	struct wait_page_queue wait_page;
- 	wait_queue_entry_t *wait = &wait_page.wait;
- 	bool thrashing = false;
--	bool delayacct = false;
- 	unsigned long pflags;
- 	wait_queue_head_t *q;
- 	struct folio *folio = page_folio(pfn_swap_entry_to_page(entry));
- 
- 	q = folio_waitqueue(folio);
- 	if (!folio_test_uptodate(folio) && folio_test_workingset(folio)) {
--		if (!folio_test_swapbacked(folio)) {
--			delayacct_thrashing_start();
--			delayacct = true;
--		}
-+		delayacct_thrashing_start();
- 		psi_memstall_enter(&pflags);
- 		thrashing = true;
- 	}
-@@ -1435,8 +1426,7 @@ void migration_entry_wait_on_locked(swp_
- 	finish_wait(q, wait);
- 
- 	if (thrashing) {
--		if (delayacct)
--			delayacct_thrashing_end();
-+		delayacct_thrashing_end();
- 		psi_memstall_leave(&pflags);
- 	}
+ extern enum zone_type policy_zone;
+@@ -189,6 +182,7 @@ static inline bool mpol_is_preferred_man
+ 	return  (pol->mode == MPOL_PREFERRED_MANY);
  }
+ 
++extern bool apply_policy_zone(struct mempolicy *policy, enum zone_type zone);
+ 
+ #else
+ 
+@@ -294,11 +288,6 @@ static inline void mpol_put_task_policy(
+ {
+ }
+ 
+-static inline nodemask_t *policy_nodemask_current(gfp_t gfp)
+-{
+-	return NULL;
+-}
+-
+ static inline bool mpol_is_preferred_many(struct mempolicy *pol)
+ {
+ 	return  false;
+--- a/mm/hugetlb.c~mm-hugetlb-add-dedicated-func-to-get-allowed-nodemask-for-current-process
++++ a/mm/hugetlb.c
+@@ -4330,18 +4330,34 @@ static int __init default_hugepagesz_set
+ }
+ __setup("default_hugepagesz=", default_hugepagesz_setup);
+ 
++static nodemask_t *policy_mbind_nodemask(gfp_t gfp)
++{
++#ifdef CONFIG_NUMA
++	struct mempolicy *mpol = get_task_policy(current);
++
++	/*
++	 * Only enforce MPOL_BIND policy which overlaps with cpuset policy
++	 * (from policy_nodemask) specifically for hugetlb case
++	 */
++	if (mpol->mode == MPOL_BIND &&
++		(apply_policy_zone(mpol, gfp_zone(gfp)) &&
++		 cpuset_nodemask_valid_mems_allowed(&mpol->nodes)))
++		return &mpol->nodes;
++#endif
++	return NULL;
++}
++
+ static unsigned int allowed_mems_nr(struct hstate *h)
+ {
+ 	int node;
+ 	unsigned int nr = 0;
+-	nodemask_t *mpol_allowed;
++	nodemask_t *mbind_nodemask;
+ 	unsigned int *array = h->free_huge_pages_node;
+ 	gfp_t gfp_mask = htlb_alloc_mask(h);
+ 
+-	mpol_allowed = policy_nodemask_current(gfp_mask);
+-
++	mbind_nodemask = policy_mbind_nodemask(gfp_mask);
+ 	for_each_node_mask(node, cpuset_current_mems_allowed) {
+-		if (!mpol_allowed || node_isset(node, *mpol_allowed))
++		if (!mbind_nodemask || node_isset(node, *mbind_nodemask))
+ 			nr += array[node];
+ 	}
+ 
+--- a/mm/mempolicy.c~mm-hugetlb-add-dedicated-func-to-get-allowed-nodemask-for-current-process
++++ a/mm/mempolicy.c
+@@ -1805,7 +1805,7 @@ bool vma_policy_mof(struct vm_area_struc
+ 	return pol->flags & MPOL_F_MOF;
+ }
+ 
+-static int apply_policy_zone(struct mempolicy *policy, enum zone_type zone)
++bool apply_policy_zone(struct mempolicy *policy, enum zone_type zone)
+ {
+ 	enum zone_type dynamic_policy_zone = policy_zone;
+ 
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from feng.tang@intel.com are
 
-mm-vmscan-define-macros-for-refaults-in-struct-lruvec.patch
-filemap-make-the-accounting-of-thrashing-more-consistent.patch
+mm-hugetlb-add-dedicated-func-to-get-allowed-nodemask-for-current-process.patch
 
