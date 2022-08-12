@@ -2,193 +2,169 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF8A4C25B06
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Aug 2022 23:13:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C78DFC25B06
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Aug 2022 02:21:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236081AbiHKXNX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 19:13:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46016 "EHLO
+        id S236151AbiHLCVD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 Aug 2022 22:21:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236385AbiHKXNU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 19:13:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDEFDA0639
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 16:13:19 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 643F061449
-        for <mm-commits@vger.kernel.org>; Thu, 11 Aug 2022 23:13:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B734EC433C1;
-        Thu, 11 Aug 2022 23:13:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660259598;
-        bh=3GcOL2Nz8jkx/4y6H2w+x0xnvmdcD0U0kVLhd2SkRTw=;
-        h=Date:To:From:Subject:From;
-        b=1RAUSwuuhmp3Drt7w0YP9nN3cnSqGAzOQN/VhH/4Z4CERRlr44mAtNG6CuoOhged4
-         wAJVUPXKyl5gsFFKTaeY6EDxOS0CMnpwWE/fBWZSRsuNVCBQwbvROG9bktkQOP5pta
-         tggyKdvzmhKweHy91c38KME+vXNgHnk9iti5F/YY=
-Date:   Thu, 11 Aug 2022 16:13:18 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
-        songmuchun@bytedance.com, roman.gushchin@linux.dev,
-        pali@kernel.org, jack@suse.cz, ira.weiny@intel.com,
-        fmdefrancesco@gmail.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-isofs-replace-kmap-with-kmap_local_page.patch added to mm-nonmm-unstable branch
-Message-Id: <20220811231318.B734EC433C1@smtp.kernel.org>
+        with ESMTP id S233914AbiHLCVD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 22:21:03 -0400
+Received: from mail-il1-x135.google.com (mail-il1-x135.google.com [IPv6:2607:f8b0:4864:20::135])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2375A4B0DF;
+        Thu, 11 Aug 2022 19:21:01 -0700 (PDT)
+Received: by mail-il1-x135.google.com with SMTP id z8so9614918ile.0;
+        Thu, 11 Aug 2022 19:21:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc;
+        bh=WsUtfkxGdMHgT9/AVgH6Va7YFkzDZH9SitNsfQOEq0s=;
+        b=I8ep2pTaIKU+c8m6Yu6bEWeou5ZyQ2VkeSUr9w1lZeALbZuKzkMyUGtWXcr+/6xmrc
+         2/AHddrsvq88KsfhAzrV0/zOCkPbJG21uG+NZQucWJ1lNLlDGS30QaKcwO0ZtortIO1r
+         ImMXALLl3b4nEHSN8pcsx843DL8G0F5eswFtcBM9tF5n03tvzKVZTvClLmELEDSPCgKZ
+         3krn9TgeSIklKKA3gkV/Mqc4BLnZaZ2zR1LpdjX5s4K87o3e09bugFos8ha2uC7XfghD
+         NsS6Y2/Zv89tGjghVC891KjzsjMmuqW7wiF+lNGjMevf5KxXn58FuHGL402POr5YxX2o
+         lngw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc;
+        bh=WsUtfkxGdMHgT9/AVgH6Va7YFkzDZH9SitNsfQOEq0s=;
+        b=u+T+C8vcHOKE4xzWbphndHqDd7qGFLeQeLu0rm+Y748sN7ImoAZnO57BOoz0xknLAu
+         EfQOj1Ew6kutKWYDpa6AuLcE6bLWXnS0km3qKJkoiF/p8EXiQEbtFcwk5yq6tZBa+s6t
+         FNIf8eHKkLua7FbsdJPrQmmfgsHNjel7hfRqSNaGTKZxhV1RAAMXLPh2Qlx/R8AUbAYA
+         ooU/XScvKKa8H5JbfejUjQXwuYGRj6ZBy66HcHKaNBnhx4r3CvZ9wrHvACUsfLq/Da0G
+         sUtD+RLwxUeFImtMc6Y2u22MO2Z+j6QBEmw142RPq4M9xaNaKdB3n+AJ2On4rxr8Kg7l
+         /8eg==
+X-Gm-Message-State: ACgBeo3jQZznilSzCn6hRPxrmSWhP1qlihXZjdPx6K6ckIh9aiN9dp8p
+        8MtxQM9m1MHPpYDWFv14zG9kS5diqa1QSY1vOHyeHKWD
+X-Google-Smtp-Source: AA6agR7YZ9/9SJLxiSZzeoeSdPHKCrr3iywx+o0i5rH/62e6/T5w0qrKWLilu+nSFwcTe72q34JEPjqPWtkVWi7JZW8=
+X-Received: by 2002:a05:6e02:1645:b0:2df:1f18:3d7f with SMTP id
+ v5-20020a056e02164500b002df1f183d7fmr848087ilu.281.1660270859926; Thu, 11 Aug
+ 2022 19:20:59 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220811215204.64911C433D6@smtp.kernel.org>
+In-Reply-To: <20220811215204.64911C433D6@smtp.kernel.org>
+From:   Joonsoo Kim <js1304@gmail.com>
+Date:   Fri, 12 Aug 2022 11:20:49 +0900
+Message-ID: <CAAmzW4MV4rqZsSkbUO385jiijMnLzW1i7U9DaikL-T4H8Pje=A@mail.gmail.com>
+Subject: Re: + filemap-make-the-accounting-of-thrashing-more-consistent.patch
+ added to mm-unstable branch
+To:     LKML <linux-kernel@vger.kernel.org>
+Cc:     mm-commits@vger.kernel.org, Matthew Wilcox <willy@infradead.org>,
+        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
+        David Hildenbrand <david@redhat.com>, corbet@lwn.net,
+        cgel.zte@gmail.com, bsingharora@gmail.com, yang.yang29@zte.com.cn,
+        Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hello, Yang.
 
-The patch titled
-     Subject: fs/isofs: replace kmap() with kmap_local_page()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-isofs-replace-kmap-with-kmap_local_page.patch
+2022=EB=85=84 8=EC=9B=94 12=EC=9D=BC (=EA=B8=88) =EC=98=A4=EC=A0=84 7:10, A=
+ndrew Morton <akpm@linux-foundation.org>=EB=8B=98=EC=9D=B4 =EC=9E=91=EC=84=
+=B1:
+>
+>
+> The patch titled
+>      Subject: filemap: make the accounting of thrashing more consistent
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      filemap-make-the-accounting-of-thrashing-more-consistent.patch
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
+/patches/filemap-make-the-accounting-of-thrashing-more-consistent.patch
+>
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testi=
+ng your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Yang Yang <yang.yang29@zte.com.cn>
+> Subject: filemap: make the accounting of thrashing more consistent
+> Date: Fri, 5 Aug 2022 03:38:39 +0000
+>
+> Once upon a time, we only support accounting thrashing of page cache.
+> Then Joonsoo introduced workingset detection for anonymous pages and we
+> gained the ability to account thrashing of them[1].
+>
+> So let delayacct account both the thrashing of page cache and anonymous
+> pages, this could make the codes more consistent and simpler.
+>
+> [1] commit aae466b0052e ("mm/swap: implement workingset detection for ano=
+nymous LRU")
+>
+> Link: https://lkml.kernel.org/r/20220805033838.1714674-1-yang.yang29@zte.=
+com.cn
+> Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
+> Signed-off-by: CGEL ZTE <cgel.zte@gmail.com>
+> Cc: Balbir Singh <bsingharora@gmail.com>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+> Cc: Yang Yang <yang.yang29@zte.com.cn>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  Documentation/accounting/delay-accounting.rst |    2 -
+>  mm/filemap.c                                  |   18 +++-------------
+>  2 files changed, 5 insertions(+), 15 deletions(-)
+>
+> --- a/Documentation/accounting/delay-accounting.rst~filemap-make-the-acco=
+unting-of-thrashing-more-consistent
+> +++ a/Documentation/accounting/delay-accounting.rst
+> @@ -13,7 +13,7 @@ a) waiting for a CPU (while being runnab
+>  b) completion of synchronous block I/O initiated by the task
+>  c) swapping in pages
+>  d) memory reclaim
+> -e) thrashing page cache
+> +e) thrashing
+>  f) direct compact
+>  g) write-protect copy
+>
+> --- a/mm/filemap.c~filemap-make-the-accounting-of-thrashing-more-consiste=
+nt
+> +++ a/mm/filemap.c
+> @@ -1221,15 +1221,11 @@ static inline int folio_wait_bit_common(
+>         struct wait_page_queue wait_page;
+>         wait_queue_entry_t *wait =3D &wait_page.wait;
+>         bool thrashing =3D false;
+> -       bool delayacct =3D false;
+>         unsigned long pflags;
+>
+>         if (bit_nr =3D=3D PG_locked &&
+>             !folio_test_uptodate(folio) && folio_test_workingset(folio)) =
+{
+> -               if (!folio_test_swapbacked(folio)) {
+> -                       delayacct_thrashing_start();
+> -                       delayacct =3D true;
+> -               }
+> +               delayacct_thrashing_start();
+>                 psi_memstall_enter(&pflags);
+>                 thrashing =3D true;
+>         }
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-isofs-replace-kmap-with-kmap_local_page.patch
+I think that a better place to measure swap thrashing is swap_readpage().
+For some cases, like a zram, swap_readpage() is called directly rather than
+loading the page onto the swap cache. Your code would miss that case.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Subject: fs/isofs: replace kmap() with kmap_local_page()
-Date: Mon, 1 Aug 2022 14:27:09 +0200
-
-The use of kmap() is being deprecated in favor of kmap_local_page().
-
-There are two main problems with kmap(): (1) It comes with an overhead as
-mapping space is restricted and protected by a global lock for
-synchronization and (2) it also requires global TLB invalidation when the
-kmap's pool wraps and it might block when the mapping space is fully
-utilized until a slot becomes available.
-
-With kmap_local_page() the mappings are per thread, CPU local, can take
-page faults, and can be called from any context (including interrupts). 
-Tasks can be preempted and, when scheduled to run again, the kernel
-virtual addresses are restored and still valid.  It is faster than kmap()
-in kernels with HIGHMEM enabled.
-
-Since kmap_local_page() can be safely used in compress.c, it should be
-called everywhere instead of kmap().
-
-Therefore, replace kmap() with kmap_local_page() in compress.c.  Where it
-is needed, use memzero_page() instead of open coding kmap_local_page()
-plus memset() to fill the pages with zeros.  Delete the redundant
-flush_dcache_page() in the two call sites of memzero_page().
-
-Tested with mkisofs on a QEMU/KVM x86_32 VM, 6GB RAM, booting a kernel
-with HIGHMEM64GB enabled.
-
-Link: https://lkml.kernel.org/r/20220801122709.8164-1-fmdefrancesco@gmail.com
-Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
-Suggested-by: Ira Weiny <ira.weiny@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Pali Rohár <pali@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/isofs/compress.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
-
---- a/fs/isofs/compress.c~fs-isofs-replace-kmap-with-kmap_local_page
-+++ a/fs/isofs/compress.c
-@@ -67,8 +67,7 @@ static loff_t zisofs_uncompress_block(st
- 		for ( i = 0 ; i < pcount ; i++ ) {
- 			if (!pages[i])
- 				continue;
--			memset(page_address(pages[i]), 0, PAGE_SIZE);
--			flush_dcache_page(pages[i]);
-+			memzero_page(pages[i], 0, PAGE_SIZE);
- 			SetPageUptodate(pages[i]);
- 		}
- 		return ((loff_t)pcount) << PAGE_SHIFT;
-@@ -120,7 +119,7 @@ static loff_t zisofs_uncompress_block(st
- 	       zerr != Z_STREAM_END) {
- 		if (!stream.avail_out) {
- 			if (pages[curpage]) {
--				stream.next_out = page_address(pages[curpage])
-+				stream.next_out = kmap_local_page(pages[curpage])
- 						+ poffset;
- 				stream.avail_out = PAGE_SIZE - poffset;
- 				poffset = 0;
-@@ -176,6 +175,10 @@ static loff_t zisofs_uncompress_block(st
- 				flush_dcache_page(pages[curpage]);
- 				SetPageUptodate(pages[curpage]);
- 			}
-+			if (stream.next_out != (unsigned char *)zisofs_sink_page) {
-+				kunmap_local(stream.next_out);
-+				stream.next_out = NULL;
-+			}
- 			curpage++;
- 		}
- 		if (!stream.avail_in)
-@@ -183,6 +186,8 @@ static loff_t zisofs_uncompress_block(st
- 	}
- inflate_out:
- 	zlib_inflateEnd(&stream);
-+	if (stream.next_out && stream.next_out != (unsigned char *)zisofs_sink_page)
-+		kunmap_local(stream.next_out);
- 
- z_eio:
- 	mutex_unlock(&zisofs_zlib_lock);
-@@ -283,9 +288,7 @@ static int zisofs_fill_pages(struct inod
- 	}
- 
- 	if (poffset && *pages) {
--		memset(page_address(*pages) + poffset, 0,
--		       PAGE_SIZE - poffset);
--		flush_dcache_page(*pages);
-+		memzero_page(*pages, poffset, PAGE_SIZE - poffset);
- 		SetPageUptodate(*pages);
- 	}
- 	return 0;
-@@ -343,10 +346,8 @@ static int zisofs_read_folio(struct file
- 	for (i = 0; i < pcount; i++, index++) {
- 		if (i != full_page)
- 			pages[i] = grab_cache_page_nowait(mapping, index);
--		if (pages[i]) {
-+		if (pages[i])
- 			ClearPageError(pages[i]);
--			kmap(pages[i]);
--		}
- 	}
- 
- 	err = zisofs_fill_pages(inode, full_page, pcount, pages);
-@@ -357,7 +358,6 @@ static int zisofs_read_folio(struct file
- 			flush_dcache_page(pages[i]);
- 			if (i == full_page && err)
- 				SetPageError(pages[i]);
--			kunmap(pages[i]);
- 			unlock_page(pages[i]);
- 			if (i != full_page)
- 				put_page(pages[i]);
-_
-
-Patches currently in -mm which might be from fmdefrancesco@gmail.com are
-
-hfsplus-unmap-the-page-in-the-fail_page-label.patch
-hfsplus-convert-kmap-to-kmap_local_page-in-bnodec.patch
-hfsplus-convert-kmap-to-kmap_local_page-in-bitmapc.patch
-hfsplus-convert-kmap-to-kmap_local_page-in-btreec.patch
-fs-isofs-replace-kmap-with-kmap_local_page.patch
-
+Thanks.
