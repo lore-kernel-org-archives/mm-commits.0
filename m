@@ -2,85 +2,89 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C5F1C00140
-	for <mm-commits@archiver.kernel.org>; Fri, 12 Aug 2022 03:48:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38D2AC00140
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Aug 2022 06:45:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233840AbiHLDsx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 Aug 2022 23:48:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47120 "EHLO
+        id S237304AbiHLGpW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Aug 2022 02:45:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232527AbiHLDsw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2022 23:48:52 -0400
-Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFEDA98596;
-        Thu, 11 Aug 2022 20:48:50 -0700 (PDT)
-Received: by mail-pj1-x1032.google.com with SMTP id h21-20020a17090aa89500b001f31a61b91dso7207875pjq.4;
-        Thu, 11 Aug 2022 20:48:50 -0700 (PDT)
+        with ESMTP id S229524AbiHLGpW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 Aug 2022 02:45:22 -0400
+Received: from mail-io1-xd34.google.com (mail-io1-xd34.google.com [IPv6:2607:f8b0:4864:20::d34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAC4215A30;
+        Thu, 11 Aug 2022 23:45:20 -0700 (PDT)
+Received: by mail-io1-xd34.google.com with SMTP id z145so166941iof.9;
+        Thu, 11 Aug 2022 23:45:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:subject:cc
-         :to:from:date:message-id:from:to:cc;
-        bh=Ncu1JcFDmP0VMNE6i7v1fZbIY+FxdJgQnM3J2QjmWgs=;
-        b=Ypn7cJoqgMe/lhhnMj5T9n/eTbkRlnTbnjka7yqT3Tvzf7yzdPu5yMxGDcoX/qRrKT
-         Pw6LrtsexG1vcl9742zh7fd7Ct96qI6b5GuqdlsP6Bimsw6j9K2OqOTNFuDvn6hhQBkw
-         NQhTzE0t8yRDgBPZQhZ29t/H/pwZTzlLdrgG8tFlY9vakZnh8jNQMONLNUw/Wt7Tqgr8
-         NR7aCWdfbBcmKre82f7uxrpJGq0dyMUA1KvAo7F4bWk7uAGUFoKGkwS9zBTljvg1IgPc
-         u7MO+qBGybbj5/smjfoi+WpyMZ72vxXuPgBUF4dxkqC6Uj31QjLhJLmW/tvWc5mEvL6g
-         UBMA==
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc;
+        bh=WSNSeeymQH5rX6gep7G14n7qacd9r1ygZ7oMTL0zyjQ=;
+        b=q3Oo0vil6ca555f9dQgm2pUQLGmLkUoqHdWAmdw34SZQY154g64IgvBh5xB9JUQjLI
+         fhzaUJFlbiIeNMVUxJj69EnvsGYbbn0Kke0D8QOl/h8fmUtTIIVzrMl4HgHA18LoHOF1
+         +fTMDe+bdDWwO095Yu+NiRLCNPZs7wTq6n7GuGlKGdhNhAtMJ8xDwlvgma1Ch2q149tc
+         90/+yj3sUcS3L2JneAjWv2V7bT1tIxl3H3DLYk13veAR0KjlmJGCgKVLySSUMHjNEUnc
+         32vnXpDvQnMQaIeX+xRvP6RCW9FM1fpkNdQKYIvlmzbSvfxBcCV0EuSvpcf+4fxxS3RM
+         P3UQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:subject:cc
-         :to:from:date:message-id:x-gm-message-state:from:to:cc;
-        bh=Ncu1JcFDmP0VMNE6i7v1fZbIY+FxdJgQnM3J2QjmWgs=;
-        b=RqgmeoM8S6vwAJQJwOKSF0ASDFjfoM1IbDBM8NkXgOVWXBPqDQnToe7oCOpqxGT/3g
-         k4apdB7HG8ZMHbAiWn2dVxq7TPvKmcoNGx8kgdDD9cWD23Dun1jTFY7b7jjgW0sDSLtI
-         iXQ/UriocpSedEn2HKfDCXap9rPEuJ3eFPVBIB/C42+4eHxWlqnFUeCCMApG7SvSsq34
-         rWxEXekMLjLIzt8Rg1XCXgD8dpBbk2c1pWmgNd9Lonafo4tKGq7lX6ydr/WPZ/9cnrk1
-         hFCPAr95MYdEwRHtdz6DYEw/hwoxxx5u1bk+u53X7s9hpFHoQwn4smS0JSpMk8hxYnGH
-         x3eg==
-X-Gm-Message-State: ACgBeo0bcJin2mmf7lOqE0Vqh0UnI4kOnDJF2PmVc+cDnr8cBS9xTTXT
-        5KjSz1v6hxytYkgrKQSCrnA=
-X-Google-Smtp-Source: AA6agR7tG68qxm8iVn7MwS6oTFLxbFhoOUQZx/VUFxjNUxV6llWl3UelpbyoxkDoyAzbHxKL8FThfw==
-X-Received: by 2002:a17:90b:2c13:b0:1f3:359a:c7d5 with SMTP id rv19-20020a17090b2c1300b001f3359ac7d5mr2215720pjb.72.1660276130330;
-        Thu, 11 Aug 2022 20:48:50 -0700 (PDT)
-Received: from localhost ([193.203.214.57])
-        by smtp.gmail.com with ESMTPSA id 200-20020a6216d1000000b005289fad1bbesm499655pfw.94.2022.08.11.20.48.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 11 Aug 2022 20:48:49 -0700 (PDT)
-Message-ID: <62f5cda1.620a0220.7697b.1387@mx.google.com>
-X-Google-Original-Message-ID: <20220812034848.GA29715@cgel.zte@gmail.com>
-Date:   Fri, 12 Aug 2022 03:48:48 +0000
-From:   CGEL <cgel.zte@gmail.com>
-To:     Joonsoo Kim <js1304@gmail.com>
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc;
+        bh=WSNSeeymQH5rX6gep7G14n7qacd9r1ygZ7oMTL0zyjQ=;
+        b=s29FX2VlqstBU4N/Pf8eW0oz6NsAr4NOZiOEf//Y/2gID+fe6knTyxTXZzrhnzldcD
+         1BrFZBJylFeGYbSZ2pM/4IuaHvZDj+jTmrZhNzbtv7Ik+venDWaihiunN+j+HaLju/Q/
+         3hPuONY3lpOjnkCxYvYADAgeDqSBH+QdA+PvtYX/OzWyYPJjFYFARmj1IgBrYwTiZBtW
+         lkMif4p560sPCsiP0H5RaW4nC45e2IbanJDfwVEfY+Za+9djbOzsnO28bBQqeHjdes5F
+         kbCD7gfo3KoRgvYskV7rsd8etctqAfjV9TNPz3e7VHcvIO2xGceGXZS3ruq/Mh/KaJfi
+         ybKg==
+X-Gm-Message-State: ACgBeo063U03bKcv19VQST8I+QqqTpYVxOM1ia6nKAW6e+f0xU/lxqto
+        vsPUbSze8zMF1+E0QFU8S2T6qa49dvwXUV3CeYA=
+X-Google-Smtp-Source: AA6agR4DB8kmM0oH4/QOEOKXa+NxdzOYDH3888wTtomlAKlVMTsVFcAfpY4sSr8Ti92Q5GbOAW1au/XM5or3t2+N5x8=
+X-Received: by 2002:a05:6638:140c:b0:342:e625:2c2d with SMTP id
+ k12-20020a056638140c00b00342e6252c2dmr1298705jad.119.1660286720279; Thu, 11
+ Aug 2022 23:45:20 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220811215204.64911C433D6@smtp.kernel.org> <CAAmzW4MV4rqZsSkbUO385jiijMnLzW1i7U9DaikL-T4H8Pje=A@mail.gmail.com>
+ <62f5cda1.620a0220.7697b.1387@mx.google.com>
+In-Reply-To: <62f5cda1.620a0220.7697b.1387@mx.google.com>
+From:   Joonsoo Kim <js1304@gmail.com>
+Date:   Fri, 12 Aug 2022 15:45:09 +0900
+Message-ID: <CAAmzW4NAe2RBmw_OwRVOE+PEEwABrLzAQrVtFJBA7gZNm__oiw@mail.gmail.com>
+Subject: Re: + filemap-make-the-accounting-of-thrashing-more-consistent.patch
+ added to mm-unstable branch
+To:     CGEL <cgel.zte@gmail.com>
 Cc:     LKML <linux-kernel@vger.kernel.org>, mm-commits@vger.kernel.org,
         Matthew Wilcox <willy@infradead.org>,
         Joonsoo Kim <iamjoonsoo.kim@lge.com>,
         David Hildenbrand <david@redhat.com>, corbet@lwn.net,
         bsingharora@gmail.com, yang.yang29@zte.com.cn,
         Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: + filemap-make-the-accounting-of-thrashing-more-consistent.patch
- added to mm-unstable branch
-References: <20220811215204.64911C433D6@smtp.kernel.org>
- <CAAmzW4MV4rqZsSkbUO385jiijMnLzW1i7U9DaikL-T4H8Pje=A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAmzW4MV4rqZsSkbUO385jiijMnLzW1i7U9DaikL-T4H8Pje=A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-We have discussed related question before. See:
-https://lore.kernel.org/all/Yio17pXawRuuVJFO@cmpxchg.org/
-The problem is that there is no suitable place to measure pagecache thrashing
-in fs level likes swap_readpage(). We have to measure it in folio_wait_bit_common().
+2022=EB=85=84 8=EC=9B=94 12=EC=9D=BC (=EA=B8=88) =EC=98=A4=ED=9B=84 12:48, =
+CGEL <cgel.zte@gmail.com>=EB=8B=98=EC=9D=B4 =EC=9E=91=EC=84=B1:
+>
+> We have discussed related question before. See:
+> https://lore.kernel.org/all/Yio17pXawRuuVJFO@cmpxchg.org/
+> The problem is that there is no suitable place to measure pagecache thras=
+hing
+> in fs level likes swap_readpage(). We have to measure it in folio_wait_bi=
+t_common().
+>
+> If we measure swap thrashing just in swap_readpage(), we will miss pageca=
+che
+> thrashing. If we measure swap thrashing in swap_readpage(), and measure
+> pagecache thrashing in folio_wait_bit_common(), it will be rerpeated calc=
+ulation.
 
-If we measure swap thrashing just in swap_readpage(), we will miss pagecache
-thrashing. If we measure swap thrashing in swap_readpage(), and measure 
-pagecache thrashing in folio_wait_bit_common(), it will be rerpeated calculation.
-
-So this patch is not perfect and it works. If one day we solve the problem of
-measure thrashing in folio_wait_bit_common(), we may improve this patch correspond.
+Maybe, repeated calculation issue could be easily solved by
+re-entrance detection on
+delayacct_thrashing_start().
 
 Thanks.
