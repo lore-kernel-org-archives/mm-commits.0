@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBE98C19F2D
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Aug 2022 23:14:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56103C19F2D
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Aug 2022 23:15:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229721AbiHMXO0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 13 Aug 2022 19:14:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33750 "EHLO
+        id S229679AbiHMXPW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 13 Aug 2022 19:15:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229711AbiHMXOZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 13 Aug 2022 19:14:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D640689822
-        for <mm-commits@vger.kernel.org>; Sat, 13 Aug 2022 16:14:24 -0700 (PDT)
+        with ESMTP id S229652AbiHMXPV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 13 Aug 2022 19:15:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DE176381
+        for <mm-commits@vger.kernel.org>; Sat, 13 Aug 2022 16:15:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B95160F13
-        for <mm-commits@vger.kernel.org>; Sat, 13 Aug 2022 23:14:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD965C433C1;
-        Sat, 13 Aug 2022 23:14:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF9C160F5F
+        for <mm-commits@vger.kernel.org>; Sat, 13 Aug 2022 23:15:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40FC2C433D7;
+        Sat, 13 Aug 2022 23:15:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660432463;
-        bh=7sv8iKAvYhNtXScIFayXZLeijANegg6M6jGudubJm4E=;
+        s=korg; t=1660432519;
+        bh=Ed/6JKU9D+qNnmnpgRrskz7NYBmWqiQYETuXVa/E6RM=;
         h=Date:To:From:Subject:From;
-        b=Fz7QN9K2/X/PmUV6SHidOIBijOHtnNOYtzlxf/UZOkpKOBOzRdVupNEiU7USYlJG8
-         APEyuh6CH5AG5uvMYLN89Z65ibJbB/iOV+8L1FZN4HWuIgtvBVDtoNwRwtWPiPtkrK
-         kIzhZlcRvbKXNZsYBBSBGoKEJhK+89kdApWa9FBU=
-Date:   Sat, 13 Aug 2022 16:14:23 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de, joe@perches.com,
-        fmdefrancesco@gmail.com, ira.weiny@intel.com,
+        b=bBh6i7IFdVVbtvvwLbJnD59QxPOzjxPX2CXhExXtLYW8d0FHDn23siGpJq01N7qzF
+         4PDIobydzJeahT4/yxy8FgTIXZDVv0MNFA/RZ22YbvqgdFDNqCRVd9y4ZnRvzh+m9r
+         qbyMkuzUqRmhIis+Kf6VBfUaqNTKb5dijVMEjILo=
+Date:   Sat, 13 Aug 2022 16:15:18 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-add-kmap-and-kmap_atomic-to-the-deprecated-list.patch added to mm-nonmm-unstable branch
-Message-Id: <20220813231423.BD965C433C1@smtp.kernel.org>
+Subject: + mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch added to mm-unstable branch
+Message-Id: <20220813231519.40FC2C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: Add kmap and kmap_atomic to the deprecated list
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-add-kmap-and-kmap_atomic-to-the-deprecated-list.patch
+     Subject: mm/damon/core: simplify the parameter passing for region split operation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-kmap-and-kmap_atomic-to-the-deprecated-list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,56 +64,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: checkpatch: Add kmap and kmap_atomic to the deprecated list
-Date: Sat, 13 Aug 2022 15:00:34 -0700
+From: Kaixu Xia <kaixuxia@tencent.com>
+Subject: mm/damon/core: simplify the parameter passing for region split operation
+Date: Sat, 13 Aug 2022 23:19:03 +0800
 
-kmap() and kmap_atomic() are being deprecated in favor of
-kmap_local_page().
+The parameter 'struct damon_ctx *ctx' is unnecessary in damon region split
+operation, so we can remove it.
 
-There are two main problems with kmap(): (1) It comes with an overhead as
-mapping space is restricted and protected by a global lock for
-synchronization and (2) it also requires global TLB invalidation when the
-kmap's pool wraps and it might block when the mapping space is fully
-utilized until a slot becomes available.
-
-kmap_local_page() is safe from any context and is therefore redundant with
-kmap_atomic() with the exception of any pagefault or preemption disable
-requirements.  However, using kmap_atomic() for these side effects makes
-the code less clear.  So any requirement for pagefault or preemption
-disable should be made explicitly.
-
-With kmap_local_page() the mappings are per thread, CPU local, can take
-page faults, and can be called from any context (including interrupts). 
-It is faster than kmap() in kernels with HIGHMEM enabled.  Furthermore,
-the tasks can be preempted and, when they are scheduled to run again, the
-kernel virtual addresses are restored.
-
-Link: https://lkml.kernel.org/r/20220813220034.806698-1-ira.weiny@intel.com
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-Suggested-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
-Cc: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/1660403943-29124-1-git-send-email-kaixuxia@tencent.com
+Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/core-test.h |    6 +++---
+ mm/damon/core.c      |   21 +++++++++------------
+ 2 files changed, 12 insertions(+), 15 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-kmap-and-kmap_atomic-to-the-deprecated-list
-+++ a/scripts/checkpatch.pl
-@@ -807,6 +807,8 @@ our %deprecated_apis = (
- 	"rcu_barrier_sched"			=> "rcu_barrier",
- 	"get_state_synchronize_sched"		=> "get_state_synchronize_rcu",
- 	"cond_synchronize_sched"		=> "cond_synchronize_rcu",
-+	"kmap"					=> "kmap_local_page",
-+	"kmap_atomic"				=> "kmap_local_page",
- );
+--- a/mm/damon/core.c~mm-damon-core-simplify-the-parameter-passing-for-region-split-operation
++++ a/mm/damon/core.c
+@@ -658,9 +658,8 @@ static void kdamond_reset_aggregated(str
+ 	}
+ }
  
- #Create a search pattern for all these strings to speed up a loop below
+-static void damon_split_region_at(struct damon_ctx *ctx,
+-		struct damon_target *t, struct damon_region *r,
+-		unsigned long sz_r);
++static void damon_split_region_at(struct damon_target *t,
++				  struct damon_region *r, unsigned long sz_r);
+ 
+ static bool __damos_valid_target(struct damon_region *r, struct damos *s)
+ {
+@@ -726,7 +725,7 @@ static void damon_do_apply_schemes(struc
+ 						continue;
+ 					sz = DAMON_MIN_REGION;
+ 				}
+-				damon_split_region_at(c, t, r, sz);
++				damon_split_region_at(t, r, sz);
+ 				r = damon_next_region(r);
+ 				sz = r->ar.end - r->ar.start;
+ 			}
+@@ -745,7 +744,7 @@ static void damon_do_apply_schemes(struc
+ 						DAMON_MIN_REGION);
+ 				if (!sz)
+ 					goto update_stat;
+-				damon_split_region_at(c, t, r, sz);
++				damon_split_region_at(t, r, sz);
+ 			}
+ 			ktime_get_coarse_ts64(&begin);
+ 			sz_applied = c->ops.apply_scheme(c, t, r, s);
+@@ -928,9 +927,8 @@ static void kdamond_merge_regions(struct
+  * r		the region to be split
+  * sz_r		size of the first sub-region that will be made
+  */
+-static void damon_split_region_at(struct damon_ctx *ctx,
+-		struct damon_target *t, struct damon_region *r,
+-		unsigned long sz_r)
++static void damon_split_region_at(struct damon_target *t,
++				  struct damon_region *r, unsigned long sz_r)
+ {
+ 	struct damon_region *new;
+ 
+@@ -947,8 +945,7 @@ static void damon_split_region_at(struct
+ }
+ 
+ /* Split every region in the given target into 'nr_subs' regions */
+-static void damon_split_regions_of(struct damon_ctx *ctx,
+-				     struct damon_target *t, int nr_subs)
++static void damon_split_regions_of(struct damon_target *t, int nr_subs)
+ {
+ 	struct damon_region *r, *next;
+ 	unsigned long sz_region, sz_sub = 0;
+@@ -969,7 +966,7 @@ static void damon_split_regions_of(struc
+ 			if (sz_sub == 0 || sz_sub >= sz_region)
+ 				continue;
+ 
+-			damon_split_region_at(ctx, t, r, sz_sub);
++			damon_split_region_at(t, r, sz_sub);
+ 			sz_region = sz_sub;
+ 		}
+ 	}
+@@ -1004,7 +1001,7 @@ static void kdamond_split_regions(struct
+ 		nr_subregions = 3;
+ 
+ 	damon_for_each_target(t, ctx)
+-		damon_split_regions_of(ctx, t, nr_subregions);
++		damon_split_regions_of(t, nr_subregions);
+ 
+ 	last_nr_regions = nr_regions;
+ }
+--- a/mm/damon/core-test.h~mm-damon-core-simplify-the-parameter-passing-for-region-split-operation
++++ a/mm/damon/core-test.h
+@@ -126,7 +126,7 @@ static void damon_test_split_at(struct k
+ 	t = damon_new_target();
+ 	r = damon_new_region(0, 100);
+ 	damon_add_region(r, t);
+-	damon_split_region_at(c, t, r, 25);
++	damon_split_region_at(t, r, 25);
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 25ul);
+ 
+@@ -219,14 +219,14 @@ static void damon_test_split_regions_of(
+ 	t = damon_new_target();
+ 	r = damon_new_region(0, 22);
+ 	damon_add_region(r, t);
+-	damon_split_regions_of(c, t, 2);
++	damon_split_regions_of(t, 2);
+ 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
+ 	damon_free_target(t);
+ 
+ 	t = damon_new_target();
+ 	r = damon_new_region(0, 220);
+ 	damon_add_region(r, t);
+-	damon_split_regions_of(c, t, 4);
++	damon_split_regions_of(t, 4);
+ 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
+ 	damon_free_target(t);
+ 	damon_destroy_ctx(c);
 _
 
-Patches currently in -mm which might be from ira.weiny@intel.com are
+Patches currently in -mm which might be from kaixuxia@tencent.com are
 
-checkpatch-add-kmap-and-kmap_atomic-to-the-deprecated-list.patch
+mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch
 
