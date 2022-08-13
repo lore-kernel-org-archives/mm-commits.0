@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56103C19F2D
-	for <mm-commits@archiver.kernel.org>; Sat, 13 Aug 2022 23:15:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7186AC19F2D
+	for <mm-commits@archiver.kernel.org>; Sat, 13 Aug 2022 23:17:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbiHMXPW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 13 Aug 2022 19:15:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34672 "EHLO
+        id S229815AbiHMXRf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 13 Aug 2022 19:17:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229652AbiHMXPV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 13 Aug 2022 19:15:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DE176381
-        for <mm-commits@vger.kernel.org>; Sat, 13 Aug 2022 16:15:20 -0700 (PDT)
+        with ESMTP id S229652AbiHMXRf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 13 Aug 2022 19:17:35 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD67C8A7D3
+        for <mm-commits@vger.kernel.org>; Sat, 13 Aug 2022 16:17:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DF9C160F5F
-        for <mm-commits@vger.kernel.org>; Sat, 13 Aug 2022 23:15:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40FC2C433D7;
-        Sat, 13 Aug 2022 23:15:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 737D3B80AE9
+        for <mm-commits@vger.kernel.org>; Sat, 13 Aug 2022 23:17:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E3E6C433C1;
+        Sat, 13 Aug 2022 23:17:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660432519;
-        bh=Ed/6JKU9D+qNnmnpgRrskz7NYBmWqiQYETuXVa/E6RM=;
+        s=korg; t=1660432651;
+        bh=zMrr4z5xfgTSCZS874ommB2EGxa8YBVCINCWLGiupFE=;
         h=Date:To:From:Subject:From;
-        b=bBh6i7IFdVVbtvvwLbJnD59QxPOzjxPX2CXhExXtLYW8d0FHDn23siGpJq01N7qzF
-         4PDIobydzJeahT4/yxy8FgTIXZDVv0MNFA/RZ22YbvqgdFDNqCRVd9y4ZnRvzh+m9r
-         qbyMkuzUqRmhIis+Kf6VBfUaqNTKb5dijVMEjILo=
-Date:   Sat, 13 Aug 2022 16:15:18 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, kaixuxia@tencent.com,
+        b=HnwWYy5CxkW6FnNssnUH/EeDqL1GM4iDIxs4DWBfHmHWpZlwNkL0OXJ8ckgn8Ftd1
+         +w1jOJUOnlUXeHaVf4OovgiWOOfDB7eeJFJ5ERquSxbJqI874F3yyu7teo2S65T19V
+         yiwaY8gvB2UfnFMMAB8i8ir9xzjo6h7IMOylXktQ=
+Date:   Sat, 13 Aug 2022 16:17:30 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com,
+        hannes@cmpxchg.org, cgel.zte@gmail.com, yang.yang29@zte.com.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch added to mm-unstable branch
-Message-Id: <20220813231519.40FC2C433D7@smtp.kernel.org>
+Subject: + mm-vmscan-make-the-annotations-of-refaults-code-at-the-right-place.patch added to mm-unstable branch
+Message-Id: <20220813231731.2E3E6C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: simplify the parameter passing for region split operation
+     Subject: mm/vmscan: make the annotations of refaults code at the right place
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch
+     mm-vmscan-make-the-annotations-of-refaults-code-at-the-right-place.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-make-the-annotations-of-refaults-code-at-the-right-place.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,126 +65,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kaixu Xia <kaixuxia@tencent.com>
-Subject: mm/damon/core: simplify the parameter passing for region split operation
-Date: Sat, 13 Aug 2022 23:19:03 +0800
+From: Yang Yang <yang.yang29@zte.com.cn>
+Subject: mm/vmscan: make the annotations of refaults code at the right place
+Date: Sat, 13 Aug 2022 08:07:58 +0000
 
-The parameter 'struct damon_ctx *ctx' is unnecessary in damon region split
-operation, so we can remove it.
+After patch "mm/workingset: prepare the workingset detection
+infrastructure for anon LRU", we can handle the refaults of anonymous
+pages too.  So the annotations of refaults should cover both of anonymous
+pages and file pages.
 
-Link: https://lkml.kernel.org/r/1660403943-29124-1-git-send-email-kaixuxia@tencent.com
-Signed-off-by: Kaixu Xia <kaixuxia@tencent.com>
-Cc: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20220813080757.59131-1-yang.yang29@zte.com.cn
+Fixes: 170b04b7ae4963 ("mm/workingset: prepare the workingset detection infrastructure for anon LRU")
+Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
+Signed-off-by: CGEL ZTE <cgel.zte@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core-test.h |    6 +++---
- mm/damon/core.c      |   21 +++++++++------------
- 2 files changed, 12 insertions(+), 15 deletions(-)
+ mm/vmscan.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-simplify-the-parameter-passing-for-region-split-operation
-+++ a/mm/damon/core.c
-@@ -658,9 +658,8 @@ static void kdamond_reset_aggregated(str
- 	}
- }
+--- a/mm/vmscan.c~mm-vmscan-make-the-annotations-of-refaults-code-at-the-right-place
++++ a/mm/vmscan.c
+@@ -3226,6 +3226,11 @@ again:
+ 	if (!sc->force_deactivate) {
+ 		unsigned long refaults;
  
--static void damon_split_region_at(struct damon_ctx *ctx,
--		struct damon_target *t, struct damon_region *r,
--		unsigned long sz_r);
-+static void damon_split_region_at(struct damon_target *t,
-+				  struct damon_region *r, unsigned long sz_r);
++		/*
++		 * When refaults are being observed, it means a new
++		 * workingset is being established. Deactivate to get
++		 * rid of any stale active pages quickly.
++		 */
+ 		refaults = lruvec_page_state(target_lruvec,
+ 				WORKINGSET_ACTIVATE_ANON);
+ 		if (refaults != target_lruvec->refaults[WORKINGSET_ANON] ||
+@@ -3234,11 +3239,6 @@ again:
+ 		else
+ 			sc->may_deactivate &= ~DEACTIVATE_ANON;
  
- static bool __damos_valid_target(struct damon_region *r, struct damos *s)
- {
-@@ -726,7 +725,7 @@ static void damon_do_apply_schemes(struc
- 						continue;
- 					sz = DAMON_MIN_REGION;
- 				}
--				damon_split_region_at(c, t, r, sz);
-+				damon_split_region_at(t, r, sz);
- 				r = damon_next_region(r);
- 				sz = r->ar.end - r->ar.start;
- 			}
-@@ -745,7 +744,7 @@ static void damon_do_apply_schemes(struc
- 						DAMON_MIN_REGION);
- 				if (!sz)
- 					goto update_stat;
--				damon_split_region_at(c, t, r, sz);
-+				damon_split_region_at(t, r, sz);
- 			}
- 			ktime_get_coarse_ts64(&begin);
- 			sz_applied = c->ops.apply_scheme(c, t, r, s);
-@@ -928,9 +927,8 @@ static void kdamond_merge_regions(struct
-  * r		the region to be split
-  * sz_r		size of the first sub-region that will be made
-  */
--static void damon_split_region_at(struct damon_ctx *ctx,
--		struct damon_target *t, struct damon_region *r,
--		unsigned long sz_r)
-+static void damon_split_region_at(struct damon_target *t,
-+				  struct damon_region *r, unsigned long sz_r)
- {
- 	struct damon_region *new;
- 
-@@ -947,8 +945,7 @@ static void damon_split_region_at(struct
- }
- 
- /* Split every region in the given target into 'nr_subs' regions */
--static void damon_split_regions_of(struct damon_ctx *ctx,
--				     struct damon_target *t, int nr_subs)
-+static void damon_split_regions_of(struct damon_target *t, int nr_subs)
- {
- 	struct damon_region *r, *next;
- 	unsigned long sz_region, sz_sub = 0;
-@@ -969,7 +966,7 @@ static void damon_split_regions_of(struc
- 			if (sz_sub == 0 || sz_sub >= sz_region)
- 				continue;
- 
--			damon_split_region_at(ctx, t, r, sz_sub);
-+			damon_split_region_at(t, r, sz_sub);
- 			sz_region = sz_sub;
- 		}
- 	}
-@@ -1004,7 +1001,7 @@ static void kdamond_split_regions(struct
- 		nr_subregions = 3;
- 
- 	damon_for_each_target(t, ctx)
--		damon_split_regions_of(ctx, t, nr_subregions);
-+		damon_split_regions_of(t, nr_subregions);
- 
- 	last_nr_regions = nr_regions;
- }
---- a/mm/damon/core-test.h~mm-damon-core-simplify-the-parameter-passing-for-region-split-operation
-+++ a/mm/damon/core-test.h
-@@ -126,7 +126,7 @@ static void damon_test_split_at(struct k
- 	t = damon_new_target();
- 	r = damon_new_region(0, 100);
- 	damon_add_region(r, t);
--	damon_split_region_at(c, t, r, 25);
-+	damon_split_region_at(t, r, 25);
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 25ul);
- 
-@@ -219,14 +219,14 @@ static void damon_test_split_regions_of(
- 	t = damon_new_target();
- 	r = damon_new_region(0, 22);
- 	damon_add_region(r, t);
--	damon_split_regions_of(c, t, 2);
-+	damon_split_regions_of(t, 2);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
- 	damon_free_target(t);
- 
- 	t = damon_new_target();
- 	r = damon_new_region(0, 220);
- 	damon_add_region(r, t);
--	damon_split_regions_of(c, t, 4);
-+	damon_split_regions_of(t, 4);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
- 	damon_free_target(t);
- 	damon_destroy_ctx(c);
+-		/*
+-		 * When refaults are being observed, it means a new
+-		 * workingset is being established. Deactivate to get
+-		 * rid of any stale active pages quickly.
+-		 */
+ 		refaults = lruvec_page_state(target_lruvec,
+ 				WORKINGSET_ACTIVATE_FILE);
+ 		if (refaults != target_lruvec->refaults[WORKINGSET_FILE] ||
 _
 
-Patches currently in -mm which might be from kaixuxia@tencent.com are
+Patches currently in -mm which might be from yang.yang29@zte.com.cn are
 
-mm-damon-core-simplify-the-parameter-passing-for-region-split-operation.patch
+mm-vmscan-define-macros-for-refaults-in-struct-lruvec.patch
+filemap-make-the-accounting-of-thrashing-more-consistent.patch
+mm-vmscan-make-the-annotations-of-refaults-code-at-the-right-place.patch
 
