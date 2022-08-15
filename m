@@ -2,295 +2,108 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2169C25B06
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Aug 2022 02:01:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2260CC00140
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Aug 2022 08:42:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230026AbiHOCBK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 14 Aug 2022 22:01:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39514 "EHLO
+        id S231718AbiHOImG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Aug 2022 04:42:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229614AbiHOCBH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 14 Aug 2022 22:01:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 632D39590
-        for <mm-commits@vger.kernel.org>; Sun, 14 Aug 2022 19:01:04 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S231165AbiHOImF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2022 04:42:05 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 174A920181;
+        Mon, 15 Aug 2022 01:42:03 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8B2E4B80CAC
-        for <mm-commits@vger.kernel.org>; Mon, 15 Aug 2022 02:01:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EEDFC433D6;
-        Mon, 15 Aug 2022 02:01:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660528862;
-        bh=/R8f8yZGS+HglGhybqmNgtCq3qIGXXi+dnDJVERlxBw=;
-        h=Date:To:From:Subject:From;
-        b=H6y7WJYQ3I4C1A6BzwTkjGctXLjhqLVgHgFXSnM7WcZ+T/hEBWJJcJD7AXNLpQvhs
-         Cb1FmCJy4/OS8roxROo5uKXWxKRa/cSGKcxuHgC3EWxKHbGlbDY/Guiywb2GpJpQoY
-         WRfzJg2hnqAX63vrlLmhe9hCVmXsQ4Upzs3RtGcI=
-Date:   Sun, 14 Aug 2022 19:01:01 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de, pmladek@suse.com,
-        linmiaohe@huawei.com, lgoncalv@redhat.com, jlelli@redhat.com,
-        ebiederm@xmission.com, bigeasy@linutronix.de, bhe@redhat.com,
-        arnd@arndb.de, vschneid@redhat.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-kexec-make-__crash_kexec-nmi-safe.patch added to mm-nonmm-unstable branch
-Message-Id: <20220815020102.2EEDFC433D6@smtp.kernel.org>
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 9FF1534676;
+        Mon, 15 Aug 2022 08:42:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1660552922; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=LaVJUClI9pufMRMwnPQWm3K1AyxFVnORnC8zJHqqOH4=;
+        b=iOYQ+Cdp6mqGSlymrQXIwUKqmslP9WpLTTHvWBeIesQiGIyIFrL4D42pWDUBDjPSui4x77
+        rfXYBtJM/zds56D1KzpqS0WOxGXX00zyiPFb/Vp5HZWBX2UBNKetE2cfL7HqkII74Giu4a
+        XB2/HnWmRGoM/+Y8gVPMrjnGv3OpEdI=
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 816E613A93;
+        Mon, 15 Aug 2022 08:42:02 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id R1tOHdoG+mLjRAAAMHmgww
+        (envelope-from <mhocko@suse.com>); Mon, 15 Aug 2022 08:42:02 +0000
+Date:   Mon, 15 Aug 2022 10:42:01 +0200
+From:   Michal Hocko <mhocko@suse.com>
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        john.p.donnelly@oracle.com, david@redhat.com, bhe@redhat.com
+Subject: Re: + dma-pool-do-not-complain-if-dma-pool-is-not-allocated.patch
+ added to mm-hotfixes-unstable branch
+Message-ID: <YvoG2YeaiwYsxg9y@dhcp22.suse.cz>
+References: <20220810013308.5E23AC433C1@smtp.kernel.org>
+ <20220810140030.GA24195@lst.de>
+ <YvP9YITH0RpgpblG@dhcp22.suse.cz>
+ <20220811092911.GA22246@lst.de>
+ <YvTRFxkmSuDAyVdI@dhcp22.suse.cz>
+ <20220813062913.GA10523@lst.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220813062913.GA10523@lst.de>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Sat 13-08-22 08:29:13, Christoph Hellwig wrote:
+> On Thu, Aug 11, 2022 at 11:51:19AM +0200, Michal Hocko wrote:
+> > this will not consider any gaps in the zone. We have zone_managed_pages
+> > which tells you how many pages there are in the zone which have been
+> > provided to the page allocator which seems like something that would fit
+> > better. And it is also much better than basing it on the global amount
+> > of memory which just doesn't make much sens for constrained zones
+> 
+> Yes, that is a much better helper.
+> 
+> > Except that it will not work for this case as
+> > +static unsigned long calculate_pool_size(unsigned long zone_pages)
+> > +{
+> > +       unsigned long nr_pages = min_t(unsigned long,
+> > +                                      zone_pages / (SZ_1G / SZ_128K),
+> > +                                      MAX_ORDER_NR_PAGES);
+> > +
+> > +       return max_t(unsigned long, nr_pages << PAGE_SHIFT, SZ_128K);
+> > +}
+> > 
+> > this will return 128kB, correct?
+> 
+> Yes.
+> 
+> > The DMA zone still has 126kB of usable memory. I think what you
+> > want/need to do something like
+> 
+> No.  If you don't have 128k free you have another bug and we really
+> should warn here.  Please go back to that system and figure out what
+> uses up almost all of ZONE_DMA on that system, because we have another
+> big problem there.
 
-The patch titled
-     Subject: panic, kexec: make __crash_kexec() NMI safe
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-kexec-make-__crash_kexec-nmi-safe.patch
+I do agree that such a large consumption from the DMA zone is unusual. I
+have reached out to the original reporter and ask for help to
+investigate more. Let's see whether we can get something out of that.
+This can really reveal some DMA zone abuser.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-kexec-make-__crash_kexec-nmi-safe.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Valentin Schneider <vschneid@redhat.com>
-Subject: panic, kexec: make __crash_kexec() NMI safe
-Date: Thu, 30 Jun 2022 23:32:58 +0100
-
-Attempting to get a crash dump out of a debug PREEMPT_RT kernel via an NMI
-panic() doesn't work.  The cause of that lies in the PREEMPT_RT definition
-of mutex_trylock():
-
-	if (IS_ENABLED(CONFIG_DEBUG_RT_MUTEXES) && WARN_ON_ONCE(!in_task()))
-		return 0;
-
-This prevents an nmi_panic() from executing the main body of
-__crash_kexec() which does the actual kexec into the kdump kernel.  The
-warning and return are explained by:
-
-  6ce47fd961fa ("rtmutex: Warn if trylock is called from hard/softirq context")
-  [...]
-  The reasons for this are:
-
-      1) There is a potential deadlock in the slowpath
-
-      2) Another cpu which blocks on the rtmutex will boost the task
-	 which allegedly locked the rtmutex, but that cannot work
-	 because the hard/softirq context borrows the task context.
-
-Furthermore, grabbing the lock isn't NMI safe, so do away with kexec_mutex
-and replace it with an atomic variable.  This is somewhat overzealous as
-*some* callsites could keep using a mutex (e.g.  the sysfs-facing ones
-like crash_shrink_memory()), but this has the benefit of involving a
-single unified lock and preventing any future NMI-related surprises.
-
-Tested by triggering NMI panics via:
-
-  $ echo 1 > /proc/sys/kernel/panic_on_unrecovered_nmi
-  $ echo 1 > /proc/sys/kernel/unknown_nmi_panic
-  $ echo 1 > /proc/sys/kernel/panic
-
-  $ ipmitool power diag
-
-Link: https://lkml.kernel.org/r/20220630223258.4144112-3-vschneid@redhat.com
-Fixes: 6ce47fd961fa ("rtmutex: Warn if trylock is called from hard/softirq context")
-Signed-off-by: Valentin Schneider <vschneid@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Juri Lelli <jlelli@redhat.com>
-Cc: Luis Claudio R. Goncalves <lgoncalv@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/kexec.c          |   11 ++++-------
- kernel/kexec_core.c     |   20 ++++++++++----------
- kernel/kexec_file.c     |    4 ++--
- kernel/kexec_internal.h |   15 ++++++++++++++-
- 4 files changed, 30 insertions(+), 20 deletions(-)
-
---- a/kernel/kexec.c~panic-kexec-make-__crash_kexec-nmi-safe
-+++ a/kernel/kexec.c
-@@ -93,13 +93,10 @@ static int do_kexec_load(unsigned long e
- 
- 	/*
- 	 * Because we write directly to the reserved memory region when loading
--	 * crash kernels we need a mutex here to prevent multiple crash kernels
--	 * from attempting to load simultaneously, and to prevent a crash kernel
--	 * from loading over the top of a in use crash kernel.
--	 *
--	 * KISS: always take the mutex.
-+	 * crash kernels we need a serialization here to prevent multiple crash
-+	 * kernels from attempting to load simultaneously.
- 	 */
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 
- 	if (flags & KEXEC_ON_CRASH) {
-@@ -165,7 +162,7 @@ out:
- 
- 	kimage_free(image);
- out_unlock:
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	return ret;
- }
- 
---- a/kernel/kexec_core.c~panic-kexec-make-__crash_kexec-nmi-safe
-+++ a/kernel/kexec_core.c
-@@ -46,7 +46,7 @@
- #include <crypto/hash.h>
- #include "kexec_internal.h"
- 
--DEFINE_MUTEX(kexec_mutex);
-+atomic_t __kexec_lock = ATOMIC_INIT(0);
- 
- /* Per cpu memory for storing cpu states in case of system crash. */
- note_buf_t __percpu *crash_notes;
-@@ -959,7 +959,7 @@ late_initcall(kexec_core_sysctl_init);
-  */
- void __noclone __crash_kexec(struct pt_regs *regs)
- {
--	/* Take the kexec_mutex here to prevent sys_kexec_load
-+	/* Take the kexec_lock here to prevent sys_kexec_load
- 	 * running on one cpu from replacing the crash kernel
- 	 * we are using after a panic on a different cpu.
- 	 *
-@@ -967,7 +967,7 @@ void __noclone __crash_kexec(struct pt_r
- 	 * of memory the xchg(&kexec_crash_image) would be
- 	 * sufficient.  But since I reuse the memory...
- 	 */
--	if (mutex_trylock(&kexec_mutex)) {
-+	if (kexec_trylock()) {
- 		if (kexec_crash_image) {
- 			struct pt_regs fixed_regs;
- 
-@@ -976,7 +976,7 @@ void __noclone __crash_kexec(struct pt_r
- 			machine_crash_shutdown(&fixed_regs);
- 			machine_kexec(kexec_crash_image);
- 		}
--		mutex_unlock(&kexec_mutex);
-+		kexec_unlock();
- 	}
- }
- STACK_FRAME_NON_STANDARD(__crash_kexec);
-@@ -1008,13 +1008,13 @@ ssize_t crash_get_memory_size(void)
- {
- 	ssize_t size = 0;
- 
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 
- 	if (crashk_res.end != crashk_res.start)
- 		size = resource_size(&crashk_res);
- 
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	return size;
- }
- 
-@@ -1025,7 +1025,7 @@ int crash_shrink_memory(unsigned long ne
- 	unsigned long old_size;
- 	struct resource *ram_res;
- 
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 
- 	if (kexec_crash_image) {
-@@ -1064,7 +1064,7 @@ int crash_shrink_memory(unsigned long ne
- 	insert_resource(&iomem_resource, ram_res);
- 
- unlock:
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	return ret;
- }
- 
-@@ -1136,7 +1136,7 @@ int kernel_kexec(void)
- {
- 	int error = 0;
- 
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 	if (!kexec_image) {
- 		error = -EINVAL;
-@@ -1212,6 +1212,6 @@ int kernel_kexec(void)
- #endif
- 
-  Unlock:
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	return error;
- }
---- a/kernel/kexec_file.c~panic-kexec-make-__crash_kexec-nmi-safe
-+++ a/kernel/kexec_file.c
-@@ -339,7 +339,7 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 
- 	image = NULL;
- 
--	if (!mutex_trylock(&kexec_mutex))
-+	if (!kexec_trylock())
- 		return -EBUSY;
- 
- 	dest_image = &kexec_image;
-@@ -411,7 +411,7 @@ out:
- 	if ((flags & KEXEC_FILE_ON_CRASH) && kexec_crash_image)
- 		arch_kexec_protect_crashkres();
- 
--	mutex_unlock(&kexec_mutex);
-+	kexec_unlock();
- 	kimage_free(image);
- 	return ret;
- }
---- a/kernel/kexec_internal.h~panic-kexec-make-__crash_kexec-nmi-safe
-+++ a/kernel/kexec_internal.h
-@@ -13,7 +13,20 @@ void kimage_terminate(struct kimage *ima
- int kimage_is_destination_range(struct kimage *image,
- 				unsigned long start, unsigned long end);
- 
--extern struct mutex kexec_mutex;
-+/*
-+ * Whatever is used to serialize accesses to the kexec_crash_image needs to be
-+ * NMI safe, as __crash_kexec() can happen during nmi_panic(), so here we use a
-+ * "simple" atomic variable that is acquired with a cmpxchg().
-+ */
-+extern atomic_t __kexec_lock;
-+static inline bool kexec_trylock(void)
-+{
-+	return atomic_cmpxchg_acquire(&__kexec_lock, 0, 1) == 0;
-+}
-+static inline void kexec_unlock(void)
-+{
-+	atomic_set_release(&__kexec_lock, 0);
-+}
- 
- #ifdef CONFIG_KEXEC_FILE
- #include <linux/purgatory.h>
-_
-
-Patches currently in -mm which might be from vschneid@redhat.com are
-
-kexec-turn-all-kexec_mutex-acquisitions-into-trylocks.patch
-panic-kexec-make-__crash_kexec-nmi-safe.patch
-
+Anyway, you seem to be not thrilled about the __GFP_NOWARN approach and
+I won't push it. But is the existing inconsistency really desirable? I
+mean we can get pretty vocal warning if the allocation fails but no
+information when the zone doesn't have any managed memory. Why should we
+treat them differently? 
+-- 
+Michal Hocko
+SUSE Labs
