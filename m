@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E4EFC25B06
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Aug 2022 00:12:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4D6AC25B06
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Aug 2022 00:18:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229571AbiHOAMo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 14 Aug 2022 20:12:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54546 "EHLO
+        id S229909AbiHOASc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 14 Aug 2022 20:18:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbiHOAMo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 14 Aug 2022 20:12:44 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AF2110540
-        for <mm-commits@vger.kernel.org>; Sun, 14 Aug 2022 17:12:43 -0700 (PDT)
+        with ESMTP id S229922AbiHOAS3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 14 Aug 2022 20:18:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE9DC11C16
+        for <mm-commits@vger.kernel.org>; Sun, 14 Aug 2022 17:18:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 906F6B80B77
-        for <mm-commits@vger.kernel.org>; Mon, 15 Aug 2022 00:12:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30BE9C433D7;
-        Mon, 15 Aug 2022 00:12:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4791C60F46
+        for <mm-commits@vger.kernel.org>; Mon, 15 Aug 2022 00:18:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97AD3C433D7;
+        Mon, 15 Aug 2022 00:18:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660522360;
-        bh=UJw02e+RUyktiekJ3/0t3FBKA4KXSjszi71l2hR27EQ=;
+        s=korg; t=1660522707;
+        bh=WLwn6kCn7nLjd2zHVjNlRde6b3YWntw3dkwhFFRY/NQ=;
         h=Date:To:From:Subject:From;
-        b=t+/8uDS0UxzMEbjLU4pICDBp3p4CzzVQTBtkCqrIoxOLoquKNtSl0cjH6bB+rOXWJ
-         FrP67NmP/iRz7JNmFOAv6zsUpWjEkofS0Pgm8MOSnW0Mv6jNtkO+LmxnhM6zgq6JSx
-         NQErRULY1H9RLgOoDNwX38YAmlYkIHgQCkGSSSNk=
-Date:   Sun, 14 Aug 2022 17:12:39 -0700
-To:     mm-commits@vger.kernel.org, edumazet@google.com,
-        neelnatu@google.com, akpm@linux-foundation.org
+        b=VWaeNg9XxZN2VOSFxHoWf/qCS4vbPB8gLWlLIXnNE69KilUxiMkC5p5Kb9kbKjwpA
+         BXXwGd67bwI7jKe0a9VCtXlHzrf6tlJKSB8CBFyn8O02R3dF59qQ968rOzoOPN+LZ5
+         ARTa5YWLDc2o7fuSzKT5wMgkit5SNmZ3p7wOExrg=
+Date:   Sun, 14 Aug 2022 17:18:26 -0700
+To:     mm-commits@vger.kernel.org, pcc@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-cmdline-avoid-page-fault-in-next_arg.patch added to mm-nonmm-unstable branch
-Message-Id: <20220815001240.30BE9C433D7@smtp.kernel.org>
+Subject: + mm-add-more-build_bug_ons-to-gfp_migratetype.patch added to mm-unstable branch
+Message-Id: <20220815001827.97AD3C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cmdline: avoid page fault in next_arg
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-cmdline-avoid-page-fault-in-next_arg.patch
+     Subject: mm: add more BUILD_BUG_ONs to gfp_migratetype()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-more-build_bug_ons-to-gfp_migratetype.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-cmdline-avoid-page-fault-in-next_arg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-more-build_bug_ons-to-gfp_migratetype.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,99 +64,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Neel Natu <neelnatu@google.com>
-Subject: lib/cmdline: avoid page fault in next_arg
-Date: Thu, 28 Jul 2022 16:24:34 -0700
+From: Peter Collingbourne <pcc@google.com>
+Subject: mm: add more BUILD_BUG_ONs to gfp_migratetype()
+Date: Tue, 26 Jul 2022 16:02:41 -0700
 
-An argument list like "arg=val arg2 \"" can trigger a page fault if the
-page pointed by 'args[0xffffffff]' is not mapped and potential memory
-corruption otherwise (unlikely but possible if the bogus address is mapped
-and contents happen to match the ascii value of the quote character).
+gfp_migratetype() also expects GFP_RECLAIMABLE and
+GFP_MOVABLE|GFP_RECLAIMABLE to be shiftable into MIGRATE_* enum values, so
+add some more BUILD_BUG_ONs to reflect this assumption.
 
-The fix is to ensure that we load 'args[i-1]' only when (i > 0).
-
-Prior to this commit the following command would trigger an
-unhandled page fault in the kernel:
-
-root@(none):/linus/fs/fat# insmod ./fat.ko  "foo=bar \""
-[   33.870507] BUG: unable to handle page fault for address: ffff888204252608
-[   33.872180] #PF: supervisor read access in kernel mode
-[   33.873414] #PF: error_code(0x0000) - not-present page
-[   33.874650] PGD 4401067 P4D 4401067 PUD 0
-[   33.875321] Oops: 0000 [#1] SMP DEBUG_PAGEALLOC PTI
-[   33.876113] CPU: 16 PID: 399 Comm: insmod Not tainted 5.19.0-dbg-DEV #4
-[   33.877193] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.0-debian-1.16.0-4 04/01/2014
-[   33.878739] RIP: 0010:next_arg+0xd1/0x110
-[   33.879399] Code: 22 75 1d 41 c6 04 01 00 41 80 f8 22 74 18 eb 35 4c 89 0e 45 31 d2 4c 89 cf 48 c7 02 00 00 00 00 41 80 f8 22 75 1f 41 8d 42 ff <41> 80 3c 01 22 75 14 41 c6 04 01 00 eb 0d 48 c7 02 00 00 00 00 41
-[   33.882338] RSP: 0018:ffffc90001253d08 EFLAGS: 00010246
-[   33.883174] RAX: 00000000ffffffff RBX: ffff888104252608 RCX: 0fc317bba1c1dd00
-[   33.884311] RDX: ffffc90001253d40 RSI: ffffc90001253d48 RDI: ffff888104252609
-[   33.885450] RBP: ffffc90001253d10 R08: 0000000000000022 R09: ffff888104252609
-[   33.886595] R10: 0000000000000000 R11: ffffffff82c7ff20 R12: 0000000000000282
-[   33.887748] R13: 00000000ffff8000 R14: 0000000000000000 R15: 0000000000007fff
-[   33.888887] FS:  00007f04ec7432c0(0000) GS:ffff88813d300000(0000) knlGS:0000000000000000
-[   33.890183] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   33.891111] CR2: ffff888204252608 CR3: 0000000100f36005 CR4: 0000000000170ee0
-[   33.892241] Call Trace:
-[   33.892641]  <TASK>
-[   33.892989]  parse_args+0x8f/0x220
-[   33.893538]  load_module+0x138b/0x15a0
-[   33.894149]  ? prepare_coming_module+0x50/0x50
-[   33.894879]  ? kernel_read_file_from_fd+0x5f/0x90
-[   33.895639]  __se_sys_finit_module+0xce/0x130
-[   33.896342]  __x64_sys_finit_module+0x1d/0x20
-[   33.897042]  do_syscall_64+0x44/0xa0
-[   33.897622]  entry_SYSCALL_64_after_hwframe+0x63/0xcd
-[   33.898434] RIP: 0033:0x7f04ec85ef79
-[   33.899009] Code: 48 8d 3d da db 0d 00 0f 05 eb a5 66 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d c7 9e 0d 00 f7 d8 64 89 01 48
-[   33.901912] RSP: 002b:00007fffae81bfe8 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
-[   33.903081] RAX: ffffffffffffffda RBX: 0000559c5f1d2640 RCX: 00007f04ec85ef79
-[   33.904191] RDX: 0000000000000000 RSI: 0000559c5f1d12a0 RDI: 0000000000000003
-[   33.905304] RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-[   33.906421] R10: 0000000000000003 R11: 0000000000000246 R12: 0000559c5f1d12a0
-[   33.907526] R13: 0000000000000000 R14: 0000559c5f1d25f0 R15: 0000559c5f1d12a0
-[   33.908631]  </TASK>
-[   33.908986] Modules linked in: fat(+) [last unloaded: fat]
-[   33.909843] CR2: ffff888204252608
-[   33.910375] ---[ end trace 0000000000000000 ]---
-[   33.911172] RIP: 0010:next_arg+0xd1/0x110
-[   33.911796] Code: 22 75 1d 41 c6 04 01 00 41 80 f8 22 74 18 eb 35 4c 89 0e 45 31 d2 4c 89 cf 48 c7 02 00 00 00 00 41 80 f8 22 75 1f 41 8d 42 ff <41> 80 3c 01 22 75 14 41 c6 04 01 00 eb 0d 48 c7 02 00 00 00 00 41
-[   33.914643] RSP: 0018:ffffc90001253d08 EFLAGS: 00010246
-[   33.915446] RAX: 00000000ffffffff RBX: ffff888104252608 RCX: 0fc317bba1c1dd00
-[   33.916544] RDX: ffffc90001253d40 RSI: ffffc90001253d48 RDI: ffff888104252609
-[   33.917636] RBP: ffffc90001253d10 R08: 0000000000000022 R09: ffff888104252609
-[   33.918727] R10: 0000000000000000 R11: ffffffff82c7ff20 R12: 0000000000000282
-[   33.919821] R13: 00000000ffff8000 R14: 0000000000000000 R15: 0000000000007fff
-[   33.920908] FS:  00007f04ec7432c0(0000) GS:ffff88813d300000(0000) knlGS:0000000000000000
-[   33.922125] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   33.923017] CR2: ffff888204252608 CR3: 0000000100f36005 CR4: 0000000000170ee0
-[   33.924098] Kernel panic - not syncing: Fatal exception
-[   33.925776] Kernel Offset: disabled
-[   33.926347] Rebooting in 10 seconds..
-
-Link: https://lkml.kernel.org/r/20220728232434.1666488-1-neelnatu@google.com
-Signed-off-by: Neel Natu <neelnatu@google.com>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
+Link: https://linux-review.googlesource.com/id/Iae64e2182f75c3aca776a486b71a72571d66d83e
+Link: https://lkml.kernel.org/r/20220726230241.3770532-1-pcc@google.com
+Signed-off-by: Peter Collingbourne <pcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gfp.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/cmdline.c~lib-cmdline-avoid-page-fault-in-next_arg
-+++ a/lib/cmdline.c
-@@ -260,7 +260,7 @@ char *next_arg(char *args, char **param,
- 				args[i-1] = '\0';
- 		}
- 	}
--	if (quoted && args[i-1] == '"')
-+	if (quoted && i > 0 && args[i-1] == '"')
- 		args[i-1] = '\0';
+--- a/include/linux/gfp.h~mm-add-more-build_bug_ons-to-gfp_migratetype
++++ a/include/linux/gfp.h
+@@ -18,6 +18,9 @@ static inline int gfp_migratetype(const
+ 	VM_WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
+ 	BUILD_BUG_ON((1UL << GFP_MOVABLE_SHIFT) != ___GFP_MOVABLE);
+ 	BUILD_BUG_ON((___GFP_MOVABLE >> GFP_MOVABLE_SHIFT) != MIGRATE_MOVABLE);
++	BUILD_BUG_ON((___GFP_RECLAIMABLE >> GFP_MOVABLE_SHIFT) != MIGRATE_RECLAIMABLE);
++	BUILD_BUG_ON(((___GFP_MOVABLE | ___GFP_RECLAIMABLE) >>
++		      GFP_MOVABLE_SHIFT) != MIGRATE_HIGHATOMIC);
  
- 	if (args[i]) {
+ 	if (unlikely(page_group_by_mobility_disabled))
+ 		return MIGRATE_UNMOVABLE;
 _
 
-Patches currently in -mm which might be from neelnatu@google.com are
+Patches currently in -mm which might be from pcc@google.com are
 
-lib-cmdline-avoid-page-fault-in-next_arg.patch
+mm-add-more-build_bug_ons-to-gfp_migratetype.patch
 
