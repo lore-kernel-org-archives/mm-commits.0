@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EFDC25B06
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Aug 2022 00:11:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E4EFC25B06
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Aug 2022 00:12:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229514AbiHOALp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 14 Aug 2022 20:11:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54248 "EHLO
+        id S229571AbiHOAMo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 14 Aug 2022 20:12:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbiHOALo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 14 Aug 2022 20:11:44 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4576101C2
-        for <mm-commits@vger.kernel.org>; Sun, 14 Aug 2022 17:11:41 -0700 (PDT)
+        with ESMTP id S229457AbiHOAMo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 14 Aug 2022 20:12:44 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AF2110540
+        for <mm-commits@vger.kernel.org>; Sun, 14 Aug 2022 17:12:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7342BB80B94
-        for <mm-commits@vger.kernel.org>; Mon, 15 Aug 2022 00:11:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 001F8C433C1;
-        Mon, 15 Aug 2022 00:11:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 906F6B80B77
+        for <mm-commits@vger.kernel.org>; Mon, 15 Aug 2022 00:12:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30BE9C433D7;
+        Mon, 15 Aug 2022 00:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660522299;
-        bh=91xJUBeIRmClL0FN2JfywPGRM4QmktgCKoQOShAONls=;
+        s=korg; t=1660522360;
+        bh=UJw02e+RUyktiekJ3/0t3FBKA4KXSjszi71l2hR27EQ=;
         h=Date:To:From:Subject:From;
-        b=hd4PgxadxwDlGwqSZa4OlboKF3uQkjmLFC/yhi1fD0yD0oIt3U3V6fHWPiOBUa2CC
-         QUeCdGPKJhYfmV669XX8qOhZl5/OwCmdHSF6s0MiEHll6+XHj78jZlfKPZPrsNGriW
-         NY1unIqWMHYEyuJuGM9bvqmvzy4yfkp5r9wYxiUQ=
-Date:   Sun, 14 Aug 2022 17:11:38 -0700
-To:     mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
-        minchan@kernel.org, jhubbard@nvidia.com, jgg@nvidia.com,
-        david@redhat.com, apopple@nvidia.com, akpm@linux-foundation.org
+        b=t+/8uDS0UxzMEbjLU4pICDBp3p4CzzVQTBtkCqrIoxOLoquKNtSl0cjH6bB+rOXWJ
+         FrP67NmP/iRz7JNmFOAv6zsUpWjEkofS0Pgm8MOSnW0Mv6jNtkO+LmxnhM6zgq6JSx
+         NQErRULY1H9RLgOoDNwX38YAmlYkIHgQCkGSSSNk=
+Date:   Sun, 14 Aug 2022 17:12:39 -0700
+To:     mm-commits@vger.kernel.org, edumazet@google.com,
+        neelnatu@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes.patch added to mm-unstable branch
-Message-Id: <20220815001139.001F8C433C1@smtp.kernel.org>
+Subject: + lib-cmdline-avoid-page-fault-in-next_arg.patch added to mm-nonmm-unstable branch
+Message-Id: <20220815001240.30BE9C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: simplify and fix check_and_migrate_movable_pages() return codes
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes.patch
+     Subject: lib/cmdline: avoid page fault in next_arg
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-cmdline-avoid-page-fault-in-next_arg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-cmdline-avoid-page-fault-in-next_arg.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,161 +64,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/gup.c: simplify and fix check_and_migrate_movable_pages() return codes
-Date: Fri, 29 Jul 2022 12:46:45 +1000
+From: Neel Natu <neelnatu@google.com>
+Subject: lib/cmdline: avoid page fault in next_arg
+Date: Thu, 28 Jul 2022 16:24:34 -0700
 
-When pinning pages with FOLL_LONGTERM check_and_migrate_movable_pages() is
-called to migrate pages out of zones which should not contain any longterm
-pinned pages.
+An argument list like "arg=val arg2 \"" can trigger a page fault if the
+page pointed by 'args[0xffffffff]' is not mapped and potential memory
+corruption otherwise (unlikely but possible if the bogus address is mapped
+and contents happen to match the ascii value of the quote character).
 
-When migration succeeds all pages will have been unpinned so pinning needs
-to be retried.  This is indicated by returning zero.  When all pages are
-in the correct zone the number of pinned pages is returned.
+The fix is to ensure that we load 'args[i-1]' only when (i > 0).
 
-However migration can also fail, in which case pages are unpinned and
--ENOMEM is returned.  However if the failure was due to not being unable
-to isolate a page zero is returned.  This leads to indefinite looping in
-__gup_longterm_locked().
+Prior to this commit the following command would trigger an
+unhandled page fault in the kernel:
 
-Fix this by simplifying the return codes such that zero indicates all
-pages were successfully pinned in the correct zone while errors indicate
-either pages were migrated and pinning should be retried or that migration
-has failed and therefore the pinning operation should fail.
+root@(none):/linus/fs/fat# insmod ./fat.ko  "foo=bar \""
+[   33.870507] BUG: unable to handle page fault for address: ffff888204252608
+[   33.872180] #PF: supervisor read access in kernel mode
+[   33.873414] #PF: error_code(0x0000) - not-present page
+[   33.874650] PGD 4401067 P4D 4401067 PUD 0
+[   33.875321] Oops: 0000 [#1] SMP DEBUG_PAGEALLOC PTI
+[   33.876113] CPU: 16 PID: 399 Comm: insmod Not tainted 5.19.0-dbg-DEV #4
+[   33.877193] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.0-debian-1.16.0-4 04/01/2014
+[   33.878739] RIP: 0010:next_arg+0xd1/0x110
+[   33.879399] Code: 22 75 1d 41 c6 04 01 00 41 80 f8 22 74 18 eb 35 4c 89 0e 45 31 d2 4c 89 cf 48 c7 02 00 00 00 00 41 80 f8 22 75 1f 41 8d 42 ff <41> 80 3c 01 22 75 14 41 c6 04 01 00 eb 0d 48 c7 02 00 00 00 00 41
+[   33.882338] RSP: 0018:ffffc90001253d08 EFLAGS: 00010246
+[   33.883174] RAX: 00000000ffffffff RBX: ffff888104252608 RCX: 0fc317bba1c1dd00
+[   33.884311] RDX: ffffc90001253d40 RSI: ffffc90001253d48 RDI: ffff888104252609
+[   33.885450] RBP: ffffc90001253d10 R08: 0000000000000022 R09: ffff888104252609
+[   33.886595] R10: 0000000000000000 R11: ffffffff82c7ff20 R12: 0000000000000282
+[   33.887748] R13: 00000000ffff8000 R14: 0000000000000000 R15: 0000000000007fff
+[   33.888887] FS:  00007f04ec7432c0(0000) GS:ffff88813d300000(0000) knlGS:0000000000000000
+[   33.890183] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   33.891111] CR2: ffff888204252608 CR3: 0000000100f36005 CR4: 0000000000170ee0
+[   33.892241] Call Trace:
+[   33.892641]  <TASK>
+[   33.892989]  parse_args+0x8f/0x220
+[   33.893538]  load_module+0x138b/0x15a0
+[   33.894149]  ? prepare_coming_module+0x50/0x50
+[   33.894879]  ? kernel_read_file_from_fd+0x5f/0x90
+[   33.895639]  __se_sys_finit_module+0xce/0x130
+[   33.896342]  __x64_sys_finit_module+0x1d/0x20
+[   33.897042]  do_syscall_64+0x44/0xa0
+[   33.897622]  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+[   33.898434] RIP: 0033:0x7f04ec85ef79
+[   33.899009] Code: 48 8d 3d da db 0d 00 0f 05 eb a5 66 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d c7 9e 0d 00 f7 d8 64 89 01 48
+[   33.901912] RSP: 002b:00007fffae81bfe8 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
+[   33.903081] RAX: ffffffffffffffda RBX: 0000559c5f1d2640 RCX: 00007f04ec85ef79
+[   33.904191] RDX: 0000000000000000 RSI: 0000559c5f1d12a0 RDI: 0000000000000003
+[   33.905304] RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+[   33.906421] R10: 0000000000000003 R11: 0000000000000246 R12: 0000559c5f1d12a0
+[   33.907526] R13: 0000000000000000 R14: 0000559c5f1d25f0 R15: 0000559c5f1d12a0
+[   33.908631]  </TASK>
+[   33.908986] Modules linked in: fat(+) [last unloaded: fat]
+[   33.909843] CR2: ffff888204252608
+[   33.910375] ---[ end trace 0000000000000000 ]---
+[   33.911172] RIP: 0010:next_arg+0xd1/0x110
+[   33.911796] Code: 22 75 1d 41 c6 04 01 00 41 80 f8 22 74 18 eb 35 4c 89 0e 45 31 d2 4c 89 cf 48 c7 02 00 00 00 00 41 80 f8 22 75 1f 41 8d 42 ff <41> 80 3c 01 22 75 14 41 c6 04 01 00 eb 0d 48 c7 02 00 00 00 00 41
+[   33.914643] RSP: 0018:ffffc90001253d08 EFLAGS: 00010246
+[   33.915446] RAX: 00000000ffffffff RBX: ffff888104252608 RCX: 0fc317bba1c1dd00
+[   33.916544] RDX: ffffc90001253d40 RSI: ffffc90001253d48 RDI: ffff888104252609
+[   33.917636] RBP: ffffc90001253d10 R08: 0000000000000022 R09: ffff888104252609
+[   33.918727] R10: 0000000000000000 R11: ffffffff82c7ff20 R12: 0000000000000282
+[   33.919821] R13: 00000000ffff8000 R14: 0000000000000000 R15: 0000000000007fff
+[   33.920908] FS:  00007f04ec7432c0(0000) GS:ffff88813d300000(0000) knlGS:0000000000000000
+[   33.922125] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   33.923017] CR2: ffff888204252608 CR3: 0000000100f36005 CR4: 0000000000170ee0
+[   33.924098] Kernel panic - not syncing: Fatal exception
+[   33.925776] Kernel Offset: disabled
+[   33.926347] Rebooting in 10 seconds..
 
-Link: https://lkml.kernel.org/r/20220729024645.764366-1-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lkml.kernel.org/r/20220728232434.1666488-1-neelnatu@google.com
+Signed-off-by: Neel Natu <neelnatu@google.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   46 +++++++++++++++++++++++-----------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ lib/cmdline.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes
-+++ a/mm/gup.c
-@@ -1927,16 +1927,16 @@ struct page *get_dump_page(unsigned long
- 
- #ifdef CONFIG_MIGRATION
- /*
-- * Check whether all pages are pinnable, if so return number of pages.  If some
-- * pages are not pinnable, migrate them, and unpin all pages. Return zero if
-- * pages were migrated, or if some pages were not successfully isolated.
-- * Return negative error if migration fails.
-+ * Check whether all pages are pinnable. If some pages are not pinnable migrate
-+ * them and unpin all the pages. Returns -EAGAIN if pages were unpinned or zero
-+ * if all pages are pinnable and in the right zone. Other errors indicate
-+ * migration failure.
-  */
- static long check_and_migrate_movable_pages(unsigned long nr_pages,
- 					    struct page **pages,
- 					    unsigned int gup_flags)
- {
--	unsigned long isolation_error_count = 0, i;
-+	unsigned long i;
- 	struct folio *prev_folio = NULL;
- 	LIST_HEAD(movable_page_list);
- 	bool drain_allow = true, coherent_pages = false;
-@@ -1972,10 +1972,10 @@ static long check_and_migrate_movable_pa
- 				unpin_user_page(&folio->page);
- 			}
- 
--			ret = migrate_device_coherent_page(&folio->page);
--			if (ret)
--				goto unpin_pages;
--
-+			if (migrate_device_coherent_page(&folio->page)) {
-+				ret = -EBUSY;
-+				break;
-+			}
- 			continue;
+--- a/lib/cmdline.c~lib-cmdline-avoid-page-fault-in-next_arg
++++ a/lib/cmdline.c
+@@ -260,7 +260,7 @@ char *next_arg(char *args, char **param,
+ 				args[i-1] = '\0';
  		}
- 
-@@ -1987,7 +1987,7 @@ static long check_and_migrate_movable_pa
- 		if (folio_test_hugetlb(folio)) {
- 			if (isolate_hugetlb(&folio->page,
- 						&movable_page_list))
--				isolation_error_count++;
-+				ret = -EBUSY;
- 			continue;
- 		}
- 
-@@ -1997,7 +1997,7 @@ static long check_and_migrate_movable_pa
- 		}
- 
- 		if (folio_isolate_lru(folio)) {
--			isolation_error_count++;
-+			ret = -EBUSY;
- 			continue;
- 		}
- 		list_add_tail(&folio->lru, &movable_page_list);
-@@ -2006,19 +2006,18 @@ static long check_and_migrate_movable_pa
- 				    folio_nr_pages(folio));
  	}
+-	if (quoted && args[i-1] == '"')
++	if (quoted && i > 0 && args[i-1] == '"')
+ 		args[i-1] = '\0';
  
--	if (!list_empty(&movable_page_list) || isolation_error_count ||
--	    coherent_pages)
--		goto unpin_pages;
--
- 	/*
- 	 * If list is empty, and no isolation errors, means that all pages are
--	 * in the correct zone.
-+	 * in the correct zone. If there were device coherent pages some pages
-+	 * have been unpinned.
- 	 */
--	return nr_pages;
-+	if (list_empty(&movable_page_list) && !ret && !coherent_pages)
-+		return 0;
- 
--unpin_pages:
- 	/*
--	 * pages[i] might be NULL if any device coherent pages were found.
-+	 * Unpin all pages. If device coherent pages were found
-+	 * migrate_device_coherent_page() will have dropped the pin and set
-+	 * pages[i] == NULL.
- 	 */
- 	for (i = 0; i < nr_pages; i++) {
- 		if (!pages[i])
-@@ -2045,14 +2044,15 @@ unpin_pages:
- 
- 	if (ret && !list_empty(&movable_page_list))
- 		putback_movable_pages(&movable_page_list);
--	return ret;
-+
-+	return ret ? ret : -EAGAIN;
- }
- #else
- static long check_and_migrate_movable_pages(unsigned long nr_pages,
- 					    struct page **pages,
- 					    unsigned int gup_flags)
- {
--	return nr_pages;
-+	return 0;
- }
- #endif /* CONFIG_MIGRATION */
- 
-@@ -2080,10 +2080,10 @@ static long __gup_longterm_locked(struct
- 		if (rc <= 0)
- 			break;
- 		rc = check_and_migrate_movable_pages(rc, pages, gup_flags);
--	} while (!rc);
-+	} while (rc == -EAGAIN);
- 	memalloc_pin_restore(flags);
- 
--	return rc;
-+	return rc ? rc : nr_pages;
- }
- 
- static bool is_valid_gup_flags(unsigned int gup_flags)
+ 	if (args[i]) {
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from neelnatu@google.com are
 
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes.patch
+lib-cmdline-avoid-page-fault-in-next_arg.patch
 
