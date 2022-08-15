@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7481C25B06
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Aug 2022 00:27:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3534C25B06
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Aug 2022 00:39:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229521AbiHOA15 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 14 Aug 2022 20:27:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34598 "EHLO
+        id S229496AbiHOAjn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 14 Aug 2022 20:39:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39698 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229496AbiHOA15 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 14 Aug 2022 20:27:57 -0400
+        with ESMTP id S229476AbiHOAjm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 14 Aug 2022 20:39:42 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C41E411C16
-        for <mm-commits@vger.kernel.org>; Sun, 14 Aug 2022 17:27:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECE912BEF
+        for <mm-commits@vger.kernel.org>; Sun, 14 Aug 2022 17:39:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5D1BD60F46
-        for <mm-commits@vger.kernel.org>; Mon, 15 Aug 2022 00:27:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91121C433C1;
-        Mon, 15 Aug 2022 00:27:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 64CCC60F56
+        for <mm-commits@vger.kernel.org>; Mon, 15 Aug 2022 00:39:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA5E8C43470;
+        Mon, 15 Aug 2022 00:39:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660523274;
-        bh=LaTWJs+khKSCM5cOBuex5LDpcbCLp8xDPomopHPek34=;
+        s=korg; t=1660523979;
+        bh=nxXFKNA1aX0oWdzV1JdrcbqTu6htP+D2Xa2wyTkEBzA=;
         h=Date:To:From:Subject:From;
-        b=aRRpelaIu98veuzQHWVzHBafwgHCRqhnZqtfjxQHffD0ufmuxUcpLrrbg1k3LmoPG
-         b2m55o5PTIFyiycFBm70tAMv3tO/CWe8bapcyZ5/1Fu2rpqum5ASKVxiTeqWbtTDsU
-         RMsiQU8VYYeedzPljqDibWssBN2sj3HswsL58ExI=
-Date:   Sun, 14 Aug 2022 17:27:53 -0700
-To:     mm-commits@vger.kernel.org, liusong@linux.alibaba.com,
-        akpm@linux-foundation.org
+        b=IbstXitnGrwXE8kzz14DqUj+4DcyY3KEI8eunqcQHhZPYZ08GHgk0PCLSXir8y7ws
+         0czr17BgZPJX58ulPxM5dQZjC8i4uKIa80lD9WcaXhpa/m+89Zt37dVvBuwbg72Fj4
+         Yi1XpfkLZo6C2tJCurflAX47f8I9eNjLlBIEPe7o=
+Date:   Sun, 14 Aug 2022 17:39:38 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        zhongjiang-ali@linux.alibaba.com, weixugc@google.com,
+        shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
+        peterz@infradead.org, osalvador@suse.de, mhocko@suse.com,
+        mgorman@techsingularity.net, hannes@cmpxchg.org,
+        dave.hansen@linux.intel.com, baolin.wang@linux.alibaba.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dmapoolc-avoid-duplicate-memset-within-dma_pool_alloc.patch added to mm-unstable branch
-Message-Id: <20220815002754.91121C433C1@smtp.kernel.org>
+Subject: + memory-tiering-hot-page-selection-with-hint-page-fault-latency.patch added to mm-unstable branch
+Message-Id: <20220815003939.AA5E8C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/dmapool.c: avoid duplicate memset within dma_pool_alloc
+     Subject: memory tiering: hot page selection with hint page fault latency
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-dmapoolc-avoid-duplicate-memset-within-dma_pool_alloc.patch
+     memory-tiering-hot-page-selection-with-hint-page-fault-latency.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dmapoolc-avoid-duplicate-memset-within-dma_pool_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tiering-hot-page-selection-with-hint-page-fault-latency.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,77 +69,521 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Song <liusong@linux.alibaba.com>
-Subject: mm/dmapool.c: avoid duplicate memset within dma_pool_alloc
-Date: Mon, 18 Jul 2022 14:28:10 +0800
+From: Huang Ying <ying.huang@intel.com>
+Subject: memory tiering: hot page selection with hint page fault latency
+Date: Wed, 13 Jul 2022 16:39:51 +0800
+
+Patch series "memory tiering: hot page selection", v4.
+
+To optimize page placement in a memory tiering system with NUMA balancing,
+the hot pages in the slow memory nodes need to be identified. 
+Essentially, the original NUMA balancing implementation selects the mostly
+recently accessed (MRU) pages to promote.  But this isn't a perfect
+algorithm to identify the hot pages.  Because the pages with quite low
+access frequency may be accessed eventually given the NUMA balancing page
+table scanning period could be quite long (e.g.  60 seconds).  So in this
+patchset, we implement a new hot page identification algorithm based on
+the latency between NUMA balancing page table scanning and hint page
+fault.  Which is a kind of mostly frequently accessed (MFU) algorithm.
+
+In NUMA balancing memory tiering mode, if there are hot pages in slow
+memory node and cold pages in fast memory node, we need to promote/demote
+hot/cold pages between the fast and cold memory nodes.
+
+A choice is to promote/demote as fast as possible.  But the CPU cycles and
+memory bandwidth consumed by the high promoting/demoting throughput will
+hurt the latency of some workload because of accessing inflating and slow
+memory bandwidth contention.
+
+A way to resolve this issue is to restrict the max promoting/demoting
+throughput.  It will take longer to finish the promoting/demoting.  But
+the workload latency will be better.  This is implemented in this patchset
+as the page promotion rate limit mechanism.
+
+The promotion hot threshold is workload and system configuration
+dependent.  So in this patchset, a method to adjust the hot threshold
+automatically is implemented.  The basic idea is to control the number of
+the candidate promotion pages to match the promotion rate limit.
+
+We used the pmbench memory accessing benchmark tested the patchset on a
+2-socket server system with DRAM and PMEM installed.  The test results are
+as follows,
+
+		pmbench score		promote rate
+		 (accesses/s)			MB/s
+		-------------		------------
+base		  146887704.1		       725.6
+hot selection     165695601.2		       544.0
+rate limit	  162814569.8		       165.2
+auto adjustment	  170495294.0                  136.9
+
+From the results above,
+
+With hot page selection patch [1/3], the pmbench score increases about
+12.8%, and promote rate (overhead) decreases about 25.0%, compared with
+base kernel.
+
+With rate limit patch [2/3], pmbench score decreases about 1.7%, and
+promote rate decreases about 69.6%, compared with hot page selection
+patch.
+
+With threshold auto adjustment patch [3/3], pmbench score increases about
+4.7%, and promote rate decrease about 17.1%, compared with rate limit
+patch.
+
+Baolin helped to test the patchset with MySQL on a machine which contains
+1 DRAM node (30G) and 1 PMEM node (126G).
+
+sysbench /usr/share/sysbench/oltp_read_write.lua \
+......
+--tables=200 \
+--table-size=1000000 \
+--report-interval=10 \
+--threads=16 \
+--time=120
+
+The tps can be improved about 5%.
 
 
-In "dma_alloc_from_dev_coherent" and "dma_direct_alloc",
-the allocated memory is explicitly set to 0.
+This patch (of 3):
 
-A helper function "use_dev_coherent_memory" is introduced here to
-determine whether the memory is allocated by "dma_alloc_from_dev_coherent".
+To optimize page placement in a memory tiering system with NUMA balancing,
+the hot pages in the slow memory node need to be identified.  Essentially,
+the original NUMA balancing implementation selects the mostly recently
+accessed (MRU) pages to promote.  But this isn't a perfect algorithm to
+identify the hot pages.  Because the pages with quite low access frequency
+may be accessed eventually given the NUMA balancing page table scanning
+period could be quite long (e.g.  60 seconds).  The most frequently
+accessed (MFU) algorithm is better.
 
-And use "get_dma_ops" to determine whether the memory is allocated by
-"dma_direct_alloc".
+So, in this patch we implemented a better hot page selection algorithm. 
+Which is based on NUMA balancing page table scanning and hint page fault
+as follows,
 
-After this modification, memory allocated using "dma_pool_zalloc" can avoid
-duplicate memset.
+- When the page tables of the processes are scanned to change PTE/PMD
+  to be PROT_NONE, the current time is recorded in struct page as scan
+  time.
 
-Link: https://lkml.kernel.org/r/1658125690-76930-1-git-send-email-liusong@linux.alibaba.com
-Signed-off-by: Liu Song <liusong@linux.alibaba.com>
+- When the page is accessed, hint page fault will occur.  The scan
+  time is gotten from the struct page.  And The hint page fault
+  latency is defined as
+
+    hint page fault time - scan time
+
+The shorter the hint page fault latency of a page is, the higher the
+probability of their access frequency to be higher.  So the hint page
+fault latency is a better estimation of the page hot/cold.
+
+It's hard to find some extra space in struct page to hold the scan time. 
+Fortunately, we can reuse some bits used by the original NUMA balancing.
+
+NUMA balancing uses some bits in struct page to store the page accessing
+CPU and PID (referring to page_cpupid_xchg_last()).  Which is used by the
+multi-stage node selection algorithm to avoid to migrate pages shared
+accessed by the NUMA nodes back and forth.  But for pages in the slow
+memory node, even if they are shared accessed by multiple NUMA nodes, as
+long as the pages are hot, they need to be promoted to the fast memory
+node.  So the accessing CPU and PID information are unnecessary for the
+slow memory pages.  We can reuse these bits in struct page to record the
+scan time.  For the fast memory pages, these bits are used as before.
+
+For the hot threshold, the default value is 1 second, which works well in
+our performance test.  All pages with hint page fault latency < hot
+threshold will be considered hot.
+
+It's hard for users to determine the hot threshold.  So we don't provide a
+kernel ABI to set it, just provide a debugfs interface for advanced users
+to experiment.  We will continue to work on a hot threshold automatic
+adjustment mechanism.
+
+The downside of the above method is that the response time to the workload
+hot spot changing may be much longer.  For example,
+
+- A previous cold memory area becomes hot
+
+- The hint page fault will be triggered.  But the hint page fault
+  latency isn't shorter than the hot threshold.  So the pages will
+  not be promoted.
+
+- When the memory area is scanned again, maybe after a scan period,
+  the hint page fault latency measured will be shorter than the hot
+  threshold and the pages will be promoted.
+
+To mitigate this, if there are enough free space in the fast memory node,
+the hot threshold will not be used, all pages will be promoted upon the
+hint page fault for fast response.
+
+Thanks Zhong Jiang reported and tested the fix for a bug when disabling
+memory tiering mode dynamically.
+
+Link: https://lkml.kernel.org/r/20220713083954.34196-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20220713083954.34196-2-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: osalvador <osalvador@suse.de>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Zhong Jiang <zhongjiang-ali@linux.alibaba.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-map-ops.h |    5 +++++
- mm/dmapool.c                |    5 ++++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ include/linux/mm.h   |   25 ++++++++++
+ kernel/sched/debug.c |    1 
+ kernel/sched/fair.c  |   99 +++++++++++++++++++++++++++++++++++++++++
+ kernel/sched/sched.h |    1 
+ mm/huge_memory.c     |   17 +++++--
+ mm/memory.c          |   11 ++++
+ mm/migrate.c         |   12 ++++
+ mm/mprotect.c        |    8 ++-
+ 8 files changed, 169 insertions(+), 5 deletions(-)
 
---- a/include/linux/dma-map-ops.h~mm-dmapoolc-avoid-duplicate-memset-within-dma_pool_alloc
-+++ a/include/linux/dma-map-ops.h
-@@ -183,6 +183,10 @@ int dma_alloc_from_dev_coherent(struct d
- int dma_release_from_dev_coherent(struct device *dev, int order, void *vaddr);
- int dma_mmap_from_dev_coherent(struct device *dev, struct vm_area_struct *vma,
- 		void *cpu_addr, size_t size, int *ret);
-+static inline bool use_dev_coherent_memory(struct device *dev)
+--- a/include/linux/mm.h~memory-tiering-hot-page-selection-with-hint-page-fault-latency
++++ a/include/linux/mm.h
+@@ -1255,6 +1255,18 @@ static inline int folio_nid(const struct
+ }
+ 
+ #ifdef CONFIG_NUMA_BALANCING
++/* page access time bits needs to hold at least 4 seconds */
++#define PAGE_ACCESS_TIME_MIN_BITS	12
++#if LAST_CPUPID_SHIFT < PAGE_ACCESS_TIME_MIN_BITS
++#define PAGE_ACCESS_TIME_BUCKETS				\
++	(PAGE_ACCESS_TIME_MIN_BITS - LAST_CPUPID_SHIFT)
++#else
++#define PAGE_ACCESS_TIME_BUCKETS	0
++#endif
++
++#define PAGE_ACCESS_TIME_MASK				\
++	(LAST_CPUPID_MASK << PAGE_ACCESS_TIME_BUCKETS)
++
+ static inline int cpu_pid_to_cpupid(int cpu, int pid)
+ {
+ 	return ((cpu & LAST__CPU_MASK) << LAST__PID_SHIFT) | (pid & LAST__PID_MASK);
+@@ -1318,12 +1330,25 @@ static inline void page_cpupid_reset_las
+ 	page->flags |= LAST_CPUPID_MASK << LAST_CPUPID_PGSHIFT;
+ }
+ #endif /* LAST_CPUPID_NOT_IN_PAGE_FLAGS */
++
++static inline int xchg_page_access_time(struct page *page, int time)
 +{
-+	return dev->dma_mem ? true : false;
++	int last_time;
++
++	last_time = page_cpupid_xchg_last(page, time >> PAGE_ACCESS_TIME_BUCKETS);
++	return last_time << PAGE_ACCESS_TIME_BUCKETS;
 +}
- #else
- static inline int dma_declare_coherent_memory(struct device *dev,
- 		phys_addr_t phys_addr, dma_addr_t device_addr, size_t size)
-@@ -194,6 +198,7 @@ static inline int dma_declare_coherent_m
- #define dma_release_from_dev_coherent(dev, order, vaddr) (0)
- #define dma_mmap_from_dev_coherent(dev, vma, vaddr, order, ret) (0)
- static inline void dma_release_coherent_memory(struct device *dev) { }
-+#define use_dev_coherent_memory(dev) (0)
- #endif /* CONFIG_DMA_DECLARE_COHERENT */
+ #else /* !CONFIG_NUMA_BALANCING */
+ static inline int page_cpupid_xchg_last(struct page *page, int cpupid)
+ {
+ 	return page_to_nid(page); /* XXX */
+ }
  
- #ifdef CONFIG_DMA_GLOBAL_POOL
---- a/mm/dmapool.c~mm-dmapoolc-avoid-duplicate-memset-within-dma_pool_alloc
-+++ a/mm/dmapool.c
-@@ -21,6 +21,7 @@
- 
- #include <linux/device.h>
- #include <linux/dma-mapping.h>
-+#include <linux/dma-map-ops.h>
- #include <linux/dmapool.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
-@@ -372,7 +373,9 @@ void *dma_pool_alloc(struct dma_pool *po
++static inline int xchg_page_access_time(struct page *page, int time)
++{
++	return 0;
++}
++
+ static inline int page_cpupid_last(struct page *page)
+ {
+ 	return page_to_nid(page); /* XXX */
+--- a/kernel/sched/debug.c~memory-tiering-hot-page-selection-with-hint-page-fault-latency
++++ a/kernel/sched/debug.c
+@@ -333,6 +333,7 @@ static __init int sched_init_debug(void)
+ 	debugfs_create_u32("scan_period_min_ms", 0644, numa, &sysctl_numa_balancing_scan_period_min);
+ 	debugfs_create_u32("scan_period_max_ms", 0644, numa, &sysctl_numa_balancing_scan_period_max);
+ 	debugfs_create_u32("scan_size_mb", 0644, numa, &sysctl_numa_balancing_scan_size);
++	debugfs_create_u32("hot_threshold_ms", 0644, numa, &sysctl_numa_balancing_hot_threshold);
  #endif
- 	spin_unlock_irqrestore(&pool->lock, flags);
  
--	if (want_init_on_alloc(mem_flags))
-+	if (want_init_on_alloc(mem_flags) &&
-+		!use_dev_coherent_memory(pool->dev) &&
-+		get_dma_ops(pool->dev))
- 		memset(retval, 0, pool->size);
+ 	debugfs_create_file("debug", 0444, debugfs_sched, NULL, &sched_debug_fops);
+--- a/kernel/sched/fair.c~memory-tiering-hot-page-selection-with-hint-page-fault-latency
++++ a/kernel/sched/fair.c
+@@ -1094,6 +1094,9 @@ unsigned int sysctl_numa_balancing_scan_
+ /* Scan @scan_size MB every @scan_period after an initial @scan_delay in ms */
+ unsigned int sysctl_numa_balancing_scan_delay = 1000;
  
- 	return retval;
++/* The page with hint page fault latency < threshold in ms is considered hot */
++unsigned int sysctl_numa_balancing_hot_threshold = MSEC_PER_SEC;
++
+ struct numa_group {
+ 	refcount_t refcount;
+ 
+@@ -1436,6 +1439,68 @@ static inline unsigned long group_weight
+ 	return 1000 * faults / total_faults;
+ }
+ 
++/*
++ * If memory tiering mode is enabled, cpupid of slow memory page is
++ * used to record scan time instead of CPU and PID.  When tiering mode
++ * is disabled at run time, the scan time (in cpupid) will be
++ * interpreted as CPU and PID.  So CPU needs to be checked to avoid to
++ * access out of array bound.
++ */
++static inline bool cpupid_valid(int cpupid)
++{
++	return cpupid_to_cpu(cpupid) < nr_cpu_ids;
++}
++
++/*
++ * For memory tiering mode, if there are enough free pages (more than
++ * enough watermark defined here) in fast memory node, to take full
++ * advantage of fast memory capacity, all recently accessed slow
++ * memory pages will be migrated to fast memory node without
++ * considering hot threshold.
++ */
++static bool pgdat_free_space_enough(struct pglist_data *pgdat)
++{
++	int z;
++	unsigned long enough_wmark;
++
++	enough_wmark = max(1UL * 1024 * 1024 * 1024 >> PAGE_SHIFT,
++			   pgdat->node_present_pages >> 4);
++	for (z = pgdat->nr_zones - 1; z >= 0; z--) {
++		struct zone *zone = pgdat->node_zones + z;
++
++		if (!populated_zone(zone))
++			continue;
++
++		if (zone_watermark_ok(zone, 0,
++				      wmark_pages(zone, WMARK_PROMO) + enough_wmark,
++				      ZONE_MOVABLE, 0))
++			return true;
++	}
++	return false;
++}
++
++/*
++ * For memory tiering mode, when page tables are scanned, the scan
++ * time will be recorded in struct page in addition to make page
++ * PROT_NONE for slow memory page.  So when the page is accessed, in
++ * hint page fault handler, the hint page fault latency is calculated
++ * via,
++ *
++ *	hint page fault latency = hint page fault time - scan time
++ *
++ * The smaller the hint page fault latency, the higher the possibility
++ * for the page to be hot.
++ */
++static int numa_hint_fault_latency(struct page *page)
++{
++	int last_time, time;
++
++	time = jiffies_to_msecs(jiffies);
++	last_time = xchg_page_access_time(page, time);
++
++	return (time - last_time) & PAGE_ACCESS_TIME_MASK;
++}
++
+ bool should_numa_migrate_memory(struct task_struct *p, struct page * page,
+ 				int src_nid, int dst_cpu)
+ {
+@@ -1443,9 +1508,34 @@ bool should_numa_migrate_memory(struct t
+ 	int dst_nid = cpu_to_node(dst_cpu);
+ 	int last_cpupid, this_cpupid;
+ 
++	/*
++	 * The pages in slow memory node should be migrated according
++	 * to hot/cold instead of private/shared.
++	 */
++	if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING &&
++	    !node_is_toptier(src_nid)) {
++		struct pglist_data *pgdat;
++		unsigned long latency, th;
++
++		pgdat = NODE_DATA(dst_nid);
++		if (pgdat_free_space_enough(pgdat))
++			return true;
++
++		th = sysctl_numa_balancing_hot_threshold;
++		latency = numa_hint_fault_latency(page);
++		if (latency >= th)
++			return false;
++
++		return true;
++	}
++
+ 	this_cpupid = cpu_pid_to_cpupid(dst_cpu, current->pid);
+ 	last_cpupid = page_cpupid_xchg_last(page, this_cpupid);
+ 
++	if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING) &&
++	    !node_is_toptier(src_nid) && !cpupid_valid(last_cpupid))
++		return false;
++
+ 	/*
+ 	 * Allow first faults or private faults to migrate immediately early in
+ 	 * the lifetime of a task. The magic number 4 is based on waiting for
+@@ -2685,6 +2775,15 @@ void task_numa_fault(int last_cpupid, in
+ 	if (!p->mm)
+ 		return;
+ 
++	/*
++	 * NUMA faults statistics are unnecessary for the slow memory
++	 * node for memory tiering mode.
++	 */
++	if (!node_is_toptier(mem_node) &&
++	    (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING ||
++	     !cpupid_valid(last_cpupid)))
++		return;
++
+ 	/* Allocate buffer to track faults on a per-node basis */
+ 	if (unlikely(!p->numa_faults)) {
+ 		int size = sizeof(*p->numa_faults) *
+--- a/kernel/sched/sched.h~memory-tiering-hot-page-selection-with-hint-page-fault-latency
++++ a/kernel/sched/sched.h
+@@ -2452,6 +2452,7 @@ extern unsigned int sysctl_numa_balancin
+ extern unsigned int sysctl_numa_balancing_scan_period_min;
+ extern unsigned int sysctl_numa_balancing_scan_period_max;
+ extern unsigned int sysctl_numa_balancing_scan_size;
++extern unsigned int sysctl_numa_balancing_hot_threshold;
+ #endif
+ 
+ #ifdef CONFIG_SCHED_HRTICK
+--- a/mm/huge_memory.c~memory-tiering-hot-page-selection-with-hint-page-fault-latency
++++ a/mm/huge_memory.c
+@@ -1477,7 +1477,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	struct page *page;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+ 	int page_nid = NUMA_NO_NODE;
+-	int target_nid, last_cpupid = -1;
++	int target_nid, last_cpupid = (-1 & LAST_CPUPID_MASK);
+ 	bool migrated = false;
+ 	bool was_writable = pmd_savedwrite(oldpmd);
+ 	int flags = 0;
+@@ -1498,7 +1498,12 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 		flags |= TNF_NO_GROUP;
+ 
+ 	page_nid = page_to_nid(page);
+-	last_cpupid = page_cpupid_last(page);
++	/*
++	 * For memory tiering mode, cpupid of slow memory page is used
++	 * to record page access time.  So use default value.
++	 */
++	if (node_is_toptier(page_nid))
++		last_cpupid = page_cpupid_last(page);
+ 	target_nid = numa_migrate_prep(page, vma, haddr, page_nid,
+ 				       &flags);
+ 
+@@ -1822,6 +1827,7 @@ int change_huge_pmd(struct mmu_gather *t
+ 
+ 	if (prot_numa) {
+ 		struct page *page;
++		bool toptier;
+ 		/*
+ 		 * Avoid trapping faults against the zero page. The read-only
+ 		 * data is likely to be read-cached on the local CPU and
+@@ -1834,13 +1840,18 @@ int change_huge_pmd(struct mmu_gather *t
+ 			goto unlock;
+ 
+ 		page = pmd_page(*pmd);
++		toptier = node_is_toptier(page_to_nid(page));
+ 		/*
+ 		 * Skip scanning top tier node if normal numa
+ 		 * balancing is disabled
+ 		 */
+ 		if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_NORMAL) &&
+-		    node_is_toptier(page_to_nid(page)))
++		    toptier)
+ 			goto unlock;
++
++		if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING &&
++		    !toptier)
++			xchg_page_access_time(page, jiffies_to_msecs(jiffies));
+ 	}
+ 	/*
+ 	 * In case prot_numa, we are under mmap_read_lock(mm). It's critical
+--- a/mm/memory.c~memory-tiering-hot-page-selection-with-hint-page-fault-latency
++++ a/mm/memory.c
+@@ -74,6 +74,7 @@
+ #include <linux/perf_event.h>
+ #include <linux/ptrace.h>
+ #include <linux/vmalloc.h>
++#include <linux/sched/sysctl.h>
+ 
+ #include <trace/events/kmem.h>
+ 
+@@ -4725,8 +4726,16 @@ static vm_fault_t do_numa_page(struct vm
+ 	if (page_mapcount(page) > 1 && (vma->vm_flags & VM_SHARED))
+ 		flags |= TNF_SHARED;
+ 
+-	last_cpupid = page_cpupid_last(page);
+ 	page_nid = page_to_nid(page);
++	/*
++	 * For memory tiering mode, cpupid of slow memory page is used
++	 * to record page access time.  So use default value.
++	 */
++	if ((sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING) &&
++	    !node_is_toptier(page_nid))
++		last_cpupid = (-1 & LAST_CPUPID_MASK);
++	else
++		last_cpupid = page_cpupid_last(page);
+ 	target_nid = numa_migrate_prep(page, vma, vmf->address, page_nid,
+ 			&flags);
+ 	if (target_nid == NUMA_NO_NODE) {
+--- a/mm/migrate.c~memory-tiering-hot-page-selection-with-hint-page-fault-latency
++++ a/mm/migrate.c
+@@ -564,6 +564,18 @@ void folio_migrate_flags(struct folio *n
+ 	 * future migrations of this same page.
+ 	 */
+ 	cpupid = page_cpupid_xchg_last(&folio->page, -1);
++	/*
++	 * For memory tiering mode, when migrate between slow and fast
++	 * memory node, reset cpupid, because that is used to record
++	 * page access time in slow memory node.
++	 */
++	if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING) {
++		bool f_toptier = node_is_toptier(page_to_nid(&folio->page));
++		bool t_toptier = node_is_toptier(page_to_nid(&newfolio->page));
++
++		if (f_toptier != t_toptier)
++			cpupid = -1;
++	}
+ 	page_cpupid_xchg_last(&newfolio->page, cpupid);
+ 
+ 	folio_migrate_ksm(newfolio, folio);
+--- a/mm/mprotect.c~memory-tiering-hot-page-selection-with-hint-page-fault-latency
++++ a/mm/mprotect.c
+@@ -121,6 +121,7 @@ static unsigned long change_pte_range(st
+ 			if (prot_numa) {
+ 				struct page *page;
+ 				int nid;
++				bool toptier;
+ 
+ 				/* Avoid TLB flush if possible */
+ 				if (pte_protnone(oldpte))
+@@ -150,14 +151,19 @@ static unsigned long change_pte_range(st
+ 				nid = page_to_nid(page);
+ 				if (target_node == nid)
+ 					continue;
++				toptier = node_is_toptier(nid);
+ 
+ 				/*
+ 				 * Skip scanning top tier node if normal numa
+ 				 * balancing is disabled
+ 				 */
+ 				if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_NORMAL) &&
+-				    node_is_toptier(nid))
++				    toptier)
+ 					continue;
++				if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING &&
++				    !toptier)
++					xchg_page_access_time(page,
++						jiffies_to_msecs(jiffies));
+ 			}
+ 
+ 			oldpte = ptep_modify_prot_start(vma, addr, pte);
 _
 
-Patches currently in -mm which might be from liusong@linux.alibaba.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-dmapoolc-avoid-duplicate-memset-within-dma_pool_alloc.patch
+memory-tiering-hot-page-selection-with-hint-page-fault-latency.patch
+memory-tiering-rate-limit-numa-migration-throughput.patch
+memory-tiering-adjust-hot-threshold-automatically.patch
 
