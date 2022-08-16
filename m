@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47706C25B0E
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Aug 2022 22:55:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADBCDC25B0E
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Aug 2022 22:55:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237696AbiHPWzX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 16 Aug 2022 18:55:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49558 "EHLO
+        id S237424AbiHPWzZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 Aug 2022 18:55:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237406AbiHPWzT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2022 18:55:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E543C61D9F
-        for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2022 15:55:18 -0700 (PDT)
+        with ESMTP id S237658AbiHPWzX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2022 18:55:23 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8920C63F06
+        for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2022 15:55:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9FDA7B81B47
-        for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2022 22:55:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38289C433D6;
-        Tue, 16 Aug 2022 22:55:16 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 79E1CCE1B14
+        for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2022 22:55:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B67B4C433D7;
+        Tue, 16 Aug 2022 22:55:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660690516;
-        bh=uQ6YKZBqhpfaJad4+5gQF8dEC97Rq0jC0rIECJlr5No=;
+        s=korg; t=1660690517;
+        bh=RFNllf0xXLofLeGveAikZ8SYbSjJmNZFoesoQ3QA0k8=;
         h=Date:To:From:Subject:From;
-        b=ldznPJTrZgJ6pWVgEqwL89IVhTNUoswGuPK4rGaY/e3dXyvziwo4mr7lWNwIrrUJR
-         m/h7qD631hIpErSl15rl9nAOrRzoSDf6AmFerIYU+JxF3y8Edx4PBn3uzh0zGr2oW4
-         tNOIsWypSoXXAxhkqz2QA+1bVKlH0j9K8v8YSpy8=
-Date:   Tue, 16 Aug 2022 15:55:15 -0700
+        b=XGwZpjgMrtF94KJrHzBWAOnMQRRd5bldAL1FPZtHeg9M9TmPtvMyWcQ46xDN3Zz2S
+         gJpy7jhwKsL8xzyQnE/+SyWQFZ9aT3wxz2NsTiQ9u34ZpQqfqAdjIiOREhZYBClHxO
+         9nAEvWfn68paRwBj+tx2GvlyZy7p70HAKiMPJcVc=
+Date:   Tue, 16 Aug 2022 15:55:17 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch added to mm-unstable branch
-Message-Id: <20220816225516.38289C433D6@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at.patch added to mm-unstable branch
+Message-Id: <20220816225517.B67B4C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix missing call to restore_reserve_on_error()
+     Subject: mm: hugetlb_vmemmap: add missing smp_wmb() before set_pte_at()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
+     mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,34 +66,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix missing call to restore_reserve_on_error()
-Date: Tue, 16 Aug 2022 21:05:50 +0800
+Subject: mm: hugetlb_vmemmap: add missing smp_wmb() before set_pte_at()
+Date: Tue, 16 Aug 2022 21:05:51 +0800
 
-When huge_add_to_page_cache() fails, the page is freed directly without
-calling restore_reserve_on_error() to restore reserve for newly allocated
-pages not in page cache.  Fix this by calling restore_reserve_on_error()
-when huge_add_to_page_cache fails.
+The memory barrier smp_wmb() is needed to make sure that preceding stores
+to the page contents become visible before the below set_pte_at() write.
 
-Link: https://lkml.kernel.org/r/20220816130553.31406-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220816130553.31406-5-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb_vmemmap.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-missing-call-to-restore_reserve_on_error
-+++ a/mm/hugetlb.c
-@@ -5603,6 +5603,7 @@ retry:
- 		if (vma->vm_flags & VM_MAYSHARE) {
- 			int err = huge_add_to_page_cache(page, mapping, idx);
- 			if (err) {
-+				restore_reserve_on_error(h, vma, haddr, page);
- 				put_page(page);
- 				if (err == -EEXIST)
- 					goto retry;
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at
++++ a/mm/hugetlb_vmemmap.c
+@@ -287,6 +287,11 @@ static void vmemmap_restore_pte(pte_t *p
+ 	copy_page(to, (void *)walk->reuse_addr);
+ 	reset_struct_pages(to);
+ 
++	/*
++	 * Makes sure that preceding stores to the page contents become visible
++	 * before the set_pte_at() write.
++	 */
++	smp_wmb();
+ 	set_pte_at(&init_mm, addr, pte, mk_pte(page, pgprot));
+ }
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
