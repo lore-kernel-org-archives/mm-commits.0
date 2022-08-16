@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2147C25B0E
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Aug 2022 22:55:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B9DDC2BB41
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Aug 2022 22:55:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237374AbiHPWzP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 16 Aug 2022 18:55:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49494 "EHLO
+        id S234711AbiHPWzR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 Aug 2022 18:55:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237375AbiHPWzP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2022 18:55:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2C0C61D9F
-        for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2022 15:55:13 -0700 (PDT)
+        with ESMTP id S237375AbiHPWzQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2022 18:55:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9CF861DB4
+        for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2022 15:55:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 486BF612BF
-        for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2022 22:55:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 885F8C433C1;
-        Tue, 16 Aug 2022 22:55:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4390961297
+        for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2022 22:55:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91685C433D6;
+        Tue, 16 Aug 2022 22:55:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660690512;
-        bh=qDBnSNbX4afZ/Kyx60pPRO/ECJHd/+jfc4So5NRoMjY=;
+        s=korg; t=1660690514;
+        bh=gxsbQ9AwgroSutDUsEx8nRl36joS9RQ3GFm6L5RItYA=;
         h=Date:To:From:Subject:From;
-        b=ppQBTXplzwhZZiKbYLruP8A8Ajd9F7myLXjJoXUsxHMloGCFvNaZakUcmEhcM7tee
-         t1gKeqiAgG69wfgE54luvFug/LbCNF9QNLNHDfl5DkPW3IJmG0zUzOiR3hSUmUsmEz
-         Nwl2+UIOW67VDe7uIVjb0qExB9iutwIRyYEVbgFo=
-Date:   Tue, 16 Aug 2022 15:55:11 -0700
+        b=veP2Fu9O4bzjRVkftwH/2HmjxJUBb6TcjD5mc6fbHIXTRcpOTEq+Axh9959IbOXwL
+         kb6FZN2nx+Jyf3E7pMfeKYGOtyb3jAF3v5W4Os2UnSPolPRwJdKfkBES1mfAifaAOu
+         SoyLRH1UlIHiCBuW9RELBHgNf8bjzkTym/J1zoRA=
+Date:   Tue, 16 Aug 2022 15:55:13 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-incorrect-update-of-max_huge_pages.patch added to mm-unstable branch
-Message-Id: <20220816225512.885F8C433C1@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch added to mm-unstable branch
+Message-Id: <20220816225514.91685C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix incorrect update of max_huge_pages
+     Subject: mm/hugetlb: fix WARN_ON(!kobj) in sysfs_create_group()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-fix-incorrect-update-of-max_huge_pages.patch
+     mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-incorrect-update-of-max_huge_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,46 +66,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: fix incorrect update of max_huge_pages
-Date: Tue, 16 Aug 2022 21:05:48 +0800
+Subject: mm/hugetlb: fix WARN_ON(!kobj) in sysfs_create_group()
+Date: Tue, 16 Aug 2022 21:05:49 +0800
 
-Patch series "A few fixup patches for hugetlb".
+If sysfs_create_group() fails with hstate_attr_group, hstate_kobjs[hi]
+will be set to NULL.  Then it will be passed to sysfs_create_group() if
+h->demote_order != 0 thus triggering WARN_ON(!kobj) check.  Fix this by
+making sure hstate_kobjs[hi] != NULL when calling sysfs_create_group.
 
-This series contains a few fixup patches to fix incorrect update of
-max_huge_pages, fix WARN_ON(!kobj) in sysfs_create_group() and so on.
-More details can be found in the respective changelogs.
-
-
-This patch (of 6):
-
-There should be pages_per_huge_page(h) /
-pages_per_huge_page(target_hstate) pages incremented for
-target_hstate->max_huge_pages when page is demoted.  Update max_huge_pages
-accordingly for consistency.
-
-Link: https://lkml.kernel.org/r/20220816130553.31406-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220816130553.31406-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220816130553.31406-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-incorrect-update-of-max_huge_pages
+--- a/mm/hugetlb.c~mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group
 +++ a/mm/hugetlb.c
-@@ -3472,7 +3472,8 @@ static int demote_free_huge_page(struct
- 	 * based on pool changes for the demoted page.
- 	 */
- 	h->max_huge_pages--;
--	target_hstate->max_huge_pages += pages_per_huge_page(h);
-+	target_hstate->max_huge_pages +=
-+		pages_per_huge_page(h) / pages_per_huge_page(target_hstate);
+@@ -3846,6 +3846,7 @@ static int hugetlb_sysfs_add_hstate(stru
+ 	if (retval) {
+ 		kobject_put(hstate_kobjs[hi]);
+ 		hstate_kobjs[hi] = NULL;
++		return retval;
+ 	}
  
- 	return rc;
- }
+ 	if (h->demote_order) {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
