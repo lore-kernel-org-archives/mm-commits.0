@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 840CEC32773
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 20:58:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66A9AC25B08
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 20:58:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242129AbiHQU6O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Aug 2022 16:58:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48534 "EHLO
+        id S242131AbiHQU6P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Aug 2022 16:58:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48562 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242128AbiHQU5Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 16:57:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4826AB431;
-        Wed, 17 Aug 2022 13:57:17 -0700 (PDT)
+        with ESMTP id S242130AbiHQU51 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 16:57:27 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25956A99DE
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 13:57:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E4B52B81F69;
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4F966B81F6A
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 20:57:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0EB2C433C1;
         Wed, 17 Aug 2022 20:57:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 963DCC433D7;
-        Wed, 17 Aug 2022 20:57:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660769834;
-        bh=mjXcQDnb3hbG98qgUEjRDWRgcUMXoEfckFtI5f2ExAE=;
+        s=korg; t=1660769836;
+        bh=wdV5QUQQPEWYlWXnWxbklugSbDEVIU8sTkJdqICH4Rk=;
         h=Date:To:From:Subject:From;
-        b=tDEcNZgNlxunPTMJgoUUhUh1QjN9ZBDdhXSFiImcIl8Nko9oUuL0QudMnEV+isc6P
-         fOBDKIiMwMGOaQk4WGYYZipiydPlbZF3IvUGkJ6L4DW8YfgvY/9UZAWMHnZ+M2zlUX
-         zoFYdIK52MobusHUQqOQYwQBTEapwSOfWaxPj0N0=
-Date:   Wed, 17 Aug 2022 13:57:13 -0700
-To:     mm-commits@vger.kernel.org, xemul@parallels.com,
-        stable@vger.kernel.org, songmuchun@bytedance.com,
-        pfeiner@google.com, peterx@redhat.com, n-horiguchi@ah.jp.nec.com,
-        mike.kravetz@oracle.com, kirill.shutemov@linux.intel.com,
-        jamieliu@google.com, hughd@google.com, gorcunov@openvz.org,
-        bhelgaas@google.com, david@redhat.com, akpm@linux-foundation.org
+        b=PUAApSmkPKiqkAl32wW87Pf/Uh/GMIkYT1a+DKxy5Dp92J/Io8ar0hIodRKzhTbFN
+         +8wmWiNlI/pDCq8Dux/BOCJ1hwIH/UD2jIgIycMAM5jU3EsluuKXwkjwXmsGupARUO
+         aoeaRvQ70wKz8uc8Om1UGnwXu60K/FGAw/mybE4k=
+Date:   Wed, 17 Aug 2022 13:57:15 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        rburny@google.com, djwong@kernel.org, hughd@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-support-write-faults-in-shared-mappings.patch removed from -mm tree
-Message-Id: <20220817205714.963DCC433D7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shmem-fix-chattr-fsflags-support-in-tmpfs.patch removed from -mm tree
+Message-Id: <20220817205715.F0EB2C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,240 +42,162 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: support write-faults in shared mappings
+     Subject: mm/shmem: fix chattr fsflags support in tmpfs
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-support-write-faults-in-shared-mappings.patch
+     mm-shmem-fix-chattr-fsflags-support-in-tmpfs.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/hugetlb: support write-faults in shared mappings
-Date: Thu, 11 Aug 2022 12:34:35 +0200
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/shmem: fix chattr fsflags support in tmpfs
+Date: Wed, 10 Aug 2022 21:51:09 -0700 (PDT)
 
-If we ever get a write-fault on a write-protected page in a shared
-mapping, we'd be in trouble (again).  Instead, we can simply map the page
-writable.
+ext[234] have always allowed unimplemented chattr flags to be set, but
+other filesystems have tended to be stricter.  Follow the stricter
+approach for tmpfs: I don't want to have to explain why csu attributes
+don't actually work, and we won't need to update the chattr(1) manpage;
+and it's never wrong to start off strict, relaxing later if persuaded. 
+Allow only a (append only) i (immutable) A (no atime) and d (no dump).
 
-And in fact, there is even a way right now to trigger that code via
-uffd-wp ever since we stared to support it for shmem in 5.19:
+Although lsattr showed 'A' inherited, the NOATIME behavior was not being
+inherited: because nothing sync'ed FS_NOATIME_FL to S_NOATIME.  Add
+shmem_set_inode_flags() to sync the flags, using inode_set_flags() to
+avoid that instant of lost immutablility during fileattr_set().
 
---------------------------------------------------------------------------
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <fcntl.h>
- #include <unistd.h>
- #include <errno.h>
- #include <sys/mman.h>
- #include <sys/syscall.h>
- #include <sys/ioctl.h>
- #include <linux/userfaultfd.h>
+But that change switched generic/079 from passing to failing: because
+FS_IMMUTABLE_FL and FS_APPEND_FL had been unconventionally included in the
+INHERITED fsflags: remove them and generic/079 is back to passing.
 
- #define HUGETLB_SIZE (2 * 1024 * 1024u)
-
- static char *map;
- int uffd;
-
- static int temp_setup_uffd(void)
- {
- 	struct uffdio_api uffdio_api;
- 	struct uffdio_register uffdio_register;
- 	struct uffdio_writeprotect uffd_writeprotect;
- 	struct uffdio_range uffd_range;
-
- 	uffd = syscall(__NR_userfaultfd,
- 		       O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
- 	if (uffd < 0) {
- 		fprintf(stderr, "syscall() failed: %d\n", errno);
- 		return -errno;
- 	}
-
- 	uffdio_api.api = UFFD_API;
- 	uffdio_api.features = UFFD_FEATURE_PAGEFAULT_FLAG_WP;
- 	if (ioctl(uffd, UFFDIO_API, &uffdio_api) < 0) {
- 		fprintf(stderr, "UFFDIO_API failed: %d\n", errno);
- 		return -errno;
- 	}
-
- 	if (!(uffdio_api.features & UFFD_FEATURE_PAGEFAULT_FLAG_WP)) {
- 		fprintf(stderr, "UFFD_FEATURE_WRITEPROTECT missing\n");
- 		return -ENOSYS;
- 	}
-
- 	/* Register UFFD-WP */
- 	uffdio_register.range.start = (unsigned long) map;
- 	uffdio_register.range.len = HUGETLB_SIZE;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) < 0) {
- 		fprintf(stderr, "UFFDIO_REGISTER failed: %d\n", errno);
- 		return -errno;
- 	}
-
- 	/* Writeprotect a single page. */
- 	uffd_writeprotect.range.start = (unsigned long) map;
- 	uffd_writeprotect.range.len = HUGETLB_SIZE;
- 	uffd_writeprotect.mode = UFFDIO_WRITEPROTECT_MODE_WP;
- 	if (ioctl(uffd, UFFDIO_WRITEPROTECT, &uffd_writeprotect)) {
- 		fprintf(stderr, "UFFDIO_WRITEPROTECT failed: %d\n", errno);
- 		return -errno;
- 	}
-
- 	/* Unregister UFFD-WP without prior writeunprotection. */
- 	uffd_range.start = (unsigned long) map;
- 	uffd_range.len = HUGETLB_SIZE;
- 	if (ioctl(uffd, UFFDIO_UNREGISTER, &uffd_range)) {
- 		fprintf(stderr, "UFFDIO_UNREGISTER failed: %d\n", errno);
- 		return -errno;
- 	}
-
- 	return 0;
- }
-
- int main(int argc, char **argv)
- {
- 	int fd;
-
- 	fd = open("/dev/hugepages/tmp", O_RDWR | O_CREAT);
- 	if (!fd) {
- 		fprintf(stderr, "open() failed\n");
- 		return -errno;
- 	}
- 	if (ftruncate(fd, HUGETLB_SIZE)) {
- 		fprintf(stderr, "ftruncate() failed\n");
- 		return -errno;
- 	}
-
- 	map = mmap(NULL, HUGETLB_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
- 	if (map == MAP_FAILED) {
- 		fprintf(stderr, "mmap() failed\n");
- 		return -errno;
- 	}
-
- 	*map = 0;
-
- 	if (temp_setup_uffd())
- 		return 1;
-
- 	*map = 0;
-
- 	return 0;
- }
---------------------------------------------------------------------------
-
-Above test fails with SIGBUS when there is only a single free hugetlb page.
- # echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
- # ./test
- Bus error (core dumped)
-
-And worse, with sufficient free hugetlb pages it will map an anonymous page
-into a shared mapping, for example, messing up accounting during unmap
-and breaking MAP_SHARED semantics:
- # echo 2 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
- # ./test
- # cat /proc/meminfo | grep HugePages_
- HugePages_Total:       2
- HugePages_Free:        1
- HugePages_Rsvd:    18446744073709551615
- HugePages_Surp:        0
-
-Reason is that uffd-wp doesn't clear the uffd-wp PTE bit when
-unregistering and consequently keeps the PTE writeprotected.  Reason for
-this is to avoid the additional overhead when unregistering.  Note that
-this is the case also for !hugetlb and that we will end up with writable
-PTEs that still have the uffd-wp PTE bit set once we return from
-hugetlb_wp().  I'm not touching the uffd-wp PTE bit for now, because it
-seems to be a generic thing -- wp_page_reuse() also doesn't clear it.
-
-VM_MAYSHARE handling in hugetlb_fault() for FAULT_FLAG_WRITE indicates
-that MAP_SHARED handling was at least envisioned, but could never have
-worked as expected.
-
-While at it, make sure that we never end up in hugetlb_wp() on write
-faults without VM_WRITE, because we don't support maybe_mkwrite()
-semantics as commonly used in the !hugetlb case -- for example, in
-wp_page_reuse().
-
-Note that there is no need to do any kind of reservation in
-hugetlb_fault() in this case ...  because we already have a hugetlb page
-mapped R/O that we will simply map writable and we are not dealing with
-COW/unsharing.
-
-Link: https://lkml.kernel.org/r/20220811103435.188481-3-david@redhat.com
-Fixes: b1f9e876862d ("mm/uffd: enable write protection for shmem & hugetlbfs")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jamie Liu <jamieliu@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Peter Feiner <pfeiner@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>	[5.19]
+Link: https://lkml.kernel.org/r/2961dcb0-ddf3-b9f0-3268-12a4ff996856@google.com
+Fixes: e408e695f5f1 ("mm/shmem: support FS_IOC_[SG]ETFLAGS in tmpfs")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Radoslaw Burny <rburny@google.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ include/linux/shmem_fs.h |   13 ++------
+ mm/shmem.c               |   54 +++++++++++++++++++++----------------
+ 2 files changed, 35 insertions(+), 32 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-support-write-faults-in-shared-mappings
-+++ a/mm/hugetlb.c
-@@ -5241,6 +5241,21 @@ static vm_fault_t hugetlb_wp(struct mm_s
- 	VM_BUG_ON(unshare && (flags & FOLL_WRITE));
- 	VM_BUG_ON(!unshare && !(flags & FOLL_WRITE));
+--- a/include/linux/shmem_fs.h~mm-shmem-fix-chattr-fsflags-support-in-tmpfs
++++ a/include/linux/shmem_fs.h
+@@ -29,15 +29,10 @@ struct shmem_inode_info {
+ 	struct inode		vfs_inode;
+ };
  
+-#define SHMEM_FL_USER_VISIBLE FS_FL_USER_VISIBLE
+-#define SHMEM_FL_USER_MODIFIABLE FS_FL_USER_MODIFIABLE
+-#define SHMEM_FL_INHERITED FS_FL_USER_MODIFIABLE
+-
+-/* Flags that are appropriate for regular files (all but dir-specific ones). */
+-#define SHMEM_REG_FLMASK (~(FS_DIRSYNC_FL | FS_TOPDIR_FL))
+-
+-/* Flags that are appropriate for non-directories/regular files. */
+-#define SHMEM_OTHER_FLMASK (FS_NODUMP_FL | FS_NOATIME_FL)
++#define SHMEM_FL_USER_VISIBLE		FS_FL_USER_VISIBLE
++#define SHMEM_FL_USER_MODIFIABLE \
++	(FS_IMMUTABLE_FL | FS_APPEND_FL | FS_NODUMP_FL | FS_NOATIME_FL)
++#define SHMEM_FL_INHERITED		(FS_NODUMP_FL | FS_NOATIME_FL)
+ 
+ struct shmem_sb_info {
+ 	unsigned long max_blocks;   /* How many blocks are allowed */
+--- a/mm/shmem.c~mm-shmem-fix-chattr-fsflags-support-in-tmpfs
++++ a/mm/shmem.c
+@@ -2281,16 +2281,34 @@ static int shmem_mmap(struct file *file,
+ 	return 0;
+ }
+ 
+-/* Mask out flags that are inappropriate for the given type of inode. */
+-static unsigned shmem_mask_flags(umode_t mode, __u32 flags)
++#ifdef CONFIG_TMPFS_XATTR
++static int shmem_initxattrs(struct inode *, const struct xattr *, void *);
++
++/*
++ * chattr's fsflags are unrelated to extended attributes,
++ * but tmpfs has chosen to enable them under the same config option.
++ */
++static void shmem_set_inode_flags(struct inode *inode, unsigned int fsflags)
++{
++	unsigned int i_flags = 0;
++
++	if (fsflags & FS_NOATIME_FL)
++		i_flags |= S_NOATIME;
++	if (fsflags & FS_APPEND_FL)
++		i_flags |= S_APPEND;
++	if (fsflags & FS_IMMUTABLE_FL)
++		i_flags |= S_IMMUTABLE;
 +	/*
-+	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
-+	 * PTE mapped R/O such as maybe_mkwrite() would do.
++	 * But FS_NODUMP_FL does not require any action in i_flags.
 +	 */
-+	if (WARN_ON_ONCE(!unshare && !(vma->vm_flags & VM_WRITE)))
-+		return VM_FAULT_SIGSEGV;
-+
-+	/* Let's take out MAP_SHARED mappings first. */
-+	if (vma->vm_flags & VM_MAYSHARE) {
-+		if (unlikely(unshare))
-+			return 0;
-+		set_huge_ptep_writable(vma, haddr, ptep);
-+		return 0;
-+	}
-+
- 	pte = huge_ptep_get(ptep);
- 	old_page = pte_page(pte);
++	inode_set_flags(inode, i_flags, S_NOATIME | S_APPEND | S_IMMUTABLE);
++}
++#else
++static void shmem_set_inode_flags(struct inode *inode, unsigned int fsflags)
+ {
+-	if (S_ISDIR(mode))
+-		return flags;
+-	else if (S_ISREG(mode))
+-		return flags & SHMEM_REG_FLMASK;
+-	else
+-		return flags & SHMEM_OTHER_FLMASK;
+ }
++#define shmem_initxattrs NULL
++#endif
  
-@@ -5781,12 +5796,11 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 	 * If we are going to COW/unshare the mapping later, we examine the
- 	 * pending reservations for this page now. This will ensure that any
- 	 * allocations necessary to record that reservation occur outside the
--	 * spinlock. For private mappings, we also lookup the pagecache
--	 * page now as it is used to determine if a reservation has been
--	 * consumed.
-+	 * spinlock. Also lookup the pagecache page now as it is used to
-+	 * determine if a reservation has been consumed.
- 	 */
- 	if ((flags & (FAULT_FLAG_WRITE|FAULT_FLAG_UNSHARE)) &&
--	    !huge_pte_write(entry)) {
-+	    !(vma->vm_flags & VM_MAYSHARE) && !huge_pte_write(entry)) {
- 		if (vma_needs_reservation(h, vma, haddr) < 0) {
- 			ret = VM_FAULT_OOM;
- 			goto out_mutex;
-@@ -5794,9 +5808,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		/* Just decrements count, does not deallocate */
- 		vma_end_reservation(h, vma, haddr);
+ static struct inode *shmem_get_inode(struct super_block *sb, struct inode *dir,
+ 				     umode_t mode, dev_t dev, unsigned long flags)
+@@ -2319,7 +2337,8 @@ static struct inode *shmem_get_inode(str
+ 		info->i_crtime = inode->i_mtime;
+ 		info->fsflags = (dir == NULL) ? 0 :
+ 			SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
+-		info->fsflags = shmem_mask_flags(mode, info->fsflags);
++		if (info->fsflags)
++			shmem_set_inode_flags(inode, info->fsflags);
+ 		INIT_LIST_HEAD(&info->shrinklist);
+ 		INIT_LIST_HEAD(&info->swaplist);
+ 		simple_xattrs_init(&info->xattrs);
+@@ -2468,12 +2487,6 @@ out_unacct_blocks:
+ static const struct inode_operations shmem_symlink_inode_operations;
+ static const struct inode_operations shmem_short_symlink_operations;
  
--		if (!(vma->vm_flags & VM_MAYSHARE))
--			pagecache_page = hugetlbfs_pagecache_page(h,
--								vma, haddr);
-+		pagecache_page = hugetlbfs_pagecache_page(h, vma, haddr);
- 	}
+-#ifdef CONFIG_TMPFS_XATTR
+-static int shmem_initxattrs(struct inode *, const struct xattr *, void *);
+-#else
+-#define shmem_initxattrs NULL
+-#endif
+-
+ static int
+ shmem_write_begin(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len,
+@@ -3179,18 +3192,13 @@ static int shmem_fileattr_set(struct use
  
- 	ptl = huge_pte_lock(h, mm, ptep);
+ 	if (fileattr_has_fsx(fa))
+ 		return -EOPNOTSUPP;
++	if (fa->flags & ~SHMEM_FL_USER_MODIFIABLE)
++		return -EOPNOTSUPP;
+ 
+ 	info->fsflags = (info->fsflags & ~SHMEM_FL_USER_MODIFIABLE) |
+ 		(fa->flags & SHMEM_FL_USER_MODIFIABLE);
+ 
+-	inode->i_flags &= ~(S_APPEND | S_IMMUTABLE | S_NOATIME);
+-	if (info->fsflags & FS_APPEND_FL)
+-		inode->i_flags |= S_APPEND;
+-	if (info->fsflags & FS_IMMUTABLE_FL)
+-		inode->i_flags |= S_IMMUTABLE;
+-	if (info->fsflags & FS_NOATIME_FL)
+-		inode->i_flags |= S_NOATIME;
+-
++	shmem_set_inode_flags(inode, info->fsflags);
+ 	inode->i_ctime = current_time(inode);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
