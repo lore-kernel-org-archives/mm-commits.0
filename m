@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BE0DC32772
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 19:04:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C212C25B08
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 19:04:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240912AbiHQTD7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Aug 2022 15:03:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59710 "EHLO
+        id S241388AbiHQTEV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Aug 2022 15:04:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240975AbiHQTD4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 15:03:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9B1F33433
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 12:03:54 -0700 (PDT)
+        with ESMTP id S231939AbiHQTER (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 15:04:17 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E76841D1C
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 12:04:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 117956145F
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 19:03:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55854C433D7;
-        Wed, 17 Aug 2022 19:03:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3657AB81F05
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 19:03:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B313DC433D6;
+        Wed, 17 Aug 2022 19:03:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660763033;
-        bh=Gi8jO+nqO9NISjPMNFS46pUP52wmqzVKXyFi/DuLXiY=;
+        s=korg; t=1660763036;
+        bh=rFcYtf3iHDz+Anh2YN6tPzVOBXvfpjzjHHUYZ/ted0I=;
         h=Date:To:From:Subject:From;
-        b=N+6tyu9CCOFh+m1r4Cien1Q3In2gUE00sm/2iHbIt60YYKhdGr7CduNiW0bNVxRrz
-         uQZ1MKJTsDVh+KtoN+EBUoGyw5CTnzhI9EBRkyJb/sTui4wxEqi7B1cXKWqAUrmLA4
-         4UZLIidsnZ3g5AxrmhUtJgeAXw2xCotd3UEGuxx0=
-Date:   Wed, 17 Aug 2022 12:03:52 -0700
+        b=Ldd0kdGIE6w+MARNWEn/am3aTZCbcSfJQU5UkZX7huAhkXgYCuvBIivS7JQbKRCzD
+         jk3sc8Sq7OwEJzbS1ogEBp8eGpu8olkE1aAAokC/i2Vn69te5TQdbagQmHN+yXnhEi
+         KuOAg2siqJZG6bN//09qcCw0O3hT10L2crwUPwO8=
+Date:   Wed, 17 Aug 2022 12:03:56 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         vaibhav@linux.ibm.com, tj@kernel.org, szhai2@cs.rochester.edu,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
         yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-x86-arm64-add-arch_has_hw_pte_young.patch added to mm-unstable branch
-Message-Id: <20220817190353.55854C433D7@smtp.kernel.org>
+Subject: + mm-x86-add-config_arch_has_nonleaf_pmd_young.patch added to mm-unstable branch
+Message-Id: <20220817190356.B313DC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: x86, arm64: add arch_has_hw_pte_young()
+     Subject: mm: x86: add CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-x86-arm64-add-arch_has_hw_pte_young.patch
+     mm-x86-add-config_arch_has_nonleaf_pmd_young.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-x86-arm64-add-arch_has_hw_pte_young.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-x86-add-config_arch_has_nonleaf_pmd_young.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,273 +76,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: x86, arm64: add arch_has_hw_pte_young()
-Date: Mon, 15 Aug 2022 01:13:20 -0600
+Subject: mm: x86: add CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
+Date: Mon, 15 Aug 2022 01:13:21 -0600
 
-Patch series "Multi-Gen LRU Framework", v14.
+Some architectures support the accessed bit in non-leaf PMD entries, e.g.,
+x86 sets the accessed bit in a non-leaf PMD entry when using it as part of
+linear address translation [1].  Page table walkers that clear the
+accessed bit may use this capability to reduce their search space.
 
+Note that:
+1. Although an inline function is preferable, this capability is added
+   as a configuration option for consistency with the existing macros.
+2. Due to the little interest in other varieties, this capability was
+   only tested on Intel and AMD CPUs.
 
-TLDR
-====
-The current page reclaim is too expensive in terms of CPU usage and it
-often makes poor choices about what to evict. This patchset offers an
-alternative solution that is performant, versatile and
-straightforward.
+Thanks to the following developers for their efforts [2][3].
+  Randy Dunlap <rdunlap@infradead.org>
+  Stephen Rothwell <sfr@canb.auug.org.au>
 
-Patchset overview
-=================
-The design and implementation overview is in patch 14:
-https://lore.kernel.org/r/20220815071332.627393-15-yuzhao@google.com/
+[1]: Intel 64 and IA-32 Architectures Software Developer's Manual
+     Volume 3 (June 2021), section 4.8
+[2] https://lore.kernel.org/r/bfdcc7c8-922f-61a9-aa15-7e7250f04af7@infradead.org/
+[3] https://lore.kernel.org/r/20220413151513.5a0d7a7e@canb.auug.org.au/
 
-01. mm: x86, arm64: add arch_has_hw_pte_young()
-02. mm: x86: add CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
-Take advantage of hardware features when trying to clear the accessed
-bit in many PTEs.
-
-03. mm/vmscan.c: refactor shrink_node()
-04. Revert "include/linux/mm_inline.h: fold __update_lru_size() into
-    its sole caller"
-Minor refactors to improve readability for the following patches.
-
-05. mm: multi-gen LRU: groundwork
-Adds the basic data structure and the functions that insert pages to
-and remove pages from the multi-gen LRU (MGLRU) lists.
-
-06. mm: multi-gen LRU: minimal implementation
-A minimal implementation without optimizations.
-
-07. mm: multi-gen LRU: exploit locality in rmap
-Exploits spatial locality to improve efficiency when using the rmap.
-
-08. mm: multi-gen LRU: support page table walks
-Further exploits spatial locality by optionally scanning page tables.
-
-09. mm: multi-gen LRU: optimize multiple memcgs
-Optimizes the overall performance for multiple memcgs running mixed
-types of workloads.
-
-10. mm: multi-gen LRU: kill switch
-Adds a kill switch to enable or disable MGLRU at runtime.
-
-11. mm: multi-gen LRU: thrashing prevention
-12. mm: multi-gen LRU: debugfs interface
-Provide userspace with features like thrashing prevention, working set
-estimation and proactive reclaim.
-
-13. mm: multi-gen LRU: admin guide
-14. mm: multi-gen LRU: design doc
-Add an admin guide and a design doc.
-
-Benchmark results
-=================
-Independent lab results
------------------------
-Based on the popularity of searches [01] and the memory usage in
-Google's public cloud, the most popular open-source memory-hungry
-applications, in alphabetical order, are:
-      Apache Cassandra      Memcached
-      Apache Hadoop         MongoDB
-      Apache Spark          PostgreSQL
-      MariaDB (MySQL)       Redis
-
-An independent lab evaluated MGLRU with the most widely used benchmark
-suites for the above applications. They posted 960 data points along
-with kernel metrics and perf profiles collected over more than 500
-hours of total benchmark time. Their final reports show that, with 95%
-confidence intervals (CIs), the above applications all performed
-significantly better for at least part of their benchmark matrices.
-
-On 5.14:
-1. Apache Spark [02] took 95% CIs [9.28, 11.19]% and [12.20, 14.93]%
-   less wall time to sort three billion random integers, respectively,
-   under the medium- and the high-concurrency conditions, when
-   overcommitting memory. There were no statistically significant
-   changes in wall time for the rest of the benchmark matrix.
-2. MariaDB [03] achieved 95% CIs [5.24, 10.71]% and [20.22, 25.97]%
-   more transactions per minute (TPM), respectively, under the medium-
-   and the high-concurrency conditions, when overcommitting memory.
-   There were no statistically significant changes in TPM for the rest
-   of the benchmark matrix.
-3. Memcached [04] achieved 95% CIs [23.54, 32.25]%, [20.76, 41.61]%
-   and [21.59, 30.02]% more operations per second (OPS), respectively,
-   for sequential access, random access and Gaussian (distribution)
-   access, when THP=always; 95% CIs [13.85, 15.97]% and
-   [23.94, 29.92]% more OPS, respectively, for random access and
-   Gaussian access, when THP=never. There were no statistically
-   significant changes in OPS for the rest of the benchmark matrix.
-4. MongoDB [05] achieved 95% CIs [2.23, 3.44]%, [6.97, 9.73]% and
-   [2.16, 3.55]% more operations per second (OPS), respectively, for
-   exponential (distribution) access, random access and Zipfian
-   (distribution) access, when underutilizing memory; 95% CIs
-   [8.83, 10.03]%, [21.12, 23.14]% and [5.53, 6.46]% more OPS,
-   respectively, for exponential access, random access and Zipfian
-   access, when overcommitting memory.
-
-On 5.15:
-5. Apache Cassandra [06] achieved 95% CIs [1.06, 4.10]%, [1.94, 5.43]%
-   and [4.11, 7.50]% more operations per second (OPS), respectively,
-   for exponential (distribution) access, random access and Zipfian
-   (distribution) access, when swap was off; 95% CIs [0.50, 2.60]%,
-   [6.51, 8.77]% and [3.29, 6.75]% more OPS, respectively, for
-   exponential access, random access and Zipfian access, when swap was
-   on.
-6. Apache Hadoop [07] took 95% CIs [5.31, 9.69]% and [2.02, 7.86]%
-   less average wall time to finish twelve parallel TeraSort jobs,
-   respectively, under the medium- and the high-concurrency
-   conditions, when swap was on. There were no statistically
-   significant changes in average wall time for the rest of the
-   benchmark matrix.
-7. PostgreSQL [08] achieved 95% CI [1.75, 6.42]% more transactions per
-   minute (TPM) under the high-concurrency condition, when swap was
-   off; 95% CIs [12.82, 18.69]% and [22.70, 46.86]% more TPM,
-   respectively, under the medium- and the high-concurrency
-   conditions, when swap was on. There were no statistically
-   significant changes in TPM for the rest of the benchmark matrix.
-8. Redis [09] achieved 95% CIs [0.58, 5.94]%, [6.55, 14.58]% and
-   [11.47, 19.36]% more total operations per second (OPS),
-   respectively, for sequential access, random access and Gaussian
-   (distribution) access, when THP=always; 95% CIs [1.27, 3.54]%,
-   [10.11, 14.81]% and [8.75, 13.64]% more total OPS, respectively,
-   for sequential access, random access and Gaussian access, when
-   THP=never.
-
-Our lab results
----------------
-To supplement the above results, we ran the following benchmark suites
-on 5.16-rc7 and found no regressions [10].
-      fs_fio_bench_hdd_mq      pft
-      fs_lmbench               pgsql-hammerdb
-      fs_parallelio            redis
-      fs_postmark              stream
-      hackbench                sysbenchthread
-      kernbench                tpcc_spark
-      memcached                unixbench
-      multichase               vm-scalability
-      mutilate                 will-it-scale
-      nginx
-
-[01] https://trends.google.com
-[02] https://lore.kernel.org/r/20211102002002.92051-1-bot@edi.works/
-[03] https://lore.kernel.org/r/20211009054315.47073-1-bot@edi.works/
-[04] https://lore.kernel.org/r/20211021194103.65648-1-bot@edi.works/
-[05] https://lore.kernel.org/r/20211109021346.50266-1-bot@edi.works/
-[06] https://lore.kernel.org/r/20211202062806.80365-1-bot@edi.works/
-[07] https://lore.kernel.org/r/20211209072416.33606-1-bot@edi.works/
-[08] https://lore.kernel.org/r/20211218071041.24077-1-bot@edi.works/
-[09] https://lore.kernel.org/r/20211122053248.57311-1-bot@edi.works/
-[10] https://lore.kernel.org/r/20220104202247.2903702-1-yuzhao@google.com/
-
-Read-world applications
-=======================
-Third-party testimonials
-------------------------
-Konstantin reported [11]:
-   I have Archlinux with 8G RAM + zswap + swap. While developing, I
-   have lots of apps opened such as multiple LSP-servers for different
-   langs, chats, two browsers, etc... Usually, my system gets quickly
-   to a point of SWAP-storms, where I have to kill LSP-servers,
-   restart browsers to free memory, etc, otherwise the system lags
-   heavily and is barely usable.
-   
-   1.5 day ago I migrated from 5.11.15 kernel to 5.12 + the LRU
-   patchset, and I started up by opening lots of apps to create memory
-   pressure, and worked for a day like this. Till now I had not a
-   single SWAP-storm, and mind you I got 3.4G in SWAP. I was never
-   getting to the point of 3G in SWAP before without a single
-   SWAP-storm.
-
-Vaibhav from IBM reported [12]:
-   In a synthetic MongoDB Benchmark, seeing an average of ~19%
-   throughput improvement on POWER10(Radix MMU + 64K Page Size) with
-   MGLRU patches on top of 5.16 kernel for MongoDB + YCSB across
-   three different request distributions, namely, Exponential, Uniform
-   and Zipfan.
-
-Shuang from U of Rochester reported [13]:
-   With the MGLRU, fio achieved 95% CIs [38.95, 40.26]%, [4.12, 6.64]%
-   and [9.26, 10.36]% higher throughput, respectively, for random
-   access, Zipfian (distribution) access and Gaussian (distribution)
-   access, when the average number of jobs per CPU is 1; 95% CIs
-   [42.32, 49.15]%, [9.44, 9.89]% and [20.99, 22.86]% higher
-   throughput, respectively, for random access, Zipfian access and
-   Gaussian access, when the average number of jobs per CPU is 2.
-
-Daniel from Michigan Tech reported [14]:
-   With Memcached allocating ~100GB of byte-addressable Optante,
-   performance improvement in terms of throughput (measured as queries
-   per second) was about 10% for a series of workloads.
-
-Large-scale deployments
------------------------
-We've rolled out MGLRU to tens of millions of Chrome OS users and
-about a million Android users. Google's fleetwide profiling [15] shows
-an overall 40% decrease in kswapd CPU usage, in addition to
-improvements in other UX metrics, e.g., an 85% decrease in the number
-of low-memory kills at the 75th percentile and an 18% decrease in
-app launch time at the 50th percentile.
-
-The downstream kernels that have been using MGLRU include:
-1. Android [16]
-2. Arch Linux Zen [17]
-3. Armbian [18]
-4. Chrome OS [19]
-5. Liquorix [20]
-6. post-factum [21]
-7. XanMod [22]
-
-[11] https://lore.kernel.org/r/140226722f2032c86301fbd326d91baefe3d7d23.camel@yandex.ru/
-[12] https://lore.kernel.org/r/87czj3mux0.fsf@vajain21.in.ibm.com/
-[13] https://lore.kernel.org/r/20220105024423.26409-1-szhai2@cs.rochester.edu/
-[14] https://lore.kernel.org/r/CA+4-3vksGvKd18FgRinxhqHetBS1hQekJE2gwco8Ja-bJWKtFw@mail.gmail.com/
-[15] https://dl.acm.org/doi/10.1145/2749469.2750392
-[16] https://android.com
-[17] https://archlinux.org
-[18] https://armbian.com
-[19] https://chromium.org
-[20] https://liquorix.net
-[21] https://codeberg.org/pf-kernel
-[22] https://xanmod.org
-
-Summary
-=======
-The facts are:
-1. The independent lab results and the real-world applications
-   indicate substantial improvements; there are no known regressions.
-2. Thrashing prevention, working set estimation and proactive reclaim
-   work out of the box; there are no equivalent solutions.
-3. There is a lot of new code; no smaller changes have been
-   demonstrated similar effects.
-
-Our options, accordingly, are:
-1. Given the amount of evidence, the reported improvements will likely
-   materialize for a wide range of workloads.
-2. Gauging the interest from the past discussions, the new features
-   will likely be put to use for both personal computers and data
-   centers.
-3. Based on Google's track record, the new code will likely be well
-   maintained in the long term. It'd be more difficult if not
-   impossible to achieve similar effects with other approaches.
-
-
-This patch (of 14):
-
-Some architectures automatically set the accessed bit in PTEs, e.g., x86
-and arm64 v8.2.  On architectures that do not have this capability,
-clearing the accessed bit in a PTE usually triggers a page fault following
-the TLB miss of this PTE (to emulate the accessed bit).
-
-Being aware of this capability can help make better decisions, e.g.,
-whether to spread the work out over a period of time to reduce bursty page
-faults when trying to clear the accessed bit in many PTEs.
-
-Note that theoretically this capability can be unreliable, e.g.,
-hotplugged CPUs might be different from builtin ones.  Therefore it should
-not be used in architecture-independent code that involves correctness,
-e.g., to determine whether TLB flushes are required (in combination with
-the accessed bit).
-
-Link: https://lkml.kernel.org/r/20220815071332.627393-1-yuzhao@google.com
-Link: https://lkml.kernel.org/r/20220815071332.627393-2-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20220815071332.627393-3-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Reviewed-by: Barry Song <baohua@kernel.org>
 Acked-by: Brian Geffon <bgeffon@google.com>
@@ -350,7 +107,6 @@ Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 Acked-by: Oleksandr Natalenko <oleksandr@natalenko.name>
 Acked-by: Steven Barrett <steven@liquorix.net>
 Acked-by: Suleiman Souhlal <suleiman@google.com>
-Acked-by: Will Deacon <will@kernel.org>
 Tested-by: Daniel Byrne <djbyrne@mtu.edu>
 Tested-by: Donald Carr <d@chaos-reins.com>
 Tested-by: Holger Hoffstätte <holger@applied-asynchrony.com>
@@ -368,121 +124,105 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michael Larabel <Michael@MichaelLarabel.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   15 ++-------------
- arch/x86/include/asm/pgtable.h   |    6 +++---
- include/linux/pgtable.h          |   13 +++++++++++++
- mm/memory.c                      |   14 +-------------
- 4 files changed, 19 insertions(+), 29 deletions(-)
+ arch/Kconfig                   |    8 ++++++++
+ arch/x86/Kconfig               |    1 +
+ arch/x86/include/asm/pgtable.h |    3 ++-
+ arch/x86/mm/pgtable.c          |    5 ++++-
+ include/linux/pgtable.h        |    4 ++--
+ 5 files changed, 17 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-x86-arm64-add-arch_has_hw_pte_young
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1082,24 +1082,13 @@ static inline void update_mmu_cache(stru
-  * page after fork() + CoW for pfn mappings. We don't always have a
-  * hardware-managed access flag on arm64.
-  */
--static inline bool arch_faults_on_old_pte(void)
--{
--	/* The register read below requires a stable CPU to make any sense */
--	cant_migrate();
--
--	return !cpu_has_hw_af();
--}
--#define arch_faults_on_old_pte		arch_faults_on_old_pte
-+#define arch_has_hw_pte_young		cpu_has_hw_af
+--- a/arch/Kconfig~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/arch/Kconfig
+@@ -1416,6 +1416,14 @@ config DYNAMIC_SIGFRAME
+ config HAVE_ARCH_NODE_DEV_GROUP
+ 	bool
  
- /*
-  * Experimentally, it's cheap to set the access flag in hardware and we
-  * benefit from prefaulting mappings as 'old' to start with.
-  */
--static inline bool arch_wants_old_prefaulted_pte(void)
--{
--	return !arch_faults_on_old_pte();
--}
--#define arch_wants_old_prefaulted_pte	arch_wants_old_prefaulted_pte
-+#define arch_wants_old_prefaulted_pte	cpu_has_hw_af
++config ARCH_HAS_NONLEAF_PMD_YOUNG
++	bool
++	help
++	  Architectures that select this option are capable of setting the
++	  accessed bit in non-leaf PMD entries when using them as part of linear
++	  address translations. Page table walkers that clear the accessed bit
++	  may use this capability to reduce their search space.
++
+ source "kernel/gcov/Kconfig"
  
- static inline bool pud_sect_supported(void)
- {
---- a/arch/x86/include/asm/pgtable.h~mm-x86-arm64-add-arch_has_hw_pte_young
+ source "scripts/gcc-plugins/Kconfig"
+--- a/arch/x86/include/asm/pgtable.h~mm-x86-add-config_arch_has_nonleaf_pmd_young
 +++ a/arch/x86/include/asm/pgtable.h
-@@ -1431,10 +1431,10 @@ static inline bool arch_has_pfn_modify_c
- 	return boot_cpu_has_bug(X86_BUG_L1TF);
- }
+@@ -815,7 +815,8 @@ static inline unsigned long pmd_page_vad
  
--#define arch_faults_on_old_pte arch_faults_on_old_pte
--static inline bool arch_faults_on_old_pte(void)
-+#define arch_has_hw_pte_young arch_has_hw_pte_young
-+static inline bool arch_has_hw_pte_young(void)
+ static inline int pmd_bad(pmd_t pmd)
  {
--	return false;
-+	return true;
+-	return (pmd_flags(pmd) & ~_PAGE_USER) != _KERNPG_TABLE;
++	return (pmd_flags(pmd) & ~(_PAGE_USER | _PAGE_ACCESSED)) !=
++	       (_KERNPG_TABLE & ~_PAGE_ACCESSED);
  }
  
- #ifdef CONFIG_PAGE_TABLE_CHECK
---- a/include/linux/pgtable.h~mm-x86-arm64-add-arch_has_hw_pte_young
-+++ a/include/linux/pgtable.h
-@@ -260,6 +260,19 @@ static inline int pmdp_clear_flush_young
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif
+ static inline unsigned long pages_to_mb(unsigned long npg)
+--- a/arch/x86/Kconfig~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/arch/x86/Kconfig
+@@ -85,6 +85,7 @@ config X86
+ 	select ARCH_HAS_PMEM_API		if X86_64
+ 	select ARCH_HAS_PTE_DEVMAP		if X86_64
+ 	select ARCH_HAS_PTE_SPECIAL
++	select ARCH_HAS_NONLEAF_PMD_YOUNG	if PGTABLE_LEVELS > 2
+ 	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
+ 	select ARCH_HAS_COPY_MC			if X86_64
+ 	select ARCH_HAS_SET_MEMORY
+--- a/arch/x86/mm/pgtable.c~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/arch/x86/mm/pgtable.c
+@@ -550,7 +550,7 @@ int ptep_test_and_clear_young(struct vm_
+ 	return ret;
+ }
  
-+#ifndef arch_has_hw_pte_young
-+/*
-+ * Return whether the accessed bit is supported on the local CPU.
-+ *
-+ * This stub assumes accessing through an old PTE triggers a page fault.
-+ * Architectures that automatically set the access bit should overwrite it.
-+ */
-+static inline bool arch_has_hw_pte_young(void)
-+{
-+	return false;
-+}
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+ int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ 			      unsigned long addr, pmd_t *pmdp)
+ {
+@@ -562,6 +562,9 @@ int pmdp_test_and_clear_young(struct vm_
+ 
+ 	return ret;
+ }
 +#endif
 +
- #ifndef __HAVE_ARCH_PTEP_GET_AND_CLEAR
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
- 				       unsigned long address,
---- a/mm/memory.c~mm-x86-arm64-add-arch_has_hw_pte_young
-+++ a/mm/memory.c
-@@ -126,18 +126,6 @@ int randomize_va_space __read_mostly =
- 					2;
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ int pudp_test_and_clear_young(struct vm_area_struct *vma,
+ 			      unsigned long addr, pud_t *pudp)
+ {
+--- a/include/linux/pgtable.h~mm-x86-add-config_arch_has_nonleaf_pmd_young
++++ a/include/linux/pgtable.h
+@@ -213,7 +213,7 @@ static inline int ptep_test_and_clear_yo
  #endif
  
--#ifndef arch_faults_on_old_pte
--static inline bool arch_faults_on_old_pte(void)
--{
--	/*
--	 * Those arches which don't have hw access flag feature need to
--	 * implement their own helper. By default, "true" means pagefault
--	 * will be hit on old pte.
--	 */
--	return true;
--}
--#endif
--
- #ifndef arch_wants_old_prefaulted_pte
- static inline bool arch_wants_old_prefaulted_pte(void)
- {
-@@ -2871,7 +2859,7 @@ static inline bool __wp_page_copy_user(s
- 	 * On architectures with software "accessed" bits, we would
- 	 * take a double page fault, so mark it accessed here.
- 	 */
--	if (arch_faults_on_old_pte() && !pte_young(vmf->orig_pte)) {
-+	if (!arch_has_hw_pte_young() && !pte_young(vmf->orig_pte)) {
- 		pte_t entry;
+ #ifndef __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+ static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ 					    unsigned long address,
+ 					    pmd_t *pmdp)
+@@ -234,7 +234,7 @@ static inline int pmdp_test_and_clear_yo
+ 	BUILD_BUG();
+ 	return 0;
+ }
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG */
+ #endif
  
- 		vmf->pte = pte_offset_map_lock(mm, vmf->pmd, addr, &vmf->ptl);
+ #ifndef __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
