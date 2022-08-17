@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75601C32773
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 19:05:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A015C3F6B0
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 19:05:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238289AbiHQTFl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Aug 2022 15:05:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35564 "EHLO
+        id S238730AbiHQTFk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Aug 2022 15:05:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241413AbiHQTFd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 15:05:33 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B65746214
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 12:05:30 -0700 (PDT)
+        with ESMTP id S241370AbiHQTFS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 15:05:18 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5195B6113A
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 12:05:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A2E60B81F05
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 19:05:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28DFAC433D6;
-        Wed, 17 Aug 2022 19:05:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A69E6B81F07
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 19:05:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB88C433D6;
+        Wed, 17 Aug 2022 19:05:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660763127;
-        bh=tZDtoWqsnWQisP46JQt986B/RRb3M8Ga+6Q9bxDtqVw=;
+        s=korg; t=1660763113;
+        bh=iPBYWHqvUygz0sEu705tvJWp00zbFpDFE2lPNHmh9ak=;
         h=Date:To:From:Subject:From;
-        b=zDzVXqtILBplmylKitCeg8FDRCkw9iwmubUCVd/TsahLNIEnz7QrUUHfNgEJCPtNo
-         FDy9cA5/4qNAhMW/YQfxBRXM51swR0v5Jd3b2F8jZbSRLaTchG2zG1mASgRXPSArZd
-         w1rtl8TCSprDqRsRVdEcEXlkcR6CVcMZ6//IVra0=
-Date:   Wed, 17 Aug 2022 12:05:26 -0700
+        b=gA+WlMLzYcSbbFGxIhTrM/U6A8aE4RIOtyOF58NhUs9pGdZ5s1OT+tiwvduwLRbtE
+         eSyu6AXkyTZ/NaT1KgviF+f2HUeOrcgcYqdHe4ITCRsfZHF8wGw1vatMruW3uVqHgs
+         sBuIAf2nnvkcm38VV+DCpWJ9Kmx1KDjhR9AOX7e4=
+Date:   Wed, 17 Aug 2022 12:05:12 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         vaibhav@linux.ibm.com, tj@kernel.org, szhai2@cs.rochester.edu,
@@ -40,11 +40,11 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         hannes@cmpxchg.org, djbyrne@mtu.edu, d@chaos-reins.com,
         dave.hansen@linux.intel.com, corbet@lwn.net,
         catalin.marinas@arm.com, bgeffon@google.com, baohua@kernel.org,
-        bagasdotme@gmail.com, axboe@kernel.dk, aneesh.kumar@linux.ibm.com,
-        ak@linux.intel.com, yuzhao@google.com, akpm@linux-foundation.org
+        axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
+        yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-design-doc.patch added to mm-unstable branch
-Message-Id: <20220817190527.28DFAC433D6@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-kill-switch.patch added to mm-unstable branch
+Message-Id: <20220817190513.5AB88C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: design doc
+     Subject: mm: multi-gen LRU: kill switch
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-multi-gen-lru-design-doc.patch
+     mm-multi-gen-lru-kill-switch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-design-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-kill-switch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,12 +76,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: design doc
-Date: Mon, 15 Aug 2022 01:13:33 -0600
+Subject: mm: multi-gen LRU: kill switch
+Date: Mon, 15 Aug 2022 01:13:29 -0600
 
-Add a design doc.
+Add /sys/kernel/mm/lru_gen/enabled as a kill switch. Components that
+can be disabled include:
+  0x0001: the multi-gen LRU core
+  0x0002: walking page table, when arch_has_hw_pte_young() returns
+          true
+  0x0004: clearing the accessed bit in non-leaf PMD entries, when
+          CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG=y
+  [yYnN]: apply to all the components above
+E.g.,
+  echo y >/sys/kernel/mm/lru_gen/enabled
+  cat /sys/kernel/mm/lru_gen/enabled
+  0x0007
+  echo 5 >/sys/kernel/mm/lru_gen/enabled
+  cat /sys/kernel/mm/lru_gen/enabled
+  0x0005
 
-Link: https://lkml.kernel.org/r/20220815071332.627393-15-yuzhao@google.com
+NB: the page table walks happen on the scale of seconds under heavy memory
+pressure, in which case the mmap_lock contention is a lesser concern,
+compared with the LRU lock contention and the I/O congestion.  So far the
+only well-known case of the mmap_lock contention happens on Android, due
+to Scudo [1] which allocates several thousand VMAs for merely a few
+hundred MBs.  The SPF and the Maple Tree also have provided their own
+assessments [2][3].  However, if walking page tables does worsen the
+mmap_lock contention, the kill switch can be used to disable it.  In this
+case the multi-gen LRU will suffer a minor performance degradation, as
+shown previously.
+
+Clearing the accessed bit in non-leaf PMD entries can also be
+disabled, since this behavior was not tested on x86 varieties other
+than Intel and AMD.
+
+[1] https://source.android.com/devices/tech/debug/scudo
+[2] https://lore.kernel.org/r/20220128131006.67712-1-michel@lespinasse.org/
+[3] https://lore.kernel.org/r/20220426150616.3937571-1-Liam.Howlett@oracle.com/
+
+Link: https://lkml.kernel.org/r/20220815071332.627393-11-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Acked-by: Brian Geffon <bgeffon@google.com>
 Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
@@ -95,7 +128,6 @@ Tested-by: Konstantin Kharlamov <Hi-Angel@yandex.ru>
 Tested-by: Shuang Zhai <szhai2@cs.rochester.edu>
 Tested-by: Sofia Trinh <sofia.trinh@edi.works>
 Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -119,182 +151,426 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/index.rst        |    1 
- Documentation/mm/multigen_lru.rst |  159 ++++++++++++++++++++++++++++
- 2 files changed, 160 insertions(+)
+ include/linux/cgroup.h          |   15 +
+ include/linux/mm_inline.h       |   15 +
+ include/linux/mmzone.h          |    9 +
+ kernel/cgroup/cgroup-internal.h |    1 
+ mm/Kconfig                      |    6 
+ mm/vmscan.c                     |  231 +++++++++++++++++++++++++++++-
+ 6 files changed, 268 insertions(+), 9 deletions(-)
 
---- a/Documentation/mm/index.rst~mm-multi-gen-lru-design-doc
-+++ a/Documentation/mm/index.rst
-@@ -51,6 +51,7 @@ above structured documentation, or delet
-    ksm
-    memory-model
-    mmu_notifier
-+   multigen_lru
-    numa
-    overcommit-accounting
-    page_migration
---- /dev/null
-+++ a/Documentation/mm/multigen_lru.rst
-@@ -0,0 +1,159 @@
-+.. SPDX-License-Identifier: GPL-2.0
+--- a/include/linux/cgroup.h~mm-multi-gen-lru-kill-switch
++++ a/include/linux/cgroup.h
+@@ -432,6 +432,18 @@ static inline void cgroup_put(struct cgr
+ 	css_put(&cgrp->self);
+ }
+ 
++extern struct mutex cgroup_mutex;
 +
-+=============
-+Multi-Gen LRU
-+=============
-+The multi-gen LRU is an alternative LRU implementation that optimizes
-+page reclaim and improves performance under memory pressure. Page
-+reclaim decides the kernel's caching policy and ability to overcommit
-+memory. It directly impacts the kswapd CPU usage and RAM efficiency.
++static inline void cgroup_lock(void)
++{
++	mutex_lock(&cgroup_mutex);
++}
 +
-+Design overview
-+===============
-+Objectives
-+----------
-+The design objectives are:
++static inline void cgroup_unlock(void)
++{
++	mutex_unlock(&cgroup_mutex);
++}
 +
-+* Good representation of access recency
-+* Try to profit from spatial locality
-+* Fast paths to make obvious choices
-+* Simple self-correcting heuristics
+ /**
+  * task_css_set_check - obtain a task's css_set with extra access conditions
+  * @task: the task to obtain css_set for
+@@ -446,7 +458,6 @@ static inline void cgroup_put(struct cgr
+  * as locks used during the cgroup_subsys::attach() methods.
+  */
+ #ifdef CONFIG_PROVE_RCU
+-extern struct mutex cgroup_mutex;
+ extern spinlock_t css_set_lock;
+ #define task_css_set_check(task, __c)					\
+ 	rcu_dereference_check((task)->cgroups,				\
+@@ -708,6 +719,8 @@ struct cgroup;
+ static inline u64 cgroup_id(const struct cgroup *cgrp) { return 1; }
+ static inline void css_get(struct cgroup_subsys_state *css) {}
+ static inline void css_put(struct cgroup_subsys_state *css) {}
++static inline void cgroup_lock(void) {}
++static inline void cgroup_unlock(void) {}
+ static inline int cgroup_attach_task_all(struct task_struct *from,
+ 					 struct task_struct *t) { return 0; }
+ static inline int cgroupstats_build(struct cgroupstats *stats,
+--- a/include/linux/mm_inline.h~mm-multi-gen-lru-kill-switch
++++ a/include/linux/mm_inline.h
+@@ -106,10 +106,21 @@ static __always_inline enum lru_list fol
+ 
+ #ifdef CONFIG_LRU_GEN
+ 
++#ifdef CONFIG_LRU_GEN_ENABLED
+ static inline bool lru_gen_enabled(void)
+ {
+-	return true;
++	DECLARE_STATIC_KEY_TRUE(lru_gen_caps[NR_LRU_GEN_CAPS]);
 +
-+The representation of access recency is at the core of all LRU
-+implementations. In the multi-gen LRU, each generation represents a
-+group of pages with similar access recency. Generations establish a
-+(time-based) common frame of reference and therefore help make better
-+choices, e.g., between different memcgs on a computer or different
-+computers in a data center (for job scheduling).
++	return static_branch_likely(&lru_gen_caps[LRU_GEN_CORE]);
++}
++#else
++static inline bool lru_gen_enabled(void)
++{
++	DECLARE_STATIC_KEY_FALSE(lru_gen_caps[NR_LRU_GEN_CAPS]);
 +
-+Exploiting spatial locality improves efficiency when gathering the
-+accessed bit. A rmap walk targets a single page and does not try to
-+profit from discovering a young PTE. A page table walk can sweep all
-+the young PTEs in an address space, but the address space can be too
-+sparse to make a profit. The key is to optimize both methods and use
-+them in combination.
++	return static_branch_unlikely(&lru_gen_caps[LRU_GEN_CORE]);
+ }
++#endif
+ 
+ static inline bool lru_gen_in_fault(void)
+ {
+@@ -222,7 +233,7 @@ static inline bool lru_gen_add_folio(str
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(gen != -1, folio);
+ 
+-	if (folio_test_unevictable(folio))
++	if (folio_test_unevictable(folio) || !lrugen->enabled)
+ 		return false;
+ 	/*
+ 	 * There are three common cases for this page:
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-kill-switch
++++ a/include/linux/mmzone.h
+@@ -387,6 +387,13 @@ enum {
+ 	LRU_GEN_FILE,
+ };
+ 
++enum {
++	LRU_GEN_CORE,
++	LRU_GEN_MM_WALK,
++	LRU_GEN_NONLEAF_YOUNG,
++	NR_LRU_GEN_CAPS
++};
 +
-+Fast paths reduce code complexity and runtime overhead. Unmapped pages
-+do not require TLB flushes; clean pages do not require writeback.
-+These facts are only helpful when other conditions, e.g., access
-+recency, are similar. With generations as a common frame of reference,
-+additional factors stand out. But obvious choices might not be good
-+choices; thus self-correction is necessary.
+ #define MIN_LRU_BATCH		BITS_PER_LONG
+ #define MAX_LRU_BATCH		(MIN_LRU_BATCH * 128)
+ 
+@@ -428,6 +435,8 @@ struct lru_gen_struct {
+ 	/* can be modified without holding the LRU lock */
+ 	atomic_long_t evicted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
+ 	atomic_long_t refaulted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
++	/* whether the multi-gen LRU is enabled */
++	bool enabled;
+ };
+ 
+ enum {
+--- a/kernel/cgroup/cgroup-internal.h~mm-multi-gen-lru-kill-switch
++++ a/kernel/cgroup/cgroup-internal.h
+@@ -164,7 +164,6 @@ struct cgroup_mgctx {
+ #define DEFINE_CGROUP_MGCTX(name)						\
+ 	struct cgroup_mgctx name = CGROUP_MGCTX_INIT(name)
+ 
+-extern struct mutex cgroup_mutex;
+ extern spinlock_t css_set_lock;
+ extern struct cgroup_subsys *cgroup_subsys[];
+ extern struct list_head cgroup_roots;
+--- a/mm/Kconfig~mm-multi-gen-lru-kill-switch
++++ a/mm/Kconfig
+@@ -1133,6 +1133,12 @@ config LRU_GEN
+ 	help
+ 	  A high performance LRU implementation to overcommit memory.
+ 
++config LRU_GEN_ENABLED
++	bool "Enable by default"
++	depends on LRU_GEN
++	help
++	  This option enables the multi-gen LRU by default.
 +
-+The benefits of simple self-correcting heuristics are self-evident.
-+Again, with generations as a common frame of reference, this becomes
-+attainable. Specifically, pages in the same generation can be
-+categorized based on additional factors, and a feedback loop can
-+statistically compare the refault percentages across those categories
-+and infer which of them are better choices.
+ config LRU_GEN_STATS
+ 	bool "Full stats for debugging"
+ 	depends on LRU_GEN
+--- a/mm/vmscan.c~mm-multi-gen-lru-kill-switch
++++ a/mm/vmscan.c
+@@ -51,6 +51,7 @@
+ #include <linux/psi.h>
+ #include <linux/pagewalk.h>
+ #include <linux/shmem_fs.h>
++#include <linux/ctype.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -3071,6 +3072,14 @@ static bool can_age_anon_pages(struct pg
+ 
+ #ifdef CONFIG_LRU_GEN
+ 
++#ifdef CONFIG_LRU_GEN_ENABLED
++DEFINE_STATIC_KEY_ARRAY_TRUE(lru_gen_caps, NR_LRU_GEN_CAPS);
++#define get_cap(cap)	static_branch_likely(&lru_gen_caps[cap])
++#else
++DEFINE_STATIC_KEY_ARRAY_FALSE(lru_gen_caps, NR_LRU_GEN_CAPS);
++#define get_cap(cap)	static_branch_unlikely(&lru_gen_caps[cap])
++#endif
 +
-+Assumptions
-+-----------
-+The protection of hot pages and the selection of cold pages are based
-+on page access channels and patterns. There are two access channels:
+ /******************************************************************************
+  *                          shorthand helpers
+  ******************************************************************************/
+@@ -3948,7 +3957,8 @@ static void walk_pmd_range_locked(pud_t
+ 			goto next;
+ 
+ 		if (!pmd_trans_huge(pmd[i])) {
+-			if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG))
++			if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG) &&
++			    get_cap(LRU_GEN_NONLEAF_YOUNG))
+ 				pmdp_test_and_clear_young(vma, addr, pmd + i);
+ 			goto next;
+ 		}
+@@ -4046,10 +4056,12 @@ restart:
+ 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+ 
+ #ifdef CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
+-		if (!pmd_young(val))
+-			continue;
++		if (get_cap(LRU_GEN_NONLEAF_YOUNG)) {
++			if (!pmd_young(val))
++				continue;
+ 
+-		walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
++			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
++		}
+ #endif
+ 		if (!walk->force_scan && !test_bloom_filter(walk->lruvec, walk->max_seq, pmd + i))
+ 			continue;
+@@ -4314,7 +4326,7 @@ static bool try_to_inc_max_seq(struct lr
+ 	 * handful of PTEs. Spreading the work out over a period of time usually
+ 	 * is less efficient, but it avoids bursty page faults.
+ 	 */
+-	if (!arch_has_hw_pte_young()) {
++	if (!(arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))) {
+ 		success = iterate_mm_list_nowalk(lruvec, max_seq);
+ 		goto done;
+ 	}
+@@ -5051,6 +5063,211 @@ done:
+ }
+ 
+ /******************************************************************************
++ *                          state change
++ ******************************************************************************/
 +
-+* Accesses through page tables
-+* Accesses through file descriptors
++static bool __maybe_unused state_is_valid(struct lruvec *lruvec)
++{
++	struct lru_gen_struct *lrugen = &lruvec->lrugen;
 +
-+The protection of the former channel is by design stronger because:
++	if (lrugen->enabled) {
++		enum lru_list lru;
 +
-+1. The uncertainty in determining the access patterns of the former
-+   channel is higher due to the approximation of the accessed bit.
-+2. The cost of evicting the former channel is higher due to the TLB
-+   flushes required and the likelihood of encountering the dirty bit.
-+3. The penalty of underprotecting the former channel is higher because
-+   applications usually do not prepare themselves for major page
-+   faults like they do for blocked I/O. E.g., GUI applications
-+   commonly use dedicated I/O threads to avoid blocking rendering
-+   threads.
++		for_each_evictable_lru(lru) {
++			if (!list_empty(&lruvec->lists[lru]))
++				return false;
++		}
++	} else {
++		int gen, type, zone;
 +
-+There are also two access patterns:
++		for_each_gen_type_zone(gen, type, zone) {
++			if (!list_empty(&lrugen->lists[gen][type][zone]))
++				return false;
 +
-+* Accesses exhibiting temporal locality
-+* Accesses not exhibiting temporal locality
++			/* unlikely but not a bug when reset_batch_size() is pending */
++			VM_WARN_ON_ONCE(lrugen->nr_pages[gen][type][zone]);
++		}
++	}
 +
-+For the reasons listed above, the former channel is assumed to follow
-+the former pattern unless ``VM_SEQ_READ`` or ``VM_RAND_READ`` is
-+present, and the latter channel is assumed to follow the latter
-+pattern unless outlying refaults have been observed.
++	return true;
++}
 +
-+Workflow overview
-+=================
-+Evictable pages are divided into multiple generations for each
-+``lruvec``. The youngest generation number is stored in
-+``lrugen->max_seq`` for both anon and file types as they are aged on
-+an equal footing. The oldest generation numbers are stored in
-+``lrugen->min_seq[]`` separately for anon and file types as clean file
-+pages can be evicted regardless of swap constraints. These three
-+variables are monotonically increasing.
++static bool fill_evictable(struct lruvec *lruvec)
++{
++	enum lru_list lru;
++	int remaining = MAX_LRU_BATCH;
 +
-+Generation numbers are truncated into ``order_base_2(MAX_NR_GENS+1)``
-+bits in order to fit into the gen counter in ``folio->flags``. Each
-+truncated generation number is an index to ``lrugen->lists[]``. The
-+sliding window technique is used to track at least ``MIN_NR_GENS`` and
-+at most ``MAX_NR_GENS`` generations. The gen counter stores a value
-+within ``[1, MAX_NR_GENS]`` while a page is on one of
-+``lrugen->lists[]``; otherwise it stores zero.
++	for_each_evictable_lru(lru) {
++		int type = is_file_lru(lru);
++		bool active = is_active_lru(lru);
++		struct list_head *head = &lruvec->lists[lru];
 +
-+Each generation is divided into multiple tiers. A page accessed ``N``
-+times through file descriptors is in tier ``order_base_2(N)``. Unlike
-+generations, tiers do not have dedicated ``lrugen->lists[]``. In
-+contrast to moving across generations, which requires the LRU lock,
-+moving across tiers only involves atomic operations on
-+``folio->flags`` and therefore has a negligible cost. A feedback loop
-+modeled after the PID controller monitors refaults over all the tiers
-+from anon and file types and decides which tiers from which types to
-+evict or protect.
++		while (!list_empty(head)) {
++			bool success;
++			struct folio *folio = lru_to_folio(head);
 +
-+There are two conceptually independent procedures: the aging and the
-+eviction. They form a closed-loop system, i.e., the page reclaim.
++			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio) != active, folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_lru_gen(folio) != -1, folio);
 +
-+Aging
-+-----
-+The aging produces young generations. Given an ``lruvec``, it
-+increments ``max_seq`` when ``max_seq-min_seq+1`` approaches
-+``MIN_NR_GENS``. The aging promotes hot pages to the youngest
-+generation when it finds them accessed through page tables; the
-+demotion of cold pages happens consequently when it increments
-+``max_seq``. The aging uses page table walks and rmap walks to find
-+young PTEs. For the former, it iterates ``lruvec_memcg()->mm_list``
-+and calls ``walk_page_range()`` with each ``mm_struct`` on this list
-+to scan PTEs, and after each iteration, it increments ``max_seq``. For
-+the latter, when the eviction walks the rmap and finds a young PTE,
-+the aging scans the adjacent PTEs. For both, on finding a young PTE,
-+the aging clears the accessed bit and updates the gen counter of the
-+page mapped by this PTE to ``(max_seq%MAX_NR_GENS)+1``.
++			lruvec_del_folio(lruvec, folio);
++			success = lru_gen_add_folio(lruvec, folio, false);
++			VM_WARN_ON_ONCE(!success);
 +
-+Eviction
-+--------
-+The eviction consumes old generations. Given an ``lruvec``, it
-+increments ``min_seq`` when ``lrugen->lists[]`` indexed by
-+``min_seq%MAX_NR_GENS`` becomes empty. To select a type and a tier to
-+evict from, it first compares ``min_seq[]`` to select the older type.
-+If both types are equally old, it selects the one whose first tier has
-+a lower refault percentage. The first tier contains single-use
-+unmapped clean pages, which are the best bet. The eviction sorts a
-+page according to its gen counter if the aging has found this page
-+accessed through page tables and updated its gen counter. It also
-+moves a page to the next generation, i.e., ``min_seq+1``, if this page
-+was accessed multiple times through file descriptors and the feedback
-+loop has detected outlying refaults from the tier this page is in. To
-+this end, the feedback loop uses the first tier as the baseline, for
-+the reason stated earlier.
++			if (!--remaining)
++				return false;
++		}
++	}
 +
-+Summary
-+-------
-+The multi-gen LRU can be disassembled into the following parts:
++	return true;
++}
 +
-+* Generations
-+* Rmap walks
-+* Page table walks
-+* Bloom filters
-+* PID controller
++static bool drain_evictable(struct lruvec *lruvec)
++{
++	int gen, type, zone;
++	int remaining = MAX_LRU_BATCH;
 +
-+The aging and the eviction form a producer-consumer model;
-+specifically, the latter drives the former by the sliding window over
-+generations. Within the aging, rmap walks drive page table walks by
-+inserting hot densely populated page tables to the Bloom filters.
-+Within the eviction, the PID controller uses refaults as the feedback
-+to select types to evict and tiers to protect.
++	for_each_gen_type_zone(gen, type, zone) {
++		struct list_head *head = &lruvec->lrugen.lists[gen][type][zone];
++
++		while (!list_empty(head)) {
++			bool success;
++			struct folio *folio = lru_to_folio(head);
++
++			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio), folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
++			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
++
++			success = lru_gen_del_folio(lruvec, folio, false);
++			VM_WARN_ON_ONCE(!success);
++			lruvec_add_folio(lruvec, folio);
++
++			if (!--remaining)
++				return false;
++		}
++	}
++
++	return true;
++}
++
++static void lru_gen_change_state(bool enabled)
++{
++	static DEFINE_MUTEX(state_mutex);
++
++	struct mem_cgroup *memcg;
++
++	cgroup_lock();
++	cpus_read_lock();
++	get_online_mems();
++	mutex_lock(&state_mutex);
++
++	if (enabled == lru_gen_enabled())
++		goto unlock;
++
++	if (enabled)
++		static_branch_enable_cpuslocked(&lru_gen_caps[LRU_GEN_CORE]);
++	else
++		static_branch_disable_cpuslocked(&lru_gen_caps[LRU_GEN_CORE]);
++
++	memcg = mem_cgroup_iter(NULL, NULL, NULL);
++	do {
++		int nid;
++
++		for_each_node(nid) {
++			struct lruvec *lruvec = get_lruvec(memcg, nid);
++
++			if (!lruvec)
++				continue;
++
++			spin_lock_irq(&lruvec->lru_lock);
++
++			VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
++			VM_WARN_ON_ONCE(!state_is_valid(lruvec));
++
++			lruvec->lrugen.enabled = enabled;
++
++			while (!(enabled ? fill_evictable(lruvec) : drain_evictable(lruvec))) {
++				spin_unlock_irq(&lruvec->lru_lock);
++				cond_resched();
++				spin_lock_irq(&lruvec->lru_lock);
++			}
++
++			spin_unlock_irq(&lruvec->lru_lock);
++		}
++
++		cond_resched();
++	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
++unlock:
++	mutex_unlock(&state_mutex);
++	put_online_mems();
++	cpus_read_unlock();
++	cgroup_unlock();
++}
++
++/******************************************************************************
++ *                          sysfs interface
++ ******************************************************************************/
++
++static ssize_t show_enabled(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
++{
++	unsigned int caps = 0;
++
++	if (get_cap(LRU_GEN_CORE))
++		caps |= BIT(LRU_GEN_CORE);
++
++	if (arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))
++		caps |= BIT(LRU_GEN_MM_WALK);
++
++	if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG) && get_cap(LRU_GEN_NONLEAF_YOUNG))
++		caps |= BIT(LRU_GEN_NONLEAF_YOUNG);
++
++	return snprintf(buf, PAGE_SIZE, "0x%04x\n", caps);
++}
++
++static ssize_t store_enabled(struct kobject *kobj, struct kobj_attribute *attr,
++			     const char *buf, size_t len)
++{
++	int i;
++	unsigned int caps;
++
++	if (tolower(*buf) == 'n')
++		caps = 0;
++	else if (tolower(*buf) == 'y')
++		caps = -1;
++	else if (kstrtouint(buf, 0, &caps))
++		return -EINVAL;
++
++	for (i = 0; i < NR_LRU_GEN_CAPS; i++) {
++		bool enabled = caps & BIT(i);
++
++		if (i == LRU_GEN_CORE)
++			lru_gen_change_state(enabled);
++		else if (enabled)
++			static_branch_enable(&lru_gen_caps[i]);
++		else
++			static_branch_disable(&lru_gen_caps[i]);
++	}
++
++	return len;
++}
++
++static struct kobj_attribute lru_gen_enabled_attr = __ATTR(
++	enabled, 0644, show_enabled, store_enabled
++);
++
++static struct attribute *lru_gen_attrs[] = {
++	&lru_gen_enabled_attr.attr,
++	NULL
++};
++
++static struct attribute_group lru_gen_attr_group = {
++	.name = "lru_gen",
++	.attrs = lru_gen_attrs,
++};
++
++/******************************************************************************
+  *                          initialization
+  ******************************************************************************/
+ 
+@@ -5060,6 +5277,7 @@ void lru_gen_init_lruvec(struct lruvec *
+ 	struct lru_gen_struct *lrugen = &lruvec->lrugen;
+ 
+ 	lrugen->max_seq = MIN_NR_GENS + 1;
++	lrugen->enabled = lru_gen_enabled();
+ 
+ 	for_each_gen_type_zone(gen, type, zone)
+ 		INIT_LIST_HEAD(&lrugen->lists[gen][type][zone]);
+@@ -5099,6 +5317,9 @@ static int __init init_lru_gen(void)
+ 	BUILD_BUG_ON(MIN_NR_GENS + 1 >= MAX_NR_GENS);
+ 	BUILD_BUG_ON(BIT(LRU_GEN_WIDTH) <= MAX_NR_GENS);
+ 
++	if (sysfs_create_group(mm_kobj, &lru_gen_attr_group))
++		pr_err("lru_gen: failed to create sysfs group\n");
++
+ 	return 0;
+ };
+ late_initcall(init_lru_gen);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
