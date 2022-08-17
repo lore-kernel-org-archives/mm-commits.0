@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABF68C32772
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 19:05:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75601C32773
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 19:05:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238004AbiHQTFj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Aug 2022 15:05:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35806 "EHLO
+        id S238289AbiHQTFl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Aug 2022 15:05:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241386AbiHQTFZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 15:05:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2872160694
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 12:05:23 -0700 (PDT)
+        with ESMTP id S241413AbiHQTFd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 15:05:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B65746214
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 12:05:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B1CFAB81F05
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 19:05:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67F05C433D6;
-        Wed, 17 Aug 2022 19:05:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A2E60B81F05
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 19:05:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28DFAC433D6;
+        Wed, 17 Aug 2022 19:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660763120;
-        bh=A4J5tGaUFDPU+/B5ITyyAjhu3bIExwyn2veEkOPWgLI=;
+        s=korg; t=1660763127;
+        bh=tZDtoWqsnWQisP46JQt986B/RRb3M8Ga+6Q9bxDtqVw=;
         h=Date:To:From:Subject:From;
-        b=onRfSUGdd1UgcZwl4a8AGbwTJgVZQ21GfYDY/oGeDtXP6TtukVrjD7ALD5LckeOj6
-         aGyeo5mFmCto4PZ1vE9jU6oZmvPFg4axwmR3tmgmojRXKqyDVXTsUa0G5ShAwCTrbD
-         di/c1v7Xuy/S+IzBXvL8rxFkLwA08YvdVbMRRU6w=
-Date:   Wed, 17 Aug 2022 12:05:19 -0700
+        b=zDzVXqtILBplmylKitCeg8FDRCkw9iwmubUCVd/TsahLNIEnz7QrUUHfNgEJCPtNo
+         FDy9cA5/4qNAhMW/YQfxBRXM51swR0v5Jd3b2F8jZbSRLaTchG2zG1mASgRXPSArZd
+         w1rtl8TCSprDqRsRVdEcEXlkcR6CVcMZ6//IVra0=
+Date:   Wed, 17 Aug 2022 12:05:26 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         vaibhav@linux.ibm.com, tj@kernel.org, szhai2@cs.rochester.edu,
@@ -40,11 +40,11 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         hannes@cmpxchg.org, djbyrne@mtu.edu, d@chaos-reins.com,
         dave.hansen@linux.intel.com, corbet@lwn.net,
         catalin.marinas@arm.com, bgeffon@google.com, baohua@kernel.org,
-        axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
-        yuzhao@google.com, akpm@linux-foundation.org
+        bagasdotme@gmail.com, axboe@kernel.dk, aneesh.kumar@linux.ibm.com,
+        ak@linux.intel.com, yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-debugfs-interface.patch added to mm-unstable branch
-Message-Id: <20220817190520.67F05C433D6@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-design-doc.patch added to mm-unstable branch
+Message-Id: <20220817190527.28DFAC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: debugfs interface
+     Subject: mm: multi-gen LRU: design doc
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-multi-gen-lru-debugfs-interface.patch
+     mm-multi-gen-lru-design-doc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-debugfs-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-design-doc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,28 +76,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: debugfs interface
-Date: Mon, 15 Aug 2022 01:13:31 -0600
+Subject: mm: multi-gen LRU: design doc
+Date: Mon, 15 Aug 2022 01:13:33 -0600
 
-Add /sys/kernel/debug/lru_gen for working set estimation and proactive
-reclaim.  These techniques are commonly used to optimize job scheduling
-(bin packing) in data centers [1][2].
+Add a design doc.
 
-Compared with the page table-based approach and the PFN-based
-approach, this lruvec-based approach has the following advantages:
-1. It offers better choices because it is aware of memcgs, NUMA nodes,
-   shared mappings and unmapped page cache.
-2. It is more scalable because it is O(nr_hot_pages), whereas the
-   PFN-based approach is O(nr_total_pages).
-
-Add /sys/kernel/debug/lru_gen_full for debugging.
-
-[1] https://dl.acm.org/doi/10.1145/3297858.3304053
-[2] https://dl.acm.org/doi/10.1145/3503222.3507731
-
-Link: https://lkml.kernel.org/r/20220815071332.627393-13-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20220815071332.627393-15-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Acked-by: Brian Geffon <bgeffon@google.com>
 Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 Acked-by: Oleksandr Natalenko <oleksandr@natalenko.name>
@@ -110,6 +95,7 @@ Tested-by: Konstantin Kharlamov <Hi-Angel@yandex.ru>
 Tested-by: Shuang Zhai <szhai2@cs.rochester.edu>
 Tested-by: Sofia Trinh <sofia.trinh@edi.works>
 Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -126,529 +112,189 @@ Cc: Michael Larabel <Michael@MichaelLarabel.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    1 
- mm/vmscan.c              |  411 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 402 insertions(+), 10 deletions(-)
+ Documentation/mm/index.rst        |    1 
+ Documentation/mm/multigen_lru.rst |  159 ++++++++++++++++++++++++++++
+ 2 files changed, 160 insertions(+)
 
---- a/include/linux/nodemask.h~mm-multi-gen-lru-debugfs-interface
-+++ a/include/linux/nodemask.h
-@@ -493,6 +493,7 @@ static inline int num_node_state(enum no
- #define first_online_node	0
- #define first_memory_node	0
- #define next_online_node(nid)	(MAX_NUMNODES)
-+#define next_memory_node(nid)	(MAX_NUMNODES)
- #define nr_node_ids		1U
- #define nr_online_nodes		1U
- 
---- a/mm/vmscan.c~mm-multi-gen-lru-debugfs-interface
-+++ a/mm/vmscan.c
-@@ -52,6 +52,7 @@
- #include <linux/pagewalk.h>
- #include <linux/shmem_fs.h>
- #include <linux/ctype.h>
-+#include <linux/debugfs.h>
- 
- #include <asm/tlbflush.h>
- #include <asm/div64.h>
-@@ -4202,12 +4203,40 @@ static void clear_mm_walk(void)
- 		kfree(walk);
- }
- 
--static void inc_min_seq(struct lruvec *lruvec, int type)
-+static bool inc_min_seq(struct lruvec *lruvec, int type, bool can_swap)
- {
-+	int zone;
-+	int remaining = MAX_LRU_BATCH;
- 	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
-+
-+	if (type == LRU_GEN_ANON && !can_swap)
-+		goto done;
-+
-+	/* prevent cold/hot inversion if force_scan is true */
-+	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
-+		struct list_head *head = &lrugen->lists[old_gen][type][zone];
-+
-+		while (!list_empty(head)) {
-+			struct folio *folio = lru_to_folio(head);
-+
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio), folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
- 
-+			new_gen = folio_inc_gen(lruvec, folio, false);
-+			list_move_tail(&folio->lru, &lrugen->lists[new_gen][type][zone]);
-+
-+			if (!--remaining)
-+				return false;
-+		}
-+	}
-+done:
- 	reset_ctrl_pos(lruvec, type, true);
- 	WRITE_ONCE(lrugen->min_seq[type], lrugen->min_seq[type] + 1);
-+
-+	return true;
- }
- 
- static bool try_to_inc_min_seq(struct lruvec *lruvec, bool can_swap)
-@@ -4253,7 +4282,7 @@ next:
- 	return success;
- }
- 
--static void inc_max_seq(struct lruvec *lruvec, bool can_swap)
-+static void inc_max_seq(struct lruvec *lruvec, bool can_swap, bool force_scan)
- {
- 	int prev, next;
- 	int type, zone;
-@@ -4267,9 +4296,13 @@ static void inc_max_seq(struct lruvec *l
- 		if (get_nr_gens(lruvec, type) != MAX_NR_GENS)
- 			continue;
- 
--		VM_WARN_ON_ONCE(type == LRU_GEN_FILE || can_swap);
-+		VM_WARN_ON_ONCE(!force_scan && (type == LRU_GEN_FILE || can_swap));
- 
--		inc_min_seq(lruvec, type);
-+		while (!inc_min_seq(lruvec, type, can_swap)) {
-+			spin_unlock_irq(&lruvec->lru_lock);
-+			cond_resched();
-+			spin_lock_irq(&lruvec->lru_lock);
-+		}
- 	}
- 
- 	/*
-@@ -4306,7 +4339,7 @@ static void inc_max_seq(struct lruvec *l
- }
- 
- static bool try_to_inc_max_seq(struct lruvec *lruvec, unsigned long max_seq,
--			       struct scan_control *sc, bool can_swap)
-+			       struct scan_control *sc, bool can_swap, bool force_scan)
- {
- 	bool success;
- 	struct lru_gen_mm_walk *walk;
-@@ -4327,7 +4360,7 @@ static bool try_to_inc_max_seq(struct lr
- 	 * handful of PTEs. Spreading the work out over a period of time usually
- 	 * is less efficient, but it avoids bursty page faults.
- 	 */
--	if (!(arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))) {
-+	if (!force_scan && !(arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))) {
- 		success = iterate_mm_list_nowalk(lruvec, max_seq);
- 		goto done;
- 	}
-@@ -4341,7 +4374,7 @@ static bool try_to_inc_max_seq(struct lr
- 	walk->lruvec = lruvec;
- 	walk->max_seq = max_seq;
- 	walk->can_swap = can_swap;
--	walk->force_scan = false;
-+	walk->force_scan = force_scan;
- 
- 	do {
- 		success = iterate_mm_list(lruvec, walk, &mm);
-@@ -4361,7 +4394,7 @@ done:
- 
- 	VM_WARN_ON_ONCE(max_seq != READ_ONCE(lrugen->max_seq));
- 
--	inc_max_seq(lruvec, can_swap);
-+	inc_max_seq(lruvec, can_swap, force_scan);
- 	/* either this sees any waiters or they will see updated max_seq */
- 	if (wq_has_sleeper(&lruvec->mm_state.wait))
- 		wake_up_all(&lruvec->mm_state.wait);
-@@ -4460,7 +4493,7 @@ static bool age_lruvec(struct lruvec *lr
- 	}
- 
- 	if (nr_to_scan && need_aging)
--		try_to_inc_max_seq(lruvec, max_seq, sc, swappiness);
-+		try_to_inc_max_seq(lruvec, max_seq, sc, swappiness, false);
- 
- 	return true;
- }
-@@ -5041,7 +5074,7 @@ static unsigned long get_nr_to_scan(stru
- 	if (current_is_kswapd())
- 		return 0;
- 
--	if (try_to_inc_max_seq(lruvec, max_seq, sc, can_swap))
-+	if (try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, false))
- 		return nr_to_scan;
- done:
- 	return min_seq[!can_swap] + MIN_NR_GENS <= max_seq ? nr_to_scan : 0;
-@@ -5331,6 +5364,361 @@ static struct attribute_group lru_gen_at
- };
- 
- /******************************************************************************
-+ *                          debugfs interface
-+ ******************************************************************************/
-+
-+static void *lru_gen_seq_start(struct seq_file *m, loff_t *pos)
-+{
-+	struct mem_cgroup *memcg;
-+	loff_t nr_to_skip = *pos;
-+
-+	m->private = kvmalloc(PATH_MAX, GFP_KERNEL);
-+	if (!m->private)
-+		return ERR_PTR(-ENOMEM);
-+
-+	memcg = mem_cgroup_iter(NULL, NULL, NULL);
-+	do {
-+		int nid;
-+
-+		for_each_node_state(nid, N_MEMORY) {
-+			if (!nr_to_skip--)
-+				return get_lruvec(memcg, nid);
-+		}
-+	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
-+
-+	return NULL;
-+}
-+
-+static void lru_gen_seq_stop(struct seq_file *m, void *v)
-+{
-+	if (!IS_ERR_OR_NULL(v))
-+		mem_cgroup_iter_break(NULL, lruvec_memcg(v));
-+
-+	kvfree(m->private);
-+	m->private = NULL;
-+}
-+
-+static void *lru_gen_seq_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	int nid = lruvec_pgdat(v)->node_id;
-+	struct mem_cgroup *memcg = lruvec_memcg(v);
-+
-+	++*pos;
-+
-+	nid = next_memory_node(nid);
-+	if (nid == MAX_NUMNODES) {
-+		memcg = mem_cgroup_iter(NULL, memcg, NULL);
-+		if (!memcg)
-+			return NULL;
-+
-+		nid = first_memory_node;
-+	}
-+
-+	return get_lruvec(memcg, nid);
-+}
-+
-+static void lru_gen_seq_show_full(struct seq_file *m, struct lruvec *lruvec,
-+				  unsigned long max_seq, unsigned long *min_seq,
-+				  unsigned long seq)
-+{
-+	int i;
-+	int type, tier;
-+	int hist = lru_hist_from_seq(seq);
-+	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+
-+	for (tier = 0; tier < MAX_NR_TIERS; tier++) {
-+		seq_printf(m, "            %10d", tier);
-+		for (type = 0; type < ANON_AND_FILE; type++) {
-+			const char *s = "   ";
-+			unsigned long n[3] = {};
-+
-+			if (seq == max_seq) {
-+				s = "RT ";
-+				n[0] = READ_ONCE(lrugen->avg_refaulted[type][tier]);
-+				n[1] = READ_ONCE(lrugen->avg_total[type][tier]);
-+			} else if (seq == min_seq[type] || NR_HIST_GENS > 1) {
-+				s = "rep";
-+				n[0] = atomic_long_read(&lrugen->refaulted[hist][type][tier]);
-+				n[1] = atomic_long_read(&lrugen->evicted[hist][type][tier]);
-+				if (tier)
-+					n[2] = READ_ONCE(lrugen->protected[hist][type][tier - 1]);
-+			}
-+
-+			for (i = 0; i < 3; i++)
-+				seq_printf(m, " %10lu%c", n[i], s[i]);
-+		}
-+		seq_putc(m, '\n');
-+	}
-+
-+	seq_puts(m, "                      ");
-+	for (i = 0; i < NR_MM_STATS; i++) {
-+		const char *s = "      ";
-+		unsigned long n = 0;
-+
-+		if (seq == max_seq && NR_HIST_GENS == 1) {
-+			s = "LOYNFA";
-+			n = READ_ONCE(lruvec->mm_state.stats[hist][i]);
-+		} else if (seq != max_seq && NR_HIST_GENS > 1) {
-+			s = "loynfa";
-+			n = READ_ONCE(lruvec->mm_state.stats[hist][i]);
-+		}
-+
-+		seq_printf(m, " %10lu%c", n, s[i]);
-+	}
-+	seq_putc(m, '\n');
-+}
-+
-+static int lru_gen_seq_show(struct seq_file *m, void *v)
-+{
-+	unsigned long seq;
-+	bool full = !debugfs_real_fops(m->file)->write;
-+	struct lruvec *lruvec = v;
-+	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+	int nid = lruvec_pgdat(lruvec)->node_id;
-+	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
-+	DEFINE_MAX_SEQ(lruvec);
-+	DEFINE_MIN_SEQ(lruvec);
-+
-+	if (nid == first_memory_node) {
-+		const char *path = memcg ? m->private : "";
-+
-+#ifdef CONFIG_MEMCG
-+		if (memcg)
-+			cgroup_path(memcg->css.cgroup, m->private, PATH_MAX);
-+#endif
-+		seq_printf(m, "memcg %5hu %s\n", mem_cgroup_id(memcg), path);
-+	}
-+
-+	seq_printf(m, " node %5d\n", nid);
-+
-+	if (!full)
-+		seq = min_seq[LRU_GEN_ANON];
-+	else if (max_seq >= MAX_NR_GENS)
-+		seq = max_seq - MAX_NR_GENS + 1;
-+	else
-+		seq = 0;
-+
-+	for (; seq <= max_seq; seq++) {
-+		int type, zone;
-+		int gen = lru_gen_from_seq(seq);
-+		unsigned long birth = READ_ONCE(lruvec->lrugen.timestamps[gen]);
-+
-+		seq_printf(m, " %10lu %10u", seq, jiffies_to_msecs(jiffies - birth));
-+
-+		for (type = 0; type < ANON_AND_FILE; type++) {
-+			unsigned long size = 0;
-+			char mark = full && seq < min_seq[type] ? 'x' : ' ';
-+
-+			for (zone = 0; zone < MAX_NR_ZONES; zone++)
-+				size += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
-+
-+			seq_printf(m, " %10lu%c", size, mark);
-+		}
-+
-+		seq_putc(m, '\n');
-+
-+		if (full)
-+			lru_gen_seq_show_full(m, lruvec, max_seq, min_seq, seq);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct seq_operations lru_gen_seq_ops = {
-+	.start = lru_gen_seq_start,
-+	.stop = lru_gen_seq_stop,
-+	.next = lru_gen_seq_next,
-+	.show = lru_gen_seq_show,
-+};
-+
-+static int run_aging(struct lruvec *lruvec, unsigned long seq, struct scan_control *sc,
-+		     bool can_swap, bool force_scan)
-+{
-+	DEFINE_MAX_SEQ(lruvec);
-+	DEFINE_MIN_SEQ(lruvec);
-+
-+	if (seq < max_seq)
-+		return 0;
-+
-+	if (seq > max_seq)
-+		return -EINVAL;
-+
-+	if (!force_scan && min_seq[!can_swap] + MAX_NR_GENS - 1 <= max_seq)
-+		return -ERANGE;
-+
-+	try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, force_scan);
-+
-+	return 0;
-+}
-+
-+static int run_eviction(struct lruvec *lruvec, unsigned long seq, struct scan_control *sc,
-+			int swappiness, unsigned long nr_to_reclaim)
-+{
-+	DEFINE_MAX_SEQ(lruvec);
-+
-+	if (seq + MIN_NR_GENS > max_seq)
-+		return -EINVAL;
-+
-+	sc->nr_reclaimed = 0;
-+
-+	while (!signal_pending(current)) {
-+		DEFINE_MIN_SEQ(lruvec);
-+
-+		if (seq < min_seq[!swappiness])
-+			return 0;
-+
-+		if (sc->nr_reclaimed >= nr_to_reclaim)
-+			return 0;
-+
-+		if (!evict_folios(lruvec, sc, swappiness, NULL))
-+			return 0;
-+
-+		cond_resched();
-+	}
-+
-+	return -EINTR;
-+}
-+
-+static int run_cmd(char cmd, int memcg_id, int nid, unsigned long seq,
-+		   struct scan_control *sc, int swappiness, unsigned long opt)
-+{
-+	struct lruvec *lruvec;
-+	int err = -EINVAL;
-+	struct mem_cgroup *memcg = NULL;
-+
-+	if (nid < 0 || nid >= MAX_NUMNODES || !node_state(nid, N_MEMORY))
-+		return -EINVAL;
-+
-+	if (!mem_cgroup_disabled()) {
-+		rcu_read_lock();
-+		memcg = mem_cgroup_from_id(memcg_id);
-+#ifdef CONFIG_MEMCG
-+		if (memcg && !css_tryget(&memcg->css))
-+			memcg = NULL;
-+#endif
-+		rcu_read_unlock();
-+
-+		if (!memcg)
-+			return -EINVAL;
-+	}
-+
-+	if (memcg_id != mem_cgroup_id(memcg))
-+		goto done;
-+
-+	lruvec = get_lruvec(memcg, nid);
-+
-+	if (swappiness < 0)
-+		swappiness = get_swappiness(lruvec, sc);
-+	else if (swappiness > 200)
-+		goto done;
-+
-+	switch (cmd) {
-+	case '+':
-+		err = run_aging(lruvec, seq, sc, swappiness, opt);
-+		break;
-+	case '-':
-+		err = run_eviction(lruvec, seq, sc, swappiness, opt);
-+		break;
-+	}
-+done:
-+	mem_cgroup_put(memcg);
-+
-+	return err;
-+}
-+
-+static ssize_t lru_gen_seq_write(struct file *file, const char __user *src,
-+				 size_t len, loff_t *pos)
-+{
-+	void *buf;
-+	char *cur, *next;
-+	unsigned int flags;
-+	struct blk_plug plug;
-+	int err = -EINVAL;
-+	struct scan_control sc = {
-+		.may_writepage = true,
-+		.may_unmap = true,
-+		.may_swap = true,
-+		.reclaim_idx = MAX_NR_ZONES - 1,
-+		.gfp_mask = GFP_KERNEL,
-+	};
-+
-+	buf = kvmalloc(len + 1, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(buf, src, len)) {
-+		kvfree(buf);
-+		return -EFAULT;
-+	}
-+
-+	set_task_reclaim_state(current, &sc.reclaim_state);
-+	flags = memalloc_noreclaim_save();
-+	blk_start_plug(&plug);
-+	if (!set_mm_walk(NULL)) {
-+		err = -ENOMEM;
-+		goto done;
-+	}
-+
-+	next = buf;
-+	next[len] = '\0';
-+
-+	while ((cur = strsep(&next, ",;\n"))) {
-+		int n;
-+		int end;
-+		char cmd;
-+		unsigned int memcg_id;
-+		unsigned int nid;
-+		unsigned long seq;
-+		unsigned int swappiness = -1;
-+		unsigned long opt = -1;
-+
-+		cur = skip_spaces(cur);
-+		if (!*cur)
-+			continue;
-+
-+		n = sscanf(cur, "%c %u %u %lu %n %u %n %lu %n", &cmd, &memcg_id, &nid,
-+			   &seq, &end, &swappiness, &end, &opt, &end);
-+		if (n < 4 || cur[end]) {
-+			err = -EINVAL;
-+			break;
-+		}
-+
-+		err = run_cmd(cmd, memcg_id, nid, seq, &sc, swappiness, opt);
-+		if (err)
-+			break;
-+	}
-+done:
-+	clear_mm_walk();
-+	blk_finish_plug(&plug);
-+	memalloc_noreclaim_restore(flags);
-+	set_task_reclaim_state(current, NULL);
-+
-+	kvfree(buf);
-+
-+	return err ? : len;
-+}
-+
-+static int lru_gen_seq_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &lru_gen_seq_ops);
-+}
-+
-+static const struct file_operations lru_gen_rw_fops = {
-+	.open = lru_gen_seq_open,
-+	.read = seq_read,
-+	.write = lru_gen_seq_write,
-+	.llseek = seq_lseek,
-+	.release = seq_release,
-+};
-+
-+static const struct file_operations lru_gen_ro_fops = {
-+	.open = lru_gen_seq_open,
-+	.read = seq_read,
-+	.llseek = seq_lseek,
-+	.release = seq_release,
-+};
-+
-+/******************************************************************************
-  *                          initialization
-  ******************************************************************************/
- 
-@@ -5387,6 +5775,9 @@ static int __init init_lru_gen(void)
- 	if (sysfs_create_group(mm_kobj, &lru_gen_attr_group))
- 		pr_err("lru_gen: failed to create sysfs group\n");
- 
-+	debugfs_create_file("lru_gen", 0644, NULL, NULL, &lru_gen_rw_fops);
-+	debugfs_create_file("lru_gen_full", 0444, NULL, NULL, &lru_gen_ro_fops);
-+
- 	return 0;
- };
- late_initcall(init_lru_gen);
+--- a/Documentation/mm/index.rst~mm-multi-gen-lru-design-doc
++++ a/Documentation/mm/index.rst
+@@ -51,6 +51,7 @@ above structured documentation, or delet
+    ksm
+    memory-model
+    mmu_notifier
++   multigen_lru
+    numa
+    overcommit-accounting
+    page_migration
+--- /dev/null
++++ a/Documentation/mm/multigen_lru.rst
+@@ -0,0 +1,159 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++=============
++Multi-Gen LRU
++=============
++The multi-gen LRU is an alternative LRU implementation that optimizes
++page reclaim and improves performance under memory pressure. Page
++reclaim decides the kernel's caching policy and ability to overcommit
++memory. It directly impacts the kswapd CPU usage and RAM efficiency.
++
++Design overview
++===============
++Objectives
++----------
++The design objectives are:
++
++* Good representation of access recency
++* Try to profit from spatial locality
++* Fast paths to make obvious choices
++* Simple self-correcting heuristics
++
++The representation of access recency is at the core of all LRU
++implementations. In the multi-gen LRU, each generation represents a
++group of pages with similar access recency. Generations establish a
++(time-based) common frame of reference and therefore help make better
++choices, e.g., between different memcgs on a computer or different
++computers in a data center (for job scheduling).
++
++Exploiting spatial locality improves efficiency when gathering the
++accessed bit. A rmap walk targets a single page and does not try to
++profit from discovering a young PTE. A page table walk can sweep all
++the young PTEs in an address space, but the address space can be too
++sparse to make a profit. The key is to optimize both methods and use
++them in combination.
++
++Fast paths reduce code complexity and runtime overhead. Unmapped pages
++do not require TLB flushes; clean pages do not require writeback.
++These facts are only helpful when other conditions, e.g., access
++recency, are similar. With generations as a common frame of reference,
++additional factors stand out. But obvious choices might not be good
++choices; thus self-correction is necessary.
++
++The benefits of simple self-correcting heuristics are self-evident.
++Again, with generations as a common frame of reference, this becomes
++attainable. Specifically, pages in the same generation can be
++categorized based on additional factors, and a feedback loop can
++statistically compare the refault percentages across those categories
++and infer which of them are better choices.
++
++Assumptions
++-----------
++The protection of hot pages and the selection of cold pages are based
++on page access channels and patterns. There are two access channels:
++
++* Accesses through page tables
++* Accesses through file descriptors
++
++The protection of the former channel is by design stronger because:
++
++1. The uncertainty in determining the access patterns of the former
++   channel is higher due to the approximation of the accessed bit.
++2. The cost of evicting the former channel is higher due to the TLB
++   flushes required and the likelihood of encountering the dirty bit.
++3. The penalty of underprotecting the former channel is higher because
++   applications usually do not prepare themselves for major page
++   faults like they do for blocked I/O. E.g., GUI applications
++   commonly use dedicated I/O threads to avoid blocking rendering
++   threads.
++
++There are also two access patterns:
++
++* Accesses exhibiting temporal locality
++* Accesses not exhibiting temporal locality
++
++For the reasons listed above, the former channel is assumed to follow
++the former pattern unless ``VM_SEQ_READ`` or ``VM_RAND_READ`` is
++present, and the latter channel is assumed to follow the latter
++pattern unless outlying refaults have been observed.
++
++Workflow overview
++=================
++Evictable pages are divided into multiple generations for each
++``lruvec``. The youngest generation number is stored in
++``lrugen->max_seq`` for both anon and file types as they are aged on
++an equal footing. The oldest generation numbers are stored in
++``lrugen->min_seq[]`` separately for anon and file types as clean file
++pages can be evicted regardless of swap constraints. These three
++variables are monotonically increasing.
++
++Generation numbers are truncated into ``order_base_2(MAX_NR_GENS+1)``
++bits in order to fit into the gen counter in ``folio->flags``. Each
++truncated generation number is an index to ``lrugen->lists[]``. The
++sliding window technique is used to track at least ``MIN_NR_GENS`` and
++at most ``MAX_NR_GENS`` generations. The gen counter stores a value
++within ``[1, MAX_NR_GENS]`` while a page is on one of
++``lrugen->lists[]``; otherwise it stores zero.
++
++Each generation is divided into multiple tiers. A page accessed ``N``
++times through file descriptors is in tier ``order_base_2(N)``. Unlike
++generations, tiers do not have dedicated ``lrugen->lists[]``. In
++contrast to moving across generations, which requires the LRU lock,
++moving across tiers only involves atomic operations on
++``folio->flags`` and therefore has a negligible cost. A feedback loop
++modeled after the PID controller monitors refaults over all the tiers
++from anon and file types and decides which tiers from which types to
++evict or protect.
++
++There are two conceptually independent procedures: the aging and the
++eviction. They form a closed-loop system, i.e., the page reclaim.
++
++Aging
++-----
++The aging produces young generations. Given an ``lruvec``, it
++increments ``max_seq`` when ``max_seq-min_seq+1`` approaches
++``MIN_NR_GENS``. The aging promotes hot pages to the youngest
++generation when it finds them accessed through page tables; the
++demotion of cold pages happens consequently when it increments
++``max_seq``. The aging uses page table walks and rmap walks to find
++young PTEs. For the former, it iterates ``lruvec_memcg()->mm_list``
++and calls ``walk_page_range()`` with each ``mm_struct`` on this list
++to scan PTEs, and after each iteration, it increments ``max_seq``. For
++the latter, when the eviction walks the rmap and finds a young PTE,
++the aging scans the adjacent PTEs. For both, on finding a young PTE,
++the aging clears the accessed bit and updates the gen counter of the
++page mapped by this PTE to ``(max_seq%MAX_NR_GENS)+1``.
++
++Eviction
++--------
++The eviction consumes old generations. Given an ``lruvec``, it
++increments ``min_seq`` when ``lrugen->lists[]`` indexed by
++``min_seq%MAX_NR_GENS`` becomes empty. To select a type and a tier to
++evict from, it first compares ``min_seq[]`` to select the older type.
++If both types are equally old, it selects the one whose first tier has
++a lower refault percentage. The first tier contains single-use
++unmapped clean pages, which are the best bet. The eviction sorts a
++page according to its gen counter if the aging has found this page
++accessed through page tables and updated its gen counter. It also
++moves a page to the next generation, i.e., ``min_seq+1``, if this page
++was accessed multiple times through file descriptors and the feedback
++loop has detected outlying refaults from the tier this page is in. To
++this end, the feedback loop uses the first tier as the baseline, for
++the reason stated earlier.
++
++Summary
++-------
++The multi-gen LRU can be disassembled into the following parts:
++
++* Generations
++* Rmap walks
++* Page table walks
++* Bloom filters
++* PID controller
++
++The aging and the eviction form a producer-consumer model;
++specifically, the latter drives the former by the sliding window over
++generations. Within the aging, rmap walks drive page table walks by
++inserting hot densely populated page tables to the Bloom filters.
++Within the eviction, the PID controller uses refaults as the feedback
++to select types to evict and tiers to protect.
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
