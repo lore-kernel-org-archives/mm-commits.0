@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A015C3F6B0
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 19:05:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AE41C2BB41
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 19:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238730AbiHQTFk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S237632AbiHQTFk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 17 Aug 2022 15:05:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35722 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241370AbiHQTFS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 15:05:18 -0400
+        with ESMTP id S239958AbiHQTFD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 15:05:03 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5195B6113A
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 12:05:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2F7247B99
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 12:05:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A69E6B81F07
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 19:05:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB88C433D6;
-        Wed, 17 Aug 2022 19:05:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 05F59B81F05
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 19:05:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7F10C433D6;
+        Wed, 17 Aug 2022 19:04:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660763113;
-        bh=iPBYWHqvUygz0sEu705tvJWp00zbFpDFE2lPNHmh9ak=;
+        s=korg; t=1660763098;
+        bh=wu2x30xynX9Z1u51ko/T8jI+RlSeby4gMzzKpxTHBGU=;
         h=Date:To:From:Subject:From;
-        b=gA+WlMLzYcSbbFGxIhTrM/U6A8aE4RIOtyOF58NhUs9pGdZ5s1OT+tiwvduwLRbtE
-         eSyu6AXkyTZ/NaT1KgviF+f2HUeOrcgcYqdHe4ITCRsfZHF8wGw1vatMruW3uVqHgs
-         sBuIAf2nnvkcm38VV+DCpWJ9Kmx1KDjhR9AOX7e4=
-Date:   Wed, 17 Aug 2022 12:05:12 -0700
+        b=tGqRv0iEFmo8sqzbd92nRh/F6J3gPPdPZOYCKZKCF+Wg/3us2gIt+HYPOwh1nfMZv
+         gXZPO2WQUGZaIe8NPr4cnGuPD1+jkPulgw/8CUQpCesOQbpUiw+lcW/fDitvvYhqMX
+         V8ZgtXN81e/csnJWQCGQDvx0UjFtJd6QWVm0VOmI=
+Date:   Wed, 17 Aug 2022 12:04:57 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, vbabka@suse.cz,
         vaibhav@linux.ibm.com, tj@kernel.org, szhai2@cs.rochester.edu,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         axboe@kernel.dk, aneesh.kumar@linux.ibm.com, ak@linux.intel.com,
         yuzhao@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-kill-switch.patch added to mm-unstable branch
-Message-Id: <20220817190513.5AB88C433D6@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-exploit-locality-in-rmap.patch added to mm-unstable branch
+Message-Id: <20220817190458.A7F10C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,12 +52,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: kill switch
+     Subject: mm: multi-gen LRU: exploit locality in rmap
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-multi-gen-lru-kill-switch.patch
+     mm-multi-gen-lru-exploit-locality-in-rmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-kill-switch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-exploit-locality-in-rmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,46 +76,67 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm: multi-gen LRU: kill switch
-Date: Mon, 15 Aug 2022 01:13:29 -0600
+Subject: mm: multi-gen LRU: exploit locality in rmap
+Date: Mon, 15 Aug 2022 01:13:26 -0600
 
-Add /sys/kernel/mm/lru_gen/enabled as a kill switch. Components that
-can be disabled include:
-  0x0001: the multi-gen LRU core
-  0x0002: walking page table, when arch_has_hw_pte_young() returns
-          true
-  0x0004: clearing the accessed bit in non-leaf PMD entries, when
-          CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG=y
-  [yYnN]: apply to all the components above
-E.g.,
-  echo y >/sys/kernel/mm/lru_gen/enabled
-  cat /sys/kernel/mm/lru_gen/enabled
-  0x0007
-  echo 5 >/sys/kernel/mm/lru_gen/enabled
-  cat /sys/kernel/mm/lru_gen/enabled
-  0x0005
+Searching the rmap for PTEs mapping each page on an LRU list (to test and
+clear the accessed bit) can be expensive because pages from different VMAs
+(PA space) are not cache friendly to the rmap (VA space).  For workloads
+mostly using mapped pages, searching the rmap can incur the highest CPU
+cost in the reclaim path.
 
-NB: the page table walks happen on the scale of seconds under heavy memory
-pressure, in which case the mmap_lock contention is a lesser concern,
-compared with the LRU lock contention and the I/O congestion.  So far the
-only well-known case of the mmap_lock contention happens on Android, due
-to Scudo [1] which allocates several thousand VMAs for merely a few
-hundred MBs.  The SPF and the Maple Tree also have provided their own
-assessments [2][3].  However, if walking page tables does worsen the
-mmap_lock contention, the kill switch can be used to disable it.  In this
-case the multi-gen LRU will suffer a minor performance degradation, as
-shown previously.
+This patch exploits spatial locality to reduce the trips into the rmap. 
+When shrink_page_list() walks the rmap and finds a young PTE, a new
+function lru_gen_look_around() scans at most BITS_PER_LONG-1 adjacent
+PTEs.  On finding another young PTE, it clears the accessed bit and
+updates the gen counter of the page mapped by this PTE to
+(max_seq%MAX_NR_GENS)+1.
 
-Clearing the accessed bit in non-leaf PMD entries can also be
-disabled, since this behavior was not tested on x86 varieties other
-than Intel and AMD.
+Server benchmark results:
+  Single workload:
+    fio (buffered I/O): no change
 
-[1] https://source.android.com/devices/tech/debug/scudo
-[2] https://lore.kernel.org/r/20220128131006.67712-1-michel@lespinasse.org/
-[3] https://lore.kernel.org/r/20220426150616.3937571-1-Liam.Howlett@oracle.com/
+  Single workload:
+    memcached (anon): +[3, 5]%
+                Ops/sec      KB/sec
+      patch1-6: 1106168.46   43025.04
+      patch1-7: 1147696.57   44640.29
 
-Link: https://lkml.kernel.org/r/20220815071332.627393-11-yuzhao@google.com
+  Configurations:
+    no change
+
+Client benchmark results:
+  kswapd profiles:
+    patch1-6
+      39.03%  lzo1x_1_do_compress (real work)
+      18.47%  page_vma_mapped_walk (overhead)
+       6.74%  _raw_spin_unlock_irq
+       3.97%  do_raw_spin_lock
+       2.49%  ptep_clear_flush
+       2.48%  anon_vma_interval_tree_iter_first
+       1.92%  folio_referenced_one
+       1.88%  __zram_bvec_write
+       1.48%  memmove
+       1.31%  vma_interval_tree_iter_next
+
+    patch1-7
+      48.16%  lzo1x_1_do_compress (real work)
+       8.20%  page_vma_mapped_walk (overhead)
+       7.06%  _raw_spin_unlock_irq
+       2.92%  ptep_clear_flush
+       2.53%  __zram_bvec_write
+       2.11%  do_raw_spin_lock
+       2.02%  memmove
+       1.93%  lru_gen_look_around
+       1.56%  free_unref_page_list
+       1.40%  memset
+
+  Configurations:
+    no change
+
+Link: https://lkml.kernel.org/r/20220815071332.627393-8-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Barry Song <baohua@kernel.org>
 Acked-by: Brian Geffon <bgeffon@google.com>
 Acked-by: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 Acked-by: Oleksandr Natalenko <oleksandr@natalenko.name>
@@ -130,7 +151,6 @@ Tested-by: Sofia Trinh <sofia.trinh@edi.works>
 Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Hillf Danton <hdanton@sina.com>
@@ -151,426 +171,403 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h          |   15 +
- include/linux/mm_inline.h       |   15 +
- include/linux/mmzone.h          |    9 +
- kernel/cgroup/cgroup-internal.h |    1 
- mm/Kconfig                      |    6 
- mm/vmscan.c                     |  231 +++++++++++++++++++++++++++++-
- 6 files changed, 268 insertions(+), 9 deletions(-)
+ include/linux/memcontrol.h |   31 +++++
+ include/linux/mm.h         |    5 
+ include/linux/mmzone.h     |    6 +
+ mm/internal.h              |    1 
+ mm/memcontrol.c            |    1 
+ mm/rmap.c                  |    6 +
+ mm/swap.c                  |    4 
+ mm/vmscan.c                |  184 +++++++++++++++++++++++++++++++++++
+ 8 files changed, 236 insertions(+), 2 deletions(-)
 
---- a/include/linux/cgroup.h~mm-multi-gen-lru-kill-switch
-+++ a/include/linux/cgroup.h
-@@ -432,6 +432,18 @@ static inline void cgroup_put(struct cgr
- 	css_put(&cgrp->self);
+--- a/include/linux/memcontrol.h~mm-multi-gen-lru-exploit-locality-in-rmap
++++ a/include/linux/memcontrol.h
+@@ -444,6 +444,7 @@ static inline struct obj_cgroup *__folio
+  * - LRU isolation
+  * - lock_page_memcg()
+  * - exclusive reference
++ * - mem_cgroup_trylock_pages()
+  *
+  * For a kmem folio a caller should hold an rcu read lock to protect memcg
+  * associated with a kmem folio from being released.
+@@ -505,6 +506,7 @@ static inline struct mem_cgroup *folio_m
+  * - LRU isolation
+  * - lock_page_memcg()
+  * - exclusive reference
++ * - mem_cgroup_trylock_pages()
+  *
+  * For a kmem page a caller should hold an rcu read lock to protect memcg
+  * associated with a kmem page from being released.
+@@ -959,6 +961,23 @@ void unlock_page_memcg(struct page *page
+ 
+ void __mod_memcg_state(struct mem_cgroup *memcg, int idx, int val);
+ 
++/* try to stablize folio_memcg() for all the pages in a memcg */
++static inline bool mem_cgroup_trylock_pages(struct mem_cgroup *memcg)
++{
++	rcu_read_lock();
++
++	if (mem_cgroup_disabled() || !atomic_read(&memcg->moving_account))
++		return true;
++
++	rcu_read_unlock();
++	return false;
++}
++
++static inline void mem_cgroup_unlock_pages(void)
++{
++	rcu_read_unlock();
++}
++
+ /* idx can be of type enum memcg_stat_item or node_stat_item */
+ static inline void mod_memcg_state(struct mem_cgroup *memcg,
+ 				   int idx, int val)
+@@ -1433,6 +1452,18 @@ static inline void folio_memcg_unlock(st
+ {
  }
  
-+extern struct mutex cgroup_mutex;
-+
-+static inline void cgroup_lock(void)
++static inline bool mem_cgroup_trylock_pages(struct mem_cgroup *memcg)
 +{
-+	mutex_lock(&cgroup_mutex);
++	/* to match folio_memcg_rcu() */
++	rcu_read_lock();
++	return true;
 +}
 +
-+static inline void cgroup_unlock(void)
++static inline void mem_cgroup_unlock_pages(void)
 +{
-+	mutex_unlock(&cgroup_mutex);
++	rcu_read_unlock();
 +}
 +
- /**
-  * task_css_set_check - obtain a task's css_set with extra access conditions
-  * @task: the task to obtain css_set for
-@@ -446,7 +458,6 @@ static inline void cgroup_put(struct cgr
-  * as locks used during the cgroup_subsys::attach() methods.
-  */
- #ifdef CONFIG_PROVE_RCU
--extern struct mutex cgroup_mutex;
- extern spinlock_t css_set_lock;
- #define task_css_set_check(task, __c)					\
- 	rcu_dereference_check((task)->cgroups,				\
-@@ -708,6 +719,8 @@ struct cgroup;
- static inline u64 cgroup_id(const struct cgroup *cgrp) { return 1; }
- static inline void css_get(struct cgroup_subsys_state *css) {}
- static inline void css_put(struct cgroup_subsys_state *css) {}
-+static inline void cgroup_lock(void) {}
-+static inline void cgroup_unlock(void) {}
- static inline int cgroup_attach_task_all(struct task_struct *from,
- 					 struct task_struct *t) { return 0; }
- static inline int cgroupstats_build(struct cgroupstats *stats,
---- a/include/linux/mm_inline.h~mm-multi-gen-lru-kill-switch
-+++ a/include/linux/mm_inline.h
-@@ -106,10 +106,21 @@ static __always_inline enum lru_list fol
- 
- #ifdef CONFIG_LRU_GEN
- 
-+#ifdef CONFIG_LRU_GEN_ENABLED
- static inline bool lru_gen_enabled(void)
+ static inline void mem_cgroup_handle_over_high(void)
  {
--	return true;
-+	DECLARE_STATIC_KEY_TRUE(lru_gen_caps[NR_LRU_GEN_CAPS]);
-+
-+	return static_branch_likely(&lru_gen_caps[LRU_GEN_CORE]);
-+}
-+#else
-+static inline bool lru_gen_enabled(void)
-+{
-+	DECLARE_STATIC_KEY_FALSE(lru_gen_caps[NR_LRU_GEN_CAPS]);
-+
-+	return static_branch_unlikely(&lru_gen_caps[LRU_GEN_CORE]);
  }
-+#endif
+--- a/include/linux/mm.h~mm-multi-gen-lru-exploit-locality-in-rmap
++++ a/include/linux/mm.h
+@@ -1490,6 +1490,11 @@ static inline unsigned long folio_pfn(st
+ 	return page_to_pfn(&folio->page);
+ }
  
- static inline bool lru_gen_in_fault(void)
++static inline struct folio *pfn_folio(unsigned long pfn)
++{
++	return page_folio(pfn_to_page(pfn));
++}
++
+ static inline atomic_t *folio_pincount_ptr(struct folio *folio)
  {
-@@ -222,7 +233,7 @@ static inline bool lru_gen_add_folio(str
- 
- 	VM_WARN_ON_ONCE_FOLIO(gen != -1, folio);
- 
--	if (folio_test_unevictable(folio))
-+	if (folio_test_unevictable(folio) || !lrugen->enabled)
- 		return false;
- 	/*
- 	 * There are three common cases for this page:
---- a/include/linux/mmzone.h~mm-multi-gen-lru-kill-switch
+ 	return &folio_page(folio, 1)->compound_pincount;
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-exploit-locality-in-rmap
 +++ a/include/linux/mmzone.h
-@@ -387,6 +387,13 @@ enum {
- 	LRU_GEN_FILE,
+@@ -375,6 +375,7 @@ enum lruvec_flags {
+ #ifndef __GENERATING_BOUNDS_H
+ 
+ struct lruvec;
++struct page_vma_mapped_walk;
+ 
+ #define LRU_GEN_MASK		((BIT(LRU_GEN_WIDTH) - 1) << LRU_GEN_PGOFF)
+ #define LRU_REFS_MASK		((BIT(LRU_REFS_WIDTH) - 1) << LRU_REFS_PGOFF)
+@@ -430,6 +431,7 @@ struct lru_gen_struct {
  };
  
-+enum {
-+	LRU_GEN_CORE,
-+	LRU_GEN_MM_WALK,
-+	LRU_GEN_NONLEAF_YOUNG,
-+	NR_LRU_GEN_CAPS
-+};
-+
- #define MIN_LRU_BATCH		BITS_PER_LONG
- #define MAX_LRU_BATCH		(MIN_LRU_BATCH * 128)
+ void lru_gen_init_lruvec(struct lruvec *lruvec);
++void lru_gen_look_around(struct page_vma_mapped_walk *pvmw);
  
-@@ -428,6 +435,8 @@ struct lru_gen_struct {
- 	/* can be modified without holding the LRU lock */
- 	atomic_long_t evicted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
- 	atomic_long_t refaulted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
-+	/* whether the multi-gen LRU is enabled */
-+	bool enabled;
- };
- 
- enum {
---- a/kernel/cgroup/cgroup-internal.h~mm-multi-gen-lru-kill-switch
-+++ a/kernel/cgroup/cgroup-internal.h
-@@ -164,7 +164,6 @@ struct cgroup_mgctx {
- #define DEFINE_CGROUP_MGCTX(name)						\
- 	struct cgroup_mgctx name = CGROUP_MGCTX_INIT(name)
- 
--extern struct mutex cgroup_mutex;
- extern spinlock_t css_set_lock;
- extern struct cgroup_subsys *cgroup_subsys[];
- extern struct list_head cgroup_roots;
---- a/mm/Kconfig~mm-multi-gen-lru-kill-switch
-+++ a/mm/Kconfig
-@@ -1133,6 +1133,12 @@ config LRU_GEN
- 	help
- 	  A high performance LRU implementation to overcommit memory.
- 
-+config LRU_GEN_ENABLED
-+	bool "Enable by default"
-+	depends on LRU_GEN
-+	help
-+	  This option enables the multi-gen LRU by default.
-+
- config LRU_GEN_STATS
- 	bool "Full stats for debugging"
- 	depends on LRU_GEN
---- a/mm/vmscan.c~mm-multi-gen-lru-kill-switch
-+++ a/mm/vmscan.c
-@@ -51,6 +51,7 @@
- #include <linux/psi.h>
- #include <linux/pagewalk.h>
- #include <linux/shmem_fs.h>
-+#include <linux/ctype.h>
- 
- #include <asm/tlbflush.h>
- #include <asm/div64.h>
-@@ -3071,6 +3072,14 @@ static bool can_age_anon_pages(struct pg
- 
- #ifdef CONFIG_LRU_GEN
- 
-+#ifdef CONFIG_LRU_GEN_ENABLED
-+DEFINE_STATIC_KEY_ARRAY_TRUE(lru_gen_caps, NR_LRU_GEN_CAPS);
-+#define get_cap(cap)	static_branch_likely(&lru_gen_caps[cap])
-+#else
-+DEFINE_STATIC_KEY_ARRAY_FALSE(lru_gen_caps, NR_LRU_GEN_CAPS);
-+#define get_cap(cap)	static_branch_unlikely(&lru_gen_caps[cap])
-+#endif
-+
- /******************************************************************************
-  *                          shorthand helpers
-  ******************************************************************************/
-@@ -3948,7 +3957,8 @@ static void walk_pmd_range_locked(pud_t
- 			goto next;
- 
- 		if (!pmd_trans_huge(pmd[i])) {
--			if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG))
-+			if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG) &&
-+			    get_cap(LRU_GEN_NONLEAF_YOUNG))
- 				pmdp_test_and_clear_young(vma, addr, pmd + i);
- 			goto next;
- 		}
-@@ -4046,10 +4056,12 @@ restart:
- 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
- 
- #ifdef CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG
--		if (!pmd_young(val))
--			continue;
-+		if (get_cap(LRU_GEN_NONLEAF_YOUNG)) {
-+			if (!pmd_young(val))
-+				continue;
- 
--		walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
-+			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &pos);
-+		}
- #endif
- 		if (!walk->force_scan && !test_bloom_filter(walk->lruvec, walk->max_seq, pmd + i))
- 			continue;
-@@ -4314,7 +4326,7 @@ static bool try_to_inc_max_seq(struct lr
- 	 * handful of PTEs. Spreading the work out over a period of time usually
- 	 * is less efficient, but it avoids bursty page faults.
- 	 */
--	if (!arch_has_hw_pte_young()) {
-+	if (!(arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))) {
- 		success = iterate_mm_list_nowalk(lruvec, max_seq);
- 		goto done;
- 	}
-@@ -5051,6 +5063,211 @@ done:
+ #ifdef CONFIG_MEMCG
+ void lru_gen_init_memcg(struct mem_cgroup *memcg);
+@@ -442,6 +444,10 @@ static inline void lru_gen_init_lruvec(s
+ {
  }
  
- /******************************************************************************
-+ *                          state change
-+ ******************************************************************************/
-+
-+static bool __maybe_unused state_is_valid(struct lruvec *lruvec)
++static inline void lru_gen_look_around(struct page_vma_mapped_walk *pvmw)
 +{
-+	struct lru_gen_struct *lrugen = &lruvec->lrugen;
-+
-+	if (lrugen->enabled) {
-+		enum lru_list lru;
-+
-+		for_each_evictable_lru(lru) {
-+			if (!list_empty(&lruvec->lists[lru]))
-+				return false;
-+		}
-+	} else {
-+		int gen, type, zone;
-+
-+		for_each_gen_type_zone(gen, type, zone) {
-+			if (!list_empty(&lrugen->lists[gen][type][zone]))
-+				return false;
-+
-+			/* unlikely but not a bug when reset_batch_size() is pending */
-+			VM_WARN_ON_ONCE(lrugen->nr_pages[gen][type][zone]);
-+		}
-+	}
-+
-+	return true;
 +}
 +
-+static bool fill_evictable(struct lruvec *lruvec)
-+{
-+	enum lru_list lru;
-+	int remaining = MAX_LRU_BATCH;
-+
-+	for_each_evictable_lru(lru) {
-+		int type = is_file_lru(lru);
-+		bool active = is_active_lru(lru);
-+		struct list_head *head = &lruvec->lists[lru];
-+
-+		while (!list_empty(head)) {
-+			bool success;
-+			struct folio *folio = lru_to_folio(head);
-+
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio) != active, folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_lru_gen(folio) != -1, folio);
-+
-+			lruvec_del_folio(lruvec, folio);
-+			success = lru_gen_add_folio(lruvec, folio, false);
-+			VM_WARN_ON_ONCE(!success);
-+
-+			if (!--remaining)
-+				return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static bool drain_evictable(struct lruvec *lruvec)
-+{
-+	int gen, type, zone;
-+	int remaining = MAX_LRU_BATCH;
-+
-+	for_each_gen_type_zone(gen, type, zone) {
-+		struct list_head *head = &lruvec->lrugen.lists[gen][type][zone];
-+
-+		while (!list_empty(head)) {
-+			bool success;
-+			struct folio *folio = lru_to_folio(head);
-+
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio), folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
-+			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
-+
-+			success = lru_gen_del_folio(lruvec, folio, false);
-+			VM_WARN_ON_ONCE(!success);
-+			lruvec_add_folio(lruvec, folio);
-+
-+			if (!--remaining)
-+				return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static void lru_gen_change_state(bool enabled)
-+{
-+	static DEFINE_MUTEX(state_mutex);
-+
-+	struct mem_cgroup *memcg;
-+
-+	cgroup_lock();
-+	cpus_read_lock();
-+	get_online_mems();
-+	mutex_lock(&state_mutex);
-+
-+	if (enabled == lru_gen_enabled())
-+		goto unlock;
-+
-+	if (enabled)
-+		static_branch_enable_cpuslocked(&lru_gen_caps[LRU_GEN_CORE]);
-+	else
-+		static_branch_disable_cpuslocked(&lru_gen_caps[LRU_GEN_CORE]);
-+
-+	memcg = mem_cgroup_iter(NULL, NULL, NULL);
-+	do {
-+		int nid;
-+
-+		for_each_node(nid) {
-+			struct lruvec *lruvec = get_lruvec(memcg, nid);
-+
-+			if (!lruvec)
-+				continue;
-+
-+			spin_lock_irq(&lruvec->lru_lock);
-+
-+			VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
-+			VM_WARN_ON_ONCE(!state_is_valid(lruvec));
-+
-+			lruvec->lrugen.enabled = enabled;
-+
-+			while (!(enabled ? fill_evictable(lruvec) : drain_evictable(lruvec))) {
-+				spin_unlock_irq(&lruvec->lru_lock);
-+				cond_resched();
-+				spin_lock_irq(&lruvec->lru_lock);
+ #ifdef CONFIG_MEMCG
+ static inline void lru_gen_init_memcg(struct mem_cgroup *memcg)
+ {
+--- a/mm/internal.h~mm-multi-gen-lru-exploit-locality-in-rmap
++++ a/mm/internal.h
+@@ -83,6 +83,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ void folio_rotate_reclaimable(struct folio *folio);
+ bool __folio_end_writeback(struct folio *folio);
+ void deactivate_file_folio(struct folio *folio);
++void folio_activate(struct folio *folio);
+ 
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+ 		unsigned long floor, unsigned long ceiling);
+--- a/mm/memcontrol.c~mm-multi-gen-lru-exploit-locality-in-rmap
++++ a/mm/memcontrol.c
+@@ -2789,6 +2789,7 @@ static void commit_charge(struct folio *
+ 	 * - LRU isolation
+ 	 * - lock_page_memcg()
+ 	 * - exclusive reference
++	 * - mem_cgroup_trylock_pages()
+ 	 */
+ 	folio->memcg_data = (unsigned long)memcg;
+ }
+--- a/mm/rmap.c~mm-multi-gen-lru-exploit-locality-in-rmap
++++ a/mm/rmap.c
+@@ -825,6 +825,12 @@ static bool folio_referenced_one(struct
+ 		}
+ 
+ 		if (pvmw.pte) {
++			if (lru_gen_enabled() && pte_young(*pvmw.pte) &&
++			    !(vma->vm_flags & (VM_SEQ_READ | VM_RAND_READ))) {
++				lru_gen_look_around(&pvmw);
++				referenced++;
 +			}
 +
-+			spin_unlock_irq(&lruvec->lru_lock);
-+		}
+ 			if (ptep_clear_flush_young_notify(vma, address,
+ 						pvmw.pte)) {
+ 				/*
+--- a/mm/swap.c~mm-multi-gen-lru-exploit-locality-in-rmap
++++ a/mm/swap.c
+@@ -366,7 +366,7 @@ static void folio_activate_drain(int cpu
+ 		folio_batch_move_lru(fbatch, folio_activate_fn);
+ }
+ 
+-static void folio_activate(struct folio *folio)
++void folio_activate(struct folio *folio)
+ {
+ 	if (folio_test_lru(folio) && !folio_test_active(folio) &&
+ 	    !folio_test_unevictable(folio)) {
+@@ -385,7 +385,7 @@ static inline void folio_activate_drain(
+ {
+ }
+ 
+-static void folio_activate(struct folio *folio)
++void folio_activate(struct folio *folio)
+ {
+ 	struct lruvec *lruvec;
+ 
+--- a/mm/vmscan.c~mm-multi-gen-lru-exploit-locality-in-rmap
++++ a/mm/vmscan.c
+@@ -1635,6 +1635,11 @@ retry:
+ 		if (!sc->may_unmap && folio_mapped(folio))
+ 			goto keep_locked;
+ 
++		/* folio_update_gen() tried to promote this page? */
++		if (lru_gen_enabled() && !ignore_references &&
++		    folio_mapped(folio) && folio_test_referenced(folio))
++			goto keep_locked;
 +
-+		cond_resched();
-+	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
-+unlock:
-+	mutex_unlock(&state_mutex);
-+	put_online_mems();
-+	cpus_read_unlock();
-+	cgroup_unlock();
-+}
-+
-+/******************************************************************************
-+ *                          sysfs interface
-+ ******************************************************************************/
-+
-+static ssize_t show_enabled(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-+{
-+	unsigned int caps = 0;
-+
-+	if (get_cap(LRU_GEN_CORE))
-+		caps |= BIT(LRU_GEN_CORE);
-+
-+	if (arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))
-+		caps |= BIT(LRU_GEN_MM_WALK);
-+
-+	if (IS_ENABLED(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG) && get_cap(LRU_GEN_NONLEAF_YOUNG))
-+		caps |= BIT(LRU_GEN_NONLEAF_YOUNG);
-+
-+	return snprintf(buf, PAGE_SIZE, "0x%04x\n", caps);
-+}
-+
-+static ssize_t store_enabled(struct kobject *kobj, struct kobj_attribute *attr,
-+			     const char *buf, size_t len)
-+{
-+	int i;
-+	unsigned int caps;
-+
-+	if (tolower(*buf) == 'n')
-+		caps = 0;
-+	else if (tolower(*buf) == 'y')
-+		caps = -1;
-+	else if (kstrtouint(buf, 0, &caps))
-+		return -EINVAL;
-+
-+	for (i = 0; i < NR_LRU_GEN_CAPS; i++) {
-+		bool enabled = caps & BIT(i);
-+
-+		if (i == LRU_GEN_CORE)
-+			lru_gen_change_state(enabled);
-+		else if (enabled)
-+			static_branch_enable(&lru_gen_caps[i]);
-+		else
-+			static_branch_disable(&lru_gen_caps[i]);
-+	}
-+
-+	return len;
-+}
-+
-+static struct kobj_attribute lru_gen_enabled_attr = __ATTR(
-+	enabled, 0644, show_enabled, store_enabled
-+);
-+
-+static struct attribute *lru_gen_attrs[] = {
-+	&lru_gen_enabled_attr.attr,
-+	NULL
-+};
-+
-+static struct attribute_group lru_gen_attr_group = {
-+	.name = "lru_gen",
-+	.attrs = lru_gen_attrs,
-+};
-+
-+/******************************************************************************
-  *                          initialization
+ 		/*
+ 		 * The number of dirty pages determines if a node is marked
+ 		 * reclaim_congested. kswapd will stall and start writing
+@@ -3219,6 +3224,29 @@ static bool positive_ctrl_err(struct ctr
+  *                          the aging
   ******************************************************************************/
  
-@@ -5060,6 +5277,7 @@ void lru_gen_init_lruvec(struct lruvec *
- 	struct lru_gen_struct *lrugen = &lruvec->lrugen;
- 
- 	lrugen->max_seq = MIN_NR_GENS + 1;
-+	lrugen->enabled = lru_gen_enabled();
- 
- 	for_each_gen_type_zone(gen, type, zone)
- 		INIT_LIST_HEAD(&lrugen->lists[gen][type][zone]);
-@@ -5099,6 +5317,9 @@ static int __init init_lru_gen(void)
- 	BUILD_BUG_ON(MIN_NR_GENS + 1 >= MAX_NR_GENS);
- 	BUILD_BUG_ON(BIT(LRU_GEN_WIDTH) <= MAX_NR_GENS);
- 
-+	if (sysfs_create_group(mm_kobj, &lru_gen_attr_group))
-+		pr_err("lru_gen: failed to create sysfs group\n");
++/* promote pages accessed through page tables */
++static int folio_update_gen(struct folio *folio, int gen)
++{
++	unsigned long new_flags, old_flags = READ_ONCE(folio->flags);
 +
- 	return 0;
- };
- late_initcall(init_lru_gen);
++	VM_WARN_ON_ONCE(gen >= MAX_NR_GENS);
++	VM_WARN_ON_ONCE(!rcu_read_lock_held());
++
++	do {
++		/* lru_gen_del_folio() has isolated this page? */
++		if (!(old_flags & LRU_GEN_MASK)) {
++			/* for shrink_page_list() */
++			new_flags = old_flags | BIT(PG_referenced);
++			continue;
++		}
++
++		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_MASK | LRU_REFS_FLAGS);
++		new_flags |= (gen + 1UL) << LRU_GEN_PGOFF;
++	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
++
++	return ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
++}
++
+ /* protect pages accessed multiple times through file descriptors */
+ static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
+ {
+@@ -3230,6 +3258,11 @@ static int folio_inc_gen(struct lruvec *
+ 	VM_WARN_ON_ONCE_FOLIO(!(old_flags & LRU_GEN_MASK), folio);
+ 
+ 	do {
++		new_gen = ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
++		/* folio_update_gen() has promoted this page? */
++		if (new_gen >= 0 && new_gen != old_gen)
++			return new_gen;
++
+ 		new_gen = (old_gen + 1) % MAX_NR_GENS;
+ 
+ 		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_MASK | LRU_REFS_FLAGS);
+@@ -3244,6 +3277,43 @@ static int folio_inc_gen(struct lruvec *
+ 	return new_gen;
+ }
+ 
++static unsigned long get_pte_pfn(pte_t pte, struct vm_area_struct *vma, unsigned long addr)
++{
++	unsigned long pfn = pte_pfn(pte);
++
++	VM_WARN_ON_ONCE(addr < vma->vm_start || addr >= vma->vm_end);
++
++	if (!pte_present(pte) || is_zero_pfn(pfn))
++		return -1;
++
++	if (WARN_ON_ONCE(pte_devmap(pte) || pte_special(pte)))
++		return -1;
++
++	if (WARN_ON_ONCE(!pfn_valid(pfn)))
++		return -1;
++
++	return pfn;
++}
++
++static struct folio *get_pfn_folio(unsigned long pfn, struct mem_cgroup *memcg,
++				   struct pglist_data *pgdat)
++{
++	struct folio *folio;
++
++	/* try to avoid unnecessary memory loads */
++	if (pfn < pgdat->node_start_pfn || pfn >= pgdat_end_pfn(pgdat))
++		return NULL;
++
++	folio = pfn_folio(pfn);
++	if (folio_nid(folio) != pgdat->node_id)
++		return NULL;
++
++	if (folio_memcg_rcu(folio) != memcg)
++		return NULL;
++
++	return folio;
++}
++
+ static void inc_min_seq(struct lruvec *lruvec, int type)
+ {
+ 	struct lru_gen_struct *lrugen = &lruvec->lrugen;
+@@ -3445,6 +3515,114 @@ static void lru_gen_age_node(struct pgli
+ 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
+ }
+ 
++/*
++ * This function exploits spatial locality when shrink_page_list() walks the
++ * rmap. It scans the adjacent PTEs of a young PTE and promotes hot pages.
++ */
++void lru_gen_look_around(struct page_vma_mapped_walk *pvmw)
++{
++	int i;
++	pte_t *pte;
++	unsigned long start;
++	unsigned long end;
++	unsigned long addr;
++	unsigned long bitmap[BITS_TO_LONGS(MIN_LRU_BATCH)] = {};
++	struct folio *folio = pfn_folio(pvmw->pfn);
++	struct mem_cgroup *memcg = folio_memcg(folio);
++	struct pglist_data *pgdat = folio_pgdat(folio);
++	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
++	DEFINE_MAX_SEQ(lruvec);
++	int old_gen, new_gen = lru_gen_from_seq(max_seq);
++
++	lockdep_assert_held(pvmw->ptl);
++	VM_WARN_ON_ONCE_FOLIO(folio_test_lru(folio), folio);
++
++	if (spin_is_contended(pvmw->ptl))
++		return;
++
++	start = max(pvmw->address & PMD_MASK, pvmw->vma->vm_start);
++	end = min(pvmw->address | ~PMD_MASK, pvmw->vma->vm_end - 1) + 1;
++
++	if (end - start > MIN_LRU_BATCH * PAGE_SIZE) {
++		if (pvmw->address - start < MIN_LRU_BATCH * PAGE_SIZE / 2)
++			end = start + MIN_LRU_BATCH * PAGE_SIZE;
++		else if (end - pvmw->address < MIN_LRU_BATCH * PAGE_SIZE / 2)
++			start = end - MIN_LRU_BATCH * PAGE_SIZE;
++		else {
++			start = pvmw->address - MIN_LRU_BATCH * PAGE_SIZE / 2;
++			end = pvmw->address + MIN_LRU_BATCH * PAGE_SIZE / 2;
++		}
++	}
++
++	pte = pvmw->pte - (pvmw->address - start) / PAGE_SIZE;
++
++	rcu_read_lock();
++	arch_enter_lazy_mmu_mode();
++
++	for (i = 0, addr = start; addr != end; i++, addr += PAGE_SIZE) {
++		unsigned long pfn;
++
++		pfn = get_pte_pfn(pte[i], pvmw->vma, addr);
++		if (pfn == -1)
++			continue;
++
++		if (!pte_young(pte[i]))
++			continue;
++
++		folio = get_pfn_folio(pfn, memcg, pgdat);
++		if (!folio)
++			continue;
++
++		if (!ptep_test_and_clear_young(pvmw->vma, addr, pte + i))
++			continue;
++
++		if (pte_dirty(pte[i]) && !folio_test_dirty(folio) &&
++		    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
++		      !folio_test_swapcache(folio)))
++			folio_mark_dirty(folio);
++
++		old_gen = folio_lru_gen(folio);
++		if (old_gen < 0)
++			folio_set_referenced(folio);
++		else if (old_gen != new_gen)
++			__set_bit(i, bitmap);
++	}
++
++	arch_leave_lazy_mmu_mode();
++	rcu_read_unlock();
++
++	if (bitmap_weight(bitmap, MIN_LRU_BATCH) < PAGEVEC_SIZE) {
++		for_each_set_bit(i, bitmap, MIN_LRU_BATCH) {
++			folio = pfn_folio(pte_pfn(pte[i]));
++			folio_activate(folio);
++		}
++		return;
++	}
++
++	/* folio_update_gen() requires stable folio_memcg() */
++	if (!mem_cgroup_trylock_pages(memcg))
++		return;
++
++	spin_lock_irq(&lruvec->lru_lock);
++	new_gen = lru_gen_from_seq(lruvec->lrugen.max_seq);
++
++	for_each_set_bit(i, bitmap, MIN_LRU_BATCH) {
++		folio = pfn_folio(pte_pfn(pte[i]));
++		if (folio_memcg_rcu(folio) != memcg)
++			continue;
++
++		old_gen = folio_update_gen(folio, new_gen);
++		if (old_gen < 0 || old_gen == new_gen)
++			continue;
++
++		lru_gen_update_size(lruvec, folio, old_gen, new_gen);
++	}
++
++	spin_unlock_irq(&lruvec->lru_lock);
++
++	mem_cgroup_unlock_pages();
++}
++
+ /******************************************************************************
+  *                          the eviction
+  ******************************************************************************/
+@@ -3481,6 +3659,12 @@ static bool sort_folio(struct lruvec *lr
+ 		return true;
+ 	}
+ 
++	/* promoted */
++	if (gen != lru_gen_from_seq(lrugen->min_seq[type])) {
++		list_move(&folio->lru, &lrugen->lists[gen][type][zone]);
++		return true;
++	}
++
+ 	/* protected */
+ 	if (tier > tier_idx) {
+ 		int hist = lru_hist_from_seq(lrugen->min_seq[type]);
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
