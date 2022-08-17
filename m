@@ -2,45 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7FCDC25B08
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 17:47:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FDBBC25B08
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 17:54:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237162AbiHQRr6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Aug 2022 13:47:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51370 "EHLO
+        id S237343AbiHQRyv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Aug 2022 13:54:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237202AbiHQRr4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 13:47:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B235975CFA
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 10:47:54 -0700 (PDT)
+        with ESMTP id S232903AbiHQRyv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 13:54:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 465935FF5D
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 10:54:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 02385B81EAD
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 17:47:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 790F6C433D6;
-        Wed, 17 Aug 2022 17:47:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 802F961298
+        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 17:54:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB033C433C1;
+        Wed, 17 Aug 2022 17:54:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660758471;
-        bh=QojllZNg0DLNBy9NjCWoQnByV5IHdSn839CmE5YfkrE=;
+        s=korg; t=1660758888;
+        bh=K83Ord5CTl3Z5orsKjLnciMv9lcC5Zy7t0wMs0IR50U=;
         h=Date:To:From:Subject:From;
-        b=zoTB/sgPiWa1vD2WO5Few7gy6Ean/ZA6CqXer0pGlS0XFlDZmXg8Iik0VMT0f5Vfo
-         5ij9sp8lnXD9a+dPbp25ejO/E7T8Im70O+xWW++Z+mUSsXQoiYtgkawOfkeFKobKkU
-         V01evufTZqKbJnFlzoXzE5DSR+02QqjlJh2O1Bkg=
-Date:   Wed, 17 Aug 2022 10:47:50 -0700
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        vgupta@synopsys.com, tsbogend@alpha.franken.de,
-        sugaya.taichi@socionext.com, rppt@linux.ibm.com,
-        qinjian@cqplus1.com, narmstrong@baylibre.com, mpe@ellerman.id.au,
-        ley.foon.tan@intel.com, guoren@kernel.org, geert@linux-m68k.org,
-        dinguyen@kernel.org, davem@davemloft.net, chris@zankel.net,
-        christophe.leroy@csgroup.eu, chenhuacai@kernel.org,
-        catalin.marinas@arm.com, arnd@arndb.de, ziy@nvidia.com,
+        b=K4QM5uG/AdnUrhUn6oshNE7IY0HnEnhIMqyDDD0Fay1phy5ntJle5B6+VZjCP4c9S
+         h6Nu1az7ath16c/RA8bMTuDgdINKwgYflIVepa+BhgVnwSF9gs1HnL0aXZtEGsAqcg
+         t8QA9nWwQcSrBizKTIzlWCd7eNmTuaUdup+3cUUQ=
+Date:   Wed, 17 Aug 2022 10:54:47 -0700
+To:     mm-commits@vger.kernel.org, yang.shi@linaro.org, vbabka@suse.cz,
+        rostedt@goodmis.org, Pavel.Tatashin@microsoft.com,
+        mhocko@kernel.org, mhiramat@kernel.org,
+        mgorman@techsingularity.net, mark-pk.tsai@mediatek.com,
+        lizefan.x@bytedance.com, keescook@chromium.org, Jason@zx2c4.com,
+        iamjoonsoo.kim@lge.com, cai@lca.pw, lizhe.67@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-mm-rename-force_max_zoneorder-to-arch_force_max_order.patch added to mm-unstable branch
-Message-Id: <20220817174751.790F6C433D6@smtp.kernel.org>
+Subject: + page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n.patch added to mm-unstable branch
+Message-Id: <20220817175448.CB033C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch: mm: rename FORCE_MAX_ZONEORDER to ARCH_FORCE_MAX_ORDER
+     Subject: page_ext: move up page_ext_init() to catch early page allocation if DEFERRED_STRUCT_PAGE_INIT is n
 has been added to the -mm mm-unstable branch.  Its filename is
-     arch-mm-rename-force_max_zoneorder-to-arch_force_max_order.patch
+     page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-mm-rename-force_max_zoneorder-to-arch_force_max_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,339 +69,134 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: arch: mm: rename FORCE_MAX_ZONEORDER to ARCH_FORCE_MAX_ORDER
-Date: Mon, 15 Aug 2022 10:39:59 -0400
+From: Li Zhe <lizhe.67@bytedance.com>
+Subject: page_ext: move up page_ext_init() to catch early page allocation if DEFERRED_STRUCT_PAGE_INIT is n
+Date: Mon, 15 Aug 2022 20:09:54 +0800
 
-This Kconfig option is used by individual arch to set its desired
-MAX_ORDER.  Rename it to reflect its actual use.
+In commit 2f1ee0913ce5 ("Revert "mm: use early_pfn_to_nid in
+page_ext_init"") we call page_ext_init() after page_alloc_init_late() to
+avoid some panic problem.  It seems that we cannot track early page
+allocations in current kernel even if page structure has been initialized
+early.
 
-Link: https://lkml.kernel.org/r/20220815143959.1511278-1-zi.yan@sent.com
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Guo Ren <guoren@kernel.org>			[csky]
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Acked-by: Huacai Chen <chenhuacai@kernel.org>		[LoongArch]
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>		[powerpc]
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Taichi Sugaya <sugaya.taichi@socionext.com>
-Cc: Neil Armstrong <narmstrong@baylibre.com>
-Cc: Qin Jian <qinjian@cqplus1.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+This patch moves up page_ext_init() to catch early page allocations when
+DEFERRED_STRUCT_PAGE_INIT is n.  After this patch, we only need to turn
+DEFERRED_STRUCT_PAGE_INIT to n then we are able to analyze the early page
+allocations.  This is useful especially when we find that the free memory
+value is not the same right after different kernel booting.
+
+Link: https://lkml.kernel.org/r/20220815120954.65957-1-lizhe.67@bytedance.com
+Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/Kconfig                             |    2 +-
- arch/arm/Kconfig                             |    2 +-
- arch/arm/configs/imx_v6_v7_defconfig         |    2 +-
- arch/arm/configs/milbeaut_m10v_defconfig     |    2 +-
- arch/arm/configs/oxnas_v6_defconfig          |    2 +-
- arch/arm/configs/pxa_defconfig               |    2 +-
- arch/arm/configs/sama7_defconfig             |    2 +-
- arch/arm/configs/sp7021_defconfig            |    2 +-
- arch/arm64/Kconfig                           |    2 +-
- arch/csky/Kconfig                            |    2 +-
- arch/ia64/Kconfig                            |    2 +-
- arch/ia64/include/asm/sparsemem.h            |    6 +++---
- arch/loongarch/Kconfig                       |    2 +-
- arch/m68k/Kconfig.cpu                        |    2 +-
- arch/mips/Kconfig                            |    2 +-
- arch/nios2/Kconfig                           |    2 +-
- arch/powerpc/Kconfig                         |    2 +-
- arch/powerpc/configs/85xx/ge_imp3a_defconfig |    2 +-
- arch/powerpc/configs/fsl-emb-nonhw.config    |    2 +-
- arch/sh/configs/ecovec24_defconfig           |    2 +-
- arch/sh/mm/Kconfig                           |    2 +-
- arch/sparc/Kconfig                           |    2 +-
- arch/xtensa/Kconfig                          |    2 +-
- include/linux/mmzone.h                       |    4 ++--
- 24 files changed, 27 insertions(+), 27 deletions(-)
+ include/linux/page_ext.h |   30 +++++++++++++++++++++++++++---
+ init/main.c              |    7 +++++--
+ mm/page_ext.c            |    2 +-
+ 3 files changed, 33 insertions(+), 6 deletions(-)
 
---- a/arch/arc/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arc/Kconfig
-@@ -554,7 +554,7 @@ config ARC_BUILTIN_DTB_NAME
- 
- endmenu	 # "ARC Architecture Configuration"
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	default "12" if ARC_HUGEPAGE_16M
- 	default "11"
---- a/arch/arm64/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arm64/Kconfig
-@@ -1401,7 +1401,7 @@ config XEN
- 	help
- 	  Say Y if you want to run Linux in a Virtual Machine on Xen on ARM64.
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int
- 	default "14" if ARM64_64K_PAGES
- 	default "12" if ARM64_16K_PAGES
---- a/arch/arm/configs/imx_v6_v7_defconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arm/configs/imx_v6_v7_defconfig
-@@ -31,7 +31,7 @@ CONFIG_SOC_VF610=y
- CONFIG_SMP=y
- CONFIG_ARM_PSCI=y
- CONFIG_HIGHMEM=y
--CONFIG_FORCE_MAX_ZONEORDER=14
-+CONFIG_ARCH_FORCE_MAX_ORDER=14
- CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
- CONFIG_KEXEC=y
- CONFIG_CPU_FREQ=y
---- a/arch/arm/configs/milbeaut_m10v_defconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arm/configs/milbeaut_m10v_defconfig
-@@ -26,7 +26,7 @@ CONFIG_THUMB2_KERNEL=y
- # CONFIG_THUMB2_AVOID_R_ARM_THM_JUMP11 is not set
- # CONFIG_ARM_PATCH_IDIV is not set
- CONFIG_HIGHMEM=y
--CONFIG_FORCE_MAX_ZONEORDER=12
-+CONFIG_ARCH_FORCE_MAX_ORDER=12
- CONFIG_SECCOMP=y
- CONFIG_KEXEC=y
- CONFIG_EFI=y
---- a/arch/arm/configs/oxnas_v6_defconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arm/configs/oxnas_v6_defconfig
-@@ -12,7 +12,7 @@ CONFIG_ARCH_OXNAS=y
- CONFIG_MACH_OX820=y
- CONFIG_SMP=y
- CONFIG_NR_CPUS=16
--CONFIG_FORCE_MAX_ZONEORDER=12
-+CONFIG_ARCH_FORCE_MAX_ORDER=12
- CONFIG_SECCOMP=y
- CONFIG_ARM_APPENDED_DTB=y
- CONFIG_ARM_ATAG_DTB_COMPAT=y
---- a/arch/arm/configs/pxa_defconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arm/configs/pxa_defconfig
-@@ -21,7 +21,7 @@ CONFIG_MACH_AKITA=y
- CONFIG_MACH_BORZOI=y
- CONFIG_PXA_SYSTEMS_CPLDS=y
- CONFIG_AEABI=y
--CONFIG_FORCE_MAX_ZONEORDER=9
-+CONFIG_ARCH_FORCE_MAX_ORDER=9
- CONFIG_CMDLINE="root=/dev/ram0 ro"
- CONFIG_KEXEC=y
- CONFIG_CPU_FREQ=y
---- a/arch/arm/configs/sama7_defconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arm/configs/sama7_defconfig
-@@ -19,7 +19,7 @@ CONFIG_ATMEL_CLOCKSOURCE_TCB=y
- # CONFIG_CACHE_L2X0 is not set
- # CONFIG_ARM_PATCH_IDIV is not set
- # CONFIG_CPU_SW_DOMAIN_PAN is not set
--CONFIG_FORCE_MAX_ZONEORDER=15
-+CONFIG_ARCH_FORCE_MAX_ORDER=15
- CONFIG_UACCESS_WITH_MEMCPY=y
- # CONFIG_ATAGS is not set
- CONFIG_CMDLINE="console=ttyS0,115200 earlyprintk ignore_loglevel"
---- a/arch/arm/configs/sp7021_defconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arm/configs/sp7021_defconfig
-@@ -18,7 +18,7 @@ CONFIG_ARCH_SUNPLUS=y
- # CONFIG_VDSO is not set
- CONFIG_SMP=y
- CONFIG_THUMB2_KERNEL=y
--CONFIG_FORCE_MAX_ZONEORDER=12
-+CONFIG_ARCH_FORCE_MAX_ORDER=12
- CONFIG_VFP=y
- CONFIG_NEON=y
- CONFIG_MODULES=y
---- a/arch/arm/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/arm/Kconfig
-@@ -1434,7 +1434,7 @@ config ARM_MODULE_PLTS
- 	  Disabling this is usually safe for small single-platform
- 	  configurations. If unsure, say y.
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	default "12" if SOC_AM33XX
- 	default "9" if SA1111
---- a/arch/csky/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/csky/Kconfig
-@@ -332,7 +332,7 @@ config HIGHMEM
- 	select KMAP_LOCAL
- 	default y
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	default "11"
- 
---- a/arch/ia64/include/asm/sparsemem.h~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/ia64/include/asm/sparsemem.h
-@@ -11,10 +11,10 @@
- 
- #define SECTION_SIZE_BITS	(30)
- #define MAX_PHYSMEM_BITS	(50)
--#ifdef CONFIG_FORCE_MAX_ZONEORDER
--#if ((CONFIG_FORCE_MAX_ZONEORDER - 1 + PAGE_SHIFT) > SECTION_SIZE_BITS)
-+#ifdef CONFIG_ARCH_FORCE_MAX_ORDER
-+#if ((CONFIG_ARCH_FORCE_MAX_ORDER - 1 + PAGE_SHIFT) > SECTION_SIZE_BITS)
- #undef SECTION_SIZE_BITS
--#define SECTION_SIZE_BITS (CONFIG_FORCE_MAX_ZONEORDER - 1 + PAGE_SHIFT)
-+#define SECTION_SIZE_BITS (CONFIG_ARCH_FORCE_MAX_ORDER - 1 + PAGE_SHIFT)
- #endif
- #endif
- 
---- a/arch/ia64/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/ia64/Kconfig
-@@ -200,7 +200,7 @@ config IA64_CYCLONE
- 	  Say Y here to enable support for IBM EXA Cyclone time source.
- 	  If you're unsure, answer N.
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "MAX_ORDER (11 - 17)"  if !HUGETLB_PAGE
- 	range 11 17  if !HUGETLB_PAGE
- 	default "17" if HUGETLB_PAGE
---- a/arch/loongarch/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/loongarch/Kconfig
-@@ -369,7 +369,7 @@ config NODES_SHIFT
- 	default "6"
- 	depends on NUMA
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	range 14 64 if PAGE_SIZE_64KB
- 	default "14" if PAGE_SIZE_64KB
---- a/arch/m68k/Kconfig.cpu~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/m68k/Kconfig.cpu
-@@ -399,7 +399,7 @@ config SINGLE_MEMORY_CHUNK
- 	  order" to save memory that could be wasted for unused memory map.
- 	  Say N if not sure.
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order" if ADVANCED
- 	depends on !SINGLE_MEMORY_CHUNK
- 	default "11"
---- a/arch/mips/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/mips/Kconfig
-@@ -2140,7 +2140,7 @@ config PAGE_SIZE_64KB
- 
- endchoice
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	range 14 64 if MIPS_HUGE_TLB_SUPPORT && PAGE_SIZE_64KB
- 	default "14" if MIPS_HUGE_TLB_SUPPORT && PAGE_SIZE_64KB
---- a/arch/nios2/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/nios2/Kconfig
-@@ -44,7 +44,7 @@ menu "Kernel features"
- 
- source "kernel/Kconfig.hz"
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	range 9 20
- 	default "11"
---- a/arch/powerpc/configs/85xx/ge_imp3a_defconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/powerpc/configs/85xx/ge_imp3a_defconfig
-@@ -30,7 +30,7 @@ CONFIG_PREEMPT=y
- # CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
- CONFIG_BINFMT_MISC=m
- CONFIG_MATH_EMULATION=y
--CONFIG_FORCE_MAX_ZONEORDER=17
-+CONFIG_ARCH_FORCE_MAX_ORDER=17
- CONFIG_PCI=y
- CONFIG_PCIEPORTBUS=y
- CONFIG_PCI_MSI=y
---- a/arch/powerpc/configs/fsl-emb-nonhw.config~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/powerpc/configs/fsl-emb-nonhw.config
-@@ -41,7 +41,7 @@ CONFIG_FIXED_PHY=y
- CONFIG_FONT_8x16=y
- CONFIG_FONT_8x8=y
- CONFIG_FONTS=y
--CONFIG_FORCE_MAX_ZONEORDER=13
-+CONFIG_ARCH_FORCE_MAX_ORDER=13
- CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_FRAME_WARN=1024
- CONFIG_FTL=y
---- a/arch/powerpc/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/powerpc/Kconfig
-@@ -845,7 +845,7 @@ config DATA_SHIFT
- 	  in that case. If PIN_TLB is selected, it must be aligned to 8M as
- 	  8M pages will be pinned.
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	range 8 9 if PPC64 && PPC_64K_PAGES
- 	default "9" if PPC64 && PPC_64K_PAGES
---- a/arch/sh/configs/ecovec24_defconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/sh/configs/ecovec24_defconfig
-@@ -8,7 +8,7 @@ CONFIG_MODULES=y
- CONFIG_MODULE_UNLOAD=y
- # CONFIG_BLK_DEV_BSG is not set
- CONFIG_CPU_SUBTYPE_SH7724=y
--CONFIG_FORCE_MAX_ZONEORDER=12
-+CONFIG_ARCH_FORCE_MAX_ORDER=12
- CONFIG_MEMORY_SIZE=0x10000000
- CONFIG_FLATMEM_MANUAL=y
- CONFIG_SH_ECOVEC=y
---- a/arch/sh/mm/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/sh/mm/Kconfig
-@@ -18,7 +18,7 @@ config PAGE_OFFSET
- 	default "0x80000000" if MMU
- 	default "0x00000000"
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	range 9 64 if PAGE_SIZE_16KB
- 	default "9" if PAGE_SIZE_16KB
---- a/arch/sparc/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/sparc/Kconfig
-@@ -269,7 +269,7 @@ config ARCH_SPARSEMEM_ENABLE
- config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y if SPARC64
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	default "13"
- 	help
---- a/arch/xtensa/Kconfig~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/arch/xtensa/Kconfig
-@@ -771,7 +771,7 @@ config HIGHMEM
- 
- 	  If unsure, say Y.
- 
--config FORCE_MAX_ZONEORDER
-+config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
- 	default "11"
- 	help
---- a/include/linux/mmzone.h~arch-mm-rename-force_max_zoneorder-to-arch_force_max_order
-+++ a/include/linux/mmzone.h
-@@ -24,10 +24,10 @@
- #include <asm/page.h>
- 
- /* Free memory management - zoned buddy allocator.  */
--#ifndef CONFIG_FORCE_MAX_ZONEORDER
-+#ifndef CONFIG_ARCH_FORCE_MAX_ORDER
- #define MAX_ORDER 11
+--- a/include/linux/page_ext.h~page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n
++++ a/include/linux/page_ext.h
+@@ -43,14 +43,34 @@ extern void pgdat_page_ext_init(struct p
+ static inline void page_ext_init_flatmem(void)
+ {
+ }
+-extern void page_ext_init(void);
+ static inline void page_ext_init_flatmem_late(void)
+ {
+ }
++extern void _page_ext_init(void);
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++static inline void page_ext_init_early(void)
++{
++}
++static inline void page_ext_init_late(void)
++{
++	_page_ext_init();
++}
++#else
++static inline void page_ext_init_early(void)
++{
++	_page_ext_init();
++}
++static inline void page_ext_init_late(void)
++{
++}
++#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
  #else
--#define MAX_ORDER CONFIG_FORCE_MAX_ZONEORDER
-+#define MAX_ORDER CONFIG_ARCH_FORCE_MAX_ORDER
+ extern void page_ext_init_flatmem(void);
+ extern void page_ext_init_flatmem_late(void);
+-static inline void page_ext_init(void)
++static inline void page_ext_init_early(void)
++{
++}
++static inline void page_ext_init_late(void)
+ {
+ }
  #endif
- #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))
+@@ -72,7 +92,11 @@ static inline void pgdat_page_ext_init(s
+ {
+ }
  
+-static inline void page_ext_init(void)
++static inline void page_ext_init_early(void)
++{
++}
++
++static inline void page_ext_init_late(void)
+ {
+ }
+ 
+--- a/init/main.c~page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n
++++ a/init/main.c
+@@ -845,6 +845,7 @@ static void __init mm_init(void)
+ 	 * slab is ready so that stack_depot_init() works properly
+ 	 */
+ 	page_ext_init_flatmem_late();
++	page_ext_init_early();
+ 	kmemleak_init();
+ 	pgtable_init();
+ 	debug_objects_mem_init();
+@@ -1605,8 +1606,10 @@ static noinline void __init kernel_init_
+ 
+ 	padata_init();
+ 	page_alloc_init_late();
+-	/* Initialize page ext after all struct pages are initialized. */
+-	page_ext_init();
++	/* Initialize page ext after all struct pages are initialized if
++	 * CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled
++	 */
++	page_ext_init_late();
+ 
+ 	do_basic_setup();
+ 
+--- a/mm/page_ext.c~page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n
++++ a/mm/page_ext.c
+@@ -458,7 +458,7 @@ static int __meminit page_ext_callback(s
+ 	return notifier_from_errno(ret);
+ }
+ 
+-void __init page_ext_init(void)
++void __init _page_ext_init(void)
+ {
+ 	unsigned long pfn;
+ 	int nid;
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from lizhe.67@bytedance.com are
 
-arch-mm-rename-force_max_zoneorder-to-arch_force_max_order.patch
+page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n.patch
 
