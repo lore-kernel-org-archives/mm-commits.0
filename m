@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 632E5C25B08
-	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 20:58:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF260C2BB41
+	for <mm-commits@archiver.kernel.org>; Wed, 17 Aug 2022 20:58:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242109AbiHQU56 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 Aug 2022 16:57:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47432 "EHLO
+        id S242117AbiHQU6N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 Aug 2022 16:58:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242096AbiHQU5W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 16:57:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E33DAB43F
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 13:57:13 -0700 (PDT)
+        with ESMTP id S241839AbiHQU5Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2022 16:57:25 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58050AB428;
+        Wed, 17 Aug 2022 13:57:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 85636B81F72
-        for <mm-commits@vger.kernel.org>; Wed, 17 Aug 2022 20:57:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E938C433D6;
-        Wed, 17 Aug 2022 20:57:10 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 2104ECE1EA3;
+        Wed, 17 Aug 2022 20:57:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 269F0C433D6;
+        Wed, 17 Aug 2022 20:57:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660769830;
-        bh=vWu3GfjKeXqL7jvTCMBE7spde9Z3epMdAmU/A26Qtz8=;
+        s=korg; t=1660769833;
+        bh=kWhbRx4I/EFbj9Vp8R4i8059mpmQZQ76Ofj3CJ2WvdY=;
         h=Date:To:From:Subject:From;
-        b=1OsiBmIsuBGfbBd0ql0NqDQSAYSrCcVhADGGCa3ve/bdSyyKdl7EDahQlzVigk5zi
-         KiMd6/wsfDJeWTCvPbu0XjEQmYgPAjlqiPCFHkI7Uoflb4aIPOFL9aMxlXEXK762EE
-         1BcP/OBgDsVjuxiIlYRusFJLIy2U6UTrg3ZqWR0k=
-Date:   Wed, 17 Aug 2022 13:57:09 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
-        shy828301@gmail.com, khlebnikov@openvz.org, david@redhat.com,
-        peterx@redhat.com, akpm@linux-foundation.org
+        b=sbg4ZL9v5mlMcmeHYzWvUupqDgbjuYZufNrdETK/fLwuZx8avgwTvNDIV+CAc0kBO
+         O0aCd2oVx+Mwhq3DMQMB9JEV+p41FU/ufqKP8y9oVfu773unNiObf0YOfZpDNavA7B
+         CQJI8lx3tKTExWXqKzAgWRI5EY5+6K1deoUV3A8A=
+Date:   Wed, 17 Aug 2022 13:57:12 -0700
+To:     mm-commits@vger.kernel.org, xemul@parallels.com,
+        stable@vger.kernel.org, songmuchun@bytedance.com,
+        pfeiner@google.com, peterx@redhat.com, n-horiguchi@ah.jp.nec.com,
+        mike.kravetz@oracle.com, kirill.shutemov@linux.intel.com,
+        jamieliu@google.com, hughd@google.com, gorcunov@openvz.org,
+        bhelgaas@google.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent.patch removed from -mm tree
-Message-Id: <20220817205710.3E938C433D6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb-fix-hugetlb-not-supporting-softdirty-tracking.patch removed from -mm tree
+Message-Id: <20220817205713.269F0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,80 +45,172 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/smaps: don't access young/dirty bit if pte unpresent
+     Subject: mm/hugetlb: fix hugetlb not supporting softdirty tracking
 has been removed from the -mm tree.  Its filename was
-     mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent.patch
+     mm-hugetlb-fix-hugetlb-not-supporting-softdirty-tracking.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/smaps: don't access young/dirty bit if pte unpresent
-Date: Fri, 5 Aug 2022 12:00:03 -0400
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/hugetlb: fix hugetlb not supporting softdirty tracking
+Date: Thu, 11 Aug 2022 12:34:34 +0200
 
-These bits should only be valid when the ptes are present.  Introducing
-two booleans for it and set it to false when !pte_present() for both pte
-and pmd accountings.
+Patch series "mm/hugetlb: fix write-fault handling for shared mappings", v2.
 
-The bug is found during code reading and no real world issue reported, but
-logically such an error can cause incorrect readings for either smaps or
-smaps_rollup output on quite a few fields.
+I observed that hugetlb does not support/expect write-faults in shared
+mappings that would have to map the R/O-mapped page writable -- and I
+found two case where we could currently get such faults and would
+erroneously map an anon page into a shared mapping.
 
-For example, it could cause over-estimate on values like Shared_Dirty,
-Private_Dirty, Referenced.  Or it could also cause under-estimate on
-values like LazyFree, Shared_Clean, Private_Clean.
+Reproducers part of the patches.
 
-Link: https://lkml.kernel.org/r/20220805160003.58929-1-peterx@redhat.com
-Fixes: b1d4d9e0cbd0 ("proc/smaps: carefully handle migration entries")
-Fixes: c94b6923fa0a ("/proc/PID/smaps: Add PMD migration entry parsing")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Huang Ying <ying.huang@intel.com>
+I propose to backport both fixes to stable trees.  The first fix needs a
+small adjustment.
+
+
+This patch (of 2):
+
+Staring at hugetlb_wp(), one might wonder where all the logic for shared
+mappings is when stumbling over a write-protected page in a shared
+mapping.  In fact, there is none, and so far we thought we could get away
+with that because e.g., mprotect() should always do the right thing and
+map all pages directly writable.
+
+Looks like we were wrong:
+
+--------------------------------------------------------------------------
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <errno.h>
+ #include <sys/mman.h>
+
+ #define HUGETLB_SIZE (2 * 1024 * 1024u)
+
+ static void clear_softdirty(void)
+ {
+         int fd = open("/proc/self/clear_refs", O_WRONLY);
+         const char *ctrl = "4";
+         int ret;
+
+         if (fd < 0) {
+                 fprintf(stderr, "open(clear_refs) failed\n");
+                 exit(1);
+         }
+         ret = write(fd, ctrl, strlen(ctrl));
+         if (ret != strlen(ctrl)) {
+                 fprintf(stderr, "write(clear_refs) failed\n");
+                 exit(1);
+         }
+         close(fd);
+ }
+
+ int main(int argc, char **argv)
+ {
+         char *map;
+         int fd;
+
+         fd = open("/dev/hugepages/tmp", O_RDWR | O_CREAT);
+         if (!fd) {
+                 fprintf(stderr, "open() failed\n");
+                 return -errno;
+         }
+         if (ftruncate(fd, HUGETLB_SIZE)) {
+                 fprintf(stderr, "ftruncate() failed\n");
+                 return -errno;
+         }
+
+         map = mmap(NULL, HUGETLB_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+         if (map == MAP_FAILED) {
+                 fprintf(stderr, "mmap() failed\n");
+                 return -errno;
+         }
+
+         *map = 0;
+
+         if (mprotect(map, HUGETLB_SIZE, PROT_READ)) {
+                 fprintf(stderr, "mmprotect() failed\n");
+                 return -errno;
+         }
+
+         clear_softdirty();
+
+         if (mprotect(map, HUGETLB_SIZE, PROT_READ|PROT_WRITE)) {
+                 fprintf(stderr, "mmprotect() failed\n");
+                 return -errno;
+         }
+
+         *map = 0;
+
+         return 0;
+ }
+--------------------------------------------------------------------------
+
+Above test fails with SIGBUS when there is only a single free hugetlb page.
+ # echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+ # ./test
+ Bus error (core dumped)
+
+And worse, with sufficient free hugetlb pages it will map an anonymous page
+into a shared mapping, for example, messing up accounting during unmap
+and breaking MAP_SHARED semantics:
+ # echo 2 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+ # ./test
+ # cat /proc/meminfo | grep HugePages_
+ HugePages_Total:       2
+ HugePages_Free:        1
+ HugePages_Rsvd:    18446744073709551615
+ HugePages_Surp:        0
+
+Reason in this particular case is that vma_wants_writenotify() will
+return "true", removing VM_SHARED in vma_set_page_prot() to map pages
+write-protected. Let's teach vma_wants_writenotify() that hugetlb does not
+support softdirty tracking.
+
+Link: https://lkml.kernel.org/r/20220811103435.188481-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20220811103435.188481-2-david@redhat.com
+Fixes: 64e455079e1b ("mm: softdirty: enable write notifications on VMAs after VM_SOFTDIRTY cleared")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Peter Feiner <pfeiner@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Jamie Liu <jamieliu@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>	[3.18+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/mmap.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-smaps-dont-access-young-dirty-bit-if-pte-unpresent
-+++ a/fs/proc/task_mmu.c
-@@ -527,10 +527,12 @@ static void smaps_pte_entry(pte_t *pte,
- 	struct vm_area_struct *vma = walk->vma;
- 	bool locked = !!(vma->vm_flags & VM_LOCKED);
- 	struct page *page = NULL;
--	bool migration = false;
-+	bool migration = false, young = false, dirty = false;
+--- a/mm/mmap.c~mm-hugetlb-fix-hugetlb-not-supporting-softdirty-tracking
++++ a/mm/mmap.c
+@@ -1646,8 +1646,11 @@ int vma_wants_writenotify(struct vm_area
+ 	    pgprot_val(vm_pgprot_modify(vm_page_prot, vm_flags)))
+ 		return 0;
  
- 	if (pte_present(*pte)) {
- 		page = vm_normal_page(vma, addr, *pte);
-+		young = pte_young(*pte);
-+		dirty = pte_dirty(*pte);
- 	} else if (is_swap_pte(*pte)) {
- 		swp_entry_t swpent = pte_to_swp_entry(*pte);
+-	/* Do we need to track softdirty? */
+-	if (vma_soft_dirty_enabled(vma))
++	/*
++	 * Do we need to track softdirty? hugetlb does not support softdirty
++	 * tracking yet.
++	 */
++	if (vma_soft_dirty_enabled(vma) && !is_vm_hugetlb_page(vma))
+ 		return 1;
  
-@@ -560,8 +562,7 @@ static void smaps_pte_entry(pte_t *pte,
- 	if (!page)
- 		return;
- 
--	smaps_account(mss, page, false, pte_young(*pte), pte_dirty(*pte),
--		      locked, migration);
-+	smaps_account(mss, page, false, young, dirty, locked, migration);
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	/* Specialty mapping? */
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-x86-use-swp_type_bits-in-3-level-swap-macros.patch
-mm-swap-comment-all-the-ifdef-in-swapopsh.patch
-mm-swap-add-swp_offset_pfn-to-fetch-pfn-from-swap-entry.patch
-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
-mm-remember-young-dirty-bit-for-page-migrations.patch
-mm-swap-cache-maximum-swapfile-size-when-init-swap.patch
-mm-swap-cache-swap-migration-a-d-bits-support.patch
 
