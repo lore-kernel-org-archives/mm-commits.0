@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C89E5C00140
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:55:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 764BDC28B2B
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:55:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243954AbiHRXzr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 Aug 2022 19:55:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40452 "EHLO
+        id S239961AbiHRXzs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 Aug 2022 19:55:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239961AbiHRXzq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:55:46 -0400
+        with ESMTP id S244328AbiHRXzr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:55:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48B54DEA46
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:55:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 420E2DEA46
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:55:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D905561770
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:55:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35FE6C433C1;
-        Thu, 18 Aug 2022 23:55:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D4400611B0
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:55:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37F08C433D6;
+        Thu, 18 Aug 2022 23:55:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660866944;
-        bh=iuM2d83gXh+9j5QK/qSGAcb2XrWcQEAxqGYrmtVwcNM=;
+        s=korg; t=1660866946;
+        bh=c+pHqqZvuYhog+I/WRNn+Zc3wJbF0lstog11czPBLZg=;
         h=Date:To:From:Subject:From;
-        b=HRmq40/VN1DDzRVrmkJomKj8vLKrhaecZZj9nkxHzPRajFBDseUuUCS04jKYQr+e7
-         iTar3CHvwM0sV736LX/nfm6iWttQ0nhnABDScelB4vznyw8p0HYquVtBLdVn+8+03Z
-         gXxl/N+RYGHvHnEdIHdTH/JVDxMSDI9ZTvktNAcU=
-Date:   Thu, 18 Aug 2022 16:55:43 -0700
+        b=Rhlo1yKCIoKOtgYrtDuVTvYLbhkJnmKUKLq8D6HMfhEq7vK1pH1C2KaYvzlsQCKMM
+         qfJUke+DbgTeXL7qOif/JCQAehC4RIndpWuh1dEzJ+bPXhKWMCw9vOmSJbQWHcEJRx
+         9e+e2IDfUo3ZsWYrGz3JiOTgxqCZZBJYYHL20XfU=
+Date:   Thu, 18 Aug 2022 16:55:45 -0700
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb.patch added to mm-unstable branch
-Message-Id: <20220818235544.35FE6C433C1@smtp.kernel.org>
+Subject: + mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory.patch added to mm-unstable branch
+Message-Id: <20220818235546.37F08C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: fix page refcnt leaking in try_memory_failure_hugetlb()
+     Subject: mm, hwpoison: fix page refcnt leaking in unpoison_memory()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb.patch
+     mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,47 +65,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm, hwpoison: fix page refcnt leaking in try_memory_failure_hugetlb()
-Date: Thu, 18 Aug 2022 21:00:11 +0800
+Subject: mm, hwpoison: fix page refcnt leaking in unpoison_memory()
+Date: Thu, 18 Aug 2022 21:00:12 +0800
 
-Patch series "A few fixup patches for memory-failure".
+When free_raw_hwp_pages() fails its work, the refcnt of the hugetlb page
+would have been incremented if ret > 0.  Using put_page() to fix refcnt
+leaking in this case.
 
-This series contains a few fixup patches to fix incorrect update of page
-refcnt, fix possible use-after-free issue and so on.  More details can be
-found in the respective changelogs.
-
-This patch (of 6):
-
-When hwpoison_filter() refuses to hwpoison a hugetlb page, the refcnt of
-the page would have been incremented if res == 1.  Using put_page() to fix
-the refcnt leaking in this case.
-
-Link: https://lkml.kernel.org/r/20220818130016.45313-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20220818130016.45313-2-linmiaohe@huawei.com
-Fixes: 405ce051236c ("mm/hwpoison: fix race between hugetlb free/demotion and memory_failure_hugetlb()")
+Link: https://lkml.kernel.org/r/20220818130016.45313-3-linmiaohe@huawei.com
+Fixes: debb6b9c3fdd ("mm, hwpoison: make unpoison aware of raw error info in hwpoisoned hugepage")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb
+--- a/mm/memory-failure.c~mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory
 +++ a/mm/memory-failure.c
-@@ -1860,8 +1860,10 @@ retry:
- 
- 	if (hwpoison_filter(p)) {
- 		hugetlb_clear_page_hwpoison(head);
--		res = -EOPNOTSUPP;
--		goto out;
-+		unlock_page(head);
-+		if (res == 1)
-+			put_page(head);
-+		return -EOPNOTSUPP;
- 	}
- 
- 	/*
+@@ -2378,6 +2378,7 @@ int unpoison_memory(unsigned long pfn)
+ 			count = free_raw_hwp_pages(page, false);
+ 			if (count == 0) {
+ 				ret = -EBUSY;
++				put_page(page);
+ 				goto unlock_mutex;
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
