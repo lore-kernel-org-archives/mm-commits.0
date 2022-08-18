@@ -2,58 +2,75 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05BAAC00140
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:11:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E272C00140
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:15:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245567AbiHRXLc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 Aug 2022 19:11:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47056 "EHLO
+        id S1345142AbiHRXPU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 Aug 2022 19:15:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238901AbiHRXLa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:11:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 348C7CE479
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:11:28 -0700 (PDT)
+        with ESMTP id S234827AbiHRXPR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:15:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C26E0D11D0
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:15:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C455CB82472
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:11:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73278C433D7;
-        Thu, 18 Aug 2022 23:11:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4DD7061734
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:15:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AAF0C433C1;
+        Thu, 18 Aug 2022 23:15:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660864285;
-        bh=aLSM3h6iRrT8wlsOyQr9hn2bdcMJSIOykj6Ao3TzFE8=;
+        s=korg; t=1660864514;
+        bh=choDNbZRiWUMaWeYDtZtL3zvrmii46OzV/y6LYwmE28=;
         h=Date:To:From:Subject:From;
-        b=usq5lHVKWrT67ElHSCh1HyfdA+duklolwEiDukYCe5xVS9T74ilYt9FlnH739um86
-         eG/E3upVE7zmQCxkq5p6aPUjNLDcmUToqocE6m6M2FS2YHGTCO8g6pQlQH6mKQmDXf
-         dN4cdPpr1fbNCzwfvq9YhLkgvE9Z1aVFMVk2+sBY=
-Date:   Thu, 18 Aug 2022 16:11:24 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, sjpark@amazon.de,
-        sieberf@amazon.com, shakeelb@google.com, quic_pkondeti@quicinc.com,
-        pasha.tatashin@soleen.com, mhocko@suse.com, dhowells@redhat.com,
+        b=NrNFGj3kzG8o60BaegQDxpY9iIoIKV+BKKV9vsDlniJ31UPie/PlBz5YFBzjeQqK0
+         7RskwHUk5pYNMquv/3OMMeObhpcHOWUCpk74J7K5FvPpQ0PD9uVgAmMyCT2T9aUlKu
+         kewUiuYjUG1Y6y6JwQ9kJQd6J2NqLMZnKCPmhRPE=
+Date:   Thu, 18 Aug 2022 16:15:13 -0700
+To:     mm-commits@vger.kernel.org, william.kucharski@oracle.com,
+        vbabka@suse.cz, sjpark@amazon.de, sieberf@amazon.com,
+        shakeelb@google.com, quic_pkondeti@quicinc.com,
+        pasha.tatashin@soleen.com, minchan@google.com, mhocko@suse.com,
         david@redhat.com, quic_charante@quicinc.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-fix-use-after-free-of-page_ext-after-race-with-memory-offline.patch removed from -mm tree
-Message-Id: <20220818231125.73278C433D7@smtp.kernel.org>
+Subject: + mm-fix-use-after-free-of-page_ext-after-race-with-memory-offline.patch added to mm-unstable branch
+Message-Id: <20220818231514.9AAF0C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: fix use-after free of page_ext after race with memory-offline
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-fix-use-after-free-of-page_ext-after-race-with-memory-offline.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-use-after-free-of-page_ext-after-race-with-memory-offline.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Charan Teja Kalla <quic_charante@quicinc.com>
 Subject: mm: fix use-after free of page_ext after race with memory-offline
-Date: Tue, 9 Aug 2022 20:16:43 +0530
+Date: Thu, 18 Aug 2022 19:20:00 +0530
 
 The below is one path where race between page_ext and offline of the
 respective memory blocks will cause use-after-free on the access of
@@ -106,70 +123,68 @@ chosen).
 
 The above mentioned race is just one example __but the problem persists in
 the other paths too involving page_ext->flags access(eg:
-page_is_idle())__.  Since offline waits till the last reference on the
-page goes down i.e.  any path that took the refcount on the page can make
-the memory offline operation to wait.  Eg: In the migrate_pages()
-operation, we do take the extra refcount on the pages that are under
-migration and then we do copy page_owner by accessing page_ext.
+page_is_idle())__.
 
-Fix those paths where offline races with page_ext access by maintaining
-synchronization with rcu lock and is achieved in 3 steps: 1) Invalidate
-all the page_ext's of the sections of a memory block by storing a flag in
-the LSB of mem_section->page_ext.
+Fix all the paths where offline races with page_ext access by maintaining
+synchronization with rcu lock and is achieved in 3 steps:
+
+1) Invalidate all the page_ext's of the sections of a memory block by
+   storing a flag in the LSB of mem_section->page_ext.  
 
 2) Wait till all the existing readers to finish working with the
-->page_ext's with synchronize_rcu(). Any parallel process that starts
-after this call will not get page_ext, through lookup_page_ext(), for
-the block parallel offline operation is being performed.
+   ->page_ext's with synchronize_rcu().  Any parallel process that starts
+   after this call will not get page_ext, through lookup_page_ext(), for
+   the block parallel offline operation is being performed.
 
 3) Now safely free all sections ->page_ext's of the block on which
-offline operation is being performed.
+   offline operation is being performed.
 
 Note: If synchronize_rcu() takes time then optimizations can be done in
 this path through call_rcu()[2].
 
 Thanks to David Hildenbrand for his views/suggestions on the initial
-discussion[1] and Pavan kondeti for various inputs on this patch.
+discussion[1] and Pavan Kondeti for various inputs on this patch.
 
 [1] https://lore.kernel.org/linux-mm/59edde13-4167-8550-86f0-11fc67882107@quicinc.com/
 [2] https://lore.kernel.org/all/a26ce299-aed1-b8ad-711e-a49e82bdd180@quicinc.com/T/#u
 [3] https://lore.kernel.org/all/6fa6b7aa-731e-891c-3efb-a03d6a700efa@redhat.com/
 
-Link: https://lkml.kernel.org/r/1660056403-20894-1-git-send-email-quic_charante@quicinc.com
+Link: https://lkml.kernel.org/r/1660830600-9068-1-git-send-email-quic_charante@quicinc.com
 Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
 Suggested-by: David Hildenbrand <david@redhat.com>
 Suggested-by: Michal Hocko <mhocko@suse.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Fernand Sieber <sieberf@amazon.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Pavan Kondeti <quic_pkondeti@quicinc.com>
-Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ext.h  |   17 ++++--
- include/linux/page_idle.h |   34 +++++++++----
- mm/page_ext.c             |   92 +++++++++++++++++++++++++++++++++---
- mm/page_owner.c           |   74 +++++++++++++++++++++-------
+ include/linux/page_ext.h  |   17 +++--
+ include/linux/page_idle.h |   34 ++++++++---
+ mm/page_ext.c             |  103 +++++++++++++++++++++++++++++++++---
+ mm/page_owner.c           |   73 ++++++++++++++++++-------
  mm/page_table_check.c     |   10 ++-
- 5 files changed, 184 insertions(+), 43 deletions(-)
+ 5 files changed, 192 insertions(+), 45 deletions(-)
 
 --- a/include/linux/page_ext.h~mm-fix-use-after-free-of-page_ext-after-race-with-memory-offline
 +++ a/include/linux/page_ext.h
-@@ -55,7 +55,8 @@ static inline void page_ext_init(void)
+@@ -75,7 +75,8 @@ static inline void page_ext_init_late(vo
  }
  #endif
  
 -struct page_ext *lookup_page_ext(const struct page *page);
 +extern struct page_ext *page_ext_get(struct page *page);
-+extern void page_ext_put(void);
++extern void page_ext_put(struct page_ext *page_ext);
  
  static inline struct page_ext *page_ext_next(struct page_ext *curr)
  {
-@@ -71,11 +72,6 @@ static inline void pgdat_page_ext_init(s
+@@ -91,11 +92,6 @@ static inline void pgdat_page_ext_init(s
  {
  }
  
@@ -178,20 +193,20 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	return NULL;
 -}
 -
- static inline void page_ext_init(void)
+ static inline void page_ext_init_early(void)
  {
  }
-@@ -87,5 +83,14 @@ static inline void page_ext_init_flatmem
+@@ -111,5 +107,14 @@ static inline void page_ext_init_flatmem
  static inline void page_ext_init_flatmem(void)
  {
  }
 +
-+static inline struct page *page_ext_get(struct page *page)
++static inline struct page_ext *page_ext_get(struct page *page)
 +{
 +	return NULL;
 +}
 +
-+static inline void page_ext_put(void)
++static inline void page_ext_put(struct page_ext *page_ext)
 +{
 +}
  #endif /* CONFIG_PAGE_EXTENSION */
@@ -214,7 +229,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
 -	return test_bit(PAGE_EXT_YOUNG, &page_ext->flags);
 +	page_young = test_bit(PAGE_EXT_YOUNG, &page_ext->flags);
-+	page_ext_put();
++	page_ext_put(page_ext);
 +
 +	return page_young;
  }
@@ -228,7 +243,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		return;
  
  	set_bit(PAGE_EXT_YOUNG, &page_ext->flags);
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  static inline bool folio_test_clear_young(struct folio *folio)
@@ -242,7 +257,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
 -	return test_and_clear_bit(PAGE_EXT_YOUNG, &page_ext->flags);
 +	page_young = test_and_clear_bit(PAGE_EXT_YOUNG, &page_ext->flags);
-+	page_ext_put();
++	page_ext_put(page_ext);
 +
 +	return page_young;
  }
@@ -258,7 +273,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
 -	return test_bit(PAGE_EXT_IDLE, &page_ext->flags);
 +	page_idle =  test_bit(PAGE_EXT_IDLE, &page_ext->flags);
-+	page_ext_put();
++	page_ext_put(page_ext);
 +
 +	return page_idle;
  }
@@ -272,7 +287,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		return;
  
  	set_bit(PAGE_EXT_IDLE, &page_ext->flags);
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  static inline void folio_clear_idle(struct folio *folio)
@@ -284,7 +299,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		return;
  
  	clear_bit(PAGE_EXT_IDLE, &page_ext->flags);
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  #endif /* !CONFIG_64BIT */
  
@@ -317,17 +332,20 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  static bool __init invoke_need_callbacks(void)
  {
-@@ -125,6 +131,37 @@ static inline struct page_ext *get_entry
+@@ -125,6 +131,48 @@ static inline struct page_ext *get_entry
  	return base + page_ext_size * index;
  }
  
-+/*
-+ * This function gives proper page_ext of a memory section
-+ * during race with the offline operation on a memory block
-+ * this section falls into. Not using this function to get
-+ * page_ext of a page, in code paths where extra refcount
-+ * is not taken on that page eg: pfn walking, can lead to
-+ * use-after-free access of page_ext.
++/**
++ * page_ext_get() - Get the extended information for a page.
++ * @page: The page we're interested in.
++ *
++ * Ensures that the page_ext will remain valid until page_ext_put()
++ * is called.
++ *
++ * Return: NULL if no page_ext exists for this page.
++ * Context: Any context.  Caller may not sleep until they have called
++ * page_ext_put().
 + */
 +struct page_ext *page_ext_get(struct page *page)
 +{
@@ -343,19 +361,27 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	return page_ext;
 +}
 +
-+/*
-+ * Must be called after work is done with the page_ext received
-+ * with page_ext_get().
++/**
++ * page_ext_put() - Working with page extended information is done.
++ * @page_ext - Page extended information received from page_ext_get().
++ *
++ * The page extended information of the page may not be valid after this
++ * function is called.
++ *
++ * Return: None.
++ * Context: Any context with corresponding page_ext_get() is called.
 + */
-+
-+void page_ext_put(void)
++void page_ext_put(struct page_ext *page_ext)
 +{
++	if (unlikely(!page_ext))
++		return;
++
 +	rcu_read_unlock();
 +}
  #ifndef CONFIG_SPARSEMEM
  
  
-@@ -133,12 +170,13 @@ void __meminit pgdat_page_ext_init(struc
+@@ -133,12 +181,13 @@ void __meminit pgdat_page_ext_init(struc
  	pgdat->node_page_ext = NULL;
  }
  
@@ -370,7 +396,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	base = NODE_DATA(page_to_nid(page))->node_page_ext;
  	/*
  	 * The sanity checks the page allocator does upon freeing a
-@@ -206,20 +244,27 @@ fail:
+@@ -206,20 +255,27 @@ fail:
  }
  
  #else /* CONFIG_SPARSEMEM */
@@ -401,7 +427,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  }
  
  static void *__meminit alloc_page_ext(size_t size, int nid)
-@@ -298,9 +343,30 @@ static void __free_page_ext(unsigned lon
+@@ -298,9 +354,30 @@ static void __free_page_ext(unsigned lon
  	ms = __pfn_to_section(pfn);
  	if (!ms || !ms->page_ext)
  		return;
@@ -434,7 +460,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  }
  
  static int __meminit online_page_ext(unsigned long start_pfn,
-@@ -343,6 +409,20 @@ static int __meminit offline_page_ext(un
+@@ -343,6 +420,20 @@ static int __meminit offline_page_ext(un
  	start = SECTION_ALIGN_DOWN(start_pfn);
  	end = SECTION_ALIGN_UP(start_pfn + nr_pages);
  
@@ -470,30 +496,27 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		page_owner->free_ts_nsec = free_ts_nsec;
  		page_ext = page_ext_next(page_ext);
  	}
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  static inline void __set_page_owner_handle(struct page_ext *page_ext,
-@@ -183,19 +184,26 @@ static inline void __set_page_owner_hand
+@@ -183,19 +184,21 @@ static inline void __set_page_owner_hand
  noinline void __set_page_owner(struct page *page, unsigned short order,
  					gfp_t gfp_mask)
  {
 -	struct page_ext *page_ext = lookup_page_ext(page);
-+	struct page_ext *page_ext = page_ext_get(page);
++	struct page_ext *page_ext;
  	depot_stack_handle_t handle;
  
++	handle = save_stack(gfp_mask);
++
++	page_ext = page_ext_get(page);
  	if (unlikely(!page_ext))
  		return;
-+	page_ext_put();
- 
- 	handle = save_stack(gfp_mask);
-+
-+	/* Ensure page_ext is valid after page_ext_put() above */
-+	page_ext = page_ext_get(page);
-+	if (unlikely(!page_ext))
-+		return;
+-
+-	handle = save_stack(gfp_mask);
  	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  void __set_page_owner_migrate_reason(struct page *page, int reason)
@@ -503,11 +526,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	struct page_owner *page_owner;
  
  	if (unlikely(!page_ext))
-@@ -203,12 +211,13 @@ void __set_page_owner_migrate_reason(str
+@@ -203,12 +206,13 @@ void __set_page_owner_migrate_reason(str
  
  	page_owner = get_page_owner(page_ext);
  	page_owner->last_migrate_reason = reason;
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  void __split_page_owner(struct page *page, unsigned int nr)
@@ -518,11 +541,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	struct page_owner *page_owner;
  
  	if (unlikely(!page_ext))
-@@ -219,16 +228,24 @@ void __split_page_owner(struct page *pag
+@@ -219,17 +223,25 @@ void __split_page_owner(struct page *pag
  		page_owner->order = 0;
  		page_ext = page_ext_next(page_ext);
  	}
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  void __folio_copy_owner(struct folio *newfolio, struct folio *old)
@@ -536,26 +559,27 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	if (unlikely(!old_ext || !new_ext))
 +	old_ext = page_ext_get(&old->page);
 +	if (unlikely(!old_ext))
-+		return;
-+
+ 		return;
+ 
 +	new_ext = page_ext_get(&newfolio->page);
 +	if (unlikely(!new_ext)) {
-+		page_ext_put();
- 		return;
++		page_ext_put(old_ext);
++		return;
 +	}
- 
++
  	old_page_owner = get_page_owner(old_ext);
  	new_page_owner = get_page_owner(new_ext);
-@@ -254,6 +271,8 @@ void __folio_copy_owner(struct folio *ne
+ 	new_page_owner->order = old_page_owner->order;
+@@ -254,6 +266,8 @@ void __folio_copy_owner(struct folio *ne
  	 */
  	__set_bit(PAGE_EXT_OWNER, &new_ext->flags);
  	__set_bit(PAGE_EXT_OWNER_ALLOCATED, &new_ext->flags);
-+	page_ext_put();
-+	page_ext_put();
++	page_ext_put(new_ext);
++	page_ext_put(old_ext);
  }
  
  void pagetypeinfo_showmixedcount_print(struct seq_file *m,
-@@ -307,12 +326,12 @@ void pagetypeinfo_showmixedcount_print(s
+@@ -307,12 +321,12 @@ void pagetypeinfo_showmixedcount_print(s
  			if (PageReserved(page))
  				continue;
  
@@ -570,20 +594,20 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  			page_owner = get_page_owner(page_ext);
  			page_mt = gfp_migratetype(page_owner->gfp_mask);
-@@ -323,9 +342,12 @@ void pagetypeinfo_showmixedcount_print(s
+@@ -323,9 +337,12 @@ void pagetypeinfo_showmixedcount_print(s
  					count[pageblock_mt]++;
  
  				pfn = block_end_pfn;
-+				page_ext_put();
++				page_ext_put(page_ext);
  				break;
  			}
  			pfn += (1UL << page_owner->order) - 1;
 +loop:
-+			page_ext_put();
++			page_ext_put(page_ext);
  		}
  	}
  
-@@ -435,7 +457,7 @@ err:
+@@ -435,7 +452,7 @@ err:
  
  void __dump_page_owner(const struct page *page)
  {
@@ -592,23 +616,23 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	struct page_owner *page_owner;
  	depot_stack_handle_t handle;
  	gfp_t gfp_mask;
-@@ -452,6 +474,7 @@ void __dump_page_owner(const struct page
+@@ -452,6 +469,7 @@ void __dump_page_owner(const struct page
  
  	if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags)) {
  		pr_alert("page_owner info is not present (never set?)\n");
-+		page_ext_put();
++		page_ext_put(page_ext);
  		return;
  	}
  
-@@ -482,6 +505,7 @@ void __dump_page_owner(const struct page
+@@ -482,6 +500,7 @@ void __dump_page_owner(const struct page
  	if (page_owner->last_migrate_reason != -1)
  		pr_alert("page has been migrated, last migrate reason: %s\n",
  			migrate_reason_names[page_owner->last_migrate_reason]);
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  static ssize_t
-@@ -508,6 +532,14 @@ read_page_owner(struct file *file, char
+@@ -508,6 +527,14 @@ read_page_owner(struct file *file, char
  	/* Find an allocated page */
  	for (; pfn < max_pfn; pfn++) {
  		/*
@@ -623,7 +647,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		 * If the new page is in a new MAX_ORDER_NR_PAGES area,
  		 * validate the area as existing, skip it if not
  		 */
-@@ -525,7 +557,7 @@ read_page_owner(struct file *file, char
+@@ -525,7 +552,7 @@ read_page_owner(struct file *file, char
  			continue;
  		}
  
@@ -632,7 +656,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		if (unlikely(!page_ext))
  			continue;
  
-@@ -534,14 +566,14 @@ read_page_owner(struct file *file, char
+@@ -534,14 +561,14 @@ read_page_owner(struct file *file, char
  		 * because we don't hold the zone lock.
  		 */
  		if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
@@ -649,7 +673,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  		page_owner = get_page_owner(page_ext);
  
-@@ -550,7 +582,7 @@ read_page_owner(struct file *file, char
+@@ -550,7 +577,7 @@ read_page_owner(struct file *file, char
  		 * would inflate the stats.
  		 */
  		if (!IS_ALIGNED(pfn, 1 << page_owner->order))
@@ -658,7 +682,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  		/*
  		 * Access to page_ext->handle isn't synchronous so we should
-@@ -558,13 +590,17 @@ read_page_owner(struct file *file, char
+@@ -558,13 +585,17 @@ read_page_owner(struct file *file, char
  		 */
  		handle = READ_ONCE(page_owner->handle);
  		if (!handle)
@@ -668,17 +692,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		/* Record the next PFN to read in the file offset */
  		*ppos = (pfn - min_low_pfn) + 1;
  
-+		memcpy(&page_owner_tmp, page_owner, sizeof(struct page_owner));
-+		page_ext_put();
++		page_owner_tmp = *page_owner;
++		page_ext_put(page_ext);
  		return print_page_owner(buf, count, pfn, page,
 -				page_owner, handle);
 +				&page_owner_tmp, handle);
 +loop:
-+		page_ext_put();
++		page_ext_put(page_ext);
  	}
  
  	return 0;
-@@ -617,18 +653,20 @@ static void init_pages_in_zone(pg_data_t
+@@ -617,18 +648,20 @@ static void init_pages_in_zone(pg_data_t
  			if (PageReserved(page))
  				continue;
  
@@ -697,7 +721,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  						0, 0);
  			count++;
 +loop:
-+			page_ext_put();
++			page_ext_put(page_ext);
  		}
  		cond_resched();
  	}
@@ -716,7 +740,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		}
  		page_ext = page_ext_next(page_ext);
  	}
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  /*
@@ -733,7 +757,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		}
  		page_ext = page_ext_next(page_ext);
  	}
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  /*
@@ -753,7 +777,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		BUG_ON(atomic_read(&ptc->file_map_count));
  		page_ext = page_ext_next(page_ext);
  	}
-+	page_ext_put();
++	page_ext_put(page_ext);
  }
  
  void __page_table_check_pte_clear(struct mm_struct *mm, unsigned long addr,
@@ -764,4 +788,5 @@ Patches currently in -mm which might be from quic_charante@quicinc.com are
 mm-page_ext-remove-unused-variable-in-offline_page_ext.patch
 mm-cma_debug-show-complete-cma-name-in-debugfs-directories.patch
 mm-oom_kill-add-trace-logs-in-process_mrelease-system-call.patch
+mm-fix-use-after-free-of-page_ext-after-race-with-memory-offline.patch
 
