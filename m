@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4866C00140
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:51:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23432C3F6B0
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:51:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344239AbiHRXvp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 Aug 2022 19:51:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35458 "EHLO
+        id S241673AbiHRXvq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 Aug 2022 19:51:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241673AbiHRXv0 (ORCPT
+        with ESMTP id S241779AbiHRXv0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:51:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2805D2931
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B80BD291C
         for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:51:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 518CE6174E
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:51:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3576C433C1;
-        Thu, 18 Aug 2022 23:51:20 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id DCE31CE234C
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:51:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30030C433D6;
+        Thu, 18 Aug 2022 23:51:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660866680;
-        bh=RYS65d3HkVk2Np8yZFoGnUMex2W3FZFA0/6EHr0LbXI=;
+        s=korg; t=1660866678;
+        bh=3zy/6HXq9ugWaZSkVExw0LJRxboPYigjnx6JzZxMuBI=;
         h=Date:To:From:Subject:From;
-        b=Rzb0MQwtJUrTyodXLcCIIVPtBZu6n0cWw6fb9LS2Un64f6mnDXrfL1qmpoIxH0AaK
-         W+2OjB7CZ2B3eUMOoxqDWav2yasia6rkD5kGnG4q/amnmPcBrF8IvcipApJ24E7sRW
-         WvHauWFoNoPWRT0ZyoW5sOcAHeXfTmQJ6prpjVPM=
-Date:   Thu, 18 Aug 2022 16:51:19 -0700
+        b=Ko39PDCOw6JC2IRex9s230Y8rPp/3Tak+g8gjKO9yK/WBw9gal+Ur0Neb+D3ZQPaa
+         YoTSW7beRNfkpqRG8pJNzvzZo2zIdH5IO854Ao3zM/gTro22BIhARzfPUa5+xscFdC
+         VIQTyna7xPJrYBEGdSvqGBUPgdTtp/f816/CuWYY=
+Date:   Thu, 18 Aug 2022 16:51:17 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         weixugc@google.com, tim.c.chen@intel.com, shy828301@gmail.com,
         mhocko@kernel.org, jvgediya.oss@gmail.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
         aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-demotion-drop-memtier-from-memtype.patch added to mm-unstable branch
-Message-Id: <20220818235120.A3576C433C1@smtp.kernel.org>
+Subject: + mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details.patch added to mm-unstable branch
+Message-Id: <20220818235118.30030C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/demotion: drop memtier from memtype
+     Subject: mm/demotion: add pg_data_t member to track node memory tier details
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-demotion-drop-memtier-from-memtype.patch
+     mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-demotion-drop-memtier-from-memtype.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/demotion: drop memtier from memtype
-Date: Thu, 18 Aug 2022 18:40:39 +0530
+Subject: mm/demotion: add pg_data_t member to track node memory tier details
+Date: Thu, 18 Aug 2022 18:40:38 +0530
 
-Now that we track node-specific memtier in pg_data_t, we can drop memtier
-from memtype.
+Also update different helpes to use NODE_DATA()->memtier.  Since node
+specific memtier can change based on the reassignment of NUMA node to a
+different memory tiers, accessing NODE_DATA()->memtier needs to happen
+under an rcu read lock or memory_tier_lock.
 
-Link: https://lkml.kernel.org/r/20220818131042.113280-8-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20220818131042.113280-7-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -95,73 +97,111 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory-tiers.h |    1 -
- mm/memory-tiers.c            |   16 +++++++++-------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ include/linux/mmzone.h |    3 ++
+ mm/memory-tiers.c      |   40 ++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 38 insertions(+), 5 deletions(-)
 
---- a/include/linux/memory-tiers.h~mm-demotion-drop-memtier-from-memtype
-+++ a/include/linux/memory-tiers.h
-@@ -28,7 +28,6 @@ struct memory_dev_type {
- 	/* Nodes of same abstract distance */
- 	nodemask_t nodes;
- 	struct kref kref;
--	struct memory_tier *memtier;
- };
+--- a/include/linux/mmzone.h~mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details
++++ a/include/linux/mmzone.h
+@@ -1244,6 +1244,9 @@ typedef struct pglist_data {
+ 	/* Per-node vmstats */
+ 	struct per_cpu_nodestat __percpu *per_cpu_nodestats;
+ 	atomic_long_t		vm_stat[NR_VM_NODE_STAT_ITEMS];
++#ifdef CONFIG_NUMA
++	struct memory_tier __rcu *memtier;
++#endif
+ } pg_data_t;
  
- #ifdef CONFIG_NUMA
---- a/mm/memory-tiers.c~mm-demotion-drop-memtier-from-memtype
+ #define node_present_pages(nid)	(NODE_DATA(nid)->node_present_pages)
+--- a/mm/memory-tiers.c~mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details
 +++ a/mm/memory-tiers.c
-@@ -100,17 +100,22 @@ static struct memory_tier *find_create_m
+@@ -4,6 +4,7 @@
+ #include <linux/sysfs.h>
+ #include <linux/kobject.h>
+ #include <linux/memory.h>
++#include <linux/mmzone.h>
+ #include <linux/memory-tiers.h>
+ 
+ #include "internal.h"
+@@ -136,12 +137,18 @@ static struct memory_tier *find_create_m
+ 
+ static struct memory_tier *__node_get_memory_tier(int node)
+ {
+-	struct memory_dev_type *memtype;
++	pg_data_t *pgdat;
+ 
+-	memtype = node_memory_types[node];
+-	if (memtype && node_isset(node, memtype->nodes))
+-		return memtype->memtier;
+-	return NULL;
++	pgdat = NODE_DATA(node);
++	if (!pgdat)
++		return NULL;
++	/*
++	 * Since we hold memory_tier_lock, we can avoid
++	 * RCU read locks when accessing the details. No
++	 * parallel updates are possible here.
++	 */
++	return rcu_dereference_check(pgdat->memtier,
++				     lockdep_is_held(&memory_tier_lock));
+ }
+ 
+ #ifdef CONFIG_MIGRATION
+@@ -294,6 +301,8 @@ static struct memory_tier *set_node_memo
+ {
+ 	struct memory_tier *memtier;
+ 	struct memory_dev_type *memtype;
++	pg_data_t *pgdat = NODE_DATA(node);
++
  
  	lockdep_assert_held_once(&memory_tier_lock);
  
-+	adistance = round_down(adistance, memtier_adistance_chunk_size);
- 	/*
- 	 * If the memtype is already part of a memory tier,
- 	 * just return that.
- 	 */
--	if (memtype->memtier)
--		return memtype->memtier;
-+	if (!list_empty(&memtype->tier_sibiling)) {
-+		list_for_each_entry(memtier, &memory_tiers, list) {
-+			if (adistance == memtier->adistance_start)
-+				return memtier;
-+		}
-+		WARN_ON(1);
-+		return ERR_PTR(-EINVAL);
-+	}
- 
--	adistance = round_down(adistance, memtier_adistance_chunk_size);
- 	list_for_each_entry(memtier, &memory_tiers, list) {
- 		if (adistance == memtier->adistance_start) {
--			memtype->memtier = memtier;
- 			list_add(&memtype->tier_sibiling, &memtier->memory_types);
- 			return memtier;
- 		} else if (adistance < memtier->adistance_start) {
-@@ -130,7 +135,6 @@ static struct memory_tier *find_create_m
- 		list_add_tail(&new_memtier->list, &memtier->list);
- 	else
- 		list_add_tail(&new_memtier->list, &memory_tiers);
--	memtype->memtier = new_memtier;
- 	list_add(&memtype->tier_sibiling, &new_memtier->memory_types);
- 	return new_memtier;
+@@ -305,24 +314,45 @@ static struct memory_tier *set_node_memo
+ 	memtype = node_memory_types[node];
+ 	node_set(node, memtype->nodes);
+ 	memtier = find_create_memory_tier(memtype);
++	if (!IS_ERR(memtier))
++		rcu_assign_pointer(pgdat->memtier, memtier);
+ 	return memtier;
  }
-@@ -357,7 +361,6 @@ static bool clear_node_memory_tier(int n
+ 
+ static void destroy_memory_tier(struct memory_tier *memtier)
+ {
+ 	list_del(&memtier->list);
++	/*
++	 * synchronize_rcu in clear_node_memory_tier makes sure
++	 * we don't have rcu access to this memory tier.
++	 */
+ 	kfree(memtier);
+ }
+ 
+ static bool clear_node_memory_tier(int node)
+ {
+ 	bool cleared = false;
++	pg_data_t *pgdat;
+ 	struct memory_tier *memtier;
+ 
++	pgdat = NODE_DATA(node);
++	if (!pgdat)
++		return false;
++
++	/*
++	 * Make sure that anybody looking at NODE_DATA who finds
++	 * a valid memtier finds memory_dev_types with nodes still
++	 * linked to the memtier. We achieve this by waiting for
++	 * rcu read section to finish using synchronize_rcu.
++	 * This also enables us to free the destroyed memory tier
++	 * with kfree instead of kfree_rcu
++	 */
+ 	memtier = __node_get_memory_tier(node);
+ 	if (memtier) {
+ 		struct memory_dev_type *memtype;
+ 
++		rcu_assign_pointer(pgdat->memtier, NULL);
++		synchronize_rcu();
+ 		memtype = node_memory_types[node];
  		node_clear(node, memtype->nodes);
  		if (nodes_empty(memtype->nodes)) {
- 			list_del(&memtype->tier_sibiling);
--			memtype->memtier = NULL;
- 			if (list_empty(&memtier->memory_types))
- 				destroy_memory_tier(memtier);
- 		}
-@@ -385,7 +388,6 @@ struct memory_dev_type *alloc_memory_typ
- 	memtype->adistance = adistance;
- 	INIT_LIST_HEAD(&memtype->tier_sibiling);
- 	memtype->nodes  = NODE_MASK_NONE;
--	memtype->memtier = NULL;
- 	kref_init(&memtype->kref);
- 	return memtype;
- }
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
