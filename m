@@ -2,91 +2,128 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EF6DC00140
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:15:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 951FCC00140
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:39:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239690AbiHRXPp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 Aug 2022 19:15:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53342 "EHLO
+        id S235113AbiHRXjW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 Aug 2022 19:39:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234827AbiHRXPo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:15:44 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27061C7B8B
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:15:44 -0700 (PDT)
+        with ESMTP id S1345958AbiHRXjV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:39:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00CDBDC093
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:39:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 8C15DCE237B
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:15:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5909C433D7;
-        Thu, 18 Aug 2022 23:15:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4736361759
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:39:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9469CC433D6;
+        Thu, 18 Aug 2022 23:39:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660864540;
-        bh=P4q54w8RR6saD/jw9rJS64QLvTn+8fop7Z5Y+P9IReM=;
+        s=korg; t=1660865959;
+        bh=9Ql5RSUvFXJUZ2Lb6/NTNRlKOY3rDW7iPVPuhHi9PTk=;
         h=Date:To:From:Subject:From;
-        b=xD1N5wY+OOnVcGOJn06t6mK639lkmu9oZgRg0SVvM0oJNy0Vxwc7tpuAh+XVTLG0+
-         F3DISu5FgS8P1lBraC3shfFE7D8rBP8nmFEEuSVHoNkkdznqWr0Ii8IOUUTUemjVRn
-         QtB+vBmws6sg00MsAuKvyXAiKYhviewc22jszlIY=
-Date:   Thu, 18 Aug 2022 16:15:40 -0700
+        b=TooUhTGzAbZJNSz5cEvn5zPcf13QrM1k5WXnQhpvPY/Ri4JOHRkTg9lHSKfYf18Xv
+         v6eyPZj8B8bliwdsnSjaiPKDzI5EAQDX0+UDisYO87DKhrGNJaoOsqi3ln6276tjpx
+         trxMnFmVGq3Px9DoXQsXYKAIx5DVBT0I2gnGnq44=
+Date:   Thu, 18 Aug 2022 16:39:18 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        kent.overstreet@gmail.com, kanie@linux.alibaba.com,
-        akpm@linux-foundation.org
+        songmuchun@bytedance.com, osalvador@suse.de,
+        mike.kravetz@oracle.com, catalin.marinas@arm.com,
+        liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-filemapc-fix-the-timing-of-asignment-of-prev_pos.patch removed from -mm tree
-Message-Id: <20220818231540.C5909C433D7@smtp.kernel.org>
+Subject: + bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220818233919.9469CC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/filemap.c: fix the timing of asignment of prev_pos
-has been removed from the -mm tree.  Its filename was
-     mm-filemapc-fix-the-timing-of-asignment-of-prev_pos.patch
+The patch titled
+     Subject: bootmem: remove the vmemmap pages from kmemleak in free_bootmem_page
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page.patch
 
-This patch was dropped because it was nacked
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Guixin Liu <kanie@linux.alibaba.com>
-Subject: mm/filemap.c: fix the timing of asignment of prev_pos
-Date: Wed, 17 Aug 2022 21:51:57 +0800
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: bootmem: remove the vmemmap pages from kmemleak in free_bootmem_page
+Date: Thu, 18 Aug 2022 21:21:04 +0800
 
-When I`m running repetitive 4k read io which has same offset, I find that
-access to folio_mark_accessed is inevitable in the read process, the
-reason is that the prev_pos is assigned after the iocb->ki_pos is
-incremented, so that the prev_pos is always not equal to the position
-currently visited.
+The vmemmap pages is marked by kmemleak when allocated from memblock. 
+Remove it from kmemleak when free the page.  Otherwise, when we reuse the
+page, kmemleak may report such an error and then stop working.
 
-The prev_pos should be assigned before the iocb->ki_pos is incremented, so
-that the prev_pos is the exact location of the last visit.
+ kmemleak: Cannot insert 0xffff98fb6eab3d40 into the object search tree (overlaps existing)
+ kmemleak: Kernel memory leak detector disabled
+ kmemleak: Object 0xffff98fb6be00000 (size 335544320):
+ kmemleak:   comm "swapper", pid 0, jiffies 4294892296
+ kmemleak:   min_count = 0
+ kmemleak:   count = 0
+ kmemleak:   flags = 0x1
+ kmemleak:   checksum = 0
+ kmemleak:   backtrace:
 
-Link: https://lkml.kernel.org/r/1660744317-8183-1-git-send-email-kanie@linux.alibaba.com
-Fixes: 06c0444290cec ("mm/filemap.c: generic_file_buffered_read() now uses find_get_pages_contig")
-Signed-off-by: Guixin Liu <kanie@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20220818132104.2144770-1-liushixin2@huawei.com
+Fixes: f41f2ed43ca5 ("mm: hugetlb: free the vmemmap pages associated with each HugeTLB page")
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bootmem_info.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemapc-fix-the-timing-of-asignment-of-prev_pos
-+++ a/mm/filemap.c
-@@ -2711,8 +2711,8 @@ ssize_t filemap_read(struct kiocb *iocb,
- 			copied = copy_folio_to_iter(folio, offset, bytes, iter);
+--- a/include/linux/bootmem_info.h~bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page
++++ a/include/linux/bootmem_info.h
+@@ -3,6 +3,7 @@
+ #define __LINUX_BOOTMEM_INFO_H
  
- 			already_read += copied;
--			iocb->ki_pos += copied;
- 			ra->prev_pos = iocb->ki_pos;
-+			iocb->ki_pos += copied;
+ #include <linux/mm.h>
++#include <linux/kmemleak.h>
  
- 			if (copied < bytes) {
- 				error = -EFAULT;
+ /*
+  * Types for free bootmem stored in page->lru.next. These have to be in
+@@ -38,9 +39,10 @@ static inline void free_bootmem_page(str
+ 	 */
+ 	VM_BUG_ON_PAGE(page_ref_count(page) != 2, page);
+ 
+-	if (magic == SECTION_INFO || magic == MIX_SECTION_INFO)
++	if (magic == SECTION_INFO || magic == MIX_SECTION_INFO) {
++		kmemleak_free_part(page_to_virt(page), PAGE_SIZE);
+ 		put_page_bootmem(page);
+-	else
++	} else
+ 		VM_BUG_ON_PAGE(1, page);
+ }
+ #else
 _
 
-Patches currently in -mm which might be from kanie@linux.alibaba.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
+bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page.patch
 
