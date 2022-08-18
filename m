@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFC6BC00140
-	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:51:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F62CC00140
+	for <mm-commits@archiver.kernel.org>; Thu, 18 Aug 2022 23:52:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240173AbiHRXvr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 Aug 2022 19:51:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35600 "EHLO
+        id S1346039AbiHRXwB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 Aug 2022 19:52:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245581AbiHRXvl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:51:41 -0400
+        with ESMTP id S245586AbiHRXvn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2022 19:51:43 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C740CD7D01
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:51:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59395DD742
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 16:51:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6CA17B8249A
-        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:51:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11E7DC433D6;
-        Thu, 18 Aug 2022 23:51:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0BEDBB824EA
+        for <mm-commits@vger.kernel.org>; Thu, 18 Aug 2022 23:51:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A357EC433D7;
+        Thu, 18 Aug 2022 23:51:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660866686;
-        bh=UzfbXPEQ9micMEV1GX9R2prKFZfm9J6WY8WpoUkzo7A=;
+        s=korg; t=1660866689;
+        bh=+IeqbVLHGS29aFjMaCnXW967PO4m3x2PMFlMcBCrp80=;
         h=Date:To:From:Subject:From;
-        b=aUUt3vVBVE9+BsjRQmpVnoZF1VM2zyP2bBhw2pERzUfBVh2PHlvvAjIR8XkoPQcCQ
-         keQtxM0f5sZN4mgzXYPitWq9R7AvKZb/1cWIJ1lZ8K/fJyRsAUDdw3K0+5ZhlUlKdH
-         IIKeZwtiyV4vfc6523GD3KrcrCsGeOX+KD9Q84XQ=
-Date:   Thu, 18 Aug 2022 16:51:25 -0700
+        b=Ypn85z6wQmHeetVF/AIrRKTheWoCv/RZ8Rk0JLan38TusxLDQ5CrL5TrR63L9Qo7Q
+         R+0ZAjx9+3U9bkp6sYwum1QcKxmLk84P88Vk7F1iOSwJXMFoTfSX7mHJXLW6h+kXuh
+         SDC7qw/OypN0rvZvsOQ9f/BQvYYdemhQ72tX6Q2w=
+Date:   Thu, 18 Aug 2022 16:51:28 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         weixugc@google.com, tim.c.chen@intel.com, shy828301@gmail.com,
         mhocko@kernel.org, jvgediya.oss@gmail.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
         aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-demotion-update-node_is_toptier-to-work-with-memory-tiers.patch added to mm-unstable branch
-Message-Id: <20220818235126.11E7DC433D6@smtp.kernel.org>
+Subject: + lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node.patch added to mm-unstable branch
+Message-Id: <20220818235129.A357EC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/demotion: update node_is_toptier to work with memory tiers
+     Subject: lib/nodemask: optimize node_random for nodemask with single NUMA node
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-demotion-update-node_is_toptier-to-work-with-memory-tiers.patch
+     lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-demotion-update-node_is_toptier-to-work-with-memory-tiers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/demotion: update node_is_toptier to work with memory tiers
-Date: Thu, 18 Aug 2022 18:40:41 +0530
+Subject: lib/nodemask: optimize node_random for nodemask with single NUMA node
+Date: Thu, 18 Aug 2022 18:40:42 +0530
 
-With memory tier support we can have memory only NUMA nodes in the top
-tier from which we want to avoid promotion tracking NUMA faults.  Update
-node_is_toptier to work with memory tiers.  All NUMA nodes are by default
-top tier nodes.  With lower(slower) memory tiers added we consider all
-memory tiers above a memory tier having CPU NUMA nodes as a top memory
-tier
+The most common case for certain node_random usage (demotion nodemask) is
+with nodemask weight 1.  We can avoid calling get_random_init() in that
+case and always return the only node set in the nodemask.
 
-Link: https://lkml.kernel.org/r/20220818131042.113280-10-aneesh.kumar@linux.ibm.com
+A simple test as below
+  before = rdtsc_ordered();
+  for (i= 0; i < 100; i++) {
+      rand = node_random(&nmask);
+  }
+  after = rdtsc_ordered();
+
+Without fix after - before : 16438
+With fix after - before : 816
+
+Link: https://lkml.kernel.org/r/20220818131042.113280-11-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -99,158 +106,36 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory-tiers.h |   11 +++++++
- include/linux/node.h         |    5 ---
- mm/huge_memory.c             |    1 
- mm/memory-tiers.c            |   46 +++++++++++++++++++++++++++++++++
- mm/migrate.c                 |    1 
- mm/mprotect.c                |    1 
- 6 files changed, 60 insertions(+), 5 deletions(-)
+ include/linux/nodemask.h |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/include/linux/memory-tiers.h~mm-demotion-update-node_is_toptier-to-work-with-memory-tiers
-+++ a/include/linux/memory-tiers.h
-@@ -40,6 +40,7 @@ void clear_node_memory_type(int node, st
- #ifdef CONFIG_MIGRATION
- int next_demotion_node(int node);
- void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
-+bool node_is_toptier(int node);
- #else
- static inline int next_demotion_node(int node)
+--- a/include/linux/nodemask.h~lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node
++++ a/include/linux/nodemask.h
+@@ -505,12 +505,21 @@ static inline int num_node_state(enum no
+ static inline int node_random(const nodemask_t *maskp)
  {
-@@ -50,6 +51,11 @@ static inline void node_get_allowed_targ
- {
- 	*targets = NODE_MASK_NONE;
- }
-+
-+static inline bool node_is_toptier(int node)
-+{
-+	return true;
-+}
- #endif
+ #if defined(CONFIG_NUMA) && (MAX_NUMNODES > 1)
+-	int w, bit = NUMA_NO_NODE;
++	int w, bit;
  
- #else
-@@ -87,5 +93,10 @@ static inline void node_get_allowed_targ
- {
- 	*targets = NODE_MASK_NONE;
- }
-+
-+static inline bool node_is_toptier(int node)
-+{
-+	return true;
-+}
- #endif	/* CONFIG_NUMA */
- #endif  /* _LINUX_MEMORY_TIERS_H */
---- a/include/linux/node.h~mm-demotion-update-node_is_toptier-to-work-with-memory-tiers
-+++ a/include/linux/node.h
-@@ -185,9 +185,4 @@ static inline void register_hugetlbfs_wi
- 
- #define to_node(device) container_of(device, struct node, dev)
- 
--static inline bool node_is_toptier(int node)
--{
--	return node_state(node, N_CPU);
--}
--
- #endif /* _LINUX_NODE_H_ */
---- a/mm/huge_memory.c~mm-demotion-update-node_is_toptier-to-work-with-memory-tiers
-+++ a/mm/huge_memory.c
-@@ -36,6 +36,7 @@
- #include <linux/numa.h>
- #include <linux/page_owner.h>
- #include <linux/sched/sysctl.h>
-+#include <linux/memory-tiers.h>
- 
- #include <asm/tlb.h>
- #include <asm/pgalloc.h>
---- a/mm/memory-tiers.c~mm-demotion-update-node_is_toptier-to-work-with-memory-tiers
-+++ a/mm/memory-tiers.c
-@@ -32,6 +32,7 @@ static LIST_HEAD(memory_tiers);
- static struct memory_dev_type *node_memory_types[MAX_NUMNODES];
- static struct memory_dev_type *default_dram_type;
- #ifdef CONFIG_MIGRATION
-+static int top_tier_adistance;
- /*
-  * node_demotion[] examples:
-  *
-@@ -157,6 +158,31 @@ static struct memory_tier *__node_get_me
- }
- 
- #ifdef CONFIG_MIGRATION
-+bool node_is_toptier(int node)
-+{
-+	bool toptier;
-+	pg_data_t *pgdat;
-+	struct memory_tier *memtier;
-+
-+	pgdat = NODE_DATA(node);
-+	if (!pgdat)
-+		return false;
-+
-+	rcu_read_lock();
-+	memtier = rcu_dereference(pgdat->memtier);
-+	if (!memtier) {
-+		toptier = true;
-+		goto out;
+ 	w = nodes_weight(*maskp);
+-	if (w)
++	switch (w) {
++	case 0:
++		bit = NUMA_NO_NODE;
++		break;
++	case 1:
++		bit = first_node(*maskp);
++		break;
++	default:
+ 		bit = bitmap_ord_to_pos(maskp->bits,
+-			get_random_int() % w, MAX_NUMNODES);
++					get_random_int() % w, MAX_NUMNODES);
++		break;
 +	}
-+	if (memtier->adistance_start < top_tier_adistance)
-+		toptier = true;
-+	else
-+		toptier = false;
-+out:
-+	rcu_read_unlock();
-+	return toptier;
-+}
-+
- void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets)
- {
- 	struct memory_tier *memtier;
-@@ -315,6 +341,26 @@ static void establish_demotion_targets(v
- 		} while (1);
- 	}
- 	/*
-+	 * Promotion is allowed from a memory tier to higher
-+	 * memory tier only if the memory tier doesn't include
-+	 * compute. We want to skip promotion from a memory tier,
-+	 * if any node that is part of the memory tier have CPUs.
-+	 * Once we detect such a memory tier, we consider that tier
-+	 * as top tiper from which promotion is not allowed.
-+	 */
-+	list_for_each_entry_reverse(memtier, &memory_tiers, list) {
-+		tier_nodes = get_memtier_nodemask(memtier);
-+		nodes_and(tier_nodes, node_states[N_CPU], tier_nodes);
-+		if (!nodes_empty(tier_nodes)) {
-+			/*
-+			 * abstract distance below the max value of this memtier
-+			 * is considered toptier.
-+			 */
-+			top_tier_adistance = memtier->adistance_start + MEMTIER_CHUNK_SIZE;
-+			break;
-+		}
-+	}
-+	/*
- 	 * Now build the lower_tier mask for each node collecting node mask from
- 	 * all memory tier below it. This allows us to fallback demotion page
- 	 * allocation to a set of nodes that is closer the above selected
---- a/mm/migrate.c~mm-demotion-update-node_is_toptier-to-work-with-memory-tiers
-+++ a/mm/migrate.c
-@@ -50,6 +50,7 @@
- #include <linux/memory.h>
- #include <linux/random.h>
- #include <linux/sched/sysctl.h>
-+#include <linux/memory-tiers.h>
- 
- #include <asm/tlbflush.h>
- 
---- a/mm/mprotect.c~mm-demotion-update-node_is_toptier-to-work-with-memory-tiers
-+++ a/mm/mprotect.c
-@@ -31,6 +31,7 @@
- #include <linux/pgtable.h>
- #include <linux/sched/sysctl.h>
- #include <linux/userfaultfd_k.h>
-+#include <linux/memory-tiers.h>
- #include <asm/cacheflush.h>
- #include <asm/mmu_context.h>
- #include <asm/tlbflush.h>
+ 	return bit;
+ #else
+ 	return 0;
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
