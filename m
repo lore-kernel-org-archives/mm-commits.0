@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB3FDC32772
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Aug 2022 21:51:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3D6AC32792
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Aug 2022 22:55:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231168AbiHSVv1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Aug 2022 17:51:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60776 "EHLO
+        id S243477AbiHSWzg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Aug 2022 18:55:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230128AbiHSVv0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2022 17:51:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5F24B5E52
-        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 14:51:25 -0700 (PDT)
+        with ESMTP id S243320AbiHSWzV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2022 18:55:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72C8B10DCDE
+        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 15:55:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 572A4B82968
-        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 21:51:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5286C433D6;
-        Fri, 19 Aug 2022 21:51:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2A360B82996
+        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 22:55:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3219C433D6;
+        Fri, 19 Aug 2022 22:55:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660945883;
-        bh=TKe5a9/vCkSU/6Kv31M5iIznPNPiv/os41YP2gcx3Gg=;
+        s=korg; t=1660949717;
+        bh=Dg5unp5YkHnxJqbn3oSfkVpGZ1ABMK/TT0QNZDQSC9k=;
         h=Date:To:From:Subject:From;
-        b=pc5APYUQgJM/k7VLZ2yWaVkaXnwWWqIRrPj3/YWwcRWPnMU9BPxuzSlK/bWlpZXsd
-         SEqg9sEDiaSsB1rDwy8Xk+oUiJZQnq8NZj/4Vgbab2jEsi1c+3rzqSOyf0iLQ3avBU
-         cElgfsOxC4HBtPXJBjILaePMdjACDhDnfHfw1vNs=
-Date:   Fri, 19 Aug 2022 14:51:22 -0700
-To:     mm-commits@vger.kernel.org, treding@nvidia.com, arnd@arndb.de,
-        ardb@kernel.org, quanyang.wang@windriver.com,
+        b=v3I1HvWIM9A/Zqi72DIQnTIR8X5uKWtVDPTIHrjRXD8uMwK7B0DLpJcCwt2OQ4MUd
+         QauBCRF1/cLTMf+vssigCPsJJRLfvOx2ygur8zxRrmWdIAqdYJxAc52Fbv/wXl/jsL
+         yYhsISA00+BXs810lo8wZ/2IRj++m6ASnIKEexAg=
+Date:   Fri, 19 Aug 2022 15:55:17 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tkjos@android.com,
+        syzbot+a7b60a176ec13cafb793@syzkaller.appspotmail.com,
+        surenb@google.com, omosnace@redhat.com, minchan@kernel.org,
+        maco@android.com, Liam.Howlett@oracle.com, joel@joelfernandes.org,
+        hridya@google.com, gregkh@linuxfoundation.org, cmllamas@google.com,
+        brauner@kernel.org, arve@android.com, liam.howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + asm-generic-sections-refactor-memory_intersects.patch added to mm-unstable branch
-Message-Id: <20220819215122.E5286C433D6@smtp.kernel.org>
+Subject: + binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220819225517.C3219C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: asm-generic: sections: refactor memory_intersects
-has been added to the -mm mm-unstable branch.  Its filename is
-     asm-generic-sections-refactor-memory_intersects.patch
+     Subject: binder_alloc: add missing mmap_lock calls when using the VMA
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/asm-generic-sections-refactor-memory_intersects.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,77 +69,97 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Quanyang Wang <quanyang.wang@windriver.com>
-Subject: asm-generic: sections: refactor memory_intersects
-Date: Fri, 19 Aug 2022 16:11:45 +0800
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: binder_alloc: add missing mmap_lock calls when using the VMA
+Date: Wed, 10 Aug 2022 16:02:25 +0000
 
-There are two problems with the current code of memory_intersects:
+Take the mmap_read_lock() when using the VMA in binder_alloc_print_pages()
+and when checking for a VMA in binder_alloc_new_buf_locked().
 
-First, it doesn't check whether the region (begin, end) falls inside the
-region (virt, vend), that is (virt < begin && vend > end).
+It is worth noting binder_alloc_new_buf_locked() drops the VMA read lock
+after it verifies a VMA exists, but may be taken again deeper in the call
+stack, if necessary.
 
-The second problem is if vend is equal to begin, it will return true but
-this is wrong since vend (virt + size) is not the last address of the
-memory region but (virt + size -1) is.  The wrong determination will
-trigger the misreporting when the function check_for_illegal_area calls
-memory_intersects to check if the dma region intersects with stext region.
-
-The misreporting is as below (stext is at 0x80100000):
- WARNING: CPU: 0 PID: 77 at kernel/dma/debug.c:1073 check_for_illegal_area+0x130/0x168
- DMA-API: chipidea-usb2 e0002000.usb: device driver maps memory from kernel text or rodata [addr=800f0000] [len=65536]
- Modules linked in:
- CPU: 1 PID: 77 Comm: usb-storage Not tainted 5.19.0-yocto-standard #5
- Hardware name: Xilinx Zynq Platform
-  unwind_backtrace from show_stack+0x18/0x1c
-  show_stack from dump_stack_lvl+0x58/0x70
-  dump_stack_lvl from __warn+0xb0/0x198
-  __warn from warn_slowpath_fmt+0x80/0xb4
-  warn_slowpath_fmt from check_for_illegal_area+0x130/0x168
-  check_for_illegal_area from debug_dma_map_sg+0x94/0x368
-  debug_dma_map_sg from __dma_map_sg_attrs+0x114/0x128
-  __dma_map_sg_attrs from dma_map_sg_attrs+0x18/0x24
-  dma_map_sg_attrs from usb_hcd_map_urb_for_dma+0x250/0x3b4
-  usb_hcd_map_urb_for_dma from usb_hcd_submit_urb+0x194/0x214
-  usb_hcd_submit_urb from usb_sg_wait+0xa4/0x118
-  usb_sg_wait from usb_stor_bulk_transfer_sglist+0xa0/0xec
-  usb_stor_bulk_transfer_sglist from usb_stor_bulk_srb+0x38/0x70
-  usb_stor_bulk_srb from usb_stor_Bulk_transport+0x150/0x360
-  usb_stor_Bulk_transport from usb_stor_invoke_transport+0x38/0x440
-  usb_stor_invoke_transport from usb_stor_control_thread+0x1e0/0x238
-  usb_stor_control_thread from kthread+0xf8/0x104
-  kthread from ret_from_fork+0x14/0x2c
-
-Refactor memory_intersects to fix the two problems above.
-
-Link: https://lkml.kernel.org/r/20220819081145.948016-1-quanyang.wang@windriver.com
-Fixes: 979559362516 ("asm/sections: add helpers to check for section data")
-Signed-off-by: Quanyang Wang <quanyang.wang@windriver.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Thierry Reding <treding@nvidia.com>
+Link: https://lkml.kernel.org/r/20220810160209.1630707-1-Liam.Howlett@oracle.com
+Fixes: a43cfc87caaf (android: binder: stop saving a pointer to the VMA)
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Ondrej Mosnacek <omosnace@redhat.com>
+Reported-by: <syzbot+a7b60a176ec13cafb793@syzkaller.appspotmail.com>
+Acked-by: Carlos Llamas <cmllamas@google.com>
+Tested-by: Ondrej Mosnacek <omosnace@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hridya Valsaraju <hridya@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Martijn Coenen <maco@android.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Todd Kjos <tkjos@android.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Arve Hjønnevåg" <arve@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/sections.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/android/binder_alloc.c |   31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
---- a/include/asm-generic/sections.h~asm-generic-sections-refactor-memory_intersects
-+++ a/include/asm-generic/sections.h
-@@ -110,7 +110,10 @@ static inline bool memory_intersects(voi
- {
- 	void *vend = virt + size;
+--- a/drivers/android/binder_alloc.c~binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma
++++ a/drivers/android/binder_alloc.c
+@@ -402,12 +402,15 @@ static struct binder_buffer *binder_allo
+ 	size_t size, data_offsets_size;
+ 	int ret;
  
--	return (virt >= begin && virt < end) || (vend >= begin && vend < end);
-+	if (virt < end && vend > begin)
-+		return true;
++	mmap_read_lock(alloc->vma_vm_mm);
+ 	if (!binder_alloc_get_vma(alloc)) {
++		mmap_read_unlock(alloc->vma_vm_mm);
+ 		binder_alloc_debug(BINDER_DEBUG_USER_ERROR,
+ 				   "%d: binder_alloc_buf, no vma\n",
+ 				   alloc->pid);
+ 		return ERR_PTR(-ESRCH);
+ 	}
++	mmap_read_unlock(alloc->vma_vm_mm);
+ 
+ 	data_offsets_size = ALIGN(data_size, sizeof(void *)) +
+ 		ALIGN(offsets_size, sizeof(void *));
+@@ -929,17 +932,25 @@ void binder_alloc_print_pages(struct seq
+ 	 * Make sure the binder_alloc is fully initialized, otherwise we might
+ 	 * read inconsistent state.
+ 	 */
+-	if (binder_alloc_get_vma(alloc) != NULL) {
+-		for (i = 0; i < alloc->buffer_size / PAGE_SIZE; i++) {
+-			page = &alloc->pages[i];
+-			if (!page->page_ptr)
+-				free++;
+-			else if (list_empty(&page->lru))
+-				active++;
+-			else
+-				lru++;
+-		}
 +
-+	return false;
- }
- 
- /**
++	mmap_read_lock(alloc->vma_vm_mm);
++	if (binder_alloc_get_vma(alloc) == NULL) {
++		mmap_read_unlock(alloc->vma_vm_mm);
++		goto uninitialized;
++	}
++
++	mmap_read_unlock(alloc->vma_vm_mm);
++	for (i = 0; i < alloc->buffer_size / PAGE_SIZE; i++) {
++		page = &alloc->pages[i];
++		if (!page->page_ptr)
++			free++;
++		else if (list_empty(&page->lru))
++			active++;
++		else
++			lru++;
+ 	}
++
++uninitialized:
+ 	mutex_unlock(&alloc->mutex);
+ 	seq_printf(m, "  pages: %d:%d:%d\n", active, lru, free);
+ 	seq_printf(m, "  pages high watermark: %zu\n", alloc->pages_high);
 _
 
-Patches currently in -mm which might be from quanyang.wang@windriver.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-asm-generic-sections-refactor-memory_intersects.patch
+binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
 
