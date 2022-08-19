@@ -2,83 +2,124 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE60BC32771
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Aug 2022 12:04:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3C53C32773
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Aug 2022 21:24:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346819AbiHSMEo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Aug 2022 08:04:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56106 "EHLO
+        id S1352407AbiHSVYE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Aug 2022 17:24:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347622AbiHSMEn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2022 08:04:43 -0400
-Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3C50C6CE8
-        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 05:04:41 -0700 (PDT)
-Received: by mail-pj1-x102b.google.com with SMTP id x63-20020a17090a6c4500b001fabbf8debfso4658681pjj.4
-        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 05:04:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc;
-        bh=IEQJ6ZxN/DOwo5gxO6oM41Y5wJB4l6YdjD+w496qTnA=;
-        b=nCJTg2QYYAPyNDQLqtXny7BooVGncdOY3hae46ezm9GCgRkPKKeIM7hlgYux22y3Pj
-         lEdBGozvVvJw++pmQcTCjFF4Y0GPwpM5qzYK7pR1bjLKka3VtlNupEInespwOaJ+0TjW
-         L66jl4bDjSlVOzdLfIYfUFdcjXyVMkXHidr28=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc;
-        bh=IEQJ6ZxN/DOwo5gxO6oM41Y5wJB4l6YdjD+w496qTnA=;
-        b=8QO5yRfEap001Jzr6Xce9QUOObZVskQA6jjcB7x6RnX9d3y2GnjngMRwsN/A0RTDJo
-         EEnxFLXzCPtTOf096/WI/9qwB2+j7D4facfTDQjb8rprOSKPq/jF6ZiMHJ+S1V8rQrgw
-         JJVKGSnWmdU8ukApupXxE7eA/uns4tJzyu+Ycc4TaxnSwcLd9AJriNxdrNObzcmGn/zy
-         3/W3yVrrEOiFpPvbCdJZKsQIQTj02fQK2WQgV0xwABPZ7MAUAfk24CBP1oHncdjrfylj
-         mXG2t07VSgtx8hlFlPXLzpa3+fC4OPh+k605ZBQ9EO4O9N2lvM7xG8q6xaz0lnljMipQ
-         OrKA==
-X-Gm-Message-State: ACgBeo1LgNyuc/UamnF2CZ0Kua9jWvHf3L7KteSeVyQV5QaEN4Fkr3Dr
-        dMHXFWmN8M6pv279zGo+FuVJ8Q==
-X-Google-Smtp-Source: AA6agR6fielIlkU4RRGfQOnh8bbNyc1anJLFCbPas9C3smXZhIhBZjd1gXVyKrsyhjGj0AsMRqhoyA==
-X-Received: by 2002:a17:902:db12:b0:16e:e5fc:56db with SMTP id m18-20020a170902db1200b0016ee5fc56dbmr7165056plx.46.1660910680833;
-        Fri, 19 Aug 2022 05:04:40 -0700 (PDT)
-Received: from google.com ([240f:75:7537:3187:7527:6400:5770:d67d])
-        by smtp.gmail.com with ESMTPSA id q2-20020a17090a938200b001facd399d1asm2929803pjo.27.2022.08.19.05.04.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 19 Aug 2022 05:04:40 -0700 (PDT)
-Date:   Fri, 19 Aug 2022 21:04:35 +0900
-From:   Sergey Senozhatsky <senozhatsky@chromium.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        ngupta@vflare.org, minchan@kernel.org, avromanov@sberdevices.ru
-Subject: Re: + zsmalloc-remove-unnecessary-size_class-null-check.patch added
- to mm-unstable branch
-Message-ID: <Yv98U22CMElN6OL7@google.com>
-References: <20220811212201.71ECFC433D6@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220811212201.71ECFC433D6@smtp.kernel.org>
+        with ESMTP id S1352401AbiHSVYD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2022 17:24:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A1E35754D;
+        Fri, 19 Aug 2022 14:24:02 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CA6E7B8291D;
+        Fri, 19 Aug 2022 21:24:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D8BC433D6;
+        Fri, 19 Aug 2022 21:23:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1660944239;
+        bh=RGCq+yclmqz/4K4fKBxGLV3MGUpC7HXWYy6B5tp8OhE=;
+        h=Date:To:From:Subject:From;
+        b=pGU1uX3VF9tgqVx2ApVkZclMm1hSraNgI3ryo19XTPQfOjh2yVnIZGe5Iqpk+WE7x
+         VSr7UHJ7M9biPmHxziaUsloRxus8FkYd9QNUthFVgFZsyZvY70D80prBk92qXG2mrd
+         O1QgE3Z7EsZ76hSGo6yR9P6tN/ntc53GonvQEYrs=
+Date:   Fri, 19 Aug 2022 14:23:58 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, songmuchun@bytedance.com,
+        osalvador@suse.de, mike.kravetz@oracle.com, liushixin2@huawei.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + bootmem-remove-the-vmemmap-pages-from-kmemleak-in-put_page_bootmem.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220819212359.84D8BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On (22/08/11 14:22), Andrew Morton wrote:
-> pool->size_class array elements can't be NULL, so this check
-> is not needed.
-> 
-> In the whole code, we assign pool->size_class[i] values that are
-> not NULL. Releasing memory for these values occurs in the
-> zs_destroy_pool() function, which also releases and destroys the pool.
-> 
-> In addition, in the zs_stats_size_show() and async_free_zspage(),
-> with similar iterations over the array, we don't check it for NULL
-> pointer.
-> 
-> Link: https://lkml.kernel.org/r/20220811153755.16102-3-avromanov@sberdevices.ru
-> Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Cc: Nitin Gupta <ngupta@vflare.org>
-> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+The patch titled
+     Subject: bootmem: remove the vmemmap pages from kmemleak in put_page_bootmem
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     bootmem-remove-the-vmemmap-pages-from-kmemleak-in-put_page_bootmem.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootmem-remove-the-vmemmap-pages-from-kmemleak-in-put_page_bootmem.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: bootmem: remove the vmemmap pages from kmemleak in put_page_bootmem
+Date: Fri, 19 Aug 2022 17:40:05 +0800
+
+The vmemmap pages is marked by kmemleak when allocated from memblock. 
+Remove it from kmemleak when freeing the page.  Otherwise, when we reuse
+the page, kmemleak may report such an error and then stop working.
+
+ kmemleak: Cannot insert 0xffff98fb6eab3d40 into the object search tree (overlaps existing)
+ kmemleak: Kernel memory leak detector disabled
+ kmemleak: Object 0xffff98fb6be00000 (size 335544320):
+ kmemleak:   comm "swapper", pid 0, jiffies 4294892296
+ kmemleak:   min_count = 0
+ kmemleak:   count = 0
+ kmemleak:   flags = 0x1
+ kmemleak:   checksum = 0
+ kmemleak:   backtrace:
+
+Link: https://lkml.kernel.org/r/20220819094005.2928241-1-liushixin2@huawei.com
+Fixes: f41f2ed43ca5 (mm: hugetlb: free the vmemmap pages associated with each HugeTLB page)
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/bootmem_info.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/mm/bootmem_info.c~bootmem-remove-the-vmemmap-pages-from-kmemleak-in-put_page_bootmem
++++ a/mm/bootmem_info.c
+@@ -12,6 +12,7 @@
+ #include <linux/memblock.h>
+ #include <linux/bootmem_info.h>
+ #include <linux/memory_hotplug.h>
++#include <linux/kmemleak.h>
+ 
+ void get_page_bootmem(unsigned long info, struct page *page, unsigned long type)
+ {
+@@ -33,6 +34,7 @@ void put_page_bootmem(struct page *page)
+ 		ClearPagePrivate(page);
+ 		set_page_private(page, 0);
+ 		INIT_LIST_HEAD(&page->lru);
++		kmemleak_free_part(page_to_virt(page), PAGE_SIZE);
+ 		free_reserved_page(page);
+ 	}
+ }
+_
+
+Patches currently in -mm which might be from liushixin2@huawei.com are
+
+bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page.patch
+bootmem-remove-the-vmemmap-pages-from-kmemleak-in-put_page_bootmem.patch
+
