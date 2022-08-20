@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 881B1C32789
-	for <mm-commits@archiver.kernel.org>; Sat, 20 Aug 2022 00:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3238DC28D13
+	for <mm-commits@archiver.kernel.org>; Sat, 20 Aug 2022 00:45:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239773AbiHTAbc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Aug 2022 20:31:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36838 "EHLO
+        id S245143AbiHTApw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Aug 2022 20:45:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239403AbiHTAba (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2022 20:31:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18113D75A7
-        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 17:31:24 -0700 (PDT)
+        with ESMTP id S241560AbiHTApu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2022 20:45:50 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 222FE114188
+        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 17:45:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 85A7E615F3
-        for <mm-commits@vger.kernel.org>; Sat, 20 Aug 2022 00:31:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6C72C433D6;
-        Sat, 20 Aug 2022 00:31:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C93A6B8280F
+        for <mm-commits@vger.kernel.org>; Sat, 20 Aug 2022 00:45:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76DB5C433D7;
+        Sat, 20 Aug 2022 00:45:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660955482;
-        bh=6j91QySJ/QbitS+S61BCvsicbaYMqp51Ao8el05S714=;
+        s=korg; t=1660956346;
+        bh=01z9ejb3C/VChsOwxWSSMbfiwFKUI6bRo1iyiNNafdA=;
         h=Date:To:From:Subject:From;
-        b=RGvgP8wmjZ1WO9r7G7k7uQt26IsqE7lPUjsGsPiYLS8R1HhgaMo3bM98+hlh5T0DF
-         8RxreJ8AqXhZD0HCBkYAM5ye3EOAkgKKPdl/d6l09BT4Vszqm6Br7FYniUfwdI21wv
-         2GZOnm+BLB+HEpSreyNbmk7eyoFJ1LrOIreV9N9E=
-Date:   Fri, 19 Aug 2022 17:31:22 -0700
-To:     mm-commits@vger.kernel.org, rafael@kernel.org, osalvador@suse.de,
-        mike.kravetz@oracle.com, gregkh@linuxfoundation.org,
-        david@redhat.com, andi@firstfloor.org, songmuchun@bytedance.com,
+        b=S63R76tDODKvyU6UgzSA2fEit2ORrx/iA380Bzo6lf5XOkp03feJzL1cLdeQltdN6
+         1b6iJpAluGWK5PtqSTH/aRciU/A9C77R08J44+Mx9NQzCEK6okOAjdMd4GHzW3H9iP
+         N6droZ6QHykHouuoe6FbyxoD0ClZB6ozEPDZ370U=
+Date:   Fri, 19 Aug 2022 17:45:45 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, qiuxu.zhuo@intel.com, linmiaohe@huawei.com,
+        aaron.lu@intel.com, fengwei.yin@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-simplify-per-node-sysfs-creation-and-removal.patch added to mm-unstable branch
-Message-Id: <20220820003122.C6C72C433D6@smtp.kernel.org>
+Subject: + mm-release-private-data-before-split-thp.patch added to mm-unstable branch
+Message-Id: <20220820004546.76DB5C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: simplify per-node sysfs creation and removal
+     Subject: mm: release private data before split THP
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-simplify-per-node-sysfs-creation-and-removal.patch
+     mm-release-private-data-before-split-thp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-simplify-per-node-sysfs-creation-and-removal.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-release-private-data-before-split-thp.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,401 +66,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: simplify per-node sysfs creation and removal
-Date: Fri, 19 Aug 2022 16:00:29 +0800
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: mm: release private data before split THP
+Date: Wed, 10 Aug 2022 14:49:07 +0800
 
-The following commit offload per-node sysfs creation and removal to a
-kworker and did not say why it is needed.  And it also said "I don't know
-that this is absolutely required".  It seems like the author was not sure
-as well.  Since it only complicates the code, this patch will revert the
-changes to simplify the code.
+If there is private data attached to a THP, the refcount of THP will be
+increased and will prevent the THP from being split.  Attempt to release
+any private data attached to the THP before attempting the split to
+increase the chance of splitting successfully.
 
-  39da08cb074c ("hugetlb: offload per node attribute registrations")
+There was a memory failure issue hit during HW error injection testing
+with 5.18 kernel + xfs as rootfs.  The test was killed and a system reboot
+was required to re-run the test.
 
-We could use memory hotplug notifier to do per-node sysfs creation and
-removal instead of inserting those operations to node registration and
-unregistration.  Then, it can reduce the code coupling between node.c and
-hugetlb.c.  Also, it can simplify the code.
+The issue was tracked down to a THP split failure caused by the memory
+failure not being handled.  The page dump showed:
 
-Link: https://lkml.kernel.org/r/20220819080029.12241-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
+[ 1785.433075] page:0000000025f9530b refcount:18 mapcount:0 mapping:000000008162eea7 index:0xa10 pfn:0x2f0200
+[ 1785.443954] head:0000000025f9530b order:4 compound_mapcount:0 compound_pincount:0
+[ 1785.452408] memcg:ff4247f2d28e9000
+[ 1785.456304] aops:xfs_address_space_operations ino:8555182 dentry name:"baseos-filenames.solvx"
+[ 1785.466612] flags: 0x1000000000012036(referenced|uptodate|lru|active|private|head|node=0|zone=2)
+[ 1785.476514] raw: 1000000000012036 ffb9460f8bc07c08 ffb9460f8bc08408 ff4247f22e6299f8
+[ 1785.485268] raw: 0000000000000a10 ff4247f194ade900 00000012ffffffff ff4247f2d28e9000
+
+It was like the error was injected to a large folio for xfs with private
+data attached.
+
+With private data released before splitting the THP, the test case could
+be run successfully many times without rebooting the system.
+
+Link: https://lkml.kernel.org/r/20220810064907.582899-1-fengwei.yin@intel.com
+Co-developed-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+Signed-off-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Aaron Lu <aaron.lu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c  |  139 -----------------------------------------
- include/linux/node.h |   24 +------
- mm/hugetlb.c         |   45 ++++++++-----
- 3 files changed, 36 insertions(+), 172 deletions(-)
+ mm/huge_memory.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/drivers/base/node.c~mm-hugetlb-simplify-per-node-sysfs-creation-and-removal
-+++ a/drivers/base/node.c
-@@ -587,64 +587,9 @@ static const struct attribute_group *nod
- 	NULL
- };
- 
--#ifdef CONFIG_HUGETLBFS
--/*
-- * hugetlbfs per node attributes registration interface:
-- * When/if hugetlb[fs] subsystem initializes [sometime after this module],
-- * it will register its per node attributes for all online nodes with
-- * memory.  It will also call register_hugetlbfs_with_node(), below, to
-- * register its attribute registration functions with this node driver.
-- * Once these hooks have been initialized, the node driver will call into
-- * the hugetlb module to [un]register attributes for hot-plugged nodes.
-- */
--static node_registration_func_t __hugetlb_register_node;
--static node_registration_func_t __hugetlb_unregister_node;
--
--static inline bool hugetlb_register_node(struct node *node)
--{
--	if (__hugetlb_register_node &&
--			node_state(node->dev.id, N_MEMORY)) {
--		__hugetlb_register_node(node);
--		return true;
--	}
--	return false;
--}
--
--static inline void hugetlb_unregister_node(struct node *node)
--{
--	if (__hugetlb_unregister_node)
--		__hugetlb_unregister_node(node);
--}
--
--void register_hugetlbfs_with_node(node_registration_func_t doregister,
--				  node_registration_func_t unregister)
--{
--	__hugetlb_register_node   = doregister;
--	__hugetlb_unregister_node = unregister;
--}
--#else
--static inline void hugetlb_register_node(struct node *node) {}
--
--static inline void hugetlb_unregister_node(struct node *node) {}
--#endif
--
- static void node_device_release(struct device *dev)
- {
--	struct node *node = to_node(dev);
--
--#if defined(CONFIG_MEMORY_HOTPLUG) && defined(CONFIG_HUGETLBFS)
--	/*
--	 * We schedule the work only when a memory section is
--	 * onlined/offlined on this node. When we come here,
--	 * all the memory on this node has been offlined,
--	 * so we won't enqueue new work to this work.
--	 *
--	 * The work is using node->node_work, so we should
--	 * flush work before freeing the memory.
--	 */
--	flush_work(&node->node_work);
--#endif
--	kfree(node);
-+	kfree(to_node(dev));
- }
- 
- /*
-@@ -665,11 +610,9 @@ static int register_node(struct node *no
- 
- 	if (error)
- 		put_device(&node->dev);
--	else {
--		hugetlb_register_node(node);
--
-+	else
- 		compaction_register_node(node);
--	}
+--- a/mm/huge_memory.c~mm-release-private-data-before-split-thp
++++ a/mm/huge_memory.c
+@@ -2655,6 +2655,8 @@ int split_huge_page_to_list(struct page
+ 		mapping = NULL;
+ 		anon_vma_lock_write(anon_vma);
+ 	} else {
++		gfp_t gfp;
 +
- 	return error;
- }
+ 		mapping = head->mapping;
  
-@@ -683,7 +626,6 @@ static int register_node(struct node *no
- void unregister_node(struct node *node)
- {
- 	compaction_unregister_node(node);
--	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
- 	node_remove_accesses(node);
- 	node_remove_caches(node);
- 	device_unregister(&node->dev);
-@@ -905,74 +847,8 @@ void register_memory_blocks_under_node(i
- 			   (void *)&nid, func);
- 	return;
- }
--
--#ifdef CONFIG_HUGETLBFS
--/*
-- * Handle per node hstate attribute [un]registration on transistions
-- * to/from memoryless state.
-- */
--static void node_hugetlb_work(struct work_struct *work)
--{
--	struct node *node = container_of(work, struct node, node_work);
--
--	/*
--	 * We only get here when a node transitions to/from memoryless state.
--	 * We can detect which transition occurred by examining whether the
--	 * node has memory now.  hugetlb_register_node() already check this
--	 * so we try to register the attributes.  If that fails, then the
--	 * node has transitioned to memoryless, try to unregister the
--	 * attributes.
--	 */
--	if (!hugetlb_register_node(node))
--		hugetlb_unregister_node(node);
--}
--
--static void init_node_hugetlb_work(int nid)
--{
--	INIT_WORK(&node_devices[nid]->node_work, node_hugetlb_work);
--}
--
--static int node_memory_callback(struct notifier_block *self,
--				unsigned long action, void *arg)
--{
--	struct memory_notify *mnb = arg;
--	int nid = mnb->status_change_nid;
--
--	switch (action) {
--	case MEM_ONLINE:
--	case MEM_OFFLINE:
--		/*
--		 * offload per node hstate [un]registration to a work thread
--		 * when transitioning to/from memoryless state.
--		 */
--		if (nid != NUMA_NO_NODE)
--			schedule_work(&node_devices[nid]->node_work);
--		break;
--
--	case MEM_GOING_ONLINE:
--	case MEM_GOING_OFFLINE:
--	case MEM_CANCEL_ONLINE:
--	case MEM_CANCEL_OFFLINE:
--	default:
--		break;
--	}
--
--	return NOTIFY_OK;
--}
--#endif	/* CONFIG_HUGETLBFS */
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
--#if !defined(CONFIG_MEMORY_HOTPLUG) || !defined(CONFIG_HUGETLBFS)
--static inline int node_memory_callback(struct notifier_block *self,
--				unsigned long action, void *arg)
--{
--	return NOTIFY_OK;
--}
--
--static void init_node_hugetlb_work(int nid) { }
--
--#endif
--
- int __register_one_node(int nid)
- {
- 	int error;
-@@ -991,8 +867,6 @@ int __register_one_node(int nid)
- 	}
- 
- 	INIT_LIST_HEAD(&node_devices[nid]->access_list);
--	/* initialize work queue for memory hot plug */
--	init_node_hugetlb_work(nid);
- 	node_init_caches(nid);
- 
- 	return error;
-@@ -1063,13 +937,8 @@ static const struct attribute_group *cpu
- 	NULL,
- };
- 
--#define NODE_CALLBACK_PRI	2	/* lower than SLAB */
- void __init node_dev_init(void)
- {
--	static struct notifier_block node_memory_callback_nb = {
--		.notifier_call = node_memory_callback,
--		.priority = NODE_CALLBACK_PRI,
--	};
- 	int ret, i;
- 
-  	BUILD_BUG_ON(ARRAY_SIZE(node_state_attr) != NR_NODE_STATES);
-@@ -1079,8 +948,6 @@ void __init node_dev_init(void)
- 	if (ret)
- 		panic("%s() failed to register subsystem: %d\n", __func__, ret);
- 
--	register_hotmemory_notifier(&node_memory_callback_nb);
--
- 	/*
- 	 * Create all node devices, which will properly link the node
- 	 * to applicable memory block devices and already created cpu devices.
---- a/include/linux/node.h~mm-hugetlb-simplify-per-node-sysfs-creation-and-removal
-+++ a/include/linux/node.h
-@@ -2,15 +2,15 @@
- /*
-  * include/linux/node.h - generic node definition
-  *
-- * This is mainly for topological representation. We define the 
-- * basic 'struct node' here, which can be embedded in per-arch 
-+ * This is mainly for topological representation. We define the
-+ * basic 'struct node' here, which can be embedded in per-arch
-  * definitions of processors.
-  *
-  * Basic handling of the devices is done in drivers/base/node.c
-- * and system devices are handled in drivers/base/sys.c. 
-+ * and system devices are handled in drivers/base/sys.c.
-  *
-  * Nodes are exported via driverfs in the class/node/devices/
-- * directory. 
-+ * directory.
-  */
- #ifndef _LINUX_NODE_H_
- #define _LINUX_NODE_H_
-@@ -18,7 +18,6 @@
- #include <linux/device.h>
- #include <linux/cpumask.h>
- #include <linux/list.h>
--#include <linux/workqueue.h>
- 
- /**
-  * struct node_hmem_attrs - heterogeneous memory performance attributes
-@@ -84,10 +83,6 @@ static inline void node_set_perf_attrs(u
- struct node {
- 	struct device	dev;
- 	struct list_head access_list;
--
--#if defined(CONFIG_MEMORY_HOTPLUG) && defined(CONFIG_HUGETLBFS)
--	struct work_struct	node_work;
--#endif
- #ifdef CONFIG_HMEM_REPORTING
- 	struct list_head cache_attrs;
- 	struct device *cache_dev;
-@@ -96,7 +91,6 @@ struct node {
- 
- struct memory_block;
- extern struct node *node_devices[];
--typedef  void (*node_registration_func_t)(struct node *);
- 
- #if defined(CONFIG_MEMORY_HOTPLUG) && defined(CONFIG_NUMA)
- void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
-@@ -144,11 +138,6 @@ extern void unregister_memory_block_unde
- extern int register_memory_node_under_compute_node(unsigned int mem_nid,
- 						   unsigned int cpu_nid,
- 						   unsigned access);
--
--#ifdef CONFIG_HUGETLBFS
--extern void register_hugetlbfs_with_node(node_registration_func_t doregister,
--					 node_registration_func_t unregister);
--#endif
- #else
- static inline void node_dev_init(void)
- {
-@@ -176,11 +165,6 @@ static inline int unregister_cpu_under_n
- static inline void unregister_memory_block_under_nodes(struct memory_block *mem_blk)
- {
- }
--
--static inline void register_hugetlbfs_with_node(node_registration_func_t reg,
--						node_registration_func_t unreg)
--{
--}
- #endif
- 
- #define to_node(device) container_of(device, struct node, dev)
---- a/mm/hugetlb.c~mm-hugetlb-simplify-per-node-sysfs-creation-and-removal
-+++ a/mm/hugetlb.c
-@@ -33,6 +33,7 @@
- #include <linux/migrate.h>
- #include <linux/nospec.h>
- #include <linux/delayacct.h>
-+#include <linux/memory.h>
- 
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-@@ -3967,19 +3968,19 @@ static void hugetlb_unregister_node(stru
-  * Register hstate attributes for a single node device.
-  * No-op if attributes already registered.
-  */
--static void hugetlb_register_node(struct node *node)
-+static int hugetlb_register_node(struct node *node)
- {
- 	struct hstate *h;
- 	struct node_hstate *nhs = &node_hstates[node->dev.id];
- 	int err;
- 
- 	if (nhs->hugepages_kobj)
--		return;		/* already allocated */
-+		return 0;		/* already allocated */
- 
- 	nhs->hugepages_kobj = kobject_create_and_add("hugepages",
- 							&node->dev.kobj);
- 	if (!nhs->hugepages_kobj)
--		return;
-+		return -ENOMEM;
- 
- 	for_each_hstate(h) {
- 		err = hugetlb_sysfs_add_hstate(h, nhs->hugepages_kobj,
-@@ -3989,9 +3990,28 @@ static void hugetlb_register_node(struct
- 			pr_err("HugeTLB: Unable to add hstate %s for node %d\n",
- 				h->name, node->dev.id);
- 			hugetlb_unregister_node(node);
--			break;
-+			return -ENOMEM;
+ 		/* Truncated ? */
+@@ -2663,8 +2665,16 @@ int split_huge_page_to_list(struct page
+ 			goto out;
  		}
- 	}
-+	return 0;
-+}
-+
-+static int __meminit hugetlb_memory_callback(struct notifier_block *self,
-+					     unsigned long action, void *arg)
-+{
-+	int ret = 0;
-+	struct memory_notify *mnb = arg;
-+	int nid = mnb->status_change_nid;
-+
-+	if (nid == NUMA_NO_NODE)
-+		return NOTIFY_DONE;
-+
-+	if (action == MEM_GOING_ONLINE)
-+		ret = hugetlb_register_node(node_devices[nid]);
-+	else if (action == MEM_CANCEL_ONLINE || action == MEM_OFFLINE)
-+		hugetlb_unregister_node(node_devices[nid]);
-+
-+	return notifier_from_errno(ret);
- }
  
- /*
-@@ -4003,18 +4023,11 @@ static void __init hugetlb_register_all_
- {
- 	int nid;
- 
--	for_each_node_state(nid, N_MEMORY) {
--		struct node *node = node_devices[nid];
--		if (node->dev.id == nid)
--			hugetlb_register_node(node);
--	}
--
--	/*
--	 * Let the node device driver know we're here so it can
--	 * [un]register hstate attributes on node hotplug.
--	 */
--	register_hugetlbfs_with_node(hugetlb_register_node,
--				     hugetlb_unregister_node);
-+	get_online_mems();
-+	hotplug_memory_notifier(hugetlb_memory_callback, 0);
-+	for_each_node_state(nid, N_MEMORY)
-+		hugetlb_register_node(node_devices[nid]);
-+	put_online_mems();
- }
- #else	/* !CONFIG_NUMA */
- 
+-		xas_split_alloc(&xas, head, compound_order(head),
+-				mapping_gfp_mask(mapping) & GFP_RECLAIM_MASK);
++		gfp = current_gfp_context(mapping_gfp_mask(mapping) &
++							GFP_RECLAIM_MASK);
++
++		if (folio_test_private(folio) &&
++				!filemap_release_folio(folio, gfp)) {
++			ret = -EBUSY;
++			goto out;
++		}
++
++		xas_split_alloc(&xas, head, compound_order(head), gfp);
+ 		if (xas_error(&xas)) {
+ 			ret = xas_error(&xas);
+ 			goto out;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
-mm-hugetlb_vmemmap-simplify-reset_struct_pages.patch
-mm-hugetlb-simplify-per-node-sysfs-creation-and-removal.patch
+mm-release-private-data-before-split-thp.patch
 
