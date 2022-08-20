@@ -2,43 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3D6AC32792
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Aug 2022 22:55:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5F95C28D13
+	for <mm-commits@archiver.kernel.org>; Sat, 20 Aug 2022 00:29:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243477AbiHSWzg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Aug 2022 18:55:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44610 "EHLO
+        id S229788AbiHTA34 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Aug 2022 20:29:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243320AbiHSWzV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2022 18:55:21 -0400
+        with ESMTP id S229470AbiHTA34 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2022 20:29:56 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72C8B10DCDE
-        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 15:55:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D637B2745
+        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 17:29:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2A360B82996
-        for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2022 22:55:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3219C433D6;
-        Fri, 19 Aug 2022 22:55:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CD494B82A08
+        for <mm-commits@vger.kernel.org>; Sat, 20 Aug 2022 00:29:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B147C433C1;
+        Sat, 20 Aug 2022 00:29:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1660949717;
-        bh=Dg5unp5YkHnxJqbn3oSfkVpGZ1ABMK/TT0QNZDQSC9k=;
+        s=korg; t=1660955392;
+        bh=T0rikw1JZPUl3Ehjl4ADWJdJM2xKbi83HX6vEtRSgnA=;
         h=Date:To:From:Subject:From;
-        b=v3I1HvWIM9A/Zqi72DIQnTIR8X5uKWtVDPTIHrjRXD8uMwK7B0DLpJcCwt2OQ4MUd
-         QauBCRF1/cLTMf+vssigCPsJJRLfvOx2ygur8zxRrmWdIAqdYJxAc52Fbv/wXl/jsL
-         yYhsISA00+BXs810lo8wZ/2IRj++m6ASnIKEexAg=
-Date:   Fri, 19 Aug 2022 15:55:17 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, tkjos@android.com,
-        syzbot+a7b60a176ec13cafb793@syzkaller.appspotmail.com,
-        surenb@google.com, omosnace@redhat.com, minchan@kernel.org,
-        maco@android.com, Liam.Howlett@oracle.com, joel@joelfernandes.org,
-        hridya@google.com, gregkh@linuxfoundation.org, cmllamas@google.com,
-        brauner@kernel.org, arve@android.com, liam.howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=AKZr03Yw3f2S1RUEGWenbkqcguEdd5HsqU7U7M4Dh9OM5WoNZAXmnkR3NGixQtk4+
+         Yh8JDfB7ttgo39WQ25p2bOPbCoiM/8JCJAudEhn2yal40IDepZ9zKO8AL0/oqgThc3
+         T69bc5SJK9iZULfkrEVR2dFJZrYXEs9pi09Y8HF4=
+Date:   Fri, 19 Aug 2022 17:29:51 -0700
+To:     mm-commits@vger.kernel.org, yi.zhang@huawei.com,
+        viro@zeniv.linux.org.uk, vbabka@suse.cz, surenb@google.com,
+        skhan@linuxfoundation.org, shuah@kernel.org, rppt@linux.ibm.com,
+        rppt@kernel.org, peterx@redhat.com, namit@vmware.com,
+        mike.kravetz@oracle.com, mgorman@techsingularity.net,
+        ldv@altlinux.org, jack@suse.cz, hughd@google.com,
+        glebfm@altlinux.org, dave.hansen@linux.intel.com, corbet@lwn.net,
+        axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220819225517.C3219C433D6@smtp.kernel.org>
+Subject: + userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control-v7.patch added to mm-unstable branch
+Message-Id: <20220820002952.5B147C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binder_alloc: add missing mmap_lock calls when using the VMA
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
+     Subject: userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control-v7
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control-v7.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control-v7.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -69,97 +70,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: binder_alloc: add missing mmap_lock calls when using the VMA
-Date: Wed, 10 Aug 2022 16:02:25 +0000
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control-v7
+Date: Fri, 19 Aug 2022 13:51:58 -0700
 
-Take the mmap_read_lock() when using the VMA in binder_alloc_print_pages()
-and when checking for a VMA in binder_alloc_new_buf_locked().
+Handle misc_register() failure properly by propagating the error instead
+of just WARN_ON-ing.  
 
-It is worth noting binder_alloc_new_buf_locked() drops the VMA read lock
-after it verifies a VMA exists, but may be taken again deeper in the call
-stack, if necessary.
-
-Link: https://lkml.kernel.org/r/20220810160209.1630707-1-Liam.Howlett@oracle.com
-Fixes: a43cfc87caaf (android: binder: stop saving a pointer to the VMA)
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Ondrej Mosnacek <omosnace@redhat.com>
-Reported-by: <syzbot+a7b60a176ec13cafb793@syzkaller.appspotmail.com>
-Acked-by: Carlos Llamas <cmllamas@google.com>
-Tested-by: Ondrej Mosnacek <omosnace@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hridya Valsaraju <hridya@google.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Martijn Coenen <maco@android.com>
+Link: https://lkml.kernel.org/r/20220819205201.658693-3-axelrasmussen@google.com
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Nadav Amit <namit@vmware.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dmitry V. Levin <ldv@altlinux.org>
+Cc: Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Todd Kjos <tkjos@android.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: "Arve Hjønnevåg" <arve@android.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zhang Yi <yi.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/android/binder_alloc.c |   31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+ fs/userfaultfd.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/drivers/android/binder_alloc.c~binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma
-+++ a/drivers/android/binder_alloc.c
-@@ -402,12 +402,15 @@ static struct binder_buffer *binder_allo
- 	size_t size, data_offsets_size;
- 	int ret;
+--- a/fs/userfaultfd.c~userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control-v7
++++ a/fs/userfaultfd.c
+@@ -2114,11 +2114,6 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
+ 	return new_userfaultfd(flags);
+ }
  
-+	mmap_read_lock(alloc->vma_vm_mm);
- 	if (!binder_alloc_get_vma(alloc)) {
-+		mmap_read_unlock(alloc->vma_vm_mm);
- 		binder_alloc_debug(BINDER_DEBUG_USER_ERROR,
- 				   "%d: binder_alloc_buf, no vma\n",
- 				   alloc->pid);
- 		return ERR_PTR(-ESRCH);
- 	}
-+	mmap_read_unlock(alloc->vma_vm_mm);
+-static int userfaultfd_dev_open(struct inode *inode, struct file *file)
+-{
+-	return 0;
+-}
+-
+ static long userfaultfd_dev_ioctl(struct file *file, unsigned int cmd, unsigned long flags)
+ {
+ 	if (cmd != USERFAULTFD_IOC_NEW)
+@@ -2128,7 +2123,6 @@ static long userfaultfd_dev_ioctl(struct
+ }
  
- 	data_offsets_size = ALIGN(data_size, sizeof(void *)) +
- 		ALIGN(offsets_size, sizeof(void *));
-@@ -929,17 +932,25 @@ void binder_alloc_print_pages(struct seq
- 	 * Make sure the binder_alloc is fully initialized, otherwise we might
- 	 * read inconsistent state.
- 	 */
--	if (binder_alloc_get_vma(alloc) != NULL) {
--		for (i = 0; i < alloc->buffer_size / PAGE_SIZE; i++) {
--			page = &alloc->pages[i];
--			if (!page->page_ptr)
--				free++;
--			else if (list_empty(&page->lru))
--				active++;
--			else
--				lru++;
--		}
+ static const struct file_operations userfaultfd_dev_fops = {
+-	.open = userfaultfd_dev_open,
+ 	.unlocked_ioctl = userfaultfd_dev_ioctl,
+ 	.compat_ioctl = userfaultfd_dev_ioctl,
+ 	.owner = THIS_MODULE,
+@@ -2143,7 +2137,11 @@ static struct miscdevice userfaultfd_mis
+ 
+ static int __init userfaultfd_init(void)
+ {
+-	WARN_ON(misc_register(&userfaultfd_misc));
++	int ret;
 +
-+	mmap_read_lock(alloc->vma_vm_mm);
-+	if (binder_alloc_get_vma(alloc) == NULL) {
-+		mmap_read_unlock(alloc->vma_vm_mm);
-+		goto uninitialized;
-+	}
-+
-+	mmap_read_unlock(alloc->vma_vm_mm);
-+	for (i = 0; i < alloc->buffer_size / PAGE_SIZE; i++) {
-+		page = &alloc->pages[i];
-+		if (!page->page_ptr)
-+			free++;
-+		else if (list_empty(&page->lru))
-+			active++;
-+		else
-+			lru++;
- 	}
-+
-+uninitialized:
- 	mutex_unlock(&alloc->mutex);
- 	seq_printf(m, "  pages: %d:%d:%d\n", active, lru, free);
- 	seq_printf(m, "  pages high watermark: %zu\n", alloc->pages_high);
++	ret = misc_register(&userfaultfd_misc);
++	if (ret)
++		return ret;
+ 
+ 	userfaultfd_ctx_cachep = kmem_cache_create("userfaultfd_ctx_cache",
+ 						sizeof(struct userfaultfd_ctx),
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
+selftests-vm-add-hugetlb_shared-userfaultfd-test-to-run_vmtestssh.patch
+userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control.patch
+userfaultfd-add-dev-userfaultfd-for-fine-grained-access-control-v7.patch
+userfaultfd-selftests-modify-selftest-to-use-dev-userfaultfd.patch
+userfaultfd-selftests-modify-selftest-to-use-dev-userfaultfd-v7.patch
+userfaultfd-update-documentation-to-describe-dev-userfaultfd.patch
+userfaultfd-update-documentation-to-describe-dev-userfaultfd-v7.patch
+selftests-vm-add-dev-userfaultfd-test-cases-to-run_vmtestssh.patch
 
