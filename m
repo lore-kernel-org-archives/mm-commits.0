@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC987C00140
-	for <mm-commits@archiver.kernel.org>; Sun, 21 Aug 2022 23:39:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54984C00140
+	for <mm-commits@archiver.kernel.org>; Sun, 21 Aug 2022 23:42:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231545AbiHUXjV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 21 Aug 2022 19:39:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41632 "EHLO
+        id S231679AbiHUXmJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 21 Aug 2022 19:42:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230056AbiHUXjU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 21 Aug 2022 19:39:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1E9313D61;
-        Sun, 21 Aug 2022 16:39:17 -0700 (PDT)
+        with ESMTP id S230056AbiHUXmI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 21 Aug 2022 19:42:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65DD0167D0
+        for <mm-commits@vger.kernel.org>; Sun, 21 Aug 2022 16:42:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3CB8460DFC;
-        Sun, 21 Aug 2022 23:39:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FC63C433D6;
-        Sun, 21 Aug 2022 23:39:16 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1606CB80E6C
+        for <mm-commits@vger.kernel.org>; Sun, 21 Aug 2022 23:42:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACC45C433D7;
+        Sun, 21 Aug 2022 23:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661125156;
-        bh=bsjBQ8x53uP4Wlujj47O/Zq5yIu60FEP1VZKHxMxb14=;
+        s=korg; t=1661125324;
+        bh=7g5pcIc9fs5VC0YyypTA/PKZnRRRPxyPJRsiBXc4F2o=;
         h=Date:To:From:Subject:From;
-        b=cOJSo4pbgJ3z0OrdI4mhZMD1EX6DEymaVNAz7E6GXUDMDbDXmOX6LBcECfGrkeh5c
-         zz4AOJFmnL+Qm5PEQeZDC+Hcq7ouirZGH6s8azl0IluHRs/ZIZcymgcsaj2cnxSSoF
-         aqYO3CxI7tZXl/ctrmB6TcazI+BUrPslxw3u6v/c=
-Date:   Sun, 21 Aug 2022 16:39:15 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
-        badari.pulavarty@intel.com, akpm@linux-foundation.org
+        b=Y7TP5FQi+Auc6SiroND69jsSCLe2ggfB0m0fIQM6oPUH+GIFavg/wqjwcPibQTeMy
+         Ia15n3kfXqzkJr+GLPFpcNxF3SzY+KeYb/ov8aU9nlldZUwuJDd1mXNxd3ci/NqLJb
+         +/EzLdUkzzUmuD3N4nEDMfat10jbV9jE7dnU2kTc=
+Date:   Sun, 21 Aug 2022 16:42:03 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        songmuchun@bytedance.com, slava@dubeyko.com,
+        roman.gushchin@linux.dev, martin.petersen@oracle.com,
+        keescook@chromium.org, kch@nvidia.com, jlayton@kernel.org,
+        ira.weiny@intel.com, damien.lemoal@opensource.wdc.com,
+        brauner@kernel.org, axboe@kernel.dk, arnd@arndb.de,
+        fmdefrancesco@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-dbgfs-avoid-duplicate-context-directory-creation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220821233916.8FC63C433D6@smtp.kernel.org>
+Subject: + hfs-unmap-the-page-in-the-fail_page-label.patch added to mm-nonmm-unstable branch
+Message-Id: <20220821234204.ACC45C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/dbgfs: avoid duplicate context directory creation
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-dbgfs-avoid-duplicate-context-directory-creation.patch
+     Subject: hfs: unmap the page in the "fail_page" label
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     hfs-unmap-the-page-in-the-fail_page-label.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-dbgfs-avoid-duplicate-context-directory-creation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hfs-unmap-the-page-in-the-fail_page-label.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,57 +69,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Badari Pulavarty <badari.pulavarty@intel.com>
-Subject: mm/damon/dbgfs: avoid duplicate context directory creation
-Date: Sun, 21 Aug 2022 18:08:53 +0000
+From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Subject: hfs: unmap the page in the "fail_page" label
+Date: Sun, 21 Aug 2022 20:03:58 +0200
 
-When user tries to create a DAMON context via the DAMON debugfs interface
-with a name of an already existing context, the context directory creation
-fails but a new context is created and added in the internal data
-structure, due to absence of the directory creation success check.  As a
-result, memory could leak and DAMON cannot be turned on.  An example test
-case is as below:
+Patch series "hfs: Replace kmap() with kmap_local_page()".
 
-    # cd /sys/kernel/debug/damon/
-    # echo "off" >  monitor_on
-    # echo paddr > target_ids
-    # echo "abc" > mk_context
-    # echo "abc" > mk_context
-    # echo $$ > abc/target_ids
-    # echo "on" > monitor_on  <<< fails
+kmap() is being deprecated in favor of kmap_local_page().
 
-Return value of 'debugfs_create_dir()' is expected to be ignored in
-general, but this is an exceptional case as DAMON feature is depending
-on the debugfs functionality and it has the potential duplicate name
-issue.  This commit therefore fixes the issue by checking the directory
-creation failure and immediately return the error in the case.
+There are two main problems with kmap(): (1) It comes with an overhead as
+mapping space is restricted and protected by a global lock for
+synchronization and (2) it also requires global TLB invalidation when the
+kmaps pool wraps and it might block when the mapping space is fully
+utilized until a slot becomes available.
 
-Link: https://lkml.kernel.org/r/20220821180853.2400-1-sj@kernel.org
-Fixes: 75c1c2b53c78 ("mm/damon/dbgfs: support multiple contexts")
-Signed-off-by: Badari Pulavarty <badari.pulavarty@intel.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[ 5.15.x]
+With kmap_local_page() the mappings are per thread, CPU local, can take
+page faults, and can be called from any context (including interrupts). 
+It is faster than kmap() in kernels with HIGHMEM enabled.  Furthermore,
+the tasks can be preempted and, when they are scheduled to run again, the
+kernel virtual addresses are restored and still valid.
+
+Since its use in fs/hfs is safe everywhere, it should be preferred.
+
+Therefore, replace kmap() with kmap_local_page() in fs/hfs.  Where
+possible, use the suited standard helpers (memzero_page(), memcpy_page())
+instead of open coding kmap_local_page() plus memset() or memcpy().
+
+Fix a bug due to a page being not unmapped if the code jumps to the
+"fail_page" label (1/3).
+
+Tested in a QEMU/KVM x86_32 VM, 6GB RAM, booting a kernel with
+HIGHMEM64GB enabled.
+
+
+This patch (of 3):
+
+Several paths within hfs_btree_open() jump to the "fail_page" label where
+put_page() is called while the page is still mapped.
+
+Call kunmap() to unmap the page soon before put_page().
+
+Link: https://lkml.kernel.org/r/20220821180400.8198-1-fmdefrancesco@gmail.com
+Link: https://lkml.kernel.org/r/20220821180400.8198-2-fmdefrancesco@gmail.com
+Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Chaitanya Kulkarni <kch@nvidia.com>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Damien Le Moal <damien.lemoal@opensource.wdc.com>
+Cc: Matthew Wilcox <willy@infradead.org>]
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/hfs/btree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-avoid-duplicate-context-directory-creation
-+++ a/mm/damon/dbgfs.c
-@@ -818,6 +818,9 @@ static int dbgfs_mk_context(char *name)
- 		return -ENOENT;
+--- a/fs/hfs/btree.c~hfs-unmap-the-page-in-the-fail_page-label
++++ a/fs/hfs/btree.c
+@@ -124,6 +124,7 @@ struct hfs_btree *hfs_btree_open(struct
+ 	return tree;
  
- 	new_dir = debugfs_create_dir(name, root);
-+	/* Below check is required for a potential duplicated name case */
-+	if (IS_ERR(new_dir))
-+		return PTR_ERR(new_dir);
- 	dbgfs_dirs[dbgfs_nr_ctxs] = new_dir;
- 
- 	new_ctx = dbgfs_new_ctx();
+ fail_page:
++	kunmap(page);
+ 	put_page(page);
+ free_inode:
+ 	tree->inode->i_mapping->a_ops = &hfs_aops;
 _
 
-Patches currently in -mm which might be from badari.pulavarty@intel.com are
+Patches currently in -mm which might be from fmdefrancesco@gmail.com are
 
-mm-damon-dbgfs-avoid-duplicate-context-directory-creation.patch
+hfsplus-unmap-the-page-in-the-fail_page-label.patch
+hfsplus-convert-kmap-to-kmap_local_page-in-bnodec.patch
+hfsplus-convert-kmap-to-kmap_local_page-in-bitmapc.patch
+hfsplus-convert-kmap-to-kmap_local_page-in-btreec.patch
+fs-isofs-replace-kmap-with-kmap_local_page.patch
+kexec-replace-kmap-with-kmap_local_page.patch
+hfs-unmap-the-page-in-the-fail_page-label.patch
+hfs-replace-kmap-with-kmap_local_page-in-bnodec.patch
+hfs-replace-kmap-with-kmap_local_page-in-btreec.patch
 
