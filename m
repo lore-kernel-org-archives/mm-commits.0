@@ -2,136 +2,184 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A66CC25B08
-	for <mm-commits@archiver.kernel.org>; Sun, 21 Aug 2022 03:20:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD46BC00140
+	for <mm-commits@archiver.kernel.org>; Sun, 21 Aug 2022 08:35:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbiHUDUd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 20 Aug 2022 23:20:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54540 "EHLO
+        id S230035AbiHUIfk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 21 Aug 2022 04:35:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229557AbiHUDUc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 20 Aug 2022 23:20:32 -0400
+        with ESMTP id S229379AbiHUIfk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 21 Aug 2022 04:35:40 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB0F4201BD
-        for <mm-commits@vger.kernel.org>; Sat, 20 Aug 2022 20:20:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D92E82019B
+        for <mm-commits@vger.kernel.org>; Sun, 21 Aug 2022 01:35:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 80375B80AE9
-        for <mm-commits@vger.kernel.org>; Sun, 21 Aug 2022 03:20:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0228C433D6;
-        Sun, 21 Aug 2022 03:20:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9562FB80BE8
+        for <mm-commits@vger.kernel.org>; Sun, 21 Aug 2022 08:35:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43984C433D6;
+        Sun, 21 Aug 2022 08:35:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661052028;
-        bh=EihPQUD0EL0SPq7p6jNGkSOoCCtgcHr5G5XYQPGIWSg=;
+        s=korg; t=1661070936;
+        bh=bfxi0BlLsF+hWEYiUEh284htCiUREakkSydu9zE4Kks=;
         h=Date:To:From:Subject:From;
-        b=Exdqr2Cq+qafcCuocPB/RszUvMaSs1CbLKnuFodsa1QE24nvI+NqdK647434QQ4J2
-         X74veo6mxInhlBGvkF+Hm9Iw/phX/on5ZAhkCeSRPM+y4Cu6IIGPtBI7TLlink94Bo
-         SG6/xfG6wDjweBfegQj84/EbH0xsxWpZR7KAubRM=
-Date:   Sat, 20 Aug 2022 20:20:27 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        shy828301@gmail.com, akpm@linux-foundation.org
+        b=xrEOkAS0VKg+UoyXahgzu4LLUpnfGZDz/Q4jr40HBfejLUCTtmbys6yngKFd16jlK
+         nV89DmSzkvDmYMvbvA6JcAOXm7JW30dcfmEVKbHK9hz4QvS4Fa7RYEaOdYKcinS9hQ
+         n74W8b6gZhm2i+DsPcz8L3Rd/yzSNeCpI0qOWOeM=
+Date:   Sun, 21 Aug 2022 01:35:35 -0700
+To:     mm-commits@vger.kernel.org, yang.shi@linaro.org, vbabka@suse.cz,
+        rostedt@goodmis.org, Pavel.Tatashin@microsoft.com,
+        mhocko@kernel.org, mhiramat@kernel.org,
+        mgorman@techsingularity.net, mark-pk.tsai@mediatek.com,
+        lizefan.x@bytedance.com, keescook@chromium.org, Jason@zx2c4.com,
+        iamjoonsoo.kim@lge.com, cai@lca.pw, lizhe.67@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-export-workingset-refault-stats-for-cgroup-v1.patch added to mm-unstable branch
-Message-Id: <20220821032027.F0228C433D6@smtp.kernel.org>
+Subject: [nacked] page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n.patch removed from -mm tree
+Message-Id: <20220821083536.43984C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: memcg: export workingset refault stats for cgroup v1
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-export-workingset-refault-stats-for-cgroup-v1.patch
+The quilt patch titled
+     Subject: page_ext: move up page_ext_init() to catch early page allocation if DEFERRED_STRUCT_PAGE_INIT is n
+has been removed from the -mm tree.  Its filename was
+     page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-export-workingset-refault-stats-for-cgroup-v1.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: memcg: export workingset refault stats for cgroup v1
-Date: Tue, 16 Aug 2022 11:58:01 -0700
+From: Li Zhe <lizhe.67@bytedance.com>
+Subject: page_ext: move up page_ext_init() to catch early page allocation if DEFERRED_STRUCT_PAGE_INIT is n
+Date: Mon, 15 Aug 2022 20:09:54 +0800
 
-Workingset refault stats are important and useful metrics to measure how
-well reclaimer and swapping work and how healthy the services are, but
-they are just available for cgroup v2.  There are still plenty users with
-cgroup v1, export the stats for cgroup v1.
+In commit 2f1ee0913ce5 ("Revert "mm: use early_pfn_to_nid in
+page_ext_init"") we call page_ext_init() after page_alloc_init_late() to
+avoid some panic problem.  It seems that we cannot track early page
+allocations in current kernel even if page structure has been initialized
+early.
 
-Link: https://lkml.kernel.org/r/20220816185801.651091-1-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+This patch moves up page_ext_init() to catch early page allocations when
+DEFERRED_STRUCT_PAGE_INIT is n.  After this patch, we only need to turn
+DEFERRED_STRUCT_PAGE_INIT to n then we are able to analyze the early page
+allocations.  This is useful especially when we find that the free memory
+value is not the same right after booting a different kernel.
+
+Link: https://lkml.kernel.org/r/20220815120954.65957-1-lizhe.67@bytedance.com
+Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Qian Cai <cai@lca.pw>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/page_ext.h |   30 +++++++++++++++++++++++++++---
+ init/main.c              |    7 +++++--
+ mm/page_ext.c            |    2 +-
+ 3 files changed, 33 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-export-workingset-refault-stats-for-cgroup-v1
-+++ a/mm/memcontrol.c
-@@ -3976,6 +3976,8 @@ static const unsigned int memcg1_stats[]
- 	NR_FILE_MAPPED,
- 	NR_FILE_DIRTY,
- 	NR_WRITEBACK,
-+	WORKINGSET_REFAULT_ANON,
-+	WORKINGSET_REFAULT_FILE,
- 	MEMCG_SWAP,
- };
+--- a/include/linux/page_ext.h~page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n
++++ a/include/linux/page_ext.h
+@@ -43,14 +43,34 @@ extern void pgdat_page_ext_init(struct p
+ static inline void page_ext_init_flatmem(void)
+ {
+ }
+-extern void page_ext_init(void);
+ static inline void page_ext_init_flatmem_late(void)
+ {
+ }
++extern void _page_ext_init(void);
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++static inline void page_ext_init_early(void)
++{
++}
++static inline void page_ext_init_late(void)
++{
++	_page_ext_init();
++}
++#else
++static inline void page_ext_init_early(void)
++{
++	_page_ext_init();
++}
++static inline void page_ext_init_late(void)
++{
++}
++#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
+ #else
+ extern void page_ext_init_flatmem(void);
+ extern void page_ext_init_flatmem_late(void);
+-static inline void page_ext_init(void)
++static inline void page_ext_init_early(void)
++{
++}
++static inline void page_ext_init_late(void)
+ {
+ }
+ #endif
+@@ -76,7 +96,11 @@ static inline struct page_ext *lookup_pa
+ 	return NULL;
+ }
  
-@@ -3989,6 +3991,8 @@ static const char *const memcg1_stat_nam
- 	"mapped_file",
- 	"dirty",
- 	"writeback",
-+	"workingset_refault_anon",
-+	"workingset_refault_file",
- 	"swap",
- };
+-static inline void page_ext_init(void)
++static inline void page_ext_init_early(void)
++{
++}
++
++static inline void page_ext_init_late(void)
+ {
+ }
  
-@@ -4017,7 +4021,8 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
--		seq_printf(m, "%s %lu\n", memcg1_stat_names[i], nr * PAGE_SIZE);
-+		seq_printf(m, "%s %lu\n", memcg1_stat_names[i],
-+			   nr * memcg_page_state_unit(memcg1_stats[i]));
- 	}
+--- a/init/main.c~page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n
++++ a/init/main.c
+@@ -845,6 +845,7 @@ static void __init mm_init(void)
+ 	 * slab is ready so that stack_depot_init() works properly
+ 	 */
+ 	page_ext_init_flatmem_late();
++	page_ext_init_early();
+ 	kmemleak_init();
+ 	pgtable_init();
+ 	debug_objects_mem_init();
+@@ -1605,8 +1606,10 @@ static noinline void __init kernel_init_
  
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
-@@ -4048,7 +4053,7 @@ static int memcg_stat_show(struct seq_fi
- 			continue;
- 		nr = memcg_page_state(memcg, memcg1_stats[i]);
- 		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
--						(u64)nr * PAGE_SIZE);
-+			   (u64)nr * memcg_page_state_unit(memcg1_stats[i]));
- 	}
+ 	padata_init();
+ 	page_alloc_init_late();
+-	/* Initialize page ext after all struct pages are initialized. */
+-	page_ext_init();
++	/* Initialize page ext after all struct pages are initialized if
++	 * CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled
++	 */
++	page_ext_init_late();
  
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
+ 	do_basic_setup();
+ 
+--- a/mm/page_ext.c~page_ext-move-up-page_ext_init-to-catch-early-page-allocation-if-deferred_struct_page_init-is-n
++++ a/mm/page_ext.c
+@@ -378,7 +378,7 @@ static int __meminit page_ext_callback(s
+ 	return notifier_from_errno(ret);
+ }
+ 
+-void __init page_ext_init(void)
++void __init _page_ext_init(void)
+ {
+ 	unsigned long pfn;
+ 	int nid;
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from lizhe.67@bytedance.com are
 
-mm-khugepaged-dont-carry-huge-page-to-the-next-loop-for-config_numa.patch
-mm-memcg-export-workingset-refault-stats-for-cgroup-v1.patch
 
