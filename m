@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C627C32774
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:22:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C83FC28D13
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:22:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237762AbiHVTWZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:22:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54236 "EHLO
+        id S237365AbiHVTW1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:22:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237365AbiHVTVU (ORCPT
+        with ESMTP id S237410AbiHVTVU (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:21:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56DC4D13A
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:21:19 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEA2DCE12
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:21:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D034460F8D
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:21:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33656C433D7;
-        Mon, 22 Aug 2022 19:21:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7A7D4B8105A
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:21:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E3D9C433C1;
+        Mon, 22 Aug 2022 19:21:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661196078;
-        bh=2pHJNOMTR7eMaTHjqDtQT+nW9YJ+5xjb4n5vU1x3bII=;
+        s=korg; t=1661196076;
+        bh=ZOorx41XLJWkzwv3RdhiVp5XDcI9j6dh1xBxqPnvS+M=;
         h=Date:To:From:Subject:From;
-        b=LU1XtILaTnoQEv/gzySZTJdKz0GskxNMifWFoNextch4MHaeK2eWXSpf3hNh+CflA
-         N2FBZLPRgBeDv0vEXBoOz3fUUWNnN5kqwajJPYRMcAQ4RjOSd4cKrcm2HI553c0+Jv
-         HsbMeVazOd2kiSKi/cj98Yj2jxx2otayHyK6HTto=
-Date:   Mon, 22 Aug 2022 12:21:17 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
-        sj@kernel.org, dhowells@redhat.com, david@redhat.com,
-        catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
+        b=FAR+VJ8yDSTdZh6o5RnEP24R8pcqnMOeCJr3fBR8fhuCXHk3lm9HTXYa6nsLK93A9
+         /x9UsBnTk0oo9lVNKNDz9Hu99w3D2WrnfTVeOcmEe5Wr1HyV5vCa0ous60t9KCQsUz
+         lDw4Vo/gdz1ZTPHET+yUiUBk+RuxEF2O+hLisRBA=
+Date:   Mon, 22 Aug 2022 12:21:15 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org,
+        vbabka@suse.cz, svens@linux.ibm.com, sj@kernel.org,
+        Liam.Howlett@Oracle.com, dhowells@redhat.com, david@redhat.com,
+        catalin.marinas@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + bpf-remove-vma-linked-list.patch added to mm-unstable branch
-Message-Id: <20220822192118.33656C433D7@smtp.kernel.org>
+Subject: + fork-use-vma-iterator.patch added to mm-unstable branch
+Message-Id: <20220822192116.2E3D9C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bpf: remove VMA linked list
+     Subject: fork: use VMA iterator
 has been added to the -mm mm-unstable branch.  Its filename is
-     bpf-remove-vma-linked-list.patch
+     fork-use-vma-iterator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-remove-vma-linked-list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-use-vma-iterator.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,110 +67,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: bpf: remove VMA linked list
-Date: Mon, 22 Aug 2022 15:06:28 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: fork: use VMA iterator
+Date: Mon, 22 Aug 2022 15:06:27 +0000
 
-Use vma_next() and remove reference to the start of the linked list
+The VMA iterator is faster than the linked list and removing the linked
+list will shrink the vm_area_struct.
 
-Link: https://lkml.kernel.org/r/20220822150128.1562046-51-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220822150128.1562046-50-Liam.Howlett@oracle.com
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/bpf/task_iter.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/fork.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/kernel/bpf/task_iter.c~bpf-remove-vma-linked-list
-+++ a/kernel/bpf/task_iter.c
-@@ -299,8 +299,8 @@ struct bpf_iter_seq_task_vma_info {
- };
- 
- enum bpf_task_vma_iter_find_op {
--	task_vma_iter_first_vma,   /* use mm->mmap */
--	task_vma_iter_next_vma,    /* use curr_vma->vm_next */
-+	task_vma_iter_first_vma,   /* use find_vma() with addr 0 */
-+	task_vma_iter_next_vma,    /* use vma_next() with curr_vma */
- 	task_vma_iter_find_vma,    /* use find_vma() to find next vma */
- };
- 
-@@ -400,10 +400,10 @@ again:
- 
- 	switch (op) {
- 	case task_vma_iter_first_vma:
--		curr_vma = curr_task->mm->mmap;
-+		curr_vma = find_vma(curr_task->mm, 0);
- 		break;
- 	case task_vma_iter_next_vma:
--		curr_vma = curr_vma->vm_next;
-+		curr_vma = find_vma(curr_task->mm, curr_vma->vm_end);
- 		break;
- 	case task_vma_iter_find_vma:
- 		/* We dropped mmap_lock so it is necessary to use find_vma
-@@ -417,7 +417,7 @@ again:
- 		if (curr_vma &&
- 		    curr_vma->vm_start == info->prev_vm_start &&
- 		    curr_vma->vm_end == info->prev_vm_end)
--			curr_vma = curr_vma->vm_next;
-+			curr_vma = find_vma(curr_task->mm, curr_vma->vm_end);
- 		break;
- 	}
- 	if (!curr_vma) {
+--- a/kernel/fork.c~fork-use-vma-iterator
++++ a/kernel/fork.c
+@@ -1301,13 +1301,16 @@ int replace_mm_exe_file(struct mm_struct
+ 	/* Forbid mm->exe_file change if old file still mapped. */
+ 	old_exe_file = get_mm_exe_file(mm);
+ 	if (old_exe_file) {
++		VMA_ITERATOR(vmi, mm, 0);
+ 		mmap_read_lock(mm);
+-		for (vma = mm->mmap; vma && !ret; vma = vma->vm_next) {
++		for_each_vma(vmi, vma) {
+ 			if (!vma->vm_file)
+ 				continue;
+ 			if (path_equal(&vma->vm_file->f_path,
+-				       &old_exe_file->f_path))
++				       &old_exe_file->f_path)) {
+ 				ret = -EBUSY;
++				break;
++			}
+ 		}
+ 		mmap_read_unlock(mm);
+ 		fput(old_exe_file);
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-maple-tree-add-new-data-structure.patch
-radix-tree-test-suite-add-pr_err-define.patch
-radix-tree-test-suite-add-kmem_cache_set_non_kernel.patch
-radix-tree-test-suite-add-allocation-counts-and-size-to-kmem_cache.patch
-radix-tree-test-suite-add-support-for-slab-bulk-apis.patch
-radix-tree-test-suite-add-lockdep_is_held-to-header.patch
-lib-test_maple_tree-add-testing-for-maple-tree.patch
-mm-start-tracking-vmas-with-maple-tree.patch
-mm-mmap-use-the-maple-tree-in-find_vma-instead-of-the-rbtree.patch
-mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree.patch
-mm-mmap-use-maple-tree-for-unmapped_area_topdown.patch
-kernel-fork-use-maple-tree-for-dup_mmap-during-forking.patch
-damon-convert-__damon_va_three_regions-to-use-the-vma-iterator.patch
-mm-remove-rb-tree.patch
-mmap-change-zeroing-of-maple-tree-in-__vma_adjust.patch
-xen-use-vma_lookup-in-privcmd_ioctl_mmap.patch
-mm-optimize-find_exact_vma-to-use-vma_lookup.patch
-mm-khugepaged-optimize-collapse_pte_mapped_thp-by-using-vma_lookup.patch
-mm-mmap-change-do_brk_flags-to-expand-existing-vma-and-add-do_brk_munmap.patch
-mm-use-maple-tree-operations-for-find_vma_intersection.patch
-mm-mmap-use-advanced-maple-tree-api-for-mmap_region.patch
-mm-remove-vmacache.patch
-mm-convert-vma_lookup-to-use-mtree_load.patch
-mm-mmap-move-mmap_region-below-do_munmap.patch
-mm-mmap-reorganize-munmap-to-use-maple-states.patch
-mm-mmap-change-do_brk_munmap-to-use-do_mas_align_munmap.patch
-arm64-change-elfcore-for_each_mte_vma-to-use-vma-iterator.patch
-fs-proc-base-use-maple-tree-iterators-in-place-of-linked-list.patch
-userfaultfd-use-maple-tree-iterator-to-iterate-vmas.patch
-ipc-shm-use-vma-iterator-instead-of-linked-list.patch
-bpf-remove-vma-linked-list.patch
-mm-gup-use-maple-tree-navigation-instead-of-linked-list.patch
-mm-madvise-use-vma_find-instead-of-vma-linked-list.patch
-mm-memcontrol-stop-using-mm-highest_vm_end.patch
-mm-mempolicy-use-vma-iterator-maple-state-instead-of-vma-linked-list.patch
-mm-mprotect-use-maple-tree-navigation-instead-of-vma-linked-list.patch
-mm-mremap-use-vma_find_intersection-instead-of-vma-linked-list.patch
-mm-msync-use-vma_find-instead-of-vma-linked-list.patch
-mm-oom_kill-use-maple-tree-iterators-instead-of-vma-linked-list.patch
-mm-swapfile-use-vma-iterator-instead-of-vma-linked-list.patch
-riscv-use-vma-iterator-for-vdso.patch
-mm-remove-the-vma-linked-list.patch
-mm-mmap-drop-range_has_overlap-function.patch
-mm-mmapc-pass-in-mapping-to-__vma_link_file.patch
+support-highmem-pages-in-vmap_pages_range_noflush.patch
+mm-add-vma-iterator.patch
+mmap-use-the-vma-iterator-in-count_vma_pages_range.patch
+proc-remove-vma-rbtree-use-from-nommu.patch
+arm64-remove-mmap-linked-list-from-vdso.patch
+parisc-remove-mmap-linked-list-from-cache-handling.patch
+powerpc-remove-mmap-linked-list-walks.patch
+s390-remove-vma-linked-list-walks.patch
+x86-remove-vma-linked-list-walks.patch
+xtensa-remove-vma-linked-list-walks.patch
+cxl-remove-vma-linked-list-walk.patch
+optee-remove-vma-linked-list-walk.patch
+um-remove-vma-linked-list-walk.patch
+coredump-remove-vma-linked-list-walk.patch
+exec-use-vma-iterator-instead-of-linked-list.patch
+fs-proc-task_mmu-stop-using-linked-list-and-highest_vm_end.patch
+acct-use-vma-iterator-instead-of-linked-list.patch
+perf-use-vma-iterator.patch
+sched-use-maple-tree-iterator-to-walk-vmas.patch
+fork-use-vma-iterator.patch
+mm-khugepaged-stop-using-vma-linked-list.patch
+mm-ksm-use-vma-iterators-instead-of-vma-linked-list.patch
+mm-mlock-use-vma-iterator-and-maple-state-instead-of-vma-linked-list.patch
+mm-pagewalk-use-vma_find-instead-of-vma-linked-list.patch
+i915-use-the-vma-iterator.patch
+nommu-remove-uses-of-vma-linked-list.patch
 
