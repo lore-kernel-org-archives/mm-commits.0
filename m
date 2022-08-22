@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9026C28D13
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 21:31:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61E9BC28D13
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 21:32:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232242AbiHVVbt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 17:31:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54992 "EHLO
+        id S232461AbiHVVcQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 17:32:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232160AbiHVVbs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 17:31:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A123A5244A
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 14:31:47 -0700 (PDT)
+        with ESMTP id S233026AbiHVVcP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 17:32:15 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED01752457
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 14:32:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 62560B80DDD
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 21:31:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BBC2C433D6;
-        Mon, 22 Aug 2022 21:31:45 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 575E0CE1752
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 21:32:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FAC3C433D7;
+        Mon, 22 Aug 2022 21:32:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661203905;
-        bh=A2kv6PGef94jvvkExgXwOTiJeM08/p3OAeE1ODizVVU=;
+        s=korg; t=1661203931;
+        bh=nezi+VF/bQuubR78TinvFk1eJ/uc2cGR5gtjyJnLJR4=;
         h=Date:To:From:Subject:From;
-        b=PutLONyzUMOBPeNTXsj++7m4osvBDSkkOAjdqZ5Z2JR0fyUNFnYCo5N3Z6UGCkQee
-         Z3Lnngzx4XeljK03kNCIt72Hf8VK23GPYwHPZIHiMYDaJRciOdvflbAEkxpKHaSshq
-         gFNmWR7a176QMpyEo1d9O8kZcIFr/PVzqE4ybSy8=
-Date:   Mon, 22 Aug 2022 14:31:44 -0700
-To:     mm-commits@vger.kernel.org, richard.henderson@linaro.org,
-        mattst88@gmail.com, ink@jurassic.park.msu.ru,
-        wsa+renesas@sang-engineering.com, akpm@linux-foundation.org
+        b=KJv8+pAoM8t2i2jP4Mu/ntQ/G6rocMXGiQcSvjzwTkQNxxB5hgZH4zF42uCT08uzg
+         ixKRJtYjbUpQ1xt2H8xVthsPXHtWCc7Ifnl2ZqMNxgWKtwduArlELCor8ncRjgd4hV
+         t/UAmD4NZVfjg8wmsBCMmnMXKQMCyeKw6aPgfJBc=
+Date:   Mon, 22 Aug 2022 14:32:10 -0700
+To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + alpha-move-from-strlcpy-with-unused-retval-to-strscpy.patch added to mm-nonmm-unstable branch
-Message-Id: <20220822213145.1BBC2C433D6@smtp.kernel.org>
+Subject: + ia64-move-from-strlcpy-with-unused-retval-to-strscpy.patch added to mm-nonmm-unstable branch
+Message-Id: <20220822213211.2FAC3C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: move from strlcpy with unused retval to strscpy
+     Subject: ia64: move from strlcpy with unused retval to strscpy
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     alpha-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+     ia64-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alpha-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ia64-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,42 +65,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: alpha: move from strlcpy with unused retval to strscpy
-Date: Thu, 18 Aug 2022 22:59:36 +0200
+Subject: ia64: move from strlcpy with unused retval to strscpy
+Date: Thu, 18 Aug 2022 22:59:39 +0200
 
 Follow the advice of the below link and prefer 'strscpy' in this
 subsystem.  Conversion is 1:1 because the return value is not used. 
 Generated by a coccinelle script.
 
 Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20220818205936.6144-1-wsa+renesas@sang-engineering.com
+Link: https://lkml.kernel.org/r/20220818205940.6216-1-wsa+renesas@sang-engineering.com
 Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Richard Henderson <richard.henderson@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/setup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/ia64/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/alpha/kernel/setup.c~alpha-move-from-strlcpy-with-unused-retval-to-strscpy
-+++ a/arch/alpha/kernel/setup.c
-@@ -491,9 +491,9 @@ setup_arch(char **cmdline_p)
- 	   boot flags depending on the boot mode, we need some shorthand.
- 	   This should do for installation.  */
- 	if (strcmp(COMMAND_LINE, "INSTALL") == 0) {
--		strlcpy(command_line, "root=/dev/fd0 load_ramdisk=1", sizeof command_line);
-+		strscpy(command_line, "root=/dev/fd0 load_ramdisk=1", sizeof(command_line));
- 	} else {
--		strlcpy(command_line, COMMAND_LINE, sizeof command_line);
-+		strscpy(command_line, COMMAND_LINE, sizeof(command_line));
- 	}
- 	strcpy(boot_command_line, command_line);
- 	*cmdline_p = command_line;
+--- a/arch/ia64/kernel/setup.c~ia64-move-from-strlcpy-with-unused-retval-to-strscpy
++++ a/arch/ia64/kernel/setup.c
+@@ -552,7 +552,7 @@ setup_arch (char **cmdline_p)
+ 	ia64_patch_vtop((u64) __start___vtop_patchlist, (u64) __end___vtop_patchlist);
+ 
+ 	*cmdline_p = __va(ia64_boot_param->command_line);
+-	strlcpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
++	strscpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
+ 
+ 	efi_init();
+ 	io_port_init();
 _
 
 Patches currently in -mm which might be from wsa+renesas@sang-engineering.com are
 
 alpha-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+ia64-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 
