@@ -2,38 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCDD2C28D13
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 20:47:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2901C28D13
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 20:59:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232096AbiHVUq7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 16:46:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43350 "EHLO
+        id S230383AbiHVU7J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 16:59:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232069AbiHVUq6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 16:46:58 -0400
+        with ESMTP id S237335AbiHVU7H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 16:59:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40F0747B8B
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 13:46:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B75F4CA12
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 13:59:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CCFCB612E9
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 20:46:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BA67C433C1;
-        Mon, 22 Aug 2022 20:46:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BA740612B5
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 20:59:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EC3EC433D6;
+        Mon, 22 Aug 2022 20:59:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661201216;
-        bh=Ro7wXcYJeTRcIq8aJWywbsKARjKURsQYOzhHZUegv24=;
+        s=korg; t=1661201946;
+        bh=RaCBEk+BNHN/8WuE4OT50mWv1sxxxoRxDj/IbBeMRiI=;
         h=Date:To:From:Subject:From;
-        b=mBKVa8ntD9u69bR5vg2MZ+1IIQOg4b0qB7HqC3eeJNz0IZj36SN5eSNqcIPaaDKfq
-         HCpQK6I9ngtjyNj9KjOd1JkauqJ6U/Y2uO93YuZvzNt1BdrHwc5L2C+oMlLqQKbnpd
-         vuXhYxFBw1QaQOdkASY6w2zSfnDseASlfHmLF2Pg=
-Date:   Mon, 22 Aug 2022 13:46:55 -0700
-To:     mm-commits@vger.kernel.org, ubizjak@gmail.com,
-        akpm@linux-foundation.org
+        b=ypnLWyRDIOvm2TFDotfTQAIKoMz1ey2PqF5IUC4mkJ0KXxpqSWBPq9cXDEa+LOpfI
+         5SKt0V5TsXBu4hXuVGtW2hfpucW+P+xeBIodmm7wKTVVYYqO055E+wGf/GaBLBHVUv
+         qqsbZf0IUmQLQlfKMu34Shscj9qENi42veaya/I8=
+Date:   Mon, 22 Aug 2022 13:59:05 -0700
+To:     mm-commits@vger.kernel.org, eb@emlix.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + bitops-use-try_cmpxchg-in-set_mask_bits-and-bit_clear_unless.patch added to mm-nonmm-unstable branch
-Message-Id: <20220822204656.2BA67C433C1@smtp.kernel.org>
+Subject: + mm-pagewalk-dont-check-vma-in-walk_page_range_novma.patch added to mm-unstable branch
+Message-Id: <20220822205906.1EC3EC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitops: use try_cmpxchg in set_mask_bits and bit_clear_unless
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     bitops-use-try_cmpxchg-in-set_mask_bits-and-bit_clear_unless.patch
+     Subject: mm: pagewalk: don't check vma in walk_page_range_novma()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-pagewalk-dont-check-vma-in-walk_page_range_novma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bitops-use-try_cmpxchg-in-set_mask_bits-and-bit_clear_unless.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-dont-check-vma-in-walk_page_range_novma.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,65 +63,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: bitops: use try_cmpxchg in set_mask_bits and bit_clear_unless
-Date: Mon, 22 Aug 2022 16:38:51 +0200
+From: Rolf Eike Beer <eb@emlix.com>
+Subject: mm: pagewalk: don't check vma in walk_page_range_novma()
+Date: Mon, 22 Aug 2022 15:00:47 +0200
 
-Use try_cmpxchg instead of cmpxchg (*ptr, old, new) == old in
-set_mask_bits and bit_clear_unless.  x86 CMPXCHG instruction returns
-success in ZF flag, so this change saves a compare after cmpxchg (and
-related move instruction in front of cmpxchg).
+Directly call walk_pgd_range() as that is everything that will actually
+happen in __walk_page_range() besides checking if the vma is set.
 
-Also, try_cmpxchg implicitly assigns old *ptr value to "old" when cmpxchg
-fails, enabling further code simplifications.
-
-Link: https://lkml.kernel.org/r/20220822143851.3290-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Link: https://lkml.kernel.org/r/21585888.EfDdHjke4D@devpool047
+Signed-off-by: Rolf Eike Beer <eb@emlix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/pagewalk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/bitops.h~bitops-use-try_cmpxchg-in-set_mask_bits-and-bit_clear_unless
-+++ a/include/linux/bitops.h
-@@ -327,10 +327,10 @@ static __always_inline void __assign_bit
- 	const typeof(*(ptr)) mask__ = (mask), bits__ = (bits);	\
- 	typeof(*(ptr)) old__, new__;				\
- 								\
-+	old__ = READ_ONCE(*(ptr));				\
- 	do {							\
--		old__ = READ_ONCE(*(ptr));			\
- 		new__ = (old__ & ~mask__) | bits__;		\
--	} while (cmpxchg(ptr, old__, new__) != old__);		\
-+	} while (!try_cmpxchg(ptr, &old__, new__));		\
- 								\
- 	old__;							\
- })
-@@ -342,11 +342,12 @@ static __always_inline void __assign_bit
- 	const typeof(*(ptr)) clear__ = (clear), test__ = (test);\
- 	typeof(*(ptr)) old__, new__;				\
- 								\
-+	old__ = READ_ONCE(*(ptr));				\
- 	do {							\
--		old__ = READ_ONCE(*(ptr));			\
-+		if (old__ & test__)				\
-+			break;					\
- 		new__ = old__ & ~clear__;			\
--	} while (!(old__ & test__) &&				\
--		 cmpxchg(ptr, old__, new__) != old__);		\
-+	} while (!try_cmpxchg(ptr, &old__, new__));		\
- 								\
- 	!(old__ & test__);					\
- })
+--- a/mm/pagewalk.c~mm-pagewalk-dont-check-vma-in-walk_page_range_novma
++++ a/mm/pagewalk.c
+@@ -517,7 +517,7 @@ int walk_page_range_novma(struct mm_stru
+ 
+ 	mmap_assert_locked(walk.mm);
+ 
+-	return __walk_page_range(start, end, &walk);
++	return walk_pgd_range(start, end, &walk);
+ }
+ 
+ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from eb@emlix.com are
 
-llist-use-try_cmpxchg-in-llist_add_batch-and-llist_del_first.patch
-epoll-use-try_cmpxchg-in-list_add_tail_lockless.patch
-buffer-use-try_cmpxchg-in-discard_buffer.patch
-aio-use-atomic_try_cmpxchg-in-__get_reqs_available.patch
-iversion-use-atomic64_try_cmpxchg.patch
-bitops-use-try_cmpxchg-in-set_mask_bits-and-bit_clear_unless.patch
+mm-pagewalk-make-error-checks-more-obvious.patch
+mm-pagewalk-dont-check-vma-in-walk_page_range_novma.patch
+mm-pagewalk-fix-documentation-of-pte-hole-handling.patch
+mm-pagewalk-add-api-documentation-for-walk_page_range_novma.patch
+mm-pagewalk-allow-walk_page_range_novma-without-mm.patch
+mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch
 
