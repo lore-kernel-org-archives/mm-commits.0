@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 752D9C28D13
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59D1EC32772
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236463AbiHVTVW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:21:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47490 "EHLO
+        id S237864AbiHVTVX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:21:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238655AbiHVTUx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:53 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 803C038A8
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:19:54 -0700 (PDT)
+        with ESMTP id S238670AbiHVTUy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8B995597
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:20:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 33450B818AB
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:19:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDB08C433D6;
-        Mon, 22 Aug 2022 19:19:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 852076123B
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:20:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2510C433C1;
+        Mon, 22 Aug 2022 19:20:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661195991;
-        bh=eor453XMrZPMigyC3VEHq2NA+BXuAoKnHlM46GdeI2k=;
+        s=korg; t=1661196007;
+        bh=Si/aMiWtXtasBq+bokvw6ZV9S1PX40+VDVeEckxuByk=;
         h=Date:To:From:Subject:From;
-        b=qmU7Ig85C3+ZamlHlYwGri5qTtPgRXVyYLls5b5SXtDpCdd66AXzItRDJnGQ5EMBi
-         en98jgJt527jegP6KsxxCfkOJRY8QzJml2Gk1v8A8NrQXUYjHQ4ej9u0UXOSrOxkye
-         GdFBeDB+Vdjl7UpadqFhyz0SAZvk6KxhdQ3X5fGM=
-Date:   Mon, 22 Aug 2022 12:19:51 -0700
+        b=an6mN61kguWKXu5YdAKRUYKiL9kvrwVM5jbxS06Eu8fCURWYF9QFrXPlWiPC6+E1Q
+         3cZpiUNp+KyU7uj7qglbvodn1TSaDTx8fOpytD4mETA4dNlszF0CzKm/rirWEoCbMm
+         9vB4Lawfie5xQXQXye/8a8qd109tpqkjSLKyHMxg=
+Date:   Mon, 22 Aug 2022 12:20:07 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-fork-use-maple-tree-for-dup_mmap-during-forking.patch added to mm-unstable branch
-Message-Id: <20220822191951.CDB08C433D6@smtp.kernel.org>
+Subject: + mm-optimize-find_exact_vma-to-use-vma_lookup.patch added to mm-unstable branch
+Message-Id: <20220822192007.D2510C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/fork: use maple tree for dup_mmap() during forking
+     Subject: mm: optimize find_exact_vma() to use vma_lookup()
 has been added to the -mm mm-unstable branch.  Its filename is
-     kernel-fork-use-maple-tree-for-dup_mmap-during-forking.patch
+     mm-optimize-find_exact_vma-to-use-vma_lookup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-use-maple-tree-for-dup_mmap-during-forking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-find_exact_vma-to-use-vma_lookup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,28 +68,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: kernel/fork: use maple tree for dup_mmap() during forking
-Date: Mon, 22 Aug 2022 15:03:11 +0000
+Subject: mm: optimize find_exact_vma() to use vma_lookup()
+Date: Mon, 22 Aug 2022 15:04:32 +0000
 
-The maple tree was already tracking VMAs in this function by an earlier
-commit, but the rbtree iterator was being used to iterate the list. 
-Change the iterator to use a maple tree native iterator and switch to the
-maple tree advanced API to avoid multiple walks of the tree during insert
-operations.  Unexport the now-unused vma_store() function.
+Use vma_lookup() to walk the tree to the start value requested.  If the
+vma at the start does not match, then the answer is NULL and there is no
+need to look at the next vma the way that find_vma() would.
 
-For performance reasons we bulk allocate the maple tree nodes.  The node
-calculations are done internally to the tree and use the VMA count and
-assume the worst-case node requirements.  The VM_DONT_COPY flag does not
-allow for the most efficient copy method of the tree and so a bulk loading
-algorithm is used.
-
-Link: https://lkml.kernel.org/r/20220822150128.1562046-15-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220822150128.1562046-21-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Will Deacon <will@kernel.org>
@@ -97,67 +89,20 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- kernel/fork.c      |   15 +++++++++++++--
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~kernel-fork-use-maple-tree-for-dup_mmap-during-forking
+--- a/include/linux/mm.h~mm-optimize-find_exact_vma-to-use-vma_lookup
 +++ a/include/linux/mm.h
-@@ -2603,8 +2603,6 @@ extern bool arch_has_descending_max_zone
- /* nommu.c */
- extern atomic_long_t mmap_pages_allocated;
- extern int nommu_shrink_inode_mappings(struct inode *, size_t, size_t);
--/* mmap.c */
--void vma_mas_store(struct vm_area_struct *vma, struct ma_state *mas);
+@@ -2854,7 +2854,7 @@ static inline unsigned long vma_pages(st
+ static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
+ 				unsigned long vm_start, unsigned long vm_end)
+ {
+-	struct vm_area_struct *vma = find_vma(mm, vm_start);
++	struct vm_area_struct *vma = vma_lookup(mm, vm_start);
  
- /* interval_tree.c */
- void vma_interval_tree_insert(struct vm_area_struct *node,
---- a/kernel/fork.c~kernel-fork-use-maple-tree-for-dup_mmap-during-forking
-+++ a/kernel/fork.c
-@@ -583,8 +583,9 @@ static __latent_entropy int dup_mmap(str
- 	struct vm_area_struct *mpnt, *tmp, *prev, **pprev;
- 	struct rb_node **rb_link, *rb_parent;
- 	int retval;
--	unsigned long charge;
-+	unsigned long charge = 0;
- 	LIST_HEAD(uf);
-+	MA_STATE(old_mas, &oldmm->mm_mt, 0, 0);
- 	MA_STATE(mas, &mm->mm_mt, 0, 0);
- 
- 	uprobe_start_dup_mmap();
-@@ -620,7 +621,12 @@ static __latent_entropy int dup_mmap(str
- 		goto out;
- 
- 	prev = NULL;
--	for (mpnt = oldmm->mmap; mpnt; mpnt = mpnt->vm_next) {
-+
-+	retval = mas_expected_entries(&mas, oldmm->map_count);
-+	if (retval)
-+		goto out;
-+
-+	mas_for_each(&old_mas, mpnt, ULONG_MAX) {
- 		struct file *file;
- 
- 		if (mpnt->vm_flags & VM_DONTCOPY) {
-@@ -703,6 +709,8 @@ static __latent_entropy int dup_mmap(str
- 		mas.index = tmp->vm_start;
- 		mas.last = tmp->vm_end - 1;
- 		mas_store(&mas, tmp);
-+		if (mas_is_err(&mas))
-+			goto fail_nomem_mas_store;
- 
- 		mm->map_count++;
- 		if (!(tmp->vm_flags & VM_WIPEONFORK))
-@@ -726,6 +734,9 @@ out:
- fail_uprobe_end:
- 	uprobe_end_dup_mmap();
- 	return retval;
-+
-+fail_nomem_mas_store:
-+	unlink_anon_vmas(tmp);
- fail_nomem_anon_vma_fork:
- 	mpol_put(vma_policy(tmp));
- fail_nomem_policy:
+ 	if (vma && (vma->vm_start != vm_start || vma->vm_end != vm_end))
+ 		vma = NULL;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
