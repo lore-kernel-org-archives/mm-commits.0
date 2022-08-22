@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 870C4C38142
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 752D9C28D13
 	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237287AbiHVTVW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236463AbiHVTVW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 22 Aug 2022 15:21:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47452 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238646AbiHVTUx (ORCPT
+        with ESMTP id S238655AbiHVTUx (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:53 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB7C2B9B
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:19:51 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 803C038A8
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:19:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 0C1C0CE16DE
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:19:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 958ADC433C1;
-        Mon, 22 Aug 2022 19:19:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 33450B818AB
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:19:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDB08C433D6;
+        Mon, 22 Aug 2022 19:19:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661195987;
-        bh=JFkRsAmyVy6wr2+ImiW06/PA79VOqPGDlu537VihgyE=;
+        s=korg; t=1661195991;
+        bh=eor453XMrZPMigyC3VEHq2NA+BXuAoKnHlM46GdeI2k=;
         h=Date:To:From:Subject:From;
-        b=dEz8ImpSqS8MLQGfhANhc/HgJrgVKp4HGBzLeDqJEPsNkAxESXcG/zT4EOx8QnspQ
-         TWRnllVbi60MwQN6U7E8l3ad6ZwsyeLeaFZMtVM917/iaLjah6sDeIiCeHegGNZdOi
-         RM61MaZ72HdqRrnMRHcuJXnk4zdwR+fVfib5IJJE=
-Date:   Mon, 22 Aug 2022 12:19:46 -0700
+        b=qmU7Ig85C3+ZamlHlYwGri5qTtPgRXVyYLls5b5SXtDpCdd66AXzItRDJnGQ5EMBi
+         en98jgJt527jegP6KsxxCfkOJRY8QzJml2Gk1v8A8NrQXUYjHQ4ej9u0UXOSrOxkye
+         GdFBeDB+Vdjl7UpadqFhyz0SAZvk6KxhdQ3X5fGM=
+Date:   Mon, 22 Aug 2022 12:19:51 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree.patch added to mm-unstable branch
-Message-Id: <20220822191947.958ADC433C1@smtp.kernel.org>
+Subject: + kernel-fork-use-maple-tree-for-dup_mmap-during-forking.patch added to mm-unstable branch
+Message-Id: <20220822191951.CDB08C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: use the maple tree for find_vma_prev() instead of the rbtree
+     Subject: kernel/fork: use maple tree for dup_mmap() during forking
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree.patch
+     kernel-fork-use-maple-tree-for-dup_mmap-during-forking.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-use-maple-tree-for-dup_mmap-during-forking.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,21 +68,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/mmap: use the maple tree for find_vma_prev() instead of the rbtree
-Date: Mon, 22 Aug 2022 15:03:05 +0000
+Subject: kernel/fork: use maple tree for dup_mmap() during forking
+Date: Mon, 22 Aug 2022 15:03:11 +0000
 
-Use the maple tree's advanced API and a maple state to walk the tree for
-the entry at the address of the next vma, then use the maple state to walk
-back one entry to find the previous entry.
+The maple tree was already tracking VMAs in this function by an earlier
+commit, but the rbtree iterator was being used to iterate the list. 
+Change the iterator to use a maple tree native iterator and switch to the
+maple tree advanced API to avoid multiple walks of the tree during insert
+operations.  Unexport the now-unused vma_store() function.
 
-Add kernel documentation comments for this API.
+For performance reasons we bulk allocate the maple tree nodes.  The node
+calculations are done internally to the tree and use the VMA count and
+assume the worst-case node requirements.  The VM_DONT_COPY flag does not
+allow for the most efficient copy method of the tree and so a bulk loading
+algorithm is used.
 
-Link: https://lkml.kernel.org/r/20220822150128.1562046-13-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220822150128.1562046-15-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
@@ -91,52 +97,67 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ include/linux/mm.h |    2 --
+ kernel/fork.c      |   15 +++++++++++++--
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree
-+++ a/mm/mmap.c
-@@ -2475,23 +2475,30 @@ struct vm_area_struct *find_vma(struct m
- }
- EXPORT_SYMBOL(find_vma);
+--- a/include/linux/mm.h~kernel-fork-use-maple-tree-for-dup_mmap-during-forking
++++ a/include/linux/mm.h
+@@ -2603,8 +2603,6 @@ extern bool arch_has_descending_max_zone
+ /* nommu.c */
+ extern atomic_long_t mmap_pages_allocated;
+ extern int nommu_shrink_inode_mappings(struct inode *, size_t, size_t);
+-/* mmap.c */
+-void vma_mas_store(struct vm_area_struct *vma, struct ma_state *mas);
  
--/*
-- * Same as find_vma, but also return a pointer to the previous VMA in *pprev.
-+/**
-+ * find_vma_prev() - Find the VMA for a given address, or the next vma and
-+ * set %pprev to the previous VMA, if any.
-+ * @mm: The mm_struct to check
-+ * @addr: The address
-+ * @pprev: The pointer to set to the previous VMA
-+ *
-+ * Note that RCU lock is missing here since the external mmap_lock() is used
-+ * instead.
-+ *
-+ * Returns: The VMA associated with @addr, or the next vma.
-+ * May return %NULL in the case of no vma at addr or above.
-  */
- struct vm_area_struct *
- find_vma_prev(struct mm_struct *mm, unsigned long addr,
- 			struct vm_area_struct **pprev)
- {
- 	struct vm_area_struct *vma;
-+	MA_STATE(mas, &mm->mm_mt, addr, addr);
+ /* interval_tree.c */
+ void vma_interval_tree_insert(struct vm_area_struct *node,
+--- a/kernel/fork.c~kernel-fork-use-maple-tree-for-dup_mmap-during-forking
++++ a/kernel/fork.c
+@@ -583,8 +583,9 @@ static __latent_entropy int dup_mmap(str
+ 	struct vm_area_struct *mpnt, *tmp, *prev, **pprev;
+ 	struct rb_node **rb_link, *rb_parent;
+ 	int retval;
+-	unsigned long charge;
++	unsigned long charge = 0;
+ 	LIST_HEAD(uf);
++	MA_STATE(old_mas, &oldmm->mm_mt, 0, 0);
+ 	MA_STATE(mas, &mm->mm_mt, 0, 0);
  
--	vma = find_vma(mm, addr);
--	if (vma) {
--		*pprev = vma->vm_prev;
--	} else {
--		struct rb_node *rb_node = rb_last(&mm->mm_rb);
--
--		*pprev = rb_node ? rb_entry(rb_node, struct vm_area_struct, vm_rb) : NULL;
--	}
-+	vma = mas_walk(&mas);
-+	*pprev = mas_prev(&mas, 0);
-+	if (!vma)
-+		vma = mas_next(&mas, ULONG_MAX);
- 	return vma;
- }
+ 	uprobe_start_dup_mmap();
+@@ -620,7 +621,12 @@ static __latent_entropy int dup_mmap(str
+ 		goto out;
  
+ 	prev = NULL;
+-	for (mpnt = oldmm->mmap; mpnt; mpnt = mpnt->vm_next) {
++
++	retval = mas_expected_entries(&mas, oldmm->map_count);
++	if (retval)
++		goto out;
++
++	mas_for_each(&old_mas, mpnt, ULONG_MAX) {
+ 		struct file *file;
+ 
+ 		if (mpnt->vm_flags & VM_DONTCOPY) {
+@@ -703,6 +709,8 @@ static __latent_entropy int dup_mmap(str
+ 		mas.index = tmp->vm_start;
+ 		mas.last = tmp->vm_end - 1;
+ 		mas_store(&mas, tmp);
++		if (mas_is_err(&mas))
++			goto fail_nomem_mas_store;
+ 
+ 		mm->map_count++;
+ 		if (!(tmp->vm_flags & VM_WIPEONFORK))
+@@ -726,6 +734,9 @@ out:
+ fail_uprobe_end:
+ 	uprobe_end_dup_mmap();
+ 	return retval;
++
++fail_nomem_mas_store:
++	unlink_anon_vmas(tmp);
+ fail_nomem_anon_vma_fork:
+ 	mpol_put(vma_policy(tmp));
+ fail_nomem_policy:
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
