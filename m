@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32F8FC32774
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 264F4C32772
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236878AbiHVTVP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:21:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48450 "EHLO
+        id S237532AbiHVTVQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:21:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238661AbiHVTUx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1D1FB7FE
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:20:04 -0700 (PDT)
+        with ESMTP id S237554AbiHVTT7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:19:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A18783FA3C
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:18:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5DA1460F8D
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:20:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABFE6C433D6;
-        Mon, 22 Aug 2022 19:20:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BEBE0B8105A
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:18:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69BC3C433D6;
+        Mon, 22 Aug 2022 19:18:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661196003;
-        bh=1T/Ux43o0B77Rms+IDeraK6RUx7JqgGoOPfu/kVGQYg=;
+        s=korg; t=1661195920;
+        bh=nHnNb+w0s+5viOLzoXauIAfn9LZ1/FBnaUTqX+daIGE=;
         h=Date:To:From:Subject:From;
-        b=XHdG/GognoDCnZWKN/uxWLikOzvx837oZroWxjSTX3xekmNt9jc5RBy12s0S6+MGH
-         TyamY1ZQsq1JwvEPoh0C8LLOwoT6DiF1tRsNo/rKvKKjfMKYylrM7FEWkNwLcnX/8d
-         95RaHy3hLkN6mTtaooY5co4C4sbyySHoE7HeSAVg=
-Date:   Mon, 22 Aug 2022 12:20:03 -0700
+        b=vuduW3+d/wh8zqKigm+4ZY0u0IRPzatgJyh0Q/FHEOAf0HSvF25a9/1IQkHkoPsFy
+         OedjFSfAx5KxOXNROnZq3p6WItpaAZZksv/jrDvWG9O2CkwmVVfv0d2f9Q61OHxAyS
+         g2urvU5n0YaLZF5PJUGP1kolFITP3chC1yi9JO9Y=
+Date:   Mon, 22 Aug 2022 12:18:39 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
-        sj@kernel.org, Liam.Howlett@oracle.com, dhowells@redhat.com,
-        david@redhat.com, catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
+        sj@kernel.org, dhowells@redhat.com, david@redhat.com,
+        catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmap-change-zeroing-of-maple-tree-in-__vma_adjust.patch added to mm-unstable branch
-Message-Id: <20220822192003.ABFE6C433D6@smtp.kernel.org>
+Subject: + radix-tree-test-suite-add-kmem_cache_set_non_kernel.patch added to mm-unstable branch
+Message-Id: <20220822191840.69BC3C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap: change zeroing of maple tree in __vma_adjust()
+     Subject: radix tree test suite: add kmem_cache_set_non_kernel()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmap-change-zeroing-of-maple-tree-in-__vma_adjust.patch
+     radix-tree-test-suite-add-kmem_cache_set_non_kernel.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-change-zeroing-of-maple-tree-in-__vma_adjust.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-test-suite-add-kmem_cache_set_non_kernel.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,22 +68,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mmap: change zeroing of maple tree in __vma_adjust()
-Date: Mon, 22 Aug 2022 15:04:26 +0000
+Subject: radix tree test suite: add kmem_cache_set_non_kernel()
+Date: Mon, 22 Aug 2022 15:02:21 +0000
 
-Only write to the maple tree if we are not inserting or the insert isn't
-going to overwrite the area to clear.  This avoids spanning writes and
-node coealescing when unnecessary.
+kmem_cache_set_non_kernel() is a mechanism to allow a certain number of
+kmem_cache_alloc requests to succeed even when GFP_KERNEL is not set in
+the flags.  This functionality allows for testing different paths though
+the code.
 
-The change requires a custom search for the linked list addition to find
-the correct VMA for the prev link.
-
-Link: https://lkml.kernel.org/r/20220822150128.1562046-19-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20220822150128.1562046-4-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -92,82 +90,46 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   30 ++++++++++++++++++++++--------
- 1 file changed, 22 insertions(+), 8 deletions(-)
+ tools/testing/radix-tree/linux.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
---- a/mm/mmap.c~mmap-change-zeroing-of-maple-tree-in-__vma_adjust
-+++ a/mm/mmap.c
-@@ -567,11 +567,11 @@ static int vma_link(struct mm_struct *mm
-  * mm's list and the mm tree.  It has already been inserted into the interval tree.
-  */
- static void __insert_vm_struct(struct mm_struct *mm, struct ma_state *mas,
--			       struct vm_area_struct *vma)
-+		struct vm_area_struct *vma, unsigned long location)
+--- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-add-kmem_cache_set_non_kernel
++++ a/tools/testing/radix-tree/linux.c
+@@ -23,15 +23,26 @@ struct kmem_cache {
+ 	int nr_objs;
+ 	void *objs;
+ 	void (*ctor)(void *);
++	unsigned int non_kernel;
+ };
+ 
++void kmem_cache_set_non_kernel(struct kmem_cache *cachep, unsigned int val)
++{
++	cachep->non_kernel = val;
++}
++
+ void *kmem_cache_alloc_lru(struct kmem_cache *cachep, struct list_lru *lru,
+ 		int gfp)
++
  {
- 	struct vm_area_struct *prev;
+ 	void *p;
  
--	mas_set(mas, vma->vm_start);
-+	mas_set(mas, location);
- 	prev = mas_prev(mas, 0);
- 	vma_mas_store(vma, mas);
- 	__vma_link_list(mm, vma, prev);
-@@ -601,6 +601,7 @@ int __vma_adjust(struct vm_area_struct *
- 	int remove_next = 0;
- 	MA_STATE(mas, &mm->mm_mt, 0, 0);
- 	struct vm_area_struct *exporter = NULL, *importer = NULL;
-+	unsigned long ll_prev = vma->vm_start; /* linked list prev. */
+-	if (!(gfp & __GFP_DIRECT_RECLAIM))
+-		return NULL;
++	if (!(gfp & __GFP_DIRECT_RECLAIM)) {
++		if (!cachep->non_kernel)
++			return NULL;
++
++		cachep->non_kernel--;
++	}
  
- 	if (next && !insert) {
- 		if (end >= next->vm_end) {
-@@ -728,15 +729,27 @@ int __vma_adjust(struct vm_area_struct *
- 	}
- 
- 	if (start != vma->vm_start) {
--		if (vma->vm_start < start)
-+		if ((vma->vm_start < start) &&
-+		    (!insert || (insert->vm_end != start))) {
- 			vma_mas_szero(&mas, vma->vm_start, start);
--		vma_changed = true;
-+			VM_WARN_ON(insert && insert->vm_start > vma->vm_start);
-+		} else {
-+			vma_changed = true;
-+		}
- 		vma->vm_start = start;
- 	}
- 	if (end != vma->vm_end) {
--		if (vma->vm_end > end)
--			vma_mas_szero(&mas, end, vma->vm_end);
--		vma_changed = true;
-+		if (vma->vm_end > end) {
-+			if (!insert || (insert->vm_start != end)) {
-+				vma_mas_szero(&mas, end, vma->vm_end);
-+				VM_WARN_ON(insert &&
-+					   insert->vm_end < vma->vm_end);
-+			} else if (insert->vm_start == end) {
-+				ll_prev = vma->vm_end;
-+			}
-+		} else {
-+			vma_changed = true;
-+		}
- 		vma->vm_end = end;
- 		if (!next)
- 			mm->highest_vm_end = vm_end_gap(vma);
-@@ -783,7 +796,7 @@ int __vma_adjust(struct vm_area_struct *
- 		 * us to insert it before dropping the locks
- 		 * (it may either follow vma or precede it).
- 		 */
--		__insert_vm_struct(mm, &mas, insert);
-+		__insert_vm_struct(mm, &mas, insert, ll_prev);
- 	}
- 
- 	if (anon_vma) {
-@@ -870,6 +883,7 @@ again:
- 	if (insert && file)
- 		uprobe_mmap(insert);
- 
-+	mas_destroy(&mas);
- 	validate_mm(mm);
- 	return 0;
+ 	pthread_mutex_lock(&cachep->lock);
+ 	if (cachep->nr_objs) {
+@@ -90,5 +101,6 @@ kmem_cache_create(const char *name, unsi
+ 	ret->nr_objs = 0;
+ 	ret->objs = NULL;
+ 	ret->ctor = ctor;
++	ret->non_kernel = 0;
+ 	return ret;
  }
 _
 
