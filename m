@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59D1EC32772
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C220DC32774
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237864AbiHVTVX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:21:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47592 "EHLO
+        id S237980AbiHVTVZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:21:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238670AbiHVTUy (ORCPT
+        with ESMTP id S238674AbiHVTUy (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:54 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8B995597
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:20:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0A225F6B
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:20:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 852076123B
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:20:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2510C433C1;
-        Mon, 22 Aug 2022 19:20:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8791A61212
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:20:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D713EC433C1;
+        Mon, 22 Aug 2022 19:20:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661196007;
-        bh=Si/aMiWtXtasBq+bokvw6ZV9S1PX40+VDVeEckxuByk=;
+        s=korg; t=1661196009;
+        bh=tfsOEb7Js+UziTRVnUFAB3PHSqnuYQo4fz58peXjN8I=;
         h=Date:To:From:Subject:From;
-        b=an6mN61kguWKXu5YdAKRUYKiL9kvrwVM5jbxS06Eu8fCURWYF9QFrXPlWiPC6+E1Q
-         3cZpiUNp+KyU7uj7qglbvodn1TSaDTx8fOpytD4mETA4dNlszF0CzKm/rirWEoCbMm
-         9vB4Lawfie5xQXQXye/8a8qd109tpqkjSLKyHMxg=
-Date:   Mon, 22 Aug 2022 12:20:07 -0700
+        b=h1nWPVwVBmOS1+pQ3dgyIogJXhceBecMwrbJKwzX/Cwkc8YL2S1HmTuCEWGtOFHPb
+         rKQUcgdRGx9BQ8bmclobf2pAsx9Pf0XGZ1KeEocASawo/o7Cl1Rh1qTKlHBQNbnMA0
+         r3MRJQoRrsdaBsYlFT4qGY/xGDlsd5DLOazqcun4=
+Date:   Mon, 22 Aug 2022 12:20:09 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-optimize-find_exact_vma-to-use-vma_lookup.patch added to mm-unstable branch
-Message-Id: <20220822192007.D2510C433C1@smtp.kernel.org>
+Subject: + mm-khugepaged-optimize-collapse_pte_mapped_thp-by-using-vma_lookup.patch added to mm-unstable branch
+Message-Id: <20220822192009.D713EC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: optimize find_exact_vma() to use vma_lookup()
+     Subject: mm/khugepaged: optimize collapse_pte_mapped_thp() by using vma_lookup()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-optimize-find_exact_vma-to-use-vma_lookup.patch
+     mm-khugepaged-optimize-collapse_pte_mapped_thp-by-using-vma_lookup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-find_exact_vma-to-use-vma_lookup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-optimize-collapse_pte_mapped_thp-by-using-vma_lookup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,14 +68,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: optimize find_exact_vma() to use vma_lookup()
-Date: Mon, 22 Aug 2022 15:04:32 +0000
+Subject: mm/khugepaged: optimize collapse_pte_mapped_thp() by using vma_lookup()
+Date: Mon, 22 Aug 2022 15:04:35 +0000
 
-Use vma_lookup() to walk the tree to the start value requested.  If the
-vma at the start does not match, then the answer is NULL and there is no
-need to look at the next vma the way that find_vma() would.
+vma_lookup() will walk the vma tree once and not continue to look for the
+next vma.  Since the exact vma is checked below, this is a more optimal
+way of searching.
 
-Link: https://lkml.kernel.org/r/20220822150128.1562046-21-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220822150128.1562046-22-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -89,20 +89,20 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
+ mm/khugepaged.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-optimize-find_exact_vma-to-use-vma_lookup
-+++ a/include/linux/mm.h
-@@ -2854,7 +2854,7 @@ static inline unsigned long vma_pages(st
- static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
- 				unsigned long vm_start, unsigned long vm_end)
+--- a/mm/khugepaged.c~mm-khugepaged-optimize-collapse_pte_mapped_thp-by-using-vma_lookup
++++ a/mm/khugepaged.c
+@@ -1392,7 +1392,7 @@ static void collapse_and_free_pmd(struct
+ void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr)
  {
--	struct vm_area_struct *vma = find_vma(mm, vm_start);
-+	struct vm_area_struct *vma = vma_lookup(mm, vm_start);
- 
- 	if (vma && (vma->vm_start != vm_start || vma->vm_end != vm_end))
- 		vma = NULL;
+ 	unsigned long haddr = addr & HPAGE_PMD_MASK;
+-	struct vm_area_struct *vma = find_vma(mm, haddr);
++	struct vm_area_struct *vma = vma_lookup(mm, haddr);
+ 	struct page *hpage;
+ 	pte_t *start_pte, *pte;
+ 	pmd_t *pmd;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
