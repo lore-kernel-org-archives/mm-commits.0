@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EE36C28D13
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 21:35:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40958C32774
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 21:36:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231396AbiHVVfk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 17:35:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57900 "EHLO
+        id S237772AbiHVVge (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 17:36:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230393AbiHVVfj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 17:35:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AA8C52835
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 14:35:39 -0700 (PDT)
+        with ESMTP id S238149AbiHVVgc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 17:36:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5912D52DEC
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 14:36:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C9E91B81131
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 21:35:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AEAFC433C1;
-        Mon, 22 Aug 2022 21:35:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E1775B8191F
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 21:36:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96CFCC433D7;
+        Mon, 22 Aug 2022 21:36:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661204136;
-        bh=yJOHqJbBPd5zIpLq0uJYyCIReL89mYibiRu4SiT9EvM=;
+        s=korg; t=1661204188;
+        bh=bDzlwvo4w3/J8WfE0qU7O2Qi1WWDApAuNgiquU1UE5o=;
         h=Date:To:From:Subject:From;
-        b=maC57v83fDsrPPbM+/ue6DneAm5wqMOTYyc2GLcbfP7JYpyxu5LRoPdUB60djF6oN
-         /I5qqlimx6GcsG0+t2kytJ+xgr+xMJbmtaymZVzFDoEKu+mO5PFfLYgYYmkMKif45g
-         qBCA2CK44P7v7xIerz3/aImc4Jcqt6RUQndJsHw4=
-Date:   Mon, 22 Aug 2022 14:35:35 -0700
-To:     mm-commits@vger.kernel.org, jack@suse.cz,
-        wsa+renesas@sang-engineering.com, akpm@linux-foundation.org
+        b=OnTJmypKK1N/xJoFLJ6PoLrwoQqcxCbMOzIZTQM9ENtD3EbO/QRhJfJybKxzG+QtX
+         BPT3evYNblLO9TEJklh9TXP0tD0hjrH1eYXcghrrF+AGzAjyHMF+PDTbGOVeqNb9HM
+         1y5eaWf8ZaqHlUNKn8eqGchAkkd+ArTEVt4+0F+I=
+Date:   Mon, 22 Aug 2022 14:36:27 -0700
+To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + reiserfs-move-from-strlcpy-with-unused-retval-to-strscpy.patch added to mm-nonmm-unstable branch
-Message-Id: <20220822213536.6AEAFC433C1@smtp.kernel.org>
+Subject: + init-move-from-strlcpy-with-unused-retval-to-strscpy.patch added to mm-nonmm-unstable branch
+Message-Id: <20220822213628.96CFCC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reiserfs: move from strlcpy with unused retval to strscpy
+     Subject: init: move from strlcpy with unused retval to strscpy
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     reiserfs-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+     init-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/reiserfs-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,43 +65,63 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: reiserfs: move from strlcpy with unused retval to strscpy
-Date: Thu, 18 Aug 2022 23:01:53 +0200
+Subject: init: move from strlcpy with unused retval to strscpy
+Date: Thu, 18 Aug 2022 23:01:59 +0200
 
 Follow the advice of the below link and prefer 'strscpy' in this
 subsystem.  Conversion is 1:1 because the return value is not used. 
 Generated by a coccinelle script.
 
 Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20220818210153.8095-1-wsa+renesas@sang-engineering.com
+Link: https://lkml.kernel.org/r/20220818210200.8203-1-wsa+renesas@sang-engineering.com
 Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/procfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ init/do_mounts.c |    4 ++--
+ init/main.c      |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/reiserfs/procfs.c~reiserfs-move-from-strlcpy-with-unused-retval-to-strscpy
-+++ a/fs/reiserfs/procfs.c
-@@ -411,7 +411,7 @@ int reiserfs_proc_info_init(struct super
- 	char *s;
+--- a/init/do_mounts.c~init-move-from-strlcpy-with-unused-retval-to-strscpy
++++ a/init/do_mounts.c
+@@ -296,7 +296,7 @@ EXPORT_SYMBOL_GPL(name_to_dev_t);
  
- 	/* Some block devices use /'s */
--	strlcpy(b, sb->s_id, BDEVNAME_SIZE);
-+	strscpy(b, sb->s_id, BDEVNAME_SIZE);
- 	s = strchr(b, '/');
- 	if (s)
- 		*s = '!';
-@@ -441,7 +441,7 @@ int reiserfs_proc_info_done(struct super
- 		char *s;
+ static int __init root_dev_setup(char *line)
+ {
+-	strlcpy(saved_root_name, line, sizeof(saved_root_name));
++	strscpy(saved_root_name, line, sizeof(saved_root_name));
+ 	return 1;
+ }
  
- 		/* Some block devices use /'s */
--		strlcpy(b, sb->s_id, BDEVNAME_SIZE);
-+		strscpy(b, sb->s_id, BDEVNAME_SIZE);
- 		s = strchr(b, '/');
- 		if (s)
- 			*s = '!';
+@@ -343,7 +343,7 @@ static int __init split_fs_names(char *p
+ 	int count = 1;
+ 	char *p = page;
+ 
+-	strlcpy(p, root_fs_names, size);
++	strscpy(p, root_fs_names, size);
+ 	while (*p++) {
+ 		if (p[-1] == ',') {
+ 			p[-1] = '\0';
+--- a/init/main.c~init-move-from-strlcpy-with-unused-retval-to-strscpy
++++ a/init/main.c
+@@ -423,7 +423,7 @@ static void __init setup_boot_config(voi
+ 	if (!data)
+ 		data = xbc_get_embedded_bootconfig(&size);
+ 
+-	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
++	strscpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
+ 	err = parse_args("bootconfig", tmp_cmdline, NULL, 0, 0, 0, NULL,
+ 			 bootconfig_params);
+ 
+@@ -766,7 +766,7 @@ void __init parse_early_param(void)
+ 		return;
+ 
+ 	/* All fall through to do_early_param. */
+-	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
++	strscpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
+ 	parse_early_options(tmp_cmdline);
+ 	done = 1;
+ }
 _
 
 Patches currently in -mm which might be from wsa+renesas@sang-engineering.com are
@@ -110,4 +130,5 @@ alpha-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 ia64-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 ocfs2-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 reiserfs-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+init-move-from-strlcpy-with-unused-retval-to-strscpy.patch
 
