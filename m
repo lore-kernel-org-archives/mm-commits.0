@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B98C1C32774
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:24:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADC87C28D13
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:24:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238655AbiHVTYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:24:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54298 "EHLO
+        id S237288AbiHVTYY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:24:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238662AbiHVTWS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:22:18 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C41544F6B3
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:21:43 -0700 (PDT)
+        with ESMTP id S237885AbiHVTWW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:22:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1818251400
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:21:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 48B4FB818AB
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:21:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD92AC433C1;
-        Mon, 22 Aug 2022 19:21:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B24A61212
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:21:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED780C4347C;
+        Mon, 22 Aug 2022 19:21:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661196101;
-        bh=bscILiCSJiZYXne1w5nWE3ywf5KnC16ST9yWCveYz0o=;
+        s=korg; t=1661196105;
+        bh=8xuP2PEi2xidL+30Ge1pSSzhBBPBykYnvEyUwHT3GBs=;
         h=Date:To:From:Subject:From;
-        b=bXr0ep15pTy/t1n3bojtNkcBmThABy8oVLFri+ACwJdUcfgpT4tnnc9BFwGSC3ZVv
-         aTNYShZZ9ms7/y1TrJNhVGvHb2yUerkKFkghEaTu2/lvuAJie+SH6c/T8//9raTBpL
-         dHCXlWaqKXh7ndBUs/cpU1rqfHMHJ4tA8otUL8Q4=
-Date:   Mon, 22 Aug 2022 12:21:40 -0700
+        b=u2L8uOAm1aSfzyStahLiwLttYndyjWBjJooljAT+w8YhyQa+T72L2MD+PFjlqG+ft
+         FCRd4Q8JwXcri0Zy9EobDrtGgsjMKMixu4vCTZirXbN4oAsc22RAh8gW26/YPIBcNQ
+         t1g/rFZ4K9LKWiH3Y+pXZM4LHOvasBSEkoL7ALBU=
+Date:   Mon, 22 Aug 2022 12:21:44 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom_kill-use-maple-tree-iterators-instead-of-vma-linked-list.patch added to mm-unstable branch
-Message-Id: <20220822192140.DD92AC433C1@smtp.kernel.org>
+Subject: + mm-swapfile-use-vma-iterator-instead-of-vma-linked-list.patch added to mm-unstable branch
+Message-Id: <20220822192144.ED780C4347C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill: use maple tree iterators instead of vma linked list
+     Subject: mm/swapfile: use vma iterator instead of vma linked list
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-oom_kill-use-maple-tree-iterators-instead-of-vma-linked-list.patch
+     mm-swapfile-use-vma-iterator-instead-of-vma-linked-list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-use-maple-tree-iterators-instead-of-vma-linked-list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-use-vma-iterator-instead-of-vma-linked-list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,10 +68,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/oom_kill: use maple tree iterators instead of vma linked list
-Date: Mon, 22 Aug 2022 15:06:31 +0000
+Subject: mm/swapfile: use vma iterator instead of vma linked list
+Date: Mon, 22 Aug 2022 15:06:32 +0000
 
-Link: https://lkml.kernel.org/r/20220822150128.1562046-62-Liam.Howlett@oracle.com
+unuse_mm() no longer needs to reference the linked list.
+
+Link: https://lkml.kernel.org/r/20220822150128.1562046-64-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -85,28 +87,29 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/swapfile.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-use-maple-tree-iterators-instead-of-vma-linked-list
-+++ a/mm/oom_kill.c
-@@ -513,6 +513,7 @@ bool __oom_reap_task_mm(struct mm_struct
+--- a/mm/swapfile.c~mm-swapfile-use-vma-iterator-instead-of-vma-linked-list
++++ a/mm/swapfile.c
+@@ -1994,14 +1994,16 @@ static int unuse_mm(struct mm_struct *mm
  {
  	struct vm_area_struct *vma;
- 	bool ret = true;
+ 	int ret = 0;
 +	VMA_ITERATOR(vmi, mm, 0);
  
- 	/*
- 	 * Tell all users of get_user/copy_from_user etc... that the content
-@@ -522,7 +523,7 @@ bool __oom_reap_task_mm(struct mm_struct
- 	 */
- 	set_bit(MMF_UNSTABLE, &mm->flags);
- 
--	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
+ 	mmap_read_lock(mm);
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
 +	for_each_vma(vmi, vma) {
- 		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
- 			continue;
- 
+ 		if (vma->anon_vma) {
+ 			ret = unuse_vma(vma, type);
+ 			if (ret)
+ 				break;
+ 		}
++
+ 		cond_resched();
+ 	}
+ 	mmap_read_unlock(mm);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
