@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF6D7C38145
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2188AC28D13
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238230AbiHVTV1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:21:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46246 "EHLO
+        id S237635AbiHVTV3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:21:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238432AbiHVTTu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:19:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CA8E26578
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:18:39 -0700 (PDT)
+        with ESMTP id S237860AbiHVTUB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:01 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B309F48EAC
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:18:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0849460F8D
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:18:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 539CBC433C1;
-        Mon, 22 Aug 2022 19:18:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 192FA60F8D
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:18:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D646C433C1;
+        Mon, 22 Aug 2022 19:18:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661195918;
-        bh=UQ9pB7jzX1sAYscK7ZqOiRPWWhUn9AOCQQC3FRF2uvU=;
+        s=korg; t=1661195927;
+        bh=2UTTM2SLIDjjlHkQZjZqZ3IxN0Zd9ig4znUj/x5nYUw=;
         h=Date:To:From:Subject:From;
-        b=Inrl2nWCusQJQXADLV0LXVkZegspNJujWpBQly+fgRzKtxDtHjwFItR+qMoDsU+mQ
-         U35taMfKxNTYL8SBsoj8cbPHHt9RTjcsJ0dflej/gzapPc7iOLr8Mwj+HAuNjTxYaO
-         nZ3uW1JON1dUjt1SDF1djGR2nAg9LQ+FwD98YeIY=
-Date:   Mon, 22 Aug 2022 12:18:37 -0700
+        b=q1JhwpeuZgzrNDjGytYGet54dtnvpJfCA6Ez8avfuS48E/G+XqSgH+lKTr+8Vy2Gm
+         4Eo6/kdL/n4ZcRFKG0KTK+xvFuUy4Tgq8S0yuBvl0vDf4tluFkz0RISP0Rz/HgfqSv
+         LYtpyVzBlqYGJ8NsQ7gu+YsxpjKV/k058XQ3SmIM=
+Date:   Mon, 22 Aug 2022 12:18:46 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
-        sj@kernel.org, dhowells@redhat.com, david@redhat.com,
-        catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
+        sj@kernel.org, Liam.Howlett@oracle.com, dhowells@redhat.com,
+        david@redhat.com, catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + radix-tree-test-suite-add-pr_err-define.patch added to mm-unstable branch
-Message-Id: <20220822191838.539CBC433C1@smtp.kernel.org>
+Subject: + radix-tree-test-suite-add-lockdep_is_held-to-header.patch added to mm-unstable branch
+Message-Id: <20220822191847.6D646C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: add pr_err define
+     Subject: radix tree test suite: add lockdep_is_held to header
 has been added to the -mm mm-unstable branch.  Its filename is
-     radix-tree-test-suite-add-pr_err-define.patch
+     radix-tree-test-suite-add-lockdep_is_held-to-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-test-suite-add-pr_err-define.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-test-suite-add-lockdep_is_held-to-header.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: radix tree test suite: add pr_err define
-Date: Mon, 22 Aug 2022 15:02:19 +0000
+Subject: radix tree test suite: add lockdep_is_held to header
+Date: Mon, 22 Aug 2022 15:02:33 +0000
 
-define pr_err to printk
+maple tree uses lockdep_is_held, so define it as external in the header.
 
-Link: https://lkml.kernel.org/r/20220822150128.1562046-3-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Link: https://lkml.kernel.org/r/20220822150128.1562046-7-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -87,19 +87,18 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux/kernel.h |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/radix-tree/linux/lockdep.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-pr_err-define
-+++ a/tools/testing/radix-tree/linux/kernel.h
-@@ -14,6 +14,7 @@
- #include "../../../include/linux/kconfig.h"
- 
- #define printk printf
-+#define pr_err printk
- #define pr_info printk
- #define pr_debug printk
- #define pr_cont printk
+--- a/tools/testing/radix-tree/linux/lockdep.h~radix-tree-test-suite-add-lockdep_is_held-to-header
++++ a/tools/testing/radix-tree/linux/lockdep.h
+@@ -11,4 +11,6 @@ static inline void lockdep_set_class(spi
+ 					struct lock_class_key *key)
+ {
+ }
++
++extern int lockdep_is_held(const void *);
+ #endif /* _LINUX_LOCKDEP_H */
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
