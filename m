@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2848BC32774
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 20:59:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3ED4C32793
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 20:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237335AbiHVU7W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S237357AbiHVU7W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 22 Aug 2022 16:59:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56170 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237357AbiHVU7S (ORCPT
+        with ESMTP id S237759AbiHVU7S (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 16:59:18 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 721714D27E
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C77664D141
         for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 13:59:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2710AB818BE
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 20:59:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CECCCC433D6;
-        Mon, 22 Aug 2022 20:59:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 61B9B612B5
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 20:59:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9608C433C1;
+        Mon, 22 Aug 2022 20:59:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661201951;
-        bh=uAE2/tUD9glwcoY5E8N8Ms9UBnxGncEy8EMzHoS4Pf8=;
+        s=korg; t=1661201953;
+        bh=qJm4EWMe8WphNt+G8qTtmmAlmTdRaIdBMtFnBjBnSmw=;
         h=Date:To:From:Subject:From;
-        b=A5zwXURr5xMEqw6ZK6e9AKAH3bQHhJVQCqe7tfjpt6jpVciRg1Pg246s5Y/6ApFVQ
-         mx/d83Amktjvuwy6/LzLbFFmiHgCmAgifTkbkkqkMch8dZPKbqBcZv1LizkI3p+c6k
-         duuaTtb0nmWzn5v7wBTzXt4eiMYJhUtYCi8P/B7A=
-Date:   Mon, 22 Aug 2022 13:59:11 -0700
+        b=eUtHNev31VN+euy3qz41QM/zvaw1nuHGta/2n0HWtAJuYQ/Xmhv3vgTeAFDObEOiu
+         muGvqwnfhvYiog4WtlmDv3ANDXpVloSDONnS7BUPBdR/hHiGPosDTzm212M+U/0Nbg
+         4Yq6aHIlYIqxY8CCbQCm4OCxq4SsGNEUdHKmBDa8=
+Date:   Mon, 22 Aug 2022 13:59:13 -0700
 To:     mm-commits@vger.kernel.org, eb@emlix.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-allow-walk_page_range_novma-without-mm.patch added to mm-unstable branch
-Message-Id: <20220822205911.CECCCC433D6@smtp.kernel.org>
+Subject: + mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch added to mm-unstable branch
+Message-Id: <20220822205913.B9608C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pagewalk: allow walk_page_range_novma() without mm
+     Subject: mm: pagewalk: move variables to more local scope, tweak loops
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pagewalk-allow-walk_page_range_novma-without-mm.patch
+     mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-allow-walk_page_range_novma-without-mm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,48 +64,127 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rolf Eike Beer <eb@emlix.com>
-Subject: mm: pagewalk: allow walk_page_range_novma() without mm
-Date: Mon, 22 Aug 2022 15:03:29 +0200
+Subject: mm: pagewalk: move variables to more local scope, tweak loops
+Date: Mon, 22 Aug 2022 15:04:12 +0200
 
-Since e47690d756a7 ("x86: mm: avoid allocating struct mm_struct on the
-stack") a pgd can be passed to walk_page_range_novma().  In case it is set
-no place in the pagewalk code use the walk.mm anymore, so permit to pass a
-NULL mm instead.  It is up to the caller to ensure proper locking on the
-pgd in this case.
+Move some variables to more local scopes to make it obvious that they
+don't carry state.  Put the end additions into the for loop instructions
+to make them easier to read.
 
-Link: https://lkml.kernel.org/r/5760214.MhkbZ0Pkbq@devpool047
+Link: https://lkml.kernel.org/r/8155217.NyiUUSuA9g@devpool047
 Signed-off-by: Rolf Eike Beer <eb@emlix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/pagewalk.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-allow-walk_page_range_novma-without-mm
+--- a/mm/pagewalk.c~mm-pagewalk-move-variables-to-more-local-scope-tweak-loops
 +++ a/mm/pagewalk.c
-@@ -506,6 +506,8 @@ int walk_page_range(struct mm_struct *mm
-  * not backed by VMAs. Because 'unusual' entries may be walked this function
-  * will also not lock the PTEs for the pte_entry() callback. This is useful for
-  * walking the kernel pages tables or page tables for firmware.
-+ *
-+ * Either mm or pgd may be NULL, but not both.
-  */
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
-@@ -520,10 +522,11 @@ int walk_page_range_novma(struct mm_stru
- 		.no_vma		= true
- 	};
+@@ -25,14 +25,12 @@ static int walk_pte_range_inner(pte_t *p
+ {
+ 	const struct mm_walk_ops *ops = walk->ops;
  
--	if (start >= end || !walk.mm)
-+	if (start >= end || (!walk.mm && !walk.pgd))
- 		return -EINVAL;
- 
--	mmap_assert_locked(walk.mm);
-+	if (walk.mm)
-+		mmap_assert_locked(walk.mm);
- 
- 	return walk_pgd_range(start, end, &walk);
+-	for (;;) {
++	for (;; addr += PAGE_SIZE, pte++) {
+ 		int err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
+ 		if (err)
+ 			return err;
+ 		if (addr >= end - PAGE_SIZE)
+ 			break;
+-		addr += PAGE_SIZE;
+-		pte++;
+ 	}
+ 	return 0;
  }
+@@ -42,13 +40,14 @@ static int walk_pte_range(pmd_t *pmd, un
+ {
+ 	pte_t *pte;
+ 	int err;
+-	spinlock_t *ptl;
+ 
+ 	if (walk->no_vma) {
+ 		pte = pte_offset_map(pmd, addr);
+ 		err = walk_pte_range_inner(pte, addr, end, walk);
+ 		pte_unmap(pte);
+ 	} else {
++		spinlock_t *ptl;
++
+ 		pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+ 		err = walk_pte_range_inner(pte, addr, end, walk);
+ 		pte_unmap_unlock(pte, ptl);
+@@ -71,7 +70,7 @@ static int walk_hugepd_range(hugepd_t *p
+ 	if (addr & (page_size - 1))
+ 		return 0;
+ 
+-	for (;;) {
++	for (;; addr += page_size) {
+ 		pte_t *pte;
+ 		int err;
+ 
+@@ -84,7 +83,6 @@ static int walk_hugepd_range(hugepd_t *p
+ 			return err;
+ 		if (addr >= end - page_size)
+ 			break;
+-		addr += page_size;
+ 	}
+ 	return 0;
+ }
+@@ -307,14 +305,13 @@ static int walk_hugetlb_range(unsigned l
+ 	unsigned long next;
+ 	unsigned long hmask = huge_page_mask(h);
+ 	unsigned long sz = huge_page_size(h);
+-	pte_t *pte;
+ 	const struct mm_walk_ops *ops = walk->ops;
+ 
+-	do {
++	for (; addr < end; addr = next) {
+ 		int err;
++		pte_t *pte = huge_pte_offset(walk->mm, addr & hmask, sz);
+ 
+ 		next = hugetlb_entry_end(h, addr, end);
+-		pte = huge_pte_offset(walk->mm, addr & hmask, sz);
+ 
+ 		if (pte)
+ 			err = ops->hugetlb_entry(pte, hmask, addr, next, walk);
+@@ -323,7 +320,7 @@ static int walk_hugetlb_range(unsigned l
+ 
+ 		if (err)
+ 			return err;
+-	} while (addr = next, addr != end);
++	}
+ 
+ 	return 0;
+ }
+@@ -461,14 +458,13 @@ int walk_page_range(struct mm_struct *mm
+ 	do {
+ 		int err;
+ 
++		walk.vma = vma;
+ 		if (!vma) { /* after the last vma */
+-			walk.vma = NULL;
+ 			next = end;
+ 		} else if (start < vma->vm_start) { /* outside vma */
+ 			walk.vma = NULL;
+ 			next = min(end, vma->vm_start);
+ 		} else { /* inside vma */
+-			walk.vma = vma;
+ 			next = min(end, vma->vm_end);
+ 			vma = find_vma(mm, vma->vm_end);
+ 
+@@ -595,11 +591,11 @@ int walk_page_mapping(struct address_spa
+ 	};
+ 	struct vm_area_struct *vma;
+ 	pgoff_t vba, vea, cba, cea;
+-	unsigned long start_addr, end_addr;
+ 
+ 	lockdep_assert_held(&mapping->i_mmap_rwsem);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, first_index,
+ 				  first_index + nr - 1) {
++		unsigned long start_addr, end_addr;
+ 		int err;
+ 
+ 		/* Clip to the vma */
 _
 
 Patches currently in -mm which might be from eb@emlix.com are
