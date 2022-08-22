@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3385CC32792
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 20:59:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7E41C28D13
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 20:59:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237715AbiHVU7J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 16:59:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55940 "EHLO
+        id S237746AbiHVU7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 16:59:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237712AbiHVU7I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 16:59:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A758B4B495
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 13:59:06 -0700 (PDT)
+        with ESMTP id S237335AbiHVU7K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 16:59:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 116064D141
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 13:59:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4D1C0B818AA
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 20:59:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09CEDC433D6;
-        Mon, 22 Aug 2022 20:59:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A09C4612E7
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 20:59:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0083AC433C1;
+        Mon, 22 Aug 2022 20:59:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661201944;
-        bh=37Mve4wbk92ESFbQlEYuw3zWL7Gfe++++IJ9Hbs85GI=;
+        s=korg; t=1661201948;
+        bh=tH6JJ90iKhkM7tc+6SSh9o7pkfT2l7FHuDRgIbbQGwg=;
         h=Date:To:From:Subject:From;
-        b=FDOTpjW9iZ0P5LpxveNjJi5YFpHuxAYU3izWELKs4ixhGyazqk31s+51ln4DCzg/q
-         UQ2J2IUhUjjGHwO1BY7sC/IzsAT/MYriUeBuyhfE2BX/S8UgTCeiylbrK8i3TUlo80
-         HBqlhwpwGWDAtGTRLhnuIcxt98XkC0AlmlHpRWvQ=
-Date:   Mon, 22 Aug 2022 13:59:03 -0700
+        b=wXfO39Hs3V3FGb/Q2UsqvuhZ/PI/lt2Gyej96Ubj5MNYgTu+qJtihkDMk7TdphKCE
+         e2DH9f5mRswDp+W+KV4ZaeCKbLa3miEoPzQy9tZP/fdChBu6tR66mZCzO5Fj8n6ToE
+         38l5g/q8toetWh0H1KuJGDv3UP9xjSTbgEK8Us4Y=
+Date:   Mon, 22 Aug 2022 13:59:07 -0700
 To:     mm-commits@vger.kernel.org, eb@emlix.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-make-error-checks-more-obvious.patch added to mm-unstable branch
-Message-Id: <20220822205904.09CEDC433D6@smtp.kernel.org>
+Subject: + mm-pagewalk-fix-documentation-of-pte-hole-handling.patch added to mm-unstable branch
+Message-Id: <20220822205908.0083AC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pagewalk: make error checks more obvious
+     Subject: mm: pagewalk: fix documentation of PTE hole handling
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pagewalk-make-error-checks-more-obvious.patch
+     mm-pagewalk-fix-documentation-of-pte-hole-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-make-error-checks-more-obvious.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-fix-documentation-of-pte-hole-handling.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,415 +64,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rolf Eike Beer <eb@emlix.com>
-Subject: mm: pagewalk: make error checks more obvious
-Date: Mon, 22 Aug 2022 15:00:05 +0200
+Subject: mm: pagewalk: fix documentation of PTE hole handling
+Date: Mon, 22 Aug 2022 15:01:32 +0200
 
-Patch series "Minor improvements for pagewalk code".
+Empty PTEs are passed to the pte_entry callback, not to pte_hole.
 
-For some project I had to use the pagewalk API for certain things and
-during this have read through the code multiple times.  Our usage has
-changed several times depending on our current state of research as well.
-
-During all of this I have made some tweaks to the code to be able to follow it 
-better when hunting my own problems, and not call into some things that I 
-actually don't need. The patches are more or less independent of each other. 
-
-
-This patch (of 6):
-
-The err variable only needs to be checked when it was assigned directly
-before, it is not carried on to any later checks.  Move the checks into
-the same "if" conditions where they are assigned.  Also just return the
-error at the relevant places.  While at it move these err variables to a
-more local scope at some places.
-
-Link: https://lkml.kernel.org/r/3200642.44csPzL39Z@devpool047
-Link: https://lkml.kernel.org/r/2203731.iZASKD2KPV@devpool047
+Link: https://lkml.kernel.org/r/3695521.kQq0lBPeGt@devpool047
 Signed-off-by: Rolf Eike Beer <eb@emlix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |  140 ++++++++++++++++++++++++++----------------------
- 1 file changed, 77 insertions(+), 63 deletions(-)
+ include/linux/pagewalk.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-make-error-checks-more-obvious
-+++ a/mm/pagewalk.c
-@@ -24,25 +24,24 @@ static int walk_pte_range_inner(pte_t *p
- 				unsigned long end, struct mm_walk *walk)
- {
- 	const struct mm_walk_ops *ops = walk->ops;
--	int err = 0;
- 
- 	for (;;) {
--		err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
-+		int err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
- 		if (err)
--		       break;
-+			return err;
- 		if (addr >= end - PAGE_SIZE)
- 			break;
- 		addr += PAGE_SIZE;
- 		pte++;
- 	}
--	return err;
-+	return 0;
- }
- 
- static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			  struct mm_walk *walk)
- {
- 	pte_t *pte;
--	int err = 0;
-+	int err;
- 	spinlock_t *ptl;
- 
- 	if (walk->no_vma) {
-@@ -62,7 +61,6 @@ static int walk_pte_range(pmd_t *pmd, un
- static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
- 			     unsigned long end, struct mm_walk *walk, int pdshift)
- {
--	int err = 0;
- 	const struct mm_walk_ops *ops = walk->ops;
- 	int shift = hugepd_shift(*phpd);
- 	int page_size = 1 << shift;
-@@ -75,6 +73,7 @@ static int walk_hugepd_range(hugepd_t *p
- 
- 	for (;;) {
- 		pte_t *pte;
-+		int err;
- 
- 		spin_lock(&walk->mm->page_table_lock);
- 		pte = hugepte_offset(*phpd, addr, pdshift);
-@@ -82,12 +81,12 @@ static int walk_hugepd_range(hugepd_t *p
- 		spin_unlock(&walk->mm->page_table_lock);
- 
- 		if (err)
--			break;
-+			return err;
- 		if (addr >= end - page_size)
- 			break;
- 		addr += page_size;
- 	}
--	return err;
-+	return 0;
- }
- #else
- static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
-@@ -103,18 +102,20 @@ static int walk_pmd_range(pud_t *pud, un
- 	pmd_t *pmd;
- 	unsigned long next;
- 	const struct mm_walk_ops *ops = walk->ops;
--	int err = 0;
- 	int depth = real_depth(3);
- 
- 	pmd = pmd_offset(pud, addr);
- 	do {
--again:
-+		int err;
-+
-+ again:
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_none(*pmd) || (!walk->vma && !walk->no_vma)) {
--			if (ops->pte_hole)
-+			if (ops->pte_hole) {
- 				err = ops->pte_hole(addr, next, depth, walk);
--			if (err)
--				break;
-+				if (err)
-+					return err;
-+			}
- 			continue;
- 		}
- 
-@@ -124,10 +125,11 @@ again:
- 		 * This implies that each ->pmd_entry() handler
- 		 * needs to know about pmd_trans_huge() pmds
- 		 */
--		if (ops->pmd_entry)
-+		if (ops->pmd_entry) {
- 			err = ops->pmd_entry(pmd, addr, next, walk);
--		if (err)
--			break;
-+			if (err)
-+				return err;
-+		}
- 
- 		if (walk->action == ACTION_AGAIN)
- 			goto again;
-@@ -152,10 +154,10 @@ again:
- 		else
- 			err = walk_pte_range(pmd, addr, next, walk);
- 		if (err)
--			break;
-+			return err;
- 	} while (pmd++, addr = next, addr != end);
- 
--	return err;
-+	return 0;
- }
- 
- static int walk_pud_range(p4d_t *p4d, unsigned long addr, unsigned long end,
-@@ -164,27 +166,30 @@ static int walk_pud_range(p4d_t *p4d, un
- 	pud_t *pud;
- 	unsigned long next;
- 	const struct mm_walk_ops *ops = walk->ops;
--	int err = 0;
- 	int depth = real_depth(2);
- 
- 	pud = pud_offset(p4d, addr);
- 	do {
-+		int err;
-+
-  again:
- 		next = pud_addr_end(addr, end);
- 		if (pud_none(*pud) || (!walk->vma && !walk->no_vma)) {
--			if (ops->pte_hole)
-+			if (ops->pte_hole) {
- 				err = ops->pte_hole(addr, next, depth, walk);
--			if (err)
--				break;
-+				if (err)
-+					return err;
-+			}
- 			continue;
- 		}
- 
- 		walk->action = ACTION_SUBTREE;
- 
--		if (ops->pud_entry)
-+		if (ops->pud_entry) {
- 			err = ops->pud_entry(pud, addr, next, walk);
--		if (err)
--			break;
-+			if (err)
-+				return err;
-+		}
- 
- 		if (walk->action == ACTION_AGAIN)
- 			goto again;
-@@ -204,10 +209,10 @@ static int walk_pud_range(p4d_t *p4d, un
- 		else
- 			err = walk_pmd_range(pud, addr, next, walk);
- 		if (err)
--			break;
-+			return err;
- 	} while (pud++, addr = next, addr != end);
- 
--	return err;
-+	return 0;
- }
- 
- static int walk_p4d_range(pgd_t *pgd, unsigned long addr, unsigned long end,
-@@ -216,33 +221,35 @@ static int walk_p4d_range(pgd_t *pgd, un
- 	p4d_t *p4d;
- 	unsigned long next;
- 	const struct mm_walk_ops *ops = walk->ops;
--	int err = 0;
- 	int depth = real_depth(1);
- 
- 	p4d = p4d_offset(pgd, addr);
- 	do {
-+		int err;
-+
- 		next = p4d_addr_end(addr, end);
- 		if (p4d_none_or_clear_bad(p4d)) {
--			if (ops->pte_hole)
-+			if (ops->pte_hole) {
- 				err = ops->pte_hole(addr, next, depth, walk);
--			if (err)
--				break;
-+				if (err)
-+					return err;
-+			}
- 			continue;
- 		}
- 		if (ops->p4d_entry) {
- 			err = ops->p4d_entry(p4d, addr, next, walk);
- 			if (err)
--				break;
-+				return err;
- 		}
- 		if (is_hugepd(__hugepd(p4d_val(*p4d))))
- 			err = walk_hugepd_range((hugepd_t *)p4d, addr, next, walk, P4D_SHIFT);
- 		else if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
- 			err = walk_pud_range(p4d, addr, next, walk);
- 		if (err)
--			break;
-+			return err;
- 	} while (p4d++, addr = next, addr != end);
- 
--	return err;
-+	return 0;
- }
- 
- static int walk_pgd_range(unsigned long addr, unsigned long end,
-@@ -251,35 +258,37 @@ static int walk_pgd_range(unsigned long
- 	pgd_t *pgd;
- 	unsigned long next;
- 	const struct mm_walk_ops *ops = walk->ops;
--	int err = 0;
- 
- 	if (walk->pgd)
- 		pgd = walk->pgd + pgd_index(addr);
- 	else
- 		pgd = pgd_offset(walk->mm, addr);
- 	do {
-+		int err;
-+
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd)) {
--			if (ops->pte_hole)
-+			if (ops->pte_hole) {
- 				err = ops->pte_hole(addr, next, 0, walk);
--			if (err)
--				break;
-+				if (err)
-+					return err;
-+			}
- 			continue;
- 		}
- 		if (ops->pgd_entry) {
- 			err = ops->pgd_entry(pgd, addr, next, walk);
- 			if (err)
--				break;
-+				return err;
- 		}
- 		if (is_hugepd(__hugepd(pgd_val(*pgd))))
- 			err = walk_hugepd_range((hugepd_t *)pgd, addr, next, walk, PGDIR_SHIFT);
- 		else if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
- 			err = walk_p4d_range(pgd, addr, next, walk);
- 		if (err)
--			break;
-+			return err;
- 	} while (pgd++, addr = next, addr != end);
- 
--	return err;
-+	return 0;
- }
- 
- #ifdef CONFIG_HUGETLB_PAGE
-@@ -300,9 +309,10 @@ static int walk_hugetlb_range(unsigned l
- 	unsigned long sz = huge_page_size(h);
- 	pte_t *pte;
- 	const struct mm_walk_ops *ops = walk->ops;
--	int err = 0;
- 
- 	do {
-+		int err;
-+
- 		next = hugetlb_entry_end(h, addr, end);
- 		pte = huge_pte_offset(walk->mm, addr & hmask, sz);
- 
-@@ -312,10 +322,10 @@ static int walk_hugetlb_range(unsigned l
- 			err = ops->pte_hole(addr, next, -1, walk);
- 
- 		if (err)
--			break;
-+			return err;
- 	} while (addr = next, addr != end);
- 
--	return err;
-+	return 0;
- }
- 
- #else /* CONFIG_HUGETLB_PAGE */
-@@ -351,10 +361,13 @@ static int walk_page_test(unsigned long
- 	 * vma(VM_PFNMAP).
- 	 */
- 	if (vma->vm_flags & VM_PFNMAP) {
--		int err = 1;
--		if (ops->pte_hole)
--			err = ops->pte_hole(start, end, -1, walk);
--		return err ? err : 1;
-+		if (ops->pte_hole) {
-+			int err = ops->pte_hole(start, end, -1, walk);
-+
-+			return err ? err : 1;
-+		}
-+
-+		return 1;
- 	}
- 	return 0;
- }
-@@ -428,7 +441,6 @@ int walk_page_range(struct mm_struct *mm
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private)
- {
--	int err = 0;
- 	unsigned long next;
- 	struct vm_area_struct *vma;
- 	struct mm_walk walk = {
-@@ -447,6 +459,8 @@ int walk_page_range(struct mm_struct *mm
- 
- 	vma = find_vma(walk.mm, start);
- 	do {
-+		int err;
-+
- 		if (!vma) { /* after the last vma */
- 			walk.vma = NULL;
- 			next = end;
-@@ -465,18 +479,18 @@ int walk_page_range(struct mm_struct *mm
- 				 * controlling the pagewalk, so should never
- 				 * be passed to the callers.
- 				 */
--				err = 0;
- 				continue;
- 			}
- 			if (err < 0)
--				break;
-+				return err;
- 		}
--		if (walk.vma || walk.ops->pte_hole)
-+		if (walk.vma || walk.ops->pte_hole) {
- 			err = __walk_page_range(start, next, &walk);
--		if (err)
--			break;
-+			if (err)
-+				return err;
-+		}
- 	} while (start = next, start < end);
--	return err;
-+	return 0;
- }
- 
- /*
-@@ -571,11 +585,12 @@ int walk_page_mapping(struct address_spa
- 	struct vm_area_struct *vma;
- 	pgoff_t vba, vea, cba, cea;
- 	unsigned long start_addr, end_addr;
--	int err = 0;
- 
- 	lockdep_assert_held(&mapping->i_mmap_rwsem);
- 	vma_interval_tree_foreach(vma, &mapping->i_mmap, first_index,
- 				  first_index + nr - 1) {
-+		int err;
-+
- 		/* Clip to the vma */
- 		vba = vma->vm_pgoff;
- 		vea = vba + vma_pages(vma);
-@@ -593,16 +608,15 @@ int walk_page_mapping(struct address_spa
- 		walk.mm = vma->vm_mm;
- 
- 		err = walk_page_test(vma->vm_start, vma->vm_end, &walk);
--		if (err > 0) {
--			err = 0;
--			break;
--		} else if (err < 0)
--			break;
-+		if (err > 0)
-+			return 0;
-+		else if (err < 0)
-+			return err;
- 
- 		err = __walk_page_range(start_addr, end_addr, &walk);
- 		if (err)
--			break;
-+			return err;
- 	}
- 
--	return err;
-+	return 0;
- }
+--- a/include/linux/pagewalk.h~mm-pagewalk-fix-documentation-of-pte-hole-handling
++++ a/include/linux/pagewalk.h
+@@ -15,12 +15,12 @@ struct mm_walk;
+  *			this handler is required to be able to handle
+  *			pmd_trans_huge() pmds.  They may simply choose to
+  *			split_huge_page() instead of handling it explicitly.
+- * @pte_entry:		if set, called for each non-empty PTE (lowest-level)
+- *			entry
++ * @pte_entry:		if set, called for each PTE (lowest-level) entry,
++ *			including empty ones
+  * @pte_hole:		if set, called for each hole at all levels,
+- *			depth is -1 if not known, 0:PGD, 1:P4D, 2:PUD, 3:PMD
+- *			4:PTE. Any folded depths (where PTRS_PER_P?D is equal
+- *			to 1) are skipped.
++ *			depth is -1 if not known, 0:PGD, 1:P4D, 2:PUD, 3:PMD.
++ *			Any folded depths (where PTRS_PER_P?D is equal to 1)
++ *			are skipped.
+  * @hugetlb_entry:	if set, called for each hugetlb entry
+  * @test_walk:		caller specific callback function to determine whether
+  *			we walk over the current vma or not. Returning 0 means
 _
 
 Patches currently in -mm which might be from eb@emlix.com are
