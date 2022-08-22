@@ -2,197 +2,322 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3ED4C32793
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 20:59:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CDADC28D13
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 21:02:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237357AbiHVU7W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 16:59:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56176 "EHLO
+        id S230081AbiHVVCI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 17:02:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237759AbiHVU7S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 16:59:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C77664D141
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 13:59:14 -0700 (PDT)
+        with ESMTP id S234149AbiHVVCI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 17:02:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 174374D4D3
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 14:02:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 61B9B612B5
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 20:59:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9608C433C1;
-        Mon, 22 Aug 2022 20:59:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A2A566068B
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 21:02:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F63C433D6;
+        Mon, 22 Aug 2022 21:02:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661201953;
-        bh=qJm4EWMe8WphNt+G8qTtmmAlmTdRaIdBMtFnBjBnSmw=;
+        s=korg; t=1661202126;
+        bh=6yLs6Msv3HPDuzbIBOPyCpb2LVVADm8PnAcDwPZSSKQ=;
         h=Date:To:From:Subject:From;
-        b=eUtHNev31VN+euy3qz41QM/zvaw1nuHGta/2n0HWtAJuYQ/Xmhv3vgTeAFDObEOiu
-         muGvqwnfhvYiog4WtlmDv3ANDXpVloSDONnS7BUPBdR/hHiGPosDTzm212M+U/0Nbg
-         4Yq6aHIlYIqxY8CCbQCm4OCxq4SsGNEUdHKmBDa8=
-Date:   Mon, 22 Aug 2022 13:59:13 -0700
-To:     mm-commits@vger.kernel.org, eb@emlix.com, akpm@linux-foundation.org
+        b=SGnyp7Pk0elp3puLrwT97hOVVIHW2uHIRLi0lRyvsyFKKJgylDUJrcGYGZ0vBj4JD
+         LTOFG8+mNtw5CNxtuAOFKRtfHGmFrH1Tt1uEj8iXTmyab1blyy0W1b9ApND/m6zUzb
+         dhPIT0qwgtD9/T6W6Arkn7MWgheadoRJVsfd3PCI=
+Date:   Mon, 22 Aug 2022 14:02:05 -0700
+To:     mm-commits@vger.kernel.org, josh@joshtriplett.org,
+        adobriyan@gmail.com, deller@gmx.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch added to mm-unstable branch
-Message-Id: <20220822205913.B9608C433C1@smtp.kernel.org>
+Subject: [failures] proc-add-get_task_cmdline_kernel-function.patch removed from -mm tree
+Message-Id: <20220822210206.02F63C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: pagewalk: move variables to more local scope, tweak loops
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch
+The quilt patch titled
+     Subject: proc: add get_task_cmdline_kernel() function
+has been removed from the -mm tree.  Its filename was
+     proc-add-get_task_cmdline_kernel-function.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Rolf Eike Beer <eb@emlix.com>
-Subject: mm: pagewalk: move variables to more local scope, tweak loops
-Date: Mon, 22 Aug 2022 15:04:12 +0200
+From: Helge Deller <deller@gmx.de>
+Subject: proc: add get_task_cmdline_kernel() function
+Date: Mon, 8 Aug 2022 15:09:14 +0200
 
-Move some variables to more local scopes to make it obvious that they
-don't carry state.  Put the end additions into the for loop instructions
-to make them easier to read.
+Patch series "Dump command line of faulting process to syslog", v3.
 
-Link: https://lkml.kernel.org/r/8155217.NyiUUSuA9g@devpool047
-Signed-off-by: Rolf Eike Beer <eb@emlix.com>
+This patch series dumps the command line (including the program
+parameters) of a faulting process to the syslog.
+
+The motivation for this patch is that it's sometimes quite hard to find
+out and annoying to not know which program *exactly* faulted when looking
+at the syslog.
+
+For example, a dump on parisc shows:
+   do_page_fault() command='cc1' type=15 address=0x00000000 in libc-2.33.so[f6abb000+184000]
+
+-> We see the "cc1" compiler crashed, but it would be useful to know which
+   file was compiled.  With this patch you will see that cc1 crashed while
+   compiling some haskell code:
+
+   cc1[13472] cmdline: /usr/lib/gcc/hppa-linux-gnu/12/cc1 -quiet @/tmp/ccRkFSfY -imultilib . -imultiarch hppa-linux-gnu -D USE_MINIINTERPRETER -D NO_REGS -D _HPUX_SOURCE -D NOSMP -D THREADED_RTS -include /build/ghc/ghc-9.0.2/includes/dist-install/build/ghcversion.h -iquote compiler/GHC/Iface -quiet -dumpdir /tmp/ghc13413_0/ -dumpbase ghc_5.hc -dumpbase-ext .hc -O -Wimplicit -fno-PIC -fwrapv -fno-builtin -fno-strict-aliasing -o /tmp/ghc13413_0/ghc_5.s
+
+Another example are the glibc testcases which always segfault in "ld.so.1"
+with no other info:
+
+   do_page_fault() command='ld.so.1' type=15 address=0x565921d8 in libc.so[f7339000+1bb000]
+
+-> With the patch you can see it was the
+   "tst-safe-linking-malloc-hugetlb1" testcase:
+
+   ld.so.1[1151] cmdline: /home/gnu/glibc/objdir/elf/ld.so.1 --library-path /home/gnu/glibc/objdir:/home/gnu/glibc/objdir/math:/home/gnu/
+        /home/gnu/glibc/objdir/malloc/tst-safe-linking-malloc-hugetlb1
+
+An example of a typical x86 fault shows up as:
+   crash[2326]: segfault at 0 ip 0000561a7969c12e sp 00007ffe97a05630 error 6 in crash[561a7969c000+1000]
+   Code: 68 ff ff ff c6 05 19 2f 00 00 01 5d c3 0f 1f 80 00 00 00 00 c3 0f 1f 80 00 00 ...
+
+-> with this patch you now see the whole command line: crash[2326]
+   cmdline: ./crash test_write_to_page_0
+
+The patches are relatively small, and reuse functions which are used to
+create the output for the /proc/<pid>/cmdline files.
+
+The relevant changes are in patches #1 and #2.
+Patch #3 adds the cmdline dump on x86.
+Patch #4 drops code from arc which now becomes unnecessary as this is done
+by generic code.
+
+
+This patch (of 4):
+
+Add a new function get_task_cmdline_kernel() which reads the command line
+of a process into a kernel buffer.  This command line can then be dumped
+by arch code to give additional debug info via the parameters with which a
+faulting process was started.
+
+The new function reuses the existing code which provides the cmdline for
+the procfs.  For that the existing functions were modified so that the
+buffer page is allocated outside of get_mm_proctitle() and
+get_mm_cmdline() and instead provided as parameter.
+
+Link: https://lkml.kernel.org/r/20220808130917.30760-1-deller@gmx.de
+Link: https://lkml.kernel.org/r/20220808130917.30760-2-deller@gmx.de
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ fs/proc/base.c          |   74 ++++++++++++++++++++++++++------------
+ include/linux/proc_fs.h |    5 ++
+ 2 files changed, 56 insertions(+), 23 deletions(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-move-variables-to-more-local-scope-tweak-loops
-+++ a/mm/pagewalk.c
-@@ -25,14 +25,12 @@ static int walk_pte_range_inner(pte_t *p
+--- a/fs/proc/base.c~proc-add-get_task_cmdline_kernel-function
++++ a/fs/proc/base.c
+@@ -217,20 +217,17 @@ static int proc_root_link(struct dentry
+  */
+ static ssize_t get_mm_proctitle(struct mm_struct *mm, char __user *buf,
+ 				size_t count, unsigned long pos,
+-				unsigned long arg_start)
++				unsigned long arg_start, char *page)
  {
- 	const struct mm_walk_ops *ops = walk->ops;
+-	char *page;
+ 	int ret, got;
++	size_t size;
  
--	for (;;) {
-+	for (;; addr += PAGE_SIZE, pte++) {
- 		int err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
- 		if (err)
- 			return err;
- 		if (addr >= end - PAGE_SIZE)
- 			break;
--		addr += PAGE_SIZE;
--		pte++;
- 	}
- 	return 0;
- }
-@@ -42,13 +40,14 @@ static int walk_pte_range(pmd_t *pmd, un
- {
- 	pte_t *pte;
- 	int err;
--	spinlock_t *ptl;
- 
- 	if (walk->no_vma) {
- 		pte = pte_offset_map(pmd, addr);
- 		err = walk_pte_range_inner(pte, addr, end, walk);
- 		pte_unmap(pte);
- 	} else {
-+		spinlock_t *ptl;
-+
- 		pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
- 		err = walk_pte_range_inner(pte, addr, end, walk);
- 		pte_unmap_unlock(pte, ptl);
-@@ -71,7 +70,7 @@ static int walk_hugepd_range(hugepd_t *p
- 	if (addr & (page_size - 1))
+-	if (pos >= PAGE_SIZE)
++	size = min_t(size_t, PAGE_SIZE, count);
++	if (pos >= size)
  		return 0;
  
--	for (;;) {
-+	for (;; addr += page_size) {
- 		pte_t *pte;
- 		int err;
+-	page = (char *)__get_free_page(GFP_KERNEL);
+-	if (!page)
+-		return -ENOMEM;
+-
+ 	ret = 0;
+-	got = access_remote_vm(mm, arg_start, page, PAGE_SIZE, FOLL_ANON);
++	got = access_remote_vm(mm, arg_start, page, size, FOLL_ANON);
+ 	if (got > 0) {
+ 		int len = strnlen(page, got);
  
-@@ -84,7 +83,6 @@ static int walk_hugepd_range(hugepd_t *p
- 			return err;
- 		if (addr >= end - page_size)
- 			break;
--		addr += page_size;
+@@ -238,7 +235,9 @@ static ssize_t get_mm_proctitle(struct m
+ 		if (len < got)
+ 			len++;
+ 
+-		if (len > pos) {
++		if (!buf)
++			ret = len;
++		else if (len > pos) {
+ 			len -= pos;
+ 			if (len > count)
+ 				len = count;
+@@ -248,16 +247,15 @@ static ssize_t get_mm_proctitle(struct m
+ 			ret = len;
+ 		}
  	}
- 	return 0;
+-	free_page((unsigned long)page);
+ 	return ret;
  }
-@@ -307,14 +305,13 @@ static int walk_hugetlb_range(unsigned l
- 	unsigned long next;
- 	unsigned long hmask = huge_page_mask(h);
- 	unsigned long sz = huge_page_size(h);
--	pte_t *pte;
- 	const struct mm_walk_ops *ops = walk->ops;
  
--	do {
-+	for (; addr < end; addr = next) {
- 		int err;
-+		pte_t *pte = huge_pte_offset(walk->mm, addr & hmask, sz);
+ static ssize_t get_mm_cmdline(struct mm_struct *mm, char __user *buf,
+-			      size_t count, loff_t *ppos)
++			      size_t count, loff_t *ppos, char *page)
+ {
+ 	unsigned long arg_start, arg_end, env_start, env_end;
+ 	unsigned long pos, len;
+-	char *page, c;
++	char c;
  
- 		next = hugetlb_entry_end(h, addr, end);
--		pte = huge_pte_offset(walk->mm, addr & hmask, sz);
+ 	/* Check if process spawned far enough to have cmdline. */
+ 	if (!mm->env_end)
+@@ -283,7 +281,7 @@ static ssize_t get_mm_cmdline(struct mm_
+ 	len = env_end - arg_start;
  
- 		if (pte)
- 			err = ops->hugetlb_entry(pte, hmask, addr, next, walk);
-@@ -323,7 +320,7 @@ static int walk_hugetlb_range(unsigned l
+ 	/* We're not going to care if "*ppos" has high bits set */
+-	pos = *ppos;
++	pos = ppos ? *ppos : 0;
+ 	if (pos >= len)
+ 		return 0;
+ 	if (count > len - pos)
+@@ -299,7 +297,7 @@ static ssize_t get_mm_cmdline(struct mm_
+ 	 * pos is 0, and set a flag in the 'struct file'.
+ 	 */
+ 	if (access_remote_vm(mm, arg_end-1, &c, 1, FOLL_ANON) == 1 && c)
+-		return get_mm_proctitle(mm, buf, count, pos, arg_start);
++		return get_mm_proctitle(mm, buf, count, pos, arg_start, page);
  
- 		if (err)
- 			return err;
--	} while (addr = next, addr != end);
+ 	/*
+ 	 * For the non-setproctitle() case we limit things strictly
+@@ -311,10 +309,6 @@ static ssize_t get_mm_cmdline(struct mm_
+ 	if (count > arg_end - pos)
+ 		count = arg_end - pos;
+ 
+-	page = (char *)__get_free_page(GFP_KERNEL);
+-	if (!page)
+-		return -ENOMEM;
+-
+ 	len = 0;
+ 	while (count) {
+ 		int got;
+@@ -323,7 +317,8 @@ static ssize_t get_mm_cmdline(struct mm_
+ 		got = access_remote_vm(mm, pos, page, size, FOLL_ANON);
+ 		if (got <= 0)
+ 			break;
+-		got -= copy_to_user(buf, page, got);
++		if (buf)
++			got -= copy_to_user(buf, page, got);
+ 		if (unlikely(!got)) {
+ 			if (!len)
+ 				len = -EFAULT;
+@@ -335,12 +330,11 @@ static ssize_t get_mm_cmdline(struct mm_
+ 		count -= got;
+ 	}
+ 
+-	free_page((unsigned long)page);
+ 	return len;
+ }
+ 
+ static ssize_t get_task_cmdline(struct task_struct *tsk, char __user *buf,
+-				size_t count, loff_t *pos)
++				size_t count, loff_t *pos, char *page)
+ {
+ 	struct mm_struct *mm;
+ 	ssize_t ret;
+@@ -349,23 +343,57 @@ static ssize_t get_task_cmdline(struct t
+ 	if (!mm)
+ 		return 0;
+ 
+-	ret = get_mm_cmdline(mm, buf, count, pos);
++	ret = get_mm_cmdline(mm, buf, count, pos, page);
+ 	mmput(mm);
+ 	return ret;
+ }
+ 
++/*
++ * Place up to maxcount chars of the command line of the process into the
++ * cmdline buffer.
++ * NOTE: Requires that the task was locked with task_lock(task) by the caller.
++ */
++void get_task_cmdline_kernel(struct task_struct *task,
++			char *cmdline, size_t maxcount)
++{
++	struct mm_struct *mm;
++	int i;
++
++	mm = task->mm;
++	if (!mm || (task->flags & PF_KTHREAD))
++		return;
++
++	memset(cmdline, 0, maxcount);
++	get_mm_cmdline(mm, NULL, maxcount - 1, NULL, cmdline);
++
++	/* remove NULs between parameters */
++	for (i = 0; i < maxcount - 2; i++) {
++		if (cmdline[i])
++			continue;
++		if (cmdline[i+1] == 0)
++			break;
++		cmdline[i] = ' ';
 +	}
++}
++
+ static ssize_t proc_pid_cmdline_read(struct file *file, char __user *buf,
+ 				     size_t count, loff_t *pos)
+ {
+ 	struct task_struct *tsk;
+ 	ssize_t ret;
++	char *page;
  
- 	return 0;
+ 	BUG_ON(*pos < 0);
+ 
+ 	tsk = get_proc_task(file_inode(file));
+ 	if (!tsk)
+ 		return -ESRCH;
+-	ret = get_task_cmdline(tsk, buf, count, pos);
++	page = (char *)__get_free_page(GFP_KERNEL);
++	if (page) {
++		ret = get_task_cmdline(tsk, buf, count, pos, page);
++		free_page((unsigned long)page);
++	} else
++		ret = -ENOMEM;
+ 	put_task_struct(tsk);
+ 	if (ret > 0)
+ 		*pos += ret;
+--- a/include/linux/proc_fs.h~proc-add-get_task_cmdline_kernel-function
++++ a/include/linux/proc_fs.h
+@@ -158,6 +158,9 @@ int proc_pid_arch_status(struct seq_file
+ 			struct pid *pid, struct task_struct *task);
+ #endif /* CONFIG_PROC_PID_ARCH_STATUS */
+ 
++void get_task_cmdline_kernel(struct task_struct *task,
++			char *cmdline, size_t maxcount);
++
+ #else /* CONFIG_PROC_FS */
+ 
+ static inline void proc_root_init(void)
+@@ -216,6 +219,8 @@ static inline struct pid *tgid_pidfd_to_
+ 	return ERR_PTR(-EBADF);
  }
-@@ -461,14 +458,13 @@ int walk_page_range(struct mm_struct *mm
- 	do {
- 		int err;
  
-+		walk.vma = vma;
- 		if (!vma) { /* after the last vma */
--			walk.vma = NULL;
- 			next = end;
- 		} else if (start < vma->vm_start) { /* outside vma */
- 			walk.vma = NULL;
- 			next = min(end, vma->vm_start);
- 		} else { /* inside vma */
--			walk.vma = vma;
- 			next = min(end, vma->vm_end);
- 			vma = find_vma(mm, vma->vm_end);
++static inline void get_task_cmdline_kernel(struct task_struct *task, char *cmdl, size_t m) { }
++
+ #endif /* CONFIG_PROC_FS */
  
-@@ -595,11 +591,11 @@ int walk_page_mapping(struct address_spa
- 	};
- 	struct vm_area_struct *vma;
- 	pgoff_t vba, vea, cba, cea;
--	unsigned long start_addr, end_addr;
- 
- 	lockdep_assert_held(&mapping->i_mmap_rwsem);
- 	vma_interval_tree_foreach(vma, &mapping->i_mmap, first_index,
- 				  first_index + nr - 1) {
-+		unsigned long start_addr, end_addr;
- 		int err;
- 
- 		/* Clip to the vma */
+ struct net;
 _
 
-Patches currently in -mm which might be from eb@emlix.com are
+Patches currently in -mm which might be from deller@gmx.de are
 
-mm-pagewalk-make-error-checks-more-obvious.patch
-mm-pagewalk-dont-check-vma-in-walk_page_range_novma.patch
-mm-pagewalk-fix-documentation-of-pte-hole-handling.patch
-mm-pagewalk-add-api-documentation-for-walk_page_range_novma.patch
-mm-pagewalk-allow-walk_page_range_novma-without-mm.patch
-mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch
+lib-dump_stack-add-dump_stack_print_cmdline-and-wire-up-in-dump_stack_print_info.patch
+x86-fault-dump-command-line-of-faulting-process-to-syslog.patch
+arc-use-generic-dump_stack_print_cmdline-implementation.patch
 
