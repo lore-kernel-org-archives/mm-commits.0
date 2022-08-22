@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDA32C28D13
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 21:37:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2957C28D13
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 22:22:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238162AbiHVVhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 17:37:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58874 "EHLO
+        id S231466AbiHVWWz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 18:22:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237790AbiHVVhC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 17:37:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E540D53D05
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 14:37:01 -0700 (PDT)
+        with ESMTP id S231317AbiHVWWz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 18:22:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53D504D26A
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 15:22:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 727796131B
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 21:37:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFB97C433D7;
-        Mon, 22 Aug 2022 21:37:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EB070B81613
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 22:22:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A32C8C433D6;
+        Mon, 22 Aug 2022 22:22:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661204220;
-        bh=De2UEwFk26eHbYeLNfEV2RarJshXcbZBM0X2kzX+1YA=;
+        s=korg; t=1661206971;
+        bh=Qh2+jn98vVagbazeyxQtp9We1ECEqFF3W7oJjQjUQBk=;
         h=Date:To:From:Subject:From;
-        b=KrVksnXYz8BwPZRbW72BhFINxNEoA4JXXbW6XLPuDBqSs52J0LlqTmmYtEKCVELcC
-         CEBvRnDQs5I3AKqD/Qs/pYbruLHYZuvmWgNnRYfFFGvUE/G2ZyeAHh0R3TXk5JDgD1
-         CYAg45wzRpNlLaur43QhElOreVemxQSRyynVtKNk=
-Date:   Mon, 22 Aug 2022 14:36:59 -0700
-To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
-        akpm@linux-foundation.org
+        b=VovxcIHrvJMBo3Vv1wsChxsyNKiXRJ6kkNjlUBg81ZeICPQJ+cC5a19I22DNMt+Mr
+         144rn4CBDNpujs401xcwdncHNotgkAgHfXWo6bR0n9iWNr/CdoCky+kc5YJUN29PLu
+         f/AinRyrCn5zieXveqmWIAR3hkafgOW5so6Vraa8=
+Date:   Mon, 22 Aug 2022 15:22:50 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, surenb@google.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-move-from-strlcpy-with-unused-retval-to-strscpy.patch added to mm-nonmm-unstable branch
-Message-Id: <20220822213700.BFB97C433D7@smtp.kernel.org>
+Subject: + mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch added to mm-unstable branch
+Message-Id: <20220822222251.A32C8C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: move from strlcpy with unused retval to strscpy
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+     Subject: mm-delete-unused-mmf_oom_victim-flag-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,42 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Subject: lib: move from strlcpy with unused retval to strscpy
-Date: Thu, 18 Aug 2022 23:02:03 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-delete-unused-mmf_oom_victim-flag-fix
+Date: Mon Aug 22 03:11:53 PM PDT 2022
 
-Follow the advice of the below link and prefer 'strscpy' in this
-subsystem.  Conversion is 1:1 because the return value is not used. 
-Generated by a coccinelle script.
+remove MGLRU's mm_is_oom_victim() calls from vmscan.c
 
-Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20220818210203.8251-1-wsa+renesas@sang-engineering.com
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/earlycpio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/lib/earlycpio.c~lib-move-from-strlcpy-with-unused-retval-to-strscpy
-+++ a/lib/earlycpio.c
-@@ -126,7 +126,7 @@ struct cpio_data find_cpio_data(const ch
- 				"File %s exceeding MAX_CPIO_FILE_NAME [%d]\n",
- 				p, MAX_CPIO_FILE_NAME);
- 			}
--			strlcpy(cd.name, p + mypathsize, MAX_CPIO_FILE_NAME);
-+			strscpy(cd.name, p + mypathsize, MAX_CPIO_FILE_NAME);
+--- a/mm/vmscan.c~mm-delete-unused-mmf_oom_victim-flag-vs-mglru
++++ a/mm/vmscan.c
+@@ -3429,9 +3429,6 @@ static bool should_skip_mm(struct mm_str
+ 	if (size < MIN_LRU_BATCH)
+ 		return true;
  
- 			cd.data = (void *)dptr;
- 			cd.size = ch[C_FILESIZE];
+-	if (mm_is_oom_victim(mm))
+-		return true;
+-
+ 	return !mmget_not_zero(mm);
+ }
+ 
+@@ -4127,9 +4124,6 @@ restart:
+ 
+ 		walk_pmd_range(&val, addr, next, args);
+ 
+-		if (mm_is_oom_victim(args->mm))
+-			return 1;
+-
+ 		/* a racy check to curtail the waiting time */
+ 		if (wq_has_sleeper(&walk->lruvec->mm_state.wait))
+ 			return 1;
 _
 
-Patches currently in -mm which might be from wsa+renesas@sang-engineering.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-alpha-move-from-strlcpy-with-unused-retval-to-strscpy.patch
-ia64-move-from-strlcpy-with-unused-retval-to-strscpy.patch
-ocfs2-move-from-strlcpy-with-unused-retval-to-strscpy.patch
-reiserfs-move-from-strlcpy-with-unused-retval-to-strscpy.patch
-init-move-from-strlcpy-with-unused-retval-to-strscpy.patch
-lib-move-from-strlcpy-with-unused-retval-to-strscpy.patch
+asm-generic-sections-refactor-memory_intersects-fix.patch
+procfs-add-path-to-proc-pid-fdinfo-fix.patch
+zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
+mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
+mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
+zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
+mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
+mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
+mm-drop-oom-code-from-exit_mmap-fix-fix.patch
+mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
+mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
+ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
 
