@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91ADFC32774
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 870C4C38142
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237790AbiHVTVU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:21:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47634 "EHLO
+        id S237287AbiHVTVW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:21:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237742AbiHVTUA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C65AF27CE2
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:18:45 -0700 (PDT)
+        with ESMTP id S238646AbiHVTUx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:53 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB7C2B9B
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:19:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E2AC7B818AD
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:18:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E4B6C433D6;
-        Mon, 22 Aug 2022 19:18:42 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 0C1C0CE16DE
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:19:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 958ADC433C1;
+        Mon, 22 Aug 2022 19:19:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661195922;
-        bh=o3MPqX1Fe58Z1g17A0o6VdkzagD5zKEz4WVR7L4FRAY=;
+        s=korg; t=1661195987;
+        bh=JFkRsAmyVy6wr2+ImiW06/PA79VOqPGDlu537VihgyE=;
         h=Date:To:From:Subject:From;
-        b=slG7cofKuAP1fTCFUDitGuICvBErD6AojdB0L6vCo8HJKSje/15iJf6bLr09fPrt/
-         rVo2R9MwOuYz+e3mzUOrL7OUUiszz8RvjJz9/Z0G85gZ2PUoeVWB5o5zr58rdF/xYk
-         HJ7NSPQuEV4E3xTVvIpHoUBQeTfqxbS1DaJCjhd0=
-Date:   Mon, 22 Aug 2022 12:18:41 -0700
+        b=dEz8ImpSqS8MLQGfhANhc/HgJrgVKp4HGBzLeDqJEPsNkAxESXcG/zT4EOx8QnspQ
+         TWRnllVbi60MwQN6U7E8l3ad6ZwsyeLeaFZMtVM917/iaLjah6sDeIiCeHegGNZdOi
+         RM61MaZ72HdqRrnMRHcuJXnk4zdwR+fVfib5IJJE=
+Date:   Mon, 22 Aug 2022 12:19:46 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + radix-tree-test-suite-add-allocation-counts-and-size-to-kmem_cache.patch added to mm-unstable branch
-Message-Id: <20220822191842.7E4B6C433D6@smtp.kernel.org>
+Subject: + mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree.patch added to mm-unstable branch
+Message-Id: <20220822191947.958ADC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: add allocation counts and size to kmem_cache
+     Subject: mm/mmap: use the maple tree for find_vma_prev() instead of the rbtree
 has been added to the -mm mm-unstable branch.  Its filename is
-     radix-tree-test-suite-add-allocation-counts-and-size-to-kmem_cache.patch
+     mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-test-suite-add-allocation-counts-and-size-to-kmem_cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,98 +68,75 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: radix tree test suite: add allocation counts and size to kmem_cache
-Date: Mon, 22 Aug 2022 15:02:25 +0000
+Subject: mm/mmap: use the maple tree for find_vma_prev() instead of the rbtree
+Date: Mon, 22 Aug 2022 15:03:05 +0000
 
-Add functions to get the number of allocations, and total allocations from
-a kmem_cache.  Also add a function to get the allocated size and a way to
-zero the total allocations.
+Use the maple tree's advanced API and a maple state to walk the tree for
+the entry at the address of the next vma, then use the maple state to walk
+back one entry to find the previous entry.
 
-Link: https://lkml.kernel.org/r/20220822150128.1562046-5-Liam.Howlett@oracle.com
+Add kernel documentation comments for this API.
+
+Link: https://lkml.kernel.org/r/20220822150128.1562046-13-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ mm/mmap.c |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
---- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-add-allocation-counts-and-size-to-kmem_cache
-+++ a/tools/testing/radix-tree/linux.c
-@@ -24,6 +24,8 @@ struct kmem_cache {
- 	void *objs;
- 	void (*ctor)(void *);
- 	unsigned int non_kernel;
-+	unsigned long nr_allocated;
-+	unsigned long nr_tallocated;
- };
+--- a/mm/mmap.c~mm-mmap-use-the-maple-tree-for-find_vma_prev-instead-of-the-rbtree
++++ a/mm/mmap.c
+@@ -2475,23 +2475,30 @@ struct vm_area_struct *find_vma(struct m
+ }
+ EXPORT_SYMBOL(find_vma);
  
- void kmem_cache_set_non_kernel(struct kmem_cache *cachep, unsigned int val)
-@@ -31,9 +33,28 @@ void kmem_cache_set_non_kernel(struct km
- 	cachep->non_kernel = val;
+-/*
+- * Same as find_vma, but also return a pointer to the previous VMA in *pprev.
++/**
++ * find_vma_prev() - Find the VMA for a given address, or the next vma and
++ * set %pprev to the previous VMA, if any.
++ * @mm: The mm_struct to check
++ * @addr: The address
++ * @pprev: The pointer to set to the previous VMA
++ *
++ * Note that RCU lock is missing here since the external mmap_lock() is used
++ * instead.
++ *
++ * Returns: The VMA associated with @addr, or the next vma.
++ * May return %NULL in the case of no vma at addr or above.
+  */
+ struct vm_area_struct *
+ find_vma_prev(struct mm_struct *mm, unsigned long addr,
+ 			struct vm_area_struct **pprev)
+ {
+ 	struct vm_area_struct *vma;
++	MA_STATE(mas, &mm->mm_mt, addr, addr);
+ 
+-	vma = find_vma(mm, addr);
+-	if (vma) {
+-		*pprev = vma->vm_prev;
+-	} else {
+-		struct rb_node *rb_node = rb_last(&mm->mm_rb);
+-
+-		*pprev = rb_node ? rb_entry(rb_node, struct vm_area_struct, vm_rb) : NULL;
+-	}
++	vma = mas_walk(&mas);
++	*pprev = mas_prev(&mas, 0);
++	if (!vma)
++		vma = mas_next(&mas, ULONG_MAX);
+ 	return vma;
  }
  
-+unsigned long kmem_cache_get_alloc(struct kmem_cache *cachep)
-+{
-+	return cachep->size * cachep->nr_allocated;
-+}
-+
-+unsigned long kmem_cache_nr_allocated(struct kmem_cache *cachep)
-+{
-+	return cachep->nr_allocated;
-+}
-+
-+unsigned long kmem_cache_nr_tallocated(struct kmem_cache *cachep)
-+{
-+	return cachep->nr_tallocated;
-+}
-+
-+void kmem_cache_zero_nr_tallocated(struct kmem_cache *cachep)
-+{
-+	cachep->nr_tallocated = 0;
-+}
-+
- void *kmem_cache_alloc_lru(struct kmem_cache *cachep, struct list_lru *lru,
- 		int gfp)
--
- {
- 	void *p;
- 
-@@ -64,7 +85,9 @@ void *kmem_cache_alloc_lru(struct kmem_c
- 			memset(p, 0, cachep->size);
- 	}
- 
-+	uatomic_inc(&cachep->nr_allocated);
- 	uatomic_inc(&nr_allocated);
-+	uatomic_inc(&cachep->nr_tallocated);
- 	if (kmalloc_verbose)
- 		printf("Allocating %p from slab\n", p);
- 	return p;
-@@ -74,6 +97,7 @@ void kmem_cache_free(struct kmem_cache *
- {
- 	assert(objp);
- 	uatomic_dec(&nr_allocated);
-+	uatomic_dec(&cachep->nr_allocated);
- 	if (kmalloc_verbose)
- 		printf("Freeing %p to slab\n", objp);
- 	pthread_mutex_lock(&cachep->lock);
-@@ -99,6 +123,8 @@ kmem_cache_create(const char *name, unsi
- 	ret->size = size;
- 	ret->align = align;
- 	ret->nr_objs = 0;
-+	ret->nr_allocated = 0;
-+	ret->nr_tallocated = 0;
- 	ret->objs = NULL;
- 	ret->ctor = ctor;
- 	ret->non_kernel = 0;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
