@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 208BAC32772
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70166C38145
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:21:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236506AbiHVTVM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:21:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48530 "EHLO
+        id S237375AbiHVTVO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:21:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238667AbiHVTUx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A65BC38AE
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:20:07 -0700 (PDT)
+        with ESMTP id S237566AbiHVTUA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:20:00 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27E5C3CBE9
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:18:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7BD5961210
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:20:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDDB1C433C1;
-        Mon, 22 Aug 2022 19:20:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3A16DB818AE
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:18:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D49CFC433D6;
+        Mon, 22 Aug 2022 19:18:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661196005;
-        bh=VsX9RC2EJzZYoMIQ1ravgXLPttf+WHdJAYRbbvzp+mU=;
+        s=korg; t=1661195924;
+        bh=1g8KRpXxTevvcsC9YvFpubeYOLMAlmnqey/Jb6m1qqQ=;
         h=Date:To:From:Subject:From;
-        b=VyJ37fZ72hKN6+gLC2avEDnGzZRD9NvB921hYLwq+mtkZYp7s5OZ5PxsPwlqsaHhi
-         idADawAlH5YSS8IepDjK440GhGwqbUcPZd9zvtQtxylWbUYbUENByifvYkmtnCnQlZ
-         VmRxjgMJuJkfXdGFzkSlVJ/20DTfsasEgUyGnnWQ=
-Date:   Mon, 22 Aug 2022 12:20:05 -0700
+        b=xs738yBIqJr9NLIG5RVaxWxzdDSOhSZjqDOBarOT1yZ8KCJ67Wwr4o/dnhfa78tPC
+         ShEcJ+DZv8q3WsneVFPjyBaAsc4s0oAMzhi/sIO/nvlycHtAHw9mvJVljrYlXqBSmM
+         JmFHw7fwFC8HWFhoBNRs4v+d5ieK+JJ1XaqpnIbo=
+Date:   Mon, 22 Aug 2022 12:18:43 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xen-use-vma_lookup-in-privcmd_ioctl_mmap.patch added to mm-unstable branch
-Message-Id: <20220822192005.CDDB1C433C1@smtp.kernel.org>
+Subject: + radix-tree-test-suite-add-support-for-slab-bulk-apis.patch added to mm-unstable branch
+Message-Id: <20220822191844.D49CFC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xen: use vma_lookup() in privcmd_ioctl_mmap()
+     Subject: radix tree test suite: add support for slab bulk APIs
 has been added to the -mm mm-unstable branch.  Its filename is
-     xen-use-vma_lookup-in-privcmd_ioctl_mmap.patch
+     radix-tree-test-suite-add-support-for-slab-bulk-apis.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xen-use-vma_lookup-in-privcmd_ioctl_mmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-test-suite-add-support-for-slab-bulk-apis.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,42 +68,188 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: xen: use vma_lookup() in privcmd_ioctl_mmap()
-Date: Mon, 22 Aug 2022 15:04:30 +0000
+Subject: radix tree test suite: add support for slab bulk APIs
+Date: Mon, 22 Aug 2022 15:02:29 +0000
 
-vma_lookup() walks the VMA tree for a specific value, find_vma() will
-search the tree after walking to a specific value.  It is more efficient
-to only walk to the requested value since privcmd_ioctl_mmap() will exit
-the loop if vm_start != msg->va.
+Add support for kmem_cache_free_bulk() and kmem_cache_alloc_bulk() to the
+radix tree test suite.
 
-Link: https://lkml.kernel.org/r/20220822150128.1562046-20-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220822150128.1562046-6-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/privcmd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/include/linux/slab.h       |    4 
+ tools/testing/radix-tree/linux.c |  118 ++++++++++++++++++++++++++++-
+ 2 files changed, 120 insertions(+), 2 deletions(-)
 
---- a/drivers/xen/privcmd.c~xen-use-vma_lookup-in-privcmd_ioctl_mmap
-+++ a/drivers/xen/privcmd.c
-@@ -282,7 +282,7 @@ static long privcmd_ioctl_mmap(struct fi
- 						     struct page, lru);
- 		struct privcmd_mmap_entry *msg = page_address(page);
+--- a/tools/include/linux/slab.h~radix-tree-test-suite-add-support-for-slab-bulk-apis
++++ a/tools/include/linux/slab.h
+@@ -41,4 +41,8 @@ struct kmem_cache *kmem_cache_create(con
+ 			unsigned int align, unsigned int flags,
+ 			void (*ctor)(void *));
  
--		vma = find_vma(mm, msg->va);
-+		vma = vma_lookup(mm, msg->va);
- 		rc = -EINVAL;
++void kmem_cache_free_bulk(struct kmem_cache *cachep, size_t size, void **list);
++int kmem_cache_alloc_bulk(struct kmem_cache *cachep, gfp_t gfp, size_t size,
++			  void **list);
++
+ #endif		/* _TOOLS_SLAB_H */
+--- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-add-support-for-slab-bulk-apis
++++ a/tools/testing/radix-tree/linux.c
+@@ -93,14 +93,13 @@ void *kmem_cache_alloc_lru(struct kmem_c
+ 	return p;
+ }
  
- 		if (!vma || (msg->va != vma->vm_start) || vma->vm_private_data)
+-void kmem_cache_free(struct kmem_cache *cachep, void *objp)
++void kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
+ {
+ 	assert(objp);
+ 	uatomic_dec(&nr_allocated);
+ 	uatomic_dec(&cachep->nr_allocated);
+ 	if (kmalloc_verbose)
+ 		printf("Freeing %p to slab\n", objp);
+-	pthread_mutex_lock(&cachep->lock);
+ 	if (cachep->nr_objs > 10 || cachep->align) {
+ 		memset(objp, POISON_FREE, cachep->size);
+ 		free(objp);
+@@ -110,9 +109,80 @@ void kmem_cache_free(struct kmem_cache *
+ 		node->parent = cachep->objs;
+ 		cachep->objs = node;
+ 	}
++}
++
++void kmem_cache_free(struct kmem_cache *cachep, void *objp)
++{
++	pthread_mutex_lock(&cachep->lock);
++	kmem_cache_free_locked(cachep, objp);
++	pthread_mutex_unlock(&cachep->lock);
++}
++
++void kmem_cache_free_bulk(struct kmem_cache *cachep, size_t size, void **list)
++{
++	if (kmalloc_verbose)
++		pr_debug("Bulk free %p[0-%lu]\n", list, size - 1);
++
++	pthread_mutex_lock(&cachep->lock);
++	for (int i = 0; i < size; i++)
++		kmem_cache_free_locked(cachep, list[i]);
+ 	pthread_mutex_unlock(&cachep->lock);
+ }
+ 
++int kmem_cache_alloc_bulk(struct kmem_cache *cachep, gfp_t gfp, size_t size,
++			  void **p)
++{
++	size_t i;
++
++	if (kmalloc_verbose)
++		pr_debug("Bulk alloc %lu\n", size);
++
++	if (!(gfp & __GFP_DIRECT_RECLAIM)) {
++		if (cachep->non_kernel < size)
++			return 0;
++
++		cachep->non_kernel -= size;
++	}
++
++	pthread_mutex_lock(&cachep->lock);
++	if (cachep->nr_objs >= size) {
++		struct radix_tree_node *node;
++
++		for (i = 0; i < size; i++) {
++			node = cachep->objs;
++			cachep->nr_objs--;
++			cachep->objs = node->parent;
++			p[i] = node;
++			node->parent = NULL;
++		}
++		pthread_mutex_unlock(&cachep->lock);
++	} else {
++		pthread_mutex_unlock(&cachep->lock);
++		for (i = 0; i < size; i++) {
++			if (cachep->align) {
++				posix_memalign(&p[i], cachep->align,
++					       cachep->size * size);
++			} else {
++				p[i] = malloc(cachep->size * size);
++			}
++			if (cachep->ctor)
++				cachep->ctor(p[i]);
++			else if (gfp & __GFP_ZERO)
++				memset(p[i], 0, cachep->size);
++		}
++	}
++
++	for (i = 0; i < size; i++) {
++		uatomic_inc(&nr_allocated);
++		uatomic_inc(&cachep->nr_allocated);
++		uatomic_inc(&cachep->nr_tallocated);
++		if (kmalloc_verbose)
++			printf("Allocating %p from slab\n", p[i]);
++	}
++
++	return size;
++}
++
+ struct kmem_cache *
+ kmem_cache_create(const char *name, unsigned int size, unsigned int align,
+ 		unsigned int flags, void (*ctor)(void *))
+@@ -130,3 +200,47 @@ kmem_cache_create(const char *name, unsi
+ 	ret->non_kernel = 0;
+ 	return ret;
+ }
++
++/*
++ * Test the test infrastructure for kem_cache_alloc/free and bulk counterparts.
++ */
++void test_kmem_cache_bulk(void)
++{
++	int i;
++	void *list[12];
++	static struct kmem_cache *test_cache, *test_cache2;
++
++	/*
++	 * Testing the bulk allocators without aligned kmem_cache to force the
++	 * bulk alloc/free to reuse
++	 */
++	test_cache = kmem_cache_create("test_cache", 256, 0, SLAB_PANIC, NULL);
++
++	for (i = 0; i < 5; i++)
++		list[i] = kmem_cache_alloc(test_cache, __GFP_DIRECT_RECLAIM);
++
++	for (i = 0; i < 5; i++)
++		kmem_cache_free(test_cache, list[i]);
++	assert(test_cache->nr_objs == 5);
++
++	kmem_cache_alloc_bulk(test_cache, __GFP_DIRECT_RECLAIM, 5, list);
++	kmem_cache_free_bulk(test_cache, 5, list);
++
++	for (i = 0; i < 12 ; i++)
++		list[i] = kmem_cache_alloc(test_cache, __GFP_DIRECT_RECLAIM);
++
++	for (i = 0; i < 12; i++)
++		kmem_cache_free(test_cache, list[i]);
++
++	/* The last free will not be kept around */
++	assert(test_cache->nr_objs == 11);
++
++	/* Aligned caches will immediately free */
++	test_cache2 = kmem_cache_create("test_cache2", 128, 128, SLAB_PANIC, NULL);
++
++	kmem_cache_alloc_bulk(test_cache2, __GFP_DIRECT_RECLAIM, 10, list);
++	kmem_cache_free_bulk(test_cache2, 10, list);
++	assert(!test_cache2->nr_objs);
++
++
++}
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
