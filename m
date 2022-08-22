@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82988C28D13
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:23:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0155DC32774
+	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 19:23:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238725AbiHVTXK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:23:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47658 "EHLO
+        id S238554AbiHVTXM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:23:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238499AbiHVTVk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:21:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5499F4E616
+        with ESMTP id S238549AbiHVTV7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 15:21:59 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADB6F4E84D
         for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 12:21:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F4E961234
-        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:21:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A443DC4347C;
-        Mon, 22 Aug 2022 19:21:28 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id CF7CFCE16B8
+        for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2022 19:21:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A81E5C433C1;
+        Mon, 22 Aug 2022 19:21:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661196088;
-        bh=22f+BaA/TKD/DWbE6yUzywKX4V6DXjNyfrLYcdih6PQ=;
+        s=korg; t=1661196086;
+        bh=XhztYTwQZ87X/RyQLhanSjlsH7UcfRdAYVYvlZS7kts=;
         h=Date:To:From:Subject:From;
-        b=E6BQCd5uQZihPZ1zExDg5ZnuB63Fi8Q3lr1+Ek7K7T7HZNg7m67q6/UhTG7/bKpQv
-         uS+8UfQm/uQUi8VVy6VmvMg8fpIYtgj7V1rL2BhJm88PLS7Ay2fvtDpNo505nG/iAs
-         2G/IN2LJCB+O9kn58qKse9Nvf5G8N3dNtSdjeA5U=
-Date:   Mon, 22 Aug 2022 12:21:27 -0700
+        b=d6uU/aagQHaa7T1mbzj1ekPtLDt9uHT2lT5WbtPk4W3HWtqfMsBxbWHYcQoenUEJm
+         G8ustAGi1NYB39Z8Ucjh7V/PxgR79x2IXXjbvcfWiguw4knYvci9+d0ZE5FNexQq9S
+         QM90LZ70mtNDNPFhJgkuuSfFoq6opAXJfblA82+E=
+Date:   Mon, 22 Aug 2022 12:21:26 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         will@kernel.org, vbabka@suse.cz, svens@linux.ibm.com,
         sj@kernel.org, dhowells@redhat.com, david@redhat.com,
         catalin.marinas@arm.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-stop-using-mm-highest_vm_end.patch added to mm-unstable branch
-Message-Id: <20220822192128.A443DC4347C@smtp.kernel.org>
+Subject: + mm-madvise-use-vma_find-instead-of-vma-linked-list.patch added to mm-unstable branch
+Message-Id: <20220822192126.A81E5C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: stop using mm->highest_vm_end
+     Subject: mm/madvise: use vma_find() instead of vma linked list
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcontrol-stop-using-mm-highest_vm_end.patch
+     mm-madvise-use-vma_find-instead-of-vma-linked-list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-stop-using-mm-highest_vm_end.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-vma_find-instead-of-vma-linked-list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,50 +68,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm/memcontrol: stop using mm->highest_vm_end
+Subject: mm/madvise: use vma_find() instead of vma linked list
 Date: Mon, 22 Aug 2022 15:06:29 +0000
 
-Pass through ULONG_MAX instead.
+madvise_walk_vmas() no longer uses linked list.
 
-Link: https://lkml.kernel.org/r/20220822150128.1562046-56-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20220822150128.1562046-55-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-stop-using-mm-highest_vm_end
-+++ a/mm/memcontrol.c
-@@ -5879,7 +5879,7 @@ static unsigned long mem_cgroup_count_pr
- 	unsigned long precharge;
- 
- 	mmap_read_lock(mm);
--	walk_page_range(mm, 0, mm->highest_vm_end, &precharge_walk_ops, NULL);
-+	walk_page_range(mm, 0, ULONG_MAX, &precharge_walk_ops, NULL);
- 	mmap_read_unlock(mm);
- 
- 	precharge = mc.precharge;
-@@ -6177,9 +6177,7 @@ retry:
- 	 * When we have consumed all precharges and failed in doing
- 	 * additional charge, the page walk just aborts.
- 	 */
--	walk_page_range(mc.mm, 0, mc.mm->highest_vm_end, &charge_walk_ops,
--			NULL);
--
-+	walk_page_range(mc.mm, 0, ULONG_MAX, &charge_walk_ops, NULL);
- 	mmap_read_unlock(mc.mm);
- 	atomic_dec(&mc.from->moving_account);
- }
+--- a/mm/madvise.c~mm-madvise-use-vma_find-instead-of-vma-linked-list
++++ a/mm/madvise.c
+@@ -1242,7 +1242,7 @@ int madvise_walk_vmas(struct mm_struct *
+ 		if (start >= end)
+ 			break;
+ 		if (prev)
+-			vma = prev->vm_next;
++			vma = find_vma(mm, prev->vm_end);
+ 		else	/* madvise_remove dropped mmap_lock */
+ 			vma = find_vma(mm, start);
+ 	}
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
