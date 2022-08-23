@@ -2,213 +2,113 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA3D0C32792
-	for <mm-commits@archiver.kernel.org>; Mon, 22 Aug 2022 22:24:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96251C28D13
+	for <mm-commits@archiver.kernel.org>; Tue, 23 Aug 2022 00:07:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231317AbiHVWYg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 Aug 2022 18:24:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42238 "EHLO
+        id S238910AbiHWAHY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 Aug 2022 20:07:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236230AbiHVWYf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 18:24:35 -0400
+        with ESMTP id S238912AbiHWAHY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2022 20:07:24 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3832A402EA;
-        Mon, 22 Aug 2022 15:24:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2381457218;
+        Mon, 22 Aug 2022 17:07:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C42BF6133D;
-        Mon, 22 Aug 2022 22:24:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 262EAC433D6;
-        Mon, 22 Aug 2022 22:24:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ADDFC61373;
+        Tue, 23 Aug 2022 00:07:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7DD9C4314B;
+        Tue, 23 Aug 2022 00:07:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661207072;
-        bh=vLkPEvonAr06kBYz979KinBd/sipgibCBPcIxw4Pozw=;
-        h=Date:To:From:Subject:From;
-        b=hVKQ2x+VbNCJZYSWJSdw4vXyND3vsPyI6n+o6j+GCQbgErkJaovfU/MUY3vHppAft
-         ZRQWhN8CH35AuI8v2vR8HP5SGkpRXQqUMxA5+X8MSdpm6e7/ZEvVqJMSnLT23zhvVN
-         hrx7N/CdVOrBBCvjI+2MYu+Rdd+wzhrlHsRGvPco=
-Date:   Mon, 22 Aug 2022 15:24:31 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        lists@colorremedies.com, phillip@squashfs.org.uk,
-        akpm@linux-foundation.org
+        s=korg; t=1661213242;
+        bh=fwlwWdu1Htluif+hgrxaqiDSgoz7569n+dARiej9tYs=;
+        h=Date:From:To:Cc:Subject:From;
+        b=L4RaAGcb8aD1Pkj+M3YXmJLWil1qXAXoGVhGvfMd4zYfAfmUXFArxZbw0Dtn1gYK9
+         KBAYyC9FyZHl8y2im45NZ4meZ0bLFXgKtH2QoxRPmMgn9ERzldOKguuUYZBqB9+48G
+         dSMx0Mg/M2E+EfQm80T7NV1g6ki4SVvqqetgfeuw=
+Date:   Mon, 22 Aug 2022 17:07:21 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-dont-call-kmalloc-in-decompressors.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220822222432.262EAC433D6@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.0-rc3
+Message-Id: <20220822170721.1e32635aaedb6f4c53933390@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Linus, please pull this batch of hotfixes.
 
-The patch titled
-     Subject: squashfs: don't call kmalloc in decompressors
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     squashfs-dont-call-kmalloc-in-decompressors.patch
+The following changes since commit 568035b01cfb107af8d2e4bd2fb9aea22cf5b868:
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-dont-call-kmalloc-in-decompressors.patch
+  Linux 6.0-rc1 (2022-08-14 15:50:18 -0700)
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+are available in the Git repository at:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2022-08-22
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+for you to fetch changes up to 9c80e79906b4ca440d09e7f116609262bb747909:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  kprobes: don't call disarm_kprobe() for disabled kprobes (2022-08-20 15:17:46 -0700)
 
-------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: don't call kmalloc in decompressors
-Date: Mon, 22 Aug 2022 22:54:30 +0100
+----------------------------------------------------------------
+Thirteen fixes, almost all for MM.  Seven of these are cc:stable and the
+remainder fix up the changes which went into this -rc cycle.
 
-The decompressors may be called while in an atomic section.  So move the
-kmalloc() out of this path, and into the "page actor" init function.
+----------------------------------------------------------------
+Dan Carpenter (1):
+      get_maintainer: add Alan to .get_maintainer.ignore
 
-This fixes a regression introduced by commit
-f268eedddf35 ("squashfs: extend "page actor" to handle missing pages")
+David Hildenbrand (3):
+      mm/gup: fix FOLL_FORCE COW security issue and remove FOLL_COW
+      mm/hugetlb: fix hugetlb not supporting softdirty tracking
+      mm/hugetlb: support write-faults in shared mappings
 
-Link: https://lkml.kernel.org/r/20220822215430.15933-1-phillip@squashfs.org.uk
-Fixes: f268eedddf35 ("squashfs: extend "page actor" to handle missing pages")
-Reported-by: Chris Murphy <lists@colorremedies.com>
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Hao Lee (1):
+      mm: add DEVICE_ZONE to FOR_ALL_ZONES
 
- fs/squashfs/file.c        |    2 +-
- fs/squashfs/file_direct.c |    2 +-
- fs/squashfs/page_actor.c  |   34 +++++++++++++++-------------------
- fs/squashfs/page_actor.h  |    5 +++++
- 4 files changed, 22 insertions(+), 21 deletions(-)
+Hugh Dickins (3):
+      mm/shmem: fix chattr fsflags support in tmpfs
+      mm/shmem: tmpfs fallocate use file_modified()
+      mm/shmem: shmem_replace_page() remember NR_SHMEM
 
---- a/fs/squashfs/file.c~squashfs-dont-call-kmalloc-in-decompressors
-+++ a/fs/squashfs/file.c
-@@ -593,7 +593,7 @@ static void squashfs_readahead(struct re
- 
- 		res = squashfs_read_data(inode->i_sb, block, bsize, NULL, actor);
- 
--		kfree(actor);
-+		squashfs_page_actor_free(actor);
- 
- 		if (res == expected) {
- 			int bytes;
---- a/fs/squashfs/file_direct.c~squashfs-dont-call-kmalloc-in-decompressors
-+++ a/fs/squashfs/file_direct.c
-@@ -74,7 +74,7 @@ int squashfs_readpage_block(struct page
- 	/* Decompress directly into the page cache buffers */
- 	res = squashfs_read_data(inode->i_sb, block, bsize, NULL, actor);
- 
--	kfree(actor);
-+	squashfs_page_actor_free(actor);
- 
- 	if (res < 0)
- 		goto mark_errored;
---- a/fs/squashfs/page_actor.c~squashfs-dont-call-kmalloc-in-decompressors
-+++ a/fs/squashfs/page_actor.c
-@@ -52,6 +52,7 @@ struct squashfs_page_actor *squashfs_pag
- 	actor->buffer = buffer;
- 	actor->pages = pages;
- 	actor->next_page = 0;
-+	actor->tmp_buffer = NULL;
- 	actor->squashfs_first_page = cache_first_page;
- 	actor->squashfs_next_page = cache_next_page;
- 	actor->squashfs_finish_page = cache_finish_page;
-@@ -68,20 +69,9 @@ static void *handle_next_page(struct squ
- 
- 	if ((actor->next_page == actor->pages) ||
- 			(actor->next_index != actor->page[actor->next_page]->index)) {
--		if (actor->alloc_buffer) {
--			void *tmp_buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
--
--			if (tmp_buffer) {
--				actor->tmp_buffer = tmp_buffer;
--				actor->next_index++;
--				actor->returned_pages++;
--				return tmp_buffer;
--			}
--		}
--
- 		actor->next_index++;
- 		actor->returned_pages++;
--		return ERR_PTR(-ENOMEM);
-+		return actor->alloc_buffer ? actor->tmp_buffer : ERR_PTR(-ENOMEM);
- 	}
- 
- 	actor->next_index++;
-@@ -96,11 +86,10 @@ static void *direct_first_page(struct sq
- 
- static void *direct_next_page(struct squashfs_page_actor *actor)
- {
--	if (actor->pageaddr)
-+	if (actor->pageaddr) {
- 		kunmap_local(actor->pageaddr);
--
--	kfree(actor->tmp_buffer);
--	actor->pageaddr = actor->tmp_buffer = NULL;
-+		actor->pageaddr = NULL;
-+	}
- 
- 	return handle_next_page(actor);
- }
-@@ -109,8 +98,6 @@ static void direct_finish_page(struct sq
- {
- 	if (actor->pageaddr)
- 		kunmap_local(actor->pageaddr);
--
--	kfree(actor->tmp_buffer);
- }
- 
- struct squashfs_page_actor *squashfs_page_actor_init_special(struct squashfs_sb_info *msblk,
-@@ -121,6 +108,16 @@ struct squashfs_page_actor *squashfs_pag
- 	if (actor == NULL)
- 		return NULL;
- 
-+	if (msblk->decompressor->alloc_buffer) {
-+		actor->tmp_buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+
-+		if (actor->tmp_buffer == NULL) {
-+			kfree(actor);
-+			return NULL;
-+		}
-+	} else
-+		actor->tmp_buffer = NULL;
-+
- 	actor->length = length ? : pages * PAGE_SIZE;
- 	actor->page = page;
- 	actor->pages = pages;
-@@ -128,7 +125,6 @@ struct squashfs_page_actor *squashfs_pag
- 	actor->returned_pages = 0;
- 	actor->next_index = page[0]->index & ~((1 << (msblk->block_log - PAGE_SHIFT)) - 1);
- 	actor->pageaddr = NULL;
--	actor->tmp_buffer = NULL;
- 	actor->alloc_buffer = msblk->decompressor->alloc_buffer;
- 	actor->squashfs_first_page = direct_first_page;
- 	actor->squashfs_next_page = direct_next_page;
---- a/fs/squashfs/page_actor.h~squashfs-dont-call-kmalloc-in-decompressors
-+++ a/fs/squashfs/page_actor.h
-@@ -29,6 +29,11 @@ extern struct squashfs_page_actor *squas
- extern struct squashfs_page_actor *squashfs_page_actor_init_special(
- 				struct squashfs_sb_info *msblk,
- 				struct page **page, int pages, int length);
-+static inline void squashfs_page_actor_free(struct squashfs_page_actor *actor)
-+{
-+	kfree(actor->tmp_buffer);
-+	kfree(actor);
-+}
- static inline void *squashfs_first_page(struct squashfs_page_actor *actor)
- {
- 	return actor->squashfs_first_page(actor);
-_
+Jiri Slaby (1):
+      Revert "zram: remove double compression logic"
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Kuniyuki Iwashima (1):
+      kprobes: don't call disarm_kprobe() for disabled kprobes
 
-squashfs-dont-call-kmalloc-in-decompressors.patch
+Peter Xu (2):
+      mm/smaps: don't access young/dirty bit if pte unpresent
+      mm/uffd: reset write protection when unregister with wp-mode
+
+Randy Dunlap (1):
+      kernel/sys_ni: add compat entry for fadvise64_64
+
+ .get_maintainer.ignore        |  2 ++
+ drivers/block/zram/zram_drv.c | 42 +++++++++++++++++++-------
+ drivers/block/zram/zram_drv.h |  1 +
+ fs/proc/task_mmu.c            |  7 +++--
+ fs/userfaultfd.c              |  4 +++
+ include/linux/mm.h            |  1 -
+ include/linux/shmem_fs.h      | 13 +++------
+ include/linux/userfaultfd_k.h |  2 ++
+ include/linux/vm_event_item.h | 15 +++++++---
+ kernel/kprobes.c              |  9 +++---
+ kernel/sys_ni.c               |  1 +
+ mm/gup.c                      | 68 +++++++++++++++++++++++++++++--------------
+ mm/huge_memory.c              | 64 +++++++++++++++++++++++++++-------------
+ mm/hugetlb.c                  | 26 ++++++++++++-----
+ mm/mmap.c                     |  7 +++--
+ mm/shmem.c                    | 59 ++++++++++++++++++++++---------------
+ mm/userfaultfd.c              | 29 +++++++++++-------
+ mm/vmstat.c                   |  9 +++++-
+ 18 files changed, 240 insertions(+), 119 deletions(-)
 
