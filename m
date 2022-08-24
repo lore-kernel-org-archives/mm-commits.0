@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 835A7C3F6B0
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 17:27:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8C69C00140
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 17:36:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240110AbiHXR1a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Aug 2022 13:27:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35342 "EHLO
+        id S239953AbiHXRgU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Aug 2022 13:36:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240115AbiHXR13 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 13:27:29 -0400
+        with ESMTP id S229640AbiHXRgT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 13:36:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC5887CA80
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 10:27:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E1346DAC8
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 10:36:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8933860FB5
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 17:27:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEC68C433C1;
-        Wed, 24 Aug 2022 17:27:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 39D9361297
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 17:36:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EACDC433C1;
+        Wed, 24 Aug 2022 17:36:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661362048;
-        bh=sVfvHx0st7nfkKPnZ27qR1tCrsXp618pkwCel3tq+T8=;
+        s=korg; t=1661362577;
+        bh=YqioDXwY4mMflQI9FKB16B27g1kj24BTJU/XGf4+TTY=;
         h=Date:To:From:Subject:From;
-        b=ee1lAxwm3ZF4X0qv37JFK0VVxwMRYKVonDbqFQOQSeiy8T7cSzqQPsKgBBkMQ1fiA
-         2wH5BYTKCuOhPFNyX/5ysRdY5FAzuFaw0NWkkG0xlqfgJA8mCw/iRi6W87ZuKZEmjR
-         Z0oEL98O3LUcYJM3FHu5agfW/sRwUhlr1QevbUrI=
-Date:   Wed, 24 Aug 2022 10:27:27 -0700
-To:     mm-commits@vger.kernel.org, quic_pdaly@quicinc.com,
-        mhocko@suse.com, mgorman@techsingularity.net, david@redhat.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=kwdJTVwZnBWSPnPxlDbnOQXPILJ9/CBtiyCF0XZjLpmw292v7byjeOMCXbfrUzTqK
+         MLlrtnqJ6qGG55liw0zsu0TRWZWjZcU0/uQRpAU4KCn0aDXYSa7hYUHM4JGsx3yBmx
+         kQqd6zNgvwcdZ5Bj7WOOzxoVTRz8XCvqAa/+uDXQ=
+Date:   Wed, 24 Aug 2022 10:36:16 -0700
+To:     mm-commits@vger.kernel.org, lkp@intel.com, lkft@linaro.org,
+        dan.carpenter@oracle.com, eb@emlix.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220824172727.DEC68C433C1@smtp.kernel.org>
+Subject: + mm-pagewalk-make-error-checks-more-obvious-fix.patch added to mm-unstable branch
+Message-Id: <20220824173617.8EACDC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
+     Subject: mm: pagewalk: add back missing variable initializations
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-pagewalk-make-error-checks-more-obvious-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-make-error-checks-more-obvious-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,48 +64,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix
-Date: Wed Aug 24 10:26:44 AM PDT 2022
+From: Rolf Eike Beer <eb@emlix.com>
+Subject: mm: pagewalk: add back missing variable initializations
+Date: Wed, 24 Aug 2022 13:00:11 +0200
 
-make zonelist_update_seq static
+These initializations accidentially got lost during refactoring.
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Patrick Daly <quic_pdaly@quicinc.com>
+The first one can't actually be used without initialization, because
+walk_p4d_range() is only called when one of the 4 callbacks is set, but relying
+on this seems fragile.
+
+Link: https://lkml.kernel.org/r/2123960.ggj6I0NvhH@mobilepool36.emlix.com
+Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Rolf Eike Beer <eb@emlix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ mm/pagewalk.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix
-+++ a/mm/page_alloc.c
-@@ -4714,7 +4714,7 @@ EXPORT_SYMBOL_GPL(fs_reclaim_release);
-  * retries the allocation if zonelist changes. Writer side is protected by the
-  * embedded spin_lock.
-  */
--DEFINE_SEQLOCK(zonelist_update_seq);
-+static DEFINE_SEQLOCK(zonelist_update_seq);
+--- a/mm/pagewalk.c~mm-pagewalk-make-error-checks-more-obvious-fix
++++ a/mm/pagewalk.c
+@@ -225,7 +225,7 @@ static int walk_p4d_range(pgd_t *pgd, un
  
- static unsigned int zonelist_iter_begin(void)
- {
+ 	p4d = p4d_offset(pgd, addr);
+ 	do {
+-		int err;
++		int err = 0;
+ 
+ 		next = p4d_addr_end(addr, end);
+ 		if (p4d_none_or_clear_bad(p4d)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from eb@emlix.com are
 
-asm-generic-sections-refactor-memory_intersects-fix.patch
-mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
-procfs-add-path-to-proc-pid-fdinfo-fix.patch
-zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
-mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
-mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
+mm-pagewalk-make-error-checks-more-obvious.patch
+mm-pagewalk-make-error-checks-more-obvious-fix.patch
+mm-pagewalk-make-error-checks-more-obvious-fix-2.patch
+mm-pagewalk-dont-check-vma-in-walk_page_range_novma.patch
+mm-pagewalk-fix-documentation-of-pte-hole-handling.patch
+mm-pagewalk-add-api-documentation-for-walk_page_range_novma.patch
+mm-pagewalk-allow-walk_page_range_novma-without-mm.patch
+mm-pagewalk-move-variables-to-more-local-scope-tweak-loops.patch
+mm-pagewalk-move-variables-to-more-local-scope-tweak-loops-fix.patch
+mm-pagewalk-add-back-missing-variable-initializations.patch
 
