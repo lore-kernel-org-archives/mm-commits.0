@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE963C00140
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 17:58:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CACCCC00140
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 18:01:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239407AbiHXR6U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Aug 2022 13:58:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38958 "EHLO
+        id S240518AbiHXSBW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Aug 2022 14:01:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239804AbiHXR6S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 13:58:18 -0400
+        with ESMTP id S240735AbiHXSAx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 14:00:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7C594D807
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 10:58:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96670767F
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 11:00:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6497B61703
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 17:58:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7E65C433D6;
-        Wed, 24 Aug 2022 17:58:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 54A5461749
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 17:59:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5489C433C1;
+        Wed, 24 Aug 2022 17:59:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661363896;
-        bh=+XjlTL4Hf/dndGxwP1b/+HIVKM5c5NJw0EgDAzD157s=;
+        s=korg; t=1661363988;
+        bh=izYJ+dH9BoQVwdb9vKfBZKBZb4K5u2vflA2eJ3H0ifo=;
         h=Date:To:From:Subject:From;
-        b=GqKQGve5X4Y2Gkxbrf/dDzqRpSqS0jedwnViYGKia9tYCe5o5amKJJTTgUxLJOQx3
-         x8Z3EKyDfCPC1KeGiIPkR/ow57e2tjiVnDkChYsIb8stfey4Aabz8qh7zD6618dN3P
-         R+p9hiJ2zrGtw6QkZU4AXvKoZ/tEE1kV/CAqu1rI=
-Date:   Wed, 24 Aug 2022 10:58:16 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        yangyingliang@huawei.com, akpm@linux-foundation.org
+        b=TjBGTpfGNmEzLV9jByaeYPdfuiHY4dXroLF5Nne5pOWZdzeo9DdRET2mc2ioE6yus
+         t0nito7yOHDpDzsJyYHOylKe0Wol2a/1uJmjen4lyFqWw7DYFsBSl3hs6CMiuMkUMS
+         mIl+efcDEnZZrt+9UTUeaZpmxW4d8bjR9tSWe2h0=
+Date:   Wed, 24 Aug 2022 10:59:47 -0700
+To:     mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nommu-remove-uses-of-vma-linked-list-fix.patch added to mm-unstable branch
-Message-Id: <20220824175816.B7E65C433D6@smtp.kernel.org>
+Subject: + block-zram-do-not-keep-dangling-zcomp-pointer-after-zram-reset.patch added to mm-unstable branch
+Message-Id: <20220824175948.A5489C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/nommu: fix error handling in split_vma()
+     Subject: drivers/block/zram/zram_drv.c: do not keep dangling zcomp pointer after zram reset
 has been added to the -mm mm-unstable branch.  Its filename is
-     nommu-remove-uses-of-vma-linked-list-fix.patch
+     block-zram-do-not-keep-dangling-zcomp-pointer-after-zram-reset.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nommu-remove-uses-of-vma-linked-list-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/block-zram-do-not-keep-dangling-zcomp-pointer-after-zram-reset.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,71 +64,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Yingliang <yangyingliang@huawei.com>
-Subject: mm/nommu: fix error handling in split_vma()
-Date: Wed, 24 Aug 2022 12:24:24 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: drivers/block/zram/zram_drv.c: do not keep dangling zcomp pointer after zram reset
+Date: Wed, 24 Aug 2022 12:51:00 +0900
 
-The memory allocated before calling mas_preallocate() is leaked if it
-fails.  'mas' won't be modify until calling mas_preallocate(), so move it
-up and add error label for free the memory.
+We do all reset operations under write lock, so we don't need to save
+->disksize and ->comp to stack variables.  Another thing is that ->comp is
+freed during zram reset, but comp pointer is not NULL-ed, so zram keeps
+the freed pointer value.
 
-Link: https://lkml.kernel.org/r/20220824042424.2031508-1-yangyingliang@huawei.com
-Fixes: 8aff7dbeaeb1 ("nommu: remove uses of VMA linked list")
-Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20220824035100.971816-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
---- a/mm/nommu.c~nommu-remove-uses-of-vma-linked-list-fix
-+++ a/mm/nommu.c
-@@ -1361,9 +1361,13 @@ int split_vma(struct mm_struct *mm, stru
- 		return -ENOMEM;
+--- a/drivers/block/zram/zram_drv.c~block-zram-do-not-keep-dangling-zcomp-pointer-after-zram-reset
++++ a/drivers/block/zram/zram_drv.c
+@@ -1689,9 +1689,6 @@ out:
  
- 	new = vm_area_dup(vma);
--	if (!new) {
--		kmem_cache_free(vm_region_jar, region);
--		return -ENOMEM;
-+	if (!new)
-+		goto err_vma_dup;
-+
-+	if (mas_preallocate(&mas, vma, GFP_KERNEL)) {
-+		pr_warn("Allocation of vma tree for process %d failed\n",
-+			current->pid);
-+		goto err_mas_preallocate;
+ static void zram_reset_device(struct zram *zram)
+ {
+-	struct zcomp *comp;
+-	u64 disksize;
+-
+ 	down_write(&zram->init_lock);
+ 
+ 	zram->limit_pages = 0;
+@@ -1701,17 +1698,15 @@ static void zram_reset_device(struct zra
+ 		return;
  	}
  
- 	/* most fields are the same, copy all, and then fixup */
-@@ -1394,11 +1398,6 @@ int split_vma(struct mm_struct *mm, stru
- 	add_nommu_region(vma->vm_region);
- 	add_nommu_region(new->vm_region);
- 	up_write(&nommu_region_sem);
--	if (mas_preallocate(&mas, vma, GFP_KERNEL)) {
--		pr_warn("Allocation of vma tree for process %d failed\n",
--		       current->pid);
--		return -ENOMEM;
--	}
+-	comp = zram->comp;
+-	disksize = zram->disksize;
+-	zram->disksize = 0;
+-
+ 	set_capacity_and_notify(zram->disk, 0);
+ 	part_stat_set_all(zram->disk->part0, 0);
  
- 	setup_vma_to_mm(vma, mm);
- 	setup_vma_to_mm(new, mm);
-@@ -1406,6 +1405,12 @@ int split_vma(struct mm_struct *mm, stru
- 	mas_store(&mas, vma);
- 	vma_mas_store(new, &mas);
- 	return 0;
-+
-+err_mas_preallocate:
-+	vm_area_free(new);
-+err_vma_dup:
-+	kmem_cache_free(vm_region_jar, region);
-+	return -ENOMEM;
- }
+ 	/* I/O operation under all of CPU are done so let's free */
+-	zram_meta_free(zram, disksize);
++	zram_meta_free(zram, zram->disksize);
++	zram->disksize = 0;
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
+-	zcomp_destroy(comp);
++	zcomp_destroy(zram->comp);
++	zram->comp = NULL;
+ 	reset_bdev(zram);
  
- /*
+ 	up_write(&zram->init_lock);
 _
 
-Patches currently in -mm which might be from yangyingliang@huawei.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-nommu-remove-uses-of-vma-linked-list-fix.patch
+mm-zsmalloc-do-not-attempt-to-free-is_err-handle.patch
+block-zram-do-not-keep-dangling-zcomp-pointer-after-zram-reset.patch
 
