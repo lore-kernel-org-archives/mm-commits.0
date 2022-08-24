@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8C69C00140
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 17:36:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBCD0C00140
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 17:36:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239953AbiHXRgU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Aug 2022 13:36:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44102 "EHLO
+        id S240057AbiHXRgY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Aug 2022 13:36:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229640AbiHXRgT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 13:36:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E1346DAC8
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 10:36:18 -0700 (PDT)
+        with ESMTP id S229640AbiHXRgV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 13:36:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B04AC6BD4F
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 10:36:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 39D9361297
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 17:36:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EACDC433C1;
-        Wed, 24 Aug 2022 17:36:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3FA2561297
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 17:36:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E037C433D6;
+        Wed, 24 Aug 2022 17:36:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661362577;
-        bh=YqioDXwY4mMflQI9FKB16B27g1kj24BTJU/XGf4+TTY=;
+        s=korg; t=1661362579;
+        bh=IHygKEbAJ7Lq1NFheE4N2Dp9a7W2RbLR6lyx1fGWa20=;
         h=Date:To:From:Subject:From;
-        b=kwdJTVwZnBWSPnPxlDbnOQXPILJ9/CBtiyCF0XZjLpmw292v7byjeOMCXbfrUzTqK
-         MLlrtnqJ6qGG55liw0zsu0TRWZWjZcU0/uQRpAU4KCn0aDXYSa7hYUHM4JGsx3yBmx
-         kQqd6zNgvwcdZ5Bj7WOOzxoVTRz8XCvqAa/+uDXQ=
-Date:   Wed, 24 Aug 2022 10:36:16 -0700
+        b=B+61IzrluOfQ5Tpw+GxUwTnHAc35fcTW7B4fp4FebmAqHSgArYQGU8aiiUCtvZRGU
+         2SSf1RUXyOk4Ba0RA2T72ZERr8cPWOQcWu9BX0bTJkb1YY8oeHc+mnfinEblOIFZ/Z
+         Hr4GXQ9Q0aAfMGvWO3WTX/vo3m1bvRHk9JKC+fR4=
+Date:   Wed, 24 Aug 2022 10:36:18 -0700
 To:     mm-commits@vger.kernel.org, lkp@intel.com, lkft@linaro.org,
         dan.carpenter@oracle.com, eb@emlix.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-make-error-checks-more-obvious-fix.patch added to mm-unstable branch
-Message-Id: <20220824173617.8EACDC433C1@smtp.kernel.org>
+Subject: + mm-pagewalk-make-error-checks-more-obvious-fix-2.patch added to mm-unstable branch
+Message-Id: <20220824173619.8E037C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,10 +43,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 The patch titled
      Subject: mm: pagewalk: add back missing variable initializations
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pagewalk-make-error-checks-more-obvious-fix.patch
+     mm-pagewalk-make-error-checks-more-obvious-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-make-error-checks-more-obvious-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-make-error-checks-more-obvious-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,17 +85,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/pagewalk.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-make-error-checks-more-obvious-fix
+--- a/mm/pagewalk.c~mm-pagewalk-make-error-checks-more-obvious-fix-2
 +++ a/mm/pagewalk.c
-@@ -225,7 +225,7 @@ static int walk_p4d_range(pgd_t *pgd, un
- 
- 	p4d = p4d_offset(pgd, addr);
+@@ -264,7 +264,7 @@ static int walk_pgd_range(unsigned long
+ 	else
+ 		pgd = pgd_offset(walk->mm, addr);
  	do {
 -		int err;
 +		int err = 0;
  
- 		next = p4d_addr_end(addr, end);
- 		if (p4d_none_or_clear_bad(p4d)) {
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd)) {
 _
 
 Patches currently in -mm which might be from eb@emlix.com are
