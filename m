@@ -2,112 +2,176 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97395C00140
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 17:48:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3917C00140
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 17:57:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239157AbiHXRsi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Aug 2022 13:48:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52858 "EHLO
+        id S240290AbiHXR5A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Aug 2022 13:57:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235764AbiHXRsh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 13:48:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C6C782879
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 10:48:36 -0700 (PDT)
+        with ESMTP id S239736AbiHXR4z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 13:56:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 082FE1EC6D
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 10:56:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C853360C90
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 17:48:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CD49C433D6;
-        Wed, 24 Aug 2022 17:48:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A7CE615AE
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 17:56:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C954EC433D7;
+        Wed, 24 Aug 2022 17:56:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661363315;
-        bh=PcHWa86mMCl8F2vIK4o/c0abOWl1sdb0P/OobyyH2uE=;
+        s=korg; t=1661363812;
+        bh=mg5qA7bFrnKvuv+kob/cqlF16WIyAZ7OwNo+zM16Ul4=;
         h=Date:To:From:Subject:From;
-        b=rdEy38boPJbuMq48+pnpFXq4Dga3JVWXE5+GZgkgeAK3a0vBcmBXJVZ2Mm7t9pPRG
-         LtYk7Onb3gkXkKHLjEjE/DVm3onoYFyVqytUg2jrSB/vBsXWkHRl0NF6kXajxv6pG7
-         Jl7rWbmGF9neMmXRGTBAHkYN9COkXY1GyVSo9z04=
-Date:   Wed, 24 Aug 2022 10:48:34 -0700
+        b=QmvCmKWThj9R7znIXbAAUl4OVMUxl/TtweGzUow7EmT/X69y1709HJ8v+2ZNaGDDf
+         BNVCmfCfIdwjMB0AQPTep43Po8RY3XivgmchmNRgEknhkhpmmabaLlcZa8gyOXnkVi
+         /J0EtBWCLM9mW9stBrPoGYZCQgtQrcy9rqYWBDcs=
+Date:   Wed, 24 Aug 2022 10:56:52 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, osalvador@suse.de,
-        mike.kravetz@oracle.com, catalin.marinas@arm.com,
-        liushixin2@huawei.com, akpm@linux-foundation.org
+        syoshida@redhat.com, songmuchun@bytedance.com,
+        rcampbell@nvidia.com, logang@deltatee.com, linmiaohe@huawei.com,
+        jhubbard@nvidia.com, jgg@nvidia.com, felix.kuehling@amd.com,
+        david@redhat.com, dan.j.williams@intel.com, alex.sierra@amd.com,
+        apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page.patch removed from -mm tree
-Message-Id: <20220824174835.1CD49C433D6@smtp.kernel.org>
+Subject: + mm-gupc-dont-pass-gup_flags-to-check_and_migrate_movable_pages.patch added to mm-unstable branch
+Message-Id: <20220824175652.C954EC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: bootmem: remove the vmemmap pages from kmemleak in free_bootmem_page
-has been removed from the -mm tree.  Its filename was
-     bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page.patch
+The patch titled
+     Subject: mm/gup.c: don't pass gup_flags to check_and_migrate_movable_pages()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-gupc-dont-pass-gup_flags-to-check_and_migrate_movable_pages.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gupc-dont-pass-gup_flags-to-check_and_migrate_movable_pages.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: bootmem: remove the vmemmap pages from kmemleak in free_bootmem_page
-Date: Thu, 18 Aug 2022 21:21:04 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/gup.c: don't pass gup_flags to check_and_migrate_movable_pages()
+Date: Wed, 24 Aug 2022 15:09:51 +1000
 
-The vmemmap pages is marked by kmemleak when allocated from memblock. 
-Remove it from kmemleak when free the page.  Otherwise, when we reuse the
-page, kmemleak may report such an error and then stop working.
+gup_flags is passed to check_and_migrate_movable_pages() so that it can
+call either put_page() or unpin_user_page() to drop the page reference. 
+However check_and_migrate_movable_pages() is only called for
+FOLL_LONGTERM, which implies FOLL_PIN so there is no need to pass
+gup_flags.
 
- kmemleak: Cannot insert 0xffff98fb6eab3d40 into the object search tree (overlaps existing)
- kmemleak: Kernel memory leak detector disabled
- kmemleak: Object 0xffff98fb6be00000 (size 335544320):
- kmemleak:   comm "swapper", pid 0, jiffies 4294892296
- kmemleak:   min_count = 0
- kmemleak:   count = 0
- kmemleak:   flags = 0x1
- kmemleak:   checksum = 0
- kmemleak:   backtrace:
-
-Link: https://lkml.kernel.org/r/20220818132104.2144770-1-liushixin2@huawei.com
-Fixes: f41f2ed43ca5 ("mm: hugetlb: free the vmemmap pages associated with each HugeTLB page")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Link: https://lkml.kernel.org/r/d611c65a9008ff55887307df457c6c2220ad6163.1661317396.git-series.apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Alex Sierra <alex.sierra@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Felix Kuehling <felix.kuehling@amd.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Shigeru Yoshida <syoshida@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem_info.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/gup.c |   23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
---- a/include/linux/bootmem_info.h~bootmem-remove-the-vmemmap-pages-from-kmemleak-in-free_bootmem_page
-+++ a/include/linux/bootmem_info.h
-@@ -3,6 +3,7 @@
- #define __LINUX_BOOTMEM_INFO_H
+--- a/mm/gup.c~mm-gupc-dont-pass-gup_flags-to-check_and_migrate_movable_pages
++++ a/mm/gup.c
+@@ -1910,8 +1910,7 @@ struct page *get_dump_page(unsigned long
+  * migration failure.
+  */
+ static long check_and_migrate_movable_pages(unsigned long nr_pages,
+-					    struct page **pages,
+-					    unsigned int gup_flags)
++					    struct page **pages)
+ {
+ 	unsigned long i;
+ 	struct folio *prev_folio = NULL;
+@@ -1944,10 +1943,8 @@ static long check_and_migrate_movable_pa
+ 			 * Migration will fail if the page is pinned, so convert
+ 			 * the pin on the source page to a normal reference.
+ 			 */
+-			if (gup_flags & FOLL_PIN) {
+-				get_page(&folio->page);
+-				unpin_user_page(&folio->page);
+-			}
++			get_page(&folio->page);
++			unpin_user_page(&folio->page);
  
- #include <linux/mm.h>
-+#include <linux/kmemleak.h>
+ 			if (migrate_device_coherent_page(&folio->page)) {
+ 				ret = -EBUSY;
+@@ -2000,10 +1997,7 @@ static long check_and_migrate_movable_pa
+ 		if (!pages[i])
+ 			continue;
  
- /*
-  * Types for free bootmem stored in page->lru.next. These have to be in
-@@ -38,9 +39,10 @@ static inline void free_bootmem_page(str
- 	 */
- 	VM_BUG_ON_PAGE(page_ref_count(page) != 2, page);
+-		if (gup_flags & FOLL_PIN)
+-			unpin_user_page(pages[i]);
+-		else
+-			put_page(pages[i]);
++		unpin_user_page(pages[i]);
+ 	}
  
--	if (magic == SECTION_INFO || magic == MIX_SECTION_INFO)
-+	if (magic == SECTION_INFO || magic == MIX_SECTION_INFO) {
-+		kmemleak_free_part(page_to_virt(page), PAGE_SIZE);
- 		put_page_bootmem(page);
--	else
-+	} else
- 		VM_BUG_ON_PAGE(1, page);
+ 	if (!list_empty(&movable_page_list)) {
+@@ -2026,8 +2020,7 @@ static long check_and_migrate_movable_pa
  }
  #else
+ static long check_and_migrate_movable_pages(unsigned long nr_pages,
+-					    struct page **pages,
+-					    unsigned int gup_flags)
++					    struct page **pages)
+ {
+ 	return 0;
+ }
+@@ -2050,6 +2043,9 @@ static long __gup_longterm_locked(struct
+ 	if (!(gup_flags & FOLL_LONGTERM))
+ 		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
+ 					       NULL, gup_flags);
++	/* check_and_migrate_movable_pages() assumes pages have been pinned. */
++	if (WARN_ON(!(gup_flags & FOLL_PIN)))
++		return -EINVAL;
+ 	flags = memalloc_pin_save();
+ 	do {
+ 		nr_pinned_pages = __get_user_pages_locked(mm, start, nr_pages,
+@@ -2057,8 +2053,7 @@ static long __gup_longterm_locked(struct
+ 							  gup_flags);
+ 		if (nr_pinned_pages <= 0)
+ 			break;
+-		rc = check_and_migrate_movable_pages(nr_pinned_pages, pages,
+-						     gup_flags);
++		rc = check_and_migrate_movable_pages(nr_pinned_pages, pages);
+ 	} while (rc == -EAGAIN);
+ 	memalloc_pin_restore(flags);
+ 
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-bootmem-remove-the-vmemmap-pages-from-kmemleak-in-put_page_bootmem.patch
+mm-migrate_devicec-copy-pte-dirty-bit-to-page.patch
+mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes.patch
+selftests-hmm-tests-add-test-for-dirty-bits.patch
+mm-gupc-dont-pass-gup_flags-to-check_and_migrate_movable_pages.patch
+mm-gupc-refactor-check_and_migrate_movable_pages.patch
 
