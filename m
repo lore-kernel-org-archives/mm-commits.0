@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E678C00140
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 18:12:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C58F4C00140
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Aug 2022 18:17:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238585AbiHXSM5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Aug 2022 14:12:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45568 "EHLO
+        id S238932AbiHXSRK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Aug 2022 14:17:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239381AbiHXSM4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 14:12:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5F0D43E4A
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 11:12:55 -0700 (PDT)
+        with ESMTP id S239836AbiHXSRJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2022 14:17:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CFE02DD7
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 11:17:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 63A2FB8260D
-        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 18:12:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2A68C433C1;
-        Wed, 24 Aug 2022 18:12:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B441E6174C
+        for <mm-commits@vger.kernel.org>; Wed, 24 Aug 2022 18:17:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19A87C433C1;
+        Wed, 24 Aug 2022 18:17:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661364773;
-        bh=PHcNw0THcOMgJHO4TLVsXyxMni0fNtWh9l9UqsxzeDc=;
+        s=korg; t=1661365027;
+        bh=ik2ekqCMp6CA4VtPxvkqj+amIhv34p5TIC82XiU8+uQ=;
         h=Date:To:From:Subject:From;
-        b=DCF5Nixio9zIxao17lwcInVOoBCGiaJ4Cw9Y3B2aDsDbJELvkc4EJQkvjHI9xO8fN
-         bjHisYBzLl2xiVX9FlFwIZNFyhg8V6dw5lkWvb7TJW0Pr+YfacqC8YBR7E0Ys/uXjd
-         V48eqKbYHY/WpL1RWiQj1X/rTIX11PAj1GbDRiik=
-Date:   Wed, 24 Aug 2022 11:12:52 -0700
-To:     mm-commits@vger.kernel.org, ubizjak@gmail.com,
-        akpm@linux-foundation.org
+        b=YbCJLpUAwy+LS6OHPsjLIH/roAtYBAMogZYPI1Niy0BbMRFwOKH9iHDjsseK8cjpN
+         Dj3lilleZQXYViAH7kYsMm46e6PPS/RawmK68aYLPII5I7cUbdW8bV8EcCTaC2C9bv
+         EJ7+Ab31GHtbmo08IxZzYDU0j4NCUD/qTBS4aS2E=
+Date:   Wed, 24 Aug 2022 11:17:06 -0700
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        liam.howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + task_work-use-try_cmpxchg-in-task_work_add-task_work_cancel_match-and-task_work_run.patch added to mm-nonmm-unstable branch
-Message-Id: <20220824181252.F2A68C433C1@smtp.kernel.org>
+Subject: + maple-tree-add-new-data-structure-fix.patch added to mm-unstable branch
+Message-Id: <20220824181707.19A87C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: task_work: use try_cmpxchg in task_work_add, task_work_cancel_match and task_work_run
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     task_work-use-try_cmpxchg-in-task_work_add-task_work_cancel_match-and-task_work_run.patch
+     Subject: maple_tree: fix documentation warnings
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple-tree-add-new-data-structure-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/task_work-use-try_cmpxchg-in-task_work_add-task_work_cancel_match-and-task_work_run.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple-tree-add-new-data-structure-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,89 +64,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: task_work: use try_cmpxchg in task_work_add, task_work_cancel_match and task_work_run
-Date: Tue, 23 Aug 2022 17:26:32 +0200
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: maple_tree: fix documentation warnings
+Date: Tue, 23 Aug 2022 15:22:59 +0000
 
-Use try_cmpxchg instead of cmpxchg (*ptr, old, new) == old in
-task_work_add, task_work_cancel_match and task_work_run.  x86 CMPXCHG
-instruction returns success in ZF flag, so this change saves a compare
-after cmpxchg (and related move instruction in front of cmpxchg).
+Update the argument names in the documentation to match the functions
 
-Also, atomic_try_cmpxchg implicitly assigns old *ptr value to "old"
-when cmpxchg fails, enabling further code simplifications.
-
-The patch avoids extra memory read in case cmpxchg fails.
-
-Link: https://lkml.kernel.org/r/20220823152632.4517-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Link: https://lkml.kernel.org/r/20220823152212.1795380-1-Liam.Howlett@oracle.com
+Fixes: 96ba2a9525fb (Maple Tree: add new data structure)
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/task_work.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/linux/maple_tree.h |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/kernel/task_work.c~task_work-use-try_cmpxchg-in-task_work_add-task_work_cancel_match-and-task_work_run
-+++ a/kernel/task_work.c
-@@ -47,12 +47,12 @@ int task_work_add(struct task_struct *ta
- 	/* record the work call stack in order to print it in KASAN reports */
- 	kasan_record_aux_stack(work);
+--- a/include/linux/maple_tree.h~maple-tree-add-new-data-structure-fix
++++ a/include/linux/maple_tree.h
+@@ -220,7 +220,7 @@ struct maple_tree {
+ /**
+  * MTREE_INIT() - Initialize a maple tree
+  * @name: The maple tree name
+- * @flags: The maple tree flags
++ * @__flags: The maple tree flags
+  *
+  */
+ #define MTREE_INIT(name, __flags) {					\
+@@ -232,8 +232,8 @@ struct maple_tree {
+ /**
+  * MTREE_INIT_EXT() - Initialize a maple tree with an external lock.
+  * @name: The tree name
+- * @flags: The maple tree flags
+- * @lock: The external lock
++ * @__flags: The maple tree flags
++ * @__lock: The external lock
+  */
+ #ifdef CONFIG_LOCKDEP
+ #define MTREE_INIT_EXT(name, __flags, __lock) {				\
+@@ -509,9 +509,9 @@ static inline void mas_reset(struct ma_s
  
-+	head = READ_ONCE(task->task_works);
- 	do {
--		head = READ_ONCE(task->task_works);
- 		if (unlikely(head == &work_exited))
- 			return -ESRCH;
- 		work->next = head;
--	} while (cmpxchg(&task->task_works, head, work) != head);
-+	} while (!try_cmpxchg(&task->task_works, &head, work));
+ /**
+  * mas_for_each() - Iterate over a range of the maple tree.
+- * @mas: Maple Tree operation state (maple_state)
+- * @entry: Entry retrieved from the tree
+- * @max: maximum index to retrieve from the tree
++ * @__mas: Maple Tree operation state (maple_state)
++ * @__entry: Entry retrieved from the tree
++ * @__max: maximum index to retrieve from the tree
+  *
+  * When returned, mas->index and mas->last will hold the entire range for the
+  * entry.
+@@ -646,10 +646,10 @@ void *mt_next(struct maple_tree *mt, uns
  
- 	switch (notify) {
- 	case TWA_NONE:
-@@ -100,10 +100,12 @@ task_work_cancel_match(struct task_struc
- 	 * we raced with task_work_run(), *pprev == NULL/exited.
- 	 */
- 	raw_spin_lock_irqsave(&task->pi_lock, flags);
--	while ((work = READ_ONCE(*pprev))) {
--		if (!match(work, data))
-+	work = READ_ONCE(*pprev);
-+	while (work) {
-+		if (!match(work, data)) {
- 			pprev = &work->next;
--		else if (cmpxchg(pprev, work, work->next) == work)
-+			work = READ_ONCE(*pprev);
-+		} else if (try_cmpxchg(pprev, &work, work->next))
- 			break;
- 	}
- 	raw_spin_unlock_irqrestore(&task->pi_lock, flags);
-@@ -151,16 +153,16 @@ void task_work_run(void)
- 		 * work->func() can do task_work_add(), do not set
- 		 * work_exited unless the list is empty.
- 		 */
-+		work = READ_ONCE(task->task_works);
- 		do {
- 			head = NULL;
--			work = READ_ONCE(task->task_works);
- 			if (!work) {
- 				if (task->flags & PF_EXITING)
- 					head = &work_exited;
- 				else
- 					break;
- 			}
--		} while (cmpxchg(&task->task_works, work, head) != work);
-+		} while (!try_cmpxchg(&task->task_works, &work, head));
- 
- 		if (!work)
- 			break;
+ /**
+  * mt_for_each - Iterate over each entry starting at index until max.
+- * @tree: The Maple Tree
+- * @entry: The current entry
+- * @index: The index to update to track the location in the tree
+- * @max: The maximum limit for @index
++ * @__tree: The Maple Tree
++ * @__entry: The current entry
++ * @__index: The index to update to track the location in the tree
++ * @__max: The maximum limit for @index
+  *
+  * Note: Will not return the zero entry.
+  */
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-llist-use-try_cmpxchg-in-llist_add_batch-and-llist_del_first.patch
-epoll-use-try_cmpxchg-in-list_add_tail_lockless.patch
-buffer-use-try_cmpxchg-in-discard_buffer.patch
-aio-use-atomic_try_cmpxchg-in-__get_reqs_available.patch
-iversion-use-atomic64_try_cmpxchg.patch
-bitops-use-try_cmpxchg-in-set_mask_bits-and-bit_clear_unless.patch
-task_work-use-try_cmpxchg-in-task_work_add-task_work_cancel_match-and-task_work_run.patch
+binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
+maple-tree-add-new-data-structure-fix.patch
+mm-vmscan-use-vma-iterator-instead-of-vm_next.patch
 
