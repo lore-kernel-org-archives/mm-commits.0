@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AEAFECAAA2
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Aug 2022 01:43:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04D61ECAAA3
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Aug 2022 01:54:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233066AbiHZBnD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Aug 2022 21:43:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48494 "EHLO
+        id S229990AbiHZByV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Aug 2022 21:54:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231253AbiHZBnD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2022 21:43:03 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9033B2D9F
-        for <mm-commits@vger.kernel.org>; Thu, 25 Aug 2022 18:43:01 -0700 (PDT)
+        with ESMTP id S231532AbiHZByU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2022 21:54:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28EC2C7F9B
+        for <mm-commits@vger.kernel.org>; Thu, 25 Aug 2022 18:54:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3D2DFB8273D
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 01:43:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D917FC433D6;
-        Fri, 26 Aug 2022 01:42:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B097161DFD
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 01:54:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 146FDC433D6;
+        Fri, 26 Aug 2022 01:54:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661478179;
-        bh=qqXrv9Ysrgz4RHKKJrGFZF9EllVnk0FhQfpJE0DpBdY=;
+        s=korg; t=1661478855;
+        bh=ACbaWK0JXC6Xb4Nm2fK2C1VzBO0x+laDSX83mD4v5P4=;
         h=Date:To:From:Subject:From;
-        b=QUdTXek6oydBsFkLMO2u/BOtwImCjUjdP3n+bZRV4ulTQ/P5dyub1MN5mMPUy38JI
-         gvCfl80Gp9JADn8+8QO/NK3Ltnig9XmVNa4fuPWW9w1vwImCKN6+wLb0NWGDKLjSjP
-         fkjer4d2ocZTuvZaqbghEe4xeVUULr2rYqzYDUmY=
-Date:   Thu, 25 Aug 2022 18:42:58 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mgorman@suse.de,
-        hch@infradead.org, hannes@cmpxchg.org, mhocko@suse.com,
+        b=mzEkiugLoehbvKwlHl07g5+K3+zpvceBhP/x1m+71QWBqrWlXncTTOJnhUm0GEqY3
+         YRZAU0IhA8+EqKeks/sJzeOF8CPl8E8AsmFqS90RocPDWpkOGxAeP2tp1Hk5eAy/HM
+         OMUQbCs7KRawp279CTeFtHmufPUN/fDV4z6u4ttQ=
+Date:   Thu, 25 Aug 2022 18:54:14 -0700
+To:     mm-commits@vger.kernel.org, ubizjak@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-reduce-noise-in-show_mem-for-lowmem-allocations.patch added to mm-unstable branch
-Message-Id: <20220826014258.D917FC433D6@smtp.kernel.org>
+Subject: + smpboot-use-atomic_try_cmpxchg-in-cpu_wait_death-and-cpu_report_death.patch added to mm-nonmm-unstable branch
+Message-Id: <20220826015415.146FDC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: reduce noise in show_mem for lowmem allocations
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-reduce-noise-in-show_mem-for-lowmem-allocations.patch
+     Subject: smpboot: use atomic_try_cmpxchg in cpu_wait_death and cpu_report_death
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     smpboot-use-atomic_try_cmpxchg-in-cpu_wait_death-and-cpu_report_death.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-reduce-noise-in-show_mem-for-lowmem-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/smpboot-use-atomic_try_cmpxchg-in-cpu_wait_death-and-cpu_report_death.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,239 +64,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: reduce noise in show_mem for lowmem allocations
-Date: Tue, 23 Aug 2022 11:22:30 +0200
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: smpboot: use atomic_try_cmpxchg in cpu_wait_death and cpu_report_death
+Date: Thu, 25 Aug 2022 16:56:03 +0200
 
-While discussing early DMA pool pre-allocation failure with Christoph [1]
-I have realized that the allocation failure warning is rather noisy for
-constrained allocations like GFP_DMA{32}.  Those zones are usually not
-populated on all nodes very often as their memory ranges are constrained.
+Use atomic_try_cmpxchg instead of atomic_cmpxchg (*ptr, old, new) == old
+in cpu_wait_death and cpu_report_death.  x86 CMPXCHG instruction returns
+success in ZF flag, so this change saves a compare after cmpxchg (and
+related move instruction in front of cmpxchg).  Also, atomic_try_cmpxchg
+implicitly assigns old *ptr value to "old" when cmpxchg fails, enabling
+further code simplifications.
 
-This is an attempt to reduce the ballast that doesn't provide any relevant
-information for those allocation failures investigation.  Please note that
-I have only compile tested it (in my default config setup) and I am
-throwing it mostly to see what people think about it.
+No functional change intended.
 
-[1] http://lkml.kernel.org/r/20220817060647.1032426-1-hch@lst.de
-
-Link: https://lkml.kernel.org/r/YwScVmVofIZkopkF@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-
+Link: https://lkml.kernel.org/r/20220825145603.5811-1-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c       |    2 +-
- drivers/tty/vt/keyboard.c |    2 +-
- include/linux/mm.h        |    4 ++--
- init/initramfs.c          |    2 +-
- kernel/panic.c            |    2 +-
- lib/show_mem.c            |    4 ++--
- mm/nommu.c                |    6 +++---
- mm/oom_kill.c             |    2 +-
- mm/page_alloc.c           |   22 ++++++++++++++++++++--
- 9 files changed, 32 insertions(+), 14 deletions(-)
+ kernel/smpboot.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/drivers/tty/sysrq.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/drivers/tty/sysrq.c
-@@ -342,7 +342,7 @@ static const struct sysrq_key_op sysrq_f
+--- a/kernel/smpboot.c~smpboot-use-atomic_try_cmpxchg-in-cpu_wait_death-and-cpu_report_death
++++ a/kernel/smpboot.c
+@@ -433,7 +433,7 @@ bool cpu_wait_death(unsigned int cpu, in
  
- static void sysrq_handle_showmem(int key)
- {
--	show_mem(0, NULL);
-+	show_mem(0, NULL, GFP_HIGHUSER_MOVABLE);
- }
- static const struct sysrq_key_op sysrq_showmem_op = {
- 	.handler	= sysrq_handle_showmem,
---- a/drivers/tty/vt/keyboard.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/drivers/tty/vt/keyboard.c
-@@ -606,7 +606,7 @@ static void fn_scroll_back(struct vc_dat
+ 	/* The outgoing CPU will normally get done quite quickly. */
+ 	if (atomic_read(&per_cpu(cpu_hotplug_state, cpu)) == CPU_DEAD)
+-		goto update_state;
++		goto update_state_early;
+ 	udelay(5);
  
- static void fn_show_mem(struct vc_data *vc)
- {
--	show_mem(0, NULL);
-+	show_mem(0, NULL, GFP_HIGHUSER_MOVABLE);
- }
- 
- static void fn_show_state(struct vc_data *vc)
---- a/include/linux/mm.h~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/include/linux/mm.h
-@@ -1842,7 +1842,7 @@ extern void pagefault_out_of_memory(void
-  */
- #define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
- 
--extern void show_free_areas(unsigned int flags, nodemask_t *nodemask);
-+extern void show_free_areas(unsigned int flags, nodemask_t *nodemask, gfp_t gfp_mask);
- 
- #ifdef CONFIG_MMU
- extern bool can_do_mlock(void);
-@@ -2582,7 +2582,7 @@ extern void calculate_min_free_kbytes(vo
- extern int __meminit init_per_zone_wmark_min(void);
- extern void mem_init(void);
- extern void __init mmap_init(void);
--extern void show_mem(unsigned int flags, nodemask_t *nodemask);
-+extern void show_mem(unsigned int flags, nodemask_t *nodemask, gfp_t gfp_mask);
- extern long si_mem_available(void);
- extern void si_meminfo(struct sysinfo * val);
- extern void si_meminfo_node(struct sysinfo *val, int nid);
---- a/init/initramfs.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/init/initramfs.c
-@@ -63,7 +63,7 @@ static void panic_show_mem(const char *f
- {
- 	va_list args;
- 
--	show_mem(0, NULL);
-+	show_mem(0, NULL, GFP_HIGHUSER_MOVABLE);
- 	va_start(args, fmt);
- 	panic(fmt, args);
- 	va_end(args);
---- a/kernel/panic.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/kernel/panic.c
-@@ -187,7 +187,7 @@ static void panic_print_sys_info(bool co
- 		show_state();
- 
- 	if (panic_print & PANIC_PRINT_MEM_INFO)
--		show_mem(0, NULL);
-+		show_mem(0, NULL, GFP_HIGHUSER_MOVABLE);
- 
- 	if (panic_print & PANIC_PRINT_TIMER_INFO)
- 		sysrq_timer_list_show();
---- a/lib/show_mem.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/lib/show_mem.c
-@@ -8,13 +8,13 @@
- #include <linux/mm.h>
- #include <linux/cma.h>
- 
--void show_mem(unsigned int filter, nodemask_t *nodemask)
-+void show_mem(unsigned int filter, nodemask_t *nodemask, gfp_t gfp_mask)
- {
- 	pg_data_t *pgdat;
- 	unsigned long total = 0, reserved = 0, highmem = 0;
- 
- 	printk("Mem-Info:\n");
--	show_free_areas(filter, nodemask);
-+	show_free_areas(filter, nodemask, gfp_mask);
- 
- 	for_each_online_pgdat(pgdat) {
- 		int zoneid;
---- a/mm/nommu.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/mm/nommu.c
-@@ -1030,7 +1030,7 @@ error_free:
- enomem:
- 	pr_err("Allocation of length %lu from process %d (%s) failed\n",
- 	       len, current->pid, current->comm);
--	show_free_areas(0, NULL);
-+	show_free_areas(0, NULL, GFP_KERNEL);
- 	return -ENOMEM;
- }
- 
-@@ -1259,13 +1259,13 @@ error_getting_vma:
- 	kmem_cache_free(vm_region_jar, region);
- 	pr_warn("Allocation of vma for %lu byte allocation from process %d failed\n",
- 			len, current->pid);
--	show_free_areas(0, NULL);
-+	show_free_areas(0, NULL, GFP_KERNEL);
- 	return -ENOMEM;
- 
- error_getting_region:
- 	pr_warn("Allocation of vm region for %lu byte allocation from process %d failed\n",
- 			len, current->pid);
--	show_free_areas(0, NULL);
-+	show_free_areas(0, NULL, GFP_KERNEL);
- 	return -ENOMEM;
- 
- error_maple_preallocate:
---- a/mm/oom_kill.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/mm/oom_kill.c
-@@ -461,7 +461,7 @@ static void dump_header(struct oom_contr
- 	if (is_memcg_oom(oc))
- 		mem_cgroup_print_oom_meminfo(oc->memcg);
- 	else {
--		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
-+		show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask, oc->gfp_mask);
- 		if (should_dump_unreclaim_slab())
- 			dump_unreclaimable_slab();
+ 	/* But if the outgoing CPU dawdles, wait increasingly long times. */
+@@ -444,16 +444,17 @@ bool cpu_wait_death(unsigned int cpu, in
+ 			break;
+ 		sleep_jf = DIV_ROUND_UP(sleep_jf * 11, 10);
  	}
---- a/mm/page_alloc.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations
-+++ a/mm/page_alloc.c
-@@ -4329,7 +4329,7 @@ static void warn_alloc_show_mem(gfp_t gf
- 	if (!in_task() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
- 		filter &= ~SHOW_MEM_FILTER_NODES;
+-update_state:
++update_state_early:
+ 	oldstate = atomic_read(&per_cpu(cpu_hotplug_state, cpu));
++update_state:
+ 	if (oldstate == CPU_DEAD) {
+ 		/* Outgoing CPU died normally, update state. */
+ 		smp_mb(); /* atomic_read() before update. */
+ 		atomic_set(&per_cpu(cpu_hotplug_state, cpu), CPU_POST_DEAD);
+ 	} else {
+ 		/* Outgoing CPU still hasn't died, set state accordingly. */
+-		if (atomic_cmpxchg(&per_cpu(cpu_hotplug_state, cpu),
+-				   oldstate, CPU_BROKEN) != oldstate)
++		if (!atomic_try_cmpxchg(&per_cpu(cpu_hotplug_state, cpu),
++					&oldstate, CPU_BROKEN))
+ 			goto update_state;
+ 		ret = false;
+ 	}
+@@ -475,14 +476,14 @@ bool cpu_report_death(void)
+ 	int newstate;
+ 	int cpu = smp_processor_id();
  
--	show_mem(filter, nodemask);
-+	show_mem(filter, nodemask, gfp_mask);
++	oldstate = atomic_read(&per_cpu(cpu_hotplug_state, cpu));
+ 	do {
+-		oldstate = atomic_read(&per_cpu(cpu_hotplug_state, cpu));
+ 		if (oldstate != CPU_BROKEN)
+ 			newstate = CPU_DEAD;
+ 		else
+ 			newstate = CPU_DEAD_FROZEN;
+-	} while (atomic_cmpxchg(&per_cpu(cpu_hotplug_state, cpu),
+-				oldstate, newstate) != oldstate);
++	} while (!atomic_try_cmpxchg(&per_cpu(cpu_hotplug_state, cpu),
++				     &oldstate, newstate));
+ 	return newstate == CPU_DEAD;
  }
  
- void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...)
-@@ -6049,6 +6049,15 @@ static void show_migration_types(unsigne
- 	printk(KERN_CONT "(%s) ", tmp);
- }
- 
-+static bool node_has_managed_zones(pg_data_t *pgdat, int max_zone_idx)
-+{
-+	int zone_idx;
-+	for (zone_idx = 0; zone_idx <= max_zone_idx; zone_idx++)
-+		if (zone_managed_pages(pgdat->node_zones + zone_idx))
-+			return true;
-+	return false;
-+}
-+
- /*
-  * Show free area list (used inside shift_scroll-lock stuff)
-  * We also calculate the percentage fragmentation. We do this by counting the
-@@ -6058,14 +6067,17 @@ static void show_migration_types(unsigne
-  * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
-  *   cpuset.
-  */
--void show_free_areas(unsigned int filter, nodemask_t *nodemask)
-+void show_free_areas(unsigned int filter, nodemask_t *nodemask, gfp_t gfp_mask)
- {
- 	unsigned long free_pcp = 0;
-+	int max_zone_idx = gfp_zone(gfp_mask);
- 	int cpu, nid;
- 	struct zone *zone;
- 	pg_data_t *pgdat;
- 
- 	for_each_populated_zone(zone) {
-+		if (zone_idx(zone) > max_zone_idx)
-+			continue;
- 		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
- 			continue;
- 
-@@ -6103,6 +6115,8 @@ void show_free_areas(unsigned int filter
- 	for_each_online_pgdat(pgdat) {
- 		if (show_mem_node_skip(filter, pgdat->node_id, nodemask))
- 			continue;
-+		if (!node_has_managed_zones(pgdat, max_zone_idx))
-+			continue;
- 
- 		printk("Node %d"
- 			" active_anon:%lukB"
-@@ -6159,6 +6173,8 @@ void show_free_areas(unsigned int filter
- 	for_each_populated_zone(zone) {
- 		int i;
- 
-+		if (zone_idx(zone) > max_zone_idx)
-+			continue;
- 		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
- 			continue;
- 
-@@ -6220,6 +6236,8 @@ void show_free_areas(unsigned int filter
- 		unsigned long nr[MAX_ORDER], flags, total = 0;
- 		unsigned char types[MAX_ORDER];
- 
-+		if (zone_idx(zone) > max_zone_idx)
-+			continue;
- 		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
- 			continue;
- 		show_node(zone);
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-mm-reduce-noise-in-show_mem-for-lowmem-allocations.patch
+llist-use-try_cmpxchg-in-llist_add_batch-and-llist_del_first.patch
+epoll-use-try_cmpxchg-in-list_add_tail_lockless.patch
+buffer-use-try_cmpxchg-in-discard_buffer.patch
+aio-use-atomic_try_cmpxchg-in-__get_reqs_available.patch
+iversion-use-atomic64_try_cmpxchg.patch
+bitops-use-try_cmpxchg-in-set_mask_bits-and-bit_clear_unless.patch
+task_work-use-try_cmpxchg-in-task_work_add-task_work_cancel_match-and-task_work_run.patch
+smpboot-use-atomic_try_cmpxchg-in-cpu_wait_death-and-cpu_report_death.patch
 
