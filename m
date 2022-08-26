@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66552ECAAA2
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Aug 2022 02:53:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF5D2ECAAA2
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Aug 2022 02:55:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244761AbiHZCxW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Aug 2022 22:53:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38340 "EHLO
+        id S231942AbiHZCzY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Aug 2022 22:55:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244912AbiHZCxU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2022 22:53:20 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2133CD515
-        for <mm-commits@vger.kernel.org>; Thu, 25 Aug 2022 19:53:19 -0700 (PDT)
+        with ESMTP id S235147AbiHZCzY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2022 22:55:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E43F3F1DF
+        for <mm-commits@vger.kernel.org>; Thu, 25 Aug 2022 19:55:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3DE82B82F66
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 02:53:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9368C433C1;
-        Fri, 26 Aug 2022 02:53:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AFA5F61E53
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 02:55:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2205C433D6;
+        Fri, 26 Aug 2022 02:55:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661482396;
-        bh=W4mtAazR6GsXdt73DbiqnKYP5eS+wrGeT7i1gB+Y0ag=;
+        s=korg; t=1661482522;
+        bh=m12YaIMLMbZPDXG0efgAjXCYt47mu/JYtigGIAM9hc8=;
         h=Date:To:From:Subject:From;
-        b=xnG0+PHYVLbjdndHyKQGvwRoVGxAKXhjHbgwJ8aiHCy7d38fLHGkdThltY/BIPbnb
-         tavMRCVmKYVWI/DbL1VjdzFS1cfgl7QTl30nsV8O/wgKKl2vD8wSYyFS7+SLGwat+Z
-         rMzifCkMzy3L/IOmiXqCeRIDhjo5jTgBZ2/xXun0=
-Date:   Thu, 25 Aug 2022 19:53:16 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        songmuchun@bytedance.com, linmiaohe@huawei.com,
-        haiyue.wang@intel.com, david@redhat.com,
-        baolin.wang@linux.alibaba.com, gerald.schaefer@linux.ibm.com,
-        akpm@linux-foundation.org
+        b=cEbnGbIQkP0hRHOBDz7x9gcdxVE+/VedheM2Lo3jpmFpE6El6k4uy/0RkaGOqknvc
+         ODIYKYFHAR2kjyF9ZboVuSFV17z8WxYEopUmZ8hJNDbpao7690YYODru/CBdHdMvAt
+         Fb33JMtXKDFH/kNorbcjGuIqjEW6KTYo5ZGGsuyw=
+Date:   Thu, 25 Aug 2022 19:55:21 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rostedt@goodmis.org,
+        mhocko@suse.com, mhiramat@kernel.org, mark-pk.tsai@mediatek.com,
+        keescook@chromium.org, Jason@zx2c4.com, corbet@lwn.net,
+        lizhe.67@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-hugetlb-switch-to-generic-version-of-follow_huge_pud.patch added to mm-unstable branch
-Message-Id: <20220826025316.D9368C433C1@smtp.kernel.org>
+Subject: + page_ext-introduce-boot-parameter-early_page_ext.patch added to mm-unstable branch
+Message-Id: <20220826025521.F2205C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/hugetlb: switch to generic version of follow_huge_pud()
+     Subject: page_ext: introduce boot parameter 'early_page_ext'
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-hugetlb-switch-to-generic-version-of-follow_huge_pud.patch
+     page_ext-introduce-boot-parameter-early_page_ext.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-hugetlb-switch-to-generic-version-of-follow_huge_pud.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_ext-introduce-boot-parameter-early_page_ext.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,60 +66,145 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Subject: s390/hugetlb: switch to generic version of follow_huge_pud()
+From: Li Zhe <lizhe.67@bytedance.com>
+Subject: page_ext: introduce boot parameter 'early_page_ext'
+Date: Thu, 25 Aug 2022 18:27:14 +0800
 
-When pud-sized hugepages were introduced for s390, the generic version of
-follow_huge_pud() was using pte_page() instead of pud_page().  This would
-be wrong for s390, see also commit 97534127012f ("mm/hugetlb: use
-pmd_page() in follow_huge_pmd()").  Therefore, and probably because not
-all archs were supporting pud_page() at that time, a private version of
-follow_huge_pud() was added for s390, correctly using pud_page().
+In commit 2f1ee0913ce5 ("Revert "mm: use early_pfn_to_nid in
+page_ext_init""), we call page_ext_init() after page_alloc_init_late() to
+avoid some panic problem.  It seems that we cannot track early page
+allocations in current kernel even if page structure has been initialized
+early.
 
-Since commit 3a194f3f8ad01 ("mm/hugetlb: make pud_huge() and
-follow_huge_pud() aware of non-present pud entry"), the generic version of
-follow_huge_pud() is now also using pud_page(), and in general behaves
-similar to follow_huge_pmd().
+This patch introduces a new boot parameter 'early_page_ext' to resolve
+this problem.  If we pass it to the kernel, page_ext_init() will be moved
+up and the feature 'deferred initialization of struct pages' will be
+disabled to initialize the page allocator early and prevent the panic
+problem above.  It can help us to catch early page allocations.  This is
+useful especially when we find that the free memory value is not the same
+right after different kernel booting.
 
-Therefore we can now switch to the generic version and get rid of the
-s390-specific follow_huge_pud().
-
-Link: https://lkml.kernel.org/r/20220818135717.609eef8a@thinkpad
-Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Haiyue Wang <haiyue.wang@intel.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220825102714.669-1-lizhe.67@bytedance.com
+Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/hugetlbpage.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    8 ++++++++
+ include/linux/page_ext.h                        |   11 +++++++++++
+ init/main.c                                     |    6 +++++-
+ mm/page_alloc.c                                 |    2 ++
+ mm/page_ext.c                                   |    8 ++++++++
+ 5 files changed, 34 insertions(+), 1 deletion(-)
 
---- a/arch/s390/mm/hugetlbpage.c~s390-hugetlb-switch-to-generic-version-of-follow_huge_pud
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -237,16 +237,6 @@ int pud_huge(pud_t pud)
- 	return pud_large(pud);
- }
+--- a/Documentation/admin-guide/kernel-parameters.txt~page_ext-introduce-boot-parameter-early_page_ext
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1471,6 +1471,14 @@
+ 			Permit 'security.evm' to be updated regardless of
+ 			current integrity status.
  
--struct page *
--follow_huge_pud(struct mm_struct *mm, unsigned long address,
--		pud_t *pud, int flags)
--{
--	if (flags & FOLL_GET)
--		return NULL;
--
--	return pud_page(*pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
--}
--
- bool __init arch_hugetlb_valid_size(unsigned long size)
++	early_page_ext [KNL] Enforces page_ext initialization to earlier
++			stages so cover more early boot allocations.
++			Please note that as side effect some optimizations
++			might be disabled to achieve that (e.g. parallelized
++			memory initialization is disabled) so the boot process
++			might take longer, especially on systems with a lot of
++			memory. Available with CONFIG_PAGE_EXTENSION=y.
++
+ 	failslab=
+ 	fail_usercopy=
+ 	fail_page_alloc=
+--- a/include/linux/page_ext.h~page_ext-introduce-boot-parameter-early_page_ext
++++ a/include/linux/page_ext.h
+@@ -36,9 +36,15 @@ struct page_ext {
+ 	unsigned long flags;
+ };
+ 
++extern bool early_page_ext;
+ extern unsigned long page_ext_size;
+ extern void pgdat_page_ext_init(struct pglist_data *pgdat);
+ 
++static inline bool early_page_ext_enabled(void)
++{
++	return early_page_ext;
++}
++
+ #ifdef CONFIG_SPARSEMEM
+ static inline void page_ext_init_flatmem(void)
  {
- 	if (MACHINE_HAS_EDAT1 && size == PMD_SIZE)
+@@ -68,6 +74,11 @@ static inline struct page_ext *page_ext_
+ #else /* !CONFIG_PAGE_EXTENSION */
+ struct page_ext;
+ 
++static inline bool early_page_ext_enabled(void)
++{
++	return false;
++}
++
+ static inline void pgdat_page_ext_init(struct pglist_data *pgdat)
+ {
+ }
+--- a/init/main.c~page_ext-introduce-boot-parameter-early_page_ext
++++ a/init/main.c
+@@ -850,6 +850,9 @@ static void __init mm_init(void)
+ 	pgtable_init();
+ 	debug_objects_mem_init();
+ 	vmalloc_init();
++	/* Should be run after vmap initialization */
++	if (early_page_ext_enabled())
++		page_ext_init();
+ 	/* Should be run before the first non-init thread is created */
+ 	init_espfix_bsp();
+ 	/* Should be run after espfix64 is set up. */
+@@ -1608,7 +1611,8 @@ static noinline void __init kernel_init_
+ 	padata_init();
+ 	page_alloc_init_late();
+ 	/* Initialize page ext after all struct pages are initialized. */
+-	page_ext_init();
++	if (!early_page_ext_enabled())
++		page_ext_init();
+ 
+ 	do_basic_setup();
+ 
+--- a/mm/page_alloc.c~page_ext-introduce-boot-parameter-early_page_ext
++++ a/mm/page_alloc.c
+@@ -482,6 +482,8 @@ defer_init(int nid, unsigned long pfn, u
+ {
+ 	static unsigned long prev_end_pfn, nr_initialised;
+ 
++	if (early_page_ext_enabled())
++		return false;
+ 	/*
+ 	 * prev_end_pfn static that contains the end of previous zone
+ 	 * No need to protect because called very early in boot before smp_init.
+--- a/mm/page_ext.c~page_ext-introduce-boot-parameter-early_page_ext
++++ a/mm/page_ext.c
+@@ -91,6 +91,14 @@ unsigned long page_ext_size = sizeof(str
+ static unsigned long total_usage;
+ static struct page_ext *lookup_page_ext(const struct page *page);
+ 
++bool early_page_ext __meminitdata;
++static int __init setup_early_page_ext(char *str)
++{
++	early_page_ext = true;
++	return 0;
++}
++early_param("early_page_ext", setup_early_page_ext);
++
+ static bool __init invoke_need_callbacks(void)
+ {
+ 	int i;
 _
 
-Patches currently in -mm which might be from gerald.schaefer@linux.ibm.com are
+Patches currently in -mm which might be from lizhe.67@bytedance.com are
 
-s390-hugetlb-switch-to-generic-version-of-follow_huge_pud.patch
+page_ext-introduce-boot-parameter-early_page_ext.patch
 
