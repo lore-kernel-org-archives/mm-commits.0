@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EE86ECAAA3
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Aug 2022 02:02:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66552ECAAA2
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Aug 2022 02:53:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231532AbiHZCCO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Aug 2022 22:02:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44880 "EHLO
+        id S244761AbiHZCxW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Aug 2022 22:53:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38340 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244642AbiHZCCJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2022 22:02:09 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D89AACAC7E
-        for <mm-commits@vger.kernel.org>; Thu, 25 Aug 2022 19:02:06 -0700 (PDT)
+        with ESMTP id S244912AbiHZCxU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2022 22:53:20 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2133CD515
+        for <mm-commits@vger.kernel.org>; Thu, 25 Aug 2022 19:53:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 60F47CE2DD0
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 02:02:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C6D4C433D6;
-        Fri, 26 Aug 2022 02:02:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3DE82B82F66
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 02:53:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9368C433C1;
+        Fri, 26 Aug 2022 02:53:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661479323;
-        bh=uW7LQIaz2LPZlovHOcAMOs5y00uUbXYFYyAYpmjqB84=;
+        s=korg; t=1661482396;
+        bh=W4mtAazR6GsXdt73DbiqnKYP5eS+wrGeT7i1gB+Y0ag=;
         h=Date:To:From:Subject:From;
-        b=cOrJ/xxwnX0mIYuuW9HPbWtvrKOnXLpPuElulVBz+mbS8xKjzs5duah5AqTKDJB4j
-         D+PF1pdAb+7P0fL/hEthqN/B6Ag/KYavA4V4kKx4KV/PegzfcJv5RLhYIPTADWemsm
-         LlzL3WvmMXkLIz/JbzAlbmwGL2ZFghVtlP1+erMc=
-Date:   Thu, 25 Aug 2022 19:02:02 -0700
-To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        sjenning@redhat.com, ddstreet@ieee.org, liushixin2@huawei.com,
+        b=xnG0+PHYVLbjdndHyKQGvwRoVGxAKXhjHbgwJ8aiHCy7d38fLHGkdThltY/BIPbnb
+         tavMRCVmKYVWI/DbL1VjdzFS1cfgl7QTl30nsV8O/wgKKl2vD8wSYyFS7+SLGwat+Z
+         rMzifCkMzy3L/IOmiXqCeRIDhjo5jTgBZ2/xXun0=
+Date:   Thu, 25 Aug 2022 19:53:16 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        songmuchun@bytedance.com, linmiaohe@huawei.com,
+        haiyue.wang@intel.com, david@redhat.com,
+        baolin.wang@linux.alibaba.com, gerald.schaefer@linux.ibm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-skip-confusing-print-info.patch added to mm-unstable branch
-Message-Id: <20220826020203.9C6D4C433D6@smtp.kernel.org>
+Subject: + s390-hugetlb-switch-to-generic-version-of-follow_huge_pud.patch added to mm-unstable branch
+Message-Id: <20220826025316.D9368C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap: skip confusing print info
+     Subject: s390/hugetlb: switch to generic version of follow_huge_pud()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-skip-confusing-print-info.patch
+     s390-hugetlb-switch-to-generic-version-of-follow_huge_pud.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-skip-confusing-print-info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-hugetlb-switch-to-generic-version-of-follow_huge_pud.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,48 +67,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/zswap: skip confusing print info
-Date: Thu, 25 Aug 2022 22:20:37 +0800
+From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Subject: s390/hugetlb: switch to generic version of follow_huge_pud()
 
-It's confusing when we disable zswap while zswap is init failed or has no
-pool.  If no change required, just return directly.
+When pud-sized hugepages were introduced for s390, the generic version of
+follow_huge_pud() was using pte_page() instead of pud_page().  This would
+be wrong for s390, see also commit 97534127012f ("mm/hugetlb: use
+pmd_page() in follow_huge_pmd()").  Therefore, and probably because not
+all archs were supporting pud_page() at that time, a private version of
+follow_huge_pud() was added for s390, correctly using pud_page().
 
-Link: https://lkml.kernel.org/r/20220825142037.3214152-4-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Since commit 3a194f3f8ad01 ("mm/hugetlb: make pud_huge() and
+follow_huge_pud() aware of non-present pud entry"), the generic version of
+follow_huge_pud() is now also using pud_page(), and in general behaves
+similar to follow_huge_pmd().
+
+Therefore we can now switch to the generic version and get rid of the
+s390-specific follow_huge_pud().
+
+Link: https://lkml.kernel.org/r/20220818135717.609eef8a@thinkpad
+Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Haiyue Wang <haiyue.wang@intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/s390/mm/hugetlbpage.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-skip-confusing-print-info
-+++ a/mm/zswap.c
-@@ -886,6 +886,15 @@ static int zswap_zpool_param_set(const c
- static int zswap_enabled_param_set(const char *val,
- 				   const struct kernel_param *kp)
+--- a/arch/s390/mm/hugetlbpage.c~s390-hugetlb-switch-to-generic-version-of-follow_huge_pud
++++ a/arch/s390/mm/hugetlbpage.c
+@@ -237,16 +237,6 @@ int pud_huge(pud_t pud)
+ 	return pud_large(pud);
+ }
+ 
+-struct page *
+-follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-		pud_t *pud, int flags)
+-{
+-	if (flags & FOLL_GET)
+-		return NULL;
+-
+-	return pud_page(*pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
+-}
+-
+ bool __init arch_hugetlb_valid_size(unsigned long size)
  {
-+	bool res;
-+
-+	if (kstrtobool(val, &res))
-+		return -EINVAL;
-+
-+	/* no change required */
-+	if (res == *(bool *)kp->arg)
-+		return 0;
-+
- 	if (system_state == SYSTEM_RUNNING) {
- 		mutex_lock(&zswap_init_lock);
- 		if (zswap_setup()) {
+ 	if (MACHINE_HAS_EDAT1 && size == PMD_SIZE)
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from gerald.schaefer@linux.ibm.com are
 
-bootmem-remove-the-vmemmap-pages-from-kmemleak-in-put_page_bootmem.patch
-mm-zswap-replace-zswap_init_started-failed-with-zswap_init_state.patch
-mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement.patch
-mm-zswap-skip-confusing-print-info.patch
+s390-hugetlb-switch-to-generic-version-of-follow_huge_pud.patch
 
