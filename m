@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF5D2ECAAA2
-	for <mm-commits@archiver.kernel.org>; Fri, 26 Aug 2022 02:55:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70D2AECAAA2
+	for <mm-commits@archiver.kernel.org>; Fri, 26 Aug 2022 03:05:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231942AbiHZCzY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 Aug 2022 22:55:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41252 "EHLO
+        id S244023AbiHZDFA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 Aug 2022 23:05:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235147AbiHZCzY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2022 22:55:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E43F3F1DF
-        for <mm-commits@vger.kernel.org>; Thu, 25 Aug 2022 19:55:23 -0700 (PDT)
+        with ESMTP id S244498AbiHZDEw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2022 23:04:52 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E6A018B0C
+        for <mm-commits@vger.kernel.org>; Thu, 25 Aug 2022 20:04:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AFA5F61E53
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 02:55:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2205C433D6;
-        Fri, 26 Aug 2022 02:55:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8BFB461E6E
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 03:04:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE549C433D6;
+        Fri, 26 Aug 2022 03:04:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661482522;
-        bh=m12YaIMLMbZPDXG0efgAjXCYt47mu/JYtigGIAM9hc8=;
+        s=korg; t=1661483088;
+        bh=jA22JPoZprLaEfbUqO7TKiwVnYpqvgkmnD59q+XSqeU=;
         h=Date:To:From:Subject:From;
-        b=cEbnGbIQkP0hRHOBDz7x9gcdxVE+/VedheM2Lo3jpmFpE6El6k4uy/0RkaGOqknvc
-         ODIYKYFHAR2kjyF9ZboVuSFV17z8WxYEopUmZ8hJNDbpao7690YYODru/CBdHdMvAt
-         Fb33JMtXKDFH/kNorbcjGuIqjEW6KTYo5ZGGsuyw=
-Date:   Thu, 25 Aug 2022 19:55:21 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rostedt@goodmis.org,
-        mhocko@suse.com, mhiramat@kernel.org, mark-pk.tsai@mediatek.com,
-        keescook@chromium.org, Jason@zx2c4.com, corbet@lwn.net,
-        lizhe.67@bytedance.com, akpm@linux-foundation.org
+        b=Xhmq7l4mVyeh8/bIKv71rS2ylPQ2IYoKwzhUZB+q+zNh1VM2JuTfLPgKDUB4c1G7o
+         cG1KQZhSNEg1xYjzB2CqgxLQSu+BcQHTbb2IqNL79gpgtHRNhgXPZ7Qqz/B9NGMNmm
+         a/M3VscGJeoxoDheUSRdYREjVrXoseoh4X1SsUPQ=
+Date:   Thu, 25 Aug 2022 20:04:47 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        weixugc@google.com, tim.c.chen@intel.com, shy828301@gmail.com,
+        mhocko@kernel.org, jvgediya.oss@gmail.com,
+        Jonathan.Cameron@huawei.com, hesham.almatary@huawei.com,
+        hannes@cmpxchg.org, dave@stgolabs.net, dave.hansen@intel.com,
+        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + page_ext-introduce-boot-parameter-early_page_ext.patch added to mm-unstable branch
-Message-Id: <20220826025521.F2205C433D6@smtp.kernel.org>
+Subject: + mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined-fix.patch added to mm-unstable branch
+Message-Id: <20220826030447.DE549C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page_ext: introduce boot parameter 'early_page_ext'
+     Subject: mm/demotion: fix kernel error with memory hotplug
 has been added to the -mm mm-unstable branch.  Its filename is
-     page_ext-introduce-boot-parameter-early_page_ext.patch
+     mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_ext-introduce-boot-parameter-early_page_ext.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,145 +69,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li Zhe <lizhe.67@bytedance.com>
-Subject: page_ext: introduce boot parameter 'early_page_ext'
-Date: Thu, 25 Aug 2022 18:27:14 +0800
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/demotion: fix kernel error with memory hotplug
+Date: Thu, 25 Aug 2022 14:50:19 +0530
 
-In commit 2f1ee0913ce5 ("Revert "mm: use early_pfn_to_nid in
-page_ext_init""), we call page_ext_init() after page_alloc_init_late() to
-avoid some panic problem.  It seems that we cannot track early page
-allocations in current kernel even if page structure has been initialized
-early.
+On memory hot unplug, the kernel removes the node memory type from the
+associated memory tier.  Use list_del_init instead of list del such that
+the same memory type can be added back to a memory tier on hotplug.
 
-This patch introduces a new boot parameter 'early_page_ext' to resolve
-this problem.  If we pass it to the kernel, page_ext_init() will be moved
-up and the feature 'deferred initialization of struct pages' will be
-disabled to initialize the page allocator early and prevent the panic
-problem above.  It can help us to catch early page allocations.  This is
-useful especially when we find that the free memory value is not the same
-right after different kernel booting.
+Without this, we get the below warning and return error on
+adding memory type to a new memory tier.
 
-Link: https://lkml.kernel.org/r/20220825102714.669-1-lizhe.67@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+[   33.596095] ------------[ cut here ]------------
+[   33.596099] WARNING: CPU: 3 PID: 667 at mm/memory-tiers.c:115 set_node_memory_tier+0xd6/0x2e0
+[   33.596109] Modules linked in: kmem
+
+...
+
+[   33.596126] RIP: 0010:set_node_memory_tier+0xd6/0x2e0
+
+....
+[   33.596196]  memtier_hotplug_callback+0x48/0x68
+[   33.596204]  blocking_notifier_call_chain+0x80/0xc0
+[   33.596211]  online_pages+0x25e/0x280
+[   33.596218]  memory_block_change_state+0x176/0x1f0
+[   33.596225]  memory_subsys_online+0x37/0x40
+[   33.596230]  online_store+0x9b/0x130
+[   33.596236]  kernfs_fop_write_iter+0x128/0x1b0
+[   33.596242]  vfs_write+0x24b/0x2c0
+[   33.596249]  ksys_write+0x74/0xe0
+[   33.596254]  do_syscall_64+0x43/0x90
+[   33.596259]  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Link: https://lkml.kernel.org/r/20220825092019.379069-1-aneesh.kumar@linux.ibm.com
+Fixes: "mm/demotion: Add hotplug callbacks to handle new numa node onlined"
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hesham Almatary <hesham.almatary@huawei.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Jagdish Gediya <jvgediya.oss@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    8 ++++++++
- include/linux/page_ext.h                        |   11 +++++++++++
- init/main.c                                     |    6 +++++-
- mm/page_alloc.c                                 |    2 ++
- mm/page_ext.c                                   |    8 ++++++++
- 5 files changed, 34 insertions(+), 1 deletion(-)
+ mm/memory-tiers.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~page_ext-introduce-boot-parameter-early_page_ext
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1471,6 +1471,14 @@
- 			Permit 'security.evm' to be updated regardless of
- 			current integrity status.
- 
-+	early_page_ext [KNL] Enforces page_ext initialization to earlier
-+			stages so cover more early boot allocations.
-+			Please note that as side effect some optimizations
-+			might be disabled to achieve that (e.g. parallelized
-+			memory initialization is disabled) so the boot process
-+			might take longer, especially on systems with a lot of
-+			memory. Available with CONFIG_PAGE_EXTENSION=y.
-+
- 	failslab=
- 	fail_usercopy=
- 	fail_page_alloc=
---- a/include/linux/page_ext.h~page_ext-introduce-boot-parameter-early_page_ext
-+++ a/include/linux/page_ext.h
-@@ -36,9 +36,15 @@ struct page_ext {
- 	unsigned long flags;
- };
- 
-+extern bool early_page_ext;
- extern unsigned long page_ext_size;
- extern void pgdat_page_ext_init(struct pglist_data *pgdat);
- 
-+static inline bool early_page_ext_enabled(void)
-+{
-+	return early_page_ext;
-+}
-+
- #ifdef CONFIG_SPARSEMEM
- static inline void page_ext_init_flatmem(void)
- {
-@@ -68,6 +74,11 @@ static inline struct page_ext *page_ext_
- #else /* !CONFIG_PAGE_EXTENSION */
- struct page_ext;
- 
-+static inline bool early_page_ext_enabled(void)
-+{
-+	return false;
-+}
-+
- static inline void pgdat_page_ext_init(struct pglist_data *pgdat)
- {
- }
---- a/init/main.c~page_ext-introduce-boot-parameter-early_page_ext
-+++ a/init/main.c
-@@ -850,6 +850,9 @@ static void __init mm_init(void)
- 	pgtable_init();
- 	debug_objects_mem_init();
- 	vmalloc_init();
-+	/* Should be run after vmap initialization */
-+	if (early_page_ext_enabled())
-+		page_ext_init();
- 	/* Should be run before the first non-init thread is created */
- 	init_espfix_bsp();
- 	/* Should be run after espfix64 is set up. */
-@@ -1608,7 +1611,8 @@ static noinline void __init kernel_init_
- 	padata_init();
- 	page_alloc_init_late();
- 	/* Initialize page ext after all struct pages are initialized. */
--	page_ext_init();
-+	if (!early_page_ext_enabled())
-+		page_ext_init();
- 
- 	do_basic_setup();
- 
---- a/mm/page_alloc.c~page_ext-introduce-boot-parameter-early_page_ext
-+++ a/mm/page_alloc.c
-@@ -482,6 +482,8 @@ defer_init(int nid, unsigned long pfn, u
- {
- 	static unsigned long prev_end_pfn, nr_initialised;
- 
-+	if (early_page_ext_enabled())
-+		return false;
- 	/*
- 	 * prev_end_pfn static that contains the end of previous zone
- 	 * No need to protect because called very early in boot before smp_init.
---- a/mm/page_ext.c~page_ext-introduce-boot-parameter-early_page_ext
-+++ a/mm/page_ext.c
-@@ -91,6 +91,14 @@ unsigned long page_ext_size = sizeof(str
- static unsigned long total_usage;
- static struct page_ext *lookup_page_ext(const struct page *page);
- 
-+bool early_page_ext __meminitdata;
-+static int __init setup_early_page_ext(char *str)
-+{
-+	early_page_ext = true;
-+	return 0;
-+}
-+early_param("early_page_ext", setup_early_page_ext);
-+
- static bool __init invoke_need_callbacks(void)
- {
- 	int i;
+--- a/mm/memory-tiers.c~mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined-fix
++++ a/mm/memory-tiers.c
+@@ -134,7 +134,7 @@ static bool clear_node_memory_tier(int n
+ 		memtype = node_memory_types[node];
+ 		node_clear(node, memtype->nodes);
+ 		if (nodes_empty(memtype->nodes)) {
+-			list_del(&memtype->tier_sibiling);
++			list_del_init(&memtype->tier_sibiling);
+ 			memtype->memtier = NULL;
+ 			if (list_empty(&memtier->memory_types))
+ 				destroy_memory_tier(memtier);
 _
 
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-page_ext-introduce-boot-parameter-early_page_ext.patch
+mm-demotion-add-support-for-explicit-memory-tiers.patch
+mm-demotion-move-memory-demotion-related-code.patch
+mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined.patch
+mm-demotion-add-hotplug-callbacks-to-handle-new-numa-node-onlined-fix.patch
+mm-demotion-dax-kmem-set-nodes-abstract-distance-to-memtier_default_dax_adistance.patch
+mm-demotion-build-demotion-targets-based-on-explicit-memory-tiers.patch
+mm-demotion-add-pg_data_t-member-to-track-node-memory-tier-details.patch
+mm-demotion-drop-memtier-from-memtype.patch
+mm-demotion-update-node_is_toptier-to-work-with-memory-tiers.patch
+lib-nodemask-optimize-node_random-for-nodemask-with-single-numa-node.patch
 
