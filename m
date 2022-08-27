@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73CA0C0502A
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F7D5ECAAD5
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345345AbiH0CLx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1345418AbiH0CLx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Aug 2022 22:11:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36738 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36902 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345435AbiH0CKR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:17 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6707B43E4C
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:15 -0700 (PDT)
+        with ESMTP id S1345440AbiH0CKT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8E6D4AD4C
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0D3EBB8337F
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0F87C433D7;
-        Sat, 27 Aug 2022 02:10:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 704A1B83396
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D873C43470;
+        Sat, 27 Aug 2022 02:10:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566212;
-        bh=JytXBY7o7q3XlPAIzrOYYdEZfZIdRcrNuLOn08vrlpY=;
+        s=korg; t=1661566215;
+        bh=FZNnmEtcvQO52tuRJoO5LPju3uT3qVdzqvkCme3ZxfE=;
         h=Date:To:From:Subject:From;
-        b=RXxKhw2nRUM0RNR6PPYubSVPS3F/WCWt0Cg/d6Ld8TQyQPNvHSUg5sf9eo/MMm5eW
-         k8jtEa7Mnn6zlS/h16daOuQq3soQbSbLodzKPtSAt0oMFaKMxB/40YEYqut0szzxoF
-         Ggd6zAyd+hZdZhDJHy0Q6mVUvWDJvACXWXJPZqIE=
-Date:   Fri, 26 Aug 2022 19:10:11 -0700
+        b=NKyX8sHJ8D+PfrQWrnQ5sH0Rg8iLtOK2Vq7ln787L6ibzlCHnmpe9inQw97Cvp0Em
+         7EkA/80y+VMNJd+OgyLnx3GXvQ67meHLPb4iVHwisg2C0npsxCz6i2DP5k+pn27Pn+
+         TQpU03Qxpe2z2pjNCEH80q16RJxYe+R7gLJ679EI=
+Date:   Fri, 26 Aug 2022 19:10:14 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put.patch added to mm-unstable branch
-Message-Id: <20220827021012.A0F87C433D7@smtp.kernel.org>
+Subject: + security-kmsan-fix-interoperability-with-auto-initialization.patch added to mm-unstable branch
+Message-Id: <20220827021015.0D873C43470@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: kmsan: unpoison area->list in kcov_remote_area_put()
+     Subject: security: kmsan: fix interoperability with auto-initialization
 has been added to the -mm mm-unstable branch.  Its filename is
-     kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put.patch
+     security-kmsan-fix-interoperability-with-auto-initialization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/security-kmsan-fix-interoperability-with-auto-initialization.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,22 +75,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kcov: kmsan: unpoison area->list in kcov_remote_area_put()
-Date: Fri, 26 Aug 2022 17:07:53 +0200
+Subject: security: kmsan: fix interoperability with auto-initialization
+Date: Fri, 26 Aug 2022 17:07:54 +0200
 
-KMSAN does not instrument kernel/kcov.c for performance reasons (with
-CONFIG_KCOV=y virtually every place in the kernel invokes kcov
-instrumentation).  Therefore the tool may miss writes from kcov.c that
-initialize memory.
+Heap and stack initialization is great, but not when we are trying uses of
+uninitialized memory.  When the kernel is built with KMSAN, having kernel
+memory initialization enabled may introduce false negatives.
 
-When CONFIG_DEBUG_LIST is enabled, list pointers from kernel/kcov.c are
-passed to instrumented helpers in lib/list_debug.c, resulting in false
-positives.
+We disable CONFIG_INIT_STACK_ALL_PATTERN and CONFIG_INIT_STACK_ALL_ZERO
+under CONFIG_KMSAN, making it impossible to auto-initialize stack
+variables in KMSAN builds.  We also disable
+CONFIG_INIT_ON_ALLOC_DEFAULT_ON and CONFIG_INIT_ON_FREE_DEFAULT_ON to
+prevent accidental use of heap auto-initialization.
 
-To work around these reports, we unpoison the contents of area->list after
-initializing it.
+We however still let the users enable heap auto-initialization at
+boot-time (by setting init_on_alloc=1 or init_on_free=1), in which case a
+warning is printed.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-31-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-32-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -127,32 +129,57 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/page_alloc.c            |    4 ++++
+ security/Kconfig.hardening |    4 ++++
+ 2 files changed, 8 insertions(+)
 
---- a/kernel/kcov.c~kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put
-+++ a/kernel/kcov.c
-@@ -11,6 +11,7 @@
- #include <linux/fs.h>
- #include <linux/hashtable.h>
- #include <linux/init.h>
-+#include <linux/kmsan-checks.h>
- #include <linux/mm.h>
- #include <linux/preempt.h>
- #include <linux/printk.h>
-@@ -152,6 +153,12 @@ static void kcov_remote_area_put(struct
- 	INIT_LIST_HEAD(&area->list);
- 	area->size = size;
- 	list_add(&area->list, &kcov_remote_areas);
-+	/*
-+	 * KMSAN doesn't instrument this file, so it may not know area->list
-+	 * is initialized. Unpoison it explicitly to avoid reports in
-+	 * kcov_remote_area_get().
-+	 */
-+	kmsan_unpoison_memory(&area->list, sizeof(area->list));
- }
+--- a/mm/page_alloc.c~security-kmsan-fix-interoperability-with-auto-initialization
++++ a/mm/page_alloc.c
+@@ -938,6 +938,10 @@ void init_mem_debugging_and_hardening(vo
+ 	else
+ 		static_branch_disable(&init_on_free);
  
- static notrace bool check_kcov_mode(enum kcov_mode needed_mode, struct task_struct *t)
++	if (IS_ENABLED(CONFIG_KMSAN) &&
++	    (_init_on_alloc_enabled_early || _init_on_free_enabled_early))
++		pr_info("mem auto-init: please make sure init_on_alloc and init_on_free are disabled when running KMSAN\n");
++
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	if (!debug_pagealloc_enabled())
+ 		return;
+--- a/security/Kconfig.hardening~security-kmsan-fix-interoperability-with-auto-initialization
++++ a/security/Kconfig.hardening
+@@ -106,6 +106,7 @@ choice
+ 	config INIT_STACK_ALL_PATTERN
+ 		bool "pattern-init everything (strongest)"
+ 		depends on CC_HAS_AUTO_VAR_INIT_PATTERN
++		depends on !KMSAN
+ 		help
+ 		  Initializes everything on the stack (including padding)
+ 		  with a specific debug value. This is intended to eliminate
+@@ -124,6 +125,7 @@ choice
+ 	config INIT_STACK_ALL_ZERO
+ 		bool "zero-init everything (strongest and safest)"
+ 		depends on CC_HAS_AUTO_VAR_INIT_ZERO
++		depends on !KMSAN
+ 		help
+ 		  Initializes everything on the stack (including padding)
+ 		  with a zero value. This is intended to eliminate all
+@@ -218,6 +220,7 @@ config STACKLEAK_RUNTIME_DISABLE
+ 
+ config INIT_ON_ALLOC_DEFAULT_ON
+ 	bool "Enable heap memory zeroing on allocation by default"
++	depends on !KMSAN
+ 	help
+ 	  This has the effect of setting "init_on_alloc=1" on the kernel
+ 	  command line. This can be disabled with "init_on_alloc=0".
+@@ -230,6 +233,7 @@ config INIT_ON_ALLOC_DEFAULT_ON
+ 
+ config INIT_ON_FREE_DEFAULT_ON
+ 	bool "Enable heap memory zeroing on free by default"
++	depends on !KMSAN
+ 	help
+ 	  This has the effect of setting "init_on_free=1" on the kernel
+ 	  command line. This can be disabled with "init_on_free=0".
 _
 
 Patches currently in -mm which might be from glider@google.com are
