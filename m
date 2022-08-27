@@ -2,42 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFAA7ECAAD4
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 01:51:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21CDDECAAD5
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 01:57:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232193AbiH0Bvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 21:51:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38888 "EHLO
+        id S236442AbiH0B52 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 21:57:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345196AbiH0Bvs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 21:51:48 -0400
+        with ESMTP id S230416AbiH0B51 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 21:57:27 -0400
 Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D95D8EA312
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 18:51:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D3F28688B
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 18:57:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 53A4FCE31E4
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 01:51:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB61C433B5;
-        Sat, 27 Aug 2022 01:51:43 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id C7520CE30A5
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 01:57:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60DFEC433D6;
+        Sat, 27 Aug 2022 01:57:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661565103;
-        bh=osf64rgMDnn0vzjviX8T+HgBRSSq8s4/adgbRi0yxjk=;
+        s=korg; t=1661565442;
+        bh=JKLLXFPyG+cZlZPV5O/kLTPtAg8x6INlCp5EAKrwLpQ=;
         h=Date:To:From:Subject:From;
-        b=PDWMjeL1P7rBz1ulP4GNkxAaOR9RU94sMEQyLuJRaTo0D/iDn0PAcbH+RPyPeRc4G
-         QBXN7ckLhxqahTCtAWQDsmeuiG3fFUhPBDTjd1KiP8KrL49qumW+V0Z/sj3yNkR5+8
-         l4/9KK4pNZNRy1BnvEbB8+54+HQhDUnr+ebCqo0c=
-Date:   Fri, 26 Aug 2022 18:51:42 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, ruansy.fnst@fujitsu.com,
-        riteshh@linux.ibm.com, rgoldwyn@suse.de, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, jane.chu@oracle.com, hch@lst.de,
-        djwong@kernel.org, david@fromorbit.com, dan.j.williams@intel.com,
-        akpm@linux-foundation.org
+        b=GWZsfRZp581KK69WxBaDM+UCZVPKxyGNkqHHVvZ9VxA64wmbiI6AYeGdLM/kUzV5a
+         kABLDQKi6/vzUDTf0bciYG5CGksheSvxnocQYtEbaVIw8t29WH9UNn0t6bcKhL8Q+3
+         WxB60lzVTUvsuzzpeietXyRbnNXKIZODE3YLvfvs=
+Date:   Fri, 26 Aug 2022 18:57:21 -0700
+To:     mm-commits@vger.kernel.org, yury.norov@gmail.com, vbabka@suse.cz,
+        sander@svanheule.net, rostedt@goodmis.org, peterz@infradead.org,
+        nathan@kernel.org, mingo@redhat.com, mhiramat@kernel.org,
+        luc.vanoostenryck@gmail.com, linux@rasmusvillemoes.dk,
+        jpoimboe@kernel.org, Jason@zx2c4.com, isabbasso@riseup.net,
+        edumazet@google.com, dan.j.williams@intel.com, arnd@arndb.de,
+        bvanassche@acm.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-fix-detection-of-memory_failure-handlers.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220827015143.8DB61C433B5@smtp.kernel.org>
+Subject: + testing-selftests-add-tests-for-the-is_signed_type-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20220827015722.60DFEC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: fix detection of memory_failure() handlers
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-fix-detection-of-memory_failure-handlers.patch
+     Subject: testing/selftests: add tests for the is_signed_type() macro
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     testing-selftests-add-tests-for-the-is_signed_type-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-detection-of-memory_failure-handlers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/testing-selftests-add-tests-for-the-is_signed_type-macro.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,82 +69,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm/memory-failure: fix detection of memory_failure() handlers
-Date: Fri, 26 Aug 2022 10:18:07 -0700
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: testing/selftests: add tests for the is_signed_type() macro
+Date: Fri, 26 Aug 2022 09:21:15 -0700
 
-Some pagemap types, like MEMORY_DEVICE_GENERIC (device-dax) do not even
-have pagemap ops which results in crash signatures like this:
+Although not documented, is_signed_type() must support the 'bool' and
+pointer types next to scalar and enumeration types.  Add a selftest that
+verifies that this macro handles all supported types correctly.
 
-  BUG: kernel NULL pointer dereference, address: 0000000000000010
-  #PF: supervisor read access in kernel mode
-  #PF: error_code(0x0000) - not-present page
-  PGD 8000000205073067 P4D 8000000205073067 PUD 2062b3067 PMD 0
-  Oops: 0000 [#1] PREEMPT SMP PTI
-  CPU: 22 PID: 4535 Comm: device-dax Tainted: G           OE    N 6.0.0-rc2+ #59
-  Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 0.0.0 02/06/2015
-  RIP: 0010:memory_failure+0x667/0xba0
- [..]
-  Call Trace:
-   <TASK>
-   ? _printk+0x58/0x73
-   do_madvise.part.0.cold+0xaf/0xc5
-
-Check for ops before checking if the ops have a memory_failure()
-handler.
-
-Link: https://lkml.kernel.org/r/166153428781.2758201.1990616683438224741.stgit@dwillia2-xfh.jf.intel.com
-Fixes: 33a8f7f2b3a3 ("pagemap,pmem: introduce ->memory_failure()")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Ritesh Harjani <riteshh@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20220826162116.1050972-2-bvanassche@acm.org
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Isabella Basso <isabbasso@riseup.net>
+Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Sander Vanheule <sander@svanheule.net>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |    5 +++++
- mm/memory-failure.c      |    2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug         |   12 +++++++++
+ lib/Makefile              |    1 
+ lib/is_signed_type_test.c |   48 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 61 insertions(+)
 
---- a/include/linux/memremap.h~mm-memory-failure-fix-detection-of-memory_failure-handlers
-+++ a/include/linux/memremap.h
-@@ -139,6 +139,11 @@ struct dev_pagemap {
- 	};
- };
- 
-+static inline bool pgmap_has_memory_failure(struct dev_pagemap *pgmap)
+--- /dev/null
++++ a/lib/is_signed_type_test.c
+@@ -0,0 +1,48 @@
++// SPDX-License-Identifier: GPL-2.0 OR MIT
++/*
++ *	./tools/testing/kunit/kunit.py run is_signed_type [--raw_output]
++ */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <kunit/test.h>
++#include <linux/overflow.h>
++
++enum unsigned_enum {
++	constant_a = 3,
++};
++
++enum signed_enum {
++	constant_b = -1,
++	constant_c = 2,
++};
++
++static void is_signed_type_test(struct kunit *test)
 +{
-+	return pgmap->ops && pgmap->ops->memory_failure;
++	KUNIT_EXPECT_EQ(test, is_signed_type(bool), false);
++	KUNIT_EXPECT_EQ(test, is_signed_type(signed char), true);
++	KUNIT_EXPECT_EQ(test, is_signed_type(unsigned char), false);
++	KUNIT_EXPECT_EQ(test, is_signed_type(int), true);
++	KUNIT_EXPECT_EQ(test, is_signed_type(unsigned int), false);
++	KUNIT_EXPECT_EQ(test, is_signed_type(long), true);
++	KUNIT_EXPECT_EQ(test, is_signed_type(unsigned long), false);
++	KUNIT_EXPECT_EQ(test, is_signed_type(long long), true);
++	KUNIT_EXPECT_EQ(test, is_signed_type(unsigned long long), false);
++	KUNIT_EXPECT_EQ(test, is_signed_type(enum unsigned_enum), false);
++	KUNIT_EXPECT_EQ(test, is_signed_type(enum signed_enum), true);
++	KUNIT_EXPECT_EQ(test, is_signed_type(void *), false);
++	KUNIT_EXPECT_EQ(test, is_signed_type(const char *), false);
 +}
 +
- static inline struct vmem_altmap *pgmap_altmap(struct dev_pagemap *pgmap)
- {
- 	if (pgmap->flags & PGMAP_ALTMAP_VALID)
---- a/mm/memory-failure.c~mm-memory-failure-fix-detection-of-memory_failure-handlers
-+++ a/mm/memory-failure.c
-@@ -1928,7 +1928,7 @@ static int memory_failure_dev_pagemap(un
- 	 * Call driver's implementation to handle the memory failure, otherwise
- 	 * fall back to generic handler.
- 	 */
--	if (pgmap->ops->memory_failure) {
-+	if (pgmap_has_memory_failure(pgmap)) {
- 		rc = pgmap->ops->memory_failure(pgmap, pfn, 1, flags);
- 		/*
- 		 * Fall back to generic handler too if operation is not
++static struct kunit_case is_signed_type_test_cases[] = {
++	KUNIT_CASE(is_signed_type_test),
++	{}
++};
++
++static struct kunit_suite is_signed_type_test_suite = {
++	.name = "is_signed_type",
++	.test_cases = is_signed_type_test_cases,
++};
++
++kunit_test_suite(is_signed_type_test_suite);
++
++MODULE_LICENSE("Dual MIT/GPL");
+--- a/lib/Kconfig.debug~testing-selftests-add-tests-for-the-is_signed_type-macro
++++ a/lib/Kconfig.debug
+@@ -2532,6 +2532,18 @@ config MEMCPY_KUNIT_TEST
+ 
+ 	  If unsure, say N.
+ 
++config IS_SIGNED_TYPE_KUNIT_TEST
++	tristate "Test is_signed_type() macro" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  Builds unit tests for the is_signed_type() macro.
++
++	  For more information on KUnit and unit tests in general please refer
++	  to the KUnit documentation in Documentation/dev-tools/kunit/.
++
++	  If unsure, say N.
++
+ config OVERFLOW_KUNIT_TEST
+ 	tristate "Test check_*_overflow() functions at runtime" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT
+--- a/lib/Makefile~testing-selftests-add-tests-for-the-is_signed_type-macro
++++ a/lib/Makefile
+@@ -377,6 +377,7 @@ obj-$(CONFIG_BITS_TEST) += test_bits.o
+ obj-$(CONFIG_CMDLINE_KUNIT_TEST) += cmdline_kunit.o
+ obj-$(CONFIG_SLUB_KUNIT_TEST) += slub_kunit.o
+ obj-$(CONFIG_MEMCPY_KUNIT_TEST) += memcpy_kunit.o
++obj-$(CONFIG_IS_SIGNED_TYPE_KUNIT_TEST) += is_signed_type_test.o
+ obj-$(CONFIG_OVERFLOW_KUNIT_TEST) += overflow_kunit.o
+ CFLAGS_stackinit_kunit.o += $(call cc-disable-warning, switch-unreachable)
+ obj-$(CONFIG_STACKINIT_KUNIT_TEST) += stackinit_kunit.o
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from bvanassche@acm.org are
 
-xfs-quiet-notify_failure-eopnotsupp-cases.patch
-xfs-fix-sb_born-check-in-xfs_dax_notify_failure.patch
-mm-memory-failure-fix-detection-of-memory_failure-handlers.patch
-mm-memory-failure-fall-back-to-vma_address-when-notify_failure-fails.patch
+testing-selftests-add-tests-for-the-is_signed_type-macro.patch
+overflow-tracing-define-the-is_signed_type-macro-once.patch
 
