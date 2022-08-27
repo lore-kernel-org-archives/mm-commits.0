@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BAA4C0502C
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:09:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDE3EECAAD4
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:09:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345349AbiH0CJV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1345358AbiH0CJV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Aug 2022 22:09:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33550 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345461AbiH0CJJ (ORCPT
+        with ESMTP id S1345354AbiH0CJJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ACB4EE485
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:08:49 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40E24DDA8B
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:08:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6990961D2E
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:08:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B01DEC433D6;
-        Sat, 27 Aug 2022 02:08:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 77B53B8338E
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:08:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CD9DC433C1;
+        Sat, 27 Aug 2022 02:08:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566128;
-        bh=kDZZirl4ZunhTnWUPHO32PY351KPz2r8ygUQqnGVDrU=;
+        s=korg; t=1661566125;
+        bh=wJGfPdrGVwow86F3Xy7crVzdvBgNmZ2QAnjLqYcp9Tg=;
         h=Date:To:From:Subject:From;
-        b=dO43Nc6Eor5XBuzgf2vXIoTEXU+kp8zwwVlp45Ov60qMtXKpMFj9/KqPVJKTzqlx+
-         Mp4X/Ojqvf6OZCX7droTZHATdUgXUotB6iI3pnkXyGsppY32wqCGclfYRhroCnhpfj
-         DTfW3jVqL992ahm8z8SWLx02fcnb/QJ2w51lF2QY=
-Date:   Fri, 26 Aug 2022 19:08:47 -0700
+        b=AFBXx3OdyotdKD2Y3PPcmgzA6ucERCRggavGuqLOZkFmf0DQlXYJaciLkuxq6No0F
+         /BuglznRoUMOnTH0iMTdrUa26faKKeFYPC7QW5xqQW5rkpMmOrwAT6WuAjBWTl0mRi
+         CriUVWUciQ3wRKaVZHJslcwM/KWzryIwPbsSHIDI=
+Date:   Fri, 26 Aug 2022 19:08:44 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-asm-instrument-usercopy-in-get_user-and-put_user.patch added to mm-unstable branch
-Message-Id: <20220827020848.B01DEC433D6@smtp.kernel.org>
+Subject: + instrumentedh-allow-instrumenting-both-sides-of-copy_from_user.patch added to mm-unstable branch
+Message-Id: <20220827020845.1CD9DC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: asm: instrument usercopy in get_user() and put_user()
+     Subject: instrumented.h: allow instrumenting both sides of copy_from_user()
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-asm-instrument-usercopy-in-get_user-and-put_user.patch
+     instrumentedh-allow-instrumenting-both-sides-of-copy_from_user.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-asm-instrument-usercopy-in-get_user-and-put_user.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/instrumentedh-allow-instrumenting-both-sides-of-copy_from_user.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,14 +75,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: asm: instrument usercopy in get_user() and put_user()
-Date: Fri, 26 Aug 2022 17:07:27 +0200
+Subject: instrumented.h: allow instrumenting both sides of copy_from_user()
+Date: Fri, 26 Aug 2022 17:07:26 +0200
 
-Use hooks from instrumented.h to notify bug detection tools about usercopy
-events in variations of get_user() and put_user().
+Introduce instrument_copy_from_user_before() and
+instrument_copy_from_user_after() hooks to be invoked before and after the
+call to copy_from_user().
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-5-glider@google.com
+KASAN and KCSAN will be only using instrument_copy_from_user_before(), but
+for KMSAN we'll need to insert code after copy_from_user().
+
+Link: https://lkml.kernel.org/r/20220826150807.723137-4-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -103,7 +108,6 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -118,88 +122,147 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uaccess.h |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ arch/s390/lib/uaccess.c      |    3 ++-
+ include/linux/instrumented.h |   21 +++++++++++++++++++--
+ include/linux/uaccess.h      |   19 ++++++++++++++-----
+ lib/iov_iter.c               |    9 ++++++---
+ lib/usercopy.c               |    3 ++-
+ 5 files changed, 43 insertions(+), 12 deletions(-)
 
---- a/arch/x86/include/asm/uaccess.h~x86-asm-instrument-usercopy-in-get_user-and-put_user
-+++ a/arch/x86/include/asm/uaccess.h
-@@ -5,6 +5,7 @@
-  * User space memory access functions
+--- a/arch/s390/lib/uaccess.c~instrumentedh-allow-instrumenting-both-sides-of-copy_from_user
++++ a/arch/s390/lib/uaccess.c
+@@ -81,8 +81,9 @@ unsigned long _copy_from_user_key(void *
+ 
+ 	might_fault();
+ 	if (!should_fail_usercopy()) {
+-		instrument_copy_from_user(to, from, n);
++		instrument_copy_from_user_before(to, from, n);
+ 		res = raw_copy_from_user_key(to, from, n, key);
++		instrument_copy_from_user_after(to, from, n, res);
+ 	}
+ 	if (unlikely(res))
+ 		memset(to + (n - res), 0, res);
+--- a/include/linux/instrumented.h~instrumentedh-allow-instrumenting-both-sides-of-copy_from_user
++++ a/include/linux/instrumented.h
+@@ -120,7 +120,7 @@ instrument_copy_to_user(void __user *to,
+ }
+ 
+ /**
+- * instrument_copy_from_user - instrument writes of copy_from_user
++ * instrument_copy_from_user_before - add instrumentation before copy_from_user
+  *
+  * Instrument writes to kernel memory, that are due to copy_from_user (and
+  * variants). The instrumentation should be inserted before the accesses.
+@@ -130,10 +130,27 @@ instrument_copy_to_user(void __user *to,
+  * @n number of bytes to copy
   */
- #include <linux/compiler.h>
-+#include <linux/instrumented.h>
- #include <linux/kasan-checks.h>
- #include <linux/string.h>
- #include <asm/asm.h>
-@@ -103,6 +104,7 @@ extern int __get_user_bad(void);
- 		     : "=a" (__ret_gu), "=r" (__val_gu),		\
- 			ASM_CALL_CONSTRAINT				\
- 		     : "0" (ptr), "i" (sizeof(*(ptr))));		\
-+	instrument_get_user(__val_gu);					\
- 	(x) = (__force __typeof__(*(ptr))) __val_gu;			\
- 	__builtin_expect(__ret_gu, 0);					\
- })
-@@ -192,9 +194,11 @@ extern void __put_user_nocheck_8(void);
- 	int __ret_pu;							\
- 	void __user *__ptr_pu;						\
- 	register __typeof__(*(ptr)) __val_pu asm("%"_ASM_AX);		\
--	__chk_user_ptr(ptr);						\
--	__ptr_pu = (ptr);						\
--	__val_pu = (x);							\
-+	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
-+	__typeof__(ptr) __ptr = (ptr); /* eval ptr once */		\
-+	__chk_user_ptr(__ptr);						\
-+	__ptr_pu = __ptr;						\
-+	__val_pu = __x;							\
- 	asm volatile("call __" #fn "_%P[size]"				\
- 		     : "=c" (__ret_pu),					\
- 			ASM_CALL_CONSTRAINT				\
-@@ -202,6 +206,7 @@ extern void __put_user_nocheck_8(void);
- 		       "r" (__val_pu),					\
- 		       [size] "i" (sizeof(*(ptr)))			\
- 		     :"ebx");						\
-+	instrument_put_user(__x, __ptr, sizeof(*(ptr)));		\
- 	__builtin_expect(__ret_pu, 0);					\
- })
+ static __always_inline void
+-instrument_copy_from_user(const void *to, const void __user *from, unsigned long n)
++instrument_copy_from_user_before(const void *to, const void __user *from, unsigned long n)
+ {
+ 	kasan_check_write(to, n);
+ 	kcsan_check_write(to, n);
+ }
  
-@@ -248,23 +253,25 @@ extern void __put_user_nocheck_8(void);
++/**
++ * instrument_copy_from_user_after - add instrumentation after copy_from_user
++ *
++ * Instrument writes to kernel memory, that are due to copy_from_user (and
++ * variants). The instrumentation should be inserted after the accesses.
++ *
++ * @to destination address
++ * @from source address
++ * @n number of bytes to copy
++ * @left number of bytes not copied (as returned by copy_from_user)
++ */
++static __always_inline void
++instrument_copy_from_user_after(const void *to, const void __user *from,
++				unsigned long n, unsigned long left)
++{
++}
++
+ #endif /* _LINUX_INSTRUMENTED_H */
+--- a/include/linux/uaccess.h~instrumentedh-allow-instrumenting-both-sides-of-copy_from_user
++++ a/include/linux/uaccess.h
+@@ -58,20 +58,28 @@
+ static __always_inline __must_check unsigned long
+ __copy_from_user_inatomic(void *to, const void __user *from, unsigned long n)
+ {
+-	instrument_copy_from_user(to, from, n);
++	unsigned long res;
++
++	instrument_copy_from_user_before(to, from, n);
+ 	check_object_size(to, n, false);
+-	return raw_copy_from_user(to, from, n);
++	res = raw_copy_from_user(to, from, n);
++	instrument_copy_from_user_after(to, from, n, res);
++	return res;
+ }
  
- #define __put_user_size(x, ptr, size, label)				\
- do {									\
-+	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
- 	__chk_user_ptr(ptr);						\
- 	switch (size) {							\
- 	case 1:								\
--		__put_user_goto(x, ptr, "b", "iq", label);		\
-+		__put_user_goto(__x, ptr, "b", "iq", label);		\
- 		break;							\
- 	case 2:								\
--		__put_user_goto(x, ptr, "w", "ir", label);		\
-+		__put_user_goto(__x, ptr, "w", "ir", label);		\
- 		break;							\
- 	case 4:								\
--		__put_user_goto(x, ptr, "l", "ir", label);		\
-+		__put_user_goto(__x, ptr, "l", "ir", label);		\
- 		break;							\
- 	case 8:								\
--		__put_user_goto_u64(x, ptr, label);			\
-+		__put_user_goto_u64(__x, ptr, label);			\
- 		break;							\
- 	default:							\
- 		__put_user_bad();					\
- 	}								\
-+	instrument_put_user(__x, ptr, size);				\
- } while (0)
+ static __always_inline __must_check unsigned long
+ __copy_from_user(void *to, const void __user *from, unsigned long n)
+ {
++	unsigned long res;
++
+ 	might_fault();
++	instrument_copy_from_user_before(to, from, n);
+ 	if (should_fail_usercopy())
+ 		return n;
+-	instrument_copy_from_user(to, from, n);
+ 	check_object_size(to, n, false);
+-	return raw_copy_from_user(to, from, n);
++	res = raw_copy_from_user(to, from, n);
++	instrument_copy_from_user_after(to, from, n, res);
++	return res;
+ }
  
- #ifdef CONFIG_CC_HAS_ASM_GOTO_OUTPUT
-@@ -305,6 +312,7 @@ do {									\
- 	default:							\
- 		(x) = __get_user_bad();					\
- 	}								\
-+	instrument_get_user(x);						\
- } while (0)
+ /**
+@@ -115,8 +123,9 @@ _copy_from_user(void *to, const void __u
+ 	unsigned long res = n;
+ 	might_fault();
+ 	if (!should_fail_usercopy() && likely(access_ok(from, n))) {
+-		instrument_copy_from_user(to, from, n);
++		instrument_copy_from_user_before(to, from, n);
+ 		res = raw_copy_from_user(to, from, n);
++		instrument_copy_from_user_after(to, from, n, res);
+ 	}
+ 	if (unlikely(res))
+ 		memset(to + (n - res), 0, res);
+--- a/lib/iov_iter.c~instrumentedh-allow-instrumenting-both-sides-of-copy_from_user
++++ a/lib/iov_iter.c
+@@ -174,13 +174,16 @@ static int copyout(void __user *to, cons
  
- #define __get_user_asm(x, addr, itype, ltype, label)			\
+ static int copyin(void *to, const void __user *from, size_t n)
+ {
++	size_t res = n;
++
+ 	if (should_fail_usercopy())
+ 		return n;
+ 	if (access_ok(from, n)) {
+-		instrument_copy_from_user(to, from, n);
+-		n = raw_copy_from_user(to, from, n);
++		instrument_copy_from_user_before(to, from, n);
++		res = raw_copy_from_user(to, from, n);
++		instrument_copy_from_user_after(to, from, n, res);
+ 	}
+-	return n;
++	return res;
+ }
+ 
+ static inline struct pipe_buffer *pipe_buf(const struct pipe_inode_info *pipe,
+--- a/lib/usercopy.c~instrumentedh-allow-instrumenting-both-sides-of-copy_from_user
++++ a/lib/usercopy.c
+@@ -12,8 +12,9 @@ unsigned long _copy_from_user(void *to,
+ 	unsigned long res = n;
+ 	might_fault();
+ 	if (!should_fail_usercopy() && likely(access_ok(from, n))) {
+-		instrument_copy_from_user(to, from, n);
++		instrument_copy_from_user_before(to, from, n);
+ 		res = raw_copy_from_user(to, from, n);
++		instrument_copy_from_user_after(to, from, n, res);
+ 	}
+ 	if (unlikely(res))
+ 		memset(to + (n - res), 0, res);
 _
 
 Patches currently in -mm which might be from glider@google.com are
