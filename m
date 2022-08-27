@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76A1BC0502A
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86AF0ECAAD5
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345455AbiH0CMm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:12:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38392 "EHLO
+        id S1345461AbiH0CMn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:12:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345468AbiH0CKk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D0D16B169
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:38 -0700 (PDT)
+        with ESMTP id S1345471AbiH0CKl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E28879ED8
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 57E2761D82
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6533C43470;
-        Sat, 27 Aug 2022 02:10:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9BB5161D65
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E94A1C433D6;
+        Sat, 27 Aug 2022 02:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566236;
-        bh=yrpRFZ0DeNGjGcWvIiXMR5EJIT2dr4uKJTR9tshfLtg=;
+        s=korg; t=1661566239;
+        bh=4RAdnPRgAyFeiWRpK+XlzvDISQM88CwlF40o3qfflVs=;
         h=Date:To:From:Subject:From;
-        b=Lp567jQ/10Y/VZ3aisaU/j3T18BKLVFJ05vZpphmVJMb9PSxA+UjczEevGVsBi7Lr
-         Sjg7gFJGcIE4gZW873V62enQzphDI1SL+UzkuiD/kDoF5EODVjViAmOF0vhrSabuUt
-         yVLt9rIJ/qLQWHLNbALXF+9Ub/76FNguhvkWheDQ=
-Date:   Fri, 26 Aug 2022 19:10:35 -0700
+        b=gnk57JLf7SyFV4ZkJBoZ7tTAFwB92dv+NdyWd7X8WM+GUoVEcFyAAFm2L1sXqo2zX
+         xdKk2iMFcYkcQo7tqgHwsqCePUeceOIEU0ds/z3J/qYT95XlCWcXeX1zatnW9Zb7Wz
+         XOdFj9ey2eu6gBdesTtYFq8lcX/TwI9Oqm9aS9ro=
+Date:   Fri, 26 Aug 2022 19:10:38 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-fs-kmsan-disable-config_dcache_word_access.patch added to mm-unstable branch
-Message-Id: <20220827021036.A6533C43470@smtp.kernel.org>
+Subject: + x86-kmsan-dont-instrument-stack-walking-functions.patch added to mm-unstable branch
+Message-Id: <20220827021038.E94A1C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: fs: kmsan: disable CONFIG_DCACHE_WORD_ACCESS
+     Subject: x86: kmsan: don't instrument stack walking functions
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-fs-kmsan-disable-config_dcache_word_access.patch
+     x86-kmsan-dont-instrument-stack-walking-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-fs-kmsan-disable-config_dcache_word_access.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-dont-instrument-stack-walking-functions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,19 +75,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: fs: kmsan: disable CONFIG_DCACHE_WORD_ACCESS
-Date: Fri, 26 Aug 2022 17:08:02 +0200
+Subject: x86: kmsan: don't instrument stack walking functions
+Date: Fri, 26 Aug 2022 17:08:03 +0200
 
-dentry_string_cmp() calls read_word_at_a_time(), which might read
-uninitialized bytes to optimize string comparisons.  Disabling
-CONFIG_DCACHE_WORD_ACCESS should prohibit this optimization, as well as
-(probably) similar ones.
+Upon function exit, KMSAN marks local variables as uninitialized.  Further
+function calls may result in the compiler creating the stack frame where
+these local variables resided.  This results in frame pointers being
+marked as uninitialized data, which is normally correct, because they are
+not stack-allocated.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-40-glider@google.com
+However stack unwinding functions are supposed to read and dereference the
+frame pointers, in which case KMSAN might be reporting uses of
+uninitialized values.
+
+To work around that, we mark update_stack_state(), unwind_next_frame() and
+show_trace_log_lvl() with __no_kmsan_checks, preventing all KMSAN reports
+inside those functions and making them return initialized values.
+
+Link: https://lkml.kernel.org/r/20220826150807.723137-41-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Suggested-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -120,22 +129,52 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/kernel/dumpstack.c    |    6 ++++++
+ arch/x86/kernel/unwind_frame.c |   11 +++++++++++
+ 2 files changed, 17 insertions(+)
 
---- a/arch/x86/Kconfig~x86-fs-kmsan-disable-config_dcache_word_access
-+++ a/arch/x86/Kconfig
-@@ -129,7 +129,9 @@ config X86
- 	select CLKEVT_I8253
- 	select CLOCKSOURCE_VALIDATE_LAST_CYCLE
- 	select CLOCKSOURCE_WATCHDOG
--	select DCACHE_WORD_ACCESS
-+	# Word-size accesses may read uninitialized data past the trailing \0
-+	# in strings and cause false KMSAN reports.
-+	select DCACHE_WORD_ACCESS		if !KMSAN
- 	select DYNAMIC_SIGFRAME
- 	select EDAC_ATOMIC_SCRUB
- 	select EDAC_SUPPORT
+--- a/arch/x86/kernel/dumpstack.c~x86-kmsan-dont-instrument-stack-walking-functions
++++ a/arch/x86/kernel/dumpstack.c
+@@ -177,6 +177,12 @@ static void show_regs_if_on_stack(struct
+ 	}
+ }
+ 
++/*
++ * This function reads pointers from the stack and dereferences them. The
++ * pointers may not have their KMSAN shadow set up properly, which may result
++ * in false positive reports. Disable instrumentation to avoid those.
++ */
++__no_kmsan_checks
+ static void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
+ 			unsigned long *stack, const char *log_lvl)
+ {
+--- a/arch/x86/kernel/unwind_frame.c~x86-kmsan-dont-instrument-stack-walking-functions
++++ a/arch/x86/kernel/unwind_frame.c
+@@ -183,6 +183,16 @@ static struct pt_regs *decode_frame_poin
+ }
+ #endif
+ 
++/*
++ * While walking the stack, KMSAN may stomp on stale locals from other
++ * functions that were marked as uninitialized upon function exit, and
++ * now hold the call frame information for the current function (e.g. the frame
++ * pointer). Because KMSAN does not specifically mark call frames as
++ * initialized, false positive reports are possible. To prevent such reports,
++ * we mark the functions scanning the stack (here and below) with
++ * __no_kmsan_checks.
++ */
++__no_kmsan_checks
+ static bool update_stack_state(struct unwind_state *state,
+ 			       unsigned long *next_bp)
+ {
+@@ -250,6 +260,7 @@ static bool update_stack_state(struct un
+ 	return true;
+ }
+ 
++__no_kmsan_checks
+ bool unwind_next_frame(struct unwind_state *state)
+ {
+ 	struct pt_regs *regs;
 _
 
 Patches currently in -mm which might be from glider@google.com are
