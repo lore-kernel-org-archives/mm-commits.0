@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D861C0502A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4403ECAAD5
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345429AbiH0CL0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:11:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35222 "EHLO
+        id S1345512AbiH0CL1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:11:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345428AbiH0CJx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:53 -0400
+        with ESMTP id S1345431AbiH0CJ5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 264B01147E
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22FCC165A6
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AD07661D14
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 069EFC433D7;
-        Sat, 27 Aug 2022 02:09:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B37C361D14
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1011CC433D6;
+        Sat, 27 Aug 2022 02:09:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566191;
-        bh=7XKjzNAuzsSbxEtrR1hzcewlsbpvjsDlCAv1V775puU=;
+        s=korg; t=1661566194;
+        bh=Tmz/f85dVqaLU0cMelehXVwm+70Y6Lj4I2BYjH8SOmw=;
         h=Date:To:From:Subject:From;
-        b=SxBJ/hfNJcJj01q6czqswQFyQw4lujpIEUmAjKtKk3y1l0EbNjpfLhqmgUgv2q/CG
-         0Yvzg11viW3M2z+9IlR2B7suqxWXV6np/ORwVU9Dw5e77dAOXBlepCRToeFOnH4aj9
-         39b/iyrnbLmrAOZAaaURa4YClwUuQ3NPhXjlzxac=
-Date:   Fri, 26 Aug 2022 19:09:50 -0700
+        b=lr9CuqCTPvN9G+rQhsRCjX14t2qpVY3D+kTnWjr9JO8vJGqf7tNATLgLTKgzIfp98
+         C7jwpfxxUtyKdIFlfO86bX5v1BUU42VA92As3nfuYnlk6jcWXgS4ZUp8Aus9BucXx2
+         c7Amte3C3U4j95phXqns06ADmdVoH0LuyTLGHKkQ=
+Date:   Fri, 26 Aug 2022 19:09:53 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dma-kmsan-unpoison-dma-mappings.patch added to mm-unstable branch
-Message-Id: <20220827020951.069EFC433D7@smtp.kernel.org>
+Subject: + virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg.patch added to mm-unstable branch
+Message-Id: <20220827020954.1011CC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma: kmsan: unpoison DMA mappings
+     Subject: virtio: kmsan: check/unpoison scatterlist in vring_map_one_sg()
 has been added to the -mm mm-unstable branch.  Its filename is
-     dma-kmsan-unpoison-dma-mappings.patch
+     virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dma-kmsan-unpoison-dma-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,14 +75,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: dma: kmsan: unpoison DMA mappings
-Date: Fri, 26 Aug 2022 17:07:45 +0200
+Subject: virtio: kmsan: check/unpoison scatterlist in vring_map_one_sg()
+Date: Fri, 26 Aug 2022 17:07:46 +0200
 
-KMSAN doesn't know about DMA memory writes performed by devices.  We
-unpoison such memory when it's mapped to avoid false positive reports.
+If vring doesn't use the DMA API, KMSAN is unable to tell whether the
+memory is initialized by hardware.  Explicitly call kmsan_handle_dma()
+from vring_map_one_sg() in this case to prevent false positives.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-23-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-24-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -106,7 +108,6 @@ Cc: Kees Cook <keescook@chromium.org>
 Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Petr Mladek <pmladek@suse.com>
@@ -118,187 +119,36 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmsan.h |   41 +++++++++++++++++++++++++++
- kernel/dma/mapping.c  |    9 ++++--
- mm/kmsan/hooks.c      |   59 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 106 insertions(+), 3 deletions(-)
+ drivers/virtio/virtio_ring.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/include/linux/kmsan.h~dma-kmsan-unpoison-dma-mappings
-+++ a/include/linux/kmsan.h
-@@ -9,6 +9,7 @@
- #ifndef _LINUX_KMSAN_H
- #define _LINUX_KMSAN_H
+--- a/drivers/virtio/virtio_ring.c~virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg
++++ a/drivers/virtio/virtio_ring.c
+@@ -11,6 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/hrtimer.h>
+ #include <linux/dma-mapping.h>
++#include <linux/kmsan-checks.h>
+ #include <linux/spinlock.h>
+ #include <xen/xen.h>
  
-+#include <linux/dma-direction.h>
- #include <linux/gfp.h>
- #include <linux/kmsan-checks.h>
- #include <linux/stackdepot.h>
-@@ -17,6 +18,7 @@
- struct page;
- struct kmem_cache;
- struct task_struct;
-+struct scatterlist;
- 
- #ifdef CONFIG_KMSAN
- 
-@@ -196,6 +198,35 @@ void kmsan_ioremap_page_range(unsigned l
-  */
- void kmsan_iounmap_page_range(unsigned long start, unsigned long end);
- 
-+/**
-+ * kmsan_handle_dma() - Handle a DMA data transfer.
-+ * @page:   first page of the buffer.
-+ * @offset: offset of the buffer within the first page.
-+ * @size:   buffer size.
-+ * @dir:    one of possible dma_data_direction values.
-+ *
-+ * Depending on @direction, KMSAN:
-+ * * checks the buffer, if it is copied to device;
-+ * * initializes the buffer, if it is copied from device;
-+ * * does both, if this is a DMA_BIDIRECTIONAL transfer.
-+ */
-+void kmsan_handle_dma(struct page *page, size_t offset, size_t size,
-+		      enum dma_data_direction dir);
-+
-+/**
-+ * kmsan_handle_dma_sg() - Handle a DMA transfer using scatterlist.
-+ * @sg:    scatterlist holding DMA buffers.
-+ * @nents: number of scatterlist entries.
-+ * @dir:   one of possible dma_data_direction values.
-+ *
-+ * Depending on @direction, KMSAN:
-+ * * checks the buffers in the scatterlist, if they are copied to device;
-+ * * initializes the buffers, if they are copied from device;
-+ * * does both, if this is a DMA_BIDIRECTIONAL transfer.
-+ */
-+void kmsan_handle_dma_sg(struct scatterlist *sg, int nents,
-+			 enum dma_data_direction dir);
-+
- #else
- 
- static inline void kmsan_init_shadow(void)
-@@ -278,6 +309,16 @@ static inline void kmsan_iounmap_page_ra
+@@ -352,8 +353,15 @@ static dma_addr_t vring_map_one_sg(const
+ 				   struct scatterlist *sg,
+ 				   enum dma_data_direction direction)
  {
- }
- 
-+static inline void kmsan_handle_dma(struct page *page, size_t offset,
-+				    size_t size, enum dma_data_direction dir)
-+{
-+}
-+
-+static inline void kmsan_handle_dma_sg(struct scatterlist *sg, int nents,
-+				       enum dma_data_direction dir)
-+{
-+}
-+
- #endif
- 
- #endif /* _LINUX_KMSAN_H */
---- a/kernel/dma/mapping.c~dma-kmsan-unpoison-dma-mappings
-+++ a/kernel/dma/mapping.c
-@@ -156,6 +156,7 @@ dma_addr_t dma_map_page_attrs(struct dev
- 		addr = dma_direct_map_page(dev, page, offset, size, dir, attrs);
- 	else
- 		addr = ops->map_page(dev, page, offset, size, dir, attrs);
-+	kmsan_handle_dma(page, offset, size, dir);
- 	debug_dma_map_page(dev, page, offset, size, dir, addr, attrs);
- 
- 	return addr;
-@@ -194,11 +195,13 @@ static int __dma_map_sg_attrs(struct dev
- 	else
- 		ents = ops->map_sg(dev, sg, nents, dir, attrs);
- 
--	if (ents > 0)
-+	if (ents > 0) {
-+		kmsan_handle_dma_sg(sg, nents, dir);
- 		debug_dma_map_sg(dev, sg, nents, ents, dir, attrs);
--	else if (WARN_ON_ONCE(ents != -EINVAL && ents != -ENOMEM &&
--			      ents != -EIO && ents != -EREMOTEIO))
-+	} else if (WARN_ON_ONCE(ents != -EINVAL && ents != -ENOMEM &&
-+				ents != -EIO && ents != -EREMOTEIO)) {
- 		return -EIO;
+-	if (!vq->use_dma_api)
++	if (!vq->use_dma_api) {
++		/*
++		 * If DMA is not used, KMSAN doesn't know that the scatterlist
++		 * is initialized by the hardware. Explicitly check/unpoison it
++		 * depending on the direction.
++		 */
++		kmsan_handle_dma(sg_page(sg), sg->offset, sg->length, direction);
+ 		return (dma_addr_t)sg_phys(sg);
 +	}
  
- 	return ents;
- }
---- a/mm/kmsan/hooks.c~dma-kmsan-unpoison-dma-mappings
-+++ a/mm/kmsan/hooks.c
-@@ -10,9 +10,11 @@
-  */
- 
- #include <linux/cacheflush.h>
-+#include <linux/dma-direction.h>
- #include <linux/gfp.h>
- #include <linux/mm.h>
- #include <linux/mm_types.h>
-+#include <linux/scatterlist.h>
- #include <linux/slab.h>
- #include <linux/uaccess.h>
- 
-@@ -242,6 +244,63 @@ void kmsan_copy_to_user(void __user *to,
- }
- EXPORT_SYMBOL(kmsan_copy_to_user);
- 
-+static void kmsan_handle_dma_page(const void *addr, size_t size,
-+				  enum dma_data_direction dir)
-+{
-+	switch (dir) {
-+	case DMA_BIDIRECTIONAL:
-+		kmsan_internal_check_memory((void *)addr, size, /*user_addr*/ 0,
-+					    REASON_ANY);
-+		kmsan_internal_unpoison_memory((void *)addr, size,
-+					       /*checked*/ false);
-+		break;
-+	case DMA_TO_DEVICE:
-+		kmsan_internal_check_memory((void *)addr, size, /*user_addr*/ 0,
-+					    REASON_ANY);
-+		break;
-+	case DMA_FROM_DEVICE:
-+		kmsan_internal_unpoison_memory((void *)addr, size,
-+					       /*checked*/ false);
-+		break;
-+	case DMA_NONE:
-+		break;
-+	}
-+}
-+
-+/* Helper function to handle DMA data transfers. */
-+void kmsan_handle_dma(struct page *page, size_t offset, size_t size,
-+		      enum dma_data_direction dir)
-+{
-+	u64 page_offset, to_go, addr;
-+
-+	if (PageHighMem(page))
-+		return;
-+	addr = (u64)page_address(page) + offset;
-+	/*
-+	 * The kernel may occasionally give us adjacent DMA pages not belonging
-+	 * to the same allocation. Process them separately to avoid triggering
-+	 * internal KMSAN checks.
-+	 */
-+	while (size > 0) {
-+		page_offset = addr % PAGE_SIZE;
-+		to_go = min(PAGE_SIZE - page_offset, (u64)size);
-+		kmsan_handle_dma_page((void *)addr, to_go, dir);
-+		addr += to_go;
-+		size -= to_go;
-+	}
-+}
-+
-+void kmsan_handle_dma_sg(struct scatterlist *sg, int nents,
-+			 enum dma_data_direction dir)
-+{
-+	struct scatterlist *item;
-+	int i;
-+
-+	for_each_sg(sg, item, nents, i)
-+		kmsan_handle_dma(sg_page(item), item->offset, item->length,
-+				 dir);
-+}
-+
- /* Functions from kmsan-checks.h follow. */
- void kmsan_poison_memory(const void *address, size_t size, gfp_t flags)
- {
+ 	/*
+ 	 * We can't use dma_map_sg, because we don't use scatterlists in
 _
 
 Patches currently in -mm which might be from glider@google.com are
