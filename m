@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B757C0502A
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:10:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60521C0502A
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:10:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345338AbiH0CKN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:10:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34368 "EHLO
+        id S1345300AbiH0CKb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:10:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345455AbiH0CJU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:20 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEE04ED035
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:06 -0700 (PDT)
+        with ESMTP id S1345420AbiH0CJ2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAA08EA30F
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6AA88B8338B
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19F01C433D6;
-        Sat, 27 Aug 2022 02:09:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 576B761D25
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB0FEC433D6;
+        Sat, 27 Aug 2022 02:09:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566144;
-        bh=UyGCx529HJ8WhYU0X4a2SDHMpa8Bktxq5c8cSWvcI20=;
+        s=korg; t=1661566157;
+        bh=eMEP0spv61pCPnnrco6P3lnckKOpB8SXm4rm8u3neX0=;
         h=Date:To:From:Subject:From;
-        b=F1x47EBHlEQlCqnpw6CPyKQQPsD1uS25eDC6mcIePIh/NY2HhX/4KyRUoG2nwtRUM
-         st2jCWnIcIQSw0NbPGDFLUCDBXuN7CRrj/0epWq1osF7UZLFMPszpTLlhSUi04PDNG
-         vd7qFhdv9oi8nurjmxhxSt2WcwNmHDzWjU0gZWKY=
-Date:   Fri, 26 Aug 2022 19:09:03 -0700
+        b=DYdDBz2FwE+SN3evAisq97aSEh8WfB90alX5aecWQZvoacPRF4XUXMas+JPL27FBc
+         8oc7KMUE9L3s1fS0JhDl7hm2DCepLSPAIegO/9eaZ6PdPbOExH0GrS3ugZnXFDteQU
+         oF9wu2Yo6EqYpjzahEX+/74aiMhU3oGoyGjzgDvc=
+Date:   Fri, 26 Aug 2022 19:09:16 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + libnvdimm-pfn_dev-increase-max_struct_page_size.patch added to mm-unstable branch
-Message-Id: <20220827020904.19F01C433D6@smtp.kernel.org>
+Subject: + kmsan-disable-instrumentation-of-unsupported-common-kernel-code.patch added to mm-unstable branch
+Message-Id: <20220827020917.AB0FEC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: libnvdimm/pfn_dev: increase MAX_STRUCT_PAGE_SIZE
+     Subject: kmsan: disable instrumentation of unsupported common kernel code
 has been added to the -mm mm-unstable branch.  Its filename is
-     libnvdimm-pfn_dev-increase-max_struct_page_size.patch
+     kmsan-disable-instrumentation-of-unsupported-common-kernel-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/libnvdimm-pfn_dev-increase-max_struct_page_size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-instrumentation-of-unsupported-common-kernel-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,16 +75,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: libnvdimm/pfn_dev: increase MAX_STRUCT_PAGE_SIZE
-Date: Fri, 26 Aug 2022 17:07:33 +0200
+Subject: kmsan: disable instrumentation of unsupported common kernel code
+Date: Fri, 26 Aug 2022 17:07:35 +0200
 
-KMSAN adds extra metadata fields to struct page, so it does not fit into
-64 bytes anymore.
+EFI stub cannot be linked with KMSAN runtime, so we disable
+instrumentation for it.
 
-This change leads to increased memory consumption of the nvdimm driver,
-regardless of whether the kernel is built with KMSAN or not.
+Instrumenting kcov, stackdepot or lockdep leads to infinite recursion
+caused by instrumentation hooks calling instrumented code again.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-11-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-13-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -121,32 +121,57 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvdimm/nd.h       |    2 +-
- drivers/nvdimm/pfn_devs.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/firmware/efi/libstub/Makefile |    1 +
+ kernel/Makefile                       |    1 +
+ kernel/locking/Makefile               |    3 ++-
+ lib/Makefile                          |    3 +++
+ 4 files changed, 7 insertions(+), 1 deletion(-)
 
---- a/drivers/nvdimm/nd.h~libnvdimm-pfn_dev-increase-max_struct_page_size
-+++ a/drivers/nvdimm/nd.h
-@@ -652,7 +652,7 @@ void devm_namespace_disable(struct devic
- 		struct nd_namespace_common *ndns);
- #if IS_ENABLED(CONFIG_ND_CLAIM)
- /* max struct page size independent of kernel config */
--#define MAX_STRUCT_PAGE_SIZE 64
-+#define MAX_STRUCT_PAGE_SIZE 128
- int nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap);
- #else
- static inline int nvdimm_setup_pfn(struct nd_pfn *nd_pfn,
---- a/drivers/nvdimm/pfn_devs.c~libnvdimm-pfn_dev-increase-max_struct_page_size
-+++ a/drivers/nvdimm/pfn_devs.c
-@@ -787,7 +787,7 @@ static int nd_pfn_init(struct nd_pfn *nd
- 		 * when populating the vmemmap. This *should* be equal to
- 		 * PMD_SIZE for most architectures.
- 		 *
--		 * Also make sure size of struct page is less than 64. We
-+		 * Also make sure size of struct page is less than 128. We
- 		 * want to make sure we use large enough size here so that
- 		 * we don't have a dynamic reserve space depending on
- 		 * struct page size. But we also want to make sure we notice
+--- a/drivers/firmware/efi/libstub/Makefile~kmsan-disable-instrumentation-of-unsupported-common-kernel-code
++++ a/drivers/firmware/efi/libstub/Makefile
+@@ -46,6 +46,7 @@ GCOV_PROFILE			:= n
+ # Sanitizer runtimes are unavailable and cannot be linked here.
+ KASAN_SANITIZE			:= n
+ KCSAN_SANITIZE			:= n
++KMSAN_SANITIZE			:= n
+ UBSAN_SANITIZE			:= n
+ OBJECT_FILES_NON_STANDARD	:= y
+ 
+--- a/kernel/locking/Makefile~kmsan-disable-instrumentation-of-unsupported-common-kernel-code
++++ a/kernel/locking/Makefile
+@@ -5,8 +5,9 @@ KCOV_INSTRUMENT		:= n
+ 
+ obj-y += mutex.o semaphore.o rwsem.o percpu-rwsem.o
+ 
+-# Avoid recursion lockdep -> KCSAN -> ... -> lockdep.
++# Avoid recursion lockdep -> sanitizer -> ... -> lockdep.
+ KCSAN_SANITIZE_lockdep.o := n
++KMSAN_SANITIZE_lockdep.o := n
+ 
+ ifdef CONFIG_FUNCTION_TRACER
+ CFLAGS_REMOVE_lockdep.o = $(CC_FLAGS_FTRACE)
+--- a/kernel/Makefile~kmsan-disable-instrumentation-of-unsupported-common-kernel-code
++++ a/kernel/Makefile
+@@ -38,6 +38,7 @@ KCOV_INSTRUMENT_kcov.o := n
+ KASAN_SANITIZE_kcov.o := n
+ KCSAN_SANITIZE_kcov.o := n
+ UBSAN_SANITIZE_kcov.o := n
++KMSAN_SANITIZE_kcov.o := n
+ CFLAGS_kcov.o := $(call cc-option, -fno-conserve-stack) -fno-stack-protector
+ 
+ # Don't instrument error handlers
+--- a/lib/Makefile~kmsan-disable-instrumentation-of-unsupported-common-kernel-code
++++ a/lib/Makefile
+@@ -275,6 +275,9 @@ obj-$(CONFIG_POLYNOMIAL) += polynomial.o
+ CFLAGS_stackdepot.o += -fno-builtin
+ obj-$(CONFIG_STACKDEPOT) += stackdepot.o
+ KASAN_SANITIZE_stackdepot.o := n
++# In particular, instrumenting stackdepot.c with KMSAN will result in infinite
++# recursion.
++KMSAN_SANITIZE_stackdepot.o := n
+ KCOV_INSTRUMENT_stackdepot.o := n
+ 
+ obj-$(CONFIG_REF_TRACKER) += ref_tracker.o
 _
 
 Patches currently in -mm which might be from glider@google.com are
