@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 887C7C0502A
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 23:06:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B216ECAAD1
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 23:06:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbiH0XGM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229524AbiH0XGM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 27 Aug 2022 19:06:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42578 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229524AbiH0XGL (ORCPT
+        with ESMTP id S229458AbiH0XGL (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Aug 2022 19:06:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77EFE26134
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 16:06:08 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1B3026547
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 16:06:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F3B7660EB5
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 23:06:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B281C433D6;
-        Sat, 27 Aug 2022 23:06:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 48D25B80A3B
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 23:06:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1246C433D7;
+        Sat, 27 Aug 2022 23:06:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661641567;
-        bh=8NMX9T6ObTcyDfzMy+fLu9ovKE99EzBmIcbZGZfS8Tw=;
+        s=korg; t=1661641564;
+        bh=IQadXlN7BwDM0R0px2gAJ8k0F5QlLGGnhJIG6nS3L18=;
         h=Date:To:From:Subject:From;
-        b=e+QuyCdGRdAzbkolZMPgCeaXY+kr+Z+N9/gxTA5WFz4GlF+tonI9iKkWx0WuI4+X3
-         WCredgWVFbEmqoK5+OfuNpt45iLaqmar+WKFaHUHNIM08KkUOOrK0dVr5hMHzgS8Vy
-         NYJ+Rthpg2NXEDGj+3VGw+voZWgc2R61mG+P9l3E=
-Date:   Sat, 27 Aug 2022 16:06:06 -0700
+        b=KC2lSyNyAIz+qLVoEcFbK5i9LZ83A5cKd+CzNS2I28OVoq5h8jIv0sJXbdxBGgAfy
+         b466biL8nCu5g2FoZghedL/spZlIwmNJMPfQiQkykqmQPb1RKT5PyGJrkx9kCt9cUy
+         tuN5dm6UGy5STxtRZ/plbDbUmuT6cm5RQdgOnUKo=
+Date:   Sat, 27 Aug 2022 16:06:03 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         trond.myklebust@hammerspace.com, miklos@szeredi.hu,
         logang@deltatee.com, jack@suse.cz, hch@infradead.org,
         djwong@kernel.org, axboe@kernel.dk, anna@kernel.org,
         jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] iov_iter-new-iov_iter_pin_pages-routines.patch removed from -mm tree
-Message-Id: <20220827230607.4B281C433D6@smtp.kernel.org>
+Subject: [to-be-updated] mm-gup-introduce-pin_user_page.patch removed from -mm tree
+Message-Id: <20220827230604.B1246C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,34 +44,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: iov_iter: new iov_iter_pin_pages*() routines
+     Subject: mm/gup: introduce pin_user_page()
 has been removed from the -mm tree.  Its filename was
-     iov_iter-new-iov_iter_pin_pages-routines.patch
+     mm-gup-introduce-pin_user_page.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: iov_iter: new iov_iter_pin_pages*() routines
-Date: Sat, 27 Aug 2022 01:36:04 -0700
+Subject: mm/gup: introduce pin_user_page()
+Date: Sat, 27 Aug 2022 01:36:02 -0700
 
-Provide two new wrapper routines that are intended for user space pages
-only:
+Paaaatch series "convert most filesystems to pin_user_pages_fast()".
 
-    iov_iter_pin_pages()
-    iov_iter_pin_pages_alloc()
+This converts the iomap core and bio_release_pages() to
+pin_user_pages_fast(), also referred to as FOLL_PIN here.
 
-Internally, these routines call pin_user_pages_fast(), instead of
-get_user_pages_fast().
+The conversion is temporarily guarded by
+CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO.  In the future (not part of this
+series), when we are certain that all filesystems have converted their
+Direct IO paths to FOLL_PIN, then we can do the final step, which is to
+get rid of CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO and search-and-replace
+the dio_w_*() functions with their final names (see bvec.h changes).
 
-As always, callers must use unpin_user_pages() or a suitable FOLL_PIN
-variant, to release the pages, if they actually were acquired via
-pin_user_pages_fast().
+I'd like to get this part committed at some point, because it seems to
+work well already.  And this will help get the remaining items, below,
+converted.
 
-This is a prerequisite to converting bio/block layers over to use
-pin_user_pages_fast().
+Status: although many filesystems have been converted, some remain to be
+investigated.  These include (you can recreate this list by grepping for
+iov_iter_get_pages):
 
-Link: https://lkml.kernel.org/r/20220827083607.2345453-4-jhubbard@nvidia.com
+	cephfs
+	cifs
+	9P
+	RDS
+	net/core: datagram.c, skmsg.c
+	net/tls
+	fs/splice.c
+
+
+This patch (of 6):
+
+pin_user_page() is an externally-usable version of try_grab_page(), but
+with semantics that match get_page(), so that it can act as a drop-in
+replacement for get_page().  Specifically, pin_user_page() has a void
+return type.
+
+pin_user_page() elevates a page's refcount using FOLL_PIN rules.  This
+means that the caller must release the page via unpin_user_page().
+
+Link: https://lkml.kernel.org/r/20220827083607.2345453-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20220827083607.2345453-2-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Anna Schumaker <anna@kernel.org>
@@ -85,143 +109,68 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uio.h |    4 ++
- lib/iov_iter.c      |   74 +++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 74 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    1 +
+ mm/gup.c           |   33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+)
 
---- a/include/linux/uio.h~iov_iter-new-iov_iter_pin_pages-routines
-+++ a/include/linux/uio.h
-@@ -251,6 +251,10 @@ ssize_t iov_iter_get_pages2(struct iov_i
- 			size_t maxsize, unsigned maxpages, size_t *start);
- ssize_t iov_iter_get_pages_alloc2(struct iov_iter *i, struct page ***pages,
- 			size_t maxsize, size_t *start);
-+ssize_t iov_iter_pin_pages(struct iov_iter *i, struct page **pages,
-+			size_t maxsize, unsigned int maxpages, size_t *start);
-+ssize_t iov_iter_pin_pages_alloc(struct iov_iter *i, struct page ***pages,
-+			size_t maxsize, size_t *start);
- int iov_iter_npages(const struct iov_iter *i, int maxpages);
- void iov_iter_restore(struct iov_iter *i, struct iov_iter_state *state);
- 
---- a/lib/iov_iter.c~iov_iter-new-iov_iter_pin_pages-routines
-+++ a/lib/iov_iter.c
-@@ -1425,9 +1425,23 @@ static struct page *first_bvec_segment(c
- 	return page;
+--- a/include/linux/mm.h~mm-gup-introduce-pin_user_page
++++ a/include/linux/mm.h
+@@ -1943,6 +1943,7 @@ long pin_user_pages_remote(struct mm_str
+ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 			    unsigned int gup_flags, struct page **pages,
+ 			    struct vm_area_struct **vmas);
++void pin_user_page(struct page *page);
+ long pin_user_pages(unsigned long start, unsigned long nr_pages,
+ 		    unsigned int gup_flags, struct page **pages,
+ 		    struct vm_area_struct **vmas);
+--- a/mm/gup.c~mm-gup-introduce-pin_user_page
++++ a/mm/gup.c
+@@ -3238,6 +3238,39 @@ long pin_user_pages(unsigned long start,
  }
+ EXPORT_SYMBOL(pin_user_pages);
  
-+enum pages_alloc_internal_flags {
-+	USE_FOLL_GET,
-+	USE_FOLL_PIN
-+};
-+
-+/*
-+ * TODO: get rid of the how_to_pin arg, and just call pin_user_pages_fast()
-+ * unconditionally for the user_back_iter(i) case in this function. That can be
-+ * done once all callers are ready to deal with FOLL_PIN pages for their
-+ * user-space pages. (FOLL_PIN pages must be released via unpin_user_page(),
-+ * rather than put_page().)
++/**
++ * pin_user_page() - apply a FOLL_PIN reference to a page
++ *
++ * @page: the page to be pinned.
++ *
++ * This is similar to get_user_pages(), except that the page's refcount is
++ * elevated using FOLL_PIN, instead of FOLL_GET.
++ *
++ * IMPORTANT: The caller must release the page via unpin_user_page().
++ *
 + */
- static ssize_t __iov_iter_get_pages_alloc(struct iov_iter *i,
- 		   struct page ***pages, size_t maxsize,
--		   unsigned int maxpages, size_t *start)
-+		   unsigned int maxpages, size_t *start,
-+		   enum pages_alloc_internal_flags how_to_pin)
-+
- {
- 	unsigned int n;
- 
-@@ -1454,7 +1468,12 @@ static ssize_t __iov_iter_get_pages_allo
- 		n = want_pages_array(pages, maxsize, *start, maxpages);
- 		if (!n)
- 			return -ENOMEM;
--		res = get_user_pages_fast(addr, n, gup_flags, *pages);
-+
-+		if (how_to_pin == USE_FOLL_PIN)
-+			res = pin_user_pages_fast(addr, n, gup_flags, *pages);
-+		else
-+			res = get_user_pages_fast(addr, n, gup_flags, *pages);
-+
- 		if (unlikely(res <= 0))
- 			return res;
- 		maxsize = min_t(size_t, maxsize, res * PAGE_SIZE - *start);
-@@ -1497,10 +1516,31 @@ ssize_t iov_iter_get_pages2(struct iov_i
- 		return 0;
- 	BUG_ON(!pages);
- 
--	return __iov_iter_get_pages_alloc(i, &pages, maxsize, maxpages, start);
-+	return __iov_iter_get_pages_alloc(i, &pages, maxsize, maxpages, start,
-+					  USE_FOLL_GET);
- }
- EXPORT_SYMBOL(iov_iter_get_pages2);
- 
-+/*
-+ * A FOLL_PIN variant that calls pin_user_pages_fast() instead of
-+ * get_user_pages_fast().
-+ */
-+ssize_t iov_iter_pin_pages(struct iov_iter *i,
-+		   struct page **pages, size_t maxsize, unsigned int maxpages,
-+		   size_t *start)
++void pin_user_page(struct page *page)
 +{
-+	if (!maxpages)
-+		return 0;
-+	if (WARN_ON_ONCE(!pages))
-+		return -EINVAL;
-+	if (WARN_ON_ONCE(!user_backed_iter(i)))
-+		return -EINVAL;
++	struct folio *folio = page_folio(page);
 +
-+	return __iov_iter_get_pages_alloc(i, &pages, maxsize, maxpages, start,
-+					  USE_FOLL_PIN);
-+}
-+EXPORT_SYMBOL(iov_iter_pin_pages);
++	WARN_ON_ONCE(folio_ref_count(folio) <= 0);
 +
- ssize_t iov_iter_get_pages_alloc2(struct iov_iter *i,
- 		   struct page ***pages, size_t maxsize,
- 		   size_t *start)
-@@ -1509,7 +1549,8 @@ ssize_t iov_iter_get_pages_alloc2(struct
- 
- 	*pages = NULL;
- 
--	len = __iov_iter_get_pages_alloc(i, pages, maxsize, ~0U, start);
-+	len = __iov_iter_get_pages_alloc(i, pages, maxsize, ~0U, start,
-+					 USE_FOLL_GET);
- 	if (len <= 0) {
- 		kvfree(*pages);
- 		*pages = NULL;
-@@ -1518,6 +1559,31 @@ ssize_t iov_iter_get_pages_alloc2(struct
- }
- EXPORT_SYMBOL(iov_iter_get_pages_alloc2);
- 
-+/*
-+ * A FOLL_PIN variant that calls pin_user_pages_fast() instead of
-+ * get_user_pages_fast().
-+ */
-+ssize_t iov_iter_pin_pages_alloc(struct iov_iter *i,
-+		   struct page ***pages, size_t maxsize,
-+		   size_t *start)
-+{
-+	ssize_t len;
-+
-+	*pages = NULL;
-+
-+	if (WARN_ON_ONCE(!user_backed_iter(i)))
-+		return -EINVAL;
-+
-+	len = __iov_iter_get_pages_alloc(i, pages, maxsize, ~0U, start,
-+					 USE_FOLL_PIN);
-+	if (len <= 0) {
-+		kvfree(*pages);
-+		*pages = NULL;
++	/*
++	 * Similar to try_grab_page(): be sure to *also*
++	 * increment the normal page refcount field at least once,
++	 * so that the page really is pinned.
++	 */
++	if (folio_test_large(folio)) {
++		folio_ref_add(folio, 1);
++		atomic_add(1, folio_pincount_ptr(folio));
++	} else {
++		folio_ref_add(folio, GUP_PIN_COUNTING_BIAS);
 +	}
-+	return len;
-+}
-+EXPORT_SYMBOL(iov_iter_pin_pages_alloc);
 +
- size_t csum_and_copy_from_iter(void *addr, size_t bytes, __wsum *csum,
- 			       struct iov_iter *i)
- {
++	node_stat_mod_folio(folio, NR_FOLL_PIN_ACQUIRED, 1);
++}
++EXPORT_SYMBOL(pin_user_page);
++
+ /*
+  * pin_user_pages_unlocked() is the FOLL_PIN variant of
+  * get_user_pages_unlocked(). Behavior is the same, except that this one sets
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+block-add-dio_w_-wrappers-for-pin-unpin-user-pages.patch
+iov_iter-new-iov_iter_pin_pages-routines.patch
 block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast.patch
 nfs-direct-io-convert-to-foll_pin-pages.patch
 fuse-convert-direct-io-paths-to-use-foll_pin.patch
