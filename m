@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ECA2C3DA6B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32505C0502C
 	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345420AbiH0CMP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:12:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33558 "EHLO
+        id S1345397AbiH0CMO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:12:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345423AbiH0CKb (ORCPT
+        with ESMTP id S1345421AbiH0CKb (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:31 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A355E5A2D9
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7FD15A825
         for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C83FBB83381
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ED04C433D6;
-        Sat, 27 Aug 2022 02:10:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 64F0461D79
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B03C4C433D6;
+        Sat, 27 Aug 2022 02:10:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566226;
-        bh=lRF9Ldn0j4H4FmgzWYmP7oNMK9kgwa1llWz5WOCxL0E=;
+        s=korg; t=1661566228;
+        bh=U8DPiLTvmcpbNO0VcVp0/oAKygMXtgaQpCbb+IoEXKI=;
         h=Date:To:From:Subject:From;
-        b=qao0ltwKoaRCo85dRC8qgaqlFvM6fNHUiLW11NOiuu/F8a+sy2FsXweXlQjnxMIq3
-         vaQSLg5vuxpalJzGka468MdjmVCilDddN96qxpLTdb0cMm7wHsrVDt9fFzkE4cNd8I
-         AoFGldyGv3oeqHSRbCtmkYm24pQB9pcg4eYkf70Y=
-Date:   Fri, 26 Aug 2022 19:10:25 -0700
+        b=FWopfehXB+ebm84r8nWturjj1C+j0EGUNkfabYhvlGIrTBs7BZc2qhYZAD831+aMn
+         iPU3tfZdoJsbsRH7Wboi5mEJCug3RbmcandkXrc0cSKiOWh/j28qDtzDi30ZvayYUG
+         GMF09R5MDGChyEm3aygMA+KqyXVf2ecjtizOrrno=
+Date:   Fri, 26 Aug 2022 19:10:28 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kmsan-handle-open-coded-assembly-in-lib-iomemc.patch added to mm-unstable branch
-Message-Id: <20220827021026.5ED04C433D6@smtp.kernel.org>
+Subject: + x86-kmsan-use-__msan_-string-functions-where-possible.patch added to mm-unstable branch
+Message-Id: <20220827021028.B03C4C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kmsan: handle open-coded assembly in lib/iomem.c
+     Subject: x86: kmsan: use __msan_ string functions where possible.
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kmsan-handle-open-coded-assembly-in-lib-iomemc.patch
+     x86-kmsan-use-__msan_-string-functions-where-possible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-handle-open-coded-assembly-in-lib-iomemc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-use-__msan_-string-functions-where-possible.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,14 +75,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: kmsan: handle open-coded assembly in lib/iomem.c
-Date: Fri, 26 Aug 2022 17:07:58 +0200
+Subject: x86: kmsan: use __msan_ string functions where possible.
+Date: Fri, 26 Aug 2022 17:07:59 +0200
 
-KMSAN cannot intercept memory accesses within asm() statements.  That's
-why we add kmsan_unpoison_memory() and kmsan_check_memory() to hint it how
-to handle memory copied from/to I/O memory.
+Unless stated otherwise (by explicitly calling __memcpy(), __memset() or
+__memmove()) we want all string functions to call their __msan_ versions
+(e.g.  __msan_memcpy() instead of memcpy()), so that shadow and origin
+values are updated accordingly.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-36-glider@google.com
+Bootloader must still use the default string functions to avoid crashes.
+
+Link: https://lkml.kernel.org/r/20220826150807.723137-37-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -119,37 +122,83 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lib/iomem.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/x86/include/asm/string_64.h |   23 +++++++++++++++++++++--
+ include/linux/fortify-string.h   |    2 ++
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
---- a/arch/x86/lib/iomem.c~x86-kmsan-handle-open-coded-assembly-in-lib-iomemc
-+++ a/arch/x86/lib/iomem.c
-@@ -1,6 +1,7 @@
- #include <linux/string.h>
- #include <linux/module.h>
- #include <linux/io.h>
-+#include <linux/kmsan-checks.h>
+--- a/arch/x86/include/asm/string_64.h~x86-kmsan-use-__msan_-string-functions-where-possible
++++ a/arch/x86/include/asm/string_64.h
+@@ -11,11 +11,23 @@
+    function. */
  
- #define movs(type,to,from) \
- 	asm volatile("movs" type:"=&D" (to), "=&S" (from):"0" (to), "1" (from):"memory")
-@@ -37,6 +38,8 @@ static void string_memcpy_fromio(void *t
- 		n-=2;
- 	}
- 	rep_movs(to, (const void *)from, n);
-+	/* KMSAN must treat values read from devices as initialized. */
-+	kmsan_unpoison_memory(to, n);
+ #define __HAVE_ARCH_MEMCPY 1
++#if defined(__SANITIZE_MEMORY__)
++#undef memcpy
++void *__msan_memcpy(void *dst, const void *src, size_t size);
++#define memcpy __msan_memcpy
++#else
+ extern void *memcpy(void *to, const void *from, size_t len);
++#endif
+ extern void *__memcpy(void *to, const void *from, size_t len);
+ 
+ #define __HAVE_ARCH_MEMSET
++#if defined(__SANITIZE_MEMORY__)
++extern void *__msan_memset(void *s, int c, size_t n);
++#undef memset
++#define memset __msan_memset
++#else
+ void *memset(void *s, int c, size_t n);
++#endif
+ void *__memset(void *s, int c, size_t n);
+ 
+ #define __HAVE_ARCH_MEMSET16
+@@ -55,7 +67,13 @@ static inline void *memset64(uint64_t *s
  }
  
- static void string_memcpy_toio(volatile void __iomem *to, const void *from, size_t n)
-@@ -44,6 +47,8 @@ static void string_memcpy_toio(volatile
- 	if (unlikely(!n))
- 		return;
+ #define __HAVE_ARCH_MEMMOVE
++#if defined(__SANITIZE_MEMORY__)
++#undef memmove
++void *__msan_memmove(void *dest, const void *src, size_t len);
++#define memmove __msan_memmove
++#else
+ void *memmove(void *dest, const void *src, size_t count);
++#endif
+ void *__memmove(void *dest, const void *src, size_t count);
  
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(from, n);
- 	/* Align any unaligned destination IO */
- 	if (unlikely(1 & (unsigned long)to)) {
- 		movs("b", to, from);
+ int memcmp(const void *cs, const void *ct, size_t count);
+@@ -64,8 +82,7 @@ char *strcpy(char *dest, const char *src
+ char *strcat(char *dest, const char *src);
+ int strcmp(const char *cs, const char *ct);
+ 
+-#if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
+-
++#if (defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__))
+ /*
+  * For files that not instrumented (e.g. mm/slub.c) we
+  * should use not instrumented version of mem* functions.
+@@ -73,7 +90,9 @@ int strcmp(const char *cs, const char *c
+ 
+ #undef memcpy
+ #define memcpy(dst, src, len) __memcpy(dst, src, len)
++#undef memmove
+ #define memmove(dst, src, len) __memmove(dst, src, len)
++#undef memset
+ #define memset(s, c, n) __memset(s, c, n)
+ 
+ #ifndef __NO_FORTIFY
+--- a/include/linux/fortify-string.h~x86-kmsan-use-__msan_-string-functions-where-possible
++++ a/include/linux/fortify-string.h
+@@ -285,8 +285,10 @@ __FORTIFY_INLINE void fortify_memset_chk
+  * __builtin_object_size() must be captured here to avoid evaluating argument
+  * side-effects further into the macro layers.
+  */
++#ifndef CONFIG_KMSAN
+ #define memset(p, c, s) __fortify_memset_chk(p, c, s,			\
+ 		__builtin_object_size(p, 0), __builtin_object_size(p, 1))
++#endif
+ 
+ /*
+  * To make sure the compiler can enforce protection against buffer overflows,
 _
 
 Patches currently in -mm which might be from glider@google.com are
