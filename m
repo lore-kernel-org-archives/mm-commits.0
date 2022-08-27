@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7D49ECAAD4
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E29FECAAD4
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345404AbiH0CL2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:11:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36150 "EHLO
+        id S1345407AbiH0CLo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:11:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345330AbiH0CKI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD80732EFB
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:05 -0700 (PDT)
+        with ESMTP id S1345417AbiH0CKL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33F643DBFE
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 80E69B83382
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 208BDC433D6;
-        Sat, 27 Aug 2022 02:10:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B53CD61D25
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C0EBC433D6;
+        Sat, 27 Aug 2022 02:10:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566203;
-        bh=gG4pLIPLV8OV+La9HN2iD9pE9lKX5rz8V/OkcBUc8XI=;
+        s=korg; t=1661566208;
+        bh=a8HZpui1Ny3gTxtB7Cb+Kx801J4QzH9uDsKwowubhzE=;
         h=Date:To:From:Subject:From;
-        b=SXjg4NZ9yXaE9McsDCdnFHbv2qZvYnjrJje+kFo8tvJE7yn514okiq7Sf2EVlrpIU
-         q8BHS8GHWI1ljEcvo5QXyBb/0GrWi9wj6zXnvmUUeCLlxgWrJCW3G2w5hgIRyMcvj3
-         os4/tbHUg7Hc7z6zSGQJRvheDV9Sg3gtfwKaC5nQ=
-Date:   Fri, 26 Aug 2022 19:10:02 -0700
+        b=FDMoQnLyUYCYXgqc97HPKrxSoMx2V4Cz29bq9CddqjRxwoQI0/TplTsdS36WaCtWH
+         wR9mTquUzkKRQeB20Hd5RnMISxWlRaQXmV79n9t7JSZdSZ0Zrck+40fUxQmSGI/kBm
+         zybQoWl0sobW31bw1HuZd76ETEh59YNECo/iYXmI=
+Date:   Fri, 26 Aug 2022 19:10:07 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-disable-strscpy-optimization-under-kmsan.patch added to mm-unstable branch
-Message-Id: <20220827021003.208BDC433D6@smtp.kernel.org>
+Subject: + kmsan-disable-physical-page-merging-in-biovec.patch added to mm-unstable branch
+Message-Id: <20220827021008.0C0EBC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: disable strscpy() optimization under KMSAN
+     Subject: kmsan: disable physical page merging in biovec
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-disable-strscpy-optimization-under-kmsan.patch
+     kmsan-disable-physical-page-merging-in-biovec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-strscpy-optimization-under-kmsan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-physical-page-merging-in-biovec.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,12 +75,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: disable strscpy() optimization under KMSAN
-Date: Fri, 26 Aug 2022 17:07:49 +0200
+Subject: kmsan: disable physical page merging in biovec
+Date: Fri, 26 Aug 2022 17:07:51 +0200
 
-Disable the efficient 8-byte reading under KMSAN to avoid false positives.
+KMSAN metadata for adjacent physical pages may not be adjacent, therefore
+accessing such pages together may lead to metadata corruption.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-27-glider@google.com
+We disable merging pages in biovec to prevent such corruptions.
+
+Link: https://lkml.kernel.org/r/20220826150807.723137-29-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -117,26 +120,25 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ block/blk.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/lib/string.c~kmsan-disable-strscpy-optimization-under-kmsan
-+++ a/lib/string.c
-@@ -197,6 +197,14 @@ ssize_t strscpy(char *dest, const char *
- 		max = 0;
- #endif
+--- a/block/blk.h~kmsan-disable-physical-page-merging-in-biovec
++++ a/block/blk.h
+@@ -88,6 +88,13 @@ static inline bool biovec_phys_mergeable
+ 	phys_addr_t addr1 = page_to_phys(vec1->bv_page) + vec1->bv_offset;
+ 	phys_addr_t addr2 = page_to_phys(vec2->bv_page) + vec2->bv_offset;
  
 +	/*
-+	 * read_word_at_a_time() below may read uninitialized bytes after the
-+	 * trailing zero and use them in comparisons. Disable this optimization
-+	 * under KMSAN to prevent false positive reports.
++	 * Merging adjacent physical pages may not work correctly under KMSAN
++	 * if their metadata pages aren't adjacent. Just disable merging.
 +	 */
 +	if (IS_ENABLED(CONFIG_KMSAN))
-+		max = 0;
++		return false;
 +
- 	while (max >= sizeof(unsigned long)) {
- 		unsigned long c, data;
- 
+ 	if (addr1 + vec1->bv_len != addr2)
+ 		return false;
+ 	if (xen_domain() && !xen_biovec_phys_mergeable(vec1, vec2->bv_page))
 _
 
 Patches currently in -mm which might be from glider@google.com are
