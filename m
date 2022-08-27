@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 005FBC0502F
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 23:06:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E150C0502C
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 23:06:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229458AbiH0XGN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 27 Aug 2022 19:06:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42588 "EHLO
+        id S229552AbiH0XGO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Aug 2022 19:06:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229552AbiH0XGL (ORCPT
+        with ESMTP id S229561AbiH0XGL (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Aug 2022 19:06:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B828D2654D
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 16:06:08 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6D8C2655C
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 16:06:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6D926B80A49
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 23:06:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DAA5C43470;
-        Sat, 27 Aug 2022 23:06:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8367960EEA
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 23:06:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3F33C433D6;
+        Sat, 27 Aug 2022 23:06:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661641566;
-        bh=VNI1PvFhCFYMzgdHESdgh+dK+X53LjlWYTQKpcUuW0I=;
+        s=korg; t=1661641569;
+        bh=khJrvfGcbus/SJsR83M/5989092xWpm3Vs3UCd0BBkU=;
         h=Date:To:From:Subject:From;
-        b=IZhnaPis7ED5pSK+5ans9VJZz40qSntdEn/RJPYSEil6Ncn2D6WKhTv5UkkWNIcLM
-         +v6FwoCZikRcf+PItQDPIQBngQM32td/VPWa/pv+YtPNLnCO2M6nF93kSjng9dBuP9
-         wceJnwpuBdRJRwvm5mkZrfixnCI4ugPbWYKrdG8A=
-Date:   Sat, 27 Aug 2022 16:06:05 -0700
+        b=dq6ziJj9zKipY8862vxUjjfOTtEp3cPgUPpEgkMKO1N2GA/wO22PuZ/+dG6B3gT5X
+         zTrwvMPOSTR+kNM6wEBI+3VSWlgwvMH1KsGD6GvIk+OiCUq70PTmgwxWaxNLj7O53b
+         nct68o+IPdWBYUsuomfltO0mxnsYN4gty2aotg3Y=
+Date:   Sat, 27 Aug 2022 16:06:09 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         trond.myklebust@hammerspace.com, miklos@szeredi.hu,
         logang@deltatee.com, jack@suse.cz, hch@infradead.org,
         djwong@kernel.org, axboe@kernel.dk, anna@kernel.org,
         jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] block-add-dio_w_-wrappers-for-pin-unpin-user-pages.patch removed from -mm tree
-Message-Id: <20220827230606.0DAA5C43470@smtp.kernel.org>
+Subject: [to-be-updated] nfs-direct-io-convert-to-foll_pin-pages.patch removed from -mm tree
+Message-Id: <20220827230609.D3F33C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,53 +44,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: block: add dio_w_*() wrappers for pin, unpin user pages
+     Subject: NFS: direct-io: convert to FOLL_PIN pages
 has been removed from the -mm tree.  Its filename was
-     block-add-dio_w_-wrappers-for-pin-unpin-user-pages.patch
+     nfs-direct-io-convert-to-foll_pin-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: block: add dio_w_*() wrappers for pin, unpin user pages
-Date: Sat, 27 Aug 2022 01:36:03 -0700
+Subject: NFS: direct-io: convert to FOLL_PIN pages
+Date: Sat, 27 Aug 2022 01:36:06 -0700
 
-Background: The Direct IO part of the block infrastructure is being
-changed to use pin_user_page*() and unpin_user_page*() calls, in place of
-a mix of get_user_pages_fast(), get_page(), and put_page().  These have to
-be changed over all at the same time, for block, bio, and all filesystems.
-However, most filesystems can be changed via iomap and core filesystem
-routines, so let's get that in place, and then continue on with converting
-the remaining filesystems (9P, CIFS) and anything else that feeds pages
-into bio that ultimately get released via bio_release_pages().
+Convert the NFS Direct IO layer to use pin_user_pages_fast() and
+unpin_user_page(), instead of get_user_pages_fast() and put_page().
 
-Add a new config parameter, CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO, and
-dio_w_*() wrapper functions.  The dio_w_ prefix was chosen for uniqueness,
-so as to ease a subsequent kernel-wide rename via search-and-replace. 
-Together, these allow the developer to choose between these sets of
-routines, for Direct IO code paths:
-
-a) pin_user_pages_fast()
-    pin_user_page()
-    unpin_user_page()
-
-b) get_user_pages_fast()
-    get_page()
-    put_page()
-
-CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO is a temporary setting, and may be
-deleted once the conversion is complete.  In the meantime, developers can
-enable this in order to try out each filesystem.
-
-Please remember that these /proc/vmstat items (below) should normally
-contain the same values as each other, except during the middle of
-pin/unpin operations.  As such, they can be helpful when monitoring test
-runs:
-
-    nr_foll_pin_acquired
-    nr_foll_pin_released
-
-Link: https://lkml.kernel.org/r/20220827083607.2345453-3-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20220827083607.2345453-6-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Anna Schumaker <anna@kernel.org>
@@ -104,96 +72,71 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig        |   24 ++++++++++++++++++++++++
- include/linux/bvec.h |   40 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ fs/nfs/direct.c |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
---- a/block/Kconfig~block-add-dio_w_-wrappers-for-pin-unpin-user-pages
-+++ a/block/Kconfig
-@@ -48,6 +48,30 @@ config BLK_DEV_BSG_COMMON
- config BLK_ICQ
- 	bool
- 
-+config BLK_USE_PIN_USER_PAGES_FOR_DIO
-+	bool "DEVELOPERS ONLY: Enable pin_user_pages() for Direct IO" if EXPERT
-+	default n
-+
-+	help
-+	  For Direct IO code, retain the pages via calls to
-+	  pin_user_pages_fast(), instead of via get_user_pages_fast().
-+	  Likewise, use pin_user_page() instead of get_page(). And then
-+	  release such pages via unpin_user_page(), instead of
-+	  put_page().
-+
-+	  This is a temporary setting, which will be deleted once the
-+	  conversion is completed, reviewed, and tested. In the meantime,
-+	  developers can enable this in order to try out each filesystem.
-+	  For that, it's best to monitor these /proc/vmstat items:
-+
-+		nr_foll_pin_acquired
-+		nr_foll_pin_released
-+
-+	  ...to ensure that they remain equal, when "at rest".
-+
-+	  Say yes here ONLY if are actively developing or testing the
-+	  block layer or filesystems with pin_user_pages_fast().
-+
- config BLK_DEV_BSGLIB
- 	bool "Block layer SG support v4 helper lib"
- 	select BLK_DEV_BSG_COMMON
---- a/include/linux/bvec.h~block-add-dio_w_-wrappers-for-pin-unpin-user-pages
-+++ a/include/linux/bvec.h
-@@ -241,4 +241,44 @@ static inline void *bvec_virt(struct bio
- 	return page_address(bvec->bv_page) + bvec->bv_offset;
+--- a/fs/nfs/direct.c~nfs-direct-io-convert-to-foll_pin-pages
++++ a/fs/nfs/direct.c
+@@ -142,13 +142,6 @@ int nfs_swap_rw(struct kiocb *iocb, stru
+ 	return 0;
  }
  
-+#ifdef CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO
-+#define dio_w_pin_user_pages_fast(s, n, p, f)	pin_user_pages_fast(s, n, p, f)
-+#define dio_w_pin_user_page(p)			pin_user_page(p)
-+#define dio_w_iov_iter_pin_pages(i, p, m, n, s) iov_iter_pin_pages(i, p, m, n, s)
-+#define dio_w_iov_iter_pin_pages_alloc(i, p, m, s) iov_iter_pin_pages_alloc(i, p, m, s)
-+#define dio_w_unpin_user_page(p)		unpin_user_page(p)
-+#define dio_w_unpin_user_pages(p, n)		unpin_user_pages(p, n)
-+#define dio_w_unpin_user_pages_dirty_lock(p, n, d) unpin_user_pages_dirty_lock(p, n, d)
+-static void nfs_direct_release_pages(struct page **pages, unsigned int npages)
+-{
+-	unsigned int i;
+-	for (i = 0; i < npages; i++)
+-		put_page(pages[i]);
+-}
+-
+ void nfs_init_cinfo_from_dreq(struct nfs_commit_info *cinfo,
+ 			      struct nfs_direct_req *dreq)
+ {
+@@ -332,11 +325,11 @@ static ssize_t nfs_direct_read_schedule_
+ 		size_t pgbase;
+ 		unsigned npages, i;
+ 
+-		result = iov_iter_get_pages_alloc2(iter, &pagevec,
++		result = dio_w_iov_iter_pin_pages_alloc(iter, &pagevec,
+ 						  rsize, &pgbase);
+ 		if (result < 0)
+ 			break;
+-	
 +
-+#else
-+#define dio_w_pin_user_pages_fast(s, n, p, f)	get_user_pages_fast(s, n, p, f)
-+#define dio_w_pin_user_page(p)			get_page(p)
-+#define dio_w_iov_iter_pin_pages(i, p, m, n, s) iov_iter_get_pages2(i, p, m, n, s)
-+#define dio_w_iov_iter_pin_pages_alloc(i, p, m, s) iov_iter_get_pages_alloc2(i, p, m, s)
-+#define dio_w_unpin_user_page(p)		put_page(p)
-+
-+static inline void dio_w_unpin_user_pages(struct page **pages,
-+					  unsigned long npages)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < npages; i++)
-+		put_page(pages[i]);
-+}
-+
-+static inline void dio_w_unpin_user_pages_dirty_lock(struct page **pages,
-+						     unsigned long npages,
-+						     bool make_dirty)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < npages; i++) {
-+		if (make_dirty)
-+			set_page_dirty_lock(pages[i]);
-+		put_page(pages[i]);
-+	}
-+}
-+
-+#endif
-+
- #endif /* __LINUX_BVEC_H */
+ 		bytes = result;
+ 		npages = (result + pgbase + PAGE_SIZE - 1) / PAGE_SIZE;
+ 		for (i = 0; i < npages; i++) {
+@@ -362,7 +355,7 @@ static ssize_t nfs_direct_read_schedule_
+ 			pos += req_len;
+ 			dreq->bytes_left -= req_len;
+ 		}
+-		nfs_direct_release_pages(pagevec, npages);
++		dio_w_unpin_user_pages(pagevec, npages);
+ 		kvfree(pagevec);
+ 		if (result < 0)
+ 			break;
+@@ -791,8 +784,8 @@ static ssize_t nfs_direct_write_schedule
+ 		size_t pgbase;
+ 		unsigned npages, i;
+ 
+-		result = iov_iter_get_pages_alloc2(iter, &pagevec,
+-						  wsize, &pgbase);
++		result = dio_w_iov_iter_pin_pages_alloc(iter, &pagevec,
++							wsize, &pgbase);
+ 		if (result < 0)
+ 			break;
+ 
+@@ -829,7 +822,7 @@ static ssize_t nfs_direct_write_schedule
+ 			pos += req_len;
+ 			dreq->bytes_left -= req_len;
+ 		}
+-		nfs_direct_release_pages(pagevec, npages);
++		dio_w_unpin_user_pages(pagevec, npages);
+ 		kvfree(pagevec);
+ 		if (result < 0)
+ 			break;
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-iov_iter-new-iov_iter_pin_pages-routines.patch
-block-bio-fs-convert-most-filesystems-to-pin_user_pages_fast.patch
-nfs-direct-io-convert-to-foll_pin-pages.patch
 fuse-convert-direct-io-paths-to-use-foll_pin.patch
 
