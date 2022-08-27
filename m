@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06B51ECAAD5
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF14C0502A
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345437AbiH0CMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1345442AbiH0CMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 26 Aug 2022 22:12:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37092 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345442AbiH0CKW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:22 -0400
+        with ESMTP id S1345449AbiH0CKY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:24 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BEE24D4F1
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC29651A1D
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1CF21B83385
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B06C0C433D6;
-        Sat, 27 Aug 2022 02:10:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 67ECFB83381
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B3A3C433D6;
+        Sat, 27 Aug 2022 02:10:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566217;
-        bh=+lKc0hFWnHnr9mIu5rBR5pOpO+aAtrpVbbvup+v+bP0=;
+        s=korg; t=1661566220;
+        bh=kYU9H5/eTBNWmVfNI/Ctly3OYpXgDqLqlMTgwC302wQ=;
         h=Date:To:From:Subject:From;
-        b=NyWQ/IESLpwJQaIJvQf4r2ZG1szmZH8tZoDCkXN1TL3sd0n23KTlenv72gpglCMqc
-         ARhSKgR/GFVQIqk0+rVv4ojyBe8CgssyzlpitSr4R1639pjNTfUunqpv+v92m67VDV
-         3Bb5DjapgDC58NYzTnes88uhTrEZfsFxai1PSR44=
-Date:   Fri, 26 Aug 2022 19:10:17 -0700
+        b=myUoXMMPF2QXbO0ba7PunSUbS51mVQMFUJ8uZctcf15K2Ltan6Ha9KPJYuw4+n54X
+         OjjH6OavI+PrxJiFVZRU7oqPyJFJCujUJCdK2kBtcuUfwWD0qlxUX2mVcwMOtqJ6p4
+         WsW+eF5QW4P7mBkCHhrJ2K/CSIrFO45nXRMRr2Rg=
+Date:   Fri, 26 Aug 2022 19:10:19 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe.patch added to mm-unstable branch
-Message-Id: <20220827021017.B06C0C433D6@smtp.kernel.org>
+Subject: + x86-kmsan-disable-instrumentation-of-unsupported-code.patch added to mm-unstable branch
+Message-Id: <20220827021020.1B3A3C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: objtool: kmsan: list KMSAN API functions as uaccess-safe
+     Subject: x86: kmsan: disable instrumentation of unsupported code
 has been added to the -mm mm-unstable branch.  Its filename is
-     objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe.patch
+     x86-kmsan-disable-instrumentation-of-unsupported-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-disable-instrumentation-of-unsupported-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,30 +75,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: objtool: kmsan: list KMSAN API functions as uaccess-safe
-Date: Fri, 26 Aug 2022 17:07:55 +0200
+Subject: x86: kmsan: disable instrumentation of unsupported code
+Date: Fri, 26 Aug 2022 17:07:56 +0200
 
-KMSAN inserts API function calls in a lot of places (function entries and
-exits, local variables, memory accesses), so they may get called from the
-uaccess regions as well.
+Instrumenting some files with KMSAN will result in kernel being unable to
+link, boot or crashing at runtime for various reasons (e.g.  infinite
+recursion caused by instrumentation hooks calling instrumented code
+again).
 
-KMSAN API functions are used to update the metadata (shadow/origin pages)
-for kernel memory accesses.  The metadata pages for kernel pointers are
-also located in the kernel memory, so touching them is not a problem.  For
-userspace pointers, no metadata is allocated.
+Completely omit KMSAN instrumentation in the following places:
+ - arch/x86/boot and arch/x86/realmode/rm, as KMSAN doesn't work for i386;
+ - arch/x86/entry/vdso, which isn't linked with KMSAN runtime;
+ - three files in arch/x86/kernel - boot problems;
+ - arch/x86/mm/cpu_entry_area.c - recursion.
 
-If an API function is supposed to read or modify the metadata, it does so
-for kernel pointers and ignores userspace pointers.  If an API function is
-supposed to return a pair of metadata pointers for the instrumentation to
-use (like all __msan_metadata_ptr_for_TYPE_SIZE() functions do), it
-returns the allocated metadata for kernel pointers and special dummy
-buffers residing in the kernel memory for userspace pointers.
-
-As a result, none of KMSAN API functions perform userspace accesses, but
-since they might be called from UACCESS regions they use
-user_access_save/restore().
-
-Link: https://lkml.kernel.org/r/20220826150807.723137-33-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-34-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -135,38 +126,89 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/objtool/check.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ arch/x86/boot/Makefile            |    1 +
+ arch/x86/boot/compressed/Makefile |    1 +
+ arch/x86/entry/vdso/Makefile      |    3 +++
+ arch/x86/kernel/Makefile          |    2 ++
+ arch/x86/kernel/cpu/Makefile      |    1 +
+ arch/x86/mm/Makefile              |    2 ++
+ arch/x86/realmode/rm/Makefile     |    1 +
+ 7 files changed, 11 insertions(+)
 
---- a/tools/objtool/check.c~objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe
-+++ a/tools/objtool/check.c
-@@ -1060,6 +1060,26 @@ static const char *uaccess_safe_builtin[
- 	"__sanitizer_cov_trace_cmp4",
- 	"__sanitizer_cov_trace_cmp8",
- 	"__sanitizer_cov_trace_switch",
-+	/* KMSAN */
-+	"kmsan_copy_to_user",
-+	"kmsan_report",
-+	"kmsan_unpoison_entry_regs",
-+	"kmsan_unpoison_memory",
-+	"__msan_chain_origin",
-+	"__msan_get_context_state",
-+	"__msan_instrument_asm_store",
-+	"__msan_metadata_ptr_for_load_1",
-+	"__msan_metadata_ptr_for_load_2",
-+	"__msan_metadata_ptr_for_load_4",
-+	"__msan_metadata_ptr_for_load_8",
-+	"__msan_metadata_ptr_for_load_n",
-+	"__msan_metadata_ptr_for_store_1",
-+	"__msan_metadata_ptr_for_store_2",
-+	"__msan_metadata_ptr_for_store_4",
-+	"__msan_metadata_ptr_for_store_8",
-+	"__msan_metadata_ptr_for_store_n",
-+	"__msan_poison_alloca",
-+	"__msan_warning",
- 	/* UBSAN */
- 	"ubsan_type_mismatch_common",
- 	"__ubsan_handle_type_mismatch",
+--- a/arch/x86/boot/compressed/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
++++ a/arch/x86/boot/compressed/Makefile
+@@ -20,6 +20,7 @@
+ # Sanitizer runtimes are unavailable and cannot be linked for early boot code.
+ KASAN_SANITIZE			:= n
+ KCSAN_SANITIZE			:= n
++KMSAN_SANITIZE			:= n
+ OBJECT_FILES_NON_STANDARD	:= y
+ 
+ # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
+--- a/arch/x86/boot/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
++++ a/arch/x86/boot/Makefile
+@@ -12,6 +12,7 @@
+ # Sanitizer runtimes are unavailable and cannot be linked for early boot code.
+ KASAN_SANITIZE			:= n
+ KCSAN_SANITIZE			:= n
++KMSAN_SANITIZE			:= n
+ OBJECT_FILES_NON_STANDARD	:= y
+ 
+ # Kernel does not boot with kcov instrumentation here.
+--- a/arch/x86/entry/vdso/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
++++ a/arch/x86/entry/vdso/Makefile
+@@ -11,6 +11,9 @@ include $(srctree)/lib/vdso/Makefile
+ 
+ # Sanitizer runtimes are unavailable and cannot be linked here.
+ KASAN_SANITIZE			:= n
++KMSAN_SANITIZE_vclock_gettime.o := n
++KMSAN_SANITIZE_vgetcpu.o	:= n
++
+ UBSAN_SANITIZE			:= n
+ KCSAN_SANITIZE			:= n
+ OBJECT_FILES_NON_STANDARD	:= y
+--- a/arch/x86/kernel/cpu/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
++++ a/arch/x86/kernel/cpu/Makefile
+@@ -12,6 +12,7 @@ endif
+ # If these files are instrumented, boot hangs during the first second.
+ KCOV_INSTRUMENT_common.o := n
+ KCOV_INSTRUMENT_perf_event.o := n
++KMSAN_SANITIZE_common.o := n
+ 
+ # As above, instrumenting secondary CPU boot code causes boot hangs.
+ KCSAN_SANITIZE_common.o := n
+--- a/arch/x86/kernel/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
++++ a/arch/x86/kernel/Makefile
+@@ -33,6 +33,8 @@ KASAN_SANITIZE_sev.o					:= n
+ # With some compiler versions the generated code results in boot hangs, caused
+ # by several compilation units. To be safe, disable all instrumentation.
+ KCSAN_SANITIZE := n
++KMSAN_SANITIZE_head$(BITS).o				:= n
++KMSAN_SANITIZE_nmi.o					:= n
+ 
+ # If instrumentation of this dir is enabled, boot hangs during first second.
+ # Probably could be more selective here, but note that files related to irqs,
+--- a/arch/x86/mm/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
++++ a/arch/x86/mm/Makefile
+@@ -12,6 +12,8 @@ KASAN_SANITIZE_mem_encrypt_identity.o	:=
+ # Disable KCSAN entirely, because otherwise we get warnings that some functions
+ # reference __initdata sections.
+ KCSAN_SANITIZE := n
++# Avoid recursion by not calling KMSAN hooks for CEA code.
++KMSAN_SANITIZE_cpu_entry_area.o := n
+ 
+ ifdef CONFIG_FUNCTION_TRACER
+ CFLAGS_REMOVE_mem_encrypt.o		= -pg
+--- a/arch/x86/realmode/rm/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
++++ a/arch/x86/realmode/rm/Makefile
+@@ -10,6 +10,7 @@
+ # Sanitizer runtimes are unavailable and cannot be linked here.
+ KASAN_SANITIZE			:= n
+ KCSAN_SANITIZE			:= n
++KMSAN_SANITIZE			:= n
+ OBJECT_FILES_NON_STANDARD	:= y
+ 
+ # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
 _
 
 Patches currently in -mm which might be from glider@google.com are
