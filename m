@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86AF0ECAAD5
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96277ECAAD5
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345461AbiH0CMn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:12:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38580 "EHLO
+        id S1345292AbiH0CMw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:12:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345471AbiH0CKl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E28879ED8
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:40 -0700 (PDT)
+        with ESMTP id S1345488AbiH0CKv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:51 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23AD2E86B7
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9BB5161D65
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E94A1C433D6;
-        Sat, 27 Aug 2022 02:10:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 24DF2B83381
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B31C8C433D6;
+        Sat, 27 Aug 2022 02:10:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566239;
-        bh=4RAdnPRgAyFeiWRpK+XlzvDISQM88CwlF40o3qfflVs=;
+        s=korg; t=1661566244;
+        bh=loFxYuZ36HTVardRyb3NmhGwlAye33a3PY4ULlY7RXo=;
         h=Date:To:From:Subject:From;
-        b=gnk57JLf7SyFV4ZkJBoZ7tTAFwB92dv+NdyWd7X8WM+GUoVEcFyAAFm2L1sXqo2zX
-         xdKk2iMFcYkcQo7tqgHwsqCePUeceOIEU0ds/z3J/qYT95XlCWcXeX1zatnW9Zb7Wz
-         XOdFj9ey2eu6gBdesTtYFq8lcX/TwI9Oqm9aS9ro=
-Date:   Fri, 26 Aug 2022 19:10:38 -0700
+        b=abaXhDKiSjYWpKNLZv6px6DKgN4iwcFYHtPgCf2dTgrUZNbcRrr8h0Pem+72xu4Dx
+         zweJxEjkByj4yjQ9I3deYyr7HFj/73om69Cv0gSr+rea76OriXrqs4nTdMHif1KoJh
+         rc3/mZzp/heg3dumA6tmylEB89UDxwLkf6QasOWw=
+Date:   Fri, 26 Aug 2022 19:10:44 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kmsan-dont-instrument-stack-walking-functions.patch added to mm-unstable branch
-Message-Id: <20220827021038.E94A1C433D6@smtp.kernel.org>
+Subject: + bpf-kmsan-initialize-bpf-registers-with-zeroes.patch added to mm-unstable branch
+Message-Id: <20220827021044.B31C8C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kmsan: don't instrument stack walking functions
+     Subject: bpf: kmsan: initialize BPF registers with zeroes
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kmsan-dont-instrument-stack-walking-functions.patch
+     bpf-kmsan-initialize-bpf-registers-with-zeroes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-dont-instrument-stack-walking-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-kmsan-initialize-bpf-registers-with-zeroes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,24 +75,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: kmsan: don't instrument stack walking functions
-Date: Fri, 26 Aug 2022 17:08:03 +0200
+Subject: bpf: kmsan: initialize BPF registers with zeroes
+Date: Fri, 26 Aug 2022 17:08:05 +0200
 
-Upon function exit, KMSAN marks local variables as uninitialized.  Further
-function calls may result in the compiler creating the stack frame where
-these local variables resided.  This results in frame pointers being
-marked as uninitialized data, which is normally correct, because they are
-not stack-allocated.
+When executing BPF programs, certain registers may get passed
+uninitialized to helper functions.  E.g.  when performing a JMP_CALL,
+registers BPF_R1-BPF_R5 are always passed to the helper, no matter how
+many of them are actually used.
 
-However stack unwinding functions are supposed to read and dereference the
-frame pointers, in which case KMSAN might be reporting uses of
-uninitialized values.
+Passing uninitialized values as function parameters is technically
+undefined behavior, so we work around it by always initializing the
+registers.
 
-To work around that, we mark update_stack_state(), unwind_next_frame() and
-show_trace_log_lvl() with __no_kmsan_checks, preventing all KMSAN reports
-inside those functions and making them return initialized values.
-
-Link: https://lkml.kernel.org/r/20220826150807.723137-41-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-43-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -129,52 +124,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/dumpstack.c    |    6 ++++++
- arch/x86/kernel/unwind_frame.c |   11 +++++++++++
- 2 files changed, 17 insertions(+)
+ kernel/bpf/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kernel/dumpstack.c~x86-kmsan-dont-instrument-stack-walking-functions
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -177,6 +177,12 @@ static void show_regs_if_on_stack(struct
- 	}
- }
- 
-+/*
-+ * This function reads pointers from the stack and dereferences them. The
-+ * pointers may not have their KMSAN shadow set up properly, which may result
-+ * in false positive reports. Disable instrumentation to avoid those.
-+ */
-+__no_kmsan_checks
- static void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
- 			unsigned long *stack, const char *log_lvl)
- {
---- a/arch/x86/kernel/unwind_frame.c~x86-kmsan-dont-instrument-stack-walking-functions
-+++ a/arch/x86/kernel/unwind_frame.c
-@@ -183,6 +183,16 @@ static struct pt_regs *decode_frame_poin
- }
- #endif
- 
-+/*
-+ * While walking the stack, KMSAN may stomp on stale locals from other
-+ * functions that were marked as uninitialized upon function exit, and
-+ * now hold the call frame information for the current function (e.g. the frame
-+ * pointer). Because KMSAN does not specifically mark call frames as
-+ * initialized, false positive reports are possible. To prevent such reports,
-+ * we mark the functions scanning the stack (here and below) with
-+ * __no_kmsan_checks.
-+ */
-+__no_kmsan_checks
- static bool update_stack_state(struct unwind_state *state,
- 			       unsigned long *next_bp)
- {
-@@ -250,6 +260,7 @@ static bool update_stack_state(struct un
- 	return true;
- }
- 
-+__no_kmsan_checks
- bool unwind_next_frame(struct unwind_state *state)
- {
- 	struct pt_regs *regs;
+--- a/kernel/bpf/core.c~bpf-kmsan-initialize-bpf-registers-with-zeroes
++++ a/kernel/bpf/core.c
+@@ -2002,7 +2002,7 @@ out:
+ static unsigned int PROG_NAME(stack_size)(const void *ctx, const struct bpf_insn *insn) \
+ { \
+ 	u64 stack[stack_size / sizeof(u64)]; \
+-	u64 regs[MAX_BPF_EXT_REG]; \
++	u64 regs[MAX_BPF_EXT_REG] = {}; \
+ \
+ 	FP = (u64) (unsigned long) &stack[ARRAY_SIZE(stack)]; \
+ 	ARG1 = (u64) (unsigned long) ctx; \
 _
 
 Patches currently in -mm which might be from glider@google.com are
