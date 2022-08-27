@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94A5BECAAD5
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 01:42:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92681ECAAD4
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 01:42:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233709AbiH0BmP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 21:42:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54768 "EHLO
+        id S231725AbiH0Bmu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 21:42:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231725AbiH0BmO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 21:42:14 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDFDAE9A9D
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 18:42:13 -0700 (PDT)
+        with ESMTP id S231131AbiH0Bmu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 21:42:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01139EC4C7
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 18:42:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 73C95B83115
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 01:42:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13E53C433D6;
-        Sat, 27 Aug 2022 01:42:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2FC0F61CE3
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 01:42:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80E2BC433D7;
+        Sat, 27 Aug 2022 01:42:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661564531;
-        bh=4V+/L7k5sUzcu+9M05AUMKfTJc3lzrxhXhkyGrjyQ98=;
+        s=korg; t=1661564567;
+        bh=TLpcioN/MrUd+zwKs/9RrxqO7LWbJ37lmCAjjhS07rM=;
         h=Date:To:From:Subject:From;
-        b=U7zLDLLUf9Hr79c2IXfI3MeJNrBtGKuGsUX9rU+kJ4E4WJE8wI8aKUncCuuNjfiPr
-         heUYGgyMGL28RtAAvYHq1oJsnwUGMEuBQzYAKbLPvi1f5FVZHUw4fMgJ4P4ZJ3kEvN
-         dgtyU2lJfNavK+9/UZyt8sof2t/VKr8pkNz8hhb4=
-Date:   Fri, 26 Aug 2022 18:42:10 -0700
+        b=XpQGDGizDWkQAJs04WLbUgwnSoR26S8NClcupasW//tsDetHAygazpWsk+Ha+mjzZ
+         cI1vwNkN5+i5htAJ3/J0aLHiF8X6lpBJtFcqxkYhpN60DgwlRW6yUyAV02gYFaJ9Dm
+         NO4IxtUE7cHTw4/ZgfzJwUI5MP1xIbqw0xvGnxxw=
+Date:   Fri, 26 Aug 2022 18:42:46 -0700
 To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        sjenning@redhat.com, liushixin2@huawei.com, ddstreet@ieee.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        sjenning@redhat.com, ddstreet@ieee.org, liushixin2@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement-fix.patch removed from -mm tree
-Message-Id: <20220827014211.13E53C433D6@smtp.kernel.org>
+Subject: [failures] mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement.patch removed from -mm tree
+Message-Id: <20220827014247.80E2BC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,43 +42,162 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement-fix
+     Subject: mm/zswap: delay the initializaton of zswap until the first enablement
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement-fix.patch
+     mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement.patch
 
-This patch was dropped because it was folded into mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement.patch
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement-fix
-Date: Thu Aug 25 06:59:19 PM PDT 2022
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm/zswap: delay the initializaton of zswap until the first enablement
+Date: Thu, 25 Aug 2022 22:20:36 +0800
 
-s/init_zswap/zswap_init/
+In the initialization of zswap, about 18MB memory will be allocated for
+zswap_pool in my machine.  Since not all users use zswap, the memory may
+be wasted.  Save the memory for these users by delaying the initialization
+of zswap to first enablement.
 
-Cc: Liu Shixin <liushixin2@huawei.com>
+[akpm@linux-foundation.org: s/init_zswap/zswap_init/]
+Link: https://lkml.kernel.org/r/20220825142037.3214152-3-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/zswap.c |   50 ++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 40 insertions(+), 10 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement-fix
+--- a/mm/zswap.c~mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement
 +++ a/mm/zswap.c
-@@ -1556,7 +1556,7 @@ cache_fail:
+@@ -81,6 +81,8 @@ static bool zswap_pool_reached_full;
+ 
+ #define ZSWAP_PARAM_UNSET ""
+ 
++static int zswap_setup(void);
++
+ /* Enable/disable zswap */
+ static bool zswap_enabled = IS_ENABLED(CONFIG_ZSWAP_DEFAULT_ON);
+ static int zswap_enabled_param_set(const char *,
+@@ -220,6 +222,8 @@ static atomic_t zswap_pools_count = ATOM
+ 
+ /* init state */
+ static int zswap_init_state;
++/* used to ensure the integrity of initialization */
++static DEFINE_MUTEX(zswap_init_lock);
+ 
+ /* init completed, but couldn't create the initial pool */
+ static bool zswap_has_pool;
+@@ -273,13 +277,13 @@ static void zswap_update_total_size(void
+ **********************************/
+ static struct kmem_cache *zswap_entry_cache;
+ 
+-static int __init zswap_entry_cache_create(void)
++static int zswap_entry_cache_create(void)
+ {
+ 	zswap_entry_cache = KMEM_CACHE(zswap_entry, 0);
+ 	return zswap_entry_cache == NULL;
+ }
+ 
+-static void __init zswap_entry_cache_destroy(void)
++static void zswap_entry_cache_destroy(void)
+ {
+ 	kmem_cache_destroy(zswap_entry_cache);
+ }
+@@ -664,7 +668,7 @@ error:
+ 	return NULL;
+ }
+ 
+-static __init struct zswap_pool *__zswap_pool_create_fallback(void)
++static struct zswap_pool *__zswap_pool_create_fallback(void)
+ {
+ 	bool has_comp, has_zpool;
+ 
+@@ -782,11 +786,17 @@ static int __zswap_param_set(const char
+ 	if (!strcmp(s, *(char **)kp->arg) && zswap_has_pool)
+ 		return 0;
+ 
+-	/* if this is load-time (pre-init) param setting,
++	/*
++	 * if zswap has not been initialized,
+ 	 * don't create a pool; that's done during init.
+ 	 */
+-	if (zswap_init_state == ZSWAP_UNINIT)
+-		return param_set_charp(s, kp);
++	mutex_lock(&zswap_init_lock);
++	if (zswap_init_state == ZSWAP_UNINIT) {
++		ret = param_set_charp(s, kp);
++		mutex_unlock(&zswap_init_lock);
++		return ret;
++	}
++	mutex_unlock(&zswap_init_lock);
+ 
+ 	if (!type) {
+ 		if (!zpool_has_pool(s)) {
+@@ -876,6 +886,14 @@ static int zswap_zpool_param_set(const c
+ static int zswap_enabled_param_set(const char *val,
+ 				   const struct kernel_param *kp)
+ {
++	if (system_state == SYSTEM_RUNNING) {
++		mutex_lock(&zswap_init_lock);
++		if (zswap_setup()) {
++			mutex_unlock(&zswap_init_lock);
++			return -ENODEV;
++		}
++		mutex_unlock(&zswap_init_lock);
++	}
+ 	if (zswap_init_state == ZSWAP_INIT_FAILED) {
+ 		pr_err("can't enable, initialization failed\n");
+ 		return -ENODEV;
+@@ -1432,7 +1450,7 @@ static const struct frontswap_ops zswap_
+ 
+ static struct dentry *zswap_debugfs_root;
+ 
+-static int __init zswap_debugfs_init(void)
++static int zswap_debugfs_init(void)
+ {
+ 	if (!debugfs_initialized())
+ 		return -ENODEV;
+@@ -1463,7 +1481,7 @@ static int __init zswap_debugfs_init(voi
+ 	return 0;
+ }
+ #else
+-static int __init zswap_debugfs_init(void)
++static int zswap_debugfs_init(void)
+ {
+ 	return 0;
+ }
+@@ -1472,11 +1490,14 @@ static int __init zswap_debugfs_init(voi
+ /*********************************
+ * module init and exit
+ **********************************/
+-static int __init init_zswap(void)
++static int zswap_setup(void)
+ {
+ 	struct zswap_pool *pool;
+ 	int ret;
+ 
++	if (zswap_init_state != ZSWAP_UNINIT)
++		return 0;
++
+ 	if (zswap_entry_cache_create()) {
+ 		pr_err("entry cache creation failed\n");
+ 		goto cache_fail;
+@@ -1534,8 +1555,17 @@ cache_fail:
+ 	zswap_enabled = false;
  	return -ENOMEM;
  }
- 
--static int __init init_zswap(void)
++
 +static int __init zswap_init(void)
- {
- 	/* skip init if zswap is disabled when system startup */
- 	if (!zswap_enabled)
-@@ -1565,7 +1565,7 @@ static int __init init_zswap(void)
- }
- 
++{
++	/* skip init if zswap is disabled when system startup */
++	if (!zswap_enabled)
++		return 0;
++	return zswap_setup();
++}
++
  /* must be late so crypto has time to come up */
 -late_initcall(init_zswap);
 +late_initcall(zswap_init);
@@ -87,23 +206,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  MODULE_AUTHOR("Seth Jennings <sjennings@variantweb.net>");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-asm-generic-sections-refactor-memory_intersects-fix.patch
-mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
-procfs-add-path-to-proc-pid-fdinfo-fix.patch
-zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
-mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
-mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-gupc-refactor-check_and_migrate_movable_pages-fix.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
-mm-zswap-delay-the-initializaton-of-zswap-until-the-first-enablement.patch
-page_ext-introduce-boot-parameter-early_page_ext-fix.patch
-ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
+bootmem-remove-the-vmemmap-pages-from-kmemleak-in-put_page_bootmem.patch
+mm-zswap-skip-confusing-print-info.patch
 
