@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32505C0502C
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 637D1ECAAD4
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345397AbiH0CMO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:12:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33790 "EHLO
+        id S1345425AbiH0CMV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:12:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345421AbiH0CKb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7FD15A825
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:29 -0700 (PDT)
+        with ESMTP id S1345426AbiH0CKh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:37 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34A6A65806
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 64F0461D79
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B03C4C433D6;
-        Sat, 27 Aug 2022 02:10:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A924BB8337D
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D78EC433D6;
+        Sat, 27 Aug 2022 02:10:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566228;
-        bh=U8DPiLTvmcpbNO0VcVp0/oAKygMXtgaQpCbb+IoEXKI=;
+        s=korg; t=1661566231;
+        bh=NvkW1ePPPpiptIlG8l/3QhcF98hvpXN35P1BMrPq7DI=;
         h=Date:To:From:Subject:From;
-        b=FWopfehXB+ebm84r8nWturjj1C+j0EGUNkfabYhvlGIrTBs7BZc2qhYZAD831+aMn
-         iPU3tfZdoJsbsRH7Wboi5mEJCug3RbmcandkXrc0cSKiOWh/j28qDtzDi30ZvayYUG
-         GMF09R5MDGChyEm3aygMA+KqyXVf2ecjtizOrrno=
-Date:   Fri, 26 Aug 2022 19:10:28 -0700
+        b=JySThN2KVWP/8dPqAMn1P7hXYpmgr1uZ8xPcHD0ADdEaptal/KysctpUl5mO8tp2A
+         zOSYzvon1fuKrg4Hb8B88rJUpXBMpw9L9GLp4Hg5ybjOzaHwULVXJO+dOPnUH+l4Cm
+         JBbqzTIL8m/W8nH42GzPgmtfPDdOqf08ns3ZkLE4=
+Date:   Fri, 26 Aug 2022 19:10:30 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kmsan-use-__msan_-string-functions-where-possible.patch added to mm-unstable branch
-Message-Id: <20220827021028.B03C4C433D6@smtp.kernel.org>
+Subject: + x86-kmsan-sync-metadata-pages-on-page-fault.patch added to mm-unstable branch
+Message-Id: <20220827021031.5D78EC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kmsan: use __msan_ string functions where possible.
+     Subject: x86: kmsan: sync metadata pages on page fault
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kmsan-use-__msan_-string-functions-where-possible.patch
+     x86-kmsan-sync-metadata-pages-on-page-fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-use-__msan_-string-functions-where-possible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-sync-metadata-pages-on-page-fault.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,18 +75,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: kmsan: use __msan_ string functions where possible.
-Date: Fri, 26 Aug 2022 17:07:59 +0200
+Subject: x86: kmsan: sync metadata pages on page fault
+Date: Fri, 26 Aug 2022 17:08:00 +0200
 
-Unless stated otherwise (by explicitly calling __memcpy(), __memset() or
-__memmove()) we want all string functions to call their __msan_ versions
-(e.g.  __msan_memcpy() instead of memcpy()), so that shadow and origin
-values are updated accordingly.
+KMSAN assumes shadow and origin pages for every allocated page are
+accessible.  For pages between [VMALLOC_START, VMALLOC_END] those metadata
+pages start at KMSAN_VMALLOC_SHADOW_START and KMSAN_VMALLOC_ORIGIN_START,
+therefore we must sync a bigger memory region.
 
-Bootloader must still use the default string functions to avoid crashes.
-
-Link: https://lkml.kernel.org/r/20220826150807.723137-37-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-38-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
+
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -122,83 +121,48 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/string_64.h |   23 +++++++++++++++++++++--
- include/linux/fortify-string.h   |    2 ++
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ arch/x86/mm/fault.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
---- a/arch/x86/include/asm/string_64.h~x86-kmsan-use-__msan_-string-functions-where-possible
-+++ a/arch/x86/include/asm/string_64.h
-@@ -11,11 +11,23 @@
-    function. */
+--- a/arch/x86/mm/fault.c~x86-kmsan-sync-metadata-pages-on-page-fault
++++ a/arch/x86/mm/fault.c
+@@ -260,7 +260,7 @@ static noinline int vmalloc_fault(unsign
+ }
+ NOKPROBE_SYMBOL(vmalloc_fault);
  
- #define __HAVE_ARCH_MEMCPY 1
-+#if defined(__SANITIZE_MEMORY__)
-+#undef memcpy
-+void *__msan_memcpy(void *dst, const void *src, size_t size);
-+#define memcpy __msan_memcpy
-+#else
- extern void *memcpy(void *to, const void *from, size_t len);
-+#endif
- extern void *__memcpy(void *to, const void *from, size_t len);
+-void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
++static void __arch_sync_kernel_mappings(unsigned long start, unsigned long end)
+ {
+ 	unsigned long addr;
  
- #define __HAVE_ARCH_MEMSET
-+#if defined(__SANITIZE_MEMORY__)
-+extern void *__msan_memset(void *s, int c, size_t n);
-+#undef memset
-+#define memset __msan_memset
-+#else
- void *memset(void *s, int c, size_t n);
-+#endif
- void *__memset(void *s, int c, size_t n);
- 
- #define __HAVE_ARCH_MEMSET16
-@@ -55,7 +67,13 @@ static inline void *memset64(uint64_t *s
+@@ -284,6 +284,27 @@ void arch_sync_kernel_mappings(unsigned
+ 	}
  }
  
- #define __HAVE_ARCH_MEMMOVE
-+#if defined(__SANITIZE_MEMORY__)
-+#undef memmove
-+void *__msan_memmove(void *dest, const void *src, size_t len);
-+#define memmove __msan_memmove
-+#else
- void *memmove(void *dest, const void *src, size_t count);
++void arch_sync_kernel_mappings(unsigned long start, unsigned long end)
++{
++	__arch_sync_kernel_mappings(start, end);
++#ifdef CONFIG_KMSAN
++	/*
++	 * KMSAN maintains two additional metadata page mappings for the
++	 * [VMALLOC_START, VMALLOC_END) range. These mappings start at
++	 * KMSAN_VMALLOC_SHADOW_START and KMSAN_VMALLOC_ORIGIN_START and
++	 * have to be synced together with the vmalloc memory mapping.
++	 */
++	if (start >= VMALLOC_START && end < VMALLOC_END) {
++		__arch_sync_kernel_mappings(
++			start - VMALLOC_START + KMSAN_VMALLOC_SHADOW_START,
++			end - VMALLOC_START + KMSAN_VMALLOC_SHADOW_START);
++		__arch_sync_kernel_mappings(
++			start - VMALLOC_START + KMSAN_VMALLOC_ORIGIN_START,
++			end - VMALLOC_START + KMSAN_VMALLOC_ORIGIN_START);
++	}
 +#endif
- void *__memmove(void *dest, const void *src, size_t count);
- 
- int memcmp(const void *cs, const void *ct, size_t count);
-@@ -64,8 +82,7 @@ char *strcpy(char *dest, const char *src
- char *strcat(char *dest, const char *src);
- int strcmp(const char *cs, const char *ct);
- 
--#if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
--
-+#if (defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__))
- /*
-  * For files that not instrumented (e.g. mm/slub.c) we
-  * should use not instrumented version of mem* functions.
-@@ -73,7 +90,9 @@ int strcmp(const char *cs, const char *c
- 
- #undef memcpy
- #define memcpy(dst, src, len) __memcpy(dst, src, len)
-+#undef memmove
- #define memmove(dst, src, len) __memmove(dst, src, len)
-+#undef memset
- #define memset(s, c, n) __memset(s, c, n)
- 
- #ifndef __NO_FORTIFY
---- a/include/linux/fortify-string.h~x86-kmsan-use-__msan_-string-functions-where-possible
-+++ a/include/linux/fortify-string.h
-@@ -285,8 +285,10 @@ __FORTIFY_INLINE void fortify_memset_chk
-  * __builtin_object_size() must be captured here to avoid evaluating argument
-  * side-effects further into the macro layers.
-  */
-+#ifndef CONFIG_KMSAN
- #define memset(p, c, s) __fortify_memset_chk(p, c, s,			\
- 		__builtin_object_size(p, 0), __builtin_object_size(p, 1))
-+#endif
- 
- /*
-  * To make sure the compiler can enforce protection against buffer overflows,
++}
++
+ static bool low_pfn(unsigned long pfn)
+ {
+ 	return pfn < max_low_pfn;
 _
 
 Patches currently in -mm which might be from glider@google.com are
