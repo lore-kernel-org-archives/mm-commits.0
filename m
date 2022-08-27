@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82448ECAAD1
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 03:29:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED8ACECAAD1
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 21:56:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244615AbiH0D3O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 23:29:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53868 "EHLO
+        id S229884AbiH0V4X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Aug 2022 17:56:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345153AbiH0D24 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 23:28:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A87A7A721E
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 20:28:54 -0700 (PDT)
+        with ESMTP id S229445AbiH0V4X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Aug 2022 17:56:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7614D2714B
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 14:56:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 63C09B83392
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 03:28:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A9D0C433D6;
-        Sat, 27 Aug 2022 03:28:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B7BCA60EAE
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 21:56:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B4ABC433C1;
+        Sat, 27 Aug 2022 21:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661570932;
-        bh=BVI7+U75kWzPgXjNcOCj2V8YVRC5fHCz4VpjNoSo4lc=;
+        s=korg; t=1661637381;
+        bh=Hiv8FxvIZtZis8k7j0fcfydzyw4M2dVL8veNYs8g3p4=;
         h=Date:To:From:Subject:From;
-        b=ygA22keyPa4Dan5Yuo5UkeD+KF+pPefCPK5nSxiLqDf3rd8Oh0yygu/0WW3bw558G
-         uxIajEN2ZyGe9pyTD9s8T49iCIvHlQSy/kxUCTh12auqHCUvsd1fLYgLiuNpBTKHWA
-         EQ5maqEdl2fA6b60DHZFjGzJ1BZ9gniY9ToCBcSs=
-Date:   Fri, 26 Aug 2022 20:28:51 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, konishi.ryusuke@gmail.com,
-        josef@toxicpanda.com, dsterb@suse.com, dsterba@suse.com,
-        clm@fb.com, vishal.moola@gmail.com, akpm@linux-foundation.org
+        b=Bi3XkpL/c2GSIdnYQeB9Rox9fBKCCoZK7+fhuag3WYYY1hzwLF2gmiGkpLUJGt+6U
+         FNdwIIXLsvI7i4qKvYoJxsbejD5dSa2g9B2Z35YNjV3URcrG767ey1Q0r/c5c4oEyQ
+         PCJub69rErscrvDU8o6GL7QW4Hp2L4d933gf+B0I=
+Date:   Sat, 27 Aug 2022 14:56:20 -0700
+To:     mm-commits@vger.kernel.org, osalvador@suse.de, david@redhat.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-remove-find_get_pages_contig.patch added to mm-unstable branch
-Message-Id: <20220827032852.1A9D0C433D6@smtp.kernel.org>
+Subject: + mm-kill-is_memblock_offlined.patch added to mm-unstable branch
+Message-Id: <20220827215621.0B4ABC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: filemap: remove find_get_pages_contig()
+     Subject: mm: kill is_memblock_offlined()
 has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-remove-find_get_pages_contig.patch
+     mm-kill-is_memblock_offlined.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-remove-find_get_pages_contig.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kill-is_memblock_offlined.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,118 +64,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: filemap: remove find_get_pages_contig()
-Date: Tue, 23 Aug 2022 17:40:23 -0700
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: kill is_memblock_offlined()
+Date: Sat, 27 Aug 2022 19:20:43 +0800
 
-All callers of find_get_pages_contig() have been removed, so it is no
-longer needed.
+Directly check state of struct memory_block, no need a single function.
 
-Link: https://lkml.kernel.org/r/20220824004023.77310-8-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Chris Mason <clm@fb.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: David Sterba <dsterb@suse.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20220827112043.187028-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 -
- mm/filemap.c            |   60 --------------------------------------
- 2 files changed, 62 deletions(-)
+ drivers/base/memory.c          |    6 ------
+ include/linux/memory_hotplug.h |    2 --
+ mm/memory_hotplug.c            |    3 +--
+ 3 files changed, 1 insertion(+), 10 deletions(-)
 
---- a/include/linux/pagemap.h~filemap-remove-find_get_pages_contig
-+++ a/include/linux/pagemap.h
-@@ -720,8 +720,6 @@ unsigned filemap_get_folios(struct addre
- 		pgoff_t end, struct folio_batch *fbatch);
- unsigned filemap_get_folios_contig(struct address_space *mapping,
- 		pgoff_t *start, pgoff_t end, struct folio_batch *fbatch);
--unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t start,
--			       unsigned int nr_pages, struct page **pages);
- unsigned find_get_pages_range_tag(struct address_space *mapping, pgoff_t *index,
- 			pgoff_t end, xa_mark_t tag, unsigned int nr_pages,
- 			struct page **pages);
---- a/mm/filemap.c~filemap-remove-find_get_pages_contig
-+++ a/mm/filemap.c
-@@ -2262,66 +2262,6 @@ out:
- EXPORT_SYMBOL(filemap_get_folios_contig);
+--- a/drivers/base/memory.c~mm-kill-is_memblock_offlined
++++ a/drivers/base/memory.c
+@@ -869,12 +869,6 @@ void remove_memory_block_devices(unsigne
+ 	}
+ }
  
- /**
-- * find_get_pages_contig - gang contiguous pagecache lookup
-- * @mapping:	The address_space to search
-- * @index:	The starting page index
-- * @nr_pages:	The maximum number of pages
-- * @pages:	Where the resulting pages are placed
-- *
-- * find_get_pages_contig() works exactly like find_get_pages_range(),
-- * except that the returned number of pages are guaranteed to be
-- * contiguous.
-- *
-- * Return: the number of pages which were found.
-- */
--unsigned find_get_pages_contig(struct address_space *mapping, pgoff_t index,
--			       unsigned int nr_pages, struct page **pages)
+-/* return true if the memory block is offlined, otherwise, return false */
+-bool is_memblock_offlined(struct memory_block *mem)
 -{
--	XA_STATE(xas, &mapping->i_pages, index);
--	struct folio *folio;
--	unsigned int ret = 0;
--
--	if (unlikely(!nr_pages))
--		return 0;
--
--	rcu_read_lock();
--	for (folio = xas_load(&xas); folio; folio = xas_next(&xas)) {
--		if (xas_retry(&xas, folio))
--			continue;
--		/*
--		 * If the entry has been swapped out, we can stop looking.
--		 * No current caller is looking for DAX entries.
--		 */
--		if (xa_is_value(folio))
--			break;
--
--		if (!folio_try_get_rcu(folio))
--			goto retry;
--
--		if (unlikely(folio != xas_reload(&xas)))
--			goto put_page;
--
--again:
--		pages[ret] = folio_file_page(folio, xas.xa_index);
--		if (++ret == nr_pages)
--			break;
--		if (folio_more_pages(folio, xas.xa_index, ULONG_MAX)) {
--			xas.xa_index++;
--			folio_ref_inc(folio);
--			goto again;
--		}
--		continue;
--put_page:
--		folio_put(folio);
--retry:
--		xas_reset(&xas);
--	}
--	rcu_read_unlock();
--	return ret;
+-	return mem->state == MEM_OFFLINE;
 -}
--EXPORT_SYMBOL(find_get_pages_contig);
 -
--/**
-  * find_get_pages_range_tag - Find and return head pages matching @tag.
-  * @mapping:	the address_space to search
-  * @index:	the starting page index
+ static struct attribute *memory_root_attrs[] = {
+ #ifdef CONFIG_ARCH_MEMORY_PROBE
+ 	&dev_attr_probe.attr,
+--- a/include/linux/memory_hotplug.h~mm-kill-is_memblock_offlined
++++ a/include/linux/memory_hotplug.h
+@@ -11,7 +11,6 @@ struct page;
+ struct zone;
+ struct pglist_data;
+ struct mem_section;
+-struct memory_block;
+ struct memory_group;
+ struct resource;
+ struct vmem_altmap;
+@@ -333,7 +332,6 @@ extern void move_pfn_range_to_zone(struc
+ extern void remove_pfn_range_from_zone(struct zone *zone,
+ 				       unsigned long start_pfn,
+ 				       unsigned long nr_pages);
+-extern bool is_memblock_offlined(struct memory_block *mem);
+ extern int sparse_add_section(int nid, unsigned long pfn,
+ 		unsigned long nr_pages, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap);
+--- a/mm/memory_hotplug.c~mm-kill-is_memblock_offlined
++++ a/mm/memory_hotplug.c
+@@ -1969,11 +1969,10 @@ failed_removal:
+ 
+ static int check_memblock_offlined_cb(struct memory_block *mem, void *arg)
+ {
+-	int ret = !is_memblock_offlined(mem);
+ 	int *nid = arg;
+ 
+ 	*nid = mem->nid;
+-	if (unlikely(ret)) {
++	if (unlikely(mem->state != MEM_OFFLINE)) {
+ 		phys_addr_t beginpa, endpa;
+ 
+ 		beginpa = PFN_PHYS(section_nr_to_pfn(mem->start_section_nr));
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-filemap-add-filemap_get_folios_contig.patch
-btrfs-convert-__process_pages_contig-to-use-filemap_get_folios_contig.patch
-btrfs-convert-end_compressed_writeback-to-use-filemap_get_folios.patch
-btrfs-convert-process_page_range-to-use-filemap_get_folios_contig.patch
-nilfs2-convert-nilfs_find_uncommited_extent-to-use-filemap_get_folios_contig.patch
-ramfs-convert-ramfs_nommu_get_unmapped_area-to-use-filemap_get_folios_contig.patch
-filemap-remove-find_get_pages_contig.patch
+mm-memory-failure-cleanup-try_to_split_thp_page.patch
+mm-add-warning-if-__vm_enough_memory-fails.patch
+mm-kill-find_min_pfn_with_active_regions.patch
+mm-memory-failure-kill-soft_offline_free_page.patch
+mm-memory-failure-kill-__soft_offline_page.patch
+mm-kill-is_memblock_offlined.patch
+kernel-exit-cleanup-release_thread.patch
 
