@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F7EDECAAD5
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:09:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BAA4C0502C
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345336AbiH0CJT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:09:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34354 "EHLO
+        id S1345349AbiH0CJV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:09:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345453AbiH0CJI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:08 -0400
+        with ESMTP id S1345461AbiH0CJJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:09 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC041EE4B7
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:08:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ACB4EE485
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:08:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BDFBC61D29
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:08:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1002BC433D6;
-        Sat, 27 Aug 2022 02:08:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6990961D2E
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:08:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B01DEC433D6;
+        Sat, 27 Aug 2022 02:08:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566122;
-        bh=J4PQ8TychDagP5RFYOPqvbvUeek2upezv470RAGwwPk=;
+        s=korg; t=1661566128;
+        bh=kDZZirl4ZunhTnWUPHO32PY351KPz2r8ygUQqnGVDrU=;
         h=Date:To:From:Subject:From;
-        b=JP4tpTN9MO7PRQsvLdvmr87Bv3ckARNF0z0GpeyD7c/tIVRgcvM2kYhTte/bOGyzz
-         O7xJcdbHYoGd9T8rbPFugEFvibrESvqvNsZ9NPXt9MEN1Yb+2xN2vvAJz3QIO69kP6
-         XJZEPrs/H9fNGb6VhGSYBD4n6biJki60rLZWTdXk=
-Date:   Fri, 26 Aug 2022 19:08:41 -0700
+        b=dO43Nc6Eor5XBuzgf2vXIoTEXU+kp8zwwVlp45Ov60qMtXKpMFj9/KqPVJKTzqlx+
+         Mp4X/Ojqvf6OZCX7droTZHATdUgXUotB6iI3pnkXyGsppY32wqCGclfYRhroCnhpfj
+         DTfW3jVqL992ahm8z8SWLx02fcnb/QJ2w51lF2QY=
+Date:   Fri, 26 Aug 2022 19:08:47 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch added to mm-unstable branch
-Message-Id: <20220827020842.1002BC433D6@smtp.kernel.org>
+Subject: + x86-asm-instrument-usercopy-in-get_user-and-put_user.patch added to mm-unstable branch
+Message-Id: <20220827020848.B01DEC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: stackdepot: reserve 5 extra bits in depot_stack_handle_t
+     Subject: x86: asm: instrument usercopy in get_user() and put_user()
 has been added to the -mm mm-unstable branch.  Its filename is
-     stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch
+     x86-asm-instrument-usercopy-in-get_user-and-put_user.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-asm-instrument-usercopy-in-get_user-and-put_user.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,20 +75,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: stackdepot: reserve 5 extra bits in depot_stack_handle_t
-Date: Fri, 26 Aug 2022 17:07:25 +0200
+Subject: x86: asm: instrument usercopy in get_user() and put_user()
+Date: Fri, 26 Aug 2022 17:07:27 +0200
 
-Some users (currently only KMSAN) may want to use spare bits in
-depot_stack_handle_t.  Let them do so by adding @extra_bits to
-__stack_depot_save() to store arbitrary flags, and providing
-stack_depot_get_extra_bits() to retrieve those flags.
+Use hooks from instrumented.h to notify bug detection tools about usercopy
+events in variations of get_user() and put_user().
 
-Also adapt KASAN to the new prototype by passing extra_bits=0, as KASAN
-does not intend to store additional information in the stack handle.
-
-Link: https://lkml.kernel.org/r/20220826150807.723137-3-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-5-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -109,6 +103,7 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -123,146 +118,88 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |    8 ++++++++
- lib/stackdepot.c           |   29 ++++++++++++++++++++++++-----
- mm/kasan/common.c          |    2 +-
- 3 files changed, 33 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/uaccess.h |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
---- a/include/linux/stackdepot.h~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
-+++ a/include/linux/stackdepot.h
-@@ -14,9 +14,15 @@
- #include <linux/gfp.h>
- 
- typedef u32 depot_stack_handle_t;
-+/*
-+ * Number of bits in the handle that stack depot doesn't use. Users may store
-+ * information in them.
-+ */
-+#define STACK_DEPOT_EXTRA_BITS 5
- 
- depot_stack_handle_t __stack_depot_save(unsigned long *entries,
- 					unsigned int nr_entries,
-+					unsigned int extra_bits,
- 					gfp_t gfp_flags, bool can_alloc);
- 
- /*
-@@ -59,6 +65,8 @@ depot_stack_handle_t stack_depot_save(un
- unsigned int stack_depot_fetch(depot_stack_handle_t handle,
- 			       unsigned long **entries);
- 
-+unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle);
-+
- int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
- 		       int spaces);
- 
---- a/lib/stackdepot.c~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
-+++ a/lib/stackdepot.c
-@@ -43,7 +43,8 @@
- #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
- 					STACK_ALLOC_ALIGN)
- #define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
--		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
-+		STACK_ALLOC_NULL_PROTECTION_BITS - \
-+		STACK_ALLOC_OFFSET_BITS - STACK_DEPOT_EXTRA_BITS)
- #define STACK_ALLOC_SLABS_CAP 8192
- #define STACK_ALLOC_MAX_SLABS \
- 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
-@@ -56,6 +57,7 @@ union handle_parts {
- 		u32 slabindex : STACK_ALLOC_INDEX_BITS;
- 		u32 offset : STACK_ALLOC_OFFSET_BITS;
- 		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
-+		u32 extra : STACK_DEPOT_EXTRA_BITS;
- 	};
- };
- 
-@@ -77,6 +79,14 @@ static int next_slab_inited;
- static size_t depot_offset;
- static DEFINE_RAW_SPINLOCK(depot_lock);
- 
-+unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle)
-+{
-+	union handle_parts parts = { .handle = handle };
-+
-+	return parts.extra;
-+}
-+EXPORT_SYMBOL(stack_depot_get_extra_bits);
-+
- static bool init_stack_slab(void **prealloc)
- {
- 	if (!*prealloc)
-@@ -140,6 +150,7 @@ depot_alloc_stack(unsigned long *entries
- 	stack->handle.slabindex = depot_index;
- 	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
- 	stack->handle.valid = 1;
-+	stack->handle.extra = 0;
- 	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
- 	depot_offset += required_size;
- 
-@@ -382,6 +393,7 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
-  *
-  * @entries:		Pointer to storage array
-  * @nr_entries:		Size of the storage array
-+ * @extra_bits:		Flags to store in unused bits of depot_stack_handle_t
-  * @alloc_flags:	Allocation gfp flags
-  * @can_alloc:		Allocate stack slabs (increased chance of failure if false)
-  *
-@@ -393,6 +405,10 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
-  * If the stack trace in @entries is from an interrupt, only the portion up to
-  * interrupt entry is saved.
-  *
-+ * Additional opaque flags can be passed in @extra_bits, stored in the unused
-+ * bits of the stack handle, and retrieved using stack_depot_get_extra_bits()
-+ * without calling stack_depot_fetch().
-+ *
-  * Context: Any context, but setting @can_alloc to %false is required if
-  *          alloc_pages() cannot be used from the current context. Currently
-  *          this is the case from contexts where neither %GFP_ATOMIC nor
-@@ -402,10 +418,11 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+--- a/arch/x86/include/asm/uaccess.h~x86-asm-instrument-usercopy-in-get_user-and-put_user
++++ a/arch/x86/include/asm/uaccess.h
+@@ -5,6 +5,7 @@
+  * User space memory access functions
   */
- depot_stack_handle_t __stack_depot_save(unsigned long *entries,
- 					unsigned int nr_entries,
-+					unsigned int extra_bits,
- 					gfp_t alloc_flags, bool can_alloc)
- {
- 	struct stack_record *found = NULL, **bucket;
--	depot_stack_handle_t retval = 0;
-+	union handle_parts retval = { .handle = 0 };
- 	struct page *page = NULL;
- 	void *prealloc = NULL;
- 	unsigned long flags;
-@@ -489,9 +506,11 @@ exit:
- 		free_pages((unsigned long)prealloc, STACK_ALLOC_ORDER);
- 	}
- 	if (found)
--		retval = found->handle.handle;
-+		retval.handle = found->handle.handle;
- fast_exit:
--	return retval;
-+	retval.extra = extra_bits;
-+
-+	return retval.handle;
- }
- EXPORT_SYMBOL_GPL(__stack_depot_save);
+ #include <linux/compiler.h>
++#include <linux/instrumented.h>
+ #include <linux/kasan-checks.h>
+ #include <linux/string.h>
+ #include <asm/asm.h>
+@@ -103,6 +104,7 @@ extern int __get_user_bad(void);
+ 		     : "=a" (__ret_gu), "=r" (__val_gu),		\
+ 			ASM_CALL_CONSTRAINT				\
+ 		     : "0" (ptr), "i" (sizeof(*(ptr))));		\
++	instrument_get_user(__val_gu);					\
+ 	(x) = (__force __typeof__(*(ptr))) __val_gu;			\
+ 	__builtin_expect(__ret_gu, 0);					\
+ })
+@@ -192,9 +194,11 @@ extern void __put_user_nocheck_8(void);
+ 	int __ret_pu;							\
+ 	void __user *__ptr_pu;						\
+ 	register __typeof__(*(ptr)) __val_pu asm("%"_ASM_AX);		\
+-	__chk_user_ptr(ptr);						\
+-	__ptr_pu = (ptr);						\
+-	__val_pu = (x);							\
++	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
++	__typeof__(ptr) __ptr = (ptr); /* eval ptr once */		\
++	__chk_user_ptr(__ptr);						\
++	__ptr_pu = __ptr;						\
++	__val_pu = __x;							\
+ 	asm volatile("call __" #fn "_%P[size]"				\
+ 		     : "=c" (__ret_pu),					\
+ 			ASM_CALL_CONSTRAINT				\
+@@ -202,6 +206,7 @@ extern void __put_user_nocheck_8(void);
+ 		       "r" (__val_pu),					\
+ 		       [size] "i" (sizeof(*(ptr)))			\
+ 		     :"ebx");						\
++	instrument_put_user(__x, __ptr, sizeof(*(ptr)));		\
+ 	__builtin_expect(__ret_pu, 0);					\
+ })
  
-@@ -511,6 +530,6 @@ depot_stack_handle_t stack_depot_save(un
- 				      unsigned int nr_entries,
- 				      gfp_t alloc_flags)
- {
--	return __stack_depot_save(entries, nr_entries, alloc_flags, true);
-+	return __stack_depot_save(entries, nr_entries, 0, alloc_flags, true);
- }
- EXPORT_SYMBOL_GPL(stack_depot_save);
---- a/mm/kasan/common.c~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
-+++ a/mm/kasan/common.c
-@@ -36,7 +36,7 @@ depot_stack_handle_t kasan_save_stack(gf
- 	unsigned int nr_entries;
+@@ -248,23 +253,25 @@ extern void __put_user_nocheck_8(void);
  
- 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 0);
--	return __stack_depot_save(entries, nr_entries, flags, can_alloc);
-+	return __stack_depot_save(entries, nr_entries, 0, flags, can_alloc);
- }
+ #define __put_user_size(x, ptr, size, label)				\
+ do {									\
++	__typeof__(*(ptr)) __x = (x); /* eval x once */			\
+ 	__chk_user_ptr(ptr);						\
+ 	switch (size) {							\
+ 	case 1:								\
+-		__put_user_goto(x, ptr, "b", "iq", label);		\
++		__put_user_goto(__x, ptr, "b", "iq", label);		\
+ 		break;							\
+ 	case 2:								\
+-		__put_user_goto(x, ptr, "w", "ir", label);		\
++		__put_user_goto(__x, ptr, "w", "ir", label);		\
+ 		break;							\
+ 	case 4:								\
+-		__put_user_goto(x, ptr, "l", "ir", label);		\
++		__put_user_goto(__x, ptr, "l", "ir", label);		\
+ 		break;							\
+ 	case 8:								\
+-		__put_user_goto_u64(x, ptr, label);			\
++		__put_user_goto_u64(__x, ptr, label);			\
+ 		break;							\
+ 	default:							\
+ 		__put_user_bad();					\
+ 	}								\
++	instrument_put_user(__x, ptr, size);				\
+ } while (0)
  
- void kasan_set_track(struct kasan_track *track, gfp_t flags)
+ #ifdef CONFIG_CC_HAS_ASM_GOTO_OUTPUT
+@@ -305,6 +312,7 @@ do {									\
+ 	default:							\
+ 		(x) = __get_user_bad();					\
+ 	}								\
++	instrument_get_user(x);						\
+ } while (0)
+ 
+ #define __get_user_asm(x, addr, itype, ltype, label)			\
 _
 
 Patches currently in -mm which might be from glider@google.com are
