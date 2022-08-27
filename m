@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6307AECAAD4
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73CA0C0502A
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345513AbiH0CLw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:11:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33540 "EHLO
+        id S1345345AbiH0CLx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:11:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345345AbiH0CKO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:14 -0400
+        with ESMTP id S1345435AbiH0CKR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:17 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E32551F2D9
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6707B43E4C
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9D2A8B83385
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54ACCC433D7;
-        Sat, 27 Aug 2022 02:10:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0D3EBB8337F
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0F87C433D7;
+        Sat, 27 Aug 2022 02:10:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566210;
-        bh=2+daTT4nXQGFr11ETxZEQpZquP/+e5DQvqBIELCA1Zg=;
+        s=korg; t=1661566212;
+        bh=JytXBY7o7q3XlPAIzrOYYdEZfZIdRcrNuLOn08vrlpY=;
         h=Date:To:From:Subject:From;
-        b=PUNFJKaD0OYsN6aZzXw56wbEyq16NzonBWgWF17LRZtUr9rFe7TqIYq1ctSYgt7+E
-         giYlUbwUJErDwF4fcnh6kaJMPf6cqbpivWwStqhBN5YlGk2Cp3/qc58wFjVB0VfTRH
-         VGeMTZY1qbuFL2dVp3eoXZ4HHIXr35/QN+6eKIS0=
-Date:   Fri, 26 Aug 2022 19:10:09 -0700
+        b=RXxKhw2nRUM0RNR6PPYubSVPS3F/WCWt0Cg/d6Ld8TQyQPNvHSUg5sf9eo/MMm5eW
+         k8jtEa7Mnn6zlS/h16daOuQq3soQbSbLodzKPtSAt0oMFaKMxB/40YEYqut0szzxoF
+         Ggd6zAyd+hZdZhDJHy0Q6mVUvWDJvACXWXJPZqIE=
+Date:   Fri, 26 Aug 2022 19:10:11 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + block-kmsan-skip-bio-block-merging-logic-for-kmsan.patch added to mm-unstable branch
-Message-Id: <20220827021010.54ACCC433D7@smtp.kernel.org>
+Subject: + kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put.patch added to mm-unstable branch
+Message-Id: <20220827021012.A0F87C433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: kmsan: skip bio block merging logic for KMSAN
+     Subject: kcov: kmsan: unpoison area->list in kcov_remote_area_put()
 has been added to the -mm mm-unstable branch.  Its filename is
-     block-kmsan-skip-bio-block-merging-logic-for-kmsan.patch
+     kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/block-kmsan-skip-bio-block-merging-logic-for-kmsan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,18 +75,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: block: kmsan: skip bio block merging logic for KMSAN
-Date: Fri, 26 Aug 2022 17:07:52 +0200
+Subject: kcov: kmsan: unpoison area->list in kcov_remote_area_put()
+Date: Fri, 26 Aug 2022 17:07:53 +0200
 
-KMSAN doesn't allow treating adjacent memory pages as such, if they were
-allocated by different alloc_pages() calls.
+KMSAN does not instrument kernel/kcov.c for performance reasons (with
+CONFIG_KCOV=y virtually every place in the kernel invokes kcov
+instrumentation).  Therefore the tool may miss writes from kcov.c that
+initialize memory.
 
-The block layer however does so: adjacent pages end up being used
-together.  To prevent this, make page_is_mergeable() return false under
-KMSAN.
+When CONFIG_DEBUG_LIST is enabled, list pointers from kernel/kcov.c are
+passed to instrumented helpers in lib/list_debug.c, resulting in false
+positives.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-30-glider@google.com
-Suggested-by: Eric Biggers <ebiggers@google.com>
+To work around these reports, we unpoison the contents of area->list after
+initializing it.
+
+Link: https://lkml.kernel.org/r/20220826150807.723137-31-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -99,6 +103,7 @@ Cc: Christoph Hellwig <hch@lst.de>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Eric Biggers <ebiggers@google.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
@@ -122,20 +127,32 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bio.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/kcov.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/block/bio.c~block-kmsan-skip-bio-block-merging-logic-for-kmsan
-+++ a/block/bio.c
-@@ -869,6 +869,8 @@ static inline bool page_is_mergeable(con
- 	*same_page = ((vec_end_addr & PAGE_MASK) == page_addr);
- 	if (*same_page)
- 		return true;
-+	else if (IS_ENABLED(CONFIG_KMSAN))
-+		return false;
- 	return (bv->bv_page + bv_end / PAGE_SIZE) == (page + off / PAGE_SIZE);
+--- a/kernel/kcov.c~kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put
++++ a/kernel/kcov.c
+@@ -11,6 +11,7 @@
+ #include <linux/fs.h>
+ #include <linux/hashtable.h>
+ #include <linux/init.h>
++#include <linux/kmsan-checks.h>
+ #include <linux/mm.h>
+ #include <linux/preempt.h>
+ #include <linux/printk.h>
+@@ -152,6 +153,12 @@ static void kcov_remote_area_put(struct
+ 	INIT_LIST_HEAD(&area->list);
+ 	area->size = size;
+ 	list_add(&area->list, &kcov_remote_areas);
++	/*
++	 * KMSAN doesn't instrument this file, so it may not know area->list
++	 * is initialized. Unpoison it explicitly to avoid reports in
++	 * kcov_remote_area_get().
++	 */
++	kmsan_unpoison_memory(&area->list, sizeof(area->list));
  }
  
+ static notrace bool check_kcov_mode(enum kcov_mode needed_mode, struct task_struct *t)
 _
 
 Patches currently in -mm which might be from glider@google.com are
