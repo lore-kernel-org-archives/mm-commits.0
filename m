@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED8ACECAAD1
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 21:56:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA59BECAAD1
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 22:09:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229884AbiH0V4X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 27 Aug 2022 17:56:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57956 "EHLO
+        id S230090AbiH0WJK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Aug 2022 18:09:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229445AbiH0V4X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Aug 2022 17:56:23 -0400
+        with ESMTP id S229445AbiH0WJJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Aug 2022 18:09:09 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7614D2714B
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 14:56:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C09633E33
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 15:09:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B7BCA60EAE
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 21:56:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B4ABC433C1;
-        Sat, 27 Aug 2022 21:56:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EAB3C60EBC
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 22:09:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42B7EC433C1;
+        Sat, 27 Aug 2022 22:09:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661637381;
-        bh=Hiv8FxvIZtZis8k7j0fcfydzyw4M2dVL8veNYs8g3p4=;
+        s=korg; t=1661638147;
+        bh=p+PKE2tHFMFy27J+gT3VECbiAjv+BZxx5T2kiVNMLMQ=;
         h=Date:To:From:Subject:From;
-        b=Bi3XkpL/c2GSIdnYQeB9Rox9fBKCCoZK7+fhuag3WYYY1hzwLF2gmiGkpLUJGt+6U
-         FNdwIIXLsvI7i4qKvYoJxsbejD5dSa2g9B2Z35YNjV3URcrG767ey1Q0r/c5c4oEyQ
-         PCJub69rErscrvDU8o6GL7QW4Hp2L4d933gf+B0I=
-Date:   Sat, 27 Aug 2022 14:56:20 -0700
-To:     mm-commits@vger.kernel.org, osalvador@suse.de, david@redhat.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=jQAO4JXt2m4jQ1jp5moOoMcbRVChLT0pJXC+w2iVyLQUw7fsSA8Zykd0w2GYk63VR
+         GSO4n7Cx1FbdtMgBZDr2Y+Poin7DdV09KWe1dhngqVXqkONbYSwBTORFjjoyBdA1ko
+         qs2Hn0oq8BBXhCDreoWxhYuCZHwtuJKqQOQNNbVw=
+Date:   Sat, 27 Aug 2022 15:09:06 -0700
+To:     mm-commits@vger.kernel.org, muchun.song@linux.dev,
+        david@redhat.com, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kill-is_memblock_offlined.patch added to mm-unstable branch
-Message-Id: <20220827215621.0B4ABC433C1@smtp.kernel.org>
+Subject: + mm-fix-null-ptr-deref-in-kswapd_is_running.patch added to mm-unstable branch
+Message-Id: <20220827220907.42B7EC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kill is_memblock_offlined()
+     Subject: mm: fix null-ptr-deref in kswapd_is_running()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kill-is_memblock_offlined.patch
+     mm-fix-null-ptr-deref-in-kswapd_is_running.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kill-is_memblock_offlined.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-null-ptr-deref-in-kswapd_is_running.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,71 +66,203 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: kill is_memblock_offlined()
-Date: Sat, 27 Aug 2022 19:20:43 +0800
+Subject: mm: fix null-ptr-deref in kswapd_is_running()
+Date: Sat, 27 Aug 2022 19:19:59 +0800
 
-Directly check state of struct memory_block, no need a single function.
+kswapd_run/stop() will set pgdat->kswapd to NULL, which could race with
+kswapd_is_running() in kcompactd(),
 
-Link: https://lkml.kernel.org/r/20220827112043.187028-1-wangkefeng.wang@huawei.com
+kswapd_run/stop()                       kcompactd()
+                                          kswapd_is_running()
+  pgdat->kswapd // error or nomal ptr
+                                          verify pgdat->kswapd
+                                            // load non-NULL
+pgdat->kswapd
+  pgdat->kswapd = NULL
+                                          task_is_running(pgdat->kswapd)
+                                            // Null pointer derefence
+
+KASAN reports the null-ptr-deref shown below,
+
+  vmscan: Failed to start kswapd on node 0
+  ...
+  BUG: KASAN: null-ptr-deref in kcompactd+0x440/0x504
+  Read of size 8 at addr 0000000000000024 by task kcompactd0/37
+
+  CPU: 0 PID: 37 Comm: kcompactd0 Kdump: loaded Tainted: G           OE     5.10.60 #1
+  Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
+  Call trace:
+   dump_backtrace+0x0/0x394
+   show_stack+0x34/0x4c
+   dump_stack+0x158/0x1e4
+   __kasan_report+0x138/0x140
+   kasan_report+0x44/0xdc
+   __asan_load8+0x94/0xd0
+   kcompactd+0x440/0x504
+   kthread+0x1a4/0x1f0
+   ret_from_fork+0x10/0x18
+
+At present kswapd/kcompactd_run() and kswapd/kcompactd_stop() are protected
+by mem_hotplug_begin/done(), but without kcompactd(). There is no need to
+involve memory hotplug lock in kcompactd(), so let's add a new mutex to
+protect pgdat->kswapd accesses.
+
+Also, because the kcompactd task will check the state of kswapd task, it's
+better to call kcompactd_stop() before kswapd_stop() to reduce lock
+conflicts.
+
+Link: https://lkml.kernel.org/r/20220827111959.186838-1-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |    6 ------
- include/linux/memory_hotplug.h |    2 --
- mm/memory_hotplug.c            |    3 +--
- 3 files changed, 1 insertion(+), 10 deletions(-)
+ include/linux/memory_hotplug.h |   19 +++++++++++++++++++
+ include/linux/mmzone.h         |    6 ++++--
+ mm/compaction.c                |    8 +++++++-
+ mm/memory_hotplug.c            |    2 +-
+ mm/page_alloc.c                |    1 +
+ mm/vmscan.c                    |   27 ++++++++++++++++-----------
+ 6 files changed, 48 insertions(+), 15 deletions(-)
 
---- a/drivers/base/memory.c~mm-kill-is_memblock_offlined
-+++ a/drivers/base/memory.c
-@@ -869,12 +869,6 @@ void remove_memory_block_devices(unsigne
- 	}
+--- a/include/linux/memory_hotplug.h~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/include/linux/memory_hotplug.h
+@@ -215,6 +215,21 @@ void put_online_mems(void);
+ void mem_hotplug_begin(void);
+ void mem_hotplug_done(void);
+ 
++static inline void pgdat_kswapd_lock(pg_data_t *pgdat)
++{
++	mutex_lock(&pgdat->kswapd_lock);
++}
++
++static inline void pgdat_kswapd_unlock(pg_data_t *pgdat)
++{
++	mutex_unlock(&pgdat->kswapd_lock);
++}
++
++static inline void pgdat_kswapd_lock_init(pg_data_t *pgdat)
++{
++	mutex_init(&pgdat->kswapd_lock);
++}
++
+ #else /* ! CONFIG_MEMORY_HOTPLUG */
+ #define pfn_to_online_page(pfn)			\
+ ({						\
+@@ -251,6 +266,10 @@ static inline bool movable_node_is_enabl
+ {
+ 	return false;
+ }
++
++static inline void pgdat_kswapd_lock(pg_data_t *pgdat) {}
++static inline void pgdat_kswapd_unlock(pg_data_t *pgdat) {}
++static inline void pgdat_kswapd_lock_init(pg_data_t *pgdat) {}
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ 
+ /*
+--- a/include/linux/mmzone.h~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/include/linux/mmzone.h
+@@ -1151,8 +1151,10 @@ typedef struct pglist_data {
+ 	atomic_t nr_writeback_throttled;/* nr of writeback-throttled tasks */
+ 	unsigned long nr_reclaim_start;	/* nr pages written while throttled
+ 					 * when throttling started. */
+-	struct task_struct *kswapd;	/* Protected by
+-					   mem_hotplug_begin/done() */
++#ifdef CONFIG_MEMORY_HOTPLUG
++	struct mutex kswapd_lock;
++#endif
++	struct task_struct *kswapd;	/* Protected by kswapd_lock */
+ 	int kswapd_order;
+ 	enum zone_type kswapd_highest_zoneidx;
+ 
+--- a/mm/compaction.c~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/mm/compaction.c
+@@ -1982,7 +1982,13 @@ static inline bool is_via_compact_memory
+ 
+ static bool kswapd_is_running(pg_data_t *pgdat)
+ {
+-	return pgdat->kswapd && task_is_running(pgdat->kswapd);
++	bool running;
++
++	pgdat_kswapd_lock(pgdat);
++	running = pgdat->kswapd && task_is_running(pgdat->kswapd);
++	pgdat_kswapd_unlock(pgdat);
++
++	return running;
  }
  
--/* return true if the memory block is offlined, otherwise, return false */
--bool is_memblock_offlined(struct memory_block *mem)
--{
--	return mem->state == MEM_OFFLINE;
--}
--
- static struct attribute *memory_root_attrs[] = {
- #ifdef CONFIG_ARCH_MEMORY_PROBE
- 	&dev_attr_probe.attr,
---- a/include/linux/memory_hotplug.h~mm-kill-is_memblock_offlined
-+++ a/include/linux/memory_hotplug.h
-@@ -11,7 +11,6 @@ struct page;
- struct zone;
- struct pglist_data;
- struct mem_section;
--struct memory_block;
- struct memory_group;
- struct resource;
- struct vmem_altmap;
-@@ -333,7 +332,6 @@ extern void move_pfn_range_to_zone(struc
- extern void remove_pfn_range_from_zone(struct zone *zone,
- 				       unsigned long start_pfn,
- 				       unsigned long nr_pages);
--extern bool is_memblock_offlined(struct memory_block *mem);
- extern int sparse_add_section(int nid, unsigned long pfn,
- 		unsigned long nr_pages, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap);
---- a/mm/memory_hotplug.c~mm-kill-is_memblock_offlined
+ /*
+--- a/mm/memory_hotplug.c~mm-fix-null-ptr-deref-in-kswapd_is_running
 +++ a/mm/memory_hotplug.c
-@@ -1969,11 +1969,10 @@ failed_removal:
+@@ -1940,8 +1940,8 @@ int __ref offline_pages(unsigned long st
  
- static int check_memblock_offlined_cb(struct memory_block *mem, void *arg)
+ 	node_states_clear_node(node, &arg);
+ 	if (arg.status_change_nid >= 0) {
+-		kswapd_stop(node);
+ 		kcompactd_stop(node);
++		kswapd_stop(node);
+ 	}
+ 
+ 	writeback_set_ratelimit();
+--- a/mm/page_alloc.c~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/mm/page_alloc.c
+@@ -7676,6 +7676,7 @@ static void __meminit pgdat_init_interna
+ 	int i;
+ 
+ 	pgdat_resize_init(pgdat);
++	pgdat_kswapd_lock_init(pgdat);
+ 
+ 	pgdat_init_split_queue(pgdat);
+ 	pgdat_init_kcompactd(pgdat);
+--- a/mm/vmscan.c~mm-fix-null-ptr-deref-in-kswapd_is_running
++++ a/mm/vmscan.c
+@@ -7425,16 +7425,17 @@ void kswapd_run(int nid)
  {
--	int ret = !is_memblock_offlined(mem);
- 	int *nid = arg;
+ 	pg_data_t *pgdat = NODE_DATA(nid);
  
- 	*nid = mem->nid;
--	if (unlikely(ret)) {
-+	if (unlikely(mem->state != MEM_OFFLINE)) {
- 		phys_addr_t beginpa, endpa;
+-	if (pgdat->kswapd)
+-		return;
+-
+-	pgdat->kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
+-	if (IS_ERR(pgdat->kswapd)) {
+-		/* failure at boot is fatal */
+-		BUG_ON(system_state < SYSTEM_RUNNING);
+-		pr_err("Failed to start kswapd on node %d\n", nid);
+-		pgdat->kswapd = NULL;
++	pgdat_kswapd_lock(pgdat);
++	if (!pgdat->kswapd) {
++		pgdat->kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
++		if (IS_ERR(pgdat->kswapd)) {
++			/* failure at boot is fatal */
++			BUG_ON(system_state < SYSTEM_RUNNING);
++			pr_err("Failed to start kswapd on node %d\n", nid);
++			pgdat->kswapd = NULL;
++		}
+ 	}
++	pgdat_kswapd_unlock(pgdat);
+ }
  
- 		beginpa = PFN_PHYS(section_nr_to_pfn(mem->start_section_nr));
+ /*
+@@ -7443,12 +7444,16 @@ void kswapd_run(int nid)
+  */
+ void kswapd_stop(int nid)
+ {
+-	struct task_struct *kswapd = NODE_DATA(nid)->kswapd;
++	pg_data_t *pgdat = NODE_DATA(nid);
++	struct task_struct *kswapd;
+ 
++	pgdat_kswapd_lock(pgdat);
++	kswapd = pgdat->kswapd;
+ 	if (kswapd) {
+ 		kthread_stop(kswapd);
+-		NODE_DATA(nid)->kswapd = NULL;
++		pgdat->kswapd = NULL;
+ 	}
++	pgdat_kswapd_unlock(pgdat);
+ }
+ 
+ static int __init kswapd_init(void)
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
@@ -140,5 +273,6 @@ mm-kill-find_min_pfn_with_active_regions.patch
 mm-memory-failure-kill-soft_offline_free_page.patch
 mm-memory-failure-kill-__soft_offline_page.patch
 mm-kill-is_memblock_offlined.patch
+mm-fix-null-ptr-deref-in-kswapd_is_running.patch
 kernel-exit-cleanup-release_thread.patch
 
