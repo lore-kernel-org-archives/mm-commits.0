@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF14C0502A
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BB10ECAAD4
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:12:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345442AbiH0CMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:12:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37196 "EHLO
+        id S1345516AbiH0CMN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:12:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345449AbiH0CKY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:24 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC29651A1D
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:22 -0700 (PDT)
+        with ESMTP id S1345462AbiH0CK3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:29 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 966E254C92
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 67ECFB83381
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B3A3C433D6;
-        Sat, 27 Aug 2022 02:10:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 50389B8337E
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02D15C433D6;
+        Sat, 27 Aug 2022 02:10:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566220;
-        bh=kYU9H5/eTBNWmVfNI/Ctly3OYpXgDqLqlMTgwC302wQ=;
+        s=korg; t=1661566224;
+        bh=8bD8vxBblwcAVoEglsFZwXCYTOO1hR7goC8b1XA9NaY=;
         h=Date:To:From:Subject:From;
-        b=myUoXMMPF2QXbO0ba7PunSUbS51mVQMFUJ8uZctcf15K2Ltan6Ha9KPJYuw4+n54X
-         OjjH6OavI+PrxJiFVZRU7oqPyJFJCujUJCdK2kBtcuUfwWD0qlxUX2mVcwMOtqJ6p4
-         WsW+eF5QW4P7mBkCHhrJ2K/CSIrFO45nXRMRr2Rg=
-Date:   Fri, 26 Aug 2022 19:10:19 -0700
+        b=qgG0WNxJsLn/AviPcuRg0Wtdabb4H+cEanbYCFsGs6J4JVt9rKCqr8vOhcq/YZlCD
+         QVsiZD4IHHuixsKqfzyhVm5W331SHnmxnm3KMM4E52wHiuJyV1JfTLYh8S0QNt2yv8
+         CwyZROYUypFefb6plR4Y4RUcNpZuLN9WEJ+EuOtw=
+Date:   Fri, 26 Aug 2022 19:10:23 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kmsan-disable-instrumentation-of-unsupported-code.patch added to mm-unstable branch
-Message-Id: <20220827021020.1B3A3C433D6@smtp.kernel.org>
+Subject: + x86-kmsan-skip-shadow-checks-in-__switch_to.patch added to mm-unstable branch
+Message-Id: <20220827021024.02D15C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kmsan: disable instrumentation of unsupported code
+     Subject: x86: kmsan: skip shadow checks in __switch_to()
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kmsan-disable-instrumentation-of-unsupported-code.patch
+     x86-kmsan-skip-shadow-checks-in-__switch_to.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-disable-instrumentation-of-unsupported-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kmsan-skip-shadow-checks-in-__switch_to.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,22 +75,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: x86: kmsan: disable instrumentation of unsupported code
-Date: Fri, 26 Aug 2022 17:07:56 +0200
+Subject: x86: kmsan: skip shadow checks in __switch_to()
+Date: Fri, 26 Aug 2022 17:07:57 +0200
 
-Instrumenting some files with KMSAN will result in kernel being unable to
-link, boot or crashing at runtime for various reasons (e.g.  infinite
-recursion caused by instrumentation hooks calling instrumented code
-again).
+When instrumenting functions, KMSAN obtains the per-task state (mostly
+pointers to metadata for function arguments and return values) once per
+function at its beginning, using the `current` pointer.
 
-Completely omit KMSAN instrumentation in the following places:
- - arch/x86/boot and arch/x86/realmode/rm, as KMSAN doesn't work for i386;
- - arch/x86/entry/vdso, which isn't linked with KMSAN runtime;
- - three files in arch/x86/kernel - boot problems;
- - arch/x86/mm/cpu_entry_area.c - recursion.
+Every time the instrumented function calls another function, this state
+(`struct kmsan_context_state`) is updated with shadow/origin data of the
+passed and returned values.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-34-glider@google.com
+When `current` changes in the low-level arch code, instrumented code can
+not notice that, and will still refer to the old state, possibly
+corrupting it or using stale data.  This may result in false positive
+reports.
+
+To deal with that, we need to apply __no_kmsan_checks to the functions
+performing context switching - this will result in skipping all KMSAN
+shadow checks and marking newly created values as initialized, preventing
+all false positive reports in those functions.  False negatives are still
+possible, but we expect them to be rare and impersistent.
+
+Link: https://lkml.kernel.org/r/20220826150807.723137-35-glider@google.com
+Link: https://linux-review.googlesource.com/id/I520c414f52c19f3ea22377a9c570fff0d5943a95
 Signed-off-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -111,7 +121,6 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -126,89 +135,19 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/Makefile            |    1 +
- arch/x86/boot/compressed/Makefile |    1 +
- arch/x86/entry/vdso/Makefile      |    3 +++
- arch/x86/kernel/Makefile          |    2 ++
- arch/x86/kernel/cpu/Makefile      |    1 +
- arch/x86/mm/Makefile              |    2 ++
- arch/x86/realmode/rm/Makefile     |    1 +
- 7 files changed, 11 insertions(+)
+ arch/x86/kernel/process_64.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/x86/boot/compressed/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/boot/compressed/Makefile
-@@ -20,6 +20,7 @@
- # Sanitizer runtimes are unavailable and cannot be linked for early boot code.
- KASAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
-+KMSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
- 
- # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
---- a/arch/x86/boot/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/boot/Makefile
-@@ -12,6 +12,7 @@
- # Sanitizer runtimes are unavailable and cannot be linked for early boot code.
- KASAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
-+KMSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
- 
- # Kernel does not boot with kcov instrumentation here.
---- a/arch/x86/entry/vdso/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/entry/vdso/Makefile
-@@ -11,6 +11,9 @@ include $(srctree)/lib/vdso/Makefile
- 
- # Sanitizer runtimes are unavailable and cannot be linked here.
- KASAN_SANITIZE			:= n
-+KMSAN_SANITIZE_vclock_gettime.o := n
-+KMSAN_SANITIZE_vgetcpu.o	:= n
-+
- UBSAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
---- a/arch/x86/kernel/cpu/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/kernel/cpu/Makefile
-@@ -12,6 +12,7 @@ endif
- # If these files are instrumented, boot hangs during the first second.
- KCOV_INSTRUMENT_common.o := n
- KCOV_INSTRUMENT_perf_event.o := n
-+KMSAN_SANITIZE_common.o := n
- 
- # As above, instrumenting secondary CPU boot code causes boot hangs.
- KCSAN_SANITIZE_common.o := n
---- a/arch/x86/kernel/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/kernel/Makefile
-@@ -33,6 +33,8 @@ KASAN_SANITIZE_sev.o					:= n
- # With some compiler versions the generated code results in boot hangs, caused
- # by several compilation units. To be safe, disable all instrumentation.
- KCSAN_SANITIZE := n
-+KMSAN_SANITIZE_head$(BITS).o				:= n
-+KMSAN_SANITIZE_nmi.o					:= n
- 
- # If instrumentation of this dir is enabled, boot hangs during first second.
- # Probably could be more selective here, but note that files related to irqs,
---- a/arch/x86/mm/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/mm/Makefile
-@@ -12,6 +12,8 @@ KASAN_SANITIZE_mem_encrypt_identity.o	:=
- # Disable KCSAN entirely, because otherwise we get warnings that some functions
- # reference __initdata sections.
- KCSAN_SANITIZE := n
-+# Avoid recursion by not calling KMSAN hooks for CEA code.
-+KMSAN_SANITIZE_cpu_entry_area.o := n
- 
- ifdef CONFIG_FUNCTION_TRACER
- CFLAGS_REMOVE_mem_encrypt.o		= -pg
---- a/arch/x86/realmode/rm/Makefile~x86-kmsan-disable-instrumentation-of-unsupported-code
-+++ a/arch/x86/realmode/rm/Makefile
-@@ -10,6 +10,7 @@
- # Sanitizer runtimes are unavailable and cannot be linked here.
- KASAN_SANITIZE			:= n
- KCSAN_SANITIZE			:= n
-+KMSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
- 
- # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
+--- a/arch/x86/kernel/process_64.c~x86-kmsan-skip-shadow-checks-in-__switch_to
++++ a/arch/x86/kernel/process_64.c
+@@ -553,6 +553,7 @@ void compat_start_thread(struct pt_regs
+  * Kprobes not supported here. Set the probe on schedule instead.
+  * Function graph tracer not supported too.
+  */
++__no_kmsan_checks
+ __visible __notrace_funcgraph struct task_struct *
+ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
+ {
 _
 
 Patches currently in -mm which might be from glider@google.com are
