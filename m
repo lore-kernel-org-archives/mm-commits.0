@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2776ECAAD5
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:10:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32902C0502A
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:10:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242913AbiH0CKh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:10:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34424 "EHLO
+        id S1345318AbiH0CKk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:10:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345318AbiH0CJs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:48 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85BF22B8
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:46 -0700 (PDT)
+        with ESMTP id S1345398AbiH0CJv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C40867658
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2E2B1B83394
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4C2DC433C1;
-        Sat, 27 Aug 2022 02:09:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5300B61D5A
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2316C433D6;
+        Sat, 27 Aug 2022 02:09:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566183;
-        bh=TxWHzyhNzF//UW3QFtO8FVR+5TSzIsZ7cW6UQMkYMdY=;
+        s=korg; t=1661566188;
+        bh=hM+KybPTcCunTbXnmUVpZi5frZBC/sMFC+Tq6A5ZISI=;
         h=Date:To:From:Subject:From;
-        b=FvkPmrDyqZHPpM+QOpoQuc3/e293Rd9XDN2RDLtHDK670w2cdbsOmaA4GWWPLIbuH
-         OirQa7uoOv+7Y6eghwr7xXdIpRTc+SPe7pTbX+m/k00kFuS9bvIWuXbANMssvshQ6d
-         5NoPzVYkwFKFtTcr985sRLfzNkCvyxwQzIpna8K4=
-Date:   Fri, 26 Aug 2022 19:09:43 -0700
+        b=lJxmGm0auKZ5LTGKzji4TiqGCLrLuy3PlbZp5lROf5D49Y0JsgsWoUKpa1sPxL/Bk
+         ZCTjkaulaA4YIdYulkGxGpfKwdvWsn5rTyX2w+QxaogE1irJlv5l2OG8CjewAkLDam
+         40Lu5No1/kvAj6IzufZzMyAvkt+n+fSVeRL2VHAc=
+Date:   Fri, 26 Aug 2022 19:09:47 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch added to mm-unstable branch
-Message-Id: <20220827020943.D4C2DC433C1@smtp.kernel.org>
+Subject: + input-libps2-mark-data-received-in-__ps2_command-as-initialized.patch added to mm-unstable branch
+Message-Id: <20220827020948.A2316C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: unpoison @tlb in arch_tlb_gather_mmu()
+     Subject: input: libps2: mark data received in __ps2_command() as initialized
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
+     input-libps2-mark-data-received-in-__ps2_command-as-initialized.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/input-libps2-mark-data-received-in-__ps2_command-as-initialized.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,22 +75,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: unpoison @tlb in arch_tlb_gather_mmu()
-Date: Fri, 26 Aug 2022 17:07:42 +0200
+Subject: input: libps2: mark data received in __ps2_command() as initialized
+Date: Fri, 26 Aug 2022 17:07:44 +0200
 
-This is an optimization to reduce stackdepot pressure.
+KMSAN does not know that the device initializes certain bytes in
+ps2dev->cmdbuf.  Call kmsan_unpoison_memory() to explicitly mark them as
+initialized.
 
-struct mmu_gather contains 7 1-bit fields packed into a 32-bit unsigned
-int value.  The remaining 25 bits remain uninitialized and are never used,
-but KMSAN updates the origin for them in zap_pXX_range() in mm/memory.c,
-thus creating very long origin chains.  This is technically correct, but
-consumes too much memory.
-
-Unpoisoning the whole structure will prevent creating such chains.
-
-Link: https://lkml.kernel.org/r/20220826150807.723137-20-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-22-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -111,6 +104,7 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -125,35 +119,32 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/input/serio/libps2.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/mmu_gather.c~kmsan-unpoison-tlb-in-arch_tlb_gather_mmu
-+++ a/mm/mmu_gather.c
-@@ -1,6 +1,7 @@
- #include <linux/gfp.h>
- #include <linux/highmem.h>
- #include <linux/kernel.h>
+--- a/drivers/input/serio/libps2.c~input-libps2-mark-data-received-in-__ps2_command-as-initialized
++++ a/drivers/input/serio/libps2.c
+@@ -12,6 +12,7 @@
+ #include <linux/sched.h>
+ #include <linux/interrupt.h>
+ #include <linux/input.h>
 +#include <linux/kmsan-checks.h>
- #include <linux/mmdebug.h>
- #include <linux/mm_types.h>
- #include <linux/mm_inline.h>
-@@ -265,6 +266,15 @@ void tlb_flush_mmu(struct mmu_gather *tl
- static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
- 			     bool fullmm)
- {
-+	/*
-+	 * struct mmu_gather contains 7 1-bit fields packed into a 32-bit
-+	 * unsigned int value. The remaining 25 bits remain uninitialized
-+	 * and are never used, but KMSAN updates the origin for them in
-+	 * zap_pXX_range() in mm/memory.c, thus creating very long origin
-+	 * chains. This is technically correct, but consumes too much memory.
-+	 * Unpoisoning the whole structure will prevent creating such chains.
-+	 */
-+	kmsan_unpoison_memory(tlb, sizeof(*tlb));
- 	tlb->mm = mm;
- 	tlb->fullmm = fullmm;
+ #include <linux/serio.h>
+ #include <linux/i8042.h>
+ #include <linux/libps2.h>
+@@ -294,9 +295,11 @@ int __ps2_command(struct ps2dev *ps2dev,
  
+ 	serio_pause_rx(ps2dev->serio);
+ 
+-	if (param)
++	if (param) {
+ 		for (i = 0; i < receive; i++)
+ 			param[i] = ps2dev->cmdbuf[(receive - 1) - i];
++		kmsan_unpoison_memory(param, receive);
++	}
+ 
+ 	if (ps2dev->cmdcnt &&
+ 	    (command != PS2_CMD_RESET_BAT || ps2dev->cmdcnt != 1)) {
 _
 
 Patches currently in -mm which might be from glider@google.com are
