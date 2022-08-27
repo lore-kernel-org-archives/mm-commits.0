@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC35DECAAD4
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D861C0502A
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345507AbiH0CLZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:11:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35056 "EHLO
+        id S1345429AbiH0CL0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:11:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345399AbiH0CJv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 151E9655E
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:49 -0700 (PDT)
+        with ESMTP id S1345428AbiH0CJx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 264B01147E
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7354FB83399
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EF52C433D6;
-        Sat, 27 Aug 2022 02:09:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AD07661D14
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 069EFC433D7;
+        Sat, 27 Aug 2022 02:09:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566186;
-        bh=yDTKYXIJhCQR8rTuMsjqScbWVL6P+GwLNzsc7yvCYq0=;
+        s=korg; t=1661566191;
+        bh=7XKjzNAuzsSbxEtrR1hzcewlsbpvjsDlCAv1V775puU=;
         h=Date:To:From:Subject:From;
-        b=VpXjB73bu+gN4BjAJ6T/xw9hVolzWEk9rwE67vQktJHk76Dgr8zVaUJCJTHsnhSR2
-         Ka6BaZm1CASRkuGnQoQefGXJ7bYsvNxTBfRKLpn7wyyzRY05/15Cv31iP7s4PQ5Ag0
-         TMuKllajL0dSuArP5i0+hF1+tHxIYNRiPLLJjtWc=
-Date:   Fri, 26 Aug 2022 19:09:45 -0700
+        b=SxBJ/hfNJcJj01q6czqswQFyQw4lujpIEUmAjKtKk3y1l0EbNjpfLhqmgUgv2q/CG
+         0Yvzg11viW3M2z+9IlR2B7suqxWXV6np/ORwVU9Dw5e77dAOXBlepCRToeFOnH4aj9
+         39b/iyrnbLmrAOZAaaURa4YClwUuQ3NPhXjlzxac=
+Date:   Fri, 26 Aug 2022 19:09:50 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-add-iomap-support.patch added to mm-unstable branch
-Message-Id: <20220827020946.2EF52C433D6@smtp.kernel.org>
+Subject: + dma-kmsan-unpoison-dma-mappings.patch added to mm-unstable branch
+Message-Id: <20220827020951.069EFC433D7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: add iomap support
+     Subject: dma: kmsan: unpoison DMA mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-add-iomap-support.patch
+     dma-kmsan-unpoison-dma-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-add-iomap-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dma-kmsan-unpoison-dma-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,15 +75,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: add iomap support
-Date: Fri, 26 Aug 2022 17:07:43 +0200
+Subject: dma: kmsan: unpoison DMA mappings
+Date: Fri, 26 Aug 2022 17:07:45 +0200
 
-Functions from lib/iomap.c interact with hardware, so KMSAN must ensure
-that:
- - every read function returns an initialized value
- - every write function checks values before sending them to hardware.
+KMSAN doesn't know about DMA memory writes performed by devices.  We
+unpoison such memory when it's mapped to avoid false positive reports.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-21-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-23-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -120,193 +118,187 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iomap.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ include/linux/kmsan.h |   41 +++++++++++++++++++++++++++
+ kernel/dma/mapping.c  |    9 ++++--
+ mm/kmsan/hooks.c      |   59 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 106 insertions(+), 3 deletions(-)
 
---- a/lib/iomap.c~kmsan-add-iomap-support
-+++ a/lib/iomap.c
-@@ -6,6 +6,7 @@
+--- a/include/linux/kmsan.h~dma-kmsan-unpoison-dma-mappings
++++ a/include/linux/kmsan.h
+@@ -9,6 +9,7 @@
+ #ifndef _LINUX_KMSAN_H
+ #define _LINUX_KMSAN_H
+ 
++#include <linux/dma-direction.h>
+ #include <linux/gfp.h>
+ #include <linux/kmsan-checks.h>
+ #include <linux/stackdepot.h>
+@@ -17,6 +18,7 @@
+ struct page;
+ struct kmem_cache;
+ struct task_struct;
++struct scatterlist;
+ 
+ #ifdef CONFIG_KMSAN
+ 
+@@ -196,6 +198,35 @@ void kmsan_ioremap_page_range(unsigned l
   */
- #include <linux/pci.h>
- #include <linux/io.h>
-+#include <linux/kmsan-checks.h>
+ void kmsan_iounmap_page_range(unsigned long start, unsigned long end);
  
- #include <linux/export.h>
++/**
++ * kmsan_handle_dma() - Handle a DMA data transfer.
++ * @page:   first page of the buffer.
++ * @offset: offset of the buffer within the first page.
++ * @size:   buffer size.
++ * @dir:    one of possible dma_data_direction values.
++ *
++ * Depending on @direction, KMSAN:
++ * * checks the buffer, if it is copied to device;
++ * * initializes the buffer, if it is copied from device;
++ * * does both, if this is a DMA_BIDIRECTIONAL transfer.
++ */
++void kmsan_handle_dma(struct page *page, size_t offset, size_t size,
++		      enum dma_data_direction dir);
++
++/**
++ * kmsan_handle_dma_sg() - Handle a DMA transfer using scatterlist.
++ * @sg:    scatterlist holding DMA buffers.
++ * @nents: number of scatterlist entries.
++ * @dir:   one of possible dma_data_direction values.
++ *
++ * Depending on @direction, KMSAN:
++ * * checks the buffers in the scatterlist, if they are copied to device;
++ * * initializes the buffers, if they are copied from device;
++ * * does both, if this is a DMA_BIDIRECTIONAL transfer.
++ */
++void kmsan_handle_dma_sg(struct scatterlist *sg, int nents,
++			 enum dma_data_direction dir);
++
+ #else
  
-@@ -70,26 +71,35 @@ static void bad_io_access(unsigned long
- #define mmio_read64be(addr) swab64(readq(addr))
+ static inline void kmsan_init_shadow(void)
+@@ -278,6 +309,16 @@ static inline void kmsan_iounmap_page_ra
+ {
+ }
+ 
++static inline void kmsan_handle_dma(struct page *page, size_t offset,
++				    size_t size, enum dma_data_direction dir)
++{
++}
++
++static inline void kmsan_handle_dma_sg(struct scatterlist *sg, int nents,
++				       enum dma_data_direction dir)
++{
++}
++
  #endif
  
-+/*
-+ * Here and below, we apply __no_kmsan_checks to functions reading data from
-+ * hardware, to ensure that KMSAN marks their return values as initialized.
-+ */
-+__no_kmsan_checks
- unsigned int ioread8(const void __iomem *addr)
- {
- 	IO_COND(addr, return inb(port), return readb(addr));
- 	return 0xff;
- }
-+__no_kmsan_checks
- unsigned int ioread16(const void __iomem *addr)
- {
- 	IO_COND(addr, return inw(port), return readw(addr));
- 	return 0xffff;
- }
-+__no_kmsan_checks
- unsigned int ioread16be(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read16be(port), return mmio_read16be(addr));
- 	return 0xffff;
- }
-+__no_kmsan_checks
- unsigned int ioread32(const void __iomem *addr)
- {
- 	IO_COND(addr, return inl(port), return readl(addr));
- 	return 0xffffffff;
- }
-+__no_kmsan_checks
- unsigned int ioread32be(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read32be(port), return mmio_read32be(addr));
-@@ -142,18 +152,21 @@ static u64 pio_read64be_hi_lo(unsigned l
- 	return lo | (hi << 32);
- }
+ #endif /* _LINUX_KMSAN_H */
+--- a/kernel/dma/mapping.c~dma-kmsan-unpoison-dma-mappings
++++ a/kernel/dma/mapping.c
+@@ -156,6 +156,7 @@ dma_addr_t dma_map_page_attrs(struct dev
+ 		addr = dma_direct_map_page(dev, page, offset, size, dir, attrs);
+ 	else
+ 		addr = ops->map_page(dev, page, offset, size, dir, attrs);
++	kmsan_handle_dma(page, offset, size, dir);
+ 	debug_dma_map_page(dev, page, offset, size, dir, addr, attrs);
  
-+__no_kmsan_checks
- u64 ioread64_lo_hi(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64_lo_hi(port), return readq(addr));
- 	return 0xffffffffffffffffULL;
- }
+ 	return addr;
+@@ -194,11 +195,13 @@ static int __dma_map_sg_attrs(struct dev
+ 	else
+ 		ents = ops->map_sg(dev, sg, nents, dir, attrs);
  
-+__no_kmsan_checks
- u64 ioread64_hi_lo(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64_hi_lo(port), return readq(addr));
- 	return 0xffffffffffffffffULL;
- }
+-	if (ents > 0)
++	if (ents > 0) {
++		kmsan_handle_dma_sg(sg, nents, dir);
+ 		debug_dma_map_sg(dev, sg, nents, ents, dir, attrs);
+-	else if (WARN_ON_ONCE(ents != -EINVAL && ents != -ENOMEM &&
+-			      ents != -EIO && ents != -EREMOTEIO))
++	} else if (WARN_ON_ONCE(ents != -EINVAL && ents != -ENOMEM &&
++				ents != -EIO && ents != -EREMOTEIO)) {
+ 		return -EIO;
++	}
  
-+__no_kmsan_checks
- u64 ioread64be_lo_hi(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64be_lo_hi(port),
-@@ -161,6 +174,7 @@ u64 ioread64be_lo_hi(const void __iomem
- 	return 0xffffffffffffffffULL;
+ 	return ents;
  }
+--- a/mm/kmsan/hooks.c~dma-kmsan-unpoison-dma-mappings
++++ a/mm/kmsan/hooks.c
+@@ -10,9 +10,11 @@
+  */
  
-+__no_kmsan_checks
- u64 ioread64be_hi_lo(const void __iomem *addr)
- {
- 	IO_COND(addr, return pio_read64be_hi_lo(port),
-@@ -188,22 +202,32 @@ EXPORT_SYMBOL(ioread64be_hi_lo);
+ #include <linux/cacheflush.h>
++#include <linux/dma-direction.h>
+ #include <linux/gfp.h>
+ #include <linux/mm.h>
+ #include <linux/mm_types.h>
++#include <linux/scatterlist.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
  
- void iowrite8(u8 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, outb(val,port), writeb(val, addr));
+@@ -242,6 +244,63 @@ void kmsan_copy_to_user(void __user *to,
  }
- void iowrite16(u16 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, outw(val,port), writew(val, addr));
- }
- void iowrite16be(u16 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write16be(val,port), mmio_write16be(val, addr));
- }
- void iowrite32(u32 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, outl(val,port), writel(val, addr));
- }
- void iowrite32be(u32 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write32be(val,port), mmio_write32be(val, addr));
- }
- EXPORT_SYMBOL(iowrite8);
-@@ -239,24 +263,32 @@ static void pio_write64be_hi_lo(u64 val,
+ EXPORT_SYMBOL(kmsan_copy_to_user);
  
- void iowrite64_lo_hi(u64 val, void __iomem *addr)
++static void kmsan_handle_dma_page(const void *addr, size_t size,
++				  enum dma_data_direction dir)
++{
++	switch (dir) {
++	case DMA_BIDIRECTIONAL:
++		kmsan_internal_check_memory((void *)addr, size, /*user_addr*/ 0,
++					    REASON_ANY);
++		kmsan_internal_unpoison_memory((void *)addr, size,
++					       /*checked*/ false);
++		break;
++	case DMA_TO_DEVICE:
++		kmsan_internal_check_memory((void *)addr, size, /*user_addr*/ 0,
++					    REASON_ANY);
++		break;
++	case DMA_FROM_DEVICE:
++		kmsan_internal_unpoison_memory((void *)addr, size,
++					       /*checked*/ false);
++		break;
++	case DMA_NONE:
++		break;
++	}
++}
++
++/* Helper function to handle DMA data transfers. */
++void kmsan_handle_dma(struct page *page, size_t offset, size_t size,
++		      enum dma_data_direction dir)
++{
++	u64 page_offset, to_go, addr;
++
++	if (PageHighMem(page))
++		return;
++	addr = (u64)page_address(page) + offset;
++	/*
++	 * The kernel may occasionally give us adjacent DMA pages not belonging
++	 * to the same allocation. Process them separately to avoid triggering
++	 * internal KMSAN checks.
++	 */
++	while (size > 0) {
++		page_offset = addr % PAGE_SIZE;
++		to_go = min(PAGE_SIZE - page_offset, (u64)size);
++		kmsan_handle_dma_page((void *)addr, to_go, dir);
++		addr += to_go;
++		size -= to_go;
++	}
++}
++
++void kmsan_handle_dma_sg(struct scatterlist *sg, int nents,
++			 enum dma_data_direction dir)
++{
++	struct scatterlist *item;
++	int i;
++
++	for_each_sg(sg, item, nents, i)
++		kmsan_handle_dma(sg_page(item), item->offset, item->length,
++				 dir);
++}
++
+ /* Functions from kmsan-checks.h follow. */
+ void kmsan_poison_memory(const void *address, size_t size, gfp_t flags)
  {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write64_lo_hi(val, port),
- 		writeq(val, addr));
- }
- 
- void iowrite64_hi_lo(u64 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write64_hi_lo(val, port),
- 		writeq(val, addr));
- }
- 
- void iowrite64be_lo_hi(u64 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write64be_lo_hi(val, port),
- 		mmio_write64be(val, addr));
- }
- 
- void iowrite64be_hi_lo(u64 val, void __iomem *addr)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(&val, sizeof(val));
- 	IO_COND(addr, pio_write64be_hi_lo(val, port),
- 		mmio_write64be(val, addr));
- }
-@@ -328,14 +360,20 @@ static inline void mmio_outsl(void __iom
- void ioread8_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insb(port,dst,count), mmio_insb(addr, dst, count));
-+	/* KMSAN must treat values read from devices as initialized. */
-+	kmsan_unpoison_memory(dst, count);
- }
- void ioread16_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insw(port,dst,count), mmio_insw(addr, dst, count));
-+	/* KMSAN must treat values read from devices as initialized. */
-+	kmsan_unpoison_memory(dst, count * 2);
- }
- void ioread32_rep(const void __iomem *addr, void *dst, unsigned long count)
- {
- 	IO_COND(addr, insl(port,dst,count), mmio_insl(addr, dst, count));
-+	/* KMSAN must treat values read from devices as initialized. */
-+	kmsan_unpoison_memory(dst, count * 4);
- }
- EXPORT_SYMBOL(ioread8_rep);
- EXPORT_SYMBOL(ioread16_rep);
-@@ -343,14 +381,20 @@ EXPORT_SYMBOL(ioread32_rep);
- 
- void iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(src, count);
- 	IO_COND(addr, outsb(port, src, count), mmio_outsb(addr, src, count));
- }
- void iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(src, count * 2);
- 	IO_COND(addr, outsw(port, src, count), mmio_outsw(addr, src, count));
- }
- void iowrite32_rep(void __iomem *addr, const void *src, unsigned long count)
- {
-+	/* Make sure uninitialized memory isn't copied to devices. */
-+	kmsan_check_memory(src, count * 4);
- 	IO_COND(addr, outsl(port, src,count), mmio_outsl(addr, src, count));
- }
- EXPORT_SYMBOL(iowrite8_rep);
 _
 
 Patches currently in -mm which might be from glider@google.com are
