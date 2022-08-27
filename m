@@ -2,182 +2,100 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00C2EC0502A
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:38:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E18DAECAAD4
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:40:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232449AbiH0CiN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:38:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44764 "EHLO
+        id S231629AbiH0Cj7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:39:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232193AbiH0CiN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:38:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FA05DD742;
-        Fri, 26 Aug 2022 19:38:12 -0700 (PDT)
+        with ESMTP id S231583AbiH0Cj6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:39:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8BAB1CB0D
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:39:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D8A261D52;
-        Sat, 27 Aug 2022 02:38:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2BAEC433C1;
-        Sat, 27 Aug 2022 02:38:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 50AEB61DA7
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:39:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0488C433B5;
+        Sat, 27 Aug 2022 02:39:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661567891;
-        bh=xAh3+xuOAJg4/Wh56t+f8yWCmCtKfXQ2/fZXPFuBCbU=;
+        s=korg; t=1661567994;
+        bh=Q69JUqFyyyBEzq96m/AKPOdjp7TtSMXx8nYE28QwEE0=;
         h=Date:To:From:Subject:From;
-        b=xqlyjPpAx2yDQlq3vKCnIEckt56WY52zhElp72zmCQpaDctV+NaqCA+EEDKcMbkSR
-         11LcveILKGnIkZXscNAVtRi20u7T0VQ82tp6fyuESCA6uYShuZxGmJEA//Ff8KN57Q
-         Y7URzLbJly23QY9aS9FsJT2arBFpxQbNSl5DfH4M=
-Date:   Fri, 26 Aug 2022 19:38:10 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        willy@infradead.org, stable@vger.kernel.org, rcampbell@nvidia.com,
-        peterx@redhat.com, paulus@ozlabs.org, lyude@redhat.com,
-        logang@deltatee.com, kherbst@redhat.com, jhubbard@nvidia.com,
-        jgg@nvidia.com, felix.kuehling@amd.com, david@redhat.com,
-        bskeggs@redhat.com, alex.sierra@amd.com, apopple@nvidia.com,
-        akpm@linux-foundation.org
+        b=yHmDODVGhwFP4WLEm3XSMvZSUpngxMeYzeZkVqDLsm7tRVzvT6SZbSWjD1HzBd5tg
+         5mAyx0j8AH6iKiZueQUUWaY6WO7kOEevqXYx8SuUl+8TEwRMdYqI/WpDlDefs5KOMs
+         vXxriUqBdrVXoSa0lu88ByAZWc6RipXIK4AFOYAs=
+Date:   Fri, 26 Aug 2022 19:39:53 -0700
+To:     mm-commits@vger.kernel.org, thomas.petazzoni@bootlin.com,
+        hverkuil-cisco@xs4all.nl, atishp@atishpatra.org, arnd@arndb.de,
+        luca.ceresoli@bootlin.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-migrate_devicec-copy-pte-dirty-bit-to-page.patch removed from -mm tree
-Message-Id: <20220827023810.E2BAEC433C1@smtp.kernel.org>
+Subject: + mailmap-update-luca-ceresolis-e-mail-address.patch added to mm-hotfixes-unstable branch
+Message-Id: <20220827023954.A0488C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/migrate_device.c: copy pte dirty bit to page
-has been removed from the -mm tree.  Its filename was
-     mm-migrate_devicec-copy-pte-dirty-bit-to-page.patch
+The patch titled
+     Subject: .mailmap: update Luca Ceresoli's e-mail address
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mailmap-update-luca-ceresolis-e-mail-address.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-luca-ceresolis-e-mail-address.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/migrate_device.c: copy pte dirty bit to page
-Date: Tue, 16 Aug 2022 17:39:24 +1000
+From: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Subject: .mailmap: update Luca Ceresoli's e-mail address
+Date: Fri, 26 Aug 2022 15:05:15 +0200
 
-migrate_vma_setup() has a fast path in migrate_vma_collect_pmd() that
-installs migration entries directly if it can lock the migrating page. 
-When removing a dirty pte the dirty bit is supposed to be carried over to
-the underlying page to prevent it being lost.
+My Bootlin address is preferred from now on.
 
-Currently migrate_vma_*() can only be used for private anonymous mappings.
-That means loss of the dirty bit usually doesn't result in data loss
-because these pages are typically not file-backed.  However pages may be
-backed by swap storage which can result in data loss if an attempt is made
-to migrate a dirty page that doesn't yet have the PageDirty flag set.
-
-In this case migration will fail due to unexpected references but the
-dirty pte bit will be lost.  If the page is subsequently reclaimed data
-won't be written back to swap storage as it is considered uptodate,
-resulting in data loss if the page is subsequently accessed.
-
-Prevent this by copying the dirty bit to the page when removing the pte to
-match what try_to_migrate_one() does.
-
-Link: https://lkml.kernel.org/r/6e77914685ede036c419fa65b6adc27f25a6c3e9.1660635033.git-series.apopple@nvidia.com
-Fixes: 8c3328f1f36a ("mm/migrate: migrate_vma() unmap page from vma while collecting pages")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Reported-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Huang Ying <ying.huang@intel.com>
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Felix Kuehling <felix.kuehling@amd.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Karol Herbst <kherbst@redhat.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220826130515.3011951-1-luca.ceresoli@bootlin.com
+Signed-off-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Atish Patra <atishp@atishpatra.org>
+Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/migrate_device.c~mm-migrate_devicec-copy-pte-dirty-bit-to-page
-+++ a/mm/migrate_device.c
-@@ -7,6 +7,7 @@
- #include <linux/export.h>
- #include <linux/memremap.h>
- #include <linux/migrate.h>
-+#include <linux/mm.h>
- #include <linux/mm_inline.h>
- #include <linux/mmu_notifier.h>
- #include <linux/oom.h>
-@@ -61,7 +62,7 @@ static int migrate_vma_collect_pmd(pmd_t
- 	struct migrate_vma *migrate = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
- 	struct mm_struct *mm = vma->vm_mm;
--	unsigned long addr = start, unmapped = 0;
-+	unsigned long addr = start;
- 	spinlock_t *ptl;
- 	pte_t *ptep;
- 
-@@ -193,11 +194,10 @@ again:
- 			bool anon_exclusive;
- 			pte_t swp_pte;
- 
-+			flush_cache_page(vma, addr, pte_pfn(*ptep));
-+			pte = ptep_clear_flush(vma, addr, ptep);
- 			anon_exclusive = PageAnon(page) && PageAnonExclusive(page);
- 			if (anon_exclusive) {
--				flush_cache_page(vma, addr, pte_pfn(*ptep));
--				ptep_clear_flush(vma, addr, ptep);
--
- 				if (page_try_share_anon_rmap(page)) {
- 					set_pte_at(mm, addr, ptep, pte);
- 					unlock_page(page);
-@@ -205,12 +205,14 @@ again:
- 					mpfn = 0;
- 					goto next;
- 				}
--			} else {
--				ptep_get_and_clear(mm, addr, ptep);
- 			}
- 
- 			migrate->cpages++;
- 
-+			/* Set the dirty flag on the folio now the pte is gone. */
-+			if (pte_dirty(pte))
-+				folio_mark_dirty(page_folio(page));
-+
- 			/* Setup special migration page table entry */
- 			if (mpfn & MIGRATE_PFN_WRITE)
- 				entry = make_writable_migration_entry(
-@@ -242,9 +244,6 @@ again:
- 			 */
- 			page_remove_rmap(page, vma, false);
- 			put_page(page);
--
--			if (pte_present(pte))
--				unmapped++;
- 		} else {
- 			put_page(page);
- 			mpfn = 0;
-@@ -257,10 +256,6 @@ next:
- 	arch_leave_lazy_mmu_mode();
- 	pte_unmap_unlock(ptep - 1, ptl);
- 
--	/* Only flush the TLB if we actually modified any entries */
--	if (unmapped)
--		flush_tlb_range(walk->vma, start, end);
--
- 	return 0;
- }
- 
+--- a/.mailmap~mailmap-update-luca-ceresolis-e-mail-address
++++ a/.mailmap
+@@ -254,6 +254,7 @@ Linus Lüssing <linus.luessing@c0d3.blue
+ Li Yang <leoyang.li@nxp.com> <leoli@freescale.com>
+ Li Yang <leoyang.li@nxp.com> <leo@zh-kernel.org>
+ Lorenzo Pieralisi <lpieralisi@kernel.org> <lorenzo.pieralisi@arm.com>
++Luca Ceresoli <luca.ceresoli@bootlin.com> <luca@lucaceresoli.net>
+ Lukasz Luba <lukasz.luba@arm.com> <l.luba@partner.samsung.com>
+ Maciej W. Rozycki <macro@mips.com> <macro@imgtec.com>
+ Maciej W. Rozycki <macro@orcam.me.uk> <macro@linux-mips.org>
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from luca.ceresoli@bootlin.com are
 
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes.patch
-selftests-hmm-tests-add-test-for-dirty-bits.patch
-mm-gupc-dont-pass-gup_flags-to-check_and_migrate_movable_pages.patch
-mm-gupc-refactor-check_and_migrate_movable_pages.patch
+mailmap-update-luca-ceresolis-e-mail-address.patch
 
