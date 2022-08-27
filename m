@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 326B0ECAAD4
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:09:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F7EDECAAD5
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:09:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345451AbiH0CJR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:09:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33382 "EHLO
+        id S1345336AbiH0CJT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:09:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345331AbiH0CJG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:06 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E302EE4B5
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:08:42 -0700 (PDT)
+        with ESMTP id S1345453AbiH0CJI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC041EE4B7
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:08:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1C0F0B83386
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:08:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE7DEC433D6;
-        Sat, 27 Aug 2022 02:08:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BDFBC61D29
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:08:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1002BC433D6;
+        Sat, 27 Aug 2022 02:08:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566119;
-        bh=6ncUzEU6oJeqJjJLBR5UH4mmjXwNYlz8J1yoUrHpOlQ=;
+        s=korg; t=1661566122;
+        bh=J4PQ8TychDagP5RFYOPqvbvUeek2upezv470RAGwwPk=;
         h=Date:To:From:Subject:From;
-        b=ngJii8mPXN/xnFJiwdirtgOzDMRJLNYDoK8ztYWlVrPKZrdqVKm+mW4ktaUzabYtX
-         CGD5YroJfT+MzUAWNnep6v2UBB0pHVKT+9cYuwrnEtPDoqcIOtPsBC+CxizcW+4Y1T
-         8AX+nBlzG/Yxs44H9nnibiDpc3SSUpucDmosnzPc=
-Date:   Fri, 26 Aug 2022 19:08:38 -0700
+        b=JP4tpTN9MO7PRQsvLdvmr87Bv3ckARNF0z0GpeyD7c/tIVRgcvM2kYhTte/bOGyzz
+         O7xJcdbHYoGd9T8rbPFugEFvibrESvqvNsZ9NPXt9MEN1Yb+2xN2vvAJz3QIO69kP6
+         XJZEPrs/H9fNGb6VhGSYBD4n6biJki60rLZWTdXk=
+Date:   Fri, 26 Aug 2022 19:08:41 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -36,14 +36,14 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         mst@redhat.com, mingo@redhat.com, mark.rutland@arm.com,
         luto@kernel.org, keescook@chromium.org, iii@linux.ibm.com,
         iamjoonsoo.kim@lge.com, herbert@gondor.apana.org.au, hch@lst.de,
-        gregkh@linuxfoundation.org, gor@linux.ibm.com, glider@google.com,
-        elver@google.com, edumazet@google.com, ebiggers@google.com,
+        gregkh@linuxfoundation.org, gor@linux.ibm.com, elver@google.com,
+        edumazet@google.com, ebiggers@google.com, dvyukov@google.com,
         cl@linux.com, bp@alien8.de, axboe@kernel.dk, ast@kernel.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
-        dvyukov@google.com, akpm@linux-foundation.org
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-add-missing-include-to-sparsememh.patch added to mm-unstable branch
-Message-Id: <20220827020839.AE7DEC433D6@smtp.kernel.org>
+Subject: + stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch added to mm-unstable branch
+Message-Id: <20220827020842.1002BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: add missing include to sparsemem.h
+     Subject: stackdepot: reserve 5 extra bits in depot_stack_handle_t
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-add-missing-include-to-sparsememh.patch
+     stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-add-missing-include-to-sparsememh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,141 +74,24 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: x86: add missing include to sparsemem.h
-Date: Fri, 26 Aug 2022 17:07:24 +0200
+From: Alexander Potapenko <glider@google.com>
+Subject: stackdepot: reserve 5 extra bits in depot_stack_handle_t
+Date: Fri, 26 Aug 2022 17:07:25 +0200
 
-Patch series ""Ad KernelMemorySanitizer infrastructure", v5.
+Some users (currently only KMSAN) may want to use spare bits in
+depot_stack_handle_t.  Let them do so by adding @extra_bits to
+__stack_depot_save() to store arbitrary flags, and providing
+stack_depot_get_extra_bits() to retrieve those flags.
 
-KernelMemorySanitizer (KMSAN) is a detector of errors related to uses of
-uninitialized memory.  It relies on compile-time Clang instrumentation
-(similar to MSan in the userspace [1]) and tracks the state of every bit
-of kernel memory, being able to report an error if uninitialized value is
-used in a condition, dereferenced, or escapes to userspace, USB or DMA.
+Also adapt KASAN to the new prototype by passing extra_bits=0, as KASAN
+does not intend to store additional information in the stack handle.
 
-KMSAN has reported more than 300 bugs in the past few years (recently
-fixed bugs: [2]), most of them with the help of syzkaller.  Such bugs keep
-getting introduced into the kernel despite new compiler warnings and other
-analyses (the 6.0 cycle already resulted in several KMSAN-reported bugs,
-e.g.  [3]).  Mitigations like total stack and heap initialization are
-unfortunately very far from being deployable.
-
-The proposed patchset contains KMSAN runtime implementation together with
-small changes to other subsystems needed to make KMSAN work.
-
-The latter changes fall into several categories:
-
-1. Changes and refactorings of existing code required to add KMSAN:
- - [01/44] x86: add missing include to sparsemem.h
- - [02/44] stackdepot: reserve 5 extra bits in depot_stack_handle_t
- - [03/44] instrumented.h: allow instrumenting both sides of copy_from_user()
- - [04/44] x86: asm: instrument usercopy in get_user() and __put_user_size()
- - [05/44] asm-generic: instrument usercopy in cacheflush.h
- - [10/44] libnvdimm/pfn_dev: increase MAX_STRUCT_PAGE_SIZE
-
-2. KMSAN-related declarations in generic code, KMSAN runtime library,
-   docs and configs:
- - [06/44] kmsan: add ReST documentation
- - [07/44] kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
- - [09/44] x86: kmsan: pgtable: reduce vmalloc space
- - [11/44] kmsan: add KMSAN runtime core
- - [13/44] MAINTAINERS: add entry for KMSAN
- - [25/44] kmsan: add tests for KMSAN
- - [32/44] objtool: kmsan: list KMSAN API functions as uaccess-safe
- - [36/44] x86: kmsan: use __msan_ string functions where possible
- - [44/44] x86: kmsan: enable KMSAN builds for x86
-
-3. Adding hooks from different subsystems to notify KMSAN about memory
-   state changes:
- - [14/44] mm: kmsan: maintain KMSAN metadata for page
- - [15/44] mm: kmsan: call KMSAN hooks from SLUB code
- - [16/44] kmsan: handle task creation and exiting
- - [17/44] init: kmsan: call KMSAN initialization routines
- - [18/44] instrumented.h: add KMSAN support
- - [20/44] kmsan: add iomap support
- - [21/44] Input: libps2: mark data received in __ps2_command() as initialized
- - [22/44] dma: kmsan: unpoison DMA mappings
- - [35/44] x86: kmsan: handle open-coded assembly in lib/iomem.c
- - [37/43] x86: kmsan: sync metadata pages on page fault
-
-4. Changes that prevent false reports by explicitly initializing memory,
-   disabling optimized code that may trick KMSAN, selectively skipping
-   instrumentation:
- - [08/44] kmsan: mark noinstr as __no_sanitize_memory
- - [12/44] kmsan: disable instrumentation of unsupported common kernel code
- - [19/44] kmsan: unpoison @tlb in arch_tlb_gather_mmu()
- - [23/44] virtio: kmsan: check/unpoison scatterlist in vring_map_one_sg()
- - [24/44] kmsan: handle memory sent to/from USB
- - [26/44] kmsan: disable strscpy() optimization under KMSAN
- - [27/44] crypto: kmsan: disable accelerated configs under KMSAN
- - [28/44] kmsan: disable physical page merging in biovec
- - [29/44] block: kmsan: skip bio block merging logic for KMSAN
- - [30/44] kcov: kmsan: unpoison area->list in kcov_remote_area_put()
- - [31/44] security: kmsan: fix interoperability with auto-initialization
- - [33/44] x86: kmsan: disable instrumentation of unsupported code
- - [34/44] x86: kmsan: skip shadow checks in __switch_to()
- - [38/44] x86: kasan: kmsan: support CONFIG_GENERIC_CSUM on x86, enable it for KASAN/KMSAN
- - [39/44] x86: fs: kmsan: disable CONFIG_DCACHE_WORD_ACCESS
- - [40/44] x86: kmsan: don't instrument stack walking functions
- - [41/44] entry: kmsan: introduce kmsan_unpoison_entry_regs()
-
-5. Fixes for bugs detected with CONFIG_KMSAN_CHECK_PARAM_RETVAL:
- - [42/44] bpf: kmsan: initialize BPF registers with zeroes
- - [43/44] mm: fs: initialize fsdata passed to write_begin/write_end interface
-
-
-This patchset allows one to boot and run a defconfig+KMSAN kernel on a
-QEMU without known false positives.  It however doesn't guarantee there
-are no false positives in drivers of certain devices or less tested
-subsystems, although KMSAN is actively tested on syzbot with a large
-config.
-
-By default, KMSAN enforces conservative checks of most kernel function
-parameters passed by value (via CONFIG_KMSAN_CHECK_PARAM_RETVAL, which
-maps to the -fsanitize-memory-param-retval compiler flag).  As discussed
-in [4] and [5], passing uninitialized values as function parameters is
-considered undefined behavior, therefore KMSAN now reports such cases as
-errors.  Several newly added patches fix known manifestations of these
-errors.
-
-The most up-to-date KMSAN tree currently resides at
-https://github.com/google/kmsan/.  One may find it handy to review these
-patches in Gerrit [6].
-
-A huge thanks goes to the reviewers of the RFC patch series sent to LKML
-in 2020 ([7]).
-
-[1] https://clang.llvm.org/docs/MemorySanitizer.html
-[2] https://syzkaller.appspot.com/upstream/fixed?manager=ci-upstream-kmsan-gce
-[3] https://lore.kernel.org/all/0000000000002c7abf05e721698d@google.com/
-[4] https://lore.kernel.org/all/20220614144853.3693273-1-glider@google.com/
-[5] https://lore.kernel.org/linux-mm/20220701142310.2188015-45-glider@google.com/
-[6] https://linux-review.googlesource.com/c/linux/kernel/git/torvalds/linux/+/12604/
-[7] https://lore.kernel.org/all/20200325161249.55095-1-glider@google.com/
-
-
-This patch (of 44):
-
-Including sparsemem.h from other files (e.g.  transitively via
-asm/pgtable_64_types.h) results in compilation errors due to unknown
-types:
-
-sparsemem.h:34:32: error: unknown type name 'phys_addr_t'
-extern int phys_to_target_node(phys_addr_t start);
-                               ^
-sparsemem.h:36:39: error: unknown type name 'u64'
-extern int memory_add_physaddr_to_nid(u64 start);
-                                      ^
-
-Fix these errors by including linux/types.h from sparsemem.h This is
-required for the upcoming KMSAN patches.
-
-Link: https://lkml.kernel.org/r/20220826150807.723137-2-glider@google.com
-Link: https://lkml.kernel.org/r/20220826150807.723137-1-glider@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/20220826150807.723137-3-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -216,6 +99,8 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Eric Biggers <ebiggers@google.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
@@ -223,9 +108,7 @@ Cc: Ilya Leoshkevich <iii@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: kasan-dev@googlegroups.com
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Marco Elver <elver@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -237,28 +120,194 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vegard Nossum <vegard.nossum@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Eric Biggers <ebiggers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/sparsemem.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/stackdepot.h |    8 ++++++++
+ lib/stackdepot.c           |   29 ++++++++++++++++++++++++-----
+ mm/kasan/common.c          |    2 +-
+ 3 files changed, 33 insertions(+), 6 deletions(-)
 
---- a/arch/x86/include/asm/sparsemem.h~x86-add-missing-include-to-sparsememh
-+++ a/arch/x86/include/asm/sparsemem.h
-@@ -2,6 +2,8 @@
- #ifndef _ASM_X86_SPARSEMEM_H
- #define _ASM_X86_SPARSEMEM_H
+--- a/include/linux/stackdepot.h~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
++++ a/include/linux/stackdepot.h
+@@ -14,9 +14,15 @@
+ #include <linux/gfp.h>
  
-+#include <linux/types.h>
-+
- #ifdef CONFIG_SPARSEMEM
+ typedef u32 depot_stack_handle_t;
++/*
++ * Number of bits in the handle that stack depot doesn't use. Users may store
++ * information in them.
++ */
++#define STACK_DEPOT_EXTRA_BITS 5
+ 
+ depot_stack_handle_t __stack_depot_save(unsigned long *entries,
+ 					unsigned int nr_entries,
++					unsigned int extra_bits,
+ 					gfp_t gfp_flags, bool can_alloc);
+ 
  /*
-  * generic non-linear memory support:
+@@ -59,6 +65,8 @@ depot_stack_handle_t stack_depot_save(un
+ unsigned int stack_depot_fetch(depot_stack_handle_t handle,
+ 			       unsigned long **entries);
+ 
++unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle);
++
+ int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
+ 		       int spaces);
+ 
+--- a/lib/stackdepot.c~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
++++ a/lib/stackdepot.c
+@@ -43,7 +43,8 @@
+ #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
+ 					STACK_ALLOC_ALIGN)
+ #define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
+-		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
++		STACK_ALLOC_NULL_PROTECTION_BITS - \
++		STACK_ALLOC_OFFSET_BITS - STACK_DEPOT_EXTRA_BITS)
+ #define STACK_ALLOC_SLABS_CAP 8192
+ #define STACK_ALLOC_MAX_SLABS \
+ 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
+@@ -56,6 +57,7 @@ union handle_parts {
+ 		u32 slabindex : STACK_ALLOC_INDEX_BITS;
+ 		u32 offset : STACK_ALLOC_OFFSET_BITS;
+ 		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
++		u32 extra : STACK_DEPOT_EXTRA_BITS;
+ 	};
+ };
+ 
+@@ -77,6 +79,14 @@ static int next_slab_inited;
+ static size_t depot_offset;
+ static DEFINE_RAW_SPINLOCK(depot_lock);
+ 
++unsigned int stack_depot_get_extra_bits(depot_stack_handle_t handle)
++{
++	union handle_parts parts = { .handle = handle };
++
++	return parts.extra;
++}
++EXPORT_SYMBOL(stack_depot_get_extra_bits);
++
+ static bool init_stack_slab(void **prealloc)
+ {
+ 	if (!*prealloc)
+@@ -140,6 +150,7 @@ depot_alloc_stack(unsigned long *entries
+ 	stack->handle.slabindex = depot_index;
+ 	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
+ 	stack->handle.valid = 1;
++	stack->handle.extra = 0;
+ 	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
+ 	depot_offset += required_size;
+ 
+@@ -382,6 +393,7 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+  *
+  * @entries:		Pointer to storage array
+  * @nr_entries:		Size of the storage array
++ * @extra_bits:		Flags to store in unused bits of depot_stack_handle_t
+  * @alloc_flags:	Allocation gfp flags
+  * @can_alloc:		Allocate stack slabs (increased chance of failure if false)
+  *
+@@ -393,6 +405,10 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+  * If the stack trace in @entries is from an interrupt, only the portion up to
+  * interrupt entry is saved.
+  *
++ * Additional opaque flags can be passed in @extra_bits, stored in the unused
++ * bits of the stack handle, and retrieved using stack_depot_get_extra_bits()
++ * without calling stack_depot_fetch().
++ *
+  * Context: Any context, but setting @can_alloc to %false is required if
+  *          alloc_pages() cannot be used from the current context. Currently
+  *          this is the case from contexts where neither %GFP_ATOMIC nor
+@@ -402,10 +418,11 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+  */
+ depot_stack_handle_t __stack_depot_save(unsigned long *entries,
+ 					unsigned int nr_entries,
++					unsigned int extra_bits,
+ 					gfp_t alloc_flags, bool can_alloc)
+ {
+ 	struct stack_record *found = NULL, **bucket;
+-	depot_stack_handle_t retval = 0;
++	union handle_parts retval = { .handle = 0 };
+ 	struct page *page = NULL;
+ 	void *prealloc = NULL;
+ 	unsigned long flags;
+@@ -489,9 +506,11 @@ exit:
+ 		free_pages((unsigned long)prealloc, STACK_ALLOC_ORDER);
+ 	}
+ 	if (found)
+-		retval = found->handle.handle;
++		retval.handle = found->handle.handle;
+ fast_exit:
+-	return retval;
++	retval.extra = extra_bits;
++
++	return retval.handle;
+ }
+ EXPORT_SYMBOL_GPL(__stack_depot_save);
+ 
+@@ -511,6 +530,6 @@ depot_stack_handle_t stack_depot_save(un
+ 				      unsigned int nr_entries,
+ 				      gfp_t alloc_flags)
+ {
+-	return __stack_depot_save(entries, nr_entries, alloc_flags, true);
++	return __stack_depot_save(entries, nr_entries, 0, alloc_flags, true);
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_save);
+--- a/mm/kasan/common.c~stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t
++++ a/mm/kasan/common.c
+@@ -36,7 +36,7 @@ depot_stack_handle_t kasan_save_stack(gf
+ 	unsigned int nr_entries;
+ 
+ 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 0);
+-	return __stack_depot_save(entries, nr_entries, flags, can_alloc);
++	return __stack_depot_save(entries, nr_entries, 0, flags, can_alloc);
+ }
+ 
+ void kasan_set_track(struct kasan_track *track, gfp_t flags)
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from glider@google.com are
 
-x86-add-missing-include-to-sparsememh.patch
+stackdepot-reserve-5-extra-bits-in-depot_stack_handle_t.patch
+instrumentedh-allow-instrumenting-both-sides-of-copy_from_user.patch
+x86-asm-instrument-usercopy-in-get_user-and-put_user.patch
+asm-generic-instrument-usercopy-in-cacheflushh.patch
+kmsan-add-rest-documentation.patch
+kmsan-introduce-__no_sanitize_memory-and-__no_kmsan_checks.patch
+kmsan-mark-noinstr-as-__no_sanitize_memory.patch
+x86-kmsan-pgtable-reduce-vmalloc-space.patch
+libnvdimm-pfn_dev-increase-max_struct_page_size.patch
+kmsan-add-kmsan-runtime-core.patch
+kmsan-disable-instrumentation-of-unsupported-common-kernel-code.patch
+maintainers-add-entry-for-kmsan.patch
+mm-kmsan-maintain-kmsan-metadata-for-page-operations.patch
+mm-kmsan-call-kmsan-hooks-from-slub-code.patch
+kmsan-handle-task-creation-and-exiting.patch
+init-kmsan-call-kmsan-initialization-routines.patch
+instrumentedh-add-kmsan-support.patch
+kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
+kmsan-add-iomap-support.patch
+input-libps2-mark-data-received-in-__ps2_command-as-initialized.patch
+dma-kmsan-unpoison-dma-mappings.patch
+virtio-kmsan-check-unpoison-scatterlist-in-vring_map_one_sg.patch
+kmsan-handle-memory-sent-to-from-usb.patch
+kmsan-add-tests-for-kmsan.patch
+kmsan-disable-strscpy-optimization-under-kmsan.patch
+crypto-kmsan-disable-accelerated-configs-under-kmsan.patch
+kmsan-disable-physical-page-merging-in-biovec.patch
+block-kmsan-skip-bio-block-merging-logic-for-kmsan.patch
+kcov-kmsan-unpoison-area-list-in-kcov_remote_area_put.patch
+security-kmsan-fix-interoperability-with-auto-initialization.patch
+objtool-kmsan-list-kmsan-api-functions-as-uaccess-safe.patch
+x86-kmsan-disable-instrumentation-of-unsupported-code.patch
+x86-kmsan-skip-shadow-checks-in-__switch_to.patch
+x86-kmsan-handle-open-coded-assembly-in-lib-iomemc.patch
+x86-kmsan-use-__msan_-string-functions-where-possible.patch
+x86-kmsan-sync-metadata-pages-on-page-fault.patch
+x86-kasan-kmsan-support-config_generic_csum-on-x86-enable-it-for-kasan-kmsan.patch
+x86-fs-kmsan-disable-config_dcache_word_access.patch
+x86-kmsan-dont-instrument-stack-walking-functions.patch
+entry-kmsan-introduce-kmsan_unpoison_entry_regs.patch
+bpf-kmsan-initialize-bpf-registers-with-zeroes.patch
+mm-fs-initialize-fsdata-passed-to-write_begin-write_end-interface.patch
+x86-kmsan-enable-kmsan-builds-for-x86.patch
 
