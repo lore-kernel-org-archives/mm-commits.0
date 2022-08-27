@@ -2,43 +2,48 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D7EFECAAD4
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 01:57:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 326B0ECAAD4
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:09:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236715AbiH0B5c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 21:57:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45944 "EHLO
+        id S1345451AbiH0CJR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:09:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230416AbiH0B5a (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 21:57:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54BB18688B
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 18:57:28 -0700 (PDT)
+        with ESMTP id S1345331AbiH0CJG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:06 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E302EE4B5
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:08:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E7401B8337D
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 01:57:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74B7FC433C1;
-        Sat, 27 Aug 2022 01:57:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1C0F0B83386
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:08:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE7DEC433D6;
+        Sat, 27 Aug 2022 02:08:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661565445;
-        bh=NCw0TYEu61DEtV+6zYWSn180C5XepjHldGOnNGJvFHA=;
+        s=korg; t=1661566119;
+        bh=6ncUzEU6oJeqJjJLBR5UH4mmjXwNYlz8J1yoUrHpOlQ=;
         h=Date:To:From:Subject:From;
-        b=zE4S9UzUlpfxcp7OtYqLwyCljGxKIdBqx5bSsUFG4HbK2YnI7PHgmic/DsJwUsOdl
-         hQ88oXMi1pbzFmfOKL5Ap4lsSZHvVrOqAyeeWgEtWuzX1eyxsl0Cd+yuu1jV9RTSqv
-         U5kaL73GUSl58mgSsOYqxM2ry8YZLSy24gsTXyzQ=
-Date:   Fri, 26 Aug 2022 18:57:24 -0700
-To:     mm-commits@vger.kernel.org, yury.norov@gmail.com, vbabka@suse.cz,
-        sander@svanheule.net, rostedt@goodmis.org, peterz@infradead.org,
-        nathan@kernel.org, mingo@redhat.com, mhiramat@kernel.org,
-        luc.vanoostenryck@gmail.com, linux@rasmusvillemoes.dk,
-        jpoimboe@kernel.org, Jason@zx2c4.com, isabbasso@riseup.net,
-        edumazet@google.com, dan.j.williams@intel.com, arnd@arndb.de,
-        bvanassche@acm.org, akpm@linux-foundation.org
+        b=ngJii8mPXN/xnFJiwdirtgOzDMRJLNYDoK8ztYWlVrPKZrdqVKm+mW4ktaUzabYtX
+         CGD5YroJfT+MzUAWNnep6v2UBB0pHVKT+9cYuwrnEtPDoqcIOtPsBC+CxizcW+4Y1T
+         8AX+nBlzG/Yxs44H9nnibiDpc3SSUpucDmosnzPc=
+Date:   Fri, 26 Aug 2022 19:08:38 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
+        tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
+        pmladek@suse.com, peterz@infradead.org, penberg@kernel.org,
+        mst@redhat.com, mingo@redhat.com, mark.rutland@arm.com,
+        luto@kernel.org, keescook@chromium.org, iii@linux.ibm.com,
+        iamjoonsoo.kim@lge.com, herbert@gondor.apana.org.au, hch@lst.de,
+        gregkh@linuxfoundation.org, gor@linux.ibm.com, glider@google.com,
+        elver@google.com, edumazet@google.com, ebiggers@google.com,
+        cl@linux.com, bp@alien8.de, axboe@kernel.dk, ast@kernel.org,
+        arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
+        dvyukov@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + overflow-tracing-define-the-is_signed_type-macro-once.patch added to mm-nonmm-unstable branch
-Message-Id: <20220827015725.74B7FC433C1@smtp.kernel.org>
+Subject: + x86-add-missing-include-to-sparsememh.patch added to mm-unstable branch
+Message-Id: <20220827020839.AE7DEC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: overflow, tracing: define the is_signed_type() macro once
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     overflow-tracing-define-the-is_signed_type-macro-once.patch
+     Subject: x86: add missing include to sparsemem.h
+has been added to the -mm mm-unstable branch.  Its filename is
+     x86-add-missing-include-to-sparsememh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/overflow-tracing-define-the-is_signed_type-macro-once.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-add-missing-include-to-sparsememh.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -69,88 +74,191 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: overflow, tracing: define the is_signed_type() macro once
-Date: Fri, 26 Aug 2022 09:21:16 -0700
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: x86: add missing include to sparsemem.h
+Date: Fri, 26 Aug 2022 17:07:24 +0200
 
-There are two definitions of the is_signed_type() macro: one in
-<linux/overflow.h> and a second definition in <linux/trace_events.h>.
+Patch series ""Ad KernelMemorySanitizer infrastructure", v5.
 
-As suggested by Linus Torvalds, move the definition of the
-is_signed_type() macro into the <linux/compiler.h> header file.  Change
-the definition of the is_signed_type() macro to make sure that it does not
-trigger any sparse warnings with future versions of sparse for bitwise
-types.  See also:
+KernelMemorySanitizer (KMSAN) is a detector of errors related to uses of
+uninitialized memory.  It relies on compile-time Clang instrumentation
+(similar to MSan in the userspace [1]) and tracks the state of every bit
+of kernel memory, being able to report an error if uninitialized value is
+used in a condition, dereferenced, or escapes to userspace, USB or DMA.
 
-https://lore.kernel.org/all/CAHk-=whjH6p+qzwUdx5SOVVHjS3WvzJQr6mDUwhEyTf6pJWzaQ@mail.gmail.com/
-https://lore.kernel.org/all/CAHk-=wjQGnVfb4jehFR0XyZikdQvCZouE96xR_nnf5kqaM5qqQ@mail.gmail.com/
+KMSAN has reported more than 300 bugs in the past few years (recently
+fixed bugs: [2]), most of them with the help of syzkaller.  Such bugs keep
+getting introduced into the kernel despite new compiler warnings and other
+analyses (the 6.0 cycle already resulted in several KMSAN-reported bugs,
+e.g.  [3]).  Mitigations like total stack and heap initialization are
+unfortunately very far from being deployable.
 
-Link: https://lkml.kernel.org/r/20220826162116.1050972-3-bvanassche@acm.org
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+The proposed patchset contains KMSAN runtime implementation together with
+small changes to other subsystems needed to make KMSAN work.
+
+The latter changes fall into several categories:
+
+1. Changes and refactorings of existing code required to add KMSAN:
+ - [01/44] x86: add missing include to sparsemem.h
+ - [02/44] stackdepot: reserve 5 extra bits in depot_stack_handle_t
+ - [03/44] instrumented.h: allow instrumenting both sides of copy_from_user()
+ - [04/44] x86: asm: instrument usercopy in get_user() and __put_user_size()
+ - [05/44] asm-generic: instrument usercopy in cacheflush.h
+ - [10/44] libnvdimm/pfn_dev: increase MAX_STRUCT_PAGE_SIZE
+
+2. KMSAN-related declarations in generic code, KMSAN runtime library,
+   docs and configs:
+ - [06/44] kmsan: add ReST documentation
+ - [07/44] kmsan: introduce __no_sanitize_memory and __no_kmsan_checks
+ - [09/44] x86: kmsan: pgtable: reduce vmalloc space
+ - [11/44] kmsan: add KMSAN runtime core
+ - [13/44] MAINTAINERS: add entry for KMSAN
+ - [25/44] kmsan: add tests for KMSAN
+ - [32/44] objtool: kmsan: list KMSAN API functions as uaccess-safe
+ - [36/44] x86: kmsan: use __msan_ string functions where possible
+ - [44/44] x86: kmsan: enable KMSAN builds for x86
+
+3. Adding hooks from different subsystems to notify KMSAN about memory
+   state changes:
+ - [14/44] mm: kmsan: maintain KMSAN metadata for page
+ - [15/44] mm: kmsan: call KMSAN hooks from SLUB code
+ - [16/44] kmsan: handle task creation and exiting
+ - [17/44] init: kmsan: call KMSAN initialization routines
+ - [18/44] instrumented.h: add KMSAN support
+ - [20/44] kmsan: add iomap support
+ - [21/44] Input: libps2: mark data received in __ps2_command() as initialized
+ - [22/44] dma: kmsan: unpoison DMA mappings
+ - [35/44] x86: kmsan: handle open-coded assembly in lib/iomem.c
+ - [37/43] x86: kmsan: sync metadata pages on page fault
+
+4. Changes that prevent false reports by explicitly initializing memory,
+   disabling optimized code that may trick KMSAN, selectively skipping
+   instrumentation:
+ - [08/44] kmsan: mark noinstr as __no_sanitize_memory
+ - [12/44] kmsan: disable instrumentation of unsupported common kernel code
+ - [19/44] kmsan: unpoison @tlb in arch_tlb_gather_mmu()
+ - [23/44] virtio: kmsan: check/unpoison scatterlist in vring_map_one_sg()
+ - [24/44] kmsan: handle memory sent to/from USB
+ - [26/44] kmsan: disable strscpy() optimization under KMSAN
+ - [27/44] crypto: kmsan: disable accelerated configs under KMSAN
+ - [28/44] kmsan: disable physical page merging in biovec
+ - [29/44] block: kmsan: skip bio block merging logic for KMSAN
+ - [30/44] kcov: kmsan: unpoison area->list in kcov_remote_area_put()
+ - [31/44] security: kmsan: fix interoperability with auto-initialization
+ - [33/44] x86: kmsan: disable instrumentation of unsupported code
+ - [34/44] x86: kmsan: skip shadow checks in __switch_to()
+ - [38/44] x86: kasan: kmsan: support CONFIG_GENERIC_CSUM on x86, enable it for KASAN/KMSAN
+ - [39/44] x86: fs: kmsan: disable CONFIG_DCACHE_WORD_ACCESS
+ - [40/44] x86: kmsan: don't instrument stack walking functions
+ - [41/44] entry: kmsan: introduce kmsan_unpoison_entry_regs()
+
+5. Fixes for bugs detected with CONFIG_KMSAN_CHECK_PARAM_RETVAL:
+ - [42/44] bpf: kmsan: initialize BPF registers with zeroes
+ - [43/44] mm: fs: initialize fsdata passed to write_begin/write_end interface
+
+
+This patchset allows one to boot and run a defconfig+KMSAN kernel on a
+QEMU without known false positives.  It however doesn't guarantee there
+are no false positives in drivers of certain devices or less tested
+subsystems, although KMSAN is actively tested on syzbot with a large
+config.
+
+By default, KMSAN enforces conservative checks of most kernel function
+parameters passed by value (via CONFIG_KMSAN_CHECK_PARAM_RETVAL, which
+maps to the -fsanitize-memory-param-retval compiler flag).  As discussed
+in [4] and [5], passing uninitialized values as function parameters is
+considered undefined behavior, therefore KMSAN now reports such cases as
+errors.  Several newly added patches fix known manifestations of these
+errors.
+
+The most up-to-date KMSAN tree currently resides at
+https://github.com/google/kmsan/.  One may find it handy to review these
+patches in Gerrit [6].
+
+A huge thanks goes to the reviewers of the RFC patch series sent to LKML
+in 2020 ([7]).
+
+[1] https://clang.llvm.org/docs/MemorySanitizer.html
+[2] https://syzkaller.appspot.com/upstream/fixed?manager=ci-upstream-kmsan-gce
+[3] https://lore.kernel.org/all/0000000000002c7abf05e721698d@google.com/
+[4] https://lore.kernel.org/all/20220614144853.3693273-1-glider@google.com/
+[5] https://lore.kernel.org/linux-mm/20220701142310.2188015-45-glider@google.com/
+[6] https://linux-review.googlesource.com/c/linux/kernel/git/torvalds/linux/+/12604/
+[7] https://lore.kernel.org/all/20200325161249.55095-1-glider@google.com/
+
+
+This patch (of 44):
+
+Including sparsemem.h from other files (e.g.  transitively via
+asm/pgtable_64_types.h) results in compilation errors due to unknown
+types:
+
+sparsemem.h:34:32: error: unknown type name 'phys_addr_t'
+extern int phys_to_target_node(phys_addr_t start);
+                               ^
+sparsemem.h:36:39: error: unknown type name 'u64'
+extern int memory_add_physaddr_to_nid(u64 start);
+                                      ^
+
+Fix these errors by including linux/types.h from sparsemem.h This is
+required for the upcoming KMSAN patches.
+
+Link: https://lkml.kernel.org/r/20220826150807.723137-2-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-1-glider@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Eric Dumazet <edumazet@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ilya Leoshkevich <iii@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Isabella Basso <isabbasso@riseup.net>
-Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: kasan-dev@googlegroups.com
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Sander Vanheule <sander@svanheule.net>
+Cc: Petr Mladek <pmladek@suse.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yury Norov <yury.norov@gmail.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Eric Biggers <ebiggers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h     |    6 ++++++
- include/linux/overflow.h     |    1 -
- include/linux/trace_events.h |    2 --
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/sparsemem.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/compiler.h~overflow-tracing-define-the-is_signed_type-macro-once
-+++ a/include/linux/compiler.h
-@@ -240,6 +240,12 @@ static inline void *offset_to_ptr(const
- #define __must_be_array(a)	BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
+--- a/arch/x86/include/asm/sparsemem.h~x86-add-missing-include-to-sparsememh
++++ a/arch/x86/include/asm/sparsemem.h
+@@ -2,6 +2,8 @@
+ #ifndef _ASM_X86_SPARSEMEM_H
+ #define _ASM_X86_SPARSEMEM_H
  
- /*
-+ * Whether 'type' is a signed type or an unsigned type. Supports scalar types,
-+ * bool and also pointer types.
-+ */
-+#define is_signed_type(type) (((type)(-1)) < (__force type)1)
++#include <linux/types.h>
 +
-+/*
-  * This is needed in functions which generate the stack canary, see
-  * arch/x86/kernel/smpboot.c::start_secondary() for an example.
-  */
---- a/include/linux/overflow.h~overflow-tracing-define-the-is_signed_type-macro-once
-+++ a/include/linux/overflow.h
-@@ -30,7 +30,6 @@
-  * https://mail-index.netbsd.org/tech-misc/2007/02/05/0000.html -
-  * credit to Christian Biere.
-  */
--#define is_signed_type(type)       (((type)(-1)) < (type)1)
- #define __type_half_max(type) ((type)1 << (8*sizeof(type) - 1 - is_signed_type(type)))
- #define type_max(T) ((T)((__type_half_max(T) - 1) + __type_half_max(T)))
- #define type_min(T) ((T)((T)-type_max(T)-(T)1))
---- a/include/linux/trace_events.h~overflow-tracing-define-the-is_signed_type-macro-once
-+++ a/include/linux/trace_events.h
-@@ -814,8 +814,6 @@ extern int trace_add_event_call(struct t
- extern int trace_remove_event_call(struct trace_event_call *call);
- extern int trace_event_get_offsets(struct trace_event_call *call);
- 
--#define is_signed_type(type)	(((type)(-1)) < (type)1)
--
- int ftrace_set_clr_event(struct trace_array *tr, char *buf, int set);
- int trace_set_clr_event(const char *system, const char *event, int set);
- int trace_array_set_clr_event(struct trace_array *tr, const char *system,
+ #ifdef CONFIG_SPARSEMEM
+ /*
+  * generic non-linear memory support:
 _
 
-Patches currently in -mm which might be from bvanassche@acm.org are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-testing-selftests-add-tests-for-the-is_signed_type-macro.patch
-overflow-tracing-define-the-is_signed_type-macro-once.patch
+x86-add-missing-include-to-sparsememh.patch
 
