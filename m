@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E489FC0502A
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7D49ECAAD4
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:11:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233709AbiH0CL1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:11:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34246 "EHLO
+        id S1345404AbiH0CL2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:11:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345404AbiH0CKA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A82A1B7A5
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:57 -0700 (PDT)
+        with ESMTP id S1345330AbiH0CKI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:10:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD80732EFB
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:10:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 15C5F61D67
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 606CBC433C1;
-        Sat, 27 Aug 2022 02:09:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 80E69B83382
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:10:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 208BDC433D6;
+        Sat, 27 Aug 2022 02:10:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566196;
-        bh=G8KES1eQV4fEsHrrp8DfmTav4OoCK8xNeuiXpT8GeUc=;
+        s=korg; t=1661566203;
+        bh=gG4pLIPLV8OV+La9HN2iD9pE9lKX5rz8V/OkcBUc8XI=;
         h=Date:To:From:Subject:From;
-        b=m0ju73SeHyJ9aJaA1MsJFMqBrBp9dZ8rxTHSPY/vgwlW1EpJ4X3EpsqYvVOT/Oi2G
-         GXnWmftxCrytoJLaInJ8W98T6R3xqO71YHo1C/fGGFdogI1x9k0POJJoThUmR9GDd7
-         od8KQkMnaVkFaoQbdU8+ltKyuJ0fTi1G2U2KIeAw=
-Date:   Fri, 26 Aug 2022 19:09:55 -0700
+        b=SXjg4NZ9yXaE9McsDCdnFHbv2qZvYnjrJje+kFo8tvJE7yn514okiq7Sf2EVlrpIU
+         q8BHS8GHWI1ljEcvo5QXyBb/0GrWi9wj6zXnvmUUeCLlxgWrJCW3G2w5hgIRyMcvj3
+         os4/tbHUg7Hc7z6zSGQJRvheDV9Sg3gtfwKaC5nQ=
+Date:   Fri, 26 Aug 2022 19:10:02 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-handle-memory-sent-to-from-usb.patch added to mm-unstable branch
-Message-Id: <20220827020956.606CBC433C1@smtp.kernel.org>
+Subject: + kmsan-disable-strscpy-optimization-under-kmsan.patch added to mm-unstable branch
+Message-Id: <20220827021003.208BDC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: handle memory sent to/from USB
+     Subject: kmsan: disable strscpy() optimization under KMSAN
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-handle-memory-sent-to-from-usb.patch
+     kmsan-disable-strscpy-optimization-under-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-handle-memory-sent-to-from-usb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-strscpy-optimization-under-kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,14 +75,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: handle memory sent to/from USB
-Date: Fri, 26 Aug 2022 17:07:47 +0200
+Subject: kmsan: disable strscpy() optimization under KMSAN
+Date: Fri, 26 Aug 2022 17:07:49 +0200
 
-Depending on the value of is_out kmsan_handle_urb() KMSAN either marks the
-data copied to the kernel from a USB device as initialized, or checks the
-data sent to the device for being initialized.
+Disable the efficient 8-byte reading under KMSAN to avoid false positives.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-25-glider@google.com
+Link: https://lkml.kernel.org/r/20220826150807.723137-27-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -119,99 +117,26 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/urb.c |    2 ++
- include/linux/kmsan.h  |   15 +++++++++++++++
- mm/kmsan/hooks.c       |   16 ++++++++++++++++
- 3 files changed, 33 insertions(+)
+ lib/string.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/drivers/usb/core/urb.c~kmsan-handle-memory-sent-to-from-usb
-+++ a/drivers/usb/core/urb.c
-@@ -8,6 +8,7 @@
- #include <linux/bitops.h>
- #include <linux/slab.h>
- #include <linux/log2.h>
-+#include <linux/kmsan-checks.h>
- #include <linux/usb.h>
- #include <linux/wait.h>
- #include <linux/usb/hcd.h>
-@@ -426,6 +427,7 @@ int usb_submit_urb(struct urb *urb, gfp_
- 			URB_SETUP_MAP_SINGLE | URB_SETUP_MAP_LOCAL |
- 			URB_DMA_SG_COMBINED);
- 	urb->transfer_flags |= (is_out ? URB_DIR_OUT : URB_DIR_IN);
-+	kmsan_handle_urb(urb, is_out);
- 
- 	if (xfertype != USB_ENDPOINT_XFER_CONTROL &&
- 			dev->state < USB_STATE_CONFIGURED)
---- a/include/linux/kmsan.h~kmsan-handle-memory-sent-to-from-usb
-+++ a/include/linux/kmsan.h
-@@ -19,6 +19,7 @@ struct page;
- struct kmem_cache;
- struct task_struct;
- struct scatterlist;
-+struct urb;
- 
- #ifdef CONFIG_KMSAN
- 
-@@ -227,6 +228,16 @@ void kmsan_handle_dma(struct page *page,
- void kmsan_handle_dma_sg(struct scatterlist *sg, int nents,
- 			 enum dma_data_direction dir);
- 
-+/**
-+ * kmsan_handle_urb() - Handle a USB data transfer.
-+ * @urb:    struct urb pointer.
-+ * @is_out: data transfer direction (true means output to hardware).
-+ *
-+ * If @is_out is true, KMSAN checks the transfer buffer of @urb. Otherwise,
-+ * KMSAN initializes the transfer buffer.
-+ */
-+void kmsan_handle_urb(const struct urb *urb, bool is_out);
-+
- #else
- 
- static inline void kmsan_init_shadow(void)
-@@ -319,6 +330,10 @@ static inline void kmsan_handle_dma_sg(s
- {
- }
- 
-+static inline void kmsan_handle_urb(const struct urb *urb, bool is_out)
-+{
-+}
-+
+--- a/lib/string.c~kmsan-disable-strscpy-optimization-under-kmsan
++++ a/lib/string.c
+@@ -197,6 +197,14 @@ ssize_t strscpy(char *dest, const char *
+ 		max = 0;
  #endif
  
- #endif /* _LINUX_KMSAN_H */
---- a/mm/kmsan/hooks.c~kmsan-handle-memory-sent-to-from-usb
-+++ a/mm/kmsan/hooks.c
-@@ -17,6 +17,7 @@
- #include <linux/scatterlist.h>
- #include <linux/slab.h>
- #include <linux/uaccess.h>
-+#include <linux/usb.h>
- 
- #include "../internal.h"
- #include "../slab.h"
-@@ -244,6 +245,21 @@ void kmsan_copy_to_user(void __user *to,
- }
- EXPORT_SYMBOL(kmsan_copy_to_user);
- 
-+/* Helper function to check an URB. */
-+void kmsan_handle_urb(const struct urb *urb, bool is_out)
-+{
-+	if (!urb)
-+		return;
-+	if (is_out)
-+		kmsan_internal_check_memory(urb->transfer_buffer,
-+					    urb->transfer_buffer_length,
-+					    /*user_addr*/ 0, REASON_SUBMIT_URB);
-+	else
-+		kmsan_internal_unpoison_memory(urb->transfer_buffer,
-+					       urb->transfer_buffer_length,
-+					       /*checked*/ false);
-+}
++	/*
++	 * read_word_at_a_time() below may read uninitialized bytes after the
++	 * trailing zero and use them in comparisons. Disable this optimization
++	 * under KMSAN to prevent false positive reports.
++	 */
++	if (IS_ENABLED(CONFIG_KMSAN))
++		max = 0;
 +
- static void kmsan_handle_dma_page(const void *addr, size_t size,
- 				  enum dma_data_direction dir)
- {
+ 	while (max >= sizeof(unsigned long)) {
+ 		unsigned long c, data;
+ 
 _
 
 Patches currently in -mm which might be from glider@google.com are
