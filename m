@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70ADDECAAD4
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:10:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2776ECAAD5
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Aug 2022 02:10:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232095AbiH0CKg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 Aug 2022 22:10:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34618 "EHLO
+        id S242913AbiH0CKh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 Aug 2022 22:10:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242913AbiH0CJn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECEA2EE495
-        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:41 -0700 (PDT)
+        with ESMTP id S1345318AbiH0CJs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 Aug 2022 22:09:48 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85BF22B8
+        for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2022 19:09:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 800F661D14
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2279C433D7;
-        Sat, 27 Aug 2022 02:09:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2E2B1B83394
+        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 02:09:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4C2DC433C1;
+        Sat, 27 Aug 2022 02:09:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661566180;
-        bh=5DDNriz67/FYp1x2aN9UxEN3c9aJq7pBYrO1dNbNtSY=;
+        s=korg; t=1661566183;
+        bh=TxWHzyhNzF//UW3QFtO8FVR+5TSzIsZ7cW6UQMkYMdY=;
         h=Date:To:From:Subject:From;
-        b=Nj4J1WxzBaAxQoSuiAUcBMmj0JlmsLP4w5gl5C4n4GWfGdP/z6Wocl7WUe8ctpCqj
-         17Td4Fs0OyDZR0KMYvSqSdPU8NdL+9fxXG+RAz4QApsP8F//IuGVY7kdtWMHPeubZz
-         XwHBGGNYP3AC9QdhRp9BJW8P30sAjW/7VE1E1T7E=
-Date:   Fri, 26 Aug 2022 19:09:40 -0700
+        b=FvkPmrDyqZHPpM+QOpoQuc3/e293Rd9XDN2RDLtHDK670w2cdbsOmaA4GWWPLIbuH
+         OirQa7uoOv+7Y6eghwr7xXdIpRTc+SPe7pTbX+m/k00kFuS9bvIWuXbANMssvshQ6d
+         5NoPzVYkwFKFtTcr985sRLfzNkCvyxwQzIpna8K4=
+Date:   Fri, 26 Aug 2022 19:09:43 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, vegard.nossum@oracle.com, vbabka@suse.cz,
         tglx@linutronix.de, rostedt@goodmis.org, rientjes@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         arnd@arndb.de, andreyknvl@google.com, andreyknvl@gmail.com,
         glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + instrumentedh-add-kmsan-support.patch added to mm-unstable branch
-Message-Id: <20220827020940.D2279C433D7@smtp.kernel.org>
+Subject: + kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch added to mm-unstable branch
+Message-Id: <20220827020943.D4C2DC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: instrumented.h: add KMSAN support
+     Subject: kmsan: unpoison @tlb in arch_tlb_gather_mmu()
 has been added to the -mm mm-unstable branch.  Its filename is
-     instrumentedh-add-kmsan-support.patch
+     kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/instrumentedh-add-kmsan-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-unpoison-tlb-in-arch_tlb_gather_mmu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,16 +75,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: instrumented.h: add KMSAN support
-Date: Fri, 26 Aug 2022 17:07:41 +0200
+Subject: kmsan: unpoison @tlb in arch_tlb_gather_mmu()
+Date: Fri, 26 Aug 2022 17:07:42 +0200
 
-To avoid false positives, KMSAN needs to unpoison the data copied from the
-userspace.  To detect infoleaks - check the memory buffer passed to
-copy_to_user().
+This is an optimization to reduce stackdepot pressure.
 
-Link: https://lkml.kernel.org/r/20220826150807.723137-19-glider@google.com
+struct mmu_gather contains 7 1-bit fields packed into a 32-bit unsigned
+int value.  The remaining 25 bits remain uninitialized and are never used,
+but KMSAN updates the origin for them in zap_pXX_range() in mm/memory.c,
+thus creating very long origin chains.  This is technically correct, but
+consumes too much memory.
+
+Unpoisoning the whole structure will prevent creating such chains.
+
+Link: https://lkml.kernel.org/r/20220826150807.723137-20-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -119,140 +125,35 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/instrumented.h |   17 +++++++++++++-
- include/linux/kmsan-checks.h |   19 ++++++++++++++++
- mm/kmsan/hooks.c             |   38 +++++++++++++++++++++++++++++++++
- 3 files changed, 73 insertions(+), 1 deletion(-)
+ mm/mmu_gather.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/include/linux/instrumented.h~instrumentedh-add-kmsan-support
-+++ a/include/linux/instrumented.h
-@@ -2,7 +2,7 @@
- 
- /*
-  * This header provides generic wrappers for memory access instrumentation that
-- * the compiler cannot emit for: KASAN, KCSAN.
-+ * the compiler cannot emit for: KASAN, KCSAN, KMSAN.
-  */
- #ifndef _LINUX_INSTRUMENTED_H
- #define _LINUX_INSTRUMENTED_H
-@@ -10,6 +10,7 @@
- #include <linux/compiler.h>
- #include <linux/kasan-checks.h>
- #include <linux/kcsan-checks.h>
+--- a/mm/mmu_gather.c~kmsan-unpoison-tlb-in-arch_tlb_gather_mmu
++++ a/mm/mmu_gather.c
+@@ -1,6 +1,7 @@
+ #include <linux/gfp.h>
+ #include <linux/highmem.h>
+ #include <linux/kernel.h>
 +#include <linux/kmsan-checks.h>
- #include <linux/types.h>
- 
- /**
-@@ -117,6 +118,7 @@ instrument_copy_to_user(void __user *to,
+ #include <linux/mmdebug.h>
+ #include <linux/mm_types.h>
+ #include <linux/mm_inline.h>
+@@ -265,6 +266,15 @@ void tlb_flush_mmu(struct mmu_gather *tl
+ static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
+ 			     bool fullmm)
  {
- 	kasan_check_read(from, n);
- 	kcsan_check_read(from, n);
-+	kmsan_copy_to_user(to, from, n, 0);
- }
- 
- /**
-@@ -151,6 +153,19 @@ static __always_inline void
- instrument_copy_from_user_after(const void *to, const void __user *from,
- 				unsigned long n, unsigned long left)
- {
-+	kmsan_unpoison_memory(to, n - left);
- }
- 
-+#define instrument_get_user(to)				\
-+({							\
-+	u64 __tmp = (u64)(to);				\
-+	kmsan_unpoison_memory(&__tmp, sizeof(__tmp));	\
-+	to = __tmp;					\
-+})
-+
-+#define instrument_put_user(from, ptr, size)			\
-+({								\
-+	kmsan_copy_to_user(ptr, &from, sizeof(from), 0);	\
-+})
-+
- #endif /* _LINUX_INSTRUMENTED_H */
---- a/include/linux/kmsan-checks.h~instrumentedh-add-kmsan-support
-+++ a/include/linux/kmsan-checks.h
-@@ -46,6 +46,21 @@ void kmsan_unpoison_memory(const void *a
-  */
- void kmsan_check_memory(const void *address, size_t size);
- 
-+/**
-+ * kmsan_copy_to_user() - Notify KMSAN about a data transfer to userspace.
-+ * @to:      destination address in the userspace.
-+ * @from:    source address in the kernel.
-+ * @to_copy: number of bytes to copy.
-+ * @left:    number of bytes not copied.
-+ *
-+ * If this is a real userspace data transfer, KMSAN checks the bytes that were
-+ * actually copied to ensure there was no information leak. If @to belongs to
-+ * the kernel space (which is possible for compat syscalls), KMSAN just copies
-+ * the metadata.
-+ */
-+void kmsan_copy_to_user(void __user *to, const void *from, size_t to_copy,
-+			size_t left);
-+
- #else
- 
- static inline void kmsan_poison_memory(const void *address, size_t size,
-@@ -58,6 +73,10 @@ static inline void kmsan_unpoison_memory
- static inline void kmsan_check_memory(const void *address, size_t size)
- {
- }
-+static inline void kmsan_copy_to_user(void __user *to, const void *from,
-+				      size_t to_copy, size_t left)
-+{
-+}
- 
- #endif
- 
---- a/mm/kmsan/hooks.c~instrumentedh-add-kmsan-support
-+++ a/mm/kmsan/hooks.c
-@@ -204,6 +204,44 @@ void kmsan_iounmap_page_range(unsigned l
- 	kmsan_leave_runtime();
- }
- 
-+void kmsan_copy_to_user(void __user *to, const void *from, size_t to_copy,
-+			size_t left)
-+{
-+	unsigned long ua_flags;
-+
-+	if (!kmsan_enabled || kmsan_in_runtime())
-+		return;
 +	/*
-+	 * At this point we've copied the memory already. It's hard to check it
-+	 * before copying, as the size of actually copied buffer is unknown.
++	 * struct mmu_gather contains 7 1-bit fields packed into a 32-bit
++	 * unsigned int value. The remaining 25 bits remain uninitialized
++	 * and are never used, but KMSAN updates the origin for them in
++	 * zap_pXX_range() in mm/memory.c, thus creating very long origin
++	 * chains. This is technically correct, but consumes too much memory.
++	 * Unpoisoning the whole structure will prevent creating such chains.
 +	 */
-+
-+	/* copy_to_user() may copy zero bytes. No need to check. */
-+	if (!to_copy)
-+		return;
-+	/* Or maybe copy_to_user() failed to copy anything. */
-+	if (to_copy <= left)
-+		return;
-+
-+	ua_flags = user_access_save();
-+	if ((u64)to < TASK_SIZE) {
-+		/* This is a user memory access, check it. */
-+		kmsan_internal_check_memory((void *)from, to_copy - left, to,
-+					    REASON_COPY_TO_USER);
-+	} else {
-+		/* Otherwise this is a kernel memory access. This happens when a
-+		 * compat syscall passes an argument allocated on the kernel
-+		 * stack to a real syscall.
-+		 * Don't check anything, just copy the shadow of the copied
-+		 * bytes.
-+		 */
-+		kmsan_internal_memmove_metadata((void *)to, (void *)from,
-+						to_copy - left);
-+	}
-+	user_access_restore(ua_flags);
-+}
-+EXPORT_SYMBOL(kmsan_copy_to_user);
-+
- /* Functions from kmsan-checks.h follow. */
- void kmsan_poison_memory(const void *address, size_t size, gfp_t flags)
- {
++	kmsan_unpoison_memory(tlb, sizeof(*tlb));
+ 	tlb->mm = mm;
+ 	tlb->fullmm = fullmm;
+ 
 _
 
 Patches currently in -mm which might be from glider@google.com are
