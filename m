@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E27F6ECAAA2
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 20:23:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06DD3ECAAA2
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 20:23:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbiH1UXN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Aug 2022 16:23:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55912 "EHLO
+        id S229568AbiH1UXl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Aug 2022 16:23:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229507AbiH1UXN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 16:23:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 914481F2C6
-        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 13:23:12 -0700 (PDT)
+        with ESMTP id S229507AbiH1UXk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 16:23:40 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBC7E1F2CB
+        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 13:23:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 228EC60E15
-        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 20:23:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 706CBC433C1;
-        Sun, 28 Aug 2022 20:23:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4395CB80B95
+        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 20:23:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1D99C433D6;
+        Sun, 28 Aug 2022 20:23:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661718191;
-        bh=sNdEIovqtuMGR3iw2UEFJzKVgYFWQDWZliPB0llWx3k=;
+        s=korg; t=1661718214;
+        bh=CXDr146DOZP4aedEbI+DaQEwaQRIRWIO8+VVH1BVDkE=;
         h=Date:To:From:Subject:From;
-        b=nsf3WXKkg+N8U0z7zigJgFAl1/a3DRh+7cjJ53z4t3pv+8AlYeFXTca7WeEhBnp7F
-         m84bqHl939+TiVi7ji5I4qACPKKIJKuiobyAH+9CbbAp1LTdXUxYXPazHc4tggG88W
-         +UfkuJC7y0byo0b3JXCsVns57Ks3R3+YCbEVGwS0=
-Date:   Sun, 28 Aug 2022 13:23:10 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        slawomirx.laba@intel.com, jhubbard@nvidia.com, hch@lst.de,
-        felix.kuehling@amd.com, apopple@nvidia.com,
-        alex.williamson@redhat.com, alex.sierra@amd.com,
+        b=WenHApJs5MM+/9oXFHeK72yzz05z0qfXbWcQotDu3RVFlvX4ZKaVj3kUEp30hLlM1
+         gLy1Uy+wBfwhzjNCDAhL0v5vqZ2rhbragi/btd3koUEAuf/02/DPatrP5plaCcxjGH
+         TpZpFhBqX1GWTqQsHd5hLDiex0SW6XnA97VSTLRs=
+Date:   Sun, 28 Aug 2022 13:23:34 -0700
+To:     mm-commits@vger.kernel.org, treding@nvidia.com,
+        quanyang.wang@windriver.com, arnd@arndb.de, ardb@kernel.org,
         akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-re-allow-pinning-of-zero-pfns-again-fix.patch removed from -mm tree
-Message-Id: <20220828202311.706CBC433C1@smtp.kernel.org>
+Subject: [folded-merged] asm-generic-sections-refactor-memory_intersects-fix.patch removed from -mm tree
+Message-Id: <20220828202334.D1D99C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,54 +42,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-re-allow-pinning-of-zero-pfns-again-fix
+     Subject: asm-generic-sections-refactor-memory_intersects-fix
 has been removed from the -mm tree.  Its filename was
-     mm-re-allow-pinning-of-zero-pfns-again-fix.patch
+     asm-generic-sections-refactor-memory_intersects-fix.patch
 
-This patch was dropped because it was folded into mm-re-allow-pinning-of-zero-pfns-again.patch
+This patch was dropped because it was folded into asm-generic-sections-refactor-memory_intersects.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-re-allow-pinning-of-zero-pfns-again-fix
-Date: Sat Aug 27 06:38:23 PM PDT 2022
+Subject: asm-generic-sections-refactor-memory_intersects-fix
+Date: Fri Aug 19 02:49:53 PM PDT 2022
 
-simplify comment, per John
+fix nearby comment typo
 
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Felix Kuehling <felix.kuehling@amd.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Slawomir Laba <slawomirx.laba@intel.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Quanyang Wang <quanyang.wang@windriver.com>
+Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ include/asm-generic/sections.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-re-allow-pinning-of-zero-pfns-again-fix
-+++ a/include/linux/mm.h
-@@ -1544,11 +1544,7 @@ static inline bool is_longterm_pinnable_
- 	if (mt == MIGRATE_CMA || mt == MIGRATE_ISOLATE)
- 		return false;
- #endif
--	/*
--	 * The zero page might reside in a movable zone, however it may not
--	 * be migrated and can therefore be pinned.  The vfio subsystem pins
--	 * user mappings including the zero page for IOMMU translation.
--	 */
-+	/* The zero page may always be pinned */
- 	if (is_zero_pfn(page_to_pfn(page)))
- 		return true;
- 
+--- a/include/asm-generic/sections.h~asm-generic-sections-refactor-memory_intersects-fix
++++ a/include/asm-generic/sections.h
+@@ -97,7 +97,7 @@ static inline bool memory_contains(void
+ /**
+  * memory_intersects - checks if the region occupied by an object intersects
+  *                     with another memory region
+- * @begin: virtual address of the beginning of the memory regien
++ * @begin: virtual address of the beginning of the memory region
+  * @end: virtual address of the end of the memory region
+  * @virt: virtual address of the memory object
+  * @size: size of the memory object
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-re-allow-pinning-of-zero-pfns-again.patch
-asm-generic-sections-refactor-memory_intersects-fix.patch
+asm-generic-sections-refactor-memory_intersects.patch
 mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
 procfs-add-path-to-proc-pid-fdinfo-fix.patch
 zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
