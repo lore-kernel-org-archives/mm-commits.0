@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87BD5ECAAD5
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 21:03:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAEEEC0502C
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 21:03:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229682AbiH1VDY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Aug 2022 17:03:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59380 "EHLO
+        id S229687AbiH1VDZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Aug 2022 17:03:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229445AbiH1VDX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 17:03:23 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0DDCD11C;
-        Sun, 28 Aug 2022 14:03:22 -0700 (PDT)
+        with ESMTP id S229543AbiH1VDY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 17:03:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 728CA31205;
+        Sun, 28 Aug 2022 14:03:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5C536B80B9E;
-        Sun, 28 Aug 2022 21:03:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF595C433C1;
-        Sun, 28 Aug 2022 21:03:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0E08C60E17;
+        Sun, 28 Aug 2022 21:03:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679D2C433C1;
+        Sun, 28 Aug 2022 21:03:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661720600;
-        bh=dABCCI1Lg4ndH+KRci7XsgukDtn3oVIINBZAolRsXd0=;
+        s=korg; t=1661720602;
+        bh=t1WRI//yrxMCROl5Pe5PNg8pUCopGOxmSbn1CWcUk2w=;
         h=Date:To:From:Subject:From;
-        b=SAl1BFfON2MlI8dQ5vM1H9NvzPPSdbkbzF/AKz/GRUwI5drB2eh+D3tv/ppFWoYE8
-         v8KBOfEH8S5bwoz15eefAl4D1cG5JiBnyfW/O2ZAiM9kvx2rqyw4EtzQuB+ZEWdF9k
-         e6eGGsZFauurfsFNa3jVW2fqiU/6WGjCpJ48pKKQ=
-Date:   Sun, 28 Aug 2022 14:03:19 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        peterx@redhat.com, mike.kravetz@oracle.com,
-        axelrasmussen@google.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=oW9Yw8Szd+0LrNoYm0910L44G6xX+3AQpBQKTbBby7O0lY4Pljw6RQIxy8gZxKi5x
+         C58+0T/NrgttIp/cGiQJ3zib+Mocm2i26DLt7GBeMKHW70u1iG1s/6x+O081wv4Qs6
+         NonaQDse0DQE52RqX2JW3oIRnO2IvnA6poNK9zlM=
+Date:   Sun, 28 Aug 2022 14:03:21 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        stapelberg+linux@google.com, stable@vger.kernel.org,
+        khazhy@google.com, jack@suse.cz, fengguang.wu@intel.com,
+        khazhy@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch removed from -mm tree
-Message-Id: <20220828210319.DF595C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] writeback-avoid-use-after-free-after-removing-device.patch removed from -mm tree
+Message-Id: <20220828210322.679D2C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,69 +43,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: avoid corrupting page->mapping in hugetlb_mcopy_atomic_pte
+     Subject: writeback: avoid use-after-free after removing device
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch
+     writeback-avoid-use-after-free-after-removing-device.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hugetlb: avoid corrupting page->mapping in hugetlb_mcopy_atomic_pte
-Date: Tue, 12 Jul 2022 21:05:42 +0800
+From: Khazhismel Kumykov <khazhy@chromium.org>
+Subject: writeback: avoid use-after-free after removing device
+Date: Mon, 1 Aug 2022 08:50:34 -0700
 
-In MCOPY_ATOMIC_CONTINUE case with a non-shared VMA, pages in the page
-cache are installed in the ptes.  But hugepage_add_new_anon_rmap is called
-for them mistakenly because they're not vm_shared.  This will corrupt the
-page->mapping used by page cache code.
+When a disk is removed, bdi_unregister gets called to stop further
+writeback and wait for associated delayed work to complete.  However,
+wb_inode_writeback_end() may schedule bandwidth estimation dwork after
+this has completed, which can result in the timer attempting to access the
+just freed bdi_writeback.
 
-Link: https://lkml.kernel.org/r/20220712130542.18836-1-linmiaohe@huawei.com
-Fixes: f619147104c8 ("userfaultfd: add UFFDIO_CONTINUE ioctl")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Peter Xu <peterx@redhat.com>
+Fix this by checking if the bdi_writeback is alive, similar to when
+scheduling writeback work.
+
+Since this requires wb->work_lock, and wb_inode_writeback_end() may get
+called from interrupt, switch wb->work_lock to an irqsafe lock.
+
+Link: https://lkml.kernel.org/r/20220801155034.3772543-1-khazhy@google.com
+Fixes: 45a2966fd641 ("writeback: fix bandwidth estimate for spiky workload")
+Signed-off-by: Khazhismel Kumykov <khazhy@google.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Michael Stapelberg <stapelberg+linux@google.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c   |   12 ++++++------
+ mm/backing-dev.c    |   10 +++++-----
+ mm/page-writeback.c |    6 +++++-
+ 3 files changed, 16 insertions(+), 12 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte
-+++ a/mm/hugetlb.c
-@@ -6041,7 +6041,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	if (!huge_pte_none_mostly(huge_ptep_get(dst_pte)))
- 		goto out_release_unlock;
+--- a/fs/fs-writeback.c~writeback-avoid-use-after-free-after-removing-device
++++ a/fs/fs-writeback.c
+@@ -134,10 +134,10 @@ static bool inode_io_list_move_locked(st
  
--	if (vm_shared) {
-+	if (page_in_pagecache) {
- 		page_dup_file_rmap(page, true);
- 	} else {
- 		ClearHPageRestoreReserve(page);
+ static void wb_wakeup(struct bdi_writeback *wb)
+ {
+-	spin_lock_bh(&wb->work_lock);
++	spin_lock_irq(&wb->work_lock);
+ 	if (test_bit(WB_registered, &wb->state))
+ 		mod_delayed_work(bdi_wq, &wb->dwork, 0);
+-	spin_unlock_bh(&wb->work_lock);
++	spin_unlock_irq(&wb->work_lock);
+ }
+ 
+ static void finish_writeback_work(struct bdi_writeback *wb,
+@@ -164,7 +164,7 @@ static void wb_queue_work(struct bdi_wri
+ 	if (work->done)
+ 		atomic_inc(&work->done->cnt);
+ 
+-	spin_lock_bh(&wb->work_lock);
++	spin_lock_irq(&wb->work_lock);
+ 
+ 	if (test_bit(WB_registered, &wb->state)) {
+ 		list_add_tail(&work->list, &wb->work_list);
+@@ -172,7 +172,7 @@ static void wb_queue_work(struct bdi_wri
+ 	} else
+ 		finish_writeback_work(wb, work);
+ 
+-	spin_unlock_bh(&wb->work_lock);
++	spin_unlock_irq(&wb->work_lock);
+ }
+ 
+ /**
+@@ -2082,13 +2082,13 @@ static struct wb_writeback_work *get_nex
+ {
+ 	struct wb_writeback_work *work = NULL;
+ 
+-	spin_lock_bh(&wb->work_lock);
++	spin_lock_irq(&wb->work_lock);
+ 	if (!list_empty(&wb->work_list)) {
+ 		work = list_entry(wb->work_list.next,
+ 				  struct wb_writeback_work, list);
+ 		list_del_init(&work->list);
+ 	}
+-	spin_unlock_bh(&wb->work_lock);
++	spin_unlock_irq(&wb->work_lock);
+ 	return work;
+ }
+ 
+--- a/mm/backing-dev.c~writeback-avoid-use-after-free-after-removing-device
++++ a/mm/backing-dev.c
+@@ -260,10 +260,10 @@ void wb_wakeup_delayed(struct bdi_writeb
+ 	unsigned long timeout;
+ 
+ 	timeout = msecs_to_jiffies(dirty_writeback_interval * 10);
+-	spin_lock_bh(&wb->work_lock);
++	spin_lock_irq(&wb->work_lock);
+ 	if (test_bit(WB_registered, &wb->state))
+ 		queue_delayed_work(bdi_wq, &wb->dwork, timeout);
+-	spin_unlock_bh(&wb->work_lock);
++	spin_unlock_irq(&wb->work_lock);
+ }
+ 
+ static void wb_update_bandwidth_workfn(struct work_struct *work)
+@@ -334,12 +334,12 @@ static void cgwb_remove_from_bdi_list(st
+ static void wb_shutdown(struct bdi_writeback *wb)
+ {
+ 	/* Make sure nobody queues further work */
+-	spin_lock_bh(&wb->work_lock);
++	spin_lock_irq(&wb->work_lock);
+ 	if (!test_and_clear_bit(WB_registered, &wb->state)) {
+-		spin_unlock_bh(&wb->work_lock);
++		spin_unlock_irq(&wb->work_lock);
+ 		return;
+ 	}
+-	spin_unlock_bh(&wb->work_lock);
++	spin_unlock_irq(&wb->work_lock);
+ 
+ 	cgwb_remove_from_bdi_list(wb);
+ 	/*
+--- a/mm/page-writeback.c~writeback-avoid-use-after-free-after-removing-device
++++ a/mm/page-writeback.c
+@@ -2892,6 +2892,7 @@ static void wb_inode_writeback_start(str
+ 
+ static void wb_inode_writeback_end(struct bdi_writeback *wb)
+ {
++	unsigned long flags;
+ 	atomic_dec(&wb->writeback_inodes);
+ 	/*
+ 	 * Make sure estimate of writeback throughput gets updated after
+@@ -2900,7 +2901,10 @@ static void wb_inode_writeback_end(struc
+ 	 * that if multiple inodes end writeback at a similar time, they get
+ 	 * batched into one bandwidth update.
+ 	 */
+-	queue_delayed_work(bdi_wq, &wb->bw_dwork, BANDWIDTH_INTERVAL);
++	spin_lock_irqsave(&wb->work_lock, flags);
++	if (test_bit(WB_registered, &wb->state))
++		queue_delayed_work(bdi_wq, &wb->bw_dwork, BANDWIDTH_INTERVAL);
++	spin_unlock_irqrestore(&wb->work_lock, flags);
+ }
+ 
+ bool __folio_end_writeback(struct folio *folio)
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from khazhy@chromium.org are
 
-mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
-hugetlb_cgroup-remove-unneeded-nr_pages-0-check.patch
-hugetlb_cgroup-hugetlbfs-use-helper-macro-sz_1kmg.patch
-hugetlb_cgroup-remove-unneeded-return-value.patch
-hugetlb_cgroup-use-helper-macro-numa_no_node.patch
-hugetlb_cgroup-use-helper-for_each_hstate-and-hstate_index.patch
-mm-hugetlb-fix-incorrect-update-of-max_huge_pages.patch
-mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
-mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
-mm-hugetlb-fix-missing-call-to-restore_reserve_on_error-v2.patch
-mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at.patch
-mm-hugetlb-fix-sysfs-group-leak-in-hugetlb_unregister_node.patch
-mm-hugetlb-make-detecting-shared-pte-more-reliable.patch
-mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb.patch
-mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory.patch
-mm-hwpoison-fix-extra-put_page-in-soft_offline_page.patch
-mm-hwpoison-fix-possible-use-after-free-in-mf_dax_kill_procs-v2.patch
-mm-hwpoison-kill-procs-if-unmap-fails.patch
-mm-hwpoison-kill-procs-if-unmap-fails-v2.patch
-mm-hwpoison-avoid-trying-to-unpoison-reserved-page.patch
 
