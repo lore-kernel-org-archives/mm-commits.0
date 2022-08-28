@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06DD3ECAAA2
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 20:23:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87BD5ECAAD5
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 21:03:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229568AbiH1UXl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 28 Aug 2022 16:23:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55972 "EHLO
+        id S229682AbiH1VDY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Aug 2022 17:03:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229507AbiH1UXk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 16:23:40 -0400
+        with ESMTP id S229445AbiH1VDX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 17:03:23 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBC7E1F2CB
-        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 13:23:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0DDCD11C;
+        Sun, 28 Aug 2022 14:03:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4395CB80B95
-        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 20:23:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1D99C433D6;
-        Sun, 28 Aug 2022 20:23:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5C536B80B9E;
+        Sun, 28 Aug 2022 21:03:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF595C433C1;
+        Sun, 28 Aug 2022 21:03:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661718214;
-        bh=CXDr146DOZP4aedEbI+DaQEwaQRIRWIO8+VVH1BVDkE=;
+        s=korg; t=1661720600;
+        bh=dABCCI1Lg4ndH+KRci7XsgukDtn3oVIINBZAolRsXd0=;
         h=Date:To:From:Subject:From;
-        b=WenHApJs5MM+/9oXFHeK72yzz05z0qfXbWcQotDu3RVFlvX4ZKaVj3kUEp30hLlM1
-         gLy1Uy+wBfwhzjNCDAhL0v5vqZ2rhbragi/btd3koUEAuf/02/DPatrP5plaCcxjGH
-         TpZpFhBqX1GWTqQsHd5hLDiex0SW6XnA97VSTLRs=
-Date:   Sun, 28 Aug 2022 13:23:34 -0700
-To:     mm-commits@vger.kernel.org, treding@nvidia.com,
-        quanyang.wang@windriver.com, arnd@arndb.de, ardb@kernel.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=SAl1BFfON2MlI8dQ5vM1H9NvzPPSdbkbzF/AKz/GRUwI5drB2eh+D3tv/ppFWoYE8
+         v8KBOfEH8S5bwoz15eefAl4D1cG5JiBnyfW/O2ZAiM9kvx2rqyw4EtzQuB+ZEWdF9k
+         e6eGGsZFauurfsFNa3jVW2fqiU/6WGjCpJ48pKKQ=
+Date:   Sun, 28 Aug 2022 14:03:19 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        peterx@redhat.com, mike.kravetz@oracle.com,
+        axelrasmussen@google.com, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] asm-generic-sections-refactor-memory_intersects-fix.patch removed from -mm tree
-Message-Id: <20220828202334.D1D99C433D6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch removed from -mm tree
+Message-Id: <20220828210319.DF595C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,62 +43,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: asm-generic-sections-refactor-memory_intersects-fix
+     Subject: mm/hugetlb: avoid corrupting page->mapping in hugetlb_mcopy_atomic_pte
 has been removed from the -mm tree.  Its filename was
-     asm-generic-sections-refactor-memory_intersects-fix.patch
+     mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte.patch
 
-This patch was dropped because it was folded into asm-generic-sections-refactor-memory_intersects.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: asm-generic-sections-refactor-memory_intersects-fix
-Date: Fri Aug 19 02:49:53 PM PDT 2022
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hugetlb: avoid corrupting page->mapping in hugetlb_mcopy_atomic_pte
+Date: Tue, 12 Jul 2022 21:05:42 +0800
 
-fix nearby comment typo
+In MCOPY_ATOMIC_CONTINUE case with a non-shared VMA, pages in the page
+cache are installed in the ptes.  But hugepage_add_new_anon_rmap is called
+for them mistakenly because they're not vm_shared.  This will corrupt the
+page->mapping used by page cache code.
 
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Quanyang Wang <quanyang.wang@windriver.com>
-Cc: Thierry Reding <treding@nvidia.com>
+Link: https://lkml.kernel.org/r/20220712130542.18836-1-linmiaohe@huawei.com
+Fixes: f619147104c8 ("userfaultfd: add UFFDIO_CONTINUE ioctl")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/sections.h |    2 +-
+ mm/hugetlb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/asm-generic/sections.h~asm-generic-sections-refactor-memory_intersects-fix
-+++ a/include/asm-generic/sections.h
-@@ -97,7 +97,7 @@ static inline bool memory_contains(void
- /**
-  * memory_intersects - checks if the region occupied by an object intersects
-  *                     with another memory region
-- * @begin: virtual address of the beginning of the memory regien
-+ * @begin: virtual address of the beginning of the memory region
-  * @end: virtual address of the end of the memory region
-  * @virt: virtual address of the memory object
-  * @size: size of the memory object
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-corrupting-page-mapping-in-hugetlb_mcopy_atomic_pte
++++ a/mm/hugetlb.c
+@@ -6041,7 +6041,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 	if (!huge_pte_none_mostly(huge_ptep_get(dst_pte)))
+ 		goto out_release_unlock;
+ 
+-	if (vm_shared) {
++	if (page_in_pagecache) {
+ 		page_dup_file_rmap(page, true);
+ 	} else {
+ 		ClearHPageRestoreReserve(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-asm-generic-sections-refactor-memory_intersects.patch
-mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
-procfs-add-path-to-proc-pid-fdinfo-fix.patch
-zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
-mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
-mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-gupc-refactor-check_and_migrate_movable_pages-fix.patch
-hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache-fix.patch
-hugetlb-handle-truncate-racing-with-page-faults-fix-fix.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-fix-2.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
-page_ext-introduce-boot-parameter-early_page_ext-fix.patch
-mm-fix-null-ptr-deref-in-kswapd_is_running-fix.patch
-ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+hugetlb_cgroup-remove-unneeded-nr_pages-0-check.patch
+hugetlb_cgroup-hugetlbfs-use-helper-macro-sz_1kmg.patch
+hugetlb_cgroup-remove-unneeded-return-value.patch
+hugetlb_cgroup-use-helper-macro-numa_no_node.patch
+hugetlb_cgroup-use-helper-for_each_hstate-and-hstate_index.patch
+mm-hugetlb-fix-incorrect-update-of-max_huge_pages.patch
+mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
+mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
+mm-hugetlb-fix-missing-call-to-restore_reserve_on_error-v2.patch
+mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at.patch
+mm-hugetlb-fix-sysfs-group-leak-in-hugetlb_unregister_node.patch
+mm-hugetlb-make-detecting-shared-pte-more-reliable.patch
+mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb.patch
+mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory.patch
+mm-hwpoison-fix-extra-put_page-in-soft_offline_page.patch
+mm-hwpoison-fix-possible-use-after-free-in-mf_dax_kill_procs-v2.patch
+mm-hwpoison-kill-procs-if-unmap-fails.patch
+mm-hwpoison-kill-procs-if-unmap-fails-v2.patch
+mm-hwpoison-avoid-trying-to-unpoison-reserved-page.patch
 
