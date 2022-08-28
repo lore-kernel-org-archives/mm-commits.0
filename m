@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 323B1ECAAD5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3412ECAAA2
 	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 21:03:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229779AbiH1VDi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229699AbiH1VDi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 28 Aug 2022 17:03:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59486 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229830AbiH1VD3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 17:03:29 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4E7F3120C
-        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 14:03:28 -0700 (PDT)
+        with ESMTP id S229537AbiH1VDh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 17:03:37 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3206F31229
+        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 14:03:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4FC68B80BA8
-        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 21:03:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04E05C433C1;
-        Sun, 28 Aug 2022 21:03:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D917DB80B9A
+        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 21:03:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C762C433C1;
+        Sun, 28 Aug 2022 21:03:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661720606;
-        bh=zFgw8HEqiDaiHxiScsAKup8lXL+9HhaX+U5qv8OuW+8=;
+        s=korg; t=1661720607;
+        bh=q3BKShp9nKTbRFlepSsp3vYYF3+sucRomqBMlo8lrJc=;
         h=Date:To:From:Subject:From;
-        b=QSv/NQO5WhCt9wq5GxF7zqqNn5IvqomyjHcUqnmDHEZB2OsezEpKJwkZZtP8Q+nkC
-         +eXRdCiLcX1VDIpV4Y5wtSNeqHVQK50c4KBDDc4bOnWThsmeAnjEwjEgdgojr/H835
-         qNDOvh/P2ano0vYgyaXYGOfbCLmoSZzw1tCZ9gD4=
-Date:   Sun, 28 Aug 2022 14:03:25 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        slawomirx.laba@intel.com, jhubbard@nvidia.com, hch@lst.de,
-        felix.kuehling@amd.com, apopple@nvidia.com, alex.sierra@amd.com,
-        alex.williamson@redhat.com, akpm@linux-foundation.org
+        b=yGFtgYBEF9pH63DTEbrR09rqjxGDfApURb1I/BTVOB+hSGAcboXvYA8f3XQM20A3W
+         aaAvaJZ4oQAnaDTHXd3ekyEWr4VfZtn466p0JHb8p88t8Hj0kbOdAWqFkr4CRhlSa8
+         5VzZe4VYnZfDOkqZXCOTBQiIz97c18k63CyVa61w=
+Date:   Sun, 28 Aug 2022 14:03:26 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tkjos@android.com,
+        syzbot+a7b60a176ec13cafb793@syzkaller.appspotmail.com,
+        surenb@google.com, omosnace@redhat.com, minchan@kernel.org,
+        maco@android.com, Liam.Howlett@oracle.com, joel@joelfernandes.org,
+        hridya@google.com, gregkh@linuxfoundation.org, cmllamas@google.com,
+        brauner@kernel.org, arve@android.com, liam.howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-re-allow-pinning-of-zero-pfns-again.patch removed from -mm tree
-Message-Id: <20220828210326.04E05C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch removed from -mm tree
+Message-Id: <20220828210327.8C762C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,67 +46,108 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: re-allow pinning of zero pfns (again)
+     Subject: binder_alloc: add missing mmap_lock calls when using the VMA
 has been removed from the -mm tree.  Its filename was
-     mm-re-allow-pinning-of-zero-pfns-again.patch
+     binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: mm: re-allow pinning of zero pfns (again)
-Date: Wed, 10 Aug 2022 10:53:59 -0600
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: binder_alloc: add missing mmap_lock calls when using the VMA
+Date: Wed, 10 Aug 2022 16:02:25 +0000
 
-The below referenced commit makes the same error as 1c563432588d ("mm: fix
-is_pinnable_page against a cma page"), re-interpreting the logic to
-exclude pinning of the zero page, which breaks device assignment with
-vfio.
+Take the mmap_read_lock() when using the VMA in binder_alloc_print_pages()
+and when checking for a VMA in binder_alloc_new_buf_locked().
 
-To avoid further subtle mistakes, split the logic into discrete tests.
+It is worth noting binder_alloc_new_buf_locked() drops the VMA read lock
+after it verifies a VMA exists, but may be taken again deeper in the call
+stack, if necessary.
 
-[akpm@linux-foundation.org: simplify comment, per John]
-Link: https://lkml.kernel.org/r/166015037385.760108.16881097713975517242.stgit@omen
-Link: https://lore.kernel.org/all/165490039431.944052.12458624139225785964.stgit@omen
-Fixes: f25cbb7a95a2 ("mm: add zone device coherent type memory support")
-Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Suggested-by: Felix Kuehling <felix.kuehling@amd.com>
-Tested-by: Slawomir Laba <slawomirx.laba@intel.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Alistair Popple <apopple@nvidia.com>
+Link: https://lkml.kernel.org/r/20220810160209.1630707-1-Liam.Howlett@oracle.com
+Fixes: a43cfc87caaf (android: binder: stop saving a pointer to the VMA)
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Ondrej Mosnacek <omosnace@redhat.com>
+Reported-by: <syzbot+a7b60a176ec13cafb793@syzkaller.appspotmail.com>
+Acked-by: Carlos Llamas <cmllamas@google.com>
+Tested-by: Ondrej Mosnacek <omosnace@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Christian Brauner (Microsoft) <brauner@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hridya Valsaraju <hridya@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Martijn Coenen <maco@android.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Todd Kjos <tkjos@android.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Arve Hjønnevåg" <arve@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ drivers/android/binder_alloc.c |   31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
---- a/include/linux/mm.h~mm-re-allow-pinning-of-zero-pfns-again
-+++ a/include/linux/mm.h
-@@ -1544,9 +1544,16 @@ static inline bool is_longterm_pinnable_
- 	if (mt == MIGRATE_CMA || mt == MIGRATE_ISOLATE)
- 		return false;
- #endif
--	return !(is_device_coherent_page(page) ||
--		 is_zone_movable_page(page) ||
--		 is_zero_pfn(page_to_pfn(page)));
-+	/* The zero page may always be pinned */
-+	if (is_zero_pfn(page_to_pfn(page)))
-+		return true;
+--- a/drivers/android/binder_alloc.c~binder_alloc-add-missing-mmap_lock-calls-when-using-the-vma
++++ a/drivers/android/binder_alloc.c
+@@ -402,12 +402,15 @@ static struct binder_buffer *binder_allo
+ 	size_t size, data_offsets_size;
+ 	int ret;
+ 
++	mmap_read_lock(alloc->vma_vm_mm);
+ 	if (!binder_alloc_get_vma(alloc)) {
++		mmap_read_unlock(alloc->vma_vm_mm);
+ 		binder_alloc_debug(BINDER_DEBUG_USER_ERROR,
+ 				   "%d: binder_alloc_buf, no vma\n",
+ 				   alloc->pid);
+ 		return ERR_PTR(-ESRCH);
+ 	}
++	mmap_read_unlock(alloc->vma_vm_mm);
+ 
+ 	data_offsets_size = ALIGN(data_size, sizeof(void *)) +
+ 		ALIGN(offsets_size, sizeof(void *));
+@@ -929,17 +932,25 @@ void binder_alloc_print_pages(struct seq
+ 	 * Make sure the binder_alloc is fully initialized, otherwise we might
+ 	 * read inconsistent state.
+ 	 */
+-	if (binder_alloc_get_vma(alloc) != NULL) {
+-		for (i = 0; i < alloc->buffer_size / PAGE_SIZE; i++) {
+-			page = &alloc->pages[i];
+-			if (!page->page_ptr)
+-				free++;
+-			else if (list_empty(&page->lru))
+-				active++;
+-			else
+-				lru++;
+-		}
 +
-+	/* Coherent device memory must always allow eviction. */
-+	if (is_device_coherent_page(page))
-+		return false;
++	mmap_read_lock(alloc->vma_vm_mm);
++	if (binder_alloc_get_vma(alloc) == NULL) {
++		mmap_read_unlock(alloc->vma_vm_mm);
++		goto uninitialized;
++	}
 +
-+	/* Otherwise, non-movable zone pages can be pinned. */
-+	return !is_zone_movable_page(page);
- }
- #else
- static inline bool is_longterm_pinnable_page(struct page *page)
++	mmap_read_unlock(alloc->vma_vm_mm);
++	for (i = 0; i < alloc->buffer_size / PAGE_SIZE; i++) {
++		page = &alloc->pages[i];
++		if (!page->page_ptr)
++			free++;
++		else if (list_empty(&page->lru))
++			active++;
++		else
++			lru++;
+ 	}
++
++uninitialized:
+ 	mutex_unlock(&alloc->mutex);
+ 	seq_printf(m, "  pages: %d:%d:%d\n", active, lru, free);
+ 	seq_printf(m, "  pages high watermark: %zu\n", alloc->pages_high);
 _
 
-Patches currently in -mm which might be from alex.williamson@redhat.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
+maple-tree-add-new-data-structure-fix.patch
+mm-mprotect-use-maple-tree-navigation-instead-of-vma-linked-list-fix.patch
+mm-vmscan-use-vma-iterator-instead-of-vm_next.patch
+mm-mlock-drop-dead-code-in-count_mm_mlocked_page_nr.patch
 
