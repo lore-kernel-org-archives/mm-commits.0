@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAEEEC0502C
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 21:03:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CBA4ECAAA2
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 21:03:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229687AbiH1VDZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229543AbiH1VDZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 28 Aug 2022 17:03:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59384 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229543AbiH1VDY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 17:03:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 728CA31205;
-        Sun, 28 Aug 2022 14:03:23 -0700 (PDT)
+        with ESMTP id S229699AbiH1VDZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 17:03:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AC61D11C
+        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 14:03:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0E08C60E17;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2CF6B60E96
+        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 21:03:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 837E1C433D6;
         Sun, 28 Aug 2022 21:03:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679D2C433C1;
-        Sun, 28 Aug 2022 21:03:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661720602;
-        bh=t1WRI//yrxMCROl5Pe5PNg8pUCopGOxmSbn1CWcUk2w=;
+        s=korg; t=1661720603;
+        bh=R7Clw9yjEowR5bMvXR1hBNivolqiTbHNtZ+Owh9R1Fk=;
         h=Date:To:From:Subject:From;
-        b=oW9Yw8Szd+0LrNoYm0910L44G6xX+3AQpBQKTbBby7O0lY4Pljw6RQIxy8gZxKi5x
-         C58+0T/NrgttIp/cGiQJ3zib+Mocm2i26DLt7GBeMKHW70u1iG1s/6x+O081wv4Qs6
-         NonaQDse0DQE52RqX2JW3oIRnO2IvnA6poNK9zlM=
-Date:   Sun, 28 Aug 2022 14:03:21 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        stapelberg+linux@google.com, stable@vger.kernel.org,
-        khazhy@google.com, jack@suse.cz, fengguang.wu@intel.com,
-        khazhy@chromium.org, akpm@linux-foundation.org
+        b=OSJH6tWaG0/ENwOGu1uB4Fftascj060fqfEfYzgcDvs2TmFVfWxSH73T+UkH3jSyY
+         Y3W620KPjWK+W9p1z+0mCJVubREv4Dzq/mVT24ONivQH9BVMWGmaXbI8iKgSIrzydh
+         32vNfFgmhUoSSuSqlYYQU0LDGYM/CcNOTsTiKO+w=
+Date:   Sun, 28 Aug 2022 14:03:22 -0700
+To:     mm-commits@vger.kernel.org, gpiccoli@igalia.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] writeback-avoid-use-after-free-after-removing-device.patch removed from -mm tree
-Message-Id: <20220828210322.679D2C433C1@smtp.kernel.org>
+Subject: [merged mm-stable] mailmap-update-guilherme-g-piccolis-email-addresses.patch removed from -mm tree
+Message-Id: <20220828210323.837E1C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,150 +41,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: writeback: avoid use-after-free after removing device
+     Subject: mailmap: update Guilherme G. Piccoli's email addresses
 has been removed from the -mm tree.  Its filename was
-     writeback-avoid-use-after-free-after-removing-device.patch
+     mailmap-update-guilherme-g-piccolis-email-addresses.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Khazhismel Kumykov <khazhy@chromium.org>
-Subject: writeback: avoid use-after-free after removing device
-Date: Mon, 1 Aug 2022 08:50:34 -0700
+From: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Subject: mailmap: update Guilherme G. Piccoli's email addresses
+Date: Thu, 4 Aug 2022 17:22:07 -0300
 
-When a disk is removed, bdi_unregister gets called to stop further
-writeback and wait for associated delayed work to complete.  However,
-wb_inode_writeback_end() may schedule bandwidth estimation dwork after
-this has completed, which can result in the timer attempting to access the
-just freed bdi_writeback.
+Both @canonical and @ibm email addresses are invalid now; use my personal
+address instead.
 
-Fix this by checking if the bdi_writeback is alive, similar to when
-scheduling writeback work.
-
-Since this requires wb->work_lock, and wb_inode_writeback_end() may get
-called from interrupt, switch wb->work_lock to an irqsafe lock.
-
-Link: https://lkml.kernel.org/r/20220801155034.3772543-1-khazhy@google.com
-Fixes: 45a2966fd641 ("writeback: fix bandwidth estimate for spiky workload")
-Signed-off-by: Khazhismel Kumykov <khazhy@google.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Michael Stapelberg <stapelberg+linux@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220804202207.439427-1-gpiccoli@igalia.com
+Signed-off-by: Guilherme G. Piccoli <gpiccoli@igalia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c   |   12 ++++++------
- mm/backing-dev.c    |   10 +++++-----
- mm/page-writeback.c |    6 +++++-
- 3 files changed, 16 insertions(+), 12 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/fs-writeback.c~writeback-avoid-use-after-free-after-removing-device
-+++ a/fs/fs-writeback.c
-@@ -134,10 +134,10 @@ static bool inode_io_list_move_locked(st
- 
- static void wb_wakeup(struct bdi_writeback *wb)
- {
--	spin_lock_bh(&wb->work_lock);
-+	spin_lock_irq(&wb->work_lock);
- 	if (test_bit(WB_registered, &wb->state))
- 		mod_delayed_work(bdi_wq, &wb->dwork, 0);
--	spin_unlock_bh(&wb->work_lock);
-+	spin_unlock_irq(&wb->work_lock);
- }
- 
- static void finish_writeback_work(struct bdi_writeback *wb,
-@@ -164,7 +164,7 @@ static void wb_queue_work(struct bdi_wri
- 	if (work->done)
- 		atomic_inc(&work->done->cnt);
- 
--	spin_lock_bh(&wb->work_lock);
-+	spin_lock_irq(&wb->work_lock);
- 
- 	if (test_bit(WB_registered, &wb->state)) {
- 		list_add_tail(&work->list, &wb->work_list);
-@@ -172,7 +172,7 @@ static void wb_queue_work(struct bdi_wri
- 	} else
- 		finish_writeback_work(wb, work);
- 
--	spin_unlock_bh(&wb->work_lock);
-+	spin_unlock_irq(&wb->work_lock);
- }
- 
- /**
-@@ -2082,13 +2082,13 @@ static struct wb_writeback_work *get_nex
- {
- 	struct wb_writeback_work *work = NULL;
- 
--	spin_lock_bh(&wb->work_lock);
-+	spin_lock_irq(&wb->work_lock);
- 	if (!list_empty(&wb->work_list)) {
- 		work = list_entry(wb->work_list.next,
- 				  struct wb_writeback_work, list);
- 		list_del_init(&work->list);
- 	}
--	spin_unlock_bh(&wb->work_lock);
-+	spin_unlock_irq(&wb->work_lock);
- 	return work;
- }
- 
---- a/mm/backing-dev.c~writeback-avoid-use-after-free-after-removing-device
-+++ a/mm/backing-dev.c
-@@ -260,10 +260,10 @@ void wb_wakeup_delayed(struct bdi_writeb
- 	unsigned long timeout;
- 
- 	timeout = msecs_to_jiffies(dirty_writeback_interval * 10);
--	spin_lock_bh(&wb->work_lock);
-+	spin_lock_irq(&wb->work_lock);
- 	if (test_bit(WB_registered, &wb->state))
- 		queue_delayed_work(bdi_wq, &wb->dwork, timeout);
--	spin_unlock_bh(&wb->work_lock);
-+	spin_unlock_irq(&wb->work_lock);
- }
- 
- static void wb_update_bandwidth_workfn(struct work_struct *work)
-@@ -334,12 +334,12 @@ static void cgwb_remove_from_bdi_list(st
- static void wb_shutdown(struct bdi_writeback *wb)
- {
- 	/* Make sure nobody queues further work */
--	spin_lock_bh(&wb->work_lock);
-+	spin_lock_irq(&wb->work_lock);
- 	if (!test_and_clear_bit(WB_registered, &wb->state)) {
--		spin_unlock_bh(&wb->work_lock);
-+		spin_unlock_irq(&wb->work_lock);
- 		return;
- 	}
--	spin_unlock_bh(&wb->work_lock);
-+	spin_unlock_irq(&wb->work_lock);
- 
- 	cgwb_remove_from_bdi_list(wb);
- 	/*
---- a/mm/page-writeback.c~writeback-avoid-use-after-free-after-removing-device
-+++ a/mm/page-writeback.c
-@@ -2892,6 +2892,7 @@ static void wb_inode_writeback_start(str
- 
- static void wb_inode_writeback_end(struct bdi_writeback *wb)
- {
-+	unsigned long flags;
- 	atomic_dec(&wb->writeback_inodes);
- 	/*
- 	 * Make sure estimate of writeback throughput gets updated after
-@@ -2900,7 +2901,10 @@ static void wb_inode_writeback_end(struc
- 	 * that if multiple inodes end writeback at a similar time, they get
- 	 * batched into one bandwidth update.
- 	 */
--	queue_delayed_work(bdi_wq, &wb->bw_dwork, BANDWIDTH_INTERVAL);
-+	spin_lock_irqsave(&wb->work_lock, flags);
-+	if (test_bit(WB_registered, &wb->state))
-+		queue_delayed_work(bdi_wq, &wb->bw_dwork, BANDWIDTH_INTERVAL);
-+	spin_unlock_irqrestore(&wb->work_lock, flags);
- }
- 
- bool __folio_end_writeback(struct folio *folio)
+--- a/.mailmap~mailmap-update-guilherme-g-piccolis-email-addresses
++++ a/.mailmap
+@@ -150,6 +150,8 @@ Greg Kroah-Hartman <gregkh@suse.de>
+ Greg Kroah-Hartman <greg@kroah.com>
+ Greg Kurz <groug@kaod.org> <gkurz@linux.vnet.ibm.com>
+ Gregory CLEMENT <gregory.clement@bootlin.com> <gregory.clement@free-electrons.com>
++Guilherme G. Piccoli <kernel@gpiccoli.net> <gpiccoli@linux.vnet.ibm.com>
++Guilherme G. Piccoli <kernel@gpiccoli.net> <gpiccoli@canonical.com>
+ Guo Ren <guoren@kernel.org> <guoren@linux.alibaba.com>
+ Guo Ren <guoren@kernel.org> <ren_guo@c-sky.com>
+ Gustavo Padovan <gustavo@las.ic.unicamp.br>
 _
 
-Patches currently in -mm which might be from khazhy@chromium.org are
+Patches currently in -mm which might be from gpiccoli@igalia.com are
 
 
