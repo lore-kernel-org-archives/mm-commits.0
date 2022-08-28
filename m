@@ -2,69 +2,53 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2551EECAAD1
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 01:40:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E27F6ECAAA2
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Aug 2022 20:23:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229445AbiH1Bk3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 27 Aug 2022 21:40:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50776 "EHLO
+        id S229522AbiH1UXN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 28 Aug 2022 16:23:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230370AbiH1Bk1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Aug 2022 21:40:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F26B2F3B7
-        for <mm-commits@vger.kernel.org>; Sat, 27 Aug 2022 18:40:26 -0700 (PDT)
+        with ESMTP id S229507AbiH1UXN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 28 Aug 2022 16:23:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 914481F2C6
+        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 13:23:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9859560F0C
-        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 01:40:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2318C433D6;
-        Sun, 28 Aug 2022 01:40:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 228EC60E15
+        for <mm-commits@vger.kernel.org>; Sun, 28 Aug 2022 20:23:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 706CBC433C1;
+        Sun, 28 Aug 2022 20:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661650825;
-        bh=xeO0d2oeSIlvxbKDvGCIiAqFyWMQh+1mke3YCxLDMOw=;
+        s=korg; t=1661718191;
+        bh=sNdEIovqtuMGR3iw2UEFJzKVgYFWQDWZliPB0llWx3k=;
         h=Date:To:From:Subject:From;
-        b=AZQrE7XCPnh+H0mL8QTejddpeacN7ZW1zRqP5/rwfnWo5a012ExjERrtvmA+Ov9ZZ
-         bthm+Aw2IV5sPqc1z6mJThmGDZbTVfpybt35J62x0XrHJKDOTxIh+6PLS8vw0G9aCF
-         3wIDVjl+pfMWnXaZuPISkBnDo/vsANw0vubQyLA4=
-Date:   Sat, 27 Aug 2022 18:40:24 -0700
+        b=nsf3WXKkg+N8U0z7zigJgFAl1/a3DRh+7cjJ53z4t3pv+8AlYeFXTca7WeEhBnp7F
+         m84bqHl939+TiVi7ji5I4qACPKKIJKuiobyAH+9CbbAp1LTdXUxYXPazHc4tggG88W
+         +UfkuJC7y0byo0b3JXCsVns57Ks3R3+YCbEVGwS0=
+Date:   Sun, 28 Aug 2022 13:23:10 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         slawomirx.laba@intel.com, jhubbard@nvidia.com, hch@lst.de,
         felix.kuehling@amd.com, apopple@nvidia.com,
         alex.williamson@redhat.com, alex.sierra@amd.com,
         akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-re-allow-pinning-of-zero-pfns-again-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20220828014024.F2318C433D6@smtp.kernel.org>
+Subject: [folded-merged] mm-re-allow-pinning-of-zero-pfns-again-fix.patch removed from -mm tree
+Message-Id: <20220828202311.706CBC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
+The quilt patch titled
      Subject: mm-re-allow-pinning-of-zero-pfns-again-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-re-allow-pinning-of-zero-pfns-again-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-re-allow-pinning-of-zero-pfns-again-fix.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-re-allow-pinning-of-zero-pfns-again.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -106,7 +90,7 @@ _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-re-allow-pinning-of-zero-pfns-again-fix.patch
+mm-re-allow-pinning-of-zero-pfns-again.patch
 asm-generic-sections-refactor-memory_intersects-fix.patch
 mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
 procfs-add-path-to-proc-pid-fdinfo-fix.patch
