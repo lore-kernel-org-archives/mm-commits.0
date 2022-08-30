@@ -2,177 +2,141 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BE17ECAAD4
-	for <mm-commits@archiver.kernel.org>; Tue, 30 Aug 2022 21:49:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26771ECAAD4
+	for <mm-commits@archiver.kernel.org>; Tue, 30 Aug 2022 22:23:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231447AbiH3Vt1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 Aug 2022 17:49:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55486 "EHLO
+        id S232390AbiH3WXU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 Aug 2022 18:23:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231648AbiH3VtZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2022 17:49:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 374208E4D6
-        for <mm-commits@vger.kernel.org>; Tue, 30 Aug 2022 14:49:24 -0700 (PDT)
+        with ESMTP id S232185AbiH3WWu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2022 18:22:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E05939B95
+        for <mm-commits@vger.kernel.org>; Tue, 30 Aug 2022 15:21:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C686A618B3
-        for <mm-commits@vger.kernel.org>; Tue, 30 Aug 2022 21:49:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20478C433C1;
-        Tue, 30 Aug 2022 21:49:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E72C86113D
+        for <mm-commits@vger.kernel.org>; Tue, 30 Aug 2022 22:20:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48F4BC433D6;
+        Tue, 30 Aug 2022 22:20:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661896163;
-        bh=OZ+VL5/moulBm2OhZxurlFf/cRP8We3JwLooHE9cUdw=;
+        s=korg; t=1661898057;
+        bh=9TaYy3fapwDSON+jKUYYTfmYej2BBodfjavJzpuq3es=;
         h=Date:To:From:Subject:From;
-        b=PyjFBP3nJi+0MqCDIjkalL4JHWwMM4gh9hDtlFWQCiH2LcnjU/mwg/nT+n3oDKhYa
-         FxPJjZQ0kj/o4giSzqwqo6AbkKUS/tWOgE8ZGO8MUzeiU+rTxFalbe/jrvrB8qWwYE
-         NE7vYcuVeuZQ6aBdsobezalPwkqm9rGefcnWFufk=
-Date:   Tue, 30 Aug 2022 14:49:22 -0700
-To:     mm-commits@vger.kernel.org, yury.norov@gmail.com, vbabka@suse.cz,
-        sander@svanheule.net, rostedt@goodmis.org, peterz@infradead.org,
-        nathan@kernel.org, mingo@redhat.com, mhiramat@kernel.org,
-        luc.vanoostenryck@gmail.com, linux@rasmusvillemoes.dk,
-        keescook@chromium.org, jpoimboe@kernel.org, Jason@zx2c4.com,
-        isabbasso@riseup.net, edumazet@google.com,
-        dan.j.williams@intel.com, arnd@arndb.de, bvanassche@acm.org,
-        akpm@linux-foundation.org
+        b=hNeNhGCx6Bl0CaqlLX8cqTmHFtZAP77iQfyKn+Gzl77m5qkQhITMKvBklOh8kTZ4d
+         y++XuqLngcMYml4I8EVVdG6aD+woLZvyiZ3QEt0uQFQKuidT/XdJGShbOHzVaxHnrx
+         tptW42Q4Y9XFITpJAU/l1jQ2idFZBY2dhMa3UjZY=
+Date:   Tue, 30 Aug 2022 15:20:56 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com, lkp@intel.com,
+        linmiaohe@huawei.com, aneesh.kumar@linux.ibm.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] testing-selftests-add-tests-for-the-is_signed_type-macro.patch removed from -mm tree
-Message-Id: <20220830214923.20478C433C1@smtp.kernel.org>
+Subject: + mm-demotion-expose-memory-tier-details-via-sysfs-fix-2.patch added to mm-unstable branch
+Message-Id: <20220830222057.48F4BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: testing/selftests: add tests for the is_signed_type() macro
-has been removed from the -mm tree.  Its filename was
-     testing-selftests-add-tests-for-the-is_signed_type-macro.patch
+The patch titled
+     Subject: mm-demotion-expose-memory-tier-details-via-sysfs-fix-2
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-demotion-expose-memory-tier-details-via-sysfs-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-demotion-expose-memory-tier-details-via-sysfs-fix-2.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: testing/selftests: add tests for the is_signed_type() macro
-Date: Fri, 26 Aug 2022 09:21:15 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-demotion-expose-memory-tier-details-via-sysfs-fix-2
+Date: Tue Aug 30 03:14:15 PM PDT 2022
 
-Although not documented, is_signed_type() must support the 'bool' and
-pointer types next to scalar and enumeration types.  Add a selftest that
-verifies that this macro handles all supported types correctly.
+temp build fix
 
-Link: https://lkml.kernel.org/r/20220826162116.1050972-2-bvanassche@acm.org
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Isabella Basso <isabbasso@riseup.net>
-Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Sander Vanheule <sander@svanheule.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yury Norov <yury.norov@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug         |   12 +++++++++
- lib/Makefile              |    1 
- lib/is_signed_type_test.c |   48 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 61 insertions(+)
+ mm/memory-tiers.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
---- /dev/null
-+++ a/lib/is_signed_type_test.c
-@@ -0,0 +1,48 @@
-+// SPDX-License-Identifier: GPL-2.0 OR MIT
-+/*
-+ *	./tools/testing/kunit/kunit.py run is_signed_type [--raw_output]
-+ */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+--- a/mm/memory-tiers.c~mm-demotion-expose-memory-tier-details-via-sysfs-fix-2
++++ a/mm/memory-tiers.c
+@@ -108,7 +108,20 @@ static int top_tier_adistance;
+  *
+  */
+ static struct demotion_nodes *node_demotion __read_mostly;
+-#endif /* CONFIG_MIGRATION */
 +
-+#include <kunit/test.h>
-+#include <linux/overflow.h>
-+
-+enum unsigned_enum {
-+	constant_a = 3,
-+};
-+
-+enum signed_enum {
-+	constant_b = -1,
-+	constant_c = 2,
-+};
-+
-+static void is_signed_type_test(struct kunit *test)
++/* I need a comment too */
++static inline bool i_need_a_name(struct memory_tier *memtier)
 +{
-+	KUNIT_EXPECT_EQ(test, is_signed_type(bool), false);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(signed char), true);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(unsigned char), false);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(int), true);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(unsigned int), false);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(long), true);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(unsigned long), false);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(long long), true);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(unsigned long long), false);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(enum unsigned_enum), false);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(enum signed_enum), true);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(void *), false);
-+	KUNIT_EXPECT_EQ(test, is_signed_type(const char *), false);
++	return memtier->adistance_start >= top_tier_adistance;
 +}
 +
-+static struct kunit_case is_signed_type_test_cases[] = {
-+	KUNIT_CASE(is_signed_type_test),
-+	{}
-+};
++#else	/* CONFIG_MIGRATION */
 +
-+static struct kunit_suite is_signed_type_test_suite = {
-+	.name = "is_signed_type",
-+	.test_cases = is_signed_type_test_cases,
-+};
-+
-+kunit_test_suite(is_signed_type_test_suite);
-+
-+MODULE_LICENSE("Dual MIT/GPL");
---- a/lib/Kconfig.debug~testing-selftests-add-tests-for-the-is_signed_type-macro
-+++ a/lib/Kconfig.debug
-@@ -2525,6 +2525,18 @@ config MEMCPY_KUNIT_TEST
++static inline bool i_need_a_name(struct memory_tier *memtier)
++{
++	return false;
++}
++#endif	/* CONFIG_MIGRATION */
  
- 	  If unsure, say N.
+ static __always_inline nodemask_t get_memtier_nodemask(struct memory_tier *memtier)
+ {
+@@ -648,7 +661,7 @@ static ssize_t toptier_nodes_show(struct
  
-+config IS_SIGNED_TYPE_KUNIT_TEST
-+	tristate "Test is_signed_type() macro" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Builds unit tests for the is_signed_type() macro.
-+
-+	  For more information on KUnit and unit tests in general please refer
-+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config OVERFLOW_KUNIT_TEST
- 	tristate "Test check_*_overflow() functions at runtime" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
---- a/lib/Makefile~testing-selftests-add-tests-for-the-is_signed_type-macro
-+++ a/lib/Makefile
-@@ -377,6 +377,7 @@ obj-$(CONFIG_BITS_TEST) += test_bits.o
- obj-$(CONFIG_CMDLINE_KUNIT_TEST) += cmdline_kunit.o
- obj-$(CONFIG_SLUB_KUNIT_TEST) += slub_kunit.o
- obj-$(CONFIG_MEMCPY_KUNIT_TEST) += memcpy_kunit.o
-+obj-$(CONFIG_IS_SIGNED_TYPE_KUNIT_TEST) += is_signed_type_test.o
- obj-$(CONFIG_OVERFLOW_KUNIT_TEST) += overflow_kunit.o
- CFLAGS_stackinit_kunit.o += $(call cc-disable-warning, switch-unreachable)
- obj-$(CONFIG_STACKINIT_KUNIT_TEST) += stackinit_kunit.o
+ 	mutex_lock(&memory_tier_lock);
+ 	list_for_each_entry(memtier, &memory_tiers, list) {
+-		if (memtier->adistance_start >= top_tier_adistance)
++		if (i_need_a_name(memtier))
+ 			break;
+ 		nmask = get_memtier_nodemask(memtier);
+ 		nodes_or(top_tier_mask, top_tier_mask, nmask);
 _
 
-Patches currently in -mm which might be from bvanassche@acm.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
+procfs-add-path-to-proc-pid-fdinfo-fix.patch
+zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
+mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
+mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
+zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
+mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
+mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
+mm-demotion-expose-memory-tier-details-via-sysfs-fix.patch
+mm-demotion-expose-memory-tier-details-via-sysfs-fix-2.patch
+mm-drop-oom-code-from-exit_mmap-fix-fix.patch
+mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
+mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
+mm-gupc-refactor-check_and_migrate_movable_pages-fix.patch
+hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache-fix.patch
+hugetlb-handle-truncate-racing-with-page-faults-fix-fix.patch
+mm-reduce-noise-in-show_mem-for-lowmem-allocations-fix-2.patch
+mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
+page_ext-introduce-boot-parameter-early_page_ext-fix.patch
+mm-fix-null-ptr-deref-in-kswapd_is_running-fix.patch
+ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
 
