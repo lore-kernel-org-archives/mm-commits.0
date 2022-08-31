@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C40BECAAD5
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 01:21:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD426ECAAA1
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 01:21:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229481AbiHaBVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 Aug 2022 21:21:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46720 "EHLO
+        id S229875AbiHaBVt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 Aug 2022 21:21:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229875AbiHaBVh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2022 21:21:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C188AD98A
-        for <mm-commits@vger.kernel.org>; Tue, 30 Aug 2022 18:21:36 -0700 (PDT)
+        with ESMTP id S230215AbiHaBVl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2022 21:21:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EACEAF0E5
+        for <mm-commits@vger.kernel.org>; Tue, 30 Aug 2022 18:21:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E9C9D615EF
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 01:21:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B490C433D6;
-        Wed, 31 Aug 2022 01:21:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CD8AEB81E3C
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 01:21:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A3C0C433D6;
+        Wed, 31 Aug 2022 01:21:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661908895;
-        bh=RSwaGhWqGxLN7eZVlsWLqKIh5YOF/PpSpmemlx/Srcs=;
+        s=korg; t=1661908897;
+        bh=i37N6Dh7CeheNK1vh5OfQFrXe1SD4gdwq0Ol7HFXjCs=;
         h=Date:To:From:Subject:From;
-        b=NP2SEenti8MaGYSk9P5axlI3eP3EDD2gMAJGhCj4VrUaQLAl8h0Nf+fn078lkx5gO
-         bqnZj1Yy2Jx/I1f6v+TJu2+mx94RlQdK7VzRuDQbK8Dpp42aY8A13/L5lJpVr/0dGP
-         ZrmYBAvfV+582HQSp0JbCdrHB0Iyq3EgAO/mVYLg=
-Date:   Tue, 30 Aug 2022 18:21:34 -0700
+        b=PLwOSx7B6fLHZjN63qhciC6mu84ZNPzQ+pAOrW5lUwE0JVqNwb5bb3pG2EmS+mbB0
+         2TZn4FicKoxOomkxZ9YIAHvWWymz2PDF+GZptNbYYcd0UJ9/KofwNLGxoHqGJ0kJuT
+         x8MpWaZG3WWq63x6rIQkky5MkcdfSyPxlJemxF80=
+Date:   Tue, 30 Aug 2022 18:21:36 -0700
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch added to mm-unstable branch
-Message-Id: <20220831012135.4B490C433D6@smtp.kernel.org>
+Subject: + mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch added to mm-unstable branch
+Message-Id: <20220831012137.7A3C0C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: use num_poisoned_pages_sub() to decrease num_poisoned_pages
+     Subject: mm, hwpoison: avoid unneeded page_mapped_in_vma() overhead in collect_procs_anon()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
+     mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,59 +65,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm, hwpoison: use num_poisoned_pages_sub() to decrease num_poisoned_pages
-Date: Tue, 30 Aug 2022 20:36:01 +0800
+Subject: mm, hwpoison: avoid unneeded page_mapped_in_vma() overhead in collect_procs_anon()
+Date: Tue, 30 Aug 2022 20:36:02 +0800
 
-Use num_poisoned_pages_sub() to combine multiple atomic ops into one. Also
-num_poisoned_pages_dec() can be killed as there's no caller now.
+If vma->vm_mm != t->mm, there's no need to call page_mapped_in_vma() as
+add_to_kill() won't be called in this case. Move up the mm check to avoid
+possible unneeded calling to page_mapped_in_vma().
 
-Link: https://lkml.kernel.org/r/20220830123604.25763-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220830123604.25763-5-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    5 -----
- mm/memory-failure.c     |    6 ++++--
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/swapops.h~mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages
-+++ a/include/linux/swapops.h
-@@ -602,11 +602,6 @@ static inline void num_poisoned_pages_in
- 	atomic_long_inc(&num_poisoned_pages);
- }
- 
--static inline void num_poisoned_pages_dec(void)
--{
--	atomic_long_dec(&num_poisoned_pages);
--}
--
- static inline void num_poisoned_pages_sub(long i)
- {
- 	atomic_long_sub(i, &num_poisoned_pages);
---- a/mm/memory-failure.c~mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages
+--- a/mm/memory-failure.c~mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon
 +++ a/mm/memory-failure.c
-@@ -2596,7 +2596,7 @@ retry:
- 
- void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
- {
--	int i;
-+	int i, total = 0;
- 
- 	/*
- 	 * A further optimization is to have per section refcounted
-@@ -2609,8 +2609,10 @@ void clear_hwpoisoned_pages(struct page
- 
- 	for (i = 0; i < nr_pages; i++) {
- 		if (PageHWPoison(&memmap[i])) {
--			num_poisoned_pages_dec();
-+			total++;
- 			ClearPageHWPoison(&memmap[i]);
+@@ -521,11 +521,11 @@ static void collect_procs_anon(struct pa
+ 		anon_vma_interval_tree_foreach(vmac, &av->rb_root,
+ 					       pgoff, pgoff) {
+ 			vma = vmac->vma;
++			if (vma->vm_mm != t->mm)
++				continue;
+ 			if (!page_mapped_in_vma(page, vma))
+ 				continue;
+-			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, FSDAX_INVALID_PGOFF, vma,
+-					    to_kill);
++			add_to_kill(t, page, FSDAX_INVALID_PGOFF, vma, to_kill);
  		}
  	}
-+	if (total)
-+		num_poisoned_pages_sub(total);
- }
+ 	read_unlock(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
