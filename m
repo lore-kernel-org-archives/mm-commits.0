@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD426ECAAA1
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 01:21:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2119ECAAD5
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 01:21:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229875AbiHaBVt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 Aug 2022 21:21:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46856 "EHLO
+        id S230215AbiHaBVu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 Aug 2022 21:21:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230215AbiHaBVl (ORCPT
+        with ESMTP id S231224AbiHaBVl (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2022 21:21:41 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EACEAF0E5
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 827C6AED8A
         for <mm-commits@vger.kernel.org>; Tue, 30 Aug 2022 18:21:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CD8AEB81E3C
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 01:21:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A3C0C433D6;
-        Wed, 31 Aug 2022 01:21:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 199DE618B6
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 01:21:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BF7BC433D6;
+        Wed, 31 Aug 2022 01:21:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661908897;
-        bh=i37N6Dh7CeheNK1vh5OfQFrXe1SD4gdwq0Ol7HFXjCs=;
+        s=korg; t=1661908899;
+        bh=xTmJ06Vl/pUKdWCI25adBuoiJvxwmhOmtOb7VT2kl0w=;
         h=Date:To:From:Subject:From;
-        b=PLwOSx7B6fLHZjN63qhciC6mu84ZNPzQ+pAOrW5lUwE0JVqNwb5bb3pG2EmS+mbB0
-         2TZn4FicKoxOomkxZ9YIAHvWWymz2PDF+GZptNbYYcd0UJ9/KofwNLGxoHqGJ0kJuT
-         x8MpWaZG3WWq63x6rIQkky5MkcdfSyPxlJemxF80=
-Date:   Tue, 30 Aug 2022 18:21:36 -0700
+        b=X8fKKKr/oe5XAubjAKDtxUHpotb119ZLyutVBigOqrjMBk+/JarZBpxmSp037KNgI
+         ZrSN1GdH+iGK6VqhX2vR0Kn7Yo+Yiqyd/vdq+yLZ0KxG2iQdfHj/dtZbWVorNskdn0
+         nIKhlPw1dLkCd6ttiR3FYqdb7tvNk/G7g3ZZrZpk=
+Date:   Tue, 30 Aug 2022 18:21:38 -0700
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch added to mm-unstable branch
-Message-Id: <20220831012137.7A3C0C433D6@smtp.kernel.org>
+Subject: + mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch added to mm-unstable branch
+Message-Id: <20220831012139.6BF7BC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: avoid unneeded page_mapped_in_vma() overhead in collect_procs_anon()
+     Subject: mm, hwpoison: check PageTable() explicitly in hwpoison_user_mappings()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
+     mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,39 +65,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm, hwpoison: avoid unneeded page_mapped_in_vma() overhead in collect_procs_anon()
-Date: Tue, 30 Aug 2022 20:36:02 +0800
+Subject: mm, hwpoison: check PageTable() explicitly in hwpoison_user_mappings()
+Date: Tue, 30 Aug 2022 20:36:03 +0800
 
-If vma->vm_mm != t->mm, there's no need to call page_mapped_in_vma() as
-add_to_kill() won't be called in this case. Move up the mm check to avoid
-possible unneeded calling to page_mapped_in_vma().
+PageTable can't be handled by memory_failure(). Filter it out explicitly in
+hwpoison_user_mappings(). This will also make code more consistent with the
+relevant check in unpoison_memory().
 
-Link: https://lkml.kernel.org/r/20220830123604.25763-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220830123604.25763-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon
+--- a/mm/memory-failure.c~mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings
 +++ a/mm/memory-failure.c
-@@ -521,11 +521,11 @@ static void collect_procs_anon(struct pa
- 		anon_vma_interval_tree_foreach(vmac, &av->rb_root,
- 					       pgoff, pgoff) {
- 			vma = vmac->vma;
-+			if (vma->vm_mm != t->mm)
-+				continue;
- 			if (!page_mapped_in_vma(page, vma))
- 				continue;
--			if (vma->vm_mm == t->mm)
--				add_to_kill(t, page, FSDAX_INVALID_PGOFF, vma,
--					    to_kill);
-+			add_to_kill(t, page, FSDAX_INVALID_PGOFF, vma, to_kill);
- 		}
- 	}
- 	read_unlock(&tasklist_lock);
+@@ -1406,7 +1406,7 @@ static bool hwpoison_user_mappings(struc
+ 	 * Here we are interested only in user-mapped pages, so skip any
+ 	 * other types of pages.
+ 	 */
+-	if (PageReserved(p) || PageSlab(p))
++	if (PageReserved(p) || PageSlab(p) || PageTable(p))
+ 		return true;
+ 	if (!(PageLRU(hpage) || PageHuge(p)))
+ 		return true;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
