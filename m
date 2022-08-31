@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 057F2ECAAD4
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 23:07:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C808C0502C
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 23:07:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230189AbiHaXHA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230370AbiHaXHA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 31 Aug 2022 19:07:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55748 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231531AbiHaXGw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 19:06:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D47D7F8EFA
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 16:06:51 -0700 (PDT)
+        with ESMTP id S231991AbiHaXG7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 19:06:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0572CF8F71
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 16:06:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 715C661C5D
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 23:06:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4EBCC433C1;
-        Wed, 31 Aug 2022 23:06:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9574061C60
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 23:06:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB76AC433C1;
+        Wed, 31 Aug 2022 23:06:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661987210;
-        bh=Is4AXTCZKPuS1w8Rv4Nb9JqsMe8anevxxcR6ifev2CY=;
+        s=korg; t=1661987213;
+        bh=71AUgVLuw4UdOVxx83xFeSE/bafPQKinN9gLVCHoIl8=;
         h=Date:To:From:Subject:From;
-        b=jqmjNUHoUyqgPFjaZPl/G32i1OJaAz10hSCJy4bAIFyQN4XDiNm1BQbsAdXikWLZQ
-         O6iKRngYp0nFiFUvOpw5PFG4Frbif+VlEjrODc4o8QlqQGrnLzV2AXQt+l0O+s1068
-         ielAMfj/Kp+o7z5wxUFytVqTaRlptdSPrm4VMGOE=
-Date:   Wed, 31 Aug 2022 16:06:50 -0700
+        b=F4dniggedlH+t2/grXwns5waxRNKMmj0Dkqgrwix7VrfGdnGrvTTDWu8UpBaNjF0x
+         qOo0ZqWeYAaXh76bQiV62lBwDK808y2EOaCYyUVXmkf4d1kTT5GIfiesxGZ23HepUF
+         mA8ZORZ19LFnDvSvdPanjXMWUCKSc2cFaQK701rg=
+Date:   Wed, 31 Aug 2022 16:06:52 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         trond.myklebust@hammerspace.com, miklos@szeredi.hu,
         logang@deltatee.com, jack@suse.cz, hch@infradead.org,
         djwong@kernel.org, david@redhat.com, axboe@kernel.dk,
         anna@kernel.org, jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfs-direct-io-convert-to-foll_pin-pages.patch added to mm-unstable branch
-Message-Id: <20220831230650.C4EBCC433C1@smtp.kernel.org>
+Subject: + fuse-convert-direct-io-paths-to-use-foll_pin.patch added to mm-unstable branch
+Message-Id: <20220831230652.EB76AC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: NFS: direct-io: convert to FOLL_PIN pages
+     Subject: fuse: convert direct IO paths to use FOLL_PIN
 has been added to the -mm mm-unstable branch.  Its filename is
-     nfs-direct-io-convert-to-foll_pin-pages.patch
+     fuse-convert-direct-io-paths-to-use-foll_pin.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfs-direct-io-convert-to-foll_pin-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fuse-convert-direct-io-paths-to-use-foll_pin.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,19 +68,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: NFS: direct-io: convert to FOLL_PIN pages
-Date: Tue, 30 Aug 2022 21:18:42 -0700
+Subject: fuse: convert direct IO paths to use FOLL_PIN
+Date: Tue, 30 Aug 2022 21:18:43 -0700
 
-Convert the NFS Direct IO layer to use pin_user_pages_fast() and
+Convert the fuse filesystem to use pin_user_pages_fast() and
 unpin_user_page(), instead of get_user_pages_fast() and put_page().
 
 The user of pin_user_pages_fast() depends upon:
 
 1) CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO, and
 
-2) User-space-backed pages: user_backed_iter(i) == true
+2) User-space-backed pages or ITER_BVEC pages.
 
-Link: https://lkml.kernel.org/r/20220831041843.973026-7-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20220831041843.973026-8-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Anna Schumaker <anna@kernel.org>
@@ -95,72 +95,120 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/direct.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ fs/fuse/dev.c    |   11 +++++++++--
+ fs/fuse/file.c   |   32 +++++++++++++++++++++-----------
+ fs/fuse/fuse_i.h |    1 +
+ 3 files changed, 31 insertions(+), 13 deletions(-)
 
---- a/fs/nfs/direct.c~nfs-direct-io-convert-to-foll_pin-pages
-+++ a/fs/nfs/direct.c
-@@ -142,11 +142,13 @@ int nfs_swap_rw(struct kiocb *iocb, stru
- 	return 0;
- }
- 
--static void nfs_direct_release_pages(struct page **pages, unsigned int npages)
-+static void nfs_direct_release_pages(struct iov_iter *iter, struct page **pages,
-+				     unsigned int npages)
- {
--	unsigned int i;
--	for (i = 0; i < npages; i++)
--		put_page(pages[i]);
-+	if (user_backed_iter(iter) || iov_iter_is_bvec(iter))
-+		dio_w_unpin_user_pages(pages, npages);
-+	else
-+		release_pages(pages, npages);
- }
- 
- void nfs_init_cinfo_from_dreq(struct nfs_commit_info *cinfo,
-@@ -332,11 +334,11 @@ static ssize_t nfs_direct_read_schedule_
- 		size_t pgbase;
- 		unsigned npages, i;
- 
--		result = iov_iter_get_pages_alloc2(iter, &pagevec,
-+		result = dio_w_iov_iter_pin_pages_alloc(iter, &pagevec,
- 						  rsize, &pgbase);
- 		if (result < 0)
- 			break;
--	
+--- a/fs/fuse/dev.c~fuse-convert-direct-io-paths-to-use-foll_pin
++++ a/fs/fuse/dev.c
+@@ -675,7 +675,12 @@ static void fuse_copy_finish(struct fuse
+ 			flush_dcache_page(cs->pg);
+ 			set_page_dirty_lock(cs->pg);
+ 		}
+-		put_page(cs->pg);
++		if (!cs->pipebufs &&
++		    (user_backed_iter(cs->iter) || iov_iter_is_bvec(cs->iter)))
++			dio_w_unpin_user_page(cs->pg);
 +
- 		bytes = result;
- 		npages = (result + pgbase + PAGE_SIZE - 1) / PAGE_SIZE;
- 		for (i = 0; i < npages; i++) {
-@@ -362,7 +364,7 @@ static ssize_t nfs_direct_read_schedule_
- 			pos += req_len;
- 			dreq->bytes_left -= req_len;
++		else
++			put_page(cs->pg);
+ 	}
+ 	cs->pg = NULL;
+ }
+@@ -730,7 +735,9 @@ static int fuse_copy_fill(struct fuse_co
  		}
--		nfs_direct_release_pages(pagevec, npages);
-+		nfs_direct_release_pages(iter, pagevec, npages);
- 		kvfree(pagevec);
- 		if (result < 0)
- 			break;
-@@ -791,8 +793,8 @@ static ssize_t nfs_direct_write_schedule
- 		size_t pgbase;
- 		unsigned npages, i;
+ 	} else {
+ 		size_t off;
+-		err = iov_iter_get_pages2(cs->iter, &page, PAGE_SIZE, 1, &off);
++
++		err = dio_w_iov_iter_pin_pages(cs->iter, &page, PAGE_SIZE, 1,
++					       &off);
+ 		if (err < 0)
+ 			return err;
+ 		BUG_ON(!err);
+--- a/fs/fuse/file.c~fuse-convert-direct-io-paths-to-use-foll_pin
++++ a/fs/fuse/file.c
+@@ -625,14 +625,19 @@ void fuse_read_args_fill(struct fuse_io_
+ }
  
--		result = iov_iter_get_pages_alloc2(iter, &pagevec,
--						  wsize, &pgbase);
-+		result = dio_w_iov_iter_pin_pages_alloc(iter, &pagevec,
-+							wsize, &pgbase);
- 		if (result < 0)
+ static void fuse_release_user_pages(struct fuse_args_pages *ap,
+-				    bool should_dirty)
++				    bool should_dirty, bool is_user_or_bvec)
+ {
+ 	unsigned int i;
+ 
+-	for (i = 0; i < ap->num_pages; i++) {
+-		if (should_dirty)
+-			set_page_dirty_lock(ap->pages[i]);
+-		put_page(ap->pages[i]);
++	if (is_user_or_bvec) {
++		dio_w_unpin_user_pages_dirty_lock(ap->pages, ap->num_pages,
++						  should_dirty);
++	} else {
++		for (i = 0; i < ap->num_pages; i++) {
++			if (should_dirty)
++				set_page_dirty_lock(ap->pages[i]);
++			put_page(ap->pages[i]);
++		}
+ 	}
+ }
+ 
+@@ -733,7 +738,7 @@ static void fuse_aio_complete_req(struct
+ 	struct fuse_io_priv *io = ia->io;
+ 	ssize_t pos = -1;
+ 
+-	fuse_release_user_pages(&ia->ap, io->should_dirty);
++	fuse_release_user_pages(&ia->ap, io->should_dirty, io->is_user_or_bvec);
+ 
+ 	if (err) {
+ 		/* Nothing */
+@@ -1414,10 +1419,10 @@ static int fuse_get_user_pages(struct fu
+ 	while (nbytes < *nbytesp && ap->num_pages < max_pages) {
+ 		unsigned npages;
+ 		size_t start;
+-		ret = iov_iter_get_pages2(ii, &ap->pages[ap->num_pages],
+-					*nbytesp - nbytes,
+-					max_pages - ap->num_pages,
+-					&start);
++		ret = dio_w_iov_iter_pin_pages(ii, &ap->pages[ap->num_pages],
++					       *nbytesp - nbytes,
++					       max_pages - ap->num_pages,
++					       &start);
+ 		if (ret < 0)
  			break;
  
-@@ -829,7 +831,7 @@ static ssize_t nfs_direct_write_schedule
- 			pos += req_len;
- 			dreq->bytes_left -= req_len;
+@@ -1483,6 +1488,10 @@ ssize_t fuse_direct_io(struct fuse_io_pr
+ 		fl_owner_t owner = current->files;
+ 		size_t nbytes = min(count, nmax);
+ 
++		/* For use in fuse_release_user_pages(): */
++		io->is_user_or_bvec = user_backed_iter(iter) ||
++				      iov_iter_is_bvec(iter);
++
+ 		err = fuse_get_user_pages(&ia->ap, iter, &nbytes, write,
+ 					  max_pages);
+ 		if (err && !nbytes)
+@@ -1498,7 +1507,8 @@ ssize_t fuse_direct_io(struct fuse_io_pr
  		}
--		nfs_direct_release_pages(pagevec, npages);
-+		nfs_direct_release_pages(iter, pagevec, npages);
- 		kvfree(pagevec);
- 		if (result < 0)
- 			break;
+ 
+ 		if (!io->async || nres < 0) {
+-			fuse_release_user_pages(&ia->ap, io->should_dirty);
++			fuse_release_user_pages(&ia->ap, io->should_dirty,
++						io->is_user_or_bvec);
+ 			fuse_io_free(ia);
+ 		}
+ 		ia = NULL;
+--- a/fs/fuse/fuse_i.h~fuse-convert-direct-io-paths-to-use-foll_pin
++++ a/fs/fuse/fuse_i.h
+@@ -290,6 +290,7 @@ struct fuse_io_priv {
+ 	struct kiocb *iocb;
+ 	struct completion *done;
+ 	bool blocking;
++	bool is_user_or_bvec;
+ };
+ 
+ #define FUSE_IO_PRIV_SYNC(i) \
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
