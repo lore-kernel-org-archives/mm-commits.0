@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E3C3ECAAD4
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 21:49:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AACDECAAD4
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 21:49:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232225AbiHaVtT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Aug 2022 17:49:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54258 "EHLO
+        id S232234AbiHaVt2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Aug 2022 17:49:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232111AbiHaVtQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 17:49:16 -0400
+        with ESMTP id S232279AbiHaVtS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 17:49:18 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79F40B5A47
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 14:49:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62422F72F5
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 14:49:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2443EB82386
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 21:49:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AED03C433C1;
-        Wed, 31 Aug 2022 21:49:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1476CB8238B
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 21:49:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0F74C433C1;
+        Wed, 31 Aug 2022 21:49:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661982552;
-        bh=16VSBC3t9PKLULs2OElRFfKIHPqAUhhDp5/1Y6vD2CE=;
+        s=korg; t=1661982554;
+        bh=CW5Vc3IAWUpLml318ykeGlTC2aqMjZpizpquKD0Abcg=;
         h=Date:To:From:Subject:From;
-        b=ZPEv5FUzXkKT/Ql6TBw+GuP3kjUJEo6dMc95KGU6Hk1TFn2dmLCIe0KKVmYYwZZcQ
-         Nk6k3IyUvR9Mym2y6xVRGeuHJGxBh8S0UhvZxcqvL9iZLmOMy6e+ljI+0Ejwhn4GxW
-         TRlAsoXHfaWYTmyQ71bQBJoJnLUXNObeEy3gznjs=
-Date:   Wed, 31 Aug 2022 14:49:12 -0700
+        b=fpQEmh9gGbhgmnIHRG3iJpF5kanqZDC+4x5PGOF7heN9DtBaCXYj3lE/gSXXO0daZ
+         Uq3qQng9fXtQKEbLoFk+W+EIRCtkQX5jRHspmgpyuzbHQiKYbTNBrstb2/iefk52TA
+         teGZD+U7BM5Qazqn+DDVINtqNYuqMO6VlF1ZO/Dk=
+Date:   Wed, 31 Aug 2022 14:49:14 -0700
 To:     mm-commits@vger.kernel.org, syzkaller-bugs@googlegroups.com,
         dan.carpenter@oracle.com, chenxiaosong2@huawei.com,
         anton@tuxera.com, yin31149@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ntfs-fix-out-of-bounds-read-in-ntfs_attr_find.patch added to mm-nonmm-unstable branch
-Message-Id: <20220831214912.AED03C433C1@smtp.kernel.org>
+Subject: + ntfs-check-overflow-when-iterates-attr_records.patch added to mm-nonmm-unstable branch
+Message-Id: <20220831214914.B0F74C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: fix out-of-bounds read in ntfs_attr_find()
+     Subject: ntfs: check overflow when iterating ATTR_RECORDs
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ntfs-fix-out-of-bounds-read-in-ntfs_attr_find.patch
+     ntfs-check-overflow-when-iterates-attr_records.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-fix-out-of-bounds-read-in-ntfs_attr_find.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-check-overflow-when-iterates-attr_records.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,116 +66,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hawkins Jiawei <yin31149@gmail.com>
-Subject: ntfs: fix out-of-bounds read in ntfs_attr_find()
-Date: Thu, 1 Sep 2022 00:09:36 +0800
+Subject: ntfs: check overflow when iterating ATTR_RECORDs
+Date: Thu, 1 Sep 2022 00:09:38 +0800
 
-Kernel iterates over ATTR_RECORDs in mft record in ntfs_attr_find().  To
-ensure access on these ATTR_RECORDs are within bounds, kernel will do some
-checking during iteration.
+Kernel iterates over ATTR_RECORDs in mft record in ntfs_attr_find(). 
+Because the ATTR_RECORDs are next to each other, kernel can get the next
+ATTR_RECORD from end address of current ATTR_RECORD, through current
+ATTR_RECORD length field.
 
-The problem is that during checking whether ATTR_RECORD's name is within
-bounds, kernel will dereferences the ATTR_RECORD name_offset field, before
-checking this ATTR_RECORD strcture is within bounds.  This problem may
-result out-of-bounds read in ntfs_attr_find(), reported by Syzkaller:
+The problem is that during iteration, when kernel calculates the end
+address of current ATTR_RECORD, kernel may trigger an integer overflow bug
+in executing `a = (ATTR_RECORD*)((u8*)a + le32_to_cpu(a->length))`.  This
+may wrap, leading to a forever iteration on 32bit systems.
 
-==================================================================
-BUG: KASAN: use-after-free in ntfs_attr_find+0xc02/0xce0 fs/ntfs/attrib.c:597
-Read of size 2 at addr ffff88807e352009 by task syz-executor153/3607
+This patch solves it by adding some checks on calculating end address
+of current ATTR_RECORD during iteration.
 
-[...]
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:88 [inline]
- dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
- print_address_description mm/kasan/report.c:317 [inline]
- print_report.cold+0x2ba/0x719 mm/kasan/report.c:433
- kasan_report+0xb1/0x1e0 mm/kasan/report.c:495
- ntfs_attr_find+0xc02/0xce0 fs/ntfs/attrib.c:597
- ntfs_attr_lookup+0x1056/0x2070 fs/ntfs/attrib.c:1193
- ntfs_read_inode_mount+0x89a/0x2580 fs/ntfs/inode.c:1845
- ntfs_fill_super+0x1799/0x9320 fs/ntfs/super.c:2854
- mount_bdev+0x34d/0x410 fs/super.c:1400
- legacy_get_tree+0x105/0x220 fs/fs_context.c:610
- vfs_get_tree+0x89/0x2f0 fs/super.c:1530
- do_new_mount fs/namespace.c:3040 [inline]
- path_mount+0x1326/0x1e20 fs/namespace.c:3370
- do_mount fs/namespace.c:3383 [inline]
- __do_sys_mount fs/namespace.c:3591 [inline]
- __se_sys_mount fs/namespace.c:3568 [inline]
- __x64_sys_mount+0x27f/0x300 fs/namespace.c:3568
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
- [...]
- </TASK>
-
-The buggy address belongs to the physical page:
-page:ffffea0001f8d400 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x7e350
-head:ffffea0001f8d400 order:3 compound_mapcount:0 compound_pincount:0
-flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
-raw: 00fff00000010200 0000000000000000 dead000000000122 ffff888011842140
-raw: 0000000000000000 0000000000040004 00000001ffffffff 0000000000000000
-page dumped because: kasan: bad access detected
-Memory state around the buggy address:
- ffff88807e351f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
- ffff88807e351f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->ffff88807e352000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                      ^
- ffff88807e352080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff88807e352100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-==================================================================
-
-This patch solves it by moving the ATTR_RECORD strcture's bounds checking
-earlier, then checking whether ATTR_RECORD's name is within bounds. 
-What's more, this patch also add some comments to improve its
-maintainability.
-
-Link: https://lkml.kernel.org/r/20220831160935.3409-3-yin31149@gmail.com
-Link: https://lore.kernel.org/all/1636796c-c85e-7f47-e96f-e074fee3c7d3@huawei.com/
-Link: https://groups.google.com/g/syzkaller-bugs/c/t_XdeKPGTR4/m/LECAuIGcBgAJ
-Signed-off-by: chenxiaosong (A) <chenxiaosong2@huawei.com>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Link: https://lkml.kernel.org/r/20220831160935.3409-4-yin31149@gmail.com
+Link: https://lore.kernel.org/all/20220827105842.GM2030@kadam/
 Signed-off-by: Hawkins Jiawei <yin31149@gmail.com>
-Reported-by: syzbot+5f8dcabe4a3b2c51c607@syzkaller.appspotmail.com
-Tested-by: syzbot+5f8dcabe4a3b2c51c607@syzkaller.appspotmail.com
+Suggested-by: Dan Carpenter <dan.carpenter@oracle.com>
 Cc: Anton Altaparmakov <anton@tuxera.com>
+Cc: chenxiaosong (A) <chenxiaosong2@huawei.com>
 Cc: syzkaller-bugs <syzkaller-bugs@googlegroups.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/attrib.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ fs/ntfs/attrib.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/fs/ntfs/attrib.c~ntfs-fix-out-of-bounds-read-in-ntfs_attr_find
+--- a/fs/ntfs/attrib.c~ntfs-check-overflow-when-iterates-attr_records
 +++ a/fs/ntfs/attrib.c
-@@ -594,11 +594,23 @@ static int ntfs_attr_find(const ATTR_TYP
- 	for (;;	a = (ATTR_RECORD*)((u8*)a + le32_to_cpu(a->length))) {
- 		u8 *mrec_end = (u8 *)ctx->mrec +
- 		               le32_to_cpu(ctx->mrec->bytes_allocated);
--		u8 *name_end = (u8 *)a + le16_to_cpu(a->name_offset) +
--			       a->name_length * sizeof(ntfschar);
--		if ((u8*)a < (u8*)ctx->mrec || (u8*)a > mrec_end ||
--		    name_end > mrec_end)
-+		u8 *name_end;
-+
-+		/* check whether ATTR_RECORD wrap */
-+		if ((u8 *)a < (u8 *)ctx->mrec)
+@@ -617,6 +617,14 @@ static int ntfs_attr_find(const ATTR_TYP
+ 			return -ENOENT;
+ 		if (unlikely(!a->length))
  			break;
 +
-+		/* check whether Attribute Record Header is within bounds */
-+		if ((u8 *)a > mrec_end ||
-+		    (u8 *)a + sizeof(ATTR_RECORD) > mrec_end)
++		/* check whether ATTR_RECORD's length wrap */
++		if ((u8 *)a + le32_to_cpu(a->length) < (u8 *)a)
++			break;
++		/* check whether ATTR_RECORD's length is within bounds */
++		if ((u8 *)a + le32_to_cpu(a->length) > mrec_end)
 +			break;
 +
-+		/* check whether ATTR_RECORD's name is within bounds */
-+		name_end = (u8 *)a + le16_to_cpu(a->name_offset) +
-+			   a->name_length * sizeof(ntfschar);
-+		if (name_end > mrec_end)
-+			break;
-+
- 		ctx->attr = a;
- 		if (unlikely(le32_to_cpu(a->type) > le32_to_cpu(type) ||
- 				a->type == AT_END))
+ 		if (a->type != type)
+ 			continue;
+ 		/*
 _
 
 Patches currently in -mm which might be from yin31149@gmail.com are
