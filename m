@@ -2,59 +2,74 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3996EECAAD1
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 20:48:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99BCAECAAD1
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 20:49:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229498AbiHaUsM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Aug 2022 16:48:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54218 "EHLO
+        id S229575AbiHaUto (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Aug 2022 16:49:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230456AbiHaUsL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 16:48:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E04A0F23CC
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 13:48:09 -0700 (PDT)
+        with ESMTP id S230078AbiHaUtn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 16:49:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 965C8F241F
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 13:49:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 97035B82012
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 20:48:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CB28C433D6;
-        Wed, 31 Aug 2022 20:48:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2D10A619CB
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 20:49:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82DCCC433C1;
+        Wed, 31 Aug 2022 20:49:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661978887;
-        bh=7mhOUHpQwFEddVZ4cDkWMTJcFIHeATKHSnSY8HVgFTA=;
+        s=korg; t=1661978979;
+        bh=3/KFjdsUS1mZfMWO1h4L+9EJ/PmMzvwk5601D5OASwA=;
         h=Date:To:From:Subject:From;
-        b=KmvqYZEhmy0JXjrcKZ+Pd02a5mbCJWTcvVOeDl2gFmrVMPqkHw3nMDnpto5d3VWxO
-         AtRHCElIUsvhFIuP4ZzvHMfZiHJ06TFmoLOlcH49BopXWsXdj8lnwBY0ShnB3qa8bN
-         Q/SKPk5L07/pRHhG/k6YT5e59s6RKLbjPcD1hjOA=
-Date:   Wed, 31 Aug 2022 13:48:06 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
-        mgorman@suse.de, hch@infradead.org, hannes@cmpxchg.org,
-        dan.carpenter@oracle.com, akpm@linux-foundation.org,
+        b=vBT/SwIxqcAQAyL9/idXoud1+dqpmCnON7cm/fQTllpZxO47Az4s49jIEq2R0KoqV
+         bNXFkgOs12HJVm1Egp5nB6Bz/53m0J7yI14rssyXahSQIiOJ6OnEVyce4jle0I7AZF
+         Cup1VUGI72S+Ip9PdIoU/1LQ2T0GcdAjMdr3cyqE=
+Date:   Wed, 31 Aug 2022 13:49:38 -0700
+To:     mm-commits@vger.kernel.org, mhocko@suse.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix.patch removed from -mm tree
-Message-Id: <20220831204807.1CB28C433D6@smtp.kernel.org>
+Subject: + pc-mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix-2.patch added to mm-unstable branch
+Message-Id: <20220831204939.82DCCC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix
-has been removed from the -mm tree.  Its filename was
-     mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix.patch
+The patch titled
+     Subject: pc-mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix-2
+has been added to the -mm mm-unstable branch.  Its filename is
+     pc-mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix-2.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pc-mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix-2.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix
-Date: Tue Aug 30 06:53:22 PM PDT 2022
+From: Michal Hocko <mhocko@suse.com>
+Subject: pc-mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix-2
+Date: Wed, 31 Aug 2022 09:58:35 +0200
 
-fix build, remove unneeded __show_mem() arg
+fix build
+
 
 lib/show_mem.c: In function '__show_mem':
 lib/show_mem.c:17:9: error: too many arguments to function 'show_free_areas'
@@ -63,99 +78,31 @@ lib/show_mem.c:17:9: error: too many arguments to function 'show_free_areas'
 In file included from lib/show_mem.c:8:
 ./include/linux/mm.h:1842:28: note: declared here
  1842 | static void __maybe_unused show_free_areas(unsigned int flags, nodemask_t *nodemask)
-      |                            ^~~~~~~~~~~~~~~
 
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/Yw8Uq5rF19qVUQH+@dhcp22.suse.cz
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- lib/show_mem.c     |    4 ++--
- mm/oom_kill.c      |    2 +-
- mm/page_alloc.c    |    2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ lib/show_mem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix
-+++ a/include/linux/mm.h
-@@ -2583,10 +2583,10 @@ extern int __meminit init_per_zone_wmark
- extern void mem_init(void);
- extern void __init mmap_init(void);
- 
--extern void __show_mem(unsigned int flags, nodemask_t *nodemask, int max_zone_idx);
-+extern void __show_mem(unsigned int flags, nodemask_t *nodemask);
- static inline void show_mem(unsigned int flags, nodemask_t *nodemask)
- {
--	__show_mem(flags, nodemask, MAX_NR_ZONES - 1);
-+	__show_mem(flags, nodemask);
- }
- extern long si_mem_available(void);
- extern void si_meminfo(struct sysinfo * val);
---- a/lib/show_mem.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix
+--- a/lib/show_mem.c~pc-mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix-2
 +++ a/lib/show_mem.c
-@@ -8,13 +8,13 @@
- #include <linux/mm.h>
- #include <linux/cma.h>
- 
--void __show_mem(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
-+void __show_mem(unsigned int filter, nodemask_t *nodemask)
- {
- 	pg_data_t *pgdat;
+@@ -14,7 +14,7 @@ void __show_mem(unsigned int filter, nod
  	unsigned long total = 0, reserved = 0, highmem = 0;
  
  	printk("Mem-Info:\n");
 -	show_free_areas(filter, nodemask, max_zone_idx);
-+	show_free_areas(filter, nodemask);
++	__show_free_areas(filter, nodemask, max_zone_idx);
  
  	for_each_online_pgdat(pgdat) {
  		int zoneid;
---- a/mm/oom_kill.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix
-+++ a/mm/oom_kill.c
-@@ -461,7 +461,7 @@ static void dump_header(struct oom_contr
- 	if (is_memcg_oom(oc))
- 		mem_cgroup_print_oom_meminfo(oc->memcg);
- 	else {
--		__show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask, gfp_zone(oc->gfp_mask));
-+		__show_mem(SHOW_MEM_FILTER_NODES, oc->nodemask);
- 		if (should_dump_unreclaim_slab())
- 			dump_unreclaimable_slab();
- 	}
---- a/mm/page_alloc.c~mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix
-+++ a/mm/page_alloc.c
-@@ -4329,7 +4329,7 @@ static void warn_alloc_show_mem(gfp_t gf
- 	if (!in_task() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
- 		filter &= ~SHOW_MEM_FILTER_NODES;
- 
--	__show_mem(filter, nodemask, gfp_zone(gfp_mask));
-+	__show_mem(filter, nodemask);
- }
- 
- void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-page_alloc-fix-race-condition-between-build_all_zonelists-and-page-allocation-fix.patch
-procfs-add-path-to-proc-pid-fdinfo-fix.patch
-zsmalloc-zs_object_copy-add-clarifying-comment-fix.patch
-mm-gupc-simplify-and-fix-check_and_migrate_movable_pages-return-codes-fix-fix.patch
-mm-oom_kill-add-trace-logs-in-process_mrelease-system-call-fix.patch
-zsmalloc-zs_object_copy-replace-email-link-to-doc-checkpatch-fixes.patch
-mm-demotion-add-support-for-explicit-memory-tiers-fix.patch
-mm-demotion-update-node_is_toptier-to-work-with-memory-tiers-fix-2.patch
-mm-drop-oom-code-from-exit_mmap-fix-fix.patch
-mm-delete-unused-mmf_oom_victim-flag-vs-mglru.patch
-mm-add-merging-after-mremap-resize-checkpatch-fixes.patch
-mm-gupc-refactor-check_and_migrate_movable_pages-fix.patch
-hugetlb-rename-remove_huge_page-to-hugetlb_delete_from_page_cache-fix.patch
-hugetlb-handle-truncate-racing-with-page-faults-fix-fix.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree.patch
-mm-reduce-noise-in-show_mem-for-lowmem-allocations-vs-mapletree-fix.patch
-page_ext-introduce-boot-parameter-early_page_ext-fix.patch
-mm-fix-null-ptr-deref-in-kswapd_is_running-fix.patch
-ia64-fix-clock_getresclock_monotonic-to-report-itc-frequency-checkpatch-fixes.patch
+mm-reduce-noise-in-show_mem-for-lowmem-allocations.patch
+mm-reduce-noise-in-show_mem-for-lowmem-allocations-update.patch
+pc-mm-reduce-noise-in-show_mem-for-lowmem-allocations-update-fix-2.patch
 
