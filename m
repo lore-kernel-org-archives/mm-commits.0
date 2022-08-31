@@ -2,45 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E75B1ECAAD1
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 22:03:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03351ECAAD4
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 23:02:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232537AbiHaWDq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Aug 2022 18:03:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53896 "EHLO
+        id S230478AbiHaXC1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Aug 2022 19:02:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232503AbiHaWDm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 18:03:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D50CBE8301
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 15:03:41 -0700 (PDT)
+        with ESMTP id S230056AbiHaXC0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 19:02:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F016E39BB
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 16:02:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7010961BBC
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 22:03:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAFFDC433C1;
-        Wed, 31 Aug 2022 22:03:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5760361BF4
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 23:02:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A767FC433D6;
+        Wed, 31 Aug 2022 23:02:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661983420;
-        bh=xPPWDmtxDL7gcBqxsv6RPyVB4oR0Z/m9XXIDOj/dwCU=;
+        s=korg; t=1661986942;
+        bh=+MwCNSLFl2sxX4bhQRI8YLDX5bDK1agN9sDJSiuWfwQ=;
         h=Date:To:From:Subject:From;
-        b=JgI6ej45g/wAS5OP+Xpv25TagG/TLxOlDLw+NABEldHvFUzMZuZc2nOkQw9qfossQ
-         Y+k5Utj0Kem/9VzZJG6CbXFmNDsJ0XyyiEjBJWixk1JIrlwTSFdA1E/vNZKeDmhdlf
-         ADNJZuI7aqHDlD3AOYFqR4J9s2wLa2Ua0unm9T8w=
-Date:   Wed, 31 Aug 2022 15:03:39 -0700
-To:     mm-commits@vger.kernel.org, zhangxuezhi1@coolpad.com,
-        yangtiezhu@loongson.cn, xyangxi5@gmail.com, tangmeng@uniontech.com,
-        pmladek@suse.com, penguin-kernel@I-love.SAKURA.ne.jp,
-        mcgrof@kernel.org, john.ogness@linutronix.de, jirislaby@kernel.org,
-        ilpo.jarvinen@linux.intel.com, gregkh@linuxfoundation.org,
-        gpiccoli@igalia.com, elver@google.com, davidgow@google.com,
-        dankamongmen@gmail.com, daniel.vetter@intel.com,
-        chris@chris-wilson.co.uk, bigeasy@linutronix.de,
-        daniel.vetter@ffwll.ch, akpm@linux-foundation.org
+        b=gB2WFua+VXEqdkEsH4e/9mx+PWSzZ3SQFRu/uJmkPOZid/EpJVNDL9kG2EpGbsMgD
+         MJ+WhF7yxAZWkuMkLcl/BXXE4mOUPeGyoEN+JW7DXHmLTrM/7i+MpiM45Attky+atM
+         JjMrXdxM9/9H1Lza8hFj+GCEeYQssjQ1V+F3HigY=
+Date:   Wed, 31 Aug 2022 16:02:21 -0700
+To:     mm-commits@vger.kernel.org, urezki@gmail.com, bhe@redhat.com,
+        song@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-panic-drop-unblank_screen-call.patch added to mm-nonmm-unstable branch
-Message-Id: <20220831220340.BAFFDC433C1@smtp.kernel.org>
+Subject: + mm-vmalloc-extend-find_vmap_lowest_match_check-with-extra-arguments.patch added to mm-unstable branch
+Message-Id: <20220831230222.A767FC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/panic: drop unblank_screen call
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-panic-drop-unblank_screen-call.patch
+     Subject: mm/vmalloc: extend find_vmap_lowest_match_check with extra arguments
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmalloc-extend-find_vmap_lowest_match_check-with-extra-arguments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-drop-unblank_screen-call.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-extend-find_vmap_lowest_match_check-with-extra-arguments.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -71,137 +64,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: kernel/panic: drop unblank_screen call
-Date: Tue, 30 Aug 2022 16:50:04 +0200
+From: Song Liu <song@kernel.org>
+Subject: mm/vmalloc: extend find_vmap_lowest_match_check with extra arguments
+Date: Tue, 30 Aug 2022 22:27:34 -0700
 
-console_unblank() does this too (called in both places right after), and
-with a lot more confidence inspiring approach to locking.
+find_vmap_lowest_match() is now able to handle different roots.  Make
+similar changes to find_vmap_lowest_match_check() and
+find_vmap_lowest_linear_match() to handle different trees.
 
-Reconstructing this story is very strange:
-
-In b61312d353da ("oops handling: ensure that any oops is flushed to the
-mtdoops console") it is claimed that a printk(" "); flushed out the
-console buffer, which was removed in e3e8a75d2acf ("[PATCH] Extract and
-use wake_up_klogd()").  In todays kernels this is done way earlier in
-console_flush_on_panic with some really nasty tricks.  I didn't bother to
-fully reconstruct this all, least because the call to bust_spinlock(0);
-gets moved every few years, depending upon how the wind blows (or well,
-who screamed loudest about the various issue each call site caused).
-
-Before that commit the only calls to console_unblank() where in s390 arch
-code.
-
-The other side here is the console->unblank callback, which was introduced
-in 2.1.31 for the vt driver.  Which predates the console_unblank()
-function by a lot, which was added (without users) in 2.4.14.3.  So pretty
-much impossible to guess at any motivation here.  Also afaict the vt
-driver is the only (and always was the only) console driver implementing
-the unblank callback, so no idea why a call to console_unblank() was added
-for the mtdooops driver - the action actually flushing out the console
-buffers is done from console_unlock() only.
-
-Note that as prep for the s390 users the locking was adjusted in 2.5.22 (I
-couldn't figure out how to properly reference the BK commit from the
-historical git trees) from a normal semaphore to a trylock.
-
-Note that a copy of the direct unblank_screen() call was added to panic()
-in c7c3f05e341a ("panic: avoid deadlocks in re-entrant console drivers"),
-which partially inlined the bust_spinlocks(0); call.
-
-Long story short, I have no idea why the direct call to unblank_screen
-survived for so long (the infrastructure to do it properly existed for
-years), nor why it wasn't removed when the console_unblank() call was
-finally added.  But it makes a ton more sense to finally do that than not
-- it's just better encapsulation to go through the console functions
-instead of doing a direct call, so let's dare.  Plus it really does not
-make much sense to call the only unblank implementation there is twice,
-once without, and once with appropriate locking.
-
-Link: https://lkml.kernel.org/r/20220830145004.430545-1-daniel.vetter@ffwll.ch
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: "Ilpo Järvinen" <ilpo.jarvinen@linux.intel.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Xuezhi Zhang <zhangxuezhi1@coolpad.com>
-Cc: Yangxi Xiang <xyangxi5@gmail.com>
-Cc: nick black <dankamongmen@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Cc: Marco Elver <elver@google.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: David Gow <davidgow@google.com>
-Cc: tangmeng <tangmeng@uniontech.com>
-Cc: Tiezhu Yang <yangtiezhu@loongson.cn>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Link: https://lkml.kernel.org/r/20220831052734.3423079-1-song@kernel.org
+Fixes: f9863be49312 ("mm/vmalloc: extend __alloc_vmap_area() with extra arguments")
+Signed-off-by: Song Liu <song@kernel.org>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt.c     |    3 ++-
- include/linux/vt_kern.h |    1 -
- kernel/panic.c          |    3 ---
- lib/bust_spinlocks.c    |    3 ---
- 4 files changed, 2 insertions(+), 8 deletions(-)
+ mm/vmalloc.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/drivers/tty/vt/vt.c~kernel-panic-drop-unblank_screen-call
-+++ a/drivers/tty/vt/vt.c
-@@ -154,6 +154,7 @@ static void console_callback(struct work
- static void con_driver_unregister_callback(struct work_struct *ignored);
- static void blank_screen_t(struct timer_list *unused);
- static void set_palette(struct vc_data *vc);
-+static void unblank_screen(void);
+--- a/mm/vmalloc.c~mm-vmalloc-extend-find_vmap_lowest_match_check-with-extra-arguments
++++ a/mm/vmalloc.c
+@@ -1300,12 +1300,12 @@ find_vmap_lowest_match(struct rb_root *r
+ #include <linux/random.h>
  
- #define vt_get_kmsg_redirect() vt_kmsg_redirect(-1)
- 
-@@ -4452,7 +4453,7 @@ EXPORT_SYMBOL(do_unblank_screen);
-  * call it with 1 as an argument and so force a mode restore... that may kill
-  * X or at least garbage the screen but would also make the Oops visible...
-  */
--void unblank_screen(void)
-+static void unblank_screen(void)
+ static struct vmap_area *
+-find_vmap_lowest_linear_match(unsigned long size,
++find_vmap_lowest_linear_match(struct list_head *head, unsigned long size,
+ 	unsigned long align, unsigned long vstart)
  {
- 	do_unblank_screen(0);
+ 	struct vmap_area *va;
+ 
+-	list_for_each_entry(va, &free_vmap_area_list, list) {
++	list_for_each_entry(va, head, list) {
+ 		if (!is_within_this_va(va, size, align, vstart))
+ 			continue;
+ 
+@@ -1316,7 +1316,8 @@ find_vmap_lowest_linear_match(unsigned l
  }
---- a/include/linux/vt_kern.h~kernel-panic-drop-unblank_screen-call
-+++ a/include/linux/vt_kern.h
-@@ -30,7 +30,6 @@ struct vc_data *vc_deallocate(unsigned i
- void reset_palette(struct vc_data *vc);
- void do_blank_screen(int entering_gfx);
- void do_unblank_screen(int leaving_gfx);
--void unblank_screen(void);
- void poke_blanked_console(void);
- int con_font_op(struct vc_data *vc, struct console_font_op *op);
- int con_set_cmap(unsigned char __user *cmap);
---- a/kernel/panic.c~kernel-panic-drop-unblank_screen-call
-+++ a/kernel/panic.c
-@@ -329,9 +329,6 @@ void panic(const char *fmt, ...)
- 	if (_crash_kexec_post_notifiers)
- 		__crash_kexec(NULL);
  
--#ifdef CONFIG_VT
--	unblank_screen();
--#endif
- 	console_unblank();
+ static void
+-find_vmap_lowest_match_check(unsigned long size, unsigned long align)
++find_vmap_lowest_match_check(struct rb_root *root, struct list_head *head,
++			     unsigned long size, unsigned long align)
+ {
+ 	struct vmap_area *va_1, *va_2;
+ 	unsigned long vstart;
+@@ -1325,8 +1326,8 @@ find_vmap_lowest_match_check(unsigned lo
+ 	get_random_bytes(&rnd, sizeof(rnd));
+ 	vstart = VMALLOC_START + rnd;
  
- 	/*
---- a/lib/bust_spinlocks.c~kernel-panic-drop-unblank_screen-call
-+++ a/lib/bust_spinlocks.c
-@@ -22,9 +22,6 @@ void bust_spinlocks(int yes)
- 	if (yes) {
- 		++oops_in_progress;
- 	} else {
--#ifdef CONFIG_VT
--		unblank_screen();
--#endif
- 		console_unblank();
- 		if (--oops_in_progress == 0)
- 			wake_up_klogd();
+-	va_1 = find_vmap_lowest_match(size, align, vstart, false);
+-	va_2 = find_vmap_lowest_linear_match(size, align, vstart);
++	va_1 = find_vmap_lowest_match(root, size, align, vstart, false);
++	va_2 = find_vmap_lowest_linear_match(head, size, align, vstart);
+ 
+ 	if (va_1 != va_2)
+ 		pr_emerg("not lowest: t: 0x%p, l: 0x%p, v: 0x%lx\n",
+@@ -1513,7 +1514,7 @@ __alloc_vmap_area(struct rb_root *root,
+ 		return vend;
+ 
+ #if DEBUG_AUGMENT_LOWEST_MATCH_CHECK
+-	find_vmap_lowest_match_check(size, align);
++	find_vmap_lowest_match_check(root, head, size, align);
+ #endif
+ 
+ 	return nva_start_addr;
 _
 
-Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
+Patches currently in -mm which might be from song@kernel.org are
 
-kernel-panic-drop-unblank_screen-call.patch
+mm-vmalloc-extend-find_vmap_lowest_match_check-with-extra-arguments.patch
 
