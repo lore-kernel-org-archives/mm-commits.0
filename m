@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54757ECAAD1
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 23:06:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0696CECAAD1
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 23:06:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229781AbiHaXGl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Aug 2022 19:06:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55616 "EHLO
+        id S230249AbiHaXGq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Aug 2022 19:06:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbiHaXGk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 19:06:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1400FD7436
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 16:06:39 -0700 (PDT)
+        with ESMTP id S229481AbiHaXGn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 19:06:43 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2FFDF8EF7
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 16:06:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 85BF161C60
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 23:06:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C058AC433D6;
-        Wed, 31 Aug 2022 23:06:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9A559B8235E
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 23:06:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E867C433C1;
+        Wed, 31 Aug 2022 23:06:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661987197;
-        bh=aQCabjCChhbYMeIKZrN1gbhywZ3v6PK/n2CFONO8EcQ=;
+        s=korg; t=1661987200;
+        bh=0F5XpdsT51J/O2XszPFcV/HxG8A5ZuSZz8GdBnOfvM4=;
         h=Date:To:From:Subject:From;
-        b=lN40YdrDYNSVWmIfKMnKnoVatAUfvaINveP9oO7adztuikSRY894aJHpvwSH+TFof
-         fDCHGF1UIiqqZsCdTUR7+PmDbRmOrWa5S0wvwZszasPNFkPIahWuXOPhgWCqy6EBiV
-         ihtqdniKsIowfJb0aEJHbyFYmXSfW6P4iw9jnITQ=
-Date:   Wed, 31 Aug 2022 16:06:36 -0700
+        b=N5My8FY1qlj9BJz6BN6s/QLxwBEqQIx4R1RYzQodff/0knDHqJI2L9brbsYim+u0h
+         pHasv5uJDqTUFWisCaahJaUKR8Pj49gquSzF38aNn232xnrDUaQKVvT91a0ZCnoYau
+         5lqut4FIWFyNlYJmvx3y+l2RZoktSSeSnslzrc5c=
+Date:   Wed, 31 Aug 2022 16:06:39 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         trond.myklebust@hammerspace.com, miklos@szeredi.hu,
         logang@deltatee.com, jack@suse.cz, hch@infradead.org,
         djwong@kernel.org, david@redhat.com, axboe@kernel.dk,
         anna@kernel.org, jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-change-release_pages-to-use-unsigned-long-for-npages.patch added to mm-unstable branch
-Message-Id: <20220831230637.C058AC433D6@smtp.kernel.org>
+Subject: + mm-gup-introduce-pin_user_page.patch added to mm-unstable branch
+Message-Id: <20220831230640.2E867C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change release_pages() to use unsigned long for npages
+     Subject: mm/gup: introduce pin_user_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-change-release_pages-to-use-unsigned-long-for-npages.patch
+     mm-gup-introduce-pin_user_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-change-release_pages-to-use-unsigned-long-for-npages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-introduce-pin_user_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,52 +68,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm: change release_pages() to use unsigned long for npages
-Date: Tue, 30 Aug 2022 21:18:37 -0700
+Subject: mm/gup: introduce pin_user_page()
+Date: Tue, 30 Aug 2022 21:18:38 -0700
 
-Patch series "convert most filesystems to pin_user_pages_fast()", v2.
+pin_user_page() is an externally-usable version of try_grab_page(), but
+with semantics that match get_page(), so that it can act as a drop-in
+replacement for get_page(). Specifically, pin_user_page() has a void
+return type.
 
-This converts the iomap core and bio_release_pages() to
-pin_user_pages_fast(), also referred to as FOLL_PIN here.
+pin_user_page() elevates a page's refcount using FOLL_PIN rules. This
+means that the caller must release the page via unpin_user_page().
 
-The conversion is temporarily guarded by
-CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO.  In the future (not part of this
-series), when we are certain that all filesystems have converted their
-Direct IO paths to FOLL_PIN, then we can do the final step, which is to
-get rid of CONFIG_BLK_USE_PIN_USER_PAGES_FOR_DIO and search-and-replace
-the dio_w_*() functions with their final names (see bvec.h changes).
-
-I'd like to get this part committed at some point, because it seems to
-work well already.  And this will help get the remaining items, below,
-converted.
-
-Status: although many filesystems have been converted, some remain to be
-investigated.  These include (you can recreate this list by grepping for
-iov_iter_get_pages):
-
-	cephfs
-	cifs
-	9P
-	RDS
-	net/core: datagram.c, skmsg.c
-	net/tls
-	fs/splice.c
-
-
-This patch (of 7):
-
-The various callers of release_pages() are passing in either various types
-(signed or unsigned) and lengths (int or long) of integers, for the second
-argument (number of pages).  To make this conversion accurate and to avoid
-having to check for overflow (or deal with type conversion warnings),
-let's just change release_pages() to accept an unsigned long for the
-number of pages.
-
-Also change the name of the argument, from "nr" to "npages", for clarity,
-as long as that line is being changed anyway.
-
-Link: https://lkml.kernel.org/r/20220831041843.973026-1-jhubbard@nvidia.com
-Link: https://lkml.kernel.org/r/20220831041843.973026-2-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20220831041843.973026-3-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Anna Schumaker <anna@kernel.org>
@@ -128,42 +94,79 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/swap.c          |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    1 
+ mm/gup.c           |   50 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 51 insertions(+)
 
---- a/include/linux/mm.h~mm-change-release_pages-to-use-unsigned-long-for-npages
+--- a/include/linux/mm.h~mm-gup-introduce-pin_user_page
 +++ a/include/linux/mm.h
-@@ -1177,7 +1177,7 @@ static inline void folio_put_refs(struct
- 		__folio_put(folio);
+@@ -1943,6 +1943,7 @@ long pin_user_pages_remote(struct mm_str
+ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 			    unsigned int gup_flags, struct page **pages,
+ 			    struct vm_area_struct **vmas);
++void pin_user_page(struct page *page);
+ long pin_user_pages(unsigned long start, unsigned long nr_pages,
+ 		    unsigned int gup_flags, struct page **pages,
+ 		    struct vm_area_struct **vmas);
+--- a/mm/gup.c~mm-gup-introduce-pin_user_page
++++ a/mm/gup.c
+@@ -3240,6 +3240,56 @@ long pin_user_pages(unsigned long start,
  }
+ EXPORT_SYMBOL(pin_user_pages);
  
--void release_pages(struct page **pages, int nr);
-+void release_pages(struct page **pages, unsigned long npages);
- 
- /**
-  * folios_put - Decrement the reference count on an array of folios.
---- a/mm/swap.c~mm-change-release_pages-to-use-unsigned-long-for-npages
-+++ a/mm/swap.c
-@@ -975,15 +975,15 @@ void lru_cache_disable(void)
-  * Decrement the reference count on all the pages in @pages.  If it
-  * fell to zero, remove the page from the LRU and free it.
-  */
--void release_pages(struct page **pages, int nr)
-+void release_pages(struct page **pages, unsigned long npages)
- {
--	int i;
-+	unsigned long i;
- 	LIST_HEAD(pages_to_free);
- 	struct lruvec *lruvec = NULL;
- 	unsigned long flags = 0;
- 	unsigned int lock_batch;
- 
--	for (i = 0; i < nr; i++) {
-+	for (i = 0; i < npages; i++) {
- 		struct folio *folio = page_folio(pages[i]);
- 
- 		/*
++/**
++ * pin_user_page() - apply a FOLL_PIN reference to a file-backed page that the
++ * caller already owns.
++ *
++ * @page: the page to be pinned.
++ *
++ * pin_user_page() elevates a page's refcount using FOLL_PIN rules. This means
++ * that the caller must release the page via unpin_user_page().
++ *
++ * pin_user_page() is intended as a drop-in replacement for get_page(). This
++ * provides a way for callers to do a subsequent unpin_user_page() on the
++ * affected page. However, it is only intended for use by callers (file systems,
++ * block/bio) that have a file-backed page. Anonymous pages are not expected nor
++ * supported, and will generate a warning.
++ *
++ * pin_user_page() may also be thought of as an externally-usable version of
++ * try_grab_page(), but with semantics that match get_page(), so that it can act
++ * as a drop-in replacement for get_page().
++ *
++ * IMPORTANT: The caller must release the page via unpin_user_page().
++ *
++ */
++void pin_user_page(struct page *page)
++{
++	struct folio *folio = page_folio(page);
++
++	WARN_ON_ONCE(folio_ref_count(folio) <= 0);
++
++	/*
++	 * This function is only intended for file-backed callers, who already
++	 * have a page reference.
++	 */
++	WARN_ON_ONCE(PageAnon(page));
++
++	/*
++	 * Similar to try_grab_page(): be sure to *also*
++	 * increment the normal page refcount field at least once,
++	 * so that the page really is pinned.
++	 */
++	if (folio_test_large(folio)) {
++		folio_ref_add(folio, 1);
++		atomic_add(1, folio_pincount_ptr(folio));
++	} else {
++		folio_ref_add(folio, GUP_PIN_COUNTING_BIAS);
++	}
++
++	node_stat_mod_folio(folio, NR_FOLL_PIN_ACQUIRED, 1);
++}
++EXPORT_SYMBOL(pin_user_page);
++
+ /*
+  * pin_user_pages_unlocked() is the FOLL_PIN variant of
+  * get_user_pages_unlocked(). Behavior is the same, except that this one sets
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
