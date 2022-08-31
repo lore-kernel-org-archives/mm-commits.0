@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3F1DECAAD4
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 23:14:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1E43ECAAD4
+	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 23:14:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232254AbiHaXO3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Aug 2022 19:14:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35088 "EHLO
+        id S232347AbiHaXOb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 Aug 2022 19:14:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232245AbiHaXO1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 19:14:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AFE9F8FEA
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 16:14:26 -0700 (PDT)
+        with ESMTP id S232323AbiHaXO3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 19:14:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B93ABF8FEA
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 16:14:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D112CB823BF
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 23:14:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76250C433D6;
-        Wed, 31 Aug 2022 23:14:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 55CA161C81
+        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 23:14:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7450C433D6;
+        Wed, 31 Aug 2022 23:14:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661987663;
-        bh=t5vIrOqd8UmH38HXZZpOG4e8V0UnOgMxLoKimqA6D3M=;
+        s=korg; t=1661987667;
+        bh=wM+2JzMSJPwUrZ0AYDLVErpEWlXksL6ET0eP6ezbQqo=;
         h=Date:To:From:Subject:From;
-        b=oVFnm8cHSzRkAAUvkxaSdRzVpy2UI3FDZx2U97Q/kn0NYhntV9oR+KeG8j9D48mJu
-         VeXX5WhKWgIFm8MIPTYQ7FTEtV2zNFOkYQd4rxE20MSouOZXCKeJPKNWRekEwg19tT
-         2lQY0myCOWZPqV0IFqivlnYNgb2IR2wh+R3bgM5c=
-Date:   Wed, 31 Aug 2022 16:14:22 -0700
+        b=frOIOc+UnUm9zIsULHJogzyWvU0mIpvTtLFF7B9DibTgs/PkOurqhcIPpio7k31bw
+         oZfJU0RAzrLoqFsaZNNVJsxjKNCZ/fpNUHp07WVhPZ6Ofv170MXLTM5KHo/xYkGsqe
+         lRKN/ckny1zWGxcXyySpseIlqng87TGgp8NiyucY=
+Date:   Wed, 31 Aug 2022 16:14:27 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         shy828301@gmail.com, rppt@kernel.org, minchan@kernel.org,
         hannes@cmpxchg.org, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-common-struct-mm_slot.patch added to mm-unstable branch
-Message-Id: <20220831231423.76250C433D6@smtp.kernel.org>
+Subject: + ksm-remove-redundant-declarations-in-ksmh.patch added to mm-unstable branch
+Message-Id: <20220831231427.A7450C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce common struct mm_slot
+     Subject: ksm: remove redundant declarations in ksm.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-common-struct-mm_slot.patch
+     ksm-remove-redundant-declarations-in-ksmh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-common-struct-mm_slot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-remove-redundant-declarations-in-ksmh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,40 +67,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: introduce common struct mm_slot
-Date: Wed, 31 Aug 2022 11:19:45 +0800
+Subject: ksm: remove redundant declarations in ksm.h
+Date: Wed, 31 Aug 2022 11:19:47 +0800
 
-Patch series "add common struct mm_slot and use it in THP and KSM", v2.
+Currently, for struct stable_node, no one uses it in both the
+include/linux/ksm.h file and the file that contains it.  For struct
+mem_cgroup, it's also not used in ksm.h.  So they're all redundant, just
+remove them.
 
-At present, both THP and KSM module have similar structures mm_slot for
-organizing and recording the information required for scanning mm, and
-each defines the following exactly the same operation functions:
-
- - alloc_mm_slot
- - free_mm_slot
- - get_mm_slot
- - insert_to_mm_slots_hash
-
-In order to de-duplicate these codes, this patchset introduces a common
-struct mm_slot, and lets THP and KSM to use it.
-
-
-This patch (of 7):
-
-At present, both THP and KSM module have similar structures mm_slot for
-organizing and recording the information required for scanning mm, and
-each defines the following exactly the same operation functions:
-
- - alloc_mm_slot
- - free_mm_slot
- - get_mm_slot
- - insert_to_mm_slots_hash
-
-In order to de-duplicate these codes, this patch introduces a common
-struct mm_slot, and subsequent patches will let THP and KSM to use it.
-
-Link: https://lkml.kernel.org/r/20220831031951.43152-1-zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/20220831031951.43152-2-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20220831031951.43152-4-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -111,67 +86,21 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_slot.h |   55 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ include/linux/ksm.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- /dev/null
-+++ a/mm/mm_slot.h
-@@ -0,0 +1,55 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#ifndef _LINUX_MM_SLOT_H
-+#define _LINUX_MM_SLOT_H
-+
-+#include <linux/hashtable.h>
-+#include <linux/slab.h>
-+
-+/*
-+ * struct mm_slot - hash lookup from mm to mm_slot
-+ * @hash: link to the mm_slots hash list
-+ * @mm_node: link into the mm_slots list
-+ * @mm: the mm that this information is valid for
-+ */
-+struct mm_slot {
-+	struct hlist_node hash;
-+	struct list_head mm_node;
-+	struct mm_struct *mm;
-+};
-+
-+#define mm_slot_entry(ptr, type, member) \
-+	container_of(ptr, type, member)
-+
-+static inline void *mm_slot_alloc(struct kmem_cache *cache)
-+{
-+	if (!cache)	/* initialization failed */
-+		return NULL;
-+	return kmem_cache_zalloc(cache, GFP_KERNEL);
-+}
-+
-+static inline void mm_slot_free(struct kmem_cache *cache, void *objp)
-+{
-+	kmem_cache_free(cache, objp);
-+}
-+
-+#define mm_slot_lookup(_hashtable, _mm) 				       \
-+({									       \
-+	struct mm_slot *tmp_slot, *mm_slot = NULL;			       \
-+									       \
-+	hash_for_each_possible(_hashtable, tmp_slot, hash, (unsigned long)_mm) \
-+		if (_mm == tmp_slot->mm) {				       \
-+			mm_slot = tmp_slot;				       \
-+			break;						       \
-+		}							       \
-+									       \
-+	mm_slot;							       \
-+})
-+
-+#define mm_slot_insert(_hashtable, _mm, _mm_slot)			       \
-+({									       \
-+	_mm_slot->mm = _mm;						       \
-+	hash_add(_hashtable, &_mm_slot->hash, (unsigned long)_mm);	       \
-+})
-+
-+#endif /* _LINUX_MM_SLOT_H */
+--- a/include/linux/ksm.h~ksm-remove-redundant-declarations-in-ksmh
++++ a/include/linux/ksm.h
+@@ -15,9 +15,6 @@
+ #include <linux/sched.h>
+ #include <linux/sched/coredump.h>
+ 
+-struct stable_node;
+-struct mem_cgroup;
+-
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 		unsigned long end, int advice, unsigned long *vm_flags);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
