@@ -2,421 +2,189 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56A43ECAAD4
-	for <mm-commits@archiver.kernel.org>; Wed, 31 Aug 2022 23:14:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 329C5C64991
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 17:47:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232573AbiHaXOz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 Aug 2022 19:14:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35242 "EHLO
+        id S234435AbiIARr3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Sep 2022 13:47:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232438AbiHaXOl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2022 19:14:41 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F14EF997B
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 16:14:39 -0700 (PDT)
+        with ESMTP id S234737AbiIARrN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 13:47:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 190D575CC5
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 10:46:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 01B62B823BE
-        for <mm-commits@vger.kernel.org>; Wed, 31 Aug 2022 23:14:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD7EEC433D6;
-        Wed, 31 Aug 2022 23:14:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 667FF60B7F
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 17:46:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5C4EC433D6;
+        Thu,  1 Sep 2022 17:46:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1661987676;
-        bh=GSDs/Pq9Hqe78QYyaor7bbeo8YxYYAS5DAWlqkYSIrQ=;
+        s=korg; t=1662054369;
+        bh=ZhOm71cqMpdintIsQkKC0aWsPybF6W08rY9n3jvg/+M=;
         h=Date:To:From:Subject:From;
-        b=dPyh9dxT3/H/rO+Ed7lmvNoFcwDquSWnG6VBbGMpDwRkW7HDvlllzrPjAIOWYlc6V
-         Un653zKkTUeB/NSA2SHGaqhIx5wpxiSbEOQs6lOudUslxmoE2B/M9uAZ8Nhhn5+Gy6
-         kMYmlaV2x/sxBjtVBIGf8U51pOUR+loJOHg978EQ=
-Date:   Wed, 31 Aug 2022 16:14:36 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        shy828301@gmail.com, rppt@kernel.org, minchan@kernel.org,
-        hannes@cmpxchg.org, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        b=BNY6LbftKiuaEdzX4yibufgvmBg0ai3uf91NIllsfI3yOgUbQhn+K7lhMFkfxcSeU
+         H4gkQBzO6NzEz7YTJfO7rA7OCe/GMz3rswwZPP+/uzTRJvOtwx/ftjGrBk6CKOdn4A
+         RbqnA3BWlCM+Vz/DNewJHJxDCGhhPsTtTP3aVy6A=
+Date:   Thu, 01 Sep 2022 10:46:08 -0700
+To:     mm-commits@vger.kernel.org, zhangxuezhi1@coolpad.com,
+        yangtiezhu@loongson.cn, xyangxi5@gmail.com, tangmeng@uniontech.com,
+        pmladek@suse.com, penguin-kernel@I-love.SAKURA.ne.jp,
+        mcgrof@kernel.org, john.ogness@linutronix.de, jirislaby@kernel.org,
+        ilpo.jarvinen@linux.intel.com, gregkh@linuxfoundation.org,
+        gpiccoli@igalia.com, elver@google.com, davidgow@google.com,
+        dankamongmen@gmail.com, daniel.vetter@intel.com,
+        chris@chris-wilson.co.uk, bigeasy@linutronix.de,
+        daniel.vetter@ffwll.ch, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-convert-to-use-common-struct-mm_slot.patch added to mm-unstable branch
-Message-Id: <20220831231436.AD7EEC433D6@smtp.kernel.org>
+Subject: [merged] kernel-panic-drop-unblank_screen-call.patch removed from -mm tree
+Message-Id: <20220901174609.B5C4EC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: ksm: convert to use common struct mm_slot
-has been added to the -mm mm-unstable branch.  Its filename is
-     ksm-convert-to-use-common-struct-mm_slot.patch
+The quilt patch titled
+     Subject: kernel/panic: drop unblank_screen call
+has been removed from the -mm tree.  Its filename was
+     kernel-panic-drop-unblank_screen-call.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-convert-to-use-common-struct-mm_slot.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: ksm: convert to use common struct mm_slot
-Date: Wed, 31 Aug 2022 11:19:51 +0800
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: kernel/panic: drop unblank_screen call
+Date: Tue, 30 Aug 2022 16:50:04 +0200
 
-Convert to use common struct mm_slot, no functional change.
+console_unblank() does this too (called in both places right after), and
+with a lot more confidence inspiring approach to locking.
 
-Link: https://lkml.kernel.org/r/20220831031951.43152-8-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
+Reconstructing this story is very strange:
+
+In b61312d353da ("oops handling: ensure that any oops is flushed to the
+mtdoops console") it is claimed that a printk(" "); flushed out the
+console buffer, which was removed in e3e8a75d2acf ("[PATCH] Extract and
+use wake_up_klogd()").  In todays kernels this is done way earlier in
+console_flush_on_panic with some really nasty tricks.  I didn't bother to
+fully reconstruct this all, least because the call to bust_spinlock(0);
+gets moved every few years, depending upon how the wind blows (or well,
+who screamed loudest about the various issue each call site caused).
+
+Before that commit the only calls to console_unblank() where in s390 arch
+code.
+
+The other side here is the console->unblank callback, which was introduced
+in 2.1.31 for the vt driver.  Which predates the console_unblank()
+function by a lot, which was added (without users) in 2.4.14.3.  So pretty
+much impossible to guess at any motivation here.  Also afaict the vt
+driver is the only (and always was the only) console driver implementing
+the unblank callback, so no idea why a call to console_unblank() was added
+for the mtdooops driver - the action actually flushing out the console
+buffers is done from console_unlock() only.
+
+Note that as prep for the s390 users the locking was adjusted in 2.5.22 (I
+couldn't figure out how to properly reference the BK commit from the
+historical git trees) from a normal semaphore to a trylock.
+
+Note that a copy of the direct unblank_screen() call was added to panic()
+in c7c3f05e341a ("panic: avoid deadlocks in re-entrant console drivers"),
+which partially inlined the bust_spinlocks(0); call.
+
+Long story short, I have no idea why the direct call to unblank_screen
+survived for so long (the infrastructure to do it properly existed for
+years), nor why it wasn't removed when the console_unblank() call was
+finally added.  But it makes a ton more sense to finally do that than not
+- it's just better encapsulation to go through the console functions
+instead of doing a direct call, so let's dare.  Plus it really does not
+make much sense to call the only unblank implementation there is twice,
+once without, and once with appropriate locking.
+
+Link: https://lkml.kernel.org/r/20220830145004.430545-1-daniel.vetter@ffwll.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: "Ilpo Järvinen" <ilpo.jarvinen@linux.intel.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Xuezhi Zhang <zhangxuezhi1@coolpad.com>
+Cc: Yangxi Xiang <xyangxi5@gmail.com>
+Cc: nick black <dankamongmen@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Cc: Marco Elver <elver@google.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: David Gow <davidgow@google.com>
+Cc: tangmeng <tangmeng@uniontech.com>
+Cc: Tiezhu Yang <yangtiezhu@loongson.cn>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |  132 ++++++++++++++++++++++-------------------------------
- 1 file changed, 56 insertions(+), 76 deletions(-)
+ drivers/tty/vt/vt.c     |    3 ++-
+ include/linux/vt_kern.h |    1 -
+ kernel/panic.c          |    3 ---
+ lib/bust_spinlocks.c    |    3 ---
+ 4 files changed, 2 insertions(+), 8 deletions(-)
 
---- a/mm/ksm.c~ksm-convert-to-use-common-struct-mm_slot
-+++ a/mm/ksm.c
-@@ -42,6 +42,7 @@
+--- a/drivers/tty/vt/vt.c~kernel-panic-drop-unblank_screen-call
++++ a/drivers/tty/vt/vt.c
+@@ -154,6 +154,7 @@ static void console_callback(struct work
+ static void con_driver_unregister_callback(struct work_struct *ignored);
+ static void blank_screen_t(struct timer_list *unused);
+ static void set_palette(struct vc_data *vc);
++static void unblank_screen(void);
  
- #include <asm/tlbflush.h>
- #include "internal.h"
-+#include "mm_slot.h"
+ #define vt_get_kmsg_redirect() vt_kmsg_redirect(-1)
  
- #ifdef CONFIG_NUMA
- #define NUMA(x)		(x)
-@@ -113,16 +114,12 @@
- 
- /**
-  * struct ksm_mm_slot - ksm information per mm that is being scanned
-- * @hash: link to the mm_slots hash list
-- * @mm_node: link into the mm_slots list, rooted in ksm_mm_head
-+ * @slot: hash lookup from mm to mm_slot
-  * @rmap_list: head for this mm_slot's singly-linked list of rmap_items
-- * @mm: the mm that this information is valid for
+@@ -4452,7 +4453,7 @@ EXPORT_SYMBOL(do_unblank_screen);
+  * call it with 1 as an argument and so force a mode restore... that may kill
+  * X or at least garbage the screen but would also make the Oops visible...
   */
- struct ksm_mm_slot {
--	struct hlist_node hash;
--	struct list_head mm_node;
-+	struct mm_slot slot;
- 	struct ksm_rmap_item *rmap_list;
--	struct mm_struct *mm;
- };
- 
- /**
-@@ -231,7 +228,7 @@ static LIST_HEAD(migrate_nodes);
- static DEFINE_HASHTABLE(mm_slots_hash, MM_SLOTS_HASH_BITS);
- 
- static struct ksm_mm_slot ksm_mm_head = {
--	.mm_node = LIST_HEAD_INIT(ksm_mm_head.mm_node),
-+	.slot.mm_node = LIST_HEAD_INIT(ksm_mm_head.slot.mm_node),
- };
- static struct ksm_scan ksm_scan = {
- 	.mm_slot = &ksm_mm_head,
-@@ -409,36 +406,6 @@ static inline void free_stable_node(stru
- 	kmem_cache_free(stable_node_cache, stable_node);
+-void unblank_screen(void)
++static void unblank_screen(void)
+ {
+ 	do_unblank_screen(0);
  }
+--- a/include/linux/vt_kern.h~kernel-panic-drop-unblank_screen-call
++++ a/include/linux/vt_kern.h
+@@ -30,7 +30,6 @@ struct vc_data *vc_deallocate(unsigned i
+ void reset_palette(struct vc_data *vc);
+ void do_blank_screen(int entering_gfx);
+ void do_unblank_screen(int leaving_gfx);
+-void unblank_screen(void);
+ void poke_blanked_console(void);
+ int con_font_op(struct vc_data *vc, struct console_font_op *op);
+ int con_set_cmap(unsigned char __user *cmap);
+--- a/kernel/panic.c~kernel-panic-drop-unblank_screen-call
++++ a/kernel/panic.c
+@@ -329,9 +329,6 @@ void panic(const char *fmt, ...)
+ 	if (_crash_kexec_post_notifiers)
+ 		__crash_kexec(NULL);
  
--static inline struct ksm_mm_slot *alloc_mm_slot(void)
--{
--	if (!mm_slot_cache)	/* initialization failed */
--		return NULL;
--	return kmem_cache_zalloc(mm_slot_cache, GFP_KERNEL);
--}
--
--static inline void free_mm_slot(struct ksm_mm_slot *mm_slot)
--{
--	kmem_cache_free(mm_slot_cache, mm_slot);
--}
--
--static struct ksm_mm_slot *get_mm_slot(struct mm_struct *mm)
--{
--	struct ksm_mm_slot *slot;
--
--	hash_for_each_possible(mm_slots_hash, slot, hash, (unsigned long)mm)
--		if (slot->mm == mm)
--			return slot;
--
--	return NULL;
--}
--
--static void insert_to_mm_slots_hash(struct mm_struct *mm,
--				    struct ksm_mm_slot *mm_slot)
--{
--	mm_slot->mm = mm;
--	hash_add(mm_slots_hash, &mm_slot->hash, (unsigned long)mm);
--}
--
- /*
-  * ksmd, and unmerge_and_remove_all_rmap_items(), must not touch an mm's
-  * page tables after it has passed through ksm_exit() - which, if necessary,
-@@ -976,20 +943,22 @@ static int remove_all_stable_nodes(void)
- static int unmerge_and_remove_all_rmap_items(void)
- {
- 	struct ksm_mm_slot *mm_slot;
-+	struct mm_slot *slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
- 	int err = 0;
- 
- 	spin_lock(&ksm_mmlist_lock);
--	ksm_scan.mm_slot = list_entry(ksm_mm_head.mm_node.next,
--						struct ksm_mm_slot, mm_node);
-+	slot = list_entry(ksm_mm_head.slot.mm_node.next,
-+			  struct mm_slot, mm_node);
-+	ksm_scan.mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
- 	spin_unlock(&ksm_mmlist_lock);
- 
- 	for (mm_slot = ksm_scan.mm_slot; mm_slot != &ksm_mm_head;
- 	     mm_slot = ksm_scan.mm_slot) {
--		VMA_ITERATOR(vmi, mm_slot->mm, 0);
-+		VMA_ITERATOR(vmi, mm_slot->slot.mm, 0);
- 
--		mm = mm_slot->mm;
-+		mm = mm_slot->slot.mm;
- 		mmap_read_lock(mm);
- 		for_each_vma(vmi, vma) {
- 			if (ksm_test_exit(mm))
-@@ -1006,14 +975,15 @@ static int unmerge_and_remove_all_rmap_i
- 		mmap_read_unlock(mm);
- 
- 		spin_lock(&ksm_mmlist_lock);
--		ksm_scan.mm_slot = list_entry(mm_slot->mm_node.next,
--						struct ksm_mm_slot, mm_node);
-+		slot = list_entry(mm_slot->slot.mm_node.next,
-+				  struct mm_slot, mm_node);
-+		ksm_scan.mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
- 		if (ksm_test_exit(mm)) {
--			hash_del(&mm_slot->hash);
--			list_del(&mm_slot->mm_node);
-+			hash_del(&mm_slot->slot.hash);
-+			list_del(&mm_slot->slot.mm_node);
- 			spin_unlock(&ksm_mmlist_lock);
- 
--			free_mm_slot(mm_slot);
-+			mm_slot_free(mm_slot_cache, mm_slot);
- 			clear_bit(MMF_VM_MERGEABLE, &mm->flags);
- 			mmdrop(mm);
- 		} else
-@@ -2234,7 +2204,7 @@ static struct ksm_rmap_item *get_next_rm
- 	rmap_item = alloc_rmap_item();
- 	if (rmap_item) {
- 		/* It has already been zeroed */
--		rmap_item->mm = mm_slot->mm;
-+		rmap_item->mm = mm_slot->slot.mm;
- 		rmap_item->mm->ksm_rmap_items++;
- 		rmap_item->address = addr;
- 		rmap_item->rmap_list = *rmap_list;
-@@ -2246,17 +2216,18 @@ static struct ksm_rmap_item *get_next_rm
- static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
- {
- 	struct mm_struct *mm;
--	struct ksm_mm_slot *slot;
-+	struct ksm_mm_slot *mm_slot;
-+	struct mm_slot *slot;
- 	struct vm_area_struct *vma;
- 	struct ksm_rmap_item *rmap_item;
- 	struct vma_iterator vmi;
- 	int nid;
- 
--	if (list_empty(&ksm_mm_head.mm_node))
-+	if (list_empty(&ksm_mm_head.slot.mm_node))
- 		return NULL;
- 
--	slot = ksm_scan.mm_slot;
--	if (slot == &ksm_mm_head) {
-+	mm_slot = ksm_scan.mm_slot;
-+	if (mm_slot == &ksm_mm_head) {
- 		/*
- 		 * A number of pages can hang around indefinitely on per-cpu
- 		 * pagevecs, raised page count preventing write_protect_page
-@@ -2293,20 +2264,23 @@ static struct ksm_rmap_item *scan_get_ne
- 			root_unstable_tree[nid] = RB_ROOT;
- 
- 		spin_lock(&ksm_mmlist_lock);
--		slot = list_entry(slot->mm_node.next, struct ksm_mm_slot, mm_node);
--		ksm_scan.mm_slot = slot;
-+		slot = list_entry(mm_slot->slot.mm_node.next,
-+				  struct mm_slot, mm_node);
-+		mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
-+		ksm_scan.mm_slot = mm_slot;
- 		spin_unlock(&ksm_mmlist_lock);
- 		/*
- 		 * Although we tested list_empty() above, a racing __ksm_exit
- 		 * of the last mm on the list may have removed it since then.
- 		 */
--		if (slot == &ksm_mm_head)
-+		if (mm_slot == &ksm_mm_head)
- 			return NULL;
- next_mm:
- 		ksm_scan.address = 0;
--		ksm_scan.rmap_list = &slot->rmap_list;
-+		ksm_scan.rmap_list = &mm_slot->rmap_list;
- 	}
- 
-+	slot = &mm_slot->slot;
- 	mm = slot->mm;
- 	vma_iter_init(&vmi, mm, ksm_scan.address);
- 
-@@ -2336,7 +2310,7 @@ next_mm:
- 			if (PageAnon(*page)) {
- 				flush_anon_page(vma, *page, ksm_scan.address);
- 				flush_dcache_page(*page);
--				rmap_item = get_next_rmap_item(slot,
-+				rmap_item = get_next_rmap_item(mm_slot,
- 					ksm_scan.rmap_list, ksm_scan.address);
- 				if (rmap_item) {
- 					ksm_scan.rmap_list =
-@@ -2357,7 +2331,7 @@ next_page:
- 	if (ksm_test_exit(mm)) {
- no_vmas:
- 		ksm_scan.address = 0;
--		ksm_scan.rmap_list = &slot->rmap_list;
-+		ksm_scan.rmap_list = &mm_slot->rmap_list;
- 	}
- 	/*
- 	 * Nuke all the rmap_items that are above this current rmap:
-@@ -2366,8 +2340,9 @@ no_vmas:
- 	remove_trailing_rmap_items(ksm_scan.rmap_list);
- 
- 	spin_lock(&ksm_mmlist_lock);
--	ksm_scan.mm_slot = list_entry(slot->mm_node.next,
--						struct ksm_mm_slot, mm_node);
-+	slot = list_entry(mm_slot->slot.mm_node.next,
-+			  struct mm_slot, mm_node);
-+	ksm_scan.mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
- 	if (ksm_scan.address == 0) {
- 		/*
- 		 * We've completed a full scan of all vmas, holding mmap_lock
-@@ -2378,11 +2353,11 @@ no_vmas:
- 		 * or when all VM_MERGEABLE areas have been unmapped (and
- 		 * mmap_lock then protects against race with MADV_MERGEABLE).
- 		 */
--		hash_del(&slot->hash);
--		list_del(&slot->mm_node);
-+		hash_del(&mm_slot->slot.hash);
-+		list_del(&mm_slot->slot.mm_node);
- 		spin_unlock(&ksm_mmlist_lock);
- 
--		free_mm_slot(slot);
-+		mm_slot_free(mm_slot_cache, mm_slot);
- 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
- 		mmap_read_unlock(mm);
- 		mmdrop(mm);
-@@ -2399,8 +2374,8 @@ no_vmas:
- 	}
- 
- 	/* Repeat until we've completed scanning the whole list */
--	slot = ksm_scan.mm_slot;
--	if (slot != &ksm_mm_head)
-+	mm_slot = ksm_scan.mm_slot;
-+	if (mm_slot != &ksm_mm_head)
- 		goto next_mm;
- 
- 	ksm_scan.seqnr++;
-@@ -2428,7 +2403,7 @@ static void ksm_do_scan(unsigned int sca
- 
- static int ksmd_should_run(void)
- {
--	return (ksm_run & KSM_RUN_MERGE) && !list_empty(&ksm_mm_head.mm_node);
-+	return (ksm_run & KSM_RUN_MERGE) && !list_empty(&ksm_mm_head.slot.mm_node);
- }
- 
- static int ksm_scan_thread(void *nothing)
-@@ -2518,17 +2493,20 @@ EXPORT_SYMBOL_GPL(ksm_madvise);
- int __ksm_enter(struct mm_struct *mm)
- {
- 	struct ksm_mm_slot *mm_slot;
-+	struct mm_slot *slot;
- 	int needs_wakeup;
- 
--	mm_slot = alloc_mm_slot();
-+	mm_slot = mm_slot_alloc(mm_slot_cache);
- 	if (!mm_slot)
- 		return -ENOMEM;
- 
-+	slot = &mm_slot->slot;
-+
- 	/* Check ksm_run too?  Would need tighter locking */
--	needs_wakeup = list_empty(&ksm_mm_head.mm_node);
-+	needs_wakeup = list_empty(&ksm_mm_head.slot.mm_node);
- 
- 	spin_lock(&ksm_mmlist_lock);
--	insert_to_mm_slots_hash(mm, mm_slot);
-+	mm_slot_insert(mm_slots_hash, mm, slot);
- 	/*
- 	 * When KSM_RUN_MERGE (or KSM_RUN_STOP),
- 	 * insert just behind the scanning cursor, to let the area settle
-@@ -2540,9 +2518,9 @@ int __ksm_enter(struct mm_struct *mm)
- 	 * missed: then we might as well insert at the end of the list.
- 	 */
- 	if (ksm_run & KSM_RUN_UNMERGE)
--		list_add_tail(&mm_slot->mm_node, &ksm_mm_head.mm_node);
-+		list_add_tail(&slot->mm_node, &ksm_mm_head.slot.mm_node);
- 	else
--		list_add_tail(&mm_slot->mm_node, &ksm_scan.mm_slot->mm_node);
-+		list_add_tail(&slot->mm_node, &ksm_scan.mm_slot->slot.mm_node);
- 	spin_unlock(&ksm_mmlist_lock);
- 
- 	set_bit(MMF_VM_MERGEABLE, &mm->flags);
-@@ -2557,6 +2535,7 @@ int __ksm_enter(struct mm_struct *mm)
- void __ksm_exit(struct mm_struct *mm)
- {
- 	struct ksm_mm_slot *mm_slot;
-+	struct mm_slot *slot;
- 	int easy_to_free = 0;
+-#ifdef CONFIG_VT
+-	unblank_screen();
+-#endif
+ 	console_unblank();
  
  	/*
-@@ -2569,21 +2548,22 @@ void __ksm_exit(struct mm_struct *mm)
- 	 */
- 
- 	spin_lock(&ksm_mmlist_lock);
--	mm_slot = get_mm_slot(mm);
-+	slot = mm_slot_lookup(mm_slots_hash, mm);
-+	mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
- 	if (mm_slot && ksm_scan.mm_slot != mm_slot) {
- 		if (!mm_slot->rmap_list) {
--			hash_del(&mm_slot->hash);
--			list_del(&mm_slot->mm_node);
-+			hash_del(&slot->hash);
-+			list_del(&slot->mm_node);
- 			easy_to_free = 1;
- 		} else {
--			list_move(&mm_slot->mm_node,
--				  &ksm_scan.mm_slot->mm_node);
-+			list_move(&slot->mm_node,
-+				  &ksm_scan.mm_slot->slot.mm_node);
- 		}
- 	}
- 	spin_unlock(&ksm_mmlist_lock);
- 
- 	if (easy_to_free) {
--		free_mm_slot(mm_slot);
-+		mm_slot_free(mm_slot_cache, mm_slot);
- 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
- 		mmdrop(mm);
- 	} else if (mm_slot) {
+--- a/lib/bust_spinlocks.c~kernel-panic-drop-unblank_screen-call
++++ a/lib/bust_spinlocks.c
+@@ -22,9 +22,6 @@ void bust_spinlocks(int yes)
+ 	if (yes) {
+ 		++oops_in_progress;
+ 	} else {
+-#ifdef CONFIG_VT
+-		unblank_screen();
+-#endif
+ 		console_unblank();
+ 		if (--oops_in_progress == 0)
+ 			wake_up_klogd();
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
-mm-thp-remove-redundant-pgtable-check-in-set_huge_zero_page.patch
-mm-introduce-common-struct-mm_slot.patch
-mm-thp-convert-to-use-common-struct-mm_slot.patch
-ksm-remove-redundant-declarations-in-ksmh.patch
-ksm-add-the-ksm-prefix-to-the-names-of-the-ksm-private-structures.patch
-ksm-convert-ksm_mm_slotmm_list-to-ksm_mm_slotmm_node.patch
-ksm-convert-ksm_mm_slotlink-to-ksm_mm_slothash.patch
-ksm-convert-to-use-common-struct-mm_slot.patch
 
