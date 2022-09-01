@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9B21ECAAD1
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:11:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3443FC64991
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:11:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233080AbiIATK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Sep 2022 15:10:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48866 "EHLO
+        id S233366AbiIATK7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Sep 2022 15:10:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233366AbiIATKy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 15:10:54 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1F205EDC0
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:10:53 -0700 (PDT)
+        with ESMTP id S233798AbiIATK4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 15:10:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D55C5F9BF
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:10:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7410DB828CE
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:10:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10602C433C1;
-        Thu,  1 Sep 2022 19:10:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF36D61DB1
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:10:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E9B1C433C1;
+        Thu,  1 Sep 2022 19:10:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662059451;
-        bh=1h6m1ddMUN0NFxXt2OxptWIAna0V/Q9octeKpSuvJNc=;
+        s=korg; t=1662059453;
+        bh=PFkNNQnAbgMN0tS20l+K9o1q//mxX7UC1v/RmIW6W4M=;
         h=Date:To:From:Subject:From;
-        b=aeKn5Qa3Ju3N9m9/3UkhnmfY4QULx1oKWt0PQpc6K/x3zRrz8wiA+bC6uCt2QtXe4
-         puUkuWBt5GWYYKmET/UPWpupq94ok1cz2M087w23ENX4vuunCbHKXX0DwXT+6RVfCF
-         lr0VJi/kZ77PlySgqyeJQrFeL2ifNP5WKvc/BNgA=
-Date:   Thu, 01 Sep 2022 12:10:50 -0700
+        b=1oHE9CX6N1XPBo8ibf4NXdZfICQ9kcL8UMHAjCxdXHPZ1lQEh8di90osHz/tiD5GO
+         u1zwOZ6lwD+Gc2Dg3BqqRBhw+OrPnnp6i46nhbHZud/Rm3QMNq/yOsgzY/Xq6gNGdR
+         5TJfJJ4D4uFpjKnxeA22NnYzvU62al8CJw+5lAzw=
+Date:   Thu, 01 Sep 2022 12:10:52 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-kill-hugetlbfs_pagecache_page.patch added to mm-unstable branch
-Message-Id: <20220901191051.10602C433C1@smtp.kernel.org>
+Subject: + hugetlb-add-comment-for-subtle-sethpagevmemmapoptimized.patch added to mm-unstable branch
+Message-Id: <20220901191053.0E9B1C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: kill hugetlbfs_pagecache_page()
+     Subject: hugetlb: add comment for subtle SetHPageVmemmapOptimized()
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-kill-hugetlbfs_pagecache_page.patch
+     hugetlb-add-comment-for-subtle-sethpagevmemmapoptimized.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-kill-hugetlbfs_pagecache_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-add-comment-for-subtle-sethpagevmemmapoptimized.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,53 +66,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb: kill hugetlbfs_pagecache_page()
-Date: Thu, 1 Sep 2022 20:00:27 +0800
+Subject: hugetlb: add comment for subtle SetHPageVmemmapOptimized()
+Date: Thu, 1 Sep 2022 20:00:28 +0800
 
-Fold hugetlbfs_pagecache_page() into its sole caller to remove some
-duplicated code. No functional change intended.
+The SetHPageVmemmapOptimized() called here seems unnecessary as it's
+assumed to be set when calling this function. But it's indeed cleared
+by above set_page_private(page, 0). Add a comment to avoid possible
+future confusion.
 
-Link: https://lkml.kernel.org/r/20220901120030.63318-8-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220901120030.63318-9-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ mm/hugetlb.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-kill-hugetlbfs_pagecache_page
+--- a/mm/hugetlb.c~hugetlb-add-comment-for-subtle-sethpagevmemmapoptimized
 +++ a/mm/hugetlb.c
-@@ -5467,19 +5467,6 @@ out_release_old:
- 	return ret;
- }
+@@ -1520,6 +1520,10 @@ static void add_hugetlb_page(struct hsta
  
--/* Return the pagecache page at a given address within a VMA */
--static struct page *hugetlbfs_pagecache_page(struct hstate *h,
--			struct vm_area_struct *vma, unsigned long address)
--{
--	struct address_space *mapping;
--	pgoff_t idx;
--
--	mapping = vma->vm_file->f_mapping;
--	idx = vma_hugecache_offset(h, vma, address);
--
--	return find_lock_page(mapping, idx);
--}
--
- /*
-  * Return whether there is a pagecache page to back given address within VMA.
-  * Caller follow_hugetlb_page() holds page_table_lock so we cannot lock_page.
-@@ -5885,7 +5872,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		/* Just decrements count, does not deallocate */
- 		vma_end_reservation(h, vma, haddr);
+ 	set_compound_page_dtor(page, HUGETLB_PAGE_DTOR);
+ 	set_page_private(page, 0);
++	/*
++	 * We have to set HPageVmemmapOptimized again as above
++	 * set_page_private(page, 0) cleared it.
++	 */
+ 	SetHPageVmemmapOptimized(page);
  
--		pagecache_page = hugetlbfs_pagecache_page(h, vma, haddr);
-+		pagecache_page = find_lock_page(mapping, idx);
- 	}
- 
- 	ptl = huge_pte_lock(h, mm, ptep);
+ 	/*
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
