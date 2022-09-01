@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82C47ECAAD1
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:10:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 365C2ECAAD5
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:10:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232641AbiIATKy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Sep 2022 15:10:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48740 "EHLO
+        id S232420AbiIATK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Sep 2022 15:10:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233441AbiIATKv (ORCPT
+        with ESMTP id S233602AbiIATKv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 15:10:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 212FF62AB7
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:10:50 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABEA75FAC3
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:10:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B14EE61DA2
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:10:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10523C433C1;
-        Thu,  1 Sep 2022 19:10:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 57789B828FF
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:10:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11B9DC433C1;
+        Thu,  1 Sep 2022 19:10:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662059449;
-        bh=LDZiXrOzmRXE7K7iD5kMlF6AjhmgKysWjuV/rldW0As=;
+        s=korg; t=1662059447;
+        bh=fdzk9inkdE+uwRk4F/wGxMC/ok+D7iZyT/s1iuqP90s=;
         h=Date:To:From:Subject:From;
-        b=nlZD+a6W6iS094Z1w+wannsBo3t5NHV/bb0aq3oPMc5XGy0OcT4KUEADlJ8YVfbLQ
-         BiM27wvn5R2ny4wSzoequHuVylrxNoLFP4keVykFjMM73vZzGqeitM0YHj/RaAytc0
-         UPbSSsskTI5rzzP5mltx1HHYirttQHzA4ETQ4TM4=
-Date:   Thu, 01 Sep 2022 12:10:48 -0700
+        b=2SFUbo51MuY/Q1yatNgza2mUgmSm7Ujk2CD7gjqdUQhwXbPq5HM2ZFwk3XZBqNeh7
+         j5VyJy8GYqiho0B/s7f4cjsoJywsnxE3+8Jsr1xevgUY/wusgyvJ+O7TANI1JwOjmC
+         rUGVUFBs5emWCbH+z4mSSS0kkGne9YGRGpf3q4HE=
+Date:   Thu, 01 Sep 2022 12:10:46 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-pass-null-to-kobj_to_hstate-if-nid-is-unused.patch added to mm-unstable branch
-Message-Id: <20220901191049.10523C433C1@smtp.kernel.org>
+Subject: + hugetlb-use-helper-huge_ptepmd_lock.patch added to mm-unstable branch
+Message-Id: <20220901191047.11B9DC433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: pass NULL to kobj_to_hstate() if nid is unused
+     Subject: hugetlb: use helper {huge_pte|pmd}_lock()
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-pass-null-to-kobj_to_hstate-if-nid-is-unused.patch
+     hugetlb-use-helper-huge_ptepmd_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-pass-null-to-kobj_to_hstate-if-nid-is-unused.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-use-helper-huge_ptepmd_lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb: pass NULL to kobj_to_hstate() if nid is unused
-Date: Thu, 1 Sep 2022 20:00:26 +0800
+Subject: hugetlb: use helper {huge_pte|pmd}_lock()
+Date: Thu, 1 Sep 2022 20:00:25 +0800
 
-We can pass NULL to kobj_to_hstate() directly when nid is unused to
-simplify the code. No functional change intended.
+Use helper huge_pte_lock and pmd_lock to simplify the code. No functional
+change intended.
 
-Link: https://lkml.kernel.org/r/20220901120030.63318-7-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220901120030.63318-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
@@ -82,35 +82,28 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/hugetlb.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-pass-null-to-kobj_to_hstate-if-nid-is-unused
+--- a/mm/hugetlb.c~hugetlb-use-helper-huge_ptepmd_lock
 +++ a/mm/hugetlb.c
-@@ -3779,8 +3779,7 @@ HSTATE_ATTR_WO(demote);
- static ssize_t demote_size_show(struct kobject *kobj,
- 					struct kobj_attribute *attr, char *buf)
- {
--	int nid;
--	struct hstate *h = kobj_to_hstate(kobj, &nid);
-+	struct hstate *h = kobj_to_hstate(kobj, NULL);
- 	unsigned long demote_size = (PAGE_SIZE << h->demote_order) / SZ_1K;
+@@ -6094,8 +6094,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 		page_in_pagecache = true;
+ 	}
  
- 	return sysfs_emit(buf, "%lukB\n", demote_size);
-@@ -3793,7 +3792,6 @@ static ssize_t demote_size_store(struct
- 	struct hstate *h, *demote_hstate;
- 	unsigned long demote_size;
- 	unsigned int demote_order;
--	int nid;
+-	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
+-	spin_lock(ptl);
++	ptl = huge_pte_lock(h, dst_mm, dst_pte);
  
- 	demote_size = (unsigned long)memparse(buf, NULL);
+ 	/*
+ 	 * We allow to overwrite a pte marker: consider when both MISSING|WP
+@@ -7176,8 +7175,7 @@ follow_huge_pmd(struct mm_struct *mm, un
+ 		return NULL;
  
-@@ -3805,7 +3803,7 @@ static ssize_t demote_size_store(struct
- 		return -EINVAL;
- 
- 	/* demote order must be smaller than hstate order */
--	h = kobj_to_hstate(kobj, &nid);
-+	h = kobj_to_hstate(kobj, NULL);
- 	if (demote_order >= h->order)
- 		return -EINVAL;
- 
+ retry:
+-	ptl = pmd_lockptr(mm, pmd);
+-	spin_lock(ptl);
++	ptl = pmd_lock(mm, pmd);
+ 	/*
+ 	 * make sure that the address range covered by this pmd is not
+ 	 * unmapped from other threads.
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
