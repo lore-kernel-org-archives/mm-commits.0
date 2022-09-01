@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED8CEECAAD2
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 22:58:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD62AECAAD2
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 23:07:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234928AbiIAW6c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Sep 2022 18:58:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40392 "EHLO
+        id S234441AbiIAXHD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Sep 2022 19:07:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55752 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234456AbiIAW6b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 18:58:31 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A5EE78238
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 15:58:30 -0700 (PDT)
+        with ESMTP id S233295AbiIAXHC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 19:07:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 075C17C30A
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 16:06:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 11409B82961
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 22:58:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6CA7C433B5;
-        Thu,  1 Sep 2022 22:58:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8EEFC62013
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 23:06:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0A2DC433D6;
+        Thu,  1 Sep 2022 23:06:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662073107;
-        bh=AGuVtU66ykqp0vwCCKzpNIVGEfzFRTgTQp3LgK8fqws=;
+        s=korg; t=1662073618;
+        bh=cLHD+cBfkMjBnaeRzzil5KMrtKmd4BzrP/sjiAopt3s=;
         h=Date:To:From:Subject:From;
-        b=tgkKbe4P772SO8fWcwphVYXKzbRkeHhCUIjOIuPVsUdF3rasgFgokY39fNspSR1/8
-         VxZk/U6MgHRUSgBSTO4NMGZ2Y+dBqxldrnsyclodY6woO9NuQmaaywsgXAAlsdL++L
-         lr9wgamajCR6wPaOjy7YXvbCMwDGzpU99IFwox3Q=
-Date:   Thu, 01 Sep 2022 15:58:26 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=nT/RXrCHABo+CETfDsgkervwRk9X6u8entWcPte7F4II3FizNtLEhBADw+iWVU8OI
+         cBJN9cXLWeUIH1gQHOefUSRqqa5xwwRySzA0Gn5q7IGz1kFuvo7HFhSk/4M6jTteeF
+         tUQYBERg9+XtpBT/8WHGj2urUAo4Uu8vYxNLcwu0=
+Date:   Thu, 01 Sep 2022 16:06:57 -0700
+To:     mm-commits@vger.kernel.org, hch@lst.de, akpm@linux-foudation.org,
+        wuchi.zero@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-bug_on-in-__isolate_free_page.patch added to mm-unstable branch
-Message-Id: <20220901225827.A6CA7C433B5@smtp.kernel.org>
+Subject: + profile-simplify-redundant-code-in-profile_setup.patch added to mm-nonmm-unstable branch
+Message-Id: <20220901230657.E0A2DC433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove BUG_ON() in __isolate_free_page()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-bug_on-in-__isolate_free_page.patch
+     Subject: kernel/profile.c: simplify duplicated code in profile_setup()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     profile-simplify-redundant-code-in-profile_setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-bug_on-in-__isolate_free_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/profile-simplify-redundant-code-in-profile_setup.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,76 +64,88 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove BUG_ON() in __isolate_free_page()
-Date: Thu, 1 Sep 2022 09:50:43 +0800
+From: wuchi <wuchi.zero@gmail.com>
+Subject: kernel/profile.c: simplify duplicated code in profile_setup()
+Date: Thu, 1 Sep 2022 08:31:21 +0800
 
-Drop unneed comment and blank, adjust the variable, and the most important
-is to delete BUG_ON().  The page passed is always buddy page into
-__isolate_free_page() from compaction, page_isolation and page_reporting,
-and the caller also check the return, BUG_ON() is a too drastic measure,
-remove it.
+The code to parse option string "schedule/sleep/kvm" of cmdline in
+function profile_setup is redundant, so simplify that.
 
-Link: https://lkml.kernel.org/r/20220901015043.189276-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20220901003121.53597-1-wuchi.zero@gmail.com
+Signed-off-by: wuchi <wuchi.zero@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foudation.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ kernel/profile.c |   32 ++++++++++++++------------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
---- a/mm/page_alloc.c~mm-remove-bug_on-in-__isolate_free_page
-+++ a/mm/page_alloc.c
-@@ -3600,16 +3600,11 @@ EXPORT_SYMBOL_GPL(split_page);
+--- a/kernel/profile.c~profile-simplify-redundant-code-in-profile_setup
++++ a/kernel/profile.c
+@@ -59,43 +59,39 @@ int profile_setup(char *str)
+ 	static const char schedstr[] = "schedule";
+ 	static const char sleepstr[] = "sleep";
+ 	static const char kvmstr[] = "kvm";
++	const char *select = NULL;
+ 	int par;
  
- int __isolate_free_page(struct page *page, unsigned int order)
- {
--	unsigned long watermark;
--	struct zone *zone;
--	int mt;
--
--	BUG_ON(!PageBuddy(page));
--
--	zone = page_zone(page);
--	mt = get_pageblock_migratetype(page);
-+	struct zone *zone = page_zone(page);
-+	int mt = get_pageblock_migratetype(page);
- 
- 	if (!is_migrate_isolate(mt)) {
-+		unsigned long watermark;
- 		/*
- 		 * Obey watermarks as if the page was being allocated. We can
- 		 * emulate a high-order watermark check with a raised order-0
-@@ -3623,8 +3618,6 @@ int __isolate_free_page(struct page *pag
- 		__mod_zone_freepage_state(zone, -(1UL << order), mt);
+ 	if (!strncmp(str, sleepstr, strlen(sleepstr))) {
+ #ifdef CONFIG_SCHEDSTATS
+ 		force_schedstat_enabled();
+ 		prof_on = SLEEP_PROFILING;
+-		if (str[strlen(sleepstr)] == ',')
+-			str += strlen(sleepstr) + 1;
+-		if (get_option(&str, &par))
+-			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
+-		pr_info("kernel sleep profiling enabled (shift: %u)\n",
+-			prof_shift);
++		select = sleepstr;
+ #else
+ 		pr_warn("kernel sleep profiling requires CONFIG_SCHEDSTATS\n");
+ #endif /* CONFIG_SCHEDSTATS */
+ 	} else if (!strncmp(str, schedstr, strlen(schedstr))) {
+ 		prof_on = SCHED_PROFILING;
+-		if (str[strlen(schedstr)] == ',')
+-			str += strlen(schedstr) + 1;
+-		if (get_option(&str, &par))
+-			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
+-		pr_info("kernel schedule profiling enabled (shift: %u)\n",
+-			prof_shift);
++		select = schedstr;
+ 	} else if (!strncmp(str, kvmstr, strlen(kvmstr))) {
+ 		prof_on = KVM_PROFILING;
+-		if (str[strlen(kvmstr)] == ',')
+-			str += strlen(kvmstr) + 1;
+-		if (get_option(&str, &par))
+-			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
+-		pr_info("kernel KVM profiling enabled (shift: %u)\n",
+-			prof_shift);
++		select = kvmstr;
+ 	} else if (get_option(&str, &par)) {
+ 		prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
+ 		prof_on = CPU_PROFILING;
+ 		pr_info("kernel profiling enabled (shift: %u)\n",
+ 			prof_shift);
  	}
- 
--	/* Remove page from free list */
--
- 	del_page_from_free_list(page, zone, order);
- 
- 	/*
-@@ -3645,7 +3638,6 @@ int __isolate_free_page(struct page *pag
- 		}
- 	}
- 
--
- 	return 1UL << order;
++
++	if (select) {
++		if (str[strlen(select)] == ',')
++			str += strlen(select) + 1;
++		if (get_option(&str, &par))
++			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
++		pr_info("kernel %s profiling enabled (shift: %u)\n",
++			select, prof_shift);
++	}
++
+ 	return 1;
  }
- 
+ __setup("profile=", profile_setup);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from wuchi.zero@gmail.com are
 
-mm-memory-failure-cleanup-try_to_split_thp_page.patch
-mm-add-warning-if-__vm_enough_memory-fails.patch
-mm-kill-find_min_pfn_with_active_regions.patch
-mm-memory-failure-kill-soft_offline_free_page.patch
-mm-memory-failure-kill-__soft_offline_page.patch
-mm-memory-failure-kill-__soft_offline_page-v2.patch
-mm-kill-is_memblock_offlined.patch
-mm-fix-null-ptr-deref-in-kswapd_is_running.patch
-mm-remove-bug_on-in-__isolate_free_page.patch
-kernel-exit-cleanup-release_thread.patch
+lib-debugobjects-fix-stat-count-and-optimize-debug_objects_mem_init.patch
+initramfs-mask-my_inptr-as-__initdata.patch
+profile-simplify-redundant-code-in-profile_setup.patch
 
