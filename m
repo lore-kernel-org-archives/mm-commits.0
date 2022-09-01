@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 365C2ECAAD5
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:10:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9B21ECAAD1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:11:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232420AbiIATK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233080AbiIATK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 1 Sep 2022 15:10:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48738 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233602AbiIATKv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 15:10:51 -0400
+        with ESMTP id S233366AbiIATKy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 15:10:54 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABEA75FAC3
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:10:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1F205EDC0
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:10:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 57789B828FF
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:10:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11B9DC433C1;
-        Thu,  1 Sep 2022 19:10:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7410DB828CE
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:10:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10602C433C1;
+        Thu,  1 Sep 2022 19:10:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662059447;
-        bh=fdzk9inkdE+uwRk4F/wGxMC/ok+D7iZyT/s1iuqP90s=;
+        s=korg; t=1662059451;
+        bh=1h6m1ddMUN0NFxXt2OxptWIAna0V/Q9octeKpSuvJNc=;
         h=Date:To:From:Subject:From;
-        b=2SFUbo51MuY/Q1yatNgza2mUgmSm7Ujk2CD7gjqdUQhwXbPq5HM2ZFwk3XZBqNeh7
-         j5VyJy8GYqiho0B/s7f4cjsoJywsnxE3+8Jsr1xevgUY/wusgyvJ+O7TANI1JwOjmC
-         rUGVUFBs5emWCbH+z4mSSS0kkGne9YGRGpf3q4HE=
-Date:   Thu, 01 Sep 2022 12:10:46 -0700
+        b=aeKn5Qa3Ju3N9m9/3UkhnmfY4QULx1oKWt0PQpc6K/x3zRrz8wiA+bC6uCt2QtXe4
+         puUkuWBt5GWYYKmET/UPWpupq94ok1cz2M087w23ENX4vuunCbHKXX0DwXT+6RVfCF
+         lr0VJi/kZ77PlySgqyeJQrFeL2ifNP5WKvc/BNgA=
+Date:   Thu, 01 Sep 2022 12:10:50 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-use-helper-huge_ptepmd_lock.patch added to mm-unstable branch
-Message-Id: <20220901191047.11B9DC433C1@smtp.kernel.org>
+Subject: + hugetlb-kill-hugetlbfs_pagecache_page.patch added to mm-unstable branch
+Message-Id: <20220901191051.10602C433C1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: use helper {huge_pte|pmd}_lock()
+     Subject: hugetlb: kill hugetlbfs_pagecache_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-use-helper-huge_ptepmd_lock.patch
+     hugetlb-kill-hugetlbfs_pagecache_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-use-helper-huge_ptepmd_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-kill-hugetlbfs_pagecache_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,44 +66,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: hugetlb: use helper {huge_pte|pmd}_lock()
-Date: Thu, 1 Sep 2022 20:00:25 +0800
+Subject: hugetlb: kill hugetlbfs_pagecache_page()
+Date: Thu, 1 Sep 2022 20:00:27 +0800
 
-Use helper huge_pte_lock and pmd_lock to simplify the code. No functional
-change intended.
+Fold hugetlbfs_pagecache_page() into its sole caller to remove some
+duplicated code. No functional change intended.
 
-Link: https://lkml.kernel.org/r/20220901120030.63318-6-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220901120030.63318-8-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-use-helper-huge_ptepmd_lock
+--- a/mm/hugetlb.c~hugetlb-kill-hugetlbfs_pagecache_page
 +++ a/mm/hugetlb.c
-@@ -6094,8 +6094,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 		page_in_pagecache = true;
+@@ -5467,19 +5467,6 @@ out_release_old:
+ 	return ret;
+ }
+ 
+-/* Return the pagecache page at a given address within a VMA */
+-static struct page *hugetlbfs_pagecache_page(struct hstate *h,
+-			struct vm_area_struct *vma, unsigned long address)
+-{
+-	struct address_space *mapping;
+-	pgoff_t idx;
+-
+-	mapping = vma->vm_file->f_mapping;
+-	idx = vma_hugecache_offset(h, vma, address);
+-
+-	return find_lock_page(mapping, idx);
+-}
+-
+ /*
+  * Return whether there is a pagecache page to back given address within VMA.
+  * Caller follow_hugetlb_page() holds page_table_lock so we cannot lock_page.
+@@ -5885,7 +5872,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 		/* Just decrements count, does not deallocate */
+ 		vma_end_reservation(h, vma, haddr);
+ 
+-		pagecache_page = hugetlbfs_pagecache_page(h, vma, haddr);
++		pagecache_page = find_lock_page(mapping, idx);
  	}
  
--	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
--	spin_lock(ptl);
-+	ptl = huge_pte_lock(h, dst_mm, dst_pte);
- 
- 	/*
- 	 * We allow to overwrite a pte marker: consider when both MISSING|WP
-@@ -7176,8 +7175,7 @@ follow_huge_pmd(struct mm_struct *mm, un
- 		return NULL;
- 
- retry:
--	ptl = pmd_lockptr(mm, pmd);
--	spin_lock(ptl);
-+	ptl = pmd_lock(mm, pmd);
- 	/*
- 	 * make sure that the address range covered by this pmd is not
- 	 * unmapped from other threads.
+ 	ptl = huge_pte_lock(h, mm, ptep);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
