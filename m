@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ADC9ECAAD3
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:07:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A37AEECAAD1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:10:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233501AbiIATHL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Sep 2022 15:07:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43322 "EHLO
+        id S233729AbiIATKn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Sep 2022 15:10:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233604AbiIATHF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 15:07:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41BA975CDF
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:07:01 -0700 (PDT)
+        with ESMTP id S232641AbiIATKm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 15:10:42 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EA375283C
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:10:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D267F61D96
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:07:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E965C433D7;
-        Thu,  1 Sep 2022 19:07:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 135A3B828CE
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:10:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4EF3C433D6;
+        Thu,  1 Sep 2022 19:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662059220;
-        bh=wdm+OX/vF907sLS+i1az7XS7239z+nI5KpdePELQn2M=;
+        s=korg; t=1662059438;
+        bh=m8PWfk+DBz4swgx5UsiFrO814iXF3d/vhQJ+5a81Bcc=;
         h=Date:To:From:Subject:From;
-        b=ZXaptIE77a+Avs+vSv0lZ5fBnd3UCLFlYUWM8tkXC5GdSCkNYDn6wh745fKOM4Jlg
-         wEtXseNiZ6/Po8Nqqx1+/H1zeFik0rGdPwknapjSWWxZDLqs+lRGEhD60ae8H2Xboj
-         xKYBYFFxXzMi/q+F67Q41GRDUYW2zWK8Ed6MDT+8=
-Date:   Thu, 01 Sep 2022 12:06:59 -0700
-To:     mm-commits@vger.kernel.org, jack@suse.cz, yi.zhang@huawei.com,
+        b=Dyhj54PA6xlFgFHisKNFmjkSFr+ZSSk8qcNLuXG9N20VwkB1BODLk/lOSRcTe9sef
+         q7vx0SxXQujF4z/jeVZw0aps/S7S+tqze62q6kiOpYpQvmCyNQbHWiVAFtihq9F3u0
+         SojY9uxkciJ9WV+8FgTBhcuqItpRa3CwHmTlyV90=
+Date:   Thu, 01 Sep 2022 12:10:37 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ext2-replace-bh_submit_read-helper-with-bh_read_locked.patch added to mm-unstable branch
-Message-Id: <20220901190700.2E965C433D7@smtp.kernel.org>
+Subject: + hugetlb-make-hugetlb_cma_check-static.patch added to mm-unstable branch
+Message-Id: <20220901191038.C4EF3C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext2: replace bh_submit_read() helper with bh_read_locked()
+     Subject: hugetlb: make hugetlb_cma_check() static
 has been added to the -mm mm-unstable branch.  Its filename is
-     ext2-replace-bh_submit_read-helper-with-bh_read_locked.patch
+     hugetlb-make-hugetlb_cma_check-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ext2-replace-bh_submit_read-helper-with-bh_read_locked.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-make-hugetlb_cma_check-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,62 +65,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhang Yi <yi.zhang@huawei.com>
-Subject: ext2: replace bh_submit_read() helper with bh_read_locked()
-Date: Thu, 1 Sep 2022 21:35:04 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: hugetlb: make hugetlb_cma_check() static
+Date: Thu, 1 Sep 2022 20:00:21 +0800
 
-bh_submit_read() and the uptodate check logic in bh_uptodate_or_lock()
-has been integrated in bh_read() helper, so switch to use it directly.
+Patch series "A few cleanup patches for hugetlb", v2.
 
-Link: https://lkml.kernel.org/r/20220901133505.2510834-14-yi.zhang@huawei.com
-Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+This series contains a few cleanup patches to use helper functions to
+simplify the codes, remove unneeded nid parameter and so on. More
+details can be found in the respective changelogs.
+
+
+This patch (of 10):
+
+Make hugetlb_cma_check() static as it's only used inside mm/hugetlb.c.
+
+Link: https://lkml.kernel.org/r/20220901120030.63318-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220901120030.63318-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/balloc.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |    4 ----
+ mm/hugetlb.c            |   10 +++++++++-
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
---- a/fs/ext2/balloc.c~ext2-replace-bh_submit_read-helper-with-bh_read_locked
-+++ a/fs/ext2/balloc.c
-@@ -126,6 +126,7 @@ read_block_bitmap(struct super_block *sb
- 	struct ext2_group_desc * desc;
- 	struct buffer_head * bh = NULL;
- 	ext2_fsblk_t bitmap_blk;
-+	int ret;
+--- a/include/linux/hugetlb.h~hugetlb-make-hugetlb_cma_check-static
++++ a/include/linux/hugetlb.h
+@@ -1155,14 +1155,10 @@ static inline spinlock_t *huge_pte_lock(
  
- 	desc = ext2_get_group_desc(sb, block_group, NULL);
- 	if (!desc)
-@@ -139,10 +140,10 @@ read_block_bitmap(struct super_block *sb
- 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
- 		return NULL;
- 	}
--	if (likely(bh_uptodate_or_lock(bh)))
-+	ret = bh_read(bh, 0);
-+	if (ret > 0)
- 		return bh;
--
--	if (bh_submit_read(bh) < 0) {
-+	if (ret < 0) {
- 		brelse(bh);
- 		ext2_error(sb, __func__,
- 			    "Cannot read block bitmap - "
+ #if defined(CONFIG_HUGETLB_PAGE) && defined(CONFIG_CMA)
+ extern void __init hugetlb_cma_reserve(int order);
+-extern void __init hugetlb_cma_check(void);
+ #else
+ static inline __init void hugetlb_cma_reserve(int order)
+ {
+ }
+-static inline __init void hugetlb_cma_check(void)
+-{
+-}
+ #endif
+ 
+ bool want_pmd_share(struct vm_area_struct *vma, unsigned long addr);
+--- a/mm/hugetlb.c~hugetlb-make-hugetlb_cma_check-static
++++ a/mm/hugetlb.c
+@@ -4058,6 +4058,14 @@ static void hugetlb_register_all_nodes(v
+ 
+ #endif
+ 
++#ifdef CONFIG_CMA
++static void __init hugetlb_cma_check(void);
++#else
++static inline __init void hugetlb_cma_check(void)
++{
++}
++#endif
++
+ static int __init hugetlb_init(void)
+ {
+ 	int i;
+@@ -7546,7 +7554,7 @@ void __init hugetlb_cma_reserve(int orde
+ 		hugetlb_cma_size = 0;
+ }
+ 
+-void __init hugetlb_cma_check(void)
++static void __init hugetlb_cma_check(void)
+ {
+ 	if (!hugetlb_cma_size || cma_reserve_called)
+ 		return;
 _
 
-Patches currently in -mm which might be from yi.zhang@huawei.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-fs-buffer-remove-__breadahead_gfp.patch
-fs-buffer-add-some-new-buffer-read-helpers.patch
-fs-buffer-replace-ll_rw_block.patch
-gfs2-replace-ll_rw_block.patch
-isofs-replace-ll_rw_block.patch
-jbd2-replace-ll_rw_block.patch
-ntfs3-replace-ll_rw_block.patch
-ocfs2-replace-ll_rw_block.patch
-reiserfs-replace-ll_rw_block.patch
-udf-replace-ll_rw_block.patch
-ufs-replace-ll_rw_block.patch
-fs-buffer-remove-ll_rw_block-helper.patch
-ext2-replace-bh_submit_read-helper-with-bh_read_locked.patch
-fs-buffer-remove-bh_submit_read-helper.patch
+mm-page_alloc-minor-clean-up-for-memmap_init_compound.patch
+hugetlb_cgroup-remove-unneeded-nr_pages-0-check.patch
+hugetlb_cgroup-hugetlbfs-use-helper-macro-sz_1kmg.patch
+hugetlb_cgroup-remove-unneeded-return-value.patch
+hugetlb_cgroup-use-helper-macro-numa_no_node.patch
+hugetlb_cgroup-use-helper-for_each_hstate-and-hstate_index.patch
+mm-hugetlb-fix-incorrect-update-of-max_huge_pages.patch
+mm-hugetlb-fix-warn_onkobj-in-sysfs_create_group.patch
+mm-hugetlb-fix-missing-call-to-restore_reserve_on_error.patch
+mm-hugetlb-fix-missing-call-to-restore_reserve_on_error-v2.patch
+mm-hugetlb_vmemmap-add-missing-smp_wmb-before-set_pte_at.patch
+mm-hugetlb-fix-sysfs-group-leak-in-hugetlb_unregister_node.patch
+mm-hugetlb-make-detecting-shared-pte-more-reliable.patch
+mm-hwpoison-fix-page-refcnt-leaking-in-try_memory_failure_hugetlb.patch
+mm-hwpoison-fix-page-refcnt-leaking-in-unpoison_memory.patch
+mm-hwpoison-fix-extra-put_page-in-soft_offline_page.patch
+mm-hwpoison-fix-possible-use-after-free-in-mf_dax_kill_procs-v2.patch
+mm-hwpoison-kill-procs-if-unmap-fails.patch
+mm-hwpoison-kill-procs-if-unmap-fails-v2.patch
+mm-hwpoison-avoid-trying-to-unpoison-reserved-page.patch
+mm-hwpoison-use-clearpagehwpoison-in-memory_failure.patch
+mm-hwpoison-use-__pagemovable-to-detect-non-lru-movable-pages.patch
+mm-hwpoison-use-num_poisoned_pages_sub-to-decrease-num_poisoned_pages.patch
+mm-hwpoison-avoid-unneeded-page_mapped_in_vma-overhead-in-collect_procs_anon.patch
+mm-hwpoison-check-pagetable-explicitly-in-hwpoison_user_mappings.patch
+mm-hwpoison-cleanup-some-obsolete-comments.patch
+hugetlb-make-hugetlb_cma_check-static.patch
+hugetlb-use-helper-macro-sz_1k.patch
+hugetlb-use-list_head-to-define-a-list-head.patch
+hugetlb-use-sizeof-to-get-the-array-size.patch
+hugetlb-use-helper-huge_ptepmd_lock.patch
+hugetlb-pass-null-to-kobj_to_hstate-if-nid-is-unused.patch
+hugetlb-kill-hugetlbfs_pagecache_page.patch
+hugetlb-add-comment-for-subtle-sethpagevmemmapoptimized.patch
+hugetlb-remove-meaningless-bug_onhuge_pte_none.patch
+hugetlb-make-hugetlb-depends-on-sysfs-or-sysctl.patch
 
