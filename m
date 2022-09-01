@@ -2,189 +2,188 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 329C5C64991
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 17:47:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BD0DECAAD1
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Sep 2022 19:06:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234435AbiIARr3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Sep 2022 13:47:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42552 "EHLO
+        id S233392AbiIATGh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Sep 2022 15:06:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234737AbiIARrN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 13:47:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 190D575CC5
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 10:46:10 -0700 (PDT)
+        with ESMTP id S233157AbiIATGg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2022 15:06:36 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C47936D565
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 12:06:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 667FF60B7F
-        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 17:46:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5C4EC433D6;
-        Thu,  1 Sep 2022 17:46:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 55FE3B825DC
+        for <mm-commits@vger.kernel.org>; Thu,  1 Sep 2022 19:06:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E40C1C433D6;
+        Thu,  1 Sep 2022 19:06:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662054369;
-        bh=ZhOm71cqMpdintIsQkKC0aWsPybF6W08rY9n3jvg/+M=;
+        s=korg; t=1662059193;
+        bh=jLsR0gVffekc5zyoaOCJ8zt6mbwl9WlIOG+HoD7ddyE=;
         h=Date:To:From:Subject:From;
-        b=BNY6LbftKiuaEdzX4yibufgvmBg0ai3uf91NIllsfI3yOgUbQhn+K7lhMFkfxcSeU
-         H4gkQBzO6NzEz7YTJfO7rA7OCe/GMz3rswwZPP+/uzTRJvOtwx/ftjGrBk6CKOdn4A
-         RbqnA3BWlCM+Vz/DNewJHJxDCGhhPsTtTP3aVy6A=
-Date:   Thu, 01 Sep 2022 10:46:08 -0700
-To:     mm-commits@vger.kernel.org, zhangxuezhi1@coolpad.com,
-        yangtiezhu@loongson.cn, xyangxi5@gmail.com, tangmeng@uniontech.com,
-        pmladek@suse.com, penguin-kernel@I-love.SAKURA.ne.jp,
-        mcgrof@kernel.org, john.ogness@linutronix.de, jirislaby@kernel.org,
-        ilpo.jarvinen@linux.intel.com, gregkh@linuxfoundation.org,
-        gpiccoli@igalia.com, elver@google.com, davidgow@google.com,
-        dankamongmen@gmail.com, daniel.vetter@intel.com,
-        chris@chris-wilson.co.uk, bigeasy@linutronix.de,
-        daniel.vetter@ffwll.ch, akpm@linux-foundation.org
+        b=H7nEkIdrnJ5gmwfJgeTuyhxi2ZUTwxF4xon1fRq40GAlfKXB/Qtla2gKSJsRM44+E
+         lrCNRmbQM5Q8V+w8KlGAhl8tZXCwx20v7TcWFh1mMsmNv6zdEJYzXi8g0l1uLdmChu
+         BcAwR/qkYmQeQhEh9xOVPncqvZRRe/LF1sn3/LPM=
+Date:   Thu, 01 Sep 2022 12:06:32 -0700
+To:     mm-commits@vger.kernel.org, yukuai3@huawei.com,
+        viro@zeniv.linux.org.uk, tytso@mit.edu, rpeterso@redhat.com,
+        ocfs2-devel@oss.oracle.com, mark@fasheh.com, jack@suse.cz,
+        hch@infradead.org, dushistov@mail.ru, chengzhihao1@huawei.com,
+        axboe@kernel.dk, almaz.alexandrovich@paragon-software.com,
+        agruenba@redhat.com, yi.zhang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] kernel-panic-drop-unblank_screen-call.patch removed from -mm tree
-Message-Id: <20220901174609.B5C4EC433D6@smtp.kernel.org>
+Subject: + fs-buffer-remove-__breadahead_gfp.patch added to mm-unstable branch
+Message-Id: <20220901190632.E40C1C433D6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: kernel/panic: drop unblank_screen call
-has been removed from the -mm tree.  Its filename was
-     kernel-panic-drop-unblank_screen-call.patch
+The patch titled
+     Subject: fs/buffer: remove __breadahead_gfp()
+has been added to the -mm mm-unstable branch.  Its filename is
+     fs-buffer-remove-__breadahead_gfp.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-buffer-remove-__breadahead_gfp.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: kernel/panic: drop unblank_screen call
-Date: Tue, 30 Aug 2022 16:50:04 +0200
+From: Zhang Yi <yi.zhang@huawei.com>
+Subject: fs/buffer: remove __breadahead_gfp()
+Date: Thu, 1 Sep 2022 21:34:52 +0800
 
-console_unblank() does this too (called in both places right after), and
-with a lot more confidence inspiring approach to locking.
+Patch series "fs/buffer: remove ll_rw_block()", v2.
 
-Reconstructing this story is very strange:
+ll_rw_block() will skip locked buffer before submitting IO, it assumes
+that locked buffer means it is under IO.  This assumption is not always
+true because we cannot guarantee every buffer lock path would submit IO. 
+After commit 88dbcbb3a484 ("blkdev: avoid migration stalls for blkdev
+pages"), buffer_migrate_folio_norefs() becomes one exceptional case, and
+there may be others.  So ll_rw_block() is not safe on the sync read path,
+we could get false positive EIO return value when filesystem reading
+metadata.  It seems that it could be only used on the readahead path.
 
-In b61312d353da ("oops handling: ensure that any oops is flushed to the
-mtdoops console") it is claimed that a printk(" "); flushed out the
-console buffer, which was removed in e3e8a75d2acf ("[PATCH] Extract and
-use wake_up_klogd()").  In todays kernels this is done way earlier in
-console_flush_on_panic with some really nasty tricks.  I didn't bother to
-fully reconstruct this all, least because the call to bust_spinlock(0);
-gets moved every few years, depending upon how the wind blows (or well,
-who screamed loudest about the various issue each call site caused).
+Unfortunately, many filesystem misuse the ll_rw_block() on the sync read
+path.  This patch set just remove ll_rw_block() and add new friendly
+helpers, which could prevent false positive EIO on the read metadata path.
+Thanks for the suggestion from Jan, the original discussion is at [1].
 
-Before that commit the only calls to console_unblank() where in s390 arch
-code.
+ patch 1: remove unused helpers in fs/buffer.c
+ patch 2: add new bh_read_[*] helpers
+ patch 3-11: remove all ll_rw_block() calls in filesystems
+ patch 12-14: do some leftover cleanups.
 
-The other side here is the console->unblank callback, which was introduced
-in 2.1.31 for the vt driver.  Which predates the console_unblank()
-function by a lot, which was added (without users) in 2.4.14.3.  So pretty
-much impossible to guess at any motivation here.  Also afaict the vt
-driver is the only (and always was the only) console driver implementing
-the unblank callback, so no idea why a call to console_unblank() was added
-for the mtdooops driver - the action actually flushing out the console
-buffers is done from console_unlock() only.
+[1]. https://lore.kernel.org/linux-mm/20220825080146.2021641-1-chengzhihao1@huawei.com/
 
-Note that as prep for the s390 users the locking was adjusted in 2.5.22 (I
-couldn't figure out how to properly reference the BK commit from the
-historical git trees) from a normal semaphore to a trylock.
 
-Note that a copy of the direct unblank_screen() call was added to panic()
-in c7c3f05e341a ("panic: avoid deadlocks in re-entrant console drivers"),
-which partially inlined the bust_spinlocks(0); call.
+This patch (of 14):
 
-Long story short, I have no idea why the direct call to unblank_screen
-survived for so long (the infrastructure to do it properly existed for
-years), nor why it wasn't removed when the console_unblank() call was
-finally added.  But it makes a ton more sense to finally do that than not
-- it's just better encapsulation to go through the console functions
-instead of doing a direct call, so let's dare.  Plus it really does not
-make much sense to call the only unblank implementation there is twice,
-once without, and once with appropriate locking.
+No one use __breadahead_gfp() and sb_breadahead_unmovable() any more,
+remove them.
 
-Link: https://lkml.kernel.org/r/20220830145004.430545-1-daniel.vetter@ffwll.ch
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: "Ilpo Järvinen" <ilpo.jarvinen@linux.intel.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Xuezhi Zhang <zhangxuezhi1@coolpad.com>
-Cc: Yangxi Xiang <xyangxi5@gmail.com>
-Cc: nick black <dankamongmen@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Cc: Marco Elver <elver@google.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: David Gow <davidgow@google.com>
-Cc: tangmeng <tangmeng@uniontech.com>
-Cc: Tiezhu Yang <yangtiezhu@loongson.cn>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Link: https://lkml.kernel.org/r/20220901133505.2510834-1-yi.zhang@huawei.com
+Link: https://lkml.kernel.org/r/20220901133505.2510834-2-yi.zhang@huawei.com
+Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Bob Peterson <rpeterso@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Heming Zhao <ocfs2-devel@oss.oracle.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Yu Kuai <yukuai3@huawei.com>
+Cc: Zhihao Cheng <chengzhihao1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt.c     |    3 ++-
- include/linux/vt_kern.h |    1 -
- kernel/panic.c          |    3 ---
- lib/bust_spinlocks.c    |    3 ---
- 4 files changed, 2 insertions(+), 8 deletions(-)
+ fs/buffer.c                 |   11 -----------
+ include/linux/buffer_head.h |    8 --------
+ 2 files changed, 19 deletions(-)
 
---- a/drivers/tty/vt/vt.c~kernel-panic-drop-unblank_screen-call
-+++ a/drivers/tty/vt/vt.c
-@@ -154,6 +154,7 @@ static void console_callback(struct work
- static void con_driver_unregister_callback(struct work_struct *ignored);
- static void blank_screen_t(struct timer_list *unused);
- static void set_palette(struct vc_data *vc);
-+static void unblank_screen(void);
- 
- #define vt_get_kmsg_redirect() vt_kmsg_redirect(-1)
- 
-@@ -4452,7 +4453,7 @@ EXPORT_SYMBOL(do_unblank_screen);
-  * call it with 1 as an argument and so force a mode restore... that may kill
-  * X or at least garbage the screen but would also make the Oops visible...
-  */
--void unblank_screen(void)
-+static void unblank_screen(void)
- {
- 	do_unblank_screen(0);
+--- a/fs/buffer.c~fs-buffer-remove-__breadahead_gfp
++++ a/fs/buffer.c
+@@ -1348,17 +1348,6 @@ void __breadahead(struct block_device *b
  }
---- a/include/linux/vt_kern.h~kernel-panic-drop-unblank_screen-call
-+++ a/include/linux/vt_kern.h
-@@ -30,7 +30,6 @@ struct vc_data *vc_deallocate(unsigned i
- void reset_palette(struct vc_data *vc);
- void do_blank_screen(int entering_gfx);
- void do_unblank_screen(int leaving_gfx);
--void unblank_screen(void);
- void poke_blanked_console(void);
- int con_font_op(struct vc_data *vc, struct console_font_op *op);
- int con_set_cmap(unsigned char __user *cmap);
---- a/kernel/panic.c~kernel-panic-drop-unblank_screen-call
-+++ a/kernel/panic.c
-@@ -329,9 +329,6 @@ void panic(const char *fmt, ...)
- 	if (_crash_kexec_post_notifiers)
- 		__crash_kexec(NULL);
+ EXPORT_SYMBOL(__breadahead);
  
--#ifdef CONFIG_VT
--	unblank_screen();
--#endif
- 	console_unblank();
+-void __breadahead_gfp(struct block_device *bdev, sector_t block, unsigned size,
+-		      gfp_t gfp)
+-{
+-	struct buffer_head *bh = __getblk_gfp(bdev, block, size, gfp);
+-	if (likely(bh)) {
+-		ll_rw_block(REQ_OP_READ | REQ_RAHEAD, 1, &bh);
+-		brelse(bh);
+-	}
+-}
+-EXPORT_SYMBOL(__breadahead_gfp);
+-
+ /**
+  *  __bread_gfp() - reads a specified block and returns the bh
+  *  @bdev: the block_device to read from
+--- a/include/linux/buffer_head.h~fs-buffer-remove-__breadahead_gfp
++++ a/include/linux/buffer_head.h
+@@ -214,8 +214,6 @@ struct buffer_head *__getblk_gfp(struct
+ void __brelse(struct buffer_head *);
+ void __bforget(struct buffer_head *);
+ void __breadahead(struct block_device *, sector_t block, unsigned int size);
+-void __breadahead_gfp(struct block_device *, sector_t block, unsigned int size,
+-		  gfp_t gfp);
+ struct buffer_head *__bread_gfp(struct block_device *,
+ 				sector_t block, unsigned size, gfp_t gfp);
+ void invalidate_bh_lrus(void);
+@@ -340,12 +338,6 @@ sb_breadahead(struct super_block *sb, se
+ 	__breadahead(sb->s_bdev, block, sb->s_blocksize);
+ }
  
- 	/*
---- a/lib/bust_spinlocks.c~kernel-panic-drop-unblank_screen-call
-+++ a/lib/bust_spinlocks.c
-@@ -22,9 +22,6 @@ void bust_spinlocks(int yes)
- 	if (yes) {
- 		++oops_in_progress;
- 	} else {
--#ifdef CONFIG_VT
--		unblank_screen();
--#endif
- 		console_unblank();
- 		if (--oops_in_progress == 0)
- 			wake_up_klogd();
+-static inline void
+-sb_breadahead_unmovable(struct super_block *sb, sector_t block)
+-{
+-	__breadahead_gfp(sb->s_bdev, block, sb->s_blocksize, 0);
+-}
+-
+ static inline struct buffer_head *
+ sb_getblk(struct super_block *sb, sector_t block)
+ {
 _
 
-Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
+Patches currently in -mm which might be from yi.zhang@huawei.com are
 
+fs-buffer-remove-__breadahead_gfp.patch
+fs-buffer-add-some-new-buffer-read-helpers.patch
+fs-buffer-replace-ll_rw_block.patch
+gfs2-replace-ll_rw_block.patch
+isofs-replace-ll_rw_block.patch
+jbd2-replace-ll_rw_block.patch
+ntfs3-replace-ll_rw_block.patch
+ocfs2-replace-ll_rw_block.patch
+reiserfs-replace-ll_rw_block.patch
+udf-replace-ll_rw_block.patch
+ufs-replace-ll_rw_block.patch
+fs-buffer-remove-ll_rw_block-helper.patch
+ext2-replace-bh_submit_read-helper-with-bh_read_locked.patch
+fs-buffer-remove-bh_submit_read-helper.patch
 
