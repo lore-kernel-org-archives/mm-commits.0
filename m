@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9677ECAAA1
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77D7AC6FA82
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Sep 2022 23:28:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229803AbiIBX23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229876AbiIBX23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 2 Sep 2022 19:28:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54870 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230285AbiIBX12 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:28 -0400
+        with ESMTP id S230325AbiIBX1a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2022 19:27:30 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14F7BE115F
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 088E9F8FD7
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 16:27:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A733060EAD
-        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AF27C433B5;
-        Fri,  2 Sep 2022 23:27:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A47F61E2F
+        for <mm-commits@vger.kernel.org>; Fri,  2 Sep 2022 23:27:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EED94C433B5;
+        Fri,  2 Sep 2022 23:27:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1662161246;
-        bh=XM623DSOLVA4GwWjcbs6GeYpWj559ZKUgdXFzCfPDvw=;
+        s=korg; t=1662161248;
+        bh=d1SW1HkiMqqTf8GhhdbuUge8fjk9Ji1+BP5BMiXFW4w=;
         h=Date:To:From:Subject:From;
-        b=CPNjqB5xaxuNp7nO104L3zAE1QaKcxv0c0IE0mZ4s+ABSGAi2NIL0rGGxAGaib2Mr
-         lzf2es5EvTxd4QcYI0/Z32cnCBs3wn7n4X8ZOiRU3JLJfmPVST1SpYvqEOiUzBFKfP
-         vDr7I1Uv0Lx0w3UVFaKrd6+aN1zbMcTlfSqdsaqM=
-Date:   Fri, 02 Sep 2022 16:27:25 -0700
+        b=T2wCONgXQxZiGLaHrVcHwXaUK+r3kSvk+/GLF1oVRyf4UMrxfSkXtcdPo5Gb73d6q
+         O1/a7SUI0f4mof0vLTEf/JXL7ccjYLExx39ZQPm4+eU8xJfmZPEqw2GSVFLHyiq7ax
+         TPOVQZpKk1zlCCO7zNwRFLaEwSr+jzuK8AGf0OxE=
+Date:   Fri, 02 Sep 2022 16:27:27 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-do_swap_page-to-use-swap_cache_get_folio.patch added to mm-unstable branch
-Message-Id: <20220902232726.0AF27C433B5@smtp.kernel.org>
+Subject: + mm-remove-lookup_swap_cache.patch added to mm-unstable branch
+Message-Id: <20220902232727.EED94C433B5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert do_swap_page() to use swap_cache_get_folio()
+     Subject: mm: remove lookup_swap_cache()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-do_swap_page-to-use-swap_cache_get_folio.patch
+     mm-remove-lookup_swap_cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-do_swap_page-to-use-swap_cache_get_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-lookup_swap_cache.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,34 +65,87 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert do_swap_page() to use swap_cache_get_folio()
-Date: Fri, 2 Sep 2022 20:46:33 +0100
+Subject: mm: remove lookup_swap_cache()
+Date: Fri, 2 Sep 2022 20:46:34 +0100
 
-Saves a folio->page->folio conversion.
+All callers have now been converted to swap_cache_get_folio(), so we can
+remove this wrapper.
 
-Link: https://lkml.kernel.org/r/20220902194653.1739778-38-willy@infradead.org
+Link: https://lkml.kernel.org/r/20220902194653.1739778-39-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ mm/swap.h       |   10 ----------
+ mm/swap_state.c |   12 +-----------
+ 3 files changed, 2 insertions(+), 22 deletions(-)
 
---- a/mm/memory.c~mm-convert-do_swap_page-to-use-swap_cache_get_folio
-+++ a/mm/memory.c
-@@ -3769,9 +3769,9 @@ vm_fault_t do_swap_page(struct vm_fault
- 	if (unlikely(!si))
- 		goto out;
+--- a/mm/memcontrol.c~mm-remove-lookup_swap_cache
++++ a/mm/memcontrol.c
+@@ -5569,7 +5569,7 @@ static struct page *mc_handle_swap_pte(s
+ 		return NULL;
  
--	page = lookup_swap_cache(entry, vma, vmf->address);
--	if (page)
--		folio = page_folio(page);
-+	folio = swap_cache_get_folio(entry, vma, vmf->address);
-+	if (folio)
-+		page = folio_file_page(folio, swp_offset(entry));
- 	swapcache = folio;
+ 	/*
+-	 * Because lookup_swap_cache() updates some statistics counter,
++	 * Because swap_cache_get_folio() updates some statistics counter,
+ 	 * we call find_get_page() with swapper_space directly.
+ 	 */
+ 	page = find_get_page(swap_address_space(ent), swp_offset(ent));
+--- a/mm/swap.h~mm-remove-lookup_swap_cache
++++ a/mm/swap.h
+@@ -41,9 +41,6 @@ void clear_shadow_from_swap_cache(int ty
+ 				  unsigned long end);
+ struct folio *swap_cache_get_folio(swp_entry_t entry,
+ 		struct vm_area_struct *vma, unsigned long addr);
+-struct page *lookup_swap_cache(swp_entry_t entry,
+-			       struct vm_area_struct *vma,
+-			       unsigned long addr);
+ struct page *find_get_incore_page(struct address_space *mapping, pgoff_t index);
  
- 	if (!folio) {
+ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+@@ -101,13 +98,6 @@ static inline int swap_writepage(struct
+ 	return 0;
+ }
+ 
+-static inline struct page *lookup_swap_cache(swp_entry_t swp,
+-					     struct vm_area_struct *vma,
+-					     unsigned long addr)
+-{
+-	return NULL;
+-}
+-
+ static inline
+ struct page *find_get_incore_page(struct address_space *mapping, pgoff_t index)
+ {
+--- a/mm/swap_state.c~mm-remove-lookup_swap_cache
++++ a/mm/swap_state.c
+@@ -369,16 +369,6 @@ struct folio *swap_cache_get_folio(swp_e
+ 	return folio;
+ }
+ 
+-struct page *lookup_swap_cache(swp_entry_t entry, struct vm_area_struct *vma,
+-			       unsigned long addr)
+-{
+-	struct folio *folio = swap_cache_get_folio(entry, vma, addr);
+-
+-	if (!folio)
+-		return NULL;
+-	return folio_file_page(folio, swp_offset(entry));
+-}
+-
+ /**
+  * find_get_incore_page - Find and get a page from the page or swap caches.
+  * @mapping: The address_space to search.
+@@ -430,7 +420,7 @@ struct page *__read_swap_cache_async(swp
+ 		int err;
+ 		/*
+ 		 * First check the swap cache.  Since this is normally
+-		 * called after lookup_swap_cache() failed, re-calling
++		 * called after swap_cache_get_folio() failed, re-calling
+ 		 * that would confuse statistics.
+ 		 */
+ 		si = get_swap_device(entry);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
